@@ -27,7 +27,7 @@ from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
-    PageRequest, PreparedTranscriptPage, SavedHistory, TranscriptPageWork,
+    PageRequest, PreparedTranscriptPage, SavedHistory, SourceObservation, TranscriptPageWork, Unchanged,
 )
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
@@ -257,12 +257,12 @@ class WireSource:
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(str(self.project))
 
-    def observe(self, seen: ConversationObservation) -> WireObservation | None:
-        """What changed since `seen`, or None when the stores are as they were."""
+    def observe(self, seen: ConversationObservation) -> SourceObservation:
+        """The observed state owns how changed or unchanged history is drawn."""
         revision = self.kind.history_view.revision(
             self.comms.views, self.target, seen, worktree=str(self.project))
         if revision == seen:
-            return None
+            return Unchanged()
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
@@ -289,10 +289,20 @@ class WireSource:
 
 
 @dataclass(frozen=True)
-class WireObservation:
+class WireObservation(SourceObservation):
     revision: ConversationRevision
     through: AfterSequence
     replaced: bool
+
+    async def apply(self, history, source) -> bool:
+        history.revision = self.revision
+        if self.replaced:
+            await history.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
+            return not history.undrawn
+        if not history.undrawn:
+            return await history.extend(self.through)
+        history.extend_source(self.through)
+        return await super().apply(history, source)
 
 
 @dataclass(frozen=True)

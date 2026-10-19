@@ -15,6 +15,8 @@ from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 
 from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
+from toad.transcript_state import LatestViewportRequest
+from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
@@ -501,6 +503,20 @@ class SavedPrefix(SavedHistory):
         await request.end.edge((self.earlier.prepare, super()._prepare))(request)
 
 
+class SourceObservation:
+    async def apply(self, history, source) -> bool:
+        await history._jump_latest(LatestViewportRequest(LatestPosition.hold(history.window)))
+        return not history.undrawn
+
+
+class Unchanged(SourceObservation):
+    async def apply(self, history, source) -> bool:
+        if not history.undrawn:
+            return (history.pages[-1].prepared.page.after != source.through
+                    and await history.extend(source.through))
+        return await super().apply(history, source)
+
+
 class ClosedHistory(PreparedPageSource):
     """A retained range without a saved reader; its pages remain usable."""
 
@@ -539,7 +555,7 @@ class ClosedHistory(PreparedPageSource):
         raise ValueError("This transcript has no saved-source reader")
 
     async def observe_changes(self, revision):
-        return None
+        return Unchanged()
 
     def accepts_page(self, current, incoming) -> bool:
         return False
