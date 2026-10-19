@@ -133,16 +133,8 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[
     return result
 
 
-def publish_runtime(publication_tools: Path, root: Path) -> None:
-    """Use Core's publication owner and report the runtime it replaced.
-
-    Run with the qualified target Python inside the reviewed publication window.
-    Native stopping/restarting remains with Core's existing cutover owner.
-    """
-    from agent_comms.owner_cutover import StoppedOwnerInstallation
-
-    # Load only the explicit checkout tools, under their own namespace. Core
-    # itself comes only from the target interpreter's installed package.
+def publication_module(publication_tools: Path):
+    """Load the reviewed tools without changing the interpreter's Core package."""
     package_spec = importlib.util.spec_from_file_location(
         '_core_checkout_tools', publication_tools / '__init__.py')
     package = importlib.util.module_from_spec(package_spec)
@@ -153,15 +145,35 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
+    return module
+
+
+def publish_runtime(publication_tools: Path, root: Path) -> None:
+    """Select target files, then let the installed source own drain and stop."""
+    from agent_comms.owner_cutover import StoppedOwnerInstallation
+    from agent_comms.field_codec import FieldCodec
+
+    module = publication_module(publication_tools)
     publication = module.RuntimePublication.installed()
     RuntimeBuild.recorded_baseline(publication.runtime)
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
+    subprocess.run([
+        previous / 'bin/python', '-I', '-B', Path(__file__).resolve(), '--publish-source',
+        '--publication-tools', publication_tools, '--root', root,
+    ], input=json.dumps(FieldCodec.encode(publication)), text=True, check=True)
+    print(f'Linked {publication.runtime}', flush=True)
+    print(f'Previous {previous}', flush=True)
+
+
+def publish_source(publication_tools: Path, root: Path) -> None:
+    """Frontend readers and native owners stop under their original installed Core."""
+    from agent_comms.field_codec import FieldCodec
+
+    module = publication_module(publication_tools)
+    publication = FieldCodec.decode(module.RuntimePublication, FieldCodec.parse(sys.stdin.read()))
     watchers = InstallWatchers(root / 'runtime-publication-readers.json')
     publication.publish(root, checkout=publication_tools.parent,
                         resources=watchers.publication(publication.runtime))
-    print(f'Linked {publication.runtime}', flush=True)
-    # Report the actual prior pointer, not a build baseline or a persistent list.
-    print(f'Previous {previous}', flush=True)
 
 
 def installation_main() -> None:
@@ -169,6 +181,7 @@ def installation_main() -> None:
     actions = parser.add_mutually_exclusive_group(required=True)
     actions.add_argument('--prune-runtimes', action='store_true')
     actions.add_argument('--publish-runtime', action='store_true')
+    actions.add_argument('--publish-source', action='store_true')
     actions.add_argument('--stop-watchers', action='store_true')
     actions.add_argument('--restore-watchers', action='store_true')
     parser.add_argument('--watcher-state', type=Path)
@@ -192,7 +205,8 @@ def installation_main() -> None:
     else:
         if args.publication_tools is None or args.root is None:
             parser.error('--publish-runtime requires --publication-tools and --root')
-        publish_runtime(args.publication_tools, args.root)
+        operation = publish_source if args.publish_source else publish_runtime
+        operation(args.publication_tools, args.root)
 
 
 @dataclass(frozen=True)
@@ -1021,7 +1035,7 @@ def main() -> None:
 
 if __name__ == '__main__':
     if any(option in sys.argv for option in (
-        '--prune-runtimes', '--publish-runtime', '--stop-watchers', '--restore-watchers')):
+        '--prune-runtimes', '--publish-runtime', '--publish-source', '--stop-watchers', '--restore-watchers')):
         installation_main()
     elif sys.argv[1:] == ['--inventory']:
         print(json.dumps(inventory()))
