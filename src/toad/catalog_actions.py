@@ -25,7 +25,7 @@ class CatalogCommandAction(NativeAction, DeclaredFamily, affix="Action"):
         """Select native completion behavior for the original catalog command."""
         try:
             # External IDs allow hyphens; retain the original ID on the action.
-            operation = cls.decode(name.replace("-", "_"))
+            operation = cls.member_named(name.replace("-", "_"))
         except ValueError:
             # An arbitrary configured script uses explicit result dismissal.
             operation = RunAction

@@ -23,7 +23,7 @@ class CursorStatus(DeclaredFamily, affix="CursorStatus"):
     def external(cls, value: str | None) -> type[CursorStatus]:
         if value is None:
             return HiddenCursorStatus
-        return cls.decode(value)
+        return cls.member_named(value)
 
     @classmethod
     def present_status(cls, status: ThreadPresentationStatus) -> ThreadPresentationStatus:

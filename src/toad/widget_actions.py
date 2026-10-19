@@ -109,11 +109,9 @@ class DeclaredWidgetActions:
         super().__init_subclass__(**kwargs)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        try:
-            declaration = self.ACTIONS.decode(action)
-        except ValueError:
+        if action not in self.ACTIONS.names():
             return super().check_action(action, parameters)
-        return declaration.parse(parameters).available(self)
+        return self.ACTIONS.member_named(action).parse(parameters).available(self)
 
     async def _run_declared_action(self, declaration, *parameters) -> None:
         command = declaration.parse(parameters)

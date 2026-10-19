@@ -37,7 +37,7 @@ class GoalControl(InlineSelection, PrimaryActivation, CoreEventReceiver, Static,
 
     def action_activate(self):
         if not self.disabled:
-            self.publish_core(GoalControlActivated(GoalInteraction.decode(self.id.removeprefix("goal-"))))
+            self.publish_core(GoalControlActivated(GoalInteraction.member_named(self.id.removeprefix("goal-"))))
 
     def on_click(self, event: events.Click):
         event.stop()
