@@ -515,9 +515,6 @@ class TerminalApp:
         row, line = control(text)
         prefix, panel = line.rsplit('│', 1)
         self.click_cell(cell_len(prefix + '│' + panel[:panel.index('▐')]) + 1, row)
-        self.wait('hidden-' + label.replace('/', '-'), lambda text: any(
-            label in line.rsplit('│', 1)[-1] and '▐ ▌' in line.rsplit('│', 1)[-1]
-            for line in text.splitlines() if '│' in line))
 
     def click_cell(self, column, row):
         geometry = subprocess.check_output(
