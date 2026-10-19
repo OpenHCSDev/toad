@@ -273,10 +273,6 @@ See on-screen instructions for details.
         return self.simple_input or self.shell_mode or self.query_ancestor(Prompt).agent_ready
 
     @property
-    def queue_supported(self) -> bool:
-        return not self.simple_input and self.query_ancestor(Prompt).agent_binding.presentation.queue_supported
-
-    @property
     def can_enter_shell(self) -> bool:
         return self.submission_allowed and not self.text and not self.simple_input and not self.shell_mode
 

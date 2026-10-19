@@ -4,7 +4,6 @@ import asyncio
 from weakref import ref
 
 from agent_comms.goal_presentation import GoalSnapshot
-from toad.agent_binding import UnboundAgentError
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalUnavailable
 
@@ -31,7 +30,8 @@ class SessionObservation(ABC):
             return
         view.agent_binding.invalidate_observation(self)
 
-    def schedule(self):
+    def schedule(self, agent):
+        self.agent = agent
         self.revision += 1
         if not self.active:
             self.task = asyncio.create_task(self._run())
@@ -78,10 +78,7 @@ class SessionObservation(ABC):
     async def _run(self):
         while (view := self.view) is not None and view.is_attached:
             revision = self.revision
-            try:
-                agent = view.agent_binding.delivery_owner()
-            except UnboundAgentError:
-                return
+            agent = self.agent
             try:
                 result = await self.read(agent)
             except self.errors as error:
@@ -137,10 +134,8 @@ class InputDeliveryObservation(SessionObservation):
             raise ValueError("The connected owner changed; inspect delivery again.")
 
     def current_owner(self):
-        view = self.view
-        if view is None or not view.is_attached:
-            raise ValueError("The connected owner changed; inspect delivery again.")
-        return view.agent_binding.delivery_owner()
+        self.require_owner(self.agent)
+        return self.agent
 
     async def history(self):
         agent = self.current_owner()

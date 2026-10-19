@@ -8,10 +8,6 @@ from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import UnopenedSessionDisposition
 
 
-class UnboundAgentError(ValueError):
-    """An operation requires a connection the view has not acquired."""
-
-
 class AgentBinding(ABC):
     def model_info(self) -> Content:
         model = self.configuration.model.selected
@@ -135,9 +131,6 @@ class NoAgentBound(AgentBinding):
 
     def send_now(self, owner):
         """No remote queue is bound."""
-
-    def delivery_owner(self):
-        raise UnboundAgentError("No connected owner.")
 
     def goal_editor(self):
         raise ValueError("Editing requires an agent-comms goal")

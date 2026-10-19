@@ -31,9 +31,6 @@ class AgentBase(AgentBinding):
     def matches_agent(self, agent) -> bool:
         return self is agent
 
-    def delivery_owner(self):
-        return self
-
     def goal_editor(self):
         return self
 
@@ -69,7 +66,7 @@ class AgentBase(AgentBinding):
         return owner.send_bound_now(self)
 
     def invalidate_observation(self, observation):
-        observation.schedule()
+        observation.schedule(self)
 
     @property
     def automatic_titles(self):
