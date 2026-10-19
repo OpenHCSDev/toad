@@ -66,7 +66,7 @@ async def test_every_plan_status_is_drawn_with_its_marker_in_the_conversation_an
         await ui.until(lambda: painted_text(plan, "ACP_pending_ITEM"), why="the plan painted")
         assert not plan.all_complete
         for entry, raw in zip(plan.entries, FIRST["entries"]):
-            assert entry.status is PlanStatus.decode(raw["status"])
+            assert entry.status is PlanStatus.member_named(raw["status"])
             assert entry.content == raw["content"]
             assert entry.status.marker().strip() in viewport_text(plan)
         await ui.until(lambda: painted_text(sidebar.query_one(Plan), "ACP_pending_ITEM"), why="the sidebar plan painted")
