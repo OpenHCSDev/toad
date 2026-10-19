@@ -36,12 +36,58 @@ def run(*args: str | Path, cwd: Path | None = None) -> str:
     return subprocess.check_output(list(map(str, args)), cwd=cwd, text=True).strip()
 
 
-def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[Path] | None = None) -> dict:
-    """Build records and installation pointers own retention, not process presence.
+def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
+    """Inspect every process as root; an unreadable live process forbids pruning."""
+    references = {str(path): [] for path in runtimes}
+    for process in Path('/proc').iterdir():
+        if not process.name.isdigit() or int(process.name) == os.getpid():
+            continue
+        try:
+            state = (process / 'stat').read_bytes().rsplit(b')', 1)[1].split()
+            identity = state[19]
+            if state[0] == b'Z' or int(state[6]) & 0x00200000:
+                continue  # Zombies and kernel threads hold no userspace runtime.
+        except FileNotFoundError:
+            continue
+        contents = []
+        errors = []
+        for name in ('environ', 'cmdline', 'maps'):
+            try:
+                contents.append((process / name).read_bytes())
+            except OSError as error:
+                errors.append(error)
+        for link in (process / 'cwd', process / 'exe'):
+            try:
+                contents.append(os.fsencode(link.readlink()))
+            except OSError as error:
+                errors.append(error)
+        try:
+            for descriptor in (process / 'fd').iterdir():
+                try:
+                    contents.append(os.fsencode(descriptor.readlink()))
+                except FileNotFoundError:
+                    pass  # A descriptor may close during the scan.
+        except OSError as error:
+            errors.append(error)
+        try:
+            state = (process / 'stat').read_bytes().rsplit(b')', 1)[1].split()
+            after = state[19]
+            if state[0] == b'Z':
+                continue
+        except FileNotFoundError:
+            continue
+        if identity != after:
+            raise RuntimeError(f'Process identity changed during inspection: {process.name}')
+        if errors:
+            raise RuntimeError(f'Incomplete process inspection: {process.name}: {errors}')
+        for path, pids in references.items():
+            if any(os.fsencode(path) in value for value in contents):
+                pids.append(int(process.name))
+    return references
 
-    An unqualified build remains its builder's responsibility until explicitly
-    released with --remove. A qualified build protects every runtime it names.
-    """
+
+def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[Path] | None = None) -> dict:
+    """Records and build dates admit removal; process references can only veto it."""
     selected = current.resolve(strict=True)
     previous = previous.resolve(strict=True)
     directory = selected.parent
@@ -50,33 +96,36 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[
     runtimes = sorted(directory.iterdir())
     if any(path.is_symlink() or not path.is_dir() for path in runtimes):
         raise ValueError('Runtime directory contains unexpected files or symlinks')
-    if remove is not None and any(path not in runtimes for path in remove):
-        raise ValueError('Removal must name installed sibling runtimes')
-    records = RuntimeBuild.retained_runtimes(runtimes)
+    if remove is not None:
+        if any(path not in runtimes for path in remove):
+            raise ValueError('Removal must name installed sibling runtimes')
+        runtimes = remove
+    baseline = RuntimeBuild.recorded_baseline(selected)
+    installed = {selected, previous, baseline}
+    built_at = RuntimeBuild.built_at(selected)
+    references = runtime_references(runtimes)
+    proposed = [path for path in runtimes
+                if path not in installed and not references[str(path)]
+                and RuntimeBuild.qualified_before(path, built_at)]
     result = {'before': len(runtimes), 'current': str(selected), 'previous': str(previous),
-              'kept_by_record': sorted(str(path) for path in runtimes if path in records),
-              'missing_by_record': sorted(str(path) for path in records if not path.exists()),
-              'deleted': []}
+              'baseline': str(baseline),
+              'kept': [str(path) for path in runtimes if path not in proposed],
+              'kept_by_pid': {path: pids for path, pids in references.items() if pids},
+              'would_delete': list(map(str, proposed)), 'deleted': []}
     free_before = shutil.disk_usage(directory).free
-    for path in remove or ():
-        if path in (selected, previous) or path in records:
-            continue
-        # An explicit release cannot retire a build made after the installed one.
-        if RuntimeBuild.built_at(path) >= RuntimeBuild.built_at(selected):
-            continue
-        if delete:
+    if delete:
+        for path in proposed:
             if current.resolve(strict=True) != selected:
                 raise RuntimeError('Default changed during runtime cleanup')
-            # A build may have finished and recorded a dependency since inventory.
-            retained = RuntimeBuild.retained_runtimes(sorted(directory.iterdir()))
-            if path in retained:
+            borrowers = runtime_references([path])[str(path)]
+            if borrowers:
+                result['kept_by_pid'][str(path)] = borrowers
+                result['kept'].append(str(path))
                 continue
             shutil.rmtree(path)
             result['deleted'].append(str(path))
-            print(f'Removed released runtime {path}', file=sys.stderr, flush=True)
+            print(f'Removed unused runtime {path}', file=sys.stderr, flush=True)
     result['after'] = len(list(directory.iterdir()))
-    result['kept_unqualified'] = [str(path) for path in runtimes
-                                if path not in records and path.exists()]
     result['filesystem_free_change_bytes'] = shutil.disk_usage(directory).free - free_before
     return result
 
@@ -93,7 +142,7 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     from agent_comms.owner_cutover import StoppedOwnerInstallation
 
     publication = RuntimePublication.installed()
-    RuntimeBuild.recorded_runtimes(publication.runtime)
+    RuntimeBuild.recorded_baseline(publication.runtime)
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
     if previous == publication.runtime:
         raise ValueError('Runtime is already current; do not repeat publication')
@@ -114,7 +163,7 @@ def installation_main() -> None:
     parser.add_argument('--current', type=Path)
     parser.add_argument('--previous', type=Path)
     parser.add_argument('--delete', action='store_true')
-    parser.add_argument('--remove', type=Path, nargs='+', help='Explicitly released unqualified builds; recorded and newer runtimes stay protected')
+    parser.add_argument('--remove', type=Path, nargs='+', help='Prune only these runtime directories')
     parser.add_argument('--publication-tools', type=Path, help="Core checkout's tools directory")
     parser.add_argument('--root', type=Path)
     args = parser.parse_args()
@@ -685,18 +734,20 @@ class RuntimeBuild:
         return datetime.strptime(runtime.name.rsplit('-', 1)[-1], cls.timestamp_format)
 
     @classmethod
-    def recorded_runtimes(cls, runtime: Path) -> set[Path]:
+    def recorded_baseline(cls, runtime: Path) -> Path:
         record = json.loads((runtime / cls.record).read_text())
         declared = Path(record['runtime'])
         baseline = Path(record['baseline'])
         if declared != runtime or not baseline.is_absolute():
             raise ValueError(f'Build record does not describe {runtime}')
-        return {declared, baseline}
+        return baseline
 
     @classmethod
-    def retained_runtimes(cls, runtimes: list[Path]) -> set[Path]:
-        return set().union(*(cls.recorded_runtimes(path) for path in runtimes
-                             if (path / cls.record).exists()))
+    def qualified_before(cls, runtime: Path, cutoff: datetime) -> bool:
+        if not (runtime / cls.record).is_file():
+            return False
+        cls.recorded_baseline(runtime)
+        return cls.built_at(runtime) < cutoff
 
     toad: GitExport
     core: GitExport
