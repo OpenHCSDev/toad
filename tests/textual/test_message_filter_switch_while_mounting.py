@@ -9,7 +9,8 @@ from agent_comms.routing import MessageRoute
 from agent_comms.transcript_events import (
     AssistantTranscript, IncomingTranscript, ThinkingTranscript,
 )
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 from textual.await_complete import AwaitComplete
 from textual.containers import VerticalGroup
 
@@ -39,8 +40,8 @@ async def test_filter_change_during_mount_retires_the_old_projection(workspace, 
         events = (incoming("OLD_INBOUND"), ThinkingTranscript("NEW_THINKING")) * 8 + tuple(
             AssistantTranscript(f"tail {i}") for i in range(4))
         pager = TranscriptHistory(TranscriptPage(
-            events, TranscriptCursor("mount-fixture", 0), TranscriptCursor("mount-fixture", len(events)),
-            False, False))
+            events, NativeTranscriptCursor("mount-fixture", 0), NativeTranscriptCursor("mount-fixture", len(events)),
+            False, False, FIXTURE_SNAPSHOT))
         entered, release = asyncio.Event(), asyncio.Event()
         original_mount = VerticalGroup.mount
         original_submit = app.preparation.submit
@@ -119,8 +120,8 @@ async def test_filtered_history_arrives_in_batches_no_larger_than_the_rows_kept_
         events = tuple(event for index in range(MATCHES) for event in (
             incoming(f"INBOUND_{index}"), ThinkingTranscript(f"THINKING_{index}"),
         )) + tuple(AssistantTranscript(f"tail {index}") for index in range(4))
-        page = TranscriptPage(events, TranscriptCursor("batch-fixture", 0),
-                              TranscriptCursor("batch-fixture", len(events)), False, False)
+        page = TranscriptPage(events, NativeTranscriptCursor("batch-fixture", 0),
+                              NativeTranscriptCursor("batch-fixture", len(events)), False, False, FIXTURE_SNAPSHOT)
         pager = TranscriptHistory(page)
         threads = []
         prepare = TranscriptFilterWork.prepare
@@ -157,16 +158,16 @@ async def test_empty_filter_reads_no_history_and_a_later_selection_finds_the_mat
     async with workspace.app(size=(120, 40)) as ui:
         view = ui.conversation
         view.visible_categories = frozenset()
-        cursor = TranscriptCursor("empty-filter", 10)
+        cursor = NativeTranscriptCursor("empty-filter", 10)
         calls = []
 
         async def earlier(**kwargs):
             calls.append(kwargs)
-            return TranscriptPage((incoming("SELECTED_INBOUND"),), TranscriptCursor("empty-filter", 0), cursor,
-                                  False, True)
+            return TranscriptPage((incoming("SELECTED_INBOUND"),), NativeTranscriptCursor("empty-filter", 0), cursor,
+                                  False, True, FIXTURE_SNAPSHOT)
 
         pager = TranscriptHistory(TranscriptPage((ThinkingTranscript("TAIL"),),
-                                                 cursor, TranscriptCursor("empty-filter", 20), True, False),
+                                                 cursor, NativeTranscriptCursor("empty-filter", 20), True, False, FIXTURE_SNAPSHOT),
                                   loader=earlier)
         await view.contents.mount(pager)
         await ui.step()

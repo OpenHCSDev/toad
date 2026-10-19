@@ -1,7 +1,8 @@
 """Textual-facing: resizing the terminal (fullscreen and back) reflows saved history to the new width and keeps the tail, or the reader's place, on screen."""
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
@@ -10,7 +11,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 async def test_resize_keeps_tail_and_reader_position_visible(workspace):
     text = "## Resize test\n\n" + "A paragraph that wraps to the available viewport width. " * 80
     events = tuple(AssistantTranscript(f"Record {i}\n\n{text}") for i in range(20))
-    page = TranscriptPage(events, TranscriptCursor("", 0), TranscriptCursor("", 0), False, False)
+    page = TranscriptPage(events, NativeTranscriptCursor("", 0), NativeTranscriptCursor("", 0), False, False, FIXTURE_SNAPSHOT)
 
     async def load(**kwargs):
         raise AssertionError("No preceding file history in this fixture")

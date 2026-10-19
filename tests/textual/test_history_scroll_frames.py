@@ -10,7 +10,8 @@ import threading
 from unittest.mock import patch
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from support.textual_steps import refresh_chat
 from toad.transcript_preparation import PreparedTranscriptPage
@@ -36,10 +37,10 @@ def record_frames(app, row_of_marker):
 
 
 async def test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_input_during_the_read(workspace):
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeTranscriptCursor("fixture", 1)
     page = TranscriptPage(tuple(
         AssistantTranscript(f"Record {i}\n\n" + "\n".join(f"- item {j}" for j in range(20))) for i in range(30)),
-        cursor, cursor, False, False)
+        cursor, cursor, False, False, FIXTURE_SNAPSHOT)
     async with workspace.app(size=(110, 38)) as ui:
         app, _pilot = ui.textual
         conversation = ui.conversation
@@ -90,9 +91,9 @@ async def test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_i
 
 async def test_restyled_lines_keep_the_line_the_reader_is_on_in_every_frame(workspace):
     """A theme change draws every line plain first and styled when ready; the reader's line stays on its row."""
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeTranscriptCursor("fixture", 1)
     text = "## Saved heading\n\n" + "\n".join(f"- saved row {row}" for row in range(120))
-    page = TranscriptPage((AssistantTranscript(text),), cursor, cursor, False, False)
+    page = TranscriptPage((AssistantTranscript(text),), cursor, cursor, False, False, FIXTURE_SNAPSHOT)
     async with workspace.app(size=(110, 38)) as ui:
         app, _pilot = ui.textual
         history = await ui.conversation.post(TranscriptHistory(page))
@@ -248,8 +249,8 @@ async def test_a_channel_loads_earlier_messages_while_its_participants_line_wait
 
 
 async def test_two_screens_back_in_a_thread_of_short_records_are_refilled_by_a_few_loads(workspace):
-    cursor = TranscriptCursor("fixture", 1)
-    page = TranscriptPage(tuple(AssistantTranscript(f"short {i}") for i in range(400)), cursor, cursor, False, False)
+    cursor = NativeTranscriptCursor("fixture", 1)
+    page = TranscriptPage(tuple(AssistantTranscript(f"short {i}") for i in range(400)), cursor, cursor, False, False, FIXTURE_SNAPSHOT)
     loads, counting = count_earlier_loads()
     with counting:
         async with workspace.app(size=(110, 38)) as ui:

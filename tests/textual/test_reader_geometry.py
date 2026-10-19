@@ -1,7 +1,8 @@
 """Textual-facing: the history window keeps a reader's position through a taller terminal and rejoins the tail only on real reader input."""
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.transcript_history import TranscriptHistory
@@ -11,10 +12,10 @@ async def test_reader_keeps_position_through_geometry_and_rejoins_the_tail_on_in
     async with workspace.app(size=(100, 35)) as ui:
         app, pilot = ui.textual
         conversation = ui.conversation
-        cursor = TranscriptCursor("loaded-history", 1)
+        cursor = NativeTranscriptCursor("loaded-history", 1)
         page = TranscriptPage(tuple(
             AssistantTranscript(f"Saved record {i}\n\n" + "\n".join(f"- saved item {j}" for j in range(20)))
-            for i in range(8)), cursor, cursor, False, False)
+            for i in range(8)), cursor, cursor, False, False, FIXTURE_SNAPSHOT)
         history = await conversation.post(
             TranscriptHistory(page, budget=PresentationBudget(max_items=240, batch_items=240)))  # every record drawn at once
         window = conversation.window
