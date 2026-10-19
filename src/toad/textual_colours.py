@@ -457,7 +457,7 @@ class ThemedApp:
 
     def get_css_variables(self) -> dict[str, str]:
         variables = super().get_css_variables()  # type: ignore[misc]
-        self.colours.variables_changed(variables, self.get_color_system())
+        self.colours.variables_changed(variables, self.color_system)
         return self.colours.variables
 
     @property
