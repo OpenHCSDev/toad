@@ -246,11 +246,13 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
         yield self.member_container
 
     def on_mount(self) -> None:
-        self.sync_members(frozenset(self.member_keys))
+        if self.accepts_members():
+            self.sync_members(frozenset(self.member_keys))
 
     def toggle_members(self) -> None:
-        self.expanded = not self.expanded
-        self.sync_members(frozenset(self.member_keys))
+        if self.accepts_members():
+            self.expanded = not self.expanded
+            self.sync_members(frozenset(self.member_keys))
 
     def sync_members(self, changed: frozenset[str]) -> None:
         """Reconcile model-owned member rows and repaint the named members."""
@@ -399,9 +401,8 @@ class AllSidebarRows(SidebarChange):
         sidebar.open_views = sidebar.find_open_views()
         with sidebar.reconcile_members():
             for name, group in sidebar.groups.items():
-                if (channel := rows.get(name)) is not None:
-                    group.present(channel)
-                    group.sync_members(frozenset(group.member_keys))
+                group.present(rows[name])
+                group.sync_members(frozenset(group.member_keys))
 
     def apply_welcome(self, channel_list, thread_list) -> None:
         channel_list.sync_members(frozenset(channel_list.member_keys))
@@ -422,9 +423,9 @@ class ChangedChannels(SidebarChange):
     def apply_comms(self, sidebar, rows) -> None:
         with sidebar.reconcile_members():
             for name in self.names:
-                group, channel = sidebar.groups.get(name), rows.get(name)
-                if group is not None and channel is not None:
-                    group.present(channel)
+                group = sidebar.groups.get(name)
+                if group is not None:
+                    group.present(rows[name])
                     group.sync_members(frozenset(group.member_keys))
 
     def apply_welcome(self, channel_list, thread_list) -> None:

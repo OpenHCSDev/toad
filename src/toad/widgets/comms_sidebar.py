@@ -121,8 +121,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
 
     @property
     def member_keys(self):
-        channel = self.sidebar.model_state.shown.channels.rows.get(self.row.target_name)
-        return channel.members if channel is not None else ()
+        return self.sidebar.model_state.shown.channels.rows[self.row.target_name].members
 
     def sync_members(self, changed: frozenset[str]) -> None:
         if not self.member_container.is_attached:
@@ -470,6 +469,8 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
             self.new_session = NewSessionButton()
             self.mount(self.new_session)
         removed = [key for key in self.groups if key not in rows]
+        if removed:
+            self.remove_children([self.groups.pop(key) for key in removed])
         added = any(key not in self.groups for key in rows)
         change.apply_comms(self, rows)
         if self._group_mounting is None or self._group_mounting.is_finished:
@@ -513,12 +514,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         return (key for channel in self.model_state.shown.channels.rows.values() for key in channel.members)
 
     def order_groups(self) -> None:
-        """Order current groups, retiring old groups after their rows can move."""
-        removed = [key for key in self.groups if key not in self.model_state.shown.channels.rows]
-        if removed:
-            with self.reconcile_members():
-                self.row_reconciliation.finish()
-            self.remove_children([self.groups.pop(key) for key in removed])
+        """Order the groups admitted by sync; removed channels retire before member work."""
         ordered = (self.new_session, *(self.groups[key] for key in self.model_state.shown.channels.rows if key in self.groups))
         live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:
