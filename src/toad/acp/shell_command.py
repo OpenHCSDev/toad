@@ -7,7 +7,7 @@ from agent_comms.declared_family import DeclaredFamily
 class ShellCommand(DeclaredFamily, affix="ShellCommand"):
     @classmethod
     def current(cls):
-        return cls.decode(os.name)()
+        return cls.member_named(os.name)()
 
     @abstractmethod
     def argv(self, command: str) -> tuple[str, ...]: ...

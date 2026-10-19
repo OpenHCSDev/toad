@@ -148,7 +148,7 @@ class AcpLogPreview(Vertical):
     @on(Button.Pressed, ".log-view")
     def select_view(self, event: Button.Pressed) -> None:
         event.stop()
-        self.view = LogView.decode(event.button.id.removeprefix("log-"))()
+        self.view = LogView.member_named(event.button.id.removeprefix("log-"))()
         if self.page is not None:
             self._present(None)
         self.query_one(TextArea).focus()

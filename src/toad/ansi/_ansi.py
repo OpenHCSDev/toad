@@ -116,10 +116,8 @@ class DeviceControlSequence(TerminatedSequence, declared_name="P"):
 class DesignateSequence(EscapeSequence):
     FINAL = character_range(0x30, 0x7E)
 
-    @property
-    @abstractmethod
-    def slot(self) -> int:
-        """DEC character-set slot."""
+    slot: ClassVar[int]
+    """DEC character-set slot each member declares."""
 
     @classmethod
     def read(cls, introducer: str) -> PatternCheck:
@@ -158,10 +156,8 @@ class G3RightSequence(DesignateSequence, declared_name="/"):
 
 
 class InvokeSequence(EscapeSequence):
-    @property
-    @abstractmethod
-    def invocation(self) -> DECInvoke:
-        """The declared character-set invocation."""
+    invocation: ClassVar[DECInvoke]
+    """The character-set invocation each member declares."""
 
     @classmethod
     def read(cls, introducer: str) -> PatternCheck:
@@ -220,7 +216,7 @@ class FEPattern(Pattern):
     def check(self) -> PatternCheck:
         character = yield
         try:
-            sequence = EscapeSequence.decode(character)
+            sequence = EscapeSequence.member_named(character)
         except ValueError:
             return "control", character
         return (yield from sequence.read(character))
@@ -634,7 +630,7 @@ class TerminalMode(DeclaredFamily, affix="Mode"):
         commands = []
         for number in numbers.split(";"):
             try:
-                mode = cls.decode(number)
+                mode = cls.member_named(number)
             except ValueError:
                 continue  # Unrecognized external modes have no effect.
             if mode.private == bool(private):
@@ -987,12 +983,12 @@ class ANSIStream:
             case ["dec", dec]:
                 slot, character_set = list(dec)
                 yield ANSICharacterSet(
-                    DEC(DesignateSequence.decode(slot).slot, character_set)
+                    DEC(DesignateSequence.member_named(slot).slot, character_set)
                 )
 
             case ["dec_invoke", dec_invoke]:
                 yield ANSICharacterSet(
-                    dec_invoke=InvokeSequence.decode(dec_invoke[0]).invocation
+                    dec_invoke=InvokeSequence.member_named(dec_invoke[0]).invocation
                 )
 
             case ["control", code]:

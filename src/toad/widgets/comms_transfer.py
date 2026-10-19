@@ -233,7 +233,7 @@ class WireExportDialog(TransferDialog):
             limit = MaxBytesLimit(int(value)) if value else FullLimit()
             request = WireExportRequest(
                 Path(path).expanduser(),
-                WireExportFormat.decode(self.query_one("#export-format", Select).value)(),
+                WireExportFormat.member_named(self.query_one("#export-format", Select).value)(),
                 scope, limit,
             )
         except (TypeError, ValueError) as error:

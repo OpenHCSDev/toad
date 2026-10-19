@@ -16,7 +16,7 @@ def test_new_case_needs_no_selector_or_caller_edit():
 
     case = InputSubmission.from_event(input_events.UserInputSubmitted('DECLARED_ANNOTATED_INPUT:hello'), SimpleNamespace())
     assert type(case) is AnnotatedInputSubmission
-    assert InputSubmission.decode(AnnotatedInputSubmission.declared_name) is AnnotatedInputSubmission
+    assert InputSubmission.member_named(AnnotatedInputSubmission.declared_name) is AnnotatedInputSubmission
     request = case.request
     assert isinstance(request, QueuePromptRequest)
     assert request.user_text == 'DECLARED_ANNOTATED_INPUT:hello'
