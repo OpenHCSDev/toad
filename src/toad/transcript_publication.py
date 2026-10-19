@@ -198,7 +198,8 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         widget = self.binding.view.cli_draft
         if self.binding.contents.children[-1] is not widget:
             self.binding.contents.move_child(widget, after=-1)
-        widget.show(draft)
+        history = next(self.binding.histories())
+        widget.show(draft, resolve_sent=history.pages[-1].prepared.page.resolve_sent_messages)
 
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
