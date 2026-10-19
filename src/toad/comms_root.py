@@ -32,6 +32,7 @@ from agent_comms.ui_model.observation import (
     SidebarObserved, SidebarUnreadable, ViewsRetired,
     StopObserving, StopSidebar, ThreadsObserved,
 )
+from agent_comms.ui_model.commander import CommanderObserved, StopCommander
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
@@ -76,6 +77,9 @@ class Observation:
 
     def tabs(self, sessions):
         return {entry.mode: entry.unobserved_tab() for entry in sessions.members}
+
+    def observe_commander(self, wanted) -> None:
+        """An unobserved route has no process accepting page interest."""
     def require(self, access, selected):
         return access.open_selected(selected)
     def references_for(self, root):
@@ -143,6 +147,8 @@ class FailedObservation(Observation):
 
     def activate(self, access):
         self.observe_sidebar(None)
+        for view in tuple(access.commander_views):
+            view.commander_failed(self.error)
 
     def observe_sidebar(self, wanted):
         access = self.access
@@ -190,6 +196,7 @@ class Observing(Observation):
     def activate(self, access):
         self.loop.add_reader(self.process.fileno(), self.receive, access)
         access.update_sidebar_interest()
+        access.update_commander_interest()
         self.thread_interest(access)
         self.updates.callback(self.answer_reads)
         self.updates.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
@@ -243,6 +250,9 @@ class Observing(Observation):
     def thread_interest(self, access):
         self.process.request(ObserveThreads(access.events.observed_threads(str(self.service.root))))
 
+    def observe_commander(self, wanted) -> None:
+        self.process.request(wanted)
+
     def observe_sidebar(self, wanted):
         self.process.request(wanted if wanted is not None else StopSidebar())
 
@@ -270,6 +280,7 @@ class CoordinationAccess(MroDispatch):
         self.thread_status = OpenThreadStatus(app.call_next)
         # Views showing the sidebar model now, and consumers waiting for current rows.
         self.sidebar_views: WeakSet[object] = WeakSet()
+        self.commander_views: WeakSet[object] = WeakSet()
         self.reference_views: WeakSet[object] = WeakSet()
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
@@ -322,6 +333,24 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(CoordinationObserved(result.revision))
         if result.revision.changed_since(ExternalTranscriptsView(), previous):
             self.events.publish(ExternalTranscriptChanged())
+
+    def show_commander(self, view) -> None:
+        self.commander_views.add(view)
+        self.update_commander_interest()
+
+    def stop_commander(self, view) -> None:
+        self.commander_views.discard(view)
+        self.update_commander_interest()
+
+    def update_commander_interest(self) -> None:
+        request = next((view.request for view in self.commander_views), StopCommander())
+        self.observation.observe_commander(request)
+
+    @handles(CommanderObserved)
+    def commander_observed(self, result: CommanderObserved, observed: Observing) -> None:
+        for view in tuple(self.commander_views):
+            if view.request == result.request:
+                result.model.answer(view.commander_observed, lambda: None, view.commander_failed)
 
     @handles(SidebarObserved)
     def sidebar_observed(self, result: SidebarObserved, observed: Observing) -> None:
