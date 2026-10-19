@@ -424,7 +424,7 @@ class TerminalApp:
 
     @staticmethod
     def message_rows(text):
-        """Visible transcript rows between the sidebar separators, without its scrollbar.
+        """Visible transcript rows between the sidebar separators.
 
         The conversation's CursorContainer paints the leading gutter on every
         message row. Splitting the outer separators preserves Unicode message
@@ -435,7 +435,7 @@ class TerminalApp:
             if body.startswith('▌'):
                 # The jump control overlays messages; it is not their text.
                 control = '↓ Back to bottom · Esc'
-                rows.append(body[:-2].replace(control, ' ' * len(control)))
+                rows.append(body.replace(control, ' ' * len(control)))
         return tuple(rows)
 
     def reader_place(self, name):
