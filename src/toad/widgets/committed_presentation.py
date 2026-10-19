@@ -253,7 +253,7 @@ class CommittedHistory(ConversationEntry, SnapshotPresentation):
             return await self.extend(through, is_current)
         self.retain_committed(through)
         request = LatestViewportRequest(LatestPosition.hold(self.window))
-        return await self._jump_latest(request, is_current)
+        return await self.jump_latest(request, is_current)
 
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
     return [widget for widget in widgets

@@ -386,7 +386,7 @@ class LatestPosition(HeldReaderDestination, TailPosition):
         super().source_settled(window)
 
     async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
-        return await history._jump_latest(LatestViewportRequest(self))
+        return await history.jump_latest(LatestViewportRequest(self))
 
     def release(self, window: "HistoryWindow") -> None:
         if window.reader_position is self:

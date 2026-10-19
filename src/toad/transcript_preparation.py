@@ -505,7 +505,7 @@ class SavedPrefix(SavedHistory):
 
 class SourceObservation:
     async def apply(self, history, source) -> bool:
-        await history._jump_latest(LatestViewportRequest(LatestPosition.hold(history.window)))
+        await history.jump_latest(LatestViewportRequest(LatestPosition.hold(history.window)))
         return not history.undrawn
 
 
