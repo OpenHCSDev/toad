@@ -198,8 +198,11 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         widget = self.binding.view.cli_draft
         if self.binding.contents.children[-1] is not widget:
             self.binding.contents.move_child(widget, after=-1)
-        history = next(self.binding.histories())
-        widget.show(draft, resolve_sent=history.pages[-1].prepared.page.resolve_sent_messages)
+        if draft is None:
+            widget.clear()
+        else:
+            history = self.binding.draft_history(draft)
+            widget.show(draft, resolve_sent=history.sent_message_resolver())
 
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
@@ -515,6 +518,10 @@ class BoundView(ViewBinding):
 
     def histories(self):
         return tuple(self.contents.query_children(TranscriptHistory))
+
+    def draft_history(self, draft):
+        history, = (history for history in self.histories() if history.owns_draft(draft))
+        return history
 
     def observe_thread(self, owner):
         scope = self.thread_scope

@@ -23,6 +23,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
         super().__init__()
         self.draft: DraftRow | None = None
         self._lines: BlockLines | None = None
+        self._blocks = ()
         self._width = 0
         self._render_worker: Worker[None] | None = None
         self.display = False
@@ -35,16 +36,20 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
         self._request_render()
         self.refresh(layout=True)
 
-    def show(self, draft: DraftRow | None, *, resolve_sent) -> None:
+    def clear(self) -> None:
+        self.draft = None
+        self._blocks = ()
+        self._lines = None
+        self.display = False
+
+    def show(self, draft: DraftRow, *, resolve_sent) -> None:
         if draft == self.draft:
             return
+        self._blocks = tuple(block for fragment in transcript_fragments(
+            draft.events, resolve_sent=resolve_sent,
+        ) for block in fragment.line_blocks)
         self.draft = draft
-        self._resolve_sent = resolve_sent if draft is not None else None
-        if draft is None:
-            self.display = False
-            self._lines = None
-        else:
-            self._request_render()
+        self._request_render()
 
     def _request_render(self) -> None:
         if self.is_attached and (self._render_worker is None or self._render_worker.is_finished):
@@ -57,9 +62,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
             if width <= 0:
                 return
             theme = self.app.colours.line_theme
-            blocks = tuple(block for fragment in transcript_fragments(
-                draft.events, resolve_sent=self._resolve_sent,
-            ) for block in fragment.line_blocks)
+            blocks = self._blocks
             context = await LinkContext.acquire(self)
             source = await self.app.render_processes.submit(
                 TranscriptLinesRenderTask(LinePreparation(blocks, theme), context))
