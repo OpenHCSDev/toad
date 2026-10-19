@@ -171,11 +171,6 @@ class WireFragment(TranscriptFragment):
     def message(self) -> Message:
         return self.events[0]
 
-    @property
-    def arrival_position(self) -> int:
-        """A new read preserves the message's original bus position."""
-        return self.message.seq
-
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
         return frozenset({OtherCategory})

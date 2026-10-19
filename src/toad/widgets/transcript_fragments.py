@@ -254,8 +254,8 @@ class TranscriptFragment:
     has_details: ClassVar[bool] = False
     @property
     def arrival_position(self) -> int:
-        """The fragment keeps its identity within its prepared source."""
-        return id(self)
+        """The first event owns the fragment's stable source position."""
+        return self.events[0].position
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
         """Whether the live block that claim retires already showed this saved row."""
