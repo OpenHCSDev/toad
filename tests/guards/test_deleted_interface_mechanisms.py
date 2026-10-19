@@ -9,7 +9,10 @@ ROOT = Path(__file__).resolve().parents[2] / 'src/toad'
 def assert_deleted_cursor_contract(path, source):
     """Seal the removed UI family across definitions, imports and callbacks."""
     retired = {'Cursor', 'update_follow', 'watch_follow_widget', 'follow_widget', 'blink_timer'}
-    for node in ast.walk(ast.parse(source)):
+    tree = ast.parse(source)
+    # A generic's own type parameter is not the deleted widget family.
+    retired -= {node.name for node in ast.walk(tree) if isinstance(node, ast.TypeVar)}
+    for node in ast.walk(tree):
         match node:
             case (ast.Name(id=name) | ast.Attribute(attr=name)
                   | ast.ClassDef(name=name) | ast.FunctionDef(name=name)

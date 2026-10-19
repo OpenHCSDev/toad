@@ -159,7 +159,7 @@ class PageEnd(ABC):
         return all((position - boundary) * self.step >= 0
                    for position in (window.scroll_y, window.scroll_target_y))
 
-    def work_cursor[PageCursor](self, through: PageCursor) -> PageCursor | None:
+    def work_cursor[Cursor](self, through: Cursor) -> Cursor | None:
         return self.edge((None, through))
     @abstractmethod
     async def load_page(self, loader, cursor: TranscriptCursor | None, through): ...
@@ -287,9 +287,9 @@ NEWER_END = NewerEnd()
 
 
 @dataclass(frozen=True)
-class PageRequest[PageCursor = TranscriptCursor | None]:
+class PageRequest[Cursor = TranscriptCursor | None]:
     end: PageEnd
-    cursor: PageCursor
+    cursor: Cursor
 
     def progressed(self: PageRequest[TranscriptCursor | None], page: TranscriptPage) -> bool:
         return self.cursor is None or self.end.progressed(page, self.cursor)

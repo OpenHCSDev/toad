@@ -41,7 +41,7 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
         agent.coordination = CoordinationChangedUpdate(
             thread.incarnation, str(workspace.roots.wire), os.getpid(), str(workspace.project),
             None, None, thread.name, None)
-        view.set_reactive(type(view).agent_ready, True)
+        agent.session.settled.set()
         # A live stream block that the saved page already covers.
         block = await view.output.append(ResponseStream(), new_page.events[0].text)
         view.window.anchor()

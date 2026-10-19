@@ -1,8 +1,8 @@
 """Textual-facing: a transcript history widget's source state follows its real mount, commit, worker and removal."""
 
 import asyncio
+from dataclasses import replace
 
-from agent_comms.threads import Thread
 
 from support import journals
 from support.textual_steps import saved_history
@@ -12,7 +12,7 @@ from toad.transcript_state import DetachedTranscript, LiveTranscript, Provisiona
 async def test_source_state_follows_mount_commit_worker_retirement_and_removal(workspace):
     source = journals.write_journal(workspace.project / "session.jsonl",
                                     journals.assistant_entry("Retain the source", id="a1"))
-    workspace.comms.registry.declare(Thread("source", frozenset(), str(workspace.project), session_file=str(source)))
+    workspace.comms.registry.declare(replace(workspace.thread("source"), session_file=str(source)))
     page = workspace.comms.transcripts.thread_transcript_page("source")
     async with workspace.app() as ui:
         async def loader(**bounds):
