@@ -616,15 +616,15 @@ print(json.dumps(dict(root=str(c.root),path=str(t.runtime.path),model=t.model,
                        AGENT_COMMS_NATIVE_CONFIG_DIR=str(config), PI_CODING_AGENT_DIR=str(agent))
     with (output / 'check-root.log').open('w') as log:
         worker = subprocess.Popen([str(python), '-I', '-B', '-c', '''
-import json,sys,time,subprocess,os
+import json,sys,time,os
 from pathlib import Path
+from agent_comms.active_route import ActiveRoute,publish_active_route
 from agent_comms.check_root import CheckRoot
 from agent_comms.comms import Comms
 out,runtime,source=map(Path,sys.argv[1:4]);name=sys.argv[4]
 with CheckRoot(Comms(source),(name,),out/'wire').open() as c:
     os.environ['HOME']=str(out/'home')
-    subprocess.run([runtime/'bin/agent-comms','--root',c.root,'replace-route'],
-                   check=True,stdout=sys.stderr)
+    publish_active_route(ActiveRoute(c.root,c.bus.log.private_marker_unlocked().root_id))
     thread=c.registry.require(name)
     sender=c.messaging.user_identity(thread.worktree).name
     c.owners.start(name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
