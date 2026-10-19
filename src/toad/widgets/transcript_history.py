@@ -253,7 +253,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
-    def fragment_row(self, position: int) -> tuple[int, int, bool] | None:
+    def fragment_row(self, position: int | str) -> tuple[int, int, bool] | None:
         """A position's first measured row, height and whether the page draws it.
 
         A fragment without rows of its own (the filter hides it, or layout

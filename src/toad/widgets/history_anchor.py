@@ -188,7 +188,7 @@ class FragmentPosition(OffsetPosition):
     coordinate. Its saved arrival position names the message after a reload.
     """
 
-    position: int
+    position: int | str
     fraction: float
     height: int
 

@@ -253,7 +253,7 @@ class TranscriptFragment:
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
     @property
-    def arrival_position(self) -> int:
+    def arrival_position(self) -> int | str:
         """The first event owns the fragment's stable source position."""
         return self.events[0].position
 
