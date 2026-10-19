@@ -7,7 +7,7 @@ from textual.widgets import Input, Select, Static
 
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_transfer import ThreadImportDialog, ThreadImportRequest, WireExportDialog
-from toad.widgets.side_bar import MainMenuButton, TabHistoryButton, TabHistoryControls
+from toad.widgets.side_bar import BackTabButton, ForwardTabButton, MainMenuButton, TabHistoryControls
 
 
 async def open_main_menu(ui):
@@ -25,7 +25,7 @@ async def test_main_menu_sits_left_of_back_and_forward(workspace):
         app, _ = ui.textual
         controls = app.screen.query_one(TabHistoryControls)
         assert [type(item) for item in controls.children] == [
-            MainMenuButton, TabHistoryButton, TabHistoryButton,
+            MainMenuButton, BackTabButton, ForwardTabButton,
         ], "Main menu must be left of Back and Forward"
 
 
