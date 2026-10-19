@@ -601,7 +601,8 @@ try:
     token=os.environ['BUILD_WAKE_TOKEN']
     (out/'input.json').write_text(json.dumps(dict(status='UNKNOWN',replay=False,target=child.name)))
     started=time.monotonic()
-    sent=c.messaging.send_message('build-sender',child.name,'Reply with '+token+'. Do not use tools.')
+    sent=c.messaging.send('build-sender',child.name,'Reply with '+token+'. Do not use tools.')
+    for notice in sent.notices:print(notice,file=sys.stderr,flush=True)
     while True:
         failures=list((c.root/'diagnostics').glob('drain-*.json'))
         if failures:raise RuntimeError(f'Private wake produced a drain diagnostic: {failures}')
