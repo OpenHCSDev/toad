@@ -23,6 +23,7 @@ from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
 from textual.ansi_palette import AnsiPalette, NativeAnsiPalette, MappedAnsiPalette
 from textual.color import Color
+from textual.design import ColorSystem
 from textual.content import Content
 from textual.driver import TerminalGaveNoPalette
 from textual.style import Style as VisualStyle
@@ -37,11 +38,11 @@ from watchdog.observers import Observer
 from ui_theme.backend import Backend, TerminalBackend
 from ui_theme.catalog import SCHEMES
 from ui_theme.clock import AnimationClock
-from ui_theme.colour import AnsiColour, Rgb, TerminalPalette, require_terminal_palette
+from ui_theme.colour import AnsiColour, Colour, Rgb, TerminalPalette, require_terminal_palette
 from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Gradient, Mix, PlayedText, TextFrame
 from ui_theme.splash import TextEffect
-from ui_theme.scheme import BackgroundColour, BlendColour, ColourScheme, ForegroundColour, LayerColour, ThemeColour, CoreColour, TextStyle, ThemeTextStyle
+from ui_theme.scheme import BackgroundColour, BlendColour, ColourScheme, ForegroundColour, LayerColour, ThemeColour, TextStyle
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
 from toad.line_blocks import LineRole
@@ -286,14 +287,12 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return KnownPalette(TerminalPalette(Rgb(*colours.background), foreground, foreground,
                                tuple(Rgb(*colour) for colour in colours.ansi)))
 
-    def variables_changed(self, variables: dict[str, str]) -> None:
+    def variables_changed(self, variables: dict[str, str], system: ColorSystem) -> None:
         palette = self.schemes[self.app.theme].palette
         variables = dict(variables)
-        self._colours = {member: Color.parse(variables[member.name])
-                         for member in (*CoreColour.members(), *LayerColour.members())}
-        self._colours.update({member: value.native(self)
-                              for member, value in self.scheme.resolved_elements.items()
-                              if issubclass(member, ThemeColour)})
+        self._colours = {member: value.native(self)
+                         for member, value in self.scheme.resolved_colours.items()}
+        self._colours.update({member: system.color(member.name) for member in LayerColour.members()})
 
         for member in BlendColour.members():
             derived = palette.derived(member, self._colours)
@@ -312,13 +311,9 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     # The backend.
 
     def theme(self, scheme: ColourScheme) -> Theme:
-        colours = {colour.name: value.native(self).css for colour, value in scheme.colours.items()
-                   if issubclass(colour, (CoreColour, LayerColour))}
-        elements = scheme.resolved_elements
-        variables = {member.name: value.native(self).css for member, value in elements.items()
-                     if issubclass(member, ThemeColour)}
-        variables.update({member.name: value.native(self) for member, value in elements.items()
-                          if issubclass(member, ThemeTextStyle)})
+        colours = {member.name: member.variable(value, self) for member, value in scheme.colours.items()}
+        variables = {member.name: member.variable(value, self)
+                     for member, value in scheme.resolved_elements.items()}
         theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
                       variables=variables, **colours)
         return theme
@@ -338,6 +333,9 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def text_style(self, style: TextStyle) -> str:
         return style.value
+
+    def colour_variable(self, colour: Colour) -> str:
+        return colour.native(self).css
 
     def colour(self, colour: type[ThemeColour]) -> Color:
         """The resolved value for a declared colour in the active theme."""
@@ -459,7 +457,7 @@ class ThemedApp:
 
     def get_css_variables(self) -> dict[str, str]:
         variables = super().get_css_variables()  # type: ignore[misc]
-        self.colours.variables_changed(variables)
+        self.colours.variables_changed(variables, self.color_system)
         return self.colours.variables
 
     @property
