@@ -246,11 +246,13 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
         yield self.member_container
 
     def on_mount(self) -> None:
-        self.sync_members(frozenset(self.member_keys))
+        if self.accepts_members():
+            self.sync_members(frozenset(self.member_keys))
 
     def toggle_members(self) -> None:
-        self.expanded = not self.expanded
-        self.sync_members(frozenset(self.member_keys))
+        if self.accepts_members():
+            self.expanded = not self.expanded
+            self.sync_members(frozenset(self.member_keys))
 
     def sync_members(self, changed: frozenset[str]) -> None:
         """Reconcile model-owned member rows and repaint the named members."""
