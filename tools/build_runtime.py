@@ -616,12 +616,13 @@ print(json.dumps(dict(root=str(c.root),path=str(t.runtime.path),model=t.model,
                        AGENT_COMMS_NATIVE_CONFIG_DIR=str(config), PI_CODING_AGENT_DIR=str(agent))
     with (output / 'check-root.log').open('w') as log:
         worker = subprocess.Popen([str(python), '-I', '-B', '-c', '''
-import json,sys,time,subprocess
+import json,sys,time,subprocess,os
 from pathlib import Path
 from agent_comms.check_root import CheckRoot
 from agent_comms.comms import Comms
 out,runtime,source=map(Path,sys.argv[1:4]);name=sys.argv[4]
 with CheckRoot(Comms(source),(name,),out/'wire').open() as c:
+    os.environ['HOME']=str(out/'home')
     subprocess.run([runtime/'bin/agent-comms','--root',c.root,'replace-route'],
                    check=True,stdout=sys.stderr)
     thread=c.registry.require(name)
@@ -648,7 +649,8 @@ with CheckRoot(Comms(source),(name,),out/'wire').open() as c:
             reply_seconds=time.monotonic()-started)))
         (result/'input.json').write_text(json.dumps(dict(status='COMPLETED',replay=False,target=name)))
         sys.stdin.read()
-''', str(output), str(runtime), saved['root'], thread], env=environment,
+''', str(output), str(runtime), saved['root'], thread],
+            env={**environment, 'HOME': os.environ['HOME']},
             stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=log, text=True)
         try:
             readable, _, _ = select.select([worker.stdout], [], [], 60)
