@@ -4,13 +4,14 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from functools import partial
+from dataclasses import replace
 from weakref import ref
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
 from textual._paint_state import PaintLayer, PaintState
 from textual.color import Color, TRANSPARENT
-from ui_theme.scheme import ThemeColour
+from ui_theme.scheme import BackgroundColour, ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
 from textual.strip import Strip
@@ -53,6 +54,10 @@ class TonePaint:
     tone: ClassVar[type[ThemeColour] | None]
     paint_background = paint_foreground = text_style = background_tint = None
     paint_opacity = 1.0
+
+    @property
+    def text_background(self) -> type[ThemeColour]:
+        return BackgroundColour if self.tone is None else self.tone
 
     @property
     def paint_layer(self) -> PaintLayer:
@@ -329,7 +334,8 @@ class AnimationEffects[FrameT: Frame]:
         self.refresh()
 
     def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:
-        for frame in (*frames, *(self.effect_frame(effect) for effect in self.text_fades)):
+        for frame in (*frames, *(replace(self.effect_frame(effect), start=self.text_background)
+                                 for effect in self.text_fades)):
             strip = self.app.colours.paint_rising(frame, strip)
         return strip
 

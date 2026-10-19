@@ -20,7 +20,7 @@ from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
 
 
-class ChangingText[FrameT: Frame](Animated[FrameT], Static):
+class ChangingText[FrameT: Frame](UntintedTonePaint, Animated[FrameT], Static):
     """Changed content fades into its own colours through the shared app clock."""
 
     text_fades = (NEW_TEXT,)
@@ -70,6 +70,12 @@ class HoverSelection(UntintedTonePaint):
     highlight_foreground: ClassVar[type[ThemeColour] | None] = BlockCursorForegroundColour
     highlight_background: ClassVar[type[ThemeColour] | None] = BlockCursorBackgroundColour
     highlighted_text_style = Style()
+
+    @property
+    def text_background(self) -> type[ThemeColour]:
+        return (self.highlight_background
+                if self.paint_highlighted and self.highlight_background is not None
+                else super().text_background)
 
     @property
     def paint_highlighted(self):
