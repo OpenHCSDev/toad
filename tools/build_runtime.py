@@ -651,6 +651,7 @@ with CheckRoot(Comms(source),(name,),out/'wire').open() as c:
     os.environ['HOME']=str(out/'home')
     publish_active_route(ActiveRoute(c.root,c.bus.log.private_marker_unlocked().root_id))
     thread=c.registry.require(name)
+    c.channels.replace_tags(name,thread.tags | frozenset({'comms'}))
     sender=c.messaging.user_identity(thread.worktree).name
     c.owners.start(name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
     print('READY',flush=True)
