@@ -1496,6 +1496,10 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         self.prompt.ask(ask)
         return ask
 
+    async def composer_read_only(self) -> bool:
+        """Native and CLI sessions compose to their exact thread, not a saved channel."""
+        return False
+
     async def command_target_context(self):
         from toad.screens.main import MainScreen
         from toad.target_commands import TargetContext
