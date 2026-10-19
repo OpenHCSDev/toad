@@ -538,12 +538,8 @@ class TerminalApp:
                          if '│' in line and label in line.rsplit('│', 1)[-1]), None)
         text = self.wait('find-filter-' + label.replace('/', '-'), lambda text: control(text) is not None)
         row, line = control(text)
-        if '▐ ▌' in line.rsplit('│', 1)[-1]:
-            return
         prefix, panel = line.rsplit('│', 1)
         self.click_cell(cell_len(prefix + '│' + panel[:panel.index('▐')]) + 1, row)
-        self.wait('unchecked-' + label.replace('/', '-'), lambda text:
-                  (found := control(text)) is not None and '▐ ▌' in found[1].rsplit('│', 1)[-1])
 
     def _read_grid(self):
         """st declares one cell plus its padding as the X minimum window size."""
