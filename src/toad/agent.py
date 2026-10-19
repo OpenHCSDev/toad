@@ -3,7 +3,7 @@ from toad.agent_binding import AgentBinding
 from textual.content import Content
 from toad.acp.status import StopReason
 from toad.conversation_turn import NoTurn
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from agent_comms.thread_presentation import ThreadPresentation
 from toad.core.events import CoreEventStream

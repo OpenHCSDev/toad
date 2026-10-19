@@ -51,7 +51,6 @@ from toad.widgets.comms_menu import ContextMenu
 from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
-from toad.acp.agent_session import SessionDisposition
 from toad.acp.status import StopReason
 from toad.core.events import AgentFail, AgentReady
 from toad.agent import AgentBase

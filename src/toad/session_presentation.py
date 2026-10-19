@@ -15,7 +15,6 @@ from textual.widgets.text_area import TextAreaState
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from toad.owner_preparation import ExistingOwnerPlan
-from toad.acp.agent_session import SessionDisposition
 
 from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
