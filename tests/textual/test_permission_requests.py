@@ -6,7 +6,6 @@ import asyncio
 import pytest
 from textual.worker import NoActiveWorker, get_current_worker
 
-from support.agents import detached
 from toad.screens.permissions import PermissionsScreen
 
 
@@ -46,7 +45,7 @@ async def test_a_request_changed_while_its_screen_push_is_pending_is_cancelled_o
     async with workspace.app() as ui:
         app, _pilot = ui.textual
         view = ui.conversation
-        agent = detached(workspace.project, "session")
+        agent = ui.detached_agent("session")
         view.agent = agent  # binds the view once, as opening a session does
         await ui.step()
         errors = []

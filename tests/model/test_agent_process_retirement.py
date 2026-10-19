@@ -10,7 +10,7 @@ from unittest.mock import patch
 import psutil
 import pytest
 
-from support.agents import command, detached
+from support.agents import command
 from toad.acp.agent import Agent
 
 
@@ -45,7 +45,7 @@ async def until(ui_condition, why):
         raise AssertionError(f"{why} not reached in 8s") from None
 
 
-async def test_a_start_cancelled_in_preflight_releases_the_route_and_starts_no_child(home):
+async def test_a_start_cancelled_in_preflight_releases_the_route_and_starts_no_child(home, app_agents):
     from agent_comms.acp_ingress import AcpIngress
 
     entered, release, finished = threading.Event(), threading.Event(), threading.Event()
@@ -59,7 +59,7 @@ async def test_a_start_cancelled_in_preflight_releases_the_route_and_starts_no_c
         finally:
             finished.set()
 
-    agent = detached(home)
+    agent = app_agents.detached_agent()
     with patch("agent_comms.acp_ingress.AcpIngress.preflight", held_preflight):
         start = asyncio.create_task(agent.start())
         try:

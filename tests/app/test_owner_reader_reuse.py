@@ -9,7 +9,6 @@ from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy
 from agent_comms.threads import Thread
 
-from support.agents import detached
 from support.coordination import registered_coordination_fact
 
 
@@ -27,7 +26,7 @@ def bind(agent, comms, workspace):
 
 async def test_concurrent_owner_requests_share_one_reader_and_a_changed_root_builds_another(workspace):
     first, second = two_wires_with_an_owner(workspace)
-    agent = detached(workspace.project)
+    agent = workspace.agents.detached_agent()
     bind(agent, first, workspace)
     ui_thread = threading.get_ident()
     constructors, requests = [], []
@@ -53,7 +52,7 @@ async def test_concurrent_owner_requests_share_one_reader_and_a_changed_root_bui
 
 async def test_an_owner_replaced_while_the_reader_initializes_receives_no_request(workspace):
     first, second = two_wires_with_an_owner(workspace)
-    agent = detached(workspace.project)
+    agent = workspace.agents.detached_agent()
     bind(agent, first, workspace)
     requests = []
 
@@ -84,7 +83,7 @@ async def test_an_owner_replaced_while_the_reader_initializes_receives_no_reques
 
 async def test_a_bound_reader_is_the_running_interfaces_own_service(workspace):
     first, _ = two_wires_with_an_owner(workspace)
-    agent = detached(workspace.project)
+    agent = workspace.agents.detached_agent()
     bind(agent, first, workspace)
     async with workspace.app() as ui:
         ui.attach_agent(agent)
