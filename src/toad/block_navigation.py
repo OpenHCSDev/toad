@@ -3,11 +3,13 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
-from typing import ClassVar
+from typing import ClassVar, cast
 from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
 from textual.widget import Widget
 from toad.block_content import BlockContent
+from toad.frame_presentation import AnimationEffects
+from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
 
 
@@ -275,11 +277,19 @@ class ChildBlockCursor(BlockCursor):
         self._child = None
 
 
-class ConversationBlock(BlockContent):
-    """Conversation content, with an owned atomic cursor by default."""
+class ConversationEntry(AnimationEffects[Mix], BlockContent):
+    """Conversation content, with an owned atomic cursor by default.
+
+    The rows drawn inside an entry paint its fades (`LinkedRows.arrival`).
+    """
 
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1
+
+    def repaint(self) -> None:
+        # The widgets inside the entry draw its rows.
+        for widget in cast(Widget, self).walk_children(with_self=True):
+            widget.refresh()
 
     def notification_targets(self):
         return ()
@@ -287,6 +297,16 @@ class ConversationBlock(BlockContent):
     @cached_property
     def block_cursor(self) -> BlockCursor:
         return AtomicBlockCursor(self)
+
+
+class ConversationBlock(ConversationEntry):
+    """A live entry: it fades into its own colours as it appears."""
+
+    text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
+
+    def on_mount(self) -> None:
+        for fade in self.text_fades:
+            self.run_effect(fade)
 
 
 class ContentNavigation:
@@ -299,7 +319,7 @@ class ContentNavigation:
         return self.contents.displayed_children
 
     @property
-    def current(self) -> ConversationBlock | None:
+    def current(self) -> ConversationEntry | None:
         return self._current if self._current in self.blocks else None
 
     def clear(self) -> None:
@@ -353,6 +373,6 @@ class ContentNavigation:
 def require_blocks(widgets):
     """Decode the Textual mount boundary once before category consumers."""
     for widget in widgets:
-        if not isinstance(widget, ConversationBlock):
+        if not isinstance(widget, ConversationEntry):
             raise TypeError("Conversation contents require nominal blocks")
     return widgets

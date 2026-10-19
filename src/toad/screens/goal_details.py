@@ -93,15 +93,16 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         widget = self.query_one_optional("#goal-current-heading", Static)
         if widget is None:
             return
-        goal = self.goal_display.snapshot
-        heading = self.goal_display.details_heading(self.execution)
+        state = self.goal_display
+        goal = state.snapshot
+        heading = state.details_heading(self.execution)
         widget.update(heading)
-        self.query_one("#goal-current-objective", GoalText).update_goal_text(
-            f"Objective: {goal.text}" if goal else ""
-        )
-        self.query_one("#goal-current-progress", GoalText).update_goal_text(
-            f"Progress: {goal.progress}" if goal and goal.progress else ""
-        )
+        objective = self.query_one("#goal-current-objective", GoalText)
+        objective.update_goal_text(f"Objective: {goal.objective}")
+        objective.display = goal.shows_document
+        progress = self.query_one("#goal-current-progress", GoalText)
+        progress.update_goal_text(f"Progress: {goal.progress}")
+        progress.display = goal.shows_progress
 
     @on(Button.Pressed, "#goal-details-close")
     def action_close(self) -> None:
@@ -111,5 +112,4 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
     def open_target(self, event: CoreEventMessage) -> None:
         event.stop()
         self.dismiss(None)
-        if (view := self.source.view) is not None:
-            view.publish_core(event.event)
+        self.source.view.publish_core(event.event)

@@ -18,7 +18,7 @@ from agent_comms.sent_message import PublishedSentMessage, OutgoingMessageRefere
 from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
 
-from toad.block_navigation import ConversationBlock
+from toad.block_navigation import ConversationEntry
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
 
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
     from toad.widgets.history_anchor import HistoryWindow
     from toad.transcript_preparation import PreparedTranscriptPage
-    from toad.widgets.transcript_fragments import TranscriptFragment
+    from toad.widgets.transcript_fragments import BusMessageFragment, SentMessageFragment, TranscriptFragment
 
 @dataclass(frozen=True)
 class CommitEvidence:
@@ -51,6 +51,17 @@ class CommitClaim(ABC):
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         pass
 
+    # Whether the live block already showed a saved row its commit retires it for;
+    # a row no live block showed arrives (`CommitTranscript.arriving`).
+    def repeats_native(self, fragment: TranscriptFragment) -> bool:
+        return False
+
+    def repeats_received(self, fragment: BusMessageFragment) -> bool:
+        return False
+
+    def repeats_sent(self, fragment: SentMessageFragment) -> bool:
+        return False
+
 class CapturedClaim(CommitClaim):
     """A settled source-owned block captured before the snapshot read."""
 
@@ -63,6 +74,10 @@ class CapturedClaim(CommitClaim):
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return widget in evidence.captured and widget is not evidence.retained_history
 
+    def repeats_native(self, fragment: TranscriptFragment) -> bool:
+        # The snapshot captured the native output its saved records hold.
+        return True
+
 @dataclass(frozen=True)
 class ToolOutputClaim(CapturedClaim):
     """A compact tool cannot retire before its separate bodies are supplied."""
@@ -71,6 +86,9 @@ class ToolOutputClaim(CapturedClaim):
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return super().covered(widget, evidence) and self.outgoing <= evidence.outgoing
+
+    def repeats_sent(self, fragment: SentMessageFragment) -> bool:
+        return fragment.publication.reference in self.outgoing
 
 class RetainedSourceClaim(CapturedClaim):
     """An original saved source is transferable independently of live output."""
@@ -94,12 +112,18 @@ class SequenceClaim(CommitClaim):
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.sequence is not None and self.sequence in evidence.sequences
 
+    def repeats_received(self, fragment: BusMessageFragment) -> bool:
+        return self.sequence in TranscriptCoverage(fragment.events).sequences
+
 @dataclass(frozen=True)
 class OutgoingMessageClaim(CommitClaim):
     message: PublishedSentMessage
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.message.reference in evidence.outgoing
+
+    def repeats_sent(self, fragment: SentMessageFragment) -> bool:
+        return fragment.publication.reference == self.message.reference
 
 @dataclass(frozen=True)
 class StartedInputClaim(CommitClaim):
@@ -109,6 +133,9 @@ class StartedInputClaim(CommitClaim):
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.source.native_id in evidence.native_inputs
+
+    def repeats_native(self, fragment: TranscriptFragment) -> bool:
+        return self.source.native_id in TranscriptCoverage(fragment.events).native_inputs
 
 class CommitParticipant:
     """Nominal widget contract; unrelated/local widgets are retained by default."""
@@ -128,7 +155,7 @@ class CommitBarrier:
 CAPTURED_CLAIM = CapturedClaim()
 RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
-class CommittedHistory(ConversationBlock, SnapshotPresentation):
+class CommittedHistory(ConversationEntry, SnapshotPresentation):
     """A saved source block that precedes the conversation's live tail."""
 
     conversation_order = 0

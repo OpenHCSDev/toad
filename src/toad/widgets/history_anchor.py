@@ -20,7 +20,6 @@ from toad.transcript_state import LatestViewportRequest
 if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
-    from toad.widgets.transcript_fragments import TranscriptFragment
     from toad.widgets.conversation import Contents
 
 
@@ -48,8 +47,9 @@ class ReaderPosition(ABC):
         if reading is not None:
             first, page = reading
             fragment, _ = page.fragment_at(max(0, int(y - first)))
-            start, height, _ = page.fragment_row(fragment)
-            return FragmentPosition(fragment, (y - first - start) / height, height)
+            position = fragment.arrival_position
+            start, height, _ = page.fragment_row(position)
+            return FragmentPosition(position, (y - first - start) / height, height)
         if (position := BlockPosition.of(window)) is not None:
             return position
         return RowPosition(y)
@@ -185,17 +185,17 @@ class FragmentPosition(OffsetPosition):
 
     The fraction records where the reader is within the message, independent
     of wrapping. Its captured height converts explicit reader motion to that
-    coordinate. The same saved fragment survives paging, trimming and tab return.
+    coordinate. Its saved arrival position names the message after a reload.
     """
 
-    fragment: "TranscriptFragment"
+    position: int
     fraction: float
     height: int
 
     def page(self, window: "HistoryWindow"):
         """The displayed page that holds this message."""
         return next((page for page in window.drawn_pages()
-                     if page.fragment_row(self.fragment) is not None), None)
+                     if page.fragment_row(self.position) is not None), None)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         page = self.page(window)
@@ -208,12 +208,13 @@ class FragmentPosition(OffsetPosition):
 
     def preparation_start(self, history) -> tuple[int, int]:
         return next(((index, boundary) for index, page in enumerate(history.pages)
-                     for boundary, fragment in enumerate(page.prepared.fragments) if fragment is self.fragment),
+                     for boundary, fragment in enumerate(page.prepared.fragments)
+                     if fragment.arrival_position == self.position),
                     super().preparation_start(history))
 
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
-        first, height, drawn = page.fragment_row(self.fragment)
+        first, height, drawn = page.fragment_row(self.position)
         # A message the filter hides has no rows: the reader is at the next message drawn.
         return window.row_of(page) + first + (self.fraction * height if drawn else 0)
 
@@ -233,12 +234,10 @@ class BlockPosition(OffsetPosition):
     def of(cls, window: "HistoryWindow") -> "BlockPosition | None":
         """The topmost drawn live block; containers of other blocks do not hold the reader."""
         from toad.block_navigation import ConversationBlock
-        from toad.widgets.transcript_history import LineHistory
 
         visible = window.screen._compositor.published_widgets
         blocks = [widget for widget in visible
-                  if isinstance(widget, ConversationBlock) and not isinstance(widget, LineHistory)
-                  and window in widget.ancestors]
+                  if isinstance(widget, ConversationBlock) and window in widget.ancestors]
         holders = {ancestor for block in blocks for ancestor in block.ancestors}
         block = min(window.visible_history_items(block for block in blocks if block not in holders),
                     key=lambda node: visible[node][0].y, default=None)
