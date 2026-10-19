@@ -36,6 +36,7 @@ from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.screens.session_view import SessionOrigin, SessionView
+from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.session_presentation import OperationalSessionPresentation
 from toad.session_tracker import SidebarState
@@ -269,14 +270,14 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.content: ScreenContent = OpeningContent()
         self.presentation = OperationalSessionPresentation()
 
-    def read_visible(self):
+    def read_visible(self) -> PaintedRead:
         """Capture this session's painted cursor before its guarded backend write."""
         conversation = self.query_one_optional(Conversation)
         if conversation is None:
-            return None
+            return NothingToRead()
         through = conversation.visible_read_cursor
         if through is None:
-            return None
+            return NothingToRead()
         app = self.app
         access = app.coordination_access
         name = self.thread_identity.thread_name()
@@ -304,7 +305,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
             except DMScopeChanged as error:
                 app.show_error(error, "DM read not marked")
 
-        return mark()
+        return ReadWork(mark())
 
     @classmethod
     def from_thread(cls, project: Path, root: str, target,

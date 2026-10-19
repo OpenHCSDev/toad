@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.project_path_owner import ProjectPathOwner
-from toad.widgets.message_notifications import VisibleReadMarking
+from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
 
 if TYPE_CHECKING:
     from toad.agent_schema import AgentDefinition
@@ -88,9 +88,9 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Verti
         source = self.coordination_root
         return source is None or Path(source).expanduser().resolve() == root
 
-    def read_visible(self):
+    def read_visible(self) -> PaintedRead:
         """Views without a conversation have no native transcript to mark read."""
-        return None
+        return NothingToRead()
 
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
