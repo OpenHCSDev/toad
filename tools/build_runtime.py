@@ -555,9 +555,20 @@ def compiled_global_extensions(runtime: Path) -> dict[Path, Path]:
             ('agent-comms', 'project-sync', 'web-search')}
 
 
+@dataclass(frozen=True)
+class CopiedCheck:
+    """The one open Core context used by both visible checks."""
+
+    worker: subprocess.Popen[str]
+    environment: dict[str, str]
+    thread: str
+    home: Path
+    result: dict
+
+
 @contextmanager
-def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> Iterator[dict]:
-    """Own the copied history through startup and its caller's private fork/wake."""
+def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> Iterator[CopiedCheck]:
+    """Keep Core's bounded check root open through startup and the fresh reply."""
     output.mkdir()
     python = runtime / 'bin/python'
     modules = json.loads(run(python, '-I', '-B', '-c', '''
@@ -572,20 +583,17 @@ for path in sorted(root.rglob('*.py')):
 print(json.dumps(names))
 '''))
     (output / 'imports.json').write_text(json.dumps(modules, indent=2))
-    home = output / 'home'
-    home.mkdir(mode=0o700)
     saved = json.loads(run(baseline / 'bin/python', '-I', '-B', '-c', '''
 import json,sys,os
 from agent_comms.active_route import read_active_route
 from agent_comms.comms import wire
-from agent_comms.field_codec import FieldCodec
 from agent_comms.launch_runtime import RestartEnvironment
 c=wire(read_active_route());t=c.registry.require(sys.argv[1])
-print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backend),model=t.model,
-                     config=str(RestartEnvironment.inherit(os.environ).native_config))))
+print(json.dumps(dict(root=str(c.root),path=str(t.runtime.path),model=t.model,
+    config=str(RestartEnvironment.inherit(os.environ).native_config))))
 ''', thread))
-    project = output / 'project'
-    project.mkdir(mode=0o700)
+    home = output / 'home'
+    home.mkdir(mode=0o700)
     agent = output / 'pi'
     agent.mkdir(mode=0o700)
     config = Path(saved['config'])
@@ -593,89 +601,100 @@ print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backe
     compiled = compiled_global_extensions(runtime)
     settings['extensions'] = [str(path) for path in compiled.values()]
     (agent / 'settings.json').write_text(json.dumps(settings, indent=2) + '\n')
-    # Keep third-party discovery unchanged; our three globals use compiled files.
     (agent / 'extensions').mkdir()
     for extension in (config / 'extensions').iterdir():
         if extension not in compiled:
             (agent / 'extensions' / extension.name).symlink_to(extension)
     saved['agent_directory'] = str(agent)
-    with Path(saved['path']).open('rb') as stream:
-        captured = stream.read(os.fstat(stream.fileno()).st_size)
-    captured = captured[:captured.rfind(b'\n') + 1]
-    if not captured:
-        raise ValueError('Startup requires nonempty saved history')
-    source = project / 'saved.jsonl'
-    with ExitStack() as startup:
-        with source.open('wb') as stream:
-            startup.callback(source.unlink)
-            stream.write(captured)
-        source.chmod(0o600)
-        (output / 'saved-source.json').write_text(json.dumps(saved, indent=2))
-        environment = {k: v for k, v in os.environ.items()
-                       if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
-                       and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
-        environment.update(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
-                           XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
-                           AGENT_COMMS_ROOT=str(output / 'wire'),
-                           AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'))
-        launch = subprocess.check_output([str(python), '-I', '-B', '-c', '''
-import sys,json
+    (output / 'saved-source.json').write_text(json.dumps(saved, indent=2))
+    environment = {k: v for k, v in os.environ.items()
+                   if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
+                   and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
+    environment.update(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
+                       XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
+                       AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'),
+                       AGENT_COMMS_NATIVE_CONFIG_DIR=str(config), PI_CODING_AGENT_DIR=str(agent))
+    with (output / 'check-root.log').open('w') as log:
+        worker = subprocess.Popen([str(python), '-I', '-B', '-c', '''
+import json,sys,time,subprocess
 from pathlib import Path
-from agent_comms.comms import wire
-from agent_comms.active_route import ActiveRoute,publish_active_route
-from agent_comms.coordinator import Coordination
-from agent_comms.agent_backend import AgentBackend
-from agent_comms.field_codec import FieldCodec
-from agent_comms.launch_runtime import RestartEnvironment
-c=wire();root_id=c.messaging.initialize_private_initial_protocol()
-publish_active_route(ActiveRoute(c.root,root_id))
-c.registry.declare(c.registry.new_thread('startup-saved',frozenset({'comms'}),sys.argv[1],session_file=sys.argv[2],
-    backend=FieldCodec.decode(type[AgentBackend],sys.argv[3]),model=json.loads(sys.argv[5])))
-with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_private_runtime()
-print(json.dumps(RestartEnvironment(root=str(c.root),
-    native_config=Path(sys.argv[4]),agent_directory=Path(sys.argv[6])).encode()))
-''', str(project), str(source), saved['backend'], saved['config'], json.dumps(saved['model']), str(agent)],
-            env=environment, text=True)
-        environment.update(json.loads(launch))
-        startup.callback(subprocess.run, [runtime / 'bin/agent-comms', '--root', output / 'wire',
-                         'stop', '--name', 'startup-saved'], env=environment, check=True)
-        subprocess.run([runtime / 'bin/agent-comms', '--root', output / 'wire',
-                        'start', '--name', 'startup-saved'], env=environment, check=True)
-        with BuildDisplay(output) as display:
-            command = [runtime / 'bin/toad']
-            with TerminalApp(command, display, output / 'plain', environment, home) as app:
-                app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
-                app.screenshot('store')
-            command = ['/home/ts/bin/toad-comms', 'startup-saved']
-            with TerminalApp(command, display, output / 'welcome', environment, home) as app:
-                app.wait('welcome', lambda text: 'startup-saved' in text)
-                app.screenshot('welcome')
-                app.click('startup-saved')
-                app.show_saved_thread('startup-saved')
-                app.screenshot('saved')
-                initial = app.reader_place('plain-initial')
-                app.click_cell(app.columns // 2, app.rows // 2)
-                app.keys('PPage', 'PPage', 'PPage')
-                app.wait('plain-page-up-moved', lambda text: bool(app.reader_position(text))
-                         and app.reader_position(text) != initial)
-                plain_before = app.reader_place('plain-before')
-                app.click('#any')
-                app.wait('any', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
-                app.screenshot('any')
-                app.click('#comms')
-                app.wait('comms', lambda text: '#comms' in '\n'.join(text.splitlines()[:3])
-                         and 'IRC / Markdown' in text)
-                app.screenshot('comms')
-                app.click('startup-saved')
-                app.wait('plain-return', lambda text: app.reader_position(text) == plain_before)
-                check_filtered_return(app)
-        result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
-                      channel='passed', comms='passed', filtered_return='passed', evidence=str(output))
-        (output / 'result.json').write_text(json.dumps(result, indent=2))
-        yield result
+from agent_comms.check_root import CheckRoot
+from agent_comms.comms import Comms
+out,runtime,source=map(Path,sys.argv[1:4]);name=sys.argv[4]
+with CheckRoot(Comms(source),(name,),out/'wire').open() as c:
+    subprocess.run([runtime/'bin/agent-comms','--root',c.root,'replace-route'],
+                   check=True,stdout=sys.stderr)
+    thread=c.registry.require(name)
+    sender=c.messaging.user_identity(thread.worktree).name
+    c.owners.start(name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
+    print('READY',flush=True)
+    request=sys.stdin.readline()
+    if request:
+        request=json.loads(request)
+        result=Path(request['output']);token=request['token']
+        (result/'input.json').write_text(json.dumps(dict(status='UNKNOWN',replay=False,target=name)))
+        started=time.monotonic()
+        c.messaging.send_user_message(name,'Reply with '+token+'. Do not use tools.',worktree=thread.worktree)
+        while True:
+            failures=list((c.root/'diagnostics').glob('drain-*.json'))
+            if failures:raise RuntimeError(f'Private check produced drain diagnostics: {failures}')
+            with c.bus.log.opened_wire_snapshot() as history:
+                replies=[m for m in history.newest_messages(1024*1024)
+                         if m.sender==name and m.target==sender and token in m.body]
+            if replies and not c.registry.require(name).executing:break
+            time.sleep(.25)
+        (result/'result.json').write_text(json.dumps(dict(completed=True,reply=replies[0].body,
+            session=thread.session_file,root=str(c.root),thread=name,drain_diagnostics=0,
+            reply_seconds=time.monotonic()-started)))
+        (result/'input.json').write_text(json.dumps(dict(status='COMPLETED',replay=False,target=name)))
+        sys.stdin.read()
+''', str(output), str(runtime), saved['root'], thread], env=environment,
+            stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=log, text=True)
+        try:
+            readable, _, _ = select.select([worker.stdout], [], [], 60)
+            if not readable or worker.stdout.readline().strip() != 'READY':
+                raise RuntimeError(f'Private check did not start; see {output / "check-root.log"}')
+            with BuildDisplay(output) as display:
+                command = [runtime / 'bin/toad']
+                with TerminalApp(command, display, output / 'plain', environment, home) as app:
+                    app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
+                    app.screenshot('store')
+                command = ['/home/ts/bin/toad-comms', thread]
+                with TerminalApp(command, display, output / 'welcome', environment, home) as app:
+                    app.wait('welcome', lambda text: thread in text)
+                    app.screenshot('welcome')
+                    app.click(thread)
+                    app.show_saved_thread(thread)
+                    app.screenshot('saved')
+                    initial = app.reader_place('plain-initial')
+                    app.click_cell(app.columns // 2, app.rows // 2)
+                    app.keys('PPage', 'PPage', 'PPage')
+                    app.wait('plain-page-up-moved', lambda text: bool(app.reader_position(text))
+                             and app.reader_position(text) != initial)
+                    plain_before = app.reader_place('plain-before')
+                    app.click('#any')
+                    app.wait('any', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
+                    app.screenshot('any')
+                    app.click('#comms')
+                    app.wait('comms', lambda text: '#comms' in '\n'.join(text.splitlines()[:3])
+                             and 'IRC / Markdown' in text)
+                    app.screenshot('comms')
+                    app.click(thread)
+                    app.wait('plain-return', lambda text: app.reader_position(text) == plain_before)
+                    check_filtered_return(app, thread)
+            result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
+                          channel='passed', comms='passed', filtered_return='passed', evidence=str(output))
+            (output / 'result.json').write_text(json.dumps(result, indent=2))
+            yield CopiedCheck(worker, environment, thread, home, result)
+        finally:
+            worker.stdin.close()
+            worker.wait(timeout=150)
+            worker.stdout.close()
+            if worker.returncode:
+                raise RuntimeError(f'Private check failed; see {output / "check-root.log"}')
 
 
-def check_filtered_return(app: TerminalApp) -> None:
+def check_filtered_return(app: TerminalApp, thread: str) -> None:
     """Choose user-only checkboxes, PageUp and compare the visible returned rows."""
     app.wait('saved-return', lambda text: 'User messages' in text)
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
@@ -694,7 +713,7 @@ def check_filtered_return(app: TerminalApp) -> None:
     app.screenshot('filtered-return')
     app.click('#any')
     app.wait('filtered-click-away', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
-    app.click('startup-saved')
+    app.click(thread)
     app.wait('filtered-click-return', lambda text: app.reader_position(text) == expected)
     app.screenshot('filtered-click-return')
 
@@ -714,124 +733,37 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
 
 
 
-def check_message_wake(runtime: Path, output: Path, startup: Path) -> dict:
-    """Deliver one new message to a fresh private SDK fork and require its reply."""
+def check_message_wake(output: Path, copied: CopiedCheck) -> dict:
+    """Send one fresh DM in the same Core check root and observe its tab return."""
     output.mkdir(mode=0o700)
-    environment = {k: v for k, v in os.environ.items()
-                   if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
-                   and k not in ('PYTHONPATH', 'PYTHONHOME')}
-    environment['BUILD_WAKE_TOKEN'] = 'BUILD_WAKE_' + str(time.time_ns())
-    with (output / 'wake.log').open('w') as log:
-        worker = subprocess.Popen([str(runtime / 'bin/python'), '-I', '-B', '-c', '''
-import asyncio,hashlib,json,os,sys,time
-from pathlib import Path
-from agent_comms.active_route import ActiveRoute,publish_active_route
-from agent_comms.comms import wire,Comms
-from agent_comms.thread_status import StoppedThreadStatus
-from agent_comms.agent_backend import AgentBackend
-from agent_comms.field_codec import FieldCodec
-from agent_comms.launch_runtime import LaunchRuntime
-from agent_comms.wire_record import WireRecord
-out, startup, runtime=map(Path,sys.argv[1:])
-saved=json.loads((startup/'saved-source.json').read_text())
-source=startup/'project/saved.jsonl'; digest=hashlib.sha256(source.read_bytes()).hexdigest()
-home=out/'home';home.mkdir(mode=0o700)
-os.environ.update(HOME=str(home), PI_CODING_AGENT_DIR=str(out/'pi'),
-                  AGENT_COMMS_NATIVE_CONFIG_DIR=saved['config'])
-for kind in ('CONFIG','DATA','STATE','CACHE'):os.environ['XDG_'+kind+'_HOME']=str(out/kind.lower())
-c=Comms(out/'wire');root_id=c.messaging.initialize_private_initial_protocol()
-route=ActiveRoute(c.root,root_id)
-publish_active_route(route)
-os.environ.update(AGENT_COMMS_ROOT=str(c.root),AGENT_COMMS_AGENT_BIN=str(runtime/'bin/pi-comms-native'))
-c=wire(route)
-parent=c.registry.declare(c.registry.new_thread('build-parent',frozenset(),str(out),session_file=str(source),
-    backend=FieldCodec.decode(type[AgentBackend],saved['backend']),model=saved['model']),StoppedThreadStatus())
-async def fork():return await parent.backend.fork(parent,str(runtime/'bin/pi-comms-native'),LaunchRuntime.running())
-forked=asyncio.run(fork())
-child=c.registry.declare(c.registry.new_thread('build-wake',frozenset(),str(out),parent=parent.name,
-    session_file=forked.path,backend=parent.backend,model=parent.model),StoppedThreadStatus())
-c.registry.declare(c.registry.new_thread('build-sender',frozenset(),str(out)),StoppedThreadStatus())
-os.environ['PI_CODING_AGENT_DIR']=saved['agent_directory']
-c.owners.start(child.name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
-try:
-    print('READY',flush=True)
-    if sys.stdin.readline().strip() != 'SEND':raise RuntimeError('UI did not request the fresh message')
-    token=os.environ['BUILD_WAKE_TOKEN']
-    (out/'input.json').write_text(json.dumps(dict(status='UNKNOWN',replay=False,target=child.name)))
-    started=time.monotonic()
-    sent=c.messaging.send('build-sender',child.name,'Reply with '+token+'. Do not use tools.')
-    for notice in sent.notices:print(notice,file=sys.stderr,flush=True)
-    while True:
-        failures=list((c.root/'diagnostics').glob('drain-*.json'))
-        if failures:raise RuntimeError(f'Private wake produced a drain diagnostic: {failures}')
-        messages=[m for line in c.bus.log.path.read_text().splitlines()
-                  for m in WireRecord.public_from_wire(json.loads(line)).messages()]
-        replies=[m for m in messages if m.sender==child.name and m.target=='build-sender' and token in m.body]
-        current=c.registry.require(child.name)
-        if replies and not current.executing:break
-        time.sleep(.25)
-    assert hashlib.sha256(source.read_bytes()).hexdigest()==digest
-    (out/'result.json').write_text(json.dumps(dict(completed=True,reply=replies[-1].body,
-        session=forked.path,original_unchanged=True,drain_diagnostics=0,reply_seconds=time.monotonic()-started)))
-    (out/'input.json').write_text(json.dumps(dict(status='COMPLETED',replay=False,target=child.name)))
-finally:
-    if not c.registry.require(child.name).executing:
-        c.owners.stop(child.name)
-''', str(output), str(startup), str(runtime)], env=environment, stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE, stderr=log, text=True)
-        try:
-            readable, _, _ = select.select([worker.stdout], [], [], 60)
-            if not readable or worker.stdout.readline().strip() != 'READY':
-                raise RuntimeError(f'Private agent did not start; see {output / "wake.log"}')
-            environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'),
-                               AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'))
-            saved = json.loads((startup / 'saved-source.json').read_text())
-            environment['AGENT_COMMS_NATIVE_CONFIG_DIR'] = saved['config']
-            environment['PI_CODING_AGENT_DIR'] = saved['agent_directory']
-            for kind in ('CONFIG', 'DATA', 'STATE', 'CACHE'):
-                environment['XDG_' + kind + '_HOME'] = str(output / kind.lower())
-            with BuildDisplay(output) as display:
-                command = ['/home/ts/bin/toad-comms', 'build-wake']
-                with TerminalApp(command, display, output / 'reply', environment, output) as app:
-                    app.wait('welcome', lambda text: 'build-wake' in text)
-                    app.click('build-wake')
-                    app.show_saved_thread('build-wake')
-                    app.screenshot('before-send')
-                    worker.stdin.write('SEND\n')
-                    worker.stdin.flush()
-                    token = environment['BUILD_WAKE_TOKEN']
-                    def reply_is_visible(text):
-                        return any(row.strip('▌ ') == token for row in app.message_cells(text))
-                    def replied(text):
-                        if worker.poll() not in (None, 0):
-                            raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
-                        return (output / 'result.json').exists() and reply_is_visible(text)
-                    app.wait('reply', replied, seconds=None)
-                    app.screenshot('reply')
-                    app.click('#any')
-                    app.wait('reply-channel', lambda text: '#any · all comms' in text
-                             and 'IRC / Markdown' in text and reply_is_visible(text))
-                    app.click('build-wake')
-                    app.wait('reply-return', lambda text: reply_is_visible(text) and 'User messages' in text)
-                    app.screenshot('reply-return')
-            worker.wait(timeout=30)
-            if worker.returncode:
-                raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
-            return json.loads((output / 'result.json').read_text())
-        finally:
-            worker.stdin.close()
-            if worker.poll() is None:
-                worker.wait(timeout=150)
-            worker.stdout.close()
+    token = 'BUILD_WAKE_' + str(time.time_ns())
+    with BuildDisplay(output) as display:
+        command = ['/home/ts/bin/toad-comms', copied.thread]
+        with TerminalApp(command, display, output / 'reply', copied.environment, copied.home) as app:
+            app.wait('welcome', lambda text: copied.thread in text)
+            app.click(copied.thread)
+            app.show_saved_thread(copied.thread)
+            app.screenshot('before-send')
+            copied.worker.stdin.write(json.dumps(dict(output=str(output), token=token)) + '\n')
+            copied.worker.stdin.flush()
 
+            def reply_is_visible(text):
+                return any(row.strip('▌ ') == token for row in app.message_cells(text))
 
+            def replied(text):
+                if copied.worker.poll() is not None:
+                    raise RuntimeError('Private check exited before the reply was observed')
+                return (output / 'result.json').exists() and reply_is_visible(text)
 
-
-
-
-
-
-
+            app.wait('reply', replied, seconds=None)
+            app.screenshot('reply')
+            app.click('#any')
+            app.wait('reply-channel', lambda text: '#any · all comms' in text
+                     and 'IRC / Markdown' in text and reply_is_visible(text))
+            app.click(copied.thread)
+            app.wait('reply-return', lambda text: reply_is_visible(text) and 'User messages' in text)
+            app.screenshot('reply-return')
+    return json.loads((output / 'result.json').read_text())
 
 
 @dataclass(frozen=True)
@@ -1017,9 +949,9 @@ class RuntimeBuild:
             'verify_native_package(pinned_native_package())')
         native_pin = hashlib.sha256(manifest).hexdigest()
         with check_startup(destination, self.scratch / f'startup-{destination.name}',
-                           self.baseline, self.thread) as startup:
-            wake = message_check(destination, self.scratch / f'wake-{destination.name}',
-                                 self.scratch / f'startup-{destination.name}')
+                           self.baseline, self.thread) as copied:
+            wake = message_check(self.scratch / f'wake-{destination.name}', copied)
+            startup = copied.result
         record = {
             'baseline': str(self.baseline),
             'toad_commit': toad_commit, 'core_commit': core_commit,
