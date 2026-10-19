@@ -130,8 +130,10 @@ class ThreadAction:
             try:
                 def prepare():
                     ctx.current()
-                    return TargetEdit(declaration=definition.declaration, target=definition.targets if ctx.targets else ctx.subject,
-                        arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation), channel=ctx.channel, project=str(ctx.project))
+                    return TargetEdit(declaration=definition.declaration,
+                        target=definition.declaration.selected_targets(definition.targets if ctx.targets else ctx.subject),
+                        arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),
+                        channel=definition.channels, project=str(ctx.project))
                 request = await ctx.app.preparation.run_thread(prepare)
                 ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,
                                              source_root=ctx.comms.root)

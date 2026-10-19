@@ -126,9 +126,9 @@ def request_target_command(app, command, subject) -> None:
     from toad.thread_actions import ThreadAction
 
     comms = app.coordination_access.service
-    definition = next(item for item in CliCommand.target_catalog(comms, subject, project=str(app.project_dir))
+    definition = next(item for item in CliCommand.target_catalog(comms, CliCommand.selected_targets(subject), project=str(app.project_dir))
                       if item.declaration is command)
-    app.thread_actions.invoke(ThreadAction(definition, TargetEdit(target=subject, declaration=command, arguments={})),
+    app.thread_actions.invoke(ThreadAction(definition, TargetEdit(target=command.selected_targets(subject), declaration=command, arguments={})),
                               subject, source_root=comms.root)
 
 
