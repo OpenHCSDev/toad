@@ -28,6 +28,7 @@ from textual.driver import TerminalGaveNoPalette
 from textual.css.styles import Styles
 from textual.style import Style as VisualStyle
 from textual.strip import Strip
+from toad.preferences import SavedSettings, ToadSettings
 from textual.screen import Screen
 from textual.theme import Theme
 from textual.timer import Timer
@@ -48,7 +49,6 @@ from toad.line_blocks import LineRole
 from toad.render_tasks import TextEffectRenderTask
 
 if TYPE_CHECKING:
-    from toad.preferences import SavedSettings, ToadSettings
     from toad.app import ToadApp
 
 
@@ -448,8 +448,6 @@ class ThemedApp:
 
     def open_settings(self) -> SavedSettings:
         """Settings held by this app alone; an app with a settings file opens it instead."""
-        from toad.preferences import SavedSettings
-
         return SavedSettings()
 
     @property
