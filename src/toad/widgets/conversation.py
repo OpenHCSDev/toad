@@ -43,7 +43,6 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from toad import messages, paths
-from acp.exceptions import RequestError
 from toad.widgets.splash_text import ThreadLoading
 
 from toad.core import events as core_events

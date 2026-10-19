@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import partial
 from typing import TYPE_CHECKING, Awaitable, Callable
-from acp.exceptions import RequestError
 
 from agent_comms.field_codec import FieldCodec
 from agent_comms.declared_family import DeclaredFamily
