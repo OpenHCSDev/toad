@@ -6,9 +6,12 @@ from dataclasses import replace
 from pathlib import Path
 
 from agent_comms.goal_actions import GoalAction
+from agent_comms.goal_mentions import bind_goal_mentions
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution, ThreadGoalExecution
 from agent_comms.goal_states import ActiveGoal
 from agent_comms.goals import Goal, GoalDeclaration
+from agent_comms.registry_document import RegistrySnapshot
+from agent_comms.threads import Thread
 
 from toad.acp.agent import Agent
 from toad.app import ToadApp
@@ -19,6 +22,11 @@ def published_goal(text: str, goal_id: str, **fields) -> Goal:
     """A goal as the goal store first publishes it (Core SetGoalAction.create)."""
     return Goal(text=text, id=goal_id, published_seq=fields.pop("published_seq", 1),
                 revision=fields.pop("revision", 1), **fields)
+
+
+def bound_mentions(goal: Goal, owner: Thread, registry: RegistrySnapshot) -> Goal:
+    """The goal with the mention bindings Core freezes when it publishes it (SetGoalAction.create)."""
+    return replace(goal, mention_source=bind_goal_mentions(goal.text, goal.id, goal.revision, owner, registry))
 
 
 class ScriptedGoalOwner(Agent):

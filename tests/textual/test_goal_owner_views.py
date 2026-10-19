@@ -9,7 +9,7 @@ from agent_comms.goals import NoGoal
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from textual.widgets import Button, Static
 
-from support.goals import ScriptedGoalOwner, published_goal
+from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
 from toad.line_blocks import OpenTarget
 from support.textual_steps import channel_roster
 from toad.core.events import CommsUpdated
@@ -19,8 +19,9 @@ from toad.widgets.goal_bar import GoalBar
 from toad.widgets.throbber import Throbber
 
 
-def goal_owner(app):
-    goal = published_goal("Coordinate with @peer", "stable-goal", progress="Keep evidence", revision=4)
+def goal_owner(workspace, app):
+    goal = bound_mentions(published_goal("Coordinate with @peer", "stable-goal", progress="Keep evidence", revision=4),
+                          workspace.thread("goal-owner"), workspace.comms.registry.snapshot())
     execution = GoalExecution(GoalExecutionState.STANDBY, goal.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),))
     history = [
         {"sequence": 1, "kind": "baseline", "observed_at": 1000.0, "before": None,
@@ -36,7 +37,7 @@ def goal_owner(app):
 async def shown_goal(workspace, ui):
     workspace.thread("peer")
     await channel_roster(ui, "#all")
-    owner = goal_owner(ui.app)
+    owner = goal_owner(workspace, ui.app)
     ui.attach_agent(owner)
     view = ui.conversation
     view.agent_ready = True
