@@ -613,6 +613,9 @@ print(json.dumps(dict(root=str(c.root),path=str(t.runtime.path),model=t.model,
 ''', thread))
     home = output / 'home'
     home.mkdir(mode=0o700)
+    current = home / '.local/share/agent-comms/current'
+    current.parent.mkdir(parents=True)
+    current.symlink_to(runtime.resolve(strict=True), target_is_directory=True)
     agent = output / 'pi'
     agent.mkdir(mode=0o700)
     config = Path(saved['config'])
