@@ -229,6 +229,7 @@ class InstallWatchers:
         """
         import psutil
         from agent_comms.child_process import ObservedProcess, ProcessIdentity
+        from agent_comms.maintenance_barrier import MaintenanceBarrier
         from agent_comms.owner_cutover import StoppedOwnerInstallation
         from agent_comms.store_files import _atomic_write_text
         from agent_comms.field_codec import FieldCodec
@@ -320,7 +321,12 @@ class InstallWatchers:
             if not settings_backup.exists():
                 _atomic_write_text(settings_backup, settings_before.decode('utf-8'), fsync_parent=True)
             _atomic_write_text(settings_path, json.dumps(settings, indent=2) + '\n', fsync_parent=True)
-            yield
+            try:
+                yield
+            finally:
+                restoration = restore.pop_all()
+                if not MaintenanceBarrier(self.path.parent / 'registry.json').read().turn_pending:
+                    restoration.close()
 
 
 def inventory() -> dict:
