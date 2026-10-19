@@ -90,7 +90,7 @@ def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
 
 
 def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[Path] | None = None) -> dict:
-    """Records and build dates admit removal; process references can only veto it."""
+    """Explicit removals or older build records allow pruning; process use vetoes it."""
     selected = current.resolve(strict=True)
     previous = previous.resolve(strict=True)
     directory = selected.parent
@@ -109,7 +109,7 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[
     references = runtime_references(runtimes)
     proposed = [path for path in runtimes
                 if path not in installed and not references[str(path)]
-                and RuntimeBuild.qualified_before(path, built_at)]
+                and (remove is not None or RuntimeBuild.qualified_before(path, built_at))]
     result = {'before': len(runtimes), 'current': str(selected), 'previous': str(previous),
               'baseline': str(baseline),
               'kept': [str(path) for path in runtimes if path not in proposed],
@@ -175,7 +175,8 @@ def installation_main() -> None:
     parser.add_argument('--current', type=Path)
     parser.add_argument('--previous', type=Path)
     parser.add_argument('--delete', action='store_true')
-    parser.add_argument('--remove', type=Path, nargs='+', help='Prune only these runtime directories')
+    parser.add_argument('--remove', type=Path, nargs='+',
+                        help='Explicitly retire these runtimes, including unfinished builds')
     parser.add_argument('--publication-tools', type=Path, help="Core checkout's tools directory")
     parser.add_argument('--root', type=Path)
     args = parser.parse_args()
