@@ -722,6 +722,7 @@ def check_filtered_return(app: TerminalApp, thread: str) -> None:
         app.hide_category(label)
     app.click_cell(app.columns // 2, app.rows - 4)
     initial = app.reader_place('filtered-initial')
+    app.screenshot('filtered-initial')
     app.keys('Page_Up', 'Page_Up', 'Page_Up')
     app.wait('page-up-moved', lambda text: bool(app.reader_position(text))
              and app.reader_position(text) != initial)
