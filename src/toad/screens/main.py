@@ -5,6 +5,7 @@ from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 import asyncio
 from abc import abstractmethod
+from acp.exceptions import RequestError
 from functools import partial
 from pathlib import Path
 from typing import cast
@@ -334,7 +335,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         except asyncio.CancelledError as error:
             self.opening_failed(error)
             raise
-        except Exception as error:
+        except RequestError as error:
             self.opening_failed(error)
         else:
             self.content.finish(self, ReadyContent())
