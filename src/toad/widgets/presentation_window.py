@@ -518,7 +518,11 @@ class DirectionalPreparation:
         if (not window.screen.is_active or not history.selected_categories
                 or self.runway(history) is None):
             return
-        if history.follows_source_tail and NEWER_END.visible_more(history):
+        if not history.drawn_extent[0] and NEWER_END.visible_more(history):
+            # A filter can hide the whole loaded range. Ask the ordinary
+            # source owner for the next range, not an invented row at its end.
+            history.request_page(NEWER_END)
+        elif history.follows_source_tail and NEWER_END.visible_more(history):
             window.jump_to_latest()
         elif history.filter.active:
             # Projection scans share the original source's decoded boundary.
