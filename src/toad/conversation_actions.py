@@ -49,7 +49,7 @@ class CancelAction(KeyboundAction, ConversationAction):
     def available(self, conversation):
         if conversation.app.settings.ui.vim_keys != self.vim_profile:
             return False
-        return True if conversation.agent and conversation.turns.owner.can_cancel else None
+        return True if conversation.agent_binding.cancel_allowed(conversation.turns.owner) else None
 
     async def apply(self, conversation):
         conversation.cancel_turn(self.key_display or self.key)

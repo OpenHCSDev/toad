@@ -45,8 +45,8 @@ class HistoryInteraction(GoalInteraction):
     async def apply(cls, session):
         from toad.screens.goal_details import GoalDetails
         view = session.view
-        goal, agent = view.goal_display.snapshot.require(), view.agent
-        history = await agent.get_goal_history(goal.id) if agent is not None else ()
+        goal, agent = view.goal_display.snapshot.require(), view.agent_binding
+        history = await agent.get_goal_history(goal.id)
         if not session.owns(agent):
             return
         details = GoalDetails(session, history=history)
@@ -100,9 +100,8 @@ class EditInteraction(GoalInteraction):
         from toad.screens.goal_edit import GoalEdit
         from toad.widgets.goal_text import goal_mention_candidates
         view = session.view
-        goal, agent = view.goal_display.snapshot.require(), view.agent
-        if agent is None:
-            raise ValueError("Editing requires an agent-comms goal")
+        goal = view.goal_display.snapshot.require()
+        agent = view.agent_binding.goal_editor()
 
         async def save(text: str) -> None:
             if not session.owns(agent):
@@ -144,7 +143,7 @@ class GoalSession:
         view = self.view
         if not view.is_attached:
             return False
-        return view.goal_controls is self and view.agent is agent
+        return view.goal_controls is self and view.agent_binding is agent
 
     def present(self, modal) -> None:
         self._modal = ref(modal)
@@ -152,9 +151,9 @@ class GoalSession:
 
     async def activate(self, action: type[GoalInteraction]) -> None:
         view = self.view
-        if not self.owns(view.agent):
+        if not self.owns(view.agent_binding):
             return
-        agent = view.agent
+        agent = view.agent_binding
         try:
             await view.goal_observation.refresh()
             if not self.owns(agent):
@@ -171,12 +170,9 @@ class GoalSession:
         view = self.view
         if not view.is_attached:
             raise ValueError("The goal presentation changed; reopen its controls.")
-        agent = view.agent
+        agent = view.agent_binding
         if not self.owns(agent):
             raise ValueError("The goal presentation changed; reopen its controls.")
-        if agent is None:
-            view.flash("Persistent goals require an agent-comms session", style="error")
-            return
         try:
             # The existing Agent boundary encodes the declared goal operation.
             # Goal state governs continuation, never interruption of an active turn.

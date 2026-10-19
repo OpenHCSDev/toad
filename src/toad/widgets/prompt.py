@@ -20,6 +20,7 @@ from textual.actions import SkipAction
 from textual.binding import Binding
 
 from textual.content import Content, Span
+from toad.agent_binding import NoAgentBound
 from textual import getters
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
@@ -553,7 +554,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
     display_directory = var("")
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
-    agent: var[AgentBase | None] = var(None)
+    agent_binding = var(NoAgentBound())
     model_history_scope = var("")
     status: var[str | Content | RichText] = var("")
 
@@ -594,7 +595,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     @property
     def queue_supported(self) -> bool:
-        return self.agent is not None and self.agent.presentation.queue_supported
+        return self.agent_binding.queue_supported
 
     @property
     def text(self) -> str:
@@ -616,7 +617,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
             self.prompt_text_area.get_cursor_line_end_location()
         )
 
-    def watch_agent(self) -> None:
+    def watch_agent_binding(self) -> None:
         if self.is_mounted:
             self.sync_configuration()
             self.sync_session()
@@ -625,8 +626,8 @@ class Prompt(TonePaint, containers.VerticalGroup):
         """Render the original operational owners; no accepted selection lives here."""
         if self.simple_input:
             return
-        agent = self.agent
-        mode = agent.current_mode if agent is not None else None
+        agent = self.agent_binding
+        mode = agent.current_mode
         self.set_class(mode is not None, "-has-mode")
         info = self.query_one(ModeInfo)
         info.update(mode.name if mode is not None else "")
@@ -634,7 +635,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
             "[b]$description[/]\n\n[dim](click to open mode switcher)",
             description=mode.description or mode.name,
         ) if mode is not None else None)
-        model = agent.configuration.model.selected if agent is not None else None
+        model = agent.configuration.model.selected
         self.set_class(model is not None, "-has-model")
         self.query_one(AgentInfo).tooltip = (Content.from_markup(
             "[b]$description[/]\n\n[dim](click to search models)",
@@ -666,15 +667,15 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     @on(events.Click, "AgentInfo")
     def on_agent_info_click(self):
-        if self.agent is not None and self.agent.configuration.model.available:
+        if self.agent_binding.model_available:
             self.model_switcher.focus()
 
     def update_modes(self) -> None:
         from toad.visuals.columns import Columns
 
-        agent = self.agent
-        mode_list = sorted(agent.available_modes, key=lambda mode: mode.name.lower()) if agent is not None else []
-        current = agent.current_mode if agent is not None else None
+        agent = self.agent_binding
+        mode_list = sorted(agent.available_modes, key=lambda mode: mode.name.lower())
+        current = agent.current_mode
         columns = Columns("auto", "auto", "flex")
         for mode in mode_list:
             columns.add_row(

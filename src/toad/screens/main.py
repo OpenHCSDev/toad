@@ -58,10 +58,8 @@ class ModeProvider(Provider):
         screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
 
-        agent = screen.conversation.agent
-        for mode in sorted(
-            agent.available_modes if agent is not None else (), key=lambda mode: mode.name
-        ):
+        agent = screen.conversation.agent_binding
+        for mode in sorted(agent.available_modes, key=lambda mode: mode.name):
             command = mode.name
             score = matcher.match(command)
             if score > 0:
@@ -76,10 +74,8 @@ class ModeProvider(Provider):
         screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
 
-        agent = screen.conversation.agent
-        for mode in sorted(
-            agent.available_modes if agent is not None else (), key=lambda mode: mode.name
-        ):
+        agent = screen.conversation.agent_binding
+        for mode in sorted(agent.available_modes, key=lambda mode: mode.name):
             yield DiscoveryHit(
                 mode.name,
                 partial(screen.conversation.set_mode, mode.id),

@@ -19,6 +19,7 @@ from toad.acp.agent_session import SessionDisposition
 
 from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
+from toad.agent_binding import NoAgentBound
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.message_filter import MessageCategory
@@ -70,7 +71,7 @@ class SessionSurfaceLifetime(ABC):
 
     @property
     def operational_agent(self):
-        return None
+        return NoAgentBound()
 
     @abstractmethod
     def compose_content(self, screen: "MainScreen") -> Widget: ...
@@ -103,13 +104,13 @@ class OperationalSessionSources:
     """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:
-        self.agent = None
+        self.agent_binding = NoAgentBound()
         self.shell = None
         self.load_plan = EnsuringSessionLoadPlan()
 
     def status_row(self, conversation: Conversation):
         row = self.activity_row(conversation).with_delivery(conversation.input_delivery)
-        return SessionDisposition.of(conversation.agent).present(row, row.disconnected)
+        return conversation.agent_binding.session_disposition.present(row, row.disconnected)
 
     def activity_row(self, conversation: Conversation):
         # A Core history source owns status even when its ACP load fails.
@@ -142,8 +143,8 @@ class OperationalSessionSources:
         return await InputSubmission.from_event(event, owner.view).execute(owner)
 
     def input_ready(self, conversation: Conversation) -> bool:
-        agent = conversation.agent
-        if agent is None or not agent.ready:
+        agent = conversation.agent_binding
+        if not agent.ready:
             return False
         if agent.configuration.model.requires_selection:
             return False
@@ -155,31 +156,31 @@ class OperationalSessionSources:
 
     def unavailable_reason(self, conversation: Conversation) -> str:
         presentation = conversation.thread_presentation
-        agent = conversation.agent
+        agent = conversation.agent_binding
         if (conversation.transcript.readable and presentation is not None
                 and ExistingOwnerPlan.from_binding(presentation.binding) is None):
             line = "Thread is stopped. Choose Start thread from its menu; your draft is kept."
-        elif agent is not None and agent.configuration.model.requires_selection:
+        elif agent.configuration.model.requires_selection:
             line = "Choose a model or connect a provider (click here). Your draft is kept."
         else:
             line = self.activity_row(conversation).presentation.summary
         return self.activity_row(conversation).status.with_disconnection(
-            line, lambda: SessionDisposition.of(agent).present(line, lambda status: status.notice))
+            line, lambda: agent.session_disposition.present(line, lambda status: status.notice))
 
     def start_agent(self, conversation: Conversation) -> None:
-        """The operational source owns connection creation and the load plan."""
+        conversation.agent_binding.start_agent(self, conversation)
+
+    def create_agent(self, conversation: Conversation) -> None:
+        """The unbound state requests a new operational connection."""
         from toad.acp.agent import Agent
         from toad.core import events as core_events
 
-        if conversation.agent is not None:
-            return
         assert conversation._agent_data is not None
         agent = Agent(conversation.project_path, conversation._agent_data,
                       conversation._agent_session_id, conversation._session_pk,
                       app_events=conversation.app.events,
                       transcripts=conversation.app.coordination_access.transcripts)
         agent.session.load_plan = self.load_plan
-        conversation.agent = agent
         conversation._native_agent_started_here = True
         conversation.bind_agent(agent)
         agent.controller.start_operation(agent.start(conversation.app.session_navigation.processes))
@@ -196,37 +197,30 @@ class OperationalSessionSources:
                 conversation.start_native_session()
 
     def wire(self, conversation: Conversation) -> None:
-        if self.agent is not None:
-            from toad.widgets.conversation import ConversationSessionBinding
-
-            conversation.set_reactive(ConversationSessionBinding.agent, self.agent)
+        """The view borrows its agent during present, through bind_agent."""
 
     async def present(self, conversation: Conversation) -> None:
         shell, self.shell = self.shell, None
         if shell is not None:
             conversation._shell = shell
             await shell.attach(AttachedSurfaceBinding(conversation, shell.events))
-        if self.agent is not None:
-            conversation.agent = self.agent
-            conversation.bind_agent(self.agent)
+        conversation.bind_agent(self.agent_binding)
 
     async def detach(self, conversation: Conversation, screen: "MainScreen") -> None:
-        self.agent = conversation.agent
+        self.agent_binding = conversation.agent_binding
         self.shell = conversation._shell
         conversation._shell = None
         if self.shell is not None:
             await self.shell.detach()
-        if self.agent is not None:
-            self.agent.detach_surface(conversation)
+        self.agent_binding.detach_surface(conversation)
 
     async def close(self) -> None:
-        agent, self.agent = self.agent, None
+        agent, self.agent_binding = self.agent_binding, NoAgentBound()
         shell, self.shell = self.shell, None
         async with AsyncResourceRelease() as release:
             if shell is not None:
                 release.push_async_callback(shell.close)
-            if agent is not None:
-                release.push_async_callback(agent.stop)
+            release.push_async_callback(agent.stop)
 
 
 class MailboxSessionSources(OperationalSessionSources):
@@ -291,7 +285,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     @property
     def operational_agent(self):
-        return self.widget.agent if self.widget is not None else self.sources.agent
+        return self.widget.agent_binding if self.widget is not None else self.sources.agent_binding
 
     @property
     def retained_widget_count(self) -> int:

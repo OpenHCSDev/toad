@@ -169,7 +169,7 @@ class SubmissionExecution:
     @property
     def current(self):
         view = self.owner.view
-        if view.agent is not self.agent or self.authority.retired:
+        if view.agent_binding is not self.agent or self.authority.retired:
             return False
         return self.agent.queue_attachment.accepts_request(self.scope)
 
@@ -214,12 +214,7 @@ class ConversationSubmissions:
         self.active: list[SubmissionExecution] = []
 
     def begin(self, submission):
-        agent = self.view.agent
-        if agent is None:
-            return None
-        execution = SubmissionExecution(self, submission, agent)
-        self.active.append(execution)
-        return execution
+        return self.view.agent_binding.begin_submission(self, submission)
 
     @property
     def ready(self):
@@ -236,19 +231,11 @@ class ConversationSubmissions:
         return await self.view.operational_sources.submit(self, event)
 
     def accepts_failure(self, message):
-        agent = self.view.agent
-        if agent is None or message.publisher is not agent:
-            return False
-        if message.event.session_id != agent.session_id:
-            return False
-        if message.event.recover_draft:
-            return agent.queue_attachment.accepts_request(message.event.queue_scope)
-        return True
+        return self.view.agent_binding.accepts_failed_input(message)
 
     @property
     def queue_projection(self):
-        agent = self.view.agent
-        return agent.presentation.queue if agent is not None else PendingQueueProjection()
+        return self.view.agent_binding.presentation.queue
 
     @property
     def queued_inputs(self):
@@ -290,17 +277,14 @@ class ConversationSubmissions:
             self.view.prompt.text = '\n\n'.join(filter(None, [current, text]))
 
     def send_now(self):
-        agent = self.view.agent
-        session, scope = agent.session_id, agent.queue_attachment.scope
-        return self.view.run_worker(partial(self._send_now, agent, session, scope),
-                                    group='send-queued-now', exclusive=True)
+        return self.view.agent_binding.send_now(self)
 
     async def _send_now(self, agent, session, scope):
         try:
             if await agent.controller.send_now():
                 return
         except (RequestError, OSError, ValueError) as error:
-            if self.view.agent is agent and agent.session_id == session:
+            if self.view.agent_binding is agent and agent.session_id == session:
                 self.view.flash(f'Send now failed: {error}', style='error')
-        if self.view.agent is agent and agent.queue_attachment.accepts_request(scope):
+        if self.view.agent_binding is agent and agent.queue_attachment.accepts_request(scope):
             self.publish_pending()

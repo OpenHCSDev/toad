@@ -281,13 +281,11 @@ class ModelSwitcher(ModelSelection, InfoPopup):
 
     @property
     def choices(self):
-        agent = self.prompt.agent
-        return agent.configuration.model.choices if agent is not None else ()
+        return self.prompt.agent_binding.configuration.model.choices
 
     @property
     def current(self):
-        agent = self.prompt.agent
-        return agent.configuration.model.current if agent is not None else ""
+        return self.prompt.agent_binding.configuration.model.current
 
     @property
     def selection_active(self):
