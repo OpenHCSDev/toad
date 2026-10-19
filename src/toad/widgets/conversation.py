@@ -536,6 +536,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self._agent_data = agent
+        self._thread_loading = next(iter(ThreadLoading.initial_contents(agent)), None)
         self.set_reactive(
             ConversationSessionBinding.model_history_scope, agent.identity if agent else ""
         )
@@ -653,12 +654,9 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     @work
     async def _session_ready(self) -> None:
-        """The agent (or the shell) can take input: drop loading, then post start content."""
+        """The agent (or the shell) can take input; page publication owns the splash."""
         presentation = self.transcript
         if not presentation.binding.matches(self):
-            return
-        await self.query(ThreadLoading).remove()
-        if self.transcript is not presentation or not presentation.binding.matches(self):
             return
         if self._native_agent_started_here and (agent_data := self._agent_data) is not None:
             welcome = agent_data.welcome
@@ -915,12 +913,19 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.prompt.focus()
             self.prompt.prompt_text_area.post_message(event)
 
+    def retire_loading_splash(self) -> None:
+        """The composed splash is consumed once when saved history paints or fails."""
+        splash, self._thread_loading = self._thread_loading, None
+        if splash is not None:
+            splash.remove()
+
     def compose(self) -> ComposeResult:
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
                 with ConversationContents(id="contents"):
-                    yield from ThreadLoading.initial_contents(self._agent_data)
+                    if self._thread_loading is not None:
+                        yield self._thread_loading
                     yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
@@ -1116,7 +1121,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     @handles(AgentFail)
     async def on_agent_fail(self, message: CoreEventMessage) -> None:
-        await self.query(ThreadLoading).remove()
+        self.retire_loading_splash()
         self.turns.finish_client()
         self._agent_fail = True
         self.prompt.sync_session()

@@ -24,7 +24,6 @@ from toad.widgets.committed_presentation import (
     protected_blocks, retirement_candidates,
 )
 from toad.widgets.transcript_history import TranscriptHistory
-from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.session_details import SessionDetails
 from toad.transcript_preparation import SavedHistory
 from toad.core.events import CoreEventStream
@@ -53,11 +52,20 @@ class BoundFrame:
 
     def painted(self, cursor):
         if self.current():
-            self.owner.displayed_cursor = cursor
-            self.binding.contents.check_notifications()
-            view = self.binding.view
-            view.app.history_displayed()
-            view.settle_user_message()
+            self.binding.view.retire_loading_splash()
+            self.record(cursor)
+
+    def observed(self, cursor):
+        """A changed source cursor is not proof that its page has painted."""
+        if self.current():
+            self.record(cursor)
+
+    def record(self, cursor):
+        self.owner.displayed_cursor = cursor
+        self.binding.contents.check_notifications()
+        view = self.binding.view
+        view.app.history_displayed()
+        view.settle_user_message()
 
 
 class TranscriptPublication(BoundFrame, ABC):
@@ -441,6 +449,9 @@ class ViewBinding:
     def painted(self, owner, cursor):
         pass
 
+    def observed(self, owner, cursor):
+        pass
+
     def request(self, owner):
         return None
 
@@ -572,8 +583,6 @@ class BoundView(ViewBinding):
         if not view.is_attached:
             return
         self.painted(owner, history.page_source.through)
-        if (loading := view.query_one_optional(ThreadLoading)) is not None:
-            await loading.remove()
         view.query_one(SessionDetails)._refresh_summary()
 
     def capture(self, owner, kind, *args):
@@ -585,6 +594,10 @@ class BoundView(ViewBinding):
     def painted(self, owner, cursor):
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.painted, cursor))
+
+    def observed(self, owner, cursor):
+        frame = BoundFrame.capture(self, owner)
+        self.view.call_after_refresh(partial(frame.observed, cursor))
 
     def request(self, owner):
         view = self.view
@@ -726,7 +739,7 @@ class TranscriptPresentation:
         if cursor is None:
             self.commit_required = True
         else:
-            self.binding.painted(self, cursor)
+            self.binding.observed(self, cursor)
         self.binding.request(self)
 
     def require_commit(self) -> None:
