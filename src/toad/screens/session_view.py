@@ -35,13 +35,9 @@ class SessionOrigin:
         from agent_comms.route_selection import RouteSelection
 
         identity = self.thread_identity
-        try:
-            selected = RouteSelection.capture(identity.wire_root())
-            service = self.app.coordination_access.require(selected).service
-            return identity.resolve_thread(service.registry, self.project_path)
-        except (OSError, ValueError, RuntimeError):
-            # An unavailable route does not change this origin's name.
-            return identity.thread_name()
+        selected = RouteSelection.capture(identity.wire_root())
+        service = self.app.coordination_access.require(selected).service
+        return identity.resolve_thread(service.registry, self.project_path)
 
     def has_agent(self) -> bool:
         return self._agent is not None

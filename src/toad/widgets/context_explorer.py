@@ -356,6 +356,9 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             native = await captured.inspection.native()
         except asyncio.CancelledError:
             raise
+        except RequestError as error:
+            if self._reading(captured.thread_identity):
+                self._native_acquired(self.state.native_failed(captured.inspection, error))
         else:
             if self._reading(captured.thread_identity):
                 self._native_acquired(self.state.with_native(captured.inspection, native))
