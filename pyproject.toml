@@ -71,6 +71,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 python_files = ["test_*.py"]
 addopts = "--strict-markers"
 markers = ["refactor_guard: permanent architecture deletion guards"]
