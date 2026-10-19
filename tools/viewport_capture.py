@@ -127,6 +127,11 @@ def capture(output: Path) -> None:
             for index in range(10):
                 app.keys("Page_Down")
                 record(f"down-{index + 1:02}")
+            from performance.capture_live import XvfbDisplay
+            for index in range(10):
+                XvfbDisplay.input(app.owner, app.created, app.window,
+                                 "mousemove", "--window", str(app.window), "750", "300", "click", "5")
+                record(f"wheel-down-{index + 1:02}")
             app.click_cell(app.columns - 1, app.rows // 2)
             app.wait("sidebar", lambda text: "User messages" in text)
             record("sidebar-open")
@@ -145,6 +150,10 @@ def capture(output: Path) -> None:
             for index in range(10):
                 app.keys("Page_Down")
                 record(f"sidebar-down-{index + 1:02}")
+            app.click_cell(94, app.rows // 2)
+            app.wait("sidebar-closed", lambda text: "User messages" not in text)
+            record("sidebar-closed")
+            app.screenshot("sidebar-closed")
 
 
 if __name__ == "__main__":

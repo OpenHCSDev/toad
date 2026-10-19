@@ -196,6 +196,11 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def _measure(self, width: int) -> None:
         if self.is_mounted:
             self.history.window.keep_reader()
+        if width != self._width:
+            # Native box/arrangement caches can retain A/B/A width variants.
+            # Their numeric heights cannot restore this page's row snapshot;
+            # retire them when replacing the geometry they were measured from.
+            self._invalidate_layout()
         self._width, self._measured = width, True
         self._pending.clear()
         previous = {id(fragment): lines for fragment, _first, lines in self._layout}
