@@ -387,8 +387,8 @@ class WirePageBuffer(SavedHistory):
             worktree=str(self.loader.project), implicit=implicit_root())
 
     async def read_only(self) -> bool:
-        catalog = await self.runtime.run_thread(self.loader.comms.channels.catalog.read)
-        return self.loader.kind.read_only(catalog, self.loader.target)
+        return await self.runtime.run_thread(
+            self.loader.kind.read_only, self.loader.comms, self.loader.target)
 
     async def update_mentions(self, view) -> None:
         await self.loader.kind.update_mentions(view, self.loader.comms)
