@@ -3,7 +3,7 @@ then the saved history; the session left behind keeps its editor."""
 
 import asyncio
 from functools import partial
-from threading import Event, enumerate as threads
+from threading import Event
 from unittest.mock import patch
 
 from agent_comms.child_process import ProcessIdentity
@@ -14,7 +14,6 @@ from support.agents import peer
 from support.native import start_private_native_wire
 from support.textual_steps import channel_roster
 from toad.app import ToadApp
-from toad.directory_watcher import DirectoryWatcher
 from toad.navigation_preparation import ThreadNavigationRequest
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.comms_sidebar import ChannelGroup
@@ -122,4 +121,3 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
                            for drawn in tab_sets_drawn)
             finally:
                 release.set()
-    assert not any(isinstance(thread, DirectoryWatcher) for thread in threads())

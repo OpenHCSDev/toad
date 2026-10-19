@@ -70,3 +70,34 @@ def script(*steps: dict) -> str:
     import json
 
     return json.dumps(list(steps))
+
+
+class PendingAnswer:
+    """One SDK request whose answer the test supplies later."""
+
+    def __init__(self):
+        import asyncio
+
+        self.started = asyncio.Event()
+        self.result = asyncio.get_running_loop().create_future()
+
+    async def wait(self):
+        self.started.set()
+        return await self.result
+
+
+class PendingConnection:
+    """The SDK connection seen by an agent, answering session requests from ``PendingAnswer``s."""
+
+    def __init__(self, new=(), load=None):
+        self.new, self.load, self.loaded_sessions = list(new), load, []
+
+    async def new_session(self, cwd, mcp_servers):
+        return await self.new.pop(0).wait()
+
+    async def load_session(self, cwd, session_id, mcp_servers, **metadata):
+        self.loaded_sessions.append(session_id)
+        return await self.load.wait()
+
+    async def close(self):
+        pass

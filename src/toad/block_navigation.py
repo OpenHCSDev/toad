@@ -11,6 +11,7 @@ from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
 from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
+from toad.widgets.message_filter import MessageCategory, OtherCategory
 
 
 class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
@@ -286,6 +287,12 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1
 
+    def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
+        self.set_display_constraint("message-category", OtherCategory in selected)
+
+    def starts_agent_activity(self, boundary) -> bool:
+        return OtherCategory.observe(boundary)
+
     def repaint(self) -> None:
         # The widgets inside the entry draw its rows.
         for widget in cast(Widget, self).walk_children(with_self=True):
@@ -297,6 +304,20 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     @cached_property
     def block_cursor(self) -> BlockCursor:
         return AtomicBlockCursor(self)
+
+
+class CategorizedBlock(ConversationEntry):
+    """An entry whose declared category owns filtering and activity grouping."""
+
+    @property
+    def message_category(self) -> type[MessageCategory]:
+        raise NotImplementedError
+
+    def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
+        self.set_display_constraint("message-category", self.message_category in selected)
+
+    def starts_agent_activity(self, boundary) -> bool:
+        return self.message_category.observe(boundary)
 
 
 class ConversationBlock(ConversationEntry):
