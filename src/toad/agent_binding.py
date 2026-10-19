@@ -8,19 +8,11 @@ from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import UnopenedSessionDisposition
 
 
+class UnboundAgentError(ValueError):
+    """An operation requires a connection the view has not acquired."""
+
+
 class AgentBinding(ABC):
-    @property
-    def queue_supported(self) -> bool:
-        return self.presentation.queue_supported
-
-    @property
-    def model_available(self) -> bool:
-        return self.configuration.model.available
-
-    @property
-    def has_modes(self) -> bool:
-        return bool(self.available_modes)
-
     def model_info(self) -> Content:
         model = self.configuration.model.selected
         if model is None:
@@ -91,11 +83,7 @@ class NoAgentBound(AgentBinding):
         """There is no native projection to read."""
 
     def start_session(self, view) -> None:
-        if view._agent_data is not None:
-            view.screen.frame_presentation.defer(view, view._start_agent)
-        else:
-            view.agent_info = Content(view.operational_sources.agent_info(view))
-            view._session_ready()
+        view.start_unbound_session()
 
     def start_agent(self, sources, view) -> None:
         sources.create_agent(view)
@@ -116,7 +104,7 @@ class NoAgentBound(AgentBinding):
         """There is no agent subscription to detach."""
 
     def accepts_message(self, message) -> bool:
-        return not message.event.session_scoped
+        return False
 
     def matches_agent(self, agent) -> bool:
         return False
@@ -140,7 +128,7 @@ class NoAgentBound(AgentBinding):
         """No native turn exists to cancel."""
 
     def begin_submission(self, owner, submission):
-        return None
+        return owner.unbound(submission)
 
     def accepts_failed_input(self, message):
         return False
@@ -149,7 +137,7 @@ class NoAgentBound(AgentBinding):
         """No remote queue is bound."""
 
     def delivery_owner(self):
-        raise ValueError("No connected owner.")
+        raise UnboundAgentError("No connected owner.")
 
     def goal_editor(self):
         raise ValueError("Editing requires an agent-comms goal")
@@ -169,6 +157,9 @@ class NoAgentBound(AgentBinding):
     def matches_session(self, session_id):
         return False
 
+    def borrowed_processes(self):
+        return ()
+
     async def reconnect_session(self, source, plan):
         source.presentation.sources.attach_started(source, plan)
 
@@ -183,6 +174,3 @@ class NoAgentBound(AgentBinding):
 
     def invalidate_observation(self, observation):
         """No native source exists to schedule a read against."""
-
-    async def observe_once(self, observation, view):
-        return False

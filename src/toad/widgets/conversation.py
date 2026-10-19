@@ -422,9 +422,32 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     async def _thread_route_observed(self, event: CoreEventMessage) -> None:
         self.refresh_thread_status()
 
-    def bind_agent(self, agent: AgentBase) -> None:
+    def bind_agent(self, agent: AgentBinding) -> None:
         self.agent_binding = agent
         agent.attach_view(self)
+
+    def apply_bound_agent(self, agent: AgentBase) -> None:
+        self._update_model_info()
+        self.status = agent.context_measurement.status()
+        if agent.ready:
+            self.session_ready()
+            self.call_later(self.goal_observation.invalidate)
+            self.call_later(self.delivery_observation.invalidate)
+
+    def agent_connected(self, agent: AgentBase) -> None:
+        self.flash(Content.assemble(agent.get_info(), " connected"), style="success")
+        if self._agent_data is not None:
+            self.app.application.usage.publish("agent-session-begin", agent=self._agent_data.identity)
+
+    async def cancel_bound_turn(self, agent: AgentBase) -> None:
+        self.flash("Cancelling agent turn…")
+        self.turns.describe("Cancelling…")
+        if self._loading is not None and self._loading.is_attached:
+            self._loading.update("Cancelling…")
+        if await agent.cancel():
+            self.flash("Turn cancelled", style="success")
+        else:
+            self.flash("Agent declined to cancel. Please wait.", style="error")
 
     @abstractmethod
     def _turn_changed(self, owner: TurnOwner) -> None:
@@ -448,16 +471,12 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     agent_info: var[Content] = var(Content())
     model_history_scope = var("")
     @property
-    def queue_supported(self) -> bool:
-        return self.agent_binding.queue_supported
-
-    @property
     def model_selection_available(self) -> bool:
-        return self.agent_binding.model_available
+        return self.agent_binding.configuration.model.available
 
     @property
     def mode_selection_available(self) -> bool:
-        return self.agent_binding.has_modes
+        return bool(self.agent_binding.available_modes)
 
     input_delivery: var[InputDelivery] = var(InputDelivery())
 
@@ -611,11 +630,18 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     def start_native_session(self) -> None:
         self.agent_binding.start_session(self)
 
+    def start_unbound_session(self) -> None:
+        if self._agent_data is not None:
+            self.screen.frame_presentation.defer(self, self._start_agent)
+        else:
+            self.agent_info = Content(self.operational_sources.agent_info(self))
+            self.session_ready()
+
     def _start_agent(self) -> None:
         self.operational_sources.start_agent(self)
 
     @work
-    async def _session_ready(self) -> None:
+    async def session_ready(self) -> None:
         """The agent (or the shell) can take input; page publication owns the splash."""
         presentation = self.transcript
         if not presentation.binding.matches(self):
@@ -651,7 +677,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
             prompt.sync_configuration()
             prompt.sync_session()
         if self._initial_prompt is not None and self.agent_binding.ready:
-            self._session_ready()
+            self.session_ready()
         self.refresh_bindings()
 
     def _update_model_info(self) -> None:
@@ -663,7 +689,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
             self.session_start_time = monotonic()
             self.agent_binding.connected(self)
 
-        self._session_ready()
+        self.session_ready()
         self.prompt.sync_session()
         self.arm_thread_read()
         self.refresh_thread_status()
@@ -1014,7 +1040,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         self._auto_title_eligible = False
         await self._apply_session_name(name)
 
-    async def _auto_name_from_prompt(self, prompt: str) -> None:
+    async def auto_name_from_prompt(self, prompt: str) -> None:
         if not self._auto_title_eligible:
             return
         self._auto_title_eligible = False

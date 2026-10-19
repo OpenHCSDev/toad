@@ -141,7 +141,7 @@ class NativeSessionEntry(SessionEntry):
         plan = ExistingOwnerPlan.from_binding(binding)
         if plan is None:
             return
-        await source.presentation.operational_agent.reconnect_session(source, plan)
+        await source.presentation.operational_binding.reconnect_session(source, plan)
 
     def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)

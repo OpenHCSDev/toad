@@ -70,7 +70,7 @@ class SessionSurfaceLifetime(ABC):
     """A session declares its own UI placement and activation lifetime."""
 
     @property
-    def operational_agent(self):
+    def operational_binding(self):
         return NoAgentBound()
 
     @abstractmethod
@@ -284,7 +284,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         self.widget: Conversation | None = None
 
     @property
-    def operational_agent(self):
+    def operational_binding(self):
         return self.widget.agent_binding if self.widget is not None else self.sources.agent_binding
 
     @property

@@ -189,8 +189,8 @@ class FailedContent(ScreenContent):
         raise self.error
 
     async def prepare(self, screen: "MainScreen") -> None:
-        agent = screen.presentation.operational_agent
-        if agent is not None and agent.ready:
+        agent = screen.presentation.operational_binding
+        if agent.ready:
             await self.attached(screen)
         else:
             self.render(screen)
@@ -321,7 +321,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
 
     @property
     def session_disposition(self) -> SessionDisposition:
-        return SessionDisposition.of(self.presentation.operational_agent)
+        return self.presentation.operational_binding.session_disposition
 
     @property
     def agent_session_id(self) -> str | None:
