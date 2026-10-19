@@ -445,13 +445,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     working_directory: var[str] = var("")
 
-
-
-
     _shell: var[Shell | None] = var(None)
-
-
-
 
     agent: var[AgentBase | None] = var(None, bindings=True)
     agent_info: var[Content] = var(Content())
@@ -469,9 +463,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         return self.agent is not None and bool(self.agent.available_modes)
 
     input_delivery: var[InputDelivery] = var(InputDelivery())
-
-
-
 
     native_history_status: var[type[CursorStatus]] = var(lambda: HiddenCursorStatus)
 
@@ -1373,9 +1364,6 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             self.turns.describe("Writing response…")
         await self.output.append(message.event.stream, message.event.text)
 
-
-
-
     async def present_started_input(self, started) -> None:
         from toad.widgets.committed_presentation import StartedInputClaim
 
@@ -1617,13 +1605,6 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
                 "overview_text",
                 lambda value: setattr(details, "overview_text", value),
             )
-
-
-
-
-
-
-
 
 
     @handles(input_events.GoalControlActivated)

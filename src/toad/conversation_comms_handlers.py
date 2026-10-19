@@ -4,7 +4,18 @@ from __future__ import annotations
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core_event_carrier import CoreEventMessage
 import agent_comms.agent_events as comms_events
-from agent_comms.acp_extension import CompactionChangedUpdate, CoordinationChangedUpdate, GoalChangedUpdate, InputFailedUpdate, InputStartedUpdate, PromptCancelledUpdate, McpClientAcknowledgementUpdate, TranscriptChangedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate
+from agent_comms.acp_extension import (
+    CompactionChangedUpdate,
+    CoordinationChangedUpdate,
+    GoalChangedUpdate,
+    InputFailedUpdate,
+    InputStartedUpdate,
+    PromptCancelledUpdate,
+    McpClientAcknowledgementUpdate,
+    TranscriptChangedUpdate,
+    TranscriptSnapshotUpdate,
+    TurnChangedUpdate,
+)
 from agent_comms.mro_dispatch import handles
 from textual.content import Content
 from toad.core import events as core_events
@@ -131,8 +142,11 @@ class ConversationCommsHandlers(CoreEventReceiver):
     async def on_prompt_cancelled(
         self, update: PromptCancelledUpdate, message: CoreEventMessage
     ) -> None:
-        await self.post(MarkdownNote(
-            f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"))
+        await self.post(
+            MarkdownNote(
+                f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"
+            )
+        )
 
     @handles(TranscriptChangedUpdate)
     def on_transcript_changed(
@@ -153,8 +167,9 @@ class ConversationCommsHandlers(CoreEventReceiver):
         await self.dispatch(update.event, message)
 
     @handles(comms_events.CompactionEnd)
-    def on_compaction_end(self, event: comms_events.CompactionEnd,
-                          message: CoreEventMessage) -> None:
+    def on_compaction_end(
+        self, event: comms_events.CompactionEnd, message: CoreEventMessage
+    ) -> None:
         # Pi's saved compaction entry owns the notice; re-read the transcript.
         self.transcript.require_commit()
 
