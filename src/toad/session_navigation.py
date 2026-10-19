@@ -166,7 +166,7 @@ class SessionNavigation:
             try:
                 agent = agents[agent_identity]
             except KeyError:
-                app.notify("Agent not found", title="Launch agent", severity="error")
+                app.show_error("Agent not found", "Launch agent")
                 return
         project = project_path if project_path is not None else app.project_dir
         if agent_session_id is not None:
@@ -186,7 +186,7 @@ class SessionNavigation:
         app = self.app
         source = app.workspace_sessions.origin(owner_mode)
         if source is None:
-            app.notify("The owning agent tab was closed", title="Comms target unavailable", severity="error")
+            app.show_error("The owning agent tab was closed", "Comms target unavailable")
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
@@ -197,7 +197,7 @@ class SessionNavigation:
             prepared = await app.navigation_reader.read(CommsNavigationRequest(
                 comms, owner_mode, me, target, kind, source.coordination_root))
         except (UnknownChannelError, UnregisteredThreadError, RouteChanged) as error:
-            app.notify(str(error), title="Comms target unavailable", severity="error")
+            app.show_error(error, "Comms target unavailable")
             return app.selected_mode
         if prepared is None:
             return app.selected_mode

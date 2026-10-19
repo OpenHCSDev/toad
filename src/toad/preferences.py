@@ -478,7 +478,7 @@ class SavedSettings:
                 effect.apply(app, field)
 
         def report(error: atomic.AtomicWriteError) -> None:
-            app.notify(str(error), title="Settings", severity="error")
+            app.show_error(error, "Settings")
 
         return cls(raw, applied=applied, report_error=report)
 

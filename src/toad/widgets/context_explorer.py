@@ -404,7 +404,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             await model.correct(answer, worktree)
         except (OSError, ValueError, RuntimeError, RequestError) as error:
             if self._selected(model):
-                self.notify(f"Annotation correction failed: {error}", severity="error")
+                self.app.show_error(error, "Annotation correction failed")
             return
         if self._selected(model):
             self.notify("Original human correction recorded")
@@ -518,7 +518,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
                 detail = await model.read()
             except (OSError, ValueError, RuntimeError, RequestError) as error:
                 if self._selected(model):
-                    self.notify(f"Context copy failed: {error}", severity="error")
+                    self.app.show_error(error, "Context copy failed")
                 return
             if self._selected(model):
                 self.app.copy_to_clipboard(detail)
@@ -539,7 +539,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             await model.export(Path(destination).expanduser())
         except (OSError, ValueError, RuntimeError) as error:
             if self.is_attached:
-                self.notify(f"Context export failed: {error}", severity="error")
+                self.app.show_error(error, "Context export failed")
         else:
             if self.is_attached:
                 self.notify(f"Exported selected public text and source to {destination}")

@@ -98,13 +98,13 @@ class CatalogFieldSelection(ModelSelection):
             with self.app.suspend():
                 result = await asyncio.to_thread(run_login)
         except OSError as error:
-            self.notify(str(error), title='Provider login', severity='error')
+            self.app.show_error(error, 'Provider login')
             return
         if result == 0 and self.is_attached:
             await command.refresh_catalogs(command.arguments())
             self.configuration_changed()
         elif self.is_attached:
-            self.notify(f'Provider login exited with status {result}', severity='error')
+            self.app.show_error(f'Provider login exited with status {result}', 'Provider login')
         if self.is_attached:
             self.search_input.focus()
 
@@ -193,7 +193,7 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
             await self.app.preparation.run_thread(
                 lambda: self.definition.edited(arguments).with_confirmation(confirmed))
         except (KeyError, ValueError, TypeError) as error:
-            self.notify(str(error), severity='error')
+            self.app.show_error(error, self.definition.label)
             self.query_one('#command-apply', Button).disabled = False
             return
         if self.is_attached and arguments == self.arguments():
@@ -210,7 +210,7 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
                 lambda: asyncio.run(edited.prepare_fields()))
         except (KeyError, ValueError, TypeError, NativePiUnavailable) as error:
             if self.is_attached and arguments == self.arguments():
-                self.notify(str(error), title='Configuration choices', severity='error')
+                self.app.show_error(error, 'Configuration choices')
             return
         if not self.is_attached or arguments != self.arguments():
             return

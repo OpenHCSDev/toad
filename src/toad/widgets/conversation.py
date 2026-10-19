@@ -1098,7 +1098,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         self.prompt.sync_session()
         if (details := self.query_one_optional(SessionDetails)) is not None:
             details.sync_turn()
-        self.notify(message.event.message, title="Agent failure", severity="error", timeout=5)
+        self.app.show_error(message.event.message, "Agent failure")
 
         if self._agent_data is not None:
             self.app.application.usage.publish(
@@ -1188,7 +1188,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
                 "Provider login finished; model catalogue refreshed", style="success"
             )
         except (ValueError, OSError, TimeoutError, RequestError) as error:
-            self.notify(str(error), title="Provider login", severity="error")
+            self.app.show_error(error, "Provider login")
         finally:
             if (prompt := self.query_one_optional(Prompt)) is not None:
                 prompt.disabled = False
@@ -1207,7 +1207,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         if agent is not self.agent:
             return
         if error is not None:
-            self.notify(error, title="Set Model", severity="error")
+            self.app.show_error(error, "Set Model")
         elif (model := agent.configuration.model.selected) is not None:
             from textual.geometry import Offset
 
@@ -1229,7 +1229,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
                     and (error := await agent.set_thinking_level(level))
                     is not None
                 ):
-                    self.notify(error, title="Set thinking level", severity="error")
+                    self.app.show_error(error, "Set thinking level")
                     return
             self.flash(
                 Content.from_markup(
@@ -1437,7 +1437,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         if agent is not self.agent:
             return
         if error is not None:
-            self.notify(error, title="Set Mode", severity="error")
+            self.app.show_error(error, "Set Mode")
         elif (mode := agent.current_mode) is not None:
             self.flash(
                 Content.from_markup("Mode changed to [b]$mode", mode=mode.name),
@@ -1615,7 +1615,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             await self.agent.controller.compact_context(instructions)
             self.flash("Context compacted", style="success")
         except (OSError, ValueError, RequestError) as error:
-            self.notify(str(error), title="Compaction request", severity="error")
+            self.app.show_error(error, "Compaction request")
             self.transcript.require_commit()
 
     def open_queue_menu(self) -> None:
