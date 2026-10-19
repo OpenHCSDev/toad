@@ -95,6 +95,8 @@ class GoalBar(VerticalGroup):
         super().__init__()
         self._source = ref(source)
         self._throbber = throbber
+        # The busy row is a sibling, but this bar still owns separator dragging.
+        throbber.listen(events.MouseDown, self.on_mouse_down)
         self._prompt = prompt
         self._horizontal_layout = HorizontalLayout()
         self._grid_layout = GridLayout()
@@ -295,8 +297,8 @@ class GoalBar(VerticalGroup):
 
     def update_document_height(self) -> None:
         # An absent goal or an outage header has no document. Querying that
-        # hidden document's geometry forces
-        # a full compositor map after the visible viewport was already laid out.
+        # hidden geometry forces a full compositor map after the visible
+        # viewport was already laid out.
         if self.is_attached and self.goal_display.snapshot.shows_document and not self.collapsed:
             document = self.document
             width = document.content_size.width
