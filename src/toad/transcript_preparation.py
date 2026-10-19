@@ -549,9 +549,6 @@ class ClosedHistory(PreparedPageSource):
     def seen_page(self, history, seen):
         return None
 
-    async def mark_historical(self, displayed) -> None:
-        raise ValueError("This transcript has no saved-source reader")
-
     async def mark_page(self, page) -> None:
         raise ValueError("This transcript has no saved-source reader")
 

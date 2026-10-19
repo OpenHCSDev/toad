@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from agent_comms.messages import Message
-from agent_comms.coordination_errors import DMPaintedBoundChanged, DMScopeChanged, HistoricalSourceChanged
+from agent_comms.coordination_errors import StaleRevision
 
 from toad.screens.session_view import SessionView
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
@@ -143,25 +143,8 @@ class WireHistory(VisibleReadMarking, LineHistory):
                 self.view.call_after_refresh(self.mark_visible)
             return
         seen = tuple(fragment for fragment in self.read_fragments() if fragment.evidence is not None)
-        historical = next((fragment.evidence for fragment in seen
-                           if fragment.evidence.historical_display is not None), None)
-        if historical is not None:
-            await self._mark_historical(
-                historical, tuple(fragment for fragment in seen if fragment.evidence is historical),
-                snapshot)
-        elif (selected := self.page_source.seen_page(self, seen)) is not None:
+        if (selected := self.page_source.seen_page(self, seen)) is not None:
             await self._mark_page(*selected, snapshot)
-
-    async def _mark_historical(self, page, marked, snapshot: HistorySourceSnapshot) -> None:
-        displayed = page.select(fragment.message.seq for fragment in marked).historical_display
-        try:
-            await self.page_source.mark_historical(displayed)
-        except (HistoricalSourceChanged, DMScopeChanged):
-            # The attached history changed; this page's evidence marks nothing any more.
-            marked = tuple(fragment for fragment in self.fragments if fragment.evidence is page)
-        if snapshot.current(self):
-            for fragment in marked:
-                fragment.evidence = None
 
     async def _mark_page(self, page, marked, snapshot: HistorySourceSnapshot) -> None:
         source = self.page_source
@@ -170,7 +153,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
             if snapshot.current(self):
                 for fragment in marked:
                     fragment.evidence = None
-        except (DMScopeChanged, DMPaintedBoundChanged):
+        except StaleRevision:
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
