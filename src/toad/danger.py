@@ -288,16 +288,13 @@ def analyze(
     project_directory: str, current_working_directory: str, command_line: str
 ) -> tuple[CommandAtom, ...]:
     """Retain bounded analysis data; frontends own its native presentation."""
+    visitor = CommandVisitor(
+        Path(project_directory).resolve(), Path(current_working_directory).resolve()
+    )
     try:
-        visitor = CommandVisitor(
-            Path(project_directory).resolve(), Path(current_working_directory).resolve()
-        )
-        try:
-            nodes = bashlex.parse(command_line)
-        except bashlex.errors.ParsingError, NotImplementedError:
-            return ()
-        for node in nodes:
-            visitor.visit(node)
-    except OSError:
+        nodes = bashlex.parse(command_line)
+    except bashlex.errors.ParsingError, NotImplementedError:
         return ()
+    for node in nodes:
+        visitor.visit(node)
     return tuple(visitor.atoms)

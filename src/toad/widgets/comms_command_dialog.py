@@ -9,7 +9,6 @@ from agent_comms.cli_commands import ChoiceTargetField, TargetAction, TargetFiel
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.field_codec import compile_decoder
 from agent_comms.login import run_login
-from agent_comms.native_pi import NativePiUnavailable
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel
 from textual import work

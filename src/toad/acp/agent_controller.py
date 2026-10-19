@@ -21,8 +21,7 @@ from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
     CompactRequest, InputFailedUpdate, encode_request,
 )
-from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, RequestFailure
-from agent_comms.coordination_errors import CoordinationReadUnavailable
+from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.observation import ReadInputDelivery
 
