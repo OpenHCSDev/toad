@@ -412,13 +412,7 @@ class JoinedStrips(Sequence[Strip]):
     def __len__(self) -> int:
         return len(self.head) + len(self.tail)
 
-    def __getitem__(self, index: int | slice) -> Strip | tuple[Strip, ...]:
-        if isinstance(index, slice):
-            return tuple(self[i] for i in range(*index.indices(len(self))))
-        if index < 0:
-            index += len(self)
-        if not 0 <= index < len(self):
-            raise IndexError(index)
+    def __getitem__(self, index: int) -> Strip:
         return self.head[index] if index < len(self.head) else self.tail[index - len(self.head)]
 
 
