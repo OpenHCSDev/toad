@@ -419,9 +419,11 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
 
-    @property
-    def message_category(self) -> None:
-        return None
+    def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
+        self.projection_changed()
+
+    def starts_agent_activity(self, boundary) -> bool:
+        return False
 
     @cached_property
     def block_cursor(self):

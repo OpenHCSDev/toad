@@ -90,9 +90,14 @@ class CategorizedBlock:
     """
 
     @property
-    def message_category(self) -> type[MessageCategory] | None:
-        """None reserves a container for its saved-history projection."""
+    def message_category(self) -> type[MessageCategory]:
         raise NotImplementedError
+
+    def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
+        self.set_display_constraint("message-category", self.message_category in selected)
+
+    def starts_agent_activity(self, boundary) -> bool:
+        return self.message_category.observe(boundary)
 
 
 class TranscriptCategoryConsumer(MroDispatch):
@@ -134,17 +139,9 @@ def event_category(event: TranscriptEvent) -> type[MessageCategory]:
     return consumer.category
 
 
-def block_category(widget) -> type[MessageCategory] | None:
-    """Ask the native block; uncategorized controls belong to Other."""
-    return (
-        widget.message_category
-        if isinstance(widget, CategorizedBlock)
-        else OtherCategory
-    )
-
-
 def apply_block_filter(widget, selected: frozenset[type[MessageCategory]]) -> None:
     """Change only this semantic owner, preserving its authored display rules."""
-    category = block_category(widget)
-    hidden = category is not None and category not in selected
-    widget.set_display_constraint("message-category", not hidden)
+    if isinstance(widget, CategorizedBlock):
+        widget.apply_message_filter(selected)
+    else:
+        widget.set_display_constraint("message-category", OtherCategory in selected)
