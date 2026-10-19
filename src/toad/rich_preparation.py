@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copyreg
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from io import StringIO
 from typing import TYPE_CHECKING, Literal
@@ -140,9 +141,7 @@ class NativeContentSource(RichSource):
                                 for offset in self.selection)),
                           self.selection_style),
         )
-        if presentation.link_style is not None:
-            lines = [line._apply_link_style(presentation.link_style) for line in lines]
-        return PreparedNativeContent(width, tuple(lines), content.plain)
+        return PreparedNativeContent(width, presentation.styled_links(lines), content.plain)
 
 
 @dataclass(frozen=True)
@@ -312,6 +311,13 @@ class RichPresentation:
     rules: tuple[tuple[str, object], ...] = ()
     native_style: NativeStyle = NativeStyle()
 
+    def styled_links(self, lines: Iterable[Strip]) -> tuple[Strip, ...]:
+        """Apply this presentation's captured link style in either renderer."""
+        style = self.link_style
+        if style is None:
+            return tuple(lines)
+        return tuple(line._apply_link_style(style) for line in lines)
+
 
 def prepare_rich(source: RichSource, presentation: RichPresentation) -> PreparedRichContent:
     """Measure/highlight/wrap/segment with native Rich entirely in a worker."""
@@ -342,6 +348,4 @@ def prepare_rich(source: RichSource, presentation: RichPresentation) -> Prepared
     lines = tuple(Strip(line) for line in Segment.split_and_crop_lines(
         segments, width, include_new_lines=False, pad=False,
     ))
-    if presentation.link_style is not None:
-        lines = tuple(line._apply_link_style(presentation.link_style) for line in lines)
-    return PreparedRichContent(width, lines)
+    return PreparedRichContent(width, presentation.styled_links(lines))
