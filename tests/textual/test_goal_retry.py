@@ -2,22 +2,20 @@
 
 from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_states import BlockedGoal
-from agent_comms.goals import Goal
-from agent_comms.ui_model.goal import GoalDisplay
 
-from support.goals import ScriptedGoalOwner
+from support.goals import ScriptedGoalOwner, published_goal
 from toad.widgets.goal_bar import GoalBar
 
 
 async def test_blocked_goal_offers_retry_and_retry_reaches_the_owner(workspace):
     async with workspace.app(size=(100, 30)) as ui:
         view = ui.conversation
-        goal = Goal("Learn architectural factoring", "goal-control",
-                    state=BlockedGoal(block_reason="Original turn failed"))
-        owner = ScriptedGoalOwner(workspace.project, goal)
+        goal = published_goal("Learn architectural factoring", "goal-control",
+                              state=BlockedGoal(block_reason="Original turn failed"))
+        owner = ScriptedGoalOwner(ui.app, goal)
         ui.attach_agent(owner)
         view.agent_ready = True
-        view.goal_display = GoalDisplay.current(goal)
+        view.goal_display = goal
         bar = view.query_one(GoalBar)
         assert str(bar.query_one("#goal-toggle").render()) == "Retry"
         await ui.until_shows("Retry")

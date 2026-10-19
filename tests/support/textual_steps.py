@@ -34,7 +34,7 @@ async def channel_roster(ui, *targets: str):
 
     def listed():
         sidebar = ui.app.screen.query_one(CommsSidebar)
-        return (sidebar.navigation.ready.is_set() and sidebar.display and sidebar.shows_model
+        return (sidebar.navigation.ready.is_set() and sidebar.display and sidebar.model_state.shows_model()
                 and set(targets) <= {group.row.target_name for group in sidebar.query(ChannelGroup)})
 
     await ui.until(listed, seconds=8, why=f"channels {targets} in the sidebar")
@@ -161,3 +161,14 @@ def viewport_text(widget) -> str:
 def painted_text(widget, text) -> bool:
     """Whether `widget` is on screen and draws `text`."""
     return widget in widget.screen._compositor.visible_widgets and text in viewport_text(widget)
+
+
+async def saved_history(view, page, loader, *, committed=True):
+    """A saved transcript history prepared and paged the way the application builds one."""
+    from toad.transcript_preparation import SavedHistory, TranscriptPageRenderTask
+    from toad.widgets.transcript_history import TranscriptHistory
+    from toad.work_preparation import RenderPreparation
+
+    prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+    return TranscriptHistory(prepared, SavedHistory(loader, page.after, view.app.preparation),
+                             committed=committed, notification_view=view.contents)
