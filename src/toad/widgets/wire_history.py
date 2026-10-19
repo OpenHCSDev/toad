@@ -128,6 +128,14 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     # Read marks
 
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        if self.can_draw_on_screen:
+            self.mark_visible()
+
+    def source_resumed(self) -> None:
+        self.mark_visible()
+
     def read_visible(self):
         if not self.is_attached:
             return None

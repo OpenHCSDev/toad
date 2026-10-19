@@ -68,17 +68,6 @@ class UntintedTonePaint(TonePaint):
     background_tint = TRANSPARENT
 
 
-class AlternatingTonePaint(TonePaint):
-    """A row of a list: every other row, by its laid-out position, steps onto ``alternate_tone``."""
-
-    alternate_tone: ClassVar[type[ThemeColour]]
-
-    @property
-    def tone(self) -> type[ThemeColour] | None:
-        region = self.virtual_region
-        return self.alternate_tone if region.height and region.y // region.height % 2 else None
-
-
 class FrameState(DeclaredFamily, affix="Frame"):
     ready = False
 
