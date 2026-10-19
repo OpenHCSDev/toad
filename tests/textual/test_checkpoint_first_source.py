@@ -10,7 +10,7 @@ import os
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.threads import Thread
 
-from support import agents, journals
+from support import journals
 from toad.live_output import ResponseStream
 from toad.transcript_publication import CheckpointPublication
 from toad.widgets.agent_response import AgentResponse
@@ -26,7 +26,7 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
     assert not old_page.after.session_file
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
-        agent = agents.detached(workspace.project)
+        agent = ui.detached_agent()
         ui.attach_agent(agent)
         agent.coordination = CoordinationChangedUpdate(
             thread.incarnation, str(workspace.roots.wire), os.getpid(), str(workspace.project),

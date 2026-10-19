@@ -44,7 +44,7 @@ from textual.widgets import Static
 
 from toad import messages, paths
 from acp.exceptions import RequestError
-from toad.widgets.splash_text import SplashText
+from toad.widgets.splash_text import ThreadLoading
 
 from toad.core import events as core_events
 from toad.widgets.comms_menu import ContextMenu
@@ -150,31 +150,6 @@ class Loading(ConversationBlock, Static):
         height: auto;        
     }
     """
-
-
-class ThreadLoading(ConversationBlock, SplashText):
-    """The splash while a thread attaches: its label swept into the theme's colours."""
-
-    LABEL = TEXT = "Loading thread and history…"
-
-    @classmethod
-    def initial_contents(cls, agent):
-        """The loading declaration serves first composition and source rebinding."""
-        return (cls(),) if agent is not None else ()
-
-    DEFAULT_CSS = """
-    ThreadLoading {
-        width: 1fr;
-        height: auto;
-        margin: 0;
-        content-align: center middle;
-        color: $text-muted;
-        text-style: bold;
-    }
-    """
-
-    def on_mount(self) -> None:
-        self.play()
 
 
 class CategorizedMount:
@@ -548,6 +523,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self._agent_data = agent
+        self._thread_loading = ThreadLoading.initial_contents(agent)
         self.set_reactive(
             ConversationSessionBinding.model_history_scope, agent.identity if agent else ""
         )
@@ -665,12 +641,9 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     @work
     async def _session_ready(self) -> None:
-        """The agent (or the shell) can take input: drop loading, then post start content."""
+        """The agent (or the shell) can take input; page publication owns the splash."""
         presentation = self.transcript
         if not presentation.binding.matches(self):
-            return
-        await self.query(ThreadLoading).remove()
-        if self.transcript is not presentation or not presentation.binding.matches(self):
             return
         if self._native_agent_started_here and (agent_data := self._agent_data) is not None:
             welcome = agent_data.welcome
@@ -927,12 +900,18 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             self.prompt.focus()
             self.prompt.prompt_text_area.post_message(event)
 
+    def retire_loading_splash(self) -> None:
+        """The composed splash is consumed once when saved history paints or fails."""
+        splashes, self._thread_loading = self._thread_loading, ()
+        for splash in splashes:
+            splash.remove()
+
     def compose(self) -> ComposeResult:
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
                 with ConversationContents(id="contents"):
-                    yield from ThreadLoading.initial_contents(self._agent_data)
+                    yield from self._thread_loading
                     yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
@@ -1128,7 +1107,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
     @handles(AgentFail)
     async def on_agent_fail(self, message: CoreEventMessage) -> None:
-        await self.query(ThreadLoading).remove()
+        self.retire_loading_splash()
         self.turns.finish_client()
         self._agent_fail = True
         self.prompt.sync_session()

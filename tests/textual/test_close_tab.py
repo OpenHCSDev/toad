@@ -2,7 +2,6 @@
 
 from unittest.mock import patch
 
-from support import agents
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation
 from toad.widgets.prompt import Prompt
@@ -36,7 +35,7 @@ async def test_closing_a_tab_releases_its_agent_without_titling_or_configuring_t
         identity = await ui.new_session()
         conversation = ui.conversation
         # A bound agent, as an open native tab has: releasing it must not become another update of the view.
-        ui.attach_agent(agents.detached(workspace.project))
+        ui.attach_agent(ui.detached_agent())
         await ui.step()
         prompt = conversation.prompt
         updated = []

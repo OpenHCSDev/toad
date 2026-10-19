@@ -13,7 +13,6 @@ from agent_comms.native_input_record import FullNativeExecution
 from agent_comms.native_runtime_input import CurrentNativeCursor
 from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
 
-from support.agents import detached
 from support.textual_steps import reveal_session_details
 from toad.widgets.native_history import NativeHistory
 from toad.private_native_cursor import CursorStatus, ProvenCursorStatus
@@ -51,7 +50,7 @@ class Response:
 async def test_late_answer_to_a_replaced_session_request_cannot_change_session_or_history_proof(
         workspace, first_kind, successor):
     async with workspace.app(size=(115, 38)) as ui:
-        agent = detached(workspace.project, "old-session" if first_kind == "load" else None)
+        agent = ui.detached_agent("old-session" if first_kind == "load" else None)
         ui.attach_agent(agent)
         await ui.step()
         view = ui.conversation
