@@ -4,12 +4,12 @@ from agent_comms.sent_message import PublishedSentMessage
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 
-from toad.block_navigation import ConversationBlock
+from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.message_rows import MessageRow
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_divider import LiveMessageClock, MessageRowDivider
-from toad.widgets.message_filter import CategorizedBlock, OutboundCategory
+from toad.widgets.message_filter import OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.transcript_lines import MessageRowBlock
 from toad.notification_status import CheckedNotifications, NotificationStatus

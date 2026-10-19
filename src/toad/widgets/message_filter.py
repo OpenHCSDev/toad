@@ -82,19 +82,6 @@ def all_categories() -> frozenset[type[MessageCategory]]:
     return frozenset(MessageCategory.members_with(MessageCategory))
 
 
-class CategorizedBlock:
-    """Nominal widget mixin for the declared presentation category.
-
-    Textual widgets own a custom metaclass, so a separate ABCMeta would be
-    inconsistent with their inheritance. Concrete blocks implement this member.
-    """
-
-    @property
-    def message_category(self) -> type[MessageCategory] | None:
-        """None reserves a container for its saved-history projection."""
-        raise NotImplementedError
-
-
 class TranscriptCategoryConsumer(MroDispatch):
     def __init__(self):
         self.category = OtherCategory
@@ -132,19 +119,3 @@ def event_category(event: TranscriptEvent) -> type[MessageCategory]:
     consumer = TranscriptCategoryConsumer()
     consumer.dispatch_sync(event)
     return consumer.category
-
-
-def block_category(widget) -> type[MessageCategory] | None:
-    """Ask the native block; uncategorized controls belong to Other."""
-    return (
-        widget.message_category
-        if isinstance(widget, CategorizedBlock)
-        else OtherCategory
-    )
-
-
-def apply_block_filter(widget, selected: frozenset[type[MessageCategory]]) -> None:
-    """Change only this semantic owner, preserving its authored display rules."""
-    category = block_category(widget)
-    hidden = category is not None and category not in selected
-    widget.set_display_constraint("message-category", not hidden)
