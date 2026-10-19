@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
 from agent_comms.mro_dispatch import handles
-from toad.widgets.message_notifications import HistoryNotifications
+from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
 from rich.segment import Segment
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
@@ -186,8 +186,9 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
     def can_draw_on_screen(self):
         return self.is_attached and self.is_on_screen
 
-    def notification_targets(self):
-        return tuple(history for history in self.line_histories() if history.can_draw_on_screen)
+    def notification_targets(self) -> tuple[SourceNotifications, ...]:
+        return tuple(history for history in self.screen._compositor.visible_widgets
+                     if isinstance(history, SourceNotifications) and history.notification_view is self)
 
     @property
     def line_width(self) -> int:
@@ -218,7 +219,8 @@ class ConversationContents(CategorizedMount, Contents):
     """Conversation ordering and categories compose with the native row container."""
 
     def notification_targets(self):
-        return (*super().notification_targets(), *(target for child in self.children
+        return (*super().notification_targets(), *(target
+                 for child in self.screen._compositor.visible_widgets if child.parent is self
                  for target in child.notification_targets()))
 
     @property

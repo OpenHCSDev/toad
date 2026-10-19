@@ -24,11 +24,11 @@ from agent_comms.ui_model.sidebar import ChannelRowModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
-from textual.reactive import reactive, var
-from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
+from textual.reactive import reactive
+from ui_theme.effects import NEW_MESSAGE
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
-from ui_theme.scheme import WarningColour, MutedColour, AlternateRowToneColour
+from ui_theme.scheme import AlternateRowToneColour
 
 
 from agent_comms.mro_dispatch import handles
@@ -54,7 +54,8 @@ if TYPE_CHECKING:
 
 
 class ChannelUnread(PrimaryActivation, ChangingText):
-    DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
+    DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $text-muted; pointer: pointer; }"
+    text_fades = (NEW_MESSAGE,)
 
     def on_click(self, event) -> None:
         if event.button == 1:
@@ -88,7 +89,8 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         if previous.label != channel.label:
             row.set_label(channel.label)
         row.tooltip = channel.tooltip
-        row.refresh_paint()
+        if row.is_mounted and (previous.active != channel.active or previous.unread != channel.unread):
+            row.run_effect(NEW_MESSAGE)
         if previous.unread != channel.unread:
             label = channel.unread.label
             # Equal-width badges need paint only; visibility owns its layout.
@@ -146,8 +148,8 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
 class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel):
     """One interactive row: a channel or a thread."""
 
+    text_fades = (NEW_MESSAGE,)
     alternate: reactive[bool] = reactive(False, repaint=False)
-    leaving = var(False)
 
     def watch_alternate(self) -> None:
         self.refresh_paint()
@@ -184,34 +186,10 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSele
         self.target = target
 
     def on_mount(self) -> None:
-        self.run_effect(SIDEBAR_ENTER)
-
-    def compute_disabled(self) -> bool:
-        return self.leaving
-
-    def retire(self) -> None:
-        self.leaving = True
-        self.run_effect(SIDEBAR_EXIT)
-        self.repaint()
-
-    @property
-    def paint_opacity(self) -> float:
-        return self.effect_frame(SIDEBAR_ENTER).value * (
-            self.effect_frame(SIDEBAR_EXIT).value if self.leaving else 1.0)
-
-    def repaint(self) -> None:
-        if self.leaving and (not self.animation_visible
-                or self.effect_frame(SIDEBAR_EXIT) == SIDEBAR_EXIT.final):
-            self.remove()
-            return
-        self.refresh(layout=False)
-
-    def on_hide(self) -> None:
-        if self.leaving:
-            self.remove()
+        self.run_effect(NEW_MESSAGE)
 
     def is_navigation_row(self) -> bool:
-        return self.is_attached and not self.leaving
+        return self.is_attached and not self.is_leaving
 
     @property
     def current(self) -> bool:
@@ -224,17 +202,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSele
     @property
     def paint_highlighted(self) -> bool:
         return self.selected or super().paint_highlighted
-
-    def resting_ink(self):
-        """Ink while not highlighted; the highlight always paints its own contrast."""
-        if self.is_navigation_row() and self.navigation_tree.model_state.channel_active(self):
-            return WarningColour
-        return None
-
-    @property
-    def paint_foreground(self):
-        ink = None if self.paint_highlighted else self.resting_ink()
-        return self.app.colours.colour(ink) if ink is not None else super().paint_foreground
 
     def set_label(self, label: str) -> None:
         self.update(Content(label))
@@ -263,7 +230,9 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSele
 
 
 class ThreadStatusRow(CommsRow):
-    """Thread rows own their fixed geometry and model-derived activity ink."""
+    """Thread rows show activity through their glyph and summary, not held ink."""
+
+    DEFAULT_CSS = "ThreadStatusRow { color: $text-muted; }"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -280,9 +249,6 @@ class ThreadStatusRow(CommsRow):
     def busy(self) -> bool:
         return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.working)
 
-    def resting_ink(self):
-        return WarningColour if self.busy else MutedColour
-
     def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
         """Render the model with this app's pin and pending action."""
         app = cast("ToadApp", self.app)
@@ -290,6 +256,7 @@ class ThreadStatusRow(CommsRow):
         action_status = app.thread_actions.pending.get(row.name)
         if (row, pinned, action_status) == (self.thread_row, self.pinned, self.action_status):
             return
+        previous = self.thread_row
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         summary = action_status if action_status is not None else row.summary
         self.tooltip = Content("\n".join(str(value) for value in (
@@ -299,6 +266,9 @@ class ThreadStatusRow(CommsRow):
         title = self.activity_content(row.title, Content(row.label), self.busy,
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
         self.update(Content.assemble(title, f"\n  {summary}"), layout=False)
+        if self.is_mounted and previous is not None and (
+                previous.status.working != row.status.working or previous.unread != row.unread):
+            self.run_effect(NEW_MESSAGE)
 
     def set_label(self, label: str) -> None:
         self.retire_thread_row()
