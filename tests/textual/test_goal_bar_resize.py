@@ -2,13 +2,13 @@
 
 from dataclasses import replace
 
-from agent_comms.goals import Goal, NoGoal
+from agent_comms.goals import NoGoal
 from textual.containers import VerticalScroll
 
 from toad.widgets.goal_bar import GoalBar
-from toad.widgets.throbber import Throbber
+from support.goals import published_goal
 
-GOAL = Goal("Long goal detail.\n" * 100, "resizing", 1, revision=7)
+GOAL = published_goal("Long goal detail.\n" * 100, "resizing", revision=7)
 
 
 async def shown_bar(ui):
@@ -73,8 +73,9 @@ async def test_busy_separator_drags_within_bounds_and_follows_terminal_resize(wo
         # During activity, the colored separator of the busy indicator owns this row.
         view.busy_count = 1
         view.turns.start_client()
-        await ui.until(lambda: view.query_one(Throbber).busy, why="the busy indicator")
-        throbber = view.query_one(Throbber)
+        # The bar hands its edge to the throbber it is built with, directly above it.
+        throbber = view.throbber
+        await ui.until(lambda: throbber.busy, why="the busy indicator")
         await ui.until(lambda: not bar.styles.border_top[0], why="the separator row handed to the busy indicator")
         await drag(ui, bar, throbber, 2)
         assert document.region.height == resized + 2

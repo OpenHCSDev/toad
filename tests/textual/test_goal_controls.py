@@ -1,11 +1,10 @@
 """Textual-facing: the goal bar mounts one control per declared interaction, paints them, and collapses."""
 
 from agent_comms.goal_actions import PausedGoalAction
-from agent_comms.goals import Goal
-from agent_comms.ui_model.goal import GoalDisplay
 
 from toad.goal_interaction import GoalInteraction, GoalSession
 from toad.widgets.goal_bar import GoalBar, GoalControl
+from support.goals import published_goal
 
 
 class ProbeInteraction(GoalInteraction):
@@ -18,7 +17,7 @@ class ProbeInteraction(GoalInteraction):
 
 async def show_goal(ui):
     view = ui.conversation
-    view.goal_display = GoalDisplay.current(Goal("Visible goal for control discovery", "new-control"))
+    view.goal_display = published_goal("Visible goal for control discovery", "new-control")
     await ui.until(lambda: view.query(GoalBar), why="the goal bar")
     return view, view.query_one(GoalBar)
 
@@ -54,4 +53,5 @@ async def test_a_replaced_goal_session_refuses_the_old_binding(workspace):
         else:
             raise AssertionError("A retired binding may not control the replacement source")
         old.close()
-        assert old.view is None and old.modal is None
+        # The session stays bound to its conversation (dde3b616); closing retires its modal.
+        assert old.modal is None

@@ -49,7 +49,7 @@ class PlanItem:
     @classmethod
     def from_acp(cls, content: str, priority: str, status: str, **_extensions) -> PlanItem:
         """Bind SDK-validated external fields once; metadata is not presentation."""
-        return cls(content, priority, PlanStatus.decode(status))
+        return cls(content, priority, PlanStatus.member_named(status))
 
 
 def decode_plan(entries: list[PlanEntry]) -> list[PlanItem]:

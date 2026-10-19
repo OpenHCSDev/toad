@@ -284,7 +284,7 @@ class AgentController(OperationalTerminalOwner):
             return None
         if authority.retired:
             return None
-        return StopReason.decode(result.stop_reason)
+        return StopReason.member_named(result.stop_reason)
 
     def _prompt_failed(self, command, authority, queue_scope, failure, title, detail, *, published=False):
         agent = self.agent

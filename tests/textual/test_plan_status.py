@@ -11,7 +11,7 @@ class ReviewingPlanStatus(PlanStatus):
 
 
 def test_a_declared_status_is_found_by_its_name():
-    assert PlanStatus.decode(ReviewingPlanStatus.declared_name) is ReviewingPlanStatus
+    assert PlanStatus.member_named(ReviewingPlanStatus.declared_name) is ReviewingPlanStatus
 
 
 async def test_a_declared_status_is_painted_in_the_plan(workspace):

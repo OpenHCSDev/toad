@@ -22,4 +22,4 @@ def test_declared_kinds_read_history_and_a_new_kind_joins_the_family(tmp_path):
         page = kind.page(comms, target, worktree=str(tmp_path), limit=8)
         assert page.messages
         assert kind.display_identity(page) is not None
-    assert ConversationKind.decode("team").label("#team") == "#team"
+    assert ConversationKind.member_named("team").label("#team") == "#team"

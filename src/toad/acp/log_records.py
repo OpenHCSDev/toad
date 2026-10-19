@@ -61,7 +61,7 @@ class LogRecord(ABC):
         if not separator or not tag.startswith("["):
             return DiagnosticLogRecord(raw)
         try:
-            source = LogSource.decode(tag[1:])
+            source = LogSource.member_named(tag[1:])
         except ValueError:
             return DiagnosticLogRecord(raw)
         try:

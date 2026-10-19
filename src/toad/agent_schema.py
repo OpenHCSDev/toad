@@ -38,7 +38,7 @@ class CodingAgentKind(AgentKind):
 class AgentKindText(TextRepresentation):
     @classmethod
     def from_text(cls, value):
-        return AgentKind.decode(value)
+        return AgentKind.member_named(value)
 
     @classmethod
     def encode(cls, value):

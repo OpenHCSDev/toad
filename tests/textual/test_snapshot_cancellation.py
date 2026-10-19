@@ -14,7 +14,7 @@ from textual.worker import WorkerCancelled
 
 from support import journals
 from toad.live_output import ResponseStream
-from toad.widgets.transcript_history import TranscriptHistory
+from support.textual_steps import saved_history
 
 
 def saved_page(workspace, name):
@@ -34,14 +34,14 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
         view = ui.conversation
         agent = ui.detached_agent()
         ui.attach_agent(agent)
-        old = TranscriptHistory(old_page)
+        old = await saved_history(view, old_page, view.transcript.get_transcript_page)
         await view.contents.mount(old)
         await ui.until(lambda: old in view.window.histories, why="the old history")
         thread = workspace.comms.registry.require("replacement")
         agent.coordination = CoordinationChangedUpdate(
             thread.incarnation, str(workspace.roots.wire), os.getpid(), str(workspace.project),
             None, None, thread.name, None)
-        view.set_reactive(type(view).agent_ready, True)
+        agent.session.settled.set()
         # A live stream block that the saved page already covers.
         block = await view.output.append(ResponseStream(), new_page.events[0].text)
         view.window.anchor()
