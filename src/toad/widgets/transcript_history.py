@@ -9,7 +9,7 @@ import asyncio
 from bisect import bisect_right
 from collections import deque
 from contextlib import ExitStack, asynccontextmanager
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import islice
 from collections.abc import AsyncIterator, Callable, Iterator
@@ -50,7 +50,7 @@ from toad.message_rows import MessageRow
 from toad.markdown_links import ReferenceRendering
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
 from toad.widgets.transcript_lines import (
-    HorizontalRows, Lines, BlockLines, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    HorizontalRows, Lines, BlockLines, BlockSpan, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory
@@ -92,6 +92,18 @@ class JumpToLatest(HoverSelection, HistoryEdge):
 
     class Requested(Message):
         pass
+
+@dataclass(frozen=True)
+class FragmentSpan(BlockSpan):
+    """A block span placed in its page, carrying the message it belongs to."""
+
+    fragment: TranscriptFragment = field(kw_only=True)
+
+    @classmethod
+    def in_page(cls, fragment: TranscriptFragment, first: int, span: BlockSpan) -> FragmentSpan:
+        return cls(index=span.index, first=first + span.first, height=span.height,
+                   drawn=span.drawn, fragment=fragment)
+
 
 class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     """One transcript page, drawn as its loaded fragments' prepared lines.
@@ -253,7 +265,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
-    def fragment_row(self, position: int | str, part: int, block: int) -> tuple[int, int, bool] | None:
+    def fragment_row(self, position: int | str, part: int, block: int) -> FragmentSpan | None:
         """A source child's first measured row, height and whether the page draws it.
 
         A fragment without rows of its own (the filter hides it, or layout
@@ -270,10 +282,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             if (slot := self._fragment_slots.get(id(candidate))) is not None:
                 _fragment, first, lines = self._layout[slot]
                 same = candidate.matches_position(position, part)
-                start, height, drawn = lines.block_row(block if same else 0)
-                if height:
-                    return first + start, height, same and drawn
-        return self._height, 0, False
+                wanted = block if same else 0
+                span = lines.block_span(lambda span: span.drawn and span.index >= wanted)
+                if span is not None:
+                    placed = FragmentSpan.in_page(candidate, first, span)
+                    return replace(placed, drawn=same and span.index == block)
+        return FragmentSpan(index=block, first=self._height, height=0, drawn=False,
+                            fragment=loaded[at])
 
     @property
     def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
@@ -298,7 +313,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             return None
         row = self.app.mouse_position.y - region.y
         found = self.fragment_at(row) if 0 <= row < self._height else None
-        return None if found is None else found[0]
+        return None if found is None else found.fragment
 
     @property
     def tooltip(self) -> str | None:
@@ -306,14 +321,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         fragment = self.fragment_under_mouse()
         return None if fragment is None else MessageClock.recorded(fragment.timestamp).display()[1]
 
-    def fragment_at(self, row: int) -> tuple[TranscriptFragment, int, int, int] | None:
-        """The fragment and source child drawn here, with its first row and height."""
+    def fragment_at(self, row: int) -> FragmentSpan | None:
+        """The measured child drawn here, with its containing message."""
         slot = bisect_right(self._starts, row) - 1
         if slot < 0:
             return None
         fragment, first, lines = self._layout[slot]
-        block, start, height = lines.block_at(row - first)
-        return fragment, block, first + start, height
+        span = lines.block_span(lambda span: span.contains(row - first))
+        return None if span is None else FragmentSpan.in_page(fragment, first, span)
 
     def visible_rows(self, window) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
         """Each loaded fragment in the window's viewport, with its rows that are in view."""
@@ -599,9 +614,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             placed = page.fragment_row(position, part, 0)
             if placed is None:
                 continue
-            _first, height, drawn = placed
-            if drawn:
-                self.window.reader_position = FragmentPosition(position, 0, height, part=part, block=0)
+            if placed.drawn:
+                self.window.reader_position = FragmentPosition(position, 0, placed.height, part=part, block=0)
             return
 
     def can_expand(self) -> bool | None:
