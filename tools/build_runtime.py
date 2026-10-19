@@ -502,8 +502,10 @@ class TerminalApp:
             'Indexing' not in line.split('│', 1)[0] for line in text.splitlines()))
 
     def click(self, label):
-        text = self.wait('find-' + label.replace('/', '-'), lambda text: label in text)
-        row, line = next((row, line) for row, line in enumerate(text.splitlines()) if label in line)
+        text = self.wait('find-' + label.replace('/', '-'), lambda text: any(
+            label in line.split('│', 1)[0] for line in text.splitlines()))
+        row, line = next((row, line) for row, line in enumerate(text.splitlines())
+                         if label in line.split('│', 1)[0])
         self.click_cell(cell_len(line[:line.index(label)]) + cell_len(label) // 2, row)
 
     def hide_category(self, label):
@@ -626,7 +628,7 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.launch_runtime import RestartEnvironment
 c=wire();root_id=c.messaging.initialize_private_initial_protocol()
 publish_active_route(ActiveRoute(c.root,root_id))
-c.registry.declare(c.registry.new_thread('startup-saved',frozenset(),sys.argv[1],session_file=sys.argv[2],
+c.registry.declare(c.registry.new_thread('startup-saved',frozenset({'comms'}),sys.argv[1],session_file=sys.argv[2],
     backend=FieldCodec.decode(type[AgentBackend],sys.argv[3]),model=json.loads(sys.argv[5])))
 with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_private_runtime()
 print(json.dumps(RestartEnvironment(root=str(c.root),
@@ -659,11 +661,15 @@ print(json.dumps(RestartEnvironment(root=str(c.root),
                 app.click('#any')
                 app.wait('any', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
                 app.screenshot('any')
-                app.keys('Escape')
+                app.click('#comms')
+                app.wait('comms', lambda text: '#comms' in '\n'.join(text.splitlines()[:3])
+                         and 'IRC / Markdown' in text)
+                app.screenshot('comms')
+                app.click('startup-saved')
                 app.wait('plain-return', lambda text: app.reader_position(text) == plain_before)
                 check_filtered_return(app)
         result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
-                      channel='passed', filtered_return='passed', evidence=str(output))
+                      channel='passed', comms='passed', filtered_return='passed', evidence=str(output))
         (output / 'result.json').write_text(json.dumps(result, indent=2))
         yield result
 
