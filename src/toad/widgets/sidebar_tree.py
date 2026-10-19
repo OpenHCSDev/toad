@@ -323,9 +323,6 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
         if row.alternate != alternate:
             row.alternate = alternate
 
-    def retire_row(self, row) -> None:
-        row.retire()
-
     @property
     def member_keys(self):
         """Keys listed by this group's current model, including hidden rows."""
@@ -488,9 +485,6 @@ class SidebarModelState(ABC):
     def serves(self, path) -> bool:
         return False
 
-    def channel_active(self, row) -> bool:
-        return False
-
     def observes(self, observed: Observing) -> bool:
         return False
 
@@ -570,9 +564,6 @@ class Current(BoundSidebar):
     @property
     def shown(self) -> SidebarModel:
         return self.observed.sidebar
-
-    def channel_active(self, row) -> bool:
-        return row.target.active_in(self.observed.sidebar.channels)
 
 
 class Behind(BoundSidebar):

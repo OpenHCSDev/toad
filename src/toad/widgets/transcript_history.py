@@ -196,24 +196,24 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def _measure(self, width: int) -> None:
         if self.is_mounted:
             self.history.window.keep_reader()
+        if width != self._width:
+            # Native box/arrangement caches can retain A/B/A width variants.
+            # Their numeric heights cannot restore this page's row snapshot;
+            # retire them when replacing the geometry they were measured from.
+            self._invalidate_layout()
         self._width, self._measured = width, True
         self._pending.clear()
         previous = {id(fragment): lines for fragment, _first, lines in self._layout}
-        visible = {id(fragment) for fragment in self.visible_fragments(self.history.window)} if previous else set()
-        theme = self.app.colours.line_theme
         layout, starts, y = [], [], 0
         repaint = []
         if width > 0:
             for fragment in self.prepared.fragments_in_range:
                 if not fragment.shown_in(self.visible_categories):
                     continue
-                # Offscreen rows retain their existing measured geometry.
-                # A different Lines.width already expresses pending wrapping;
-                # there is no second stale flag or resize cache.
-                lines = previous.get(id(fragment))
-                if (lines is None or id(fragment) in visible
-                        or not fragment.retains_lines(lines, theme)):
-                    lines = self._lines(fragment, width)
+                # Geometry belongs to this layout's width, including rows
+                # outside the viewport. RowAcquisition reuses styled source
+                # while rewrapping it; only styling work stays viewport-lazy.
+                lines = self._lines(fragment, width)
                 if id(fragment) in previous and lines is not previous[id(fragment)]:
                     repaint.append((y, lines.height))
                 layout.append((fragment, y, lines))
@@ -466,10 +466,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         self.filter: FilterState = FilterState.for_selection(self)
         self._fragment_budget = self.budget.max_items
 
-    @property
-    def window(self) -> HistoryWindow:
-        return self.query_ancestor(HistoryWindow)
-
     async def park_document(self) -> PreparedPageSource:
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
         await self.retire_source(parked=True)
@@ -531,7 +527,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     @property
     def line_width(self) -> int:
-        """Native content width; offscreen pages may retain older row widths."""
+        """Native content width used by preparation and page measurement."""
         return max(0, self.size.width - self.scrollbar_gutter.width)
 
     async def prepare_rows(self, current: Callable[[], bool], *, window: HistoryWindow,
@@ -563,11 +559,18 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         if not self.is_attached or not self.can_draw_on_screen:
             return ()
         return tuple(
-            fragment for page in self.pages for fragment, rows, lines in page.visible_rows(self.window)
+            fragment for page in self.visible_pages() for fragment, rows, lines in page.visible_rows(self.window)
             if (text := fragment.text_rows(lines)) and rows.start < text.stop and text.start < rows.stop)
 
+    def visible_pages(self) -> list[TranscriptPageView]:
+        """This history's laid-out pages, in row order, without visiting retained pages."""
+        visible = self.screen._compositor.visible_widgets
+        return sorted((page for page in visible
+                       if isinstance(page, TranscriptPageView) and page.parent is self),
+                      key=lambda page: visible[page][0].y)
+
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
+        return tuple(fragment for page in self.visible_pages() for fragment in page.visible_fragments(self.window))
 
     # What a fragment shows
 
@@ -688,6 +691,14 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         window.release_anchor()
         window.scroll_to(y=destination, animate=False, immediate=True)
 
+    def owns_draft(self, draft) -> bool:
+        """The source snapshot owns the external draft's recorded incarnation."""
+        return self.pages[-1].prepared.page.snapshot.thread.incarnation.require_recorded().lookup == draft.thread
+
+    def sent_message_resolver(self):
+        """The draft follows this history's newest published wire frontier."""
+        return self.pages[-1].prepared.page.resolve_sent_messages
+
     @property
     def source_identity(self):
         return self.page_source.reload_key(), self.page_source.through, self.selected_categories
@@ -754,10 +765,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                 selected, PageFragmentRange(ref(page.prepared), 0, page.prepared.start,
                                            page.prepared.fragments[:page.prepared.start])),
         )
-
-    @property
-    def follows_source_tail(self) -> bool:
-        return self.window.follows_tail
 
     @property
     def fragment_limit(self) -> int:
@@ -827,10 +834,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         # outer message's category, not the synthetic Markdown fragment role.
         return (self.parent.selected_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
-
-    def has_more(self, end: PageEnd) -> bool:
-        page = end.edge(self.pages).prepared
-        return end.can_extend(page) or self.page_source.has_more(end, page.page)
 
     @property
     def drawn_extent(self) -> tuple[int, int]:

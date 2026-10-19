@@ -351,8 +351,7 @@ class TranscriptFragment:
     def retains_lines(self, lines, theme) -> bool:
         """Whether measured rows still belong to this source and palette.
 
-        Their width belongs to the rows themselves. Offscreen geometry may
-        retain that measured width until the viewport asks for another one.
+        RowAcquisition.for_view owns wrapping those rows at the layout width.
         """
         return self._lines.retains(lines, theme) or self._plain.retains(lines, theme)
 

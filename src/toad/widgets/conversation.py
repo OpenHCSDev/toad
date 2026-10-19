@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
 from agent_comms.mro_dispatch import handles
-from toad.widgets.message_notifications import HistoryNotifications
+from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
 from rich.segment import Segment
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
@@ -186,8 +186,9 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
     def can_draw_on_screen(self):
         return self.is_attached and self.is_on_screen
 
-    def notification_targets(self):
-        return tuple(history for history in self.line_histories() if history.can_draw_on_screen)
+    def notification_targets(self) -> tuple[SourceNotifications, ...]:
+        return tuple(history for history in self.screen._compositor.visible_widgets
+                     if isinstance(history, SourceNotifications) and history.notification_view is self)
 
     @property
     def line_width(self) -> int:
@@ -218,7 +219,8 @@ class ConversationContents(CategorizedMount, Contents):
     """Conversation ordering and categories compose with the native row container."""
 
     def notification_targets(self):
-        return (*super().notification_targets(), *(target for child in self.children
+        return (*super().notification_targets(), *(target
+                 for child in self.screen._compositor.visible_widgets if child.parent is self
                  for target in child.notification_targets()))
 
     @property
@@ -375,9 +377,10 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         presentation = self.app.coordination_access.thread_status.open(self.status_thread().name).presentation
         read = self._thread_read
         self.arm_thread_read()
-        if read is not None:
-            presentation = read.settle(presentation)
-        self.thread_presented(presentation)
+        if read is None:
+            self.thread_presented(presentation)
+        else:
+            read.settle(presentation).present(self.thread_presented)
 
     def foreign_thread_read(self, presentation) -> None:
         self.thread_presented(presentation)
@@ -909,7 +912,8 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
                 status=Conversation.status,
             )
             yield self.throbber
-            yield GoalBar(self, throbber=self.throbber, prompt=prompt)
+            self.goal_bar: GoalBar = GoalBar(self, throbber=self.throbber, prompt=prompt)
+            yield self.goal_bar
             yield prompt
 
     @property
@@ -1620,13 +1624,11 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     def on_resize(self) -> None:
         # A goal can retain its own size while the surrounding viewport changes.
         # Reapply its user-selected height against the new viewport bound.
-        if (goal_bar := self.query_one_optional(GoalBar)) is not None:
-            goal_bar.update_document_height()
+        self.goal_bar.update_document_height()
 
     def on_mouse_down(self, event: events.MouseDown) -> None:
         self._mouse_down_offset = event.screen_offset
-        if (goal_bar := self.query_one_optional(GoalBar)) is not None:
-            goal_bar.begin_separator_resize(event)
+        self.goal_bar.begin_separator_resize(event)
 
     def on_click(self, event: events.Click) -> None:
         from toad.screens.session_view import SessionView
