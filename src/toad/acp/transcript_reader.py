@@ -56,22 +56,29 @@ class CoordinationTranscriptReader:
         return update if current is None else current
 
     async def page(self, root, thread, *, before=None, after=None, through=None,
-                   read_identity: TranscriptReadIdentity | None = None,
                    historical_source: str | None = None):
         snapshot = await self.snapshot(root, thread, before=before, after=after, through=through,
-                                       read_identity=read_identity, historical_source=historical_source)
+                                       historical_source=historical_source)
         return snapshot.page
 
     async def snapshot(self, root, thread, *, before=None, after=None, through=None,
-                       read_identity: TranscriptReadIdentity | None = None,
                        historical_source: str | None = None) -> TranscriptSnapshotUpdate:
         return await self.read(ReadTranscript(
             root, thread, before=before, after=after, through=through,
-            read_identity=read_identity, historical_source=historical_source))
+            historical_source=historical_source))
 
     async def updates(
-        self, root: str, thread: str, previous: TranscriptPublicationState,
-        *, after=None, read_identity: TranscriptReadIdentity | None = None,
+        self, root: str, thread: str, previous: TranscriptPublicationState, *, after=None,
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
+        return await self.read(ReadTranscriptUpdate(root, thread, after=after, previous=previous))
+
+    async def observed_updates(
+        self, identity: TranscriptReadIdentity, previous: TranscriptPublicationState,
+    ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
+        """An observed read owns its source, revision and page range together."""
+        if identity is None:
+            raise ValueError("Core supplied no transcript read for the observed thread")
         return await self.read(ReadTranscriptUpdate(
-            root, thread, after=after, previous=previous, read_identity=read_identity))
+            identity.root, identity.requested_name,
+            before=identity.before, after=identity.after, through=identity.through,
+            read_identity=identity, previous=previous))
