@@ -34,8 +34,8 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
                 self.run_effect(effect)
 
 
-class ViewLabel(ChangingText[TextFrame]):
-    """Native label paint: workspace emphasis and clock-driven activity ink."""
+class ViewLabel(Animated[TextFrame], Static):
+    """Activity glyph and workspace emphasis, independent of content-change fades."""
 
     def activity_content(self, title: str, label: Content, busy: bool, *, prefix: Content) -> Content:
         """One activity slot, before decorations; idle keeps its declared marker."""

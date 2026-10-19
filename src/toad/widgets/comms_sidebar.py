@@ -89,7 +89,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         if previous.label != channel.label:
             row.set_label(channel.label)
         row.tooltip = channel.tooltip
-        if previous != channel and row.is_mounted:
+        if row.is_mounted and (previous.active != channel.active or previous.unread != channel.unread):
             row.run_effect(NEW_MESSAGE)
         if previous.unread != channel.unread:
             label = channel.unread.label
@@ -256,6 +256,7 @@ class ThreadStatusRow(CommsRow):
         action_status = app.thread_actions.pending.get(row.name)
         if (row, pinned, action_status) == (self.thread_row, self.pinned, self.action_status):
             return
+        previous = self.thread_row
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         summary = action_status if action_status is not None else row.summary
         self.tooltip = Content("\n".join(str(value) for value in (
@@ -265,7 +266,8 @@ class ThreadStatusRow(CommsRow):
         title = self.activity_content(row.title, Content(row.label), self.busy,
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
         self.update(Content.assemble(title, f"\n  {summary}"), layout=False)
-        if self.is_mounted:
+        if self.is_mounted and previous is not None and (
+                previous.status.working != row.status.working or previous.unread != row.unread):
             self.run_effect(NEW_MESSAGE)
 
     def set_label(self, label: str) -> None:
