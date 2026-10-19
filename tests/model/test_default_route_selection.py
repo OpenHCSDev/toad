@@ -5,9 +5,10 @@ from pathlib import Path
 
 import pytest
 from agent_comms.acp_ingress import AcpIngress
+from agent_comms.launch_runtime import ExplicitLaunchRoot
 from agent_comms.comms import wire
 from agent_comms.route_selection import (
-    RouteSelection, child_root, current_root, implicit_root, root_is_current, run_selected_write,
+    RouteSelection, child_root, current_root, root_is_current, run_selected_write,
 )
 
 from support.routes import private_root, publish_route, select_root_by_default_route
@@ -94,4 +95,4 @@ def test_an_explicit_root_bypasses_a_broken_route(home, roots, monkeypatch):
     assert wire(second).root == second
     monkeypatch.setenv("AGENT_COMMS_ROOT", str(second))
     assert run_selected_write(second, lambda: "explicit-root-operation",
-                              implicit=implicit_root()) == "explicit-root-operation"
+                              root_selection=ExplicitLaunchRoot(second)) == "explicit-root-operation"

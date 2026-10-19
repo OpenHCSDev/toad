@@ -135,12 +135,12 @@ class DeliveryFailureView:
         await present(sent)
 
     async def commit_user_message(self, comms, target, body):
-        from agent_comms.route_selection import implicit_root, run_selected_write
+        from agent_comms.route_selection import RouteSelection, run_selected_write
         from agent_comms.delivery_failure import delivery_failure
 
         task = asyncio.create_task(asyncio.to_thread(
             run_selected_write, comms.root, comms.messaging.send_user_message,
-            target, body, worktree=str(self.project_path), implicit=implicit_root()))
+            target, body, worktree=str(self.project_path), root_selection=RouteSelection.capture(comms.root).root_selection))
         try:
             sent = await asyncio.shield(task)
         except asyncio.CancelledError:

@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 import agent_comms.private_nk_entrypoint as private_nk_entrypoint
 from agent_comms.active_route import ActiveRoute, publish_active_route
+from agent_comms.launch_runtime import CurrentLaunchRoot
 from agent_comms.cli_commands import StartCliCommand
 from agent_comms.comms import Comms
 from agent_comms.route_selection import current_root, run_selected_write
@@ -114,4 +115,4 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
         assert not invoked, "stale old-root start reached its core operation"
         assert (marker.read_bytes() if marker.exists() else b"") == before
         with pytest.raises(ValueError):
-            run_selected_write(legacy, safe_spy, None, None, implicit=True)
+            run_selected_write(legacy, safe_spy, None, None, root_selection=CurrentLaunchRoot(legacy))

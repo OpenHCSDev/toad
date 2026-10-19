@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from agent_comms.launch_runtime import ExplicitLaunchRoot
 from support.agents import AppAgents
 from support.routes import private_root, publish_route, select_root_by_default_route
 
@@ -49,7 +50,7 @@ async def test_an_explicit_child_stays_on_its_root_after_the_parent_drops_its_ov
     monkeypatch.setenv("AGENT_COMMS_ROOT", str(routes.first))
     agent = await started_agent(routes.project)
     monkeypatch.delenv("AGENT_COMMS_ROOT")
-    assert not agent.process.route_selection.implicit
+    assert agent.process.route_selection.root_selection == ExplicitLaunchRoot(routes.first)
     assert agent.process.env["AGENT_COMMS_ROOT"] == str(routes.first)
     written = []
     agent.process.process = SimpleNamespace(stdin=SimpleNamespace(write=written.append))
