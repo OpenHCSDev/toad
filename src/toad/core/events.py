@@ -458,7 +458,7 @@ class ThreadChangeSubscription(Subscription):
 
     def bucket_opened(self) -> None:
         publisher = self.stream.publisher
-        publisher.app.run_worker(publisher.update_thread_interest(),
+        publisher.app.run_worker(publisher.update_thread_interest,
                                  group="thread-interest", exclusive=True)
 
     def bucket_emptied(self) -> None:

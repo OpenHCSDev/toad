@@ -167,12 +167,16 @@ class PreparedTranscriptPage:
         return True
 
     def same_source(self, other: PreparedTranscriptPage) -> bool:
-        """Equal backend pages and source members can keep their original view."""
-        if self.page.before != other.page.before or self.page.after != other.page.after:
-            return False
-        return (self.page == other.page
-                and tuple(fragment.events for fragment in self.fragments)
-                == tuple(fragment.events for fragment in other.fragments))
+        """Keep a view only when its bounded read came from the same source snapshot."""
+        page, incoming = self.page, other.page
+        # A filtered page can share the Core read but draw different members.
+        # The retained worker result shares this immutable tuple with its views;
+        # another projection cannot borrow that view's prepared rows.
+        return (self.fragments is other.fragments
+                and page.before == incoming.before
+                and page.after == incoming.after
+                and page.snapshot is not None
+                and page.snapshot == incoming.snapshot)
 
     def for_view(self) -> PreparedTranscriptPage:
         """An independent view owns its drawing range and loaded source data.
