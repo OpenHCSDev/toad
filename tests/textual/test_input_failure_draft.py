@@ -39,23 +39,25 @@ async def test_a_failure_reported_by_the_remote_side_never_overwrites_the_draft(
 
 async def test_a_prompt_whose_request_fails_is_restored_to_the_composer(workspace):
     async with workspace.app(size=(110, 32)) as ui:
-        receiver = ui.detached_agent("fixture")
-        ui.attach_agent(receiver)
         for error in (RequestError.invalid_params({"reason": "owner unavailable"}),
                       ConnectionError("socket disconnected")):
+            # A failed prompt closes its session, so each failure gets its own agent.
+            receiver = ui.detached_agent("fixture")
+            ui.attach_agent(receiver)
             await ui.write_draft("")
             with patch.object(receiver.process, "prompt", side_effect=error):
                 await receiver.controller.submit_blocks(
                     [{"type": "text", "text": "rpc prompt"}], QueuePromptRequest("rpc prompt"))
             await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
-        await receiver.stop()
+            await receiver.stop()
 
 
 async def test_a_prompt_the_agent_cannot_be_reached_for_is_restored_to_the_composer(workspace):
     async with workspace.app(size=(110, 32)) as ui:
         conversation = ui.conversation
         conversation.set_reactive(Conversation.agent, FailingAgent(
-            workspace.project, AgentDefinition("failing", "Failing fixture", {"*": "true"}), "fixture"))
+            workspace.project, AgentDefinition("failing", "Failing fixture", {"*": "true"}), "fixture",
+            app_events=ui.app.events, transcripts=ui.app.coordination_access.transcripts))
         await ui.write_draft("")
         worker = await ImmediateInputSubmission("the local failure prompt").execute(conversation.submissions)
         await worker.wait()

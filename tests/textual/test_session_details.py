@@ -10,6 +10,7 @@ from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.widgets.input_delivery import InputDeliveryBar
+from toad.private_native_cursor import NoneCursorStatus
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import SessionDetails
 
@@ -22,10 +23,11 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
     ) for index in range(30))
     state = ThreadPresentation("owner", "●", "Ready", notifications=notifications)
     history = NativeHistory()
-    history.status = "none"
+    history.status = NoneCursorStatus
     delivery = InputDeliveryBar()
     delivery.delivery = InputDelivery(dismissed_historical_count=5)
-    details = SessionDetails(history=history, delivery=delivery)
+    details = SessionDetails(history=history, delivery=delivery,
+                             status_source=lambda: ThreadStatusModel.known("owner", state))
 
     class Example(Screen):
         def compose(self):
@@ -37,8 +39,7 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         app, pilot = ui.textual
         app.ansi_color = ansi
         await app.push_screen(Example())
-        details.activity.show(ThreadStatusModel.known("owner", state))
-        await ui.until(lambda: details.activity.row is not None and details.size.height, why="the details row")
+        await ui.until(lambda: details.size.height, why="the details row")
         composer = app.screen.query_one(Input)
         assert details.collapsed and details.size.height == 1
         frame = ui.visible_text()
@@ -49,7 +50,7 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         assert await pilot.click(details.query_one("CollapsibleTitle"))
         await ui.step()
         assert not details.collapsed and details.size.height <= details.DETAIL_ROWS + 1
-        assert "Recent incoming messages" in str(details.activity.render())
+        assert "Recent incoming messages" in str(details.notifications.render())
         history.scroll_visible(animate=False, immediate=True)
         await ui.step()
         assert history in app.screen._compositor.visible_widgets
@@ -60,6 +61,6 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         assert details.size.height == 1 and details.has_class("-attention")
         assert "Delivery unavailable" in str(details.title)
         assert composer.value == "Untouched draft"
-        assert history.status == "none"
+        assert history.status is NoneCursorStatus
         assert delivery.delivery.dismissed_historical_count == 5
 

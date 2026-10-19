@@ -23,7 +23,7 @@ def response(session):
     owner = ClaimedIdentity(RecordedThreadIncarnation("owner", 1000.0), 1)
     cursor = CurrentNativeCursor(
         wire_root_id="a" * 32, recipient_lookup="recipient", owner_thread="owner", owner_generation=1,
-        owner_admission_generation=1, covered_seq=2, injected_seq=2, input_id="b" * 32,
+        owner_claimed_generation=1, covered_seq=2, injected_seq=2, input_id="b" * 32,
         stage=FullNativeExecution, session_id="native-session", request_generation=1)
     fact = CursorAdvancedUpdate(CursorEnvelope(
         LiveCursorScope(session, "a" * 32, owner, 1234), 1, VerifiedCursorObservation(cursor)))
