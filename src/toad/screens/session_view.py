@@ -32,21 +32,15 @@ class SessionOrigin:
 
     def resolve_thread(self) -> str:
         """Resolve a navigation name without rebinding this displayed source."""
-        from toad.widgets.comms_chat import resolve_session_thread
-
+        preferred = self.thread_identity.thread_name()
         try:
             service = self.app.coordination_access.observation.observed().service
-            root = service.root
-            source_root = self.coordination_root
-            if source_root is not None and Path(source_root).expanduser().resolve() != root:
-                raise ValueError("Comms route changed; this session retains its former wire")
-            resolved = resolve_session_thread(
-                service, self.project_path, self.thread_identity.thread_name(), source_root=source_root,
-            )
+            return service.registry.session_thread(
+                self.project_path, preferred, source_root=self.coordination_root,
+            ).name_or(preferred)
         except (OSError, ValueError, RuntimeError):
             # An unavailable route does not change this origin's retained name.
-            resolved = None
-        return resolved if resolved is not None else self.thread_identity.thread_name()
+            return preferred
 
     def has_agent(self) -> bool:
         return self._agent is not None

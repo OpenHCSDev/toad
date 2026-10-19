@@ -47,34 +47,6 @@ def session_thread_name(project_path) -> str:
     )
 
 
-def resolve_session_thread(
-    comms, project_path: Path, preferred: str | None = None, *, source_root: str | None = None,
-) -> str | None:
-    """Resolve an exact bound thread or an unbound project's registry identity."""
-    if source_root is not None:
-        if Path(source_root).expanduser().resolve() != comms.root.resolve():
-            raise ValueError("Comms route changed; this session retains its former wire")
-        return comms.registry.require(preferred).name
-    project = Path(project_path).expanduser().resolve()
-    threads = comms.registry.all_threads()
-    if preferred:
-        preferred = comms.registry.canonical_name(preferred)
-    if (
-        preferred in threads
-        and Path(threads[preferred].worktree).expanduser().resolve() == project
-    ):
-        return preferred
-    matches = [
-        name
-        for name, thread in threads.items()
-        if Path(thread.worktree).expanduser().resolve() == project
-        and "acp" in thread.tags
-    ]
-    if len(matches) == 1:
-        return matches[0]
-    return None
-
-
 from toad.block_navigation import ConversationBlock
 
 
