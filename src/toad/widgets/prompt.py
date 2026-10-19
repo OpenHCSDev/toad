@@ -286,9 +286,8 @@ See on-screen instructions for details.
 
         from toad import danger
 
-        styles = danger.DangerStyles(
-            "$text-warning on $warning-muted 70%", "$text-error on $error-muted 70%"
-        )
+        error_style = "bold $error on $error-muted 70%"
+        styles = danger.DangerStyles(error_style, error_style)
         spans = tuple(
             Span(*atom.span, style)
             for atom in danger.analyze(
