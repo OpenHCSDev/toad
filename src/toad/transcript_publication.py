@@ -242,8 +242,11 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         self.agent = binding.view.agent
 
     async def read_snapshot(self):
-        return await self.read_past_history(
-            partial(self.binding.reader.updates, *self.thread_scope, self.owner.current_read),
+        # The observed witness certifies its original page window. Choosing an
+        # incremental `after` here asks Core to bind it to a different window.
+        # CommitPlan still extends the mounted history in place from this cut.
+        return await self.binding.reader.updates(
+            *self.thread_scope, self.owner.current_read,
             read_identity=self.presentation.read_identity)
 
     async def publish_applied(self) -> bool:
