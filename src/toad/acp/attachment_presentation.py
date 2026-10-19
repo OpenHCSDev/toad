@@ -10,7 +10,7 @@ from toad.private_native_cursor import CursorStatus
 class AttachmentPresentation:
     """Local attachment observations belong to their session, not a turn."""
 
-    def matches_turn(self, turn_id: object) -> bool:
+    def matches_turn(self, turn_id: str) -> bool:
         return True
 
 

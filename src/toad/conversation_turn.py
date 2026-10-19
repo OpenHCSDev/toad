@@ -236,8 +236,8 @@ class ManagedTurnBinding(TurnBinding):
         return observed
 
     def accepts(self, message):
-        return (message.publisher is self.agent and message.event.session_id == self.agent.session_id
-                and message.event.sequence == self.sequence)
+        # Receiver acceptance owns session identity; the binding owns sequence.
+        return message.event.sequence == self.sequence
 
     def receive(self, state: TurnState):
         if not state.active.phase.busy and not state.matches(self.owner.managed_id):
@@ -280,10 +280,11 @@ class ConversationTurn:
         return self.owner.managed_id
 
     def changed(self, message):
-        before = self.owner
         if not self.binding.accepts(message):
             return False
-        self._notify(before)
+        # The binding changed before publishing this event. Comparing another
+        # read of that same owner to itself suppresses the view's notification.
+        self._changed(self.owner)
         return True
 
     def describe(self, activity):

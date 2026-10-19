@@ -84,9 +84,6 @@ class CoreEventReceiver(MroDispatch):
         # Textual callbacks may return native Worker resources. Publications
         # retain their identity; callback returns do not replace their data.
         for handler in handlers:
-            if not self.accepts(message):
-                message.stop()
-                return message
             await invoke(partial(handler, **kwargs), message, *args)
         return message
 
@@ -139,6 +136,9 @@ class CoreEventReceiver(MroDispatch):
 
     async def on_core_event_message(self, message: CoreEventMessage) -> None:
         if not message.subscription.active:
+            message.stop()
+            return
+        if not self.accepts(message):
             message.stop()
             return
         await message.consume(self, message)
