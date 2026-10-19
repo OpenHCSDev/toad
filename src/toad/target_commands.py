@@ -76,7 +76,11 @@ class TargetContext:
 
     async def command_choices(self):
         from toad.command_catalog import CommandCatalog
-        return (await CommandCatalog.read(self.app, (), self)).target_choices
+        return (await CommandCatalog.read(self.app, (), self.acquired())).target_choices
+
+    async def acquired(self):
+        """A captured context is already acquired when a catalog reads it."""
+        return self
 
     def execute_menu(self, sidebar, command):
         try:

@@ -22,7 +22,6 @@ from pathlib import Path
 from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
-from agent_comms.errors import UnregisteredThreadError
 from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
 from agent_comms.mro_dispatch import handles
 from toad.widgets.message_notifications import HistoryNotifications
@@ -1524,14 +1523,9 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         source = self.query_ancestor(SessionView)
         navigation = source.navigation_context
         agent = self.agent
-        advertised = agent.presentation.commands if agent is not None else ()
-        try:
-            context = await self.command_target_context()
-        except UnregisteredThreadError:
-            # The session identity owns the unbound case: only local commands apply.
-            catalog = await CommandCatalog.read(self.app, advertised)
-        else:
-            catalog = await CommandCatalog.read(self.app, advertised, context)
+        context = self.command_target_context()
+        catalog = await CommandCatalog.read(self.app,
+            agent.presentation.commands if agent is not None else (), context)
         if (not self.is_attached or source.navigation_context != navigation
                 or agent is not self.agent):
             raise ValueError('Command view changed during discovery')
