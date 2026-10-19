@@ -161,7 +161,7 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 declared.setdefault(node.name, []).append(path.relative_to(ROOT).as_posix())
     # One class says how a link opens; no view or widget keeps actions of its own for it.
-    assert declared['OpensLinks'] == ['widgets/transcript_lines.py']
+    assert declared['OpensLinks'] == ['widgets/linked_rows.py']
     for name in ('action_open_target', 'action_open_historical_target', 'action_open_url', 'action_open_thread',
                  'action_toggle_details', 'open_link', 'RouteHeader', 'WirePageView'):
         assert name not in declared, (name, declared.get(name))
@@ -171,16 +171,16 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
         assert caption not in source, caption
     from toad.line_blocks import Divider
     from toad.widgets.message_divider import MessageDivider
-    from toad.widgets.transcript_lines import OpensLinks
+    from toad.widgets.linked_rows import OpensLinks
 
     # The live rule draws the block saved history draws; it has no drawing of its own.
     assert 'render' not in vars(MessageDivider) and issubclass(MessageDivider, OpensLinks)
     assert Divider.__dataclass_fields__.keys() == {'spans', 'role', 'timestamp'}
 
     # The message owns its menu and one class runs it: a view has no open actions or menu entries of its own.
-    for name, home in (('action_open_sender', 'widgets/transcript_lines.py'),
-                       ('action_open_destination', 'widgets/transcript_lines.py'),
-                       ('action_link', 'widgets/transcript_lines.py'), ('opens', 'project_link.py')):
+    for name, home in (('action_open_sender', 'widgets/linked_rows.py'),
+                       ('action_open_destination', 'widgets/linked_rows.py'),
+                       ('action_link', 'widgets/linked_rows.py'), ('opens', 'project_link.py')):
         assert declared[name] == [home], (name, declared[name])
     assert '_open_name' not in declared and 'open_url' not in declared
     assert source.count('"block.open_sender"') == source.count('"block.open_destination"') == 1

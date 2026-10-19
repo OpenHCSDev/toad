@@ -19,22 +19,19 @@ def load_path_spec(git_ignore_path: Path) -> GitIgnoreSpec | None:
     Returns:
         A `PathSpec` instance.
     """
-    try:
-        if git_ignore_path.is_file():
-            try:
-                spec_text = git_ignore_path.read_text(encoding="utf-8")
-            except UnicodeDecodeError:
-                return None
-            try:
-                spec = GitIgnoreSpec.from_lines(
-                    pathspec.patterns.GitWildMatchPattern, spec_text.splitlines()
-                )
-            except GitWildMatchPatternError:
-                # A project .gitignore Toad cannot parse filters nothing.
-                return None
-            return spec
-    except OSError:
-        return None
+    if git_ignore_path.is_file():
+        try:
+            spec_text = git_ignore_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            return None
+        try:
+            spec = GitIgnoreSpec.from_lines(
+                pathspec.patterns.GitWildMatchPattern, spec_text.splitlines()
+            )
+        except GitWildMatchPatternError:
+            # A project .gitignore Toad cannot parse filters nothing.
+            return None
+        return spec
     return None
 
 
@@ -65,17 +62,14 @@ class PathFilter:
         path = Path(abspath(path))
         filter_root = path
         path_specs: list[GitIgnoreSpec] = []
-        try:
-            while (parent := path.parent) != path:
-                if (path_spec := load_path_spec(path / ".gitignore")) is not None:
-                    path_specs.append(path_spec)
-                if (path / ".git").exists():
-                    break
-                path = parent
-            else:
-                del path_specs[:]
-        except OSError:
-            pass
+        while (parent := path.parent) != path:
+            if (path_spec := load_path_spec(path / ".gitignore")) is not None:
+                path_specs.append(path_spec)
+            if (path / ".git").exists():
+                break
+            path = parent
+        else:
+            del path_specs[:]
         return PathFilter(filter_root, reversed(path_specs))
 
     def get_path_specs(self, path: Path) -> Sequence[GitIgnoreSpec]:

@@ -36,3 +36,27 @@ the literal `Host`, a matching WebSocket `Origin`, and a separate cookie for
 each local port. Missing credentials, mismatched or null Origin, a DNS-rebinding
 Host and an external bind fail closed. The server API is pinned to
 `textual-serve==1.1.3`.
+
+## Desktop tailnet service
+
+The desktop user service is `tools/systemd/toad-serve.service`. It starts the
+existing `textual-serve` package using the Python under
+`~/.local/share/agent-comms/current`, not a copied runtime. Each browser tab runs
+`/home/ts/bin/toad-comms`, which selects the installed Toad through its normal
+launcher. Restart the service after a runtime switch to move the server process
+as well as newly opened Toad children onto the new runtime.
+
+Install the unit under `~/.config/systemd/user/toad-serve.service`, then run:
+
+```shell
+systemctl --user daemon-reload
+systemctl --user enable --now toad-serve.service
+tailscale serve --bg --https=8443 http://127.0.0.1:8040
+```
+
+Open `https://desktop.tail553874.ts.net:8443` from a tailnet device. The backend
+binds only `127.0.0.1:8040`. This service uses tailnet access control rather than
+the local `toad serve` cookie gate. A connected browser has full agent control;
+never enable Funnel for port 8443. The connector's existing HTTPS/Funnel route
+on port 443 is separate and must remain unchanged. `tailscale funnel status`
+is a read-only check, not permission to enable another public route.

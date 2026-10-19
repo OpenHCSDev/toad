@@ -141,10 +141,7 @@ class NativeSessionEntry(SessionEntry):
         plan = ExistingOwnerPlan.from_binding(binding)
         if plan is None:
             return
-        if agent := source.presentation.operational_agent:
-            await agent.session.reconnect(plan)
-        else:
-            source.presentation.sources.attach_started(source, plan)
+        await source.presentation.operational_binding.reconnect_session(source, plan)
 
     def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)
@@ -152,8 +149,8 @@ class NativeSessionEntry(SessionEntry):
             return False
         if source._agent.identity != agent_identity:
             return False
-        live = source.conversation.agent
-        if session_id in {source._agent_session_id, live.session_id if live else None}:
+        live = source.conversation.agent_binding
+        if session_id == source._agent_session_id or live.matches_session(session_id):
             return True
         root = source.coordination_root
         return root is not None and sessions.app.coordination_access.require(

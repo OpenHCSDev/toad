@@ -21,8 +21,7 @@ from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
     CompactRequest, InputFailedUpdate, encode_request,
 )
-from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, RequestFailure
-from agent_comms.coordination_errors import CoordinationReadUnavailable
+from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.observation import ReadInputDelivery
 
@@ -210,16 +209,11 @@ class AgentController(OperationalTerminalOwner):
 
     async def reconcile_turn(self, coordination, authority):
         """Release snapshot ordering through a fresh read of the same owner."""
-        try:
-            self.require_owner(coordination, authority)
-            read = self.agent.thread_read()
-            if read is not None:
-                presentation = await self.transcripts.thread_presentation(*read.thread)
-                read.settle(presentation)
-        except (CoordinationReadUnavailable, OSError, ValueError) as error:
-            # A failed read cannot settle a turn or change input disposition.
-            # The original coordination observer resumes reads on publication.
-            self.agent.log(f"[status] Turn reconciliation unavailable: {error}")
+        self.require_owner(coordination, authority)
+        read = self.agent.thread_read()
+        if read is not None:
+            presentation = await self.transcripts.thread_presentation(*read.thread)
+            read.settle(presentation)
 
     def accepts_turn_snapshot(self, sequence):
         """A remote busy turn does not imply an ordered response on this client."""
@@ -274,13 +268,6 @@ class AgentController(OperationalTerminalOwner):
             failure = request_failure.failure
             self._prompt_failed(command, authority, queue_scope, failure,
                 failure.title, failure.feedback, published=request_failure.notification_published)
-            return None
-        except (OSError, ValueError) as error:
-            if authority.retired:
-                return None
-            detail = str(error) or 'Connection failed'
-            self._prompt_failed(command, authority, queue_scope, BackendDeliveryFailure(detail),
-                'Failed to send prompt', detail)
             return None
         if authority.retired:
             return None

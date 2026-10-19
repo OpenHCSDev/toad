@@ -29,7 +29,7 @@ from toad.forms.presentation import FormModal
 from toad.widget_view import WidgetView
 from toad.forms.kinds import Placeholder
 from toad.preferences import SETTINGS
-from toad.setting_choices import FamilyChoices
+from toad.setting_declarations import FamilyChoices
 
 
 @dataclass(frozen=True)
@@ -147,11 +147,7 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
         if form is None:
             self.notify("Ordering is not available yet", title="Sort", severity="warning")
             return
-        try:
-            write = await self.order_writer()
-        except (OSError, ValueError) as error:
-            self.app.show_error(error, "Sort")
-            return
+        write = await self.order_writer()
 
         def choose(order):
             if order is not None:
@@ -163,11 +159,8 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
         return ()
 
     async def _save_order(self, order: type[Order], write: Callable[[type[Order]], Awaitable[object]]) -> None:
-        try:
-            await write(order)
-            # Only the backend observation updates the displayed order.
-        except (OSError, ValueError) as error:
-            self.app.show_error(error, "Sort")
+        await write(order)
+        # Only the backend observation updates the displayed order.
 
     @abstractmethod
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...

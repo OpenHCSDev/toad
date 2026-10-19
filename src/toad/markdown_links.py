@@ -10,9 +10,6 @@ from threading import local
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.display_references import ReferenceContext
-from agent_comms.mro_dispatch import handles
-from toad.core.events import LinkContextChanged
-from toad.core_event_carrier import CoreEventReceiver
 from agent_comms.field_codec import FieldCodec
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore
@@ -71,30 +68,6 @@ class LinkContext:
             content = Token("text", "", 0, content=text[match.start:match.end])
             found.append((match.start, match.end, OpenReference(match.reference).inline_tokens(content)))
         return sorted(found)
-
-
-class ReferenceRendering(CoreEventReceiver):
-    """Borrow the source's observation for exactly this rendering lifetime."""
-    def _on_mount(self):
-        from toad.project_path_owner import ProjectPathOwner
-        owner = ProjectPathOwner.containing(self)
-        self.observe_core(self.app.coordination_access.events)
-        self.observe_core(owner.link_context_events)
-        self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
-
-    def _on_unmount(self):
-        # Textual dispatches each class's handler, including CoreEventReceiver's.
-        self.app.coordination_access.show_references(self, False)
-
-    @handles(LinkContextChanged)
-    def reference_context_changed(self, message):
-        from toad.project_path_owner import ProjectPathOwner
-        owner = ProjectPathOwner.containing(self)
-        self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
-        self.invalidate_lines()
-
-    @abstractmethod
-    def invalidate_lines(self, change=None): ...
 
 
 @dataclass(slots=True)

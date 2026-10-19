@@ -9,7 +9,6 @@ from agent_comms.cli_commands import ChoiceTargetField, TargetAction, TargetFiel
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.field_codec import compile_decoder
 from agent_comms.login import run_login
-from agent_comms.native_pi import NativePiUnavailable
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel
 from textual import work
@@ -94,12 +93,8 @@ class CatalogFieldSelection(ModelSelection):
     @work(exclusive=True)
     async def connect_provider(self):
         command = self.editor.query_ancestor(CommandDialog)
-        try:
-            with self.app.suspend():
-                result = await asyncio.to_thread(run_login)
-        except OSError as error:
-            self.app.show_error(error, 'Provider login')
-            return
+        with self.app.suspend():
+            result = await asyncio.to_thread(run_login)
         if result == 0 and self.is_attached:
             await command.refresh_catalogs(command.arguments())
             self.configuration_changed()
@@ -189,13 +184,8 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
         arguments = self.arguments()
         confirmed = self.query_one('#command-confirmed', Checkbox).value
         self.query_one('#command-apply', Button).disabled = True
-        try:
-            await self.app.preparation.run_thread(
-                lambda: self.definition.edited(arguments).with_confirmation(confirmed))
-        except (KeyError, ValueError, TypeError) as error:
-            self.app.show_error(error, self.definition.label)
-            self.query_one('#command-apply', Button).disabled = False
-            return
+        await self.app.preparation.run_thread(
+            lambda: self.definition.edited(arguments).with_confirmation(confirmed))
         if self.is_attached and arguments == self.arguments():
             self.dismiss(arguments)
 
@@ -204,14 +194,9 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
 
     async def refresh_catalogs(self, arguments):
         self.query_one('#command-apply', Button).disabled = True
-        try:
-            edited = self.definition.edited(arguments)
-            fields = await self.app.preparation.run_thread(
-                lambda: asyncio.run(edited.prepare_fields()))
-        except (KeyError, ValueError, TypeError, NativePiUnavailable) as error:
-            if self.is_attached and arguments == self.arguments():
-                self.app.show_error(error, 'Configuration choices')
-            return
+        edited = self.definition.edited(arguments)
+        fields = await self.app.preparation.run_thread(
+            lambda: asyncio.run(edited.prepare_fields()))
         if not self.is_attached or arguments != self.arguments():
             return
         for parameter in fields:
@@ -230,10 +215,7 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
                 for name, choices in self.choices.items():
                     if arguments[name] not in choices.choices():
                         return f'Choose {name.replace("_", " ")}', False
-                try:
-                    return self.definition.edited(arguments).confirmation, True
-                except (KeyError, ValueError, TypeError) as error:
-                    return str(error), False
+                return self.definition.edited(arguments).confirmation, True
             confirmation, valid = await self.app.preparation.run_thread(read)
             if not self.is_attached or arguments != self.arguments():
                 return

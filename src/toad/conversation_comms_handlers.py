@@ -28,10 +28,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
     def accepts(self, message: CoreEventMessage) -> bool:
         if not message.event.session_scoped:
             return True
-        agent = self.agent
-        if message.publisher is not agent:
-            return False
-        if message.event.session_id != agent.session_id:
+        if not self.agent_binding.accepts_message(message):
             return False
         return self.turns.owner.accepts_update(message.event.update)
 
@@ -77,7 +74,6 @@ class ConversationCommsHandlers(CoreEventReceiver):
             return
         self.app.events.publish(core_events.OpenTabsChanged())
         if self.turns.owner.busy:
-            self.transcript.invalidate_publications()
             return
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()

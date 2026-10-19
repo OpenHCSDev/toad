@@ -17,10 +17,11 @@ from textual.widget import Widget
 from textual.worker import Worker
 
 from toad.block_content import BlockContent
-from toad.markdown_links import LinkContext, ReferenceRendering
+from toad.markdown_links import LinkContext
 from toad.line_blocks import Body, MarkdownBody, LineBlock, LineRole, TextRole
+from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
 from toad.widgets.transcript_lines import (
-    BlockLines, JoinedLines, Lines, LinkedRows, LinePreparation, PreparedLines, TranscriptLinesRenderTask, link_place,
+    BlockLines, JoinedLines, Lines, LinePreparation, PreparedLines, TranscriptLinesRenderTask, link_place,
 )
 
 

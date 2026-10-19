@@ -241,8 +241,6 @@ class InputDeliveryDetails(ModalScreen[None]):
         self._refresh_records()
         try:
             self._historical_inputs = await operation()
-        except (OSError, ValueError, RuntimeError) as error:
-            self.error = f"Delivery history unavailable: {error}"
         finally:
             self._busy = False
             self._refresh_records()

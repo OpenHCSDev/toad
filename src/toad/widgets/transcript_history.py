@@ -3,7 +3,7 @@
 from __future__ import annotations
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 
-from toad.widgets.message_filter import OtherCategory
+from agent_comms.ui_model.message_category import OtherCategory
 
 import asyncio
 from bisect import bisect_right
@@ -40,22 +40,21 @@ from toad.transcript_preparation import (
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
-from toad.widgets.message_divider import MessageClock
+from toad.message_rows import MessageClock
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
 from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget, PageEnd, OLDER_END, NEWER_END
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
-from toad.markdown_links import ReferenceRendering
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from toad.widgets.linked_rows import HorizontalRows, OpensMessageNames, ReferenceRendering, selection_painted
 from toad.widgets.transcript_lines import (
-    HorizontalRows, Lines, BlockLines, BlockSpan, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
-    selection_painted,
+    Lines, BlockLines, BlockSpan, LinePreparation, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
-from toad.widgets.message_filter import (
+from agent_comms.ui_model.message_category import (
     all_categories, MessageCategory,
 )
 from toad.widgets.transcript_fragments import (
@@ -1128,7 +1127,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         owner = self._projection_owner()
-        if owner is not None and owner.filter.overlay is self:
+        if owner is not None and owner.filter.owns_projection(self):
             await owner._page_added(replace(page, events=tuple(
                 event for fragment in fragments for event in fragment.events
             )), fragments)

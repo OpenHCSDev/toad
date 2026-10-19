@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import partial
 from typing import TYPE_CHECKING, Awaitable, Callable
-from acp.exceptions import RequestError
 
 from agent_comms.field_codec import FieldCodec
 from agent_comms.declared_family import DeclaredFamily
@@ -677,10 +676,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
             identity.thread_name(), cursor=cursor, previous=self.manifest_sources))
-        try:
-            inspection = await inspection.acquire_core()
-        except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            inspection = replace(inspection, core=UnavailableCoreInspection(str(error)))
+        inspection = await inspection.acquire_core()
         return HoldingInspection(inspection, revision)
 
     def receive_inspection(self, acquired) -> InspectionState:

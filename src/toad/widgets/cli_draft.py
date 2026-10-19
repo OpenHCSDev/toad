@@ -1,7 +1,7 @@
 """The current external CLI item, drawn beside finished history."""
 
-from agent_comms.external_transcript import ExternalDraftRow
-from toad.markdown_links import LinkContext, ReferenceRendering
+from agent_comms.external_transcript import DraftRow
+from toad.markdown_links import LinkContext
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widget import Widget
@@ -9,7 +9,8 @@ from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.transcript_lines import BlockLines, LinkedRows, LinePreparation, TranscriptLinesRenderTask
+from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
+from toad.widgets.transcript_lines import BlockLines, LinePreparation, TranscriptLinesRenderTask
 from toad.widgets.transcript_fragments import FragmentLineConsumer
 
 
@@ -20,7 +21,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
 
     def __init__(self):
         super().__init__()
-        self.draft: ExternalDraftRow | None = None
+        self.draft: DraftRow | None = None
         self._lines: BlockLines | None = None
         self._width = 0
         self._render_worker: Worker[None] | None = None
@@ -34,7 +35,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
         self._request_render()
         self.refresh(layout=True)
 
-    def show(self, draft: ExternalDraftRow | None) -> None:
+    def show(self, draft: DraftRow | None) -> None:
         if draft == self.draft:
             return
         self.draft = draft

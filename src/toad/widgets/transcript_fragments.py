@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.mro_dispatch import handles
@@ -22,11 +22,10 @@ from toad.line_blocks import (
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import NotificationStatus, UncheckedNotifications
 from toad.menus import MenuItem
-from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
-from toad.widgets.agent_activity import AgentActivityBoundary, AgentActivityPresentation
-from toad.widgets.message_filter import MessageCategory, event_category
+from toad.widgets.agent_activity import AgentActivityPresentation
+from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
@@ -316,7 +315,7 @@ class TranscriptFragment:
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
         """The message categories of this fragment's events, derived once."""
-        return frozenset(map(event_category, self.events))
+        return frozenset(event.category for event in self.events)
 
     @property
     def timestamp(self) -> float | None:
@@ -480,19 +479,17 @@ class ContextTranscriptFragment(TranscriptFragment):
 
 
 class TranscriptFragmentConsumer(MroProjection):
-    def __init__(self, *, continuation: bool = False, split_text: bool = True):
-        self.fragments: list[TranscriptFragment] = []
-        self.tools: dict[str, int] = {}
+    def __init__(self):
+        self.fragments: list[TranscriptFragment | None] = []
+        self.tools: dict[str, tuple[int, list[ToolTranscript], bool]] = {}
         self.reported_messages: dict[int, SentTranscript] = {}
         self.budget = RenderBudget()
         self.boundary = AgentActivityBoundary()
-        self.continuation = continuation
-        self.split_text = split_text
 
     @handles(ContextTranscript)
     def context(self, event: ContextTranscript):
         # One lazy disclosure owns the full metadata source.
-        self.fragments.append(ContextTranscriptFragment((event,), continuation=self.continuation))
+        self.fragments.append(ContextTranscriptFragment((event,)))
 
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript):
@@ -501,7 +498,7 @@ class TranscriptFragmentConsumer(MroProjection):
     @handles(SentTranscript)
     def sent(self, event: SentTranscript):
         self.reported_messages[len(self.fragments)] = event
-        self.fragments.append(TranscriptFragment((event,), continuation=self.continuation))
+        self.fragments.append(TranscriptFragment((event,)))
 
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage):
@@ -511,11 +508,11 @@ class TranscriptFragmentConsumer(MroProjection):
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs):
-        starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
+        starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
-        parts = kind.text_parts(source, self.budget) if self.split_text else (source,)
+        parts = kind.text_parts(source, self.budget)
         self.fragments.extend(
-            kind.capture_part(event, part.text, continuation=self.continuation or index > 0,
+            kind.capture_part(event, part.text, continuation=index > 0,
                  part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
                  starts_agent_activity=starts_activity and index == 0, **kwargs)
             for index, part in enumerate(parts)
@@ -523,40 +520,34 @@ class TranscriptFragmentConsumer(MroProjection):
 
     @handles(ToolTranscript)
     def tool(self, event: ToolTranscript):
-        if event.tool_call_id in self.tools:
-            index = self.tools[event.tool_call_id]
-            self.fragments[index] = replace(self.fragments[index], events=(*self.fragments[index].events, event))
-        else:
-            self.tools[event.tool_call_id] = len(self.fragments)
-            self.fragments.append(TranscriptFragment(
-                (event,), continuation=self.continuation,
-                starts_agent_activity=self.boundary.observe(event_category(event)),
-            ))
+        if event.tool_call_id not in self.tools:
+            self.tools[event.tool_call_id] = (
+                len(self.fragments), [], self.boundary.observe(event.category),
+            )
+            self.fragments.append(None)  # Reserve the call's original position.
+        _, events, _ = self.tools[event.tool_call_id]
+        events.append(event)
 
 
 def transcript_fragments(
-    events: tuple[TranscriptEvent, ...], *, continuation: bool = False, split_text: bool = True,
-    resolve_sent=lambda reports: dict(zip(map(id, reports), reports)),
+    events: tuple[TranscriptEvent, ...], *,
+    resolve_sent: Callable[[list[SentTranscript]], dict[int, SentTranscript | PublishedSentMessage]],
 ) -> tuple[TranscriptFragment, ...]:
     from toad.tool_output import ToolOutput
 
-    consumer = TranscriptFragmentConsumer(continuation=continuation, split_text=split_text)
+    consumer = TranscriptFragmentConsumer()
     for event in events:
         consumer.dispatch_sync(event)
     reports = list(consumer.reported_messages.values())
-    tools = frozenset(consumer.tools.values())
-    for index in tools:
-        source = consumer.fragments[index]
-        call = ToolCallStatus.from_transcript(source.events)
-        parts = ToolOutput.capture_recorded(call, source.events)
+    tools = {}
+    for index, pending, starts_activity in consumer.tools.values():
+        tool_events = tuple(pending)
+        call = ToolCallStatus.from_transcript(tool_events)
+        parts = ToolOutput.capture_recorded(call, tool_events)
         reports.extend(message for part in parts for message in part.sent_reports)
-        consumer.fragments[index] = ToolTranscriptFragment(
-            source.events, continuation=source.continuation,
-            starts_agent_activity=source.starts_agent_activity,
-            tool_call=call, output_parts=parts,
-        )
+        tools[index] = (tool_events, starts_activity, call, parts)
     resolved = resolve_sent(reports)
-    builder = TranscriptFragmentConsumer(continuation=continuation, split_text=split_text)
+    builder = TranscriptFragmentConsumer()
     canonical = {}
     for index, report in consumer.reported_messages.items():
         start = len(builder.fragments)
@@ -567,22 +558,14 @@ def transcript_fragments(
         if index in canonical:
             fragments.extend(canonical[index])
         elif index in tools:
-            parts = source.tool_call.project_output(
-                source.output_parts, partial(ToolOutput.apply_sent, resolved=resolved),
+            tool_events, starts_activity, call, parts = tools[index]
+            parts = call.project_output(
+                parts, partial(ToolOutput.apply_sent, resolved=resolved),
             )
-            fragments.append(replace(source, output_parts=parts))
+            fragments.append(ToolTranscriptFragment(
+                tool_events, starts_agent_activity=starts_activity,
+                tool_call=call, output_parts=parts,
+            ))
         else:
             fragments.append(source)
     return tuple(fragments)
-
-
-@dataclass(frozen=True)
-class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
-    events: tuple[TranscriptEvent, ...]
-    continuation: bool = False
-
-    def result_size(self, result: tuple[TranscriptFragment, ...]) -> int:
-        return 64 + sum(fragment.retained_bytes for fragment in result)
-
-    def execute(self) -> tuple[TranscriptFragment, ...]:
-        return transcript_fragments(self.events, continuation=self.continuation)

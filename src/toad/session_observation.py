@@ -26,8 +26,12 @@ class SessionObservation(ABC):
 
     def invalidate(self):
         view = self.view
-        if view is None or not view.is_attached or view.agent is None:
+        if view is None or not view.is_attached:
             return
+        view.agent_binding.invalidate_observation(self)
+
+    def schedule(self, agent):
+        self.agent = agent
         self.revision += 1
         if not self.active:
             self.task = asyncio.create_task(self._run())
@@ -66,28 +70,27 @@ class SessionObservation(ABC):
     def receive(self, agent, result):
         """An owner fact supersedes an older in-flight read of that source."""
         view = self.view
-        if view is None or not view.is_attached or view.agent is not agent:
+        if view is None or not view.is_attached or not view.agent_binding.matches_agent(agent):
             return
         self.revision += 1
         self.publish(view, result)
 
     async def _run(self):
         while (view := self.view) is not None and view.is_attached:
-            revision, agent = self.revision, view.agent
-            if agent is None:
-                return
+            revision = self.revision
+            agent = self.agent
             try:
                 result = await self.read(agent)
             except self.errors as error:
                 if self.view is not view or not view.is_attached:
                     return
-                if revision != self.revision or agent is not view.agent:
+                if revision != self.revision or not view.agent_binding.matches_agent(agent):
                     continue
                 self.failed(view, error)
                 return
             if self.view is not view or not view.is_attached:
                 return
-            if revision != self.revision or agent is not view.agent:
+            if revision != self.revision or not view.agent_binding.matches_agent(agent):
                 continue
             self.publish(view, result)
             return
@@ -127,16 +130,12 @@ class InputDeliveryObservation(SessionObservation):
         view.input_delivery = view.input_delivery.failed(error)
 
     def require_owner(self, agent):
-        if self.view is None or not self.view.is_attached or agent is not self.view.agent:
+        if self.view is None or not self.view.is_attached or not self.view.agent_binding.matches_agent(agent):
             raise ValueError("The connected owner changed; inspect delivery again.")
 
     def current_owner(self):
-        view = self.view
-        if view is None or not view.is_attached:
-            raise ValueError("The connected owner changed; inspect delivery again.")
-        if view.agent is None:
-            raise ValueError("No connected owner.")
-        return view.agent
+        self.require_owner(self.agent)
+        return self.agent
 
     async def history(self):
         agent = self.current_owner()

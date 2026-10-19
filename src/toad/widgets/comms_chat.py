@@ -47,34 +47,6 @@ def session_thread_name(project_path) -> str:
     )
 
 
-def resolve_session_thread(
-    comms, project_path: Path, preferred: str | None = None, *, source_root: str | None = None,
-) -> str | None:
-    """Resolve an exact bound thread or an unbound project's registry identity."""
-    if source_root is not None:
-        if Path(source_root).expanduser().resolve() != comms.root.resolve():
-            raise ValueError("Comms route changed; this session retains its former wire")
-        return comms.registry.require(preferred).name
-    project = Path(project_path).expanduser().resolve()
-    threads = comms.registry.all_threads()
-    if preferred:
-        preferred = comms.registry.canonical_name(preferred)
-    if (
-        preferred in threads
-        and Path(threads[preferred].worktree).expanduser().resolve() == project
-    ):
-        return preferred
-    matches = [
-        name
-        for name, thread in threads.items()
-        if Path(thread.worktree).expanduser().resolve() == project
-        and "acp" in thread.tags
-    ]
-    if len(matches) == 1:
-        return matches[0]
-    return None
-
-
 from toad.block_navigation import ConversationBlock
 
 
@@ -123,7 +95,7 @@ class CommsChatView(Conversation):
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
-                agent=Conversation.agent,
+                agent_binding=Conversation.agent_binding,
                 status=Conversation.status,
             )
 
@@ -174,7 +146,6 @@ class CommsChatView(Conversation):
             return
         self.settle_user_message()
         if (not history.state.accepts_source_work
-                or history.undrawn
                 or not source.uses_observation(access.observation.observed())):
             return
         if self._refreshed_from != access.revision:
@@ -192,12 +163,7 @@ class CommsChatView(Conversation):
         # file revisions are identities, not an ordering: ask the service
         # itself before reading again, rather than rereading an already
         # current page until the observer's next tick.
-        try:
-            revision = await source.read_revision()
-        except (OSError, ValueError, RuntimeError):
-            # An unavailable or replaced route has no revision to read. Its
-            # observer remains responsible for the next observation.
-            return
+        revision = await source.read_revision()
         if (source is history.page_source and snapshot.current(history)
                 and source.uses_observation(access.observation.observed())
                 and history.revision.stores != revision):
@@ -227,7 +193,7 @@ class CommsChatView(Conversation):
         if self.query_ancestor(SessionView).is_current:
             prompt.focus()
 
-    def watch_agent(self, agent) -> None:
+    def watch_agent_binding(self, agent) -> None:
         """Keep the inherited agent reactive from turning this into a shell session."""
         self.agent_info = Content(self._target_label())
 
@@ -256,15 +222,6 @@ class CommsChatView(Conversation):
             history = self.message_history
             announced = self.app.coordination_access.revision
             newly_announced = announced != self._refreshed_from
-            self._refreshed_from = announced
-            snapshot = history.source_snapshot()
-            if not await history.source_is_current(snapshot):
-                return
-            source = history.page_source
-            read_only = await source.read_only()
-            if not await history.source_is_current(snapshot):
-                return
-            await self.refresh_composer(read_only)
             undrawn = history.undrawn
             if undrawn:
                 self.on_work_started()
@@ -273,15 +230,21 @@ class CommsChatView(Conversation):
             finally:
                 if undrawn:
                     self.on_work_finished()
+            # Source observation and its pending first page belong to the
+            # history, even before this tab is drawable. Composer work follows.
+            source = history.page_source
+            snapshot = history.source_snapshot()
+            if not await history.source_is_current(snapshot):
+                return
+            read_only = await source.read_only()
+            if not await history.source_is_current(snapshot):
+                return
+            await self.refresh_composer(read_only)
+            self._refreshed_from = announced
             # A sent message may now be drawn: composing resumes before mentions are read.
             self.settle_user_message()
-            if changed and undrawn and (placeholder := self.query_one_optional("#history-loading")):
-                placeholder.remove()
         except (CoordinationReadUnavailable, StaleRevision):
             raise
-        except (OSError, ValueError, RuntimeError) as error:
-            self._show_wire_error(error)
-            return
         # Composer mentions and DM status read the observer's snapshot
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
@@ -290,12 +253,6 @@ class CommsChatView(Conversation):
                         group=self.LABELS_GROUP)
 
     LABELS_GROUP = "chat-labels"
-
-    def _show_wire_error(self, error: Exception) -> None:
-        message = f"Wire error: {error}"
-        if message != self.status:
-            self.flash(message, style="error")
-        self.status = message
 
     async def _refresh_labels(self, source, changed: bool, newly_announced: bool, read_only: bool) -> None:
         """Refresh composer mentions and status for the history as it is drawn now."""
@@ -324,9 +281,6 @@ class CommsChatView(Conversation):
         except (CoordinationReadUnavailable, StaleRevision):
             # The coordination store is busy or moved on: the observer's next
             # announcement refreshes this view and reads the labels again.
-            return
-        except (OSError, ValueError, RuntimeError) as error:
-            self._show_wire_error(error)
             return
         if not await history.source_is_current(snapshot) or self.target != target:
             return

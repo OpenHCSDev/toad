@@ -8,6 +8,7 @@ from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
 import asyncio
 import signal
+import traceback
 import gc
 import sys
 import json
@@ -254,6 +255,13 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def on_notify(self, event: Notify) -> None:
         self.terminal_attention.notification(event.notification)
 
+    def _handle_exception(self, error: Exception) -> bool:
+        """The mounted application owns escaped handler and worker errors."""
+        if not self.screen_stack or not self.screen.is_mounted:
+            return super()._handle_exception(error)
+        self.show_error("".join(traceback.format_exception(error)), type(error).__name__)
+        return True
+
     def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
         """Every error Toad shows: its text verbatim, never parsed as markup."""
         text = str(error)
@@ -391,12 +399,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
     async def registry_names(self) -> list[str]:
         """Read peers through the current coordination owner, independent of panels."""
-        try:
-            registered = await self.preparation.run_thread(
-                lambda: tuple(self.coordination_access.observation.observed().service.registry.active_threads()))
-        except (OSError, ValueError, RuntimeError) as error:
-            self.show_error(error, "Peers unavailable")
-            return []
+        registered = await self.preparation.run_thread(
+            lambda: tuple(self.coordination_access.observation.observed().service.registry.active_threads()))
         local_threads = self.local_coordination_threads()
         return [name for name in registered if name not in local_threads]
 

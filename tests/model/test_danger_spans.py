@@ -13,7 +13,9 @@ SPANS = (
     ("cat < ../x", ()),
     ("rm -rf", ((0, 6, "danger"),)),
     ("ls | rm ../x", ((5, 12, "destructive"),)),
-    ('echo "unterminated', ()),
+    ('echo "unterminated', ((0, 18, "danger"),)),
+    ('echo $((', ((0, 8, "danger"),)),
+    ('echo $((1 + 2))', ((0, 15, "danger"),)),
 )
 
 

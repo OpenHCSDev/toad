@@ -20,6 +20,7 @@ from textual.actions import SkipAction
 from textual.binding import Binding
 
 from textual.content import Content, Span
+from toad.agent_binding import NoAgentBound
 from textual import getters
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
@@ -266,10 +267,6 @@ See on-screen instructions for details.
         return self.shell_mode or self.query_ancestor(Prompt).agent_ready
 
     @property
-    def queue_supported(self) -> bool:
-        return self.query_ancestor(Prompt).queue_supported
-
-    @property
     def can_enter_shell(self) -> bool:
         return self.submission_allowed and not self.text and not self.shell_mode
 
@@ -289,7 +286,9 @@ See on-screen instructions for details.
 
         from toad import danger
 
-        styles = danger.DangerStyles("", "$text-error on $error-muted 70%")
+        styles = danger.DangerStyles(
+            "$text-warning on $warning-muted 70%", "$text-error on $error-muted 70%"
+        )
         spans = tuple(
             Span(*atom.span, style)
             for atom in danger.analyze(
@@ -517,10 +516,6 @@ See on-screen instructions for details.
 
 class MessageTextArea(PromptTextArea):
     @property
-    def queue_supported(self) -> bool:
-        return False
-
-    @property
     def can_enter_shell(self) -> bool:
         return False
 
@@ -559,7 +554,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
     display_directory = var("")
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
-    agent: var[AgentBase | None] = var(None)
+    agent_binding = var(NoAgentBound)
     model_history_scope = var("")
     status: var[str | Content | RichText] = var("")
 
@@ -595,10 +590,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
         return self.shell_mode or self.operational_submissions.ready
 
     @property
-    def queue_supported(self) -> bool:
-        return self.agent is not None and self.agent.presentation.queue_supported
-
-    @property
     def text(self) -> str:
         return self.prompt_text_area.text
 
@@ -618,15 +609,15 @@ class Prompt(TonePaint, containers.VerticalGroup):
             self.prompt_text_area.get_cursor_line_end_location()
         )
 
-    def watch_agent(self) -> None:
+    def watch_agent_binding(self) -> None:
         if self.is_mounted:
             self.sync_configuration()
             self.sync_session()
 
     def sync_configuration(self) -> None:
         """Render the original operational owners; no accepted selection lives here."""
-        agent = self.agent
-        mode = agent.current_mode if agent is not None else None
+        agent = self.agent_binding
+        mode = agent.current_mode
         self.set_class(mode is not None, "-has-mode")
         info = self.query_one(ModeInfo)
         info.update(mode.name if mode is not None else "")
@@ -634,7 +625,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
             "[b]$description[/]\n\n[dim](click to open mode switcher)",
             description=mode.description or mode.name,
         ) if mode is not None else None)
-        model = agent.configuration.model.selected if agent is not None else None
+        model = agent.configuration.model.selected
         self.set_class(model is not None, "-has-model")
         self.query_one(AgentInfo).tooltip = (Content.from_markup(
             "[b]$description[/]\n\n[dim](click to search models)",
@@ -666,15 +657,15 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     @on(events.Click, "AgentInfo")
     def on_agent_info_click(self):
-        if self.agent is not None and self.agent.configuration.model.available:
+        if self.agent_binding.configuration.model.available:
             self.model_switcher.focus()
 
     def update_modes(self) -> None:
         from toad.visuals.columns import Columns
 
-        agent = self.agent
-        mode_list = sorted(agent.available_modes, key=lambda mode: mode.name.lower()) if agent is not None else []
-        current = agent.current_mode if agent is not None else None
+        agent = self.agent_binding
+        mode_list = sorted(agent.available_modes, key=lambda mode: mode.name.lower())
+        current = agent.current_mode
         columns = Columns("auto", "auto", "flex")
         for mode in mode_list:
             columns.add_row(
@@ -713,7 +704,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
         projection = submissions.queue_projection
         queued = [row.text for row in submissions.queued_inputs]
         restored = [row.text for row in projection.restored]
-        feedback = projection.feedback(self.queue_supported)
+        feedback = projection.feedback(self.agent_binding.presentation.queue_supported)
         delivering = submissions.delivering
         self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
         parts: list[str] = []

@@ -1,7 +1,7 @@
 from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.setting_widget import SettingVisibility
 
-from toad.widgets.message_filter import ThinkingCategory
+from agent_comms.ui_model.message_category import ThinkingCategory
 from typing import Iterable
 
 from toad.line_blocks import LineBlock
@@ -9,7 +9,7 @@ from toad.menus import MenuItem
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
-from toad.widgets.message_filter import MessageCategory
+from agent_comms.ui_model.message_category import MessageCategory
 
 
 class AgentThought(

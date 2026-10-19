@@ -141,13 +141,9 @@ class Transfers:
                                 group=FieldCodec.encode(type(request)), exclusive=True)
 
     async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
-        try:
-            comms = self.app.coordination_access.require(selected).service
-            result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
-        except (OSError, ValueError) as error:
-            self.app.show_error(error, request.failure_title)
-        else:
-            request.completed(self.app, result)
+        comms = self.app.coordination_access.require(selected).service
+        result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
+        request.completed(self.app, result)
 
 
 class TransferDialog(ModalScreen):

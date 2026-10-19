@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from toad.format_path import format_path
 from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
@@ -61,6 +62,10 @@ class SessionIdentity(ABC):
     def bind_history(self, histories) -> None:
         """An unbound session keeps its native input-history scope."""
 
+    def resolve_thread(self, registry, project: Path) -> str:
+        """An unbound view asks Core to discover its project's session."""
+        return registry.session_thread(project, self.thread_name()).name_or(self.thread_name())
+
     def command_target[T](self, target: Callable[[str], T]) -> T:
         """A named session addresses backend commands as its thread."""
         return target(self.thread_name())
@@ -105,6 +110,10 @@ class ThreadIdentity(NamedThreadIdentity):
     def thread_incarnation(self) -> ThreadIncarnation:
         return self.owner
 
+    def resolve_thread(self, registry, project: Path) -> str:
+        """A bound view requires its original name; it never discovers a replacement."""
+        return registry.require(self.owner.name).name
+
     def with_thread(self, thread: str):
         return ThreadIdentity(self.owner.renamed(thread), self.root)
 
@@ -128,11 +137,7 @@ class ThreadIdentity(NamedThreadIdentity):
         return self.root, self.thread_name()
 
     def display_root(self) -> str:
-        path = self.root_path()
-        try:
-            return f"~/{path.relative_to(Path.home())}"
-        except ValueError:
-            return str(path)
+        return format_path(self.root_path())
 
     def inspection_state(self):
         from toad.core.context_inspection import ReadingOwnerInspection

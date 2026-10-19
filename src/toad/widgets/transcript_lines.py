@@ -11,8 +11,8 @@ from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
-from itertools import chain, count
-from typing import TYPE_CHECKING, cast
+from itertools import chain, count, zip_longest
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
@@ -26,35 +26,21 @@ from rich.text import Text
 from rich._wrap import divide_line
 from rich.segment import Segment
 from rich.style import Style
-from textual._paint_state import PaintState
+from rich.padding import Padding
 from textual.strip import Strip
-from textual.visual import Visual
-from textual.widget import Widget
-from textual.scroll_view import ScrollView
-from textual.geometry import Size
-from textual.selection import Selection
-from toad.block_navigation import ConversationEntry
-from toad.frame_presentation import AnimationEffects
 from toad.rich_preparation import RichTextBody
-from toad.project_link import ProjectLink
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import ForegroundColour, MutedColour, ThemeColour
 from toad.line_blocks import (
-    Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenReference, OpenTarget, Span, Spans, SpanColumns,
+    Body, Divider, Gap, LineBlock, LineLink, LineRole, Span, Spans, SpanColumns,
     Summary, MutedRole, TextRole,
 )
-from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
-from toad.menus import MenuItem
-from toad.message_rows import MessageRow, WireBody
+from toad.message_rows import MessageClock, WireBody
 from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
-from agent_comms.display_references import ChannelDisplayReference, HistoricalDisplayReference, ThreadDisplayReference
-from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import NavigationTarget
 from toad.render_backend import ReusableRenderTask
-from toad.patch import Patch
-from toad.preferences import DiffSettings
+from toad.patch import DiffSettings, Patch
 from toad.rich_preparation import SyntaxPalette
 
 Row = tuple[Segment, ...]
@@ -162,168 +148,6 @@ def _each_link_apart(rows: Iterable[Row], place: Hashable) -> tuple[Row, ...]:
     return tuple(tuple(map(placed, row)) for row in rows)
 
 
-class OpensLinks(CoreEventReceiver, MroDispatch):
-    """A widget whose drawn links open what they name: one handler per kind of link."""
-
-    def action_open(self, link: LineLink) -> None:
-        """What a click on a drawn link runs (`LineLink.click`); the keyboard calls it too."""
-        self.dispatch_sync(link)
-
-    @handles(OpenTarget)
-    def open_target(self, link: OpenTarget) -> None:
-        self.publish_core(SelectTarget(NavigationTarget.named(link.target)))
-
-    @handles(OpenHistoricalTarget)
-    def open_historical_target(self, link: OpenHistoricalTarget) -> None:
-        self.publish_core(SelectHistoricalIdentity(link.target, link.source))
-
-    @handles(OpenReference)
-    def open_reference(self, link: OpenReference) -> None:
-        source = self.app.coordination_access.reference_context(link.reference.root)
-        if not link.reference.current_in(source):
-            self.notify(source.description or "This reference belongs to a replaced source.", severity="warning")
-            return
-        self.dispatch_sync(link.reference)
-
-    @handles(ThreadDisplayReference, ChannelDisplayReference)
-    def open_current_reference(self, reference) -> None:
-        self.open_target(OpenTarget(reference.name))
-
-    @handles(HistoricalDisplayReference)
-    def open_recorded_reference(self, reference) -> None:
-        self.open_historical_target(OpenHistoricalTarget(reference.name, reference.source))
-
-    @handles(ProjectLink)
-    def open_project_link(self, link: ProjectLink) -> None:
-        self.run_worker(link.preview(self), group="open-link")
-
-    def action_link(self, href: str) -> None:
-        """Decode Markdown's transport once, then use the ordinary typed actions."""
-        self.action_open(LineLink.from_href(href))
-
-
-class OpensMessageNames(OpensLinks):
-    """A block the cursor rests on while it draws a bus message: what the message's menu (`MessageRow.menu`) runs."""
-
-    # The message under the cursor.
-    message_row: MessageRow
-
-    def action_open_sender(self) -> None:
-        self.action_open(self.message_row.sender)
-
-    def action_open_destination(self) -> None:
-        self.action_open(self.message_row.destination)
-
-
-class MessageRowBlock(OpensMessageNames):
-    """A widget that is one bus message under the cursor: it offers the message's menu."""
-
-    def get_block_menu(self) -> tuple[MenuItem, ...]:
-        return self.message_row.menu
-
-
-def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
-    """The canonical paint-time selection projection for drawn rows.
-
-    The live selection is read last, never cached: a selected row takes the
-    screen's selection component over its span, and an unselected row is
-    returned unchanged.
-    """
-    selection = widget.text_selection
-    if selection is None:
-        return strip
-    span = selection.get_span(row)
-    if span is None:
-        return strip
-    start, end = span
-    if end == -1:
-        end = strip.cell_length
-    start, end = max(0, start), min(end, strip.cell_length)
-    # The fork's divide yields only the pieces before each cut, so the strip's
-    # own end is the final cut that keeps the tail.
-    cuts = sorted({cut for cut in (start, end, strip.cell_length) if 0 < cut <= strip.cell_length})
-    pieces = strip.divide(cuts) if cuts else [strip]
-    head, body, tail = [], [], []
-    position = 0
-    for piece in pieces:
-        following = position + piece.cell_length
-        if following <= start:
-            head.append(piece)
-        elif position >= end:
-            tail.append(piece)
-        else:
-            body.append(piece)
-        position = following
-    if not body:
-        return strip
-    selection_style = Visual.selection_style(widget).rich_style
-    if selection_style is None:
-        return strip
-    painted = Strip(
-        list(Segment.apply_style(Strip.join(body), None, selection_style)),
-        sum(piece.cell_length for piece in body),
-    )
-    return Strip.join((*head, painted, *tail))
-
-
-class LinkedRows(OpensLinks):
-    """A widget that draws rendered rows: on its own background, opening the links clicked in them.
-
-    The conversation entry the rows are mounted in owns their arrival fade; rows outside any
-    entry hold an owner with no fades.
-    """
-
-    arrival: AnimationEffects = AnimationEffects()
-
-    def on_mount(self) -> None:
-        self.arrival = next((entry for entry in cast(Widget, self).ancestors_with_self
-                             if isinstance(entry, ConversationEntry)), LinkedRows.arrival)
-
-    @property
-    def line_sets(self) -> tuple[Lines, ...]:
-        raise NotImplementedError
-
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        rows = "\n".join("".join(segment.text for segment in row).rstrip()
-                         for lines in self.line_sets for row in lines)
-        return selection.extract(rows), "\n"
-
-    def on_background(self, strip: Strip, paint: PaintState, y: int, x: int = 0) -> Strip:
-        """A row as this widget draws it.
-
-        Rendered rows carry text colours only. Textual fills a widget's
-        background around its content, not under the rows it draws itself, so
-        each row takes the widget's style here. A strip remembers the styles
-        applied to it, so a repaint reuses the same drawn row. The entry the
-        row was mounted in paints its arrival fade over it.
-        """
-        strip = self.arrival.paint_effects(strip)
-        return strip.apply_style(paint.rich_style).apply_offsets(x, y)
-
-    def blank_row(self, width: int, paint: PaintState) -> Strip:
-        return Strip.blank(width, paint.rich_style)
-
-
-class HorizontalRows(LinkedRows, ScrollView):
-    """Prepared rows use Textual's horizontal viewport when code is unwrapped."""
-
-    def get_content_width(self, container, viewport) -> int:
-        return max((lines.content_width for lines in self.line_sets), default=0)
-
-    def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
-        lines = self.line_sets
-        self.set_reactive(Widget.virtual_size, Size(
-            max((item.content_width for item in lines), default=0),
-            sum(item.height for item in lines),
-        ))
-        return super()._size_updated(size, virtual_size, container_size, layout)
-
-    def on_background(self, strip: Strip, paint: PaintState, y: int, x: int = 0) -> Strip:
-        start = self.scroll_offset.x
-        x += len(strip.crop(0, start).text) if start else 0
-        return super().on_background(strip.crop(start, start + self.scrollable_content_region.width), paint, y, x)
-
-
 def _plain_lines(text: str) -> list[str]:
     """A body's text as plain mode draws it: one string per source line, tabs expanded."""
     return [line.expandtabs(4) for line in text.splitlines() or [""]]
@@ -377,12 +201,18 @@ class Lines(ABC):
         return strips
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PreparedLines(Lines, LineBlock):
     """Immutable rows can also supply an already laid-out part of a fragment."""
 
     width: int
     rows: tuple[Row, ...]
+    retained_bytes: int = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "retained_bytes",
+            64 + sum(64 + 64 * len(row) + 4 * sum(len(segment.text) for segment in row)
+                     for row in self.rows))
 
     def __iter__(self) -> Iterator[Row]:
         return iter(self.rows)
@@ -390,11 +220,6 @@ class PreparedLines(Lines, LineBlock):
     @property
     def height(self) -> int:
         return len(self.rows)
-
-    @property
-    def retained_bytes(self) -> int:
-        return 64 + sum(64 + sum(64 + 4 * len(segment.text) for segment in row)
-                        for row in self.rows)
 
     def prepared_rows(self, width, draw) -> PreparedLines:
         if width != self.width:
@@ -466,8 +291,6 @@ class SpanColumnLayout(Columns, PreparedBlock):
         super().__init__(cells, padding=(0, 2))
 
     def rows(self, console: Console) -> tuple[Row, ...]:
-        from rich.padding import Padding
-
         layout = Padding(self, (0, 0, 0, min(self.indent, max(0, console.width - 1))))
         return tuple(tuple(row) for row in console.render_lines(layout, console.options, pad=False))
 
@@ -553,7 +376,6 @@ class RichLineRenderer(MroDispatch):
                 self.output.append((Segment("…", self.theme.style(MutedRole)),))
             for old, new in group:
                 if split:
-                    from itertools import zip_longest
                     left, right = paint(old, before, "", ""), paint(new, after, "", "")
                     blank = Text(" " * pane_width)
                     for a, b in zip_longest(left, right, fillvalue=blank):
@@ -574,8 +396,6 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Divider)
     def divider(self, block: Divider) -> None:
-        from toad.widgets.message_divider import MessageClock
-
         spans = block.spans
         if block.timestamp is not None:
             spans = (*spans, Span(f" · {MessageClock.recorded(block.timestamp).display()[0]}"))
@@ -661,10 +481,11 @@ class LinePreparation:
 
     blocks: tuple[LineBlock, ...]
     theme: LineTheme
+    retained_bytes: int = field(init=False)
 
-    @property
-    def retained_bytes(self) -> int:
-        return 256 + sum(block.retained_bytes for block in self.blocks)
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "retained_bytes",
+            256 + sum(block.retained_bytes for block in self.blocks))
 
     def wrap(self, width: int, renderer: RichLineRenderer) -> BlockLines:
         return BlockLines(width, self, renderer)

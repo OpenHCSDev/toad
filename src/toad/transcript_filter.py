@@ -8,7 +8,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from toad.widgets.message_filter import all_categories
+from agent_comms.ui_model.message_category import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.widgets.presentation_window import OLDER_END, PageRequest
 from toad.transcript_preparation import NoProjection
@@ -127,10 +127,13 @@ class FilterState(DeclaredFamily, affix="Filter"):
         self.worker = self.owner.run_worker(self.scan_older, group="filtered-history")
         return self.worker
 
+    def owns_projection(self, projection) -> bool:
+        """Only this history's current filter may publish its projection."""
+        return self.owner.filter is self and self.overlay is projection
+
     def require_projection(self, snapshot, projection) -> None:
         from toad.widgets.transcript_history import _DrawingStopped
-        if (not snapshot.current(self.owner) or self.owner.filter is not self
-                or self.overlay is not projection):
+        if not snapshot.current(self.owner) or not self.owns_projection(projection):
             raise _DrawingStopped
 
     def transfer_scan(self, successor: FilterState) -> None:
@@ -148,9 +151,6 @@ class FilterState(DeclaredFamily, affix="Filter"):
         try:
             if snapshot.current(owner):
                 drew = await self.advance(snapshot)
-        except (OSError, ValueError) as error:
-            if snapshot.current(owner):
-                owner.app.show_error(error, "Filtered history")
         finally:
             if snapshot.current(owner):
                 # advance may have promoted SeekingFilter to Filtered.

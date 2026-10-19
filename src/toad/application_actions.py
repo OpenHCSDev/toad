@@ -34,18 +34,15 @@ class NewThreadAction(ApplicationAction, MenuAction):
         app.run_worker(partial(self.collect, app, mode, project), group="new-session", exclusive=True)
 
     async def collect(self, app, mode, project):
-        try:
-            def prepare():
-                ctx = TargetContext(app, app.coordination_access.observation.observed().service,
-                                    ProjectTarget(str(project)), '', project, mode)
-                definition = next(action for action in ctx.available_actions()
-                                  if action.declaration is NewThreadCliCommand)
-                return partial(ThreadAction.collect, ctx, definition)
-            open_form = await app.preparation.run_thread(prepare)
-            if app.selected_mode == mode:
-                open_form()
-        except (OSError, ValueError, RuntimeError) as error:
-            app.show_error(error, "New session")
+        def prepare():
+            ctx = TargetContext(app, app.coordination_access.observation.observed().service,
+                                ProjectTarget(str(project)), '', project, mode)
+            definition = next(action for action in ctx.available_actions()
+                              if action.declaration is NewThreadCliCommand)
+            return partial(ThreadAction.collect, ctx, definition)
+        open_form = await app.preparation.run_thread(prepare)
+        if app.selected_mode == mode:
+            open_form()
 
 
 class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction, MenuAction):

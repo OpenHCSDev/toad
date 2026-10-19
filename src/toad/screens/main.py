@@ -5,6 +5,7 @@ from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 import asyncio
 from abc import abstractmethod
+from acp.exceptions import RequestError
 from functools import partial
 from pathlib import Path
 from typing import cast
@@ -61,10 +62,8 @@ class ModeProvider(Provider):
         screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
 
-        agent = screen.conversation.agent
-        for mode in sorted(
-            agent.available_modes if agent is not None else (), key=lambda mode: mode.name
-        ):
+        agent = screen.conversation.agent_binding
+        for mode in sorted(agent.available_modes, key=lambda mode: mode.name):
             command = mode.name
             score = matcher.match(command)
             if score > 0:
@@ -79,10 +78,8 @@ class ModeProvider(Provider):
         screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
 
-        agent = screen.conversation.agent
-        for mode in sorted(
-            agent.available_modes if agent is not None else (), key=lambda mode: mode.name
-        ):
+        agent = screen.conversation.agent_binding
+        for mode in sorted(agent.available_modes, key=lambda mode: mode.name):
             yield DiscoveryHit(
                 mode.name,
                 partial(screen.conversation.set_mode, mode.id),
@@ -196,8 +193,8 @@ class FailedContent(ScreenContent):
         raise self.error
 
     async def prepare(self, screen: "MainScreen") -> None:
-        agent = screen.presentation.operational_agent
-        if agent is not None and agent.ready:
+        agent = screen.presentation.operational_binding
+        if agent.ready:
             await self.attached(screen)
         else:
             self.render(screen)
@@ -244,7 +241,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     @property
     def side_bar(self):
         return self.screen.query_one(ChannelsSidebar)
-    project_directory_tree = getters.query_one("#project_directory_tree")
 
     project_path: var[Path] = var(Path("./").expanduser().absolute())
 
@@ -280,20 +276,18 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
             return NothingToRead()
         app = self.app
         access = app.coordination_access
-        name = self.thread_identity.thread_name()
+        identity = self.thread_identity
         project = self.project_path
-        source_root = self.coordination_root
+        source_root = identity.wire_root()
         worktree = str(app.project_dir)
 
         def acknowledge(cursor) -> None:
-            from toad.widgets.comms_chat import resolve_session_thread
-
             selected = RouteSelection.capture(source_root)
             comms = access.require(selected).service
 
             def mark() -> None:
-                resolved = resolve_session_thread(comms, project, name, source_root=source_root)
-                comms.views.mark_thread_view_read(resolved or name, worktree=worktree, through=cursor)
+                resolved = identity.resolve_thread(comms.registry, project)
+                comms.views.mark_thread_view_read(resolved, worktree=worktree, through=cursor)
 
             access.write(selected, mark)
 
@@ -341,7 +335,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         except asyncio.CancelledError as error:
             self.opening_failed(error)
             raise
-        except Exception as error:
+        except RequestError as error:
             self.opening_failed(error)
         else:
             self.content.finish(self, ReadyContent())
@@ -365,7 +359,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
 
     @property
     def session_disposition(self) -> SessionDisposition:
-        return SessionDisposition.of(self.presentation.operational_agent)
+        return self.presentation.operational_binding.session_disposition
 
     @property
     def agent_session_id(self) -> str | None:
@@ -560,10 +554,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.observe_core(self.app.coordination_access.events)
         # Keep the screen-wide navigation row independent of sidebar geometry,
         # including when restoring a previously mounted owner tab.
-        for tree in self.query("#project_directory_tree").results(DirectoryTree):
-            tree.data_bind(path=MainScreen.project_path)
-        for tree in self.query(DirectoryTree):
-            tree.guide_depth = 3
         self.update_title()
 
     @on(OptionList.OptionHighlighted)

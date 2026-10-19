@@ -3,6 +3,7 @@
 
 import asyncio
 from dataclasses import dataclass
+from agent_comms.errors import HumanInitialUnknownError, HumanClaimBlockedError
 
 
 class SendState:
@@ -95,12 +96,8 @@ class DeliveryFailureView:
         """CLI transcripts and wire pages use the same Core-send checks."""
         if not body.strip():
             return
-        try:
-            async with self.app.coordination_access.transcripts.bind(root) as comms:
-                read_only = await self.app.preparation.run_thread(kind.read_only, comms, target)
-        except (OSError, ValueError, RuntimeError) as error:
-            self.delivery_refused(str(error), body)
-            return
+        async with self.app.coordination_access.transcripts.bind(root) as comms:
+            read_only = await self.app.preparation.run_thread(kind.read_only, comms, target)
         await self.refresh_composer(read_only)
         if read_only:
             self.prompt.text = body
@@ -129,7 +126,7 @@ class DeliveryFailureView:
         except asyncio.CancelledError:
             self.delivery_refused("Cancelled before sending", body)
             raise
-        except Exception as error:
+        except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
             delivery_failure(error).present(self, body)
             return
         sent = await self.commit_user_message(comms, target, body)
@@ -150,7 +147,7 @@ class DeliveryFailureView:
             self.delivery_blocked("Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry", body)
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             return None
-        except Exception as error:
+        except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
             delivery_failure(error).present(self, body)
             return None
         self._enter_send_state(SentUndrawn(comms.root, sent), body)

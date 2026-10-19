@@ -34,11 +34,6 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     # shared process has to ask it to close the session.
     held_by_agent = True
 
-    @staticmethod
-    def of(agent) -> "SessionDisposition":
-        """A view that has not started an agent holds no session."""
-        return UnopenedSessionDisposition() if agent is None else agent.session.disposition
-
     def close(self, agent):
         return self
 
@@ -366,7 +361,7 @@ class AgentSession:
                     f"Reconnect timed out after {self.reconnect_timeout_seconds} seconds "
                     "waiting for the session handshake to settle."
                 )
-        except (OSError, RequestError) as error:
+        except RequestError as error:
             self.startup_failed(f"Reconnect failed: {type(error).__name__}: {error}")
         finally:
             self.reconnecting = False
