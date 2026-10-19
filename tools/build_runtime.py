@@ -465,16 +465,19 @@ print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backe
                        and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
         environment.update(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
                            XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
-                           AGENT_COMMS_ROOT=str(output / 'wire'))
+                           AGENT_COMMS_ROOT=str(output / 'wire'),
+                           AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'))
         launch = subprocess.check_output([str(python), '-I', '-B', '-c', '''
 import sys,json
 from pathlib import Path
 from agent_comms.comms import wire
+from agent_comms.active_route import ActiveRoute,publish_active_route
 from agent_comms.coordinator import Coordination
 from agent_comms.agent_backend import AgentBackend
 from agent_comms.field_codec import FieldCodec
 from agent_comms.launch_runtime import RestartEnvironment
-c=wire();c.messaging.initialize_private_initial_protocol()
+c=wire();root_id=c.messaging.initialize_private_initial_protocol()
+publish_active_route(ActiveRoute(c.root,root_id))
 c.registry.declare(c.registry.new_thread('startup-saved',frozenset(),sys.argv[1],session_file=sys.argv[2],
     backend=FieldCodec.decode(type[AgentBackend],sys.argv[3]),model=json.loads(sys.argv[5])))
 with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_private_runtime()
@@ -492,7 +495,7 @@ print(json.dumps(RestartEnvironment(root=str(c.root),
             with TerminalApp(command, display, output / 'plain', environment, home) as app:
                 app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
                 app.screenshot('store')
-            command += ['acp', f'{python} -I -B -m agent_comms.acp', str(home)]
+            command = ['/home/ts/bin/toad-comms', 'startup-saved']
             with TerminalApp(command, display, output / 'welcome', environment, home) as app:
                 app.wait('welcome', lambda text: 'startup-saved' in text)
                 app.screenshot('welcome')
@@ -505,7 +508,7 @@ print(json.dumps(RestartEnvironment(root=str(c.root),
                 app.wait('plain-page-up-moved', lambda text: bool(app.message_rows(text))
                          and app.message_rows(text) != initial)
                 plain_before = app.reader_place('plain-before')
-                app.keys('C-g')
+                app.click('#any')
                 app.wait('any', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
                 app.screenshot('any')
                 app.keys('Escape')
@@ -529,12 +532,12 @@ def check_filtered_return(app: TerminalApp) -> None:
              and app.message_rows(text) != initial)
     expected = app.reader_place('filtered-before')
     app.screenshot('filtered-before')
-    app.keys('C-g')
+    app.click('#any')
     app.wait('filtered-away', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
     app.keys('Escape')
     app.wait('filtered-return', lambda text: app.message_rows(text) == expected)
     app.screenshot('filtered-return')
-    app.keys('C-g')
+    app.click('#any')
     app.wait('filtered-click-away', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
     app.click('startup-saved')
     app.wait('filtered-click-return', lambda text: app.message_rows(text) == expected)
@@ -625,15 +628,15 @@ finally:
             readable, _, _ = select.select([worker.stdout], [], [], 60)
             if not readable or worker.stdout.readline().strip() != 'READY':
                 raise RuntimeError(f'Private agent did not start; see {output / "wake.log"}')
-            environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'))
+            environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'),
+                               AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'))
             saved = json.loads((startup / 'saved-source.json').read_text())
             environment['AGENT_COMMS_NATIVE_CONFIG_DIR'] = saved['config']
             environment['PI_CODING_AGENT_DIR'] = saved['agent_directory']
             for kind in ('CONFIG', 'DATA', 'STATE', 'CACHE'):
                 environment['XDG_' + kind + '_HOME'] = str(output / kind.lower())
             with BuildDisplay(output) as display:
-                command = [runtime / 'bin/toad', 'acp',
-                           f'{runtime / "bin/python"} -I -B -m agent_comms.acp', str(output)]
+                command = ['/home/ts/bin/toad-comms', 'build-wake']
                 with TerminalApp(command, display, output / 'reply', environment, output) as app:
                     app.wait('welcome', lambda text: 'build-wake' in text)
                     app.click('build-wake')
@@ -648,7 +651,7 @@ finally:
                         return (output / 'result.json').exists() and token in text
                     app.wait('reply', replied, seconds=None)
                     app.screenshot('reply')
-                    app.keys('C-g')
+                    app.click('#any')
                     app.wait('reply-channel', lambda text: '#any · all comms' in text
                              and 'IRC / Markdown' in text and token in text)
                     app.click('build-wake')
