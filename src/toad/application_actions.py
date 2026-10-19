@@ -45,7 +45,7 @@ class NewThreadAction(ApplicationAction, MenuAction):
             if app.selected_mode == mode:
                 open_form()
         except (OSError, ValueError, RuntimeError) as error:
-            app.notify(str(error), title="New session", severity="error")
+            app.show_error(error, "New session")
 
 
 class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction, MenuAction):

@@ -166,12 +166,7 @@ class PromptLabel(WidgetView, Label):
         return Spacing(0, 1, 0, 0 if self.app.settings.ui.compact_input else 1)
 
     def render(self):
-        prompt = self.query_ancestor(Prompt)
-        if prompt.simple_input:
-            return self.AI
-        if prompt.shell_mode:
-            return self.SHELL
-        return self.MULTILINE if "\n" in prompt.text or "```" in prompt.text else self.AI
+        return self.query_ancestor(Prompt).label_glyph()
 
 
 class PromptContainer(FocusWithinView, containers.HorizontalGroup):
@@ -256,10 +251,9 @@ See on-screen instructions for details.
 
     slash_commands: var[list[SlashCommand]] = var([])
 
-    def __init__(self, *, simple_input: bool = False, turns: ConversationTurn | None = None) -> None:
+    def __init__(self, *, turns: ConversationTurn | None = None) -> None:
         self.input_cursor = PromptCursor(self)
         super().__init__()
-        self.simple_input = simple_input
         self.turns = turns
         self._submit_pending = False
         self._submit_immediate = False
@@ -270,11 +264,11 @@ See on-screen instructions for details.
 
     @property
     def agent_ready(self) -> bool:
-        return self.simple_input or self.shell_mode or self.query_ancestor(Prompt).agent_ready
+        return self.shell_mode or self.query_ancestor(Prompt).agent_ready
 
     @property
     def can_enter_shell(self) -> bool:
-        return self.submission_allowed and not self.text and not self.simple_input and not self.shell_mode
+        return self.submission_allowed and not self.text and not self.shell_mode
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
         self.notify_style_update()
@@ -381,7 +375,7 @@ See on-screen instructions for details.
             else:
                 self.notify("No text or supported image in the clipboard", title="Paste")
         except (OSError, ValueError, TimeoutError) as error:
-            self.notify(str(error), title="Paste failed", severity="error")
+            self.app.show_error(error, "Paste failed")
 
 
     def _submit(self) -> None:
@@ -518,6 +512,12 @@ See on-screen instructions for details.
             self.input_cursor.changed(previous_selection, selection)
 
 
+class MessageTextArea(PromptTextArea):
+    @property
+    def can_enter_shell(self) -> bool:
+        return False
+
+
 class Prompt(TonePaint, containers.VerticalGroup):
     tone = PromptToneColour
 
@@ -565,15 +565,11 @@ class Prompt(TonePaint, containers.VerticalGroup):
         id: str | None = None,
         classes: str | None = None,
         disabled: bool = False,
-        simple_input: bool = False,
-        placeholder: str | None = None,
         turns: ConversationTurn | None = None,
         submissions=None,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.ask_queue: list[Ask] = []
-        self.simple_input = simple_input
-        self.simple_placeholder = placeholder
         self.turns = turns
         self.submissions = submissions
 
@@ -589,7 +585,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     @property
     def agent_ready(self) -> bool:
-        return self.simple_input or self.shell_mode or self.operational_submissions.ready
+        return self.shell_mode or self.operational_submissions.ready
 
     @property
     def text(self) -> str:
@@ -598,7 +594,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
     @property
     def supports_completion(self) -> bool:
         """This composer owns whether its current input mode admits completion."""
-        return not self.simple_input and not self.shell_mode and self.prompt_text_area.editing_mode.accepts_text
+        return not self.shell_mode and self.prompt_text_area.editing_mode.accepts_text
 
     @property
     def active_popup(self) -> PromptPopup | None:
@@ -618,8 +614,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     def sync_configuration(self) -> None:
         """Render the original operational owners; no accepted selection lives here."""
-        if self.simple_input:
-            return
         agent = self.agent_binding
         mode = agent.current_mode
         self.set_class(mode is not None, "-has-mode")
@@ -704,8 +698,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
         self.call_after_refresh(self.sync_queue)
 
     def _update_queue_summary(self) -> None:
-        if self.simple_input:
-            return
         submissions = self.operational_submissions
         projection = submissions.queue_projection
         queued = [row.text for row in submissions.queued_inputs]
@@ -741,7 +733,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
         self.sync_turn()
 
     def watch_agent_info(self, agent_info: Content) -> None:
-        if self.simple_input or not self.is_mounted:
+        if not self.is_mounted:
             return
         if self.agent_ready:
             self.query_one(AgentInfo).update(agent_info)
@@ -789,8 +781,8 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     def update_prompt(self):
         editor = self.prompt_text_area
-        shell = self.shell_mode and not self.simple_input
-        editor.placeholder = (self.simple_placeholder or "Message thread") if self.simple_input else (
+        shell = self.shell_mode
+        editor.placeholder = (
             Content.from_markup("Enter shell command\t[r]▌esc▐[/r] prompt mode").expand_tabs(8) if shell else "")
         editor.highlight_language = "shell" if shell else "markdown"
         self.prompt_label.refresh()
@@ -810,15 +802,11 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
 
     def project_directory_updated(self) -> None:
-        """Called when there is may be new files"""
-        if not self.simple_input:
-            self.path_search.invalidate_paths()
+        """Called when there may be new files."""
+        self.path_search.invalidate_paths()
 
     @on(TextArea.Changed)
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
-        if self.simple_input:
-            self.shell_mode = False
-
         self.update_prompt()
 
     @on(Question.Answer)
@@ -836,37 +824,53 @@ class Prompt(TonePaint, containers.VerticalGroup):
         if suggestion.startswith(self.text) and self.text != suggestion:
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
-    def compose(self) -> ComposeResult:
+    def label_glyph(self) -> Content:
+        if self.shell_mode:
+            return PromptLabel.SHELL
+        return PromptLabel.MULTILINE if "\n" in self.text or "```" in self.text else PromptLabel.AI
+
+    def compose_completions(self) -> ComposeResult:
         for kind in CompletionPopup.members_with(CompletionPopup):
             if (popup := kind.for_prompt(self)) is not None:
                 yield popup
-        if not self.simple_input:
-            yield QueueSummary("", classes="queue-summary", markup=False)
-            with containers.HorizontalGroup(classes="delivery-controls"):
-                yield Label("Enter queues · ")
-                yield SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
+
+    def compose_delivery_controls(self) -> ComposeResult:
+        yield QueueSummary("", classes="queue-summary", markup=False)
+        with containers.HorizontalGroup(classes="delivery-controls"):
+            yield Label("Enter queues · ")
+            yield SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
+
+    def compose_info_popups(self) -> ComposeResult:
+        for kind in InfoPopup.members_with(InfoPopup):
+            if (popup := kind.for_prompt(self)) is not None:
+                yield popup
+
+    def compose_agent_info(self) -> ComposeResult:
+        yield AgentInfo()
+        yield CondensedPath().data_bind(path=Prompt.display_directory)
+
+    def compose_mode_controls(self) -> ComposeResult:
+        yield ModeSwitcher()
+        yield ModeInfo("mode")
+
+    def compose(self) -> ComposeResult:
+        yield from self.compose_completions()
+        yield from self.compose_delivery_controls()
         with PromptContainer(id="prompt-container"):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
                 yield PromptLabel(id="prompt", markup=False)
-                yield self.TEXT_AREA_CLASS(simple_input=self.simple_input, turns=self.turns).data_bind(
+                yield self.TEXT_AREA_CLASS(turns=self.turns).data_bind(
                     shell_mode=Prompt.shell_mode,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,
                     slash_commands=Prompt.slash_commands,
                 )
-        if not self.simple_input:
-            for kind in InfoPopup.members_with(InfoPopup):
-                if (popup := kind.for_prompt(self)) is not None:
-                    yield popup
+        yield from self.compose_info_popups()
         with InfoBar(id="info-container"):
-            if not self.simple_input:
-                yield AgentInfo()
-                yield CondensedPath().data_bind(path=Prompt.display_directory)
+            yield from self.compose_agent_info()
             yield StatusLine(markup=False).data_bind(status=Prompt.status)
-            if not self.simple_input:
-                yield ModeSwitcher()
-                yield ModeInfo("mode")
+            yield from self.compose_mode_controls()
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         return True
@@ -883,3 +887,55 @@ class Prompt(TonePaint, containers.VerticalGroup):
                 popup.action_dismiss()
                 return
         raise SkipAction()
+
+
+class MessagePrompt(Prompt):
+    TEXT_AREA_CLASS = MessageTextArea
+
+    def __init__(self, *, placeholder: str | None = None, **kwargs):
+        self.simple_placeholder = placeholder
+        super().__init__(**kwargs)
+
+    @property
+    def agent_ready(self) -> bool:
+        return True
+
+    @property
+    def supports_completion(self) -> bool:
+        return False
+
+    def sync_configuration(self) -> None:
+        pass
+
+    def _update_queue_summary(self) -> None:
+        pass
+
+    def watch_agent_info(self, agent_info: Content) -> None:
+        pass
+
+    def project_directory_updated(self) -> None:
+        pass
+
+    def update_prompt(self) -> None:
+        self.prompt_text_area.placeholder = self.simple_placeholder or "Message thread"
+        self.prompt_text_area.highlight_language = "markdown"
+        self.prompt_label.refresh()
+
+    def label_glyph(self) -> Content:
+        return PromptLabel.AI
+
+    def compose_delivery_controls(self) -> ComposeResult:
+        return ()
+
+    def compose_info_popups(self) -> ComposeResult:
+        return ()
+
+    def compose_agent_info(self) -> ComposeResult:
+        return ()
+
+    def compose_mode_controls(self) -> ComposeResult:
+        return ()
+
+    def compose_completions(self) -> ComposeResult:
+        if (popup := SlashComplete.for_prompt(self)) is not None:
+            yield popup

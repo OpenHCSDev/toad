@@ -1,4 +1,4 @@
-from textual import on, work
+from textual import on
 from textual.app import ComposeResult
 from toad.screens.modal import ModalScreen
 from textual import widgets
@@ -61,15 +61,3 @@ class CommandEditModal(ModalScreen[str | None]):
     def action_copy(self) -> None:
         self.app.copy_to_clipboard(self.text_area.text)
         self.notify("Command copied to clipboard", title="Copy")
-
-
-if __name__ == "__main__":
-    from textual.app import App
-
-    class ModalApp(App):
-        @work
-        async def on_mount(self) -> None:
-            result = await self.push_screen_wait(CommandEditModal("ls -al"))
-            self.notify(str(result))
-
-    ModalApp().run()

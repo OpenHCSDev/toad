@@ -6,7 +6,7 @@ from dataclasses import replace
 from agent_comms.field_codec import FieldCodec
 from agent_comms.pi_payloads import AssistantMessage, TextContent, ToolCallContent
 from agent_comms.session_revision import SessionRevision
-from agent_comms.threads import Thread
+from agent_comms.registration import Registration
 from toad.core.context_inspection import ContextInspection, HoldingInspection, NativeMessageNode
 
 
@@ -17,8 +17,8 @@ def inspect(thread):
 def test_held_native_context_is_read_again_only_when_its_launch_or_session_changes(tmp_path):
     session = tmp_path / "session.jsonl"
     session.write_text("{}\n")
-    thread = Thread("owner", frozenset(), str(tmp_path), session_file=str(session),
-                    model="model-a", created_at=1.0)
+    thread = Registration(tmp_path / "registry.json").new_thread(
+        "owner", frozenset(), str(tmp_path), session_file=str(session), model="model-a", created_at=1.0)
     held = HoldingInspection(inspect(thread), revision=1)
 
     assert not held.needs_native(inspect(replace(thread, title="A new title")), False)

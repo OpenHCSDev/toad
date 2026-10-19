@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
+from abc import ABC, abstractmethod
+from collections.abc import Awaitable
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from textual.app import ComposeResult
@@ -14,9 +16,8 @@ from agent_comms.ui_model.observation import ReadNotifications
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
-from toad.widgets.tool_content import ToolContent
-
 if TYPE_CHECKING:
+    from toad.widgets.tool_content import ToolContent
     from toad.widgets.transcript_fragments import TranscriptFragment
 
 
@@ -46,6 +47,8 @@ class MessageNotifications(Collapsible):
     def details(self) -> ToolContent:
         """The details body, created only when it is first shown."""
         if self._details is None:
+            from toad.widgets.tool_content import ToolContent
+
             self._details = ToolContent()
             if self.is_mounted:
                 self.mount(self.Contents(self._details))
@@ -69,6 +72,27 @@ class MessageNotifications(Collapsible):
         self.set_class(status.unavailable, "-unavailable")
 
 
+class PaintedRead(ABC):
+    """What a view can start after its current rows have been painted."""
+
+    @abstractmethod
+    def start(self, marker: VisibleReadMarking) -> None:
+        pass
+
+
+class NothingToRead(PaintedRead):
+    def start(self, marker: VisibleReadMarking) -> None:
+        pass
+
+
+@dataclass(frozen=True)
+class ReadWork(PaintedRead):
+    work: Awaitable[None]
+
+    def start(self, marker: VisibleReadMarking) -> None:
+        marker._read_worker = marker.run_worker(self.work, group="painted-read")
+
+
 class VisibleReadMarking:
     """One painted-read operation at a time, for pagers and native/CLI sessions."""
 
@@ -79,16 +103,7 @@ class VisibleReadMarking:
     def mark_visible(self) -> None:
         if self._read_worker is not None and not self._read_worker.is_finished:
             return
-        if (work := self.read_visible()) is not None:
-            self._read_worker = self.run_worker(work, group="painted-read")
-
-    def prepare_viewport(self) -> None:
-        super().prepare_viewport()
-        if self.can_draw_on_screen:
-            self.mark_visible()
-
-    def source_resumed(self) -> None:
-        self.mark_visible()
+        self.read_visible().start(self)
 
 
 class HistoryNotifications:
@@ -154,6 +169,10 @@ class HistoryNotifications:
 
 class SourceNotifications:
     notification_view: HistoryNotifications
+
+    def rows_published(self) -> None:
+        self._source_state.rows_published(self)
+        self.notification_view.call_after_refresh(self.notification_view.check_notifications)
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()

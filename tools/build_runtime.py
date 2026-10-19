@@ -14,9 +14,11 @@ from datetime import datetime, timezone
 from email import message_from_bytes
 import hashlib
 import importlib.metadata
+import importlib.util
 import json
 import os
 import select
+import signal
 from pathlib import Path
 import shutil
 import shlex
@@ -87,7 +89,7 @@ def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
 
 
 def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[Path] | None = None) -> dict:
-    """Keep the two published versions and every prefix still used by a process."""
+    """Records and build dates admit removal; process references can only veto it."""
     selected = current.resolve(strict=True)
     previous = previous.resolve(strict=True)
     directory = selected.parent
@@ -100,26 +102,33 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[
         if any(path not in runtimes for path in remove):
             raise ValueError('Removal must name installed sibling runtimes')
         runtimes = remove
+    baseline = RuntimeBuild.recorded_baseline(selected)
+    installed = {selected, previous, baseline}
+    built_at = RuntimeBuild.built_at(selected)
     references = runtime_references(runtimes)
+    proposed = [path for path in runtimes
+                if path not in installed and not references[str(path)]
+                and RuntimeBuild.qualified_before(path, built_at)]
     result = {'before': len(runtimes), 'current': str(selected), 'previous': str(previous),
+              'baseline': str(baseline),
+              'kept': [str(path) for path in runtimes if path not in proposed],
               'kept_by_pid': {path: pids for path, pids in references.items() if pids},
-              'deleted': []}
+              'would_delete': list(map(str, proposed)), 'deleted': []}
+    free_before = shutil.disk_usage(directory).free
     if delete:
-        for path in runtimes:
-            if path in (selected, previous) or references[str(path)]:
-                continue
-            # Repeat immediately before deletion: a viewer may have started since
-            # the inventory. A changed default invalidates this whole operation.
+        for path in proposed:
             if current.resolve(strict=True) != selected:
                 raise RuntimeError('Default changed during runtime cleanup')
             borrowers = runtime_references([path])[str(path)]
             if borrowers:
                 result['kept_by_pid'][str(path)] = borrowers
+                result['kept'].append(str(path))
                 continue
             shutil.rmtree(path)
             result['deleted'].append(str(path))
             print(f'Removed unused runtime {path}', file=sys.stderr, flush=True)
     result['after'] = len(list(directory.iterdir()))
+    result['filesystem_free_change_bytes'] = shutil.disk_usage(directory).free - free_before
     return result
 
 
@@ -129,19 +138,26 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     Run with the qualified target Python inside the reviewed publication window.
     Native stopping/restarting remains with Core's existing cutover owner.
     """
-    publisher = (publication_tools / 'publish_runtime.py').resolve(strict=True)
-    sys.path.insert(0, str(publisher.parents[1]))
-    from tools.publish_runtime import RuntimePublication
     from agent_comms.owner_cutover import StoppedOwnerInstallation
 
-    publication = RuntimePublication.installed()
-    record = json.loads((publication.runtime / 'build.json').read_text())
-    if record['runtime'] != str(publication.runtime):
-        raise ValueError('Build record does not describe the installed runtime')
+    # Load only the explicit checkout tools, under their own namespace. Core
+    # itself comes only from the target interpreter's installed package.
+    package_spec = importlib.util.spec_from_file_location(
+        '_core_checkout_tools', publication_tools / '__init__.py')
+    package = importlib.util.module_from_spec(package_spec)
+    sys.modules[package_spec.name] = package
+    package_spec.loader.exec_module(package)
+    spec = importlib.util.spec_from_file_location(
+        '_core_checkout_tools.publish_runtime', publication_tools / 'publish_runtime.py')
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    publication = module.RuntimePublication.installed()
+    RuntimeBuild.recorded_baseline(publication.runtime)
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
-    if previous == publication.runtime:
-        raise ValueError('Runtime is already current; do not repeat publication')
-    publication.publish(root)
+    watchers = InstallWatchers(root / 'runtime-publication-readers.json')
+    publication.publish(root, checkout=publication_tools.parent,
+                        resources=watchers.publication(publication.runtime))
     print(f'Linked {publication.runtime}', flush=True)
     # Report the actual prior pointer, not a build baseline or a persistent list.
     print(f'Previous {previous}', flush=True)
@@ -187,7 +203,8 @@ class InstallWatchers:
         units = json.loads(run('systemctl', '--user', 'list-units', '--type=service',
                                '--state=active', '--output=json'))
         names = [unit['unit'] for unit in units if unit['unit'] in (
-            'codex-comms-inbox.service', 'opencode-comms-inbox.service', 'toad-serve.service')]
+            'codex-comms-inbox.service', 'opencode-comms-inbox.service', 'toad-serve.service',
+            'agent-comms-connector.service')]
         with self.path.open('x') as output:
             json.dump(names, output)
             output.flush()
@@ -202,6 +219,114 @@ class InstallWatchers:
             for name in names:
                 run('systemctl', '--user', 'is-active', name)
         print(json.dumps({'watchers_restarted': names}))
+
+    @contextmanager
+    def publication(self, runtime: Path):
+        """Own frontend readers only; Core calls this AFTER its idle proof.
+
+        Discover the bridge and desktop here, not before the drain: a bridge
+        wrapper can be replaced while a worker finishes its turn.
+        """
+        import psutil
+        from agent_comms.child_process import ObservedProcess, ProcessIdentity
+        from agent_comms.maintenance_barrier import MaintenanceBarrier
+        from agent_comms.owner_cutover import StoppedOwnerInstallation
+        from agent_comms.store_files import _atomic_write_text
+        from agent_comms.field_codec import FieldCodec
+
+        bridge_path = self.path.with_suffix('.bridges.json')
+        settings_backup = self.path.with_suffix('.settings.json')
+        desktop_path = self.path.with_suffix('.desktop.json')
+        settings_path = Path.home() / '.pi/agent/settings.json'
+        previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
+        settings_before = settings_path.read_bytes()
+        settings = json.loads(settings_before)
+        compiled = compiled_global_extensions(runtime)
+        old_compiled = compiled_global_extensions(previous)
+        replacements = {str(old_compiled[key]): str(value) for key, value in compiled.items()}
+        settings['extensions'] = [replacements.get(path, path) for path in settings['extensions']]
+
+        def resume_bridges():
+            if bridge_path.exists():
+                for identity in FieldCodec.decode(tuple[ProcessIdentity, ...],
+                        FieldCodec.parse(bridge_path.read_bytes())):
+                    if identity.alive():
+                        identity.signal(signal.SIGCONT)
+                bridge_path.unlink()
+
+        def restore_settings():
+            if settings_backup.exists():
+                if StoppedOwnerInstallation.current_pointer().resolve(strict=True) != runtime:
+                    _atomic_write_text(settings_path, settings_backup.read_text(), fsync_parent=True)
+                settings_backup.unlink()
+
+        def restore_desktop():
+            if not desktop_path.exists():
+                return
+            for saved in json.loads(desktop_path.read_text()):
+                environment = {key: value for key, value in saved['environment'].items()
+                    if not key.startswith(('AGENT_COMMS_', 'PI_', 'PYTHON'))
+                    and key not in ('VIRTUAL_ENV', 'TMUX')}
+                subprocess.Popen(saved['command'], env=environment, cwd=saved['cwd'],
+                    start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            desktop_path.unlink()
+
+        with ExitStack() as restore:
+            # Register before each mutation, including partial context entry.
+            restore.callback(restore_desktop)
+            restore.callback(restore_settings)
+            restore.callback(resume_bridges)
+            resume_bridges()
+            paused = []
+            if self.path.exists():
+                self.restore()
+                self.path.unlink()
+            restore.callback(lambda: (self.restore(), self.path.unlink()) if self.path.exists() else None)
+            self.stop()
+            desktop = json.loads(desktop_path.read_text()) if desktop_path.exists() else []
+            for process in psutil.process_iter():
+                try:
+                    identity = ProcessIdentity.capture(process.pid)
+                except ProcessLookupError:
+                    continue
+                try:
+                    command = process.cmdline()
+                    if not command:
+                        continue
+                    bridges = []
+                    for child in process.children():
+                        try:
+                            child_identity = ProcessIdentity.capture(child.pid)
+                        except ProcessLookupError:
+                            continue
+                        if any(Path(arg).name == 'agent-comms-claude-bridge' for arg in child.cmdline()):
+                            bridges.append(child_identity)
+                    if bridges and any('agent-comms-claude-bridge watch' in arg for arg in command):
+                        paused.append(identity)
+                        _atomic_write_text(bridge_path, json.dumps(FieldCodec.encode(tuple(paused))),
+                                           fsync_parent=True)
+                        identity.signal(signal.SIGSTOP)
+                        for bridge_identity in bridges:
+                            ObservedProcess(bridge_identity).stop_sync()
+                    elif Path(command[0]).name == 'toad':
+                        terminal = process.parent()
+                        if terminal.name() != 'st' or terminal.environ().get('DISPLAY') != ':0':
+                            continue
+                        desktop.append({'command': ['st', '-e', str(Path.home() / 'bin/toad-comms')],
+                                        'cwd': terminal.cwd(), 'environment': terminal.environ()})
+                        _atomic_write_text(desktop_path, json.dumps(desktop), fsync_parent=True)
+                        ObservedProcess(identity).stop_sync()
+                except psutil.NoSuchProcess:
+                    continue
+            if not settings_backup.exists():
+                _atomic_write_text(settings_backup, settings_before.decode('utf-8'), fsync_parent=True)
+            _atomic_write_text(settings_path, json.dumps(settings, indent=2) + '\n', fsync_parent=True)
+            try:
+                yield
+            finally:
+                restoration = restore.pop_all()
+                if not MaintenanceBarrier(self.path.parent / 'registry.json').read().turn_pending:
+                    restoration.close()
 
 
 def inventory() -> dict:
@@ -294,8 +419,8 @@ class TerminalApp:
         """Decode the middle pane through the terminal's sidebar boundaries."""
         for line in text.splitlines():
             panes = line.split('│')
-            if len(panes) >= 3:
-                yield '│'.join(panes[1:-1])
+            if len(panes) >= 2:
+                yield '│'.join(panes[1:-1] if len(panes) >= 3 else panes[1:])
 
     @staticmethod
     def message_rows(text):
@@ -319,16 +444,8 @@ class TerminalApp:
 
         def settled(text):
             nonlocal previous
-            cells = tuple(self.message_cells(text))
-            last_message = next((i for i in range(len(cells) - 1, -1, -1)
-                                 if cells[i].startswith('▌')), None)
-            # Flash is the one-row sibling directly below AgentWindow. Its
-            # connection notice may remain unchanged for seconds before hiding
-            # and giving that row back. Do not save a viewport with it present.
-            notice = (last_message is not None and last_message + 1 < len(cells)
-                      and bool(cells[last_message + 1].strip()))
             rows = self.message_rows(text)
-            same = bool(rows) and not notice and rows == previous
+            same = bool(rows) and rows == previous
             previous = rows
             return same
 
@@ -363,7 +480,7 @@ class TerminalApp:
 
     def show_saved_thread(self, thread):
         self.wait('saved-ready', lambda text: thread in text
-                  and '▶ Ready' in '\n'.join(text.splitlines()[-8:]))
+                  and '▶ Session details · Ready' in '\n'.join(text.splitlines()[-8:]))
         # The thread sidebar starts collapsed; expand its visible right gutter.
         self.click_cell(self.columns - 1, self.rows // 2)
         return self.wait('saved', lambda text: 'User messages' in text and all(
@@ -651,17 +768,19 @@ finally:
                     worker.stdin.write('SEND\n')
                     worker.stdin.flush()
                     token = environment['BUILD_WAKE_TOKEN']
+                    def reply_is_visible(text):
+                        return any(row.strip('▌ ') == token for row in app.message_cells(text))
                     def replied(text):
                         if worker.poll() not in (None, 0):
                             raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
-                        return (output / 'result.json').exists() and token in text
+                        return (output / 'result.json').exists() and reply_is_visible(text)
                     app.wait('reply', replied, seconds=None)
                     app.screenshot('reply')
                     app.click('#any')
                     app.wait('reply-channel', lambda text: '#any · all comms' in text
-                             and 'IRC / Markdown' in text and token in text)
+                             and 'IRC / Markdown' in text and reply_is_visible(text))
                     app.click('build-wake')
-                    app.wait('reply-return', lambda text: token in text and 'User messages' in text)
+                    app.wait('reply-return', lambda text: reply_is_visible(text) and 'User messages' in text)
                     app.screenshot('reply-return')
             worker.wait(timeout=30)
             if worker.returncode:
@@ -729,6 +848,29 @@ class GitExport:
 
 @dataclass(frozen=True)
 class RuntimeBuild:
+    record = Path('build.json')
+    timestamp_format = '%Y%m%dT%H%M%SZ'
+
+    @classmethod
+    def built_at(cls, runtime: Path) -> datetime:
+        return datetime.strptime(runtime.name.rsplit('-', 1)[-1], cls.timestamp_format)
+
+    @classmethod
+    def recorded_baseline(cls, runtime: Path) -> Path:
+        record = json.loads((runtime / cls.record).read_text())
+        declared = Path(record['runtime'])
+        baseline = Path(record['baseline'])
+        if declared != runtime or not baseline.is_absolute():
+            raise ValueError(f'Build record does not describe {runtime}')
+        return baseline
+
+    @classmethod
+    def qualified_before(cls, runtime: Path, cutoff: datetime) -> bool:
+        if not (runtime / cls.record).is_file():
+            return False
+        cls.recorded_baseline(runtime)
+        return cls.built_at(runtime) < cutoff
+
     toad: GitExport
     core: GitExport
     baseline: Path
@@ -774,7 +916,7 @@ class RuntimeBuild:
             'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'
         ])
         native_pin = hashlib.sha256(manifest).hexdigest()
-        stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+        stamp = datetime.now(timezone.utc).strftime(self.timestamp_format)
         destination = self.runtimes / f'toad-{toad_commit[:9]}-core-{core_commit[:9]}-native-{native_pin[:16]}-{stamp}'
         cache = self.scratch / 'wheels'
         with tempfile.TemporaryDirectory(prefix='export-', dir=self.scratch) as temporary, ExitStack() as cleanup:
@@ -819,13 +961,13 @@ class RuntimeBuild:
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             # Keep an installed but unqualified candidate available for diagnosis.
-            # Only build.json below certifies readiness; never rebuild to inspect it.
+            # Only the qualification record certifies readiness; never rebuild to inspect it.
             cleanup.pop_all()
         return destination
 
     def qualify(self, destination: Path) -> Path:
         """Finish the existing readiness checks on an installed candidate."""
-        if (destination / 'build.json').exists():
+        if (destination / self.record).exists():
             raise ValueError('Runtime is already qualified')
         toad_commit, core_commit = self.toad.commit, self.core.commit
         installed = read_inventory(destination / 'bin/python')
@@ -854,7 +996,7 @@ class RuntimeBuild:
             'startup': startup,
             'message_wake': wake,
         }
-        (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
+        (destination / self.record).write_text(json.dumps(record, indent=2) + '\n')
         print('qualify: ok', flush=True)
         return destination
 

@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from agent_comms.field_codec import RecordedTimestamp
 
 from textual import containers, getters, on, widgets
 from textual.app import ComposeResult
@@ -38,19 +39,9 @@ class SessionResumeModal(ModalScreen[Session]):
                 yield widgets.Button("Cancel", id="cancel")
 
     @classmethod
-    def friendly_time_ago(cls, past_dt: datetime) -> str:
-        """Present a timestamp already decoded by the session store."""
-        # Get current time in appropriate timezone
-        if past_dt.tzinfo is not None:
-            # Timezone-aware: use UTC for comparison
-            now = datetime.now(UTC)
-        else:
-            # Naive datetime: use naive now
-            now = datetime.now()
-
-        # Calculate time difference
-        diff = now - past_dt
-        total_seconds = diff.total_seconds()
+    def friendly_time_ago(cls, past: RecordedTimestamp) -> str:
+        """Present a time the session store recorded; Core requires its UTC offset."""
+        total_seconds = (datetime.now(UTC) - past.at).total_seconds()
 
         # Less than 1 minute
         if total_seconds < 60:
@@ -67,12 +58,7 @@ class SessionResumeModal(ModalScreen[Session]):
             return f"{hours} hour{'s' if hours != 1 else ''} ago"
 
         # 24 hours or more - return as local time
-        if past_dt.tzinfo is not None:
-            local_dt = past_dt.astimezone()  # Convert to local timezone
-        else:
-            local_dt = past_dt  # Already naive, assume local
-
-        return local_dt.strftime("%c")
+        return past.at.astimezone().strftime("%c")
 
     async def on_mount(self) -> None:
         table = self.session_table

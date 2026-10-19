@@ -215,7 +215,7 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
             with self.changing_identity():
                 self._identity = await app.preparation.run_thread(identity)
         except (OSError, ValueError, RuntimeError) as error:
-            self.notify(str(error), title="Comms target unavailable", severity="error")
+            self.app.show_error(error, "Comms target unavailable")
             return app.selected_mode
         return await super().open_sidebar_target(target)
 

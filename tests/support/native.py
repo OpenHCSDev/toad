@@ -273,13 +273,12 @@ async def native_session(workspace, package: Path, *, provider: ControlledProvid
     `prepare(comms, project, provider)` may arrange wire state before the app starts.
     `attached=False` expects the session to settle without a connection.
     """
-    from agent_comms.threads import Thread
 
     provider = provider or ControlledProvider()
     with provider.serving() as base_url:
         comms = start_private_native_wire(workspace.roots.wire, package)
         configure_provider(base_url, settings=settings)
-        comms.registry.declare(Thread("beta", frozenset({"team"}), str(workspace.project),
+        comms.registry.declare(comms.registry.new_thread("beta", frozenset({"team"}), str(workspace.project),
                                       model=MODEL, thinking_level="off"))
         try:
             if prepare is not None:

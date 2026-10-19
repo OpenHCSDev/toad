@@ -72,6 +72,12 @@ class HoverSelection(UntintedTonePaint):
     highlighted_text_style = Style()
 
     @property
+    def text_background(self) -> type[ThemeColour]:
+        return (self.highlight_background
+                if self.paint_highlighted and self.highlight_background is not None
+                else super().text_background)
+
+    @property
     def paint_highlighted(self):
         return not self.disabled and (self.has_focus or self.mouse_hover)
 

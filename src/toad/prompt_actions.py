@@ -44,8 +44,6 @@ class SubmitNowAction(SubmitAction):
     def available(self, editor):
         from toad.widgets.prompt import Prompt
 
-        if editor.simple_input:
-            return False
         return (super().available(editor) and editor.agent_ready and editor.agent_busy
                 and editor.query_ancestor(Prompt).agent_binding.presentation.queue_supported)
 

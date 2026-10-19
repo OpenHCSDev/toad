@@ -24,7 +24,7 @@ from textual.widgets import Checkbox, Static
 
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
-from toad.widgets.message_filter import MessageCategory
+from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree
@@ -240,7 +240,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
         self.refresh_relationships()
 
     def on_show(self):
-        if not self.is_attached or not self.screen.is_current:
+        if not self._presentation_visible():
             return
         # Background tabs retain their source and per-view filter state. Apply
         # the latest owner/selection once they become visible rather than doing
@@ -279,13 +279,21 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         change.apply_relationships(self.navigation_groups)
 
-    @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.CoordinationObserved)
-    async def _observed(self, event: CoreEventMessage) -> None:
-        if not self.is_attached or not self.screen.is_current:
-            return
-        if not self.query_ancestor(SideBar).presentation_visible:
+    def _presentation_visible(self) -> bool:
+        return (self.is_attached and self.screen.is_current
+                and self.query_ancestor(SideBar).presentation_visible)
+
+    @handles(core_events.OpenTabsChanged, core_events.SessionSelected)
+    async def _session_changed(self, event: CoreEventMessage) -> None:
+        if not self._presentation_visible():
             return
         self._sync_filter_control()
+        self.refresh_relationships()
+
+    @handles(core_events.CoordinationObserved)
+    async def _observed(self, event: CoreEventMessage) -> None:
+        if not self._presentation_visible():
+            return
         self.refresh_relationships()
 
     def _sync_filter_control(self):
@@ -449,7 +457,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
                 return
             self.open_target(entry_target(current))
         except (OSError, ValueError) as error:
-            self.notify(str(error), title="Comms target unavailable", severity="error")
+            self.app.show_error(error, "Comms target unavailable")
 
     def show_row_menu(self, row, offset):
         from toad.widgets.comms_menu import show_target_menu

@@ -181,7 +181,7 @@ class GoalCommand(SlashCommand, LocalCommand):
     def parse(cls, arguments: str) -> Self:
         text = arguments.strip()
         try:
-            control = GoalControl.decode(text)
+            control = GoalControl.member_named(text)
         except ValueError:
             return cls(text)
         return cls(control=control)

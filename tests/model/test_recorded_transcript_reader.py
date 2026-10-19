@@ -27,17 +27,16 @@ class ServedReader(CoordinationTranscriptReader):
 
 @pytest.fixture
 def recorded(tmp_path):
-    from agent_comms.threads import Thread
 
     old, live = Comms(tmp_path / "old"), Comms(tmp_path / "live")
     native = tmp_path / "authored.jsonl"
     native.write_text(json.dumps({"type": "message", "message": {
         "role": "assistant", "content": [{"type": "text", "text": "recorded answer"}],
     }}) + "\n")
-    old.registry.declare(Thread("reader", frozenset(), str(old.root),
+    old.registry.declare(old.registry.new_thread("reader", frozenset(), str(old.root),
                                 created_at=10.0, session_file=str(native)))
     old.messaging.initialize_private_initial_protocol()
-    live.registry.declare(Thread("reader", frozenset(), str(live.root), created_at=20.0))
+    live.registry.declare(live.registry.new_thread("reader", frozenset(), str(live.root), created_at=20.0))
     source = live.views.attach_history(old.root)
     return live, source, native
 

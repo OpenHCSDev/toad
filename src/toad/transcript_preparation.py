@@ -15,10 +15,11 @@ from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 
 from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
+from toad.widgets.message_notifications import NothingToRead, PaintedRead
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.render_backend import ReusableRenderTask
-from toad.widgets.message_filter import MessageCategory
+from agent_comms.ui_model.message_category import MessageCategory
 from toad.work_preparation import (
     PreparationRuntime,
     PreparedResult,
@@ -168,14 +169,11 @@ class PreparedTranscriptPage:
 
     def same_source(self, other: PreparedTranscriptPage) -> bool:
         """Keep a view only when its bounded read came from the same source snapshot."""
-        page, incoming = self.page, other.page
         # A filtered page can share the Core read but draw different members.
         # The retained worker result shares this immutable tuple with its views;
-        # another projection cannot borrow that view's prepared rows.
-        return (self.fragments is other.fragments
-                and page.before == incoming.before
-                and page.after == incoming.after
-                and page.snapshot == incoming.snapshot)
+        # another projection cannot borrow that view's prepared rows. Each page
+        # type owns equality of its source, traversal and read evidence.
+        return self.fragments is other.fragments and self.page == other.page
 
     def for_view(self) -> PreparedTranscriptPage:
         """An independent view owns its drawing range and loaded source data.
@@ -531,8 +529,8 @@ class ClosedHistory(PreparedPageSource):
     def schedule_refresh(self, view):
         return None
 
-    def painted_read(self, history):
-        return None
+    def painted_read(self, history) -> PaintedRead:
+        return NothingToRead()
 
     async def change_style(self, history) -> None:
         return
@@ -548,9 +546,6 @@ class ClosedHistory(PreparedPageSource):
 
     def seen_page(self, history, seen):
         return None
-
-    async def mark_historical(self, displayed) -> None:
-        raise ValueError("This transcript has no saved-source reader")
 
     async def mark_page(self, page) -> None:
         raise ValueError("This transcript has no saved-source reader")

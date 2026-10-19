@@ -40,9 +40,8 @@ async def test_opening_a_channel_opens_its_tab_in_place_of_the_view(workspace):
 
 async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user(workspace):
     from agent_comms.thread_execution import ExternalThreadExecution
-    from agent_comms.threads import Thread
 
-    workspace.comms.registry.declare(Thread(
+    workspace.comms.registry.declare(workspace.comms.registry.new_thread(
         "scribe", frozenset({"team"}), str(workspace.project), execution=ExternalThreadExecution))
     async with workspace.app(session=False) as ui:
         await ui.until_shows(THREADS)

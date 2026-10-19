@@ -10,12 +10,13 @@ from __future__ import annotations
 import asyncio
 from abc import ABC
 from dataclasses import dataclass, field, replace
-from functools import cached_property, partial, singledispatch
+from functools import partial, singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from agent_comms.transcript_events import IncomingTranscript
 from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
@@ -26,7 +27,7 @@ from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
     PageRequest, PreparedTranscriptPage, SavedHistory, TranscriptPageWork,
 )
-from toad.widgets.message_filter import MessageCategory, OtherCategory
+from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
 
 if TYPE_CHECKING:
@@ -165,20 +166,11 @@ class WireFragment(TranscriptFragment):
 
     @classmethod
     def from_message(cls, message, *, reader, **fields):
-        return cls((message,), **fields)
+        return cls((IncomingTranscript(message=message, reader=reader),), **fields)
 
     @property
     def message(self) -> Message:
-        return self.events[0]
-
-    @property
-    def arrival_position(self) -> int:
-        """A new read preserves the message's original bus position."""
-        return self.message.seq
-
-    @cached_property
-    def categories(self) -> frozenset[type[MessageCategory]]:
-        return frozenset({OtherCategory})
+        return self.events[0].message
 
     @property
     def timestamp(self) -> float | None:
@@ -225,7 +217,8 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
 
     @classmethod
     def from_message(cls, message, *, reader, **fields):
-        return cls((message,), text_part=message.body, row=MessageRow(message, reader), **fields)
+        return cls((IncomingTranscript(message=message, reader=reader),),
+                   text_part=message.body, row=MessageRow(message, reader), **fields)
 
     @property
     def notification_references(self):
@@ -354,11 +347,10 @@ class WirePageBuffer(SavedHistory):
 
     def schedule_refresh(self, view):
         history = view.message_history
-        history.notification_view.check_notifications()
         return history.schedule_source_work(view._refresh_source)
 
-    def painted_read(self, history):
-        return history._mark_read(history.source_snapshot())
+    def painted_read(self, history) -> PaintedRead:
+        return ReadWork(history._mark_read(history.source_snapshot()))
 
     async def change_style(self, history) -> None:
         if not history.can_draw_on_screen:
@@ -381,21 +373,17 @@ class WirePageBuffer(SavedHistory):
     def seen_page(self, history, seen):
         return self.loader.kind.seen_page(history, seen)
 
-    async def mark_historical(self, displayed) -> None:
+    async def mark_page(self, page) -> None:
         from agent_comms.route_selection import implicit_root, run_selected_write
 
         comms = self.loader.comms
-        await asyncio.to_thread(run_selected_write, comms.root,
-                                comms.views.mark_historical_view_read, displayed,
-                                implicit=implicit_root())
-
-    async def mark_page(self, page) -> None:
-        await self.loader.kind.mark_read(self.loader.comms, self.loader.target,
-                                         str(self.loader.project), page)
+        await asyncio.to_thread(
+            run_selected_write, comms.root, comms.views.mark_page_read, page,
+            worktree=str(self.loader.project), implicit=implicit_root())
 
     async def read_only(self) -> bool:
-        catalog = await self.runtime.run_thread(self.loader.comms.channels.catalog.read)
-        return self.loader.kind.read_only(catalog, self.loader.target)
+        return await self.runtime.run_thread(
+            self.loader.kind.read_only, self.loader.comms, self.loader.target)
 
     async def update_mentions(self, view) -> None:
         await self.loader.kind.update_mentions(view, self.loader.comms)

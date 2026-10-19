@@ -145,7 +145,7 @@ class Transfers:
             comms = self.app.coordination_access.require(selected).service
             result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
         except (OSError, ValueError) as error:
-            self.app.notify(str(error), title=request.failure_title, severity="error")
+            self.app.show_error(error, request.failure_title)
         else:
             request.completed(self.app, result)
 
@@ -233,7 +233,7 @@ class WireExportDialog(TransferDialog):
             limit = MaxBytesLimit(int(value)) if value else FullLimit()
             request = WireExportRequest(
                 Path(path).expanduser(),
-                WireExportFormat.decode(self.query_one("#export-format", Select).value)(),
+                WireExportFormat.member_named(self.query_one("#export-format", Select).value)(),
                 scope, limit,
             )
         except (TypeError, ValueError) as error:

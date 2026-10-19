@@ -6,6 +6,7 @@ import json
 
 from textual.widgets import Button, TextArea
 
+from toad.file_kind import FileKind
 from toad.widgets.acp_log import AcpLogPreview
 from toad.widgets.project_panel import FilePreview
 from toad.widgets.worker_static import WorkerStatic
@@ -110,9 +111,9 @@ async def test_earlier_and_latest_page_through_a_log_larger_than_one_page_and_re
         # Actual Earlier/Latest buttons on a real file beyond the shared bound.
         padding = ("[agent] " + json.dumps({"jsonrpc": "2.0", "id": 8, "result": "z" * 1024}) + "\n").encode()
         with log.open("ab") as stream:
-            stream.write(padding * (FilePreview.MAX_BYTES // len(padding) + 1))
+            stream.write(padding * (FileKind.MAX_BYTES // len(padding) + 1))
         await reread(ui, view, "#log-latest")
-        assert view.page.start > 0 and len(view.page.raw) <= FilePreview.MAX_BYTES
+        assert view.page.start > 0 and len(view.page.raw) <= FileKind.MAX_BYTES
         await reread(ui, view, "#log-earlier")
         assert view.page.start == 0
         assert "Unsettled owner input; compaction not dispatched" in area.text
@@ -134,7 +135,7 @@ async def test_a_full_raw_page_is_drawn_exactly_and_follows_new_lines_only_while
     log = write_log(workspace)
     padding = ("[agent] " + json.dumps({"jsonrpc": "2.0", "id": 8, "result": "z" * 1024}) + "\n").encode()
     with log.open("ab") as stream:
-        stream.write(padding * (FilePreview.MAX_BYTES // len(padding) + 1))
+        stream.write(padding * (FileKind.MAX_BYTES // len(padding) + 1))
     async with workspace.app(size=(100, 32)) as ui:
         view = await open_log(ui, log)
         area = view.query_one(TextArea)
@@ -171,7 +172,8 @@ async def test_an_ordinary_project_file_previews_with_wide_and_accented_text(wor
         await asyncio.wait_for(preview.wait_ready(), 10)
         await ui.step()
         code = preview.query_one(WorkerStatic)
-        painted = "\n".join(code.render_line(row).text for row in range(code.size.height))
+        # The widget paints its own lines with the paint state it inherits (Textual StylesCache).
+        painted = "\n".join(strip.text for strip in code.render_lines(code.size.region))
         assert "Project file: 界 café" in painted, painted[:800]
         await ui.press("ctrl+w")
         assert not app.screen.query(FilePreview)

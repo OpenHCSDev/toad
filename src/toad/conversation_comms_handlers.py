@@ -74,7 +74,6 @@ class ConversationCommsHandlers(CoreEventReceiver):
             return
         self.app.events.publish(core_events.OpenTabsChanged())
         if self.turns.owner.busy:
-            self.transcript.invalidate_publications()
             return
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()

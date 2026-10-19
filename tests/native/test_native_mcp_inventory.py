@@ -115,7 +115,7 @@ async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace
             await ui.press("enter")
             await ui.until(lambda: "CLI exited zero" in viewport_text(modal.query_one("#mcp-decision-status", Static)),
                            why="the package command to succeed")
-            process = await modal._pty.custody()
+            process = await modal._pty.process()
             assert process.master.closed and process.child.retired
             assert await pilot.click("#cancel")
             await refreshed()
@@ -184,7 +184,7 @@ async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace
         await ui.resize(105, 38)
         await ui.press("escape")
         await refreshed()
-        process = await modal._pty.custody()
+        process = await modal._pty.process()
         await ui.until(lambda: process.master.closed and process.child.retired, why="the cancelled command to be gone")
         assert project_row(screen._inventory).status is ApprovedStatus
         await ui.press("escape")

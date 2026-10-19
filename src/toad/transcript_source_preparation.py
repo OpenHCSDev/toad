@@ -92,7 +92,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             return self.reserve_source_work().schedule(self, work)
 
     def source_failed(self, error) -> None:
-        self.notify(str(error), title="History", severity="error")
+        self.app.show_error(error, "History")
 
     def observe_source(self) -> None:
         self.window.histories.add(self)
@@ -240,7 +240,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     return False
                 await self.remove_children(page for page in previous if page not in views)
                 self._update_edges()
-                self._source_state.rows_published(self)
+                self.rows_published()
             return True
 
     @property

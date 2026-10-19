@@ -39,7 +39,6 @@ from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
-from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
@@ -152,11 +151,18 @@ def _display_path(path: Path) -> str:
         return str(path.resolve())
 
 
-class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, AlternatingTonePaint, HoverSelection, ViewLabel):
+class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel):
     """One interactive row: a channel or a thread."""
 
-    alternate_tone = AlternateRowToneColour
+    alternate: reactive[bool] = reactive(False, repaint=False)
     leaving = var(False)
+
+    def watch_alternate(self) -> None:
+        self.refresh_paint()
+
+    @property
+    def tone(self):
+        return AlternateRowToneColour if self.alternate else None
 
     @property
     def target_name(self) -> str:

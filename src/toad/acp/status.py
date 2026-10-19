@@ -38,7 +38,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
 
     @classmethod
     def from_acp(cls, call: ToolCall):
-        kind = cls.decode(call.status) if call.status else PendingToolCallStatus
+        kind = cls.member_named(call.status) if call.status else PendingToolCallStatus
         return kind(call)
 
     @classmethod

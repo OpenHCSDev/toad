@@ -72,13 +72,24 @@ class DeliveryFailureView:
         """The one place a send changes state; compose and the status line follow it."""
         self._send_state = state
         self.prompt.text = body
+        if self.is_attached:
+            async def refresh() -> None:
+                read_only = await self.composer_read_only()
+                await self.refresh_composer(read_only)
+
+            self.run_worker(refresh(), group="composer-access", exclusive=True)
+
+    async def refresh_composer(self, read_only: bool, status: str = "") -> None:
+        """Draw compose from the caller's Core answer and the current send state."""
+        if not self.is_attached:
+            return
+        reason = self.send_block_reason or ("Read-only saved view" if read_only else "")
         area = self.prompt.prompt_text_area
-        area.disabled = bool(state.reason)
-        # Disabling dropped the prompt's focus; give it back unless the reader moved on.
-        if not area.disabled and self.is_attached and self.screen.focused is None:
+        area.disabled = bool(reason)
+        area.tooltip = reason or None
+        self.status = reason or status
+        if not area.disabled and self.screen.focused is None:
             self.screen.set_focus(area)
-        area.tooltip = state.reason or None
-        self.status = state.reason
 
     async def submit_comms_message(self, root, kind, target, body, current, present):
         """CLI transcripts and wire pages use the same Core-send checks."""
@@ -86,14 +97,13 @@ class DeliveryFailureView:
             return
         try:
             async with self.app.coordination_access.transcripts.bind(root) as comms:
-                catalog = await self.app.preparation.run_thread(comms.channels.catalog.read)
+                read_only = await self.app.preparation.run_thread(kind.read_only, comms, target)
         except (OSError, ValueError, RuntimeError) as error:
             self.delivery_refused(str(error), body)
             return
-        if kind.read_only(catalog, target):
+        await self.refresh_composer(read_only)
+        if read_only:
             self.prompt.text = body
-            self.prompt.prompt_text_area.disabled = True
-            self.status = "Read-only saved view; open an exact channel to send"
             self.flash(self.status, style="error")
             return
         await self.deliver_user_message(root, kind.send_target(target), body, current, present)

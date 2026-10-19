@@ -83,7 +83,7 @@ class ValueEditor(DeclaredViews, EditorWidget):
             self.refuse(error)
 
     def refuse(self, error: Exception) -> None:
-        self.notify(str(error), title=self.field.label, severity="error")
+        self.app.show_error(error, self.field.label)
         self.paint()
 
 

@@ -10,7 +10,7 @@ from functools import partial
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypeGuard
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -25,15 +25,13 @@ from toad.widgets.committed_presentation import (
 )
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.session_details import SessionDetails
-from toad.transcript_preparation import SavedHistory
+from toad.transcript_preparation import PreparedPageSource, SavedHistory
 from toad.core.events import CoreEventStream
 from toad.screens.session_view import SessionView
-from agent_comms.errors import UnregisteredThreadError
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
     from toad.widgets.conversation import Conversation
-    from toad.transcript_preparation import PreparedPageSource
 
 
 @dataclass(frozen=True)
@@ -62,7 +60,6 @@ class BoundFrame:
 
     def record(self, cursor):
         self.owner.displayed_cursor = cursor
-        self.binding.contents.check_notifications()
         view = self.binding.view
         view.app.history_displayed()
         view.settle_user_message()
@@ -127,18 +124,14 @@ class TranscriptPublication(BoundFrame, ABC):
             if self.current():
                 self.owner.source_requests.defer(self)
                 return False
-        except (StaleRevision, UnregisteredThreadError):
-            # The original backend read lost its source. Every publication
-            # declines it here; only a new observation can accept another read.
-            return True
-        except (OSError, ValueError) as error:
+        except (StaleRevision, OSError, ValueError) as error:
             self.report_failure(error)
         return True
 
     def report_failure(self, error: Exception) -> None:
         """Report this view's read failure without killing unrelated views."""
         if self.current():
-            self.binding.view.notify(str(error), title="Saved history", severity="error")
+            self.binding.view.app.show_error(error, "Saved history")
 
     async def capture_application(self) -> bool:
         """Capture the original applied cohort once its source cut is known."""
@@ -241,11 +234,6 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         super().__init__(binding, owner, generation)
         self.presentation = presentation
         self.agent_binding = binding.view.agent_binding
-
-    async def read_snapshot(self):
-        return await self.read_past_history(
-            partial(self.binding.reader.updates, *self.thread_scope, self.owner.current_read),
-            read_identity=self.presentation.read_identity)
 
     async def publish_applied(self) -> bool:
         if self.current() and self.binding.view.agent_binding is self.agent_binding:
@@ -678,14 +666,12 @@ class TranscriptPresentation:
     def readable(self) -> bool:
         return self.binding.thread_scope is not None
 
-    async def get_transcript_page(self, *, before=None, after=None, through=None,
-                                  read_identity=None) -> TranscriptPage:
+    async def get_transcript_page(self, *, before=None, after=None, through=None) -> TranscriptPage:
         frame = self.binding.capture(self, BoundFrame)
         scope = self.binding.thread_scope
         if frame is None or scope is None:
             raise ValueError("Transcript paging requires a bound thread")
-        page = await frame.binding.reader.page(*scope, before=before, after=after, through=through,
-                                      read_identity=read_identity)
+        page = await frame.binding.reader.page(*scope, before=before, after=after, through=through)
         if self.binding.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page
@@ -759,7 +745,7 @@ class TranscriptPresentation:
             except TranscriptChanged as error:
                 if selected():
                     self.require_commit()
-                    self.binding.view.notify(str(error), title="Saved history reloading", severity="warning")
+                    self.binding.view.app.show_error(error, "Saved history reloading", severity="warning")
 
     async def refresh_cursor(self) -> TranscriptCursor:
         """Commit and return the cursor from the resulting painted transcript."""

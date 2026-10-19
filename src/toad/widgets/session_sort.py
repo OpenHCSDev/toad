@@ -150,7 +150,7 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
         try:
             write = await self.order_writer()
         except (OSError, ValueError) as error:
-            self.notify(str(error), title="Sort", severity="error")
+            self.app.show_error(error, "Sort")
             return
 
         def choose(order):
@@ -167,7 +167,7 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
             await write(order)
             # Only the backend observation updates the displayed order.
         except (OSError, ValueError) as error:
-            self.notify(str(error), title="Sort", severity="error")
+            self.app.show_error(error, "Sort")
 
     @abstractmethod
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...

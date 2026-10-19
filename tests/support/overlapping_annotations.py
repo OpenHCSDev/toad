@@ -8,7 +8,7 @@ from pathlib import Path
 from agent_comms.comms import Comms
 from agent_comms.session_revision import SessionRevision
 from agent_comms.thread_identity import RecordedThreadIncarnation, TurnId, TurnIdentity
-from agent_comms.threads import Thread
+from agent_comms.registration import Registration
 from agent_comms.turn_context import (
     ContextManifest, ContextSpan, ContributionCoordinates, RecordedContextTurn,
     UnattributedProvenance, UserInputSegment,
@@ -34,7 +34,8 @@ class OverlappingAnnotations:
 
 def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
     """A short and a long annotation over one segment, as an inspection shows them, and the same after correcting the short one."""
-    owner = Thread("authored-navigation", frozenset(), str(directory), created_at=1.0)
+    owner = Registration(directory / "registry.json").new_thread(
+        "authored-navigation", frozenset(), str(directory), created_at=1.0)
     segment = UserInputSegment(content="Keep the original instruction.",
                                provenance=(UnattributedProvenance(),))
     observed = segment.manifest(0)

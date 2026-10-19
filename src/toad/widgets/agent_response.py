@@ -9,7 +9,7 @@ from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
 from toad import response_delivery
-from toad.widgets.message_filter import (
+from agent_comms.ui_model.message_category import (
     MessageCategory,
 )
 

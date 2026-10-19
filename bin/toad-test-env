@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Build or reuse the toad test environment: toad's locked dev group plus the
+# agent-comms checkout beside this one, installed editable, shared by input
+# digest. Print the interpreter line to gate with. Never touches the live stack.
+set -euo pipefail
+umask 077
+usage='Usage: toad-test-env [--uv PATH] [--python PATH] [--agent-comms DIR] [--cache DIR]'
+toad_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+uv=uv
+python=python3.14
+agent_comms="$toad_root/../agent-comms"
+cache="$HOME/.cache/toad/test-env"
+while [[ $# -gt 0 ]]; do
+    [[ $# -ge 2 ]] || { printf '%s\n' "$usage" >&2; exit 1; }
+    case "$1" in
+        --uv) uv=$2 ;;
+        --python) python=$2 ;;
+        --agent-comms) agent_comms=$2 ;;
+        --cache) cache=$2 ;;
+        *) printf '%s\n' "$usage" >&2; exit 1 ;;
+    esac
+    shift 2
+done
+agent_comms=$(cd -- "$agent_comms" && pwd)
+mkdir -p -- "$cache"
+cache=$(cd -- "$cache" && pwd)
+# Toad's lock and the agent-comms checkout's declared dependencies decide the environment.
+build_id=$(cat "$toad_root/uv.lock" "$agent_comms/pyproject.toml" <(printf '%s' "$agent_comms") |
+    sha256sum | cut -c1-16)
+environment="$cache/$build_id"
+
+if [[ ! -e "$environment" ]]; then
+    stage=$(mktemp -d "$environment.stage.XXXXXXXX")
+    trap 'rm -rf -- "$stage"' EXIT
+    "$uv" venv -q --python "$python" "$stage"
+    "$uv" export -q --project "$toad_root" --frozen --group dev --no-emit-project \
+        --no-emit-package agent-comms --no-hashes -o "$stage/requirements.txt"
+    "$uv" pip install -q --python "$stage/bin/python" -r "$stage/requirements.txt"
+    "$uv" pip install -q --python "$stage/bin/python" -e "$agent_comms[acp]"
+    # Toad reads its own distribution metadata; its source still comes from src.
+    "$uv" pip install -q --python "$stage/bin/python" --no-deps "$toad_root"
+    mv -- "$stage" "$environment"
+    trap - EXIT
+fi
+printf 'cd %s && %s -m pytest\n' "$toad_root" "$environment/bin/python"

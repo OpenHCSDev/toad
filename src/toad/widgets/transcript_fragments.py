@@ -25,8 +25,8 @@ from toad.menus import MenuItem
 from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
-from toad.widgets.agent_activity import AgentActivityBoundary, AgentActivityPresentation
-from toad.widgets.message_filter import MessageCategory, event_category
+from toad.widgets.agent_activity import AgentActivityPresentation
+from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
@@ -198,8 +198,10 @@ class MessageShown(Shown):
     status: NotificationStatus = field(default_factory=UncheckedNotifications)
 
 
+@dataclass(frozen=True, slots=True)
 class PartPosition(ABC):
-    __slots__ = ()
+    # Ordinal within the source event, not another source-position counter.
+    index: int = 0
 
     @property
     @abstractmethod
@@ -253,9 +255,12 @@ class TranscriptFragment:
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
     @property
-    def arrival_position(self) -> int:
-        """The fragment keeps its identity within its prepared source."""
-        return id(self)
+    def arrival_position(self) -> int | str:
+        """The first event owns the fragment's stable source position."""
+        return self.events[0].position
+
+    def matches_position(self, position: int | str, part: int) -> bool:
+        return self.arrival_position == position and self.part_position.index == part
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
         """Whether the live block that claim retires already showed this saved row."""
@@ -311,7 +316,7 @@ class TranscriptFragment:
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
         """The message categories of this fragment's events, derived once."""
-        return frozenset(map(event_category, self.events))
+        return frozenset(event.category for event in self.events)
 
     @property
     def timestamp(self) -> float | None:
@@ -506,12 +511,12 @@ class TranscriptFragmentConsumer(MroProjection):
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs):
-        starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
+        starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
         parts = kind.text_parts(source, self.budget) if self.split_text else (source,)
         self.fragments.extend(
             kind.capture_part(event, part.text, continuation=self.continuation or index > 0,
-                 part_position=LastPart() if index == len(parts) - 1 else InnerPart(),
+                 part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
                  starts_agent_activity=starts_activity and index == 0, **kwargs)
             for index, part in enumerate(parts)
         )
@@ -525,7 +530,7 @@ class TranscriptFragmentConsumer(MroProjection):
             self.tools[event.tool_call_id] = len(self.fragments)
             self.fragments.append(TranscriptFragment(
                 (event,), continuation=self.continuation,
-                starts_agent_activity=self.boundary.observe(event_category(event)),
+                starts_agent_activity=self.boundary.observe(event.category),
             ))
 
 

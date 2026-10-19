@@ -264,10 +264,7 @@ class CommsChatView(Conversation):
             read_only = await source.read_only()
             if not await history.source_is_current(snapshot):
                 return
-            if read_only:
-                self.prompt.prompt_text_area.disabled = True
-                self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
-                self.status = "Read-only saved view"
+            await self.refresh_composer(read_only)
             undrawn = history.undrawn
             if undrawn:
                 self.on_work_started()
@@ -333,11 +330,15 @@ class CommsChatView(Conversation):
             return
         if not await history.source_is_current(snapshot) or self.target != target:
             return
-        self.status = self.send_block_reason or status
+        await self.refresh_composer(read_only, status)
         if self.window.follows_tail:
             self.window.anchor()
         if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):
             history.request_preparation()
+
+    async def composer_read_only(self) -> bool:
+        """Reacquire channel access from this view's current Core source."""
+        return await self.message_history.page_source.read_only()
 
     async def command_target_context(self):
         return self.message_history.page_source.command_context(self)

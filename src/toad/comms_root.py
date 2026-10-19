@@ -24,6 +24,7 @@ from weakref import WeakKeyDictionary, WeakSet
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
+from agent_comms.revision_views import ExternalTranscriptsView, StatusView
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
     ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
@@ -153,7 +154,7 @@ class FailedObservation(Observation):
             view.notifications_failed(self.error)
 
     def thread_interest(self, access):
-        access.app.notify(str(self.error), title="Thread status unavailable", severity="error")
+        access.app.show_error(self.error, "Thread status unavailable")
 
 
 @dataclass(frozen=True)
@@ -317,9 +318,9 @@ class CoordinationAccess(MroDispatch):
     def revision_observed(self, result: RevisionObserved, observed: Observing) -> None:
         previous = self.revision
         self.revision = result.revision
-        if previous.status_changed_since(result.revision):
+        if result.revision.changed_since(StatusView(), previous):
             self.events.publish(CoordinationObserved(result.revision))
-        if previous.external_transcripts_changed_since(result.revision):
+        if result.revision.changed_since(ExternalTranscriptsView(), previous):
             self.events.publish(ExternalTranscriptChanged())
 
     @handles(SidebarObserved)
@@ -350,7 +351,7 @@ class CoordinationAccess(MroDispatch):
         self.sidebar_current = result.request
         for waiter in self.take_sidebar_waiters(result.request):
             waiter.set_result(observed.sidebar.observation)
-        self.app.notify(str(result.error), title="Sidebar unavailable", severity="error")
+        self.app.show_error(result.error, "Sidebar unavailable")
 
     def take_sidebar_waiters(self, answered: ObserveSidebar) -> list[asyncio.Future[SidebarObservation]]:
         """Retire answered reads once, leaving other interests subscribed."""

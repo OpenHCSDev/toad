@@ -95,7 +95,7 @@ from toad.widgets.input_delivery import (
     InputDeliveryDetails,
 )
 from toad.widgets.user_input import UserInput
-from toad.widgets.message_filter import all_categories, MessageCategory
+from agent_comms.ui_model.message_category import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.command_catalog import CommandCatalog
 from toad.menus import MenuItem
@@ -525,7 +525,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
         self.submissions = ConversationSubmissions(self)
-        from toad.widgets.agent_activity import AgentActivityBoundary
+        from agent_comms.ui_model.message_category import AgentActivityBoundary
 
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
@@ -770,6 +770,19 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     cursor = getters.query_one(CursorContainer)
     prompt = getters.query_one(Prompt)
     app = getters.app(ToadApp)
+
+    @property
+    def visible_read_cursor(self):
+        """Only a painted, unfiltered tail can acknowledge the full transcript."""
+        if not self.is_mounted or self.visible_categories != all_categories():
+            return None
+        window = self.query_one_optional(Window)
+        through = self.transcript.displayed_cursor
+        if through is None or window is None or not window.follows_tail:
+            return None
+        if any(history.blocks_visible_read for history in window.histories):
+            return None
+        return through
 
     def watch_visible_categories(
         self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
@@ -1063,7 +1076,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         self.prompt.sync_session()
         if (details := self.query_one_optional(SessionDetails)) is not None:
             details.sync_turn()
-        self.notify(message.event.message, title="Agent failure", severity="error", timeout=5)
+        self.app.show_error(message.event.message, "Agent failure")
 
         if self._agent_data is not None:
             self.app.application.usage.publish(
@@ -1153,7 +1166,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
                 "Provider login finished; model catalogue refreshed", style="success"
             )
         except (ValueError, OSError, TimeoutError, RequestError) as error:
-            self.notify(str(error), title="Provider login", severity="error")
+            self.app.show_error(error, "Provider login")
         finally:
             if (prompt := self.query_one_optional(Prompt)) is not None:
                 prompt.disabled = False
@@ -1171,7 +1184,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         if agent is not self.agent_binding:
             return
         if error is not None:
-            self.notify(error, title="Set Model", severity="error")
+            self.app.show_error(error, "Set Model")
         elif (model := agent.configuration.model.selected) is not None:
             from textual.geometry import Offset
 
@@ -1193,7 +1206,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
                     and (error := await agent.set_thinking_level(level))
                     is not None
                 ):
-                    self.notify(error, title="Set thinking level", severity="error")
+                    self.app.show_error(error, "Set thinking level")
                     return
             self.flash(
                 Content.from_markup(
@@ -1338,7 +1351,6 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
-        message.stop()
         self.transcript.source_work_finished(message.publisher)
 
     def on_worker_state_changed(self, message) -> None:
@@ -1401,7 +1413,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         if agent is not self.agent_binding:
             return
         if error is not None:
-            self.notify(error, title="Set Mode", severity="error")
+            self.app.show_error(error, "Set Mode")
         elif (mode := agent.current_mode) is not None:
             self.flash(
                 Content.from_markup("Mode changed to [b]$mode", mode=mode.name),
@@ -1448,6 +1460,10 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         self.prompt.ask(ask)
         return ask
 
+    async def composer_read_only(self) -> bool:
+        """Native and CLI sessions compose to their exact thread, not a saved channel."""
+        return False
+
     async def command_target_context(self):
         from toad.screens.main import MainScreen
         from toad.target_commands import TargetContext
@@ -1456,7 +1472,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         comms = await self.app.preparation.run_thread(lambda: self.app.coordination_access.observation.observed().service)
         if not self.is_attached or screen.navigation_context != nav:
             raise ValueError('Command view changed during discovery')
-        return TargetContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
+        return screen.thread_identity.command_target(lambda actor: TargetContext(self.app, comms, actor, actor, nav.project_path, nav.owner_mode))
 
     @work(group='command-catalog', exclusive=True)
     async def update_slash_commands(self) -> None:
@@ -1486,7 +1502,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         source = self.query_ancestor(SessionView)
         navigation = source.navigation_context
         agent = self.agent_binding
-        context = await self.command_target_context()
+        context = self.command_target_context()
         catalog = await CommandCatalog.read(self.app, agent.presentation.commands, context)
         if (not self.is_attached or source.navigation_context != navigation
                 or agent is not self.agent_binding):
@@ -1578,7 +1594,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             await self.agent_binding.compact_context(instructions)
             self.flash("Context compacted", style="success")
         except (OSError, ValueError, RequestError) as error:
-            self.notify(str(error), title="Compaction request", severity="error")
+            self.app.show_error(error, "Compaction request")
             self.transcript.require_commit()
 
     def open_queue_menu(self) -> None:
