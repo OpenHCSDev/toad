@@ -36,58 +36,12 @@ def run(*args: str | Path, cwd: Path | None = None) -> str:
     return subprocess.check_output(list(map(str, args)), cwd=cwd, text=True).strip()
 
 
-def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
-    """Inspect every process as root; an unreadable live process forbids pruning."""
-    references = {str(path): [] for path in runtimes}
-    for process in Path('/proc').iterdir():
-        if not process.name.isdigit() or int(process.name) == os.getpid():
-            continue
-        try:
-            state = (process / 'stat').read_bytes().rsplit(b')', 1)[1].split()
-            identity = state[19]
-            if state[0] == b'Z' or int(state[6]) & 0x00200000:
-                continue  # Zombies and kernel threads hold no userspace runtime.
-        except FileNotFoundError:
-            continue
-        contents = []
-        errors = []
-        for name in ('environ', 'cmdline', 'maps'):
-            try:
-                contents.append((process / name).read_bytes())
-            except OSError as error:
-                errors.append(error)
-        for link in (process / 'cwd', process / 'exe'):
-            try:
-                contents.append(os.fsencode(link.readlink()))
-            except OSError as error:
-                errors.append(error)
-        try:
-            for descriptor in (process / 'fd').iterdir():
-                try:
-                    contents.append(os.fsencode(descriptor.readlink()))
-                except FileNotFoundError:
-                    pass  # A descriptor may close during the scan.
-        except OSError as error:
-            errors.append(error)
-        try:
-            state = (process / 'stat').read_bytes().rsplit(b')', 1)[1].split()
-            after = state[19]
-            if state[0] == b'Z':
-                continue
-        except FileNotFoundError:
-            continue
-        if identity != after:
-            raise RuntimeError(f'Process identity changed during inspection: {process.name}')
-        if errors:
-            raise RuntimeError(f'Incomplete process inspection: {process.name}: {errors}')
-        for path, pids in references.items():
-            if any(os.fsencode(path) in value for value in contents):
-                pids.append(int(process.name))
-    return references
-
-
 def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[Path] | None = None) -> dict:
-    """Keep the two published versions and every prefix still used by a process."""
+    """Build records and installation pointers own retention, not process presence.
+
+    An unqualified build remains its builder's responsibility until explicitly
+    released with --remove. A qualified build protects every runtime it names.
+    """
     selected = current.resolve(strict=True)
     previous = previous.resolve(strict=True)
     directory = selected.parent
@@ -96,30 +50,32 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[
     runtimes = sorted(directory.iterdir())
     if any(path.is_symlink() or not path.is_dir() for path in runtimes):
         raise ValueError('Runtime directory contains unexpected files or symlinks')
-    if remove is not None:
-        if any(path not in runtimes for path in remove):
-            raise ValueError('Removal must name installed sibling runtimes')
-        runtimes = remove
-    references = runtime_references(runtimes)
+    if remove is not None and any(path not in runtimes for path in remove):
+        raise ValueError('Removal must name installed sibling runtimes')
+    records = RuntimeBuild.retained_runtimes(runtimes)
     result = {'before': len(runtimes), 'current': str(selected), 'previous': str(previous),
-              'kept_by_pid': {path: pids for path, pids in references.items() if pids},
+              'kept_by_record': sorted(map(str, records)),
+              'kept_unqualified': [str(path) for path in runtimes if path not in records],
               'deleted': []}
-    if delete:
-        for path in runtimes:
-            if path in (selected, previous) or references[str(path)]:
-                continue
-            # Repeat immediately before deletion: a viewer may have started since
-            # the inventory. A changed default invalidates this whole operation.
+    free_before = shutil.disk_usage(directory).free
+    for path in remove or ():
+        if path in (selected, previous) or path in records:
+            continue
+        # An explicit release cannot retire a build made after the installed one.
+        if RuntimeBuild.built_at(path) >= RuntimeBuild.built_at(selected):
+            continue
+        if delete:
             if current.resolve(strict=True) != selected:
                 raise RuntimeError('Default changed during runtime cleanup')
-            borrowers = runtime_references([path])[str(path)]
-            if borrowers:
-                result['kept_by_pid'][str(path)] = borrowers
+            # A build may have finished and recorded a dependency since inventory.
+            retained = RuntimeBuild.retained_runtimes(sorted(directory.iterdir()))
+            if path in retained:
                 continue
             shutil.rmtree(path)
             result['deleted'].append(str(path))
-            print(f'Removed unused runtime {path}', file=sys.stderr, flush=True)
+            print(f'Removed released runtime {path}', file=sys.stderr, flush=True)
     result['after'] = len(list(directory.iterdir()))
+    result['filesystem_bytes_freed'] = shutil.disk_usage(directory).free - free_before
     return result
 
 
@@ -135,9 +91,7 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     from agent_comms.owner_cutover import StoppedOwnerInstallation
 
     publication = RuntimePublication.installed()
-    record = json.loads((publication.runtime / 'build.json').read_text())
-    if record['runtime'] != str(publication.runtime):
-        raise ValueError('Build record does not describe the installed runtime')
+    RuntimeBuild.recorded_runtimes(publication.runtime)
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
     if previous == publication.runtime:
         raise ValueError('Runtime is already current; do not repeat publication')
@@ -158,7 +112,7 @@ def installation_main() -> None:
     parser.add_argument('--current', type=Path)
     parser.add_argument('--previous', type=Path)
     parser.add_argument('--delete', action='store_true')
-    parser.add_argument('--remove', type=Path, nargs='+', help='Prune only these runtime directories')
+    parser.add_argument('--remove', type=Path, nargs='+', help='Explicitly released unqualified builds; recorded and newer runtimes stay protected')
     parser.add_argument('--publication-tools', type=Path, help="Core checkout's tools directory")
     parser.add_argument('--root', type=Path)
     args = parser.parse_args()
@@ -721,6 +675,27 @@ class GitExport:
 
 @dataclass(frozen=True)
 class RuntimeBuild:
+    record = Path('build.json')
+    timestamp_format = '%Y%m%dT%H%M%SZ'
+
+    @classmethod
+    def built_at(cls, runtime: Path) -> datetime:
+        return datetime.strptime(runtime.name.rsplit('-', 1)[-1], cls.timestamp_format)
+
+    @classmethod
+    def recorded_runtimes(cls, runtime: Path) -> set[Path]:
+        record = json.loads((runtime / cls.record).read_text())
+        declared = Path(record['runtime'])
+        baseline = Path(record['baseline'])
+        if declared != runtime or not baseline.is_absolute():
+            raise ValueError(f'Build record does not describe {runtime}')
+        return {declared, baseline}
+
+    @classmethod
+    def retained_runtimes(cls, runtimes: list[Path]) -> set[Path]:
+        return set().union(*(cls.recorded_runtimes(path) for path in runtimes
+                             if (path / cls.record).exists()))
+
     toad: GitExport
     core: GitExport
     baseline: Path
@@ -766,7 +741,7 @@ class RuntimeBuild:
             'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'
         ])
         native_pin = hashlib.sha256(manifest).hexdigest()
-        stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+        stamp = datetime.now(timezone.utc).strftime(self.timestamp_format)
         destination = self.runtimes / f'toad-{toad_commit[:9]}-core-{core_commit[:9]}-native-{native_pin[:16]}-{stamp}'
         cache = self.scratch / 'wheels'
         with tempfile.TemporaryDirectory(prefix='export-', dir=self.scratch) as temporary, ExitStack() as cleanup:
@@ -811,13 +786,13 @@ class RuntimeBuild:
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             # Keep an installed but unqualified candidate available for diagnosis.
-            # Only build.json below certifies readiness; never rebuild to inspect it.
+            # Only the qualification record certifies readiness; never rebuild to inspect it.
             cleanup.pop_all()
         return destination
 
     def qualify(self, destination: Path) -> Path:
         """Finish the existing readiness checks on an installed candidate."""
-        if (destination / 'build.json').exists():
+        if (destination / self.record).exists():
             raise ValueError('Runtime is already qualified')
         toad_commit, core_commit = self.toad.commit, self.core.commit
         installed = read_inventory(destination / 'bin/python')
@@ -846,7 +821,7 @@ class RuntimeBuild:
             'startup': startup,
             'message_wake': wake,
         }
-        (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
+        (destination / self.record).write_text(json.dumps(record, indent=2) + '\n')
         print('qualify: ok', flush=True)
         return destination
 
