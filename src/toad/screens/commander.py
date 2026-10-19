@@ -10,7 +10,12 @@ from textual.widgets import Collapsible, Static
 from toad.screens.modal import ModalScreen
 
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.commander import CommanderModel, ObserveCommander, UnitCard
+from agent_comms.ui_model.commander import (
+    CommanderModel,
+    ObserveCommander,
+    ReadCommanderIdentity,
+    UnitCard,
+)
 
 
 class CommanderUnit(Collapsible):
@@ -66,11 +71,9 @@ class CommanderScreen(ModalScreen[None]):
     async def on_mount(self) -> None:
         access = self.app.coordination_access
         try:
-            def identify():
-                observed = access.observation.observed()
-                return ObserveCommander(str(observed.service.root),
-                    observed.service.registry.require(self.commander_name).incarnation)
-            self.request = await access.preparation.run_thread(identify)
+            observed = await access.preparation.run_thread(access.observation.observed)
+            self.request = await observed.process.read(ReadCommanderIdentity(
+                str(observed.service.root), self.commander_name))
             access.show_commander(self)
         except (ValueError, OSError, RuntimeError) as error:
             self.commander_failed(error)
