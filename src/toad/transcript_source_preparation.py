@@ -15,7 +15,7 @@ from toad.transcript_state import TranscriptState, RetiredSourceTranscript, Park
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
-from toad.widgets.presentation_window import PageRequest, OLDER_END, NEWER_END
+from toad.widgets.presentation_window import OLDER_END, NEWER_END
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -62,7 +62,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def can_draw_on_screen(self) -> bool:
         if not self.state.can_draw:
             return False
-        return self.screen.is_current
+        return self.app.workspace_sessions.shows(self)
 
     def _require_can_draw(self) -> None:
         if not self.state.can_draw:

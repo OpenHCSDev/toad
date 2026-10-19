@@ -362,7 +362,7 @@ class RetainViewportCommit(CommitPlan):
             return False
         # Hidden tabs have no exposed viewport. Never request offscreen geometry
         # (which could rebuild the whole scene) to decide retirement.
-        if not view.screen.is_current:
+        if not view.app.workspace_sessions.shows(view):
             return True
         visible = view.screen._compositor.published_widgets
         viewport = view.window.published_content_region

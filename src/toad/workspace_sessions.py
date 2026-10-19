@@ -4,6 +4,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 from textual._time import after_input
 from textual.containers import Container
+from textual.widget import Widget
 from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import WELCOME
@@ -32,7 +33,7 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
         return False
 
     @abstractmethod
-    async def retire(self) -> "WorkspaceSource": ...
+    def retire(self) -> "WorkspaceSource": ...
 
     @abstractmethod
     def commands(self) -> set: ...
@@ -56,7 +57,7 @@ class DetachedWorkspaceSource(WorkspaceSource):
     def matches(self, view):
         return False
 
-    async def retire(self):
+    def retire(self):
         return self
 
     def commands(self):
@@ -86,12 +87,7 @@ class BoundWorkspaceSource(WorkspaceSource):
     def matches(self, view):
         return self.view is view
 
-    async def retire(self):
-        # Source retirement captures the departing reader from its committed
-        # scene. Blurring or hiding first changes the widget's CSS state and
-        # discards the document's source placement before its owner can take it.
-        await self.view.retire_presentation()
-        self.view.display = False
+    def retire(self):
         return ParkedWorkspaceSource(self.view)
 
     def commands(self):
@@ -124,7 +120,7 @@ class ParkedWorkspaceSource(BoundWorkspaceSource):
     def current(self, view):
         return False
 
-    async def retire(self):
+    def retire(self):
         return self
 
 
@@ -180,10 +176,29 @@ class WorkspaceSessions:
         return destination
 
     async def retire(self) -> None:
-        self.source = await self.source.retire()
+        previous = self.source
+        self.source = previous.retire()
+        if previous is not self.source:
+            # Revoke the departing source before retirement can yield. Its
+            # committed geometry still belongs to the reader until capture.
+            await previous.view.retire_presentation()
+            previous.view.display = False
 
     def owns(self, view: "SessionView") -> bool:
         return self.source.current(view)
+
+    def shows(self, widget) -> bool:
+        """A mounted widget belongs to this frame's selected, displayed source."""
+        from toad.screens.session_view import SessionView
+
+        if not widget.is_attached or not widget.screen.is_current:
+            return False
+        for owner in widget.walk_ancestors(with_self=True):
+            if isinstance(owner, Widget) and not owner.display:
+                return False
+            if isinstance(owner, SessionView):
+                return self.owns(owner)
+        return True
 
     def visible_target(self, root):
         """The selected logical destination, including while a modal covers its frame."""

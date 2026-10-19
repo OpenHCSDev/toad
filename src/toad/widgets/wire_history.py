@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 from agent_comms.coordination_errors import StaleRevision
 
-from toad.screens.session_view import SessionView
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
@@ -60,11 +59,6 @@ class WireHistory(VisibleReadMarking, LineHistory):
     def source_identity(self):
         # Growth of the bus is not another source: reads ahead stay valid.
         return self.page_source.reload_key(), self.selected_categories
-
-    @property
-    def can_draw_on_screen(self) -> bool:
-        return (super().can_draw_on_screen
-                and self.view.query_ancestor(SessionView).is_current)
 
     async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
         """Whether the route still selects this source's bus and nothing replaced the history."""
