@@ -30,10 +30,10 @@ from toad.app import ToadApp
 from toad.session_tracker import OpenTab
 from toad.frame_presentation import Animated
 from ui_theme.effects import NEW_TEXT, Mix
-from toad.widgets.selection import ViewLabel
+from toad.widgets.selection import ChangingText, ViewLabel
 
 
-class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, widgets.Label):
+class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widgets.Label):
     ALLOW_SELECT = False
     width = AUTO
     height = Scalar.from_number(1)

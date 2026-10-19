@@ -45,9 +45,6 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
 
     expanded_by_default: ClassVar[bool] = False
 
-    def active_in(self, channels) -> bool:
-        return False
-
     @classmethod
     def named(cls, name: str) -> NavigationTarget:
         """Adapt Core's decoded wire identity to its frontend destination."""
@@ -108,9 +105,6 @@ class HistoryTarget(HistoryRoute, NavigationTarget):
 
 class ChannelLike:
     """Shared channel-row capability; consumers never enumerate row kinds."""
-
-    def active_in(self, channels) -> bool:
-        return self.name in channels.rows and channels.rows[self.name].active
 
     def menu_context(self, sidebar, **kwargs):
         from toad.target_commands import TargetContext
