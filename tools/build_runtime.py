@@ -294,8 +294,8 @@ class TerminalApp:
         """Decode the middle pane through the terminal's sidebar boundaries."""
         for line in text.splitlines():
             panes = line.split('│')
-            if len(panes) >= 3:
-                yield '│'.join(panes[1:-1])
+            if len(panes) >= 2:
+                yield '│'.join(panes[1:-1] if len(panes) >= 3 else panes[1:])
 
     @staticmethod
     def message_rows(text):
@@ -319,16 +319,8 @@ class TerminalApp:
 
         def settled(text):
             nonlocal previous
-            cells = tuple(self.message_cells(text))
-            last_message = next((i for i in range(len(cells) - 1, -1, -1)
-                                 if cells[i].startswith('▌')), None)
-            # Flash is the one-row sibling directly below AgentWindow. Its
-            # connection notice may remain unchanged for seconds before hiding
-            # and giving that row back. Do not save a viewport with it present.
-            notice = (last_message is not None and last_message + 1 < len(cells)
-                      and bool(cells[last_message + 1].strip()))
             rows = self.message_rows(text)
-            same = bool(rows) and not notice and rows == previous
+            same = bool(rows) and rows == previous
             previous = rows
             return same
 
@@ -363,7 +355,7 @@ class TerminalApp:
 
     def show_saved_thread(self, thread):
         self.wait('saved-ready', lambda text: thread in text
-                  and '▶ Ready' in '\n'.join(text.splitlines()[-8:]))
+                  and '▶ Session details · Ready' in '\n'.join(text.splitlines()[-8:]))
         # The thread sidebar starts collapsed; expand its visible right gutter.
         self.click_cell(self.columns - 1, self.rows // 2)
         return self.wait('saved', lambda text: 'User messages' in text and all(
