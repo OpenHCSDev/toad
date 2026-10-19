@@ -57,7 +57,7 @@ from textual.widgets import Static
 
 from toad import messages, paths
 from acp.exceptions import RequestError
-from toad.widgets.splash_text import SplashText
+from toad.widgets.splash_text import ThreadLoading
 
 from toad.core import events as core_events
 from toad.widgets.comms_menu import ContextMenu
@@ -163,31 +163,6 @@ class Loading(ConversationBlock, Static):
         height: auto;        
     }
     """
-
-
-class ThreadLoading(ConversationBlock, SplashText):
-    """The splash while a thread attaches: its label swept into the theme's colours."""
-
-    LABEL = TEXT = "Loading thread and history…"
-
-    @classmethod
-    def initial_contents(cls, agent):
-        """The loading declaration serves first composition and source rebinding."""
-        return (cls(),) if agent is not None else ()
-
-    DEFAULT_CSS = """
-    ThreadLoading {
-        width: 1fr;
-        height: auto;
-        margin: 0;
-        content-align: center middle;
-        color: $text-muted;
-        text-style: bold;
-    }
-    """
-
-    def on_mount(self) -> None:
-        self.play()
 
 
 class CategorizedMount:

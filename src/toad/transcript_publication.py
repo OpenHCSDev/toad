@@ -18,10 +18,21 @@ from agent_comms.ui_model.observation import NotPublished, Published, Transcript
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
-from toad.widgets.history_anchor import HeldReaderDestination, TailPosition
+from toad.widgets.history_anchor import HeldReaderDestination, TailPosition, HistoryWindow
+from toad.widgets.committed_presentation import (
+    CommitBarrier, CommitParticipant, CommitEvidence, commit_plan,
+    protected_blocks, retirement_candidates,
+)
+from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.splash_text import ThreadLoading
+from toad.widgets.session_details import SessionDetails
+from toad.transcript_preparation import SavedHistory
+from toad.core.events import CoreEventStream
+from toad.screens.session_view import SessionView
+from agent_comms.errors import UnregisteredThreadError
 
 if TYPE_CHECKING:
-    from toad.screens.session_view import SessionOrigin, SessionView
+    from toad.screens.session_view import SessionOrigin
     from toad.widgets.conversation import Conversation
     from toad.transcript_preparation import PreparedPageSource
 
@@ -61,8 +72,6 @@ class TranscriptPublication(BoundFrame, ABC):
 
     def native_current(self) -> bool:
         """Anonymous native output must have settled before the source captured it."""
-        from toad.widgets.committed_presentation import CommitParticipant
-
         return self.current() and all(
             widget.commit_claim.accepts_native(widget, self.captured)
             for widget in self.binding.contents.children if isinstance(widget, CommitParticipant)
@@ -99,7 +108,6 @@ class TranscriptPublication(BoundFrame, ABC):
             # messages whose resources the source needs to acquire.
             self.owner.source_requests.submit(self)
             return True
-        from agent_comms.errors import UnregisteredThreadError
 
         try:
             if await self.capture_application():
@@ -297,7 +305,6 @@ class SourcePublicationRequests:
 
 class CommitPublication(CanonicalSourcePublication):
     def __init__(self, binding, owner, generation):
-        from toad.widgets.committed_presentation import commit_plan
         super().__init__(binding, owner, generation)
         self.plan = commit_plan(binding.window)
 
@@ -309,8 +316,6 @@ class CommitPublication(CanonicalSourcePublication):
         return super().current() and self.plan.current(self.binding.window)
 
     def ready_to_commit(self) -> bool:
-        from toad.widgets.committed_presentation import CommitBarrier, CommitParticipant
-
         if not self.current() or not self.owner.dirty:
             return False
         view = self.binding.view
@@ -330,10 +335,6 @@ class CommitPublication(CanonicalSourcePublication):
         return True
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
-        from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
-        from toad.widgets.transcript_history import TranscriptHistory
-        from toad.transcript_preparation import SavedHistory
-
         if not self.ready_to_commit():
             return True
         view = self.binding.view
@@ -464,7 +465,6 @@ class BoundView(ViewBinding):
 
         @classmethod
         def capture(cls, binding, owner, **extra):
-            from toad.screens.session_view import SessionView
             return super().capture(binding, owner,
                                    source=binding.view.query_ancestor(SessionView), **extra)
 
@@ -514,7 +514,6 @@ class BoundView(ViewBinding):
                 and self.window.is_attached and self.contents.is_attached)
 
     def histories(self):
-        from toad.widgets.transcript_history import TranscriptHistory
         return tuple(self.contents.query_children(TranscriptHistory))
 
     def observe_thread(self, owner):
@@ -525,7 +524,6 @@ class BoundView(ViewBinding):
                 view.app.coordination_access.observe_thread_changes(view, scope, view.thread_observed))
 
     async def restore_documents(self, owner):
-        from toad.widgets.transcript_history import TranscriptHistory
         view = self.view
         if not view.is_attached:
             return
@@ -570,8 +568,6 @@ class BoundView(ViewBinding):
         view.call_after_refresh(partial(moment.refresh, publication))
 
     async def reveal_retained(self, owner, history):
-        from toad.widgets.conversation import ThreadLoading
-        from toad.widgets.session_details import SessionDetails
         view = self.view
         if not view.is_attached:
             return
@@ -604,10 +600,6 @@ class BoundView(ViewBinding):
                      for worker in view.workers.cancel_group(view, group))
 
     def covered(self, owner, coverage, history):
-        from toad.widgets.session_details import SessionDetails
-        from toad.widgets.committed_presentation import (
-            CommitEvidence, CommitParticipant, protected_blocks, retirement_candidates,
-        )
         view = self.view
         contents = self.contents
         if history.is_attached and history.parent is contents:
@@ -647,7 +639,6 @@ class TranscriptPresentation:
         self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
         self._thread_observation = ResourceRelease()
-        from toad.core.events import CoreEventStream
         self.events = CoreEventStream(self)
 
     def bind(self, view: Conversation) -> BoundView:
@@ -839,7 +830,6 @@ class TranscriptPresentation:
         """
         if not candidates:
             return AwaitComplete.nothing()
-        from toad.widgets.history_anchor import HistoryWindow
 
         if any(candidate.display for candidate in candidates):
             # Their rows leave the window now; the reader stays on theirs.
