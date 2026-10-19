@@ -192,7 +192,7 @@ class FragmentPosition(OffsetPosition):
     position: int | str
     fraction: float
     height: int
-    part: int = field(default=0, kw_only=True)
+    part: int = field(kw_only=True)
 
     def page(self, window: "HistoryWindow"):
         """The displayed page that holds this message."""

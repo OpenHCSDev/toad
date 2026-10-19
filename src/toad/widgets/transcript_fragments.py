@@ -516,7 +516,7 @@ class TranscriptFragmentConsumer(MroProjection):
         parts = kind.text_parts(source, self.budget) if self.split_text else (source,)
         self.fragments.extend(
             kind.capture_part(event, part.text, continuation=self.continuation or index > 0,
-                 part_position=LastPart() if index == len(parts) - 1 else InnerPart(),
+                 part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
                  starts_agent_activity=starts_activity and index == 0, **kwargs)
             for index, part in enumerate(parts)
         )
@@ -573,14 +573,6 @@ def transcript_fragments(
             fragments.append(replace(source, output_parts=parts))
         else:
             fragments.append(source)
-    # Partitioning can make several fragments from one source event. Keep
-    # their address distinct without changing the event's source position.
-    ordinals: dict[int | str, int] = {}
-    for fragment in fragments:
-        position = fragment.arrival_position
-        index = ordinals.get(position, 0)
-        fragment.part_position = replace(fragment.part_position, index=index)
-        ordinals[position] = index + 1
     return tuple(fragments)
 
 
