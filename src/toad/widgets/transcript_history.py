@@ -763,10 +763,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         )
 
     @property
-    def follows_source_tail(self) -> bool:
-        return self.window.follows_tail
-
-    @property
     def fragment_limit(self) -> int:
         # Screen rows are not fragment counts: one prepared fragment may contain
         # a dozen lines or a whole indivisible Markdown block. Grow with the
@@ -834,10 +830,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         # outer message's category, not the synthetic Markdown fragment role.
         return (self.parent.selected_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
-
-    def has_more(self, end: PageEnd) -> bool:
-        page = end.edge(self.pages).prepared
-        return end.can_extend(page) or self.page_source.has_more(end, page.page)
 
     @property
     def drawn_extent(self) -> tuple[int, int]:

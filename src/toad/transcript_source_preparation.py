@@ -140,6 +140,14 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def request_page(self, end) -> None:
         self.schedule_source_work(partial(self._prepare_edge, end))
 
+    @property
+    def follows_source_tail(self) -> bool:
+        return self.window.follows_tail
+
+    def has_more(self, end) -> bool:
+        page = end.edge(self.pages).prepared
+        return end.can_extend(page) or self.page_source.has_more(end, page.page)
+
     async def _prepare_edge(self, end) -> None:
         """Keep one preparation slot while committed publications request more rows."""
         snapshot = self.source_snapshot()
