@@ -14,8 +14,8 @@ from toad.resource_release import ResourceRelease
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest, LatestViewportState, NoLatestRequest
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
-from toad.widgets.presentation_window import PageRequest, OLDER_END, NEWER_END
+from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
+from toad.widgets.presentation_window import PageEnd, PageRequest, OLDER_END, NEWER_END
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -46,6 +46,12 @@ class HistorySourceSnapshot:
 class TranscriptSourcePreparation(CoreEventReceiver):
     """Shared source preparation; native widget and operational session stay separate."""
 
+
+    pages: deque[TranscriptPageView]
+
+    @property
+    def window(self) -> HistoryWindow:
+        return self.query_ancestor(HistoryWindow)
 
     def __init__(self, *args, source_state: TranscriptState, page_source: PreparedPageSource, **kwargs):
         self._source_state = source_state
@@ -144,7 +150,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def follows_source_tail(self) -> bool:
         return self.window.follows_tail
 
-    def has_more(self, end) -> bool:
+    def has_more(self, end: PageEnd) -> bool:
         page = end.edge(self.pages).prepared
         return end.can_extend(page) or self.page_source.has_more(end, page.page)
 

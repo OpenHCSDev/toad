@@ -468,10 +468,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         self.filter: FilterState = FilterState.for_selection(self)
         self._fragment_budget = self.budget.max_items
 
-    @property
-    def window(self) -> HistoryWindow:
-        return self.query_ancestor(HistoryWindow)
-
     async def park_document(self) -> PreparedPageSource:
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
         await self.retire_source(parked=True)
