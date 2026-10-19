@@ -198,8 +198,10 @@ class MessageShown(Shown):
     status: NotificationStatus = field(default_factory=UncheckedNotifications)
 
 
+@dataclass(frozen=True, slots=True)
 class PartPosition(ABC):
-    __slots__ = ()
+    # Ordinal within the source event, not another source-position counter.
+    index: int = 0
 
     @property
     @abstractmethod
@@ -253,9 +255,12 @@ class TranscriptFragment:
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
     @property
-    def arrival_position(self) -> int:
-        """The fragment keeps its identity within its prepared source."""
-        return id(self)
+    def arrival_position(self) -> int | str:
+        """The first event owns the fragment's stable source position."""
+        return self.events[0].position
+
+    def matches_position(self, position: int | str, part: int) -> bool:
+        return self.arrival_position == position and self.part_position.index == part
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
         """Whether the live block that claim retires already showed this saved row."""
@@ -511,7 +516,7 @@ class TranscriptFragmentConsumer(MroProjection):
         parts = kind.text_parts(source, self.budget) if self.split_text else (source,)
         self.fragments.extend(
             kind.capture_part(event, part.text, continuation=self.continuation or index > 0,
-                 part_position=LastPart() if index == len(parts) - 1 else InnerPart(),
+                 part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
                  starts_agent_activity=starts_activity and index == 0, **kwargs)
             for index, part in enumerate(parts)
         )

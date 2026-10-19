@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from agent_comms.transcript_events import IncomingTranscript
 from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
@@ -165,16 +166,11 @@ class WireFragment(TranscriptFragment):
 
     @classmethod
     def from_message(cls, message, *, reader, **fields):
-        return cls((message,), **fields)
+        return cls((IncomingTranscript(message=message, reader=reader),), **fields)
 
     @property
     def message(self) -> Message:
-        return self.events[0]
-
-    @property
-    def arrival_position(self) -> int:
-        """A new read preserves the message's original bus position."""
-        return self.message.seq
+        return self.events[0].message
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -225,7 +221,8 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
 
     @classmethod
     def from_message(cls, message, *, reader, **fields):
-        return cls((message,), text_part=message.body, row=MessageRow(message, reader), **fields)
+        return cls((IncomingTranscript(message=message, reader=reader),),
+                   text_part=message.body, row=MessageRow(message, reader), **fields)
 
     @property
     def notification_references(self):
