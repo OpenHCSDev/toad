@@ -184,7 +184,7 @@ class LatestViewportRequest(LatestViewportState):
     def resume(self, owner) -> LatestViewportState:
         """Return the request state after this draw's source-work admission."""
         if (not self.current(owner.window)
-                or owner.schedule_source_work(partial(owner.jump_latest, self)) is not None):
+                or owner.schedule_source_work(partial(owner.jump_latest, self))):
             return NoLatestRequest()
         return self
 
