@@ -258,7 +258,7 @@ class WireSource:
     def observe(self, seen: ConversationRevision | None) -> WireObservation | None:
         """What changed since `seen`, or None when the stores are as they were."""
         revision = self.kind.history_view.revision(
-            self.comms.views, self.target, worktree=str(self.project))
+            self.comms.views, self.target, seen, worktree=str(self.project))
         if revision == seen:
             return None
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
