@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import cast
 
 from agent_comms.display_references import ChannelDisplayReference, HistoricalDisplayReference, ThreadDisplayReference
@@ -16,6 +17,7 @@ from textual.visual import Visual
 from textual.widget import Widget
 
 from toad.block_navigation import ConversationEntry
+from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import AnimationEffects
@@ -24,7 +26,30 @@ from toad.menus import MenuItem
 from toad.message_rows import MessageRow
 from toad.navigation_target import NavigationTarget
 from toad.project_link import ProjectLink
+from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.transcript_lines import Lines
+
+
+class ReferenceRendering(CoreEventReceiver):
+    """Borrow the source's observation for exactly this rendering lifetime."""
+    def _on_mount(self):
+        owner = ProjectPathOwner.containing(self)
+        self.observe_core(self.app.coordination_access.events)
+        self.observe_core(owner.link_context_events)
+        self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
+
+    def _on_unmount(self):
+        # Textual dispatches each class's handler, including CoreEventReceiver's.
+        self.app.coordination_access.show_references(self, False)
+
+    @handles(LinkContextChanged)
+    def reference_context_changed(self, message):
+        owner = ProjectPathOwner.containing(self)
+        self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
+        self.invalidate_lines()
+
+    @abstractmethod
+    def invalidate_lines(self, change=None): ...
 
 
 class OpensLinks(CoreEventReceiver, MroDispatch):

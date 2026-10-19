@@ -47,9 +47,8 @@ from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget, PageEnd, OLDER_END, NEWER_END
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
-from toad.markdown_links import ReferenceRendering
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
-from toad.widgets.linked_rows import HorizontalRows, OpensMessageNames, selection_painted
+from toad.widgets.linked_rows import HorizontalRows, OpensMessageNames, ReferenceRendering, selection_painted
 from toad.widgets.transcript_lines import (
     Lines, BlockLines, BlockSpan, LinePreparation, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )

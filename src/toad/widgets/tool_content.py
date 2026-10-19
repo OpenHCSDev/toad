@@ -6,9 +6,9 @@ from textual.strip import Strip
 from textual.widget import Widget
 from textual.worker import Worker
 from toad.block_content import BlockContent
-from toad.markdown_links import LinkContext, ReferenceRendering
+from toad.markdown_links import LinkContext
 from toad.line_blocks import LineBlock
-from toad.widgets.linked_rows import HorizontalRows, selection_painted
+from toad.widgets.linked_rows import HorizontalRows, ReferenceRendering, selection_painted
 from toad.widgets.transcript_lines import (
     BlockLines, LinePreparation, Lines, PlainLines, TranscriptLinesRenderTask, link_place,
 )
