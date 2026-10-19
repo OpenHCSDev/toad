@@ -51,6 +51,7 @@ from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
 from toad.acp.status import StopReason
+from toad.acp.comms_updates import NoPendingThreadRead
 from toad.core.events import AgentFail, AgentReady
 from toad.agent import AgentBase
 from toad.agent_binding import AgentBinding, NoAgentBound
@@ -342,8 +343,8 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     thread_presentation = None
     """The agent thread's latest settled presentation."""
 
-    _thread_read = None
-    """The capture the next observed presentation settles against (ThreadRead)."""
+    _thread_read = NoPendingThreadRead()
+    """The source state the next observed presentation settles against."""
 
     _unpublished_presentation = None
     """An observed presentation whose transcript refresh waits for this view to be shown."""
@@ -377,10 +378,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         presentation = self.app.coordination_access.thread_status.open(self.status_thread().name).presentation
         read = self._thread_read
         self.arm_thread_read()
-        if read is None:
-            self.thread_presented(presentation)
-        else:
-            read.settle(presentation).present(self.thread_presented)
+        read.settle(presentation).present(self.thread_presented)
 
     def foreign_thread_read(self, presentation) -> None:
         self.thread_presented(presentation)
