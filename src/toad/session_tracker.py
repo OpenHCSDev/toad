@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
@@ -68,7 +70,7 @@ class CommsViewKey:
 
     root: str
     owner_mode: str
-    conversation: "ConversationKind"
+    conversation: ConversationKind
 
     @property
     def title(self) -> str:
@@ -78,7 +80,7 @@ class CommsViewKey:
 @dataclass(frozen=True)
 class ChannelViewAddress:
     root: str
-    conversation: "ConversationKind"
+    conversation: ConversationKind
 
 
 @dataclass(frozen=True)
