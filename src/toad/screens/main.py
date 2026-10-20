@@ -374,10 +374,8 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
                 yield self.presentation.compose_content(self)
 
     def update_title(self) -> None:
-        """The screen's title names the agent and the project it presents."""
-        tab = next((tab for tab in self.app.open_tabs if tab.mode_name == self.id), None)
-        self.title = (f"{tab.title} {format_path(self.project_path)}"
-                      if tab is not None else "")
+        """The screen's title names the session and the project it presents."""
+        self.title = f"{self.display_name} {format_path(self.project_path)}"
 
     async def wait_content_ready(self) -> None:
         if self._closing or self._closed:

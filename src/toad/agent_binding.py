@@ -13,10 +13,10 @@ class AgentBinding(ABC):
         from toad.acp.comms_updates import NoPendingThreadRead
         return NoPendingThreadRead()
 
-    def model_info(self) -> Content:
+    def model_info(self, session_name: str) -> Content:
         model = self.configuration.model.selected
         if model is None:
-            return Content(self.get_info())
+            return Content(session_name)
         level = self.configuration.thinking.current
         return Content(model.name + (f" · {level}" if level else ""))
 
