@@ -362,6 +362,10 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         origin = self.query_ancestor(SessionView).origin
         return origin.transcript_scope() if origin is not None else None
 
+    def transcript_binding(self) -> ViewBinding:
+        """A native session publishes its transcript through this view."""
+        return BoundView(self)
+
     def status_thread(self) -> StatusThread:
         scope = self.transcript.binding.thread_scope
         if scope is None:
@@ -1504,10 +1508,6 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     @handles(core_events.SessionSelected, core_events.OpenTabsChanged)
     async def _selected_commands_changed(self, event: CoreEventMessage) -> None:
         self.update_slash_commands()
-
-    def transcript_binding(self) -> ViewBinding:
-        """A native session publishes its transcript through this view."""
-        return BoundView(self)
 
     async def on_mount(self) -> None:
         self.transcript.bind(self)
