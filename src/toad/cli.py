@@ -198,6 +198,7 @@ def acp(
         "short_name": "agent",
         "url": "https://github.com/batrachianai/toad",
         "protocol": "acp",
+        "accepts_comms_root": command_name == "agent-comms-acp",
         "type": "coding",
         "author_name": "Will McGugan",
         "author_url": "https://willmcgugan.github.io/",

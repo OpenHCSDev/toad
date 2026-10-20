@@ -253,7 +253,10 @@ class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
 
     def __init__(self, app: ToadApp) -> None:
+        from agent_comms.launch_root import LaunchRoot
+
         self.app = app
+        self.launch_root = LaunchRoot.current()
         from toad.acp.transcript_reader import CoordinationTranscriptReader
 
         self.transcripts = CoordinationTranscriptReader(self)
@@ -284,7 +287,7 @@ class CoordinationAccess(MroDispatch):
         with self.opening:
             selected: RouteSelection | UnselectedRoute = UnselectedRoute()
             try:
-                selected = RouteSelection.capture()
+                selected = RouteSelection.capture(self.launch_root.path)
                 return self.require(selected)
             except (OSError, ValueError, RuntimeError) as error:
                 return self.observation.failed(error, selected)

@@ -343,7 +343,7 @@ class AgentSession:
         try:
             try:
                 selection = await asyncio.to_thread(
-                    RouteSelection.for_child, os.environ.copy(), requested_cwd)
+                    RouteSelection.capture, self.agent.controller.transcripts.access.launch_root.path)
                 await AcpIngress(selection, Path(requested_cwd),
                                  self.agent.process.attached_root(self.agent)).preflight()
             except (RouteChanged, RelationViolationError) as error:
