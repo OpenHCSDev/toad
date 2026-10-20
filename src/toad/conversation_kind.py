@@ -14,6 +14,7 @@ from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.channel_activity import ChannelActivity
+from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
 from agent_comms.channel_targets import ThreadTarget
 from toad.widgets.sidebar_tree import UnpaintedChannel
 
@@ -46,8 +47,12 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def label(self) -> str:
         return self.target
 
-    def historical_thread(self) -> str | None:
-        return None
+    def status_thread(self, root, access) -> StatusThread:
+        return NoStatusThread()
+
+    def historical_sessions(self, create_view):
+        """The UI owns construction; the conversation selects its initial identity."""
+        return create_view()
 
     @classmethod
     async def toggle_irc(cls, screen) -> None:
@@ -174,8 +179,11 @@ class ChannelConversation(ConversationKind):
 class DmConversation(ConversationKind):
     history_view = DMDisplayHistory
 
-    def historical_thread(self) -> str:
-        return self.target
+    def status_thread(self, root, access) -> StatusThread:
+        return StatusThread.for_root(root, self.target, access)
+
+    def historical_sessions(self, create_view):
+        return create_view(name=self.target)
 
     @classmethod
     async def toggle_dm(cls, screen) -> None:

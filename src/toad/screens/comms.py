@@ -4,6 +4,7 @@ from toad.core import events as core_events
 from toad.core import session_requests
 from toad.screens.session_view import SessionView
 import asyncio
+from functools import partial
 from pathlib import Path
 
 from textual import containers, getters, on
@@ -159,8 +160,8 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if not threads:
             self.notify("No preserved history sources are attached yet.")
             return
-        self.app.push_screen(HistoricalSessions(comms, threads,
-            name=self.conversation.historical_thread()))
+        self.app.push_screen(self.conversation.historical_sessions(
+            partial(HistoricalSessions, comms, threads)))
 
     def on_mount(self) -> None:
         if not self._content_loaded:

@@ -338,11 +338,7 @@ class WirePageBuffer(SavedHistory):
         return not self.closed and await self.runtime.run_thread(root_is_current, self.loader.comms.root)
 
     def status_thread(self, access):
-        from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
-
-        name = self.loader.conversation.historical_thread()
-        return (NoStatusThread() if name is None else
-                StatusThread.for_root(self.loader.comms.root, name, access))
+        return self.loader.conversation.status_thread(self.loader.comms.root, access)
 
     def command_context(self, view):
         from toad.target_commands import TargetContext

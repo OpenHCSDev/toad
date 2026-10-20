@@ -1,6 +1,7 @@
 """Each kind of conversation reads its own history from Core, including a newly declared kind."""
 
 from dataclasses import FrozenInstanceError, fields
+from functools import partial
 
 import pytest
 
@@ -58,3 +59,15 @@ def test_conversation_resolves_a_renamed_peer_before_presentation(tmp_path):
     conversation = DmConversation("peer")
     assert conversation.resolve(comms, viewer) == (viewer, DmConversation("renamed"))
     assert conversation.target == "peer"
+
+
+def test_conversation_selects_the_saved_history_identity_and_channel_status(tmp_path):
+    from toad.screens.historical_sessions import HistoricalSessions
+    from toad.widgets.observed_thread_activity import NoStatusThread
+
+    comms = wire(tmp_path / "wire")
+    create_view = partial(HistoricalSessions, comms, ())
+    channel = ChannelConversation("#team")
+    assert channel.historical_sessions(create_view).initial_name is None
+    assert DmConversation("peer").historical_sessions(create_view).initial_name == "peer"
+    assert isinstance(channel.status_thread(comms.root, object()), NoStatusThread)

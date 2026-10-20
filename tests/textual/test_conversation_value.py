@@ -5,6 +5,7 @@ from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.navigation_target import DirectTarget, NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.channel_activity import ChannelActivity
+from toad.widgets.observed_thread_activity import NoStatusThread
 
 
 async def test_channel_and_dm_keep_the_conversation_through_open_and_return(workspace):
@@ -32,6 +33,11 @@ async def test_channel_and_dm_keep_the_conversation_through_open_and_return(work
             assert conversation == expected
             assert screen.conversation is chat.conversation is conversation
             assert chat.message_history.page_source.loader.conversation is conversation
+            status = chat.message_history.page_source.status_thread(app.coordination_access)
+            if isinstance(conversation, DmConversation):
+                assert status.name == conversation.target
+            else:
+                assert isinstance(status, NoStatusThread)
             if isinstance(conversation, ChannelConversation):
                 # Membership invalidation must consume the chat's conversation too.
                 workspace.thread("late-peer", "team", running=True)
