@@ -5,7 +5,7 @@
 
 Core's installer runs this with the runtime under check, in a home whose route selects
 a rehearsal copy of the bus, on a thread it made there. Everything runs in plain st on
-an Xvfb display this tool owns. Plain ``toad`` must start; ``python -m toad acp`` must
+an Xvfb display this tool owns. Plain ``toad`` must start; its ACP entrypoint must
 show the thread ready. This tool types one fresh request into that open tab, checks
 its final native reply and returns to the tab. It then says SHOWN. Core sends the thread a DM and,
 once the thread has answered on the bus, writes the answer here as one JSON string; it
@@ -374,10 +374,11 @@ def main() -> None:
     environment.update(XDG_CONFIG_HOME=str(home / "config"), XDG_STATE_HOME=str(home / "state"),
                        XDG_DATA_HOME=str(home / "data"), AGENT_COMMS_RUNTIME_ROOT=str(args.runtime))
     with OwnedDisplay(args.output) as display:
-        with TerminalApp([args.runtime / "toad"], display, args.output / "plain", environment, home) as app:
+        command = [args.runtime / "toad"]
+        with TerminalApp(command, display, args.output / "plain", environment, home) as app:
             app.wait("store", lambda text: "Toad" in text or "agent" in text.lower())
             app.screenshot("store")
-        command = [args.runtime / "python", "-m", "toad", "acp",
+        command = [*command, "acp",
                    shlex.quote(str(args.runtime / "agent-comms-acp")),
                    wire().registry.require(args.thread).worktree,
                    "--session", args.thread, "--title", "Agent Comms"]
