@@ -129,7 +129,6 @@ class WelcomeThreads(WelcomeSection):
 
     def show_member(self, key, row):
         thread = self.query_ancestor(WelcomeEntries).model_state.shown.threads.rows[key]
-        row.target = ThreadTarget(key)
         row.show(thread)
 
 
