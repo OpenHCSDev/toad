@@ -127,6 +127,12 @@ class LiveTranscript(TranscriptState):
         return self
 
 
+class UnreadTranscript(ProvisionalTranscript, LiveTranscript):
+    """Accept first-page work without claiming saved coverage before publication."""
+
+    reports_coverage = False
+
+
 @dataclass(frozen=True)
 class SuspendedTranscript(TranscriptState):
     source: TranscriptState
@@ -379,7 +385,7 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def validate_snapshot(self, owner, page) -> None:
         # The publication already holds a certified current source page. Its
         # native/assigned cursor, not rendered content, validates this resource.
-        if page.after.contains(owner.page_source.through):
+        if owner.page_source.accepts_commit(page.after):
             owner.resume_source()
 
 

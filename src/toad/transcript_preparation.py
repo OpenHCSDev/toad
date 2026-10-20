@@ -337,6 +337,12 @@ class PreparedPageSource(ABC):
     def reload_key(self):
         return self.scope
 
+    def contains(self, cursor: TranscriptCursor) -> bool:
+        return self.through is not None and self.through.contains(cursor)
+
+    def accepts_commit(self, cursor: TranscriptCursor) -> bool:
+        return self.through is not None and cursor.contains(self.through)
+
     def has_more(self, end: PageEnd, page: TranscriptPage) -> bool:
         return end.has_more(self.through, page)
 
@@ -453,6 +459,17 @@ class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[Prepared
         return await runtime.run_thread(self.finish_prepared, key, prepared)
 
 
+@dataclass(frozen=True)
+class UnreadTranscriptPage:
+    """The view before a saved page has been read, not a storage snapshot."""
+
+    events: tuple = ()
+    before: None = None
+    after: None = None
+    has_older: bool = False
+    has_newer: bool = False
+
+
 class SavedHistory(PreparedPageSource):
     """Prepared pages for a snapshot; storage and work limits belong to the runtime.
 
@@ -466,7 +483,7 @@ class SavedHistory(PreparedPageSource):
     work: ClassVar[type[TranscriptPageWork]] = TranscriptPageWork
 
     def __init__(
-        self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,
+        self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor | None,
         runtime: PreparationRuntime,
     ) -> None:
         super().__init__()
