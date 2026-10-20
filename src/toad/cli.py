@@ -129,9 +129,13 @@ def main(ctx, version):
 @main.command("run")
 @click.argument("project_dir", metavar="PATH", required=False, default=".")
 @click.option("-a", "--agent", metavar="AGENT", default="")
-def run(project_dir: str = ".", agent: str = "1"):
-    """Run an installed agent (same as `toad PATH`)."""
+@click.option("--comms-root", required=True, type=click.Path(path_type=str), help="Explicit Comms process root.")
+def run(project_dir: str = ".", agent: str = "1", comms_root: str = ""):
+    """Run an installed agent with an explicit Comms process root."""
 
+    from agent_comms.launch_root import LaunchRoot
+
+    LaunchRoot.from_path(comms_root).install()
     check_directory(project_dir)
 
     if agent:
@@ -168,15 +172,20 @@ def run(project_dir: str = ".", agent: str = "1"):
     default=None,
 )
 @click.option("-d", "--project-dir", "project_option", metavar="PATH", default=None)
+@click.option("--comms-root", required=True, type=click.Path(path_type=str), help="Explicit Comms process root.")
 def acp(
     command: str,
     title: str | None,
     project_dir: str | None,
     session_id: str | None = None,
+    comms_root: str = "",
 ) -> None:
-    """Run an ACP agent from a command."""
+    """Run an ACP agent from a command with an explicit Comms root."""
 
+    from agent_comms.launch_root import LaunchRoot
     from rich import print
+
+    LaunchRoot.from_path(comms_root).install()
 
     from toad.agent_schema import AgentDefinition
 
@@ -189,6 +198,7 @@ def acp(
         "short_name": "agent",
         "url": "https://github.com/batrachianai/toad",
         "protocol": "acp",
+        "accepts_comms_root": command_name == "agent-comms-acp",
         "type": "coding",
         "author_name": "Will McGugan",
         "author_url": "https://willmcgugan.github.io/",

@@ -697,7 +697,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     def sent_message_resolver(self):
         """The draft follows this history's newest published wire frontier."""
-        return self.pages[-1].prepared.page.resolve_sent_messages
+        return self.pages[-1].prepared.page.after.wire.resolve_sent
 
     @property
     def source_identity(self):

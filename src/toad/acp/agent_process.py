@@ -80,7 +80,7 @@ class AgentProcess(Client):
         from agent_comms.route_selection import RouteSelection
         env = os.environ.copy()
         cwd = str(agent.project_root_path.resolve())
-        selection = RouteSelection.for_child(env, cwd)
+        selection = RouteSelection.capture(agent.controller.transcripts.access.launch_root.path)
         with ExitStack() as acquisition:
             acquisition.enter_context(selection.route.hold_client_route())
             await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
@@ -291,8 +291,10 @@ class AgentProcess(Client):
             agent.session.startup_failed('No run command for this OS')
             return
         try:
+            accepts_root = agent.definition.accepts_comms_root
             process = self.process = await self.ingress(agent).spawn(
-                ShellCommand.current().argv(command), env=env,
+                ShellCommand.current().argv(command, accepts_comms_root=accepts_root),
+                env=env, accepts_launch_root=accepts_root,
                 stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
             )
         except (FileNotFoundError, PermissionError) as error:

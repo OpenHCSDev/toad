@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -121,18 +120,14 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CoordinationChangedUpdate)
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
-        from dataclasses import replace
         from pathlib import Path
-
-        from agent_comms.route_selection import child_root
+        from agent_comms.route_selection import RouteChanged
 
         agent = self.agent
-        attached_env = (agent.process.env or os.environ).copy()
-        attached_env["AGENT_COMMS_ROOT"] = update.wire_root
-        root = child_root(
-            attached_env, agent.process.cwd or agent.project_root_path.resolve()
-        )
-        agent.coordination = replace(update, wire_root=str(root))
+        root = agent.controller.transcripts.access.launch_root.path
+        if Path(update.wire_root).resolve() != root.resolve():
+            raise RouteChanged("ACP owner reported a different coordination root")
+        agent.coordination = update
         agent.project_root_path = Path(update.worktree)
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)
         agent.update_status_line()

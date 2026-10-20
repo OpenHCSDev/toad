@@ -59,6 +59,7 @@ class AgentDefinition:
     run_command: dict[str, str]
     short_name: str = ''
     protocol: Literal['acp'] = 'acp'
+    accepts_comms_root: bool = False
     kind: Annotated[type[AgentKind], AgentKindText] = field(default=CodingAgentKind, metadata={'wire_name': 'type'})
     url: str = ''
     author_name: str = ''
