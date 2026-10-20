@@ -355,8 +355,7 @@ class CommitPublication(CanonicalSourcePublication):
         )
         async with AsyncExitStack() as retirement:
             async with plan.publication(view, prepared):
-                if prepared.page is not None:
-                    await history.show_newest(page.after, prepared.page)
+                await prepared.draw(page.after)
                 async with window.history_lock:
                     retired = retirement_candidates(contents.children, evidence)
                     if (
