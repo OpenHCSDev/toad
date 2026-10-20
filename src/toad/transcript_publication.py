@@ -437,6 +437,12 @@ class ViewBinding:
     def reset_reader(self):
         pass
 
+    async def restore_documents(self, owner):
+        pass
+
+    async def restore(self, owner):
+        pass
+
 
 class NoView(ViewBinding):
     """An unbound document has no native work to perform."""
