@@ -1,8 +1,9 @@
-"""One declared conversation family owns history reads and route preparation."""
+"""One declared conversation value owns its destination and history behavior."""
 
 from __future__ import annotations
 import asyncio
 from abc import abstractmethod
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, ClassVar
 from agent_comms.historical_views import ChannelDisplayHistory, ConversationHistoryView, DMDisplayHistory
 from agent_comms.declared_family import DeclaredFamily
@@ -20,15 +21,15 @@ if TYPE_CHECKING:
     from toad.wire_history import WireSource
 
 
+@dataclass(frozen=True)
 class ConversationKind(DeclaredFamily, affix="Conversation"):
+    target: str
     history_view: ClassVar[type[ConversationHistoryView]]
 
-    @classmethod
-    def threads_needed(cls, snapshot, me, target):
+    def threads_needed(self, snapshot, me):
         return ()
 
-    @classmethod
-    def channels_needed(cls, root, target):
+    def channels_needed(self, root):
         return ()
 
     @classmethod
@@ -39,16 +40,13 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @abstractmethod
     def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage: ...
 
-    @classmethod
     @abstractmethod
-    def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]: ...
+    def resolve(self, comms: Comms, me: str) -> tuple[str, ConversationKind]: ...
 
-    @classmethod
-    def label(cls, target: str) -> str:
-        return target
+    def label(self) -> str:
+        return self.target
 
-    @classmethod
-    def historical_thread(cls, target: str) -> str | None:
+    def historical_thread(self) -> str | None:
         return None
 
     @classmethod
@@ -62,37 +60,30 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         await screen.action_back_to_agent()
         screen.app.session_navigation.direct_messages()
 
-    @classmethod
-    def unread(cls, observation, target):
-        return observation.channel_unread(target)
+    def unread(self, observation):
+        return observation.channel_unread(self.target)
 
-    @classmethod
-    def placeholder(cls, target):
-        return f"Message {target}"
+    def placeholder(self):
+        return f"Message {self.target}"
 
-    @classmethod
-    def send_target(cls, target):
-        return target
+    def send_target(self):
+        return self.target
 
-    @classmethod
-    def read_only(cls, comms, target):
+    def read_only(self, comms):
         return False
 
     @classmethod
     @abstractmethod
     async def update_mentions(cls, view, comms) -> None: ...
 
-    @classmethod
     @abstractmethod
-    async def status_text(cls, comms, target, *, read_only: bool) -> str: ...
+    async def status_text(self, comms, *, read_only: bool) -> str: ...
 
-    @classmethod
-    def activity_members(cls, model, target):
-        return (target,)
+    def activity_members(self, model):
+        return (self.target,)
 
-    @classmethod
-    def active_members(cls, model, target):
-        return tuple(model.threads.rows[name] for name in cls.activity_members(model, target)
+    def active_members(self, model):
+        return tuple(model.threads.rows[name] for name in self.activity_members(model)
                      if model.threads.rows[name].active)
 
     @classmethod
@@ -103,12 +94,11 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
-        view.thread_activity = cls.activity_details(view.target)
+        view.thread_activity = cls.activity_details(view.conversation.target)
         yield view.thread_activity
 
-    @classmethod
     @abstractmethod
-    def prompt(cls, target): ...
+    def prompt(self): ...
 
     @classmethod
     def seen_page(cls, history, seen):
@@ -123,47 +113,42 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 class ChannelConversation(ConversationKind):
     history_view = ChannelDisplayHistory
 
-    @classmethod
-    def activity_members(cls, model, target):
-        return model.channels.rows.get(target, UnpaintedChannel(target)).members
+    def activity_members(self, model):
+        return model.channels.rows.get(self.target, UnpaintedChannel(self.target)).members
 
-    @classmethod
-    def channels_needed(cls, root, target):
-        return ((root, target),)
+    def channels_needed(self, root):
+        return ((root, self.target),)
 
     @classmethod
     def view_identity(cls, key):
         from toad.session_tracker import ChannelViewAddress
-        return ChannelViewAddress(key.root, key.target, cls)
+        return ChannelViewAddress(key.root, key.conversation)
 
     @classmethod
     def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.channel_display_page(
-            source.target, viewer=source.viewer, bounds=bounds)
+            source.conversation.target, viewer=source.viewer, bounds=bounds)
 
-    @classmethod
-    def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
+    def resolve(self, comms: Comms, me: str) -> tuple[str, ConversationKind]:
         if me in comms.registry:
             me = comms.registry.require(me).name
-        return me, comms.bus.require_channel(target).name
+        target = comms.bus.require_channel(self.target).name
+        return me, self if target == self.target else replace(self, target=target)
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
         yield ChannelActivity(view)
 
-    @classmethod
-    async def status_text(cls, comms, target, *, read_only: bool) -> str:
+    async def status_text(self, comms, *, read_only: bool) -> str:
         return "Read-only saved view" if read_only else ""
 
-    @classmethod
-    def prompt(cls, target):
+    def prompt(self):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        return ChannelPrompt(placeholder=cls.placeholder(target))
+        return ChannelPrompt(placeholder=self.placeholder())
 
-    @classmethod
-    def read_only(cls, comms, target):
-        return comms.bus.require_channel(target).read_only
+    def read_only(self, comms):
+        return comms.bus.require_channel(self.target).read_only
 
     @classmethod
     async def update_mentions(cls, view, comms):
@@ -173,15 +158,15 @@ class ChannelConversation(ConversationKind):
         # not another registry/catalog read after every channel page.
         history = view.message_history
         source = history.source_snapshot()
-        target = view.target
+        conversation = view.conversation
         access = view.app.coordination_access
         answer = await access.current_sidebar()
         snapshot = answer.require_snapshot()
         observed = access.observation
         if not observed.uses(comms):
             raise ValueError("Channel mentions belong to another Comms service")
-        mentions = await view.app.preparation.run_thread(snapshot.mention_candidates, target)
-        if not await history.source_is_current(source) or view.target != target:
+        mentions = await view.app.preparation.run_thread(snapshot.mention_candidates, conversation.target)
+        if not await history.source_is_current(source) or view.conversation != conversation:
             return
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
@@ -189,48 +174,42 @@ class ChannelConversation(ConversationKind):
 class DmConversation(ConversationKind):
     history_view = DMDisplayHistory
 
-    @classmethod
-    def historical_thread(cls, target: str) -> str:
-        return target
+    def historical_thread(self) -> str:
+        return self.target
 
     @classmethod
     async def toggle_dm(cls, screen) -> None:
         await screen.action_back_to_agent()
 
-    @classmethod
-    def threads_needed(cls, snapshot, me, target):
-        return (snapshot.require(me).incarnation, snapshot.require(target).incarnation)
+    def threads_needed(self, snapshot, me):
+        return (snapshot.require(me).incarnation, snapshot.require(self.target).incarnation)
 
-    @classmethod
-    def unread(cls, observation, target):
-        return observation.bus_unread(target)
+    def unread(self, observation):
+        return observation.bus_unread(self.target)
 
     @classmethod
     def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.dm_display_page(
-            source.target, worktree=str(source.project), bounds=bounds)
+            source.conversation.target, worktree=str(source.project), bounds=bounds)
 
-    @classmethod
-    def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
-        return comms.registry.require(me).name, comms.registry.require(target).name
+    def resolve(self, comms: Comms, me: str) -> tuple[str, ConversationKind]:
+        target = comms.registry.require(self.target).name
+        return comms.registry.require(me).name, self if target == self.target else replace(self, target=target)
 
-    @classmethod
-    def label(cls, target: str) -> str:
-        return f"@{target}"
+    def label(self) -> str:
+        return f"@{self.target}"
 
     @classmethod
     async def update_mentions(cls, view, comms) -> None:
         """Direct-message composers have no channel mention roster."""
 
-    @classmethod
-    def prompt(cls, target):
+    def prompt(self):
         from toad.widgets.prompt import MessagePrompt
 
-        return MessagePrompt(placeholder=cls.placeholder(target))
+        return MessagePrompt(placeholder=self.placeholder())
 
-    @classmethod
-    async def status_text(cls, comms, target, *, read_only: bool) -> str:
-        return (await asyncio.to_thread(comms.configuration.answer, target)).status_label
+    async def status_text(self, comms, *, read_only: bool) -> str:
+        return (await asyncio.to_thread(comms.configuration.answer, self.target)).status_label
 
 
 class IrcConversation(ChannelConversation):
@@ -238,16 +217,13 @@ class IrcConversation(ChannelConversation):
     async def toggle_irc(cls, screen) -> None:
         await screen.action_back_to_agent()
 
-    @classmethod
-    def label(cls, target: str) -> str:
-        return f"{target} · all comms"
+    def label(self) -> str:
+        return f"{self.target} · all comms"
 
-    @classmethod
-    def placeholder(cls, target):
+    def placeholder(self):
         return "Message #all (broadcast)"
 
-    @classmethod
-    def send_target(cls, target):
+    def send_target(self):
         from toad.constants import ALL_COMMS_TARGET
 
         return ALL_COMMS_TARGET

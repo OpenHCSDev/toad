@@ -20,7 +20,9 @@ def test_declared_kinds_read_history_and_a_new_kind_joins_the_family(tmp_path):
     for kind in ConversationKind.members_with(ConversationKind):
         assert FieldCodec.decode(type[ConversationKind], FieldCodec.encode(kind)) is kind
         target = "peer" if kind.declared_name == "dm" else "#team"
-        assert kind.resolve(comms, viewer, target) == (viewer, target)
-        page = kind.page(WireSource(comms, kind, target, tmp_path, viewer, IrcMessageStyle()), PageBounds(limit=8))
+        conversation = kind(target)
+        assert conversation.resolve(comms, viewer) == (viewer, conversation)
+        assert conversation.resolve(comms, viewer)[1] is conversation
+        page = conversation.page(WireSource(comms, conversation, tmp_path, viewer, IrcMessageStyle()), PageBounds(limit=8))
         assert page.messages
-    assert ConversationKind.member_named("team").label("#team") == "#team"
+    assert ConversationKind.member_named("team")("#team").label() == "#team"

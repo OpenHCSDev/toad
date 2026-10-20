@@ -180,8 +180,8 @@ class SessionNavigation:
             session_pk=session_pk, initial_prompt=initial_prompt),
             title=title or "New Session")
 
-    async def history(self, *, owner_mode: str, project_path: Path, me: str, target: str,
-                      kind: type[ConversationKind]) -> str:
+    async def history(self, *, owner_mode: str, project_path: Path, me: str,
+                      conversation: ConversationKind) -> str:
         from toad.thread_navigation import ThreadOrigin
 
         app = self.app
@@ -196,7 +196,7 @@ class SessionNavigation:
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
             prepared = await app.navigation_reader.read(CommsNavigationRequest(
-                comms, owner_mode, me, target, kind, source.coordination_root))
+                comms, owner_mode, me, conversation, source.coordination_root))
         except (UnknownChannelError, UnregisteredThreadError, RouteChanged) as error:
             app.show_error(error, "Comms target unavailable")
             return app.selected_mode
@@ -210,9 +210,9 @@ class SessionNavigation:
             return app.selected_mode
         # The history entry is the only owner of this typed key. Workspace
         # factories carry its identity, so no key-to-mode mirror can go stale.
-        entry = self.find(kind.view_identity(prepared.key))
+        entry = self.find(prepared.key.conversation.view_identity(prepared.key))
         if entry is None:
-            entry = HistorySessionEntry(f"comms-{next(self.identities)}", prepared.key, kind,
+            entry = HistorySessionEntry(f"comms-{next(self.identities)}", prepared.key,
                                                 project_path, prepared.owner_root, prepared.participants, source)
             await self.open(entry)
         else:

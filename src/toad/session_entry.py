@@ -17,7 +17,6 @@ from agent_comms.thread_identity import ThreadIncarnation
 
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
-from toad.conversation_kind import ConversationKind
 from toad.session_tracker import CommsViewKey, OpenTab, NamedTab, ThreadTab, SessionDetails
 from agent_comms.ui_model.unread import UnobservedUnread
 
@@ -185,10 +184,10 @@ class NativeSessionEntry(SessionEntry):
 
 
 class HistorySessionEntry(SessionEntry):
-    def __init__(self, mode: str, key: CommsViewKey, kind: type[ConversationKind], project: Path,
+    def __init__(self, mode: str, key: CommsViewKey, project: Path,
                  owner_root: str | None, participants: tuple[ThreadIncarnation, ...], owner) -> None:
         super().__init__(mode)
-        self.key, self.kind, self.project, self.owner_root = key, kind, project, owner_root
+        self.key, self.project, self.owner_root = key, project, owner_root
         self.participants, self.owner = participants, owner
 
     @property
@@ -199,19 +198,19 @@ class HistorySessionEntry(SessionEntry):
         return tuple((self.key.root, participant) for participant in self.participants)
 
     def original_channels(self):
-        return self.kind.channels_needed(self.key.root, self.key.target)
+        return self.key.conversation.channels_needed(self.key.root)
 
     def __call__(self):
         from toad.screens.comms import CommsScreen
         key = self.key
         return CommsScreen(project_path=self.project, owner_mode=key.owner_mode,
                            me=self.owner.thread_identity.thread_name(),
-                           target=key.target, kind=self.kind,
+                           conversation=key.conversation,
                            owner_root=self.owner_root, wire_root=key.root)
 
     @property
     def address(self) -> object:
-        return self.kind.view_identity(self.key)
+        return self.key.conversation.view_identity(self.key)
 
     async def ready(self, sessions: SessionNavigation) -> None:
         await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()
@@ -223,7 +222,7 @@ class HistorySessionEntry(SessionEntry):
         return NamedTab(self.mode, self.key.title)
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
-        unread = (self.kind.unread(observed.sidebar.observation, self.key.target)
+        unread = (self.key.conversation.unread(observed.sidebar.observation)
                   if observed.observes(self.key.root) else UnobservedUnread())
         return NamedTab(self.mode, self.key.title, unread)
 

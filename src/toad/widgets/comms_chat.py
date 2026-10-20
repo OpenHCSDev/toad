@@ -63,20 +63,18 @@ class CommsChatView(Conversation):
         self,
         project_path: Path,
         *,
-        target: str,
-        kind: type[ConversationKind],
+        conversation: ConversationKind,
         me: str,
         wire_root: str | None = None,
         transcript=None,
     ) -> None:
         super().__init__(project_path, transcript=transcript)
-        self.target = target
-        self.conversation_kind = kind
+        self.conversation = conversation
         self._me = me
         # The observer's announcement the last refresh began from.
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
-        self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
+        self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.target}")
         self.message_contents = Contents(id="contents")
         self.message_history = WireHistory.empty(view=self, notification_view=self.message_contents)
 
@@ -89,9 +87,9 @@ class CommsChatView(Conversation):
                     yield self.message_history
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield from self.conversation_kind.compose_activity(self)
+            yield from self.conversation.compose_activity(self)
             yield self.throbber
-            yield self.conversation_kind.prompt(self.target).data_bind(
+            yield self.conversation.prompt().data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -110,10 +108,10 @@ class CommsChatView(Conversation):
             )
         comms = shared
         self.message_history.open(WireSource(
-            comms, self.conversation_kind, self.target, Path(self.project_path), self._me,
+            comms, self.conversation, Path(self.project_path), self._me,
             IrcMessageStyle(),
         ))
-        self.agent_info = Content(self._target_label())
+        self.agent_info = Content(self.conversation.label())
         self.refresh_thread_status()
         self.prepare_prompt()
         self.window.anchor()
@@ -195,10 +193,7 @@ class CommsChatView(Conversation):
 
     def watch_agent_binding(self, agent) -> None:
         """Keep the inherited agent reactive from turning this into a shell session."""
-        self.agent_info = Content(self._target_label())
-
-    def _target_label(self) -> str:
-        return self.conversation_kind.label(self.target)
+        self.agent_info = Content(self.conversation.label())
 
     def transcript_scope(self) -> None:
         """DM/channel history belongs to WireHistory, not a native transcript."""
@@ -260,7 +255,7 @@ class CommsChatView(Conversation):
 
         history = self.message_history
         snapshot = history.source_snapshot()
-        target = self.target
+        conversation = self.conversation
         if source is not history.page_source:
             return
         try:
@@ -282,7 +277,7 @@ class CommsChatView(Conversation):
             # The coordination store is busy or moved on: the observer's next
             # announcement refreshes this view and reads the labels again.
             return
-        if not await history.source_is_current(snapshot) or self.target != target:
+        if not await history.source_is_current(snapshot) or self.conversation != conversation:
             return
         await self.refresh_composer(read_only, status)
         if self.window.follows_tail:

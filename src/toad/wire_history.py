@@ -247,8 +247,7 @@ class WireSource:
     """
 
     comms: Comms
-    kind: type[ConversationKind]
-    target: str
+    conversation: ConversationKind
     project: Path
     me: str
     style: WireMessageStyle
@@ -262,8 +261,8 @@ class WireSource:
 
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
-        revision = self.kind.history_view.revision(
-            self.comms.views, self.target, seen, worktree=str(self.project))
+        revision = self.conversation.history_view.revision(
+            self.comms.views, self.conversation.target, seen, worktree=str(self.project))
         if revision == seen:
             return Unchanged()
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
@@ -341,7 +340,7 @@ class WirePageBuffer(SavedHistory):
     def status_thread(self, access):
         from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
 
-        name = self.loader.kind.historical_thread(self.loader.target)
+        name = self.loader.conversation.historical_thread()
         return (NoStatusThread() if name is None else
                 StatusThread.for_root(self.loader.comms.root, name, access))
 
@@ -349,15 +348,15 @@ class WirePageBuffer(SavedHistory):
         from toad.target_commands import TargetContext
         from toad.screens.session_view import SessionView
 
-        return TargetContext(view.app, self.loader.comms, self.loader.target, self.loader.me,
+        return TargetContext(view.app, self.loader.comms, self.loader.conversation.target, self.loader.me,
                              self.loader.project, view.query_ancestor(SessionView).id)
 
     async def submit_input(self, view, event) -> None:
-        target = self.loader.target
+        conversation = self.loader.conversation
         current = lambda: (view.is_attached and self is view.message_history.page_source
-                           and target == view.target)
+                           and conversation == view.conversation)
         await view.submit_comms_message(
-            self.loader.comms.root, self.loader.kind, target, event.body, current,
+            self.loader.comms.root, conversation, event.body, current,
             partial(view._show_sent, body=event.body))
 
     def schedule_refresh(self, view):
@@ -383,10 +382,10 @@ class WirePageBuffer(SavedHistory):
         return await self.runtime.run_thread(self.loader.observe, revision)
 
     def accepts_page(self, current, incoming) -> bool:
-        return current.accepts(incoming.source, self.loader.kind.history_view)
+        return current.accepts(incoming.source, self.loader.conversation.history_view)
 
     def seen_page(self, history, seen):
-        return self.loader.kind.seen_page(history, seen)
+        return self.loader.conversation.seen_page(history, seen)
 
     async def mark_page(self, page) -> None:
         from agent_comms.route_selection import run_selected_write
@@ -398,13 +397,13 @@ class WirePageBuffer(SavedHistory):
 
     async def read_only(self) -> bool:
         return await self.runtime.run_thread(
-            self.loader.kind.read_only, self.loader.comms, self.loader.target)
+            self.loader.conversation.read_only, self.loader.comms)
 
     async def update_mentions(self, view) -> None:
-        await self.loader.kind.update_mentions(view, self.loader.comms)
+        await self.loader.conversation.update_mentions(view, self.loader.comms)
 
     async def status_text(self, *, read_only):
-        return await self.loader.kind.status_text(self.loader.comms, self.loader.target,
+        return await self.loader.conversation.status_text(self.loader.comms,
                                                   read_only=read_only)
 
     def accepts(self, loader, through) -> bool:

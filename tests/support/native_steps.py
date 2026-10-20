@@ -43,7 +43,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     screen = app.selected_session
     await screen.wait_content_ready()
     chat = screen.query_one(CommsChatView)
-    assert chat.target == target and chat.conversation_kind is DmConversation
+    assert chat.conversation == DmConversation(target)
     assert not rows_with(chat, lambda message: message.body == body)
     if hold:
         provider.hold_next_request()
@@ -98,7 +98,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     assert reopened is not screen and reopened.id != screen.id
     await reopened.wait_content_ready()
     fresh = reopened.query_one(CommsChatView)
-    assert fresh.conversation_kind is DmConversation
+    assert fresh.conversation == DmConversation(target)
     await ui.until(lambda: all(
         sum(message.reference == reference for message in fresh.message_history.messages) == 1
         for reference in (sent.reference, reply.reference)), seconds=20,
@@ -117,7 +117,7 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     await channel_target("#team").open(NavigationContext(app, owner_tab, native.project, user))
     await app.selected_session.wait_content_ready()
     chat = app.selected_session.query_one(CommsChatView)
-    assert chat.target == "#team" and chat.conversation_kind is ChannelConversation
+    assert chat.conversation == ChannelConversation("#team")
     provider.hold_next_request()
     await chat.submit_input(input_events.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
     await ui.until(provider.entered.is_set, seconds=30, why="the triage question at the provider")
