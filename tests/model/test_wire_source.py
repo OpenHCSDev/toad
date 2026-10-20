@@ -10,7 +10,7 @@ from toad.wire_history import AfterSequence, MessageFragment, WireSource
 
 def channel_source(comms, target, project):
     viewer = comms.messaging.user_identity(str(project)).name
-    return WireSource(comms, ChannelConversation, target, project, viewer, IrcMessageStyle())
+    return WireSource(comms, ChannelConversation(target), project, viewer, IrcMessageStyle())
 
 
 def observed(source):
@@ -18,7 +18,7 @@ def observed(source):
     first = source.observe(None, AfterSequence(0), None)
     assert first.replaced
     newest = source.read(PageRequest(before=first.through), first.through)
-    return first, newest, source.kind.display_identity(newest.page.source)
+    return first, newest, source.conversation.display_identity(newest.page.source)
 
 
 def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_path):
@@ -109,7 +109,7 @@ def test_attaching_or_detaching_history_replaces_the_reading_without_new_live_me
     assert attached.replaced and attached.through == first.through
     page = source.read(PageRequest(before=attached.through), attached.through)
     assert page.page.has_older
-    identity = source.kind.display_identity(page.page.source)
+    identity = source.conversation.display_identity(page.page.source)
     # Detaching changes the same reading without a new live sequence.
     comms.bus.history.path.unlink()
     detached = source.observe(attached.revision, attached.through, identity)

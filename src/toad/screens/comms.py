@@ -4,6 +4,7 @@ from toad.core import events as core_events
 from toad.core import session_requests
 from toad.screens.session_view import SessionView
 import asyncio
+from functools import partial
 from pathlib import Path
 
 from textual import containers, getters, on
@@ -60,8 +61,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         project_path: Path,
         owner_mode: str,
         me: str,
-        target: str,
-        kind: type[ConversationKind],
+        conversation: ConversationKind,
         owner_root: str | None = None,
         wire_root: str | None = None,
     ) -> None:
@@ -70,8 +70,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         self.owner_mode = owner_mode
         from toad.thread_identity import SessionIdentity
         self._identity = SessionIdentity.for_thread(me, owner_root)
-        self.target = target
-        self.kind = kind
+        self.conversation = conversation
         self.wire_root = wire_root
         self._thread_sidebar_state = SidebarState()
         self._content_ready = asyncio.Event()
@@ -90,7 +89,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     @property
     def navigation_target_name(self) -> str:
-        return self.target
+        return self.conversation.target
 
     def rebind_identity(self, identity: str) -> None:
         with self.changing_identity():
@@ -119,7 +118,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         content = (
             (self.create_chat(),)
             if self._content_loaded
-            else (Static(f"Opening {self.target}…", id="comms-opening"),)
+            else (Static(f"Opening {self.conversation.target}…", id="comms-opening"),)
         )
         yield containers.Center(
             ThreadSidebar(
@@ -138,7 +137,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def create_chat(self) -> CommsChatView:
         """One route-bound conversation factory for compose and lazy hydration."""
         return CommsChatView(
-            self.project_path, me=self.thread_identity.thread_name(), target=self.target, kind=self.kind,
+            self.project_path, me=self.thread_identity.thread_name(), conversation=self.conversation,
             wire_root=self.wire_root,
         )
 
@@ -161,8 +160,8 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if not threads:
             self.notify("No preserved history sources are attached yet.")
             return
-        self.app.push_screen(HistoricalSessions(comms, threads,
-            name=self.kind.historical_thread(self.target)))
+        self.app.push_screen(self.conversation.historical_sessions(
+            partial(HistoricalSessions, comms, threads)))
 
     def on_mount(self) -> None:
         if not self._content_loaded:
@@ -260,10 +259,10 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         await self.app.session_navigation.return_from(self.id)
 
     async def action_toggle_irc(self) -> None:
-        await self.kind.toggle_irc(self)
+        await self.conversation.toggle_irc(self)
 
     async def open_direct_messages(self) -> None:
-        await self.kind.toggle_dm(self)
+        await self.conversation.toggle_dm(self)
 
     def action_session_previous(self) -> None:
         self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.owner_mode, -1))

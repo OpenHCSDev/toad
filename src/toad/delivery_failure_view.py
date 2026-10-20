@@ -92,18 +92,18 @@ class DeliveryFailureView:
         if not area.disabled and self.screen.focused is None:
             self.screen.set_focus(area)
 
-    async def submit_comms_message(self, root, kind, target, body, current, present):
+    async def submit_comms_message(self, root, conversation, body, current, present):
         """CLI transcripts and wire pages use the same Core-send checks."""
         if not body.strip():
             return
         async with self.app.coordination_access.transcripts.bind(root) as comms:
-            read_only = await self.app.preparation.run_thread(kind.read_only, comms, target)
+            read_only = await self.app.preparation.run_thread(conversation.read_only, comms)
         await self.refresh_composer(read_only)
         if read_only:
             self.prompt.text = body
             self.flash(self.status, style="error")
             return
-        await self.deliver_user_message(root, kind.send_target(target), body, current, present)
+        await self.deliver_user_message(root, conversation.send_target(), body, current, present)
 
     async def deliver_user_message(self, root, target, body, current, present):
         """One route check, write and failure path for CLI, DM and channel input."""

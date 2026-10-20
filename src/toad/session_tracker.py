@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
@@ -68,19 +70,17 @@ class CommsViewKey:
 
     root: str
     owner_mode: str
-    kind: type["ConversationKind"]
-    target: str
+    conversation: ConversationKind
 
     @property
     def title(self) -> str:
-        return self.kind.label(self.target)
+        return self.conversation.label()
 
 
 @dataclass(frozen=True)
 class ChannelViewAddress:
     root: str
-    target: str
-    kind: type
+    conversation: ConversationKind
 
 
 @dataclass(frozen=True)

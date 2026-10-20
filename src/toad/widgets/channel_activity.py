@@ -32,7 +32,7 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
 
     @property
     def members(self):
-        return self.view.conversation_kind.active_members(self.model_state.shown, self.view.target)
+        return self.view.conversation.active_members(self.model_state.shown)
 
     @property
     def member_keys(self):
@@ -49,7 +49,7 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
         change.apply_activity(self)
 
     def create_row(self, name):
-        row = self.view.conversation_kind.activity_details(name)
+        row = self.view.conversation.activity_details(name)
         row.thread = StatusThread.for_root(
             self.model_state.root(), name, self.app.coordination_access)
         return row

@@ -235,7 +235,7 @@ class MailboxSessionSources(OperationalSessionSources):
         from toad.conversation_kind import DmConversation
 
         root, name = conversation.transcript_scope()
-        return DmConversation.prompt(name)
+        return DmConversation(name).prompt()
 
     def input_ready(self, conversation: Conversation) -> bool:
         return conversation.transcript.readable
@@ -260,7 +260,7 @@ class MailboxSessionSources(OperationalSessionSources):
             self.external_transcript_changed(view)
 
         await view.submit_comms_message(
-            root, DmConversation, target, event.body,
+            root, DmConversation(target), event.body,
             lambda: view.is_attached and view.transcript.binding.thread_scope == scope,
             presented,
         )

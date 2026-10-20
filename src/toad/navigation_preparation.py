@@ -45,21 +45,20 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
     comms: Comms
     owner_mode: str
     me: str
-    target: str
-    kind: type[ConversationKind]
+    conversation: ConversationKind
     owner_root: str | None
 
     def read(self) -> CommsNavigation:
         comms = self.comms
         root = comms.root
-        me, target = self.kind.resolve(comms, self.me, self.target)
+        me, conversation = self.conversation.resolve(comms, self.me)
         owner_root = self.owner_root
         if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
             owner_root = None
         return CommsNavigation(
-            CommsViewKey(str(root), self.owner_mode, self.kind, target),
+            CommsViewKey(str(root), self.owner_mode, conversation),
             owner_root,
-            self.kind.threads_needed(comms.registry.snapshot(), me, target),
+            conversation.threads_needed(comms.registry.snapshot(), me),
         )
 
 

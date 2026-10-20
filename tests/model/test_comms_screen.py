@@ -13,8 +13,7 @@ def test_unmounted_comms_screen_declares_its_shell_without_an_active_app():
         project_path=Path("/project"),
         owner_mode="owner",
         me="viewer",
-        target="#channel",
-        kind=ChannelConversation,
+        conversation=ChannelConversation("#channel"),
     )
 
     result = tuple(screen.compose())

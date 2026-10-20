@@ -389,7 +389,7 @@ class ViewBinding:
         return False
 
     def bound_to(self, view):
-        return BoundView(view)
+        return view.transcript_binding()
 
     @property
     def thread_scope(self):
@@ -435,6 +435,12 @@ class ViewBinding:
         return AwaitComplete.nothing()
 
     def reset_reader(self):
+        pass
+
+    async def restore_documents(self, owner):
+        pass
+
+    async def restore(self, owner):
         pass
 
 
@@ -632,7 +638,7 @@ class TranscriptPresentation:
         self._thread_observation = ResourceRelease()
         self.events = CoreEventStream(self)
 
-    def bind(self, view: Conversation) -> BoundView:
+    def bind(self, view: Conversation) -> ViewBinding:
         if self.closed:
             raise ValueError("Transcript lifetime has ended")
         binding = self.binding.bound_to(view)

@@ -5,7 +5,7 @@ from toad.widget_view import WorkspaceHosted
 
 from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ThoughtStream
-from toad.transcript_publication import TranscriptPresentation
+from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
 from toad.goal_interaction import GoalSession
 
 from toad.core.preference_events import PreferenceChanged
@@ -1505,6 +1505,10 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     async def _selected_commands_changed(self, event: CoreEventMessage) -> None:
         self.update_slash_commands()
 
+    def transcript_binding(self) -> ViewBinding:
+        """A native session publishes its transcript through this view."""
+        return BoundView(self)
+
     async def on_mount(self) -> None:
         self.transcript.bind(self)
         await self.initialize_view()
@@ -1597,16 +1601,6 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         # queue. Text/index matching cannot identify a sent input safely.
         if action:
             self._queue_edit_unavailable()
-
-    @work
-    async def replace_queued(self, prompts: list[str]) -> None:
-        """Never clear-and-resend sent inputs when editing the queue.
-
-        An empty snapshot or control ACK does not prove consumption, and a
-        surviving row may be UNKNOWN. Reissuing its text could execute it twice.
-        Local unsent composer drafts remain editable without touching this API.
-        """
-        self._queue_edit_unavailable()
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, message: CoreEventMessage) -> None:

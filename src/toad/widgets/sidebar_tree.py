@@ -434,7 +434,7 @@ class ChangedChannels(SidebarChange):
         pass
 
     def apply_activity(self, view) -> None:
-        if view.view.target in self.names:
+        if view.view.conversation.target in self.names:
             view.call_next(view.sync_members, frozenset(view.member_keys))
 
 
