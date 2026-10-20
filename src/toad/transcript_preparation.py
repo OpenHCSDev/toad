@@ -10,7 +10,7 @@ from dataclasses import dataclass, field, replace
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ReferenceType, ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage, UnreadTranscriptCursor
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 
@@ -58,7 +58,7 @@ class PreparedTranscriptPage:
     @classmethod
     def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""
-        fragments = transcript_fragments(page.events, resolve_sent=page.after.wire.resolve_sent)
+        fragments = transcript_fragments(page.events, resolve_sent=page.after.wire.resolve_sent_messages)
         return cls.measured(page, fragments)
 
     @classmethod
@@ -337,6 +337,12 @@ class PreparedPageSource(ABC):
     def reload_key(self):
         return self.scope
 
+    def contains(self, cursor: TranscriptCursor) -> bool:
+        return self.through.contains(cursor)
+
+    def accepts_commit(self, cursor: TranscriptCursor) -> bool:
+        return cursor.contains(self.through)
+
     def has_more(self, end: PageEnd, page: TranscriptPage) -> bool:
         return end.has_more(self.through, page)
 
@@ -347,7 +353,7 @@ class PreparedPageSource(ABC):
         return request.cursor == boundary
 
     async def latest(self, prepared: PreparedTranscriptPage) -> PreparedTranscriptPage:
-        if prepared.page.after == self.through:
+        if prepared.page.after.same_position(self.through):
             return prepared.for_view()
         return (await self.get(PageRequest(OLDER_END, self.through))).for_view()
 
@@ -451,6 +457,17 @@ class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[Prepared
             raise asyncio.CancelledError
         prepared = await runtime.renderer.capture(TranscriptPageRenderTask(page))
         return await runtime.run_thread(self.finish_prepared, key, prepared)
+
+
+@dataclass(frozen=True)
+class UnreadTranscriptPage:
+    """The view before a saved page has been read, not a storage snapshot."""
+
+    events: tuple = ()
+    before: TranscriptCursor = field(default_factory=UnreadTranscriptCursor)
+    after: TranscriptCursor = field(default_factory=UnreadTranscriptCursor)
+    has_older: bool = False
+    has_newer: bool = False
 
 
 class SavedHistory(PreparedPageSource):

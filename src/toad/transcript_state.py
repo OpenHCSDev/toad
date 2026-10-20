@@ -51,6 +51,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
         """The staged range begins at the edge this append advances."""
         return prepared.fragments[prepared.start:prepared.stop] if followed_end else ()
 
+    def mounted(self, owner) -> None:
+        """An already-read source needs no initial destination request."""
+
     def rows_published(self, owner) -> None:
         """Only a commit's advance has live blocks that its saved rows replace."""
 
@@ -125,6 +128,20 @@ class LiveTranscript(TranscriptState):
 
     def publish(self) -> TranscriptState:
         return self
+
+
+class UnreadTranscript(ProvisionalTranscript, LiveTranscript):
+    """Accept first-page work without claiming saved coverage before publication."""
+
+    reports_coverage = False
+
+    def mounted(self, owner) -> None:
+        owner.call_after_refresh(owner.load_initial_page)
+
+    def rows_published(self, owner) -> None:
+        owner.publish_committed()
+        transcript = owner.view.transcript
+        transcript.binding.painted(transcript, owner.page_source.through)
 
 
 @dataclass(frozen=True)
@@ -229,6 +246,9 @@ class WorkingTranscript(SuspendedTranscript):
         self.reader_revision = owner.window.scroll_revision
         # The screen asked for rows beyond an edge while this work held the source.
         self.edges_wait = False
+
+    def rows_published(self, owner) -> None:
+        self.source.rows_published(owner)
 
     def blocks_visible_read(self, owner) -> bool:
         """A running source operation must finish before its cursor is read."""
@@ -379,7 +399,7 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def validate_snapshot(self, owner, page) -> None:
         # The publication already holds a certified current source page. Its
         # native/assigned cursor, not rendered content, validates this resource.
-        if page.after.contains(owner.page_source.through):
+        if owner.page_source.accepts_commit(page.after):
             owner.resume_source()
 
 

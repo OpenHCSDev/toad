@@ -165,7 +165,7 @@ class CommittedHistory(ConversationEntry, SnapshotPresentation):
         return RETAINED_SOURCE_CLAIM
 
     def accepts_commit(self, cursor: TranscriptCursor) -> bool:
-        return cursor.contains(self.page_source.through)
+        return self.page_source.accepts_commit(cursor)
 
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
@@ -271,15 +271,28 @@ def protected_blocks(view: Conversation, candidates: Iterable[Widget]) -> set[Wi
 
 @dataclass(frozen=True)
 class PreparedCommit:
-    history: CommittedHistory | None
-    page: PreparedTranscriptPage | None
+    history: CommittedHistory
     sequences: frozenset[int]
 
     @property
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
-        if self.page is not None:
-            return self.page.outgoing_coverage
         return self.history.outgoing_coverage
+
+    async def draw(self, cursor: TranscriptCursor) -> None:
+        """An extended range already owns its drawn pages."""
+
+
+@dataclass(frozen=True)
+class PreparedPageCommit(PreparedCommit):
+    page: PreparedTranscriptPage
+
+    @property
+    def outgoing(self) -> frozenset[OutgoingMessageReference]:
+        return self.page.outgoing_coverage
+
+    async def draw(self, cursor: TranscriptCursor) -> None:
+        await self.history.show_newest(cursor, self.page)
+
 
 class CommitPlan(ABC):
     """A viewport-owned policy; the coordinator does not branch on block types."""
@@ -291,20 +304,20 @@ class CommitPlan(ABC):
     def permits(self, view: Conversation, candidates: Iterable[Widget]) -> bool:
         return not protected_blocks(view, candidates)
 
-    def ready(self, history: CommittedHistory | None) -> bool:
-        return history is None or history.source_ready
+    def ready(self, history: CommittedHistory) -> bool:
+        return history.source_ready
 
-    async def prepare(self, view: Conversation, history: CommittedHistory | None,
+    async def prepare(self, view: Conversation, history: CommittedHistory,
                       page: TranscriptPage, captured: frozenset[Widget],
                       is_current: Callable[[], bool]) -> PreparedCommit | None:
         """Grow a history that accepts the page; otherwise the page replaces it."""
         from toad.transcript_preparation import TranscriptPageRenderTask
         from toad.work_preparation import RenderPreparation
 
-        if history is not None and history.accepts_commit(page.after):
+        if history.accepts_commit(page.after):
             return await self.extend(view, history, page, captured, is_current)
         prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
-        return PreparedCommit(None, prepared, TranscriptCoverage(page.events).sequences)
+        return PreparedPageCommit(history, TranscriptCoverage(page.events).sequences, prepared)
 
     @abstractmethod
     async def extend(self, view: Conversation, history: CommittedHistory, page: TranscriptPage,
@@ -337,7 +350,7 @@ class FollowTailCommit(CommitPlan):
         ))
         if not await history.advance_committed(page.after, is_current, live_blocks):
             return None
-        return PreparedCommit(history, None, TranscriptCoverage(page.events).sequences
+        return PreparedCommit(history, TranscriptCoverage(page.events).sequences
                               | history.covered_sequences(required_sequences(captured)))
 
     def finish(self, view, cursor):
@@ -376,11 +389,10 @@ class RetainViewportCommit(CommitPlan):
         known = TranscriptCoverage(page.events).sequences | history.covered_sequences(required)
         covered = frozenset(sequence for sequence in required
                             if page.after.covers_incoming(sequence))
-        return PreparedCommit(history, None, known | covered)
+        return PreparedCommit(history, known | covered)
 
     def commit(self, prepared, cursor):
-        if prepared.history is not None:  # A replacement history already owns its source.
-            prepared.history.retain_committed(cursor)
+        prepared.history.retain_committed(cursor)
 
 def commit_plan(window: HistoryWindow) -> CommitPlan:
     return FollowTailCommit(window) if window.follows_tail else RetainViewportCommit()

@@ -25,7 +25,7 @@ from toad.widgets.committed_presentation import (
 )
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.session_details import SessionDetails
-from toad.transcript_preparation import PreparedPageSource, SavedHistory
+from toad.transcript_preparation import PreparedPageSource
 from toad.core.events import CoreEventStream
 from toad.screens.session_view import SessionView
 
@@ -72,7 +72,6 @@ class TranscriptPublication(BoundFrame, ABC):
         super().__init__(binding, owner, generation)
         self.thread_scope = binding.thread_scope
         self.destination = HeldReaderDestination.held(binding.window)
-        self.history = next(iter(binding.histories()), None)
         self.captured = binding.view.turns.owner.captured_snapshot(tuple(binding.contents.children))
 
     def native_current(self) -> bool:
@@ -86,8 +85,9 @@ class TranscriptPublication(BoundFrame, ABC):
         """The mounted main history retains the native prefix the wire cursor lacks."""
         if self.native_current():
             return cursor
-        return cursor.over_native(tuple(history.page_source.through for history in self.binding.histories()
-                                        if history in self.captured and history.state.reports_coverage))
+        history = self.binding.history
+        return cursor.over_native((history.page_source.through,)
+                                  if history in self.captured and history.state.reports_coverage else ())
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
         return self.current() and self.source_bound(cursor) == cursor
@@ -173,11 +173,11 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
     async def read_past_history(self, read, **whole):
         """What follows the mounted history's end while its source only grew, else the whole latest page."""
-        if self.history is not None:
-            try:
-                return await read(after=self.history.page_source.through)
-            except TranscriptChanged:
-                pass  # Another source file replaced the history's.
+        history = self.binding.history
+        try:
+            return await read(after=history.page_source.through)
+        except TranscriptChanged:
+            pass  # Another source file replaced the history's.
         return await read(**whole)
 
     async def publish_applied(self) -> bool:
@@ -190,19 +190,19 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     @handles(TranscriptDraftUpdate)
     async def publish_draft(self, snapshot: TranscriptDraftUpdate) -> bool:
         if self.current():
-            self.show_draft(snapshot.draft)
+            self.show_draft(snapshot)
             self.owner.current_read = Published(snapshot.identity)
         return True
 
-    def show_draft(self, draft) -> None:
+    def show_draft(self, snapshot) -> None:
+        draft = snapshot.draft
         widget = self.binding.view.cli_draft
         if self.binding.contents.children[-1] is not widget:
             self.binding.contents.move_child(widget, after=-1)
         if draft is None:
             widget.clear()
         else:
-            history = self.binding.draft_history(draft)
-            widget.show(draft, resolve_sent=history.sent_message_resolver())
+            widget.show(draft, resolve_sent=snapshot.identity.wire_frontier.resolve_sent_messages)
 
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
@@ -221,7 +221,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
                 return True
         published = await self.publish_source_page(page)
         if self.current():
-            self.show_draft(snapshot.draft)
+            self.show_draft(snapshot)
             if published and bound == snapshot.page.after:
                 self.owner.current_read = Published(snapshot.identity)
         if published and self.current() and self.destination is not None:
@@ -326,8 +326,8 @@ class CommitPublication(CanonicalSourcePublication):
         if any(isinstance(child, CommitBarrier) for child in self.binding.contents.children):
             return False
         potential = tuple(child for child in self.binding.contents.children
-                          if child is not self.history and isinstance(child, CommitParticipant))
-        return self.plan.ready(self.history) and self.plan.permits(view, potential)
+                          if child is not self.binding.history and isinstance(child, CommitParticipant))
+        return self.plan.ready(self.binding.history) and self.plan.permits(view, potential)
 
     async def publish_applied(self) -> bool:
         if self.ready_to_commit():
@@ -341,9 +341,9 @@ class CommitPublication(CanonicalSourcePublication):
         window, contents = self.binding.window, self.binding.contents
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
-        plan, history = self.plan, self.history
+        plan, history = self.plan, self.binding.history
         is_current = partial(self.source_current, page.after)
-        if history is None and not page.events or not is_current():
+        if not is_current():
             return True
         prepared = await plan.prepare(view, history, page, self.captured, is_current)
         if prepared is None or not is_current():
@@ -353,57 +353,23 @@ class CommitPublication(CanonicalSourcePublication):
             TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
         )
-        replacement = None
-        if prepared.history is None:
-            replacement = TranscriptHistory(
-                prepared.page, SavedHistory(self.owner.get_transcript_page,
-                                            prepared.page.page.after, view.app.preparation),
-                committed=False,
-                notification_view=contents,
-            )
-            await contents.prepare_history(
-                replacement, is_current, window=window,
-            )
         async with AsyncExitStack() as retirement:
-            async with window.history_lock:
-                retired = retirement_candidates(contents.children, evidence)
-                if (
-                    not is_current()
-                    or history is not next(iter(self.binding.histories()), None)
-                    or not plan.ready(prepared.history)
-                    or not plan.permits(view, retired)
-                ):
-                    return True
-                async with plan.publication(view, prepared):
-                    accepted = False
-                    try:
-                        if replacement is not None:
-                            await contents.mount(replacement)
-                        if not is_current():
-                            return True
-                        # Identity-backed arrivals during a mount may now be covered;
-                        # ordinary late arrivals remain outside the captured cohort.
-                        retired = retirement_candidates(contents.children, evidence)
-                        if not plan.permits(view, retired):
-                            return True
-                        plan.commit(prepared, page.after)
-                        if replacement is not None:
-                            replacement.publish_committed()
-                        # Once retiring live widgets begins, the accepted source must
-                        # survive cancellation so their saved content stays reachable.
-                        accepted = True
-                        retirement.push_async_callback(
-                            self.owner.retire_presentations(contents, view.output, retired)
-                        )
-                    finally:
-                        if (
-                            not accepted
-                            and replacement is not None
-                            and replacement.is_attached
-                        ):
-                            retirement.push_async_callback(
-                                self.owner.retire_presentations(contents, view.output, [replacement])
-                            )
+            async with plan.publication(view, prepared):
+                await prepared.draw(page.after)
+                async with window.history_lock:
+                    retired = retirement_candidates(contents.children, evidence)
+                    if (
+                        not is_current()
+                        or history is not self.binding.history
+                        or not plan.ready(history)
+                        or not plan.permits(view, retired)
+                    ):
+                        return True
+                    plan.commit(prepared, page.after)
+                    history.publish_committed()
+                    retirement.push_async_callback(
+                        self.owner.retire_presentations(contents, view.output, retired)
+                    )
         if not window.is_attached or not contents.is_attached:
             return True
         if self.native_current():
@@ -429,8 +395,23 @@ class ViewBinding:
     def thread_scope(self):
         return None
 
-    def histories(self):
-        return ()
+    reports_coverage = False
+
+    def covers_outgoing(self, message):
+        return False
+
+    def covers_input(self, native_id):
+        return False
+
+    def close_source(self):
+        pass
+
+    def retire_source(self):
+        return AwaitComplete.nothing()
+
+    @property
+    def history(self) -> TranscriptHistory:
+        raise ValueError("Saved history requires a bound view")
 
     def observe_thread(self, owner):
         pass
@@ -519,8 +500,9 @@ class BoundView(ViewBinding):
     def histories(self):
         return tuple(self.contents.query_children(TranscriptHistory))
 
-    def draft_history(self, draft):
-        history, = (history for history in self.histories() if history.owns_draft(draft))
+    @property
+    def history(self) -> TranscriptHistory:
+        history, = self.histories()
         return history
 
     def observe_thread(self, owner):
@@ -530,46 +512,46 @@ class BoundView(ViewBinding):
             owner._thread_observation.enter_context(
                 view.app.coordination_access.observe_thread_changes(view, scope, view.thread_observed))
 
+    @property
+    def reports_coverage(self):
+        return self.history.state.reports_coverage
+
+    def covers_outgoing(self, message):
+        return self.history.covers_outgoing(message)
+
+    def covers_input(self, native_id):
+        return self.history.covers_input(native_id)
+
+    def close_source(self):
+        self.history.close()
+
+    def retire_source(self):
+        return self.history.retire_source()
+
     async def restore_documents(self, owner):
-        view = self.view
-        if not view.is_attached:
+        if not self.view.is_attached or not owner.documents:
             return
         moment = self.Moment.capture(self, owner)
-        contents = self.contents
-        for source in owner.documents:
-            if not moment.current() or source.closed:
-                return
-            history = TranscriptHistory.from_source(source, notification_view=contents)
-            await contents.prepare_history(history, moment.current, window=self.window)
-            if not moment.current():
-                return
-            accepted = False
-            try:
-                await contents.mount(history)
-                if not moment.current():
-                    return
-                history.acquire_document()
-                owner.documents = tuple(document for document in owner.documents if document is not source)
-                accepted = True
-            finally:
-                if not accepted and history.is_attached:
-                    await history.remove()
+        source, = owner.documents
+        if not moment.current() or source.closed:
+            return
+        await self.history.restore_source(source, moment.current)
+        if moment.current():
+            owner.documents = ()
 
     async def restore(self, owner):
         view = self.view
         view.resume_retained_history()
         if not owner.readable:
             return
-        first_history = next(iter(self.histories()), None)
         moment = self.Restoration.capture(self, owner, revision=view.window.scroll_revision)
         position = self.window.reader_position
-        for history in self.histories():
-            if not await history.restore_reader_ranges(position.ranges, moment.current):
-                return
+        history = self.history
+        if not await history.restore_reader_ranges(position.ranges, moment.current):
+            return
         if not moment.current():
             return
-        if first_history is not None:
-            await self.reveal_retained(owner, first_history)
+        await self.reveal_retained(owner, history)
         view.refresh_native_projection()
         publication = self.capture(owner, CanonicalSourcePublication)
         view.call_after_refresh(partial(moment.refresh, publication))
@@ -691,18 +673,17 @@ class TranscriptPresentation:
 
     def received(self, page: TranscriptPage) -> None:
         """A read page resumes parked history; a commit adds what the history lacks."""
-        for history in self.binding.histories():
-            history.state.validate_snapshot(history, page)
-        history = next(iter(self.binding.histories()), None)
-        if history is None or not history.page_source.through.contains(page.after):
+        history = self.binding.history
+        history.state.validate_snapshot(history, page)
+        if not history.page_source.contains(page.after):
             self.require_commit()
 
     @property
     def reports_coverage(self) -> bool:
-        return any(history.state.reports_coverage for history in self.binding.histories())
+        return self.binding.reports_coverage
 
     def covers_outgoing(self, message) -> bool:
-        return any(history.covers_outgoing(message) for history in self.binding.histories())
+        return self.binding.covers_outgoing(message)
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether saved history already draws the input Core started under this identity.
@@ -711,7 +692,7 @@ class TranscriptPresentation:
         the conversation. Retirement only removes live blocks that exist when
         a page is accepted, so a start arriving afterwards asks here first.
         """
-        return any(history.covers_input(native_id) for history in self.binding.histories())
+        return self.binding.covers_input(native_id)
 
     def invalidate_publications(self) -> None:
         """Revoke in-flight view work without forgetting its published source."""
@@ -784,15 +765,14 @@ class TranscriptPresentation:
             self.binding.request(self)
 
     def source_work_finished(self, history) -> None:
-        if history in self.binding.histories():
+        if self.binding.matches(history.view):
             self.retry()
 
     async def close(self) -> None:
         self.closed = True
         try:
             async with AsyncResourceRelease() as release:
-                for history in reversed(self.binding.histories()):
-                    release.callback(history.close)
+                release.callback(self.binding.close_source)
                 release.callback(self._close_documents)
                 await self.suspend()
         finally:
@@ -895,8 +875,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                     worker.cancel()
                 # A different origin does not authorize reusing these pages.
                 # Withdraw every old source before joining any cancelled work.
-                retirement = AwaitComplete(*(history.retire_source()
-                                             for history in self.binding.histories()))
+                retirement = self.binding.retire_source()
                 self.binding.reset_reader()
                 await retirement
 
@@ -909,13 +888,13 @@ class SessionTranscriptPresentation(TranscriptPresentation):
             return
         generation = self.generation
         documents = []
-        for history in self.binding.histories():
-            if history._source_state.retirement_source().reports_coverage:
-                documents.append(await history.park_document())
-                if self.closed or not self.binding.matches(view) or self.generation != generation:
-                    for source in documents:
-                        source.close()
-                    return
+        history = self.binding.history
+        if history._source_state.retirement_source().reports_coverage:
+            documents.append(await history.park_document())
+            if self.closed or not self.binding.matches(view) or self.generation != generation:
+                for source in documents:
+                    source.close()
+                return
         self._close_documents()
         self.documents = tuple(documents)
         self._unbind_view()
