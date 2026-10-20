@@ -672,10 +672,10 @@ class Prompt(TonePaint, containers.VerticalGroup):
                 Content.styled(mode.description or "", "dim"),
             )
         self.mode_switcher.set_options(
-            [Option(row, id=mode.id) for row, mode in zip(columns, mode_list)]
+            [Option(row, id=mode.value) for row, mode in zip(columns, mode_list)]
         )
         if current is not None:
-            self.mode_switcher.highlighted = self.mode_switcher.get_option_index(current.id)
+            self.mode_switcher.highlighted = self.mode_switcher.get_option_index(current.value)
 
     def sync_turn(self) -> None:
         if not self.is_mounted:

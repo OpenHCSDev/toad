@@ -1,7 +1,6 @@
 """ACP operations remain owned by the controller after their view retires."""
 from __future__ import annotations
 from toad.acp.status import StopReason
-from acp.schema import SessionModeState
 
 import asyncio
 from abc import ABC, abstractmethod
@@ -68,7 +67,6 @@ class AgentController(OperationalTerminalOwner):
         self.transcripts = transcripts
         self.coordination = None
         self.session = SessionBinding(None)
-        self.mode_state: SessionModeState | None = None
         self.commands = []
         self.plan_entries: list[PlanItem] | None = None
 
@@ -145,31 +143,8 @@ class AgentController(OperationalTerminalOwner):
         agent.events.publish(McpClientStopped())
 
     def reset_configuration(self):
-        self.mode_state = None
         self.agent.configuration.reset()
         self.agent.configuration.publish()
-
-    @property
-    def available_modes(self):
-        return tuple(self.mode_state.available_modes) if self.mode_state is not None else ()
-
-    @property
-    def current_mode(self):
-        if self.mode_state is None:
-            return None
-        return next((mode for mode in self.available_modes
-                     if mode.id == self.mode_state.current_mode_id), None)
-
-    def publish_modes(self, modes: SessionModeState):
-        if modes.current_mode_id not in {mode.id for mode in modes.available_modes}:
-            raise ValueError("ACP mode state has no advertised current mode")
-        self.mode_state = modes
-        self.agent.configuration.publish()
-
-    def update_mode(self, mode_id: str):
-        if self.mode_state is None:
-            raise ValueError("ACP mode update arrived without advertised modes")
-        self.publish_modes(self.mode_state.model_copy(update={"current_mode_id": mode_id}))
 
     def publish_plan(self, entries: list[PlanItem]) -> None:
         """Keep the latest typed source value while its optional view is absent."""

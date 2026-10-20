@@ -60,6 +60,11 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
     def selected(self) -> SessionConfigSelectOption | None:
         return next((choice for choice in self.choices if choice.value == self.current), None)
 
+    def with_current(self, value: str):
+        if self.option is None:
+            raise ValueError(f"ACP {self.label} update arrived without an advertisement")
+        return self.bind(self.option.model_copy(update={"current_value": value}))
+
     async def select(self, agent, value: str) -> str | None:
         if self.option is None:
             return f"This agent does not advertise {self.label} configuration"
@@ -101,6 +106,14 @@ class ThinkingConfigurationSetting(ConfigurationSetting):
         return option.category == "thought_level" or option.id == "thinking_level"
 
 
+class ModeConfigurationSetting(ConfigurationSetting):
+    label = "mode"
+
+    @classmethod
+    def matches(cls, option):
+        return option.category == "mode"
+
+
 class ConfigurationAdvertisements(MroDispatch):
     def __init__(self, selections):
         self.selections = selections
@@ -133,6 +146,14 @@ class AgentConfiguration:
     @property
     def thinking(self) -> ThinkingConfigurationSetting:
         return self.setting(ThinkingConfigurationSetting)
+
+    @property
+    def mode(self) -> ModeConfigurationSetting:
+        return self.setting(ModeConfigurationSetting)
+
+    def receive_current_mode(self, value: str) -> None:
+        self.selections[ModeConfigurationSetting] = self.mode.with_current(value)
+        self.publish()
 
     def receive(self, options):
         if options is None:

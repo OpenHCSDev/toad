@@ -527,20 +527,6 @@ class AgentSession:
         self.agent.events.publish(core_events.CommsUpdated(self.agent.coordination, self.agent.session_id))
 
 
-    async def set_mode(self, mode_id: str) -> str | None:
-        """Update the current mode with the agent."""
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        authority.require()
-        try:
-            await self.agent.process.rpc.set_session_mode(self.agent.session_id, mode_id)
-            authority.require()
-        except RequestError as error:
-            return ACPFailure.from_error(error).feedback
-        else:
-            self.agent.controller.update_mode(mode_id)
-            return None
-
-
     async def set_name(self, name: str) -> None:
         """The user or agent process named this session.
 
@@ -559,6 +545,4 @@ class AgentSession:
 
     def publish_configuration(self, response):
         self.load_plan = SessionLoadPlan.at_response(response.field_meta)
-        if (modes := response.modes) is not None:
-            self.agent.controller.publish_modes(modes)
         self.agent.configuration.receive(response.config_options)

@@ -207,14 +207,14 @@ class Agent(AgentBase):
 
     @property
     def available_modes(self):
-        return self.controller.available_modes
+        return self.configuration.mode.choices
 
     @property
     def current_mode(self):
-        return self.controller.current_mode
+        return self.configuration.mode.selected
 
     async def set_mode(self, mode_id: str) -> str | None:
-        return await self.session.set_mode(mode_id)
+        return await self.configuration.mode.select(self, mode_id)
 
     async def set_model(self, model_id: str) -> str | None:
         return await self.configuration.setting(ModelConfigurationSetting).select(self, model_id)
