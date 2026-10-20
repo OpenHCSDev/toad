@@ -10,7 +10,7 @@ from dataclasses import dataclass, field, replace
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ReferenceType, ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage, UnreadTranscriptCursor
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 
@@ -338,10 +338,10 @@ class PreparedPageSource(ABC):
         return self.scope
 
     def contains(self, cursor: TranscriptCursor) -> bool:
-        return self.through is not None and self.through.contains(cursor)
+        return self.through.contains(cursor)
 
     def accepts_commit(self, cursor: TranscriptCursor) -> bool:
-        return self.through is not None and cursor.contains(self.through)
+        return cursor.contains(self.through)
 
     def has_more(self, end: PageEnd, page: TranscriptPage) -> bool:
         return end.has_more(self.through, page)
@@ -464,8 +464,8 @@ class UnreadTranscriptPage:
     """The view before a saved page has been read, not a storage snapshot."""
 
     events: tuple = ()
-    before: None = None
-    after: None = None
+    before: TranscriptCursor = field(default_factory=UnreadTranscriptCursor)
+    after: TranscriptCursor = field(default_factory=UnreadTranscriptCursor)
     has_older: bool = False
     has_newer: bool = False
 
@@ -483,7 +483,7 @@ class SavedHistory(PreparedPageSource):
     work: ClassVar[type[TranscriptPageWork]] = TranscriptPageWork
 
     def __init__(
-        self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor | None,
+        self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,
         runtime: PreparationRuntime,
     ) -> None:
         super().__init__()
