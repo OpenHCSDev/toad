@@ -386,12 +386,12 @@ class WirePageBuffer(SavedHistory):
         return self.loader.kind.seen_page(history, seen)
 
     async def mark_page(self, page) -> None:
-        from agent_comms.route_selection import implicit_root, run_selected_write
+        from agent_comms.route_selection import run_selected_write
 
         comms = self.loader.comms
         await asyncio.to_thread(
             run_selected_write, comms.root, comms.views.mark_page_read, page,
-            worktree=str(self.loader.project), implicit=implicit_root())
+            worktree=str(self.loader.project))
 
     async def read_only(self) -> bool:
         return await self.runtime.run_thread(
