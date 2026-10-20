@@ -4,12 +4,22 @@ from pathlib import Path
 
 
 def test_transcript_loaders_use_captured_actor():
-    tree = ast.parse((Path(__file__).parents[2] / 'src/toad/transcript_publication.py').read_text())
-    loaders = [node.args[1] for node in ast.walk(tree)
-               if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-               and node.func.id == 'TranscriptHistory']
-    assert loaders
-    assert all(ast.unparse(loader) == 'self.agent.get_transcript_page' for loader in loaders)
+    root = Path(__file__).parents[2] / 'src/toad/widgets'
+    conversation = ast.parse((root / 'conversation.py').read_text())
+    openings = [node for node in ast.walk(conversation) if isinstance(node, ast.Call)
+                and ast.unparse(node.func) == 'TranscriptHistory.empty']
+    assert len(openings) == 1
+    assert ast.unparse(openings[0].keywords[0].value) == 'self'
+
+    history = ast.parse((root / 'transcript_history.py').read_text())
+    owner = next(node for node in history.body if isinstance(node, ast.ClassDef)
+                 and node.name == 'TranscriptHistory')
+    source = next(node for node in owner.body if isinstance(node, ast.FunctionDef)
+                  and node.name == 'empty_source')
+    loaders = [node.args[0] for node in ast.walk(source) if isinstance(node, ast.Call)
+               and isinstance(node.func, ast.Name) and node.func.id == 'SavedHistory']
+    assert len(loaders) == 1
+    assert ast.unparse(loaders[0]) == 'view.transcript.get_transcript_page'
 
 
 def test_root_transcript_state_deleted():
