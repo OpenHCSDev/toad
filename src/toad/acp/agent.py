@@ -257,9 +257,10 @@ class Agent(AgentBase):
         """Capture, before a presentation read, what its result must still match."""
         from .comms_updates import OwnerSnapshotConsumer
 
-        if (thread := self.observed_thread()) is None:
+        coordination = self.coordination
+        if coordination is None:
             return NoPendingThreadRead()
-        return PendingThreadRead(self, thread, ClientSessionRequest(self, self.session_id),
+        return PendingThreadRead(self, coordination, ClientSessionRequest(self, self.session_id),
                           OwnerSnapshotConsumer(self, self.session_id,
                                                 turn_token=self.presentation.turns.sequence))
 

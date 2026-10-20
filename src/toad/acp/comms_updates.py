@@ -263,12 +263,15 @@ class PendingThreadRead(ThreadRead):
     """
 
     agent: Any
-    thread: tuple[str, str]
+    coordination: CoordinationChangedUpdate
     authority: ClientSessionRequest
     snapshot: OwnerSnapshotConsumer
 
     def settle(self, presentation: ThreadPresentation | None) -> ThreadReadOutcome:
-        if self.agent.observed_thread() != self.thread:
+        current = self.agent.coordination
+        if current is None or (current.wire_root, current.thread) != (
+            self.coordination.wire_root, self.coordination.thread
+        ):
             return ChangedAttachmentRead()
         if self.authority.retired:
             return EndedSessionRead()
@@ -277,4 +280,5 @@ class PendingThreadRead(ThreadRead):
         return SettledThreadRead(presentation)
 
     async def reconcile(self, transcripts) -> None:
-        self.settle(await transcripts.thread_presentation(*self.thread))
+        self.settle(await transcripts.thread_presentation(
+            self.coordination.wire_root, self.coordination.thread.name))
