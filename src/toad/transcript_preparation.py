@@ -353,7 +353,7 @@ class PreparedPageSource(ABC):
         return request.cursor == boundary
 
     async def latest(self, prepared: PreparedTranscriptPage) -> PreparedTranscriptPage:
-        if prepared.page.after == self.through:
+        if prepared.page.after.same_position(self.through):
             return prepared.for_view()
         return (await self.get(PageRequest(OLDER_END, self.through))).for_view()
 

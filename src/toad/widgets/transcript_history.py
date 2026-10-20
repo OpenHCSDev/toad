@@ -805,6 +805,10 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     async def on_mount(self) -> None:
         await self._finish_mount()
+        self.state.mounted(self)
+
+    def load_initial_page(self) -> None:
+        self.request_latest(LatestPosition.hold(self.window))
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         """A page joined what this history draws."""
