@@ -374,9 +374,8 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
                 yield self.presentation.compose_content(self)
 
     def update_title(self) -> None:
-        """The screen's title names the agent and the project it presents."""
-        self.title = (f"{self._agent.name} {format_path(self.project_path)}"
-                      if self._agent is not None else "")
+        """The screen's title names the session and the project it presents."""
+        self.title = f"{self.display_name} {format_path(self.project_path)}"
 
     async def wait_content_ready(self) -> None:
         if self._closing or self._closed:
@@ -509,6 +508,16 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     async def on_acp_plan(self, message: CoreEventMessage):
         self.thread_sidebar.update_plan(message.event.entries)
 
+    @handles(SessionChangedEvent)
+    def on_session_details_changed(self, message: CoreEventMessage) -> None:
+        if message.event.mode_name == self.id:
+            self.update_title()
+
+    @handles(core_events.OpenTabsChanged, core_events.ThreadRowStateChanged,
+             core_events.ThreadRowsChanged)
+    def on_session_tabs_changed(self, message: CoreEventMessage) -> None:
+        self.update_title()
+
     @handles(core_events.SessionTitleChanged)
     def on_session_title_changed(self, message: CoreEventMessage) -> None:
         """The user or the agent process named this session; the tab keeps it."""
@@ -536,6 +545,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     def on_mount(self) -> None:
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
+        self.observe_core(self.app.session_tracker.events)
         # Keep the screen-wide navigation row independent of sidebar geometry,
         # including when restoring a previously mounted owner tab.
         self.update_title()

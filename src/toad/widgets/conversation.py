@@ -388,6 +388,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         from toad.screens.session_view import SessionView
 
         self.thread_presentation = presentation
+        self._update_model_info()
         if presentation is None or not self.transcript.readable:
             return
         if self.query_ancestor(SessionView).is_current:
@@ -674,7 +675,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self.refresh_bindings()
 
     def _update_model_info(self) -> None:
-        self.agent_info = self.agent_binding.model_info()
+        self.agent_info = self.agent_binding.model_info(self.agent_title)
 
     @handles(AgentReady)
     async def on_agent_ready(self, message: CoreEventMessage) -> None:
@@ -802,10 +803,10 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             del self.tool_expansions[next(iter(self.tool_expansions))]
 
     @property
-    def agent_title(self) -> str | None:
-        if self._agent_data is not None:
-            return self._agent_data.name
-        return None
+    def agent_title(self) -> str:
+        from toad.screens.session_view import SessionView
+
+        return self.query_ancestor(SessionView).display_name
 
     def insert_path_into_prompt(self, path: Path) -> None:
         if not path.is_relative_to(self.project_path):
