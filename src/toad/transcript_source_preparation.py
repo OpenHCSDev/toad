@@ -258,6 +258,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 except _DrawingStopped:
                     return False
                 await self.remove_children(page for page in previous if page not in views)
+                source.through = latest.page.after
                 self._update_edges()
                 self.rows_published()
             return True

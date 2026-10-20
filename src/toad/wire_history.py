@@ -41,6 +41,9 @@ class WireCut(ABC):
 
     cursor: PageCursor
 
+    def same_position(self, other: WireCut) -> bool:
+        return self == other
+
     def older(self) -> OlderTraversal:
         return self.cursor.older()
 
