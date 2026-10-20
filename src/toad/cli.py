@@ -85,6 +85,11 @@ class DefaultCommandGroup(click.Group):
             return super().parse_args(ctx, args)
         if "--version" in args or "-v" in args:
             return super().parse_args(ctx, args)
+        from agent_comms.active_route import ActiveRoute
+        from agent_comms.launch_root import LaunchRoot
+
+        # One selection, as in every Comms process: --comms-root if given, else the published route.
+        LaunchRoot.startup(args, ActiveRoute.published_launch)
         # Check if first arg is a known subcommand
         if not args or args[0] not in self.commands:
             # If not a subcommand, prepend the default command name
@@ -129,13 +134,9 @@ def main(ctx, version):
 @main.command("run")
 @click.argument("project_dir", metavar="PATH", required=False, default=".")
 @click.option("-a", "--agent", metavar="AGENT", default="")
-@click.option("--comms-root", required=True, type=click.Path(path_type=str), help="Explicit Comms process root.")
-def run(project_dir: str = ".", agent: str = "1", comms_root: str = ""):
-    """Run an installed agent with an explicit Comms process root."""
+def run(project_dir: str = ".", agent: str = "1"):
+    """Run an installed agent."""
 
-    from agent_comms.launch_root import LaunchRoot
-
-    LaunchRoot.from_path(comms_root).install()
     check_directory(project_dir)
 
     if agent:
@@ -172,21 +173,15 @@ def run(project_dir: str = ".", agent: str = "1", comms_root: str = ""):
     default=None,
 )
 @click.option("-d", "--project-dir", "project_option", metavar="PATH", default=None)
-@click.option("--comms-root", required=True, type=click.Path(path_type=str), help="Explicit Comms process root.")
 def acp(
     command: str,
     title: str | None,
     project_dir: str | None,
     session_id: str | None = None,
-    comms_root: str = "",
 ) -> None:
-    """Run an ACP agent from a command with an explicit Comms root."""
+    """Run an ACP agent from a command."""
 
-    from agent_comms.launch_root import LaunchRoot
     from rich import print
-
-    LaunchRoot.from_path(comms_root).install()
-
     from toad.agent_schema import AgentDefinition
 
     command_name = command.split(" ", 1)[0].lower()
