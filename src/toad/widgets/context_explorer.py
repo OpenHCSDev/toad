@@ -13,7 +13,7 @@ from toad.widgets.process_text_area import ProcessTextArea
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
 from agent_comms.coordinator import Coordination
-from agent_comms.private_bus_checkpoint import ContextManifestCursor
+from agent_comms.context_store import ContextManifestCursor
 
 from toad.core.context_inspection import (
     ContextNode, DetachedInspection, HoldingInspection, InspectionState,

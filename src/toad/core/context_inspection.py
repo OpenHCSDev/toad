@@ -30,7 +30,7 @@ from agent_comms.working_memory_questions import SpanAnswer
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
-    from agent_comms.private_bus_checkpoint import ContextManifestPage
+    from agent_comms.context_store import ContextManifestPage
 
 
 @dataclass(frozen=True)
@@ -516,7 +516,7 @@ class ContextInspection:
     def read(comms, owner, *, cursor=None, previous=()):
         entry = comms.registry.entry(owner).entry
         thread = entry.thread
-        page = comms.bus.log.context_manifest_page(owner, comms.registry,
+        page = comms.contexts.page(owner, comms.registry,
             cursor=cursor, previous=previous)
         annotations = WorkingMemoryAnnotations.for_context(
             comms.root / "coordination.sqlite3",
