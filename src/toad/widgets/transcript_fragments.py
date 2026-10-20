@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.mro_dispatch import handles
@@ -530,7 +530,7 @@ class TranscriptFragmentConsumer(MroProjection):
 
 def transcript_fragments(
     events: tuple[TranscriptEvent, ...], *,
-    resolve_sent: Callable[[list[SentTranscript]], tuple[SentTranscript | PublishedSentMessage, ...]],
+    resolve_sent: Callable[[Iterable[SentTranscript]], dict[int, SentTranscript | PublishedSentMessage]],
 ) -> tuple[TranscriptFragment, ...]:
     from toad.tool_output import ToolOutput
 
@@ -545,7 +545,7 @@ def transcript_fragments(
         parts = ToolOutput.capture_recorded(call, tool_events)
         reports.extend(message for part in parts for message in part.sent_reports)
         tools[index] = (tool_events, starts_activity, call, parts)
-    resolved = dict(zip(map(id, reports), resolve_sent(reports)))
+    resolved = resolve_sent(reports)
     builder = TranscriptFragmentConsumer()
     canonical = {}
     for index, report in consumer.reported_messages.items():
