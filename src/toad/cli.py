@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 from typing import TYPE_CHECKING
 
@@ -13,15 +12,10 @@ if TYPE_CHECKING:
 
 def persist_terminal_failure(error: Exception) -> None:
     """Keep Textual's terminal failure in the existing diagnostic directory."""
-    import traceback
     from toad import paths
-    from toad.acp.agent import generate_datetime_filename
 
-    path = paths.get_log() / generate_datetime_filename("Terminal_crash", ".txt")
     try:
-        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(descriptor, "w") as stream:
-            traceback.print_exception(error, file=stream)
+        path = paths.save_traceback(error, "Terminal_crash")
     except OSError as log_error:
         click.echo(f"Unable to save terminal traceback: {log_error}", err=True)
     else:

@@ -430,6 +430,17 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
         return PreparedTranscriptPage.prepare(self.page)
 
 
+class TranscriptNoProgress(ValueError):
+    """A page read returned no new edge while its end still claimed more."""
+
+    def __init__(self, request: PageRequest, through, page: TranscriptPage) -> None:
+        super().__init__(
+            f"Transcript history made no cursor progress: {type(request.end).__name__} "
+            f"from {request.cursor!r} through {through!r} returned before={page.before!r} "
+            f"after={page.after!r} has_older={page.has_older} has_newer={page.has_newer} "
+            f"events={len(page.events)}")
+
+
 @dataclass(frozen=True)
 class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
@@ -452,7 +463,7 @@ class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[Prepared
         request = self.request
         page = await request.end.load_page(self.loader, request.cursor, self.through)
         if not request.progressed(page):
-            raise ValueError("Transcript history made no cursor progress")
+            raise TranscriptNoProgress(request, self.through, page)
         if self.scope.closed:
             raise asyncio.CancelledError
         prepared = await runtime.renderer.capture(TranscriptPageRenderTask(page))
