@@ -118,7 +118,6 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         """Paint one member row from its current model row."""
         sidebar = self.sidebar
         channel = self.channel
-        view.target = ThreadTarget(name)
         view.show(sidebar.model_state.shown.threads.rows[name], pinned=name in channel.pinned_members)
 
     @property
