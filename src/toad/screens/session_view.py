@@ -59,8 +59,8 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Verti
     @property
     def display_name(self) -> str:
         """Borrow this view's current label from the same projection as its tab."""
-        return next((tab.title for tab in self.app.open_tabs
-                     if tab.mode_name == self.id), "")
+        sessions = self.app.session_navigation
+        return self.app.coordination_access.observation.tab(sessions.get(self.id), sessions).title
 
     @property
     def project_root(self) -> Path:

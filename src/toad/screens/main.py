@@ -513,8 +513,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         if message.event.mode_name == self.id:
             self.update_title()
 
-    @handles(core_events.OpenTabsChanged, core_events.ThreadRowStateChanged,
-             core_events.ThreadRowsChanged)
+    @handles(core_events.ThreadRowsChanged)
     def on_session_tabs_changed(self, message: CoreEventMessage) -> None:
         self.update_title()
 
