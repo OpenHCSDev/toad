@@ -16,18 +16,18 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any
 from uuid import uuid4
 
-from agent_comms.field_codec import FieldCodec
 from annotated_types import Ge
 from objectstate import DottedFieldPath, ObjectState, set_base_config_type
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 
+from agent_comms import field_codec
+from agent_comms.field_codec import FieldCodec
 from toad import atomic, paths
 from toad import setting_effects as effects
-from toad.setting_declarations import Effect, FamilyChoices
-from toad.patch import DiffSettings
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
+from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
     BlurNotification,
@@ -41,83 +41,72 @@ from toad.setting_choices import (
     Scrollbar,
     SessionBar,
 )
+from toad.setting_declarations import Effect, FamilyChoices
 from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-def saved_as(name: str) -> dict[str, str]:
-    """Field metadata for a setting whose key in `toad.json` is not its field name."""
-    return {"wire_name": name}
-
-
 @dataclass(frozen=True)
 class UiSettings(AnnotatedDataclassValidationMixin):
     wheel_scroll_rows: Annotated[
-        int, FieldLabel("Rows per mouse wheel notch"), Ge(1), effects.wheel_scroll_rows,
-    ] = field(default=1, metadata=saved_as("wheel-scroll-rows"))
+        int, FieldLabel("Rows per mouse wheel notch"), Ge(1), effects.wheel_scroll_rows, field_codec.WireName("wheel-scroll-rows"),
+    ] = field(default=1)
     """Vertical rows per wheel event in transcripts and sidebars. Increase for faster travel."""
 
     history_buffer_viewports: Annotated[
         int,
         FieldLabel("History buffer in message-area heights"),
         Ge(1),
-        effects.history_buffer_viewports,
-    ] = field(
-        default=PresentationBudget().buffer_viewports,
-        metadata=saved_as("history-buffer-viewports"),
-    )
+        effects.history_buffer_viewports, field_codec.WireName("history-buffer-viewports"),
+    ] = field(default=PresentationBudget().buffer_viewports)
     """Prepare and retain this distance on both sides of the reader. Memory and widget limits still apply."""
 
     theme: Annotated[str, SchemeName(), effects.theme] = "wal"
     """wal follows pywal's palette in true colour. ANSI themes inherit your terminal palette."""
 
-    vim_keys: Annotated[bool, FieldLabel("Vim editing and navigation"), effects.vim_keys] = field(
-        default=False, metadata=saved_as("vim-keys")
-    )
+    vim_keys: Annotated[bool, FieldLabel("Vim editing and navigation"), effects.vim_keys, field_codec.WireName("vim-keys")] = field(default=False)
     """Opt in to modal prompts. Escape leaves Insert; Normal Enter never sends. Ctrl+Alt+X cancels a turn."""
 
     prompt_message: Annotated[str, FieldLabel("Prompt message")] = "How can I help you today?"
     """Text shown as placeholder in prompt text area"""
 
     compact_input: Annotated[
-        bool, FieldLabel("Compact text input?"), effects.visibility
-    ] = field(default=False, metadata=saved_as("compact-input"))
+        bool, FieldLabel("Compact text input?"), effects.visibility, field_codec.WireName("compact-input")
+    ] = field(default=False)
     """Remove border and margin around the text area for additional space"""
 
     sessions_bar: Annotated[
         type[SessionBar],
         FieldLabel("Show sessions bar?"),
         FamilyChoices(SessionBar),
-        effects.sessions_bar,
-    ] = field(default=AlwaysSessionBar, metadata=saved_as("sessions-bar"))
+        effects.sessions_bar, field_codec.WireName("sessions-bar"),
+    ] = field(default=AlwaysSessionBar)
     """When to show the sessions bar (tabs at top of screen)."""
 
     footer: Annotated[bool, FieldLabel("Enable footer?"), effects.visibility] = True
     """Disable the footer if you want additional room."""
 
-    info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility] = field(
-        default=True, metadata=saved_as("info-bar")
-    )
+    info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility, field_codec.WireName("info-bar")] = field(default=True)
     """The info bar is the text below the prompt text area. Disable for more space."""
 
     status_line: Annotated[
-        bool, FieldLabel("Show status line in the info bar?"), effects.visibility
-    ] = field(default=True, metadata=saved_as("status-line"))
+        bool, FieldLabel("Show status line in the info bar?"), effects.visibility, field_codec.WireName("status-line")
+    ] = field(default=True)
     """The status line shows tokens and cost (not available in all agents)."""
 
     agent_title: Annotated[
-        bool, FieldLabel("Show agent title the info bar?"), effects.visibility
-    ] = field(default=True, metadata=saved_as("agent-title"))
+        bool, FieldLabel("Show agent title the info bar?"), effects.visibility, field_codec.WireName("agent-title")
+    ] = field(default=True)
     """Disable for a little extras space."""
 
     column: Annotated[bool, FieldLabel("Enable column?"), effects.conversation_layout] = False
     """Enable for a fixed column size. Disable to use the full screen width."""
 
     column_width: Annotated[
-        int, FieldLabel("Width of the column"), Ge(40), effects.conversation_layout
-    ] = field(default=100, metadata=saved_as("column-width"))
+        int, FieldLabel("Width of the column"), Ge(40), effects.conversation_layout, field_codec.WireName("column-width")
+    ] = field(default=100)
     """Width of the column if enabled. Minimum 40 characters."""
 
     scrollbar: Annotated[

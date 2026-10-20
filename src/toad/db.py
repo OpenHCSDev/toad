@@ -2,18 +2,19 @@
 
 import asyncio
 import sqlite3
+import typing
 from collections.abc import Callable
 from contextlib import closing
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from time import time_ns
-from typing import Annotated, Any
+from typing import Annotated
 
 import aiosqlite
+
 from agent_comms.field_codec import PathText, RecordedTimestamp, TimestampText
 from agent_comms.typed_table import Column, JsonStorage, TextStorage, TypedTable
-
 from toad import paths
 from toad.agent_schema import AgentDefinition
 
@@ -49,28 +50,17 @@ class SessionMetaStorage(JsonStorage):
 
 @dataclass(frozen=True, kw_only=True)
 class Session(TypedTable, declared_name="sessions"):
-    id: int | None = field(
-        default=None, metadata={"sql": Column(primary_key=True, auto_increment=True)}
-    )
+    id: typing.Annotated[int | None, Column(primary_key=True, auto_increment=True)] = field(default=None)
     agent: str
     agent_identity: str
     agent_session_id: str
     title: str
     protocol: str = "acp"
     prompt_count: int = 0
-    created_at: SessionTimestamp = field(
-        default_factory=recorded_now,
-        metadata={"sql": Column(storage=TextStorage)},
-    )
-    last_used: SessionTimestamp = field(
-        default_factory=recorded_now,
-        metadata={"sql": Column(storage=TextStorage)},
-    )
+    created_at: typing.Annotated[SessionTimestamp, Column(storage=TextStorage)] = field(default_factory=recorded_now)
+    last_used: typing.Annotated[SessionTimestamp, Column(storage=TextStorage)] = field(default_factory=recorded_now)
     # The column keeps the durable file name; its value is always typed metadata.
-    meta_json: SessionMeta = field(
-        default_factory=SessionMeta,
-        metadata={"sql": Column(storage=SessionMetaStorage)},
-    )
+    meta_json: typing.Annotated[SessionMeta, Column(storage=SessionMetaStorage)] = field(default_factory=SessionMeta)
 
 
 class DB:
