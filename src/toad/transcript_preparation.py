@@ -58,7 +58,7 @@ class PreparedTranscriptPage:
     @classmethod
     def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""
-        fragments = transcript_fragments(page.events, resolve_sent=page.resolve_sent_messages)
+        fragments = transcript_fragments(page.events, resolve_sent=page.after.wire.resolve_sent)
         return cls.measured(page, fragments)
 
     @classmethod

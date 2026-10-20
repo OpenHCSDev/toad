@@ -530,7 +530,7 @@ class TranscriptFragmentConsumer(MroProjection):
 
 def transcript_fragments(
     events: tuple[TranscriptEvent, ...], *,
-    resolve_sent: Callable[[list[SentTranscript]], dict[int, SentTranscript | PublishedSentMessage]],
+    resolve_sent: Callable[[list[SentTranscript]], tuple[SentTranscript | PublishedSentMessage, ...]],
 ) -> tuple[TranscriptFragment, ...]:
     from toad.tool_output import ToolOutput
 
@@ -545,7 +545,7 @@ def transcript_fragments(
         parts = ToolOutput.capture_recorded(call, tool_events)
         reports.extend(message for part in parts for message in part.sent_reports)
         tools[index] = (tool_events, starts_activity, call, parts)
-    resolved = resolve_sent(reports)
+    resolved = dict(zip(map(id, reports), resolve_sent(reports)))
     builder = TranscriptFragmentConsumer()
     canonical = {}
     for index, report in consumer.reported_messages.items():
