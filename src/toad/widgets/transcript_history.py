@@ -437,7 +437,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     """
 
     CACHE_SUBTREE_GEOMETRY = True
-    MAX_FRAGMENTS = 240
+    DEFAULT_BUDGET = PresentationBudget(max_items=240)
     empty_state = LiveTranscript
 
     @classmethod
@@ -465,14 +465,12 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         return FragmentBlockCursor(self)
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
-                  *, view, notification_view: HistoryNotifications, budget: PresentationBudget | None = None,
+                  *, view, notification_view: HistoryNotifications, budget: PresentationBudget = DEFAULT_BUDGET,
                   source_state: TranscriptState | None = None):
         self.view = view
         self.notification_view = notification_view
         super().__init__(source_state=source_state or LiveTranscript(), page_source=page_source)
-        self.budget = budget or PresentationBudget(
-            max_items=self.MAX_FRAGMENTS,
-        )
+        self.budget = budget
         self.pages = deque([TranscriptPageView(
             prepared, batch_size=self.budget.batch_items,
         )])
