@@ -133,7 +133,7 @@ class TabHistoryChanged(CoreEvent):
 class NamedThreadRowsChanged(CoreEvent):
     """The named rows changed; tab membership belongs to OpenTabsChanged."""
 
-    names: frozenset[str]
+    names: frozenset[str] = field()
 
 
 @dataclass(frozen=True)
