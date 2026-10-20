@@ -362,10 +362,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         origin = self.query_ancestor(SessionView).origin
         return origin.transcript_scope() if origin is not None else None
 
-    def transcript_binding(self) -> ViewBinding:
-        """A native session publishes its transcript through this view."""
-        return BoundView(self)
-
     def status_thread(self) -> StatusThread:
         scope = self.transcript.binding.thread_scope
         if scope is None:
@@ -1509,6 +1505,10 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     async def _selected_commands_changed(self, event: CoreEventMessage) -> None:
         self.update_slash_commands()
 
+    def transcript_binding(self) -> ViewBinding:
+        """A native session publishes its transcript through this view."""
+        return BoundView(self)
+
     async def on_mount(self) -> None:
         self.transcript.bind(self)
         await self.initialize_view()
@@ -1601,16 +1601,6 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         # queue. Text/index matching cannot identify a sent input safely.
         if action:
             self._queue_edit_unavailable()
-
-    @work
-    async def replace_queued(self, prompts: list[str]) -> None:
-        """Never clear-and-resend sent inputs when editing the queue.
-
-        An empty snapshot or control ACK does not prove consumption, and a
-        surviving row may be UNKNOWN. Reissuing its text could execute it twice.
-        Local unsent composer drafts remain editable without touching this API.
-        """
-        self._queue_edit_unavailable()
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, message: CoreEventMessage) -> None:
