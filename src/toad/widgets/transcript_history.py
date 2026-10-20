@@ -33,11 +33,11 @@ from textual.strip import Strip
 from textual.widgets import Static
 
 from toad.transcript_filter import FilterState
-from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
+from toad.transcript_state import TranscriptState, LiveTranscript, UnreadTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
     RangeCategoryProjection, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange,
-    ProjectedTranscriptSource,
+    ProjectedTranscriptSource, SavedHistory, ClosedHistory, UnreadTranscriptPage,
 )
 from toad.response_delivery import ResponseDelivery
 from toad.message_rows import MessageClock
@@ -438,6 +438,21 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
+    empty_state = LiveTranscript
+
+    @classmethod
+    def empty_page(cls):
+        return PreparedTranscriptPage.empty(UnreadTranscriptPage())
+
+    @classmethod
+    def empty_source(cls, view, through):
+        return ClosedHistory(through, view.app.preparation)
+
+    @classmethod
+    def empty(cls, *, view, notification_view):
+        prepared = cls.empty_page()
+        return cls(prepared, cls.empty_source(view, prepared.page.after),
+                   view=view, notification_view=notification_view, source_state=cls.empty_state())
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.projection_changed()
@@ -450,8 +465,9 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         return FragmentBlockCursor(self)
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
-                  *, notification_view: HistoryNotifications, budget: PresentationBudget | None = None,
+                  *, view, notification_view: HistoryNotifications, budget: PresentationBudget | None = None,
                   source_state: TranscriptState | None = None):
+        self.view = view
         self.notification_view = notification_view
         super().__init__(source_state=source_state or LiveTranscript(), page_source=page_source)
         self.budget = budget or PresentationBudget(
@@ -476,23 +492,28 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         source.park(pages, projected)
         return source
 
-    @classmethod
-    def from_source(cls, source: PreparedPageSource, **source_fields) -> LineHistory:
-        """Rebuild a parked history from its pages; it covers no live blocks until it resumes."""
+    async def restore_source(self, source: PreparedPageSource, current) -> None:
+        """Put the parked pages back into the same mounted reader."""
         pages = source.held_pages
         if not pages or source.closed:
             raise ValueError("No kept transcript range")
-        history = cls(pages[0], source, **source_fields)
-        history._source_state = ParkedSourceTranscript(LiveTranscript())
-        history.pages.extend(TranscriptPageView(
-            page, batch_size=history.budget.batch_items,
-        ) for page in pages[1:])
+        await self.retire_source()
+        retired = tuple(self.pages)
+        self.page_source = source
+        self._source_state = ParkedSourceTranscript(LiveTranscript())
+        self.pages = deque(TranscriptPageView(page, batch_size=self.budget.batch_items)
+                           for page in pages)
+        self.filter = FilterState.for_selection(self)
         projected = source.projection_source
         if projected.held_pages:
             from toad.transcript_filter import Filtered
-            projection = ProjectedTranscriptHistory.from_source(projected, owner=history)
-            history.filter = Filtered(history, projection)
-        return history
+            projection = ProjectedTranscriptHistory.from_source(projected, owner=self)
+            self.filter = Filtered(self, projection)
+        await self.notification_view.prepare_history(self, current, window=self.window)
+        if current():
+            await self.mount(*self.pages, before=self.newer)
+            await self.remove_children(retired)
+            self.acquire_document()
 
     def acquire_document(self) -> None:
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
@@ -1056,10 +1077,11 @@ class TranscriptHistory(CommittedHistory, LineHistory):
     parked with a tab and rebuilt from what was parked.
     """
 
-    def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
-                 *, committed: bool = True, **kwargs):
-        super().__init__(prepared, page_source, **kwargs,
-                         source_state=LiveTranscript() if committed else ProvisionalTranscript())
+    empty_state = UnreadTranscript
+
+    @classmethod
+    def empty_source(cls, view, through):
+        return SavedHistory(view.transcript.get_transcript_page, through, view.app.preparation)
 
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A filtered source view with the ordinary pager's loading and eviction policy."""
@@ -1067,7 +1089,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     def __init__(self, owner: TranscriptHistory, source: ProjectedTranscriptSource,
                  prepared: PreparedTranscriptPage) -> None:
         self._projection_owner = ref(owner)
-        super().__init__(prepared, source, budget=owner.budget,
+        super().__init__(prepared, source, view=owner.view, budget=owner.budget,
                          notification_view=owner.notification_view)
         self.add_class("filtered-history-results")
 

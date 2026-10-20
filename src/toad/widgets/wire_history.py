@@ -31,17 +31,15 @@ class WireHistory(VisibleReadMarking, LineHistory):
     page_source: WirePageBuffer | ClosedHistory
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: WirePageBuffer | ClosedHistory,
-                 *, view, notification_view) -> None:
-        self.view = view
-        super().__init__(prepared, page_source, notification_view=notification_view)
+                 *, view, notification_view, **kwargs) -> None:
+        super().__init__(prepared, page_source, view=view,
+                         notification_view=notification_view, **kwargs)
         # Core's source observation is independent of paint readiness.
         self.revision: ConversationRevision | None = None
 
     @classmethod
-    def empty(cls, *, view, notification_view):
-        prepared = PreparedWirePage.empty(WirePage.unread())
-        return cls(prepared, ClosedHistory(prepared.page.after, view.app.preparation),
-                   view=view, notification_view=notification_view)
+    def empty_page(cls):
+        return PreparedWirePage.empty(WirePage.unread())
 
     # The source
 

@@ -79,7 +79,7 @@ from toad.widgets.observed_thread_activity import (
     NoStatusThread, ObservedThreadActivity, StatusThread, ThreadStatusOwner,
 )
 from toad.widgets.cli_draft import CliDraft
-from toad.widgets.transcript_history import JumpToLatest
+from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ConversationEntry, ContentNavigation, UpCursor, DownCursor
@@ -882,7 +882,8 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
-                with ConversationContents(id="contents"):
+                with ConversationContents(id="contents") as contents:
+                    yield TranscriptHistory.empty(view=self, notification_view=contents)
                     yield from self._thread_loading
                     yield self.cli_draft
         yield Flash()
@@ -1037,7 +1038,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
         reference = MessageReference(sent.seq, sent.message_id)
         return any(reference in fragment.notification_references
-                   for history in self.transcript.binding.histories()
+                   for history in (self.transcript.binding.history,)
                    for fragment in history.visible_fragments())
 
     async def _apply_session_name(self, name: str) -> None:
