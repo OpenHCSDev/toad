@@ -3,7 +3,7 @@
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 
 from support.agents import deliver
-from support.coordination import carrying
+from support.coordination import carrying, registered_coordination_fact
 from support.journals import assistant_entry, write_journal
 
 
@@ -16,9 +16,12 @@ async def test_saved_message_in_parts_shows_as_one_message(workspace):
     read = workspace.comms.transcripts.capture_page_read("worker")
     saved = read.read()
     async with workspace.app(size=(110, 38)) as ui:
-        agent = ui.detached_agent("fixture")
+        agent = ui.detached_agent("worker")
         ui.attach_agent(agent)
-        await deliver(agent, carrying(TranscriptSnapshotUpdate(saved, read.identity)))
+        await deliver(agent, carrying(
+            registered_coordination_fact(workspace.comms, "worker"),
+            TranscriptSnapshotUpdate(saved, read.identity),
+        ))
         await ui.until(lambda: ui.shows("value = 123") and not ui.shows("## Plan"), why="the styled message")
         lines = [line.strip(" │▌").strip() for line in ui.visible_lines()]
         assert sum(" Agent " in line and "──" in line for line in lines) == 1, "one native row gained extra dividers"

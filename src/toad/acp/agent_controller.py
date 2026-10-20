@@ -18,9 +18,10 @@ from acp.exceptions import RequestError
 from toad.core.events import LogAgentFail
 from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
-    CompactRequest, InputFailedUpdate, encode_request,
+    CompactRequest, CoordinationChangedUpdate, InputFailedUpdate, encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
+from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.observation import ReadInputDelivery
 
@@ -35,7 +36,14 @@ class SessionBinding:
         return self.session_id is not None
 
     def accepts_notification(self, session_id):
-        return self.session_id is None or self.session_id == session_id
+        return self.bound and self.session_id == session_id
+
+    def accepts_snapshot(self, identity: TranscriptReadIdentity,
+                         coordination: CoordinationChangedUpdate | None) -> bool:
+        if not self.accepts_notification(identity.requested_name) or coordination is None:
+            return False
+        return (identity.root == coordination.wire_root
+                and identity.thread.incarnation == coordination.thread)
 
 
 class TaskRunner(ABC):
@@ -124,12 +132,14 @@ class AgentController(OperationalTerminalOwner):
 
 
     async def publish_transcript_snapshot(self, update, binding, session):
-        if binding.target is None:
-            return  # No view presents it; attaching one reads the current page.
+        if binding.target is None or not session.accepts_snapshot(update.identity, self.coordination):
+            return  # No view or matching request owns this publication.
         snapshot = await self.transcripts.publication(update)
         if self.session is not session:
             return
         if self.surface is not binding:
+            return
+        if not session.accepts_snapshot(snapshot.identity, self.coordination):
             return
         self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 
