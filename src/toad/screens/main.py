@@ -375,9 +375,9 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
 
     def update_title(self) -> None:
         """The screen's title names the agent and the project it presents."""
-        details = self.app.session_tracker.get_session(self.id)
-        self.title = (f"{details.name.display} {format_path(self.project_path)}"
-                      if details is not None else "")
+        tab = next((tab for tab in self.app.open_tabs if tab.mode_name == self.id), None)
+        self.title = (f"{tab.title} {format_path(self.project_path)}"
+                      if tab is not None else "")
 
     async def wait_content_ready(self) -> None:
         if self._closing or self._closed:
@@ -514,6 +514,11 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     def on_session_details_changed(self, message: CoreEventMessage) -> None:
         if message.event.mode_name == self.id:
             self.update_title()
+
+    @handles(core_events.OpenTabsChanged, core_events.ThreadRowStateChanged,
+             core_events.ThreadRowsChanged)
+    def on_session_tabs_changed(self, message: CoreEventMessage) -> None:
+        self.update_title()
 
     @handles(core_events.SessionTitleChanged)
     def on_session_title_changed(self, message: CoreEventMessage) -> None:
