@@ -1038,8 +1038,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
         reference = MessageReference(sent.seq, sent.message_id)
         return any(reference in fragment.notification_references
-                   for history in (self.transcript.binding.history,)
-                   for fragment in history.visible_fragments())
+                   for fragment in self.transcript.binding.history.visible_fragments())
 
     async def _apply_session_name(self, name: str) -> None:
         await self.agent_binding.set_session_name(name)

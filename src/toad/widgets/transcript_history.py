@@ -441,10 +441,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     empty_state = LiveTranscript
 
     @classmethod
-    def empty_page(cls):
-        return PreparedTranscriptPage.empty(UnreadTranscriptPage())
-
-    @classmethod
     def empty_source(cls, view, through):
         return ClosedHistory(through, view.app.preparation)
 
@@ -489,29 +485,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         await source.runtime.run_thread(source.measure_held, pages, projected)
         source.park(pages, projected)
         return source
-
-    async def restore_source(self, source: PreparedPageSource, current) -> None:
-        """Put the parked pages back into the same mounted reader."""
-        pages = source.held_pages
-        if not pages or source.closed:
-            raise ValueError("No kept transcript range")
-        await self.retire_source()
-        retired = tuple(self.pages)
-        self.page_source = source
-        self._source_state = ParkedSourceTranscript(LiveTranscript())
-        self.pages = deque(TranscriptPageView(page, batch_size=self.budget.batch_items)
-                           for page in pages)
-        self.filter = FilterState.for_selection(self)
-        projected = source.projection_source
-        if projected.held_pages:
-            from toad.transcript_filter import Filtered
-            projection = ProjectedTranscriptHistory.from_source(projected, owner=self)
-            self.filter = Filtered(self, projection)
-        await self.notification_view.prepare_history(self, current, window=self.window)
-        if current():
-            await self.mount(*self.pages, before=self.newer)
-            await self.remove_children(retired)
-            self.acquire_document()
 
     def acquire_document(self) -> None:
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
@@ -1082,8 +1055,35 @@ class TranscriptHistory(CommittedHistory, LineHistory):
     empty_state = UnreadTranscript
 
     @classmethod
+    def empty_page(cls):
+        return PreparedTranscriptPage.empty(UnreadTranscriptPage())
+
+    @classmethod
     def empty_source(cls, view, through):
         return SavedHistory(view.transcript.get_transcript_page, through, view.app.preparation)
+
+    async def restore_source(self, source: PreparedPageSource, current) -> None:
+        """Put the parked pages back into the same mounted reader."""
+        pages = source.held_pages
+        if not pages or source.closed:
+            raise ValueError("No kept transcript range")
+        await self.retire_source()
+        retired = tuple(self.pages)
+        self.page_source = source
+        self._source_state = ParkedSourceTranscript(LiveTranscript())
+        self.pages = deque(TranscriptPageView(page, batch_size=self.budget.batch_items)
+                           for page in pages)
+        self.filter = FilterState.for_selection(self)
+        projected = source.projection_source
+        if projected.held_pages:
+            from toad.transcript_filter import Filtered
+            projection = ProjectedTranscriptHistory.from_source(projected, owner=self)
+            self.filter = Filtered(self, projection)
+        await self.notification_view.prepare_history(self, current, window=self.window)
+        if current():
+            await self.mount(*self.pages, before=self.newer)
+            await self.remove_children(retired)
+            self.acquire_document()
 
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A filtered source view with the ordinary pager's loading and eviction policy."""
