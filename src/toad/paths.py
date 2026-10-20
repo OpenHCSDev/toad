@@ -1,3 +1,4 @@
+import os
 from contextlib import suppress
 from pathlib import Path
 from typing import Final
@@ -56,6 +57,18 @@ def get_project_data(project_path: Path) -> Path:
     with suppress(OSError):
         project_data_path.mkdir(0o700, exist_ok=True, parents=True)
     return project_data_path
+
+
+def save_traceback(error: BaseException, prefix: str) -> Path:
+    """Write ``error``'s traceback to a new file in the log directory."""
+    import traceback
+    from toad.acp.agent import generate_datetime_filename
+
+    path = get_log() / generate_datetime_filename(prefix, ".txt")
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "w") as stream:
+        traceback.print_exception(error, file=stream)
+    return path
 
 
 def get_log() -> Path:
