@@ -378,6 +378,9 @@ def main() -> None:
         with TerminalApp(command, display, args.output / "plain", environment, home) as app:
             app.wait("store", lambda text: "Toad" in text or "agent" in text.lower())
             app.screenshot("store")
+        # CheckRoot restores stopped declarations. Ask the lifecycle owner to
+        # start the selected worker before waiting for a connected editor.
+        wire().owners.start(args.thread)
         command = [*command, "acp",
                    shlex.quote(str(args.runtime / "agent-comms-acp")),
                    wire().registry.require(args.thread).worktree,
