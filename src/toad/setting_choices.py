@@ -6,8 +6,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 from random import choice
-from textual.content import Content
-from toad.widgets.future_text import FutureText
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.setting_declarations import Choice
@@ -313,4 +311,6 @@ class QuotesLoading(LoadingStyle):
 
     @classmethod
     def widget(cls, screen):
+        from textual.content import Content
+        from toad.widgets.future_text import FutureText
         return FutureText(Content(choice(cls.QUOTES)))
