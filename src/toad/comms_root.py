@@ -74,8 +74,11 @@ class Observation:
     def uses(self, service) -> bool:
         return False
 
+    def tab(self, entry, sessions):
+        return entry.unobserved_tab()
+
     def tabs(self, sessions):
-        return {entry.mode: entry.unobserved_tab() for entry in sessions.members}
+        return {entry.mode: self.tab(entry, sessions) for entry in sessions.members}
     def require(self, access, selected):
         return access.open_selected(selected)
     def references_for(self, root):
@@ -168,8 +171,8 @@ class Observing(Observation):
     def observes(self, root) -> bool:
         return self.service.root == Path(root).resolve()
 
-    def tabs(self, sessions):
-        return {entry.mode: entry.tab(sessions, self) for entry in sessions.members}
+    def tab(self, entry, sessions):
+        return entry.tab(sessions, self)
 
     def show_sidebar(self, view) -> None:
         if self.is_current():
