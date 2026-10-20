@@ -38,7 +38,7 @@ from performance.capture_live import XvfbDisplay
 
 def run(*args: str | Path) -> str:
     print("+ " + " ".join(map(str, args)), file=sys.stderr, flush=True)
-    return subprocess.check_output(list(map(str, args)), text=True).strip()
+    return subprocess.check_output(list(map(str, args)), text=True, timeout=10).strip()
 
 
 class OwnedDisplay(XvfbDisplay):
