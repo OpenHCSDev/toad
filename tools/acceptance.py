@@ -26,9 +26,9 @@ import time
 from pathlib import Path
 
 from agent_comms.comms import wire
-from agent_comms.native_transcript import NativeTranscript
 from agent_comms.ui_model.message_category import InboundCategory, all_categories
 from rich.cells import cell_len
+
 from toad.widgets.side_bar import BackTabButton
 
 # Isolated Python omits the script directory; this tool owns its sibling imports.
@@ -280,9 +280,10 @@ def any_channel(text):
 def check_typed_reply(app: TerminalApp, thread: str, output: Path) -> None:
     """A physical submit must finish in the native journal and survive tab return."""
     comms = wire()
-    session = NativeTranscript(Path(comms.registry.require(thread).session_file))
+    selected = comms.registry.require(thread)
+    session = selected.runtime.history_source(comms.root, selected.incarnation)
     token = "TYPED_REPLY_" + str(time.time_ns())
-    attempt = dict(status="UNKNOWN", replay=False, thread=thread, token=token)
+    attempt = {"status": "UNKNOWN", "replay": False, "thread": thread, "token": token}
     marker = output / "typed-input.json"
     app.click_cell(app.columns // 2, app.rows - 4)
     app.type_text("Reply with " + token + ". Do not use tools.")
@@ -377,7 +378,7 @@ def main() -> None:
             app.wait("store", lambda text: "Toad" in text or "agent" in text.lower())
             app.screenshot("store")
         command = [args.runtime / "python", "-m", "toad", "acp",
-                   shlex.join([str(args.runtime / "python"), "-m", "agent_comms.acp"]),
+                   shlex.quote(str(args.runtime / "agent-comms-acp")),
                    wire().registry.require(args.thread).worktree,
                    "--session", args.thread, "--title", "Agent Comms"]
         with TerminalApp(command, display, args.output / "comms", environment, home) as app:
