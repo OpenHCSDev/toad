@@ -335,7 +335,7 @@ class CoordinationAccess(MroDispatch):
             return  # Read for an interest the views have since changed.
         app = self.app
         notice = observed.sidebar.observation.read_marker_notice()
-        tabs = app.open_tabs
+        modes = app.tab_order.names
         previous_references = self.reference_context(str(observed.service.root))
         observed.sidebar.apply(result.snapshot, result.derived)
         if previous_references != self.reference_context(str(observed.service.root)):
@@ -343,7 +343,7 @@ class CoordinationAccess(MroDispatch):
         self.sidebar_current = result.request
         result.snapshot.read_marker_notice.notify_if_new(
             notice, lambda text: app.notify(text, title="Read positions", severity="warning"))
-        if app.open_tabs != tabs:
+        if app.tab_order.names != modes:
             app.events.publish(OpenTabsChanged())
         for waiter in self.take_sidebar_waiters(result.request):
             waiter.set_result(observed.sidebar.observation)
