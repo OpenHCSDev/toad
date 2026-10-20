@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from agent_comms.historical_views import ConversationObservation
 
 from agent_comms.messages import Message
 from agent_comms.coordination_errors import StaleRevision
@@ -10,14 +10,9 @@ from agent_comms.coordination_errors import StaleRevision
 from toad.screens.session_view import SessionView
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.transcript_state import LatestViewportRequest
-from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
 from toad.widgets.transcript_history import LineHistory
 from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
-
-if TYPE_CHECKING:
-    from agent_comms.historical_views import ConversationRevision
 
 class WireHistory(VisibleReadMarking, LineHistory):
     """The line history of a channel or direct conversation.
@@ -35,7 +30,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
         self.view = view
         super().__init__(prepared, page_source, notification_view=notification_view)
         # Core's source observation is independent of paint readiness.
-        self.revision: ConversationRevision | None = None
+        self.revision = ConversationObservation()
 
     @classmethod
     def empty(cls, *, view, notification_view):
@@ -85,24 +80,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
         observed = await source.observe_changes(self.revision)
         if source is not self.page_source:
             return False
-        if observed is not None:
-            # Record Core's observation before asynchronous drawing. A pending
-            # viewport must not turn the same scope into another replacement.
-            self.revision = observed.revision
-            if observed.replaced:
-                await self.show_newest(observed.through, PreparedWirePage.empty(WirePage.unread()))
-                return not self.undrawn
-            if not self.undrawn:
-                return await self.extend(observed.through)
-            self.extend_source(observed.through)
-        elif not self.undrawn:
-            # A recorded observation may still have an unfinished page read.
-            return (self.pages[-1].prepared.page.after != source.through
-                    and await self.extend(source.through))
-        # The existing prepared reader owns this pending page. Retry drawing it,
-        # not clearing its source and starting the same read again.
-        await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        return not self.undrawn
+        return await observed.apply(self, source)
 
     # What is drawn
 

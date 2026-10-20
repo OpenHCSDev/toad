@@ -890,7 +890,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     if self.follows_source_tail else ())
         await self._clear(initial)
         self.extend_source(through)
-        await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
+        await self.jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
         self.repaint(arrivals, continuing=retained)
 
     async def _clear(self, initial: PreparedTranscriptPage) -> None:

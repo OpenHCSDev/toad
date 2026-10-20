@@ -169,7 +169,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation += 1
         self.state.request_latest(self, LatestViewportRequest(destination))
 
-    async def _jump_latest(self, request: LatestViewportRequest,
+    async def jump_latest(self, request: LatestViewportRequest,
                            publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Publish one destination using its captured source and reader position.
 
@@ -309,7 +309,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 tail.prepared.page = replace(tail.prepared.page, has_newer=True)
                 self._update_edges()
             if self.pages[-1].prepared.page.has_newer and self.window.follows_tail:
-                await self._jump_latest(
+                await self.jump_latest(
                     LatestViewportRequest(LatestPosition.hold(self.window)), publication_current,
                 )
         return True
