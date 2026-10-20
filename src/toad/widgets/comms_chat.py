@@ -7,6 +7,7 @@ from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
 from toad.wire_history import WireSource
+from toad.transcript_publication import NoView, ViewBinding
 
 import re
 from pathlib import Path
@@ -77,6 +78,10 @@ class CommsChatView(Conversation):
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.target}")
         self.message_contents = Contents(id="contents")
         self.message_history = WireHistory.empty(view=self, notification_view=self.message_contents)
+
+    def transcript_binding(self) -> ViewBinding:
+        """A wire conversation has no native transcript to publish."""
+        return NoView()
 
     def compose(self) -> ComposeResult:
         with Window():

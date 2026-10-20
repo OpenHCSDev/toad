@@ -5,7 +5,7 @@ from toad.widget_view import WorkspaceHosted
 
 from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ThoughtStream
-from toad.transcript_publication import TranscriptPresentation
+from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
 from toad.goal_interaction import GoalSession
 
 from toad.core.preference_events import PreferenceChanged
@@ -1504,6 +1504,10 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     @handles(core_events.SessionSelected, core_events.OpenTabsChanged)
     async def _selected_commands_changed(self, event: CoreEventMessage) -> None:
         self.update_slash_commands()
+
+    def transcript_binding(self) -> ViewBinding:
+        """A native session publishes its transcript through this view."""
+        return BoundView(self)
 
     async def on_mount(self) -> None:
         self.transcript.bind(self)
