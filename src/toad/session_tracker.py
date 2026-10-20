@@ -33,6 +33,10 @@ class OpenTab(ABC):
     def label(self) -> Content:
         return Content(self.title)
 
+    def affected_by(self, names: frozenset[str]) -> bool:
+        """Local names do not change when backend thread state changes."""
+        return False
+
 
 @dataclass(frozen=True)
 class NamedTab(OpenTab):
@@ -47,6 +51,9 @@ class NamedTab(OpenTab):
 @dataclass(frozen=True)
 class ThreadTab(OpenTab):
     row: ThreadRowModel
+
+    def affected_by(self, names: frozenset[str]) -> bool:
+        return self.row.name in names
 
     @property
     def title(self) -> str:

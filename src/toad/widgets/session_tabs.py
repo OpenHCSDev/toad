@@ -186,7 +186,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
 
     title_container = getters.query_one("#title-container", Widget)
 
-    _last_tabs: tuple[OpenTab, ...] | None = None
+    _last_tabs: dict[str, OpenTab] | None = None
 
     def __init__(self) -> None:
         super().__init__()
@@ -255,7 +255,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
 
     def compose(self) -> ComposeResult:
         tabs = self.app.open_tabs
-        self._last_tabs = tabs
+        self._last_tabs = {tab.mode_name: tab for tab in tabs}
         with SessionTitles(id="title-container"):
             for session in tabs:
                 yield SessionLabel(session, id=session.mode_name)
@@ -267,8 +267,26 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
         if self.screen.is_active:
             await self._sync_tabs()
 
-    @handles(core_events.OpenTabsChanged, core_events.ThreadRowStateChanged,
-             core_events.ThreadRowsChanged)
+    @handles(core_events.NamedThreadRowsChanged)
+    async def _row_state_changed(self, event: CoreEventMessage) -> None:
+        if not self.screen.is_active:
+            return
+        async with self._sync_lock:
+            if self._last_tabs is None:
+                return
+            sessions = self.app.session_navigation
+            observation = self.app.coordination_access.observation
+            geometry_changed = False
+            for mode, previous in self._last_tabs.items():
+                if previous.affected_by(event.event.names):
+                    if (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
+                        tab = observation.tab(sessions.get(mode), sessions)
+                        geometry_changed |= label.present(tab)
+                        self._last_tabs[mode] = tab
+            if geometry_changed:
+                self.call_after_refresh(self.show_selected_tab)
+
+    @handles(core_events.OpenTabsChanged)
     async def _tabs_changed(self, event: CoreEventMessage) -> None:
         """A thread tab is a thread row: it repaints when an open session's state changes too."""
         if self.screen.is_active:
@@ -286,9 +304,9 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
             if not self.is_attached or not self.screen.is_active:
                 return
             tabs = self.app.open_tabs
-            if tabs == self._last_tabs:
+            if self._last_tabs is not None and tabs == tuple(self._last_tabs.values()):
                 return
-            previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
+            previous_tabs = self._last_tabs or {}
             geometry_changed = self._last_tabs is None
             labels = {label.id: label for label in self.query(SessionLabel)}
             desired = {tab.mode_name for tab in tabs}
@@ -317,7 +335,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
             if [widget.id for widget in self.title_container.children] != list(order):
                 self.title_container.sort_children(key=lambda widget: order[widget.id])
                 geometry_changed = True
-            self._last_tabs = tabs
+            self._last_tabs = {tab.mode_name: tab for tab in tabs}
             if geometry_changed:
                 self.call_after_refresh(self.show_selected_tab)
             # Mount/removal yields to metadata publications. Reconcile their

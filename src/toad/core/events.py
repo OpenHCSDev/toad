@@ -130,10 +130,15 @@ class TabHistoryChanged(CoreEvent):
 
 
 @dataclass(frozen=True)
-class ThreadRowStateChanged(CoreEvent):
-    """The named app-owned thread rows changed; the model did not change membership."""
+class NamedThreadRowsChanged(CoreEvent):
+    """The named rows changed; tab membership belongs to OpenTabsChanged."""
 
-    names: frozenset[str]
+    names: frozenset[str] = field()
+
+
+@dataclass(frozen=True)
+class ThreadRowStateChanged(NamedThreadRowsChanged):
+    """App-owned state changed these thread rows."""
 
 
 @dataclass(frozen=True)
@@ -208,14 +213,13 @@ class SessionAgentAttached(CoreEvent):
 
 
 @dataclass(frozen=True)
-class ThreadRowsChanged(CoreEvent):
+class ThreadRowsChanged(NamedThreadRowsChanged):
     """The observed model's original change set, under its source root."""
 
     root: str
-    changed: frozenset[str]
 
     def subscribers(self, stream: CoreEventStream):
-        for thread in self.changed:
+        for thread in self.names:
             yield from stream.thread_subscriptions.get((self.root, thread), ())
         yield from super().subscribers(stream)
 
