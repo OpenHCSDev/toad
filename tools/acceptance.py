@@ -5,8 +5,9 @@
 
 Core's installer runs this with the runtime under check, in a home whose route selects
 a rehearsal copy of the bus, on a thread it made there. Everything runs in plain st on
-an Xvfb display this tool owns. Plain ``toad`` must start; ``toad-comms THREAD`` must
-show the thread ready, and the tool then says SHOWN. Core sends the thread a DM and,
+an Xvfb display this tool owns. Plain ``toad`` must start; its ACP entrypoint must
+show the thread ready. This tool types one fresh request into that open tab, checks
+its final native reply and returns to the tab. It then says SHOWN. Core sends the thread a DM and,
 once the thread has answered on the bus, writes the answer here as one JSON string; it
 must appear in the thread, in #any and again on return to the thread, and the reader
 position must survive leaving and returning with only that DM's category shown. The
@@ -18,13 +19,16 @@ import argparse
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import time
 from pathlib import Path
 
+from agent_comms.comms import wire
 from agent_comms.ui_model.message_category import InboundCategory, all_categories
 from rich.cells import cell_len
+
 from toad.widgets.side_bar import BackTabButton
 
 # Isolated Python omits the script directory; this tool owns its sibling imports.
@@ -34,7 +38,7 @@ from performance.capture_live import XvfbDisplay
 
 def run(*args: str | Path) -> str:
     print("+ " + " ".join(map(str, args)), file=sys.stderr, flush=True)
-    return subprocess.check_output(list(map(str, args)), text=True).strip()
+    return subprocess.check_output(list(map(str, args)), text=True, timeout=10).strip()
 
 
 class OwnedDisplay(XvfbDisplay):
@@ -193,6 +197,10 @@ class TerminalApp:
     def keys(self, *keys):
         XvfbDisplay.input(self.owner, self.created, self.window, "key", "--clearmodifiers", *keys)
 
+    def type_text(self, text):
+        XvfbDisplay.input(self.owner, self.created, self.window,
+                          "type", "--clearmodifiers", "--delay", "1", text)
+
     def show_thread(self, thread):
         self.wait("ready", lambda text: thread in text
                   and "▶ Session details · Ready" in "\n".join(text.splitlines()[-8:]))
@@ -269,6 +277,43 @@ def any_channel(text):
     return "#any · all comms" in text and "IRC / Markdown" in text
 
 
+def check_typed_reply(app: TerminalApp, thread: str, output: Path) -> None:
+    """A physical submit must finish in the native journal and survive tab return."""
+    comms = wire()
+    selected = comms.registry.require(thread)
+    session = selected.runtime.history_source(comms.root, selected.incarnation)
+    token = "TYPED_REPLY_" + str(time.time_ns())
+    attempt = {"status": "UNKNOWN", "replay": False, "thread": thread, "token": token}
+    marker = output / "typed-input.json"
+    app.click_cell(app.columns // 2, app.rows - 4)
+    app.type_text("Reply with " + token + ". Do not use tools.")
+    # Record before Enter; a failed check must never cause this input to be replayed.
+    marker.write_text(json.dumps(attempt))
+    started = time.monotonic()
+    app.keys("Return")
+
+    def replies():
+        return tuple(entry for entry in session.tail(max_bytes=1024 * 1024)
+                     if entry.assistant_message and entry.final_reply
+                     and entry.message.text.strip() == token)
+
+    def visible(text):
+        return any(cell.strip("▌ ") == token for _, cell in app.message_rows(text))
+
+    app.wait("typed-reply", lambda text: bool(replies())
+             and not comms.registry.require(thread).executing and visible(text), seconds=180)
+    reply, = replies()
+    attempt.update(status="COMPLETED", reply_id=reply.require_entry_id(),
+                   reply_seconds=time.monotonic() - started)
+    marker.write_text(json.dumps(attempt))
+    app.screenshot("typed-reply")
+    app.click("#any")
+    app.wait("typed-away", any_channel)
+    app.click(thread)
+    app.wait("typed-return", lambda text: visible(text) and "User messages" in text)
+    app.screenshot("typed-return")
+
+
 def check_answer(app: TerminalApp, thread: str, answer: str) -> None:
     """The answer shows in the thread, in #any, and again back in the thread."""
     expected = "".join(answer.split())
@@ -329,15 +374,23 @@ def main() -> None:
     environment.update(XDG_CONFIG_HOME=str(home / "config"), XDG_STATE_HOME=str(home / "state"),
                        XDG_DATA_HOME=str(home / "data"), AGENT_COMMS_RUNTIME_ROOT=str(args.runtime))
     with OwnedDisplay(args.output) as display:
-        with TerminalApp([args.runtime / "toad"], display, args.output / "plain", environment, home) as app:
+        command = [args.runtime / "toad"]
+        with TerminalApp(command, display, args.output / "plain", environment, home) as app:
             app.wait("store", lambda text: "Toad" in text or "agent" in text.lower())
             app.screenshot("store")
-        command = [args.runtime / "toad-comms", args.thread]
+        # CheckRoot restores stopped declarations. Ask the lifecycle owner to
+        # start the selected worker before waiting for a connected editor.
+        wire().owners.start(args.thread)
+        command = [*command, "acp",
+                   shlex.quote(str(args.runtime / "agent-comms-acp")),
+                   wire().registry.require(args.thread).worktree,
+                   "--session", args.thread, "--title", "Agent Comms"]
         with TerminalApp(command, display, args.output / "comms", environment, home) as app:
             app.wait("welcome", lambda text: args.thread in text)
             app.click(args.thread)
             app.show_thread(args.thread)
             app.screenshot("shown")
+            check_typed_reply(app, args.thread, args.output)
             print("SHOWN", file=protocol)
             answer = json.loads(sys.stdin.readline())
             check_answer(app, args.thread, answer)
