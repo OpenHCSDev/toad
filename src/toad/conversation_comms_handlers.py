@@ -72,7 +72,6 @@ class ConversationCommsHandlers(CoreEventReceiver):
     ) -> None:
         if not self.turns.changed(message):
             return
-        self.app.events.publish(core_events.OpenTabsChanged())
         if self.turns.owner.busy:
             return
         await self._clear_mcp_live()
