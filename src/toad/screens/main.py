@@ -5,6 +5,7 @@ from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 import asyncio
 from abc import abstractmethod
+from collections.abc import Iterable
 from acp.exceptions import RequestError
 from functools import partial
 from pathlib import Path
@@ -18,7 +19,7 @@ from agent_comms.mro_dispatch import handles
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.command import DiscoveryHit, Hit, Hits, Provider
+from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
 from textual.content import Content
 from textual.events import ScreenResume
 from textual.reactive import var
@@ -54,56 +55,39 @@ from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.navigation_target import FeedTarget, DirectTarget
 
 
-class ModeProvider(Provider):
-    async def search(self, query: str) -> Hits:
-        """Search for Python files."""
-        matcher = self.matcher(query)
-
+class SessionCommands(Provider):
+    @property
+    def session(self) -> MainScreen:
         screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
+        return screen
 
-        agent = screen.conversation.agent_binding
-        for mode in sorted(agent.available_modes, key=lambda mode: mode.name):
-            command = mode.name
-            score = matcher.match(command)
-            if score > 0:
-                yield Hit(
-                    score,
-                    matcher.highlight(command),
-                    partial(screen.conversation.set_mode, mode.id),
-                    help=mode.description,
-                )
-
-    async def discover(self) -> Hits:
-        screen = self.screen.app.selected_session
-        assert isinstance(screen, MainScreen)
-
-        agent = screen.conversation.agent_binding
-        for mode in sorted(agent.available_modes, key=lambda mode: mode.name):
-            yield DiscoveryHit(
-                mode.name,
-                partial(screen.conversation.set_mode, mode.id),
-                help=mode.description,
-            )
-
-
-class MCPInventoryProvider(Provider):
-    """Discover the optional static package inventory, not MCP authority."""
+    @abstractmethod
+    def commands(self, session: MainScreen) -> Iterable[SimpleCommand]: ...
 
     async def search(self, query: str) -> Hits:
         matcher = self.matcher(query)
-        score = matcher.match("Pi MCP inventory")
-        screen = self.screen.app.selected_session
-        assert isinstance(screen, MainScreen)
-        if score > 0:
-            yield Hit(score, matcher.highlight("Pi MCP inventory"),
-                      screen.action_mcp_inventory, help="Read-only package snapshot")
+        for name, callback, help_text in self.commands(self.session):
+            if (score := matcher.match(name)) > 0:
+                yield Hit(score, matcher.highlight(name), callback, help=help_text)
 
     async def discover(self) -> Hits:
-        screen = self.screen.app.selected_session
-        assert isinstance(screen, MainScreen)
-        yield DiscoveryHit("Pi MCP inventory", screen.action_mcp_inventory,
-                           help="Read-only package snapshot")
+        for name, callback, help_text in self.commands(self.session):
+            yield DiscoveryHit(name, callback, help=help_text)
+
+
+class ModeProvider(SessionCommands):
+    def commands(self, session: MainScreen) -> Iterable[SimpleCommand]:
+        for mode in sorted(session.conversation.agent_binding.available_modes,
+                           key=lambda mode: mode.name):
+            yield SimpleCommand(mode.name, partial(session.conversation.set_mode, mode.id),
+                                mode.description)
+
+
+class MCPInventoryProvider(SessionCommands):
+    def commands(self, session: MainScreen) -> Iterable[SimpleCommand]:
+        yield SimpleCommand("Pi MCP inventory", session.action_mcp_inventory,
+                            "Read-only package snapshot")
 
 
 class ScreenContent(DeclaredFamily, affix="Content"):
