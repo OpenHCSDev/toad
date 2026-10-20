@@ -117,21 +117,14 @@ class TranscriptPublication(BoundFrame, ABC):
         try:
             if await self.capture_application():
                 return await self.publish_applied()
-        except CoordinationReadUnavailable:
-            # No source snapshot was acquired. Keep the original operation,
+        except (CoordinationReadUnavailable, StaleRevision):
+            # No usable source snapshot was acquired. Keep the original operation,
             # mounted history and work slot unchanged until a new observation
             # or the existing preparation completion resumes source work.
             if self.current():
                 self.owner.source_requests.defer(self)
                 return False
-        except StaleRevision as error:
-            self.report_failure(error)
         return True
-
-    def report_failure(self, error: Exception) -> None:
-        """Report this view's read failure without killing unrelated views."""
-        if self.current():
-            self.binding.view.app.show_error(error, "Saved history")
 
     async def capture_application(self) -> bool:
         """Capture the original applied cohort once its source cut is known."""
