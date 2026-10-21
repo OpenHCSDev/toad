@@ -42,15 +42,15 @@ class NativePackage(Requirement):
 
     @classmethod
     def find(cls) -> Path | None:
-        from agent_comms.native_package import NativePackageError, verify_native_package
+        from agent_comms.native_package import NativePackageError, VerifiedNativePackage
 
         if (value := os.environ.get(cls.variable)) is None:
             return None
         try:
-            verify_native_package(Path(value))
+            package = VerifiedNativePackage.qualify(Path(value))
         except NativePackageError:
             return None
-        return Path(value)
+        return package.path
 
 
 class TerminalEmulator(Requirement):

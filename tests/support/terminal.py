@@ -159,8 +159,5 @@ async def terminal_running(workspace, emulator, command: tuple[str, ...], *, siz
 
 def native_wire_environment(workspace, native_package: Path) -> dict[str, str]:
     """What a child needs to use the native route Core declares on this test's wire."""
-    from agent_comms.native_package import verify_native_package
-
-    verify_native_package(native_package)
     return {"AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID": workspace.comms.messaging.initialize_private_initial_protocol(),
             "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE": str(native_package)}

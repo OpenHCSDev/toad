@@ -102,9 +102,9 @@ jobs:
           .venv/bin/python - <<'PYCORE'
           import os
           from pathlib import Path
-          from agent_comms.native_package import verify_native_package
+          from agent_comms.native_package import VerifiedNativePackage
           package, = Path('.artifacts/core/stack').glob('.pi-native-*/node_modules/@earendil-works/pi-coding-agent')
-          verify_native_package(package.resolve())
+          VerifiedNativePackage.qualify(package.resolve())
           with open(os.environ['GITHUB_ENV'], 'a') as env:
               env.write(f'AC_NATIVE_COPIED_PACKAGE={package.resolve()}\n')
           PYCORE
