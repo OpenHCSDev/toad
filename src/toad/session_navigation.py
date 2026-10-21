@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, cast
 
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import RegistrationsView
-from agent_comms.errors import UnknownChannelError, UnregisteredThreadError
-from agent_comms.route_selection import RouteChanged, root_is_current
+from agent_comms.errors import RouteChangedError, UnknownChannelError, UnregisteredThreadError
+from agent_comms.route_selection import root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
 from toad.navigation_preparation import CommsNavigationRequest
 from toad.session_entry import (HistorySessionEntry, NativeSessionEntry,
@@ -197,7 +197,7 @@ class SessionNavigation:
                 return app.selected_mode
             prepared = await app.navigation_reader.read(CommsNavigationRequest(
                 comms, owner_mode, me, conversation, source.coordination_root))
-        except (UnknownChannelError, UnregisteredThreadError, RouteChanged) as error:
+        except (UnknownChannelError, UnregisteredThreadError, RouteChangedError) as error:
             app.show_error(error, "Comms target unavailable")
             return app.selected_mode
         if prepared is None:
@@ -311,7 +311,7 @@ class SessionNavigation:
             await self.retire_missing()
 
     async def retire_missing(self) -> None:
-        from agent_comms.route_selection import RouteChanged, RouteSelection
+        from agent_comms.route_selection import RouteSelection
 
         # Borrow each open entry, including hidden views. Core decides
         # which of their sources no longer exist; Toad only closes the views.
@@ -339,7 +339,7 @@ class SessionNavigation:
                     retired = service.views.retired_views(threads, channels)
                     if RouteSelection.capture(root) != selected:
                         continue  # Replaced while reading; the next observation reads it.
-                except RouteChanged:
+                except RouteChangedError:
                     continue  # The next observation reads the replacement route.
                 answers[root] = service, retired
             return answers

@@ -25,7 +25,8 @@ from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
-from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
+from agent_comms.errors import RouteChangedError
+from agent_comms.route_selection import RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
     ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
     ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
@@ -107,7 +108,7 @@ class Observation:
         waiters, access.sidebar_waiters = access.sidebar_waiters, []
         for _, waiter in waiters:
             if not waiter.done():
-                waiter.set_exception(RouteChanged("Comms service changed before the sidebar was read"))
+                waiter.set_exception(RouteChangedError("Comms service changed before the sidebar was read"))
         access.revision = NoRevision()
         access.sidebar_interest = access.sidebar_current = None
         access.thread_status.clear()
@@ -253,7 +254,7 @@ class Observing(Observation):
     async def current_references(self, access, root):
         try:
             await access.current_sidebar()
-        except RouteChanged:
+        except RouteChangedError:
             return await access.observation.current_references(access, root)
         return access.reference_context(root)
 
@@ -331,7 +332,7 @@ class CoordinationAccess(MroDispatch):
     def require(self, selected: RouteSelection) -> Observing:
         """The service for ``selected``; a new selection opens it and starts its observation."""
         if RouteSelection.capture() != selected:
-            raise RouteChanged("Comms route changed before the operation")
+            raise RouteChangedError("Comms route changed before the operation")
         with self.opening:
             return self.observation.require(self, selected)
 
@@ -343,7 +344,7 @@ class CoordinationAccess(MroDispatch):
             acquisition.enter_context(selected.route.hold_client_route())
             service = wire(selected.route)
             if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
-                raise RouteChanged("Comms route changed while opening the service")
+                raise RouteChangedError("Comms route changed while opening the service")
             observed = Observing(
                 selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
                 self.app.running_loop, access=self)
