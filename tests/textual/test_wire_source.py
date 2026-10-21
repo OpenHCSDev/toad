@@ -1,4 +1,4 @@
-"""A wire source pages one conversation and notices when Core replaces its reading."""
+"""Textual-facing: the presentation window; a wire source pages one conversation and notices when Core replaces its reading."""
 
 from agent_comms.candidate_maintenance import drain_candidate_catchup
 from agent_comms.channel_targets import ChannelTarget

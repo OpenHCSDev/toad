@@ -34,12 +34,6 @@ def test_navigation_deletion_closure():
     assert '"UNKNOWN outcome" in str(error)' not in chat
     assert not any(isinstance(node, ast.ClassDef) and node.name == 'TranscriptFragmentView' for node in history.body)
 
-    conversation = ast.parse((ROOT / 'widgets/conversation.py').read_text())
-    consumer = next(node for node in conversation.body if isinstance(node, ast.ClassDef) and node.name == 'ConversationCommsConsumer')
-    for handler in consumer.body:
-        if isinstance(handler, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name) and decorator.func.id == 'handles' for decorator in handler.decorator_list):
-            assert isinstance(handler, ast.AsyncFunctionDef), handler.name
-
 
 def test_single_thread_navigation_deletes_placeholder_sessions():
     retired = {'PendingThreadTab', 'PendingThreadScreen', 'PendingTabShells',

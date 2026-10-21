@@ -1,4 +1,4 @@
-"""Typed channel, DM and all-comms values survive actual UI open/send/return."""
+"""Textual-facing: the conversation tabs; typed channel, DM and all-comms values survive actual UI open/send/return."""
 
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.channels import AllChannel

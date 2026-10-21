@@ -1,4 +1,4 @@
-"""Toad passes Core's declared channel context through real command discovery."""
+"""Textual-facing: the command dialog. Toad passes Core's declared channel context through real command discovery."""
 import pytest
 
 from agent_comms.channel_targets import NoChannel, OneChannel, PerTargetChannels
