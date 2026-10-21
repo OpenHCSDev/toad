@@ -104,4 +104,6 @@ jobs:
           with open(os.environ['GITHUB_ENV'], 'a') as env:
               env.write(f'AC_NATIVE_COPIED_PACKAGE={package.resolve()}\n')
           PYCORE
+      # xdist reports a collection error as a worker crash; collect alone first so it reads as one.
+      - run: .venv/bin/pytest --collect-only -q
       - run: .venv/bin/pytest -n 2 --basetemp .artifacts/pilots
