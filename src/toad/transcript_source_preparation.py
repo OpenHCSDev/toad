@@ -11,7 +11,7 @@ from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
 from toad.resource_release import ResourceRelease
-from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest, LatestViewportState, NoLatestRequest
+from toad.transcript_state import TranscriptState, LiveTranscript, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest, LatestViewportState, NoLatestRequest
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
@@ -47,6 +47,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
 
     pages: deque[TranscriptPageView]
+
+    @classmethod
+    def initial_state(cls, view) -> TranscriptState:
+        return LiveTranscript()
 
     @property
     def window(self) -> HistoryWindow:

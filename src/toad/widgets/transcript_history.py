@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
+from toad.screens.session_view import SessionView
 
 from agent_comms.ui_model.message_category import OtherCategory
 
@@ -438,15 +439,9 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_BUDGET = PresentationBudget(max_items=240)
-    empty_state = LiveTranscript
-
     @classmethod
     def empty_source(cls, view, through):
         return ClosedHistory(through, view.app.preparation)
-
-    @classmethod
-    def initial_state(cls, view):
-        return cls.empty_state()
 
     @classmethod
     def empty(cls, *, view, notification_view):
@@ -1058,7 +1053,6 @@ class TranscriptHistory(CommittedHistory, LineHistory):
 
     @classmethod
     def initial_state(cls, view):
-        from toad.screens.session_view import SessionView
         return view.query_ancestor(SessionView).thread_identity.transcript_state()
 
     @classmethod

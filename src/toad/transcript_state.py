@@ -131,7 +131,7 @@ class LiveTranscript(TranscriptState):
 
 
 class UnboundTranscript(ProvisionalTranscript):
-    """A real local tab has no saved source and admits no page work."""
+    """A real local tab has no saved source and starts no page reads."""
 
     def mounted(self, owner) -> None:
         owner.call_after_refresh(owner.view.retire_loading_splash)

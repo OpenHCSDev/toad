@@ -4,6 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from toad.format_path import format_path
+from toad.transcript_state import UnboundTranscript, UnreadTranscript
 from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
@@ -38,7 +39,6 @@ class SessionIdentity(ABC):
         return None
 
     def transcript_state(self):
-        from toad.transcript_state import UnboundTranscript
         return UnboundTranscript()
 
     @abstractmethod
@@ -141,7 +141,6 @@ class ThreadIdentity(NamedThreadIdentity):
         return self.root, self.thread_name()
 
     def transcript_state(self):
-        from toad.transcript_state import UnreadTranscript
         return UnreadTranscript()
 
     def display_root(self) -> str:
