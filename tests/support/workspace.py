@@ -42,10 +42,11 @@ class Workspace:
     def thread(self, name: str, *tags: str, running: bool = False, title: str | None = None):
         """Declare a thread on the wire; a running thread is owned by this process."""
         from agent_comms.child_process import NoProcess, ProcessIdentity
+        from agent_comms.thread_text import ThreadText
 
         identity = ProcessIdentity.capture(os.getpid()) if running else NoProcess()
         self.comms.registry.declare(self.comms.registry.new_thread(
-            name, frozenset(tags), str(self.project), title=title, process_identity=identity))
+            name, frozenset(tags), str(self.project), title=ThreadText.external(title), process_identity=identity))
         return self.comms.registry.require(name)
 
     def child_processes(self, marker: str) -> list:
