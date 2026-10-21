@@ -88,6 +88,8 @@ class Observation:
 
     def failed(self, error, selected):
         failed = FailedObservation(error, selected, access=self.access)
+        if failed == self:
+            return self
         self.access.observation = failed
         self.access.app.running_loop.call_soon_threadsafe(failed.attach, self.access, self)
         return failed
@@ -117,15 +119,17 @@ class NotObserving(Observation):
         return self.access.open_current()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class FailedObservation(Observation):
-    error: Exception
+    error: Exception = field(compare=False, repr=False)
     selection: RouteSelection | UnselectedRoute
 
-    def failed(self, error, selected):
-        if self.selection == selected and str(self.error) == str(error):
-            return self
-        return super().failed(error, selected)
+    def __eq__(self, other: object) -> bool:
+        # Exceptions declare their type, constructor fields and extra state through
+        # reconstruction; OSError includes filenames that are absent from args.
+        return (isinstance(other, FailedObservation)
+                and self.selection == other.selection
+                and self.error.__reduce__() == other.error.__reduce__())
 
     @property
     def service(self):
@@ -240,7 +244,7 @@ class Observing(Observation):
         try:
             await access.current_sidebar()
         except RouteChanged:
-            pass
+            return await access.observation.current_references(access, root)
         return access.reference_context(root)
 
     def thread_interest(self, access):

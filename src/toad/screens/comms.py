@@ -219,10 +219,6 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                 self._content_error = error
         self._content_ready.set()
 
-    async def on_unmount(self) -> None:
-        await self.close_presentation()
-
-
     def activate_session(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
             self.call_after_refresh(chat.prepare_prompt)
