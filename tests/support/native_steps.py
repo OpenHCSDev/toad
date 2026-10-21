@@ -140,12 +140,12 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
 
 
 @asynccontextmanager
-async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 35), arrange=None):
+async def goal_on_real_owner(workspace, objective: str, *, size=(110, 35), arrange=None):
     """A real owner (Core's ACP server in this process, no model) with an active goal, shown in Toad
     through an agent object bound to the owner's session.
 
     `arrange(comms, session, goal)` may change the goal on the owner before the view binds the agent.
-    Yields (ui, agent, comms, session, goal as first set).
+    Yields (ui, agent, Core owner, session, goal as first set).
     """
     import os
 
@@ -154,8 +154,8 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
     from support.native import owner_server, start_private_native_wire
 
     os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"
-    comms = start_private_native_wire(workspace.roots.wire, package)
-    owner = owner_server(comms, package)
+    comms = start_private_native_wire(workspace.roots.wire)
+    owner = owner_server(comms)
     try:
         session = (await owner.new_session(cwd=str(workspace.project))).session_id
         async with workspace.app(size=size) as ui:
@@ -170,6 +170,6 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
             conversation.agent_ready = True
             await conversation.goal_observation.refresh()
             await ui.step()
-            yield ui, agent, comms, session, goal
+            yield ui, agent, owner, session, goal
     finally:
         await owner.shutdown()

@@ -9,7 +9,7 @@ from toad.widgets.prompt import AgentInfo
 
 
 async def test_thinking_level_changes_during_a_turn_and_survives_reattaching(workspace, native_package):
-    async with native_session(workspace, native_package) as native:
+    async with native_session(workspace) as native:
         ui, agent, comms, provider = native.ui, native.agent, native.comms, native.provider
         app, pilot = ui.textual
         view = ui.conversation

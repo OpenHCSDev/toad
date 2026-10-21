@@ -33,7 +33,7 @@ async def test_read_edit_and_bash_output_is_drawn_and_survives_collapse(workspac
         return {"role": "assistant", "content": "NATIVE_TOOL_OUTPUT_COMPLETE"}, "stop"
 
     (workspace.project / "example.py").write_text(SOURCE)
-    async with native_session(workspace, native_package, provider=ControlledProvider(reply=reply)) as native:
+    async with native_session(workspace, provider=ControlledProvider(reply=reply)) as native:
         ui, agent, provider = native.ui, native.agent, native.provider
         view = ui.conversation
 

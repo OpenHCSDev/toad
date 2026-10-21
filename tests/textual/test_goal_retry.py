@@ -1,6 +1,7 @@
 """Textual-facing: the goal bar's Retry control is a mounted button that reaches the goal owner."""
 
 from agent_comms.goal_actions import RetryGoalAction
+from agent_comms.goal_presentation import DecidedBlockExecution
 from agent_comms.goal_states import BlockedGoal
 
 from support.goals import ScriptedGoalOwner, published_goal
@@ -12,15 +13,14 @@ async def test_blocked_goal_offers_retry_and_retry_reaches_the_owner(workspace):
         view = ui.conversation
         goal = published_goal("Learn architectural factoring", "goal-control",
                               state=BlockedGoal(block_reason="Original turn failed"))
-        owner = ScriptedGoalOwner.owning(ui.app, goal)
+        owner = ScriptedGoalOwner.owning(ui.app, goal, DecidedBlockExecution(goal.id, goal.state.block_reason))
         ui.attach_agent(owner)
         view.agent_ready = True
-        view.goal_display = goal
+        await view.goal_observation.refresh()
         bar = view.query_one(GoalBar)
-        assert str(bar.query_one("#goal-toggle").render()) == "Retry"
         await ui.until_shows("Retry")
         await ui.click("Retry")
         await ui.until(lambda: owner.requests, why="the retry request at the owner")
         assert owner.requests == [("update", RetryGoalAction)]
-        await ui.until(lambda: view.goal_display.snapshot.state.declared_name == "active",
-                       why="the goal shown as active")
+        await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Pause",
+                       why="the owner's runnable reply repaints the control")

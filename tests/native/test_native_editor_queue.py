@@ -10,7 +10,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 
 async def test_enter_queues_during_a_turn_and_a_tab_click_returns_to_the_same_editor(workspace, native_package):
-    async with native_session(workspace, native_package) as native:
+    async with native_session(workspace) as native:
         ui, agent, comms, provider = native.ui, native.agent, native.comms, native.provider
         app, pilot = ui.textual
         view = ui.conversation

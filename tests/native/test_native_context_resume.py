@@ -7,7 +7,7 @@ from support.native import attached_app, start_private_native_wire, without_prov
 
 async def test_saved_context_use_is_shown_on_attach_and_replaced_by_live_reports(workspace, native_package):
     without_provider()
-    comms = start_private_native_wire(workspace.roots.wire, native_package)
+    comms = start_private_native_wire(workspace.roots.wire)
     comms.registry.declare(comms.registry.new_thread("saved", frozenset({"acp"}), str(workspace.project)))
     comms.agents.set_agent_info("saved", model="test/model", context_used=38723, context_size=272000)
     async with attached_app(workspace, comms, "saved", size=(120, 40)) as (ui, agent):

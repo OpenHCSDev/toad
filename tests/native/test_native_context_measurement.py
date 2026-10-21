@@ -5,7 +5,7 @@ from toad.core import input_events
 
 
 async def test_measured_usage_is_shown_and_restored_without_asking_the_model(workspace, native_package):
-    async with native_session(workspace, native_package) as native:
+    async with native_session(workspace) as native:
         ui, agent, provider = native.ui, native.agent, native.provider
         view = ui.conversation
         await ui.until_agent_ready()

@@ -3,14 +3,15 @@
 from dataclasses import replace
 
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget, IdleGoalExecution
+from agent_comms.goal_presentation import (
+    GoalWaitTarget, IdleGoalExecution, PausedExecution, RunnableExecution, StandbyExecution,
+)
 from agent_comms.goal_states import PausedGoal
 from agent_comms.goals import NoGoal
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from textual.widgets import Button, Static
 
 from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
-from toad.line_blocks import OpenTarget
 from support.textual_steps import channel_roster
 from toad.core.events import CommsUpdated
 from toad.screens.goal_details import GoalDetails
@@ -22,7 +23,7 @@ from toad.widgets.throbber import Throbber
 def goal_owner(workspace, app):
     goal = bound_mentions(published_goal("Coordinate with @peer", "stable-goal", progress="Keep evidence", revision=4),
                           workspace.thread("goal-owner"), workspace.comms.registry.snapshot())
-    execution = GoalExecution(GoalExecutionState.STANDBY, goal.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),))
+    execution = StandbyExecution(goal.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),), ())
     history = [
         {"sequence": 1, "kind": "baseline", "observed_at": 1000.0, "before": None,
          "after": replace(goal, text="HISTORICAL_OBJECTIVE", revision=4).to_wire()},
@@ -58,11 +59,15 @@ async def refresh_goal(ui, view):
 async def test_standby_row_names_the_waited_peer_and_mentions_navigate(workspace):
     async with workspace.app(size=(100, 35)) as ui:
         owner, view, bar, status = await shown_goal(workspace, ui)
-        rendered = bar.query_one(".goal-summary", Static).render()
-        assert any(not isinstance(span.style, str)
-                   and (span.style.meta or {}).get("@click") == OpenTarget("peer").click
-                   for span in rendered.spans), "Goal mentions must use existing thread navigation"
         assert "Standby" in str(status.render()) and "@peer" in str(status.render())
+        original = ui.selected_tab
+        await ui.until(lambda: ui.link_at("@peer", occurrence=1) is not None,
+                       why="the observed goal mention becomes a navigation link")
+        await ui.click("@peer", occurrence=1)
+        await ui.until(lambda: ui.app.selected_session._comms_thread == "peer",
+                       why="the goal mention opens the named peer")
+        await ui.select_tab(original)
+        assert view.prompt.text == "Composer draft stays"
 
 
 async def test_standby_stays_visible_while_the_previous_turn_settles(workspace):
@@ -81,16 +86,17 @@ async def test_standby_is_never_inferred_from_the_goal_text_or_a_paused_goal(wor
     async with workspace.app(size=(100, 35)) as ui:
         owner, view, bar, status = await shown_goal(workspace, ui)
         standby_execution = owner.execution
-        owner.execution = GoalExecution(GoalExecutionState.RUNNABLE, owner.goal.id)
+        owner.execution = RunnableExecution(owner.goal.id)
         await refresh_goal(ui, view)
         await ui.until(lambda: not status.display, why="the standby row hidden when the owner says runnable")
-        owner.execution = standby_execution
         active_goal = owner.goal
-        owner.goal = replace(owner.goal, state=PausedGoal())
+        pause = PausedGoal()
+        owner.goal = replace(owner.goal, state=pause)
+        owner.execution = PausedExecution(owner.goal.id, pause.source)
         await refresh_goal(ui, view)
-        await ui.until(lambda: not status.display,
-                       why="a previous standby projection cannot override paused goal state")
+        await ui.until(lambda: not status.display, why="the owner's paused execution")
         owner.goal = active_goal
+        owner.execution = standby_execution
         await refresh_goal(ui, view)
         await ui.until(lambda: status.display, why="the standby row back")
 

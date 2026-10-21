@@ -127,9 +127,6 @@ class NoAgentBound(AgentBinding):
     def send_now(self, owner):
         """No remote queue is bound."""
 
-    def goal_editor(self):
-        raise ValueError("Editing requires an agent-comms goal")
-
     async def get_goal_history(self, goal_id):
         return ()
 

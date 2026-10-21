@@ -17,7 +17,7 @@ async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(works
         def with_catalog_agent(**arguments):
             return ToadApp(**{**arguments, "agent_data": definition})
 
-        async with native_session(workspace, native_package, application=with_catalog_agent) as native:
+        async with native_session(workspace, application=with_catalog_agent) as native:
             ui, agent, comms, provider = native.ui, native.agent, native.comms, native.provider
             app, _pilot = ui.textual
             view = ui.conversation

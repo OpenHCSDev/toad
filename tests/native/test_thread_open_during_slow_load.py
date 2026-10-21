@@ -21,7 +21,7 @@ from toad.widgets.conversation import ThreadLoading
 
 async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(workspace, native_package):
     project = workspace.project
-    comms = start_private_native_wire(workspace.roots.wire, native_package)
+    comms = start_private_native_wire(workspace.roots.wire)
     for name in ("owner", "fresh-peer"):
         comms.registry.declare(comms.registry.new_thread(name, frozenset({"journey"}), str(project),
                                       process_identity=ProcessIdentity.capture(os.getpid())))
