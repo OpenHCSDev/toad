@@ -112,7 +112,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         expected_scroll = sidebar.scroll_container.scroll_y
         member.action_open_selected()
         # Opening a row makes it the range anchor; it does not select it (TargetTree.remember_row).
-        assert not any(row.has_class("-selected") for row in sidebar._ordered_rows())
+        assert not any(row.has_class("-selected") for row in sidebar.rows)
         expected_frame = app.panel_text(app.screen)
         app.panel_frames = []
         await ui.until(
@@ -130,7 +130,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         assert app.sidebar_state.selected == SidebarSelection("#channel-28", "worker")
         member = group(current, "#channel-28").rows["worker"]
         assert member.current
-        assert not any(row.has_class("-selected") for row in current._ordered_rows())
+        assert not any(row.has_class("-selected") for row in current.rows)
         await pilot.hover(member)
         assert "hover" in member.pseudo_classes and not member.has_focus, (
             member.region, member.pseudo_classes, member.has_focus,
