@@ -27,7 +27,7 @@ from textual.widgets.text_area import Selection
 from ui_theme.scheme import PrimaryColour, PromptToneColour, SecondaryColour
 
 from toad import messages
-from toad.agent_binding import NoAgentBound
+from toad.agent_binding import NoAgentConnection
 from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
 from toad.core.input_events import UserInputSubmitted
@@ -593,7 +593,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
     display_directory = var("")
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
-    agent_binding = var(NoAgentBound)
+    agent_binding = var(NoAgentConnection)
     model_history_scope = var("")
     status: var[str | Content | RichText] = var("")
 

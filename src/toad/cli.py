@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING
 
 import click
 
+from toad.session_scope import AgentAttached, AgentBinding, NoAgent
+
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.agent_schema import AgentDefinition
 
 
 def persist_terminal_failure(error: Exception) -> None:
@@ -52,7 +53,9 @@ def check_directory(path: str) -> None:
         sys.exit(-1)
 
 
-async def get_agent_data(launch_agent) -> AgentDefinition | None:
+async def get_agent_binding(launch_agent: str) -> AgentBinding:
+    if not launch_agent:
+        return NoAgent()
     launch_agent = launch_agent.lower()
 
     from toad.agents import read_agents, AgentReadError
@@ -70,7 +73,8 @@ async def get_agent_data(launch_agent) -> AgentDefinition | None:
             launch_agent = agent_data.identity
             break
 
-    return agents.get(launch_agent)
+    selected = agents.get(launch_agent)
+    return NoAgent() if selected is None else AgentAttached(selected)
 
 
 class DefaultCommandGroup(click.Group):
@@ -133,18 +137,14 @@ def run(project_dir: str = ".", agent: str = "1"):
 
     check_directory(project_dir)
 
-    if agent:
-        import asyncio
-
-        agent_data = asyncio.run(get_agent_data(agent))
-    else:
-        agent_data = None
+    import asyncio
 
     from toad.app import ToadApp
 
+    binding = asyncio.run(get_agent_binding(agent))
     app = ToadApp(
-        mode=None if agent_data else "store",
-        agent_data=agent_data,
+        mode=binding.startup_mode,
+        agent_binding=binding,
         project_dir=project_dir,
     )
     run_terminal(app)
@@ -202,7 +202,9 @@ def acp(
     from toad.app import ToadApp
 
     app = ToadApp(
-        agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id,
+        agent_binding=AgentAttached(agent_data),
+        project_dir=project_dir,
+        agent_session_id=session_id,
     )
     run_terminal(app)
 

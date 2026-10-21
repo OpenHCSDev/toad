@@ -39,7 +39,7 @@ from toad import messages, paths
 from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
-from toad.agent_binding import AgentBinding, NoAgentBound
+from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
@@ -504,7 +504,7 @@ class ConversationSessionBinding(
 
     _shell: var[Shell | None] = var(None)
 
-    agent_binding: var[AgentBinding] = var(NoAgentBound, bindings=True)
+    agent_binding: var[AgentConnection] = var(NoAgentConnection, bindings=True)
     agent_info: var[Content] = var(Content())
     model_history_scope = var("")
 
@@ -667,7 +667,7 @@ class ConversationSessionBinding(
         async with AsyncResourceRelease() as release:
             release.callback(self.take_initial_prompt)
             release.callback(
-                self.set_reactive, Conversation.agent_binding, NoAgentBound()
+                self.set_reactive, Conversation.agent_binding, NoAgentConnection()
             )
             await self._release_source_resources()
 

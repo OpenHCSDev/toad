@@ -6,6 +6,7 @@ tells it to. The wire, the Pi settings and the project are the test's private ro
 """
 
 from __future__ import annotations
+from toad.session_scope import AgentAttached
 
 import asyncio
 from collections.abc import Callable
@@ -244,7 +245,7 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
     if project is not None:
         started = partial(started, project_dir=str(project))
     try:
-        async with workspace.app(size=size, agent=comms_agent(), application=_first_wins(started)) as ui:
+        async with workspace.app(size=size, binding=AgentAttached(comms_agent()), application=_first_wins(started)) as ui:
             await ui.until(lambda: ui.conversation.agent is not None, seconds=20, why="the agent object")
             agent = ui.conversation.agent
             await ui.until(agent.session.settled.is_set, seconds=30, why="the ACP session to settle")

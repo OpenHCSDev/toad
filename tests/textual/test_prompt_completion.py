@@ -1,5 +1,6 @@
 """Textual-facing: the prompt's popups (slash commands, file search, model picker), its cursor and selection
 in wrapped text, and the channel composer's mention list are Textual widgets that paint and take focus."""
+from toad.session_scope import AgentAttached
 
 import json
 
@@ -31,7 +32,7 @@ async def ready_prompt(workspace, ui):
 
 
 async def test_slash_command_discovered_from_the_agent_is_completed_by_keyboard_and_executed(workspace):
-    async with workspace.app(size=(130, 44), agent=completion_peer()) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(completion_peer())) as ui:
         view, prompt, agent = await ready_prompt(workspace, ui)
         await agent.send_prompt("publish")
         await ui.until(lambda: any(command.command == "/proofcmd" for command in prompt.slash_commands),
@@ -54,7 +55,7 @@ async def test_slash_command_discovered_from_the_agent_is_completed_by_keyboard_
 
 
 async def test_up_and_down_move_through_wrapped_rows_before_they_move_through_history(workspace):
-    async with workspace.app(size=(130, 44), agent=completion_peer()) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(completion_peer())) as ui:
         view, prompt, agent = await ready_prompt(workspace, ui)
         area = prompt.prompt_text_area
         history = view.input_histories.prompt
@@ -81,7 +82,7 @@ async def test_up_and_down_move_through_wrapped_rows_before_they_move_through_hi
 
 
 async def test_a_whole_command_is_selected_backwards_and_the_agents_hint_refreshes(workspace):
-    async with workspace.app(size=(130, 44), agent=completion_peer()) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(completion_peer())) as ui:
         view, prompt, agent = await ready_prompt(workspace, ui)
         await agent.send_prompt("publish")
         await ui.until(lambda: any(command.command == "/proofcmd" for command in prompt.slash_commands),
@@ -104,7 +105,7 @@ async def test_a_whole_command_is_selected_backwards_and_the_agents_hint_refresh
 
 
 async def test_channel_composer_completes_a_mention_with_tab_and_keeps_focus(workspace):
-    async with workspace.app(size=(130, 44), agent=completion_peer()) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(completion_peer())) as ui:
         app, _pilot = ui.textual
         view, prompt, agent = await ready_prompt(workspace, ui)
         channel = ChannelPrompt(simple_input=True)
@@ -137,7 +138,7 @@ async def test_file_search_inserts_a_path_and_follows_picker_focus_resize_and_ca
     for index in range(128):
         (workspace.project / "folder" / f"target-{index:03}.txt").write_text(str(index))
     (workspace.project / "space name.txt").write_text("Space-bearing file")
-    async with workspace.app(size=(130, 44), agent=completion_peer()) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(completion_peer())) as ui:
         _app, pilot = ui.textual
         view, prompt, agent = await ready_prompt(workspace, ui)
         prompt.text = "Attach "
@@ -187,7 +188,7 @@ async def test_file_search_inserts_a_path_and_follows_picker_focus_resize_and_ca
 
 
 async def test_model_picker_selects_through_the_agent_and_keeps_the_draft(workspace):
-    async with workspace.app(size=(130, 44), agent=completion_peer()) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(completion_peer())) as ui:
         _app, pilot = ui.textual
         view, prompt, agent = await ready_prompt(workspace, ui)
         paths, slash = prompt.path_search, prompt.slash_complete

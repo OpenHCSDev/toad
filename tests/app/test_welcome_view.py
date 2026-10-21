@@ -1,4 +1,5 @@
 """Toad starts with no tab open and shows the welcome view until one is opened."""
+from toad.session_scope import AgentAttached
 
 from support.agents import peer
 
@@ -18,7 +19,7 @@ async def focus_row(ui, kind: str) -> None:
 
 async def test_starting_opens_no_tab_and_starts_no_agent(workspace):
     workspace.thread("alpha", "team")
-    async with workspace.app(session=False, agent=peer("echo")) as ui:
+    async with workspace.app(session=False, binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_shows(THREADS)
         assert ui.tabs() == ()
         app, _ = ui.textual
@@ -65,7 +66,7 @@ async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user
 
 
 async def test_closing_the_last_tab_shows_the_view_again_and_starts_no_agent(workspace):
-    async with workspace.app(session=False, agent=peer("echo")) as ui:
+    async with workspace.app(session=False, binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_shows(HINT)
         await ui.press("n")
         await ui.until(lambda: len(ui.tabs()) == 1, why="the new session's tab")

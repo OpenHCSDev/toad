@@ -7,7 +7,7 @@ from support.shared_stdio import stdio_agent_definition, threads_owned_here
 
 from toad.app import ToadApp
 from toad.screens.main import MainScreen
-from toad.session_scope import AgentSession
+from toad.session_scope import AgentAttached, AgentSession
 
 
 async def ready(agent):
@@ -29,7 +29,7 @@ async def test_a_second_tab_reuses_the_first_tabs_agent_process_and_closing_it_k
     async with threads_owned_here(comms, project):
         application = partial(ToadApp, agent_session_id="alpha")
         async with workspace.app(
-            size=(110, 36), agent=definition, application=application
+            size=(110, 36), binding=AgentAttached(definition), application=application
         ) as ui:
             app, _pilot = ui.textual
             await ui.until(

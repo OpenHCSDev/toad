@@ -5,13 +5,13 @@ from agent_comms.thread_presentation import ThreadPresentation
 from textual.content import Content
 
 from toad.acp.status import StopReason
-from toad.agent_binding import AgentBinding
+from toad.agent_binding import AgentConnection
 from toad.agent_presentation import LocalAgentPresentation
 from toad.conversation_turn import NoTurn
 from toad.core.events import CoreEventStream
 
 
-class AgentBase(AgentBinding):
+class AgentBase(AgentConnection):
     """Base class for an 'agent'."""
 
     def __init__(self, project_root: Path) -> None:

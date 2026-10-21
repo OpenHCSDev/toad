@@ -34,7 +34,7 @@ from toad import messages
 from toad.core import session_requests
 from toad.core_event_carrier import CoreEventReceiver
 from agent_comms.mro_dispatch import handles
-from toad.agent_schema import AgentDefinition
+from toad.session_scope import AgentBinding, NoAgent
 from toad.render_backend import Renderer
 from toad.work_preparation import PreparationRuntime
 from toad.navigation_preparation import (
@@ -148,7 +148,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
     def __init__(
         self,
-        agent_data: AgentDefinition | None = None,
+        agent_binding: AgentBinding = NoAgent(),
         project_dir: str | None = None,
         mode: str | None = None,
         agent_session_id: str | None = None,
@@ -156,7 +156,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         """Toad app.
 
         Args:
-            agent_data: Agent data to run.
+            agent_binding: The agent selected at startup.
             project_dir: Project directory.
             mode: Initial mode.
             agent: Agent identity or shor name.
@@ -171,7 +171,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.navigation_reader = NavigationReader()
-        self.agent_data = agent_data
+        self.agent_binding = agent_binding
 
         self.application = ApplicationLifetime(self, agent_session_id)
         self.clipboard_transport = Clipboard.for_platform()

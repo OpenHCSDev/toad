@@ -1,4 +1,5 @@
 """Textual-facing: agent tool-call updates reach the ToolCall widget as merged snapshots, and the widget paints the read output."""
+from toad.session_scope import AgentAttached
 
 import sys
 from pathlib import Path
@@ -21,7 +22,7 @@ async def test_tool_start_progress_and_missing_start_in_the_running_app(workspac
         if frame.f_code is constructor and frame.f_back.f_code is SessionToolCalls.merge.__code__:
             counts["missing_start_constructions"] += 1
 
-    async with workspace.app(size=(110, 35), agent=peer("echo")) as ui:
+    async with workspace.app(size=(110, 35), binding=AgentAttached(peer("echo"))) as ui:
         view = ui.conversation
         await ui.until(lambda: view.agent is not None, seconds=20, why="the agent to be created")
         agent = view.agent

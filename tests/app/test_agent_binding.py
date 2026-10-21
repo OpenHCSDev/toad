@@ -2,9 +2,29 @@
 
 from support.agents import peer
 
+from toad.agents import read_agents
+from toad.cli import get_agent_binding
 from toad.screens.main import MainScreen
-from toad.session_scope import AgentSession
+from toad.session_scope import AgentAttached, AgentSession, NoAgent
 from toad.thread_identity import NoThreadIdentity
+
+
+async def test_startup_binding_is_decoded_once_and_retained_by_the_app(workspace):
+    definition = next(iter((await read_agents()).values()))
+    selected = AgentAttached(definition)
+    for spelling, expected in (
+        ("", NoAgent()),
+        ("no-such-startup-agent", NoAgent()),
+        (definition.identity.upper(), selected),
+        (definition.short_name.upper(), selected),
+    ):
+        assert await get_agent_binding(spelling) == expected
+    async with workspace.app(binding=selected, session=False) as ui:
+        app, _ = ui.textual
+        assert app.agent_binding is selected
+        assert NoAgent().attached(app.agent_binding) is selected
+        assert selected.attached(NoAgent()) is selected
+        assert ui.tabs() == ()
 
 
 async def test_no_agent_does_not_match_a_launch(workspace):
@@ -17,7 +37,7 @@ async def test_attached_agent_matches_its_live_session_and_relaunch_reuses_the_v
     workspace,
 ):
     definition = peer("echo")
-    async with workspace.app(agent=definition) as ui:
+    async with workspace.app(binding=AgentAttached(definition)) as ui:
         app, _ = ui.textual
         await ui.until_agent_ready()
         original = app.selected_session

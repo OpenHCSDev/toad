@@ -16,6 +16,7 @@ from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import ReadTranscript, ReadTranscriptUpdate
 
 from toad.app_node import ToadNode
+from toad.constants import WELCOME
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.navigation_context import NavigationOwner
@@ -45,6 +46,9 @@ class TranscriptScope(ABC):
     def original_threads(
         self, identity: SessionIdentity
     ) -> tuple[tuple[str, ThreadIncarnation], ...]: ...
+
+    @abstractmethod
+    def matches_session(self, access, session_id: str) -> bool: ...
 
     @abstractmethod
     def status_thread(self, access) -> StatusThread: ...
@@ -77,6 +81,13 @@ class KnownTranscript(TranscriptScope):
         self, identity: SessionIdentity
     ) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ((self.root, identity.thread_incarnation()),)
+
+    def matches_session(self, access, session_id: str) -> bool:
+        service = access.require(RouteSelection.capture(self.root)).service
+        return (
+            service.registry.canonical_name(session_id)
+            == service.registry.require(self.name).name
+        )
 
     def status_thread(self, access) -> StatusThread:
         return StatusThread.for_root(Path(self.root), self.name, access)
@@ -123,6 +134,9 @@ class NoTranscript(TranscriptScope):
         self, identity: SessionIdentity
     ) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
+
+    def matches_session(self, access, session_id: str) -> bool:
+        return False
 
     def status_thread(self, access) -> StatusThread:
         return NoStatusThread()
@@ -249,15 +263,21 @@ class ProjectSessionOrigin(SessionOrigin, SessionScope):
         service = self.app.coordination_access.require(selected).service
         return identity.resolve_thread(service.registry, self.project_root)
 
-    def agent_for_opening(self, default: AgentDefinition | None) -> AgentBinding:
-        return NoAgent().attached(default)
+    def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
+        return default
 
 
 class AgentBinding(ABC):
     """Known native launch state carries construction and attachment behavior."""
 
+    startup_mode: ClassVar[str]
+
+    @property
     @abstractmethod
-    def attached(self, app_agent: AgentDefinition | None) -> AgentBinding: ...
+    def welcome_prefix(self) -> str: ...
+
+    @abstractmethod
+    def attached(self, app_binding: AgentBinding) -> AgentBinding: ...
 
     @abstractmethod
     def for_session(self, session_id: str) -> AgentBinding: ...
@@ -281,10 +301,14 @@ class AgentBinding(ABC):
 
 @dataclass(frozen=True)
 class NoAgent(AgentBinding):
-    def attached(self, app_agent: AgentDefinition | None) -> AgentBinding:
-        if app_agent is None:
-            return self
-        return AgentAttached(app_agent)
+    startup_mode = "store"
+
+    @property
+    def welcome_prefix(self) -> str:
+        return ""
+
+    def attached(self, app_binding: AgentBinding) -> AgentBinding:
+        return app_binding
 
     def for_session(self, session_id: str) -> AgentBinding:
         return self
@@ -304,8 +328,13 @@ class NoAgent(AgentBinding):
 @dataclass(frozen=True)
 class AgentAttached(AgentBinding):
     agent: AgentDefinition
+    startup_mode = WELCOME
 
-    def attached(self, app_agent: AgentDefinition | None) -> AgentBinding:
+    @property
+    def welcome_prefix(self) -> str:
+        return f"{self.agent.name} · "
+
+    def attached(self, app_binding: AgentBinding) -> AgentBinding:
         return self
 
     def for_session(self, session_id: str) -> AgentBinding:
@@ -327,15 +356,10 @@ class AgentAttached(AgentBinding):
         )
 
     def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
-        if origin.presentation.operational_binding.matches_session(session_id):
-            return True
-        root = origin.coordination_root
-        return (
-            root is not None
-            and origin.app.coordination_access.require(
-                RouteSelection.capture(root)
-            ).service.registry.canonical_name(session_id)
-            == origin.resolve_thread()
+        return origin.presentation.operational_binding.matches_session(
+            session_id
+        ) or origin.transcript_scope().matches_session(
+            origin.app.coordination_access, session_id
         )
 
 
@@ -362,11 +386,11 @@ class ViewSessionOrigin(ProjectSessionOrigin):
 
     _agent_binding: AgentBinding
 
-    def agent_for_opening(self, default: AgentDefinition | None) -> AgentBinding:
+    def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
         return self._agent_binding.attached(default)
 
     def attach_agent_definition(self) -> AgentBinding:
-        self._agent_binding = self._agent_binding.attached(self.app.agent_data)
+        self._agent_binding = self._agent_binding.attached(self.app.agent_binding)
         return self._agent_binding
 
     def use_mailbox(self) -> None:

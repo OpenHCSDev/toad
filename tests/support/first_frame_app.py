@@ -12,6 +12,7 @@ from time import monotonic_ns
 from textual.widgets import Input
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
+from toad.session_scope import AgentAttached
 from toad.screens.workspace import WorkspaceScreen
 from toad.widgets.prompt import Prompt
 from toad.widgets.slash_complete import SlashComplete
@@ -52,9 +53,9 @@ class FrameApp(ToadApp):
 
 if __name__ == "__main__":
     peer = Path(__file__).with_name("peers") / "first_frame.py"
-    app = FrameApp(project_dir=sys.argv[1], agent_data=AgentDefinition.decode({
+    app = FrameApp(project_dir=sys.argv[1], agent_binding=AgentAttached(AgentDefinition.decode({
         "name": "Physical frame peer", "identity": "frame-acceptance",
         "short_name": "Frame", "protocol": "acp",
         "run_command": {"*": shlex.join([sys.executable, str(peer)])},
-    }))
+    })))
     app.run()

@@ -14,7 +14,7 @@ from agent_comms.ui_model.message_category import MessageCategory
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
-from toad.agent_binding import NoAgentBound
+from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.conversation_kind import DmConversation
 from toad.input_history import InputHistories
@@ -73,7 +73,7 @@ class SessionSurfaceLifetime(ABC):
 
     @property
     def operational_binding(self):
-        return NoAgentBound()
+        return NoAgentConnection()
 
     @abstractmethod
     def compose_content(self, screen: MainScreen) -> Widget: ...
@@ -107,7 +107,7 @@ class OperationalSessionSources:
     """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:
-        self.agent_binding = NoAgentBound()
+        self.agent_binding = NoAgentConnection()
         self.shell = None
         self.load_plan = EnsuringSessionLoadPlan()
 
@@ -225,7 +225,7 @@ class OperationalSessionSources:
         self.agent_binding.detach_surface(conversation)
 
     async def close(self) -> None:
-        agent, self.agent_binding = self.agent_binding, NoAgentBound()
+        agent, self.agent_binding = self.agent_binding, NoAgentConnection()
         shell, self.shell = self.shell, None
         async with AsyncResourceRelease() as release:
             if shell is not None:

@@ -1,10 +1,11 @@
 """Typed text goes to the agent as written; only shell mode runs a command."""
+from toad.session_scope import AgentAttached
 
 from support.agents import peer
 
 
 async def test_command_looking_text_is_sent_to_the_agent_not_the_shell(workspace):
-    async with workspace.app(agent=peer("echo")) as ui:
+    async with workspace.app(binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_agent_ready()
         sent = ["openhcs", "open the project", "git status", "python", "$100 budget", "@peer", "!literal"]
         for text in sent:
@@ -17,7 +18,7 @@ async def test_command_looking_text_is_sent_to_the_agent_not_the_shell(workspace
 
 
 async def test_enter_sends_the_whole_multiline_draft_and_ctrl_j_adds_a_line(workspace):
-    async with workspace.app(agent=peer("echo")) as ui:
+    async with workspace.app(binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_agent_ready()
         for text in ("first line\nsecond line", "```python\nprint('hello')\n```"):
             await ui.write_draft(text)
@@ -34,7 +35,7 @@ async def test_enter_sends_the_whole_multiline_draft_and_ctrl_j_adds_a_line(work
 
 
 async def test_an_exclamation_mark_is_text_not_a_shell_switch(workspace):
-    async with workspace.app(agent=peer("echo")) as ui:
+    async with workspace.app(binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_agent_ready()
         await ui.press("!")
         assert ui.draft() == "!"

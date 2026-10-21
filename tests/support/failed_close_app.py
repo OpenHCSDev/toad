@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 
 from toad.app import ToadApp
+from toad.session_scope import AgentAttached
 from toad.cli import run_terminal
 from toad.widgets.conversation import Conversation
 
@@ -39,4 +40,4 @@ class FailedCloseApp(ToadApp):
 
 
 if __name__ == "__main__":
-    run_terminal(FailedCloseApp(project_dir=sys.argv[1], agent_data=peer("echo")))
+    run_terminal(FailedCloseApp(project_dir=sys.argv[1], agent_binding=AgentAttached(peer("echo"))))

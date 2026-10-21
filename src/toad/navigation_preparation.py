@@ -19,7 +19,6 @@ from agent_comms.threads import Thread
 
 from toad.conversation_kind import ConversationKind
 from toad.owner_preparation import ExistingOwnerPlan
-from toad.session_scope import NoAgent
 from toad.session_tracker import CommsViewKey
 
 ResultT = TypeVar("ResultT")
@@ -92,7 +91,7 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
             self.project,
             self.root,
             self.thread.incarnation,
-            NoAgent().attached(app.agent_data),
+            app.agent_binding,
         )
         self.bind(screen)
         return screen

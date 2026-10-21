@@ -319,7 +319,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         # The request has only a name; bind the wire after its metadata read.
         screen = cls(
             request.project,
-            origin.source.agent_for_opening(app.agent_data).for_session(request.target),
+            origin.source.agent_for_opening(app.agent_binding).for_session(request.target),
         )
         screen.content = NavigatedOpeningContent()
         return screen

@@ -1,5 +1,6 @@
 """Opening a thread whose session loads slowly: one tab from the first click, the loading state,
 then the saved history; the session left behind keeps its editor."""
+from toad.session_scope import AgentAttached
 
 import asyncio
 from functools import partial
@@ -41,7 +42,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
         app._display = recording_draw
         return app
 
-    async with workspace.app(size=(139, 25), agent=peer("delayed_load"), application=started) as ui:
+    async with workspace.app(size=(139, 25), binding=AgentAttached(peer("delayed_load")), application=started) as ui:
         app, pilot = ui.textual
         await ui.until_agent_ready()
         source = app.selected_session

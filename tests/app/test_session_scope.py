@@ -5,7 +5,7 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.launch_root import LaunchRoot
 from support.agents import peer
 
-from toad.session_scope import NoSessionOrigin, NoTranscript, SessionScope
+from toad.session_scope import AgentAttached, NoSessionOrigin, NoTranscript, SessionScope
 
 
 async def test_real_conversation_discovers_screen_free_scope(workspace):
@@ -15,7 +15,7 @@ async def test_real_conversation_discovers_screen_free_scope(workspace):
         unavailable.resolve_thread()
     LaunchRoot.from_path(workspace.roots.wire).install()
     definition = peer("echo")
-    async with workspace.app(agent=definition) as ui:
+    async with workspace.app(binding=AgentAttached(definition)) as ui:
         app, _pilot = ui.textual
         first = ui.selected_tab
         view = app.selected_session

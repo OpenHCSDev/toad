@@ -211,8 +211,7 @@ class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
         self.project_path = app.project_dir
 
     def compose(self) -> ComposeResult:
-        selected = self.app.agent_data
-        agent = f"{selected.name} · " if selected is not None else ""
+        agent = self.app.agent_binding.welcome_prefix
         with VerticalScroll(can_focus=False):
             yield WelcomeTitle()
             yield Static(
