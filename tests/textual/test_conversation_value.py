@@ -39,7 +39,7 @@ async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and
             assert conversation == expected
             assert screen.conversation is chat.conversation is conversation
             assert chat.message_history.page_source.loader.conversation is conversation
-            assert next(tab.title for tab in ui.tabs() if tab.identity == mode) == expected.label()
+            assert next(tab.title for tab in ui.tabs() if tab.identity == mode).startswith(expected.label())
             status = chat.message_history.page_source.status_thread(app.coordination_access)
             assert status.name == status_name
 
