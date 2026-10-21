@@ -1,4 +1,4 @@
-"""A wire message body becomes inline spans with emphasis, code and typed links."""
+"""Textual-facing: inline message spans. A wire message body becomes inline spans with emphasis, code and typed links."""
 
 from agent_comms.display_references import ProjectReferences
 from toad.inline_spans import inline_spans

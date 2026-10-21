@@ -1,4 +1,4 @@
-"""Typed channel, DM and all-comms values survive actual UI open/send/return."""
+"""Textual-facing: the conversation tabs; typed channel, DM and all-comms values survive actual UI open/send/return."""
 
 import asyncio
 

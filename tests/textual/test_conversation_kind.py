@@ -1,4 +1,4 @@
-"""Stable conversation identities resolve current names through Core references."""
+"""Textual-facing: stable conversation identities resolve current names through Core references."""
 
 from dataclasses import FrozenInstanceError
 from functools import partial

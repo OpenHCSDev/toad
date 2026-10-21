@@ -1,5 +1,6 @@
 """SDK contract and deletion closure for the specification boundary."""
 import ast
+import inspect
 from pathlib import Path
 from typing import get_args
 from acp import schema
@@ -14,12 +15,13 @@ def test_external_vocabulary_has_one_behavior_family():
     for family, external in ((StopReason, schema.StopReason), (ToolCallStatus, schema.ToolCallStatus)):
         assert set(member.declared_name for member in family.members_with(family)) == set(get_args(external))
         for spelling in get_args(external):
-            assert family.decode(spelling).declared_name == spelling
+            assert family.member_named(spelling).declared_name == spelling
 
 
 def test_sdk_consumers_do_not_read_raw_protocol_records():
     assert not (ROOT / 'src/toad/acp/protocol.py').exists()
-    for relative in ('src/toad/acp/agent_session.py', 'src/toad/acp/session_updates.py', 'src/toad/acp/wire_message.py'):
+    assert not (ROOT / 'src/toad/acp/wire_message.py').exists()
+    for relative in ('src/toad/acp/agent_session.py', 'src/toad/acp/session_updates.py'):
         tree = ast.parse((ROOT / relative).read_text())
         assert not any(isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant)
                        and isinstance(node.slice.value, str) for node in ast.walk(tree)), relative
@@ -28,7 +30,12 @@ def test_sdk_consumers_do_not_read_raw_protocol_records():
     tree = ast.parse((ROOT / 'src/toad/acp/agent_session.py').read_text())
     assert not any(isinstance(node, ast.ClassDef) and node.name == 'Mode' for node in ast.walk(tree))
     source = (ROOT / 'src/toad/acp/sdk_boundary.py').read_text()
-    assert 'cast(' not in source and 'return notification' in source
+    assert 'cast(' not in source
+    # The SDK-validated notification itself travels on; the raw record rides only for rejection.
+    from acp.schema import SessionNotification
+    from toad.acp.sdk_boundary import AcceptedSessionUpdateValidation, ValidateSessionUpdateTask
+    for owner in (ValidateSessionUpdateTask, AcceptedSessionUpdateValidation):
+        assert inspect.get_annotations(owner, eval_str=True)['notification'] is SessionNotification, owner
 
 
 def test_agent_definition_retains_its_external_format_without_aliases():
