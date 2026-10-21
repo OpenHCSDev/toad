@@ -33,7 +33,7 @@ async def answered_once_and_reattached(native):
 
 
 async def test_question_and_permission_actions_leave_the_draft_alone(workspace, native_package):
-    async with native_session(workspace, native_package) as native:
+    async with native_session(workspace) as native:
         ui, agent = native.ui, native.agent
         app, pilot = ui.textual
         view = ui.conversation
@@ -123,7 +123,7 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
 
 async def test_double_escape_cancels_a_running_native_turn(workspace, native_package):
     provider = ControlledProvider(request_budget=1, expected_disconnects=frozenset({1}))
-    async with native_session(workspace, native_package, provider=provider) as native:
+    async with native_session(workspace, provider=provider) as native:
         ui = native.ui
         view = ui.conversation
         await ui.until_agent_ready()

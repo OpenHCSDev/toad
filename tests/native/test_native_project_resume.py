@@ -22,7 +22,7 @@ async def test_saved_project_and_later_changes_replace_the_launch_directory(work
     launched, saved = workspace.project, workspace.roots.attempt / "saved-project"
     saved.mkdir()
     without_provider()
-    comms = start_private_native_wire(workspace.roots.wire, native_package)
+    comms = start_private_native_wire(workspace.roots.wire)
     comms.registry.declare(comms.registry.new_thread("saved", frozenset({"acp"}), str(launched)))
     comms.threads.set_project("saved", str(saved))
     async with attached_app(workspace, comms, "saved", size=(100, 35)) as (ui, agent):
@@ -61,7 +61,7 @@ async def test_a_project_change_reported_by_the_agent_moves_the_session(workspac
     moved = workspace.roots.attempt / "moved-project"
     moved.mkdir()
     without_provider()
-    comms = start_private_native_wire(workspace.roots.wire, native_package)
+    comms = start_private_native_wire(workspace.roots.wire)
     comms.registry.declare(comms.registry.new_thread("saved", frozenset({"acp"}), str(workspace.project)))
     async with attached_app(workspace, comms, "saved", size=(100, 35)) as (ui, agent):
         app, _pilot = ui.textual

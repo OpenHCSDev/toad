@@ -2,7 +2,7 @@
 
 from dataclasses import replace
 
-from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
+from agent_comms.goal_presentation import GoalWaitTarget, RunnableExecution, StandbyExecution
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.ui_model.goal import GoalUnavailable
 from textual.widgets import Static
@@ -17,6 +17,7 @@ GOAL = published_goal("OBJECTIVE " * 150, "goal", progress="PROGRESS", revision=
 async def shown_bar(ui):
     view = ui.conversation
     view.goal_display = GOAL
+    view.goal_execution = RunnableExecution(GOAL.id)
     view.prompt.text = "Keep this draft"
     await ui.step()
     bar = view.query_one(GoalBar)
@@ -80,7 +81,7 @@ async def test_expanding_shows_standby_and_the_latest_progress(workspace):
         assert await pilot.click(toggle)
         await ui.step()
         view.goal_display = replace(GOAL, revision=30, progress="UPDATED_PROGRESS")
-        view.goal_execution = GoalExecution(GoalExecutionState.STANDBY, GOAL.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),))
+        view.goal_execution = StandbyExecution(GOAL.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),), ())
         await ui.until(lambda: "Standby" in str(header.render()), why="Standby in the collapsed header")
         assert not bar.query_one(StandbyPulse).active
         assert await pilot.click(toggle)

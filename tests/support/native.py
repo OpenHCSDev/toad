@@ -171,18 +171,13 @@ class ControlledProvider:
             server.server_close()
 
 
-def start_private_native_wire(root: Path, package: Path):
-    """Create the test's wire and make it the route native owners launch on, with `package`."""
+def start_private_native_wire(root: Path):
+    """Create a private root; Core derives its root identity and reviewed package."""
     from agent_comms.comms import Comms
 
     comms = Comms(root)
-    root_id = comms.messaging.initialize_private_initial_protocol()
-    comms.owners.pin_private_nk_launch(comms.root, root_id, package)
-    os.environ.update(
-        AGENT_COMMS_ROOT=str(comms.root),
-        AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
-        AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=str(package),
-    )
+    comms.messaging.initialize_private_initial_protocol()
+    os.environ["AGENT_COMMS_ROOT"] = str(comms.root)
     for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
         os.environ.pop(key, None)
     return comms
@@ -266,7 +261,7 @@ def _first_wins(started):
 
 
 @asynccontextmanager
-async def native_session(workspace, package: Path, *, provider: ControlledProvider | None = None,
+async def native_session(workspace, *, provider: ControlledProvider | None = None,
                          settings: dict | None = None, prepare=None, size: tuple[int, int] = (160, 44),
                          application: type | None = None, attached: bool = True):
     """Start Toad on a declared native thread ``beta`` whose model is the controlled provider.
@@ -277,7 +272,7 @@ async def native_session(workspace, package: Path, *, provider: ControlledProvid
 
     provider = provider or ControlledProvider()
     with provider.serving() as base_url:
-        comms = start_private_native_wire(workspace.roots.wire, package)
+        comms = start_private_native_wire(workspace.roots.wire)
         configure_provider(base_url, settings=settings)
         comms.registry.declare(comms.registry.new_thread("beta", frozenset({"team"}), str(workspace.project),
                                       model=MODEL, thinking_level="off"))
@@ -301,11 +296,11 @@ def without_provider(models: str = "test/model") -> None:
     os.environ.update(AGENT_COMMS_AGENT_BIN="pi", AGENT_COMMS_AGENT_ARGS="", AGENT_COMMS_AGENT_MODELS=models)
 
 
-def owner_server(comms, package: Path, *, provider: str = "openrouter", model: str = "fake"):
+def owner_server(comms, *, provider: str = "openrouter", model: str = "fake"):
     """Core's ACP server object in this process, able to start native owners on the private wire."""
     from agent_comms.acp import CommsAgent
+    from agent_comms.native_arguments import GivenArguments
 
     return CommsAgent(
-        comms, agent_bin="pi", agent_args=["--provider", provider, "--model", model],
-        runtime_enabled=True, auto_wake=False, private_nk_native_package=package,
-        private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"])
+        comms, agent_args=GivenArguments(("--provider", provider, "--model", model)),
+        runtime_enabled=True, auto_wake=False)

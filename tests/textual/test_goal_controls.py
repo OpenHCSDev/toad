@@ -1,6 +1,7 @@
 """Textual-facing: the goal bar mounts one control per declared interaction, paints them, and collapses."""
 
 from agent_comms.goal_actions import PausedGoalAction
+from agent_comms.goal_presentation import RunnableExecution
 
 from toad.goal_interaction import GoalInteraction, GoalSession
 from toad.widgets.goal_bar import GoalBar, GoalControl
@@ -17,7 +18,9 @@ class ProbeInteraction(GoalInteraction):
 
 async def show_goal(ui):
     view = ui.conversation
-    view.goal_display = published_goal("Visible goal for control discovery", "new-control")
+    goal = published_goal("Visible goal for control discovery", "new-control")
+    view.goal_display = goal
+    view.goal_execution = RunnableExecution(goal.id)
     await ui.until(lambda: view.query(GoalBar), why="the goal bar")
     return view, view.query_one(GoalBar)
 

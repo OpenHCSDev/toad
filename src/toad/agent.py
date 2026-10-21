@@ -34,9 +34,6 @@ class AgentBase(AgentConnection):
     def matches_agent(self, agent) -> bool:
         return self is agent
 
-    def goal_editor(self):
-        return self
-
     def cancel_allowed(self, turn):
         return turn.can_cancel
 

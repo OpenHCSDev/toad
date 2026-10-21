@@ -6,7 +6,7 @@ from dataclasses import replace
 
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_mentions import bind_goal_mentions
-from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution, ThreadGoalExecution
+from agent_comms.goal_presentation import GoalExecution, GoalSnapshot, RunnableExecution
 from agent_comms.goal_states import ActiveGoal
 from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.registry_document import RegistrySnapshot
@@ -34,10 +34,10 @@ class ScriptedGoalOwner(Agent):
 
     Every goal request is recorded in ``requests`` as (kind, details). A test sets ``goal``,
     ``execution`` and ``reject`` to change what the owner answers next. A control action
-    (Retry, Pause, ...) leaves the goal active.
+    receives a canned active/runnable reply; this fixture does not implement Core's transitions.
     """
 
-    def __init__(self, *args, goal: GoalDeclaration, execution: ThreadGoalExecution, history: list[dict],
+    def __init__(self, *args, goal: GoalDeclaration, execution: GoalExecution, history: list[dict],
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.goal, self.execution, self.history = goal, execution, history
@@ -46,7 +46,7 @@ class ScriptedGoalOwner(Agent):
 
     @classmethod
     def owning(cls, app: ToadApp, goal: GoalDeclaration,
-               execution: ThreadGoalExecution = IdleGoalExecution(), *,
+               execution: GoalExecution, *,
                history: tuple[dict, ...] = ()) -> ScriptedGoalOwner:
         """The goal owner of ``app``, built through the app's own Agent constructor."""
         return AppAgents(app).agent(cls, AgentDefinition("goal-owner", "goal-owner", {"*": "true"}), "goal-owner",
@@ -58,6 +58,7 @@ class ScriptedGoalOwner(Agent):
     async def update_goal(self, action: type[GoalAction], text: str = ""):
         self.requests.append(("update", action))
         self.goal = replace(self.goal, state=ActiveGoal())
+        self.execution = RunnableExecution(self.goal.id)
         return self.goal
 
     async def edit_goal(self, expected, text):

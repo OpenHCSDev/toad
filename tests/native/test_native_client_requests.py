@@ -15,16 +15,9 @@ ALLOW = {"optionId": "allow", "name": "Allow once", "kind": "allow_once"}
 REJECT = {"optionId": "reject", "name": "Reject", "kind": "reject_once"}
 
 
-async def test_client_requests_follow_the_session_they_belong_to(
-    workspace, native_package
-):
-    async with native_session(workspace, native_package) as native:
-        ui, agent, comms, provider = (
-            native.ui,
-            native.agent,
-            native.comms,
-            native.provider,
-        )
+async def test_client_requests_follow_the_session_they_belong_to(workspace, native_package):
+    async with native_session(workspace) as native:
+        ui, agent, comms, provider = native.ui, native.agent, native.comms, native.provider
         app, _pilot = ui.textual
         view = ui.conversation
         owner_tab = ui.selected_tab

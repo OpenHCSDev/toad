@@ -78,7 +78,7 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
         save_button.disabled = True
         try:
             await self.on_save(text.strip())
-        except RequestError as error:
+        except (RequestError, ValueError) as error:
             self.query_one("#goal-edit-error", Static).update(str(error))
         else:
             self.dismiss(text.strip())

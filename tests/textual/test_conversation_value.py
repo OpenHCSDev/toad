@@ -134,19 +134,29 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
             why="the retained DM tab following its incarnation's current name",
         )
         assert next(tab.title for tab in app.open_tabs if tab.mode_name == mode) == "@renamed"
-        prepared_pages = tuple(page.prepared for page in chat.message_history.pages)
-        fragments = chat.message_history.fragments
+        history = chat.message_history
+        await ui.until(
+            lambda: history.source_ready
+            and history.revision.selection.requested_peer == "renamed"
+            and "BEFORE_RENAME" in ui.painted(window),
+            why="the renamed conversation's captured source and painted message",
+        )
+        fragments = history.fragments_in_range
+        width, theme = history.line_width, app.colours.line_theme
+        lines = tuple(fragment.lines_for(width, theme) for fragment in fragments)
+        assert lines and all(value is not None for value in lines)
         await ui.select_tab(owner)
         assert await ui.open_direct("renamed", actor=viewer, owner=owner) == mode
         assert app.session_navigation.get(mode) is entry
         assert app.selected_session is screen
         assert screen.query_one(CommsChatView) is chat
         assert chat.window is window
-        assert all(before is page.prepared for before, page in zip(
-            prepared_pages, chat.message_history.pages, strict=True,
-        ))
         assert all(before is after for before, after in zip(
-            fragments, chat.message_history.fragments, strict=True,
+            fragments, history.fragments_in_range, strict=True,
+        ))
+        assert history.line_width == width
+        assert all(before is fragment.lines_for(width, theme) for before, fragment in zip(
+            lines, history.fragments_in_range, strict=True,
         ))
         assert entry.key.conversation.peer == peer.incarnation
         assert chat.prompt.text == "draft survives rename"

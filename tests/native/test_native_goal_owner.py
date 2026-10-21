@@ -21,8 +21,8 @@ class InProcessReader(CoordinationTranscriptReader):
 
 async def test_setting_a_goal_makes_it_ready_to_launch(workspace, native_package, monkeypatch):
     monkeypatch.setenv("AGENT_COMMS_AGENT_MODELS", "openrouter/fake")
-    comms = start_private_native_wire(workspace.roots.wire, native_package)
-    owner = owner_server(comms, native_package)
+    comms = start_private_native_wire(workspace.roots.wire)
+    owner = owner_server(comms)
     try:
         session = (await owner.new_session(cwd=str(workspace.project))).session_id
         agent = workspace.agents.detached_agent()
@@ -40,8 +40,8 @@ async def test_setting_a_goal_makes_it_ready_to_launch(workspace, native_package
 
 async def test_editing_a_goal_keeps_its_identity_and_refuses_a_stale_edit(workspace, native_package, monkeypatch):
     monkeypatch.setenv("AGENT_COMMS_AGENT_MODELS", "openrouter/fake")
-    comms = start_private_native_wire(workspace.roots.wire, native_package)
-    owner = owner_server(comms, native_package)
+    comms = start_private_native_wire(workspace.roots.wire)
+    owner = owner_server(comms)
     try:
         session = (await owner.new_session(cwd=str(workspace.project))).session_id
         agent = workspace.agents.detached_agent()
