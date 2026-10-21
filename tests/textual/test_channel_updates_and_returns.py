@@ -15,7 +15,7 @@ async def test_live_update_paints_parked_channel_reads_nothing_and_return_shows_
     comms.messaging.initialize_private_initial_protocol()
     comms.messaging.send("sender", "#alpha", "INITIAL ROW")
     reads = []
-    code = HistoryViews.message_notifications.__code__
+    code = HistoryViews.message_notifications_for_references.__code__
 
     def observe(frame, event, argument):
         if event == "call" and frame.f_code is code:
