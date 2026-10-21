@@ -4,11 +4,21 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.channel_targets import ChannelSelection, CommandTarget, ChannelTarget as CoreChannelTarget, ThreadTarget as CoreThreadTarget
+from agent_comms.channel_targets import (
+    ChannelSelection,
+    CommandTarget,
+    ChannelTarget as CoreChannelTarget,
+    ThreadTarget as CoreThreadTarget,
+)
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
-from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
+from toad.conversation_kind import (
+    ConversationKind,
+    ChannelConversation,
+    DmConversation,
+    IrcConversation,
+)
 from toad.constants import ALL_COMMS_TARGET
 
 if TYPE_CHECKING:
@@ -33,9 +43,16 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
 
     def menu_context(self, sidebar, *, channel: ChannelSelection, mode_name=None):
         from toad.target_commands import TargetContext
-        return TargetContext(sidebar.app, sidebar.model_state.observed.service, self.name,
-                             sidebar.app.workspace_sessions.source.view.navigation_context.actor,
-                             sidebar.app.project_dir, mode_name, channel)
+
+        return TargetContext(
+            sidebar.app,
+            sidebar.model_state.observed.service,
+            self.name,
+            sidebar.app.workspace_sessions.source.view.navigation_context.actor,
+            sidebar.app.project_dir,
+            mode_name,
+            channel,
+        )
 
     def selected(self, owner: NavigationOwner) -> None:
         """Apply view-specific selection intent before beginning navigation."""
@@ -78,7 +95,11 @@ class NoTarget(NavigationTarget):
 class SessionTarget(NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         app = context.app
-        destination = context.owner_mode if app.session_tracker.get_session(context.owner_mode) else "store"
+        destination = (
+            context.owner_mode
+            if app.session_tracker.get_session(context.owner_mode)
+            else "store"
+        )
         if app.selected_mode != destination:
             await app.select_session(destination)
         return app.selected_mode
@@ -87,7 +108,9 @@ class SessionTarget(NavigationTarget):
 class ThreadTarget(NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
-            owner_mode=context.owner_mode, project_path=context.project_path, target=self.name,
+            owner_mode=context.owner_mode,
+            project_path=context.project_path,
+            target=self.name,
         )
 
 
@@ -98,6 +121,7 @@ class HistoryRoute:
     @abstractmethod
     def history_kind(self) -> type[ConversationKind]: ...
 
+
 class HistoryTarget(HistoryRoute, NavigationTarget):
     @classmethod
     def for_name(cls, name: str):
@@ -105,14 +129,19 @@ class HistoryTarget(HistoryRoute, NavigationTarget):
 
     @classmethod
     def for_conversation(cls, conversation: ConversationKind) -> HistoryTarget:
-        target, = (member for member in cls.members_with(HistoryRoute)
-                   if member.history_kind is type(conversation))
+        (target,) = (
+            member
+            for member in cls.members_with(HistoryRoute)
+            if member.history_kind is type(conversation)
+        )
         return target.for_name(conversation.target.name)
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
-            owner_mode=context.owner_mode, project_path=context.project_path,
-            me=context.actor, conversation=self.history_kind(CommandTarget.named(self.name)),
+            owner_mode=context.owner_mode,
+            project_path=context.project_path,
+            me=context.actor,
+            conversation=self.history_kind(CommandTarget.named(self.name)),
         )
 
 
@@ -121,9 +150,14 @@ class ChannelLike:
 
     def menu_context(self, sidebar, **kwargs):
         from toad.target_commands import TargetContext
-        return TargetContext(sidebar.app, sidebar.model_state.observed.service, self.name,
-                              sidebar.app.workspace_sessions.source.view.navigation_context.actor,
-                              sidebar.app.project_dir)
+
+        return TargetContext(
+            sidebar.app,
+            sidebar.model_state.observed.service,
+            self.name,
+            sidebar.app.workspace_sessions.source.view.navigation_context.actor,
+            sidebar.app.project_dir,
+        )
 
 
 @dataclass(frozen=True)

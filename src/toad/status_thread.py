@@ -16,7 +16,10 @@ from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 
 if TYPE_CHECKING:
-    from toad.widgets.observed_thread_activity import ObservedThreadActivity, ThreadStatusOwner
+    from toad.widgets.observed_thread_activity import (
+        ObservedThreadActivity,
+        ThreadStatusOwner,
+    )
 
 
 class StatusThread(ABC):
@@ -62,8 +65,13 @@ class LocalStatusThread(StatusThread):
     def observe(self, activity: ObservedThreadActivity) -> None:
         access = activity.app.coordination_access
         activity.observe_core_callback(
-            access.events, ThreadRowsChanged, activity.status_changed,
-            factory=partial(ThreadCallbackSubscription, scope=(str(self.root), self.name)))
+            access.events,
+            ThreadRowsChanged,
+            activity.status_changed,
+            factory=partial(
+                ThreadCallbackSubscription, scope=(str(self.root), self.name)
+            ),
+        )
 
 
 @dataclass(frozen=True)
@@ -76,18 +84,27 @@ class ForeignStatusThread(StatusThread):
 
     def refresh(self, view: ThreadStatusOwner) -> None:
         super().refresh(view)
-        view.run_worker(self.read_foreign_thread(view), group="foreign-thread-status", exclusive=True)
+        view.run_worker(
+            self.read_foreign_thread(view),
+            group="foreign-thread-status",
+            exclusive=True,
+        )
 
     async def read_foreign_thread(self, view: ThreadStatusOwner) -> None:
         try:
-            presentation = await view.app.coordination_access.transcripts.thread_presentation(
-                str(self.root), self.name)
+            presentation = (
+                await view.app.coordination_access.transcripts.thread_presentation(
+                    str(self.root), self.name
+                )
+            )
             row = ThreadStatusModel.known(self.name, presentation)
         except CoordinationReadUnavailable:
             return
         except (OSError, ValueError, RuntimeError) as error:
             presentation = None
-            row = ThreadStatusModel.unreadable(self.name, UnreadableHistory.capture(error))
+            row = ThreadStatusModel.unreadable(
+                self.name, UnreadableHistory.capture(error)
+            )
         if view.status_thread() != self:
             return
         view.thread_activity.show(row)

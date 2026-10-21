@@ -18,7 +18,8 @@ from contextlib import asynccontextmanager
 from agent_comms.route_selection import RouteSelection
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.ui_model.observation import (
-    AwaitedRead, RefreshTranscript,
+    AwaitedRead,
+    RefreshTranscript,
     TranscriptPublicationState,
 )
 
@@ -32,12 +33,15 @@ class CoordinationTranscriptReader:
         self.access = access
 
     async def read(self, request: AwaitedRead):
-        observed = await self.access.preparation.run_thread(self.access.observation.observed)
+        observed = await self.access.preparation.run_thread(
+            self.access.observation.observed
+        )
         return await observed.process.read(request)
 
     async def service(self, root):
         return await self.access.preparation.run_thread(
-            lambda: self.access.require(RouteSelection.capture(root)).service)
+            lambda: self.access.require(RouteSelection.capture(root)).service
+        )
 
     async def thread_presentation(self, root: str, thread: str):
         """Read one thread presentation through this reader's bound service."""
@@ -50,24 +54,55 @@ class CoordinationTranscriptReader:
     async def bind(self, root: str):
         yield await self.service(root)
 
-    async def publication(self, update: TranscriptSnapshotUpdate) -> TranscriptSnapshotUpdate:
+    async def publication(
+        self, update: TranscriptSnapshotUpdate
+    ) -> TranscriptSnapshotUpdate:
         """The published page while its witness is current, else the current page."""
         identity = update.identity
         current = await self.read(RefreshTranscript(identity.root, identity))
         return update if current is None else current
 
-    async def page(self, scope: TranscriptScope, *, before=None, after=None, through=None,
-                   historical_source: str | None = None):
-        snapshot = await self.snapshot(scope, before=before, after=after, through=through,
-                                       historical_source=historical_source)
+    async def page(
+        self,
+        scope: TranscriptScope,
+        *,
+        before=None,
+        after=None,
+        through=None,
+        historical_source: str | None = None,
+    ):
+        snapshot = await self.snapshot(
+            scope,
+            before=before,
+            after=after,
+            through=through,
+            historical_source=historical_source,
+        )
         return snapshot.page
 
-    async def snapshot(self, scope: TranscriptScope, *, before=None, after=None, through=None,
-                       historical_source: str | None = None) -> TranscriptSnapshotUpdate:
-        return await self.read(scope.snapshot_request(
-            before=before, after=after, through=through, historical_source=historical_source))
+    async def snapshot(
+        self,
+        scope: TranscriptScope,
+        *,
+        before=None,
+        after=None,
+        through=None,
+        historical_source: str | None = None,
+    ) -> TranscriptSnapshotUpdate:
+        return await self.read(
+            scope.snapshot_request(
+                before=before,
+                after=after,
+                through=through,
+                historical_source=historical_source,
+            )
+        )
 
     async def updates(
-        self, scope: TranscriptScope, previous: TranscriptPublicationState, *, after=None,
+        self,
+        scope: TranscriptScope,
+        previous: TranscriptPublicationState,
+        *,
+        after=None,
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
         return await self.read(scope.update_request(previous, after=after))

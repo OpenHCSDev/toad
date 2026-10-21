@@ -75,9 +75,13 @@ class CommsChatView(Conversation):
         # The observer's announcement the last refresh began from.
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
-        self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.target.name}")
+        self.input_histories.bind_scope(
+            f"comms:{FieldCodec.encode(type(conversation))}:{conversation.target.name}"
+        )
         self.message_contents = Contents(id="contents")
-        self.message_history = WireHistory.empty(view=self, notification_view=self.message_contents)
+        self.message_history = WireHistory.empty(
+            view=self, notification_view=self.message_contents
+        )
 
     def transcript_binding(self) -> ViewBinding:
         """A wire conversation has no native transcript to publish."""
@@ -106,16 +110,22 @@ class CommsChatView(Conversation):
         # Reuse the canonical core service already shared by tab sidebars and
         # transcript readers. Its revision-aware caches remain model-owned.
         shared = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.observation.observed().service)
+            lambda: self.app.coordination_access.observation.observed().service
+        )
         if self._bound_root is not None and self._bound_root != shared.root:
             raise ValueError(
                 f"Conversation root {self._bound_root} differs from observed root {shared.root}"
             )
         comms = shared
-        self.message_history.open(WireSource(
-            comms, self.conversation, Path(self.project_path), self._me,
-            IrcMessageStyle(),
-        ))
+        self.message_history.open(
+            WireSource(
+                comms,
+                self.conversation,
+                Path(self.project_path),
+                self._me,
+                IrcMessageStyle(),
+            )
+        )
         self.agent_info = Content(self.conversation.label())
         self.refresh_thread_status()
         self.prepare_prompt()
@@ -148,8 +158,9 @@ class CommsChatView(Conversation):
         if event.publisher is not history:
             return
         self.settle_user_message()
-        if (not history.state.accepts_source_work
-                or not source.uses_observation(access.observation.observed())):
+        if not history.state.accepts_source_work or not source.uses_observation(
+            access.observation.observed()
+        ):
             return
         if self._refreshed_from != access.revision:
             # The observer announced a change while this work ran. The history
@@ -167,9 +178,12 @@ class CommsChatView(Conversation):
         # itself before reading again, rather than rereading an already
         # current page until the observer's next tick.
         revision = await source.read_revision()
-        if (source is history.page_source and snapshot.current(history)
-                and source.uses_observation(access.observation.observed())
-                and history.revision.stores != revision):
+        if (
+            source is history.page_source
+            and snapshot.current(history)
+            and source.uses_observation(access.observation.observed())
+            and history.revision.stores != revision
+        ):
             await self._refresh()
 
     def prepare_prompt(self) -> None:
@@ -204,7 +218,9 @@ class CommsChatView(Conversation):
 
     def status_thread(self) -> StatusThread:
         """Peer status does not grant access to the peer's full transcript."""
-        return self.message_history.page_source.status_thread(self.app.coordination_access)
+        return self.message_history.page_source.status_thread(
+            self.app.coordination_access
+        )
 
     async def _refresh(self) -> Worker | None:
         history = self.message_history
@@ -214,7 +230,10 @@ class CommsChatView(Conversation):
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+        from agent_comms.coordination_errors import (
+            CoordinationReadUnavailable,
+            StaleRevision,
+        )
 
         try:
             history = self.message_history
@@ -241,20 +260,27 @@ class CommsChatView(Conversation):
             self._refreshed_from = announced
             # A sent message may now be drawn: composing resumes before mentions are read.
             self.settle_user_message()
-        except (CoordinationReadUnavailable, StaleRevision):
+        except CoordinationReadUnavailable, StaleRevision:
             raise
         # Composer mentions and DM status read the observer's snapshot
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
         # and the history can load pages while they wait.
-        self.run_worker(partial(self._refresh_labels, source, changed, newly_announced, read_only),
-                        group=self.LABELS_GROUP)
+        self.run_worker(
+            partial(self._refresh_labels, source, changed, newly_announced, read_only),
+            group=self.LABELS_GROUP,
+        )
 
     LABELS_GROUP = "chat-labels"
 
-    async def _refresh_labels(self, source, changed: bool, newly_announced: bool, read_only: bool) -> None:
+    async def _refresh_labels(
+        self, source, changed: bool, newly_announced: bool, read_only: bool
+    ) -> None:
         """Refresh composer mentions and status for the history as it is drawn now."""
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+        from agent_comms.coordination_errors import (
+            CoordinationReadUnavailable,
+            StaleRevision,
+        )
 
         history = self.message_history
         snapshot = history.source_snapshot()
@@ -269,23 +295,31 @@ class CommsChatView(Conversation):
             if changed:
                 if not await history.source_is_current(snapshot):
                     return
-                if (not self.is_attached or source is not history.page_source
-                        or not self.query_ancestor(SessionScope).is_current):
+                if (
+                    not self.is_attached
+                    or source is not history.page_source
+                    or not self.query_ancestor(SessionScope).is_current
+                ):
                     return
             self.call_after_refresh(history.mark_visible)
             if not changed:
                 return
             status = await source.status_text(read_only=read_only)
-        except (CoordinationReadUnavailable, StaleRevision):
+        except CoordinationReadUnavailable, StaleRevision:
             # The coordination store is busy or moved on: the observer's next
             # announcement refreshes this view and reads the labels again.
             return
-        if not await history.source_is_current(snapshot) or self.conversation != conversation:
+        if (
+            not await history.source_is_current(snapshot)
+            or self.conversation != conversation
+        ):
             return
         await self.refresh_composer(read_only, status)
         if self.window.follows_tail:
             self.window.anchor()
-        if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):
+        if NEWER_END.visible_more(history) or (
+            OLDER_END.visible_more(history) and self.window.max_scroll_y == 0
+        ):
             history.request_preparation()
 
     async def composer_read_only(self) -> bool:
@@ -296,7 +330,9 @@ class CommsChatView(Conversation):
         return self.message_history.page_source.command_context(self)
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
-        if event.body.strip().startswith("/") and await CommandCatalog.execute(event.body.strip(), self):
+        if event.body.strip().startswith("/") and await CommandCatalog.execute(
+            event.body.strip(), self
+        ):
             return
         if not event.body.strip():
             return
@@ -304,7 +340,9 @@ class CommsChatView(Conversation):
 
     async def _show_sent(self, sent: WireMessage, body: str) -> None:
         """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
-        self.run_worker(partial(self.input_histories.prompt.record, body), group="history")
+        self.run_worker(
+            partial(self.input_histories.prompt.record, body), group="history"
+        )
         self.window.jump_to_latest()
         await self._refresh()
         self.settle_user_message()

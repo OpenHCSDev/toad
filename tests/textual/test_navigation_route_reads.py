@@ -26,7 +26,9 @@ class Gate:
         return self.original(request)
 
     def holding(self):
-        return patch.object(self.request_type, "read", lambda request: self.read(request))
+        return patch.object(
+            self.request_type, "read", lambda request: self.read(request)
+        )
 
 
 async def opening_while_the_user_types(workspace, request_type, target):
@@ -44,7 +46,10 @@ async def opening_while_the_user_types(workspace, request_type, target):
             with gate.holding():
                 opening = asyncio.create_task(target.open(context))
                 assert await asyncio.to_thread(gate.entered.wait, 2)
-                assert gate.thread_ids == [gate.thread_ids[0]] and gate.thread_ids[0] != threading.get_ident()
+                assert (
+                    gate.thread_ids == [gate.thread_ids[0]]
+                    and gate.thread_ids[0] != threading.get_ident()
+                )
                 assert ui.selected_tab == owner
                 await ui.write_draft("")
                 await ui.type("keep")
@@ -62,15 +67,25 @@ async def opening_while_the_user_types(workspace, request_type, target):
                 await asyncio.gather(opening, return_exceptions=True)
 
 
-async def test_a_thread_opening_reads_off_the_ui_thread_and_a_later_tab_choice_wins(workspace):
-    await opening_while_the_user_types(workspace, ThreadNavigationRequest, ThreadTarget("metadata-peer"))
+async def test_a_thread_opening_reads_off_the_ui_thread_and_a_later_tab_choice_wins(
+    workspace,
+):
+    await opening_while_the_user_types(
+        workspace, ThreadNavigationRequest, ThreadTarget("metadata-peer")
+    )
 
 
-async def test_a_channel_opening_reads_off_the_ui_thread_and_a_later_tab_choice_wins(workspace):
-    await opening_while_the_user_types(workspace, CommsNavigationRequest, channel_target("#all"))
+async def test_a_channel_opening_reads_off_the_ui_thread_and_a_later_tab_choice_wins(
+    workspace,
+):
+    await opening_while_the_user_types(
+        workspace, CommsNavigationRequest, channel_target("#all")
+    )
 
 
-async def test_a_renamed_thread_reuses_its_open_tab_before_the_rename_reaches_the_view(workspace):
+async def test_a_renamed_thread_reuses_its_open_tab_before_the_rename_reaches_the_view(
+    workspace,
+):
     workspace.thread("metadata-peer", running=True)
     async with workspace.app(size=(100, 32)) as ui:
         app, _ = ui.textual
@@ -81,11 +96,14 @@ async def test_a_renamed_thread_reuses_its_open_tab_before_the_rename_reaches_th
         existing._comms_thread = "metadata-peer"
         workspace.comms.registry.rename("metadata-peer", "metadata-renamed")
         reused = await app.thread_navigation.open(
-            owner_mode=owner, project_path=workspace.project, target="metadata-peer")
+            owner_mode=owner, project_path=workspace.project, target="metadata-peer"
+        )
         assert reused == other and app.session_tracker.session_count == 2
 
 
-async def test_a_channel_read_finishing_after_its_owner_closed_opens_in_the_remaining_tab(workspace):
+async def test_a_channel_read_finishing_after_its_owner_closed_opens_in_the_remaining_tab(
+    workspace,
+):
     workspace.thread("metadata-peer", running=True)
     async with workspace.app(size=(100, 32)) as ui:
         app, _ = ui.textual
@@ -97,13 +115,21 @@ async def test_a_channel_read_finishing_after_its_owner_closed_opens_in_the_rema
         opening = None
         try:
             with gate.holding():
-                opening = asyncio.create_task(channel_target("#all").open(
-                    NavigationContext(app, owner, workspace.project, source._comms_thread)))
+                opening = asyncio.create_task(
+                    channel_target("#all").open(
+                        NavigationContext(
+                            app, owner, workspace.project, source._comms_thread
+                        )
+                    )
+                )
                 assert await asyncio.to_thread(gate.entered.wait, 2)
                 await asyncio.wait_for(ui.close_tab(owner), 2)
                 gate.release.set()
                 assert await asyncio.wait_for(opening, 2) == other
-                assert owner not in [tab.identity for tab in ui.tabs()] and len(ui.tabs()) == 1
+                assert (
+                    owner not in [tab.identity for tab in ui.tabs()]
+                    and len(ui.tabs()) == 1
+                )
         finally:
             gate.release.set()
             if opening is not None:

@@ -14,7 +14,10 @@ from toad.widgets.presentation_window import NEWER_END
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
-    from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
+    from toad.transcript_source_preparation import (
+        HistorySourceSnapshot,
+        TranscriptSourcePreparation,
+    )
     from toad.widgets.committed_presentation import CommitParticipant
     from toad.widgets.history_anchor import LatestPosition
 
@@ -49,7 +52,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
 
     def arriving(self, prepared, followed_end: bool):
         """The staged range begins at the edge this append advances."""
-        return prepared.fragments[prepared.start:prepared.stop] if followed_end else ()
+        return (
+            prepared.fragments[prepared.start : prepared.stop] if followed_end else ()
+        )
 
     def mounted(self, owner) -> None:
         """An already-read source needs no initial destination request."""
@@ -86,7 +91,11 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
 
     def for_projection(self, projection, owner) -> "TranscriptState":
         """A view may publish only while its source still owns that projection."""
-        if owner is None or not owner.state.can_draw or not owner.filter.owns_projection(projection):
+        if (
+            owner is None
+            or not owner.state.can_draw
+            or not owner.filter.owns_projection(projection)
+        ):
             return RetiredProjectionTranscript(self)
         return self
 
@@ -123,8 +132,12 @@ class LiveTranscript(TranscriptState):
 
     @classmethod
     def successors(cls):
-        return (LiveTranscript, ParkedSourceTranscript, DetachedTranscript,
-                ClosingTranscript)
+        return (
+            LiveTranscript,
+            ParkedSourceTranscript,
+            DetachedTranscript,
+            ClosingTranscript,
+        )
 
     def publish(self) -> TranscriptState:
         return self
@@ -207,8 +220,9 @@ class LatestViewportRequest(LatestViewportState):
 
     def resume(self, owner) -> LatestViewportState:
         """Return the request state after this draw's source-work admission."""
-        if (not self.current(owner.window)
-                or owner.schedule_source_work(partial(owner.jump_latest, self))):
+        if not self.current(owner.window) or owner.schedule_source_work(
+            partial(owner.jump_latest, self)
+        ):
             return NoLatestRequest()
         return self
 
@@ -298,8 +312,13 @@ class WorkingTranscript(SuspendedTranscript):
 
     @classmethod
     def successors(cls):
-        return (LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript,
-                ClosingTranscript, DetachedTranscript)
+        return (
+            LiveTranscript,
+            ProvisionalTranscript,
+            RetiredSourceTranscript,
+            ClosingTranscript,
+            DetachedTranscript,
+        )
 
     def defer_source_work(self, owner, work) -> None:
         """The existing observation scope owns the paused operation's lifetime."""
@@ -308,7 +327,10 @@ class WorkingTranscript(SuspendedTranscript):
         owner._source_observation.enter_context(waiting.observe())
 
     async def execute(self, owner, work):
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+        from agent_comms.coordination_errors import (
+            CoordinationReadUnavailable,
+            StaleRevision,
+        )
 
         with ExitStack() as completion:
             completion.callback(owner.finish_source_work, self)
@@ -422,9 +444,14 @@ class CommitTranscript(WorkingTranscript):
     def arriving(self, prepared, followed_end: bool):
         # Rows its live blocks already showed have not arrived again; every other row has.
         # The live blocks are the commit participants `retirement_candidates` chose.
-        claims = tuple(cast("CommitParticipant", block).commit_claim for block in self.live_blocks)
-        return tuple(fragment for fragment in super().arriving(prepared, followed_end)
-                     if not any(fragment.shown_live_by(claim) for claim in claims))
+        claims = tuple(
+            cast("CommitParticipant", block).commit_claim for block in self.live_blocks
+        )
+        return tuple(
+            fragment
+            for fragment in super().arriving(prepared, followed_end)
+            if not any(fragment.shown_live_by(claim) for claim in claims)
+        )
 
     def rows_published(self, owner) -> None:
         if not NEWER_END.visible_more(owner):

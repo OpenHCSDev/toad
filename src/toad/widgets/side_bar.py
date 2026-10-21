@@ -27,7 +27,11 @@ from toad.frame_presentation import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
-    Side, SidebarGeometry, SidebarPlacement, SidebarPlacementAction, SidebarShift,
+    Side,
+    SidebarGeometry,
+    SidebarPlacement,
+    SidebarPlacementAction,
+    SidebarShift,
 )
 from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
@@ -46,11 +50,22 @@ class BarPresentation:
     compact: bool
 
     @classmethod
-    def from_placement(cls, placement: SidebarPlacement, *, collapsed: bool,
-                       directions: dict[Side, SidebarShift], width: int) -> "BarPresentation":
-        return cls(placement.side, placement.order, placement.floating, collapsed,
-                   tuple(type(action) for action in directions.values()),
-                   all(action.available for action in directions.values()) and width - 4 < 21)
+    def from_placement(
+        cls,
+        placement: SidebarPlacement,
+        *,
+        collapsed: bool,
+        directions: dict[Side, SidebarShift],
+        width: int,
+    ) -> "BarPresentation":
+        return cls(
+            placement.side,
+            placement.order,
+            placement.floating,
+            collapsed,
+            tuple(type(action) for action in directions.values()),
+            all(action.available for action in directions.values()) and width - 4 < 21,
+        )
 
 
 @dataclass(frozen=True)
@@ -142,7 +157,9 @@ The Sidebar contains additonal information associated with the conversation.
 
     def watch_collapsed(self, collapsed: bool) -> None:
         if self.is_attached:
-            self.query_ancestor(SideBar).navigation.panels_collapsed[str(self.title)] = collapsed
+            self.query_ancestor(SideBar).navigation.panels_collapsed[
+                str(self.title)
+            ] = collapsed
 
     def compose(self) -> ComposeResult:
         if self.header_control is None:
@@ -195,7 +212,9 @@ class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
     def set_collapsed(self, collapsed: bool) -> None:
         self.styles.dock = "left" if self.right else "right"
         self.offset = (0 if collapsed else 1 if self.right else -1, 0)
-        text = ("<" if collapsed else ">") if self.right else (">" if collapsed else "<")
+        text = (
+            ("<" if collapsed else ">") if self.right else (">" if collapsed else "<")
+        )
         if self.content != text:
             self.update(text, layout=False)
         tooltip = "Expand sidebar" if collapsed else "Collapse sidebar"
@@ -270,7 +289,9 @@ class TabHistoryButton(HeaderButton):
     def sync(self, tab_order: TabOrder) -> None:
         unavailable = tab_order.history_target(self.direction) is None
         self.disabled = unavailable
-        self.tooltip = self.unavailable_tooltip if unavailable else self.available_tooltip
+        self.tooltip = (
+            self.unavailable_tooltip if unavailable else self.available_tooltip
+        )
 
     @property
     def primary_activation(self):
@@ -304,15 +325,24 @@ class MainMenuButton(HeaderButton):
         self.tooltip = "Main menu"
 
     def render(self):
-        return Content("\n".join("━" * self.content_size.width for _ in range(self.content_size.height)))
+        return Content(
+            "\n".join(
+                "━" * self.content_size.width for _ in range(self.content_size.height)
+            )
+        )
 
     @property
     def primary_activation(self):
         return self.open_menu
 
     def open_menu(self) -> None:
-        ContextMenu.show(self.screen, Offset(self.region.x, self.region.bottom),
-                         "Toad", ApplicationAction.menu(), callback=self.chosen)
+        ContextMenu.show(
+            self.screen,
+            Offset(self.region.x, self.region.bottom),
+            "Toad",
+            ApplicationAction.menu(),
+            callback=self.chosen,
+        )
 
     async def chosen(self, action: ApplicationAction | None) -> None:
         if action is not None:
@@ -504,7 +534,9 @@ class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus
             self.action_activate()
 
 
-class SidebarResizeHandle(CapturedDrag, ColourSelection, widgets.Static, can_focus=True):
+class SidebarResizeHandle(
+    CapturedDrag, ColourSelection, widgets.Static, can_focus=True
+):
     """Drag the conversation-facing edge; the placement model owns the width."""
 
     highlight_foreground = ForegroundColour
@@ -516,8 +548,10 @@ class SidebarResizeHandle(CapturedDrag, ColourSelection, widgets.Static, can_foc
     }
     SidebarResizeHandle:ansi { color: ansi_green; }
     """
-    BINDINGS = [Binding("left", "resize(-1)", "Resize left", show=False),
-                Binding("right", "resize(1)", "Resize right", show=False)]
+    BINDINGS = [
+        Binding("left", "resize(-1)", "Resize left", show=False),
+        Binding("right", "resize(1)", "Resize right", show=False),
+    ]
 
     def __init__(self) -> None:
         super().__init__(id="sidebar-resize-handle")
@@ -672,12 +706,24 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
 
     @property
     def presentation_visible(self) -> bool:
-        return self.screen.is_current and self.display and all(
-            ancestor.display for ancestor in self.ancestors if isinstance(ancestor, Widget))
+        return (
+            self.screen.is_current
+            and self.display
+            and all(
+                ancestor.display
+                for ancestor in self.ancestors
+                if isinstance(ancestor, Widget)
+            )
+        )
 
     def _start_hydration(self) -> None:
-        if (self._panels_loaded or self._panels_loading or not self.is_attached
-                or not self.presentation_visible or self.is_leaving):
+        if (
+            self._panels_loaded
+            or self._panels_loading
+            or not self.is_attached
+            or not self.presentation_visible
+            or self.is_leaving
+        ):
             return
         self._panels_loading = True
         self.run_worker(self._hydrate_panels(), group=self.PANEL_WORKER_GROUP)
@@ -734,16 +780,21 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
         navigation = self.navigation
         for panel in self.panels:
             yield SideBarCollapsible(
-                panel.widget, title=panel.title,
+                panel.widget,
+                title=panel.title,
                 collapsed=navigation.panels_collapsed.get(panel.title, panel.collapsed),
-                classes="-flex" if panel.flex else "-fixed", id=panel.id,
+                classes="-flex" if panel.flex else "-fixed",
+                id=panel.id,
                 header_control=panel.header_control,
             )
 
     def _compose_controls(self) -> ComposeResult:
         yield self.width_slider
         yield containers.Grid(
-            *(SidebarAction(kind()) for kind in SidebarPlacementAction.members_with(SidebarPlacementAction)),
+            *(
+                SidebarAction(kind())
+                for kind in SidebarPlacementAction.members_with(SidebarPlacementAction)
+            ),
             id="sidebar-layout-actions",
         )
 
@@ -765,20 +816,28 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
         width = geometry.width
         directions = app.sidebar_layout.directions(self.id)
         current = PresentedBar(
-            presentation=BarPresentation.from_placement(placement, collapsed=self.collapsed,
-                                                       directions=directions, width=width),
-            geometry=geometry, width_percent=placement.width_percent,
+            presentation=BarPresentation.from_placement(
+                placement, collapsed=self.collapsed, directions=directions, width=width
+            ),
+            geometry=geometry,
+            width_percent=placement.width_percent,
         )
         previous = self._presented_layout
         if current == previous:
             return False
         self._presented_layout = current
-        controls = self.query_one_optional("#sidebar-controls") if self._panels_loaded else None
+        controls = (
+            self.query_one_optional("#sidebar-controls")
+            if self._panels_loaded
+            else None
+        )
         slider = self.width_slider
         if previous is None or previous.presentation != current.presentation:
             self.right = placement.side == "right"
             self.set_class(self.right, "-right")
-            self.search_input.styles.margin = (0, 0, 0, 4) if self.right else (0, 4, 0, 0)
+            self.search_input.styles.margin = (
+                (0, 0, 0, 4) if self.right else (0, 4, 0, 0)
+            )
             if toggle := self.query_one_optional(SideBarToggle):
                 toggle.right = self.right
                 toggle.set_collapsed(self.collapsed)
@@ -787,9 +846,15 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
             if controls is not None:
                 controls.display = not self.collapsed
                 actions = controls.query_one_optional("#sidebar-layout-actions")
-                buttons = {direction: controls.query_one_optional(f"#sidebar-{direction}", SidebarAction)
-                           for direction in (*directions, "float")}
-                if actions is None or any(button is None for button in buttons.values()):
+                buttons = {
+                    direction: controls.query_one_optional(
+                        f"#sidebar-{direction}", SidebarAction
+                    )
+                    for direction in (*directions, "float")
+                }
+                if actions is None or any(
+                    button is None for button in buttons.values()
+                ):
                     # Mounted parents can precede their composed action rows.
                     self._presented_layout = None
                 else:
@@ -800,8 +865,14 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
                         button.display = action.available
                         button.tooltip = action.tooltip(direction)
                     toggle_mode = buttons["float"]
-                    toggle_mode.update("Push" if placement.floating else "Float", layout=False)
-                    toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
+                    toggle_mode.update(
+                        "Push" if placement.floating else "Float", layout=False
+                    )
+                    toggle_mode.tooltip = (
+                        "Push conversation text"
+                        if placement.floating
+                        else "Float over conversation text"
+                    )
                     actions.set_class(current.presentation.compact, "-compact")
         if slider.value != placement.width_percent:
             slider.value = placement.width_percent
@@ -824,7 +895,10 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
             return
         app = cast("ToadApp", self.app)
         event.action.apply(app.sidebar_layout, self.id)
-        for bar in (app.workspace_chrome.channels, *app.workspace_sessions.source.sidebars()):
+        for bar in (
+            app.workspace_chrome.channels,
+            *app.workspace_sessions.source.sidebars(),
+        ):
             bar._present_controls()
         app.workspace_chrome.refresh_layout()
 

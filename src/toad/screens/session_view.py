@@ -1,4 +1,5 @@
 """Logical session surfaces hosted by the one native WorkspaceScreen."""
+
 from textual.containers import Vertical
 from textual.reactive import reactive
 from pathlib import Path
@@ -10,13 +11,19 @@ from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.navigation_target import NavigationTarget, NoTarget
-from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
+from toad.widgets.message_notifications import (
+    NothingToRead,
+    PaintedRead,
+    VisibleReadMarking,
+)
+
 
 class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
     title = reactive("")
     sub_title = reactive("")
 
     DEFAULT_CSS = "SessionView { width: 1fr; height: 1fr; }"
+
     def __init__(self, *args, **kwargs):
         self._identity: SessionIdentity = NoThreadIdentity()
         super().__init__(*args, **kwargs)
@@ -25,7 +32,9 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
     def display_name(self) -> str:
         """Borrow this view's current label from the same projection as its tab."""
         sessions = self.app.session_navigation
-        return self.app.coordination_access.observation.tab(sessions.get(self.id), sessions).title
+        return self.app.coordination_access.observation.tab(
+            sessions.get(self.id), sessions
+        ).title
 
     @property
     def project_root(self) -> Path:
@@ -51,6 +60,7 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
     def belongs_to_wire(self, root) -> bool:
         """Unbound views may project the selected wire; bound views stay on it."""
         from pathlib import Path
+
         source = self.coordination_root
         return source is None or Path(source).expanduser().resolve() == root
 
@@ -66,7 +76,9 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
 
     async def open_direct_messages(self) -> None:
         """Open this session's direct-message destination when it has one."""
-        self.notify("Direct messages are unavailable from this view", title="Direct messages")
+        self.notify(
+            "Direct messages are unavailable from this view", title="Direct messages"
+        )
 
     def sidebars(self):
         """Supply this view's native sidebar resources through its declaration."""
@@ -133,4 +145,3 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
     def retained_native_presentations(self):
         """Declare accepted native trees; non-native views own no such trees."""
         return ()
-

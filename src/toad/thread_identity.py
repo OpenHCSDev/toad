@@ -1,4 +1,5 @@
 """A session's absent, local or wire-bound thread, with its owned behavior."""
+
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -50,6 +51,7 @@ class SessionIdentity(ABC):
 
     def inspection_state(self):
         from toad.core.context_inspection import DetachedInspection
+
         return DetachedInspection()
 
     def root_path(self) -> Path | None:
@@ -69,7 +71,9 @@ class SessionIdentity(ABC):
 
     def resolve_thread(self, registry, project: Path) -> str:
         """An unbound view asks Core to discover its project's session."""
-        return registry.session_thread(project, self.thread_name()).name_or(self.thread_name())
+        return registry.session_thread(project, self.thread_name()).name_or(
+            self.thread_name()
+        )
 
     def command_target[T](self, target: Callable[[str], T]) -> T:
         """A named session addresses backend commands as its thread."""
@@ -98,6 +102,7 @@ class NamedThreadIdentity(SessionIdentity, ABC):
 @dataclass(frozen=True)
 class LocalThreadIdentity(NamedThreadIdentity):
     """A named session without a managed wire."""
+
     thread: str
 
     def thread_name(self) -> str:
@@ -149,6 +154,7 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def inspection_state(self):
         from toad.core.context_inspection import ReadingOwnerInspection
+
         return ReadingOwnerInspection()
 
     def root_path(self) -> Path:

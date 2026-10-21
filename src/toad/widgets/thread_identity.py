@@ -1,4 +1,5 @@
 """Panels read identity from their logical session, not the native workspace."""
+
 from agent_comms.mro_dispatch import handles
 from textual.widget import Widget
 

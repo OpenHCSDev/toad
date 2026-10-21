@@ -1,4 +1,5 @@
 """Logical session membership; Textual owns only the persistent native frame."""
+
 from collections.abc import Callable
 from abc import abstractmethod
 from typing import TYPE_CHECKING
@@ -7,7 +8,12 @@ from textual.containers import Container
 from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import WELCOME
-from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope, ViewSessionOrigin
+from toad.session_scope import (
+    NoSessionOrigin,
+    SessionOrigin,
+    SessionScope,
+    ViewSessionOrigin,
+)
 from toad.navigation_target import NavigationTarget, NoTarget
 
 if TYPE_CHECKING:
@@ -148,15 +154,21 @@ class WorkspaceSessions:
     @property
     def native_origins(self) -> dict[str, ViewSessionOrigin]:
         """Derive actual native membership from the existing mounted-view owner."""
-        return {identity: view for identity, view in self.views.items()
-                if isinstance(view, ViewSessionOrigin)}
+        return {
+            identity: view
+            for identity, view in self.views.items()
+            if isinstance(view, ViewSessionOrigin)
+        }
 
     def require(self, identity: str) -> "SessionScope":
         return self.views[identity]
 
     def origin(self, identity: str) -> SessionOrigin:
         """The original source, or its explicit unavailable member once closed."""
-        if self.app.session_navigation.get(identity) is not None or identity in self.resident:
+        if (
+            self.app.session_navigation.get(identity) is not None
+            or identity in self.resident
+        ):
             if view := self.views.get(identity):
                 return view.origin
         return NoSessionOrigin(identity)
@@ -207,12 +219,20 @@ class WorkspaceSessions:
     def visible_target(self, root) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
         view = self.source.view
-        return self.target_for_mode(view.id, root) if view is not None and self.owns(view) else NoTarget()
+        return (
+            self.target_for_mode(view.id, root)
+            if view is not None and self.owns(view)
+            else NoTarget()
+        )
 
     def target_for_mode(self, identity, root) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""
         view = self.views.get(identity)
-        return view.navigation_target if root is not None and view is not None and view.belongs_to_wire(root) else NoTarget()
+        return (
+            view.navigation_target
+            if root is not None and view is not None and view.belongs_to_wire(root)
+            else NoTarget()
+        )
 
     def release_frame_callback(self, owner, callback) -> bool:
         """Admit mounted work through its original logical source binding.

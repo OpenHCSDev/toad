@@ -27,7 +27,13 @@ from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarChange, SidebarGroup, SidebarModelView, TargetTree
+from toad.widgets.sidebar_tree import (
+    RowReconciliation,
+    SidebarChange,
+    SidebarGroup,
+    SidebarModelView,
+    TargetTree,
+)
 from toad.widgets.splash_text import SplashText
 
 if TYPE_CHECKING:
@@ -37,14 +43,16 @@ if TYPE_CHECKING:
 class WelcomeTitle(SplashText):
     """The app's name, swept into the theme's colours each time the view shows."""
 
-    TEXT = "\n".join((
-        " ██████╗ ██████╗ ███╗   ███╗███╗   ███╗███████╗",
-        "██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔════╝",
-        "██║     ██║   ██║██╔████╔██║██╔████╔██║███████╗",
-        "██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║╚════██║",
-        "╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║███████║",
-        " ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝",
-    ))
+    TEXT = "\n".join(
+        (
+            " ██████╗ ██████╗ ███╗   ███╗███╗   ███╗███████╗",
+            "██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔════╝",
+            "██║     ██║   ██║██╔████╔██║██╔████╔██║███████╗",
+            "██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║╚════██║",
+            "╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║███████║",
+            " ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝",
+        )
+    )
 
     DEFAULT_CSS = """
     WelcomeTitle { width: auto; height: auto; color: $text-muted; text-wrap: nowrap; }
@@ -87,7 +95,7 @@ class WelcomeSection(SidebarGroup[CommsRow]):
     @property
     def member_keys(self):
         model = self.query_ancestor(WelcomeEntries).model_state.shown
-        return self.keys(model)[:self.LIMIT]
+        return self.keys(model)[: self.LIMIT]
 
     def sync_members(self, changed: frozenset[str]) -> None:
         if not self.member_container.is_attached:
@@ -108,9 +116,15 @@ class WelcomeChannels(WelcomeSection):
         return CommsRow(channel_target(key), key)
 
     def show_member(self, key, row):
-        channel = self.query_ancestor(WelcomeEntries).model_state.shown.channels.rows[key]
+        channel = self.query_ancestor(WelcomeEntries).model_state.shown.channels.rows[
+            key
+        ]
         row.set_label(
-            f"{channel.label} {channel.unread.label}" if channel.unread.label else channel.label,
+            (
+                f"{channel.label} {channel.unread.label}"
+                if channel.unread.label
+                else channel.label
+            ),
         )
         row.tooltip = channel.tooltip
         row.refresh_paint()
@@ -123,8 +137,11 @@ class WelcomeThreads(WelcomeSection):
 
     def keys(self, model):
         listed = model.channels.rows.get(ALL_COMMS_TARGET)
-        return tuple(name for name in (listed.members if listed is not None else ())
-                     if name in model.threads.rows)
+        return tuple(
+            name
+            for name in (listed.members if listed is not None else ())
+            if name in model.threads.rows
+        )
 
     def new_row(self, key):
         return ThreadStatusRow(ThreadTarget(key), key)
@@ -183,8 +200,10 @@ class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
     WelcomeScreen .hints { color: $text-muted; margin: 1 0 0 0; }
     """
 
-    HINTS = ("[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
-             "[b]↑ ↓[/b] choose   [b]enter[/b] open")
+    HINTS = (
+        "[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
+        "[b]↑ ↓[/b] choose   [b]enter[/b] open"
+    )
 
     def __init__(self) -> None:
         super().__init__()
@@ -196,22 +215,32 @@ class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
         agent = f"{selected.name} · " if selected is not None else ""
         with VerticalScroll(can_focus=False):
             yield WelcomeTitle()
-            yield Static(f"{agent}{format_path(self.project_path)}", classes="subtitle", markup=False)
+            yield Static(
+                f"{agent}{format_path(self.project_path)}",
+                classes="subtitle",
+                markup=False,
+            )
             yield WelcomeEntries()
             yield Static(self.HINTS, classes="hints")
 
     @property
     def navigation_context(self) -> NavigationContext:
         assert self.id is not None
-        return NavigationContext(self.app, self.id, self.project_path, self.thread_identity.thread_name())
+        return NavigationContext(
+            self.app, self.id, self.project_path, self.thread_identity.thread_name()
+        )
 
     async def open_sidebar_target(self, target: NavigationTarget) -> str:
         app = cast("ToadApp", self.app)
         project = str(self.project_path)
         from toad.thread_identity import ThreadIdentity
+
         def identity():
             service = app.coordination_access.observation.observed().service
-            return ThreadIdentity(service.messaging.user_identity(project).incarnation, str(service.root))
+            return ThreadIdentity(
+                service.messaging.user_identity(project).incarnation, str(service.root)
+            )
+
         with self.changing_identity():
             self._identity = await app.preparation.run_thread(identity)
         return await super().open_sidebar_target(target)

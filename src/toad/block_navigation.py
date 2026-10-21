@@ -1,4 +1,5 @@
 """Blocks declare cursor behavior; one component owns content selection."""
+
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -18,6 +19,7 @@ class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
     @property
     @abstractmethod
     def enters_from_prompt(self) -> bool: ...
+
 
 class UpCursor(OlderEnd, CursorDirection):
     enters_from_prompt = True
@@ -164,7 +166,11 @@ class FragmentBlockCursor(BlockCursor):
     def current(self):
         """The message the cursor rests on, while the history still draws it."""
         fragment = self.fragment
-        return fragment if fragment is not None and self.block.draws_fragment(fragment) else None
+        return (
+            fragment
+            if fragment is not None and self.block.draws_fragment(fragment)
+            else None
+        )
 
     @property
     def selected(self):
@@ -182,10 +188,15 @@ class FragmentBlockCursor(BlockCursor):
     def move(self, direction):
         fragments = self.block.drawn_fragments
         current = self.current
-        if current is None or all(current is not seen for seen in self.block.visible_fragments()):
+        if current is None or all(
+            current is not seen for seen in self.block.visible_fragments()
+        ):
             # The reader scrolled away from the cursor: it starts again from what they see.
             return self.enter(direction)
-        index = next(index for index, drawn in enumerate(fragments) if drawn is current) + direction.step
+        index = (
+            next(index for index, drawn in enumerate(fragments) if drawn is current)
+            + direction.step
+        )
         if 0 <= index < len(fragments):
             self.fragment = fragments[index]
             return True
@@ -254,7 +265,9 @@ class ChildBlockCursor(BlockCursor):
         return False
 
     def enter(self, direction):
-        return self._enter_from(direction.entry(len(self.block.displayed_children)), direction)
+        return self._enter_from(
+            direction.entry(len(self.block.displayed_children)), direction
+        )
 
     def move(self, direction):
         child = self.current
@@ -314,7 +327,9 @@ class CategorizedBlock(ConversationEntry):
         raise NotImplementedError
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
-        self.set_display_constraint("message-category", self.message_category in selected)
+        self.set_display_constraint(
+            "message-category", self.message_category in selected
+        )
 
     def starts_agent_activity(self, boundary) -> bool:
         return self.message_category.observe(boundary)

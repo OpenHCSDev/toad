@@ -9,17 +9,17 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Never
 
+from agent_comms.channel_targets import ThreadTarget
 from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
-from agent_comms.channel_targets import ThreadTarget
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import ReadTranscript, ReadTranscriptUpdate
 from textual.dom import DOMNode
 
-from toad.navigation_context import NavigationOwner
-from toad.project_path_owner import ProjectPathOwner
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
+from toad.navigation_context import NavigationOwner
+from toad.project_path_owner import ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 
@@ -41,7 +41,9 @@ class TranscriptScope(ABC):
     def readable(self) -> bool: ...
 
     @abstractmethod
-    def original_threads(self, identity: SessionIdentity) -> tuple[tuple[str, ThreadIncarnation], ...]: ...
+    def original_threads(
+        self, identity: SessionIdentity
+    ) -> tuple[tuple[str, ThreadIncarnation], ...]: ...
 
     @abstractmethod
     def status_thread(self, access) -> StatusThread: ...
@@ -59,7 +61,9 @@ class TranscriptScope(ABC):
     def mailbox_target(self) -> ThreadTarget: ...
 
     @abstractmethod
-    async def submit_mailbox(self, view, event, conversation_type, presented) -> None: ...
+    async def submit_mailbox(
+        self, view, event, conversation_type, presented
+    ) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -68,7 +72,9 @@ class KnownTranscript(TranscriptScope):
     name: str
     readable = True
 
-    def original_threads(self, identity: SessionIdentity) -> tuple[tuple[str, ThreadIncarnation], ...]:
+    def original_threads(
+        self, identity: SessionIdentity
+    ) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ((self.root, identity.thread_incarnation()),)
 
     def status_thread(self, access) -> StatusThread:
@@ -76,9 +82,17 @@ class KnownTranscript(TranscriptScope):
 
     def observe(self, view, access, resume) -> ResourceRelease:
         release = ResourceRelease()
-        release.callback(view.retire_core, view.observe_core_callback(
-            access.events, ThreadRowsChanged, resume,
-            factory=partial(ThreadCallbackSubscription, scope=(self.root, self.name))))
+        release.callback(
+            view.retire_core,
+            view.observe_core_callback(
+                access.events,
+                ThreadRowsChanged,
+                resume,
+                factory=partial(
+                    ThreadCallbackSubscription, scope=(self.root, self.name)
+                ),
+            ),
+        )
         return release
 
     def snapshot_request(self, **bounds) -> ReadTranscript:
@@ -92,7 +106,9 @@ class KnownTranscript(TranscriptScope):
 
     async def submit_mailbox(self, view, event, conversation_type, presented) -> None:
         await view.submit_comms_message(
-            self.root, conversation_type(self.mailbox_target()), event.body,
+            self.root,
+            conversation_type(self.mailbox_target()),
+            event.body,
             lambda: view.is_attached and view.transcript.binding.thread_scope == self,
             presented,
         )
@@ -102,7 +118,9 @@ class KnownTranscript(TranscriptScope):
 class NoTranscript(TranscriptScope):
     readable = False
 
-    def original_threads(self, identity: SessionIdentity) -> tuple[tuple[str, ThreadIncarnation], ...]:
+    def original_threads(
+        self, identity: SessionIdentity
+    ) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
     def status_thread(self, access) -> StatusThread:
@@ -231,7 +249,9 @@ class ProjectSessionOrigin(SessionOrigin, SessionScope):
         service = self.app.coordination_access.require(selected).service
         return identity.resolve_thread(service.registry, self.project_root)
 
-    def agent_for_opening(self, default: AgentDefinition | None) -> AgentDefinition | None:
+    def agent_for_opening(
+        self, default: AgentDefinition | None
+    ) -> AgentDefinition | None:
         return default
 
 
@@ -241,7 +261,9 @@ class ViewSessionOrigin(ProjectSessionOrigin):
     _agent: AgentDefinition | None
     _agent_session_id: str | None
 
-    def agent_for_opening(self, default: AgentDefinition | None) -> AgentDefinition | None:
+    def agent_for_opening(
+        self, default: AgentDefinition | None
+    ) -> AgentDefinition | None:
         return self._agent or default
 
     def attach_agent_definition(self) -> AgentDefinition | None:
@@ -258,5 +280,10 @@ class ViewSessionOrigin(ProjectSessionOrigin):
         if session_id == self._agent_session_id or live.matches_session(session_id):
             return True
         root = self.coordination_root
-        return root is not None and self.app.coordination_access.require(
-            RouteSelection.capture(root)).service.registry.canonical_name(session_id) == self.resolve_thread()
+        return (
+            root is not None
+            and self.app.coordination_access.require(
+                RouteSelection.capture(root)
+            ).service.registry.canonical_name(session_id)
+            == self.resolve_thread()
+        )

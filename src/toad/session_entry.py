@@ -3,6 +3,7 @@
 Entries are the callable factories in WorkspaceSessions, not another roster.
 The mounted view remains the authority for source/presentation state.
 """
+
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -18,7 +19,13 @@ from agent_comms.thread_identity import ThreadIncarnation
 
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
-from toad.session_tracker import CommsViewKey, OpenTab, NamedTab, ThreadTab, SessionDetails
+from toad.session_tracker import (
+    CommsViewKey,
+    OpenTab,
+    NamedTab,
+    ThreadTab,
+    SessionDetails,
+)
 from agent_comms.ui_model.unread import UnobservedUnread
 
 if TYPE_CHECKING:
@@ -51,20 +58,26 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     async def ready(self, sessions: SessionNavigation) -> None:
         """Views with deferred loading own their loading completion."""
 
-    async def reconnect(self, sessions: SessionNavigation, selected, snapshot, targets) -> None:
+    async def reconnect(
+        self, sessions: SessionNavigation, selected, snapshot, targets
+    ) -> None:
         """Only a bound native entry can refresh its connection resource."""
 
     def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return None
 
-    def thread_row(self, sessions: SessionNavigation, row: ThreadRowModel) -> ThreadRowModel:
+    def thread_row(
+        self, sessions: SessionNavigation, row: ThreadRowModel
+    ) -> ThreadRowModel:
         """How this entry's own session changes a thread's row; most entries hold none."""
         return row
 
     def depends_on(self, mode: str) -> bool:
         return self.mode == mode
 
-    def original_threads(self, sessions: SessionNavigation) -> tuple[tuple[str, ThreadIncarnation], ...]:
+    def original_threads(
+        self, sessions: SessionNavigation
+    ) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
     def original_channels(self) -> tuple[tuple[str, str], ...]:
@@ -81,16 +94,24 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.close_core_events()
 
-    def sync_owner_root(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
+    def sync_owner_root(
+        self, sessions: SessionNavigation, owner: str, root: str | None
+    ) -> None:
         pass
 
-    def sync_project(self, sessions: SessionNavigation, owner: str, project: Path) -> None:
+    def sync_project(
+        self, sessions: SessionNavigation, owner: str, project: Path
+    ) -> None:
         pass
 
 
 class NativeSessionEntry(SessionEntry):
-    def __init__(self, details: SessionDetails, factory: Callable[[], MainScreen],
-                 original: tuple[str, ThreadIncarnation] | None = None) -> None:
+    def __init__(
+        self,
+        details: SessionDetails,
+        factory: Callable[[], MainScreen],
+        original: tuple[str, ThreadIncarnation] | None = None,
+    ) -> None:
         super().__init__(details.mode_name)
         self.details = details
         self.factory = factory
@@ -100,7 +121,9 @@ class NativeSessionEntry(SessionEntry):
         source = self.source(sessions)
         if source is None:
             return (self.original,) if self.original is not None else ()
-        return source.thread_identity.transcript_scope().original_threads(source.thread_identity)
+        return source.thread_identity.transcript_scope().original_threads(
+            source.thread_identity
+        )
 
     def __call__(self) -> MainScreen:
         source = self.factory()
@@ -117,7 +140,10 @@ class NativeSessionEntry(SessionEntry):
     def thread_row(self, sessions, row):
         """The session this tab opened shows its state on that thread's row."""
         source = self.source(sessions)
-        if source is None or all(identity != row.incarnation for _, identity in self.original_threads(sessions)):
+        if source is None or all(
+            identity != row.incarnation
+            for _, identity in self.original_threads(sessions)
+        ):
             return row
         return source.session_disposition.present(row, row.disconnected)
 
@@ -127,10 +153,18 @@ class NativeSessionEntry(SessionEntry):
         source = self.source(sessions)
         if source is None:
             return
-        original = next((identity for root, identity in self.original_threads(sessions)
-                         if Path(root).resolve() == selected.root
-                         and any(identity.matches_recorded_name(target, snapshot)
-                                 for target in targets)), None)
+        original = next(
+            (
+                identity
+                for root, identity in self.original_threads(sessions)
+                if Path(root).resolve() == selected.root
+                and any(
+                    identity.matches_recorded_name(target, snapshot)
+                    for target in targets
+                )
+            ),
+            None,
+        )
         if original is None:
             return
         thread = snapshot.require(snapshot.canonical_name(original.name))
@@ -149,20 +183,32 @@ class NativeSessionEntry(SessionEntry):
             return self.unobserved_tab()
         row = observed.sidebar.threads.rows.get(source.thread_identity.thread_name())
         originals = self.original_threads(sessions)
-        if row is not None and originals and not any(
+        if (
+            row is not None
+            and originals
+            and not any(
                 observed.observes(root) and identity == row.incarnation
-                for root, identity in originals):
+                for root, identity in originals
+            )
+        ):
             return self.unobserved_tab()
         if row is not None:
-            return ThreadTab(self.mode, source.session_disposition.present(row, row.disconnected))
+            return ThreadTab(
+                self.mode, source.session_disposition.present(row, row.disconnected)
+            )
         return self.unobserved_tab()
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
         # Another session is preferred to a file or history tab between them.
-        remaining = [details.mode_name for details in app.session_tracker.ordered_sessions
-                     if details.mode_name != self.mode]
-        await app.select_session(app.tab_order.previous(self.mode, eligible=remaining or None))
+        remaining = [
+            details.mode_name
+            for details in app.session_tracker.ordered_sessions
+            if details.mode_name != self.mode
+        ]
+        await app.select_session(
+            app.tab_order.previous(self.mode, eligible=remaining or None)
+        )
 
     def forget(self, sessions: SessionNavigation) -> None:
         super().forget(sessions)
@@ -170,8 +216,15 @@ class NativeSessionEntry(SessionEntry):
 
 
 class HistorySessionEntry(SessionEntry):
-    def __init__(self, mode: str, key: CommsViewKey, project: Path,
-                 owner_root: str | None, participants: tuple[ThreadIncarnation, ...], owner) -> None:
+    def __init__(
+        self,
+        mode: str,
+        key: CommsViewKey,
+        project: Path,
+        owner_root: str | None,
+        participants: tuple[ThreadIncarnation, ...],
+        owner,
+    ) -> None:
         super().__init__(mode)
         self.key, self.project, self.owner_root = key, project, owner_root
         self.participants, self.owner = participants, owner
@@ -188,11 +241,16 @@ class HistorySessionEntry(SessionEntry):
 
     def __call__(self):
         from toad.screens.comms import CommsScreen
+
         key = self.key
-        return CommsScreen(project_path=self.project, owner_mode=key.owner_mode,
-                           me=self.owner.thread_identity.thread_name(),
-                           conversation=key.conversation,
-                           owner_root=self.owner_root, wire_root=key.root)
+        return CommsScreen(
+            project_path=self.project,
+            owner_mode=key.owner_mode,
+            me=self.owner.thread_identity.thread_name(),
+            conversation=key.conversation,
+            owner_root=self.owner_root,
+            wire_root=key.root,
+        )
 
     @property
     def address(self) -> object:
@@ -208,8 +266,11 @@ class HistorySessionEntry(SessionEntry):
         return NamedTab(self.mode, self.key.title)
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
-        unread = (self.key.conversation.unread(observed.sidebar.observation)
-                  if observed.observes(self.key.root) else UnobservedUnread())
+        unread = (
+            self.key.conversation.unread(observed.sidebar.observation)
+            if observed.observes(self.key.root)
+            else UnobservedUnread()
+        )
         return NamedTab(self.mode, self.key.title, unread)
 
     def depends_on(self, mode: str) -> bool:
@@ -217,16 +278,28 @@ class HistorySessionEntry(SessionEntry):
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app, owner = sessions.app, self.key.owner_mode
-        await app.select_session(owner if sessions.get(owner) is not None
-                                 else app.tab_order.previous(self.mode))
+        await app.select_session(
+            owner
+            if sessions.get(owner) is not None
+            else app.tab_order.previous(self.mode)
+        )
 
-    def sync_owner_root(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
-        self.owner_root = root if root is not None and Path(root).expanduser().resolve() == Path(self.key.root) else None
+    def sync_owner_root(
+        self, sessions: SessionNavigation, owner: str, root: str | None
+    ) -> None:
+        self.owner_root = (
+            root
+            if root is not None
+            and Path(root).expanduser().resolve() == Path(self.key.root)
+            else None
+        )
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.rebind_identity(self.owner.thread_identity.thread_name())
             view.rebind_owner_root(self.owner_root)
 
-    def sync_project(self, sessions: SessionNavigation, owner: str, project: Path) -> None:
+    def sync_project(
+        self, sessions: SessionNavigation, owner: str, project: Path
+    ) -> None:
         self.project = project
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.rebind_project(project)
@@ -243,14 +316,18 @@ class PreviewSessionEntry(SessionEntry):
     def of(cls, mode: str, path: Path, origin: str) -> PreviewSessionEntry:
         from toad.acp.agent_log import AgentLog
 
-        return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(mode, path, origin)
+        return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(
+            mode, path, origin
+        )
 
     def __call__(self):
         from toad.screens.file_preview import FilePreviewScreen
+
         return FilePreviewScreen(self.path, self.content)
 
     def content(self):
         from toad.widgets.project_panel import FilePreview
+
         return FilePreview(self.path, id="file-preview")
 
     @property
@@ -270,7 +347,11 @@ class PreviewSessionEntry(SessionEntry):
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
-        target = self.origin if sessions.get(self.origin) is not None else app.tab_order.previous(self.mode)
+        target = (
+            self.origin
+            if sessions.get(self.origin) is not None
+            else app.tab_order.previous(self.mode)
+        )
         await app.select_session(target)
 
 
@@ -279,6 +360,7 @@ class AcpLogSessionEntry(PreviewSessionEntry):
 
     def content(self):
         from toad.widgets.acp_log import AcpLogPreview
+
         return AcpLogPreview(self.path, id="file-preview")
 
     @property

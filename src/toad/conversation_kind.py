@@ -5,7 +5,11 @@ import asyncio
 from abc import abstractmethod
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, ClassVar
-from agent_comms.historical_views import ChannelDisplayHistory, ConversationHistoryView, DMDisplayHistory
+from agent_comms.historical_views import (
+    ChannelDisplayHistory,
+    ConversationHistoryView,
+    DMDisplayHistory,
+)
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage, PageBounds
@@ -89,12 +93,17 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return (self.target.name,)
 
     def active_members(self, model):
-        return tuple(model.threads.rows[name] for name in self.activity_members(model)
-                     if model.threads.rows[name].active)
+        return tuple(
+            model.threads.rows[name]
+            for name in self.activity_members(model)
+            if model.threads.rows[name].active
+        )
 
     @classmethod
     def activity_details(cls, target: ThreadTarget):
-        return ConversationSessionDetails(target, history=NativeHistory(), delivery=InputDeliveryBar())
+        return ConversationSessionDetails(
+            target, history=NativeHistory(), delivery=InputDeliveryBar()
+        )
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
@@ -126,7 +135,9 @@ class ChannelConversation(ConversationKind):
     history_view = ChannelDisplayHistory
 
     def activity_members(self, model):
-        return model.channels.rows.get(self.target.name, UnpaintedChannel(self.target.name)).members
+        return model.channels.rows.get(
+            self.target.name, UnpaintedChannel(self.target.name)
+        ).members
 
     def channels_needed(self, root):
         return ((root, self.target.name),)
@@ -134,18 +145,21 @@ class ChannelConversation(ConversationKind):
     @classmethod
     def view_identity(cls, key):
         from toad.session_tracker import ChannelViewAddress
+
         return ChannelViewAddress(key.root, key.conversation)
 
     @classmethod
     def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.channel_display_page(
-            source.conversation.target.name, viewer=source.viewer, bounds=bounds)
+            source.conversation.target.name, viewer=source.viewer, bounds=bounds
+        )
 
     def resolve(self, comms: Comms, me: str) -> ResolvedConversation:
         snapshot = comms.registry.snapshot()
         resolved = self.target.resolve(snapshot, comms.bus.require_channel)
         return ResolvedConversation(
-            snapshot.canonical_name(me), replace(self, target=replace(self.target, name=resolved.channel.name)),
+            snapshot.canonical_name(me),
+            replace(self, target=replace(self.target, name=resolved.channel.name)),
         )
 
     @classmethod
@@ -178,8 +192,13 @@ class ChannelConversation(ConversationKind):
         observed = access.observation
         if not observed.uses(comms):
             raise ValueError("Channel mentions belong to another Comms service")
-        mentions = await view.app.preparation.run_thread(snapshot.mention_candidates, conversation.target.name)
-        if not await history.source_is_current(source) or view.conversation != conversation:
+        mentions = await view.app.preparation.run_thread(
+            snapshot.mention_candidates, conversation.target.name
+        )
+        if (
+            not await history.source_is_current(source)
+            or view.conversation != conversation
+        ):
             return
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
@@ -200,7 +219,10 @@ class DmConversation(ConversationKind):
         await screen.action_back_to_agent()
 
     def threads_needed(self, snapshot, me):
-        return (snapshot.require(me).incarnation, snapshot.require(self.target.name).incarnation)
+        return (
+            snapshot.require(me).incarnation,
+            snapshot.require(self.target.name).incarnation,
+        )
 
     def unread(self, observation):
         return observation.bus_unread(self.target.name)
@@ -208,13 +230,15 @@ class DmConversation(ConversationKind):
     @classmethod
     def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.dm_display_page(
-            source.conversation.target.name, worktree=str(source.project), bounds=bounds)
+            source.conversation.target.name, worktree=str(source.project), bounds=bounds
+        )
 
     def resolve(self, comms: Comms, me: str) -> ResolvedConversation:
         snapshot = comms.registry.snapshot()
         resolved = self.target.resolve(snapshot, comms.bus.require_channel)
         return ResolvedConversation(
-            snapshot.require(me).name, replace(self, target=replace(self.target, name=resolved.thread.name)),
+            snapshot.require(me).name,
+            replace(self, target=replace(self.target, name=resolved.thread.name)),
         )
 
     def label(self) -> str:
@@ -230,7 +254,9 @@ class DmConversation(ConversationKind):
         return MessagePrompt(placeholder=self.placeholder())
 
     async def status_text(self, comms, *, read_only: bool) -> str:
-        return (await asyncio.to_thread(comms.configuration.answer, self.target.name)).status_label
+        return (
+            await asyncio.to_thread(comms.configuration.answer, self.target.name)
+        ).status_label
 
 
 class IrcConversation(ChannelConversation):

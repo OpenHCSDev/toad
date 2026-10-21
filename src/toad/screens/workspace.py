@@ -21,6 +21,7 @@ from abc import abstractmethod
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
+
 @dataclass(frozen=True)
 class WorkspaceLayoutSnapshot:
     """One native layout's size, style and invalidation proof."""
@@ -35,14 +36,21 @@ class WorkspaceLayoutSnapshot:
 
     @classmethod
     def capture(cls, screen, *, include_scroll=True):
-        return cls(screen.is_attached, screen.stack_updates, screen._size,
-                   screen._layout_required, screen._scroll_required if include_scroll else False,
-                   frozenset(screen._layout_widgets), screen._geometry_revision)
+        return cls(
+            screen.is_attached,
+            screen.stack_updates,
+            screen._size,
+            screen._layout_required,
+            screen._scroll_required if include_scroll else False,
+            frozenset(screen._layout_widgets),
+            screen._geometry_revision,
+        )
 
     @classmethod
     def ready(cls, screen, size):
-        return cls(True, True, size, False, False, frozenset(),
-                   screen._geometry_revision)
+        return cls(
+            True, True, size, False, False, frozenset(), screen._geometry_revision
+        )
 
 
 class WorkspaceLayout(DeclaredFamily, affix="WorkspaceLayout"):
@@ -63,7 +71,10 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         requested = WorkspaceLayoutSnapshot.ready(screen, size)
         if self.proof != requested:
             return False
-        return WorkspaceLayoutSnapshot.capture(screen, include_scroll=include_scroll) == requested
+        return (
+            WorkspaceLayoutSnapshot.capture(screen, include_scroll=include_scroll)
+            == requested
+        )
 
 
 class WorkspaceScreen(WidgetView, Screen):
@@ -72,7 +83,9 @@ class WorkspaceScreen(WidgetView, Screen):
 
     BINDINGS = [
         Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
-        Binding("escape", "back_to_bottom", "Back to bottom", priority=True, show=False),
+        Binding(
+            "escape", "back_to_bottom", "Back to bottom", priority=True, show=False
+        ),
     ]
 
     @classmethod
@@ -94,6 +107,7 @@ class WorkspaceScreen(WidgetView, Screen):
 
     def compose(self):
         from textual.containers import Horizontal, Container
+
         chrome = self.app.workspace_chrome
         yield chrome.navigation
         with Horizontal(id="workspace-body").set_styles(layout=chrome):
@@ -116,15 +130,23 @@ class WorkspaceScreen(WidgetView, Screen):
             sidebar = self.app.workspace_chrome.channels
             return sidebar.display and not sidebar.has_focus_within
         if action == "back_to_bottom":
-            return (not (self.focused is not None and self.focused.uses_screen_coordinates)
-                    and self.back_to_bottom_window is not None)
+            return (
+                not (self.focused is not None and self.focused.uses_screen_coordinates)
+                and self.back_to_bottom_window is not None
+            )
         return super().check_action(action, parameters)
 
     @property
     def back_to_bottom_window(self):
         published = self._compositor.published_widgets
-        return next((window for window in self.history_windows
-                     if window in published and window.can_jump_to_latest), None)
+        return next(
+            (
+                window
+                for window in self.history_windows
+                if window in published and window.can_jump_to_latest
+            ),
+            None,
+        )
 
     def action_back_to_bottom(self) -> None:
         if (window := self.back_to_bottom_window) is not None:
@@ -140,9 +162,11 @@ class WorkspaceScreen(WidgetView, Screen):
     # tab's rendered line/segment graph in the cyclic collector's live heap.
 
     _navigation_layout: WorkspaceLayout = PendingWorkspaceLayout()
+
     @cached_property
     def frame_presentation(self):
         from toad.frame_presentation import FramePresentation
+
         return FramePresentation(self)
 
     @cached_property
@@ -153,8 +177,11 @@ class WorkspaceScreen(WidgetView, Screen):
     def _layout_geometry_targets(self) -> tuple[Widget, ...]:
         # Reader positions and restorations compensate against these widgets,
         # so viewport layout places them even when they are off screen.
-        return tuple(target for window in self.history_windows
-                     for target in window.history_geometry_targets())
+        return tuple(
+            target
+            for window in self.history_windows
+            for target in window.history_geometry_targets()
+        )
 
     def on_screen_suspend(self) -> None:
         self.frame_presentation.suspend()
@@ -183,9 +210,14 @@ class WorkspaceScreen(WidgetView, Screen):
     def _use_viewport_layout(self) -> bool:
         return self.is_current
 
-    def _layout_steps(self, size: Size | None = None, scroll: bool = False, deadline=None):
-        changes = tuple((change, change.layout_requests) for window in self.history_windows
-                        if (change := window.history_change) is not None)
+    def _layout_steps(
+        self, size: Size | None = None, scroll: bool = False, deadline=None
+    ):
+        changes = tuple(
+            (change, change.layout_requests)
+            for window in self.history_windows
+            if (change := window.history_change) is not None
+        )
         # Capture the old rows before any descendant measures its new width;
         # that layout and reader placement belong to one unpublished frame.
         with self.app.batch_update():
@@ -193,8 +225,13 @@ class WorkspaceScreen(WidgetView, Screen):
                 if window.shown:
                     window.keep_reader()
             yield from super()._layout_steps(size, scroll, deadline)
-            if any([window.place_reader() for window in self.history_windows
-                    if window.reader_for_layout() is not None]):
+            if any(
+                [
+                    window.place_reader()
+                    for window in self.history_windows
+                    if window.reader_for_layout() is not None
+                ]
+            ):
                 yield from super()._layout_steps(size, scroll=True)
         for change, answered in changes:
             change.finish_layout(answered)
@@ -240,7 +277,8 @@ class WorkspaceScreen(WidgetView, Screen):
         # the compositor commits its next map. A stale hit is not a valid new
         # selection endpoint (Textual otherwise asserts that it has a parent).
         if widget is not None and (
-            not widget.is_attached or (offset is not None and not isinstance(widget.parent, Widget))
+            not widget.is_attached
+            or (offset is not None and not isinstance(widget.parent, Widget))
         ):
             return None, None
         return widget, offset
@@ -269,7 +307,9 @@ class WorkspaceScreen(WidgetView, Screen):
         await self.layout_in_steps(self.app.size)
         if roster.navigation.restore_scroll():
             self._refresh_layout(self.app.size, scroll=True)
-        self._navigation_layout = MeasuredWorkspaceLayout(WorkspaceLayoutSnapshot.ready(self, self.app.size))
+        self._navigation_layout = MeasuredWorkspaceLayout(
+            WorkspaceLayoutSnapshot.ready(self, self.app.size)
+        )
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
         self.frame_presentation.resume()

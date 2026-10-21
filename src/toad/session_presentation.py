@@ -50,9 +50,12 @@ class SessionViewState:
     def capture(cls, conversation: Conversation) -> "SessionViewState":
         editor = conversation.prompt.prompt_text_area
         return cls(
-            editor.capture_editor_state(), conversation.visible_categories,
+            editor.capture_editor_state(),
+            conversation.visible_categories,
             conversation.window.park_reader(conversation.contents),
-            editor.shell_mode, conversation.input_histories, conversation.take_initial_prompt(),
+            editor.shell_mode,
+            conversation.input_histories,
+            conversation.take_initial_prompt(),
         )
 
     def prepare_transcript(self, conversation: Conversation) -> None:
@@ -93,11 +96,12 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
         self.state: SessionViewState | None = None
 
     @abstractmethod
-    async def release_binding(self, conversation: Conversation, screen: "MainScreen") -> None: ...
+    async def release_binding(
+        self, conversation: Conversation, screen: "MainScreen"
+    ) -> None: ...
 
     @abstractmethod
     async def attach_binding(self, conversation: Conversation) -> None: ...
-
 
 
 class OperationalSessionSources:
@@ -110,7 +114,9 @@ class OperationalSessionSources:
 
     def status_row(self, conversation: Conversation):
         row = self.activity_row(conversation).with_delivery(conversation.input_delivery)
-        return conversation.agent_binding.session_disposition.present(row, row.disconnected)
+        return conversation.agent_binding.session_disposition.present(
+            row, row.disconnected
+        )
 
     def activity_row(self, conversation: Conversation):
         # A Core history source owns status even when its ACP load fails.
@@ -145,22 +151,33 @@ class OperationalSessionSources:
             return False
         if conversation.transcript.readable:
             presentation = conversation.thread_presentation
-            return (presentation is not None
-                    and ExistingOwnerPlan.from_binding(presentation.binding) is not None)
+            return (
+                presentation is not None
+                and ExistingOwnerPlan.from_binding(presentation.binding) is not None
+            )
         return True
 
     def unavailable_reason(self, conversation: Conversation) -> str:
         presentation = conversation.thread_presentation
         agent = conversation.agent_binding
-        if (conversation.transcript.readable and presentation is not None
-                and ExistingOwnerPlan.from_binding(presentation.binding) is None):
+        if (
+            conversation.transcript.readable
+            and presentation is not None
+            and ExistingOwnerPlan.from_binding(presentation.binding) is None
+        ):
             line = self.activity_row(conversation).presentation.summary
         elif agent.configuration.model.requires_selection:
-            line = "Choose a model or connect a provider (click here). Your draft is kept."
+            line = (
+                "Choose a model or connect a provider (click here). Your draft is kept."
+            )
         else:
             line = self.activity_row(conversation).presentation.summary
         return self.activity_row(conversation).status.with_disconnection(
-            line, lambda: agent.session_disposition.present(line, lambda status: status.notice))
+            line,
+            lambda: agent.session_disposition.present(
+                line, lambda status: status.notice
+            ),
+        )
 
     def start_agent(self, conversation: Conversation) -> None:
         conversation.agent_binding.start_agent(self, conversation)
@@ -171,15 +188,23 @@ class OperationalSessionSources:
         from toad.core import events as core_events
 
         assert conversation._agent_data is not None
-        agent = Agent(conversation.project_path, conversation._agent_data,
-                      conversation._agent_session_id, conversation._session_pk,
-                      app_events=conversation.app.events,
-                      transcripts=conversation.app.coordination_access.transcripts)
+        agent = Agent(
+            conversation.project_path,
+            conversation._agent_data,
+            conversation._agent_session_id,
+            conversation._session_pk,
+            app_events=conversation.app.events,
+            transcripts=conversation.app.coordination_access.transcripts,
+        )
         agent.session.load_plan = self.load_plan
         conversation._native_agent_started_here = True
         conversation.bind_agent(agent)
-        agent.controller.start_operation(agent.start(conversation.app.session_navigation.processes))
-        conversation.publish_core(core_events.SessionSubtitleChanged(conversation.agent_title))
+        agent.controller.start_operation(
+            agent.start(conversation.app.session_navigation.processes)
+        )
+        conversation.publish_core(
+            core_events.SessionSubtitleChanged(conversation.agent_title)
+        )
 
     def attach_started(self, screen: "MainScreen", plan) -> None:
         """An explicit Start action may attach the same retained view to its new owner."""
@@ -238,12 +263,17 @@ class MailboxSessionSources(OperationalSessionSources):
         view = owner.view
 
         async def presented(sent):
-            view.run_worker(view.input_histories.prompt.record(event.body), group="history")
+            view.run_worker(
+                view.input_histories.prompt.record(event.body), group="history"
+            )
             view.window.jump_to_latest()
             self.external_transcript_changed(view)
 
         await view.transcript.binding.thread_scope.submit_mailbox(
-            view, event, DmConversation, presented,
+            view,
+            event,
+            DmConversation,
+            presented,
         )
 
 
@@ -260,7 +290,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     @property
     def operational_binding(self):
-        return self.widget.agent_binding if self.widget is not None else self.sources.agent_binding
+        return (
+            self.widget.agent_binding
+            if self.widget is not None
+            else self.sources.agent_binding
+        )
 
     @property
     def retained_widget_count(self) -> int:
@@ -276,8 +310,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         # Drawn history rows: about one cell of text and style per column.
         if self.widget is None:
             return 0
-        return sum(page.line_count * page.line_width * 8
-                   for history in self.widget.window.histories for page in history.pages)
+        return sum(
+            page.line_count * page.line_width * 8
+            for history in self.widget.window.histories
+            for page in history.pages
+        )
 
     def compose_content(self, screen: "MainScreen") -> Widget:
         return SessionSurfaceSlot()
@@ -288,13 +325,17 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     async def retire(self, screen: "MainScreen") -> None:
         await screen.app.workspace_chrome.native.retire(screen)
 
-    async def release_binding(self, conversation: Conversation, screen: "MainScreen") -> None:
+    async def release_binding(
+        self, conversation: Conversation, screen: "MainScreen"
+    ) -> None:
         await self.sources.detach(conversation, screen)
 
     async def attach_binding(self, conversation: Conversation) -> None:
         await self.sources.present(conversation)
 
-    async def apply_coordination(self, screen: "MainScreen", event: CoordinationChangedUpdate) -> None:
+    async def apply_coordination(
+        self, screen: "MainScreen", event: CoordinationChangedUpdate
+    ) -> None:
         """Apply a coordination update's view work to this session's conversation.
 
         The workspace accepts one session's native tree at a time, so the
@@ -304,7 +345,10 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation = self.widget
         if conversation is None:
             return
-        if event.worktree is not None and (project := Path(event.worktree)) != conversation.project_path:
+        if (
+            event.worktree is not None
+            and (project := Path(event.worktree)) != conversation.project_path
+        ):
             await conversation.sync_project_path(project)
         conversation.input_histories.bind_scope(f"thread:{event.thread.name}")
 
@@ -385,8 +429,11 @@ class NativeSessionSurface:
 
     def _presentations(self):
         app = self._app()
-        return tuple(presentation for view in app.workspace_sessions.views.values()
-                     for presentation in view.retained_native_presentations())
+        return tuple(
+            presentation
+            for view in app.workspace_sessions.views.values()
+            for presentation in view.retained_native_presentations()
+        )
 
     async def retire(self, screen: "MainScreen") -> None:
         async with self._lock:
@@ -403,7 +450,9 @@ class NativeSessionSurface:
         async with self._lock:
             if self.view is screen:
                 return
-            assert self.view is None, "Departing source must retire before accepting the next source"
+            assert (
+                self.view is None
+            ), "Departing source must retire before accepting the next source"
             async with screen.presentation.acquire(screen) as conversation:
                 self.view = screen
             await self._trim_retained(conversation)
@@ -427,14 +476,29 @@ class NativeSessionSurface:
         candidates = {}
         for screen, owner in self._presentations():
             candidates.setdefault(screen.id, []).append(owner)
-        required = (self.view.presentation, *(
-            owner for owner in candidates.get(self.view.id, ())
-            if owner is not self.view.presentation))
-        ordered = dict.fromkeys((*required, *(
-            owner for identity in app.tab_order.recent
-            for owner in candidates.get(identity, ()))))
+        required = (
+            self.view.presentation,
+            *(
+                owner
+                for owner in candidates.get(self.view.id, ())
+                if owner is not self.view.presentation
+            ),
+        )
+        ordered = dict.fromkeys(
+            (
+                *required,
+                *(
+                    owner
+                    for identity in app.tab_order.recent
+                    for owner in candidates.get(identity, ())
+                ),
+            )
+        )
         kept = budget.fit(
-            ordered, required, app.size.height, app.preparation.max_bytes,
+            ordered,
+            required,
+            app.size.height,
+            app.preparation.max_bytes,
         )
         for owner in ordered:
             if owner not in kept:

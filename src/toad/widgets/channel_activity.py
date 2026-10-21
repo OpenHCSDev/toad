@@ -14,7 +14,9 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
     def __init__(self, view):
         self.view = view
         self._members = VerticalGroup()
-        self.details = widgets.Collapsible(self._members, title="0 active", collapsed=True)
+        self.details = widgets.Collapsible(
+            self._members, title="0 active", collapsed=True
+        )
         self.details.styles.padding = 0
         super().__init__()
         self.styles.overflow_y = "auto"
@@ -29,7 +31,11 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
 
     @property
     def rows(self):
-        return {row.target.name: row for row in self.member_container.children if not row.is_leaving}
+        return {
+            row.target.name: row
+            for row in self.member_container.children
+            if not row.is_leaving
+        }
 
     @property
     def members(self):
@@ -40,8 +46,9 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
         return tuple(row.name for row in self.members)
 
     def accepts_observation(self) -> bool:
-        return (self.view.query_ancestor(SessionScope).is_current
-                and self.model_state.serves(self.view._bound_root))
+        return self.view.query_ancestor(
+            SessionScope
+        ).is_current and self.model_state.serves(self.view._bound_root)
 
     def model_replaced(self) -> None:
         self.member_container.remove_children()
@@ -52,7 +59,8 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
     def create_row(self, name):
         row = self.view.conversation.activity_details(ThreadTarget(name))
         row.thread = StatusThread.for_root(
-            self.model_state.root(), name, self.app.coordination_access)
+            self.model_state.root(), name, self.app.coordination_access
+        )
         return row
 
     def sync_members(self, changed: frozenset[str]) -> None:

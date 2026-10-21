@@ -103,11 +103,15 @@ class Ui(ABC):
         """Open another session tab on the project and return its identity."""
 
     @abstractmethod
-    async def open_channel(self, target: str, *, actor: str, owner: str | None = None) -> str:
+    async def open_channel(
+        self, target: str, *, actor: str, owner: str | None = None
+    ) -> str:
         """Open a channel or direct-message tab for `actor` and return its identity."""
 
     @abstractmethod
-    async def open_direct(self, thread: str, *, actor: str, owner: str | None = None) -> str:
+    async def open_direct(
+        self, thread: str, *, actor: str, owner: str | None = None
+    ) -> str:
         """Open the direct-message history between `actor` and `thread` and return its tab identity."""
 
     @abstractmethod
@@ -164,7 +168,9 @@ class Ui(ABC):
     async def type(self, text: str) -> None:
         await self.press(*("space" if char == " " else char for char in text))
 
-    async def until(self, condition: Callable[[], object], *, seconds: float = 10, why: str = "") -> None:
+    async def until(
+        self, condition: Callable[[], object], *, seconds: float = 10, why: str = ""
+    ) -> None:
         """Wait until `condition()` is true (it may be a coroutine function)."""
         try:
             async with asyncio.timeout(seconds):
@@ -176,13 +182,19 @@ class Ui(ABC):
                         return
                     await self.step(0.02)
         except TimeoutError:
-            raise NotShown(f"{why or 'condition'} not reached in {seconds}s; screen:\n{self.visible_text()}") from None
+            raise NotShown(
+                f"{why or 'condition'} not reached in {seconds}s; screen:\n{self.visible_text()}"
+            ) from None
 
     async def until_agent_ready(self, *, seconds: float = 30) -> None:
-        await self.until(self.agent_ready, seconds=seconds, why="the agent to accept input")
+        await self.until(
+            self.agent_ready, seconds=seconds, why="the agent to accept input"
+        )
 
     async def until_shows(self, text: str, *, seconds: float = 10) -> None:
-        await self.until(lambda: self.shows(text), seconds=seconds, why=f"{text!r} on screen")
+        await self.until(
+            lambda: self.shows(text), seconds=seconds, why=f"{text!r} on screen"
+        )
 
 
 class TextualUi(AppAgents, Ui):
@@ -203,8 +215,10 @@ class TextualUi(AppAgents, Ui):
     def tabs(self) -> tuple[Tab, ...]:
         from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
-        return tuple(Tab(label.id, label.render().plain)
-                     for label in self.app.screen.query_one(SessionsTabs).query(SessionLabel))
+        return tuple(
+            Tab(label.id, label.render().plain)
+            for label in self.app.screen.query_one(SessionsTabs).query(SessionLabel)
+        )
 
     @property
     def selected_tab(self) -> str:
@@ -224,8 +238,12 @@ class TextualUi(AppAgents, Ui):
     def painted(self, widget) -> str:
         """The text drawn inside one widget's region of the screen."""
         region = widget.region
-        return "\n".join(strip.crop(region.x, region.right).text
-                         for strip in self.app.screen._compositor.render_strips()[region.y:region.bottom])
+        return "\n".join(
+            strip.crop(region.x, region.right).text
+            for strip in self.app.screen._compositor.render_strips()[
+                region.y : region.bottom
+            ]
+        )
 
     @property
     def _prompt(self):
@@ -259,18 +277,25 @@ class TextualUi(AppAgents, Ui):
         """The screen cell where the nth drawn `text` starts."""
         from rich.cells import cell_len
 
-        places = [(cell_len(line[:line.find(text)]), y)
-                  for y, line in enumerate(self.visible_lines()) if text in line]
+        places = [
+            (cell_len(line[: line.find(text)]), y)
+            for y, line in enumerate(self.visible_lines())
+            if text in line
+        ]
         if len(places) <= occurrence:
             raise NotShown(f"{text!r} is not on screen:\n{self.visible_text()}")
         return places[occurrence]
 
     async def click(self, text: str, *, occurrence: int = 0) -> None:
-        assert await self.pilot.click(offset=self._cell_of(text, occurrence)), f"the click on {text!r} left the screen"
+        assert await self.pilot.click(
+            offset=self._cell_of(text, occurrence)
+        ), f"the click on {text!r} left the screen"
         await self.step()
 
     def link_at(self, text: str, *, occurrence: int = 0) -> tuple[str, tuple] | None:
-        return self.app.screen.get_style_at(*self._cell_of(text, occurrence)).meta.get("@click")
+        return self.app.screen.get_style_at(*self._cell_of(text, occurrence)).meta.get(
+            "@click"
+        )
 
     def hyperlink_at(self, text: str, *, occurrence: int = 0) -> str | None:
         return self.app.screen.get_style_at(*self._cell_of(text, occurrence)).link
@@ -291,22 +316,32 @@ class TextualUi(AppAgents, Ui):
         from toad.screens.main import MainScreen
 
         app = self.app
-        details = await app.session_navigation.new(lambda: MainScreen(app.project_dir, app.agent_data))
+        details = await app.session_navigation.new(
+            lambda: MainScreen(app.project_dir, app.agent_data)
+        )
         await self.step()
         return details.mode_name
 
-    async def open_channel(self, target: str, *, actor: str, owner: str | None = None) -> str:
+    async def open_channel(
+        self, target: str, *, actor: str, owner: str | None = None
+    ) -> str:
         from toad.navigation_target import channel_target
 
-        context = NavigationContext(self.app, owner or self.selected_tab, self.app.project_dir, actor)
+        context = NavigationContext(
+            self.app, owner or self.selected_tab, self.app.project_dir, actor
+        )
         identity = await channel_target(target).open(context)
         await self.step()
         return identity
 
-    async def open_direct(self, thread: str, *, actor: str, owner: str | None = None) -> str:
+    async def open_direct(
+        self, thread: str, *, actor: str, owner: str | None = None
+    ) -> str:
         from toad.navigation_target import DirectTarget
 
-        context = NavigationContext(self.app, owner or self.selected_tab, self.app.project_dir, actor)
+        context = NavigationContext(
+            self.app, owner or self.selected_tab, self.app.project_dir, actor
+        )
         identity = await DirectTarget(thread).open(context)
         await self.step()
         return identity

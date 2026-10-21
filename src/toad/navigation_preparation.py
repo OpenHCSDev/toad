@@ -58,7 +58,9 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
         return CommsNavigation(
             CommsViewKey(str(root), self.owner_mode, resolved.conversation),
             owner_root,
-            resolved.conversation.threads_needed(comms.registry.snapshot(), resolved.viewer),
+            resolved.conversation.threads_needed(
+                comms.registry.snapshot(), resolved.viewer
+            ),
         )
 
 
@@ -85,7 +87,9 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
         """A named launch retains the same acquired identity as a sidebar open."""
         from toad.screens.main import MainScreen
 
-        screen = MainScreen.from_thread(self.project, self.root, self.thread.incarnation, app.agent_data)
+        screen = MainScreen.from_thread(
+            self.project, self.root, self.thread.incarnation, app.agent_data
+        )
         self.bind(screen)
         return screen
 
@@ -114,7 +118,10 @@ class ExistingThreadNavigation(ThreadNavigation):
         navigator = opening.navigator
         source = navigator.app.session_navigation.source(self.existing.mode)
         if source is not None:
-            if (source.coordination_root, source.thread_identity.thread_name()) == (self.existing.root, self.existing.name):
+            if (source.coordination_root, source.thread_identity.thread_name()) == (
+                self.existing.root,
+                self.existing.name,
+            ):
                 await navigator.app.session_navigation.close_many((opening.view.id,))
                 await navigator.app.select_session(self.existing.mode)
         # An obsolete open-view identity must never manufacture a duplicate.
@@ -138,13 +145,20 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project
-        existing = next((view for view in self.open_threads
-                         if view.root == self.root
-                         and snapshot.canonical_name(view.name) == thread.name), None)
+        existing = next(
+            (
+                view
+                for view in self.open_threads
+                if view.root == self.root
+                and snapshot.canonical_name(view.name) == thread.name
+            ),
+            None,
+        )
         if existing is not None:
             return ExistingThreadNavigation(self.root, thread, project, existing)
         return thread.execution.prepare_conversation(
-            ThreadConversationPreparation(self.root, thread, project, snapshot))
+            ThreadConversationPreparation(self.root, thread, project, snapshot)
+        )
 
 
 @dataclass(frozen=True)
@@ -168,8 +182,13 @@ class ThreadConversationPreparation(ConversationPreparation):
 class ThreadOpening:
     """The actual unfinished task owns completion and survives one waiter."""
 
-    def __init__(self, navigator: ThreadNavigator, owner_mode: str,
-                 request: ThreadNavigationRequest, origin: ThreadOrigin) -> None:
+    def __init__(
+        self,
+        navigator: ThreadNavigator,
+        owner_mode: str,
+        request: ThreadNavigationRequest,
+        origin: ThreadOrigin,
+    ) -> None:
         from toad.screens.main import MainScreen
 
         self.navigator, self.owner_mode = navigator, owner_mode
@@ -191,9 +210,14 @@ class ThreadOpening:
             if prepared is None:
                 await navigator.app.session_navigation.close_many((self.view.id,))
                 return navigator.app.selected_mode
-            if navigator.app.workspace_sessions.views.get(self.view.id) is not self.view:
+            if (
+                navigator.app.workspace_sessions.views.get(self.view.id)
+                is not self.view
+            ):
                 return navigator.app.selected_mode
-            if not await navigator.app.preparation.run_thread(root_is_current, self.request.root):
+            if not await navigator.app.preparation.run_thread(
+                root_is_current, self.request.root
+            ):
                 raise RuntimeError("The thread's bus route changed while opening")
             return await prepared.open(self)
         except RequestError as error:
@@ -227,7 +251,9 @@ class NavigationReader:
             self._slots.release()
             return None
         try:
-            pending = asyncio.create_task(asyncio.to_thread(request.read), name="navigation-read")
+            pending = asyncio.create_task(
+                asyncio.to_thread(request.read), name="navigation-read"
+            )
         except BaseException:
             self._slots.release()
             raise

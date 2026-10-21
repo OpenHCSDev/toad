@@ -53,7 +53,12 @@ from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from toad.navigation_target import FeedTarget, DirectTarget, NavigationTarget, ThreadTarget
+from toad.navigation_target import (
+    FeedTarget,
+    DirectTarget,
+    NavigationTarget,
+    ThreadTarget,
+)
 
 
 class SessionCommands(Provider):
@@ -79,16 +84,24 @@ class SessionCommands(Provider):
 
 class ModeProvider(SessionCommands):
     def commands(self, session: MainScreen) -> Iterable[SimpleCommand]:
-        for mode in sorted(session.conversation.agent_binding.available_modes,
-                           key=lambda mode: mode.name):
-            yield SimpleCommand(mode.name, partial(session.conversation.set_mode, mode.value),
-                                mode.description)
+        for mode in sorted(
+            session.conversation.agent_binding.available_modes,
+            key=lambda mode: mode.name,
+        ):
+            yield SimpleCommand(
+                mode.name,
+                partial(session.conversation.set_mode, mode.value),
+                mode.description,
+            )
 
 
 class MCPInventoryProvider(SessionCommands):
     def commands(self, session: MainScreen) -> Iterable[SimpleCommand]:
-        yield SimpleCommand("Pi MCP inventory", session.action_mcp_inventory,
-                            "Read-only package snapshot")
+        yield SimpleCommand(
+            "Pi MCP inventory",
+            session.action_mcp_inventory,
+            "Read-only package snapshot",
+        )
 
 
 class ScreenContent(DeclaredFamily, affix="Content"):
@@ -223,6 +236,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     busy_count = var(0)
     conversation = getters.query_one(Conversation)
     thread_sidebar = getters.query_one(SessionThreadSidebar)
+
     @property
     def side_bar(self):
         return self.screen.query_one(ChannelsSidebar)
@@ -272,14 +286,18 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
 
             def mark() -> None:
                 resolved = identity.resolve_thread(comms.registry, project)
-                comms.views.mark_thread_view_read(resolved, worktree=worktree, through=cursor)
+                comms.views.mark_thread_view_read(
+                    resolved, worktree=worktree, through=cursor
+                )
 
             access.write(selected, mark)
 
         async def mark():
             try:
                 await conversation.transcript.mark_read(
-                    through, acknowledge, lambda: app.selected_session is self,
+                    through,
+                    acknowledge,
+                    lambda: app.selected_session is self,
                 )
             except DMScopeChanged as error:
                 app.show_error(error, "DM read not marked")
@@ -287,8 +305,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         return ReadWork(mark())
 
     @classmethod
-    def from_thread(cls, project: Path, root: str, target,
-                    agent: AgentDefinition | None = None) -> "MainScreen":
+    def from_thread(
+        cls, project: Path, root: str, target, agent: AgentDefinition | None = None
+    ) -> "MainScreen":
         screen = cls(project, agent, agent_session_id=target.name)
         screen.bind_thread(target, root)
         return screen
@@ -299,13 +318,18 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
 
     def identity_changed(self, previous) -> None:
         if self.id is not None:
-            self.app.session_tracker.bind_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
+            self.app.session_tracker.bind_identity(
+                self.id, previous.thread_name(), self.thread_identity.thread_name()
+            )
 
     @classmethod
     def opening(cls, request, origin, app) -> "MainScreen":
         # The request has only a name; bind the wire after its metadata read.
-        screen = cls(request.project, origin.source.agent_for_opening(app.agent_data),
-                     agent_session_id=request.target)
+        screen = cls(
+            request.project,
+            origin.source.agent_for_opening(app.agent_data),
+            agent_session_id=request.target,
+        )
         screen.content = NavigatedOpeningContent()
         return screen
 
@@ -336,7 +360,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         await self.presentation.retire(self)
 
     def retained_native_presentations(self):
-        resources = [(self, self.presentation)] if self.presentation.widget is not None else []
+        resources = (
+            [(self, self.presentation)] if self.presentation.widget is not None else []
+        )
         sidebar = self.thread_sidebar
         if sidebar.panels_loaded:
             resources.append((self, sidebar))
@@ -348,9 +374,13 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
 
     def make_conversation(self) -> Conversation:
         return Conversation(
-            self.project_path, self._agent, self._agent_session_id,
-            self._session_pk, self.app.session_tracker.sessions[self.id].initial_title,
-            initial_prompt=self._initial_prompt, transcript=self.presentation.transcript,
+            self.project_path,
+            self._agent,
+            self._agent_session_id,
+            self._session_pk,
+            self.app.session_tracker.sessions[self.id].initial_title,
+            initial_prompt=self._initial_prompt,
+            transcript=self.presentation.transcript,
         )
 
     @property
@@ -426,7 +456,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
                 if event.worktree is not None:
                     self.bind_project(Path(event.worktree))
                 if self.id is not None:
-                    self.app.session_navigation.sync_owner_root(self.id, self.coordination_root)
+                    self.app.session_navigation.sync_owner_root(
+                        self.id, self.coordination_root
+                    )
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)
@@ -445,7 +477,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     @property
     def navigation_context(self) -> NavigationContext:
         assert self.id is not None
-        return NavigationContext(self.app, self.id, self.project_path, self.thread_identity.thread_name())
+        return NavigationContext(
+            self.app, self.id, self.project_path, self.thread_identity.thread_name()
+        )
 
     def remember_direct_target(self, target: str) -> None:
         self._last_dm_target = target
@@ -467,8 +501,10 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         """Open the last-selected DM as a native Toad session."""
         target = self._last_dm_target
         if not target:
-            self.notify("Choose Direct messages from an agent's context menu",
-                        title="Direct messages")
+            self.notify(
+                "Choose Direct messages from an agent's context menu",
+                title="Direct messages",
+            )
             return
         if target and self.id is not None:
             await self.open_sidebar_target(DirectTarget(target))
@@ -480,11 +516,15 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
 
     def action_session_previous(self) -> None:
         if self.id is not None:
-            self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.id, -1))
+            self.app.session_navigation.events.publish(
+                session_requests.SessionNavigate(self.id, -1)
+            )
 
     def action_session_next(self) -> None:
         if self.id is not None:
-            self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.id, +1))
+            self.app.session_navigation.events.publish(
+                session_requests.SessionNavigate(self.id, +1)
+            )
 
     @handles(input_events.ProjectDirectoryUpdated)
     async def on_project_directory_update(self) -> None:
@@ -541,13 +581,14 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     @handles(core_events.SessionSubtitleChanged)
     def on_session_subtitle_changed(self, message: CoreEventMessage) -> None:
         if self.id is not None:
-            self.app.session_tracker.update_session(self.id, subtitle=message.event.subtitle)
+            self.app.session_tracker.update_session(
+                self.id, subtitle=message.event.subtitle
+            )
 
     @handles(core_events.SessionPathChanged)
     def on_session_path_changed(self, message: CoreEventMessage) -> None:
         if self.id is not None:
             self.app.session_tracker.update_session(self.id, path=message.event.path)
-
 
     def on_mount(self) -> None:
         self.observe_core(self.app.events)
