@@ -1,4 +1,4 @@
-"""Textual-facing: a SessionObservation reads for a mounted view, and Textual's mount and removal bound its lifetime."""
+"""A mounted view observes its actual agent binding and discards replaced reads."""
 
 import asyncio
 
@@ -29,7 +29,15 @@ class ProbeObservation(SessionObservation):
 class ProbeView(Widget):
     result = None
     error = None
-    agent = object()
+
+    def __init__(self, agent_binding):
+        super().__init__()
+        self.agent_binding = agent_binding
+
+
+@pytest.fixture
+def probe_view(workspace):
+    return ProbeView(workspace.agents.detached_agent())
 
 
 async def next_read(observation):
@@ -37,16 +45,16 @@ async def next_read(observation):
         return await observation.entered.get()
 
 
-async def test_invalidation_during_a_read_supersedes_its_result():
-    view, app = ProbeView(), App()
+async def test_invalidation_during_a_read_supersedes_its_result(probe_view):
+    view, app = probe_view, App()
     observation = ProbeObservation(view)
     async with app.run_test():
         await app.screen.mount(view)
         observation.invalidate()
-        assert await next_read(observation) is view.agent
+        assert await next_read(observation) is view.agent_binding
         observation.invalidate()
         observation.responses.put_nowait("superseded")
-        assert await next_read(observation) is view.agent
+        assert await next_read(observation) is view.agent_binding
         assert view.result is None
         observation.responses.put_nowait("current")
         await observation.task
@@ -54,26 +62,27 @@ async def test_invalidation_during_a_read_supersedes_its_result():
         assert app._exception is None
 
 
-async def test_a_read_for_a_previous_agent_is_not_published():
-    view, app = ProbeView(), App()
+async def test_a_read_for_a_previous_agent_is_not_published(probe_view, workspace):
+    view, app = probe_view, App()
     observation = ProbeObservation(view)
     async with app.run_test():
         await app.screen.mount(view)
         observation.invalidate()
-        assert await next_read(observation) is view.agent
+        assert await next_read(observation) is view.agent_binding
         observation.responses.put_nowait("current")
         await observation.task
         observation.invalidate()
         previous = await next_read(observation)
-        view.agent = object()
+        view.agent_binding = workspace.agents.detached_agent()
         observation.responses.put_nowait("previous owner")
-        assert await next_read(observation) is view.agent and view.agent is not previous
+        assert await next_read(observation) is view.agent_binding
+        assert view.agent_binding is not previous
         assert view.result == "current"
         assert app._exception is None
 
 
-async def test_a_closed_observation_starts_no_read_and_delivery_actions_refuse():
-    view, app = ProbeView(), App()
+async def test_a_closed_observation_starts_no_read_and_delivery_actions_refuse(probe_view):
+    view, app = probe_view, App()
     observation = ProbeObservation(view)
     async with app.run_test() as pilot:
         await app.screen.mount(view)

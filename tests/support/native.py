@@ -14,7 +14,7 @@ import shlex
 import sys
 import threading
 from collections.abc import Callable
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -235,22 +235,24 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
                        application: type | None = None, attached: bool = True, project: Path | None = None):
     """Start Toad on declared thread `thread` through Core's ACP server; yields (ui, agent) once
     the session has settled. Stops the agent and every owner on the wire afterwards."""
+    from toad.acp.agent import Agent
     from toad.app import ToadApp
 
-    agent = None
     started = partial(application or ToadApp, agent_session_id=thread)
     if project is not None:
         started = partial(started, project_dir=str(project))
     try:
-        async with workspace.app(size=size, agent=comms_agent(), application=_first_wins(started)) as ui:
-            await ui.until(lambda: ui.conversation.agent is not None, seconds=20, why="the agent object")
-            agent = ui.conversation.agent
+        async with AsyncExitStack() as resources, workspace.app(
+            size=size, agent=comms_agent(), application=_first_wins(started)
+        ) as ui:
+            await ui.until(lambda: isinstance(ui.conversation.agent_binding, Agent),
+                           seconds=20, why="the bound ACP agent")
+            agent = ui.conversation.agent_binding
+            resources.push_async_callback(agent.stop)
             await ui.until(agent.session.settled.is_set, seconds=30, why="the ACP session to settle")
             assert agent.session.connected is attached, "Unexpected ACP attachment outcome"
             yield ui, agent
     finally:
-        if agent is not None:
-            await agent.stop()
         for name in comms.registry.all_threads():
             await asyncio.to_thread(comms.owners.stop, name)
 

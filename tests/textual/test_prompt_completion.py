@@ -27,7 +27,7 @@ def wire_records(workspace):
 async def ready_prompt(workspace, ui):
     await ui.until_agent_ready()
     view = ui.conversation
-    return view, view.prompt, view.agent
+    return view, view.prompt, view.agent_binding
 
 
 async def test_slash_command_discovered_from_the_agent_is_completed_by_keyboard_and_executed(workspace):
@@ -199,7 +199,7 @@ async def test_model_picker_selects_through_the_agent_and_keeps_the_draft(worksp
         await ui.press(*"second")
         await ui.until(lambda: painted_text(picker, "Local second"), why="the model in the picker")
         await ui.press("enter")
-        await ui.until(lambda: view.agent.configuration.model.current == "local/second", why="the selected model")
+        await ui.until(lambda: view.agent_binding.configuration.model.current == "local/second", why="the selected model")
         assert {"config_id": "model", "value": "local/second"} in wire_records(workspace)
         await ui.until(lambda: not picker.is_open and prompt.prompt_text_area.has_focus, why="the picker closed")
         assert prompt.text == "Unfinished draft"

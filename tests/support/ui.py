@@ -241,7 +241,6 @@ class TextualUi(AppAgents, Ui):
         await self.step()
 
     def attach_agent(self, agent) -> None:
-        self.conversation.agent = agent
         self.conversation.bind_agent(agent)
 
     def status(self) -> str:

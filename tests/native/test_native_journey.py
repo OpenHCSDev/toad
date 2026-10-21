@@ -14,6 +14,7 @@ from agent_comms.input_disposition import InputDispositions
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from support.native import native_session
 from support.native_steps import channel_message_feedback, direct_reply_feedback
+from toad.acp.agent import Agent
 from support.textual_steps import request_target_command
 
 from toad.widgets.agent_response import AgentResponse
@@ -149,12 +150,12 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
         await ui.until(lambda: bool(agent.queue_attachment.projection.items), seconds=20, why="the queued input")
         await ui.select_tab(owner_tab)
         view = ui.conversation
-        assert view.agent is agent
+        assert view.agent_binding is agent
         await ui.until(lambda: view.turns.managed_id == agent.current_turn.managed_id, seconds=20,
                        why="the running turn on return")
-        await ui.until(lambda: view.agent.configuration.model.selected is not None, seconds=20,
+        await ui.until(lambda: view.agent_binding.configuration.model.selected is not None, seconds=20,
                        why="the model selection")
-        assert view.agent.configuration.model.current == "selected-offline/fixture"
+        assert view.agent_binding.configuration.model.current == "selected-offline/fixture"
         assert view.turns.owner.busy  # what the activity indicator draws from; busy_count now counts only chat history reads
         assert agent.queue_attachment is queue
         assert agent.process.process is process and process.returncode is None
@@ -201,7 +202,7 @@ async def test_stopped_owner_restarts_without_replaying_and_then_idles(workspace
 
         asked = len(provider.requests)
         await ui.select_tab(owner_tab)
-        assert ui.conversation.agent is agent, "Returning to a session replaced its agent"
+        assert ui.conversation.agent_binding is agent, "Returning to a session replaced its agent"
         await agent.session.reconnect()
         await ui.until(agent.session.settled.is_set, seconds=30, why="the reconnect to settle")
         assert agent.session.connected, "The restarted owner did not accept the session"
@@ -262,7 +263,7 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
         assert opened != owner_tab and ui.selected_tab == opened
         assert [tab.identity for tab in ui.tabs()] == [owner_tab, opened]
         view = ui.conversation
-        await ui.until(lambda: view.agent is not None and view.agent is not native.agent, seconds=20,
+        await ui.until(lambda: isinstance(view.agent_binding, Agent) and view.agent_binding is not native.agent, seconds=20,
                        why="the second thread's agent")
         await ui.until_agent_ready()
         await ui.write_draft("FIRST_MESSAGE_TO_GAMMA")
@@ -272,4 +273,4 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
         assert len(provider.requests) == 1
         assert ui.painted(view.window).count("NATIVE_RESPONSE_1") == 1
         assert [tab.identity for tab in ui.tabs()] == [owner_tab, opened]
-        await view.agent.stop()
+        await view.agent_binding.stop()

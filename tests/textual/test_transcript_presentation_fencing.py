@@ -144,7 +144,7 @@ async def test_a_certified_read_that_expired_acquires_no_application(workspace):
         view = ui.conversation
         agent = ui.detached_agent("journal-source")
         agent.coordination = registered_coordination_fact(workspace.comms, "journal-source", worktree=str(workspace.project))
-        view.agent = agent
+        view.bind_agent(agent)
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(HeldSourceCase, entered, release))
         await ui.until(entered.is_set, why="the certified read to be held")

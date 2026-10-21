@@ -21,6 +21,7 @@ from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.native_entries import NativeEntry
 from agent_comms.retained_task_facts import HumanInputTaskFact
+from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 
@@ -52,7 +53,7 @@ class ActualS2Ingress:
         inputs = InputDispositions(self.comms.root / InputDispositions.filename)
         before = inputs.read()
         command = QueuePromptRequest(text, True)
-        await self.app.selected_session.conversation.agent.send_prompt(text, request=command)
+        await self.app.selected_session.conversation.agent_binding.send_prompt(text, request=command)
         await until(self.pilot, lambda: len(inputs.read().rows) == len(before.rows) + 1)
         row = inputs.read().lookup('acp:' + command.input_id)
         row.origin.require_human().author.require_registered(self.comms.registry.snapshot())
@@ -64,7 +65,7 @@ class ActualS2Ingress:
     async def submit(self, text, *, image=None, while_running=None,
                      observation_seconds=30):
         view = self.app.selected_session.conversation
-        agent = view.agent
+        agent = view.agent_binding
         inputs = InputDispositions(self.comms.root / InputDispositions.filename)
         before = inputs.read()
         wire_sequence = self.comms.bus.log.latest_sequence()
@@ -183,11 +184,11 @@ async def _open_actual_s2_ingress(owner, subject, output):
             await until(pilot, lambda: app.selected_session is not None)
             await app.selected_session.wait_content_ready()
             view = app.selected_session.conversation
-            await until(pilot, lambda: view.agent is not None)
+            await until(pilot, lambda: isinstance(view.agent_binding, Agent))
             phase('actual_original_view_before_acp_attachment_settlement')
-            await until(pilot, view.agent.session.settled.is_set)
-            assert view.agent.session.connected
-            await until(pilot, lambda: view.agent.queue_attachment.scope.matches_session(view.agent.session_id))
+            await until(pilot, view.agent_binding.session.settled.is_set)
+            assert view.agent_binding.session.connected
+            await until(pilot, lambda: view.agent_binding.queue_attachment.scope.matches_session(view.agent_binding.session_id))
             observer = ActualS2Ingress(app, pilot, owner._comms, subject, output)
             phase('actual_acp_attached_original_queue_scope')
             observer.persist('same_original_owner_actual_toad_acp_attached')
