@@ -7,7 +7,6 @@ from agent_comms.goal_actions import SetGoalAction
 from agent_comms.thread_status import ArchivedThreadStatus, StoppedThreadStatus
 from textual.geometry import Offset
 
-from support.textual_steps import coordination_update
 from toad.db import DB
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
@@ -36,7 +35,7 @@ async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_his
     saved_bytes = session_file.read_bytes()
     async with workspace.app(size=(110, 38)) as ui:
         app, pilot = ui.textual
-        await app.selected_session.on_coordination_update(coordination_update(str(comms.root), "owner"))
+        await app.selected_session.on_coordination_update(comms.configuration.answer("owner"))
         db = DB()
         assert await db.create()
         saved = await db.session_new("peer", "Comms", "agent-comms.openhcs.dev", "peer")

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from toad.widgets.comms_sidebar import CommsRow
     from toad.comms_root import Observing, FailedObservation
+    from toad.app import ToadApp
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -527,7 +528,7 @@ class BoundSidebar(SidebarModelState):
     observed: Observing
 
     def shows_child(self, view, child: Widget) -> bool:
-        return child is not view.unavailable
+        return (child is view.unavailable) == self.observed.sidebar.observation.shows_status()
 
     def root(self):
         return self.observed.service.root
@@ -543,6 +544,7 @@ class BoundSidebar(SidebarModelState):
         self.observed.sidebar.threads.unsubscribe(view.threads_changed)
 
     def present(self, view):
+        view.unavailable.update(self.observed.sidebar.observation.status_text())
         shown = view.accepts_observation()
         view.app.coordination_access.show_sidebar(view, shown)
         if not shown:
@@ -574,7 +576,8 @@ class Behind(BoundSidebar):
         return dict(change=AllSidebarRows(), reorder=True)
 
 
-class SidebarModelView(CoreEventReceiver):
+class SidebarModelView(CoreEventReceiver, Widget):
+    app: ToadApp
     """A widget showing the observed service's sidebar model.
 
     Core's model is observed only while a view shows it. Changes that arrive
@@ -603,7 +606,7 @@ class SidebarModelView(CoreEventReceiver):
     def sidebar_visibility_changed(self) -> None:
         self.present()
 
-    model_state: reactive[SidebarModelState] = reactive(Detached, repaint=False)
+    model_state: reactive[SidebarModelState] = reactive(Detached, repaint=False, always_update=True)
 
     def watch_model_state(self, state: SidebarModelState) -> None:
         for child in self.children:

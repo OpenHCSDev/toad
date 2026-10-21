@@ -29,7 +29,7 @@ from agent_comms.route_selection import RouteChanged, RouteSelection, run_select
 from agent_comms.ui_model.observation import (
     ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
     ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
-    SidebarObserved, SidebarUnreadable, ViewsRetired,
+    SidebarObserved, SidebarPreparing, SidebarUnreadable, ViewsRetired,
     StopObserving, StopSidebar, ThreadsObserved,
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
@@ -42,6 +42,7 @@ from agent_comms.display_references import PendingReferences, UnavailableReferen
 
 if TYPE_CHECKING:
     from toad.widgets.message_notifications import HistoryNotifications
+    from toad.widgets.sidebar_tree import SidebarModelView
     from agent_comms.comms import Comms
     from toad.app import ToadApp
 
@@ -307,7 +308,7 @@ class CoordinationAccess(MroDispatch):
         # One status row per open thread, whichever service it was read from.
         self.thread_status = OpenThreadStatus(app.call_next)
         # Views showing the sidebar model now, and consumers waiting for current rows.
-        self.sidebar_views: WeakSet[object] = WeakSet()
+        self.sidebar_views: WeakSet[SidebarModelView] = WeakSet()
         self.reference_views: WeakSet[object] = WeakSet()
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
@@ -370,6 +371,7 @@ class CoordinationAccess(MroDispatch):
         modes = app.tab_order.names
         previous_references = self.reference_context(str(observed.service.root))
         observed.sidebar.apply(result.snapshot, result.derived)
+        self.present_sidebar()
         if previous_references != self.reference_context(str(observed.service.root)):
             self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
@@ -380,16 +382,29 @@ class CoordinationAccess(MroDispatch):
         for waiter in self.take_sidebar_waiters(result.request):
             waiter.set_result(observed.sidebar.observation)
 
+    @handles(SidebarPreparing)
+    def sidebar_preparing(self, result: SidebarPreparing, observed: Observing) -> None:
+        if result.request != self.sidebar_interest:
+            return
+        observed.sidebar.observation = result
+        self.present_sidebar()
+
     @handles(SidebarUnreadable)
     def sidebar_unreadable(self, result: SidebarUnreadable, observed: Observing) -> None:
         if result.request != self.sidebar_interest:
             return
         observed.sidebar.clear(result.error)
+        self.present_sidebar()
         self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
         for waiter in self.take_sidebar_waiters(result.request):
             waiter.set_result(observed.sidebar.observation)
         self.app.show_error(result.error, "Sidebar unavailable")
+
+    def present_sidebar(self) -> None:
+        """Present the current backend answer even when its row set stays empty."""
+        for view in tuple(self.sidebar_views):
+            view.present()
 
     def take_sidebar_waiters(self, answered: ObserveSidebar) -> list[asyncio.Future[SidebarObservation]]:
         """Retire answered reads once, leaving other interests subscribed."""
@@ -471,7 +486,7 @@ class CoordinationAccess(MroDispatch):
             self.sidebar_interest = wanted
             observed.observe_sidebar(wanted)
 
-    def show_sidebar(self, view: object, shown: bool) -> None:
+    def show_sidebar(self, view: SidebarModelView, shown: bool) -> None:
         """A view started or stopped showing the sidebar model."""
         if shown:
             self.sidebar_views.add(view)
