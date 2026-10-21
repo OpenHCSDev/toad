@@ -3,6 +3,7 @@
 from __future__ import annotations
 from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventMessage
+from toad.session_scope import SessionScope
 from toad.thread_identity import ThreadIdentity, SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core import events as core_events
@@ -296,10 +297,9 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
         self.refresh_relationships()
 
     def _sync_filter_control(self):
-        from toad.screens.session_view import SessionView
         from toad.widgets.conversation import Conversation
 
-        view = self.query_ancestor(SessionView).query_one_optional(Conversation)
+        view = self.query_ancestor(SessionScope).query_one_optional(Conversation)
         checkboxes = tuple(self.query(Checkbox))
         for checkbox in checkboxes:
             checkbox.display = view is not None

@@ -2,6 +2,7 @@ from __future__ import annotations
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.widget_view import WorkspaceHosted
+from toad.session_scope import SessionScope
 
 from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ThoughtStream
@@ -351,15 +352,11 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     @property
     def operational_sources(self):
-        from toad.screens.session_view import SessionView
-
-        return self.query_ancestor(SessionView).presentation.sources
+        return self.query_ancestor(SessionScope).presentation.sources
 
     def transcript_scope(self) -> tuple[str, str] | None:
         """The native session identity whose canonical transcript this view shows."""
-        from toad.screens.session_view import SessionView
-
-        origin = self.query_ancestor(SessionView).origin
+        origin = self.query_ancestor(SessionScope).origin
         return origin.transcript_scope() if origin is not None else None
 
     def status_thread(self) -> StatusThread:
@@ -385,13 +382,11 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     def thread_presented(self, presentation) -> None:
         """A settled presentation refreshes the transcript source of the shown view."""
-        from toad.screens.session_view import SessionView
-
         self.thread_presentation = presentation
         self._update_model_info()
         if presentation is None or not self.transcript.readable:
             return
-        if self.query_ancestor(SessionView).is_current:
+        if self.query_ancestor(SessionScope).is_current:
             from toad.transcript_publication import ObservedSourcePublication
             self._unpublished_presentation = None
             self.transcript.source_requests.request(ObservedSourcePublication, presentation)
@@ -400,9 +395,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     @handles(core_events.SessionSelected)
     async def _thread_view_selected(self, event: CoreEventMessage) -> None:
-        from toad.screens.session_view import SessionView
-
-        if not self.query_ancestor(SessionView).is_current:
+        if not self.query_ancestor(SessionScope).is_current:
             return
         self.refresh_thread_status()
         self.goal_observation.invalidate()
@@ -804,9 +797,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
     @property
     def agent_title(self) -> str:
-        from toad.screens.session_view import SessionView
-
-        return self.query_ancestor(SessionView).display_name
+        return self.query_ancestor(SessionScope).display_name
 
     def insert_path_into_prompt(self, path: Path) -> None:
         if not path.is_relative_to(self.project_path):
@@ -1263,11 +1254,9 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
     @on(Menu.OptionSelected)
     async def on_menu_option_selected(self, event: Menu.OptionSelected) -> None:
-        from toad.screens.session_view import SessionView
-
         event.stop()
         cursor = self.navigation.cursor
-        if (self.query_ancestor(SessionView).is_current and event.action is not None
+        if (self.query_ancestor(SessionScope).is_current and event.action is not None
                 and cursor is not None and cursor.accepts(event.owner)):
             await self.run_action(event.action, {"block": event.owner})
         if (cursor_block := self.cursor_block_child) is not None:
@@ -1475,11 +1464,9 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         Hidden sources keep their display resource and refresh on selection;
         command execution always reacquires current backend applicability.
         """
-        from toad.screens.session_view import SessionView
-
         if not self.is_attached:
             return
-        source = self.query_ancestor(SessionView)
+        source = self.query_ancestor(SessionScope)
         if not source.is_current:
             return
         catalog = await self.read_command_catalog()
@@ -1487,8 +1474,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             self.prompt.slash_commands = catalog.commands
 
     async def read_command_catalog(self) -> CommandCatalog:
-        from toad.screens.session_view import SessionView
-        source = self.query_ancestor(SessionView)
+        source = self.query_ancestor(SessionScope)
         navigation = source.navigation_context
         agent = self.agent_binding
         context = self.command_target_context()
@@ -1618,10 +1604,8 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         self._mouse_down_offset = event.screen_offset
 
     def on_click(self, event: events.Click) -> None:
-        from toad.screens.session_view import SessionView
-
         # A queued history click may arrive after its logical source retired.
-        if not self.query_ancestor(SessionView).is_current:
+        if not self.query_ancestor(SessionScope).is_current:
             return
         if (
             self._mouse_down_offset is not None
@@ -1940,12 +1924,10 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         self.refresh_bindings()
 
     def _present_block_cursor(self, cursor, show) -> None:
-        from toad.screens.session_view import SessionView
-
         # A later prompt, tab or source event may already have moved the cursor
         # off this block.
         if (self.is_attached and not self.is_leaving
-                and self.query_ancestor(SessionView).is_current
+                and self.query_ancestor(SessionScope).is_current
                 and self.navigation.cursor is cursor):
             show(cursor)
             self.cursor.refresh()

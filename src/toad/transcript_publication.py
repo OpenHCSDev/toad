@@ -27,10 +27,9 @@ from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.session_details import SessionDetails
 from toad.transcript_preparation import PreparedPageSource
 from toad.core.events import CoreEventStream
-from toad.screens.session_view import SessionView
+from toad.session_scope import SessionOrigin, SessionScope
 
 if TYPE_CHECKING:
-    from toad.screens.session_view import SessionOrigin
     from toad.widgets.conversation import Conversation
 
 
@@ -444,12 +443,12 @@ class NoView(ViewBinding):
 class BoundView(ViewBinding):
     @dataclass(frozen=True)
     class Moment(BoundFrame):
-        source: SessionView
+        source: SessionScope
 
         @classmethod
         def capture(cls, binding, owner, **extra):
             return super().capture(binding, owner,
-                                   source=binding.view.query_ancestor(SessionView), **extra)
+                                   source=binding.view.query_ancestor(SessionScope), **extra)
 
         def current(self):
             return (super().current() and self.source.is_current

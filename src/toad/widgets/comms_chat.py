@@ -36,7 +36,7 @@ from toad.widgets.conversation import (
 from toad.widgets.observed_thread_activity import StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.screens.session_view import SessionView
+from toad.session_scope import SessionScope
 from toad.command_catalog import CommandCatalog
 
 
@@ -191,9 +191,7 @@ class CommsChatView(Conversation):
         prompt.sync_session()
         prompt.shell_mode = False
         prompt.update_prompt()
-        from toad.screens.session_view import SessionView
-
-        if self.query_ancestor(SessionView).is_current:
+        if self.query_ancestor(SessionScope).is_current:
             prompt.focus()
 
     def watch_agent_binding(self, agent) -> None:
@@ -210,7 +208,7 @@ class CommsChatView(Conversation):
 
     async def _refresh(self) -> Worker | None:
         history = self.message_history
-        if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+        if not self.is_attached or not self.query_ancestor(SessionScope).is_current:
             return
         return history.page_source.schedule_refresh(self)
 
@@ -272,7 +270,7 @@ class CommsChatView(Conversation):
                 if not await history.source_is_current(snapshot):
                     return
                 if (not self.is_attached or source is not history.page_source
-                        or not self.query_ancestor(SessionView).is_current):
+                        or not self.query_ancestor(SessionScope).is_current):
                     return
             self.call_after_refresh(history.mark_visible)
             if not changed:

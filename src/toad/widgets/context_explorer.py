@@ -23,7 +23,7 @@ from toad.core_event_carrier import CoreEventMessage
 from agent_comms.route_selection import RouteSelection
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
-from toad.screens.session_view import SessionView
+from toad.session_scope import SessionScope
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 
 
@@ -261,7 +261,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self._observed()
 
     def presentation_visible(self):
-        return (self.is_attached and self.query_ancestor(SessionView).is_current
+        return (self.is_attached and self.query_ancestor(SessionScope).is_current
                 and not self.query_ancestor(SideBar).collapsed
                 and not self.query_ancestor(SideBarCollapsible).collapsed)
 
@@ -396,7 +396,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     async def _correct_annotation(self, model, answer):
         if not self._selected(model):
             return
-        worktree = self.query_ancestor(SessionView).project_root
+        worktree = self.query_ancestor(SessionScope).project_root
         await model.correct(answer, worktree)
         if self._selected(model):
             self.notify("Original human correction recorded")

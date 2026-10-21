@@ -7,42 +7,12 @@ from contextlib import contextmanager
 from agent_comms.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
 from toad.core.source_events import TranscriptSourceWorkFinished
-from typing import TYPE_CHECKING
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
-from toad.project_path_owner import ProjectPathOwner
+from toad.session_scope import SessionOrigin, SessionScope
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
 
-if TYPE_CHECKING:
-    from toad.agent_schema import AgentDefinition
-
-
-class SessionOrigin:
-    """A view sessions and histories are opened from: it names their agent, project and bus sender."""
-
-    _agent: "AgentDefinition | None"
-
-    @property
-    def origin(self) -> "SessionOrigin":
-        return self
-
-    def transcript_scope(self) -> tuple[str, str] | None:
-        """The canonical history source, independent of an ACP connection."""
-        return self.thread_identity.transcript_scope()
-
-    def resolve_thread(self) -> str:
-        """Resolve a navigation name without rebinding this displayed source."""
-        from agent_comms.route_selection import RouteSelection
-
-        identity = self.thread_identity
-        selected = RouteSelection.capture(identity.wire_root())
-        service = self.app.coordination_access.require(selected).service
-        return identity.resolve_thread(service.registry, self.project_path)
-
-    def has_agent(self) -> bool:
-        return self._agent is not None
-
-class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Vertical):
+class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
     title = reactive("")
     sub_title = reactive("")
 

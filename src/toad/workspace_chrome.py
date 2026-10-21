@@ -12,10 +12,10 @@ from ui_theme.scheme import HeaderToneColour
 from toad.frame_presentation import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
+from toad.session_scope import SessionScope
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.screens.session_view import SessionView
 
 
 class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
@@ -83,7 +83,7 @@ class WorkspaceChrome(VerticalLayout):
                 ))
         return placements
 
-    async def select(self, view: "SessionView") -> None:
+    async def select(self, view: "SessionScope") -> None:
         roster = self.channels.roster
         roster.navigation.capture()
         roster.set_enabled(view.shows_channels)

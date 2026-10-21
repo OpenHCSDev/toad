@@ -37,7 +37,8 @@ from toad.acp.agent_session import SessionDisposition
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
-from toad.screens.session_view import SessionOrigin, SessionView
+from toad.screens.session_view import SessionView
+from toad.session_scope import SessionOrigin
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.session_presentation import OperationalSessionPresentation

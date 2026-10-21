@@ -1,8 +1,13 @@
 """Original filesystem context shared by live and archived rich history."""
 
+from __future__ import annotations
+
 from abc import abstractmethod
 from pathlib import Path
-from textual.widget import Widget
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from textual.widget import Widget
 
 
 class ProjectPathOwner:

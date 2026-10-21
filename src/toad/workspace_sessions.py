@@ -7,13 +7,13 @@ from textual.containers import Container
 from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import WELCOME
+from toad.session_scope import SessionOrigin, SessionScope
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.screens.session_view import SessionOrigin, SessionView
 
 
-def welcome_view() -> "SessionView":
+def welcome_view() -> "SessionScope":
     from toad.screens.welcome import WelcomeScreen
 
     return WelcomeScreen()
@@ -23,12 +23,12 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     """Owns the selected view, including closing it outside the workspace."""
 
     @abstractmethod
-    def matches(self, view: "SessionView") -> bool: ...
+    def matches(self, view: "SessionScope") -> bool: ...
 
-    def current(self, view: "SessionView") -> bool:
+    def current(self, view: "SessionScope") -> bool:
         return False
 
-    def shown(self, view: "SessionView") -> bool:
+    def shown(self, view: "SessionScope") -> bool:
         return False
 
     @abstractmethod
@@ -79,11 +79,11 @@ class DetachedWorkspaceSource(WorkspaceSource):
 
 
 class BoundWorkspaceSource(WorkspaceSource):
-    def __init__(self, view: "SessionView") -> None:
+    def __init__(self, view: "SessionScope") -> None:
         self.view = view
 
     @abstractmethod
-    def current(self, view: "SessionView") -> bool: ...
+    def current(self, view: "SessionScope") -> bool: ...
 
     @property
     def identity(self):
@@ -140,11 +140,11 @@ class WorkspaceSessions:
     def __init__(self, app: "ToadApp") -> None:
         self.app = app
         # Views the workspace always has; they are not tabs and never close.
-        self.resident: dict[str, Callable[[], SessionView]] = {WELCOME: welcome_view}
-        self.views: dict[str, SessionView] = {}
+        self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: welcome_view}
+        self.views: dict[str, SessionScope] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
 
-    def require(self, identity: str) -> "SessionView":
+    def require(self, identity: str) -> "SessionScope":
         return self.views[identity]
 
     def origin(self, identity: str) -> "SessionOrigin | None":
@@ -154,7 +154,7 @@ class WorkspaceSessions:
                 return view.origin
         return None
 
-    async def prepare(self, identity: str) -> "SessionView":
+    async def prepare(self, identity: str) -> "SessionScope":
         if view := self.views.get(identity):
             return view
         view = (self.app.session_navigation.get(identity) or self.resident[identity])()
@@ -165,7 +165,7 @@ class WorkspaceSessions:
         await host.mount(view)
         return view
 
-    async def select(self, identity: str) -> "SessionView":
+    async def select(self, identity: str) -> "SessionScope":
         destination = await self.prepare(identity)
         if self.source.shown(destination):
             return destination
@@ -194,7 +194,7 @@ class WorkspaceSessions:
     async def retire(self) -> None:
         self.source = await self.source.retire()
 
-    def owns(self, view: "SessionView") -> bool:
+    def owns(self, view: "SessionScope") -> bool:
         return self.source.current(view)
 
     def visible_target(self, root):
@@ -214,10 +214,8 @@ class WorkspaceSessions:
         chrome has no session binding. The frame still owns widget attachment
         and terminal writes; the owner's message pump executes source I/O.
         """
-        from toad.screens.session_view import SessionView
-
         for view in owner.walk_ancestors(with_self=True):
-            if isinstance(view, SessionView):
+            if isinstance(view, SessionScope):
                 if not self.owns(view):
                     return False
                 break

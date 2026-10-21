@@ -5,14 +5,13 @@ from textual.widget import Widget
 from toad.core.events import ThreadIdentityChanged
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity
+from toad.session_scope import SessionScope
 
 
 class ShowsThreadIdentity(CoreEventReceiver, Widget):
     @property
-    def thread_view(self):
-        from toad.screens.session_view import SessionView
-
-        return self.query_ancestor(SessionView)
+    def thread_view(self) -> SessionScope:
+        return self.query_ancestor(SessionScope)
 
     def _on_mount(self) -> None:
         self.observe_core(self.app.events)

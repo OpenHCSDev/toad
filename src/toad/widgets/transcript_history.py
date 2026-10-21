@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
-from toad.screens.session_view import SessionView
+from toad.session_scope import SessionScope
 
 from agent_comms.ui_model.message_category import OtherCategory
 
@@ -1053,7 +1053,7 @@ class TranscriptHistory(CommittedHistory, LineHistory):
 
     @classmethod
     def initial_state(cls, view):
-        return view.query_ancestor(SessionView).thread_identity.transcript_state()
+        return view.query_ancestor(SessionScope).thread_identity.transcript_state()
 
     @classmethod
     def empty_page(cls):

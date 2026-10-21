@@ -11,7 +11,7 @@ from toad.navigation_preparation import OpenThread, ThreadNavigationRequest, Thr
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.main import MainScreen
-    from toad.screens.session_view import SessionOrigin
+    from toad.session_scope import SessionOrigin
     from toad.navigation_preparation import ThreadNavigation
 
 

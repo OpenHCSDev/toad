@@ -24,6 +24,7 @@ from agent_comms.historical_views import (
 )
 
 from toad.conversation_kind import ConversationKind
+from toad.session_scope import SessionScope
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -342,10 +343,9 @@ class WirePageBuffer(SavedHistory):
 
     def command_context(self, view):
         from toad.target_commands import TargetContext
-        from toad.screens.session_view import SessionView
 
         return TargetContext(view.app, self.loader.comms, self.loader.conversation.target, self.loader.me,
-                             self.loader.project, view.query_ancestor(SessionView).id)
+                             self.loader.project, view.query_ancestor(SessionScope).id)
 
     async def submit_input(self, view, event) -> None:
         conversation = self.loader.conversation

@@ -22,7 +22,8 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.format_path import format_path
 from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwner, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
-from toad.screens.session_view import SessionOrigin, SessionView
+from toad.screens.session_view import SessionView
+from toad.session_scope import SessionOrigin
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import RowReconciliation, SidebarChange, SidebarGroup, SidebarModelView, TargetTree

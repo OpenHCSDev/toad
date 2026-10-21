@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.route_selection import RouteSelection
 from toad.owner_preparation import ExistingOwnerPlan
+from toad.session_scope import SessionScope
 from agent_comms.thread_identity import ThreadIncarnation
 
 from agent_comms.ui_model.sidebar import ThreadRowModel
@@ -23,7 +24,6 @@ from agent_comms.ui_model.unread import UnobservedUnread
 if TYPE_CHECKING:
     from toad.session_navigation import SessionNavigation
     from toad.screens.main import MainScreen
-    from toad.screens.session_view import SessionView
     from toad.comms_root import Observing
 
 
@@ -36,7 +36,7 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
         return self.mode
 
     @abstractmethod
-    def __call__(self) -> SessionView: ...
+    def __call__(self) -> SessionScope: ...
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
         return self.unobserved_tab()
