@@ -262,7 +262,7 @@ class WireSource:
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
         revision = self.conversation.history_view.revision(
-            self.comms.views, self.conversation.target, seen, worktree=str(self.project))
+            self.comms.views, self.conversation.target.name, seen, worktree=str(self.project))
         if revision == seen:
             return Unchanged()
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
@@ -344,7 +344,7 @@ class WirePageBuffer(SavedHistory):
         from toad.target_commands import TargetContext
         from toad.screens.session_view import SessionView
 
-        return TargetContext(view.app, self.loader.comms, self.loader.conversation.target, self.loader.me,
+        return TargetContext(view.app, self.loader.comms, self.loader.conversation.target.name, self.loader.me,
                              self.loader.project, view.query_ancestor(SessionView).id)
 
     async def submit_input(self, view, event) -> None:

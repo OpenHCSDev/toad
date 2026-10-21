@@ -99,7 +99,7 @@ class HistoryTarget(HistoryRoute, NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
             owner_mode=context.owner_mode, project_path=context.project_path,
-            me=context.actor, conversation=self.history_kind(self.name),
+            me=context.actor, conversation=self.history_kind(CommandTarget.named(self.name)),
         )
 
 

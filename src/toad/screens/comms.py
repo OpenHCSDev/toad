@@ -89,7 +89,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     @property
     def navigation_target_name(self) -> str:
-        return self.conversation.target
+        return self.conversation.target.name
 
     def rebind_identity(self, identity: str) -> None:
         with self.changing_identity():
@@ -118,7 +118,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         content = (
             (self.create_chat(),)
             if self._content_loaded
-            else (Static(f"Opening {self.conversation.target}…", id="comms-opening"),)
+            else (Static(f"Opening {self.conversation.target.name}…", id="comms-opening"),)
         )
         yield containers.Center(
             ThreadSidebar(
