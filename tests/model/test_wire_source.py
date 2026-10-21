@@ -1,5 +1,6 @@
 """A wire source pages one conversation from Core and notices when the viewer's reading of it was replaced."""
 
+from agent_comms.channel_targets import ChannelTarget
 from agent_comms.comms import wire
 
 from toad.conversation_kind import ChannelConversation, DmConversation
@@ -10,7 +11,7 @@ from toad.wire_history import AfterSequence, MessageFragment, WireSource
 
 def channel_source(comms, target, project):
     viewer = comms.messaging.user_identity(str(project)).name
-    return WireSource(comms, ChannelConversation(target), project, viewer, IrcMessageStyle())
+    return WireSource(comms, ChannelConversation(ChannelTarget(target)), project, viewer, IrcMessageStyle())
 
 
 def observed(source):

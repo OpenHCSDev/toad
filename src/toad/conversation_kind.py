@@ -16,6 +16,7 @@ from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
 from agent_comms.channel_targets import ChannelTarget, NamedTarget, ThreadTarget
+from agent_comms.channels import AllChannel
 from toad.widgets.sidebar_tree import UnpaintedChannel
 
 if TYPE_CHECKING:
@@ -71,8 +72,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def placeholder(self):
         return f"Message {self.target.name}"
 
-    def send_target(self):
-        return self.target.name
+    def send_target(self) -> NamedTarget:
+        return self.target
 
     def read_only(self, comms):
         return False
@@ -245,7 +246,5 @@ class IrcConversation(ChannelConversation):
     def placeholder(self):
         return "Message #all (broadcast)"
 
-    def send_target(self):
-        from toad.constants import ALL_COMMS_TARGET
-
-        return ALL_COMMS_TARGET
+    def send_target(self) -> ChannelTarget:
+        return ChannelTarget(AllChannel.declared_name)

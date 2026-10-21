@@ -103,7 +103,7 @@ class DeliveryFailureView:
             self.prompt.text = body
             self.flash(self.status, style="error")
             return
-        await self.deliver_user_message(root, conversation.send_target(), body, current, present)
+        await self.deliver_user_message(root, conversation.send_target().name, body, current, present)
 
     async def deliver_user_message(self, root, target, body, current, present):
         """One route check, write and failure path for CLI, DM and channel input."""

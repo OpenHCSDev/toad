@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from agent_comms.channel_targets import ChannelTarget
 from textual import containers
 
 from toad.conversation_kind import ChannelConversation
@@ -13,7 +14,7 @@ def test_unmounted_comms_screen_declares_its_shell_without_an_active_app():
         project_path=Path("/project"),
         owner_mode="owner",
         me="viewer",
-        conversation=ChannelConversation("#channel"),
+        conversation=ChannelConversation(ChannelTarget("#channel")),
     )
 
     result = tuple(screen.compose())
