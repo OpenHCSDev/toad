@@ -1,4 +1,4 @@
-"""Typing ! in an empty prompt enters shell mode for one submission."""
+"""Textual-facing: the prompt widget. Typing ! in an empty prompt enters shell mode for one submission."""
 
 from support.agents import peer
 from toad.widgets.prompt import Prompt
