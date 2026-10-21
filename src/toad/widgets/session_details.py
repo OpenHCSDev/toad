@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from collections.abc import Callable
 
 from agent_comms.mro_dispatch import handles
 from agent_comms.thread_presentation import (
@@ -27,6 +26,7 @@ from toad.widgets.session_history_details import SessionHistoryDetails
 
 if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
+    from toad.widgets.conversation import Conversation
 
 
 class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjection):
@@ -57,9 +57,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         self, *,
         history: NativeHistory, delivery: InputDeliveryBar,
         transcript: TranscriptPresentation | None = None,
-        status_source: Callable[[], ThreadStatusModel],
     ) -> None:
-        self.status_source = status_source
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
@@ -69,6 +67,9 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
             self.notifications, history, delivery,
             title="", collapsed=True, id=self.DEFAULT_ID,
         )
+
+    def status_source(self) -> ThreadStatusModel:
+        return self.row
 
     @handles(ThreadPresentationStatus)
     def idle_role(self, status) -> type[LineRole]:
@@ -138,6 +139,17 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     def sync_turn(self) -> None:
         self._refresh_summary()
+
+
+class OperationalSessionDetails(SessionDetails):
+    """The agent's status source is available before its disclosure is mounted."""
+
+    def __init__(self, conversation: Conversation, **kwargs) -> None:
+        self.conversation = conversation
+        super().__init__(**kwargs)
+
+    def status_source(self) -> ThreadStatusModel:
+        return self.conversation.operational_sources.status_row(self.conversation)
 
 
 class ConversationSessionDetails(SessionDetails):

@@ -20,9 +20,12 @@ class Workspace:
     """Everything a test of the running app starts from."""
 
     def __init__(self, roots: Roots) -> None:
+        from agent_comms.launch_root import LaunchRoot
+
         self.roots = roots
         self.project = roots.project
         self.project.mkdir(parents=True, exist_ok=True)
+        LaunchRoot.from_path(roots.wire).install()
 
     @cached_property
     def comms(self) -> Comms:

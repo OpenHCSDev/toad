@@ -94,9 +94,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     def activity_details(cls, target: ThreadTarget):
-        row = ConversationSessionDetails(
-            target, history=NativeHistory(), delivery=InputDeliveryBar(), status_source=lambda: row.row)
-        return row
+        return ConversationSessionDetails(target, history=NativeHistory(), delivery=InputDeliveryBar())
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
@@ -247,4 +245,4 @@ class IrcConversation(ChannelConversation):
         return "Message #all (broadcast)"
 
     def send_target(self) -> ChannelTarget:
-        return ChannelTarget(AllChannel.declared_name)
+        return AllChannel.target()

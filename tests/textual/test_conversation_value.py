@@ -2,7 +2,6 @@
 
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.channels import AllChannel
-from agent_comms.launch_root import LaunchRoot
 from toad.constants import ALL_COMMS_TARGET
 from toad.conversation_kind import ChannelConversation, DmConversation, IrcConversation
 from toad.navigation_target import DirectTarget, FeedTarget, NavigationContext, channel_target
@@ -11,7 +10,6 @@ from toad.widgets.channel_activity import ChannelActivity
 
 
 async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and_return(workspace):
-    LaunchRoot.from_path(workspace.roots.wire).install()
     workspace.thread("peer", "team", title="Conversation peer")
     viewer = workspace.viewer
     workspace.comms.messaging.send("peer", "#team", "CHANNEL_VALUE_HISTORY")
