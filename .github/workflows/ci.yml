@@ -104,4 +104,4 @@ jobs:
           with open(os.environ['GITHUB_ENV'], 'a') as env:
               env.write(f'AC_NATIVE_COPIED_PACKAGE={package.resolve()}\n')
           PYCORE
-      - run: .venv/bin/pytest -n 0 -x -rfE -o faulthandler_timeout=60 --basetemp .artifacts/pilots
+      - run: .venv/bin/pytest -n 2 --basetemp .artifacts/pilots
