@@ -13,7 +13,7 @@ from agent_comms.acp_extension import HistoryOnlyQueueProjection
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.child_process import join_retirement
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.errors import RouteChanged
+from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
 from agent_comms.route_selection import RouteSelection
@@ -382,7 +382,7 @@ class AgentSession:
                     RouteSelection.capture,
                     self.agent.controller.transcripts.access.launch_root.path,
                 )
-            except RouteChanged as error:
+            except RouteChangedError as error:
                 self.startup_failed(f"Reconnect blocked before restart: {error}")
                 return
             await self.agent.stop()

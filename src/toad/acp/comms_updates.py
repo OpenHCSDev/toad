@@ -134,12 +134,12 @@ class CommsUpdateConsumer(MroDispatch):
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
         from pathlib import Path
 
-        from agent_comms.errors import RouteChanged
+        from agent_comms.errors import RouteChangedError
 
         agent = self.agent
         root = agent.controller.transcripts.access.launch_root.path
         if Path(update.wire_root).resolve() != root.resolve():
-            raise RouteChanged("ACP owner reported a different coordination root")
+            raise RouteChangedError("ACP owner reported a different coordination root")
         agent.coordination = update
         agent.project_root_path = Path(update.worktree)
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)

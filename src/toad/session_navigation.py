@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, cast
 
 from agent_comms.errors import (
     RelationViolationError,
-    RouteChanged,
+    RouteChangedError,
     UnknownChannelError,
     UnregisteredThreadError,
 )
@@ -285,7 +285,7 @@ class SessionNavigation:
                     comms, owner_mode, me, conversation, source.coordination_root
                 )
             )
-        except (UnknownChannelError, UnregisteredThreadError, RouteChanged) as error:
+        except (UnknownChannelError, UnregisteredThreadError, RouteChangedError) as error:
             app.show_error(error, "Comms target unavailable")
             return app.selected_mode
         if prepared is None:
@@ -449,7 +449,7 @@ class SessionNavigation:
                     retired = service.views.retired_views(threads, channels)
                     if RouteSelection.capture(root) != selected:
                         continue  # Replaced while reading; the next observation reads it.
-                except RouteChanged:
+                except RouteChangedError:
                     continue  # The next observation reads the replacement route.
                 answers[root] = service, retired
             return answers

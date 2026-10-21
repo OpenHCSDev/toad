@@ -37,12 +37,14 @@ jobs:
       - name: Read the declared Core source
         id: core
         run: |
-          python - <<'PY'
-          import os, pathlib, tomllib
-          source = tomllib.loads(pathlib.Path('pyproject.toml').read_text())['tool']['uv']['sources']['agent-comms']
+          .venv/bin/python - <<'PY'
+          import os
+          from importlib.metadata import distribution
+          from agent_comms.installer.runtime_resolution import GitRecord
+          source = GitRecord.model_validate_json(distribution('agent-comms').read_text('direct_url.json'))
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
-              print('repository=' + source['git'].removeprefix('https://github.com/').removesuffix('.git'), file=output)
-              print('revision=' + source['branch'], file=output)
+              print('repository=' + source.url.removeprefix('https://github.com/').removesuffix('.git'), file=output)
+              print('revision=' + source.revision(), file=output)
           PY
       - uses: actions/checkout@v4
         with:
@@ -85,11 +87,13 @@ jobs:
         env:
           STOCK_PI_VERSION: ${{ inputs.stock_pi_version }}
         run: |
-          python - <<'PYCORE'
-          import pathlib, subprocess, tomllib
-          source = tomllib.loads(pathlib.Path('pyproject.toml').read_text())['tool']['uv']['sources']['agent-comms']
-          subprocess.run(['git', 'clone', '--filter=blob:none', '--no-checkout', source['git'], '.artifacts/core'], check=True)
-          subprocess.run(['git', '-C', '.artifacts/core', 'checkout', '--detach', source['branch']], check=True)
+          .venv/bin/python - <<'PYCORE'
+          import subprocess
+          from importlib.metadata import distribution
+          from agent_comms.installer.runtime_resolution import GitRecord
+          source = GitRecord.model_validate_json(distribution('agent-comms').read_text('direct_url.json'))
+          subprocess.run(['git', 'clone', '--filter=blob:none', '--no-checkout', source.url, '.artifacts/core'], check=True)
+          subprocess.run(['git', '-C', '.artifacts/core', 'checkout', '--detach', source.revision()], check=True)
           subprocess.run(['git', '-C', '.artifacts/core', 'submodule', 'update', '--init', '--recursive'], check=True)
           PYCORE
           npm install --prefix .artifacts/pi-stock --install-strategy=nested "@earendil-works/pi-coding-agent@$STOCK_PI_VERSION"

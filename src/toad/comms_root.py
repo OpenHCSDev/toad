@@ -22,7 +22,7 @@ from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.display_references import PendingReferences, UnavailableReferences
-from agent_comms.errors import RouteChanged
+from agent_comms.errors import RouteChangedError
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
@@ -134,7 +134,7 @@ class Observation:
         for _, waiter in waiters:
             if not waiter.done():
                 waiter.set_exception(
-                    RouteChanged("Comms service changed before the sidebar was read")
+                    RouteChangedError("Comms service changed before the sidebar was read")
                 )
         access.revision = NoRevision()
         access.sidebar_interest = access.sidebar_current = None
@@ -307,7 +307,7 @@ class Observing(Observation):
     async def current_references(self, access, root):
         try:
             await access.current_sidebar()
-        except RouteChanged:
+        except RouteChangedError:
             return await access.observation.current_references(access, root)
         return access.reference_context(root)
 
@@ -394,7 +394,7 @@ class CoordinationAccess(MroDispatch):
     def require(self, selected: RouteSelection) -> Observing:
         """The service for ``selected``; a new selection opens it and starts its observation."""
         if RouteSelection.capture() != selected:
-            raise RouteChanged("Comms route changed before the operation")
+            raise RouteChangedError("Comms route changed before the operation")
         with self.opening:
             return self.observation.require(self, selected)
 
@@ -409,7 +409,7 @@ class CoordinationAccess(MroDispatch):
                 service.root.resolve() != selected.root
                 or RouteSelection.capture() != selected
             ):
-                raise RouteChanged("Comms route changed while opening the service")
+                raise RouteChangedError("Comms route changed while opening the service")
             observed = Observing(
                 selected,
                 service,
