@@ -4,11 +4,8 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.child_process import join_retirement
 import asyncio
 import os
-from pathlib import Path
 from dataclasses import dataclass, replace
 from collections.abc import Callable
-from agent_comms.acp_ingress import AcpIngress
-from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteChanged, RouteSelection
 from agent_comms.thread_presentation import SessionDisconnected
 import toad
@@ -338,15 +335,12 @@ class AgentSession:
         """Reattach the existing view after login or an explicit owner start."""
         if self.reconnecting:
             return
-        requested_cwd = str(self.agent.project_root_path.resolve())
         self.reconnecting = True
         try:
             try:
-                selection = await asyncio.to_thread(
+                await asyncio.to_thread(
                     RouteSelection.capture, self.agent.controller.transcripts.access.launch_root.path)
-                await AcpIngress(selection, Path(requested_cwd),
-                                 self.agent.process.attached_root(self.agent)).preflight()
-            except (RouteChanged, RelationViolationError) as error:
+            except RouteChanged as error:
                 self.startup_failed(f"Reconnect blocked before restart: {error}")
                 return
             await self.agent.stop()
