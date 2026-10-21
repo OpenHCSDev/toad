@@ -1,6 +1,7 @@
 """Hydration and navigation of the existing shared channel hierarchy."""
 from __future__ import annotations
 import asyncio
+from agent_comms.channel_targets import OneChannel, PerTargetChannels
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
 from toad.widgets.comms_sidebar import CommsRow
@@ -63,7 +64,7 @@ class SidebarNavigation:
         from dataclasses import replace
         context = row.target.menu_context(
             self.sidebar, mode_name=self.sidebar.open_views.get(row.target_name),
-            channel=self.sidebar.selection_for(row).channel)
+            channel=OneChannel(self.sidebar.selection_for(row).channel))
         selected = self.state.selected_targets
         names = tuple(dict.fromkeys(item.target for item in selected))
         if len(selected) < 2:
@@ -71,7 +72,7 @@ class SidebarNavigation:
         channels = {name: tuple(dict.fromkeys(item.channel for item in selected
                                              if item.target == name))
                     for name in names}
-        return replace(context, targets=names, mode=None, channel=channels)
+        return replace(context, targets=names, mode=None, channel=PerTargetChannels(channels))
 
     def apply(self) -> None:
         """Reconcile the canonical selection with visible rows after membership changes."""
