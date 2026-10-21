@@ -29,7 +29,7 @@ from agent_comms.route_selection import RouteChanged, RouteSelection, run_select
 from agent_comms.ui_model.observation import (
     ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
     ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
-    SidebarObserved, SidebarUnreadable, ViewsRetired,
+    SidebarObserved, SidebarPreparing, SidebarUnreadable, ViewsRetired,
     StopObserving, StopSidebar, ThreadsObserved,
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
@@ -370,6 +370,8 @@ class CoordinationAccess(MroDispatch):
         modes = app.tab_order.names
         previous_references = self.reference_context(str(observed.service.root))
         observed.sidebar.apply(result.snapshot, result.derived)
+        for view in tuple(self.sidebar_views):
+            view.present()
         if previous_references != self.reference_context(str(observed.service.root)):
             self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
@@ -379,6 +381,14 @@ class CoordinationAccess(MroDispatch):
             app.events.publish(OpenTabsChanged())
         for waiter in self.take_sidebar_waiters(result.request):
             waiter.set_result(observed.sidebar.observation)
+
+    @handles(SidebarPreparing)
+    def sidebar_preparing(self, result: SidebarPreparing, observed: Observing) -> None:
+        if result.request != self.sidebar_interest:
+            return
+        observed.sidebar.observation = result
+        for view in tuple(self.sidebar_views):
+            view.present()
 
     @handles(SidebarUnreadable)
     def sidebar_unreadable(self, result: SidebarUnreadable, observed: Observing) -> None:
