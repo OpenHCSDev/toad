@@ -40,12 +40,6 @@ tests = [
     "tests/textual/test_prompt_completion.py::test_a_whole_command_is_selected_backwards_and_the_agents_hint_refreshes",
 ]
 
-[history-admission-growth]
-defect = "Loading earlier pages over and over grows the admitted history without bound: the fragment count rises by four per load (84 after twenty loads, against a 32 limit the old test held). Scrolling far up a long history keeps every page admitted."
-owner = "frame-time / line-view owner (perf/line-history)"
-tests = [
-    "tests/textual/test_history_admission_budget.py::test_admitting_earlier_pages_repeatedly_keeps_admission_bounded_and_the_source_untruncated",
-]
 
 [model-picker-highlight]
 defect = "In the model picker the highlighted row is drawn with the same background as its neighbour, and moving the pointer over another row does not move the highlight."
@@ -75,18 +69,9 @@ defect = "A live answer that is applied after its session file and the end of it
 owner = "frame-time / line-view owner (perf/line-history), transcript_publication.py"
 intermittent = true
 tests = [
-    "tests/textual/test_late_live_answer.py::test_late_live_answer_is_drawn_once[snapshot]",
     "tests/textual/test_late_live_answer.py::test_late_live_answer_is_drawn_once[queued-snapshot]",
 ]
 
-[reader-row-frame-during-page-load]
-defect = "While an earlier page of a thread's or a channel's history is added above the reader, one painted frame sometimes shows the reader's row lower by the rows added before it returns (thread: three of eight runs; channel: one of twelve, seen with the whole file running)."
-owner = "frame-time / line-view owner (perf/line-history), transcript_history.py"
-intermittent = true
-tests = [
-    "tests/textual/test_history_scroll_frames.py::test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_input_during_the_read",
-    "tests/textual/test_history_scroll_frames.py::test_channel_paging_keeps_the_reader_row_on_every_frame",
-]
 
 [select-mounted-before-its-label]
 defect = "Opening the permission screen sometimes exits Toad with NoMatches: No nodes match '#label' on SelectCurrent. Textual's Select sets its first value in its own mount handler (widgets/_select.py, _init_selected_option), and the SelectCurrent child is present but has not composed its label yet. Seen once in three full runs of the suite."
@@ -94,35 +79,4 @@ owner = "Textual fork owner (OpenHCSDev/textual, widgets/_select.py); reached fr
 intermittent = true
 tests = [
     "tests/native/test_native_client_requests.py::test_client_requests_follow_the_session_they_belong_to",
-]
-
-[reader-place-after-filtered-matches]
-defect = "A reader scrolled up into the earlier matches of a message filter is sent to the latest message when the filter is cleared or changed. The earlier matches are drawn by the filter's own history (transcript_filter.py); when the filter changes, that history is removed and the thread's history has not loaded the message the reader was on, so the window has nothing to put the reader back on. The reader position names the message object; it needs the message's place in the saved history (page cursor and index) and the thread history loading back to it, as a returning tab already does with its page ranges."
-owner = "frame-time / line-view owner (perf/line-history), transcript_filter.py and widgets/history_anchor.py"
-tests = [
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[mid-page-clear-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[mid-page-change-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[page-boundary-clear-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[page-boundary-change-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[on-hidden-row-clear-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[on-hidden-row-change-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[with-selection-clear-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[with-selection-change-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[held-pageup-clear-filter]",
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[held-pageup-change-filter]",
-]
-
-[reader-thrown-down-while-filter-matches-load]
-defect = "A reader who presses PageUp in the moment after choosing a message filter is moved a few messages down the history instead of up. The filter has just hidden rows below the reader and its matches are still being read, so the history is for a moment too short to show the reader's line on its row and the window holds them at the last row it has (UnreachedPosition, widgets/history_anchor.py). A key press then counts as the reader choosing a new place (UnreachedPosition.moved returns None), and that place is the clamped row, lower than where they were. The position should keep being placed, shifted by the reader's travel, until the history has stopped loading; what is missing is the history telling the window that it has nothing more to read, so an unreachable place can end there and not at the first key. The cell failed before the reader position had one owner as well. It needs the key to land while the matches are being read: it fails in every run on a quiet host and passed once in a loaded run of the whole suite."
-owner = "frame-time / line-view owner (perf/line-history), widgets/history_anchor.py and transcript_filter.py"
-intermittent = true
-tests = [
-    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[held-pageup-reapply-filter]",
-]
-
-[reader-row-while-lines-restyle]
-defect = "Lines are drawn plain until their styled rows are ready, and a message's plain rows wrap to a different number of rows than its styled ones (a heading takes 4 rows plain and 3 styled; a list 121 and 122). The reader's place inside a message is a row counted from the message's first row, so while the message they are in is drawn plain (a theme change, a first draw) their line is one or more rows off, and returns when the styled rows arrive. This was the cause of the retired reader-row-after-trim entry (marker one row lower). The lines of a fragment do not say which source line a row draws, so no owner can map a plain row to its styled row."
-owner = "line renderer owner (perf/line-history), widgets/transcript_lines.py"
-tests = [
-    "tests/textual/test_history_scroll_frames.py::test_restyled_lines_keep_the_line_the_reader_is_on_in_every_frame",
 ]
