@@ -2,18 +2,9 @@ name: Local-equivalent verification
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      base:
-        required: true
-        type: string
-      head:
-        required: true
-        type: string
-      stock_pi_version:
-        description: Stock Pi version accepted by the pinned core native builder
-        required: true
-        type: string
 permissions:
   contents: read
 concurrency:
@@ -28,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || inputs.head }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
@@ -59,20 +50,20 @@ jobs:
                           *source['project']['optional-dependencies']['dev']], check=True)
           PY
       - name: Compare production source
+        if: github.event_name != 'workflow_dispatch'
         env:
-          PR_BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
-          PR_HEAD: ${{ github.event.pull_request.head.sha || inputs.head }}
+          PR_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: PYTHONPATH="$PWD/.core-ratchet/src" PATH="$PWD/.venv/bin:$PATH" .venv/bin/python .core-ratchet/tools/debt_ratchet.py --root src/toad --base "$PR_BASE" --head "$PR_HEAD"
-      - name: Run surface guards during explicit verification
-        if: github.event_name == 'workflow_dispatch'
+      - name: Run surface guards
         run: .venv/bin/pytest tests/guards
   suite:
-    if: github.event_name == 'workflow_dispatch'
+    name: Suite
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.head }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
@@ -82,8 +73,6 @@ jobs:
         with:
           node-version: '22'
       - name: Prepare native package through its declared Core source
-        env:
-          STOCK_PI_VERSION: ${{ inputs.stock_pi_version }}
         run: |
           python - <<'PYCORE'
           import pathlib, subprocess, tomllib
@@ -92,7 +81,8 @@ jobs:
           subprocess.run(['git', '-C', '.artifacts/core', 'checkout', '--detach', source['branch']], check=True)
           subprocess.run(['git', '-C', '.artifacts/core', 'submodule', 'update', '--init', '--recursive'], check=True)
           PYCORE
-          npm install --prefix .artifacts/pi-stock --install-strategy=nested "@earendil-works/pi-coding-agent@$STOCK_PI_VERSION"
+          stock_spec=$(sed -n 's/^# agent-comms-native-stock-v1 //p' .artifacts/core/stack/pi-native.sha256)
+          npm install --prefix .artifacts/pi-stock --install-strategy=nested "$stock_spec"
           export PI_STOCK_DIR="$PWD/.artifacts/pi-stock/node_modules/@earendil-works/pi-coding-agent"
           .artifacts/core/stack/bin/prepare-pi-native
           .venv/bin/python - <<'PYCORE'
