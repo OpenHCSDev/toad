@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.channel_targets import CommandTarget, ChannelTarget as CoreChannelTarget, ThreadTarget as CoreThreadTarget
+from agent_comms.channel_targets import ChannelSelection, NoChannel, CommandTarget, ChannelTarget as CoreChannelTarget, ThreadTarget as CoreThreadTarget
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -55,7 +55,7 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
                 return ThreadTarget(name)
         raise TypeError("Expected a named channel or thread target")
 
-    def menu_context(self, sidebar, *, mode_name=None, channel=None):
+    def menu_context(self, sidebar, *, mode_name=None, channel: ChannelSelection = NoChannel()):
         from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.model_state.observed.service, self.name,
                              sidebar.app.workspace_sessions.source.view.navigation_context.actor,

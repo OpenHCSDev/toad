@@ -10,7 +10,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.comms import Comms
-from agent_comms.channel_targets import ChannelSelection, CommandTarget
+from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
 from toad import messages
 from agent_comms.route_selection import RouteChanged, root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
@@ -30,7 +30,7 @@ class TargetContext:
     actor: str
     project: Path
     mode: str | None = None
-    channel: str | dict[str, tuple[str, ...]] | None = None
+    channel: ChannelSelection = NoChannel()
     targets: tuple[str, ...] = ()
 
     @property
@@ -52,7 +52,7 @@ class TargetContext:
         self.current()
         actions = CliCommand.target_catalog(self.comms,
             CliCommand.selected_targets(self.targets or self.subject),
-            ChannelSelection.decode(self.channel), project=str(self.project))
+            self.channel, project=str(self.project))
         if RouteSelection.capture(self.comms.root) != selected:
             raise ValueError('Comms route changed during command discovery')
         return actions
