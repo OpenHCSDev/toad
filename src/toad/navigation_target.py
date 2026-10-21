@@ -12,7 +12,6 @@ from toad.conversation_kind import ConversationKind, ChannelConversation, DmConv
 from toad.constants import ALL_COMMS_TARGET
 
 if TYPE_CHECKING:
-    from toad.app import ToadApp
     from toad.navigation_context import NavigationContext, NavigationOwner
 
 

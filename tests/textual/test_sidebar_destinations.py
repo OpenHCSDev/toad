@@ -1,44 +1,33 @@
-"""Textual-facing: a navigation destination declared as a target class is opened by the mounted sidebar row without a dispatcher."""
+"""A declared destination opens through the real app's mounted sidebar row."""
 
-import asyncio
-from pathlib import Path
-
-from textual.app import App, ComposeResult
-from textual.screen import Screen
-
-from toad.navigation_context import NavigationContext, NavigationOwner
 from toad.navigation_target import NavigationTarget
-from toad.textual_colours import ThemedApp
-from toad.widgets.comms_sidebar import CommsRow
+from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 
 
-async def test_new_destination_uses_existing_row():
-    selected = asyncio.Event()
+async def test_new_destination_uses_existing_row(workspace):
+    opened = []
 
     class TestReportTarget(NavigationTarget):
         async def open(self, context):
-            context.app.selected_destination = self.name
-            selected.set()
-            return context.app.current_mode
+            opened.append(context)
+            return context.owner_mode
 
-    class DestinationScreen(NavigationOwner, Screen):
-        @property
-        def navigation_context(self):
-            return NavigationContext(self.app, self.app.current_mode, Path.cwd(), "viewer")
-
-        def compose(self) -> ComposeResult:
-            yield CommsRow(TestReportTarget("report"), "Open report")
-
-    class DestinationApp(ThemedApp, App):
-        @property
-        def selected_session(self):
-            return self.screen
-
-        def get_default_screen(self):
-            return DestinationScreen()
-
-    app = DestinationApp()
-    async with app.run_test() as pilot:
-        await pilot.click(CommsRow)
-        await asyncio.wait_for(selected.wait(), 2)
-        assert app.selected_destination == "report"
+    workspace.thread("row-peer", "team")
+    async with workspace.app() as ui:
+        app, pilot = ui.textual
+        sidebar = app.workspace_chrome.channels
+        if sidebar.collapsed:
+            sidebar.toggle()
+        tree = sidebar.query_one(CommsSidebar)
+        await ui.until(lambda: "#team" in tree.groups, why="the real sidebar's channel group")
+        group = tree.groups["#team"]
+        if not group.expanded:
+            group.toggle_members()
+        row = CommsRow(TestReportTarget("report"), "Open report")
+        await group.member_container.mount(row)
+        row.scroll_visible(animate=False)
+        await ui.step()
+        context = app.selected_session.navigation_context
+        assert await pilot.click(row)
+        await ui.until(lambda: bool(opened), why="the row opening its declared destination")
+        assert opened == [context]

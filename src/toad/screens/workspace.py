@@ -1,5 +1,9 @@
 """The one native workspace frame; session surfaces never own compositors."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from dataclasses import dataclass, replace
 from functools import cached_property
 
@@ -13,6 +17,9 @@ from toad.widget_view import WidgetView
 
 from agent_comms.declared_family import DeclaredFamily
 from abc import abstractmethod
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
 
 @dataclass(frozen=True)
 class WorkspaceLayoutSnapshot:
@@ -60,6 +67,7 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
 
 
 class WorkspaceScreen(WidgetView, Screen):
+    app: ToadApp
     layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
 
     BINDINGS = [
