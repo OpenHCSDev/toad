@@ -10,7 +10,7 @@ BODY = "EQUAL_NATIVE_REPLY"
 async def test_equal_answers_are_each_drawn_once_before_and_after_reconnect(workspace, native_package):
     provider = ControlledProvider(reply=lambda request, number: ({"role": "assistant", "content": BODY}, "stop"),
                                   request_budget=2)
-    async with native_session(workspace, native_package, provider=provider) as native:
+    async with native_session(workspace, provider=provider) as native:
         ui, agent, comms = native.ui, native.agent, native.comms
         view = ui.conversation
         await ui.until_agent_ready()

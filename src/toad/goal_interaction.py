@@ -98,7 +98,7 @@ class EditInteraction(GoalInteraction):
         from toad.widgets.goal_text import goal_mention_candidates
         view = session.view
         goal = view.goal_display.snapshot.require()
-        agent = view.agent_binding.goal_editor()
+        agent = view.agent_binding
 
         async def save(text: str) -> None:
             if not session.owns(agent):

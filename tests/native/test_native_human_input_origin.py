@@ -14,7 +14,7 @@ async def test_typed_and_queued_inputs_carry_the_same_registered_human_origin(wo
     provider = ControlledProvider(
         reply=lambda request, number: ({"role": "assistant", "content": f"ORIGIN_ANSWER_{number}"}, "stop"),
         request_budget=2)
-    async with native_session(workspace, native_package, provider=provider) as native:
+    async with native_session(workspace, provider=provider) as native:
         ui, agent, comms = native.ui, native.agent, native.comms
         await ui.until(lambda: agent.queue_attachment.scope.matches_session(agent.session_id), seconds=20, why="the queue attachment")
         provider.hold_next_request()

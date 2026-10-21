@@ -37,7 +37,7 @@ def package_inventory(project) -> bytes:
 
 
 def test_inventory_from_the_package_is_decoded_and_malformed_inventory_refused(workspace, native_package):
-    start_private_native_wire(workspace.roots.wire, native_package)
+    start_private_native_wire(workspace.roots.wire)
     agent_dir = workspace.roots.attempt / "pi"
     agent_dir.mkdir(mode=0o700, exist_ok=True)
     declare_fixture_server(native_package, workspace.project, agent_dir, trusted=False)
@@ -70,7 +70,7 @@ def test_inventory_from_the_package_is_decoded_and_malformed_inventory_refused(w
 
 
 async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace, native_package):
-    start_private_native_wire(workspace.roots.wire, native_package)
+    start_private_native_wire(workspace.roots.wire)
     project = workspace.project
     agent_dir = workspace.roots.attempt / "pi"
     agent_dir.mkdir(mode=0o700, exist_ok=True)

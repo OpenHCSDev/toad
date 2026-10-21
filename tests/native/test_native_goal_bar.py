@@ -43,7 +43,7 @@ def owner_edit(comms, session, text):
 
 
 async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(workspace, native_package):
-    async with goal_on_real_owner(workspace, native_package, OBJECTIVE, size=(90, 35),
+    async with goal_on_real_owner(workspace, OBJECTIVE, size=(90, 35),
                                   arrange=standing_by_for_a_peer(workspace)) as (ui, _agent, _owner, _session, _goal):
         conversation = ui.conversation
         bar = conversation.query_one(GoalBar)
@@ -76,9 +76,9 @@ async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(works
 
 
 async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_a_draft(workspace, native_package):
-    async with goal_on_real_owner(workspace, native_package, OBJECTIVE, size=(90, 35)) as (
+    async with goal_on_real_owner(workspace, OBJECTIVE, size=(90, 35)) as (
             ui, _agent, owner, session, _goal):
-        comms = owner.comms
+        comms = owner.turns.comms
         app, pilot = ui.textual
         conversation = ui.conversation
         await pilot.click("#goal-history")
@@ -100,7 +100,7 @@ async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_
 
 
 async def test_pause_resume_and_clear(workspace, native_package):
-    async with goal_on_real_owner(workspace, native_package, OBJECTIVE, size=(90, 35),
+    async with goal_on_real_owner(workspace, OBJECTIVE, size=(90, 35),
                                   arrange=standing_by_for_a_peer(workspace)) as (ui, _agent, _owner, _session, _goal):
         conversation = ui.conversation
         bar = conversation.query_one(GoalBar)
@@ -117,7 +117,7 @@ async def test_pause_resume_and_clear(workspace, native_package):
 
 
 async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(workspace, native_package):
-    async with goal_on_real_owner(workspace, native_package, OBJECTIVE) as (
+    async with goal_on_real_owner(workspace, OBJECTIVE) as (
             ui, _agent, owner, session, first):
         app, pilot = ui.textual
         view = ui.conversation
@@ -127,7 +127,7 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
         async with AsyncExitStack() as resources, AsyncExitStack() as permits:
             assert await failed.acquire(resources, permits)
             await failed.progress.done(events.Done("Controlled backend failure", False))
-        assert owner.comms.registry.require(session).goal == first
+        assert owner.turns.comms.registry.require(session).goal == first
         await view.goal_observation.refresh()
         await ui.until(lambda: "Blocked" in str(bar.header.render()), why="the failed ledger in the heading")
         await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Retry",
@@ -141,7 +141,7 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
             assert await successor.acquire(resources, permits)
             await successor.progress.tool_ended(events.ToolEnd("read", "read", True, "Source read"))
             await successor.progress.done(events.Done("Productive successor", True))
-        assert owner.comms.registry.require(session).goal == first
+        assert owner.turns.comms.registry.require(session).goal == first
         await view.goal_observation.refresh()
         await ui.until(lambda: "Active" in str(details.query_one("#goal-current-heading", Static).render()),
                        why="the already-open details following productive settlement")

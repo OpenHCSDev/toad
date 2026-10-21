@@ -20,13 +20,13 @@ def with_progress(comms, session, goal):
         expect=GoalPrecondition(goal_id=goal.id)))
 
 
-def goal_in_toad(workspace, native_package):
-    return goal_on_real_owner(workspace, native_package, OBJECTIVE, arrange=with_progress)
+def goal_in_toad(workspace):
+    return goal_on_real_owner(workspace, OBJECTIVE, arrange=with_progress)
 
 
 async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspace, native_package):
-    async with goal_in_toad(workspace, native_package) as (ui, agent, owner, session, first):
-        comms = owner.comms
+    async with goal_in_toad(workspace) as (ui, agent, owner, session, first):
+        comms = owner.turns.comms
         app, pilot = ui.textual
         conversation = ui.conversation
         current = first
@@ -71,7 +71,7 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
 
 
 async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(workspace, native_package):
-    async with goal_in_toad(workspace, native_package) as (ui, agent, _owner, session, first):
+    async with goal_in_toad(workspace) as (ui, agent, _owner, session, first):
         conversation = ui.conversation
         before = await agent.get_goal_snapshot()
         older = before.goal.require()
