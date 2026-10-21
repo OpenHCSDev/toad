@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 import re
-from typing import Literal
+from typing import Annotated, Literal
 
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import WireName
 
 
 class InventoryScope(DeclaredFamily, affix="Scope"):
@@ -107,10 +108,10 @@ class ShadowedStatus(DeclarationStatus):
 @dataclass(frozen=True)
 class TransportSummary:
     type: Literal["stdio"]
-    argument_count: int = field(metadata={"wire_name": "argumentCount"})
+    argument_count: Annotated[int, WireName("argumentCount")]
     cwd: Literal["project"]
-    env_names: tuple[str, ...] = field(metadata={"wire_name": "envNames"})
-    env_from: tuple[tuple[str, str], ...] = field(metadata={"wire_name": "envFrom"})
+    env_names: Annotated[tuple[str, ...], WireName("envNames")]
+    env_from: Annotated[tuple[tuple[str, str], ...], WireName("envFrom")]
 
     def __post_init__(self) -> None:
         if not 0 <= self.argument_count <= 256:
@@ -136,7 +137,7 @@ class Declaration:
     effective: bool
     enabled: bool
     status: type[DeclarationStatus]
-    call_policy: type[CallPolicy] = field(metadata={"wire_name": "callPolicy"})
+    call_policy: Annotated[type[CallPolicy], WireName("callPolicy")]
     transport: TransportSummary
 
     def __post_init__(self) -> None:
@@ -174,9 +175,9 @@ class InventoryLive:
 @dataclass(frozen=True)
 class Inventory:
     version: Literal[2]
-    project_root: str = field(metadata={"wire_name": "projectRoot"})
-    project_trusted_saved: bool = field(metadata={"wire_name": "projectTrustedSaved"})
-    project_config_skipped: bool = field(metadata={"wire_name": "projectConfigSkipped"})
+    project_root: Annotated[str, WireName("projectRoot")]
+    project_trusted_saved: Annotated[bool, WireName("projectTrustedSaved")]
+    project_config_skipped: Annotated[bool, WireName("projectConfigSkipped")]
     lifetime: Literal["active_pi_turn"]
     live: InventoryLive
     declarations: InventoryDeclarations

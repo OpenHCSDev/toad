@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Annotated, Literal
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec, TextRepresentation
+from agent_comms.field_codec import FieldCodec, TextRepresentation, WireName
 
 type OS = Literal['macos', 'linux', 'windows', '*']
 
@@ -60,7 +60,7 @@ class AgentDefinition:
     short_name: str = ''
     protocol: Literal['acp'] = 'acp'
     accepts_comms_root: bool = False
-    kind: Annotated[type[AgentKind], AgentKindText] = field(default=CodingAgentKind, metadata={'wire_name': 'type'})
+    kind: Annotated[type[AgentKind], AgentKindText, WireName("type")] = CodingAgentKind
     url: str = ''
     author_name: str = ''
     author_url: str = ''
