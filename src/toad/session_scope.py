@@ -14,8 +14,8 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import ReadTranscript, ReadTranscriptUpdate
-from textual.dom import DOMNode
 
+from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.navigation_context import NavigationOwner
@@ -25,9 +25,9 @@ from toad.status_thread import NoStatusThread, StatusThread
 
 if TYPE_CHECKING:
     from textual.command import Provider
+    from textual.dom import DOMNode
 
     from toad.agent_schema import AgentDefinition
-    from toad.app import ToadApp
     from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
@@ -172,10 +172,9 @@ class NoSessionOrigin(SessionOrigin):
         self.require()
 
 
-class SessionScope(NavigationOwner, ProjectPathOwner, DOMNode):
+class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
     """The session answers read by ancestors and workspace owners."""
 
-    app: ToadApp
     COMMANDS: ClassVar[set[type[Provider]]] = set()
     AUTO_FOCUS = ""
     shows_channels = True

@@ -2,24 +2,20 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from abc import abstractmethod
 from dataclasses import dataclass, replace
 from functools import cached_property
 
+from agent_comms.declared_family import DeclaredFamily
 from textual.binding import Binding
+from textual.box_model import DEFAULT_LAYER
 from textual.events import ScreenResume
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
-from textual.box_model import DEFAULT_LAYER
+
+from toad.app_node import ToadNode
 from toad.widget_view import WidgetView
-
-from agent_comms.declared_family import DeclaredFamily
-from abc import abstractmethod
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
 
 
 @dataclass(frozen=True)
@@ -77,8 +73,7 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         )
 
 
-class WorkspaceScreen(WidgetView, Screen):
-    app: ToadApp
+class WorkspaceScreen(WidgetView, ToadNode, Screen):
     layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
 
     BINDINGS = [
@@ -106,7 +101,7 @@ class WorkspaceScreen(WidgetView, Screen):
     CSS_PATH = ["main.tcss", "comms.tcss"]
 
     def compose(self):
-        from textual.containers import Horizontal, Container
+        from textual.containers import Container, Horizontal
 
         chrome = self.app.workspace_chrome
         yield chrome.navigation

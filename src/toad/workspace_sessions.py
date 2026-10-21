@@ -1,20 +1,21 @@
 """Logical session membership; Textual owns only the persistent native frame."""
 
-from collections.abc import Callable
 from abc import abstractmethod
+from collections.abc import Callable
 from typing import TYPE_CHECKING
+
+from agent_comms.declared_family import DeclaredFamily
 from textual._time import after_input
 from textual.containers import Container
-from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import WELCOME
+from toad.navigation_target import NavigationTarget, NoTarget
 from toad.session_scope import (
     NoSessionOrigin,
     SessionOrigin,
     SessionScope,
     ViewSessionOrigin,
 )
-from toad.navigation_target import NavigationTarget, NoTarget
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -54,6 +55,9 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     def focus_sidebar_return(self) -> None: ...
 
     @abstractmethod
+    def visible_target(self, sessions: WorkspaceSessions, root) -> NavigationTarget: ...
+
+    @abstractmethod
     def sidebars(self):
         """Native sidebar membership belongs to this logical source."""
         ...
@@ -80,6 +84,9 @@ class DetachedWorkspaceSource(WorkspaceSource):
 
     def focus_sidebar_return(self) -> None:
         """A detached workspace has no return target."""
+
+    def visible_target(self, sessions: WorkspaceSessions, root) -> NavigationTarget:
+        return NoTarget()
 
     def sidebars(self):
         return ()
@@ -117,6 +124,13 @@ class BoundWorkspaceSource(WorkspaceSource):
 
     def focus_sidebar_return(self) -> None:
         self.view.focus_sidebar_return()
+
+    def visible_target(self, sessions: WorkspaceSessions, root) -> NavigationTarget:
+        return (
+            sessions.target_for_mode(self.identity, root)
+            if sessions.owns(self.view)
+            else NoTarget()
+        )
 
     def sidebars(self):
         return self.view.sidebars()
@@ -218,12 +232,7 @@ class WorkspaceSessions:
 
     def visible_target(self, root) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
-        view = self.source.view
-        return (
-            self.target_for_mode(view.id, root)
-            if view is not None and self.owns(view)
-            else NoTarget()
-        )
+        return self.source.visible_target(self, root)
 
     def target_for_mode(self, identity, root) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""

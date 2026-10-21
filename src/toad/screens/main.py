@@ -1,27 +1,20 @@
-from toad.core import input_events
-from toad.core_event_carrier import CoreEventMessage
-from toad.core import session_requests, events as core_events
-from toad.core.events import SessionChangedEvent
-from toad.format_path import format_path
 import asyncio
 from abc import abstractmethod
 from collections.abc import Iterable
-from acp.exceptions import RequestError
 from functools import partial
 from pathlib import Path
 from typing import cast
 
+from acp.exceptions import RequestError
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination_errors import DMScopeChanged
-from agent_comms.route_selection import RouteSelection
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import handles
+from agent_comms.route_selection import RouteSelection
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
-from textual.content import Content
-from textual.events import ScreenResume
 from textual.reactive import var
 from textual.widget import Widget
 from textual.widgets import (
@@ -31,34 +24,36 @@ from textual.widgets import (
     Tree,
 )
 
-from toad import messages
-
 from toad.acp.agent_session import SessionDisposition
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
-from toad.navigation_context import NavigationContext
-from toad.screens.session_view import SessionView
-from toad.session_scope import ViewSessionOrigin
-from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
-from toad.screens.mcp_inventory import MCPInventoryScreen
-from toad.session_presentation import OperationalSessionPresentation
-from toad.session_tracker import SidebarState
-from toad.thread_identity import SessionIdentity, ThreadIdentity
+from toad.core import events as core_events
+from toad.core import input_events, session_requests
+from toad.core.events import SessionChangedEvent
 from toad.core.input_events import SelectTarget
-from toad.widgets.comms_sidebar import CommsSidebar
-from toad.widgets.conversation import Conversation
-from toad.widgets.splash_text import ThreadLoading
-from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
-from toad.widgets.side_bar import SideBar, SideBarCollapsible
-from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.core_event_carrier import CoreEventMessage
+from toad.format_path import format_path
+from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
-    FeedTarget,
     DirectTarget,
+    FeedTarget,
     NavigationTarget,
     ThreadTarget,
 )
+from toad.screens.mcp_inventory import MCPInventoryScreen
+from toad.screens.session_view import SessionView
+from toad.session_presentation import OperationalSessionPresentation
+from toad.session_scope import ViewSessionOrigin
+from toad.session_tracker import SidebarState
+from toad.thread_identity import SessionIdentity, ThreadIdentity
+from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.conversation import Conversation
+from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
+from toad.widgets.project_directory_tree import ProjectDirectoryTree
+from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
+from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+from toad.widgets.side_bar import SideBar
+from toad.widgets.splash_text import ThreadLoading
 
 
 class SessionCommands(Provider):
@@ -373,6 +368,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         return self.presentation.operational_binding.session_disposition
 
     def make_conversation(self) -> Conversation:
+        assert (
+            self.id is not None
+        ), "Conversation construction requires a registered session"
         return Conversation(
             self.project_path,
             self._agent,

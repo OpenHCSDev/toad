@@ -8,7 +8,6 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent_comms.coordination_errors import CoordinationReadUnavailable
 from agent_comms.ui_model.observation import UnreadableHistory
 from agent_comms.ui_model.status import ThreadStatusModel
 
@@ -98,8 +97,6 @@ class ForeignStatusThread(StatusThread):
                 )
             )
             row = ThreadStatusModel.known(self.name, presentation)
-        except CoordinationReadUnavailable:
-            return
         except (OSError, ValueError, RuntimeError) as error:
             presentation = None
             row = ThreadStatusModel.unreadable(
