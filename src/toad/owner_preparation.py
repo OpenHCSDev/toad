@@ -3,9 +3,14 @@
 from dataclasses import dataclass
 
 from agent_comms.comms import Comms
-from agent_comms.thread_presentation import ThreadPresentation, ThreadOwnerBinding, LiveThreadOwnerBinding
-from agent_comms.session_load import ExistingSessionLoadPlan
 from agent_comms.mro_dispatch import handles
+from agent_comms.session_load import ExistingSessionLoadPlan
+from agent_comms.thread_presentation import (
+    LiveThreadOwnerBinding,
+    ThreadOwnerBinding,
+    ThreadPresentation,
+)
+
 from toad.core.projection import MroProjection
 
 
@@ -21,7 +26,9 @@ class ExistingOwnerPlan(MroProjection):
         return ExistingSessionLoadPlan(binding)
 
     @classmethod
-    def from_binding(cls, binding: ThreadOwnerBinding) -> ExistingSessionLoadPlan | None:
+    def from_binding(
+        cls, binding: ThreadOwnerBinding
+    ) -> ExistingSessionLoadPlan | None:
         return cls().dispatch_sync(binding)
 
 
@@ -37,6 +44,6 @@ class OwnerRequestContext:
     _comms: Comms
 
 
-def read_thread_presentation(comms: Comms, name: str) -> ThreadPresentation | None:
+def read_thread_presentation(comms: Comms, name: str) -> ThreadPresentation:
     """Read the existing core presentation on a worker, without UI dependencies."""
     return comms.views.thread_presentations((name,)).read(name)

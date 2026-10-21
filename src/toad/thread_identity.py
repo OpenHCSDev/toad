@@ -1,5 +1,7 @@
 """A session's absent, local or wire-bound thread, with its owned behavior."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -75,7 +77,7 @@ class SessionIdentity(ABC):
     def bind_history(self, histories) -> None:
         """An unbound session keeps its native input-history scope."""
 
-    def bind_initial_identity(self, details: "SessionDetails") -> None:
+    def bind_initial_identity(self, details: SessionDetails) -> None:
         """A session without a thread has no initial thread title."""
 
     def resolve_thread(self, registry, project: Path) -> str:
@@ -104,7 +106,7 @@ class NoThreadIdentity(SessionIdentity):
 
 @dataclass(frozen=True)
 class NamedThreadIdentity(SessionIdentity, ABC):
-    def bind_initial_identity(self, details: "SessionDetails") -> None:
+    def bind_initial_identity(self, details: SessionDetails) -> None:
         details.bind_initial_identity(self.thread_name())
 
     def display_thread(self) -> str:

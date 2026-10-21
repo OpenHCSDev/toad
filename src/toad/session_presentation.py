@@ -46,7 +46,7 @@ class SessionViewState:
     initial_prompt: str | None
 
     @classmethod
-    def capture(cls, conversation: Conversation) -> "SessionViewState":
+    def capture(cls, conversation: Conversation) -> SessionViewState:
         editor = conversation.prompt.prompt_text_area
         return cls(
             editor.capture_editor_state(),
@@ -76,16 +76,16 @@ class SessionSurfaceLifetime(ABC):
         return NoAgentBound()
 
     @abstractmethod
-    def compose_content(self, screen: "MainScreen") -> Widget: ...
+    def compose_content(self, screen: MainScreen) -> Widget: ...
 
     @abstractmethod
-    async def prepare(self, screen: "MainScreen") -> None: ...
+    async def prepare(self, screen: MainScreen) -> None: ...
 
     @abstractmethod
-    async def retire(self, screen: "MainScreen") -> None: ...
+    async def retire(self, screen: MainScreen) -> None: ...
 
     @abstractmethod
-    async def close(self, screen: "MainScreen") -> None: ...
+    async def close(self, screen: MainScreen) -> None: ...
 
 
 class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
@@ -96,7 +96,7 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
 
     @abstractmethod
     async def release_binding(
-        self, conversation: Conversation, screen: "MainScreen"
+        self, conversation: Conversation, screen: MainScreen
     ) -> None: ...
 
     @abstractmethod
@@ -150,10 +150,7 @@ class OperationalSessionSources:
             return False
         if conversation.transcript.readable:
             presentation = conversation.thread_presentation
-            return (
-                presentation is not None
-                and ExistingOwnerPlan.from_binding(presentation.binding) is not None
-            )
+            return ExistingOwnerPlan.from_binding(presentation.binding) is not None
         return True
 
     def unavailable_reason(self, conversation: Conversation) -> str:
@@ -161,7 +158,6 @@ class OperationalSessionSources:
         agent = conversation.agent_binding
         if (
             conversation.transcript.readable
-            and presentation is not None
             and ExistingOwnerPlan.from_binding(presentation.binding) is None
         ):
             line = self.activity_row(conversation).presentation.summary
@@ -205,7 +201,7 @@ class OperationalSessionSources:
             core_events.SessionSubtitleChanged(conversation.agent_title)
         )
 
-    def attach_started(self, screen: "MainScreen", plan) -> None:
+    def attach_started(self, screen: MainScreen, plan) -> None:
         """An explicit Start action may attach the same retained view to its new owner."""
         self.load_plan = plan
         binding = screen.attach_agent_definition()
@@ -220,7 +216,7 @@ class OperationalSessionSources:
             await shell.attach(AttachedSurfaceBinding(conversation, shell.events))
         conversation.bind_agent(self.agent_binding)
 
-    async def detach(self, conversation: Conversation, screen: "MainScreen") -> None:
+    async def detach(self, conversation: Conversation, screen: MainScreen) -> None:
         self.agent_binding = conversation.agent_binding
         self.shell = conversation._shell
         conversation._shell = None
@@ -313,17 +309,17 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             for page in history.pages
         )
 
-    def compose_content(self, screen: "MainScreen") -> Widget:
+    def compose_content(self, screen: MainScreen) -> Widget:
         return SessionSurfaceSlot()
 
-    async def prepare(self, screen: "MainScreen") -> None:
+    async def prepare(self, screen: MainScreen) -> None:
         await screen.app.workspace_chrome.native.activate(screen)
 
-    async def retire(self, screen: "MainScreen") -> None:
+    async def retire(self, screen: MainScreen) -> None:
         await screen.app.workspace_chrome.native.retire(screen)
 
     async def release_binding(
-        self, conversation: Conversation, screen: "MainScreen"
+        self, conversation: Conversation, screen: MainScreen
     ) -> None:
         await self.sources.detach(conversation, screen)
 
@@ -331,7 +327,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         await self.sources.present(conversation)
 
     async def apply_coordination(
-        self, screen: "MainScreen", event: CoordinationChangedUpdate
+        self, screen: MainScreen, event: CoordinationChangedUpdate
     ) -> None:
         """Apply a coordination update's view work to this session's conversation.
 
@@ -350,7 +346,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation.input_histories.bind_scope(f"thread:{event.thread.name}")
 
     @asynccontextmanager
-    async def acquire(self, screen: "MainScreen"):
+    async def acquire(self, screen: MainScreen):
         """Mount owned resources before the workspace opens the view, then restore them.
 
         The workspace accepts the yielded native tree before operational
@@ -384,7 +380,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             conversation.start_native_session()
         conversation.prompt.focus()
 
-    async def close(self, screen: "MainScreen") -> None:
+    async def close(self, screen: MainScreen) -> None:
         self.state = None
         async with AsyncResourceRelease() as release:
             release.push_async_callback(self.sources.close)
@@ -415,7 +411,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 class NativeSessionSurface:
     """Accept session-owned trees without moving their ancestry or copying their state."""
 
-    def __init__(self, app: "ToadApp") -> None:
+    def __init__(self, app: ToadApp) -> None:
         self._app = ref(app)
         self.view: MainScreen | None = None
         self._lock = asyncio.Lock()
@@ -432,7 +428,7 @@ class NativeSessionSurface:
             for presentation in view.retained_native_presentations()
         )
 
-    async def retire(self, screen: "MainScreen") -> None:
+    async def retire(self, screen: MainScreen) -> None:
         async with self._lock:
             if self.view is not screen or self.widget is None:
                 return
@@ -443,7 +439,7 @@ class NativeSessionSurface:
             await screen.presentation.release_binding(conversation, screen)
             self.view = None
 
-    async def activate(self, screen: "MainScreen") -> None:
+    async def activate(self, screen: MainScreen) -> None:
         async with self._lock:
             if self.view is screen:
                 return
@@ -454,7 +450,7 @@ class NativeSessionSurface:
                 self.view = screen
             await self._trim_retained(conversation)
 
-    async def reconcile(self, screen: "MainScreen") -> None:
+    async def reconcile(self, screen: MainScreen) -> None:
         """Completed rich-panel hydration changes the same native working set."""
         async with self._lock:
             if self.view is screen and self.widget is not None:
@@ -501,7 +497,7 @@ class NativeSessionSurface:
             if owner not in kept:
                 await owner.evict()
 
-    async def dispose(self, screen: "MainScreen") -> None:
+    async def dispose(self, screen: MainScreen) -> None:
         """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
             owner = screen.presentation

@@ -13,7 +13,8 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 from acp import schema as acp_protocol
 from agent_comms.goal_presentation import IdleGoalExecution, ThreadGoalExecution
 from agent_comms.goals import NoGoal
-from agent_comms.mro_dispatch import handles
+from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
@@ -377,17 +378,17 @@ class AgentWindow(Window):
 
 
 class ConversationSessionBinding(
-    WorkspaceHosted, ThreadStatusOwner, containers.Vertical
+    MroDispatch, WorkspaceHosted, ThreadStatusOwner, containers.Vertical
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
-    thread_presentation = None
+    thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
 
     _thread_read = NoPendingThreadRead()
     """The source state the next observed presentation settles against."""
 
-    _unpublished_presentation = None
+    _unpublished_presentation: ThreadPresentation = NoThreadPresentation()
     """An observed presentation whose transcript refresh waits for this view to be shown."""
 
     @property
@@ -416,19 +417,28 @@ class ConversationSessionBinding(
         self.arm_thread_read()
         read.settle(presentation).present(self.thread_presented)
 
-    def foreign_thread_read(self, presentation) -> None:
+    def foreign_thread_read(self, presentation: ThreadPresentation) -> None:
         self.thread_presented(presentation)
 
-    def thread_presented(self, presentation) -> None:
-        """A settled presentation refreshes the transcript source of the shown view."""
+    def thread_presented(self, presentation: ThreadPresentation) -> None:
+        """A settled member owns whether this view has source work to publish."""
         self.thread_presentation = presentation
         self._update_model_info()
-        if presentation is None or not self.transcript.readable:
+        self.dispatch_sync(presentation)
+
+    @handles(NoThreadPresentation)
+    def _no_thread_source(self, presentation: NoThreadPresentation) -> object:
+        self._unpublished_presentation = presentation
+        return self.DISCARD
+
+    @handles(ThreadPresentation)
+    def _publish_thread_source(self, presentation: ThreadPresentation) -> None:
+        if not self.transcript.readable:
             return
         if self.query_ancestor(SessionScope).is_current:
             from toad.transcript_publication import ObservedSourcePublication
 
-            self._unpublished_presentation = None
+            self._unpublished_presentation = NoThreadPresentation()
             self.transcript.source_requests.request(
                 ObservedSourcePublication, presentation
             )
@@ -441,14 +451,7 @@ class ConversationSessionBinding(
             return
         self.refresh_thread_status()
         self.goal_observation.invalidate()
-        presentation = self._unpublished_presentation
-        if presentation is not None:
-            from toad.transcript_publication import ObservedSourcePublication
-
-            self._unpublished_presentation = None
-            self.transcript.source_requests.request(
-                ObservedSourcePublication, presentation
-            )
+        self.dispatch_sync(self._unpublished_presentation)
 
     @handles(core_events.ObservedServiceChanged)
     async def _thread_route_observed(self, event: CoreEventMessage) -> None:

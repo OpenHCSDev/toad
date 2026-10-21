@@ -22,7 +22,7 @@ async def test_failure_returns_only_its_text_without_overwriting_a_newer_draft(
 ):
     workspace.thread("peer", "team")
     async with workspace.app() as ui:
-        await ui.open_channel("#team")
+        await ui.open_channel("#team", actor=workspace.viewer)
         view = ui.conversation
         await ui.write_draft(draft)
         area = view.prompt.prompt_text_area

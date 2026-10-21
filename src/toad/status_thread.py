@@ -8,7 +8,7 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.ui_model.observation import StoredRead, UnreadableHistory
 from agent_comms.ui_model.status import ThreadStatusModel
 
@@ -97,24 +97,27 @@ class ForeignStatusThread(StatusThread):
         self.present_read(view, read)
 
     def present_read(
-        self, view: ThreadStatusOwner, read: StoredRead[ThreadPresentation | None]
+        self, view: ThreadStatusOwner, read: StoredRead[ThreadPresentation]
     ) -> None:
         if view.status_thread() != self:
             return
         read.answer(
             partial(self.present_value, view),
-            lambda: None,
+            self.present_deferred,
             partial(self.present_unreadable, view),
         )
 
     def present_value(
-        self, view: ThreadStatusOwner, presentation: ThreadPresentation | None
+        self, view: ThreadStatusOwner, presentation: ThreadPresentation
     ) -> None:
         view.thread_activity.show(ThreadStatusModel.known(self.name, presentation))
         view.foreign_thread_read(presentation)
+
+    def present_deferred(self) -> None:
+        """An unfinished read leaves the previous row and presentation untouched."""
 
     def present_unreadable(
         self, view: ThreadStatusOwner, error: UnreadableHistory
     ) -> None:
         view.thread_activity.show(ThreadStatusModel.unreadable(self.name, error))
-        view.foreign_thread_read(None)
+        view.foreign_thread_read(NoThreadPresentation())

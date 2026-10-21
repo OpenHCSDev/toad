@@ -50,7 +50,7 @@ class CoordinationTranscriptReader:
 
     async def thread_presentation(
         self, root: str, thread: str
-    ) -> StoredRead[ThreadPresentation | None]:
+    ) -> StoredRead[ThreadPresentation]:
         """The stored-read owner classifies failures inside the read worker."""
         async with self.bind(root) as reader:
             return await asyncio.to_thread(

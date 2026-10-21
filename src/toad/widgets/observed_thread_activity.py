@@ -102,7 +102,7 @@ class ThreadStatusOwner(ToadNode):
     def thread_observed(self, event: ThreadRowsChanged) -> None:
         """Consume the observed thread's presentation once per store change."""
 
-    def foreign_thread_read(self, presentation: ThreadPresentation | None) -> None:
+    def foreign_thread_read(self, presentation: ThreadPresentation) -> None:
         """Consume a foreign thread's presentation after its own read."""
 
     def refresh_thread_status(self) -> None:

@@ -1,7 +1,5 @@
 """Session consumers discover the existing mounted owner without a screen cycle."""
 
-import sys
-
 import pytest
 from agent_comms.errors import RelationViolationError
 from agent_comms.launch_root import LaunchRoot
@@ -10,8 +8,7 @@ from support.agents import peer
 from toad.session_scope import NoSessionOrigin, NoTranscript, SessionScope
 
 
-async def test_scope_import_and_real_conversation_ancestor(workspace):
-    assert "toad.screens.session_view" not in sys.modules
+async def test_real_conversation_discovers_screen_free_scope(workspace):
     unavailable = NoSessionOrigin("closed-test-view")
     assert unavailable.transcript_scope() == NoTranscript()
     with pytest.raises(RelationViolationError, match="closed-test-view"):

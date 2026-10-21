@@ -26,7 +26,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
@@ -219,8 +219,12 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
             self.turn_token
         )
 
+    @handles(NoThreadPresentation)
+    def missing_thread_presentation(self, presentation: NoThreadPresentation) -> object:
+        return self.DISCARD
+
     @handles(ThreadPresentation)
-    def thread_presentation(self, presentation):
+    def thread_presentation(self, presentation: ThreadPresentation):
         identity = presentation.read_identity
         if identity is None:
             return  # An unavailable source supplies no turn settlement.
@@ -254,7 +258,7 @@ class ChangedAttachmentRead(ThreadReadOutcome):
 
 @dataclass(frozen=True)
 class SettledThreadRead(ThreadReadOutcome):
-    presentation: ThreadPresentation | None
+    presentation: ThreadPresentation
 
     def present(self, consumer) -> None:
         consumer(self.presentation)
@@ -263,7 +267,7 @@ class SettledThreadRead(ThreadReadOutcome):
 class ThreadRead:
     """A presentation read, with settlement owned by its captured source."""
 
-    def settle(self, presentation: ThreadPresentation | None) -> ThreadReadOutcome:
+    def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
         return SettledThreadRead(presentation)
 
     async def reconcile(self, transcripts) -> None:
@@ -288,7 +292,7 @@ class PendingThreadRead(ThreadRead):
     authority: ClientSessionRequest
     snapshot: OwnerSnapshotConsumer
 
-    def settle(self, presentation: ThreadPresentation | None) -> ThreadReadOutcome:
+    def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
         current = self.agent.coordination
         if current is None or (current.wire_root, current.thread) != (
             self.coordination.wire_root,
@@ -297,8 +301,7 @@ class PendingThreadRead(ThreadRead):
             return ChangedAttachmentRead()
         if self.authority.retired:
             return EndedSessionRead()
-        if presentation is not None:
-            self.snapshot.dispatch_sync(presentation)
+        self.snapshot.dispatch_sync(presentation)
         return SettledThreadRead(presentation)
 
     async def reconcile(self, transcripts) -> None:

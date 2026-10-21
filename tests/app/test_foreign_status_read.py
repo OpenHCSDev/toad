@@ -4,6 +4,8 @@ import pytest
 from agent_comms.bus_route_counts import RouteIndexRebuilding
 from agent_comms.comms import Comms
 from agent_comms.coordination_errors import CoordinationReadUnavailable
+from agent_comms.errors import UnregisteredThreadError
+from agent_comms.thread_presentation import NoThreadPresentation
 from agent_comms.ui_model.observation import ReadDeferred, ReadPreparing
 from agent_comms.ui_model.status import ThreadStatusModel
 from textual.app import ComposeResult
@@ -51,6 +53,26 @@ async def test_deferred_foreign_read_keeps_the_previous_status_row(workspace, re
         surface.thread_activity.show(previous)
         source.present_read(surface, read)
         assert surface.thread_activity.row is previous
+
+
+async def test_foreign_missing_thread_keeps_its_member_through_read_and_status(
+    workspace,
+):
+    foreign = Comms(workspace.roots.attempt / "missing-foreign-wire")
+    async with workspace.app() as ui:
+        app, _ = ui.textual
+        source = ForeignStatusThread(foreign.root, "gone")
+        surface = ForeignStatusSurface(source)
+        await app.selected_session.mount(surface)
+        read = await app.coordination_access.transcripts.thread_presentation(
+            str(foreign.root), "gone"
+        )
+        assert read.raised() == NoThreadPresentation()
+        source.present_read(surface, read)
+        shown = surface.thread_activity.row.presentation
+        assert type(shown) is NoThreadPresentation
+        with pytest.raises(UnregisteredThreadError):
+            shown.require("gone")
 
 
 async def test_foreign_read_presents_the_real_stored_thread(workspace):
