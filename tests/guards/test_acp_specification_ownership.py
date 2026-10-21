@@ -14,12 +14,13 @@ def test_external_vocabulary_has_one_behavior_family():
     for family, external in ((StopReason, schema.StopReason), (ToolCallStatus, schema.ToolCallStatus)):
         assert set(member.declared_name for member in family.members_with(family)) == set(get_args(external))
         for spelling in get_args(external):
-            assert family.decode(spelling).declared_name == spelling
+            assert family.member_named(spelling).declared_name == spelling
 
 
 def test_sdk_consumers_do_not_read_raw_protocol_records():
     assert not (ROOT / 'src/toad/acp/protocol.py').exists()
-    for relative in ('src/toad/acp/agent_session.py', 'src/toad/acp/session_updates.py', 'src/toad/acp/wire_message.py'):
+    assert not (ROOT / 'src/toad/acp/wire_message.py').exists()
+    for relative in ('src/toad/acp/agent_session.py', 'src/toad/acp/session_updates.py'):
         tree = ast.parse((ROOT / relative).read_text())
         assert not any(isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant)
                        and isinstance(node.slice.value, str) for node in ast.walk(tree)), relative

@@ -63,8 +63,7 @@ jobs:
           PR_BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
           PR_HEAD: ${{ github.event.pull_request.head.sha || inputs.head }}
         run: PYTHONPATH="$PWD/.core-ratchet/src" PATH="$PWD/.venv/bin:$PATH" .venv/bin/python .core-ratchet/tools/debt_ratchet.py --root src/toad --base "$PR_BASE" --head "$PR_HEAD"
-      - name: Run surface guards during explicit verification
-        if: github.event_name == 'workflow_dispatch'
+      - name: Run surface guards
         run: .venv/bin/pytest tests/guards
   suite:
     if: github.event_name == 'workflow_dispatch'
@@ -92,6 +91,7 @@ jobs:
           subprocess.run(['git', '-C', '.artifacts/core', 'checkout', '--detach', source['branch']], check=True)
           subprocess.run(['git', '-C', '.artifacts/core', 'submodule', 'update', '--init', '--recursive'], check=True)
           PYCORE
+          uv sync --locked --project .artifacts/core/stack
           npm install --prefix .artifacts/pi-stock --install-strategy=nested "@earendil-works/pi-coding-agent@$STOCK_PI_VERSION"
           export PI_STOCK_DIR="$PWD/.artifacts/pi-stock/node_modules/@earendil-works/pi-coding-agent"
           .artifacts/core/stack/bin/prepare-pi-native
