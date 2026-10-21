@@ -8,7 +8,8 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent_comms.ui_model.observation import UnreadableHistory
+from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.ui_model.observation import StoredRead, UnreadableHistory
 from agent_comms.ui_model.status import ThreadStatusModel
 
 from toad.core.events import ThreadRowsChanged
@@ -90,19 +91,30 @@ class ForeignStatusThread(StatusThread):
         )
 
     async def read_foreign_thread(self, view: ThreadStatusOwner) -> None:
-        try:
-            presentation = (
-                await view.app.coordination_access.transcripts.thread_presentation(
-                    str(self.root), self.name
-                )
-            )
-            row = ThreadStatusModel.known(self.name, presentation)
-        except (OSError, ValueError, RuntimeError) as error:
-            presentation = None
-            row = ThreadStatusModel.unreadable(
-                self.name, UnreadableHistory.capture(error)
-            )
+        read = await view.app.coordination_access.transcripts.thread_presentation(
+            str(self.root), self.name
+        )
+        self.present_read(view, read)
+
+    def present_read(
+        self, view: ThreadStatusOwner, read: StoredRead[ThreadPresentation | None]
+    ) -> None:
         if view.status_thread() != self:
             return
-        view.thread_activity.show(row)
+        read.answer(
+            partial(self.present_value, view),
+            lambda: None,
+            partial(self.present_unreadable, view),
+        )
+
+    def present_value(
+        self, view: ThreadStatusOwner, presentation: ThreadPresentation | None
+    ) -> None:
+        view.thread_activity.show(ThreadStatusModel.known(self.name, presentation))
         view.foreign_thread_read(presentation)
+
+    def present_unreadable(
+        self, view: ThreadStatusOwner, error: UnreadableHistory
+    ) -> None:
+        view.thread_activity.show(ThreadStatusModel.unreadable(self.name, error))
+        view.foreign_thread_read(None)

@@ -3,23 +3,28 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.channel_targets import (
-    ChannelSelection,
-    CommandTarget,
-    ChannelTarget as CoreChannelTarget,
-    ThreadTarget as CoreThreadTarget,
-)
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
+from agent_comms.channel_targets import (
+    ChannelSelection,
+    CommandTarget,
+)
+from agent_comms.channel_targets import (
+    ChannelTarget as CoreChannelTarget,
+)
+from agent_comms.channel_targets import (
+    ThreadTarget as CoreThreadTarget,
+)
+from agent_comms.declared_family import DeclaredFamily
+
+from toad.constants import ALL_COMMS_TARGET
 from toad.conversation_kind import (
-    ConversationKind,
     ChannelConversation,
+    ConversationKind,
     DmConversation,
     IrcConversation,
 )
-from toad.constants import ALL_COMMS_TARGET
 
 if TYPE_CHECKING:
     from toad.navigation_context import NavigationContext, NavigationOwner
@@ -115,26 +120,36 @@ class ThreadTarget(NavigationTarget):
 
 
 class HistoryRoute:
-    """Conversation families declare the history source used for navigation."""
+    """A route declaration registers its conversation kind exactly once."""
 
-    @property
+    history_kind: ClassVar[type[ConversationKind]]
+    routes: ClassVar[dict[type[ConversationKind], type[HistoryRoute]]] = {}
+
+    def __init_subclass__(
+        cls, *, history_kind: type[ConversationKind] | None = None, **kwargs
+    ) -> None:
+        if history_kind is not None and history_kind in HistoryRoute.routes:
+            raise TypeError(f"A history route already serves {history_kind.__name__}")
+        super().__init_subclass__(**kwargs)
+        if history_kind is not None:
+            cls.history_kind = history_kind
+            HistoryRoute.routes[history_kind] = cls
+
+    @classmethod
     @abstractmethod
-    def history_kind(self) -> type[ConversationKind]: ...
+    def for_name(cls, name: str) -> HistoryTarget: ...
 
 
 class HistoryTarget(HistoryRoute, NavigationTarget):
     @classmethod
-    def for_name(cls, name: str):
+    def for_name(cls, name: str) -> HistoryTarget:
         return cls(name)
 
     @classmethod
     def for_conversation(cls, conversation: ConversationKind) -> HistoryTarget:
-        (target,) = (
-            member
-            for member in cls.members_with(HistoryRoute)
-            if member.history_kind is type(conversation)
+        return HistoryRoute.routes[type(conversation)].for_name(
+            conversation.target.name
         )
-        return target.for_name(conversation.target.name)
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
@@ -161,9 +176,8 @@ class ChannelLike:
 
 
 @dataclass(frozen=True)
-class FeedTarget(ChannelLike, HistoryTarget):
+class FeedTarget(ChannelLike, HistoryTarget, history_kind=IrcConversation):
     name: str = field(default=ALL_COMMS_TARGET, init=False)
-    history_kind = IrcConversation
     expanded_by_default = True
 
     @classmethod
@@ -171,12 +185,11 @@ class FeedTarget(ChannelLike, HistoryTarget):
         return cls()
 
 
-class ChannelTarget(ChannelLike, HistoryTarget):
-    history_kind = ChannelConversation
+class ChannelTarget(ChannelLike, HistoryTarget, history_kind=ChannelConversation):
+    pass
 
 
-class DirectTarget(HistoryTarget):
-    history_kind = DmConversation
+class DirectTarget(HistoryTarget, history_kind=DmConversation):
 
     def selected(self, owner: NavigationOwner) -> None:
         owner.remember_direct_target(self.name)

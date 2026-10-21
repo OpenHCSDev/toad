@@ -1,31 +1,30 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
-from toad.widgets.presentation_window import OLDER_END, NEWER_END
-from toad.core import input_events
-from functools import partial
-from toad.widgets.wire_history import WireHistory
-from toad.message_rows import IrcMessageStyle
-from toad.wire_history import WireSource
-from toad.transcript_publication import NoView, ViewBinding
 
 import re
+from functools import partial
 from pathlib import Path
 
-from agent_comms.comms import Comms
+from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.field_codec import FieldCodec
-from agent_comms.mro_dispatch import handles
-from toad.core import events as core_events
-from toad.core.source_events import TranscriptSourceWorkFinished
 from agent_comms.messages import Message as WireMessage
-from textual import containers, work
+from agent_comms.mro_dispatch import handles
+from textual import containers
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Static
 from textual.worker import Worker
 
+from toad.command_catalog import CommandCatalog
 from toad.conversation_kind import ConversationKind
-from toad import messages
+from toad.core import events as core_events
+from toad.core import input_events
+from toad.core.source_events import TranscriptSourceWorkFinished
+from toad.message_rows import IrcMessageStyle
+from toad.session_scope import NoTranscript, SessionScope
+from toad.status_thread import StatusThread
+from toad.transcript_publication import NoView, ViewBinding
 from toad.widgets.conversation import (
     Contents,
     ContentsGrid,
@@ -33,11 +32,11 @@ from toad.widgets.conversation import (
     CursorContainer,
     Window,
 )
-from toad.status_thread import StatusThread
 from toad.widgets.flash import Flash
+from toad.widgets.presentation_window import NEWER_END, OLDER_END
 from toad.widgets.prompt import Prompt
-from toad.session_scope import NoTranscript, SessionScope
-from toad.command_catalog import CommandCatalog
+from toad.widgets.wire_history import WireHistory
+from toad.wire_history import WireSource
 
 
 def session_thread_name(project_path) -> str:
@@ -230,38 +229,30 @@ class CommsChatView(Conversation):
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
-        from agent_comms.coordination_errors import (
-            CoordinationReadUnavailable,
-            StaleRevision,
-        )
-
+        history = self.message_history
+        announced = self.app.coordination_access.revision
+        newly_announced = announced != self._refreshed_from
+        undrawn = history.undrawn
+        if undrawn:
+            self.on_work_started()
         try:
-            history = self.message_history
-            announced = self.app.coordination_access.revision
-            newly_announced = announced != self._refreshed_from
-            undrawn = history.undrawn
+            changed = await history.read_changes()
+        finally:
             if undrawn:
-                self.on_work_started()
-            try:
-                changed = await history.read_changes()
-            finally:
-                if undrawn:
-                    self.on_work_finished()
-            # Source observation and its pending first page belong to the
-            # history, even before this tab is drawable. Composer work follows.
-            source = history.page_source
-            snapshot = history.source_snapshot()
-            if not await history.source_is_current(snapshot):
-                return
-            read_only = await source.read_only()
-            if not await history.source_is_current(snapshot):
-                return
-            await self.refresh_composer(read_only)
-            self._refreshed_from = announced
-            # A sent message may now be drawn: composing resumes before mentions are read.
-            self.settle_user_message()
-        except CoordinationReadUnavailable, StaleRevision:
-            raise
+                self.on_work_finished()
+        # Source observation and its pending first page belong to the
+        # history, even before this tab is drawable. Composer work follows.
+        source = history.page_source
+        snapshot = history.source_snapshot()
+        if not await history.source_is_current(snapshot):
+            return
+        read_only = await source.read_only()
+        if not await history.source_is_current(snapshot):
+            return
+        await self.refresh_composer(read_only)
+        self._refreshed_from = announced
+        # A sent message may now be drawn: composing resumes before mentions are read.
+        self.settle_user_message()
         # Composer mentions and DM status read the observer's snapshot
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
@@ -277,11 +268,6 @@ class CommsChatView(Conversation):
         self, source, changed: bool, newly_announced: bool, read_only: bool
     ) -> None:
         """Refresh composer mentions and status for the history as it is drawn now."""
-        from agent_comms.coordination_errors import (
-            CoordinationReadUnavailable,
-            StaleRevision,
-        )
-
         history = self.message_history
         snapshot = history.source_snapshot()
         conversation = self.conversation

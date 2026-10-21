@@ -43,7 +43,7 @@ from toad.navigation_target import (
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionView
 from toad.session_presentation import OperationalSessionPresentation
-from toad.session_scope import ViewSessionOrigin
+from toad.session_scope import AgentBinding, ViewSessionOrigin
 from toad.session_tracker import SidebarState
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar
@@ -250,8 +250,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     ) -> None:
         super().__init__()
         self.set_reactive(MainScreen.project_path, project_path)
-        self._agent = agent
-        self._agent_session_id = agent_session_id
+        self._agent_binding = AgentBinding.of(agent, agent_session_id)
         self._identity = SessionIdentity.for_thread(agent_session_id or "", None)
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
@@ -373,8 +372,8 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         ), "Conversation construction requires a registered session"
         return Conversation(
             self.project_path,
-            self._agent,
-            self._agent_session_id,
+            self._agent_binding.agent_definition(),
+            self._agent_binding.saved_session_id(),
             self._session_pk,
             self.app.session_tracker.sessions[self.id].initial_title,
             initial_prompt=self._initial_prompt,
@@ -384,7 +383,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     @property
     def agent_session_id(self) -> str | None:
         """The saved ACP session this screen owns."""
-        return self._agent_session_id
+        return self._agent_binding.saved_session_id()
 
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()

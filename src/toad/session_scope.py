@@ -254,35 +254,118 @@ class ProjectSessionOrigin(SessionOrigin, SessionScope):
         return default
 
 
+class AgentBinding(ABC):
+    """The native launch selection, decoded once from constructor arguments."""
+
+    @classmethod
+    def of(cls, agent: AgentDefinition | None, session_id: str | None) -> AgentBinding:
+        if agent is None:
+            return NoAgent()
+        if session_id is None:
+            return AgentAttached(agent)
+        return AgentSession(agent, session_id)
+
+    @abstractmethod
+    def opening_agent(
+        self, app_agent: AgentDefinition | None
+    ) -> AgentDefinition | None: ...
+
+    @abstractmethod
+    def attached(self, app_agent: AgentDefinition | None) -> AgentBinding: ...
+
+    @abstractmethod
+    def matches_launch(
+        self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
+    ) -> bool: ...
+
+    @abstractmethod
+    def agent_definition(self) -> AgentDefinition | None: ...
+
+    def saved_session_id(self) -> str | None:
+        return None
+
+
+@dataclass(frozen=True)
+class NoAgent(AgentBinding):
+    def opening_agent(
+        self, app_agent: AgentDefinition | None
+    ) -> AgentDefinition | None:
+        return app_agent
+
+    def attached(self, app_agent: AgentDefinition | None) -> AgentBinding:
+        return AgentBinding.of(app_agent, None)
+
+    def matches_launch(
+        self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
+    ) -> bool:
+        return False
+
+    def agent_definition(self) -> None:
+        return None
+
+
+@dataclass(frozen=True)
+class AgentAttached(AgentBinding):
+    agent: AgentDefinition
+
+    def opening_agent(self, app_agent: AgentDefinition | None) -> AgentDefinition:
+        return self.agent
+
+    def attached(self, app_agent: AgentDefinition | None) -> AgentBinding:
+        return self
+
+    def agent_definition(self) -> AgentDefinition:
+        return self.agent
+
+    def matches_launch(
+        self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
+    ) -> bool:
+        return self.agent.identity == agent_identity and self.matches_session(
+            origin, session_id
+        )
+
+    def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
+        if origin.presentation.operational_binding.matches_session(session_id):
+            return True
+        root = origin.coordination_root
+        return (
+            root is not None
+            and origin.app.coordination_access.require(
+                RouteSelection.capture(root)
+            ).service.registry.canonical_name(session_id)
+            == origin.resolve_thread()
+        )
+
+
+@dataclass(frozen=True)
+class AgentSession(AgentAttached):
+    session_id: str
+
+    def saved_session_id(self) -> str:
+        return self.session_id
+
+    def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
+        return self.session_id == session_id or super().matches_session(
+            origin, session_id
+        )
+
+
 class ViewSessionOrigin(ProjectSessionOrigin):
     """Only actual native-session views own agent/session launch matching."""
 
-    _agent: AgentDefinition | None
-    _agent_session_id: str | None
+    _agent_binding: AgentBinding
 
     def agent_for_opening(
         self, default: AgentDefinition | None
     ) -> AgentDefinition | None:
-        return self._agent or default
+        return self._agent_binding.opening_agent(default)
 
     def attach_agent_definition(self) -> AgentDefinition | None:
-        self._agent = self._agent or self.app.agent_data
-        return self._agent
+        self._agent_binding = self._agent_binding.attached(self.app.agent_data)
+        return self._agent_binding.opening_agent(None)
 
     def use_mailbox(self) -> None:
-        self._agent = None
+        self._agent_binding = NoAgent()
 
     def matches_launch(self, agent_identity: str, session_id: str) -> bool:
-        if self._agent is None or self._agent.identity != agent_identity:
-            return False
-        live = self.presentation.operational_binding
-        if session_id == self._agent_session_id or live.matches_session(session_id):
-            return True
-        root = self.coordination_root
-        return (
-            root is not None
-            and self.app.coordination_access.require(
-                RouteSelection.capture(root)
-            ).service.registry.canonical_name(session_id)
-            == self.resolve_thread()
-        )
+        return self._agent_binding.matches_launch(self, agent_identity, session_id)

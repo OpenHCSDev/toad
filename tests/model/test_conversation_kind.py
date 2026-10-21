@@ -2,16 +2,15 @@
 
 from dataclasses import FrozenInstanceError, fields
 from functools import partial
-from toad.status_thread import NoStatusThread
 
 import pytest
-
 from agent_comms.candidate_maintenance import drain_candidate_catchup
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.comms import Comms, wire
 from agent_comms.field_codec import FieldCodec
 from agent_comms.installer.backup import StoreBackup
 from agent_comms.message_page import PageBounds
+
 from toad.constants import ALL_COMMS_TARGET
 from toad.conversation_kind import (
     ChannelConversation,
@@ -20,8 +19,10 @@ from toad.conversation_kind import (
     IrcConversation,
     ResolvedConversation,
 )
-from toad.session_tracker import CommsViewKey
 from toad.message_rows import IrcMessageStyle
+from toad.navigation_target import DirectTarget, HistoryTarget
+from toad.session_tracker import CommsViewKey
+from toad.status_thread import NoStatusThread
 from toad.wire_history import WireSource
 
 
@@ -86,6 +87,19 @@ def test_new_channel_kind_inherits_its_typed_destination_and_resolution(
     assert ConversationKind.member_named("team") is TeamConversation
     assert conversation.resolve(comms, viewer).conversation == conversation
     assert conversation.label() == "#team"
+
+
+def test_history_routes_reject_duplicate_declarations_and_unregistered_kinds():
+    with pytest.raises(TypeError):
+
+        class DuplicateDirectTarget(DirectTarget, history_kind=DmConversation):
+            pass
+
+    class UnroutedConversation(ChannelConversation):
+        pass
+
+    with pytest.raises(KeyError):
+        HistoryTarget.for_conversation(UnroutedConversation(ChannelTarget("#team")))
 
 
 def test_conversation_value_is_frozen_and_its_kind_is_part_of_tab_identity():

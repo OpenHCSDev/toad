@@ -1,25 +1,25 @@
 """Opening and closing sessions use the existing workspace's declared factories."""
 
 from __future__ import annotations
-import asyncio
-from toad.core import events as core_events
-from toad.core.events import CoreEventStream
 
+import asyncio
 from collections.abc import Callable
 from itertools import count
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-
-from agent_comms.presentation import NoRevision, ReadState
-from agent_comms.revision_views import RegistrationsView
 from agent_comms.errors import (
     RelationViolationError,
     UnknownChannelError,
     UnregisteredThreadError,
 )
+from agent_comms.presentation import NoRevision, ReadState
+from agent_comms.revision_views import RegistrationsView
 from agent_comms.route_selection import RouteChanged, root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
+
+from toad.core import events as core_events
+from toad.core.events import CoreEventStream
 from toad.navigation_preparation import CommsNavigationRequest
 from toad.session_entry import (
     HistorySessionEntry,
@@ -31,6 +31,7 @@ from toad.session_tracker import OpenTab, SessionDetails
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
+
     from toad.app import ToadApp
     from toad.conversation_kind import ConversationKind
     from toad.screens.main import MainScreen
@@ -212,6 +213,18 @@ class SessionNavigation:
         from toad.screens.main import MainScreen
 
         app = self.app
+        if agent_session_id is not None:
+            existing = next(
+                (
+                    identity
+                    for identity, origin in app.workspace_sessions.native_origins.items()
+                    if origin.matches_launch(agent_identity, agent_session_id)
+                ),
+                None,
+            )
+            if existing is not None:
+                await app.select_session(existing)
+                return
         agent, title = None, None
         if session_pk is not None:
             saved = await DB().session_get(session_pk)
@@ -225,18 +238,6 @@ class SessionNavigation:
                 app.show_error("Agent not found", "Launch agent")
                 return
         project = project_path if project_path is not None else app.project_dir
-        if agent_session_id is not None:
-            existing = next(
-                (
-                    identity
-                    for identity, origin in app.workspace_sessions.native_origins.items()
-                    if origin.matches_launch(agent_identity, agent_session_id)
-                ),
-                None,
-            )
-            if existing is not None:
-                await app.select_session(existing)
-                return
         await self.new(
             lambda: MainScreen(
                 project,
