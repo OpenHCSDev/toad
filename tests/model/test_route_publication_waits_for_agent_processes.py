@@ -9,9 +9,10 @@ from unittest.mock import patch
 
 import psutil
 import agent_comms.private_nk_entrypoint as private_nk_entrypoint
-from agent_comms.acp_ingress import AcpIngress
 from agent_comms.active_route import ActiveRoute, publish_active_route
-from agent_comms.route_selection import RouteSelection, current_root
+from agent_comms.child_process import AttachedChild
+from agent_comms.launch_root import LaunchRoot
+from agent_comms.route_selection import current_root
 
 from support.routes import private_root, select_root_by_default_route
 
@@ -44,9 +45,8 @@ async def test_stopping_an_agent_ends_its_process_group_before_the_new_route_is_
     route = ActiveRoute(new_root, root_id, tmp_path / "unused-package")
     assert current_root() == old
 
-    env = dict(os.environ)
-    selection = RouteSelection.for_child(env, tmp_path)
-    process = await AcpIngress(selection, tmp_path).spawn(ShellCommand.current().argv(command), env=env)
+    process = await AttachedChild.start(
+        ShellCommand.current().argv(command), env=LaunchRoot.environment(dict(os.environ)), cwd=tmp_path)
     group = process.identity.pid
     try:
         child_pid = int(await asyncio.wait_for(process.stdout.readline(), timeout=8))

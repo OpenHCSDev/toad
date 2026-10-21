@@ -1,13 +1,11 @@
 """Which comms root a process, and the processes it starts, choose by default."""
 
 import os
-from pathlib import Path
 
 import pytest
-from agent_comms.acp_ingress import AcpIngress
 from agent_comms.comms import wire
 from agent_comms.route_selection import (
-    RouteSelection, child_root, current_root, implicit_root, root_is_current, run_selected_write,
+    child_root, current_root, implicit_root, root_is_current, run_selected_write,
 )
 
 from support.routes import private_root, publish_route, select_root_by_default_route
@@ -33,7 +31,6 @@ def test_a_published_route_is_what_this_process_and_its_children_use(tmp_path, h
     publish_route(home, first, first_id)
     assert current_root() == first
     assert child_root(os.environ, tmp_path) == first
-    assert AcpIngress(RouteSelection.for_child(os.environ, tmp_path), tmp_path)._registries() == [first / "registry.json"]
 
 
 def test_a_child_with_another_home_does_not_inherit_the_parent_route(tmp_path, home, roots):

@@ -1,11 +1,9 @@
-"""An agent process ends through EOF, cancellation or an explicit stop with its child gone, its session retired and the default-route lock released; a start cancelled in preflight leaks neither."""
+"""An agent process ends through EOF, cancellation or an explicit stop with its child gone, its session retired and the default-route lock released."""
 
 import asyncio
 import fcntl
 import os
 import sys
-import threading
-from unittest.mock import patch
 
 import psutil
 import pytest
@@ -43,37 +41,6 @@ async def until(ui_condition, why):
                 await asyncio.sleep(.02)
     except TimeoutError:
         raise AssertionError(f"{why} not reached in 8s") from None
-
-
-async def test_a_start_cancelled_in_preflight_releases_the_route_and_starts_no_child(home, app_agents):
-    from agent_comms.acp_ingress import AcpIngress
-
-    entered, release, finished = threading.Event(), threading.Event(), threading.Event()
-    preflight = AcpIngress.preflight
-
-    async def held_preflight(ingress):
-        entered.set()
-        try:
-            assert await asyncio.to_thread(release.wait, 5), "controlled preflight was not released"
-            return await preflight(ingress)
-        finally:
-            finished.set()
-
-    agent = app_agents.detached_agent()
-    with patch("agent_comms.acp_ingress.AcpIngress.preflight", held_preflight):
-        start = asyncio.create_task(agent.start())
-        try:
-            assert await asyncio.to_thread(entered.wait, 3)
-            assert not route_lock_available(home), "start acquired no route lock"
-            start.cancel()
-            with pytest.raises(asyncio.CancelledError):
-                await start
-            assert agent.process.runner is None and agent.process.process is None
-            assert route_lock_available(home), "cancelled preflight leaked the route lock"
-        finally:
-            release.set()
-            assert await asyncio.to_thread(finished.wait, 3)
-            await agent.stop()
 
 
 @pytest.mark.parametrize("how", ["cancel", "stop", "eof"])
