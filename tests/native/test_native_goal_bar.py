@@ -17,7 +17,8 @@ from agent_comms.goal_actions import (
 )
 from agent_comms.goal_presentation import IdleGoalExecution
 from agent_comms.goals import NoGoal
-from support.native import ControlledProvider, NativeSession, native_session
+from rich.cells import cell_len
+from support.native import ControlledProvider, native_session
 from support.native_steps import goal_on_real_owner
 from textual.containers import VerticalScroll
 from textual.widgets import Static
@@ -184,9 +185,12 @@ async def test_standby_goal_mention_opens_its_peer_and_returns_to_the_draft(work
         original = ui.selected_tab
         await ui.write_draft("Composer draft stays")
         await ui.until_shows("Coordinate with @peer")
-        await ui.until(lambda: ui.link_at("@peer", occurrence=1) is not None,
-                       why="the bound goal mention becomes a navigation link")
-        await ui.click("@peer", occurrence=1)
+        summary = ui.conversation.goal_bar.summary
+        offset = (cell_len(summary.goal_text.split("@peer")[0]), 0)
+        await ui.until(lambda: ui.app.screen.get_style_at(
+            summary.region.x + offset[0], summary.region.y,
+        ).meta.get("@click") is not None, why="the objective's bound goal mention")
+        assert await ui.pilot.click(summary, offset=offset)
         await ui.until(lambda: ui.app.selected_session._comms_thread == "peer",
                        why="the goal mention opens its peer")
         await ui.select_tab(original)
