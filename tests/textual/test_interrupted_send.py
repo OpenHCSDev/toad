@@ -5,6 +5,7 @@ import threading
 from unittest.mock import patch
 
 from agent_comms.comms import wire
+from agent_comms.errors import CommittedMessageError
 
 from support.routes import private_root, publish_route, select_root_by_default_route
 from support.textual_steps import refresh_chat
@@ -48,7 +49,7 @@ async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_rep
             assert await asyncio.to_thread(started.wait, 8)
             task.cancel()
             await task
-            assert view._send_block_reason
+            assert view.send_block_reason
             assert view.prompt.text == event.body
             assert view.prompt.prompt_text_area.disabled
             await view.submit_input(event)
@@ -91,7 +92,7 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
             rows = [row for row in wire(root).bus.log.full_history() if row.body == sent.body]
             assert len(rows) == 1 and sender.call_count == 1
             # The message is on the wire but not drawn: its text stays, unsendable, under its identity.
-            assert channel._send_block_reason
+            assert channel.send_block_reason
             assert channel.prompt.text == sent.body
             assert channel.prompt.prompt_text_area.disabled
             assert str(rows[0].seq) in channel.status
@@ -99,6 +100,45 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
             await channel.submit_input(sent)
             assert sender.call_count == 1
             release.set()
-            await ui.until(lambda: not channel._send_block_reason, why="the sent message drawn")
+            await ui.until(lambda: not channel.send_block_reason, why="the sent message drawn")
+            assert ui.shows(sent.body)
+            assert channel.prompt.text == "" and not channel.prompt.prompt_text_area.disabled
+
+
+async def test_a_send_whose_completion_fails_after_commit_presents_its_committed_record(workspace, monkeypatch):
+    from toad.core import input_events
+    from toad.widgets.comms_chat import CommsChatView
+
+    attempt = workspace.roots.attempt
+    home = select_root_by_default_route(monkeypatch, attempt)
+    root, root_id = private_root(attempt / "wire-private", workspace.project, "INITIAL")
+    publish_route(home, root, root_id)
+
+    async with workspace.app(size=(105, 32)) as ui:
+        await ui.open_channel("#team", actor="user")
+        channel = ui.textual[0].screen.query_one(CommsChatView)
+        await refresh_chat(channel)
+        messaging = channel.message_history.source.comms.messaging
+        original_send = messaging.send_user_message
+        committed = []
+
+        def send_then_fail_completion(*args, **kwargs):
+            # Core committed the record; signalling or connection retirement then failed.
+            committed.append(original_send(*args, **kwargs))
+            raise CommittedMessageError(committed[0])
+
+        with patch.object(messaging, "send_user_message", side_effect=send_then_fail_completion) as sender:
+            sent = input_events.UserInputSubmitted("COMMITTED-THEN-FAILED")
+            await channel.submit_input(sent)
+            record = committed[0]
+            # Neither "no send" nor a retryable refusal: compose holds under the exact committed identity.
+            assert channel.send_block_reason.startswith("Sent ")
+            assert f"{record.seq}/{record.message_id}" in channel.send_block_reason
+            assert channel.prompt.text == sent.body
+            assert channel.prompt.prompt_text_area.disabled
+            await channel.submit_input(sent)
+            assert sender.call_count == 1
+            assert times_on_wire(root, sent.body) == 1
+            await ui.until(lambda: not channel.send_block_reason, why="the committed record drawn")
             assert ui.shows(sent.body)
             assert channel.prompt.text == "" and not channel.prompt.prompt_text_area.disabled

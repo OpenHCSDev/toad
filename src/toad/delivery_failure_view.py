@@ -3,7 +3,8 @@
 
 import asyncio
 from dataclasses import dataclass
-from agent_comms.errors import HumanSendError
+from agent_comms.errors import CommittedMessageError, HumanSendError
+from agent_comms.mro_dispatch import MroDispatch, handles
 
 
 class SendState:
@@ -57,6 +58,34 @@ class SendUnknown(SendState):
                 f"{failure.description}; inspect the bus, do not retry")
 
 
+class SendOutcome(MroDispatch):
+    """What a send worker's Core error means for this view's send; one handler per Core error family."""
+
+    def __init__(self, view: "DeliveryFailureView", root: str, body: str):
+        self.view = view
+        self.root = root
+        self.body = body
+        self.sent = None
+
+    @classmethod
+    def caught(cls) -> tuple[type[BaseException], ...]:
+        """The Core error families this decoder declares handlers for; except clauses read them here."""
+        return tuple(error for _, errors in cls._handler_declarations for error in errors)
+
+    @handles(HumanSendError)
+    def not_sent(self, error: HumanSendError) -> None:
+        self.view.delivery_not_sent(error, self.body)
+
+    @handles(CommittedMessageError)
+    def committed(self, error: CommittedMessageError) -> None:
+        self.sent = self.view.delivery_sent(self.root, error.record, self.body)
+
+    def decode(self, error: BaseException):
+        """The committed record this error carries, or None when Core did not send."""
+        self.dispatch_sync(error)
+        return self.sent
+
+
 class DeliveryFailureView:
     """Own human-message delivery and its compose/failure controls."""
 
@@ -108,7 +137,6 @@ class DeliveryFailureView:
     async def deliver_user_message(self, root, target, body, current, present):
         """One route check, write and failure path for CLI, DM and channel input."""
         from agent_comms.route_selection import root_is_current
-        from agent_comms.delivery_failure import delivery_failure
 
         if self.send_block_reason:
             self.flash(self.send_block_reason, style="error")
@@ -127,7 +155,7 @@ class DeliveryFailureView:
             self.delivery_refused("Cancelled before sending", body)
             raise
         except HumanSendError as error:
-            delivery_failure(error).present(self, body)
+            self.delivery_not_sent(error, body)
             return
         sent = await self.commit_user_message(comms, target, body)
         if sent is None:
@@ -136,7 +164,6 @@ class DeliveryFailureView:
 
     async def commit_user_message(self, comms, target, body):
         from agent_comms.route_selection import run_selected_write
-        from agent_comms.delivery_failure import delivery_failure
 
         task = asyncio.create_task(asyncio.to_thread(
             run_selected_write, comms.root, comms.messaging.send_user_message,
@@ -147,16 +174,25 @@ class DeliveryFailureView:
             self.delivery_blocked("Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry", body)
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             return None
-        except HumanSendError as error:
-            delivery_failure(error).present(self, body)
-            return None
-        self._enter_send_state(SentUndrawn(comms.root, sent), body)
-        return sent
+        except SendOutcome.caught() as error:
+            return SendOutcome(self, comms.root, body).decode(error)
+        return self.delivery_sent(comms.root, sent, body)
 
     def settle_user_message(self) -> None:
         """Enable compose only when the sent message is drawn."""
         if self._send_state.drawn_in(self):
             self._enter_send_state(NoSend(), "")
+
+    def delivery_sent(self, root: str, sent, body: str):
+        """The committed record holds compose under its identity until it is drawn."""
+        self._enter_send_state(SentUndrawn(root, sent), body)
+        return sent
+
+    def delivery_not_sent(self, error: HumanSendError, body: str) -> None:
+        """Core's delivery failure family decodes the error and presents itself here."""
+        from agent_comms.delivery_failure import delivery_failure
+
+        delivery_failure(error).present(self, body)
 
     def delivery_unknown(self, failure, body: str) -> None:
         self._enter_send_state(SendUnknown(failure), body)

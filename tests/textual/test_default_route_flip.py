@@ -103,7 +103,7 @@ async def test_a_fresh_connection_after_a_flip_paints_only_the_newly_published_w
             assert rejected.call_count == 1
             assert view.prompt.text == "EDITABLE-REJECTION"
             assert not view.prompt.prompt_text_area.disabled
-            assert not view._send_block_reason
+            assert not view.send_block_reason
         view.prompt.text = ""
 
         # A send Core refuses to retry retains text for inspection and disables compose.
