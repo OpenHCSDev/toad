@@ -104,7 +104,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         nested = group(sidebar, "#channel-28")
         nested.toggle_members()
         await ui.step()
-        member = nested.members["worker"]
+        member = nested.rows["worker"]
         member.scroll_visible(animate=False)
         member.focus(scroll_visible=False)
         await ui.step()
@@ -128,7 +128,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         assert group(current, "#channel-28").expanded
         assert not group(current, "#any").expanded
         assert app.sidebar_state.selected == SidebarSelection("#channel-28", "worker")
-        member = group(current, "#channel-28").members["worker"]
+        member = group(current, "#channel-28").rows["worker"]
         assert member.current
         assert not any(row.has_class("-selected") for row in current._ordered_rows())
         await pilot.hover(member)
