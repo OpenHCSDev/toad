@@ -1,5 +1,6 @@
 """Live channel members use the sidebar's keyed widget reconciliation."""
 
+from agent_comms.channel_targets import ThreadTarget
 from textual import widgets
 from textual.content import Content
 from textual.containers import VerticalGroup
@@ -49,7 +50,7 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
         change.apply_activity(self)
 
     def create_row(self, name):
-        row = self.view.conversation.activity_details(name)
+        row = self.view.conversation.activity_details(ThreadTarget(name))
         row.thread = StatusThread.for_root(
             self.model_state.root(), name, self.app.coordination_access)
         return row

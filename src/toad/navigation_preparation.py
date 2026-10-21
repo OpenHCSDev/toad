@@ -51,14 +51,14 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
     def read(self) -> CommsNavigation:
         comms = self.comms
         root = comms.root
-        me, conversation = self.conversation.resolve(comms, self.me)
+        resolved = self.conversation.resolve(comms, self.me)
         owner_root = self.owner_root
         if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
             owner_root = None
         return CommsNavigation(
-            CommsViewKey(str(root), self.owner_mode, conversation),
+            CommsViewKey(str(root), self.owner_mode, resolved.conversation),
             owner_root,
-            conversation.threads_needed(comms.registry.snapshot(), me),
+            resolved.conversation.threads_needed(comms.registry.snapshot(), resolved.viewer),
         )
 
 
