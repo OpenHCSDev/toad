@@ -10,8 +10,13 @@ from support.routes import private_root, publish_route, select_root_by_default_r
 from support.textual_steps import refresh_chat
 
 
+def on_wire(root, body):
+    bus = wire(root).bus.bus
+    return [row for row in bus.since(0, bus.revision()) if row.body == body]
+
+
 def times_on_wire(root, body):
-    return [row.body for row in wire(root).bus.log.full_history()].count(body)
+    return len(on_wire(root, body))
 
 
 async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_replayed(workspace, monkeypatch):
@@ -20,8 +25,8 @@ async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_rep
 
     attempt = workspace.roots.attempt
     home = select_root_by_default_route(monkeypatch, attempt)
-    root, root_id = private_root(attempt / "wire-private", workspace.project, "INITIAL")
-    publish_route(home, root, root_id)
+    root = private_root(attempt / "wire-private", workspace.project, "INITIAL")
+    publish_route(home, root)
 
     async with workspace.app(size=(105, 32)) as ui:
         await ui.open_direct("peer", actor="user")
@@ -69,8 +74,8 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
 
     attempt = workspace.roots.attempt
     home = select_root_by_default_route(monkeypatch, attempt)
-    root, root_id = private_root(attempt / "wire-private", workspace.project, "INITIAL")
-    publish_route(home, root, root_id)
+    root = private_root(attempt / "wire-private", workspace.project, "INITIAL")
+    publish_route(home, root)
 
     async with workspace.app(size=(105, 32)) as ui:
         await ui.open_channel("#team", actor="user")
@@ -88,7 +93,7 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
               patch.object(messaging, "send_user_message", wraps=messaging.send_user_message) as sender):
             sent = input_events.UserInputSubmitted("COMMITTED-NOT-DRAWN")
             await channel.submit_input(sent)
-            rows = [row for row in wire(root).bus.log.full_history() if row.body == sent.body]
+            rows = on_wire(root, sent.body)
             assert len(rows) == 1 and sender.call_count == 1
             # The message is on the wire but not drawn: its text stays, unsendable, under its identity.
             assert channel._send_block_reason
@@ -113,8 +118,8 @@ async def test_a_send_whose_completion_fails_after_commit_shows_the_committed_re
 
     attempt = workspace.roots.attempt
     home = select_root_by_default_route(monkeypatch, attempt)
-    root, root_id = private_root(attempt / "wire-private", workspace.project, "INITIAL")
-    publish_route(home, root, root_id)
+    root = private_root(attempt / "wire-private", workspace.project, "INITIAL")
+    publish_route(home, root)
 
     async with workspace.app(size=(105, 32)) as ui:
         await ui.open_channel("#team", actor="user")

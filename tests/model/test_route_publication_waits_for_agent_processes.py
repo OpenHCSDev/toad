@@ -9,12 +9,12 @@ from unittest.mock import patch
 
 import psutil
 import agent_comms.private_nk_entrypoint as private_nk_entrypoint
-from agent_comms.active_route import ActiveRoute, publish_active_route
+from agent_comms.active_route import publish_active_route
 from agent_comms.child_process import AttachedChild
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.route_selection import current_root
 
-from support.routes import private_root, select_root_by_default_route
+from support.routes import private_root, select_root_by_default_route, selecting_route
 
 
 def live_members(group: int) -> list[int]:
@@ -41,8 +41,8 @@ async def test_stopping_an_agent_ends_its_process_group_before_the_new_route_is_
                "child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(60)']); "
                "print(child.pid,flush=True); time.sleep(60)")
     command = f"{shlex.quote(sys.executable)} -c {shlex.quote(program)}"
-    new_root, root_id = private_root(tmp_path / "wire", tmp_path, "PRIVATE-ONLY")
-    route = ActiveRoute(new_root, root_id, tmp_path / "unused-package")
+    new_root = private_root(tmp_path / "wire", tmp_path, "PRIVATE-ONLY")
+    route = selecting_route(new_root)
     assert current_root() == old
 
     process = await AttachedChild.start(

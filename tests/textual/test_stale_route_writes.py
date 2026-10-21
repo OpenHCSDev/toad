@@ -7,13 +7,13 @@ import pytest
 from unittest.mock import patch
 
 import agent_comms.private_nk_entrypoint as private_nk_entrypoint
-from agent_comms.active_route import ActiveRoute, publish_active_route
+from agent_comms.active_route import publish_active_route
 from agent_comms.cli_commands import StartCliCommand
 from agent_comms.comms import Comms
 from agent_comms.route_selection import current_root, run_selected_write
-from agent_comms.thread_identity import ThreadRole
+from agent_comms.thread_identity import UserThreadRole
 
-from support.routes import private_root, select_root_by_default_route
+from support.routes import private_root, select_root_by_default_route, selecting_route
 from support.textual_steps import refresh_chat, request_target_command
 
 
@@ -27,11 +27,11 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
     legacy = home / ".agent-comms"
     legacy.mkdir(mode=0o700)
     old = Comms(legacy)
-    old.registry.declare(old.registry.new_thread("user", frozenset(), str(project), role=ThreadRole.USER))
+    old.registry.declare(old.registry.new_thread("user", frozenset(), str(project), role=UserThreadRole))
     old.registry.declare(old.registry.new_thread("peer", frozenset({"team"}), str(project / "peer")))
     old.messaging.send("peer", "#team", "LEGACY-PAINT")
-    private, private_id = private_root(attempt / "private", project, "PRIVATE-PAINT")
-    route = ActiveRoute(private, private_id, native_package)
+    private = private_root(attempt / "private", project, "PRIVATE-PAINT")
+    route = selecting_route(private)
     assert current_root() == legacy
 
     async with workspace.app(size=(115, 38)) as ui:

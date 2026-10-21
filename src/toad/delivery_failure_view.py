@@ -3,7 +3,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from agent_comms.errors import CommittedMessageError, HumanSendError
+from agent_comms.errors import CommittedMessageError, HumanSendError, HumanSendRefusedError
 
 
 class SendState:
@@ -118,7 +118,7 @@ class DeliveryFailureView:
         async def require_route():
             route_current = await self.app.preparation.run_thread(root_is_current, root)
             if not route_current or not current():
-                raise ValueError("Message route changed; reopen this view")
+                raise HumanSendRefusedError("Message route changed; reopen this view")
 
         try:
             async with self.app.coordination_access.transcripts.bind(root) as comms:

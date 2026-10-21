@@ -4,7 +4,7 @@ import asyncio
 import threading
 from unittest.mock import patch
 
-from agent_comms.errors import HumanClaimBlockedError
+from agent_comms.errors import HumanClaimBlockedError, HumanSendRefusedError
 from agent_comms.route_selection import root_is_current
 
 from support.routes import private_root, publish_route, select_root_by_default_route
@@ -18,9 +18,9 @@ async def test_a_late_read_from_the_former_wire_is_not_painted_after_the_route_f
 
     attempt = workspace.roots.attempt
     home = select_root_by_default_route(monkeypatch, attempt)
-    first, first_id = private_root(attempt / "first", workspace.project, "OLD-WIRE-ONLY")
-    second, second_id = private_root(attempt / "second", workspace.project, "NEW-WIRE-ONLY")
-    publish_route(home, first, first_id)
+    first = private_root(attempt / "first", workspace.project, "OLD-WIRE-ONLY")
+    second = private_root(attempt / "second", workspace.project, "NEW-WIRE-ONLY")
+    publish_route(home, first)
 
     async with workspace.app(size=(115, 38)) as ui:
         app = ui.textual[0]
@@ -47,7 +47,7 @@ async def test_a_late_read_from_the_former_wire_is_not_painted_after_the_route_f
         with patch.object(WireSource, "read", delayed_read):
             pending = asyncio.create_task(refresh_chat(view))
             assert await asyncio.to_thread(entered.wait, 5)
-            publish_route(home, second, second_id)
+            publish_route(home, second)
             release.set()
             await pending
             await ui.until(lambda: view.message_history.state.accepts_source_work, why="the held read to end")
@@ -73,15 +73,15 @@ async def test_a_fresh_connection_after_a_flip_paints_only_the_newly_published_w
 
     attempt = workspace.roots.attempt
     home = select_root_by_default_route(monkeypatch, attempt)
-    first, first_id = private_root(attempt / "first", workspace.project, "OLD-WIRE-ONLY")
-    second, second_id = private_root(attempt / "second", workspace.project, "NEW-WIRE-ONLY")
-    route_path = publish_route(home, first, first_id)
+    first = private_root(attempt / "first", workspace.project, "OLD-WIRE-ONLY")
+    second = private_root(attempt / "second", workspace.project, "NEW-WIRE-ONLY")
+    route_path = publish_route(home, first)
 
     # The same process first shows the former wire, then the route flips and that app closes.
     async with workspace.app(size=(115, 38)) as ui:
         await ui.open_channel("#team", actor="user")
         await ui.until_shows("OLD-WIRE-ONLY")
-        publish_route(home, second, second_id)
+        publish_route(home, second)
         await ui.until(lambda: ui.textual[0].coordination_access.service.root == second, why="the app to follow the route")
 
     async with workspace.app(size=(115, 38)) as ui:
@@ -98,7 +98,7 @@ async def test_a_fresh_connection_after_a_flip_paints_only_the_newly_published_w
         # A proven pre-append rejection remains editable; an UNKNOWN or an interrupted
         # committed send does not.
         with patch.object(view.message_history.source.comms.messaging, "send_user_message",
-                          side_effect=ValueError("pre-append rejection")) as rejected:
+                          side_effect=HumanSendRefusedError("pre-append rejection")) as rejected:
             await view.submit_input(input_events.UserInputSubmitted("EDITABLE-REJECTION"))
             assert rejected.call_count == 1
             assert view.prompt.text == "EDITABLE-REJECTION"

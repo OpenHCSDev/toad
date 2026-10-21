@@ -7,30 +7,39 @@ import os
 from pathlib import Path
 
 
-def private_root(path: Path, project: Path, message: str) -> tuple[Path, str]:
-    """A private wire at `path` holding `message` in #team from `peer`; returns it and its root id."""
+def private_root(path: Path, project: Path, message: str) -> Path:
+    """A private bus at `path` holding `message` in #team from `peer`; returns `path`."""
+    from agent_comms.bus import Bus
     from agent_comms.comms import Comms
     from agent_comms.thread_identity import UserThreadRole
 
     path.mkdir(mode=0o700)
+    Bus.install(Bus.path_in(path))
     comms = Comms(path)
     comms.registry.declare(comms.registry.new_thread("user", frozenset(), str(project), role=UserThreadRole))
     comms.registry.declare(comms.registry.new_thread("owner", frozenset({"team"}), str(project / "owner-project")))
     comms.registry.declare(comms.registry.new_thread("peer", frozenset({"team"}), str(project / "peer-project")))
-    root_id = comms.messaging.initialize_private_initial_protocol()
-    comms.messaging.send_initial_cohort("peer", "#team", message)
-    return path, root_id
+    comms.messaging.send("peer", "#team", message)
+    return path
 
 
-def publish_route(home: Path, root: Path, root_id: str) -> Path:
+def selecting_route(root: Path):
+    """The default route that selects `root` and the bus it holds now."""
+    from agent_comms.active_route import ActiveRoute
+    from agent_comms.bus import Bus
+    from agent_comms.recorded_bus import RecordedBusIdentity
+
+    return ActiveRoute(root, RecordedBusIdentity.capture(Bus.path_in(root)))
+
+
+def publish_route(home: Path, root: Path) -> Path:
     """Replace the default-route file under `home` so it selects `root`; returns the file."""
     directory = home / ".local/state/agent-comms"
     directory.mkdir(parents=True, mode=0o700, exist_ok=True)
     directory.chmod(0o700)
     destination = directory / "active-route.json"
     replacement = directory / "replacement.json"
-    replacement.write_text(json.dumps({"version": 1, "root": str(root), "wire_root_id": root_id,
-                                       "native_package": str(home / "unused-package")}))
+    replacement.write_text(json.dumps(selecting_route(root).to_record()))
     replacement.chmod(0o600)
     os.replace(replacement, destination)
     return destination

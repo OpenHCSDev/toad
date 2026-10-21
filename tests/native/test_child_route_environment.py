@@ -5,10 +5,10 @@ from unittest.mock import patch
 
 import pytest
 import agent_comms.private_nk_entrypoint as private_nk_entrypoint
-from agent_comms.active_route import ActiveRoute, publish_active_route
+from agent_comms.active_route import publish_active_route
 from agent_comms.route_selection import current_root, run_selected_write
 
-from support.routes import private_root, select_root_by_default_route
+from support.routes import private_root, select_root_by_default_route, selecting_route
 
 
 @pytest.fixture
@@ -20,13 +20,13 @@ def published(tmp_path, monkeypatch, native_package):
     home = select_root_by_default_route(monkeypatch, tmp_path)
     legacy = home / ".agent-comms"
     legacy.mkdir(mode=0o700)
-    private, private_id = private_root(tmp_path / "wire", tmp_path, "PRIVATE-ONLY")
-    route = ActiveRoute(private, private_id, native_package)
+    private = private_root(tmp_path / "wire", tmp_path, "PRIVATE-ONLY")
+    route = selecting_route(private)
     assert current_root() == legacy
     with patch.object(private_nk_entrypoint, "_trusted_package", lambda _: None):
         publish_active_route(route)
     assert current_root() == private
-    return SimpleNamespace(legacy=legacy, private=private, private_id=private_id, route=route, cwd=tmp_path)
+    return SimpleNamespace(legacy=legacy, private=private, route=route, cwd=tmp_path)
 
 
 def test_a_write_selected_before_the_flip_is_refused_after_it(published):

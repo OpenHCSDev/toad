@@ -16,10 +16,10 @@ def routes(tmp_path, monkeypatch):
     home = select_root_by_default_route(monkeypatch, tmp_path)
     project = tmp_path / "project"
     project.mkdir()
-    first, first_id = private_root(tmp_path / "first", tmp_path, "FIRST")
-    second, second_id = private_root(tmp_path / "second", tmp_path, "SECOND")
-    publish_route(home, first, first_id)
-    return SimpleNamespace(home=home, project=project, first=first, second=second, second_id=second_id)
+    first = private_root(tmp_path / "first", tmp_path, "FIRST")
+    second = private_root(tmp_path / "second", tmp_path, "SECOND")
+    publish_route(home, first)
+    return SimpleNamespace(home=home, project=project, first=first, second=second)
 
 
 async def started_agent(project):
@@ -35,7 +35,7 @@ async def started_agent(project):
 
 async def test_the_real_prompt_path_refuses_a_stale_implicit_child(routes, monkeypatch):
     agent = await started_agent(routes.project)
-    publish_route(routes.home, routes.second, routes.second_id)
+    publish_route(routes.home, routes.second)
     written = []
     agent.process.process = SimpleNamespace(stdin=SimpleNamespace(write=written.append))
     monkeypatch.setenv("AGENT_COMMS_ROOT", str(routes.first))
