@@ -98,7 +98,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
                 tab = ui.selected_tab
                 assert tab != owner
                 view = app.selected_session
-                agent = view.conversation.agent
+                agent = view.conversation.agent_binding
                 await ui.until(lambda: bool(view.query(ThreadLoading)), why="the loading block")
                 await ui.until_shows(ThreadLoading.LABEL)
                 assert tuple(app.tab_order.names) == (*tabs_before, tab)
@@ -109,7 +109,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
                 assert await opening == tab and await duplicate == tab
                 await ui.until(lambda: view.conversation.agent_ready, seconds=12, why="the opened thread to be ready")
                 await ui.until_shows("SAVED_FIRST_OPEN_fresh-peer")
-                assert app.selected_session is view and view.conversation.agent is agent
+                assert app.selected_session is view and view.conversation.agent_binding is agent
                 assert app.session_tracker.get_session(tab) is details
                 await ui.until(lambda: not view.query(ThreadLoading), why="the loading block to go")
                 # No message is sent here: this scripted agent claims a Core thread but publishes no input
