@@ -18,8 +18,8 @@ class Roots:
 
     @classmethod
     def create(cls) -> Roots:
-        # Unix-domain sockets have a small pathname budget, so the roots stay short.
-        return cls(Path(tempfile.mkdtemp(prefix="toad-test-", dir="/var/tmp")))
+        # tempfile owns the configured scratch location, including TMPDIR.
+        return cls(Path(tempfile.mkdtemp(prefix="toad-test-")))
 
     @classmethod
     def of_this_process(cls) -> Roots:
