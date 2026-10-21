@@ -25,7 +25,6 @@ from textual.widgets import (
 )
 
 from toad.acp.agent_session import SessionDisposition
-from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
@@ -43,9 +42,9 @@ from toad.navigation_target import (
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionView
 from toad.session_presentation import OperationalSessionPresentation
-from toad.session_scope import AgentBinding, ViewSessionOrigin
+from toad.session_scope import AgentBinding, NoAgent, ViewSessionOrigin
 from toad.session_tracker import SidebarState
-from toad.thread_identity import SessionIdentity, ThreadIdentity
+from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
@@ -243,15 +242,14 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     def __init__(
         self,
         project_path: Path,
-        agent: AgentDefinition | None = None,
-        agent_session_id: str | None = None,
+        binding: AgentBinding = NoAgent(),
         session_pk: int | None = None,
         initial_prompt: str | None = None,
     ) -> None:
         super().__init__()
         self.set_reactive(MainScreen.project_path, project_path)
-        self._agent_binding = AgentBinding.of(agent, agent_session_id)
-        self._identity = SessionIdentity.for_thread(agent_session_id or "", None)
+        self._agent_binding = binding
+        self._identity = binding.initial_identity(NoThreadIdentity())
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
         self._thread_sidebar_state = SidebarState()
@@ -300,9 +298,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
 
     @classmethod
     def from_thread(
-        cls, project: Path, root: str, target, agent: AgentDefinition | None = None
+        cls, project: Path, root: str, target, binding: AgentBinding = NoAgent()
     ) -> "MainScreen":
-        screen = cls(project, agent, agent_session_id=target.name)
+        screen = cls(project, binding.for_session(target.name))
         screen.bind_thread(target, root)
         return screen
 
@@ -321,8 +319,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         # The request has only a name; bind the wire after its metadata read.
         screen = cls(
             request.project,
-            origin.source.agent_for_opening(app.agent_data),
-            agent_session_id=request.target,
+            origin.source.agent_for_opening(app.agent_data).for_session(request.target),
         )
         screen.content = NavigatedOpeningContent()
         return screen
@@ -370,20 +367,16 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         assert (
             self.id is not None
         ), "Conversation construction requires a registered session"
-        return Conversation(
-            self.project_path,
-            self._agent_binding.agent_definition(),
-            self._agent_binding.saved_session_id(),
-            self._session_pk,
-            self.app.session_tracker.sessions[self.id].initial_title,
-            initial_prompt=self._initial_prompt,
-            transcript=self.presentation.transcript,
+        return self._agent_binding.make_conversation(
+            partial(
+                Conversation,
+                self.project_path,
+                session_pk=self._session_pk,
+                session_title=self.app.session_tracker.sessions[self.id].initial_title,
+                initial_prompt=self._initial_prompt,
+                transcript=self.presentation.transcript,
+            )
         )
-
-    @property
-    def agent_session_id(self) -> str | None:
-        """The saved ACP session this screen owns."""
-        return self._agent_binding.saved_session_id()
 
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()

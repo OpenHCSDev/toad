@@ -122,18 +122,7 @@ class ThreadTarget(NavigationTarget):
 class HistoryRoute:
     """A route declaration registers its conversation kind exactly once."""
 
-    history_kind: ClassVar[type[ConversationKind]]
     routes: ClassVar[dict[type[ConversationKind], type[HistoryRoute]]] = {}
-
-    def __init_subclass__(
-        cls, *, history_kind: type[ConversationKind] | None = None, **kwargs
-    ) -> None:
-        if history_kind is not None and history_kind in HistoryRoute.routes:
-            raise TypeError(f"A history route already serves {history_kind.__name__}")
-        super().__init_subclass__(**kwargs)
-        if history_kind is not None:
-            cls.history_kind = history_kind
-            HistoryRoute.routes[history_kind] = cls
 
     @classmethod
     @abstractmethod
@@ -150,6 +139,20 @@ class HistoryTarget(HistoryRoute, NavigationTarget):
         return HistoryRoute.routes[type(conversation)].for_name(
             conversation.target.name
         )
+
+
+class HistoryRouted(HistoryTarget, declared_name=None):
+    """Routed destinations supply their kind; the intermediate is not a destination."""
+
+    history_kind: ClassVar[type[ConversationKind]]
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        if cls.history_kind in HistoryRoute.routes:
+            raise TypeError(
+                f"A history route already serves {cls.history_kind.__name__}"
+            )
+        super().__init_subclass__(**kwargs)
+        HistoryRoute.routes[cls.history_kind] = cls
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
@@ -176,7 +179,8 @@ class ChannelLike:
 
 
 @dataclass(frozen=True)
-class FeedTarget(ChannelLike, HistoryTarget, history_kind=IrcConversation):
+class FeedTarget(ChannelLike, HistoryRouted):
+    history_kind = IrcConversation
     name: str = field(default=ALL_COMMS_TARGET, init=False)
     expanded_by_default = True
 
@@ -185,11 +189,12 @@ class FeedTarget(ChannelLike, HistoryTarget, history_kind=IrcConversation):
         return cls()
 
 
-class ChannelTarget(ChannelLike, HistoryTarget, history_kind=ChannelConversation):
-    pass
+class ChannelTarget(ChannelLike, HistoryRouted):
+    history_kind = ChannelConversation
 
 
-class DirectTarget(HistoryTarget, history_kind=DmConversation):
+class DirectTarget(HistoryRouted):
+    history_kind = DmConversation
 
     def selected(self, owner: NavigationOwner) -> None:
         owner.remember_direct_target(self.name)

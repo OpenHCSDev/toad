@@ -3,26 +3,25 @@
 import asyncio
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from toad.resource_release import AsyncResourceRelease
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 from weakref import ref
 
+from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.session_load import EnsuringSessionLoadPlan
+from agent_comms.ui_model.message_category import MessageCategory
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
-from agent_comms.acp_extension import CoordinationChangedUpdate
-from toad.conversation_kind import DmConversation
-from agent_comms.session_load import EnsuringSessionLoadPlan
-from toad.owner_preparation import ExistingOwnerPlan
-
-from toad.input_history import InputHistories
-from toad.agent_surface import AttachedSurfaceBinding
 from toad.agent_binding import NoAgentBound
+from toad.agent_surface import AttachedSurfaceBinding
+from toad.conversation_kind import DmConversation
+from toad.input_history import InputHistories
+from toad.owner_preparation import ExistingOwnerPlan
+from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
-from agent_comms.ui_model.message_category import MessageCategory
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -209,12 +208,10 @@ class OperationalSessionSources:
     def attach_started(self, screen: "MainScreen", plan) -> None:
         """An explicit Start action may attach the same retained view to its new owner."""
         self.load_plan = plan
-        agent = screen.attach_agent_definition()
+        binding = screen.attach_agent_definition()
         conversation = screen.presentation.widget
         if conversation is not None:
-            conversation._agent_data = agent
-            if screen.is_current:
-                conversation.start_native_session()
+            binding.attach_to(screen, conversation)
 
     async def present(self, conversation: Conversation) -> None:
         shell, self.shell = self.shell, None

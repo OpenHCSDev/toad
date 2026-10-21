@@ -1,31 +1,22 @@
 from __future__ import annotations
-from toad.core import input_events
-from toad.core_event_carrier import CoreEventMessage
-from toad.widget_view import WorkspaceHosted
-from toad.session_scope import SessionScope, TranscriptScope
-
-from toad.conversation_submission import ConversationSubmissions
-from toad.live_output import LiveOutput, ThoughtStream
-from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
-from toad.goal_interaction import GoalSession
-
-from toad.core.preference_events import PreferenceChanged
-from toad.preferences import SETTINGS
 
 import asyncio
 from abc import abstractmethod
 from contextlib import suppress
-from toad.resource_release import AsyncResourceRelease
+from functools import cached_property
 from itertools import filterfalse
-
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
-from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
+from acp import schema as acp_protocol
+from agent_comms.goal_presentation import IdleGoalExecution, ThreadGoalExecution
+from agent_comms.goals import NoGoal
 from agent_comms.mro_dispatch import handles
-from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from agent_comms.ui_model.delivery import InputDelivery
+from agent_comms.ui_model.goal import GoalDisplay
+from agent_comms.ui_model.message_category import MessageCategory, all_categories
 from rich.segment import Segment
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
@@ -42,81 +33,84 @@ from textual.reactive import var
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
+from ui_theme.effects import CURSOR_BLINK, Mix
 
 from toad import messages, paths
-from toad.widgets.splash_text import ThreadLoading
-
-from toad.core import events as core_events
-from toad.widgets.comms_menu import ContextMenu
-from toad.conversation_comms_handlers import ConversationCommsHandlers
-from toad.core_event_carrier import CoreEventReceiver
-from acp import schema as acp_protocol
-from toad.acp.status import StopReason
 from toad.acp.comms_updates import NoPendingThreadRead
-from toad.core.events import AgentFail, AgentReady
+from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentBinding, NoAgentBound
-from toad.widgets.terminal_tool import TerminalTool
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
+from toad.block_navigation import (
+    ContentNavigation,
+    ConversationBlock,
+    ConversationEntry,
+    DownCursor,
+    UpCursor,
+    require_blocks,
+)
+from toad.command_catalog import CommandCatalog
+from toad.conversation_comms_handlers import ConversationCommsHandlers
+from toad.conversation_submission import ConversationSubmissions
+from toad.conversation_turn import ConversationTurn, TurnOwner
+from toad.core import events as core_events
+from toad.core import input_events
+from toad.core.events import AgentFail, AgentReady
+from toad.core.preference_events import PreferenceChanged
 from toad.core.source_events import (
     CurrentWorkingDirectoryChanged,
     TranscriptCoverage,
     TranscriptSourceWorkFinished,
 )
-from toad.input_history import InputHistories
-from toad.widgets.flash import Flash
-from toad.widgets.menu import Menu
-from toad.widgets.note import Note
-from toad.widgets.prompt import Prompt
-from toad.widgets.terminal import Terminal
-from toad.widgets.throbber import AboveThrobber, BelowThrobber
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.frame_presentation import Animated
-from ui_theme.effects import CURSOR_BLINK, Mix
-from agent_comms.ui_model.delivery import InputDelivery
-from agent_comms.goals import NoGoal
-from agent_comms.ui_model.goal import GoalDisplay
+from toad.goal_interaction import GoalSession
+from toad.input_history import InputHistories
+from toad.layout import trim_trailing_margin
+from toad.live_output import LiveOutput, ThoughtStream
+from toad.menus import MenuItem
+from toad.preferences import SETTINGS
+from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
+from toad.resource_release import AsyncResourceRelease
 from toad.session_observation import (
     GoalObservation,
     InputDeliveryObservation,
     SessionObservation,
 )
-from toad.widgets.goal_bar import GoalBar
-from toad.widgets.native_history import NativeHistory
-from toad.widgets.observed_thread_activity import (
-    ObservedThreadActivity,
-    ThreadStatusOwner,
-)
-from toad.widgets.cli_draft import CliDraft
-from toad.status_thread import StatusThread
-from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
-from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
-from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
-from toad.block_navigation import (
-    require_blocks,
-    ConversationBlock,
-    ConversationEntry,
-    ContentNavigation,
-    UpCursor,
-    DownCursor,
-)
-from functools import cached_property
-from toad.agent_presentation import AgentAttachmentView
-from toad.conversation_turn import TurnOwner, ConversationTurn
+from toad.session_scope import SessionScope, TranscriptScope
 from toad.shell import Shell
+from toad.status_thread import StatusThread
+from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
+from toad.widget_view import WorkspaceHosted
+from toad.widgets.cli_draft import CliDraft
+from toad.widgets.comms_menu import ContextMenu
+from toad.widgets.flash import Flash
+from toad.widgets.goal_bar import GoalBar
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import (
     DetailAction,
     InputDeliveryBar,
     InputDeliveryDetails,
 )
-from toad.widgets.user_input import UserInput
-from agent_comms.ui_model.message_category import all_categories, MessageCategory
-from toad.layout import trim_trailing_margin
-from toad.command_catalog import CommandCatalog
-from toad.menus import MenuItem
+from toad.widgets.menu import Menu
+from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from toad.widgets.native_history import NativeHistory
+from toad.widgets.note import Note
+from toad.widgets.observed_thread_activity import (
+    ObservedThreadActivity,
+    ThreadStatusOwner,
+)
+from toad.widgets.prompt import Prompt
+from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
 from toad.widgets.shell_terminal import ShellTerminal
+from toad.widgets.splash_text import ThreadLoading
+from toad.widgets.terminal import Terminal
+from toad.widgets.terminal_tool import TerminalTool
+from toad.widgets.throbber import AboveThrobber, BelowThrobber
+from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
+from toad.widgets.user_input import UserInput
 
 AUTO_SESSION_TITLE_MAX_LENGTH = 50
 
@@ -684,6 +678,13 @@ class ConversationSessionBinding(
         """Publish bound owner facts and invalidate the delivery read resource."""
         self.agent_binding.refresh_projection(self)
 
+    def attach_agent_definition(self, definition: AgentDefinition) -> None:
+        """Selection changes write the conversation's definition at its owner."""
+        self._agent_data = definition
+
+    def clear_agent_definition(self) -> None:
+        self._agent_data = None
+
     def start_native_session(self) -> None:
         self.agent_binding.start_session(self)
 
@@ -779,11 +780,9 @@ class ConversationSessionBinding(
             self.update_slash_commands()
 
 
-from toad.widget_actions import DeclaredWidgetActions
 from toad.conversation_actions import ConversationAction
-
-
 from toad.delivery_failure_view import DeliveryFailureView
+from toad.widget_actions import DeclaredWidgetActions
 
 
 class Conversation(
@@ -1176,7 +1175,9 @@ class Conversation(
     @work(group="provider-login", exclusive=True)
     async def action_provider_login(self) -> None:
         import shlex
+
         from textual.geometry import Offset
+
         from toad.agent_schema import Command
         from toad.catalog_actions import CatalogCommandAction
         from toad.screens.action_modal import ActionModal
@@ -1361,7 +1362,7 @@ class Conversation(
             and self.navigation.accepts_menu_owner(event.owner)
         ):
             await self.run_action(event.action, {"block": event.owner})
-        if (cursor_block := self.cursor_block_child) is not None:
+        if self.cursor_block_child is not None:
             self.call_after_refresh(self.cursor.refresh)
 
     @handles(CurrentWorkingDirectoryChanged)
@@ -1440,7 +1441,6 @@ class Conversation(
     @handles(core_events.Thinking)
     async def on_acp_agent_thinking(self, message: CoreEventMessage):
         self.turns.describe("Thinking…")
-        activity = " ".join(message.event.text.splitlines()).strip() or "Thinking"
         await self.output.append(ThoughtStream(), message.event.text)
 
     @handles(core_events.RequestPermission)

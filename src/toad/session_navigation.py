@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from functools import partial
 from itertools import count
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -27,11 +28,13 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
+from toad.session_scope import AgentAttached, AgentBinding, AgentSession
 from toad.session_tracker import OpenTab, SessionDetails
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
 
+    from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
     from toad.conversation_kind import ConversationKind
     from toad.screens.main import MainScreen
@@ -213,7 +216,9 @@ class SessionNavigation:
         from toad.screens.main import MainScreen
 
         app = self.app
+        make_binding: Callable[[AgentDefinition], AgentBinding] = AgentAttached
         if agent_session_id is not None:
+            make_binding = partial(AgentSession, session_id=agent_session_id)
             existing = next(
                 (
                     identity
@@ -241,8 +246,7 @@ class SessionNavigation:
         await self.new(
             lambda: MainScreen(
                 project,
-                agent,
-                agent_session_id,
+                make_binding(agent),
                 session_pk=session_pk,
                 initial_prompt=initial_prompt,
             ),

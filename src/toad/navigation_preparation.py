@@ -1,7 +1,6 @@
 """Bounded route discovery without accessing widgets from a reader thread."""
 
 from __future__ import annotations
-from acp.exceptions import RequestError
 
 import asyncio
 from abc import ABC, abstractmethod
@@ -9,17 +8,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
-from agent_comms.threads import Thread
-from agent_comms.thread_identity import ThreadIncarnation
+from acp.exceptions import RequestError
 from agent_comms.comms import Comms
-from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.thread_execution import ConversationPreparation
+from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.session_load import ExistingSessionLoadPlan
-from toad.owner_preparation import ExistingOwnerPlan
+from agent_comms.thread_execution import ConversationPreparation
+from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.threads import Thread
 
-from toad.session_tracker import CommsViewKey
 from toad.conversation_kind import ConversationKind
+from toad.owner_preparation import ExistingOwnerPlan
+from toad.session_scope import NoAgent
+from toad.session_tracker import CommsViewKey
 
 ResultT = TypeVar("ResultT")
 
@@ -88,7 +89,10 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
         from toad.screens.main import MainScreen
 
         screen = MainScreen.from_thread(
-            self.project, self.root, self.thread.incarnation, app.agent_data
+            self.project,
+            self.root,
+            self.thread.incarnation,
+            NoAgent().attached(app.agent_data),
         )
         self.bind(screen)
         return screen

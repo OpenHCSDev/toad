@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
+    from toad.widgets.conversation import Conversation
 
 
 class TranscriptScope(ABC):
@@ -248,74 +249,75 @@ class ProjectSessionOrigin(SessionOrigin, SessionScope):
         service = self.app.coordination_access.require(selected).service
         return identity.resolve_thread(service.registry, self.project_root)
 
-    def agent_for_opening(
-        self, default: AgentDefinition | None
-    ) -> AgentDefinition | None:
-        return default
+    def agent_for_opening(self, default: AgentDefinition | None) -> AgentBinding:
+        return NoAgent().attached(default)
 
 
 class AgentBinding(ABC):
-    """The native launch selection, decoded once from constructor arguments."""
-
-    @classmethod
-    def of(cls, agent: AgentDefinition | None, session_id: str | None) -> AgentBinding:
-        if agent is None:
-            return NoAgent()
-        if session_id is None:
-            return AgentAttached(agent)
-        return AgentSession(agent, session_id)
-
-    @abstractmethod
-    def opening_agent(
-        self, app_agent: AgentDefinition | None
-    ) -> AgentDefinition | None: ...
+    """Known native launch state carries construction and attachment behavior."""
 
     @abstractmethod
     def attached(self, app_agent: AgentDefinition | None) -> AgentBinding: ...
+
+    @abstractmethod
+    def for_session(self, session_id: str) -> AgentBinding: ...
+
+    @abstractmethod
+    def make_conversation(self, constructor: partial[Conversation]) -> Conversation: ...
+
+    @abstractmethod
+    def attach_to(
+        self, origin: ViewSessionOrigin, conversation: Conversation
+    ) -> None: ...
 
     @abstractmethod
     def matches_launch(
         self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
     ) -> bool: ...
 
-    @abstractmethod
-    def agent_definition(self) -> AgentDefinition | None: ...
-
-    def saved_session_id(self) -> str | None:
-        return None
+    def initial_identity(self, empty: SessionIdentity) -> SessionIdentity:
+        return empty
 
 
 @dataclass(frozen=True)
 class NoAgent(AgentBinding):
-    def opening_agent(
-        self, app_agent: AgentDefinition | None
-    ) -> AgentDefinition | None:
-        return app_agent
-
     def attached(self, app_agent: AgentDefinition | None) -> AgentBinding:
-        return AgentBinding.of(app_agent, None)
+        if app_agent is None:
+            return self
+        return AgentAttached(app_agent)
+
+    def for_session(self, session_id: str) -> AgentBinding:
+        return self
+
+    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
+        return constructor()
+
+    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
+        conversation.clear_agent_definition()
 
     def matches_launch(
         self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
     ) -> bool:
         return False
 
-    def agent_definition(self) -> None:
-        return None
-
 
 @dataclass(frozen=True)
 class AgentAttached(AgentBinding):
     agent: AgentDefinition
 
-    def opening_agent(self, app_agent: AgentDefinition | None) -> AgentDefinition:
-        return self.agent
-
     def attached(self, app_agent: AgentDefinition | None) -> AgentBinding:
         return self
 
-    def agent_definition(self) -> AgentDefinition:
-        return self.agent
+    def for_session(self, session_id: str) -> AgentBinding:
+        return AgentSession(self.agent, session_id)
+
+    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
+        return constructor(agent=self.agent)
+
+    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
+        conversation.attach_agent_definition(self.agent)
+        if origin.is_current:
+            conversation.start_native_session()
 
     def matches_launch(
         self, origin: ViewSessionOrigin, agent_identity: str, session_id: str
@@ -341,8 +343,13 @@ class AgentAttached(AgentBinding):
 class AgentSession(AgentAttached):
     session_id: str
 
-    def saved_session_id(self) -> str:
-        return self.session_id
+    def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
+        return super().make_conversation(
+            partial(constructor, agent_session_id=self.session_id)
+        )
+
+    def initial_identity(self, empty: SessionIdentity) -> SessionIdentity:
+        return empty.with_session(self.session_id)
 
     def matches_session(self, origin: ViewSessionOrigin, session_id: str) -> bool:
         return self.session_id == session_id or super().matches_session(
@@ -355,14 +362,12 @@ class ViewSessionOrigin(ProjectSessionOrigin):
 
     _agent_binding: AgentBinding
 
-    def agent_for_opening(
-        self, default: AgentDefinition | None
-    ) -> AgentDefinition | None:
-        return self._agent_binding.opening_agent(default)
+    def agent_for_opening(self, default: AgentDefinition | None) -> AgentBinding:
+        return self._agent_binding.attached(default)
 
-    def attach_agent_definition(self) -> AgentDefinition | None:
+    def attach_agent_definition(self) -> AgentBinding:
         self._agent_binding = self._agent_binding.attached(self.app.agent_data)
-        return self._agent_binding.opening_agent(None)
+        return self._agent_binding
 
     def use_mailbox(self) -> None:
         self._agent_binding = NoAgent()

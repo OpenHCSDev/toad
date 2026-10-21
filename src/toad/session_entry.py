@@ -13,25 +13,24 @@ from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.route_selection import RouteSelection
-from toad.owner_preparation import ExistingOwnerPlan
-from toad.session_scope import SessionScope
 from agent_comms.thread_identity import ThreadIncarnation
-
 from agent_comms.ui_model.sidebar import ThreadRowModel
-
-from toad.session_tracker import (
-    CommsViewKey,
-    OpenTab,
-    NamedTab,
-    ThreadTab,
-    SessionDetails,
-)
 from agent_comms.ui_model.unread import UnobservedUnread
 
+from toad.owner_preparation import ExistingOwnerPlan
+from toad.session_scope import SessionScope
+from toad.session_tracker import (
+    CommsViewKey,
+    NamedTab,
+    OpenTab,
+    SessionDetails,
+    ThreadTab,
+)
+
 if TYPE_CHECKING:
-    from toad.session_navigation import SessionNavigation
-    from toad.screens.main import MainScreen
     from toad.comms_root import Observing
+    from toad.screens.main import MainScreen
+    from toad.session_navigation import SessionNavigation
 
 
 class SessionEntry(DeclaredFamily, affix="Entry"):
@@ -127,7 +126,7 @@ class NativeSessionEntry(SessionEntry):
 
     def __call__(self) -> MainScreen:
         source = self.factory()
-        self.details.bind_initial_identity(source.agent_session_id)
+        source.thread_identity.bind_initial_identity(self.details)
         return source
 
     @property

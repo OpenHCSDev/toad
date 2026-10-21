@@ -92,7 +92,7 @@ def test_new_channel_kind_inherits_its_typed_destination_and_resolution(
 def test_history_routes_reject_duplicate_declarations_and_unregistered_kinds():
     with pytest.raises(TypeError):
 
-        class DuplicateDirectTarget(DirectTarget, history_kind=DmConversation):
+        class DuplicateDirectTarget(DirectTarget):
             pass
 
     class UnroutedConversation(ChannelConversation):

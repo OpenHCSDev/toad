@@ -4,11 +4,17 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from toad.format_path import format_path
-from toad.transcript_state import UnboundTranscript, UnreadTranscript
-from toad.session_scope import KnownTranscript, NoTranscript, TranscriptScope
+from typing import TYPE_CHECKING
+
 from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
+
+from toad.format_path import format_path
+from toad.session_scope import KnownTranscript, NoTranscript, TranscriptScope
+from toad.transcript_state import UnboundTranscript, UnreadTranscript
+
+if TYPE_CHECKING:
+    from toad.session_tracker import SessionDetails
 
 
 class SessionIdentity(ABC):
@@ -69,6 +75,9 @@ class SessionIdentity(ABC):
     def bind_history(self, histories) -> None:
         """An unbound session keeps its native input-history scope."""
 
+    def bind_initial_identity(self, details: "SessionDetails") -> None:
+        """A session without a thread has no initial thread title."""
+
     def resolve_thread(self, registry, project: Path) -> str:
         """An unbound view asks Core to discover its project's session."""
         return registry.session_thread(project, self.thread_name()).name_or(
@@ -95,6 +104,9 @@ class NoThreadIdentity(SessionIdentity):
 
 @dataclass(frozen=True)
 class NamedThreadIdentity(SessionIdentity, ABC):
+    def bind_initial_identity(self, details: "SessionDetails") -> None:
+        details.bind_initial_identity(self.thread_name())
+
     def display_thread(self) -> str:
         return f"@{self.thread_name()}"
 

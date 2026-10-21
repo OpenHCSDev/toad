@@ -7,18 +7,20 @@ internals asks for ``ui.textual`` instead and lives under ``tests/textual``.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import asyncio
+import inspect
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-import inspect
 from typing import TYPE_CHECKING
 
 from support.agents import AppAgents
 from toad.navigation_context import NavigationContext
+from toad.session_scope import NoAgent
 
 if TYPE_CHECKING:
     from textual.pilot import Pilot
+
     from toad.app import ToadApp
 
 
@@ -317,7 +319,7 @@ class TextualUi(AppAgents, Ui):
 
         app = self.app
         details = await app.session_navigation.new(
-            lambda: MainScreen(app.project_dir, app.agent_data)
+            lambda: MainScreen(app.project_dir, NoAgent().attached(app.agent_data))
         )
         await self.step()
         return details.mode_name
