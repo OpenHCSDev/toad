@@ -27,6 +27,15 @@ async def test_scope_import_and_real_conversation_ancestor(workspace):
         await ui.write_draft("session scope journey")
         await ui.press("enter")
         await ui.until_shows("PEER_ANSWER session scope journey")
+        sidebar = app.workspace_chrome.channels
+        if sidebar.collapsed:
+            sidebar.toggle()
+            await ui.step()
+        sidebar.toggle()
+        await ui.until(
+            lambda: app.focused is ui.conversation.prompt.prompt_text_area,
+            why="collapsing the sidebar returns input focus",
+        )
         second = await ui.new_session()
         assert second != first
         assert ui.conversation.query_ancestor(SessionScope) is app.selected_session
@@ -34,3 +43,7 @@ async def test_scope_import_and_real_conversation_ancestor(workspace):
         assert app.selected_session is view
         assert ui.conversation.query_ancestor(SessionScope) is view
         await ui.until_shows("PEER_ANSWER session scope journey")
+        await ui.close_tab(second)
+        assert not app.workspace_sessions.origin(second).has_agent()
+        with pytest.raises(RelationViolationError):
+            app.workspace_sessions.origin(second).resolve_thread()
