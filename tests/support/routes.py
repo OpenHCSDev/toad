@@ -10,11 +10,11 @@ from pathlib import Path
 def private_root(path: Path, project: Path, message: str) -> tuple[Path, str]:
     """A private wire at `path` holding `message` in #team from `peer`; returns it and its root id."""
     from agent_comms.comms import Comms
-    from agent_comms.thread_identity import ThreadRole
+    from agent_comms.thread_identity import UserThreadRole
 
     path.mkdir(mode=0o700)
-    comms = Comms(path, private_initial_writes=True)
-    comms.registry.declare(comms.registry.new_thread("user", frozenset(), str(project), role=ThreadRole.USER))
+    comms = Comms(path)
+    comms.registry.declare(comms.registry.new_thread("user", frozenset(), str(project), role=UserThreadRole))
     comms.registry.declare(comms.registry.new_thread("owner", frozenset({"team"}), str(project / "owner-project")))
     comms.registry.declare(comms.registry.new_thread("peer", frozenset({"team"}), str(project / "peer-project")))
     root_id = comms.messaging.initialize_private_initial_protocol()

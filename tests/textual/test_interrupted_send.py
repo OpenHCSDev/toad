@@ -102,3 +102,51 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
             await ui.until(lambda: not channel._send_block_reason, why="the sent message drawn")
             assert ui.shows(sent.body)
             assert channel.prompt.text == "" and not channel.prompt.prompt_text_area.disabled
+
+
+async def test_a_send_whose_completion_fails_after_commit_shows_the_committed_record_and_is_not_resent(
+        workspace, monkeypatch):
+    from agent_comms.errors import CommittedMessageError
+    from toad.core import input_events
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.wire_history import WireSource
+
+    attempt = workspace.roots.attempt
+    home = select_root_by_default_route(monkeypatch, attempt)
+    root, root_id = private_root(attempt / "wire-private", workspace.project, "INITIAL")
+    publish_route(home, root, root_id)
+
+    async with workspace.app(size=(105, 32)) as ui:
+        await ui.open_channel("#team", actor="user")
+        channel = ui.textual[0].screen.query_one(CommsChatView)
+        await refresh_chat(channel)
+        release = threading.Event()
+        real_read = WireSource.read
+        messaging = channel.message_history.source.comms.messaging
+        original_send = messaging.send_user_message
+        committed = []
+
+        def held_read(source, request, through):
+            assert release.wait(8), "the held read was not released"
+            return real_read(source, request, through)
+
+        def commit_then_fail(*args, **kwargs):
+            committed.append(original_send(*args, **kwargs))
+            raise CommittedMessageError(committed[-1])
+
+        with (patch.object(WireSource, "read", held_read),
+              patch.object(messaging, "send_user_message", side_effect=commit_then_fail) as sender):
+            sent = input_events.UserInputSubmitted("COMMITTED-THEN-FAILED")
+            await channel.submit_input(sent)
+            [record] = committed
+            assert times_on_wire(root, sent.body) == 1 and sender.call_count == 1
+            # The exact committed record owns the status; nothing claims the message was not sent.
+            assert channel.send_block_reason == f"Sent {root}/{record.seq}/{record.message_id}; waiting to be drawn, do not retry"
+            assert channel.prompt.text == sent.body
+            assert channel.prompt.prompt_text_area.disabled
+            await channel.submit_input(sent)
+            assert sender.call_count == 1
+            release.set()
+            await ui.until(lambda: not channel._send_block_reason, why="the committed message drawn")
+            assert ui.shows(sent.body)
+            assert times_on_wire(root, sent.body) == 1

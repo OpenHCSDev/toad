@@ -62,7 +62,7 @@ async def test_a_late_read_from_the_former_wire_is_not_painted_after_the_route_f
         assert not view.display
         if app.screen.query_one(CommsSidebar).display:
             # The shared roster may already publish the successor while this old view stays hidden.
-            assert app.coordination_access.observed_service.root == second
+            assert app.coordination_access.service.root == second
         assert not ui.shows("OLD-WIRE-ONLY")
 
 

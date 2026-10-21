@@ -3,7 +3,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from agent_comms.errors import HumanSendError
+from agent_comms.errors import CommittedMessageError, HumanSendError
 
 
 class SendState:
@@ -150,6 +150,9 @@ class DeliveryFailureView:
         except HumanSendError as error:
             delivery_failure(error).present(self, body)
             return None
+        except CommittedMessageError as error:
+            # Core committed this record before completion failed; it is sent.
+            sent = error.record
         self._enter_send_state(SentUndrawn(comms.root, sent), body)
         return sent
 
