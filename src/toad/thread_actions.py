@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING
 
 from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
 from agent_comms.cli_result import CliResult
+from agent_comms.errors import RouteChanged
 from agent_comms.native_pi import NativePiUnavailable
-from agent_comms.route_selection import RouteChanged, RouteSelection
+from agent_comms.route_selection import RouteSelection
 
 if TYPE_CHECKING:
     from toad.app import ToadApp

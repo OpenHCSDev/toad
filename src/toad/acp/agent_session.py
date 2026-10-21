@@ -13,9 +13,10 @@ from agent_comms.acp_extension import HistoryOnlyQueueProjection
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.child_process import join_retirement
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.errors import RouteChanged
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
-from agent_comms.route_selection import RouteChanged, RouteSelection
+from agent_comms.route_selection import RouteSelection
 from agent_comms.session_load import (
     EnsuringSessionLoadPlan,
     ExistingSessionLoadPlan,

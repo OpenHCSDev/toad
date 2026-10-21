@@ -11,12 +11,13 @@ from typing import TYPE_CHECKING, cast
 
 from agent_comms.errors import (
     RelationViolationError,
+    RouteChanged,
     UnknownChannelError,
     UnregisteredThreadError,
 )
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import RegistrationsView
-from agent_comms.route_selection import RouteChanged, root_is_current
+from agent_comms.route_selection import root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.core import events as core_events
@@ -418,7 +419,7 @@ class SessionNavigation:
             await self.retire_missing()
 
     async def retire_missing(self) -> None:
-        from agent_comms.route_selection import RouteChanged, RouteSelection
+        from agent_comms.route_selection import RouteSelection
 
         # Borrow each open entry, including hidden views. Core decides
         # which of their sources no longer exist; Toad only closes the views.

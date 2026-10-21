@@ -1,4 +1,4 @@
-"""An open thread's status line, observed locally or read from its foreign root."""
+"""An open thread's status line, observed locally or marked on another route."""
 
 from __future__ import annotations
 

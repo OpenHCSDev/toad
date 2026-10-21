@@ -134,7 +134,7 @@ class CommsUpdateConsumer(MroDispatch):
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
         from pathlib import Path
 
-        from agent_comms.route_selection import RouteChanged
+        from agent_comms.errors import RouteChanged
 
         agent = self.agent
         root = agent.controller.transcripts.access.launch_root.path
