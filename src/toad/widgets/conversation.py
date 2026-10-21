@@ -458,7 +458,7 @@ class ConversationSessionBinding(
     async def _thread_route_observed(self, event: CoreEventMessage) -> None:
         self.refresh_thread_status()
 
-    def bind_agent(self, agent: AgentBinding) -> None:
+    def bind_agent(self, agent: AgentConnection) -> None:
         self.agent_binding = agent
         agent.attach_view(self)
 
@@ -761,7 +761,7 @@ class ConversationSessionBinding(
         self.call_later(self.delivery_observation.invalidate)
         self.transcript.binding.request(self.transcript)
 
-    def watch_agent_binding(self, binding: AgentBinding) -> None:
+    def watch_agent_binding(self, binding: AgentConnection) -> None:
         # A presentation remount is not a fresh attachment. Start at the
         # Agent's current projection/floor so previously queued updates cannot
         # revive proof after its reducer entered quarantine or evidence loss.
