@@ -134,12 +134,20 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
             why="the retained DM tab following its incarnation's current name",
         )
         assert next(tab.title for tab in app.open_tabs if tab.mode_name == mode) == "@renamed"
+        prepared_pages = tuple(page.prepared for page in chat.message_history.pages)
+        fragments = chat.message_history.fragments
         await ui.select_tab(owner)
-        assert await DirectTarget("renamed").open(context) == mode
+        assert await ui.open_direct("renamed", actor=viewer, owner=owner) == mode
         assert app.session_navigation.get(mode) is entry
         assert app.selected_session is screen
         assert screen.query_one(CommsChatView) is chat
         assert chat.window is window
+        assert all(before is page.prepared for before, page in zip(
+            prepared_pages, chat.message_history.pages, strict=True,
+        ))
+        assert all(before is after for before, after in zip(
+            fragments, chat.message_history.fragments, strict=True,
+        ))
         assert entry.key.conversation.peer == peer.incarnation
         assert chat.prompt.text == "draft survives rename"
         assert "BEFORE_RENAME" in ui.painted(window)
