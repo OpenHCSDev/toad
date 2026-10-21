@@ -145,7 +145,7 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
     through an agent object bound to the owner's session.
 
     `arrange(comms, session, goal)` may change the goal on the owner before the view binds the agent.
-    Yields (ui, agent, comms, session, goal as first set).
+    Yields (ui, agent, Core owner, session, goal as first set).
     """
     import os
 
@@ -170,6 +170,6 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
             conversation.agent_ready = True
             await conversation.goal_observation.refresh()
             await ui.step()
-            yield ui, agent, comms, session, goal
+            yield ui, agent, owner, session, goal
     finally:
         await owner.shutdown()

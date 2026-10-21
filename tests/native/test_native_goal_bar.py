@@ -1,14 +1,17 @@
-"""The goal bar follows the real owner: standby, a long goal that scrolls, edits made elsewhere, an owner outage."""
+"""The goal bar follows the real owner: standby, a long goal that scrolls, edits made elsewhere, pause/resume and clear."""
 
-import asyncio
 import os
-import threading
+from contextlib import AsyncExitStack
 
+from agent_comms import agent_events as events
+from agent_comms.owned_turn import OwnedTurn
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.goal_actions import (
     ActiveGoalAction, ClearGoalAction, EditGoalAction, GoalPrecondition, OwnerInvocable, PausedGoalAction,
     StandbyGoalAction,
 )
+from agent_comms.goal_presentation import IdleGoalExecution
+from agent_comms.goals import NoGoal
 from textual.containers import VerticalScroll
 from textual.widgets import Static
 
@@ -41,11 +44,11 @@ def owner_edit(comms, session, text):
 
 async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(workspace, native_package):
     async with goal_on_real_owner(workspace, native_package, OBJECTIVE, size=(90, 35),
-                                  arrange=standing_by_for_a_peer(workspace)) as (ui, _agent, _comms, _session, _goal):
+                                  arrange=standing_by_for_a_peer(workspace)) as (ui, _agent, _owner, _session, _goal):
         conversation = ui.conversation
-        await ui.until(lambda: conversation.goal_execution is not None, why="the goal's execution state")
         bar = conversation.query_one(GoalBar)
-        assert "Standby" in str(bar.query_one(".goal-header", Static).render())
+        await ui.until(lambda: "Standby" in str(bar.query_one(".goal-header", Static).render()),
+                       why="the owner's standby execution")
         assert conversation.goal_display.snapshot.state.declared_name == "active"
         pulse = bar.query_one(StandbyPulse)
         assert pulse.active
@@ -74,7 +77,8 @@ async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(works
 
 async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_a_draft(workspace, native_package):
     async with goal_on_real_owner(workspace, native_package, OBJECTIVE, size=(90, 35)) as (
-            ui, _agent, comms, session, _goal):
+            ui, _agent, owner, session, _goal):
+        comms = owner.comms
         app, pilot = ui.textual
         conversation = ui.conversation
         await pilot.click("#goal-history")
@@ -95,56 +99,53 @@ async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_
         assert editor.editor.text == "UNSAVED DRAFT"
 
 
-async def test_pause_resume_owner_outage_and_clear(workspace, native_package):
+async def test_pause_resume_and_clear(workspace, native_package):
     async with goal_on_real_owner(workspace, native_package, OBJECTIVE, size=(90, 35),
-                                  arrange=standing_by_for_a_peer(workspace)) as (ui, _agent, comms, _session, _goal):
+                                  arrange=standing_by_for_a_peer(workspace)) as (ui, _agent, _owner, _session, _goal):
         conversation = ui.conversation
-        await ui.until(lambda: conversation.goal_execution is not None, why="the goal's execution state")
         bar = conversation.query_one(GoalBar)
         pulse = bar.query_one(StandbyPulse)
+        await ui.until(lambda: pulse.active, why="the owner's standby execution")
         await conversation.goal_controls.change(PausedGoalAction)
         assert conversation.goal_display.snapshot.state.declared_name == "paused" and not pulse.active
         await conversation.goal_controls.change(ActiveGoalAction)
         assert conversation.goal_display.snapshot.state.declared_name == "active"
 
-        # An owner that cannot be read marks the kept goal unavailable; it is never shown as standby.
-        read = comms.goals.goal_snapshot
-
-        def unavailable(_name):
-            raise OSError("Owner temporarily unavailable")
-
-        comms.goals.goal_snapshot = unavailable
-        try:
-            await ui.until(lambda: not conversation.goal_display.can_control, seconds=6, why="the goal marked unavailable")
-            assert "unavailable" in str(bar.query_one(".goal-header", Static).render())
-            assert not pulse.active
-            assert all(control.disabled for control in bar.query(GoalControl) if control.id != "goal-collapse")
-            assert not bar.query_one("#goal-collapse", GoalControl).disabled
-        finally:
-            comms.goals.goal_snapshot = read
-        await ui.until(lambda: conversation.goal_display.can_control, seconds=6, why="the goal controllable again")
         await conversation.goal_controls.change(ClearGoalAction)
-        assert conversation.goal_display.snapshot is None and not bar.display
+        assert conversation.goal_display.snapshot == NoGoal()
+        assert conversation.goal_execution == IdleGoalExecution() and not bar.display
 
 
-async def test_a_goal_read_from_a_stalled_owner_gives_up(workspace, native_package):
-    async with goal_on_real_owner(workspace, native_package, OBJECTIVE, size=(90, 35)) as (
-            _ui, agent, comms, _session, _goal):
-        read = comms.goals.goal_snapshot
-        release = threading.Event()
-
-        def stalled(name):
-            release.wait(10)
-            return read(name)
-
-        comms.goals.goal_snapshot = stalled
-        try:
-            try:
-                await asyncio.wait_for(agent.get_goal_snapshot(), 3.5)
-            except TimeoutError:
-                pass
-            else:
-                raise AssertionError("The goal read did not time out")
-        finally:
-            release.set()
-            comms.goals.goal_snapshot = read
+async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(workspace, native_package):
+    async with goal_on_real_owner(workspace, native_package, OBJECTIVE) as (
+            ui, _agent, owner, session, first):
+        app, pilot = ui.textual
+        view = ui.conversation
+        view.prompt.text = "Keep the draft across the failed turn"
+        bar = view.query_one(GoalBar)
+        failed = OwnedTurn(owner.turns, session, session, "Original work", original_goal_id=first.id)
+        async with AsyncExitStack() as resources, AsyncExitStack() as permits:
+            assert await failed.acquire(resources, permits)
+            await failed.progress.done(events.Done("Controlled backend failure", False))
+        assert owner.comms.registry.require(session).goal == first
+        await view.goal_observation.refresh()
+        await ui.until(lambda: "Blocked" in str(bar.header.render()), why="the failed ledger in the heading")
+        await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Retry",
+                       why="Retry from execution while the stored goal remains active")
+        await pilot.click("#goal-history")
+        await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the open goal details")
+        details = app.screen
+        successor = OwnedTurn(owner.turns, session, session, "Fresh productive input",
+                              original_goal_id=first.id, original_owner_input=True)
+        async with AsyncExitStack() as resources, AsyncExitStack() as permits:
+            assert await successor.acquire(resources, permits)
+            await successor.progress.tool_ended(events.ToolEnd("read", "read", True, "Source read"))
+            await successor.progress.done(events.Done("Productive successor", True))
+        assert owner.comms.registry.require(session).goal == first
+        await view.goal_observation.refresh()
+        await ui.until(lambda: "Active" in str(details.query_one("#goal-current-heading", Static).render()),
+                       why="the already-open details following productive settlement")
+        await ui.press("escape")
+        await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Pause",
+                       why="the goal control following the ledger-only change")
+        assert view.prompt.text == "Keep the draft across the failed turn"

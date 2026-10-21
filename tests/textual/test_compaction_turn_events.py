@@ -7,6 +7,8 @@ import sys
 from agent_comms.acp_extension import CompactionChangedUpdate, GoalChangedUpdate, TurnChangedUpdate, decode_updates
 from agent_comms.child_process import SpawnedProcess
 from agent_comms.coordinator import Coordination
+from agent_comms.goal_presentation import IdleGoalExecution
+from agent_comms.goals import NoGoal
 
 
 PRODUCER = Path(__file__).resolve().parents[1] / "support/peers/typed_turn_events.py"
@@ -57,7 +59,7 @@ async def test_phase_events_from_core_owners_reach_the_turn_activity_and_a_finis
             assert agent.current_turn.managed_id is view.turns.managed_id is None
             assert not agent.current_turn.busy and not view.turns.owner.busy
             await consume_until(GoalChangedUpdate)
-            assert view.goal_display.snapshot is None and view.goal_execution is None
+            assert view.goal_display.snapshot == NoGoal() and view.goal_execution == IdleGoalExecution()
             assert not list(requests)
         finally:
             await agent.stop()

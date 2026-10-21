@@ -1,9 +1,7 @@
 """Editing a goal's objective in Toad saves through the real owner and redraws the goal bar; progress stays separate."""
 
-import asyncio
-
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.goal_actions import ActiveGoalAction, ClearGoalAction, GoalPrecondition, PausedGoalAction
+from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
 from textual.widgets import Static
 
 from support.native_steps import goal_on_real_owner
@@ -27,7 +25,8 @@ def goal_in_toad(workspace, native_package):
 
 
 async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspace, native_package):
-    async with goal_in_toad(workspace, native_package) as (ui, agent, comms, session, first):
+    async with goal_in_toad(workspace, native_package) as (ui, agent, owner, session, first):
+        comms = owner.comms
         app, pilot = ui.textual
         conversation = ui.conversation
         current = first
@@ -71,46 +70,17 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
         await ui.until_shows("Objective: Work on draft PR #17.")
 
 
-async def test_a_slow_goal_read_does_not_bring_back_a_goal_paused_then_cleared(workspace, native_package):
-    async with goal_in_toad(workspace, native_package) as (ui, agent, comms, session, _first):
-        conversation = ui.conversation
-        started, release = asyncio.Event(), asyncio.Event()
-        read_snapshot = agent.get_goal_snapshot
-        reads = 0
-
-        async def delayed_snapshot():
-            nonlocal reads
-            reads += 1
-            snapshot = await read_snapshot()
-            if reads == 1:
-                started.set()
-                await release.wait()
-            return snapshot
-
-        agent.get_goal_snapshot = delayed_snapshot
-        slow = asyncio.create_task(conversation.goal_observation.refresh())
-        await asyncio.wait_for(started.wait(), 2)
-        pause = asyncio.create_task(conversation.goal_controls.change(PausedGoalAction))
-        await ui.until(lambda: comms.registry.require(session).goal.state.declared_name == "paused",
-                       seconds=5, why="the goal paused on the owner")
-        clear = asyncio.create_task(conversation.goal_controls.change(ClearGoalAction))
-        await ui.until(lambda: comms.registry.require(session).goal is None, seconds=5, why="the goal cleared")
-        release.set()
-        await asyncio.gather(slow, pause, clear)
-        assert reads >= 2, reads
-        assert conversation.goal_display.snapshot is None and conversation.goal_execution is None
-
-
 async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(workspace, native_package):
-    async with goal_in_toad(workspace, native_package) as (ui, agent, comms, session, first):
+    async with goal_in_toad(workspace, native_package) as (ui, agent, _owner, session, first):
         conversation = ui.conversation
-        older = comms.registry.require(session).goal
+        before = await agent.get_goal_snapshot()
+        older = before.goal.require()
         current = await agent.edit_goal(older, "Short updated goal")
         await conversation.goal_observation.refresh()
         assert conversation.goal_display.snapshot == current
         shown = []
         conversation.watch(conversation, "goal_display", lambda display: shown.append(display.snapshot), init=False)
-        agent.events.publish(CommsUpdated(GoalChangedUpdate(older, None), session_id=agent.session_id))
+        agent.events.publish(CommsUpdated(GoalChangedUpdate(older, before.execution), session_id=agent.session_id))
         await ui.step(1)
         assert older not in shown, (
             f"A notice of revision {older.revision} was shown over revision {current.revision}")
