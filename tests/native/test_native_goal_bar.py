@@ -1,21 +1,27 @@
 """The goal bar follows the real owner: standby, a long goal that scrolls, edits made elsewhere, pause/resume and clear."""
 
+import asyncio
+import json
 import os
-from contextlib import AsyncExitStack
 
-from agent_comms import agent_events as events
-from agent_comms.owned_turn import OwnedTurn
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.goal_actions import (
-    ActiveGoalAction, ClearGoalAction, EditGoalAction, GoalPrecondition, OwnerInvocable, PausedGoalAction,
+    ActiveGoalAction,
+    ClearGoalAction,
+    EditGoalAction,
+    GoalPrecondition,
+    OwnerInvocable,
+    PausedGoalAction,
+    SetGoalAction,
     StandbyGoalAction,
 )
 from agent_comms.goal_presentation import IdleGoalExecution
 from agent_comms.goals import NoGoal
+from support.native import ControlledProvider, NativeSession, native_session
+from support.native_steps import goal_on_real_owner
 from textual.containers import VerticalScroll
 from textual.widgets import Static
 
-from support.native_steps import goal_on_real_owner
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
@@ -44,7 +50,8 @@ def owner_edit(comms, session, text):
 
 async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(workspace, native_package):
     async with goal_on_real_owner(workspace, OBJECTIVE, size=(90, 35),
-                                  arrange=standing_by_for_a_peer(workspace)) as (ui, _agent, _owner, _session, _goal):
+                                  arrange=standing_by_for_a_peer(workspace)) as native:
+        ui = native.ui
         conversation = ui.conversation
         bar = conversation.query_one(GoalBar)
         await ui.until(lambda: "Standby" in str(bar.query_one(".goal-header", Static).render()),
@@ -76,9 +83,8 @@ async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(works
 
 
 async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_a_draft(workspace, native_package):
-    async with goal_on_real_owner(workspace, OBJECTIVE, size=(90, 35)) as (
-            ui, _agent, owner, session, _goal):
-        comms = owner.turns.comms
+    async with goal_on_real_owner(workspace, OBJECTIVE, size=(90, 35)) as native:
+        ui, comms, session = native.ui, native.comms, native.thread
         app, pilot = ui.textual
         conversation = ui.conversation
         await pilot.click("#goal-history")
@@ -101,7 +107,8 @@ async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_
 
 async def test_pause_resume_and_clear(workspace, native_package):
     async with goal_on_real_owner(workspace, OBJECTIVE, size=(90, 35),
-                                  arrange=standing_by_for_a_peer(workspace)) as (ui, _agent, _owner, _session, _goal):
+                                  arrange=standing_by_for_a_peer(workspace)) as native:
+        ui = native.ui
         conversation = ui.conversation
         bar = conversation.query_one(GoalBar)
         pulse = bar.query_one(StandbyPulse)
@@ -117,35 +124,66 @@ async def test_pause_resume_and_clear(workspace, native_package):
 
 
 async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(workspace, native_package):
-    async with goal_on_real_owner(workspace, OBJECTIVE) as (
-            ui, _agent, owner, session, first):
+    (workspace.project / "proof.txt").write_text("A real tool reads this file.\n")
+
+    def reply(_request, number):
+        if number == 1:
+            return {"role": "assistant", "content": "No verified work"}, "stop"
+        if number == 2:
+            return {"role": "assistant", "tool_calls": [{
+                "index": 0, "id": "p448-read", "type": "function",
+                "function": {"name": "read", "arguments": json.dumps({"path": "proof.txt"})}}]}, "tool_calls"
+        return {"role": "assistant", "content": "PRODUCTIVE_SUCCESSOR"}, "stop"
+
+    async with native_session(workspace, provider=ControlledProvider(reply=reply, request_budget=3)) as native:
+        ui, agent, comms, session = native.ui, native.agent, native.comms, native.thread
         app, pilot = ui.textual
         view = ui.conversation
         view.prompt.text = "Keep the draft across the failed turn"
         bar = view.query_one(GoalBar)
-        failed = OwnedTurn(owner.turns, session, session, "Original work", original_goal_id=first.id)
-        async with AsyncExitStack() as resources, AsyncExitStack() as permits:
-            assert await failed.acquire(resources, permits)
-            await failed.progress.done(events.Done("Controlled backend failure", False))
-        assert owner.turns.comms.registry.require(session).goal == first
-        await view.goal_observation.refresh()
-        await ui.until(lambda: "Blocked" in str(bar.header.render()), why="the failed ledger in the heading")
+        first = await agent.update_goal(SetGoalAction, OBJECTIVE)
+        await ui.until(lambda: "Blocked" in str(bar.header.render()), seconds=30,
+                       why="the unproductive native goal turn settles as failed")
+        assert comms.registry.require(session).goal == first
         await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Retry",
                        why="Retry from execution while the stored goal remains active")
         await pilot.click("#goal-history")
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the open goal details")
         details = app.screen
-        successor = OwnedTurn(owner.turns, session, session, "Fresh productive input",
-                              original_goal_id=first.id, original_owner_input=True)
-        async with AsyncExitStack() as resources, AsyncExitStack() as permits:
-            assert await successor.acquire(resources, permits)
-            await successor.progress.tool_ended(events.ToolEnd("read", "read", True, "Source read"))
-            await successor.progress.done(events.Done("Productive successor", True))
-        assert owner.turns.comms.registry.require(session).goal == first
-        await view.goal_observation.refresh()
+        sending = asyncio.create_task(agent.send_prompt("Read proof.txt and report completion"))
+        try:
+            await ui.until(sending.done, seconds=30, why="the fresh productive native input finishes")
+            await sending
+        finally:
+            if not sending.done():
+                sending.cancel()
+            await asyncio.gather(sending, return_exceptions=True)
+        assert len(native.provider.requests) == 3
+        assert comms.registry.require(session).goal == first
         await ui.until(lambda: "Active" in str(details.query_one("#goal-current-heading", Static).render()),
                        why="the already-open details following productive settlement")
         await ui.press("escape")
         await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Pause",
                        why="the goal control following the ledger-only change")
         assert view.prompt.text == "Keep the draft across the failed turn"
+
+
+async def test_standby_goal_mention_opens_its_peer_and_returns_to_the_draft(workspace, native_package):
+    async def prepare(comms, project, _provider):
+        comms.registry.declare(comms.registry.new_thread("peer", frozenset(), str(project)))
+        goal = comms.goals.update_goal(NativeSession.thread, SetGoalAction(text="Coordinate with @peer"))
+        comms.goals.update_goal(NativeSession.thread, StandbyGoalAction(
+            wait_for=("peer",), expect=GoalPrecondition(goal_id=goal.id)))
+
+    async with native_session(workspace, prepare=prepare) as native:
+        ui = native.ui
+        original = ui.selected_tab
+        await ui.write_draft("Composer draft stays")
+        await ui.until_shows("Coordinate with @peer")
+        await ui.until(lambda: ui.link_at("@peer", occurrence=1) is not None,
+                       why="the bound goal mention becomes a navigation link")
+        await ui.click("@peer", occurrence=1)
+        await ui.until(lambda: ui.app.selected_session._comms_thread == "peer",
+                       why="the goal mention opens its peer")
+        await ui.select_tab(original)
+        assert ui.draft() == "Composer draft stays"
