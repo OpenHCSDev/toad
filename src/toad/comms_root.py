@@ -370,8 +370,7 @@ class CoordinationAccess(MroDispatch):
         modes = app.tab_order.names
         previous_references = self.reference_context(str(observed.service.root))
         observed.sidebar.apply(result.snapshot, result.derived)
-        for view in tuple(self.sidebar_views):
-            view.present()
+        self.present_sidebar()
         if previous_references != self.reference_context(str(observed.service.root)):
             self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
@@ -387,19 +386,24 @@ class CoordinationAccess(MroDispatch):
         if result.request != self.sidebar_interest:
             return
         observed.sidebar.observation = result
-        for view in tuple(self.sidebar_views):
-            view.present()
+        self.present_sidebar()
 
     @handles(SidebarUnreadable)
     def sidebar_unreadable(self, result: SidebarUnreadable, observed: Observing) -> None:
         if result.request != self.sidebar_interest:
             return
         observed.sidebar.clear(result.error)
+        self.present_sidebar()
         self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
         for waiter in self.take_sidebar_waiters(result.request):
             waiter.set_result(observed.sidebar.observation)
         self.app.show_error(result.error, "Sidebar unavailable")
+
+    def present_sidebar(self) -> None:
+        """Present the current backend answer even when its row set stays empty."""
+        for view in tuple(self.sidebar_views):
+            view.present()
 
     def take_sidebar_waiters(self, answered: ObserveSidebar) -> list[asyncio.Future[SidebarObservation]]:
         """Retire answered reads once, leaving other interests subscribed."""
