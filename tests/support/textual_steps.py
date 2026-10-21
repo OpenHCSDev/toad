@@ -6,7 +6,6 @@ Each takes the ``TextualUi``. App-layer tests do not use these.
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 
 
 async def reveal_project_tree(ui):
@@ -108,16 +107,6 @@ def text_rows_of(chat, message) -> range | None:
                 rows = fragment.text_rows(lines)
                 return range(int(offset) + first + rows.start, int(offset) + first + rows.stop)
     return None
-
-
-def coordination_update(root, name):
-    """The coordination fact for a thread as its registry row describes it now."""
-    from agent_comms.acp_extension import CoordinationChangedUpdate
-    from agent_comms.comms import wire
-
-    thread = wire(Path(root)).registry.require(name)
-    return CoordinationChangedUpdate(thread.incarnation, str(root), thread.pid, thread.worktree or "",
-                                     thread.model, thread.thinking_level, thread.title or thread.name, None)
 
 
 def request_target_command(app, command, subject) -> None:

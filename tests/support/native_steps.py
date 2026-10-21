@@ -152,7 +152,6 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
     from agent_comms.goal_actions import SetGoalAction
 
     from support.native import owner_server, start_private_native_wire
-    from support.textual_steps import coordination_update
 
     os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"
     comms = start_private_native_wire(workspace.roots.wire, package)
@@ -161,7 +160,7 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
         session = (await owner.new_session(cwd=str(workspace.project))).session_id
         async with workspace.app(size=size) as ui:
             agent = ui.detached_agent()
-            agent.coordination = coordination_update(str(comms.root), session)
+            agent.coordination = comms.configuration.answer(session)
             goal = await agent.update_goal(SetGoalAction, objective)
             if arrange is not None:
                 arrange(comms, session, goal)

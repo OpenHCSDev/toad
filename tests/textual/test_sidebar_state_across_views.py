@@ -1,7 +1,7 @@
 """Textual-facing: the channels sidebar's expansion, scroll position and range anchor survive switching between views, painted identically from its first ready frame."""
 
 from support.stylesheets import INSTALLED
-from support.textual_steps import channel_roster, coordination_update
+from support.textual_steps import channel_roster
 from toad.app import ToadApp
 from toad.screens.main import MainScreen
 from toad.session_tracker import SidebarSelection
@@ -56,7 +56,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         worker = await app.session_navigation.new(
             lambda: MainScreen(workspace.project, agent_session_id="worker"))
         await app.selected_session.on_coordination_update(
-            coordination_update(str(workspace.roots.wire), "worker"))
+            workspace.comms.configuration.answer("worker"))
         await ui.select_tab(owner)
         sidebar = await channel_roster(ui, "#any", "#channel-28")
 

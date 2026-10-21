@@ -5,7 +5,6 @@ from agent_comms.goal_actions import SetGoalAction
 from agent_comms.goal_attempts import GoalAttemptStore
 
 from support.native import owner_server, start_private_native_wire
-from support.textual_steps import coordination_update
 from toad.acp.transcript_reader import CoordinationTranscriptReader
 
 
@@ -27,7 +26,7 @@ async def test_setting_a_goal_makes_it_ready_to_launch(workspace, native_package
     try:
         session = (await owner.new_session(cwd=str(workspace.project))).session_id
         agent = workspace.agents.detached_agent()
-        agent.coordination = coordination_update(str(comms.root), session)
+        agent.coordination = comms.configuration.answer(session)
         goal = await agent.update_goal(SetGoalAction, "Finish the task")
         assert goal is not None and goal.state.declared_name == "active"
         assert goal.text == "Finish the task"
@@ -46,7 +45,7 @@ async def test_editing_a_goal_keeps_its_identity_and_refuses_a_stale_edit(worksp
     try:
         session = (await owner.new_session(cwd=str(workspace.project))).session_id
         agent = workspace.agents.detached_agent()
-        agent.coordination = coordination_update(str(comms.root), session)
+        agent.coordination = comms.configuration.answer(session)
         agent.controller.transcripts = InProcessReader(comms)
         first = await agent.update_goal(SetGoalAction, "First objective")
         changed = await agent.edit_goal(first, "Revised objective")
