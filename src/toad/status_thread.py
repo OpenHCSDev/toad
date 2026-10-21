@@ -8,8 +8,6 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
-from agent_comms.ui_model.observation import StoredRead, UnreadableHistory
 from agent_comms.ui_model.status import ThreadStatusModel
 
 from toad.core.events import ThreadRowsChanged
@@ -31,7 +29,7 @@ class StatusThread(ABC):
     def for_root(cls, root: Path, name: str, access) -> StatusThread:
         if access.observation.observed().observes(root):
             return LocalStatusThread(root, name)
-        return ForeignStatusThread(root, name)
+        return OtherRouteStatusThread(root, name)
 
     @abstractmethod
     def bind(self, activity: ObservedThreadActivity) -> None: ...
@@ -75,49 +73,9 @@ class LocalStatusThread(StatusThread):
 
 
 @dataclass(frozen=True)
-class ForeignStatusThread(StatusThread):
+class OtherRouteStatusThread(StatusThread):
     root: Path
     name: str
 
     def bind(self, activity: ObservedThreadActivity) -> None:
-        activity.show(ThreadStatusModel.pending(self.name))
-
-    def refresh(self, view: ThreadStatusOwner) -> None:
-        super().refresh(view)
-        view.run_worker(
-            self.read_foreign_thread(view),
-            group="foreign-thread-status",
-            exclusive=True,
-        )
-
-    async def read_foreign_thread(self, view: ThreadStatusOwner) -> None:
-        read = await view.app.coordination_access.transcripts.thread_presentation(
-            str(self.root), self.name
-        )
-        self.present_read(view, read)
-
-    def present_read(
-        self, view: ThreadStatusOwner, read: StoredRead[ThreadPresentation]
-    ) -> None:
-        if view.status_thread() != self:
-            return
-        read.answer(
-            partial(self.present_value, view),
-            self.present_deferred,
-            partial(self.present_unreadable, view),
-        )
-
-    def present_value(
-        self, view: ThreadStatusOwner, presentation: ThreadPresentation
-    ) -> None:
-        view.thread_activity.show(ThreadStatusModel.known(self.name, presentation))
-        view.foreign_thread_read(presentation)
-
-    def present_deferred(self) -> None:
-        """An unfinished read leaves the previous row and presentation untouched."""
-
-    def present_unreadable(
-        self, view: ThreadStatusOwner, error: UnreadableHistory
-    ) -> None:
-        view.thread_activity.show(ThreadStatusModel.unreadable(self.name, error))
-        view.foreign_thread_read(NoThreadPresentation())
+        activity.show(ThreadStatusModel.other_route(self.name))

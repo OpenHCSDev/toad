@@ -632,6 +632,13 @@ class Prompt(TonePaint, containers.VerticalGroup):
     def text(self) -> str:
         return self.prompt_text_area.text
 
+    @text.setter
+    def text(self, text: str) -> None:
+        self.prompt_text_area.text = text
+        self.prompt_text_area.selection = Selection.cursor(
+            self.prompt_text_area.get_cursor_line_end_location()
+        )
+
     @property
     def supports_completion(self) -> bool:
         """This composer owns whether its current input mode admits completion."""
@@ -640,13 +647,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
     @property
     def active_popup(self) -> PromptPopup | None:
         return next((popup for popup in self.query(PromptPopup) if popup.is_open), None)
-
-    @text.setter
-    def text(self, text: str) -> None:
-        self.prompt_text_area.text = text
-        self.prompt_text_area.selection = Selection.cursor(
-            self.prompt_text_area.get_cursor_line_end_location()
-        )
 
     def watch_agent_binding(self) -> None:
         if self.is_mounted:

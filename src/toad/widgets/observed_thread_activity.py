@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.status import ThreadStatusModel
 from textual.message import Message
 from textual.reactive import var
@@ -101,9 +100,6 @@ class ThreadStatusOwner(ToadNode):
 
     def thread_observed(self, event: ThreadRowsChanged) -> None:
         """Consume the observed thread's presentation once per store change."""
-
-    def foreign_thread_read(self, presentation: ThreadPresentation) -> None:
-        """Consume a foreign thread's presentation after its own read."""
 
     def refresh_thread_status(self) -> None:
         self.status_thread().refresh(self)

@@ -1,19 +1,41 @@
 """The concrete compose controls used by shared delivery-failure declarations."""
 
-import asyncio
-from dataclasses import dataclass
+from __future__ import annotations
 
+import asyncio
+from abc import abstractmethod
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Literal
+
+from agent_comms.acp_extension import UnknownDeliveryFailure
 from agent_comms.errors import HumanClaimBlockedError, HumanInitialUnknownError
+from agent_comms.messages import Message
+from rich.text import Text as RichText
+from textual import getters
+from textual.content import Content
+from textual.reactive import var
+from textual.widget import Widget
+
+from toad.app_node import ToadNode
+from toad.widgets.flash import Flash
+from toad.widgets.prompt import Prompt
 
 
 class SendState:
     """Where this view's own human-message send stands; compose follows it."""
 
-    reason = ""
+    @property
+    def reason(self) -> str:
+        return ""
 
-    def drawn_in(self, view) -> bool:
+    def drawn_in(self, view: DeliveryFailureView) -> bool:
         """Whether this send is now drawn in `view`, so compose can open again."""
         return False
+
+    async def present(self, accepted: Callable[[Message], Awaitable[object]]) -> None:
+        """An unconfirmed send has no accepted message to present."""
 
 
 class NoSend(SendState):
@@ -21,20 +43,25 @@ class NoSend(SendState):
 
 
 class SendPending(SendState):
-    reason = "Send pending; do not retry"
+    @property
+    def reason(self) -> str:
+        return "Send pending; do not retry"
 
 
 @dataclass(frozen=True)
 class SentUndrawn(SendState):
-    root: str
-    sent: object
+    root: Path
+    sent: Message
 
     @property
     def reason(self) -> str:
         return f"Sent {self.root}/{self.sent.seq}/{self.sent.message_id}; waiting to be drawn, do not retry"
 
-    def drawn_in(self, view) -> bool:
+    def drawn_in(self, view: DeliveryFailureView) -> bool:
         return view.draws_user_message(self.sent)
+
+    async def present(self, accepted: Callable[[Message], Awaitable[object]]) -> None:
+        await accepted(self.sent)
 
 
 @dataclass(frozen=True)
@@ -48,7 +75,7 @@ class SendBlocked(SendState):
 
 @dataclass(frozen=True)
 class SendUnknown(SendState):
-    failure: object
+    failure: UnknownDeliveryFailure
 
     @property
     def reason(self) -> str:
@@ -59,8 +86,28 @@ class SendUnknown(SendState):
         )
 
 
-class DeliveryFailureView:
-    """Own human-message delivery and its compose/failure controls."""
+class DeliveryFailureView(ToadNode, Widget):
+    """The composed input, status and delivery behavior shared by conversations."""
+
+    prompt = getters.query_one(Prompt)
+    status: var[str | Content | RichText] = var("")
+
+    @abstractmethod
+    def draws_user_message(self, message: Message) -> bool: ...
+
+    async def composer_read_only(self) -> bool:
+        """Native and CLI sessions compose to their exact thread, not a saved channel."""
+        return False
+
+    def flash(
+        self,
+        content: str | Content,
+        *,
+        duration: float | None = None,
+        style: Literal["default", "warning", "error", "success"] = "default",
+    ) -> None:
+        """Show feedback in this view's composed flash control."""
+        self.query_one(Flash).flash(content, duration=duration, style=style)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -82,17 +129,18 @@ class DeliveryFailureView:
 
             self.run_worker(refresh(), group="composer-access", exclusive=True)
 
-    async def refresh_composer(self, read_only: bool, status: str = "") -> None:
-        """Draw compose from the caller's Core answer and the current send state."""
-        if not self.is_attached:
-            return
+    async def refresh_composer(self, read_only: bool, status: str = "") -> str:
+        """Draw compose and return the reason from the same delivery decision."""
         reason = self.send_block_reason or ("Read-only saved view" if read_only else "")
+        if not self.is_attached:
+            return reason
         area = self.prompt.prompt_text_area
         area.disabled = bool(reason)
         area.tooltip = reason or None
         self.status = reason or status
         if not area.disabled and self.screen.focused is None:
             self.screen.set_focus(area)
+        return reason
 
     async def submit_comms_message(self, root, conversation, body, current, present):
         """CLI transcripts and wire pages use the same Core-send checks."""
@@ -102,10 +150,10 @@ class DeliveryFailureView:
             read_only = await self.app.preparation.run_thread(
                 conversation.read_only, comms
             )
-        await self.refresh_composer(read_only)
+        reason = await self.refresh_composer(read_only)
         if read_only:
             self.restore_user_message(body)
-            self.flash(self.status, style="error")
+            self.flash(reason, style="error")
             return
         await self.deliver_user_message(
             root, conversation.send_target().name, body, current, present
@@ -136,10 +184,8 @@ class DeliveryFailureView:
         except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
             delivery_failure(error).present(self, body)
             return
-        sent = await self.commit_user_message(comms, target, body)
-        if sent is None:
-            return
-        await present(sent)
+        outcome = await self.commit_user_message(comms, target, body)
+        await outcome.present(present)
 
     async def commit_user_message(self, comms, target, body):
         from agent_comms.delivery_failure import delivery_failure
@@ -165,12 +211,13 @@ class DeliveryFailureView:
             task.add_done_callback(
                 lambda done: done.exception() if not done.cancelled() else None
             )
-            return None
+            return self._send_state
         except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
             delivery_failure(error).present(self, body)
-            return None
-        self._enter_send_state(SentUndrawn(comms.root, sent))
-        return sent
+            return self._send_state
+        accepted = SentUndrawn(comms.root, sent)
+        self._enter_send_state(accepted)
+        return accepted
 
     def settle_user_message(self) -> None:
         """Enable compose only when the sent message is drawn."""
@@ -182,7 +229,7 @@ class DeliveryFailureView:
         if not self.prompt.text:
             self.prompt.text = body
 
-    def delivery_unknown(self, failure, body: str) -> None:
+    def delivery_unknown(self, failure: UnknownDeliveryFailure, body: str) -> None:
         self.restore_user_message(body)
         self._enter_send_state(SendUnknown(failure))
         self.flash(self.send_block_reason, style="error")

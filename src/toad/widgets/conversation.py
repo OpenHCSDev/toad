@@ -8,7 +8,7 @@ from itertools import filterfalse
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time_ns
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable
 
 from acp import schema as acp_protocol
 from agent_comms.goal_presentation import IdleGoalExecution, ThreadGoalExecution
@@ -19,7 +19,6 @@ from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
 from rich.segment import Segment
-from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.actions import SkipAction
@@ -66,6 +65,7 @@ from toad.core.source_events import (
     TranscriptSourceWorkFinished,
 )
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.delivery_failure_view import DeliveryFailureView
 from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
 from toad.input_history import InputHistories
@@ -378,7 +378,11 @@ class AgentWindow(Window):
 
 
 class ConversationSessionBinding(
-    MroDispatch, WorkspaceHosted, ThreadStatusOwner, containers.Vertical
+    MroDispatch,
+    WorkspaceHosted,
+    ThreadStatusOwner,
+    DeliveryFailureView,
+    containers.Vertical,
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
@@ -416,9 +420,6 @@ class ConversationSessionBinding(
         read = self._thread_read
         self.arm_thread_read()
         read.settle(presentation).present(self.thread_presented)
-
-    def foreign_thread_read(self, presentation: ThreadPresentation) -> None:
-        self.thread_presented(presentation)
 
     def thread_presented(self, presentation: ThreadPresentation) -> None:
         """A settled member owns whether this view has source work to publish."""
@@ -522,8 +523,6 @@ class ConversationSessionBinding(
     goal_display: var[GoalDisplay] = var(NoGoal())
 
     goal_execution: var[ThreadGoalExecution] = var(IdleGoalExecution())
-
-    status: var[str | Content | RichText] = var("")
 
     title = var("")
 
@@ -784,12 +783,10 @@ class ConversationSessionBinding(
 
 
 from toad.conversation_actions import ConversationAction
-from toad.delivery_failure_view import DeliveryFailureView
 from toad.widget_actions import DeclaredWidgetActions
 
 
 class Conversation(
-    DeliveryFailureView,
     ConversationCommsHandlers,
     DeclaredWidgetActions,
     ConversationSessionBinding,
@@ -834,7 +831,6 @@ class Conversation(
     contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
-    prompt = getters.query_one(Prompt)
     app = getters.app(ToadApp)
 
     @property
@@ -1069,22 +1065,6 @@ class Conversation(
     def on_flash(self, event: messages.Flash) -> None:
         event.stop()
         self.flash(event.content, duration=event.duration, style=event.style)
-
-    def flash(
-        self,
-        content: str | Content,
-        *,
-        duration: float | None = None,
-        style: Literal["default", "warning", "error", "success"] = "default",
-    ) -> None:
-        """Flash a single-line message to the user.
-
-        Args:
-            content: Content to flash.
-            style: A semantic style.
-            duration: Duration in seconds of the flash, or `None` to use default in settings.
-        """
-        self.query_one(Flash).flash(content, duration=duration, style=style)
 
     @property
     def terminal_action_state(self) -> bool | None:
@@ -1540,10 +1520,6 @@ class Conversation(
         ask = Ask(title, options, get_content, callback)
         self.prompt.ask(ask)
         return ask
-
-    async def composer_read_only(self) -> bool:
-        """Native and CLI sessions compose to their exact thread, not a saved channel."""
-        return False
 
     async def command_target_context(self):
         from toad.screens.main import MainScreen
