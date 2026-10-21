@@ -2,6 +2,7 @@
 
 from dataclasses import FrozenInstanceError, fields
 from functools import partial
+from toad.status_thread import NoStatusThread
 
 import pytest
 
@@ -96,7 +97,6 @@ def test_conversation_resolves_a_renamed_peer_before_presentation(tmp_path):
 
 def test_conversation_selects_the_saved_history_identity_and_channel_status(tmp_path):
     from toad.screens.historical_sessions import HistoricalSessions
-    from toad.widgets.observed_thread_activity import NoStatusThread
 
     comms = wire(tmp_path / "wire")
     create_view = partial(HistoricalSessions, comms, ())

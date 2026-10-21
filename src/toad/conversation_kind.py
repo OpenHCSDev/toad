@@ -14,7 +14,7 @@ from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.channel_activity import ChannelActivity
-from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
+from toad.status_thread import NoStatusThread, StatusThread
 from agent_comms.channel_targets import ChannelTarget, NamedTarget, ThreadTarget
 from agent_comms.channels import AllChannel
 from toad.widgets.sidebar_tree import UnpaintedChannel

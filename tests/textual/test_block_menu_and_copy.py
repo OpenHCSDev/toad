@@ -53,7 +53,10 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
     async with workspace.app(size=(110, 38)) as ui:
         app, _ = ui.textual
         view = ui.conversation
-        await view.contents.remove_children()
+        history = view.transcript.binding.history
+        await view.contents.remove_children(
+            tuple(child for child in view.contents.children if child is not history)
+        )
         user = UserInput("USER_COPY_PAINT")
         extra = DeclaredExtraBlock("DECLARED_NEW_PAINT")
         tool = ToolCall(ToolCallStatus.from_acp(SDKToolCall.model_validate({

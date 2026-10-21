@@ -2,7 +2,7 @@ from __future__ import annotations
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.widget_view import WorkspaceHosted
-from toad.session_scope import SessionScope
+from toad.session_scope import SessionScope, TranscriptScope
 
 from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ThoughtStream
@@ -77,9 +77,10 @@ from toad.session_observation import GoalObservation, InputDeliveryObservation, 
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import (
-    NoStatusThread, ObservedThreadActivity, StatusThread, ThreadStatusOwner,
+    ObservedThreadActivity, ThreadStatusOwner,
 )
 from toad.widgets.cli_draft import CliDraft
+from toad.status_thread import StatusThread
 from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
 from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
@@ -354,16 +355,12 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     def operational_sources(self):
         return self.query_ancestor(SessionScope).presentation.sources
 
-    def transcript_scope(self) -> tuple[str, str] | None:
+    def transcript_scope(self) -> TranscriptScope:
         """The native session identity whose canonical transcript this view shows."""
         return self.query_ancestor(SessionScope).origin.transcript_scope()
 
     def status_thread(self) -> StatusThread:
-        scope = self.transcript.binding.thread_scope
-        if scope is None:
-            return NoStatusThread()
-        root, name = scope
-        return StatusThread.for_root(Path(root), name, self.app.coordination_access)
+        return self.transcript.binding.thread_scope.status_thread(self.app.coordination_access)
 
     def arm_thread_read(self) -> None:
         """Capture turn token and client authority for the next observed presentation."""

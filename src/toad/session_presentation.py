@@ -13,7 +13,7 @@ from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.channel_targets import ThreadTarget
+from toad.conversation_kind import DmConversation
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from toad.owner_preparation import ExistingOwnerPlan
 
@@ -233,10 +233,7 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        from toad.conversation_kind import DmConversation
-
-        root, name = conversation.transcript_scope()
-        return DmConversation(ThreadTarget(name)).prompt()
+        return DmConversation(conversation.transcript_scope().mailbox_target()).prompt()
 
     def input_ready(self, conversation: Conversation) -> bool:
         return conversation.transcript.readable
@@ -246,24 +243,15 @@ class MailboxSessionSources(OperationalSessionSources):
         self.external_transcript_changed(conversation)
 
     async def submit(self, owner, event):
-        from toad.conversation_kind import DmConversation
-
         view = owner.view
-        scope = view.transcript.binding.thread_scope
-        if scope is None:
-            view.delivery_refused("CLI transcript is not ready", event.body)
-            return
-        root, target = scope
 
         async def presented(sent):
             view.run_worker(view.input_histories.prompt.record(event.body), group="history")
             view.window.jump_to_latest()
             self.external_transcript_changed(view)
 
-        await view.submit_comms_message(
-            root, DmConversation(ThreadTarget(target)), event.body,
-            lambda: view.is_attached and view.transcript.binding.thread_scope == scope,
-            presented,
+        await view.transcript.binding.thread_scope.submit_mailbox(
+            view, event, DmConversation, presented,
         )
 
 

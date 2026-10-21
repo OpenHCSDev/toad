@@ -27,7 +27,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.session_details import SessionDetails
 from toad.transcript_preparation import PreparedPageSource
 from toad.core.events import CoreEventStream
-from toad.session_scope import SessionOrigin, SessionScope
+from toad.session_scope import NoTranscript, SessionOrigin, SessionScope, TranscriptScope
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
@@ -161,7 +161,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
     async def read_snapshot(self):
         return await self.read_past_history(
-            partial(self.binding.reader.updates, *self.thread_scope, self.owner.current_read))
+            partial(self.binding.reader.updates, self.thread_scope, self.owner.current_read))
 
     async def read_past_history(self, read, **whole):
         """What follows the mounted history's end while its source only grew, else the whole latest page."""
@@ -265,8 +265,8 @@ class SourcePublicationRequests:
             self.pending.append(publication)
         view = publication.binding.view
         self.observation.close()
-        self.observation.enter_context(view.app.coordination_access.observe_thread_changes(
-            view, publication.thread_scope, self.resume))
+        self.observation.enter_context(publication.thread_scope.observe(
+            view, view.app.coordination_access, self.resume))
 
     def resume(self, _event=None) -> bool:
         """Resume kept work only at an existing source/preparation signal."""
@@ -302,7 +302,7 @@ class CommitPublication(CanonicalSourcePublication):
 
     async def read_snapshot(self):
         # Mounted history grows by what follows its end; without one the window needs a whole page.
-        return await self.read_past_history(partial(self.binding.reader.snapshot, *self.thread_scope))
+        return await self.read_past_history(partial(self.binding.reader.snapshot, self.thread_scope))
 
     def current(self) -> bool:
         return super().current() and self.plan.current(self.binding.window)
@@ -384,8 +384,8 @@ class ViewBinding:
         return view.transcript_binding()
 
     @property
-    def thread_scope(self):
-        return None
+    def thread_scope(self) -> TranscriptScope:
+        return NoTranscript()
 
     reports_coverage = False
 
@@ -483,9 +483,9 @@ class BoundView(ViewBinding):
         return self
 
     @property
-    def thread_scope(self):
+    def thread_scope(self) -> TranscriptScope:
         view = self.view
-        return view.transcript_scope() if view.is_attached else None
+        return view.transcript_scope() if view.is_attached else NoTranscript()
 
     @property
     def reader(self):
@@ -505,11 +505,9 @@ class BoundView(ViewBinding):
         return history
 
     def observe_thread(self, owner):
-        scope = self.thread_scope
-        if scope is not None:
-            view = self.view
-            owner._thread_observation.enter_context(
-                view.app.coordination_access.observe_thread_changes(view, scope, view.thread_observed))
+        view = self.view
+        owner._thread_observation.enter_context(
+            self.thread_scope.observe(view, view.app.coordination_access, view.thread_observed))
 
     @property
     def reports_coverage(self):
@@ -667,14 +665,14 @@ class TranscriptPresentation:
 
     @property
     def readable(self) -> bool:
-        return self.binding.thread_scope is not None
+        return self.binding.thread_scope.readable
 
     async def get_transcript_page(self, *, before=None, after=None, through=None) -> TranscriptPage:
         frame = self.binding.capture(self, BoundFrame)
         scope = self.binding.thread_scope
-        if frame is None or scope is None:
+        if frame is None:
             raise ValueError("Transcript paging requires a bound thread")
-        page = await frame.binding.reader.page(*scope, before=before, after=after, through=through)
+        page = await frame.binding.reader.page(scope, before=before, after=after, through=through)
         if self.binding.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page

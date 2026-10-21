@@ -227,9 +227,7 @@ class WaitingSourceWork:
         from toad.widgets.conversation import Conversation
 
         scope = self.owner.query_ancestor(Conversation).transcript.binding.thread_scope
-        with self.owner.app.coordination_access.observe_thread_changes(
-            self.owner, scope, self.resume
-        ):
+        with scope.observe(self.owner, self.owner.app.coordination_access, self.resume):
             yield self
 
     def resume(self, _event) -> None:

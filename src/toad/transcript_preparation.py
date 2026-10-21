@@ -9,6 +9,7 @@ from itertools import islice
 from dataclasses import dataclass, field, replace
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ReferenceType, ref
+from toad.status_thread import NoStatusThread
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, UnreadTranscriptCursor
 from agent_comms.transcript_events import TranscriptEvent
@@ -560,8 +561,6 @@ class ClosedHistory(PreparedPageSource):
         return False
 
     def status_thread(self, access):
-        from toad.widgets.observed_thread_activity import NoStatusThread
-
         return NoStatusThread()
 
     def command_context(self, view):

@@ -35,7 +35,6 @@ from agent_comms.ui_model.observation import (
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
-from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.resource_release import ResourceRelease
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
@@ -454,15 +453,6 @@ class CoordinationAccess(MroDispatch):
             SETTINGS.sidebar.show_stopped.bind(state).value,
             SETTINGS.sidebar.show_archived.bind(state).value,
         )
-
-    def observe_thread_changes(self, view, scope: tuple[str, str], resume) -> ResourceRelease:
-        """Hold the shared model while this native read waits for its own thread."""
-        release = ResourceRelease()
-
-        release.callback(view.retire_core, view.observe_core_callback(
-            self.events, ThreadRowsChanged, resume,
-            factory=partial(ThreadCallbackSubscription, scope=scope)))
-        return release
 
     def update_sidebar_interest(self) -> None:
         wanted = self.sidebar_request() if self.sidebar_views or self.reference_views or self.sidebar_waiters else None

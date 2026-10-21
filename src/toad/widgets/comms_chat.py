@@ -33,10 +33,10 @@ from toad.widgets.conversation import (
     CursorContainer,
     Window,
 )
-from toad.widgets.observed_thread_activity import StatusThread
+from toad.status_thread import StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.session_scope import SessionScope
+from toad.session_scope import NoTranscript, SessionScope
 from toad.command_catalog import CommandCatalog
 
 
@@ -198,9 +198,9 @@ class CommsChatView(Conversation):
         """Keep the inherited agent reactive from turning this into a shell session."""
         self.agent_info = Content(self.conversation.label())
 
-    def transcript_scope(self) -> None:
+    def transcript_scope(self) -> NoTranscript:
         """DM/channel history belongs to WireHistory, not a native transcript."""
-        return None
+        return NoTranscript()
 
     def status_thread(self) -> StatusThread:
         """Peer status does not grant access to the peer's full transcript."""

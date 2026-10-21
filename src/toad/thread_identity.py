@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from toad.format_path import format_path
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
+from toad.session_scope import KnownTranscript, NoTranscript, TranscriptScope
 from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
@@ -35,8 +36,8 @@ class SessionIdentity(ABC):
     def wire_root(self) -> str | None:
         return None
 
-    def transcript_scope(self) -> tuple[str, str] | None:
-        return None
+    def transcript_scope(self) -> TranscriptScope:
+        return NoTranscript()
 
     def transcript_state(self):
         return UnboundTranscript()
@@ -137,8 +138,8 @@ class ThreadIdentity(NamedThreadIdentity):
     def wire_root(self) -> str:
         return self.root
 
-    def transcript_scope(self) -> tuple[str, str]:
-        return self.root, self.thread_name()
+    def transcript_scope(self) -> KnownTranscript:
+        return KnownTranscript(self.root, self.thread_name())
 
     def transcript_state(self):
         return UnreadTranscript()

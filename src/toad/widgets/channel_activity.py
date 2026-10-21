@@ -6,7 +6,7 @@ from textual.content import Content
 from textual.containers import VerticalGroup
 
 from toad.session_scope import SessionScope
-from toad.widgets.observed_thread_activity import StatusThread
+from toad.status_thread import StatusThread
 from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
 
 

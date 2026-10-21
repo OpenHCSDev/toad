@@ -7,13 +7,13 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.launch_root import LaunchRoot
 from support.agents import peer
 
-from toad.session_scope import NoSessionOrigin, SessionScope
+from toad.session_scope import NoSessionOrigin, NoTranscript, SessionScope
 
 
 async def test_scope_import_and_real_conversation_ancestor(workspace):
     assert "toad.screens.session_view" not in sys.modules
     unavailable = NoSessionOrigin("closed-test-view")
-    assert unavailable.transcript_scope() is None
+    assert unavailable.transcript_scope() == NoTranscript()
     assert not unavailable.has_agent()
     with pytest.raises(RelationViolationError, match="closed-test-view"):
         unavailable.resolve_thread()

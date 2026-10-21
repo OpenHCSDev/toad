@@ -18,9 +18,11 @@ from contextlib import asynccontextmanager
 from agent_comms.route_selection import RouteSelection
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.ui_model.observation import (
-    AwaitedRead, ReadTranscript, ReadTranscriptUpdate, RefreshTranscript,
+    AwaitedRead, RefreshTranscript,
     TranscriptPublicationState,
 )
+
+from toad.session_scope import TranscriptScope
 
 
 class CoordinationTranscriptReader:
@@ -54,19 +56,18 @@ class CoordinationTranscriptReader:
         current = await self.read(RefreshTranscript(identity.root, identity))
         return update if current is None else current
 
-    async def page(self, root, thread, *, before=None, after=None, through=None,
+    async def page(self, scope: TranscriptScope, *, before=None, after=None, through=None,
                    historical_source: str | None = None):
-        snapshot = await self.snapshot(root, thread, before=before, after=after, through=through,
+        snapshot = await self.snapshot(scope, before=before, after=after, through=through,
                                        historical_source=historical_source)
         return snapshot.page
 
-    async def snapshot(self, root, thread, *, before=None, after=None, through=None,
+    async def snapshot(self, scope: TranscriptScope, *, before=None, after=None, through=None,
                        historical_source: str | None = None) -> TranscriptSnapshotUpdate:
-        return await self.read(ReadTranscript(
-            root, thread, before=before, after=after, through=through,
-            historical_source=historical_source))
+        return await self.read(scope.snapshot_request(
+            before=before, after=after, through=through, historical_source=historical_source))
 
     async def updates(
-        self, root: str, thread: str, previous: TranscriptPublicationState, *, after=None,
+        self, scope: TranscriptScope, previous: TranscriptPublicationState, *, after=None,
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
-        return await self.read(ReadTranscriptUpdate(root, thread, after=after, previous=previous))
+        return await self.read(scope.update_request(previous, after=after))
