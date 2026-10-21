@@ -11,7 +11,7 @@ from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Any, Callable
 
 from acp import schema as acp_protocol
-from agent_comms.goal_presentation import IdleGoalExecution, ThreadGoalExecution
+from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
@@ -522,7 +522,7 @@ class ConversationSessionBinding(
 
     goal_display: var[GoalDisplay] = var(NoGoal())
 
-    goal_execution: var[ThreadGoalExecution] = var(IdleGoalExecution())
+    goal_execution: var[GoalExecution] = var(IdleGoalExecution())
 
     title = var("")
 
