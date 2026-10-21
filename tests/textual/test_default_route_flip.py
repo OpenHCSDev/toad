@@ -4,7 +4,7 @@ import asyncio
 import threading
 from unittest.mock import patch
 
-from agent_comms.errors import HumanInitialUnknownError
+from agent_comms.errors import HumanClaimBlockedError
 from agent_comms.route_selection import root_is_current
 
 from support.routes import private_root, publish_route, select_root_by_default_route
@@ -106,14 +106,14 @@ async def test_a_fresh_connection_after_a_flip_paints_only_the_newly_published_w
             assert not view._send_block_reason
         view.prompt.text = ""
 
-        # An uncertain private send retains text for inspection and disables compose.
-        error = HumanInitialUnknownError(second_id, 17, "opaque-unknown-id")
+        # A send Core refuses to retry retains text for inspection and disables compose.
+        error = HumanClaimBlockedError("prior reservation cannot be retried")
         with patch.object(view.message_history.source.comms.messaging, "send_user_message",
                           side_effect=error) as sender:
-            event = input_events.UserInputSubmitted("UNCERTAIN-NO-RETRY")
+            event = input_events.UserInputSubmitted("BLOCKED-NO-RETRY")
             await view.submit_input(event)
             assert sender.call_count == 1
-            assert view._unknown_send == (second_id, 17, "opaque-unknown-id")
+            assert view.send_block_reason == "Send blocked: prior reservation cannot be retried"
             assert view.prompt.text == event.body
             assert view.prompt.prompt_text_area.disabled
             await view.submit_input(event)
