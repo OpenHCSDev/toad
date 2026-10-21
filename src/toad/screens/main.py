@@ -304,7 +304,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     @classmethod
     def opening(cls, request, origin, app) -> "MainScreen":
         # The request has only a name; bind the wire after its metadata read.
-        screen = cls(request.project, origin.source._agent or app.agent_data,
+        screen = cls(request.project, origin.source.agent_for_opening(app.agent_data),
                      agent_session_id=request.target)
         screen.content = NavigatedOpeningContent()
         return screen
@@ -345,6 +345,13 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     @property
     def session_disposition(self) -> SessionDisposition:
         return self.presentation.operational_binding.session_disposition
+
+    def make_conversation(self) -> Conversation:
+        return Conversation(
+            self.project_path, self._agent, self._agent_session_id,
+            self._session_pk, self.app.session_tracker.sessions[self.id].initial_title,
+            initial_prompt=self._initial_prompt, transcript=self.presentation.transcript,
+        )
 
     @property
     def agent_session_id(self) -> str | None:

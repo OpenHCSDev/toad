@@ -94,7 +94,7 @@ class ExternalThreadNavigation(ThreadNavigation):
     def bind(self, screen) -> None:
         from toad.session_presentation import MailboxSessionSources
 
-        screen._agent = None
+        screen.use_mailbox()
         screen.presentation.sources = MailboxSessionSources()
 
 

@@ -7,7 +7,7 @@ from textual.containers import Container
 from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import WELCOME
-from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
+from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope, ViewSessionOrigin
 from toad.navigation_target import NavigationTarget, NoTarget
 
 if TYPE_CHECKING:
@@ -144,6 +144,12 @@ class WorkspaceSessions:
         self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: welcome_view}
         self.views: dict[str, SessionScope] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
+
+    @property
+    def native_origins(self) -> dict[str, ViewSessionOrigin]:
+        """Derive actual native membership from the existing mounted-view owner."""
+        return {identity: view for identity, view in self.views.items()
+                if isinstance(view, ViewSessionOrigin)}
 
     def require(self, identity: str) -> "SessionScope":
         return self.views[identity]

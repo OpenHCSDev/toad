@@ -121,14 +121,6 @@ class OperationalSessionSources:
     def agent_info(self, conversation: Conversation) -> str:
         return "shell"
 
-    def make_conversation(self, screen: "MainScreen") -> Conversation:
-        return Conversation(
-            screen.project_path, screen._agent, screen._agent_session_id,
-            screen._session_pk, screen.app.session_tracker.sessions[screen.id].initial_title,
-            initial_prompt=screen._initial_prompt,
-            transcript=screen.presentation.transcript,
-        )
-
     def external_transcript_changed(self, conversation: Conversation) -> None:
         """Core publishes native and CLI drafts through the same transcript store."""
         from toad.transcript_publication import CanonicalSourcePublication
@@ -192,10 +184,10 @@ class OperationalSessionSources:
     def attach_started(self, screen: "MainScreen", plan) -> None:
         """An explicit Start action may attach the same retained view to its new owner."""
         self.load_plan = plan
-        screen._agent = screen._agent or screen.app.agent_data
+        agent = screen.attach_agent_definition()
         conversation = screen.presentation.widget
         if conversation is not None:
-            conversation._agent_data = screen._agent
+            conversation._agent_data = agent
             if screen.is_current:
                 conversation.start_native_session()
 
@@ -330,7 +322,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             content = slot.parent
             assert isinstance(content, Widget)
             with screen._context():
-                conversation = self.sources.make_conversation(screen)
+                conversation = screen.make_conversation()
             self.widget = conversation
             screen._initial_prompt = None
         if not returning:

@@ -61,9 +61,6 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
         """How this entry's own session changes a thread's row; most entries hold none."""
         return row
 
-    def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
-        return False
-
     def depends_on(self, mode: str) -> bool:
         return self.mode == mode
 
@@ -107,7 +104,7 @@ class NativeSessionEntry(SessionEntry):
 
     def __call__(self) -> MainScreen:
         source = self.factory()
-        self.details.bind_initial_identity(source._agent_session_id)
+        self.details.bind_initial_identity(source.agent_session_id)
         return source
 
     @property
@@ -142,19 +139,6 @@ class NativeSessionEntry(SessionEntry):
         if plan is None:
             return
         await source.presentation.operational_binding.reconnect_session(source, plan)
-
-    def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
-        source = self.source(sessions)
-        if source is None or not source.has_agent():
-            return False
-        if source._agent.identity != agent_identity:
-            return False
-        live = source.conversation.agent_binding
-        if session_id == source._agent_session_id or live.matches_session(session_id):
-            return True
-        root = source.coordination_root
-        return root is not None and sessions.app.coordination_access.require(
-            RouteSelection.capture(root)).service.registry.canonical_name(session_id) == source.resolve_thread()
 
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.mode, self.details.name.display or "New Session")

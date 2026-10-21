@@ -21,6 +21,8 @@ async def test_starting_opens_no_tab_and_starts_no_agent(workspace):
     async with workspace.app(session=False, agent=peer("echo")) as ui:
         await ui.until_shows(THREADS)
         assert ui.tabs() == ()
+        app, _ = ui.textual
+        assert app.workspace_sessions.native_origins == {}
         assert ui.shows(HINT) and ui.shows(CHANNELS)
         assert not workspace.child_processes("echo.py"), "starting Toad started its agent"
         assert not workspace.received()

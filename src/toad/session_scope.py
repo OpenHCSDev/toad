@@ -134,13 +134,10 @@ class SessionOrigin:
     def transcript_scope(self) -> TranscriptScope: ...
 
     @abstractmethod
-    def has_agent(self) -> bool: ...
-
-    @abstractmethod
     def resolve_thread(self) -> str: ...
 
     @abstractmethod
-    def require(self) -> ViewSessionOrigin: ...
+    def require(self) -> ProjectSessionOrigin: ...
 
 
 class NoSessionOrigin(SessionOrigin):
@@ -149,9 +146,6 @@ class NoSessionOrigin(SessionOrigin):
 
     def transcript_scope(self) -> NoTranscript:
         return NoTranscript()
-
-    def has_agent(self) -> bool:
-        return False
 
     def require(self) -> Never:
         raise RelationViolationError(f"View {self.view!r} has no session origin")
@@ -218,10 +212,8 @@ class SessionScope(NavigationOwner, ProjectPathOwner, DOMNode):
     def remove(self) -> Awaitable[None]: ...
 
 
-class ViewSessionOrigin(SessionOrigin, SessionScope):
-    """The existing operational agent/project origin shared by real views."""
-
-    _agent: AgentDefinition | None
+class ProjectSessionOrigin(SessionOrigin, SessionScope):
+    """A project source may navigate and resolve threads without an ACP session."""
 
     @property
     def origin(self) -> SessionOrigin:
@@ -230,7 +222,7 @@ class ViewSessionOrigin(SessionOrigin, SessionScope):
     def transcript_scope(self) -> TranscriptScope:
         return self.thread_identity.transcript_scope()
 
-    def require(self) -> ViewSessionOrigin:
+    def require(self) -> ProjectSessionOrigin:
         return self
 
     def resolve_thread(self) -> str:
@@ -239,5 +231,32 @@ class ViewSessionOrigin(SessionOrigin, SessionScope):
         service = self.app.coordination_access.require(selected).service
         return identity.resolve_thread(service.registry, self.project_root)
 
-    def has_agent(self) -> bool:
-        return self._agent is not None
+    def agent_for_opening(self, default: AgentDefinition | None) -> AgentDefinition | None:
+        return default
+
+
+class ViewSessionOrigin(ProjectSessionOrigin):
+    """Only actual native-session views own agent/session launch matching."""
+
+    _agent: AgentDefinition | None
+    _agent_session_id: str | None
+
+    def agent_for_opening(self, default: AgentDefinition | None) -> AgentDefinition | None:
+        return self._agent or default
+
+    def attach_agent_definition(self) -> AgentDefinition | None:
+        self._agent = self._agent or self.app.agent_data
+        return self._agent
+
+    def use_mailbox(self) -> None:
+        self._agent = None
+
+    def matches_launch(self, agent_identity: str, session_id: str) -> bool:
+        if self._agent is None or self._agent.identity != agent_identity:
+            return False
+        live = self.presentation.operational_binding
+        if session_id == self._agent_session_id or live.matches_session(session_id):
+            return True
+        root = self.coordination_root
+        return root is not None and self.app.coordination_access.require(
+            RouteSelection.capture(root)).service.registry.canonical_name(session_id) == self.resolve_thread()

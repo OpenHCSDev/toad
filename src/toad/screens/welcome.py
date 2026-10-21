@@ -24,7 +24,7 @@ from toad.navigation_context import NavigationContext
 from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionView
-from toad.session_scope import ViewSessionOrigin
+from toad.session_scope import ProjectSessionOrigin
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import RowReconciliation, SidebarChange, SidebarGroup, SidebarModelView, TargetTree
@@ -168,7 +168,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         self.present()
 
 
-class WelcomeScreen(ViewSessionOrigin, SessionView, can_focus=False):
+class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
 
     BINDINGS = [
@@ -189,11 +189,11 @@ class WelcomeScreen(ViewSessionOrigin, SessionView, can_focus=False):
     def __init__(self) -> None:
         super().__init__()
         app = cast("ToadApp", self.app)
-        self._agent = app.agent_data
         self.project_path = app.project_dir
 
     def compose(self) -> ComposeResult:
-        agent = f"{self._agent.name} · " if self._agent is not None else ""
+        selected = self.app.agent_data
+        agent = f"{selected.name} · " if selected is not None else ""
         with VerticalScroll(can_focus=False):
             yield WelcomeTitle()
             yield Static(f"{agent}{format_path(self.project_path)}", classes="subtitle", markup=False)

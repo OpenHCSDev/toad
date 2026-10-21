@@ -12,19 +12,19 @@ from toad.navigation_preparation import OpenThread, ThreadNavigationRequest, Thr
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.main import MainScreen
-    from toad.session_scope import ViewSessionOrigin
+    from toad.session_scope import ProjectSessionOrigin
     from toad.navigation_preparation import ThreadNavigation
 
 
 @dataclass(frozen=True)
 class ThreadOrigin:
-    source: ViewSessionOrigin
+    source: ProjectSessionOrigin
     selected_mode: str
     root: str | None
     identity: str
 
     @classmethod
-    def capture(cls, app: ToadApp, source: ViewSessionOrigin) -> ThreadOrigin:
+    def capture(cls, app: ToadApp, source: ProjectSessionOrigin) -> ThreadOrigin:
         return cls(source, app.selected_mode, source.coordination_root, source.thread_identity.thread_name())
 
     def current(self, navigator: ThreadNavigator, owner_mode: str) -> bool:

@@ -171,10 +171,10 @@ class SessionNavigation:
                 return
         project = project_path if project_path is not None else app.project_dir
         if agent_session_id is not None:
-            existing = next((entry for entry in self.members
-                             if entry.accepts_launch(self, agent_identity, agent_session_id)), None)
+            existing = next((identity for identity, origin in app.workspace_sessions.native_origins.items()
+                             if origin.matches_launch(agent_identity, agent_session_id)), None)
             if existing is not None:
-                await app.select_session(existing.mode)
+                await app.select_session(existing)
                 return
         await self.new(lambda: MainScreen(project, agent, agent_session_id,
             session_pk=session_pk, initial_prompt=initial_prompt),
