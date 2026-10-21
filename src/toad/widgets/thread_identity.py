@@ -4,8 +4,8 @@ from textual.widget import Widget
 
 from toad.core.events import ThreadIdentityChanged
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
-from toad.thread_identity import SessionIdentity
 from toad.session_scope import SessionScope
+from toad.thread_identity import SessionIdentity
 
 
 class ShowsThreadIdentity(CoreEventReceiver, Widget):

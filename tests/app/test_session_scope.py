@@ -1,12 +1,16 @@
 """Session consumers discover the existing mounted owner without a screen cycle."""
+
 import sys
 
-from toad.session_scope import SessionScope
+from agent_comms.launch_root import LaunchRoot
 from support.agents import peer
+
+from toad.session_scope import SessionScope
 
 
 async def test_scope_import_and_real_conversation_ancestor(workspace):
     assert "toad.screens.session_view" not in sys.modules
+    LaunchRoot.from_path(workspace.roots.wire).install()
     async with workspace.app(agent=peer("echo")) as ui:
         app, _pilot = ui.textual
         first = ui.selected_tab

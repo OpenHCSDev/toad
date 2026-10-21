@@ -1,9 +1,9 @@
-"""The session contract consumed by descendants and workspace owners.
+"""The session capability consumed by descendants and workspace owners.
 
-Like ProjectPathOwner, this abstract capability has no ABC metaclass: Textual
-owns its widgets' metaclass. Native widget methods and data descriptors remain
-implemented by the view's existing parents, not by a forwarding wrapper.
+DOMNode owns native ancestry, queries and descriptors. SessionView supplies
+session behavior; the capability imports neither a widget nor a screen.
 """
+
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -12,47 +12,26 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.route_selection import RouteSelection
+from textual.dom import DOMNode
+
 from toad.project_path_owner import ProjectPathOwner
 
 if TYPE_CHECKING:
     from textual.command import Provider
-    from textual.dom import DOMNode
+
     from toad.agent_schema import AgentDefinition
+    from toad.app import ToadApp
     from toad.navigation_target import NavigationContext
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
 
 
-class SessionOrigin:
-    """The existing agent/project origin of sessions and histories."""
+class SessionScope(ProjectPathOwner, DOMNode):
+    """A logical session, without a dependency on its concrete widget."""
 
-    _agent: AgentDefinition | None
-
-    @property
-    def origin(self) -> SessionOrigin:
-        return self
-
-    def transcript_scope(self) -> tuple[str, str] | None:
-        return self.thread_identity.transcript_scope()
-
-    def resolve_thread(self) -> str:
-        identity = self.thread_identity
-        selected = RouteSelection.capture(identity.wire_root())
-        service = self.app.coordination_access.require(selected).service
-        return identity.resolve_thread(service.registry, self.project_path)
-
-    def has_agent(self) -> bool:
-        return self._agent is not None
-
-
-class SessionScope(ProjectPathOwner):
-    """What a mounted logical session answers, independently of its screen."""
-
-    # Existing native data descriptors and concrete-view state. An abstract
-    # property here would shadow their inherited setters or instance attributes.
-    id: str | None
-    display: bool
-    screen: DOMNode
+    # Concrete view state stays data: abstract properties would shadow inherited
+    # setters or instance attributes. Native descriptors come from DOMNode.
+    app: ToadApp
     COMMANDS: set[type[Provider]]
     AUTO_FOCUS: str
     shows_channels: bool
@@ -67,6 +46,10 @@ class SessionScope(ProjectPathOwner):
     @property
     @abstractmethod
     def display_name(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def navigation_target_name(self) -> str | None: ...
 
     @property
     @abstractmethod
@@ -101,9 +84,26 @@ class SessionScope(ProjectPathOwner):
     def close_core_events(self) -> None: ...
 
     @abstractmethod
-    def query_one_optional[Node](
-        self, selector: str | type[Node], expect_type: type[Node] | None = None,
-    ) -> Node | None: ...
-
-    @abstractmethod
     def remove(self) -> Awaitable[None]: ...
+
+
+class SessionOrigin(SessionScope):
+    """An operational view that supplies the origin of sessions and histories."""
+
+    _agent: AgentDefinition | None
+
+    @property
+    def origin(self) -> SessionOrigin:
+        return self
+
+    def transcript_scope(self) -> tuple[str, str] | None:
+        return self.thread_identity.transcript_scope()
+
+    def resolve_thread(self) -> str:
+        identity = self.thread_identity
+        selected = RouteSelection.capture(identity.wire_root())
+        service = self.app.coordination_access.require(selected).service
+        return identity.resolve_thread(service.registry, self.project_root)
+
+    def has_agent(self) -> bool:
+        return self._agent is not None
