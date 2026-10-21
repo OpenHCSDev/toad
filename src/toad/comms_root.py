@@ -204,10 +204,12 @@ class Observing(Observation):
         self.views_changed()
 
     def answer_reads(self):
-        # The closing views may still read and state interest; only reads are answered now.
         self.process.request(StopObserving())
         self.loop.remove_reader(self.process.fileno())
         self.loop.add_reader(self.process.fileno(), self.process.results)
+        self.access.observation = AnsweringReads(
+            self.selection, self.service, self.sidebar, self.process, self.loop,
+            access=self.access, subscriptions=self.subscriptions, updates=self.updates)
 
     def retire(self, access):
         self.loop.remove_reader(self.process.fileno())
@@ -255,6 +257,22 @@ class Observing(Observation):
 
     def observe_notifications(self, wanted):
         self.process.request(wanted)
+
+class AnsweringReads(Observing):
+    """Interests have ended; acquired reads keep their process and release owners."""
+
+    def views_changed(self, event=None, subscription=None):
+        pass
+
+    def thread_interest(self, access):
+        pass
+
+    def observe_sidebar(self, wanted):
+        pass
+
+    def observe_notifications(self, wanted):
+        pass
+
 
 class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
