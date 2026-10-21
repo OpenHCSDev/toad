@@ -2,7 +2,8 @@
 
 import pytest
 
-from toad.navigation_target import DirectTarget, NavigationContext, channel_target
+from toad.navigation_context import NavigationContext
+from toad.navigation_target import DirectTarget, channel_target
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs, Underline
 
 

@@ -2,7 +2,8 @@
 
 from agent_comms.launch_root import LaunchRoot
 from toad.conversation_kind import ChannelConversation, DmConversation
-from toad.navigation_target import DirectTarget, NavigationContext, channel_target
+from toad.navigation_context import NavigationContext
+from toad.navigation_target import DirectTarget, channel_target
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.observed_thread_activity import NoStatusThread

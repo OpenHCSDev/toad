@@ -6,7 +6,6 @@ from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.channel_targets import CommandTarget, ChannelTarget as CoreChannelTarget, ThreadTarget as CoreThreadTarget
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
@@ -14,29 +13,7 @@ from toad.constants import ALL_COMMS_TARGET
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-
-
-@dataclass(frozen=True)
-class NavigationContext:
-    app: ToadApp
-    owner_mode: str
-    project_path: Path
-    actor: str
-
-
-class NavigationOwner:
-    """Views supply context, targets supply behavior, App owns execution."""
-
-    @property
-    def navigation_context(self) -> NavigationContext:
-        raise NotImplementedError
-
-    def remember_direct_target(self, target: str) -> None:
-        """Optional view-local return-to-DM intent."""
-
-    async def open_sidebar_target(self, target: NavigationTarget) -> str:
-        target.selected(self)
-        return await target.open(self.navigation_context)
+    from toad.navigation_context import NavigationContext, NavigationOwner
 
 
 @dataclass(frozen=True)

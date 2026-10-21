@@ -5,7 +5,8 @@ import threading
 from unittest.mock import patch
 
 from toad.navigation_preparation import CommsNavigationRequest, ThreadNavigationRequest
-from toad.navigation_target import NavigationContext, ThreadTarget, channel_target
+from toad.navigation_context import NavigationContext
+from toad.navigation_target import ThreadTarget, channel_target
 
 
 class Gate:

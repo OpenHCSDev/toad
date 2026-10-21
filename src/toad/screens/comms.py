@@ -11,7 +11,6 @@ from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
-from textual.widget import Widget
 from textual.worker import WorkerCancelled
 from textual.widgets import Static
 
@@ -24,13 +23,13 @@ from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar
-from toad.navigation_target import NavigationContext, NavigationOwner
+from toad.navigation_context import NavigationContext
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
-class CommsScreen(SessionView, NavigationOwner, can_focus=False):
+class CommsScreen(SessionView, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"

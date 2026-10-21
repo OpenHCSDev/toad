@@ -36,7 +36,7 @@ from toad import messages
 from toad.acp.agent_session import SessionDisposition
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
-from toad.navigation_target import NavigationContext, NavigationOwner
+from toad.navigation_context import NavigationContext
 from toad.screens.session_view import SessionView
 from toad.session_scope import ViewSessionOrigin
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
@@ -190,7 +190,7 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(ViewSessionOrigin, SessionView, NavigationOwner, can_focus=False):
+class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"

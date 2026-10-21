@@ -3,7 +3,8 @@
 from agent_comms.pi_vocabulary import HighThinkingLevel
 
 from support.native import native_session
-from toad.navigation_target import NavigationContext, channel_target
+from toad.navigation_context import NavigationContext
+from toad.navigation_target import channel_target
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.prompt import AgentInfo, QueueSummary
 from toad.widgets.transcript_history import TranscriptHistory

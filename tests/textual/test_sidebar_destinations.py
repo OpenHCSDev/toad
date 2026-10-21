@@ -6,7 +6,8 @@ from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.screen import Screen
 
-from toad.navigation_target import NavigationContext, NavigationOwner, NavigationTarget
+from toad.navigation_context import NavigationContext, NavigationOwner
+from toad.navigation_target import NavigationTarget
 from toad.textual_colours import ThemedApp
 from toad.widgets.comms_sidebar import CommsRow
 

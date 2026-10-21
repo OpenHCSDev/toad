@@ -8,7 +8,8 @@ from contextlib import asynccontextmanager
 from agent_comms.input_disposition import InputDispositions
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
-from toad.navigation_target import DirectTarget, NavigationContext, channel_target
+from toad.navigation_context import NavigationContext
+from toad.navigation_target import DirectTarget, channel_target
 from toad.widgets.comms_chat import CommsChatView
 from toad.notification_status import NotificationStatus
 

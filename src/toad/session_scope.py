@@ -11,6 +11,7 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
 from textual.dom import DOMNode
 
+from toad.navigation_context import NavigationOwner
 from toad.project_path_owner import ProjectPathOwner
 
 if TYPE_CHECKING:
@@ -18,7 +19,6 @@ if TYPE_CHECKING:
 
     from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
-    from toad.navigation_target import NavigationContext
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
 
@@ -56,7 +56,7 @@ class NoSessionOrigin(SessionOrigin):
         self.require()
 
 
-class SessionScope(ProjectPathOwner, DOMNode):
+class SessionScope(NavigationOwner, ProjectPathOwner, DOMNode):
     """The session answers read by ancestors and workspace owners."""
 
     app: ToadApp
@@ -65,7 +65,6 @@ class SessionScope(ProjectPathOwner, DOMNode):
     shows_channels = True
     footer_compact = False
     presentation: OperationalSessionPresentation
-    navigation_context: NavigationContext
 
     @property
     @abstractmethod

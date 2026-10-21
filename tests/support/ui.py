@@ -15,6 +15,7 @@ import inspect
 from typing import TYPE_CHECKING
 
 from support.agents import AppAgents
+from toad.navigation_context import NavigationContext
 
 if TYPE_CHECKING:
     from textual.pilot import Pilot
@@ -295,7 +296,7 @@ class TextualUi(AppAgents, Ui):
         return details.mode_name
 
     async def open_channel(self, target: str, *, actor: str, owner: str | None = None) -> str:
-        from toad.navigation_target import NavigationContext, channel_target
+        from toad.navigation_target import channel_target
 
         context = NavigationContext(self.app, owner or self.selected_tab, self.app.project_dir, actor)
         identity = await channel_target(target).open(context)
@@ -303,7 +304,7 @@ class TextualUi(AppAgents, Ui):
         return identity
 
     async def open_direct(self, thread: str, *, actor: str, owner: str | None = None) -> str:
-        from toad.navigation_target import DirectTarget, NavigationContext
+        from toad.navigation_target import DirectTarget
 
         context = NavigationContext(self.app, owner or self.selected_tab, self.app.project_dir, actor)
         identity = await DirectTarget(thread).open(context)
