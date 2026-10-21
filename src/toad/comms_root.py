@@ -94,6 +94,10 @@ class Observation:
         self.access.app.running_loop.call_soon_threadsafe(failed.attach, self.access, self)
         return failed
 
+    def stop_updates(self) -> Observation:
+        self.updates.close()
+        return self
+
     def attach(self, access, previous):
         previous.subscriptions.close()
         if not self.is_current():
@@ -207,7 +211,10 @@ class Observing(Observation):
         self.process.request(StopObserving())
         self.loop.remove_reader(self.process.fileno())
         self.loop.add_reader(self.process.fileno(), self.process.results)
-        self.access.observation = AnsweringReads(
+
+    def stop_updates(self) -> AnsweringReads:
+        super().stop_updates()
+        return AnsweringReads(
             self.selection, self.service, self.sidebar, self.process, self.loop,
             access=self.access, subscriptions=self.subscriptions, updates=self.updates)
 
@@ -260,6 +267,9 @@ class Observing(Observation):
 
 class AnsweringReads(Observing):
     """Interests have ended; acquired reads keep their process and release owners."""
+
+    def stop_updates(self) -> AnsweringReads:
+        return self
 
     def views_changed(self, event=None, subscription=None):
         pass
@@ -518,7 +528,7 @@ class CoordinationAccess(MroDispatch):
             self.route_task = None
         self.events.close_threads()
         self.app.workers.cancel_group(self.app, "thread-interest")
-        self.observation.updates.close()
+        self.observation = self.observation.stop_updates()
 
     async def close(self) -> None:
         """Retire the observation once the views it served have closed."""

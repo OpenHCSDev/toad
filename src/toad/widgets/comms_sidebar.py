@@ -15,7 +15,7 @@ from __future__ import annotations
 from toad.core_event_carrier import CoreEventMessage
 
 import shlex
-from agent_comms.native_arguments import NativeArguments
+from agent_comms.native_arguments import ConfiguredBinary, InheritedArguments
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -337,7 +337,7 @@ class CoordinationStatus(ShowsThreadIdentity, SidebarPanelWidget, Static):
 
     def identity_changed(self, identity: SessionIdentity) -> None:
         root = identity.display_root()
-        backend = NativeArguments.configured_binary()
+        backend = ConfiguredBinary().configured()
         self.update(
             Content.assemble(
                 "Wire: ",
@@ -347,7 +347,7 @@ class CoordinationStatus(ShowsThreadIdentity, SidebarPanelWidget, Static):
                 f"\nACP/session · {Path(backend).name}",
             )
         )
-        args = shlex.join(NativeArguments.configured().argv)
+        args = shlex.join(InheritedArguments().configured().argv)
         self.tooltip = (
             "Coordination state persists in the shared wire; the stdio ACP transport "
             "is scoped to this Toad session.\n\n"

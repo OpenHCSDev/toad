@@ -1,7 +1,7 @@
 import os
 import shlex
 
-from agent_comms.native_arguments import NativeArguments
+from agent_comms.native_arguments import ConfiguredBinary, InheritedArguments
 from importlib.metadata import version
 import platform
 from string import Template
@@ -92,8 +92,8 @@ def render(app: ToadApp) -> str:
     service = app.coordination_access.observation.observed().service
     template_data = {
         "COLORTERM": os.environ.get("COLORTERM", ""),
-        "COMMS_AGENT_ARGS": shlex.join(NativeArguments.configured().argv),
-        "COMMS_AGENT_BIN": NativeArguments.configured_binary(),
+        "COMMS_AGENT_ARGS": shlex.join(InheritedArguments().configured().argv),
+        "COMMS_AGENT_BIN": ConfiguredBinary().configured(),
         "COMMS_ROOT": str(service.root),
         "CONFIG": config,
         "DATA_PATH": paths.get_data(),
