@@ -37,6 +37,10 @@ class SessionIdentity(ABC):
     def transcript_scope(self) -> tuple[str, str] | None:
         return None
 
+    def transcript_state(self):
+        from toad.transcript_state import UnboundTranscript
+        return UnboundTranscript()
+
     @abstractmethod
     def display_thread(self) -> str: ...
 
@@ -135,6 +139,10 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def transcript_scope(self) -> tuple[str, str]:
         return self.root, self.thread_name()
+
+    def transcript_state(self):
+        from toad.transcript_state import UnreadTranscript
+        return UnreadTranscript()
 
     def display_root(self) -> str:
         return format_path(self.root_path())
