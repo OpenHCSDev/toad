@@ -2,6 +2,7 @@
 
 import pytest
 from agent_comms.bus_route_counts import RouteIndexRebuilding
+from agent_comms.comms import Comms
 from agent_comms.coordination_errors import CoordinationReadUnavailable
 from agent_comms.ui_model.observation import ReadDeferred, ReadPreparing
 from agent_comms.ui_model.status import ThreadStatusModel
@@ -50,3 +51,23 @@ async def test_deferred_foreign_read_keeps_the_previous_status_row(workspace, re
         surface.thread_activity.show(previous)
         source.present_read(surface, read)
         assert surface.thread_activity.row is previous
+
+
+async def test_foreign_read_presents_the_real_stored_thread(workspace):
+    foreign = Comms(
+        workspace.roots.attempt / "foreign-wire", private_initial_writes=True
+    )
+    foreign.registry.declare(
+        foreign.registry.new_thread(
+            "peer", frozenset(), str(workspace.project), created_at=10.0
+        )
+    )
+    async with workspace.app() as ui:
+        app, _ = ui.textual
+        source = ForeignStatusThread(foreign.root, "peer")
+        surface = ForeignStatusSurface(source)
+        await app.selected_session.mount(surface)
+        await source.read_foreign_thread(surface)
+        assert surface.thread_activity.row == ThreadStatusModel.known(
+            "peer", foreign.views.thread_presentations(("peer",)).read("peer")
+        )
