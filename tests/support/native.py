@@ -9,20 +9,23 @@ from __future__ import annotations
 from toad.session_scope import AgentAttached
 
 import asyncio
-from collections.abc import Callable
-from contextlib import asynccontextmanager, contextmanager
-from dataclasses import dataclass, field
-from functools import partial
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
-from pathlib import Path
 import shlex
 import sys
 import threading
+from collections.abc import Callable
+from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
+from dataclasses import dataclass, field
+from functools import partial
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+from agent_comms.pi_vocabulary import OffThinkingLevel
+from agent_comms.thread_model import DeclaredModel
 
 PROVIDER = "selected-offline"
-MODEL = f"{PROVIDER}/fixture"
+MODEL = DeclaredModel(f"{PROVIDER}/fixture")
 KEY = "offline-only-fixture"
 
 
@@ -174,10 +177,11 @@ class ControlledProvider:
 def start_private_native_wire(root: Path):
     """Create a private root; Core derives its root identity and reviewed package."""
     from agent_comms.comms import Comms
+    from agent_comms.launch_root import LaunchRoot
 
     comms = Comms(root)
     comms.messaging.initialize_private_initial_protocol()
-    os.environ["AGENT_COMMS_ROOT"] = str(comms.root)
+    LaunchRoot.from_path(comms.root).install()
     for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
         os.environ.pop(key, None)
     return comms
@@ -198,7 +202,7 @@ def configure_provider(base_url: str, *, settings: dict | None = None) -> None:
     os.environ.update(
         AGENT_COMMS_AGENT_BIN="pi",
         AGENT_COMMS_AGENT_ARGS=f"--provider {PROVIDER} --model fixture --no-extensions --no-skills --no-context-files",
-        AGENT_COMMS_AGENT_MODELS=MODEL,
+        AGENT_COMMS_AGENT_MODELS=MODEL.text,
     )
 
 
@@ -206,10 +210,11 @@ def comms_agent():
     """The agent definition for Core's own ACP server (``python -m agent_comms.acp``)."""
     from toad.agent_schema import AgentDefinition
 
-    return AgentDefinition.decode({
-        "name": "Native fixture", "identity": "native-fixture", "short_name": "native", "protocol": "acp",
-        "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
-    })
+    return AgentDefinition(
+        identity="native-fixture", name="Native fixture", short_name="native",
+        run_command={"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
+        accepts_comms_root=True,
+    )
 
 
 @dataclass
@@ -233,24 +238,27 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
                        application: type | None = None, attached: bool = True, project: Path | None = None):
     """Start Toad on declared thread `thread` through Core's ACP server; yields (ui, agent) once
     the session has settled. Stops the agent and every owner on the wire afterwards."""
+    from toad.acp.agent import Agent
     from toad.app import ToadApp
 
-    agent = None
     started = partial(application or ToadApp, agent_session_id=thread)
     if project is not None:
         started = partial(started, project_dir=str(project))
     try:
-        async with workspace.app(size=size, binding=AgentAttached(comms_agent()), application=_first_wins(started)) as ui:
-            await ui.until(lambda: ui.conversation.agent is not None, seconds=20, why="the agent object")
-            agent = ui.conversation.agent
+        async with AsyncExitStack() as resources, workspace.app(
+            size=size, binding=AgentAttached(comms_agent()), application=_first_wins(started)
+        ) as ui:
+            await ui.until(lambda: isinstance(ui.conversation.agent_binding, Agent),
+                           seconds=20, why="the bound ACP agent")
+            agent = ui.conversation.agent_binding
+            resources.push_async_callback(agent.stop)
             await ui.until(agent.session.settled.is_set, seconds=30, why="the ACP session to settle")
             assert agent.session.connected is attached, "Unexpected ACP attachment outcome"
             yield ui, agent
     finally:
-        if agent is not None:
-            await agent.stop()
-        for name in comms.registry.all_threads():
-            await asyncio.to_thread(comms.owners.stop, name)
+        for thread in comms.registry.all_threads().values():
+            for name in thread.role.executor(thread.name):
+                await asyncio.to_thread(comms.owners.stop, name)
 
 
 def _first_wins(started):
@@ -274,12 +282,12 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
     with provider.serving() as base_url:
         comms = start_private_native_wire(workspace.roots.wire)
         configure_provider(base_url, settings=settings)
-        comms.registry.declare(comms.registry.new_thread("beta", frozenset({"team"}), str(workspace.project),
-                                      model=MODEL, thinking_level="off"))
+        comms.registry.declare(comms.registry.new_thread(NativeSession.thread, frozenset({"team"}), str(workspace.project),
+                                      model=MODEL, thinking_level=OffThinkingLevel))
         try:
             if prepare is not None:
                 await prepare(comms, workspace.project, provider)
-            async with attached_app(workspace, comms, "beta", size=size, application=application,
+            async with attached_app(workspace, comms, NativeSession.thread, size=size, application=application,
                                     attached=attached) as (ui, agent):
                 yield NativeSession(ui, agent, comms, provider, workspace.project)
                 assert not provider.failures, provider.failures
@@ -294,13 +302,3 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
 def without_provider(models: str = "test/model") -> None:
     """Configure native owners with a model nothing serves, for tests that must never ask one."""
     os.environ.update(AGENT_COMMS_AGENT_BIN="pi", AGENT_COMMS_AGENT_ARGS="", AGENT_COMMS_AGENT_MODELS=models)
-
-
-def owner_server(comms, *, provider: str = "openrouter", model: str = "fake"):
-    """Core's ACP server object in this process, able to start native owners on the private wire."""
-    from agent_comms.acp import CommsAgent
-    from agent_comms.native_arguments import GivenArguments
-
-    return CommsAgent(
-        comms, agent_args=GivenArguments(("--provider", provider, "--model", model)),
-        runtime_enabled=True, auto_wake=False)

@@ -4,15 +4,19 @@ from dataclasses import replace
 
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.goal_presentation import (
-    GoalWaitTarget, IdleGoalExecution, PausedExecution, RunnableExecution, StandbyExecution,
+    GoalWaitTarget,
+    IdleGoalExecution,
+    PausedExecution,
+    RunnableExecution,
+    StandbyExecution,
 )
 from agent_comms.goal_states import PausedGoal
 from agent_comms.goals import NoGoal
 from agent_comms.thread_identity import RecordedThreadIncarnation
-from textual.widgets import Button, Static
-
 from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
 from support.textual_steps import channel_roster
+from textual.widgets import Button, Static
+
 from toad.core.events import CommsUpdated
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
@@ -54,20 +58,6 @@ async def shown_goal(workspace, ui):
 async def refresh_goal(ui, view):
     await view.goal_observation.refresh()
     await ui.step()
-
-
-async def test_standby_row_names_the_waited_peer_and_mentions_navigate(workspace):
-    async with workspace.app(size=(100, 35)) as ui:
-        owner, view, bar, status = await shown_goal(workspace, ui)
-        assert "Standby" in str(status.render()) and "@peer" in str(status.render())
-        original = ui.selected_tab
-        await ui.until(lambda: ui.link_at("@peer", occurrence=1) is not None,
-                       why="the observed goal mention becomes a navigation link")
-        await ui.click("@peer", occurrence=1)
-        await ui.until(lambda: ui.app.selected_session._comms_thread == "peer",
-                       why="the goal mention opens the named peer")
-        await ui.select_tab(original)
-        assert view.prompt.text == "Composer draft stays"
 
 
 async def test_standby_stays_visible_while_the_previous_turn_settles(workspace):

@@ -7,6 +7,7 @@ from pathlib import Path
 from acp.schema import ToolCall as SDKToolCall
 
 from support.agents import peer
+from toad.acp.agent import Agent
 from toad.acp.tool_calls import SessionToolCalls
 from toad.tool_output import ReadToolOutputPart
 from toad.widgets.tool_call import ToolCall
@@ -24,8 +25,8 @@ async def test_tool_start_progress_and_missing_start_in_the_running_app(workspac
 
     async with workspace.app(size=(110, 35), binding=AgentAttached(peer("echo"))) as ui:
         view = ui.conversation
-        await ui.until(lambda: view.agent is not None, seconds=20, why="the agent to be created")
-        agent = view.agent
+        await ui.until(lambda: isinstance(view.agent_binding, Agent), seconds=20, why="the agent to be created")
+        agent = view.agent_binding
         await agent.session.settled.wait()
         pid = agent.process.process.pid
         previous = sys.getprofile()

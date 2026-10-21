@@ -166,7 +166,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
             agent = Agent(root / "project", AgentDefinition.decode(AGENT_DATA), SESSION_ID)
             observer = Observer(case, app, pilot, agent, session, root)
             try:
-                view.agent = agent
+                view.bind_agent(agent)
                 await exercise_boundaries(agent, view, pilot)
                 yield observer
                 assert len(observer.receipts) == 1

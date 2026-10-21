@@ -4,6 +4,7 @@ conversation widget being evicted and remounted, and keeps the editor's document
 import asyncio
 from collections import Counter
 
+from toad.agent_binding import NoAgentConnection
 from toad.core.input_events import UserInputSubmitted
 from toad.screens.main import MainScreen
 from toad.widgets.conversation import ConversationSessionBinding
@@ -60,7 +61,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await asyncio.wait_for(owner.publication.wait(), 12)
         await ui.step()
         view = owner.conversation
-        assert view.agent is None and not view.submissions.active
+        assert isinstance(view.agent_binding, NoAgentConnection) and not view.submissions.active
         assert owner._initial_prompt is None and view._initial_prompt is None
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1}
 
@@ -83,7 +84,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await asyncio.wait_for(owner.publication.wait(), 12)
         await ui.step()
         restored = owner.conversation
-        assert restored is not view and restored.agent is None
+        assert restored is not view and isinstance(restored.agent_binding, NoAgentConnection)
         assert restored._initial_prompt is None and owner.presentation.state is None
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
         editor = restored.prompt.prompt_text_area
@@ -101,7 +102,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await ui.select_tab(owner.id)
         await ui.step()
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
-        assert owner.conversation.agent is None and not owner.conversation.submissions.active
+        assert isinstance(owner.conversation.agent_binding, NoAgentConnection) and not owner.conversation.submissions.active
         await app.session_navigation.close(owner.id)
         assert owner.presentation.widget is None and owner.presentation.state is None
         assert owner.id not in app.workspace_sessions.views

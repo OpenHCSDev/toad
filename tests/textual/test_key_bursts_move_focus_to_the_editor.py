@@ -6,6 +6,8 @@ must not be lost, reordered or applied to the wrong control.
 
 from textual import events
 
+from toad.agent_binding import NoAgentConnection
+
 
 async def send_burst(ui, keys):
     app, _pilot = ui.textual
@@ -23,7 +25,7 @@ async def send_burst(ui, keys):
 
 async def test_a_character_and_an_immediate_backspace_in_one_burst_leave_nothing(workspace):
     async with workspace.app(size=(100, 35)) as ui:
-        assert ui.conversation.agent is None
+        assert isinstance(ui.conversation.agent_binding, NoAgentConnection)
         editor = await send_burst(ui, (("x", "x"), ("backspace", None)))
         await ui.until(lambda: ui.shows("❯"), why="the editor drawn")
         await ui.step(.2)
