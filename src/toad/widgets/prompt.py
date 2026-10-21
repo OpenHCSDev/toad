@@ -1,71 +1,79 @@
 from __future__ import annotations
-from toad.core import input_events
-from toad.conversation_turn import ConversationTurn
 
-from pathlib import Path
-from dataclasses import replace
-from textual._paint_state import PaintState
-from textual.style import Style
-from textual.strip import Strip
-from rich.text import Text as RichText
+import asyncio
 import shlex
+from dataclasses import replace
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
 
-from textual import on, work
-import asyncio
-from textual.reactive import var, Initialize
-from textual.app import ComposeResult
-
-from textual.actions import SkipAction
-from textual.binding import Binding
-
-from textual.content import Content, Span
-from toad.agent_binding import NoAgentBound
-from textual import getters
-from textual.widgets import OptionList, TextArea, Label
-from textual import containers
+from rich.text import Text as RichText
+from textual import containers, events, getters, on, work
 from textual._activation import PrimaryActivation
-from textual.widget import Widget
+from textual._paint_state import PaintState
+from textual.actions import SkipAction
+from textual.app import ComposeResult
+from textual.binding import Binding
+from textual.color import TRANSPARENT
+from textual.content import Content, Span
+from textual.css._style_properties import Edges
+from textual.css.scalar import Scalar
+from textual.geometry import Spacing
+from textual.reactive import Initialize, var
+from textual.strip import Strip
+from textual.style import Style
+from textual.widgets import Label, OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
-from textual import events
+from ui_theme.scheme import PrimaryColour, PromptToneColour, SecondaryColour
 
-from textual.geometry import Spacing
-from textual.color import TRANSPARENT
-from textual.css._style_properties import Edges
-from toad.widget_view import AUTO, FocusWithinView, WidgetView
-from toad.setting_widget import SettingVisibility
-from textual.css.scalar import Scalar
 from toad import messages
-from toad.widgets.highlighted_textarea import HighlightedTextArea
-from toad.widgets.condensed_path import CondensedPath
-from toad.widgets.path_search import PathSearch
-from toad.widgets.question import Ask, Question
-from toad.widgets.slash_complete import SlashComplete
-from toad.widgets.model_switcher import ModelSwitcher
-from toad.widgets.prompt_popup import PromptPopup, CompletionPopup, InfoPopup
+from toad.agent_binding import NoAgentBound
+from toad.conversation_turn import ConversationTurn
+from toad.core import input_events
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver
-from toad.slash_command import SlashCommand
-from toad.path_complete import PathComplete
-from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
-from toad.widgets.selection import ChangingText, SelectionOptionList, InlineSelection
-from toad.widget_actions import DeclaredWidgetActions
 from toad.frame_presentation import TonePaint
-from ui_theme.scheme import PrimaryColour, SecondaryColour, PromptToneColour
+from toad.path_complete import PathComplete
 from toad.prompt_actions import PromptAction, SubmitNowAction
+from toad.prompt_cursor import (
+    CommandText,
+    NextHistoryCursor,
+    PreviousHistoryCursor,
+    PromptCursor,
+)
+from toad.setting_widget import SettingVisibility
+from toad.slash_command import SlashCommand
+from toad.widget_actions import DeclaredWidgetActions
+from toad.widget_view import AUTO, FocusWithinView, WidgetView
+from toad.widgets.condensed_path import CondensedPath
+from toad.widgets.highlighted_textarea import HighlightedTextArea
+from toad.widgets.model_switcher import ModelSwitcher
+from toad.widgets.path_search import PathSearch
+from toad.widgets.prompt_popup import CompletionPopup, InfoPopup, PromptPopup
+from toad.widgets.question import Ask, Question
+from toad.widgets.selection import ChangingText, InlineSelection, SelectionOptionList
+from toad.widgets.slash_complete import SlashComplete
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.agent import AgentBase
 
 
 class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
-    def _get_option_render(self, option: Option, style: Style, paint: PaintState) -> list[Strip]:
-        if self.has_focus and self.highlighted is not None and option is self.options[self.highlighted]:
-            background = paint.background + self.app.colours.colour(PrimaryColour).with_alpha(0.3).multiply_alpha(paint.opacity)
+    def _get_option_render(
+        self, option: Option, style: Style, paint: PaintState
+    ) -> list[Strip]:
+        if (
+            self.has_focus
+            and self.highlighted is not None
+            and option is self.options[self.highlighted]
+        ):
+            background = paint.background + self.app.colours.colour(
+                PrimaryColour
+            ).with_alpha(0.3).multiply_alpha(paint.opacity)
             base = paint.component_style(self, "option-list--option")
-            style = replace(base, foreground=style.foreground, background=background, bold=False)
+            style = replace(
+                base, foreground=style.foreground, background=background, bold=False
+            )
         return super()._get_option_render(option, style, paint)
 
     BINDING_GROUP_TITLE = "Mode switcher"
@@ -80,7 +88,9 @@ class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
         self.blur()
 
 
-class AgentInfo(SettingVisibility, WidgetView, PrimaryActivation, Label, setting="ui.agent_title"):
+class AgentInfo(
+    SettingVisibility, WidgetView, PrimaryActivation, Label, setting="ui.agent_title"
+):
     width = AUTO
     # Any agent state, connected or not, leaves the status line its room.
     max_width = Scalar.parse("60%")
@@ -88,7 +98,11 @@ class AgentInfo(SettingVisibility, WidgetView, PrimaryActivation, Label, setting
 
     @property
     def padding(self):
-        return super().padding if self.app.settings.ui.compact_input else Spacing(0, 1, 0, 1)
+        return (
+            super().padding
+            if self.app.settings.ui.compact_input
+            else Spacing(0, 1, 0, 1)
+        )
 
     @property
     def primary_activation(self):
@@ -145,7 +159,9 @@ class QueueSummary(PrimaryActivation, ChangingText, Label, can_focus=True):
             self.action_edit_queue()
 
 
-class InfoBar(SettingVisibility, WidgetView, containers.HorizontalGroup, setting="ui.info_bar"):
+class InfoBar(
+    SettingVisibility, WidgetView, containers.HorizontalGroup, setting="ui.info_bar"
+):
     height = Scalar.parse("1")
 
     @property
@@ -180,7 +196,9 @@ class PromptContainer(FocusWithinView, containers.HorizontalGroup):
                 return super().border
         else:
             colour = PrimaryColour if prompt.shell_mode else SecondaryColour
-        paint = self.app.colours.colour(colour) if self.has_focus_within else TRANSPARENT
+        paint = (
+            self.app.colours.colour(colour) if self.has_focus_within else TRANSPARENT
+        )
         return Edges(*(("tall", paint),) * 4)
 
     def on_mouse_down(self, event: events.MouseUp) -> None:
@@ -199,7 +217,9 @@ class PromptSubmission:
             self.call_later(self._submit)
 
 
-class PromptTextArea(CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea):
+class PromptTextArea(
+    CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea
+):
     ACTIONS = PromptAction
     # Agent prompts and direct messages carry a pasted image as a file reference.
     ATTACHES_IMAGES: ClassVar[bool] = True
@@ -217,8 +237,12 @@ See on-screen instructions for details.
     BINDING_GROUP_TITLE = "Prompt"
 
     BINDINGS = [
-        Binding("pageup", "history_page_up", "Previous messages", priority=True, show=False),
-        Binding("pagedown", "history_page_down", "Next messages", priority=True, show=False),
+        Binding(
+            "pageup", "history_page_up", "Previous messages", priority=True, show=False
+        ),
+        Binding(
+            "pagedown", "history_page_down", "Next messages", priority=True, show=False
+        ),
         Binding("ctrl+v", "paste_clipboard", "Paste", priority=True, show=False),
         Binding("ctrl+j", "newline", "New line", priority=True, show=False),
         Binding(
@@ -309,16 +333,21 @@ See on-screen instructions for details.
 
     def apply_keyboard_profile(self) -> None:
         from textual.widgets.text_area import EditingMode, VimInsert
+
         enabled = self.app.settings.ui.vim_keys
         if self.editing_mode.modal != enabled:
             self.editing_mode = VimInsert() if enabled else EditingMode()
 
     @property
     def submission_allowed(self) -> bool:
-        return self.editing_mode.accepts_text and not self.query_ancestor(Prompt).active_popup
+        return (
+            self.editing_mode.accepts_text
+            and not self.query_ancestor(Prompt).active_popup
+        )
 
     def leave_modal_editor(self) -> None:
         from toad.widgets.conversation import Conversation
+
         self.query_ancestor(Conversation).window.focus(scroll_visible=False)
 
     def on_key(self, event: events.Key) -> None:
@@ -360,23 +389,33 @@ See on-screen instructions for details.
                 return
             if image is not None:
                 if self.shell_mode or not self.ATTACHES_IMAGES:
-                    self.notify("Paste images into an agent thread, not the IRC or shell composer.",
-                                title="Image attachment", severity="warning")
+                    self.notify(
+                        "Paste images into an agent thread, not the IRC or shell composer.",
+                        title="Image attachment",
+                        severity="warning",
+                    )
                     return
                 path = await asyncio.to_thread(save_clipboard_png, image)
-                reference = f'@"{path}"' if any(char.isspace() for char in str(path)) else f"@{path}"
+                reference = (
+                    f'@"{path}"'
+                    if any(char.isspace() for char in str(path))
+                    else f"@{path}"
+                )
                 self._paste_clipboard_text(" " + reference + " ")
-                self.notify(f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
-                            title="Image attachment")
+                self.notify(
+                    f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
+                    title="Image attachment",
+                )
                 return
             text = (await self.app.clipboard_transport.paste(self.app)).text
             if text:
                 self._paste_clipboard_text(text)
             else:
-                self.notify("No text or supported image in the clipboard", title="Paste")
+                self.notify(
+                    "No text or supported image in the clipboard", title="Paste"
+                )
         except (OSError, ValueError, TimeoutError) as error:
             self.app.show_error(error, "Paste failed")
-
 
     def _submit(self) -> None:
         self._submit_pending = False
@@ -389,7 +428,9 @@ See on-screen instructions for details.
             self.app.bell()
             self.post_message(
                 messages.Flash(
-                    self.query_ancestor(Prompt).operational_submissions.unavailable_reason,
+                    self.query_ancestor(
+                        Prompt
+                    ).operational_submissions.unavailable_reason,
                     "error",
                 )
             )
@@ -408,8 +449,9 @@ See on-screen instructions for details.
                 self.suggestion = ""
             return
         shell = self.shell_mode
-        self.publish_core(UserInputSubmitted(self.text, shell, immediate=immediate))
+        text = self.text
         self.clear()
+        self.publish_core(UserInputSubmitted(text, shell, immediate=immediate))
         if shell:
             self.query_ancestor(Prompt).shell_mode = False
 
@@ -466,10 +508,7 @@ See on-screen instructions for details.
         command = shlex_tokens[0]
 
         exclude_node_type: Literal["file"] | Literal["dir"] | None = None
-        if (
-            command
-            in self.app.settings.shell.directory_commands.splitlines()
-        ):
+        if command in self.app.settings.shell.directory_commands.splitlines():
             exclude_node_type = "file"
         elif command in self.app.settings.shell.file_commands.splitlines():
             exclude_node_type = "dir"
@@ -507,7 +546,9 @@ See on-screen instructions for details.
                 )
                 self.suggestion = self.suggestions[self.suggestions_index]
 
-    def watch_selection(self, previous_selection: Selection, selection: Selection) -> None:
+    def watch_selection(
+        self, previous_selection: Selection, selection: Selection
+    ) -> None:
         if self.is_mounted:
             self.input_cursor.changed(previous_selection, selection)
 
@@ -619,16 +660,24 @@ class Prompt(TonePaint, containers.VerticalGroup):
         self.set_class(mode is not None, "-has-mode")
         info = self.query_one(ModeInfo)
         info.update(mode.name if mode is not None else "")
-        info.tooltip = (Content.from_markup(
-            "[b]$description[/]\n\n[dim](click to open mode switcher)",
-            description=mode.description or mode.name,
-        ) if mode is not None else None)
+        info.tooltip = (
+            Content.from_markup(
+                "[b]$description[/]\n\n[dim](click to open mode switcher)",
+                description=mode.description or mode.name,
+            )
+            if mode is not None
+            else None
+        )
         model = agent.configuration.model.selected
         self.set_class(model is not None, "-has-model")
-        self.query_one(AgentInfo).tooltip = (Content.from_markup(
-            "[b]$description[/]\n\n[dim](click to search models)",
-            description=model.description or model.value,
-        ) if model is not None else None)
+        self.query_one(AgentInfo).tooltip = (
+            Content.from_markup(
+                "[b]$description[/]\n\n[dim](click to search models)",
+                description=model.description or model.value,
+            )
+            if model is not None
+            else None
+        )
         self.update_modes()
         self.model_switcher.configuration_changed()
 
@@ -647,7 +696,9 @@ class Prompt(TonePaint, containers.VerticalGroup):
         if self._ask is ask:
             self._ask = self.ask_queue.pop(0) if self.ask_queue else None
         else:
-            self.ask_queue = [pending for pending in self.ask_queue if pending is not ask]
+            self.ask_queue = [
+                pending for pending in self.ask_queue if pending is not ask
+            ]
 
     @on(events.Click, "ModeInfo")
     def on_mode_info_click(self):
@@ -675,7 +726,9 @@ class Prompt(TonePaint, containers.VerticalGroup):
             [Option(row, id=mode.value) for row, mode in zip(columns, mode_list)]
         )
         if current is not None:
-            self.mode_switcher.highlighted = self.mode_switcher.get_option_index(current.value)
+            self.mode_switcher.highlighted = self.mode_switcher.get_option_index(
+                current.value
+            )
 
     def sync_turn(self) -> None:
         if not self.is_mounted:
@@ -684,6 +737,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
             self.set_class(SubmitNowAction().available(editor), "-queue-mode")
             editor.refresh_bindings()
         from toad.widgets.conversation import Conversation
+
         self.query_ancestor(Conversation).goal_bar._queue_separator_update()
 
     def sync_queue(self) -> None:
@@ -707,11 +761,16 @@ class Prompt(TonePaint, containers.VerticalGroup):
         parts: list[str] = []
         if feedback:
             parts.append(feedback)
-        for label, texts, detail in (("Submitting", delivering, ""), ("Queued", queued, ""),
-                                     ("Restored", restored, ", read-only")):
+        for label, texts, detail in (
+            ("Submitting", delivering, ""),
+            ("Queued", queued, ""),
+            ("Restored", restored, ", read-only"),
+        ):
             if texts:
-                parts.append(f"{label} ({len(texts)}{detail}): "
-                             + " · ".join(" ".join(text.split())[:100] for text in texts[:3]))
+                parts.append(
+                    f"{label} ({len(texts)}{detail}): "
+                    + " · ".join(" ".join(text.split())[:100] for text in texts[:3])
+                )
         summary = self.query_one(".queue-summary", Label)
         summary.tooltip = "Submitting is an outstanding local request, not acceptance. Queued is the producer's accepted input, not consumption or completion. Restored rows are not local drafts."
         summary.update(Content(" | ".join(parts)))
@@ -737,7 +796,9 @@ class Prompt(TonePaint, containers.VerticalGroup):
         if self.agent_ready:
             self.query_one(AgentInfo).update(agent_info)
         else:
-            self.query_one(AgentInfo).update(self.operational_submissions.unavailable_reason)
+            self.query_one(AgentInfo).update(
+                self.operational_submissions.unavailable_reason
+            )
 
     def watch_shell_mode(self) -> None:
         self.update_prompt()
@@ -750,7 +811,9 @@ class Prompt(TonePaint, containers.VerticalGroup):
     def watch_working_directory(self, working_directory: str) -> None:
         if not working_directory:
             return
-        out_of_bounds = self.shell_mode and not Path(working_directory).is_relative_to(self.project_path)
+        out_of_bounds = self.shell_mode and not Path(working_directory).is_relative_to(
+            self.project_path
+        )
         if out_of_bounds and not self.has_class("-working-directory-out-of-bounds"):
             self.post_message(
                 messages.Flash(
@@ -782,7 +845,12 @@ class Prompt(TonePaint, containers.VerticalGroup):
         editor = self.prompt_text_area
         shell = self.shell_mode
         editor.placeholder = (
-            Content.from_markup("Enter shell command\t[r]▌esc▐[/r] prompt mode").expand_tabs(8) if shell else "")
+            Content.from_markup(
+                "Enter shell command\t[r]▌esc▐[/r] prompt mode"
+            ).expand_tabs(8)
+            if shell
+            else ""
+        )
         editor.highlight_language = "shell" if shell else "markdown"
         self.prompt_label.refresh()
 
@@ -797,8 +865,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
         self.query_one(HighlightedTextArea).insert(
             text, maintain_selection_offset=False
         )
-
-
 
     def project_directory_updated(self) -> None:
         """Called when there may be new files."""
@@ -826,7 +892,11 @@ class Prompt(TonePaint, containers.VerticalGroup):
     def label_glyph(self) -> Content:
         if self.shell_mode:
             return PromptLabel.SHELL
-        return PromptLabel.MULTILINE if "\n" in self.text or "```" in self.text else PromptLabel.AI
+        return (
+            PromptLabel.MULTILINE
+            if "\n" in self.text or "```" in self.text
+            else PromptLabel.AI
+        )
 
     def compose_completions(self) -> ComposeResult:
         for kind in CompletionPopup.members_with(CompletionPopup):

@@ -1,8 +1,7 @@
 """Conversation comms behavior on the existing receiver MRO."""
 
 from __future__ import annotations
-from toad.core_event_carrier import CoreEventReceiver
-from toad.core_event_carrier import CoreEventMessage
+
 import agent_comms.agent_events as comms_events
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
@@ -10,18 +9,20 @@ from agent_comms.acp_extension import (
     GoalChangedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
-    PromptCancelledUpdate,
     McpClientAcknowledgementUpdate,
+    PromptCancelledUpdate,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
 from agent_comms.mro_dispatch import handles
 from textual.content import Content
-from toad.core import events as core_events
+
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.widgets.note import Note
+from toad.core import events as core_events
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.widgets.markdown_note import MarkdownNote
+from toad.widgets.note import Note
 
 
 class ConversationCommsHandlers(CoreEventReceiver):
@@ -111,7 +112,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
                 style="error",
             )
             return
-        self.submissions.restore_draft(message.event.update.text)
+        self.restore_user_message(message.event.update.text)
 
         self.flash(
             f"{message.event.update.failure.title}; draft restored: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",

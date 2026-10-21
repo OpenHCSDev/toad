@@ -1,9 +1,9 @@
 """The concrete compose controls used by shared delivery-failure declarations."""
 
-
 import asyncio
 from dataclasses import dataclass
-from agent_comms.errors import HumanInitialUnknownError, HumanClaimBlockedError
+
+from agent_comms.errors import HumanClaimBlockedError, HumanInitialUnknownError
 
 
 class SendState:
@@ -53,8 +53,10 @@ class SendUnknown(SendState):
     @property
     def reason(self) -> str:
         failure = self.failure
-        return (f"Send UNKNOWN {failure.wire_root_id}/{failure.wire_seq}/{failure.message_id}: "
-                f"{failure.description}; inspect the bus, do not retry")
+        return (
+            f"Send UNKNOWN {failure.wire_root_id}/{failure.wire_seq}/{failure.message_id}: "
+            f"{failure.description}; inspect the bus, do not retry"
+        )
 
 
 class DeliveryFailureView:
@@ -69,11 +71,11 @@ class DeliveryFailureView:
         """Why this view's own send holds compose; empty when it does not."""
         return self._send_state.reason
 
-    def _enter_send_state(self, state: SendState, body: str) -> None:
-        """The one place a send changes state; compose and the status line follow it."""
+    def _enter_send_state(self, state: SendState) -> None:
+        """Delivery changes compose availability, never the user's draft."""
         self._send_state = state
-        self.prompt.text = body
         if self.is_attached:
+
             async def refresh() -> None:
                 read_only = await self.composer_read_only()
                 await self.refresh_composer(read_only)
@@ -97,23 +99,28 @@ class DeliveryFailureView:
         if not body.strip():
             return
         async with self.app.coordination_access.transcripts.bind(root) as comms:
-            read_only = await self.app.preparation.run_thread(conversation.read_only, comms)
+            read_only = await self.app.preparation.run_thread(
+                conversation.read_only, comms
+            )
         await self.refresh_composer(read_only)
         if read_only:
-            self.prompt.text = body
+            self.restore_user_message(body)
             self.flash(self.status, style="error")
             return
-        await self.deliver_user_message(root, conversation.send_target().name, body, current, present)
+        await self.deliver_user_message(
+            root, conversation.send_target().name, body, current, present
+        )
 
     async def deliver_user_message(self, root, target, body, current, present):
         """One route check, write and failure path for CLI, DM and channel input."""
-        from agent_comms.route_selection import root_is_current
         from agent_comms.delivery_failure import delivery_failure
+        from agent_comms.route_selection import root_is_current
 
         if self.send_block_reason:
+            self.restore_user_message(body)
             self.flash(self.send_block_reason, style="error")
             return
-        self._enter_send_state(SendPending(), body)
+        self._enter_send_state(SendPending())
 
         async def require_route():
             route_current = await self.app.preparation.run_thread(root_is_current, root)
@@ -135,37 +142,57 @@ class DeliveryFailureView:
         await present(sent)
 
     async def commit_user_message(self, comms, target, body):
-        from agent_comms.route_selection import run_selected_write
         from agent_comms.delivery_failure import delivery_failure
+        from agent_comms.route_selection import run_selected_write
 
-        task = asyncio.create_task(asyncio.to_thread(
-            run_selected_write, comms.root, comms.messaging.send_user_message,
-            target, body, worktree=str(self.project_path)))
+        task = asyncio.create_task(
+            asyncio.to_thread(
+                run_selected_write,
+                comms.root,
+                comms.messaging.send_user_message,
+                target,
+                body,
+                worktree=str(self.project_path),
+            )
+        )
         try:
             sent = await asyncio.shield(task)
         except asyncio.CancelledError:
-            self.delivery_blocked("Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry", body)
-            task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+            self.delivery_blocked(
+                "Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry",
+                body,
+            )
+            task.add_done_callback(
+                lambda done: done.exception() if not done.cancelled() else None
+            )
             return None
         except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
             delivery_failure(error).present(self, body)
             return None
-        self._enter_send_state(SentUndrawn(comms.root, sent), body)
+        self._enter_send_state(SentUndrawn(comms.root, sent))
         return sent
 
     def settle_user_message(self) -> None:
         """Enable compose only when the sent message is drawn."""
         if self._send_state.drawn_in(self):
-            self._enter_send_state(NoSend(), "")
+            self._enter_send_state(NoSend())
+
+    def restore_user_message(self, body: str) -> None:
+        """Give this failed send back only while no newer draft owns the input."""
+        if not self.prompt.text:
+            self.prompt.text = body
 
     def delivery_unknown(self, failure, body: str) -> None:
-        self._enter_send_state(SendUnknown(failure), body)
+        self.restore_user_message(body)
+        self._enter_send_state(SendUnknown(failure))
         self.flash(self.send_block_reason, style="error")
 
     def delivery_blocked(self, description: str, body: str) -> None:
-        self._enter_send_state(SendBlocked(description), body)
+        self.restore_user_message(body)
+        self._enter_send_state(SendBlocked(description))
         self.flash(self.send_block_reason, style="error")
 
     def delivery_refused(self, description: str, body: str) -> None:
-        self._enter_send_state(NoSend(), body)
+        self.restore_user_message(body)
+        self._enter_send_state(NoSend())
         self.flash(f"Send failed: {description}", style="error")

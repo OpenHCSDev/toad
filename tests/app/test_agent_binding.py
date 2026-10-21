@@ -7,7 +7,7 @@ from toad.session_scope import AgentSession
 from toad.thread_identity import NoThreadIdentity
 
 
-def test_no_agent_does_not_match_a_launch(workspace):
+async def test_no_agent_does_not_match_a_launch(workspace):
     view = MainScreen(workspace.project)
     assert not view.matches_launch("not-bound", "not-bound")
     assert view.thread_identity == NoThreadIdentity()
@@ -35,7 +35,7 @@ async def test_attached_agent_matches_its_live_session_and_relaunch_reuses_the_v
         await ui.until_shows("PEER_ANSWER binding relaunch journey")
 
 
-def test_agent_session_matches_its_saved_session_without_crossing_agent_identity(
+async def test_agent_session_matches_its_saved_session_without_crossing_agent_identity(
     workspace,
 ):
     definition = peer("echo")
