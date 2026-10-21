@@ -46,17 +46,6 @@ class SendBlocked(SendState):
         return f"Send blocked: {self.description}"
 
 
-@dataclass(frozen=True)
-class SendUnknown(SendState):
-    failure: object
-
-    @property
-    def reason(self) -> str:
-        failure = self.failure
-        return (f"Send UNKNOWN {failure.wire_root_id}/{failure.wire_seq}/{failure.message_id}: "
-                f"{failure.description}; inspect the bus, do not retry")
-
-
 class DeliveryFailureView:
     """Own human-message delivery and its compose/failure controls."""
 
@@ -160,10 +149,6 @@ class DeliveryFailureView:
         """Enable compose only when the sent message is drawn."""
         if self._send_state.drawn_in(self):
             self._enter_send_state(NoSend(), "")
-
-    def delivery_unknown(self, failure, body: str) -> None:
-        self._enter_send_state(SendUnknown(failure), body)
-        self.flash(self.send_block_reason, style="error")
 
     def delivery_blocked(self, description: str, body: str) -> None:
         self._enter_send_state(SendBlocked(description), body)
