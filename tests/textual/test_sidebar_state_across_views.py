@@ -21,7 +21,7 @@ class FrameApp(ToadApp):
         sidebar = screen.query_one_optional(CommsSidebar)
         if sidebar is None:
             return ()
-        region = sidebar.navigation.scroll_container.content_region
+        region = sidebar.scroll_container.content_region
         return tuple(strip.text[region.x:region.right]
                      for strip in screen._compositor.render_strips()[region.y:region.bottom])
 
@@ -68,7 +68,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         selected.row.focus(scroll_visible=False)
         await ui.step()
         await pilot.wait_for_scheduled_animations()
-        expected_scroll = sidebar.navigation.scroll_container.scroll_y
+        expected_scroll = sidebar.scroll_container.scroll_y
         assert expected_scroll > 0, [
             (type(widget).__name__, widget.size, widget.virtual_size, widget.scroll_y, widget.max_scroll_y)
             for widget in (sidebar, *sidebar.ancestors) if hasattr(widget, "virtual_size")]
@@ -85,20 +85,20 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         app.panel_frames = None
         assert group(current, "#channel-28").expanded
         assert not group(current, "#any").expanded
-        actual_scroll = current.navigation.scroll_container.scroll_y
+        actual_scroll = current.scroll_container.scroll_y
         assert actual_scroll == expected_scroll, (
             actual_scroll, expected_scroll, app.sidebar_state,
-            (current.navigation.scroll_container.scroll_y, current.navigation.scroll_container.max_scroll_y))
+            (current.scroll_container.scroll_y, current.scroll_container.max_scroll_y))
         assert app.sidebar_state.selected == SidebarSelection("#channel-28", "#channel-28")
         group(current, "#channel-28").toggle_members()
         await ui.step()
         await pilot.wait_for_scheduled_animations()
-        expected_scroll = current.navigation.scroll_container.scroll_y
+        expected_scroll = current.scroll_container.scroll_y
         await ui.select_tab(owner)
         await settled(ui, sidebar)
         assert not group(sidebar, "#channel-28").expanded
         assert not group(sidebar, "#any").expanded
-        actual_scroll = sidebar.navigation.scroll_container.scroll_y
+        actual_scroll = sidebar.scroll_container.scroll_y
         assert actual_scroll == expected_scroll, (actual_scroll, expected_scroll)
         assert app.sidebar_state.selected == SidebarSelection("#channel-28", "#channel-28")
         nested = group(sidebar, "#channel-28")
@@ -109,7 +109,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         member.focus(scroll_visible=False)
         await ui.step()
         await pilot.wait_for_scheduled_animations()
-        expected_scroll = sidebar.navigation.scroll_container.scroll_y
+        expected_scroll = sidebar.scroll_container.scroll_y
         member.action_open_selected()
         # Opening a row makes it the range anchor; it does not select it (TargetTree.remember_row).
         assert not any(row.has_class("-selected") for row in sidebar._ordered_rows())
@@ -134,7 +134,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         await pilot.hover(member)
         assert "hover" in member.pseudo_classes and not member.has_focus, (
             member.region, member.pseudo_classes, member.has_focus,
-            app.get_widget_at(member.region.x, member.region.y), current.navigation.scroll_container.region)
+            app.get_widget_at(member.region.x, member.region.y), current.scroll_container.region)
         await pilot.hover(ui.conversation.prompt)
         assert "hover" not in member.pseudo_classes and member.current
-        assert current.navigation.scroll_container.scroll_y == expected_scroll
+        assert current.scroll_container.scroll_y == expected_scroll

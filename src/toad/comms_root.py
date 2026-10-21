@@ -42,6 +42,7 @@ from agent_comms.display_references import PendingReferences, UnavailableReferen
 
 if TYPE_CHECKING:
     from toad.widgets.message_notifications import HistoryNotifications
+    from toad.widgets.sidebar_tree import SidebarModelView
     from agent_comms.comms import Comms
     from toad.app import ToadApp
 
@@ -307,7 +308,7 @@ class CoordinationAccess(MroDispatch):
         # One status row per open thread, whichever service it was read from.
         self.thread_status = OpenThreadStatus(app.call_next)
         # Views showing the sidebar model now, and consumers waiting for current rows.
-        self.sidebar_views: WeakSet[object] = WeakSet()
+        self.sidebar_views: WeakSet[SidebarModelView] = WeakSet()
         self.reference_views: WeakSet[object] = WeakSet()
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
@@ -485,7 +486,7 @@ class CoordinationAccess(MroDispatch):
             self.sidebar_interest = wanted
             observed.observe_sidebar(wanted)
 
-    def show_sidebar(self, view: object, shown: bool) -> None:
+    def show_sidebar(self, view: SidebarModelView, shown: bool) -> None:
         """A view started or stopped showing the sidebar model."""
         if shown:
             self.sidebar_views.add(view)

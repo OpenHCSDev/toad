@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from toad.widgets.comms_sidebar import CommsRow
     from toad.comms_root import Observing, FailedObservation
+    from toad.app import ToadApp
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -575,7 +576,8 @@ class Behind(BoundSidebar):
         return dict(change=AllSidebarRows(), reorder=True)
 
 
-class SidebarModelView(CoreEventReceiver):
+class SidebarModelView(CoreEventReceiver, Widget):
+    app: ToadApp
     """A widget showing the observed service's sidebar model.
 
     Core's model is observed only while a view shows it. Changes that arrive
