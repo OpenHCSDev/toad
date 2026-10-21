@@ -1,4 +1,4 @@
-"""Conversation values retain Core destination identities through copied history."""
+"""Textual-facing: the historical sessions screen and observed thread activity widget; conversation values retain Core destination identities through copied history."""
 
 from dataclasses import FrozenInstanceError, fields
 from functools import partial

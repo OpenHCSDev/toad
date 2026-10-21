@@ -21,9 +21,9 @@ def test_application_action_caller_deletion():
     assert app.end_lineno-app.lineno+1<=500
     assert not any(isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name.startswith('action_')
                    for n in app.body)
-    bindings=next(n for n in app.body if isinstance(n,ast.Assign)
-                  and any(isinstance(target,ast.Name) and target.id=='BINDINGS' for target in n.targets))
-    assert isinstance(bindings.value,ast.ListComp)
+    # Bindings derive from DeclaredWidgetActions; ToadApp writes none by hand.
+    assert not any(isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='BINDINGS'
+                   for t in n.targets) for n in app.body)
     assert not any(isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='SCREENS'
                    for t in n.targets) for n in app.body)
     for path in ('application_actions.py','application_lifetime.py'):

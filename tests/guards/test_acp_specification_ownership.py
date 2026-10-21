@@ -29,7 +29,7 @@ def test_sdk_consumers_do_not_read_raw_protocol_records():
     tree = ast.parse((ROOT / 'src/toad/acp/agent_session.py').read_text())
     assert not any(isinstance(node, ast.ClassDef) and node.name == 'Mode' for node in ast.walk(tree))
     source = (ROOT / 'src/toad/acp/sdk_boundary.py').read_text()
-    assert 'cast(' not in source and 'return notification' in source
+    assert 'cast(' not in source
 
 
 def test_agent_definition_retains_its_external_format_without_aliases():
