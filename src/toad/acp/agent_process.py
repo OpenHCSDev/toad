@@ -85,7 +85,7 @@ class AgentProcess(Client):
             return connection
 
     async def prompt(self, agent, content, metadata, require):
-        """The agent-comms-acp child admits the prompt under Core's maintenance gate."""
+        """The agent-comms-acp child writes the prompt under Core's maintenance gate."""
         require()
         return await self.rpc.prompt(agent.session_id, content, **metadata)
 
