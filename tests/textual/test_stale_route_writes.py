@@ -1,11 +1,9 @@
 """Textual-facing: mounted view writes (read marks, thread actions) started before a route publication are refused after it."""
 
 import asyncio
-import os
 import threading
 
 import pytest
-from types import SimpleNamespace
 from unittest.mock import patch
 
 import agent_comms.private_nk_entrypoint as private_nk_entrypoint
@@ -21,10 +19,7 @@ from support.textual_steps import refresh_chat, request_target_command
 
 async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_refused(workspace, monkeypatch, native_package):
     from toad import comms_root
-    from toad.acp.shell_command import ShellCommand
     from toad.widgets.comms_chat import CommsChatView
-    from agent_comms.acp_ingress import AcpIngress
-    from agent_comms.route_selection import RouteSelection
 
     attempt = workspace.roots.attempt
     project = workspace.project
@@ -84,29 +79,9 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
                 while not (entered_ack.is_set() and entered_action.is_set()):
                     await original_to_thread(entered_action.wait, 0.05)
                     await asyncio.sleep(0)
-            # An in-flight ACP spawn holds the route's shared lock through process settlement,
-            # so publication cannot pass it; the delayed view writes have not taken that lock yet.
-            spawn_entered, release_spawn = asyncio.Event(), asyncio.Event()
-
-            async def fake_spawn(_command, **_kwargs):
-                spawn_entered.set()
-                await release_spawn.wait()
-                return SimpleNamespace(pid=123, returncode=0)
-
-            with patch("agent_comms.child_process.AttachedChild.start", fake_spawn):
-                env = dict(os.environ)
-                selection = RouteSelection.for_child(env, project)
-                spawn = asyncio.create_task(AcpIngress(selection, project).spawn(
-                    ShellCommand.current().argv("fake"), env=env))
-                async with asyncio.timeout(8):
-                    await spawn_entered.wait()
-                publish = asyncio.get_running_loop().run_in_executor(None, publish_active_route, route)
-                await asyncio.sleep(0.2)
-                assert not publish.done()
-                release_spawn.set()
-                await spawn
-                async with asyncio.timeout(5):
-                    await asyncio.shield(publish)
+            # The delayed view writes have not taken the route's lock yet, so publication passes them.
+            async with asyncio.timeout(5):
+                await asyncio.get_running_loop().run_in_executor(None, publish_active_route, route)
             assert current_root() == private
             release.set()
             await ack

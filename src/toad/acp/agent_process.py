@@ -9,30 +9,10 @@ from pathlib import Path
 from acp import Client, ClientSideConnection, schema
 from acp.connection import StreamDirection, StreamEvent
 from acp.exceptions import RequestError
-from agent_comms.acp_ingress import AcpIngress
-from agent_comms.child_process import StreamingChildStdio, join_retirement
+from agent_comms.child_process import AttachedChild, StreamingChildStdio, join_retirement
+from agent_comms.launch_root import LaunchRoot
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
-
-
-class PromptWrite:
-    def acknowledge(self) -> None:
-        raise NotImplementedError
-
-
-class NoPromptWrite(PromptWrite):
-    """Startup and notification frames have no prompt writer to acknowledge."""
-    def acknowledge(self) -> None:
-        pass
-
-
-class PendingPromptWrite(PromptWrite):
-    def __init__(self):
-        self.written = asyncio.get_running_loop().create_future()
-
-    def acknowledge(self) -> None:
-        if not self.written.done():
-            self.written.set_result(None)
 
 
 class AgentProcess(Client):
@@ -51,7 +31,6 @@ class AgentProcess(Client):
         self.command = None
         self.attachment_lock = asyncio.Lock()
         self._incoming: ContextVar[dict] = ContextVar('acp_incoming')
-        self._prompt_written: ContextVar[PromptWrite] = ContextVar('acp_prompt_written', default=NoPromptWrite())
 
     @property
     def rpc(self) -> ClientSideConnection:
@@ -83,7 +62,6 @@ class AgentProcess(Client):
         selection = RouteSelection.capture(agent.controller.transcripts.access.launch_root.path)
         with ExitStack() as acquisition:
             acquisition.enter_context(selection.route.hold_client_route())
-            await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
             if not agent.session.accepts_updates:
                 return self
             for connection in dict.fromkeys((self, *processes)):
@@ -106,41 +84,13 @@ class AgentProcess(Client):
             connection.cleanup.enter_context(acquisition.pop_all())
             return connection
 
-    @staticmethod
-    def attached_root(agent):
-        return agent.coordination.wire_root if agent.coordination else None
-
-    def ingress(self, agent):
-        return AcpIngress(self.route_selection, Path(self.cwd), self.attached_root(agent))
-
     async def prompt(self, agent, content, metadata, require):
-        """Core admits the actual SDK write, not the duration of the reply."""
-        writer = PendingPromptWrite()
-        written = writer.written
-        token = self._prompt_written.set(writer)
-        try:
-            async with self.ingress(agent).prompt():
-                require()
-                pending = asyncio.create_task(self.rpc.prompt(agent.session_id, content, **metadata))
-                flushed = asyncio.create_task(asyncio.wait(
-                    (written, pending), return_when=asyncio.FIRST_COMPLETED))
-                try:
-                    await asyncio.shield(flushed)
-                except asyncio.CancelledError:
-                    # The SDK may already have queued bytes. Keep Core's lock
-                    # until that write finishes or fails, even during retirement.
-                    await flushed
-                    pending.cancel()
-                    await asyncio.gather(pending, return_exceptions=True)
-                    raise
-                if not written.done():
-                    return await pending
-        finally:
-            self._prompt_written.reset(token)
-        return await pending
+        """The agent-comms-acp child admits the prompt under Core's maintenance gate."""
+        require()
+        return await self.rpc.prompt(agent.session_id, content, **metadata)
 
     def observe_stream(self, event: StreamEvent):
-        """Keep the original frame with its SDK handler and acknowledge real writes."""
+        """Keep the original frame with its SDK handler."""
         if event.direction is StreamDirection.INCOMING:
             # SDK creates the handler task immediately after this observer; its
             # context captures this frame, independently of later notifications.
@@ -148,7 +98,6 @@ class AgentProcess(Client):
             sender = 'agent'
         else:
             sender = 'client'
-            self._prompt_written.get().acknowledge()
         line = f'[{sender}] {json.dumps(event.message)}'
         for session in tuple(self.sessions):
             session.agent.log(line)
@@ -292,9 +241,11 @@ class AgentProcess(Client):
             return
         try:
             accepts_root = agent.definition.accepts_comms_root
-            process = self.process = await self.ingress(agent).spawn(
-                ShellCommand.current().argv(command, accepts_comms_root=accepts_root),
-                env=env, accepts_launch_root=accepts_root,
+            launch = LaunchRoot.from_path(self.route_selection.root)
+            process = self.process = await AttachedChild.start(
+                (*ShellCommand.current().argv(command, accepts_comms_root=accepts_root),
+                 *(launch.arguments() if accepts_root else ())),
+                env=LaunchRoot.environment(env), cwd=self.cwd,
                 stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
             )
         except (FileNotFoundError, PermissionError) as error:
