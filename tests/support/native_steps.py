@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 
+from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.input_disposition import InputDispositions
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
@@ -17,12 +18,13 @@ from support.textual_steps import refresh_chat
 
 
 def rows_with(chat, predicate):
-    return [message for message in chat.message_history.messages if predicate(message)]
+    return [fragment.message for fragment in chat.message_history.fragments_in_range
+            if predicate(fragment.message)]
 
 
 def feedback_of(chat, sent) -> NotificationStatus:
     """The notification status drawn under the one message showing `sent`."""
-    shown = [fragment.shown.status for fragment in chat.message_history.wire_fragments
+    shown = [fragment.shown.status for fragment in chat.message_history.fragments_in_range
              if fragment.message.reference == sent.reference]
     assert len(shown) == 1, (sent.reference, len(shown))
     return shown[0]
@@ -44,7 +46,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     screen = app.selected_session
     await screen.wait_content_ready()
     chat = screen.query_one(CommsChatView)
-    assert chat.conversation == DmConversation(target)
+    assert chat.conversation == DmConversation(ThreadTarget(target))
     assert not rows_with(chat, lambda message: message.body == body)
     if hold:
         provider.hold_next_request()
@@ -99,9 +101,10 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     assert reopened is not screen and reopened.id != screen.id
     await reopened.wait_content_ready()
     fresh = reopened.query_one(CommsChatView)
-    assert fresh.conversation == DmConversation(target)
+    assert fresh.conversation == DmConversation(ThreadTarget(target))
     await ui.until(lambda: all(
-        sum(message.reference == reference for message in fresh.message_history.messages) == 1
+        sum(fragment.message.reference == reference
+            for fragment in fresh.message_history.fragments_in_range) == 1
         for reference in (sent.reference, reply.reference)), seconds=20,
         why="the message and its reply once each after reopening")
     await ui.until(lambda: "Responded" in str(feedback_of(fresh, sent).title), seconds=20,
@@ -118,7 +121,7 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     await channel_target("#team").open(NavigationContext(app, owner_tab, native.project, user))
     await app.selected_session.wait_content_ready()
     chat = app.selected_session.query_one(CommsChatView)
-    assert chat.conversation == ChannelConversation("#team")
+    assert chat.conversation == ChannelConversation(ChannelTarget("#team"))
     provider.hold_next_request()
     await chat.submit_input(input_events.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
     await ui.until(provider.entered.is_set, seconds=30, why="the triage question at the provider")

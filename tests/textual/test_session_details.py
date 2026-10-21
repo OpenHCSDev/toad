@@ -28,8 +28,8 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
     history.status = NoneCursorStatus
     delivery = InputDeliveryBar()
     delivery.delivery = InputDelivery(dismissed_historical_count=5)
-    details = SessionDetails(history=history, delivery=delivery,
-                             status_source=lambda: ThreadStatusModel.known("owner", state).with_delivery(delivery.delivery))
+    details = SessionDetails(history=history, delivery=delivery)
+    row = ThreadStatusModel.known("owner", state)
 
     class Example(Screen):
         def compose(self):
@@ -41,6 +41,7 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         app, pilot = ui.textual
         app.ansi_color = ansi
         await app.push_screen(Example())
+        details.show(row.with_delivery(delivery.delivery))
         await ui.until(lambda: details.size.height, why="the details row")
         composer = app.screen.query_one(Input)
         assert details.collapsed and details.size.height == 1
@@ -59,6 +60,7 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         assert "no verified input" in str(history.render())
         details.collapsed = True
         delivery.delivery = delivery.delivery.failed(OSError("Could not read delivery state"))
+        details.show(row.with_delivery(delivery.delivery))
         await ui.step()
         assert details.size.height == 1
         assert details.title.is_same(Content.styled(details.title.plain, app.colours.style(NoticeRole)))

@@ -81,7 +81,7 @@ from toad.widgets.observed_thread_activity import (
 )
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
-from toad.widgets.session_details import SessionDetails
+from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ConversationEntry, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
@@ -879,10 +879,8 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
                     yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            from functools import partial
-            self.thread_activity = SessionDetails(
-                status_source=partial(self.operational_sources.status_row, self),
-                transcript=self.transcript,
+            self.thread_activity = OperationalSessionDetails(
+                self, transcript=self.transcript,
                 history=NativeHistory().data_bind(
                     status=Conversation.native_history_status
                 ),
