@@ -195,11 +195,12 @@ class GoalBar(VerticalGroup):
         objective = goal.objective
         execution = self.execution
         self.header.update(state.heading(execution))
+        session = self._source().goal_controls
         for control in self.actions:
             action = control.interaction
-            control.disabled = not action.enabled(state)
-            control.display = action.visible(state)
-            control.update(action.caption(state, self.collapsed))
+            control.disabled = not action.enabled(session)
+            control.display = action.visible(session)
+            control.update(action.caption(session, self.collapsed))
         self.document.display = goal.shows_document and not self.collapsed
         self.summary.update_goal_text(f"Objective: {objective}")
         standby = state.standby(execution)

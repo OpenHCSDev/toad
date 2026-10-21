@@ -22,7 +22,7 @@ from pathlib import Path
 from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
-from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
+from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.mro_dispatch import handles
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
 from rich.segment import Segment
@@ -480,7 +480,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     goal_display: var[GoalDisplay] = var(NoGoal())
 
 
-    goal_execution: var[ThreadGoalExecution] = var(IdleGoalExecution())
+    goal_execution: var[GoalExecution] = var(IdleGoalExecution())
 
 
     status: var[str | Content | RichText] = var("")

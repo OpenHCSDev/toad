@@ -7,10 +7,9 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
-from agent_comms.goal_presentation import ThreadGoalExecution
+from agent_comms.goal_presentation import GoalExecution
 
 if TYPE_CHECKING:
-    from agent_comms.ui_model.goal import GoalDisplay
     from toad.widgets.conversation import Conversation
 
 
@@ -22,15 +21,15 @@ class GoalInteraction(DeclaredFamily, affix="Interaction"):
         return f"goal-{cls.declared_name}"
 
     @classmethod
-    def enabled(cls, display: GoalDisplay) -> bool:
-        return display.can_control
+    def enabled(cls, session: GoalSession) -> bool:
+        return session.display.can_control
 
     @classmethod
-    def visible(cls, display: GoalDisplay) -> bool:
+    def visible(cls, session: GoalSession) -> bool:
         return True
 
     @classmethod
-    def caption(cls, display: GoalDisplay, collapsed: bool) -> str:
+    def caption(cls, session: GoalSession, collapsed: bool) -> str:
         return cls.label
 
     @classmethod
@@ -57,11 +56,11 @@ class CollapseInteraction(GoalInteraction):
     label = "Collapse"
 
     @classmethod
-    def enabled(cls, display):
+    def enabled(cls, session):
         return True
 
     @classmethod
-    def caption(cls, display, collapsed):
+    def caption(cls, session, collapsed):
         return "Expand" if collapsed else cls.label
 
     @classmethod
@@ -74,19 +73,18 @@ class ToggleInteraction(GoalInteraction):
     label = "Pause"
 
     @classmethod
-    def visible(cls, display):
-        return display.can_control and not display.snapshot.require().state.terminal
+    def visible(cls, session):
+        return session.display.can_control and session.execution.toggle is not None
 
     @classmethod
-    def caption(cls, display, collapsed):
-        return display.snapshot.require().state.toggle_label if display.can_control else cls.label
+    def caption(cls, session, collapsed):
+        return session.execution.toggle_label if session.display.can_control else cls.label
 
     @classmethod
     async def apply(cls, session):
-        view = session.view
-        action = view.goal_display.snapshot.require().state.toggle
+        action = session.execution.toggle
         if action is None:
-            view.flash("This goal is completed; set a new goal to continue.")
+            session.view.flash(session.display.heading(session.execution))
         else:
             await session.change(action)
 
@@ -135,7 +133,7 @@ class GoalSession:
         return self.view.goal_display
 
     @property
-    def execution(self) -> ThreadGoalExecution:
+    def execution(self) -> GoalExecution:
         return self.view.goal_execution
 
     def owns(self, agent) -> bool:
@@ -156,7 +154,7 @@ class GoalSession:
         await view.goal_observation.refresh()
         if not self.owns(agent):
             return
-        if not action.enabled(view.goal_display):
+        if not action.enabled(self):
             view.flash(view.goal_display.heading(view.goal_execution))
             return
         await action.apply(self)
