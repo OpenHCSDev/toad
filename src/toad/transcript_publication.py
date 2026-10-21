@@ -497,7 +497,8 @@ class BoundView(ViewBinding):
                 and self.window.is_attached and self.contents.is_attached)
 
     def histories(self):
-        return tuple(self.contents.query_children(TranscriptHistory))
+        return tuple(history for history in self.contents.query_children(TranscriptHistory)
+                     if not history.is_leaving)
 
     @property
     def history(self) -> TranscriptHistory:
@@ -532,8 +533,12 @@ class BoundView(ViewBinding):
         async def replace():
             await retirement
             replacement = TranscriptHistory.empty(view=self.view, notification_view=self.contents)
-            await self.contents.mount(replacement, before=history)
-            await history.remove()
+            removal = history.remove()
+            # Both native membership changes happen before yielding: callbacks
+            # see one active reader while the old tree finishes pruning.
+            mounted = self.contents.mount(replacement, before=history)
+            await mounted
+            await removal
 
         return AwaitComplete(replace())
 
