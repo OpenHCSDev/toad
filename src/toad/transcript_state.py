@@ -130,6 +130,13 @@ class LiveTranscript(TranscriptState):
         return self
 
 
+class UnboundTranscript(ProvisionalTranscript):
+    """A real local tab has no saved source and starts no page reads."""
+
+    def mounted(self, owner) -> None:
+        owner.call_after_refresh(owner.view.retire_loading_splash)
+
+
 class UnreadTranscript(ProvisionalTranscript, LiveTranscript):
     """Accept first-page work without claiming saved coverage before publication."""
 

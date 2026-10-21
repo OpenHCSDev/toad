@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
+from toad.screens.session_view import SessionView
 
 from agent_comms.ui_model.message_category import OtherCategory
 
@@ -33,7 +34,7 @@ from textual.strip import Strip
 from textual.widgets import Static
 
 from toad.transcript_filter import FilterState
-from toad.transcript_state import TranscriptState, LiveTranscript, UnreadTranscript, ParkedSourceTranscript, LatestViewportRequest
+from toad.transcript_state import TranscriptState, LiveTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
     RangeCategoryProjection, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange,
@@ -438,8 +439,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_BUDGET = PresentationBudget(max_items=240)
-    empty_state = LiveTranscript
-
     @classmethod
     def empty_source(cls, view, through):
         return ClosedHistory(through, view.app.preparation)
@@ -448,7 +447,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def empty(cls, *, view, notification_view):
         prepared = cls.empty_page()
         return cls(prepared, cls.empty_source(view, prepared.page.after),
-                   view=view, notification_view=notification_view, source_state=cls.empty_state())
+                   view=view, notification_view=notification_view, source_state=cls.initial_state(view))
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.projection_changed()
@@ -1052,7 +1051,9 @@ class TranscriptHistory(CommittedHistory, LineHistory):
     parked with a tab and rebuilt from what was parked.
     """
 
-    empty_state = UnreadTranscript
+    @classmethod
+    def initial_state(cls, view):
+        return view.query_ancestor(SessionView).thread_identity.transcript_state()
 
     @classmethod
     def empty_page(cls):

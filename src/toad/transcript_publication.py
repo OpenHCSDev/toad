@@ -399,7 +399,7 @@ class ViewBinding:
     def close_source(self):
         pass
 
-    def retire_source(self):
+    def replace_source(self):
         return AwaitComplete.nothing()
 
     @property
@@ -497,7 +497,8 @@ class BoundView(ViewBinding):
                 and self.window.is_attached and self.contents.is_attached)
 
     def histories(self):
-        return tuple(self.contents.query_children(TranscriptHistory))
+        return tuple(history for history in self.contents.query_children(TranscriptHistory)
+                     if not history.is_leaving)
 
     @property
     def history(self) -> TranscriptHistory:
@@ -524,8 +525,22 @@ class BoundView(ViewBinding):
     def close_source(self):
         self.history.close()
 
-    def retire_source(self):
-        return self.history.retire_source()
+    def replace_source(self):
+        """Withdraw the old source now; install the identity's reader after joining it."""
+        history = self.history
+        retirement = history.retire_source()
+
+        async def replace():
+            await retirement
+            replacement = TranscriptHistory.empty(view=self.view, notification_view=self.contents)
+            removal = history.remove()
+            # Both native membership changes happen before yielding: callbacks
+            # see one active reader while the old tree finishes pruning.
+            mounted = self.contents.mount(replacement, before=history)
+            await mounted
+            await removal
+
+        return AwaitComplete(replace())
 
     async def restore_documents(self, owner):
         if not self.view.is_attached or not owner.documents:
@@ -862,7 +877,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
             yield
         finally:
             if origin.transcript_scope() != previous:
-                self.bind_thread_observation()
+                self._thread_observation.close()
                 self.source_requests.cancel()
                 self.invalidate_publications()
                 self.current_read = NotPublished()
@@ -874,9 +889,10 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                     worker.cancel()
                 # A different origin does not authorize reusing these pages.
                 # Withdraw every old source before joining any cancelled work.
-                retirement = self.binding.retire_source()
+                replacement = self.binding.replace_source()
                 self.binding.reset_reader()
-                await retirement
+                await replacement
+                self.bind_thread_observation()
 
     async def detach(self, view: Conversation) -> None:
         if not self.binding.matches(view):
