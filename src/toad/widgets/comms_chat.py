@@ -219,9 +219,10 @@ class CommsChatView(Conversation):
         self.agent_info = Content(self.conversation.initial_label)
 
     @handles(CurrentDisplayReferences)
-    def referenced_identity(self, references) -> None:
+    def referenced_identity(self, references) -> object:
         self.agent_info = Content(self.conversation.label(references))
         self.refresh_thread_status()
+        return self.DISCARD
 
     def transcript_scope(self) -> NoTranscript:
         """DM/channel history belongs to WireHistory, not a native transcript."""

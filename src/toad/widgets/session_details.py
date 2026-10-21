@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from agent_comms.mro_dispatch import handles
+from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.thread_presentation import (
     ThreadPresentationStatus, SessionDisconnected,
     WorkingThreadPresentationStatus, ThreadRetired,
@@ -157,7 +158,7 @@ class ConversationSessionDetails(SessionDetails):
 
     DEFAULT_ID = None
 
-    def __init__(self, peer) -> None:
+    def __init__(self, peer: ThreadIncarnation) -> None:
         self.peer = peer
         super().__init__(history=NativeHistory(), delivery=InputDeliveryBar())
 

@@ -13,11 +13,12 @@ from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
-from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
+from toad.core.projection import MroProjection
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.session_scope import SessionScope
 from toad.session_tracker import (
@@ -215,7 +216,7 @@ class NativeSessionEntry(SessionEntry):
         sessions.app.session_tracker.close_session(self.mode)
 
 
-class HistorySessionEntry(SessionEntry, MroDispatch):
+class HistorySessionEntry(SessionEntry, MroProjection):
     def __init__(
         self,
         mode: str,

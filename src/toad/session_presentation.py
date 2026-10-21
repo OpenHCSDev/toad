@@ -22,6 +22,7 @@ from toad.owner_preparation import ExistingOwnerPlan
 from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
+from toad.widgets.prompt import MessagePrompt
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -243,8 +244,6 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        from toad.widgets.prompt import MessagePrompt
-
         return MessagePrompt()
 
     def input_ready(self, conversation: Conversation) -> bool:
