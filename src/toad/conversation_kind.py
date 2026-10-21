@@ -147,7 +147,7 @@ class ChannelConversation(ConversationKind):
         snapshot = comms.registry.snapshot()
         resolved = self.target.resolve(snapshot, comms.bus.require_channel)
         return ResolvedConversation(
-            snapshot.canonical_name(me), replace(self, target=ChannelTarget(resolved.channel.name)),
+            snapshot.canonical_name(me), replace(self, target=replace(self.target, name=resolved.channel.name)),
         )
 
     @classmethod
@@ -216,7 +216,7 @@ class DmConversation(ConversationKind):
         snapshot = comms.registry.snapshot()
         resolved = self.target.resolve(snapshot, comms.bus.require_channel)
         return ResolvedConversation(
-            snapshot.require(me).name, replace(self, target=ThreadTarget(resolved.thread.name)),
+            snapshot.require(me).name, replace(self, target=replace(self.target, name=resolved.thread.name)),
         )
 
     def label(self) -> str:
