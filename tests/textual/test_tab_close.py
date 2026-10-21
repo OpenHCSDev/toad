@@ -1,4 +1,4 @@
-"""A tab's logical lifetime ends without removing its saved thread."""
+"""Textual-facing: tab closing. A tab's logical lifetime ends without removing its saved thread."""
 from dataclasses import dataclass
 from functools import partial
 

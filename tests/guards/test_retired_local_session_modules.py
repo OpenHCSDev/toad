@@ -10,6 +10,7 @@ def test_retired_local_sidebar_and_modules():
     removed_modules = (
         "code_analyze.py", "gist.py", "option_content.py", "os.py",
         "widgets/version.py", "widgets/welcome.py", "widgets/danger_warning.py",
+        "widgets/session_sidebar.py",
     )
     assert not [name for name in removed_modules if (SOURCE / name).exists()]
     removed_symbols = {"SessionPresentation", "SessionRow", "SessionSidebar", "McpSettings",
@@ -23,9 +24,6 @@ def test_retired_local_sidebar_and_modules():
             if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef, ast.Name, ast.Attribute)):
                 name = node.name if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) else node.id if isinstance(node, ast.Name) else node.attr
                 assert name not in removed_symbols, (path, node.lineno, name)
-    row_tree = ast.parse((SOURCE / "widgets/session_sidebar.py").read_text())
-    assert not any(isinstance(node, ast.FunctionDef) and node.name == "update_thread"
-                   for node in ast.walk(row_tree))
 
 
 

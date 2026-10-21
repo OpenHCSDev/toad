@@ -1,4 +1,4 @@
-"""Unmount ends interest, not the real observer's already-acquired reads."""
+"""Textual-facing: widget unmount; unmount ends interest, not the real observer's already-acquired reads."""
 
 import asyncio
 import sys

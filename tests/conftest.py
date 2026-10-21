@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import shutil
 import sys
+import warnings
 
 import pytest
 
@@ -19,6 +20,10 @@ from support.workspace import Workspace
 
 RESULT = "TOAD_TEST_RESULT"
 OPEN_DEFECTS = Path(__file__).with_name("open_defects.toml")
+
+
+class OrphanDefect(pytest.PytestWarning):
+    """An open defect stays recorded after its test is deleted; it needs a new reproducer."""
 
 
 def open_defects() -> dict[str, tuple[str, bool]]:
@@ -102,9 +107,9 @@ def pytest_collection_modifyitems(config, items):
     if ATTEMPT in os.environ:
         return  # This is the process a test was given.
     defects = open_defects()
-    unknown = set(defects) - {item.nodeid for item in items}
-    if unknown and not config.args_source == config.ArgsSource.ARGS:
-        raise pytest.UsageError(f"tests/open_defects.toml names tests that do not exist: {sorted(unknown)}")
+    if not config.args_source == config.ArgsSource.ARGS:
+        for test in sorted(set(defects) - {item.nodeid for item in items}):
+            warnings.warn(OrphanDefect(f"{defects[test][0]} Its test {test} no longer exists: the defect needs a new test."))
     for item in items:
         if item.nodeid in defects and "workspace" not in getattr(item, "fixturenames", ()):
             reason, intermittent = defects[item.nodeid]

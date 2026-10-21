@@ -16,7 +16,8 @@ from python_introspect import AnnotatedDataclassValidationMixin
 from toad.acp.status import ToolCallStatus
 from toad.forms.kinds import Multiline
 from toad.preferences import SETTINGS, SavedSettings
-from toad.setting_choices import BothExpansion, Expansion, FailExpansion, FamilyChoices
+from toad.setting_choices import BothExpansion, Expansion, FailExpansion
+from toad.setting_declarations import FamilyChoices
 
 SAVED = Path(__file__).resolve().parents[1] / "fixtures" / "saved-settings.json"
 
