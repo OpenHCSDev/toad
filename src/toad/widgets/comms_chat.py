@@ -7,8 +7,8 @@ from functools import partial
 from pathlib import Path
 
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
-from agent_comms.field_codec import FieldCodec
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
+from agent_comms.field_codec import FieldCodec
 from agent_comms.messages import Message as WireMessage
 from agent_comms.mro_dispatch import handles
 from textual import containers

@@ -14,7 +14,10 @@ from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 
 if TYPE_CHECKING:
-    from toad.widgets.observed_thread_activity import ObservedThreadActivity, ThreadStatusOwner
+    from toad.widgets.observed_thread_activity import (
+        ObservedThreadActivity,
+        ThreadStatusOwner,
+    )
 
 
 class StatusThread(ABC):

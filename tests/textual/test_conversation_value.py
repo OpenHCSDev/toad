@@ -140,3 +140,55 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
         sent = [fragment.message for fragment in chat.message_history.fragments_in_range if fragment.message.body == "AFTER_RENAME"]
         assert len(sent) == 1
         assert sent[0].target == "renamed"
+
+
+async def test_recreated_dm_peer_retires_the_old_view_and_opens_a_new_incarnation(workspace):
+    peer = workspace.thread("peer", "team")
+    viewer = workspace.viewer
+    async with workspace.app(size=(110, 35)) as ui:
+        app, _ = ui.textual
+        owner = ui.selected_tab
+        context = NavigationContext(app, owner, workspace.project, viewer)
+        old_mode = await DirectTarget("peer").open(context)
+        old_screen = app.selected_session
+        await old_screen.wait_content_ready()
+        old_chat = old_screen.query_one(CommsChatView)
+        old_window = old_chat.window
+        old_chat.prompt.text = "belongs only to the original peer"
+
+        def replace_peer():
+            registry = workspace.comms.registry
+            registry.unregister(peer.name)
+            registry.remove_originals((registry.require(peer.name),))
+            return registry.declare(registry.new_thread(
+                peer.name, peer.tags, peer.worktree, created_at=peer.created_at + 1,
+            ))
+
+        successor = await asyncio.to_thread(replace_peer)
+        await ui.until(
+            lambda: app.session_navigation.get(old_mode) is None,
+            why="Core retiring the deleted peer's visible DM view",
+        )
+        await ui.select_tab(owner)
+        new_mode = await DirectTarget("peer").open(context)
+        screen = app.selected_session
+        await screen.wait_content_ready()
+        chat = screen.query_one(CommsChatView)
+        entry = app.session_navigation.get(new_mode)
+        assert new_mode != old_mode
+        assert screen is not old_screen
+        assert chat is not old_chat
+        assert chat.window is not old_window
+        assert entry.key.conversation.peer == successor.incarnation
+        assert entry.key.conversation.peer != peer.incarnation
+        assert chat.prompt.text == ""
+        await ui.write_draft("FOR_THE_SUCCESSOR")
+        await ui.press("enter")
+        await ui.until(
+            lambda: "FOR_THE_SUCCESSOR" in ui.painted(chat.window),
+            why="a fresh message in the successor's distinct DM view",
+        )
+        sent = [fragment.message for fragment in chat.message_history.fragments_in_range
+                if fragment.message.body == "FOR_THE_SUCCESSOR"]
+        assert len(sent) == 1
+        assert sent[0].target == successor.name

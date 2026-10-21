@@ -1,13 +1,13 @@
 """Live channel members use the sidebar's keyed widget reconciliation."""
 
 from textual import widgets
-from textual.content import Content
 from textual.containers import VerticalGroup
+from textual.content import Content
 
 from toad.session_scope import SessionScope
 from toad.status_thread import StatusThread
-from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
 from toad.widgets.session_details import ConversationSessionDetails
+from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
 
 
 class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):

@@ -28,6 +28,7 @@ from toad.conversation_kind import (
 
 if TYPE_CHECKING:
     from agent_comms.display_references import CurrentDisplayReferences
+
     from toad.navigation_context import NavigationContext, NavigationOwner
 
 
