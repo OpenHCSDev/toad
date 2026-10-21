@@ -54,9 +54,7 @@ async def test_deferred_foreign_read_keeps_the_previous_status_row(workspace, re
 
 
 async def test_foreign_read_presents_the_real_stored_thread(workspace):
-    foreign = Comms(
-        workspace.roots.attempt / "foreign-wire", private_initial_writes=True
-    )
+    foreign = Comms(workspace.roots.attempt / "foreign-wire")
     foreign.registry.declare(
         foreign.registry.new_thread(
             "peer", frozenset(), str(workspace.project), created_at=10.0
