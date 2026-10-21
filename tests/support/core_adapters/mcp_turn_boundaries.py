@@ -12,12 +12,12 @@ from pathlib import Path
 
 from agent_comms.acp import CommsAgent
 from agent_comms.acp_extension import (
-    McpClientReceiptUpdate, TurnChangedUpdate, encode_updates,
+    McpClientAcknowledgementUpdate, TurnChangedUpdate, encode_updates,
 )
 from agent_comms.comms import wire
 from agent_comms.coordinator import Coordination
 from agent_comms.pi_payloads import (
-    McpLiveReceipt, McpServerReceipt, ReadyMcpServerState, ConfirmMcpCallPolicy,
+    McpLiveAcknowledgement, McpServerReceipt, ReadyMcpServerState, ConfirmMcpCallPolicy,
 )
 from toad.widgets.note import Note
 
@@ -71,7 +71,7 @@ async def turn_source(root: Path, session_id: str):
 
 
 async def exercise_boundaries(agent, view, pilot):
-    receipt = McpLiveReceipt(1, "pi-mcp-client", "a" * 32, "running", "turn", (
+    receipt = McpLiveAcknowledgement(1, "pi-mcp-client", "a" * 32, "running", "turn", (
         McpServerReceipt("fixture", "project", ReadyMcpServerState,
                          ConfirmMcpCallPolicy, 1, 0, 0),
     ))
@@ -95,7 +95,7 @@ async def exercise_boundaries(agent, view, pilot):
                 "retired", "Authored MCP boundary; no input",
             ))
         retired = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
-        await send(McpClientReceiptUpdate(retired.state.finished_turn_id, receipt))
+        await send(McpClientAcknowledgementUpdate(retired.state.finished_turn_id, receipt))
         assert not notes(view)
         async with AsyncExitStack() as custody:
             await Coordination.run_worker(partial(
@@ -106,10 +106,10 @@ async def exercise_boundaries(agent, view, pilot):
             turn_id = active.state.managed_id
             await send(TurnChangedUpdate(active.state))
             assert agent.current_turn.managed_id == view.turns.managed_id == turn_id
-            await send(McpClientReceiptUpdate(turn_id, receipt), session="foreign")
-            await send(McpClientReceiptUpdate(retired.state.finished_turn_id, receipt))
+            await send(McpClientAcknowledgementUpdate(turn_id, receipt), session="foreign")
+            await send(McpClientAcknowledgementUpdate(retired.state.finished_turn_id, receipt))
             assert not notes(view)
-            malformed = packet(McpClientReceiptUpdate(turn_id, receipt))
+            malformed = packet(McpClientAcknowledgementUpdate(turn_id, receipt))
             malformed["_meta"]["agentComms"]["updates"][0]["receipt"]["version"] = True
             result = await agent.server.call({
                 "jsonrpc": "2.0", "method": "session/update", "params": {
@@ -119,10 +119,10 @@ async def exercise_boundaries(agent, view, pilot):
             assert result is None, result
             await pilot.pause()
             assert not notes(view)
-            await send(McpClientReceiptUpdate(turn_id, receipt))
+            await send(McpClientAcknowledgementUpdate(turn_id, receipt))
             rendered = notes(view)
             assert len(rendered) == 1 and "not a grant" in rendered[0]
-            await send(McpClientReceiptUpdate(turn_id, receipt))
+            await send(McpClientAcknowledgementUpdate(turn_id, receipt))
             assert notes(view) == rendered
             assert await Coordination.run_worker(partial(
                 producer._comms.agents.finish_turn, retired_owner.turn_lease,
@@ -133,5 +133,5 @@ async def exercise_boundaries(agent, view, pilot):
         await send(TurnChangedUpdate(terminal.state))
         assert agent.current_turn.managed_id is view.turns.managed_id is None
         assert not notes(view)
-        await send(McpClientReceiptUpdate(turn_id, receipt))
+        await send(McpClientAcknowledgementUpdate(turn_id, receipt))
         assert not notes(view)
