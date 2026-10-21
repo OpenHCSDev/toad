@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
+from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.message_page import MessagePage
 from agent_comms.transcript_events import IncomingTranscript
 from agent_comms.page_traversal import (
@@ -301,11 +302,17 @@ class WireSource:
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(str(self.project))
 
+    def references(self) -> CurrentDisplayReferences:
+        """A reader resolves identities through the registry cut, without a new index."""
+        return CurrentDisplayReferences(
+            str(self.comms.root), registry=self.comms.registry.snapshot()
+        )
+
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
         revision = self.conversation.history_view.revision(
             self.comms.views,
-            self.conversation.target.name,
+            self.conversation.destination(self.references()).name,
             seen,
             worktree=str(self.project),
         )
@@ -412,7 +419,10 @@ class WirePageBuffer(SavedHistory):
         return TargetContext(
             view.app,
             self.loader.comms,
-            self.loader.conversation.target.name,
+            self.loader.conversation.destination(
+                view.app.coordination_access.observation.observed()
+                .sidebar.observation.require_snapshot().references
+            ).name,
             self.loader.me,
             self.loader.project,
             view.query_ancestor(SessionScope).id,

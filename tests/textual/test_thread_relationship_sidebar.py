@@ -8,8 +8,6 @@ from agent_comms.display_order import ThreadSort
 from agent_comms.relationships import AddRelationshipEdit
 from agent_comms.tools import invoke_tool
 
-from support.textual_steps import coordination_update
-
 
 async def reveal(ui, session):
     from toad.widgets.side_bar import SideBar, SideBarCollapsible
@@ -43,7 +41,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         app, pilot = ui.textual
         owner_tab = ui.selected_tab
         main = app.selected_session
-        await main.on_coordination_update(coordination_update(str(workspace.roots.wire), "owner"))
+        await main.on_coordination_update(comms.configuration.answer("owner"))
         draft = "Keep the native thread draft"
         await ui.write_draft(draft)
         service = app.coordination_access.service.relationships
@@ -144,7 +142,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
 
         with patch.dict(os.environ, {"PI_AGENT_ID": "owner"}):
             comms.threads.rename_self("renamed-owner")
-        await main.on_coordination_update(coordination_update(str(workspace.roots.wire), "renamed-owner"))
+        await main.on_coordination_update(comms.configuration.answer("renamed-owner"))
         await ui.until(lambda: tree._snapshot is not None and tree._snapshot.owner == "renamed-owner",
                        why="the panel to follow the rename")
         await ui.select_tab(channel_tab)

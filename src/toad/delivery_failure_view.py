@@ -155,8 +155,12 @@ class DeliveryFailureView(ToadNode, Widget):
             self.restore_user_message(body)
             self.flash(reason, style="error")
             return
+        references = (
+            self.app.coordination_access.observation.observed()
+            .sidebar.observation.require_snapshot().references
+        )
         await self.deliver_user_message(
-            root, conversation.send_target().name, body, current, present
+            root, conversation.send_target(references).name, body, current, present
         )
 
     async def deliver_user_message(self, root, target, body, current, present):

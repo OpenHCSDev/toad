@@ -243,7 +243,9 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        return DmConversation(conversation.transcript_scope().mailbox_target()).prompt()
+        from toad.widgets.prompt import MessagePrompt
+
+        return MessagePrompt()
 
     def input_ready(self, conversation: Conversation) -> bool:
         return conversation.transcript.readable

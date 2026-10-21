@@ -27,6 +27,7 @@ from toad.conversation_kind import (
 )
 
 if TYPE_CHECKING:
+    from agent_comms.display_references import CurrentDisplayReferences
     from toad.navigation_context import NavigationContext, NavigationOwner
 
 
@@ -135,9 +136,11 @@ class HistoryTarget(HistoryRoute, NavigationTarget):
         return cls(name)
 
     @classmethod
-    def for_conversation(cls, conversation: ConversationKind) -> HistoryTarget:
+    def for_conversation(
+        cls, conversation: ConversationKind, references: CurrentDisplayReferences
+    ) -> HistoryTarget:
         return HistoryRoute.routes[type(conversation)].for_name(
-            conversation.target.name
+            conversation.destination(references).name
         )
 
 
@@ -154,12 +157,16 @@ class HistoryRouted(HistoryTarget, declared_name=None):
         super().__init_subclass__(**kwargs)
         HistoryRoute.routes[cls.history_kind] = cls
 
+    def prepare(self, comms, me):
+        """Decode the opening intent on the metadata reader, before retaining a key."""
+        return self.history_kind.resolve(comms, me, self.name)
+
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
             owner_mode=context.owner_mode,
             project_path=context.project_path,
             me=context.actor,
-            conversation=self.history_kind(CommandTarget.named(self.name)),
+            route=self,
         )
 
 

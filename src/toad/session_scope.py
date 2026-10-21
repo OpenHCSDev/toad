@@ -119,7 +119,9 @@ class KnownTranscript(TranscriptScope):
     async def submit_mailbox(self, view, event, conversation_type, presented) -> None:
         await view.submit_comms_message(
             self.root,
-            conversation_type(self.mailbox_target()),
+            conversation_type(
+                view.query_ancestor(SessionScope).thread_identity.thread_incarnation()
+            ),
             event.body,
             lambda: view.is_attached and view.transcript.binding.thread_scope == self,
             presented,

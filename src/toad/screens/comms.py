@@ -90,7 +90,11 @@ class CommsScreen(SessionView, can_focus=False):
 
     @property
     def navigation_target(self) -> NavigationTarget:
-        return HistoryTarget.for_conversation(self.conversation)
+        return HistoryTarget.for_conversation(
+            self.conversation,
+            self.app.coordination_access.observation.observed()
+            .sidebar.observation.require_snapshot().references,
+        )
 
     def rebind_identity(self, identity: str) -> None:
         with self.changing_identity():
@@ -120,7 +124,7 @@ class CommsScreen(SessionView, can_focus=False):
             (self.create_chat(),)
             if self._content_loaded
             else (
-                Static(f"Opening {self.conversation.target.name}…", id="comms-opening"),
+                Static(f"Opening {self.conversation.initial_label}…", id="comms-opening"),
             )
         )
         yield containers.Center(
@@ -178,7 +182,9 @@ class CommsScreen(SessionView, can_focus=False):
             return
         self.app.push_screen(
             self.conversation.historical_sessions(
-                partial(HistoricalSessions, comms, threads)
+                partial(HistoricalSessions, comms, threads),
+                self.app.coordination_access.observation.observed()
+                .sidebar.observation.require_snapshot().references,
             )
         )
 

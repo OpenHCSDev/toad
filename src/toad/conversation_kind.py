@@ -1,26 +1,31 @@
-"""One declared conversation value owns its destination and history behavior."""
+"""Conversation values own stable destinations; snapshots own their current names."""
 
 from __future__ import annotations
+
 import asyncio
 from abc import abstractmethod
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar
+
+from agent_comms.channel_targets import ChannelTarget, NamedTarget, ThreadTarget
+from agent_comms.channels import AllChannel
+from agent_comms.comms import Comms
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
     ChannelDisplayHistory,
     ConversationHistoryView,
     DMDisplayHistory,
 )
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage, PageBounds
+from agent_comms.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
+
+from toad.status_thread import NoStatusThread, StatusThread
+from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
-from toad.widgets.channel_activity import ChannelActivity
-from toad.status_thread import NoStatusThread, StatusThread
-from agent_comms.channel_targets import ChannelTarget, NamedTarget, ThreadTarget
-from agent_comms.channels import AllChannel
 from toad.widgets.sidebar_tree import UnpaintedChannel
 
 if TYPE_CHECKING:
@@ -29,8 +34,18 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class ConversationKind(DeclaredFamily, affix="Conversation"):
-    target: NamedTarget
     history_view: ClassVar[type[ConversationHistoryView]]
+
+    @property
+    @abstractmethod
+    def initial_label(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def input_scope(self) -> str: ...
+
+    @abstractmethod
+    def destination(self, references: CurrentDisplayReferences) -> NamedTarget: ...
 
     def threads_needed(self, snapshot, me):
         return ()
@@ -46,17 +61,17 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @abstractmethod
     def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage: ...
 
+    @classmethod
     @abstractmethod
-    def resolve(self, comms: Comms, me: str) -> ResolvedConversation: ...
+    def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation: ...
 
-    def label(self) -> str:
-        return self.target.name
+    def label(self, references: CurrentDisplayReferences) -> str:
+        return self.destination(references).name
 
     def status_thread(self, root, access) -> StatusThread:
         return NoStatusThread()
 
-    def historical_sessions(self, create_view):
-        """The UI owns construction; the conversation selects its initial identity."""
+    def historical_sessions(self, create_view, references):
         return create_view()
 
     @classmethod
@@ -71,13 +86,15 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         screen.app.session_navigation.direct_messages()
 
     def unread(self, observation):
-        return observation.channel_unread(self.target.name)
+        return observation.channel_unread(
+            self.destination(observation.require_snapshot().references).name
+        )
 
-    def placeholder(self):
-        return f"Message {self.target.name}"
+    def placeholder(self, references):
+        return f"Message {self.destination(references).name}"
 
-    def send_target(self) -> NamedTarget:
-        return self.target
+    def send_target(self, references) -> NamedTarget:
+        return self.destination(references)
 
     def read_only(self, comms):
         return False
@@ -90,7 +107,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     async def status_text(self, comms, *, read_only: bool) -> str: ...
 
     def activity_members(self, model):
-        return (self.target.name,)
+        return (self.destination(model.observation.require_snapshot().references).name,)
 
     def active_members(self, model):
         return tuple(
@@ -100,14 +117,10 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         )
 
     @classmethod
-    def activity_details(cls, target: ThreadTarget):
-        return ConversationSessionDetails(
-            target, history=NativeHistory(), delivery=InputDeliveryBar()
-        )
-
-    @classmethod
     def compose_activity(cls, view) -> ComposeResult:
-        view.thread_activity = cls.activity_details(view.conversation.target)
+        view.thread_activity = ConversationSessionDetails(
+            view.conversation, history=NativeHistory(), delivery=InputDeliveryBar()
+        )
         yield view.thread_activity
 
     @abstractmethod
@@ -115,7 +128,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     def seen_page(cls, history, seen):
-        """Acknowledge only visible fragments using their original page's proof."""
+        """Acknowledge visible fragments using their original page's proof."""
         if not seen:
             return None
         page = seen[0].evidence
@@ -134,6 +147,17 @@ class ChannelConversation(ConversationKind):
     target: ChannelTarget
     history_view = ChannelDisplayHistory
 
+    @property
+    def initial_label(self) -> str:
+        return self.target.name
+
+    @property
+    def input_scope(self) -> str:
+        return self.target.name
+
+    def destination(self, references: CurrentDisplayReferences) -> ChannelTarget:
+        return self.target
+
     def activity_members(self, model):
         return model.channels.rows.get(
             self.target.name, UnpaintedChannel(self.target.name)
@@ -151,15 +175,16 @@ class ChannelConversation(ConversationKind):
     @classmethod
     def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.channel_display_page(
-            source.conversation.target.name, viewer=source.viewer, bounds=bounds
+            source.conversation.destination(source.references()).name,
+            viewer=source.viewer, bounds=bounds,
         )
 
-    def resolve(self, comms: Comms, me: str) -> ResolvedConversation:
+    @classmethod
+    def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:
         snapshot = comms.registry.snapshot()
-        resolved = self.target.resolve(snapshot, comms.bus.require_channel)
+        resolved = ChannelTarget(name).resolve(snapshot, comms.bus.require_channel)
         return ResolvedConversation(
-            snapshot.canonical_name(me),
-            replace(self, target=replace(self.target, name=resolved.channel.name)),
+            snapshot.canonical_name(me), cls(ChannelTarget(resolved.channel.name))
         )
 
     @classmethod
@@ -172,7 +197,7 @@ class ChannelConversation(ConversationKind):
     def prompt(self):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        return ChannelPrompt(placeholder=self.placeholder())
+        return ChannelPrompt(placeholder=f"Message {self.initial_label}")
 
     def read_only(self, comms):
         return comms.bus.require_channel(self.target.name).read_only
@@ -181,8 +206,6 @@ class ChannelConversation(ConversationKind):
     async def update_mentions(cls, view, comms):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        # Mention completion consumes the observer's membership snapshot,
-        # not another registry/catalog read after every channel page.
         history = view.message_history
         source = history.source_snapshot()
         conversation = view.conversation
@@ -193,7 +216,8 @@ class ChannelConversation(ConversationKind):
         if not observed.uses(comms):
             raise ValueError("Channel mentions belong to another Comms service")
         mentions = await view.app.preparation.run_thread(
-            snapshot.mention_candidates, conversation.target.name
+            snapshot.mention_candidates,
+            conversation.destination(snapshot.references).name,
         )
         if (
             not await history.source_is_current(source)
@@ -205,44 +229,52 @@ class ChannelConversation(ConversationKind):
 
 @dataclass(frozen=True)
 class DmConversation(ConversationKind):
-    target: ThreadTarget
+    peer: ThreadIncarnation
     history_view = DMDisplayHistory
+    initial_label = "Direct messages"
+
+    @property
+    def input_scope(self) -> str:
+        return self.peer.require_recorded().lookup
+
+    def destination(self, references: CurrentDisplayReferences) -> ThreadTarget:
+        return ThreadTarget(references.thread(self.peer).name)
 
     def status_thread(self, root, access) -> StatusThread:
-        return StatusThread.for_root(root, self.target.name, access)
+        return StatusThread.for_conversation(root, self, access)
 
-    def historical_sessions(self, create_view):
-        return create_view(name=self.target.name)
+    def historical_sessions(self, create_view, references):
+        return create_view(name=self.destination(references).name)
 
     @classmethod
     async def toggle_dm(cls, screen) -> None:
         await screen.action_back_to_agent()
 
     def threads_needed(self, snapshot, me):
-        return (
-            snapshot.require(me).incarnation,
-            snapshot.require(self.target.name).incarnation,
-        )
+        return snapshot.require(me).incarnation, self.peer
 
     def unread(self, observation):
-        return observation.bus_unread(self.target.name)
+        return observation.bus_unread(
+            self.destination(observation.require_snapshot().references).name
+        )
 
     @classmethod
     def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.dm_display_page(
-            source.conversation.target.name, worktree=str(source.project), bounds=bounds
+            source.conversation.destination(source.references()).name,
+            worktree=str(source.project), bounds=bounds,
         )
 
-    def resolve(self, comms: Comms, me: str) -> ResolvedConversation:
+    @classmethod
+    def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:
         snapshot = comms.registry.snapshot()
-        resolved = self.target.resolve(snapshot, comms.bus.require_channel)
+        resolved = ThreadTarget(name).resolve(snapshot, comms.bus.require_channel)
         return ResolvedConversation(
-            snapshot.require(me).name,
-            replace(self, target=replace(self.target, name=resolved.thread.name)),
+            snapshot.require(me).name, cls(resolved.thread.incarnation)
         )
 
-    def label(self) -> str:
-        return f"@{self.target.name}"
+    def label(self, references: CurrentDisplayReferences) -> str:
+        return f"@{self.destination(references).name}"
 
     @classmethod
     async def update_mentions(cls, view, comms) -> None:
@@ -251,12 +283,16 @@ class DmConversation(ConversationKind):
     def prompt(self):
         from toad.widgets.prompt import MessagePrompt
 
-        return MessagePrompt(placeholder=self.placeholder())
+        return MessagePrompt()
 
     async def status_text(self, comms, *, read_only: bool) -> str:
-        return (
-            await asyncio.to_thread(comms.configuration.answer, self.target.name)
-        ).status_label
+        def read():
+            references = CurrentDisplayReferences(
+                str(comms.root), registry=comms.registry.snapshot()
+            )
+            return comms.configuration.answer(self.destination(references).name)
+
+        return (await asyncio.to_thread(read)).status_label
 
 
 class IrcConversation(ChannelConversation):
@@ -264,11 +300,11 @@ class IrcConversation(ChannelConversation):
     async def toggle_irc(cls, screen) -> None:
         await screen.action_back_to_agent()
 
-    def label(self) -> str:
+    def label(self, references: CurrentDisplayReferences) -> str:
         return f"{self.target.name} · all comms"
 
-    def placeholder(self):
+    def placeholder(self, references):
         return "Message #all (broadcast)"
 
-    def send_target(self) -> ChannelTarget:
+    def send_target(self, references) -> ChannelTarget:
         return AllChannel.target()
