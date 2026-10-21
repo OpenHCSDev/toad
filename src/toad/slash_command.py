@@ -295,7 +295,7 @@ class SessionCloseCommand(NoArgumentsCommand, declared_name="toad:session-close"
         if conversation.turns.owner.busy:
             await conversation.agent_binding.cancel()
         if conversation.screen.id is not None:
-            conversation.app.session_navigation.events.publish(session_requests.SessionClose(conversation.screen.id))
+            conversation.app.session_navigation.events.publish(session_requests.SessionArchive(conversation.screen.id))
         return True
 
 
