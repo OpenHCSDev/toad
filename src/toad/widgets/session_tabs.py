@@ -22,7 +22,6 @@ from ui_theme.scheme import AccentColour, ErrorColour, ForegroundColour, HeaderT
 from textual._activation import PrimaryActivation
 from textual.widget import Widget
 
-from toad import messages
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
@@ -286,7 +285,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
             if geometry_changed:
                 self.call_after_refresh(self.show_selected_tab)
 
-    @handles(core_events.OpenTabsChanged)
+    @handles(core_events.OpenTabsChanged, core_events.LinkContextChanged)
     async def _tabs_changed(self, event: CoreEventMessage) -> None:
         """A thread tab is a thread row: it repaints when an open session's state changes too."""
         if self.screen.is_active:

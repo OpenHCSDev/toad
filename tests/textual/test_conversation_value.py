@@ -95,13 +95,21 @@ async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and
 
         await channel_target("#team").open(context)
         chat = app.selected_session.query_one(CommsChatView)
-        workspace.thread(
+        late_peer = workspace.thread(
             "late-peer", "team", running=True, title="Late conversation peer"
         )
+        activity = chat.query_one(ChannelActivity)
         await ui.until(
-            lambda: "late-peer" in chat.query_one(ChannelActivity).rows,
+            lambda: late_peer.incarnation in activity.rows,
             why="the new member in the channel's activity rows",
         )
+        member = activity.rows[late_peer.incarnation]
+        await asyncio.to_thread(workspace.comms.registry.rename, "late-peer", "renamed-late-peer")
+        await ui.until(
+            lambda: member.label == "renamed-late-peer",
+            why="the retained activity row following its peer's current name",
+        )
+        assert activity.rows[late_peer.incarnation] is member
 
 
 async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(workspace):
@@ -122,9 +130,10 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
         chat.prompt.text = "draft survives rename"
         await asyncio.to_thread(workspace.comms.registry.rename, "peer", "renamed")
         await ui.until(
-            lambda: any(tab.identity == mode and tab.title == "@renamed" for tab in ui.tabs()),
+            lambda: any(tab.identity == mode and tab.title.startswith("@renamed") for tab in ui.tabs()),
             why="the retained DM tab following its incarnation's current name",
         )
+        assert next(tab.title for tab in app.open_tabs if tab.mode_name == mode) == "@renamed"
         await ui.select_tab(owner)
         assert await DirectTarget("renamed").open(context) == mode
         assert app.session_navigation.get(mode) is entry

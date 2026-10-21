@@ -124,6 +124,7 @@ def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copie
 def test_recreated_name_cannot_resolve_the_retired_dm(copied_conversations):
     comms, viewer = copied_conversations
     direct = DirectTarget("peer").prepare(comms, viewer).conversation
+    comms.registry.unregister("peer")
     comms.threads.delete("peer")
     comms.registry.declare(comms.registry.new_thread("peer", frozenset(), str(comms.root.parent)))
     recreated = DirectTarget("peer").prepare(comms, viewer).conversation

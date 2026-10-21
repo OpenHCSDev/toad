@@ -62,10 +62,11 @@ class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
 
     def bind(self, thread: StatusThread) -> None:
         if thread != self.thread:
-            self.retire_core_observations(self.app.coordination_access.events)
             self.thread = thread
-            thread.observe(self)
-            thread.bind(self)
+            if self.is_mounted:
+                self.retire_core_observations(self.app.coordination_access.events)
+                thread.observe(self)
+                thread.bind(self)
 
     def status_changed(self, event: ThreadRowsChanged) -> None:
         self.thread.bind(self)
