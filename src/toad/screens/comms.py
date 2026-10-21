@@ -24,6 +24,7 @@ from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar
 from toad.navigation_context import NavigationContext
+from toad.navigation_target import HistoryTarget, NavigationTarget
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
@@ -87,8 +88,8 @@ class CommsScreen(SessionView, can_focus=False):
         return self.app.workspace_sessions.origin(self.owner_mode)
 
     @property
-    def navigation_target_name(self) -> str:
-        return self.conversation.target.name
+    def navigation_target(self) -> NavigationTarget:
+        return HistoryTarget.for_conversation(self.conversation)
 
     def rebind_identity(self, identity: str) -> None:
         with self.changing_identity():

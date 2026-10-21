@@ -801,16 +801,16 @@ class TargetTree(Vertical):
         raise NotImplementedError
 
     def row_current(self, row) -> bool:
-        return row.target_name == self.app.workspace_sessions.visible_target(self.navigation_root)
+        return self.app.workspace_sessions.visible_target(self.navigation_root).matches(row.target)
 
     def rows_for_target(self, target):
-        return tuple(row for group in self.navigation_groups for row in group.rows_for_target(target)) if target is not None else ()
+        return tuple(row for group in self.navigation_groups for row in target.rows_in(group))
 
     @property
     def current_rows(self):
         target = self.app.workspace_sessions.visible_target(self.navigation_root)
         return tuple(row for group in self.navigation_groups if group.accepts_navigation()
-                     for row in group.rows_for_target(target) if row is group.row or group.members_visible)
+                     for row in target.rows_in(group) if row is group.row or group.members_visible)
 
     @handles(SessionSelected)
     def session_selected(self, event) -> None:

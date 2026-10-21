@@ -62,10 +62,12 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
         tool.set_expanded(False)
         await view.contents.mount(user, extra, tool)
         await ui.step()
+        assert not view.navigation.accepts_menu_owner(extra)
 
         async def choose(widget, key):
             assert isinstance(widget, BlockContent), type(widget)
             assert view.navigation.select(widget)
+            assert view.navigation.accepts_menu_owner(widget)
             view.refresh_block_cursor(lambda cursor: cursor.show_moved_to(view.window))
             await ui.press("enter")
             await ui.until(lambda: bool(view.query(Menu)), why="the block menu")

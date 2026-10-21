@@ -9,6 +9,7 @@ from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
+from toad.navigation_target import NavigationTarget, NoTarget
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
 
 class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
@@ -42,6 +43,10 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
     def origin(self) -> SessionOrigin:
         """What a session or history requested from this view starts from."""
         return NoSessionOrigin(str(self))
+
+    @property
+    def navigation_target(self) -> NavigationTarget:
+        return NoTarget()
 
     def belongs_to_wire(self, root) -> bool:
         """Unbound views may project the selected wire; bound views stay on it."""

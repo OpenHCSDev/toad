@@ -8,6 +8,7 @@ from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import WELCOME
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
+from toad.navigation_target import NavigationTarget, NoTarget
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -197,15 +198,15 @@ class WorkspaceSessions:
     def owns(self, view: "SessionScope") -> bool:
         return self.source.current(view)
 
-    def visible_target(self, root):
+    def visible_target(self, root) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
         view = self.source.view
-        return self.target_for_mode(view.id, root) if view is not None and self.owns(view) else None
+        return self.target_for_mode(view.id, root) if view is not None and self.owns(view) else NoTarget()
 
-    def target_for_mode(self, identity, root):
+    def target_for_mode(self, identity, root) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""
         view = self.views.get(identity)
-        return view.navigation_target_name if root is not None and view is not None and view.belongs_to_wire(root) else None
+        return view.navigation_target if root is not None and view is not None and view.belongs_to_wire(root) else NoTarget()
 
     def release_frame_callback(self, owner, callback) -> bool:
         """Admit mounted work through its original logical source binding.

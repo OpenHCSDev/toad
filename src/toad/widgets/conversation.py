@@ -1252,9 +1252,8 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     @on(Menu.OptionSelected)
     async def on_menu_option_selected(self, event: Menu.OptionSelected) -> None:
         event.stop()
-        cursor = self.navigation.cursor
         if (self.query_ancestor(SessionScope).is_current and event.action is not None
-                and cursor is not None and cursor.accepts(event.owner)):
+                and self.navigation.accepts_menu_owner(event.owner)):
             await self.run_action(event.action, {"block": event.owner})
         if (cursor_block := self.cursor_block_child) is not None:
             self.call_after_refresh(self.cursor.refresh)

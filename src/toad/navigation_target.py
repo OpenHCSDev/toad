@@ -40,9 +40,39 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
     def selected(self, owner: NavigationOwner) -> None:
         """Apply view-specific selection intent before beginning navigation."""
 
+    def matches(self, target: NavigationTarget) -> bool:
+        """Different opening behaviors may display the same sidebar address."""
+        return self.name == target.name
+
+    def rows_in(self, group):
+        return group.rows_for_target(self.name)
+
     @abstractmethod
     async def open(self, context: NavigationContext) -> str:
         pass
+
+
+@dataclass(frozen=True)
+class NoTarget(NavigationTarget):
+    name: str = field(default="", init=False)
+
+    def menu_context(self, sidebar, **kwargs):
+        pass
+
+    def show_menu(self, sidebar, offset, **kwargs) -> None:
+        pass
+
+    def selected(self, owner: NavigationOwner) -> None:
+        pass
+
+    def matches(self, target: NavigationTarget) -> bool:
+        return False
+
+    def rows_in(self, group):
+        return ()
+
+    async def open(self, context: NavigationContext) -> str:
+        return context.owner_mode
 
 
 class SessionTarget(NavigationTarget):
@@ -69,6 +99,16 @@ class HistoryRoute:
     def history_kind(self) -> type[ConversationKind]: ...
 
 class HistoryTarget(HistoryRoute, NavigationTarget):
+    @classmethod
+    def for_name(cls, name: str):
+        return cls(name)
+
+    @classmethod
+    def for_conversation(cls, conversation: ConversationKind) -> HistoryTarget:
+        target, = (member for member in cls.members_with(HistoryRoute)
+                   if member.history_kind is type(conversation))
+        return target.for_name(conversation.target.name)
+
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
             owner_mode=context.owner_mode, project_path=context.project_path,
@@ -91,6 +131,10 @@ class FeedTarget(ChannelLike, HistoryTarget):
     name: str = field(default=ALL_COMMS_TARGET, init=False)
     history_kind = IrcConversation
     expanded_by_default = True
+
+    @classmethod
+    def for_name(cls, name: str):
+        return cls()
 
 
 class ChannelTarget(ChannelLike, HistoryTarget):

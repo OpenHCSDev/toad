@@ -53,7 +53,7 @@ from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from toad.navigation_target import FeedTarget, DirectTarget
+from toad.navigation_target import FeedTarget, DirectTarget, NavigationTarget, ThreadTarget
 
 
 class SessionCommands(Provider):
@@ -432,8 +432,8 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     _last_dm_target: str | None = None
 
     @property
-    def navigation_target_name(self) -> str:
-        return self.thread_identity.thread_name()
+    def navigation_target(self) -> NavigationTarget:
+        return ThreadTarget(self.thread_identity.thread_name())
 
     @property
     def navigation_context(self) -> NavigationContext:

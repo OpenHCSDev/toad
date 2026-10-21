@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
     from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
+    from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
 
@@ -75,9 +76,8 @@ class SessionScope(NavigationOwner, ProjectPathOwner, DOMNode):
     def display_name(self) -> str: ...
 
     @property
-    def navigation_target_name(self) -> str | None:
-        """Views without a displayed destination have no navigation name."""
-        return None
+    @abstractmethod
+    def navigation_target(self) -> NavigationTarget: ...
 
     @property
     @abstractmethod

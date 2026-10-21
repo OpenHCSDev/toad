@@ -343,6 +343,12 @@ class ContentNavigation:
     def current(self) -> ConversationEntry | None:
         return self._current if self._current in self.blocks else None
 
+    def accepts_menu_owner(self, owner: Widget) -> bool:
+        for block in self.blocks:
+            if block is self._current:
+                return block.block_cursor.accepts(owner)
+        return False
+
     def clear(self) -> None:
         self._current = None
 

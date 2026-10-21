@@ -29,6 +29,7 @@ async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and
         ):
             mode = await target.open(context)
             screen = app.selected_session
+            assert screen.navigation_target == target
             await screen.wait_content_ready()
             chat = screen.query_one(CommsChatView)
             await ui.until(lambda: body in ui.painted(chat.window),

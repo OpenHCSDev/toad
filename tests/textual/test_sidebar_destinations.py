@@ -21,6 +21,9 @@ async def test_new_destination_uses_existing_row(workspace):
         tree = sidebar.query_one(CommsSidebar)
         await ui.until(lambda: "#team" in tree.groups, why="the real sidebar's channel group")
         group = tree.groups["#team"]
+        absent = app.workspace_sessions.visible_target(None)
+        assert not absent.matches(app.selected_session.navigation_target)
+        assert absent.rows_in(group) == ()
         if not group.expanded:
             group.toggle_members()
         row = CommsRow(TestReportTarget("report"), "Open report")
