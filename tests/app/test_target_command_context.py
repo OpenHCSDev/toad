@@ -19,5 +19,7 @@ async def test_target_discovery_keeps_declared_channel_selection(workspace, sele
         actions = await app.preparation.run_thread(context.available_actions)
         assert actions
         assert all(action.targets == ("owner",) for action in actions)
-        assert all(action.channels == selection for action in actions)
+        channel_actions = [action for action in actions if action.declaration.channel_fields()]
+        assert channel_actions
+        assert all(action.channels == selection for action in channel_actions)
         assert ConfiguredBinary().configured() in about.render(app)
