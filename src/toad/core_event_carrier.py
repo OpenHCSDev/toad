@@ -143,9 +143,12 @@ class CoreEventReceiver(MroDispatch):
             return
         await message.consume(self, message)
 
+    def close_core_events(self) -> None:
+        """End this receiver's subscriptions before its logical source disappears."""
+        while self._core_subscriptions:
+            self._core_subscriptions.pop().close()
+
     def _message_pump_closing(self) -> None:
-        # Revoke queued deliveries before child shutdown can yield.
-        for subscription in self._core_subscriptions:
-            subscription.close()
-        self._core_subscriptions.clear()
+        # Native shutdown also releases receivers without a logical session.
+        self.close_core_events()
         super()._message_pump_closing()

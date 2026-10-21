@@ -123,7 +123,7 @@ class FailedObservation(Observation):
     selection: RouteSelection | UnselectedRoute
 
     def failed(self, error, selected):
-        if self.selection == selected and str(self.error) == str(error):
+        if self.selection == selected and self.error == error:
             return self
         return super().failed(error, selected)
 
@@ -240,7 +240,7 @@ class Observing(Observation):
         try:
             await access.current_sidebar()
         except RouteChanged:
-            pass
+            return await access.observation.current_references(access, root)
         return access.reference_context(root)
 
     def thread_interest(self, access):

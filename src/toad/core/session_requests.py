@@ -74,13 +74,6 @@ class SessionArchive(WorkspaceSessionRequest):
         await navigation.close(self.mode_name)
 
 
-@dataclass(frozen=True)
-class SessionClose(WorkspaceSessionRequest):
-    name: str
-
-    async def apply(self, navigation: SessionNavigation) -> None:
-        await navigation.close(self.name)
-
 
 @dataclass(frozen=True)
 class LaunchAgent(WorkspaceSessionRequest):

@@ -27,13 +27,20 @@ async def test_closing_a_tab_keeps_its_thread_and_reports_no_error(workspace):
             first, second = modes
             await ui.until(lambda: "second" in app.coordination_access.observation.sidebar.threads.rows,
                            why="both saved threads to appear in the thread list")
-            assert await pilot.click(app.screen.query_one(f"#close-{second}", SessionTabClose))
-            await ui.until(lambda: second not in app.workspace_sessions.views,
-                           why="the closed tab's view to finish removal")
-            await ui.step()
-            assert app.selected_mode == first
-            assert [entry.mode for entry in app.session_navigation.members] == [first]
-            assert workspace.comms.registry.require("second").incarnation == threads[1].incarnation
-            assert "second" in app.coordination_access.observation.sidebar.threads.rows
-            assert not [notification for notification in app._notifications
-                        if notification.severity == "error"]
+
+            async def close_selected(mode):
+                closing_view = app.workspace_sessions.views[mode]
+                assert await pilot.click(app.screen.query_one(f"#close-{mode}", SessionTabClose))
+                await ui.until(lambda: not closing_view.is_attached,
+                               why="the closed tab's view to finish removal")
+                await ui.step()
+                assert app.selected_mode == first
+                assert [entry.mode for entry in app.session_navigation.members] == [first]
+                assert workspace.comms.registry.require("second").incarnation == threads[1].incarnation
+                assert "second" in app.coordination_access.observation.sidebar.threads.rows
+                assert not [notification for notification in app._notifications
+                            if notification.severity == "error"]
+
+            await close_selected(second)
+            history = await ui.open_direct("second", actor="first", owner=first)
+            await close_selected(history)

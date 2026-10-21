@@ -80,7 +80,9 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
         await sessions.app.select_session(sessions.app.tab_order.previous(self.mode))
 
     def forget(self, sessions: SessionNavigation) -> None:
-        """Release any domain membership beyond the workspace factory itself."""
+        """End the view's observations before forgetting its logical membership."""
+        if view := sessions.app.workspace_sessions.views.get(self.mode):
+            view.close_core_events()
 
     def sync_owner_root(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
         pass
@@ -180,6 +182,7 @@ class NativeSessionEntry(SessionEntry):
         await app.select_session(app.tab_order.previous(self.mode, eligible=remaining or None))
 
     def forget(self, sessions: SessionNavigation) -> None:
+        super().forget(sessions)
         sessions.app.session_tracker.close_session(self.mode)
 
 
