@@ -284,7 +284,7 @@ def about() -> None:
     from toad import about
     from toad.app import ToadApp
 
-    app = ToadApp()
+    app = ToadApp(agent_binding=NoAgent())
 
     print(about.render(app))
 

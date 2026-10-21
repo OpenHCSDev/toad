@@ -595,6 +595,8 @@ class StoreScreen(CoreEventReceiver, Screen):
 if __name__ == "__main__":
     from toad.app import ToadApp
 
-    app = ToadApp(mode="store")
+    from toad.session_scope import NoAgent
+
+    app = ToadApp(agent_binding=NoAgent(), mode="store")
 
     app.run()
