@@ -14,7 +14,11 @@ async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(works
     async with workspace.app() as ui:
         app, _pilot = ui.textual
         access = app.coordination_access
-        observing = access.observation.observed()
+        previous_observer = access.observation.observed()
+        observing = await access.preparation.run_thread(access.open_selected, previous_observer.selection)
+        await ui.step()
+        # Retiring the old process must not publish its state over the new one.
+        assert access.observation is observing
         process = observing.process
         loop = asyncio.get_running_loop()
         acquired = asyncio.Event()
@@ -55,6 +59,8 @@ async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(works
                 answering.thread_interest(access)
                 answering.observe_sidebar(access.sidebar_request())
                 answering.observe_notifications(ObserveNotifications(frozenset()))
+                await access.stop_observing()
+                assert access.observation is answering
             finally:
                 sys.setprofile(previous)
             assert requests == []
