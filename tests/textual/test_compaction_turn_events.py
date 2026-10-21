@@ -14,6 +14,8 @@ from agent_comms.child_process import SpawnedProcess
 from agent_comms.coordinator import Coordination
 from agent_comms.goal_presentation import IdleGoalExecution
 from agent_comms.goals import NoGoal
+from agent_comms.lifecycle_capability import Executing
+from tests.support.agents import deliver
 
 PRODUCER = Path(__file__).resolve().parents[1] / "support/peers/typed_turn_events.py"
 
@@ -23,7 +25,7 @@ async def test_phase_events_from_core_owners_reach_the_turn_activity_and_a_finis
 
     from toad.widgets.throbber import Throbber
 
-    command = (sys.executable, str(PRODUCER), str(workspace.roots.attempt / "producer-wire"), str(workspace.project))
+    command = (sys.executable, str(PRODUCER), str(workspace.roots.wire), str(workspace.project))
     with SpawnedProcess.launch(command, output=subprocess.PIPE) as child:
         stdout, stderr = await Coordination.run_worker(child.process.communicate)
         outcome = child.reap()
@@ -39,7 +41,8 @@ async def test_phase_events_from_core_owners_reach_the_turn_activity_and_a_finis
 
             async def consume_until(member):
                 for request in requests:
-                    assert await agent.server.call(request) is None
+                    await deliver(agent, request["params"]["update"],
+                                  session_id=request["params"]["sessionId"])
                     await ui.step()
                     for fact in decode_updates(request["params"]["update"].get("_meta")):
                         if isinstance(fact, member):
@@ -47,7 +50,9 @@ async def test_phase_events_from_core_owners_reach_the_turn_activity_and_a_finis
                 raise AssertionError(f"the producer did not publish {member.__name__}")
 
             active = await consume_until(TurnChangedUpdate)
-            turn_id = active.state.managed_id
+            while not isinstance(active.state.active, Executing):
+                active = await consume_until(TurnChangedUpdate)
+            turn_id = active.state.active.id
             assert agent.current_turn.managed_id == view.turns.managed_id == turn_id
             assert agent.current_turn.busy and view.turns.owner.busy
             await consume_until(CompactionChangedUpdate)
@@ -57,11 +62,11 @@ async def test_phase_events_from_core_owners_reach_the_turn_activity_and_a_finis
             await consume_until(CompactionChangedUpdate)
             assert "Compacting context" not in view.turns.owner.activity
             stale = await consume_until(TurnChangedUpdate)
-            assert not stale.state.busy and not stale.state.matches(turn_id)
+            assert not stale.state.active.phase.busy and not stale.state.matches(turn_id)
             assert agent.current_turn.managed_id == view.turns.managed_id == turn_id
             terminal = await consume_until(TurnChangedUpdate)
-            assert not terminal.state.busy and terminal.state.matches(turn_id)
-            assert agent.current_turn.managed_id is view.turns.managed_id is None
+            assert not terminal.state.active.phase.busy and terminal.state.matches(turn_id)
+            assert agent.current_turn == view.turns.owner
             assert not agent.current_turn.busy and not view.turns.owner.busy
             assert not view.query_one(Throbber).busy
             await consume_until(GoalChangedUpdate)

@@ -18,6 +18,7 @@ from agent_comms.acp import CommsAgent
 from agent_comms.agent_event_updates import AcpEventConsumer
 from agent_comms.comms import wire
 from agent_comms.coordinator import Coordination
+from agent_comms.turn_lease import NoFinishedTurn
 
 SESSION = "pilot"
 
@@ -52,19 +53,21 @@ async def produce(wire_root: Path, project: Path):
         async with AsyncExitStack() as turns:
             retired_owner = await Coordination.run_worker(partial(
                 producer.turns.acquire_turn, turns, SESSION, name, "retired-producer", "Authored protocol; no input"))
+            retired_lease = retired_owner.turn_lease
         retired = await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION))
         async with AsyncExitStack() as turns:
             await Coordination.run_worker(partial(
                 producer.turns.acquire_turn, turns, SESSION, name, "actual-producer", "Authored protocol; no input"))
-            await producer.turns.publish_turn_state(
-                AcpEventConsumer(producer, SESSION, producer.sessions.client))
-            await producer._emit_event(SESSION, agent_events.CompactionStart())
-            await producer._emit_event(SESSION, agent_events.CompactionEnd(
+            consumer = AcpEventConsumer(producer, SESSION, producer.sessions.client)
+            await producer.turns.publish_turn_state(consumer)
+            await consumer.dispatch(agent_events.CompactionStart())
+            await consumer.dispatch(agent_events.CompactionEnd(
                 summary="Authored phase observation; not a native committed summary"))
-            assert await Coordination.run_worker(partial(
-                comms.agents.finish_turn, retired_owner.turn_lease)) is None
+            assert isinstance(await Coordination.run_worker(partial(
+                comms.agents.finish_turn, retired_lease)), NoFinishedTurn)
             # An earlier finished cut: the current binding must refuse it.
-            await producer._emit_event(SESSION, retired)
+            await consumer.dispatch(retired)
+        await producer.turns.publish_turn_state(consumer)
         await producer.turns.goals.sync_goal_execution(SESSION, name)
 
 
