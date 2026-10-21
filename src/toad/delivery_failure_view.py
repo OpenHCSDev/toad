@@ -3,7 +3,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from agent_comms.errors import HumanInitialUnknownError, HumanClaimBlockedError
+from agent_comms.errors import HumanSendError
 
 
 class SendState:
@@ -126,7 +126,7 @@ class DeliveryFailureView:
         except asyncio.CancelledError:
             self.delivery_refused("Cancelled before sending", body)
             raise
-        except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
+        except HumanSendError as error:
             delivery_failure(error).present(self, body)
             return
         sent = await self.commit_user_message(comms, target, body)
@@ -147,7 +147,7 @@ class DeliveryFailureView:
             self.delivery_blocked("Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry", body)
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             return None
-        except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
+        except HumanSendError as error:
             delivery_failure(error).present(self, body)
             return None
         self._enter_send_state(SentUndrawn(comms.root, sent), body)
