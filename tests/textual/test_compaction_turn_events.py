@@ -5,10 +5,9 @@ import subprocess
 import sys
 
 from agent_comms.acp_extension import CompactionChangedUpdate, GoalChangedUpdate, TurnChangedUpdate, decode_updates
-from agent_comms.child_process import ParentedProcess
+from agent_comms.child_process import SpawnedProcess
 from agent_comms.coordinator import Coordination
 
-from support.agents import deliver
 
 PRODUCER = Path(__file__).resolve().parents[1] / "support/peers/typed_turn_events.py"
 
@@ -19,7 +18,7 @@ async def test_phase_events_from_core_owners_reach_the_turn_activity_and_a_finis
     from toad.widgets.conversation import TurnActivity
 
     command = (sys.executable, str(PRODUCER), str(workspace.roots.attempt / "producer-wire"), str(workspace.project))
-    with ParentedProcess.launch(command, output=subprocess.PIPE) as child:
+    with SpawnedProcess.launch(command, output=subprocess.PIPE) as child:
         stdout, stderr = await Coordination.run_worker(child.process.communicate)
         outcome = child.reap()
     assert outcome.successful, (outcome, stderr.decode())

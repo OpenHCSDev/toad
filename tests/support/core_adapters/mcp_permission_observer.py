@@ -15,7 +15,7 @@ from typing import Any, AsyncIterator
 from mcp_turn_boundaries import AGENT_DATA, exercise_boundaries, notes
 from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
-from agent_comms.acp_extension import McpClientReceiptUpdate, TurnChangedUpdate, decode_updates
+from agent_comms.acp_extension import McpClientAcknowledgementUpdate, TurnChangedUpdate, decode_updates
 from toad.screens.main import MainScreen
 from toad.widgets.question import Question
 
@@ -52,7 +52,7 @@ class Observer:
                                  "notes": notes(self.view)}) + "\n")
         assert self.agent.session_id == SESSION_ID
         for fact in decode_updates(update.get("_meta")):
-            if isinstance(fact, McpClientReceiptUpdate):
+            if isinstance(fact, McpClientAcknowledgementUpdate):
                 rendered = notes(self.view)
                 assert len(rendered) == 1 and "fixture[project] ready calls=confirm tools=1" in rendered[0]
                 assert self.agent.current_turn.managed_id == self.view.turns.managed_id == fact.turn_id
