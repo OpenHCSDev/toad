@@ -75,7 +75,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         expected_frame = app.panel_text(app.screen)
         app.panel_frames = []
         selected.row.action_open_selected()
-        await ui.step()
+        await ui.until(lambda: ui.selected_tab != owner, why="the sidebar-open worker to select the channel")
         channel_mode = ui.selected_tab
         assert channel_mode != owner
         current = app.screen.query_one(CommsSidebar)
