@@ -41,9 +41,10 @@ async def test_private_channel_update_changes_participants_without_blocking_the_
             assert all(f"participant-{index:02}" in names.content.plain for index in range(PARTICIPANTS))
 
             await ui.write_draft("Retained draft")
-            message = await asyncio.to_thread(
-                service.messaging.send_initial_cohort,
+            sent = await asyncio.to_thread(
+                service.messaging.send,
                 "participant-00", "#team", "Private update")
+            message = sent.message
             await ui.until_shows("Private update")
             await ui.press("x")
             assert ui.draft() == "Retained draftx"

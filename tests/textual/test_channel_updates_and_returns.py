@@ -13,7 +13,7 @@ async def test_live_update_paints_parked_channel_reads_nothing_and_return_shows_
     for name in ("sender", "reader", session_thread_name(workspace.project)):
         workspace.thread(name, "alpha")
     comms.messaging.initialize_private_initial_protocol()
-    comms.messaging.send_initial_cohort("sender", "#alpha", "INITIAL ROW")
+    comms.messaging.send("sender", "#alpha", "INITIAL ROW")
     reads = []
     code = HistoryViews.message_notifications.__code__
 
@@ -34,12 +34,12 @@ async def test_live_update_paints_parked_channel_reads_nothing_and_return_shows_
             await chat.message_history.toggle_style()
             await ui.until(lambda: bool(reads), why="the first notification read")
 
-            comms.messaging.send_initial_cohort("sender", "#alpha", "LIVE UPDATE")
+            comms.messaging.send("sender", "#alpha", "LIVE UPDATE")
             await ui.until_shows("LIVE UPDATE")
 
             await ui.select_tab(owner)
             parked = len(reads)
-            comms.messaging.send_initial_cohort("sender", "#alpha", "PARKED UPDATE")
+            comms.messaging.send("sender", "#alpha", "PARKED UPDATE")
             await ui.step(1.2)
             assert len(reads) == parked, "a parked channel read notification bodies"
             await ui.select_tab(mode)

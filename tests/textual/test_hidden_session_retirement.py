@@ -129,7 +129,7 @@ async def test_an_unavailable_route_is_no_evidence_that_a_hidden_thread_is_gone(
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
         modes = await open_hidden_sessions(workspace, ui, owners)
-        other = Comms(workspace.roots.wire.parent / "other", private_initial_writes=True)
+        other = Comms(workspace.roots.wire.parent / "other")
         other.messaging.initialize_private_initial_protocol()
         monkeypatch.setenv("AGENT_COMMS_ROOT", str(other.root))
         await app.session_navigation.retire_missing()

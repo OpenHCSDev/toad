@@ -22,7 +22,7 @@ def test_historical_notification_keeps_selected_source_and_lifetime(
     old.registry.declare(old.registry.new_thread("agent", frozenset(), str(tmp_path), created_at=12.0))
     live.registry.declare(live.registry.new_thread("agent", frozenset(), str(tmp_path), created_at=212.0))
     old.messaging.initialize_private_initial_protocol()
-    messages = (old.messaging.send_initial_cohort("sender", "agent", "historical notification"),)
+    messages = (old.messaging.send("sender", "agent", "historical notification").message,)
     source = live.views.attach_history(old.root)
     item = HistoricalThread(source, source.provenance.require("agent"))
     published, errors, selected = [], [], []

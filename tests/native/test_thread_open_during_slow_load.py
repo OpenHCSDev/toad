@@ -10,11 +10,25 @@ import os
 
 from support.agents import peer
 from support.native import start_private_native_wire
+from support.stylesheets import INSTALLED
 from support.textual_steps import channel_roster
 from toad.app import ToadApp
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.comms_sidebar import ChannelGroup
 from toad.widgets.conversation import ThreadLoading
+
+
+class TabFramesApp(ToadApp):
+    CSS_PATH = INSTALLED
+
+    def __init__(self, **arguments):
+        self.tab_sets_drawn = []
+        super().__init__(**arguments)
+
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        if renderable is not None and not self._batch_count:
+            self.tab_sets_drawn.append(tuple(tab.mode_name for tab in self.open_tabs))
 
 
 async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(workspace, native_package):
@@ -24,21 +38,8 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
         comms.registry.declare(comms.registry.new_thread(name, frozenset({"journey"}), str(project),
                                       process_identity=ProcessIdentity.capture(os.getpid())))
     comms.channels.create_tag("journey")
-    comms.messaging.send_initial_cohort("owner", "#journey", "SAVED_CHANNEL_JOURNEY")
-    tab_sets_drawn = []
-
-    def started(**arguments):
-        app = ToadApp(agent_session_id="owner", **arguments)
-        draw = app._display
-
-        def recording_draw(screen, renderable):
-            draw(screen, renderable)
-            if renderable is not None and not app._batch_count:
-                tab_sets_drawn.append(tuple(tab.mode_name for tab in app.open_tabs))
-
-        app._display = recording_draw
-        return app
-
+    comms.messaging.send("owner", "#journey", "SAVED_CHANNEL_JOURNEY")
+    started = partial(TabFramesApp, agent_session_id="owner")
     async with workspace.app(size=(139, 25), binding=AgentAttached(peer("delayed_load")), application=started) as ui:
         app, pilot = ui.textual
         await ui.until_agent_ready()
@@ -99,7 +100,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
             # test_native_journey.py::test_a_second_thread_opened_from_the_app_answers_its_first_message.
             assert tuple(app.tab_order.names) == (*tabs_before, tab)
             assert all(len(drawn) <= 3 and not any(name.startswith("pending-") for name in drawn)
-                       for drawn in tab_sets_drawn)
+                       for drawn in app.tab_sets_drawn)
         finally:
             opening.cancel()
             duplicate.cancel()

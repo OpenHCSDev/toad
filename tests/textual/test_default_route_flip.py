@@ -35,7 +35,7 @@ async def test_a_late_read_from_the_former_wire_is_not_painted_after_the_route_f
 
         # A read already in flight when the route flips must not paint a late page
         # from the former wire into the successor view.
-        view.message_history.source.comms.messaging.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
+        view.message_history.source.comms.messaging.send("peer", "#team", "LATE-OLD-EDGE")
         entered, release = threading.Event(), threading.Event()
         real_read = WireSource.read
 
