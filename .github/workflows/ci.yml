@@ -81,6 +81,7 @@ jobs:
           subprocess.run(['git', '-C', '.artifacts/core', 'checkout', '--detach', source['branch']], check=True)
           subprocess.run(['git', '-C', '.artifacts/core', 'submodule', 'update', '--init', '--recursive'], check=True)
           PYCORE
+          uv sync --locked --project .artifacts/core/stack
           stock_spec=$(sed -n 's/^# agent-comms-native-stock-v1 //p' .artifacts/core/stack/pi-native.sha256)
           npm install --prefix .artifacts/pi-stock --install-strategy=nested "$stock_spec"
           export PI_STOCK_DIR="$PWD/.artifacts/pi-stock/node_modules/@earendil-works/pi-coding-agent"
