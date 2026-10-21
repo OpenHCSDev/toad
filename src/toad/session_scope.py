@@ -1,16 +1,13 @@
-"""The session capability consumed by descendants and workspace owners.
-
-DOMNode owns native ancestry, queries and descriptors. SessionView supplies
-session behavior; the capability imports neither a widget nor a screen.
-"""
+"""Logical session capabilities, independent of concrete widgets and screens."""
 
 from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Awaitable
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Never
 
+from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
 from textual.dom import DOMNode
 
@@ -26,16 +23,47 @@ if TYPE_CHECKING:
     from toad.thread_identity import SessionIdentity
 
 
-class SessionScope(ProjectPathOwner, DOMNode):
-    """A logical session, without a dependency on its concrete widget."""
+class SessionOrigin:
+    """An origin answers for itself, including when its view is unavailable."""
 
-    # Concrete view state stays data: abstract properties would shadow inherited
-    # setters or instance attributes. Native descriptors come from DOMNode.
+    @abstractmethod
+    def transcript_scope(self) -> tuple[str, str] | None: ...
+
+    @abstractmethod
+    def has_agent(self) -> bool: ...
+
+    @abstractmethod
+    def resolve_thread(self) -> str: ...
+
+    @abstractmethod
+    def require(self) -> ViewSessionOrigin: ...
+
+
+class NoSessionOrigin(SessionOrigin):
+    def __init__(self, view: str = "unavailable view") -> None:
+        self.view = view
+
+    def transcript_scope(self) -> None:
+        return None
+
+    def has_agent(self) -> bool:
+        return False
+
+    def require(self) -> Never:
+        raise RelationViolationError(f"View {self.view!r} has no session origin")
+
+    def resolve_thread(self) -> Never:
+        self.require()
+
+
+class SessionScope(ProjectPathOwner, DOMNode):
+    """The session answers read by ancestors and workspace owners."""
+
     app: ToadApp
-    COMMANDS: set[type[Provider]]
-    AUTO_FOCUS: str
-    shows_channels: bool
-    footer_compact: bool
+    COMMANDS: ClassVar[set[type[Provider]]] = set()
+    AUTO_FOCUS = ""
+    shows_channels = True
+    footer_compact = False
     presentation: OperationalSessionPresentation
     navigation_context: NavigationContext
 
@@ -48,12 +76,13 @@ class SessionScope(ProjectPathOwner, DOMNode):
     def display_name(self) -> str: ...
 
     @property
-    @abstractmethod
-    def navigation_target_name(self) -> str | None: ...
+    def navigation_target_name(self) -> str | None:
+        """Views without a displayed destination have no navigation name."""
+        return None
 
     @property
     @abstractmethod
-    def origin(self) -> SessionOrigin | None: ...
+    def origin(self) -> SessionOrigin: ...
 
     @property
     @abstractmethod
@@ -65,8 +94,8 @@ class SessionScope(ProjectPathOwner, DOMNode):
     @abstractmethod
     def sidebars(self) -> tuple[DOMNode, ...]: ...
 
-    @abstractmethod
-    def sidebar_focus_target(self) -> DOMNode | None: ...
+    def focus_sidebar_return(self) -> None:
+        """A view without a sidebar return target has nothing to focus."""
 
     @abstractmethod
     async def prepare_presentation(self) -> None: ...
@@ -87,8 +116,8 @@ class SessionScope(ProjectPathOwner, DOMNode):
     def remove(self) -> Awaitable[None]: ...
 
 
-class SessionOrigin(SessionScope):
-    """An operational view that supplies the origin of sessions and histories."""
+class ViewSessionOrigin(SessionOrigin, SessionScope):
+    """The existing operational agent/project origin shared by real views."""
 
     _agent: AgentDefinition | None
 
@@ -98,6 +127,9 @@ class SessionOrigin(SessionScope):
 
     def transcript_scope(self) -> tuple[str, str] | None:
         return self.thread_identity.transcript_scope()
+
+    def require(self) -> ViewSessionOrigin:
+        return self
 
     def resolve_thread(self) -> str:
         identity = self.thread_identity

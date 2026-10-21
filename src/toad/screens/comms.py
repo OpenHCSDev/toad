@@ -232,11 +232,11 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if chat := self.query_one_optional(CommsChatView):
             chat.prepare_prompt()
 
-    def sidebar_focus_target(self) -> Widget | None:
+    def focus_sidebar_return(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
             target = chat.prompt.prompt_text_area
-            return target if target.focusable else None
-        return None
+            if target.focusable:
+                self.screen.set_focus(target, scroll_visible=False)
 
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, event: SideBar.Dismiss) -> None:

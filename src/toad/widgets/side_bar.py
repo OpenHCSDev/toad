@@ -894,12 +894,8 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
         collapsed = not self.collapsed
         return_focus = collapsed and (focus or self.has_focus_within)
         if return_focus and self.is_mounted and self.screen.is_current:
-            screen = self.screen
-            target = screen.sidebar_focus_target()
-            if target is not None:
-                # Native Hide otherwise reconstructs a full geometry-sorted
-                # focus chain before the queued Dismiss can return to input.
-                screen.set_focus(target, scroll_visible=False)
+            # Return input focus before native Hide reconstructs its focus chain.
+            self.screen.focus_sidebar_return()
         self.store_collapsed(collapsed)
         if collapsed:
             if return_focus:

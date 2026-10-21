@@ -23,7 +23,7 @@ from toad.format_path import format_path
 from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwner, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionView
-from toad.session_scope import SessionOrigin
+from toad.session_scope import ViewSessionOrigin
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import RowReconciliation, SidebarChange, SidebarGroup, SidebarModelView, TargetTree
@@ -167,7 +167,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         self.present()
 
 
-class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
+class WelcomeScreen(ViewSessionOrigin, SessionView, NavigationOwner, can_focus=False):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
 
     BINDINGS = [

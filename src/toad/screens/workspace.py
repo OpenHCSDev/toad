@@ -100,8 +100,8 @@ class WorkspaceScreen(WidgetView, Screen):
     def start_sidebar_navigation(self, sidebar) -> None:
         self.frame_presentation.defer(sidebar, sidebar.navigation.start)
 
-    def sidebar_focus_target(self):
-        return self.app.workspace_sessions.source.sidebar_focus_target()
+    def focus_sidebar_return(self) -> None:
+        self.app.workspace_sessions.source.focus_sidebar_return()
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "show_sidebar":

@@ -9,6 +9,7 @@ from toad.preferences import SETTINGS
 from toad.widget_actions import ApplicationAction, KeyboundAction, MenuAction, VimApplicationAction
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
+from agent_comms.errors import RelationViolationError
 from agent_comms.cli_commands import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
 
@@ -29,8 +30,10 @@ class NewThreadAction(ApplicationAction, MenuAction):
 
     async def apply(self, app: ToadApp) -> None:
         mode = app.selected_mode
-        source = app.workspace_sessions.origin(mode)
-        project = source.project_path if source is not None else app.project_dir
+        try:
+            project = app.workspace_sessions.origin(mode).require().project_root
+        except RelationViolationError:
+            project = app.project_dir
         app.run_worker(partial(self.collect, app, mode, project), group="new-session", exclusive=True)
 
     async def collect(self, app, mode, project):

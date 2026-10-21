@@ -38,7 +38,7 @@ from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.screens.session_view import SessionView
-from toad.session_scope import SessionOrigin
+from toad.session_scope import ViewSessionOrigin
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.session_presentation import OperationalSessionPresentation
@@ -190,7 +190,7 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
+class MainScreen(ViewSessionOrigin, SessionView, NavigationOwner, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
@@ -561,12 +561,11 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         if conversation := self.query_one_optional(Conversation):
             conversation.focus_prompt()
 
-    def sidebar_focus_target(self) -> Widget | None:
-        conversation = self.query_one_optional(Conversation)
-        if conversation is None:
-            return None
-        target = conversation.prompt.prompt_text_area
-        return target if target.focusable else None
+    def focus_sidebar_return(self) -> None:
+        if conversation := self.query_one_optional(Conversation):
+            target = conversation.prompt.prompt_text_area
+            if target.focusable:
+                self.screen.set_focus(target, scroll_visible=False)
 
     async def action_go_home(self) -> None:
         await self.app.select_session("store")

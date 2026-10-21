@@ -7,7 +7,7 @@ from textual.containers import Container
 from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import WELCOME
-from toad.session_scope import SessionOrigin, SessionScope
+from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -44,7 +44,7 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     def coordination_root(self): ...
 
     @abstractmethod
-    def sidebar_focus_target(self): ...
+    def focus_sidebar_return(self) -> None: ...
 
     @abstractmethod
     def sidebars(self):
@@ -71,8 +71,8 @@ class DetachedWorkspaceSource(WorkspaceSource):
     def coordination_root(self):
         return None
 
-    def sidebar_focus_target(self):
-        return None
+    def focus_sidebar_return(self) -> None:
+        """A detached workspace has no return target."""
 
     def sidebars(self):
         return ()
@@ -108,8 +108,8 @@ class BoundWorkspaceSource(WorkspaceSource):
     def coordination_root(self):
         return self.view.coordination_root
 
-    def sidebar_focus_target(self):
-        return self.view.sidebar_focus_target()
+    def focus_sidebar_return(self) -> None:
+        self.view.focus_sidebar_return()
 
     def sidebars(self):
         return self.view.sidebars()
@@ -147,12 +147,12 @@ class WorkspaceSessions:
     def require(self, identity: str) -> "SessionScope":
         return self.views[identity]
 
-    def origin(self, identity: str) -> "SessionOrigin | None":
-        """What sessions and histories requested from ``identity`` start from; None once it closed."""
+    def origin(self, identity: str) -> SessionOrigin:
+        """The original source, or its explicit unavailable member once closed."""
         if self.app.session_navigation.get(identity) is not None or identity in self.resident:
             if view := self.views.get(identity):
                 return view.origin
-        return None
+        return NoSessionOrigin(identity)
 
     async def prepare(self, identity: str) -> "SessionScope":
         if view := self.views.get(identity):

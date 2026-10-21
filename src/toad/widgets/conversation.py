@@ -356,8 +356,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     def transcript_scope(self) -> tuple[str, str] | None:
         """The native session identity whose canonical transcript this view shows."""
-        origin = self.query_ancestor(SessionScope).origin
-        return origin.transcript_scope() if origin is not None else None
+        return self.query_ancestor(SessionScope).origin.transcript_scope()
 
     def status_thread(self) -> StatusThread:
         scope = self.transcript.binding.thread_scope

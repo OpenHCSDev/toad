@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, cast
 
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import RegistrationsView
-from agent_comms.errors import UnknownChannelError, UnregisteredThreadError
+from agent_comms.errors import RelationViolationError, UnknownChannelError, UnregisteredThreadError
 from agent_comms.route_selection import RouteChanged, root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
 from toad.navigation_preparation import CommsNavigationRequest
@@ -185,8 +185,9 @@ class SessionNavigation:
         from toad.thread_navigation import ThreadOrigin
 
         app = self.app
-        source = app.workspace_sessions.origin(owner_mode)
-        if source is None:
+        try:
+            source = app.workspace_sessions.origin(owner_mode).require()
+        except RelationViolationError:
             app.show_error("The owning agent tab was closed", "Comms target unavailable")
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)

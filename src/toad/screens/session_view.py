@@ -1,6 +1,5 @@
 """Logical session surfaces hosted by the one native WorkspaceScreen."""
 from textual.containers import Vertical
-from textual.widget import Widget
 from textual.reactive import reactive
 from pathlib import Path
 from contextlib import contextmanager
@@ -9,7 +8,7 @@ from toad.core.events import ThreadIdentityChanged
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
-from toad.session_scope import SessionOrigin, SessionScope
+from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
 
 class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
@@ -17,11 +16,6 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
     sub_title = reactive("")
 
     DEFAULT_CSS = "SessionView { width: 1fr; height: 1fr; }"
-    AUTO_FOCUS = ""
-    COMMANDS = set()
-    footer_compact = False
-    shows_channels = True
-
     def __init__(self, *args, **kwargs):
         self._identity: SessionIdentity = NoThreadIdentity()
         super().__init__(*args, **kwargs)
@@ -45,9 +39,9 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
         return self._identity.wire_root()
 
     @property
-    def origin(self) -> SessionOrigin | None:
+    def origin(self) -> SessionOrigin:
         """What a session or history requested from this view starts from."""
-        return None
+        return NoSessionOrigin(str(self))
 
     def belongs_to_wire(self, root) -> bool:
         """Unbound views may project the selected wire; bound views stay on it."""
@@ -69,17 +63,9 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
         """Open this session's direct-message destination when it has one."""
         self.notify("Direct messages are unavailable from this view", title="Direct messages")
 
-    def sidebar_focus_target(self) -> Widget | None:
-        return None
-
     def sidebars(self):
         """Supply this view's native sidebar resources through its declaration."""
         return ()
-
-    @property
-    def navigation_target_name(self) -> str | None:
-        """The displayed destination, independent of sidebar click intent."""
-        return None
 
     @property
     def thread_identity(self) -> SessionIdentity:

@@ -6,24 +6,25 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from agent_comms.errors import RelationViolationError
 from toad.navigation_preparation import OpenThread, ThreadNavigationRequest, ThreadOpening
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.main import MainScreen
-    from toad.session_scope import SessionOrigin
+    from toad.session_scope import ViewSessionOrigin
     from toad.navigation_preparation import ThreadNavigation
 
 
 @dataclass(frozen=True)
 class ThreadOrigin:
-    source: SessionOrigin
+    source: ViewSessionOrigin
     selected_mode: str
     root: str | None
     identity: str
 
     @classmethod
-    def capture(cls, app: ToadApp, source: SessionOrigin) -> ThreadOrigin:
+    def capture(cls, app: ToadApp, source: ViewSessionOrigin) -> ThreadOrigin:
         return cls(source, app.selected_mode, source.coordination_root, source.thread_identity.thread_name())
 
     def current(self, navigator: ThreadNavigator, owner_mode: str) -> bool:
@@ -41,8 +42,9 @@ class ThreadNavigator:
 
     async def open(self, *, owner_mode: str, project_path: Path, target: str) -> str:
         app = self.app
-        source = app.workspace_sessions.origin(owner_mode)
-        if source is None:
+        try:
+            source = app.workspace_sessions.origin(owner_mode).require()
+        except RelationViolationError:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         access = app.coordination_access
