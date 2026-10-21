@@ -175,6 +175,7 @@ async def _open_actual_s2_ingress(owner, subject, output):
             'name': 'Original S2/S5 fixture', 'identity': 'original-s2-s5',
             'short_name': 's2-s5', 'protocol': 'acp',
             'run_command': {'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])},
+            'accepts_comms_root': True,
         })
         app = ToadApp(agent_data=definition, project_dir=subject.worktree,
                       agent_session_id=subject.name)

@@ -74,6 +74,7 @@ async def test_a_read_for_a_previous_agent_is_not_published(probe_view, workspac
         observation.invalidate()
         previous = await next_read(observation)
         view.agent_binding = workspace.agents.detached_agent()
+        observation.invalidate()
         observation.responses.put_nowait("previous owner")
         assert await next_read(observation) is view.agent_binding
         assert view.agent_binding is not previous

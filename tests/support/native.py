@@ -176,10 +176,11 @@ class ControlledProvider:
 def start_private_native_wire(root: Path):
     """Create a private root; Core derives its root identity and reviewed package."""
     from agent_comms.comms import Comms
+    from agent_comms.launch_root import LaunchRoot
 
     comms = Comms(root)
     comms.messaging.initialize_private_initial_protocol()
-    os.environ["AGENT_COMMS_ROOT"] = str(comms.root)
+    LaunchRoot.from_path(comms.root).install()
     for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
         os.environ.pop(key, None)
     return comms
@@ -208,10 +209,11 @@ def comms_agent():
     """The agent definition for Core's own ACP server (``python -m agent_comms.acp``)."""
     from toad.agent_schema import AgentDefinition
 
-    return AgentDefinition.decode({
-        "name": "Native fixture", "identity": "native-fixture", "short_name": "native", "protocol": "acp",
-        "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
-    })
+    return AgentDefinition(
+        identity="native-fixture", name="Native fixture", short_name="native",
+        run_command={"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
+        accepts_comms_root=True,
+    )
 
 
 @dataclass
@@ -253,8 +255,9 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
             assert agent.session.connected is attached, "Unexpected ACP attachment outcome"
             yield ui, agent
     finally:
-        for name in comms.registry.all_threads():
-            await asyncio.to_thread(comms.owners.stop, name)
+        for thread in comms.registry.all_threads().values():
+            for name in thread.role.executor(thread.name):
+                await asyncio.to_thread(comms.owners.stop, name)
 
 
 def _first_wins(started):

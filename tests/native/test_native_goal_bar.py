@@ -128,14 +128,16 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
 
     def reply(_request, number):
         if number == 1:
-            return {"role": "assistant", "content": "No verified work"}, "stop"
+            return {"role": "assistant", "content": ""}, "stop"
         if number == 2:
             return {"role": "assistant", "tool_calls": [{
                 "index": 0, "id": "p448-read", "type": "function",
                 "function": {"name": "read", "arguments": json.dumps({"path": "proof.txt"})}}]}, "tool_calls"
+        provider.hold_next_request()
         return {"role": "assistant", "content": "PRODUCTIVE_SUCCESSOR"}, "stop"
 
-    async with native_session(workspace, provider=ControlledProvider(reply=reply, request_budget=3)) as native:
+    provider = ControlledProvider(reply=reply, request_budget=4)
+    async with native_session(workspace, provider=provider) as native:
         ui, agent, comms, session = native.ui, native.agent, native.comms, native.thread
         app, pilot = ui.textual
         view = ui.conversation
@@ -158,7 +160,6 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
             if not sending.done():
                 sending.cancel()
             await asyncio.gather(sending, return_exceptions=True)
-        assert len(native.provider.requests) == 3
         assert comms.registry.require(session).goal == first
         await ui.until(lambda: "Active" in str(details.query_one("#goal-current-heading", Static).render()),
                        why="the already-open details following productive settlement")
@@ -169,14 +170,17 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
 
 
 async def test_standby_goal_mention_opens_its_peer_and_returns_to_the_draft(workspace, native_package):
-    async def prepare(comms, project, _provider):
-        comms.registry.declare(comms.registry.new_thread("peer", frozenset(), str(project)))
-        goal = comms.goals.update_goal(NativeSession.thread, SetGoalAction(text="Coordinate with @peer"))
-        comms.goals.update_goal(NativeSession.thread, StandbyGoalAction(
+    async with native_session(workspace) as native:
+        ui, comms = native.ui, native.comms
+        owner = comms.registry.require(native.thread)
+        comms.registry.declare(comms.registry.new_thread(
+            "peer", frozenset(), str(native.project), model=owner.model,
+            thinking_level=owner.thinking_level,
+        ))
+        await asyncio.to_thread(comms.owners.start, "peer")
+        goal = comms.goals.update_goal(native.thread, SetGoalAction(text="Coordinate with @peer"))
+        comms.goals.update_goal(native.thread, StandbyGoalAction(
             wait_for=("peer",), expect=GoalPrecondition(goal_id=goal.id)))
-
-    async with native_session(workspace, prepare=prepare) as native:
-        ui = native.ui
         original = ui.selected_tab
         await ui.write_draft("Composer draft stays")
         await ui.until_shows("Coordinate with @peer")

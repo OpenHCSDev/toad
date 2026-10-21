@@ -38,6 +38,7 @@ def catalog_text() -> str:
     definition = {
         "identity": IDENTITY, "name": "A native catalog control", "short_name": "native-control",
         "protocol": "acp", "type": "coding", "author_name": "Private controlled test",
+        "accepts_comms_root": True,
         "description": "Local commands only",
         "help": "# Native catalog control\nPrivate controlled command data.",
     }

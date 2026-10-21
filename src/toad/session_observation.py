@@ -6,6 +6,7 @@ from weakref import ref
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalUnavailable
+from toad.agent_binding import AgentBinding, NoAgentBound
 
 
 class SessionObservation(ABC):
@@ -13,6 +14,7 @@ class SessionObservation(ABC):
 
     def __init__(self, view):
         self._view = ref(view)
+        self.agent: AgentBinding = NoAgentBound()
         self.revision = 0
         self.task = None
 
