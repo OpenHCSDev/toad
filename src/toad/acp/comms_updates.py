@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from agent_comms.acp_extension import (
@@ -25,6 +26,7 @@ from agent_comms.acp_extension import (
     TurnChangedUpdate,
 )
 from agent_comms.context_reading import UnmeasuredContext
+from agent_comms.errors import RouteChangedError
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 
@@ -132,10 +134,6 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CoordinationChangedUpdate)
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
-        from pathlib import Path
-
-        from agent_comms.errors import RouteChangedError
-
         agent = self.agent
         root = agent.controller.transcripts.access.launch_root.path
         if Path(update.wire_root).resolve() != root.resolve():
