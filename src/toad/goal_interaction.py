@@ -7,7 +7,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
-from agent_comms.goal_presentation import GoalExecution
+from agent_comms.goal_presentation import ControlledExecution, GoalExecution
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
@@ -74,19 +74,19 @@ class ToggleInteraction(GoalInteraction):
 
     @classmethod
     def visible(cls, session):
-        return session.display.can_control and session.execution.toggle is not None
+        return session.display.can_control and isinstance(session.execution, ControlledExecution)
 
     @classmethod
     def caption(cls, session, collapsed):
-        return session.execution.toggle_label if session.display.can_control else cls.label
+        return session.execution.toggle_label if cls.visible(session) else cls.label
 
     @classmethod
     async def apply(cls, session):
-        action = session.execution.toggle
-        if action is None:
-            session.view.flash(session.display.heading(session.execution))
+        execution = session.execution
+        if isinstance(execution, ControlledExecution):
+            await session.change(execution.toggle)
         else:
-            await session.change(action)
+            session.view.flash(session.display.heading(execution))
 
 
 class EditInteraction(GoalInteraction):
