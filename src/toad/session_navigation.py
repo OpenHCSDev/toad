@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
     from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
-    from toad.conversation_kind import ConversationKind
+    from toad.navigation_target import HistoryRouted
     from toad.screens.main import MainScreen
 
 
@@ -260,7 +260,7 @@ class SessionNavigation:
         owner_mode: str,
         project_path: Path,
         me: str,
-        conversation: ConversationKind,
+        route: HistoryRouted,
     ) -> str:
         from toad.thread_navigation import ThreadOrigin
 
@@ -282,7 +282,7 @@ class SessionNavigation:
                 return app.selected_mode
             prepared = await app.navigation_reader.read(
                 CommsNavigationRequest(
-                    comms, owner_mode, me, conversation, source.coordination_root
+                    comms, owner_mode, me, route, source.coordination_root
                 )
             )
         except (UnknownChannelError, UnregisteredThreadError, RouteChangedError) as error:

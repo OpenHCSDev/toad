@@ -472,7 +472,8 @@ class ChangedChannels(SidebarChange):
         pass
 
     def apply_activity(self, view) -> None:
-        if view.view.conversation.target.name in self.names:
+        references = view.model_state.shown.observation.require_snapshot().references
+        if view.view.conversation.destination(references).name in self.names:
             view.call_next(view.sync_members, frozenset(view.member_keys))
 
 

@@ -23,8 +23,6 @@ from textual.app import ComposeResult
 
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.channel_activity import ChannelActivity
-from toad.widgets.input_delivery import InputDeliveryBar
-from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.sidebar_tree import UnpaintedChannel
 
@@ -90,9 +88,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
             self.destination(observation.require_snapshot().references).name
         )
 
-    def placeholder(self, references):
-        return f"Message {self.destination(references).name}"
-
     def send_target(self, references) -> NamedTarget:
         return self.destination(references)
 
@@ -117,11 +112,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         )
 
     @classmethod
-    def compose_activity(cls, view) -> ComposeResult:
-        view.thread_activity = ConversationSessionDetails(
-            view.conversation, history=NativeHistory(), delivery=InputDeliveryBar()
-        )
-        yield view.thread_activity
+    @abstractmethod
+    def compose_activity(cls, view) -> ComposeResult: ...
 
     @abstractmethod
     def prompt(self): ...
@@ -194,10 +186,14 @@ class ChannelConversation(ConversationKind):
     async def status_text(self, comms, *, read_only: bool) -> str:
         return "Read-only saved view" if read_only else ""
 
+    @property
+    def initial_placeholder(self) -> str:
+        return f"Message {self.target.name}"
+
     def prompt(self):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        return ChannelPrompt(placeholder=f"Message {self.initial_label}")
+        return ChannelPrompt(placeholder=self.initial_placeholder)
 
     def read_only(self, comms):
         return comms.bus.require_channel(self.target.name).read_only
@@ -280,6 +276,11 @@ class DmConversation(ConversationKind):
     async def update_mentions(cls, view, comms) -> None:
         """Direct-message composers have no channel mention roster."""
 
+    @classmethod
+    def compose_activity(cls, view) -> ComposeResult:
+        view.thread_activity = ConversationSessionDetails(view.conversation.peer)
+        yield view.thread_activity
+
     def prompt(self):
         from toad.widgets.prompt import MessagePrompt
 
@@ -303,8 +304,7 @@ class IrcConversation(ChannelConversation):
     def label(self, references: CurrentDisplayReferences) -> str:
         return f"{self.target.name} · all comms"
 
-    def placeholder(self, references):
-        return "Message #all (broadcast)"
+    initial_placeholder = "Message #all (broadcast)"
 
     def send_target(self, references) -> ChannelTarget:
         return AllChannel.target()

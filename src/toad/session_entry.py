@@ -12,10 +12,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
+from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ThreadRowModel
-from agent_comms.ui_model.unread import UnobservedUnread
 
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.session_scope import SessionScope
@@ -214,7 +215,7 @@ class NativeSessionEntry(SessionEntry):
         sessions.app.session_tracker.close_session(self.mode)
 
 
-class HistorySessionEntry(SessionEntry):
+class HistorySessionEntry(SessionEntry, MroDispatch):
     def __init__(
         self,
         mode: str,
@@ -262,15 +263,23 @@ class HistorySessionEntry(SessionEntry):
         return sessions.source(self.key.owner_mode)
 
     def unobserved_tab(self) -> OpenTab:
-        return NamedTab(self.mode, self.key.title)
+        return NamedTab(self.mode, self.key.conversation.initial_label)
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
-        unread = (
-            self.key.conversation.unread(observed.sidebar.observation)
-            if observed.observes(self.key.root)
-            else UnobservedUnread()
+        return self.dispatch_sync(observed.references_for(self.key.root), observed)
+
+    @handles(ReferenceContext)
+    def preparing_tab(self, references, observed) -> OpenTab:
+        return self.unobserved_tab()
+
+    @handles(CurrentDisplayReferences)
+    def referenced_tab(self, references, observed) -> OpenTab:
+        conversation = self.key.conversation
+        return NamedTab(
+            self.mode,
+            conversation.label(references),
+            conversation.unread(observed.sidebar.observation),
         )
-        return NamedTab(self.mode, self.key.title, unread)
 
     def depends_on(self, mode: str) -> bool:
         return super().depends_on(mode) or self.key.owner_mode == mode

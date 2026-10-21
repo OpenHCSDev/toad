@@ -17,13 +17,13 @@ from agent_comms.thread_execution import ConversationPreparation
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.threads import Thread
 
-from toad.conversation_kind import ConversationKind
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.session_tracker import CommsViewKey
 
 ResultT = TypeVar("ResultT")
 
 if TYPE_CHECKING:
+    from toad.navigation_target import HistoryRouted
     from toad.thread_navigation import ThreadNavigator, ThreadOrigin
 
 
@@ -45,13 +45,13 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
     comms: Comms
     owner_mode: str
     me: str
-    conversation: ConversationKind
+    route: HistoryRouted
     owner_root: str | None
 
     def read(self) -> CommsNavigation:
         comms = self.comms
         root = comms.root
-        resolved = self.conversation.resolve(comms, self.me)
+        resolved = self.route.prepare(comms, self.me)
         owner_root = self.owner_root
         if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
             owner_root = None

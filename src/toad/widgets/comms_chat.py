@@ -8,6 +8,7 @@ from pathlib import Path
 
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.field_codec import FieldCodec
+from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
 from agent_comms.messages import Message as WireMessage
 from agent_comms.mro_dispatch import handles
 from textual import containers
@@ -75,7 +76,7 @@ class CommsChatView(Conversation):
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(
-            f"comms:{FieldCodec.encode(type(conversation))}:{conversation.target.name}"
+            f"comms:{FieldCodec.encode(type(conversation))}:{conversation.input_scope}"
         )
         self.message_contents = Contents(id="contents")
         self.message_history = WireHistory.empty(
@@ -116,6 +117,7 @@ class CommsChatView(Conversation):
                 f"Conversation root {self._bound_root} differs from observed root {shared.root}"
             )
         comms = shared
+        await self.app.coordination_access.current_sidebar()
         self.message_history.open(
             WireSource(
                 comms,
@@ -125,8 +127,7 @@ class CommsChatView(Conversation):
                 IrcMessageStyle(),
             )
         )
-        self.agent_info = Content(self.conversation.label())
-        self.refresh_thread_status()
+        self.refresh_identity(comms.root)
         self.prepare_prompt()
         self.window.anchor()
         # CommsScreen has already presented its route before mounting this
@@ -208,8 +209,19 @@ class CommsChatView(Conversation):
             prompt.focus()
 
     def watch_agent_binding(self, agent) -> None:
-        """Keep the inherited agent reactive from turning this into a shell session."""
-        self.agent_info = Content(self.conversation.label())
+        """A message composer has no operational agent projection."""
+
+    def refresh_identity(self, root) -> None:
+        self.dispatch_sync(self.app.coordination_access.reference_context(str(root)))
+
+    @handles(ReferenceContext)
+    def preparing_identity(self, references) -> None:
+        self.agent_info = Content(self.conversation.initial_label)
+
+    @handles(CurrentDisplayReferences)
+    def referenced_identity(self, references) -> None:
+        self.agent_info = Content(self.conversation.label(references))
+        self.refresh_thread_status()
 
     def transcript_scope(self) -> NoTranscript:
         """DM/channel history belongs to WireHistory, not a native transcript."""
@@ -288,6 +300,7 @@ class CommsChatView(Conversation):
                 ):
                     return
             self.call_after_refresh(history.mark_visible)
+            self.refresh_identity(source.loader.comms.root)
             if not changed:
                 return
             status = await source.status_text(read_only=read_only)

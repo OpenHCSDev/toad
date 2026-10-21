@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Literal
 
 from agent_comms.acp_extension import UnknownDeliveryFailure
-from agent_comms.errors import HumanClaimBlockedError, HumanInitialUnknownError
+from agent_comms.errors import HumanSendError
 from agent_comms.messages import Message
 from rich.text import Text as RichText
 from textual import getters
@@ -185,7 +185,7 @@ class DeliveryFailureView(ToadNode, Widget):
         except asyncio.CancelledError:
             self.delivery_refused("Cancelled before sending", body)
             raise
-        except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
+        except HumanSendError as error:
             delivery_failure(error).present(self, body)
             return
         outcome = await self.commit_user_message(comms, target, body)
@@ -216,7 +216,7 @@ class DeliveryFailureView(ToadNode, Widget):
                 lambda done: done.exception() if not done.cancelled() else None
             )
             return self._send_state
-        except (HumanInitialUnknownError, HumanClaimBlockedError) as error:
+        except HumanSendError as error:
             delivery_failure(error).present(self, body)
             return self._send_state
         accepted = SentUndrawn(comms.root, sent)

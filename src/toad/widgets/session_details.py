@@ -157,18 +157,22 @@ class ConversationSessionDetails(SessionDetails):
 
     DEFAULT_ID = None
 
-    def __init__(self, target, **kwargs) -> None:
-        self.target = target
-        super().__init__(**kwargs)
+    def __init__(self, peer) -> None:
+        self.peer = peer
+        super().__init__(history=NativeHistory(), delivery=InputDeliveryBar())
 
     @property
     def label(self) -> str:
-        return self.target.name
+        return self.row.name
 
     async def _on_collapsible_title_toggle(self, event) -> None:
         event.prevent_default()
         event.stop()
         context = self.app.selected_session.navigation_context
+        references = (
+            self.app.coordination_access.observation.observed()
+            .sidebar.observation.require_snapshot().references
+        )
         await self.app.thread_navigation.open(
             owner_mode=context.owner_mode, project_path=context.project_path,
-            target=self.target.name)
+            target=references.thread(self.peer).name)

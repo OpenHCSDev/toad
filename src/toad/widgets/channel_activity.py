@@ -1,6 +1,5 @@
 """Live channel members use the sidebar's keyed widget reconciliation."""
 
-from agent_comms.channel_targets import ThreadTarget
 from textual import widgets
 from textual.content import Content
 from textual.containers import VerticalGroup
@@ -8,6 +7,7 @@ from textual.containers import VerticalGroup
 from toad.session_scope import SessionScope
 from toad.status_thread import StatusThread
 from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
+from toad.widgets.session_details import ConversationSessionDetails
 
 
 class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
@@ -57,7 +57,9 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
         change.apply_activity(self)
 
     def create_row(self, name):
-        row = self.view.conversation.activity_details(ThreadTarget(name))
+        row = ConversationSessionDetails(
+            self.model_state.shown.threads.rows[name].incarnation
+        )
         row.thread = StatusThread.for_root(
             self.model_state.root(), name, self.app.coordination_access
         )
