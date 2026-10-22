@@ -1,9 +1,9 @@
-# Tests that fail because the product is wrong and the fix has an owner.
+# Recorded product defects, their investigation owners and reproducers.
 #
-# The runner expects each listed test to fail. One that passes is reported as an
-# error until its entry is removed, so this list cannot go stale. Add an entry
-# only with a named defect, an owner and the reproducer (the test itself).
-# `intermittent = true` marks a defect that shows only on some runs: passing is then not an error.
+# Entries annotate failures with the recorded investigation. Every run reports
+# its actual outcome and retains a failed app attempt's diagnostic roots.
+# Add an entry only with a named defect, an owner and the reproducer.
+# `intermittent = true` records observed intermittency; it never changes a result.
 
 [agent-text-click]
 defect = "File paths in line-drawn agent text are plain text, and a written Markdown link keeps the address it was written with: no link for a bare project path, no file search by name, no toad-file address, no copy-path menu. The project-path grammar is not carried over to the line renderer yet; docs/agents/DECISIONS.md lists it under features to carry over. (A written Markdown link does highlight under the pointer and open on click: tests/textual/test_acp_log_link.py, test_clicking_a_file_link_opens_its_preview_tab.)"

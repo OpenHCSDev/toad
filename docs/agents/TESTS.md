@@ -128,13 +128,13 @@ python -m pytest tests/model tests/guards   # no app, seconds
 TOAD_TEST_NATIVE_PACKAGE=/path/to/pi-coding-agent python -m pytest tests/native
 ```
 
-Every test that asks for `workspace` runs in its own interpreter, so the suite is safe under `-n`. A failing app test prints the screen it last saw and keeps its roots under `/var/tmp/toad-test-*`. A test whose requirement is missing (the native package, the `pyte` terminal emulator) is skipped with the requirement's name; nothing else skips.
+Every test that asks for `workspace` runs in its own interpreter, so the suite is safe under `-n`. A failing app test prints its child output and keeps its roots under the configured temporary directory as `toad-test-*`, with full output in `stdout.log` and `stderr.log`. A test whose requirement is missing (the native package, the `pyte` terminal emulator) is skipped with the requirement's name; nothing else skips.
 
 While frame time is being measured on the development machine, run at most three single pytest processes at once, pinned with `taskset -c 0-3 nice -n 19`.
 
 ## Open defects
 
-`tests/open_defects.toml` lists the tests that fail because the product is wrong: the defect in plain words, its owner, and the tests that reproduce it. The runner expects each listed test to fail. A listed test that passes is reported as an error until its entry is removed, so the list cannot go stale. An entry marked `intermittent` reproduces only on some runs; for it, passing is not an error. Do not add an entry without a named defect and owner, and never add one to quiet a test you have not read.
+`tests/open_defects.toml` records defects in plain words, their owners and their reproducers. Entries appear as notes on failures. Every test reports its actual outcome, including tests associated with an intermittent defect. A failed app attempt retains its private roots, complete child stdout and stderr, and result records. Its recorded defect cannot establish what failed in this run. Do not add an entry without a named defect and owner, and never add one to quiet a test you have not read.
 
 At the time of the consolidation the list holds 18 defects covering 32 tests:
 
