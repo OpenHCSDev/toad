@@ -366,7 +366,7 @@ class ConversationSubmissions:
                 return
         except RequestError as error:
             if self.view.agent_binding is agent and agent.session_id == session:
-                self.view.flash(f"Send now failed: {error}", style="error")
+                self.view.feedback.flash(f"Send now failed: {error}", style="error")
         if self.view.agent_binding is agent and agent.queue_attachment.accepts_request(
             scope
         ):

@@ -48,7 +48,7 @@ class AgentBase(AgentConnection):
 
     async def change_project(self, view, path):
         project = await self.update_project(str(path))
-        view.flash(Content(f"Project changed to {project}"), style="success")
+        view.feedback.flash(Content(f"Project changed to {project}"), style="success")
 
     def request_compaction(self, view, instructions):
         view.compact_context(instructions)

@@ -128,6 +128,7 @@ class NativeSessionEntry(SessionEntry):
 
     def __call__(self) -> MainScreen:
         source = self.factory()
+        source.session_details = self.details
         source.thread_identity.bind_initial_identity(self.details)
         return source
 

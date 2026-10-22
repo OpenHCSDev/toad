@@ -7,7 +7,6 @@ from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 from agent_comms.acp_extension import UnknownDeliveryFailure
 from agent_comms.errors import HumanSendError
@@ -90,6 +89,7 @@ class DeliveryFailureView(ToadNode, Widget):
     """The composed input, status and delivery behavior shared by conversations."""
 
     prompt = getters.query_one(Prompt)
+    feedback = getters.query_one(Flash)
     status: var[str | Content | RichText] = var("")
 
     @abstractmethod
@@ -98,16 +98,6 @@ class DeliveryFailureView(ToadNode, Widget):
     async def composer_read_only(self) -> bool:
         """Native and CLI sessions compose to their exact thread, not a saved channel."""
         return False
-
-    def flash(
-        self,
-        content: str | Content,
-        *,
-        duration: float | None = None,
-        style: Literal["default", "warning", "error", "success"] = "default",
-    ) -> None:
-        """Show feedback in this view's composed flash control."""
-        self.query_one(Flash).flash(content, duration=duration, style=style)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -153,7 +143,7 @@ class DeliveryFailureView(ToadNode, Widget):
         reason = await self.refresh_composer(read_only)
         if read_only:
             self.restore_user_message(body)
-            self.flash(reason, style="error")
+            self.feedback.flash(reason, style="error")
             return
         references = (
             self.app.coordination_access.observation.observed()
@@ -170,7 +160,7 @@ class DeliveryFailureView(ToadNode, Widget):
 
         if self.send_block_reason:
             self.restore_user_message(body)
-            self.flash(self.send_block_reason, style="error")
+            self.feedback.flash(self.send_block_reason, style="error")
             return
         self._enter_send_state(SendPending())
 
@@ -236,14 +226,14 @@ class DeliveryFailureView(ToadNode, Widget):
     def delivery_unknown(self, failure: UnknownDeliveryFailure, body: str) -> None:
         self.restore_user_message(body)
         self._enter_send_state(SendUnknown(failure))
-        self.flash(self.send_block_reason, style="error")
+        self.feedback.flash(self.send_block_reason, style="error")
 
     def delivery_blocked(self, description: str, body: str) -> None:
         self.restore_user_message(body)
         self._enter_send_state(SendBlocked(description))
-        self.flash(self.send_block_reason, style="error")
+        self.feedback.flash(self.send_block_reason, style="error")
 
     def delivery_refused(self, description: str, body: str) -> None:
         self.restore_user_message(body)
         self._enter_send_state(NoSend())
-        self.flash(f"Send failed: {description}", style="error")
+        self.feedback.flash(f"Send failed: {description}", style="error")

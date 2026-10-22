@@ -149,10 +149,10 @@ class NoAgentConnection(AgentConnection):
         source.presentation.sources.attach_started(source, plan)
 
     async def change_project(self, view, path):
-        view.flash("Project changes require an agent-comms session", style="error")
+        view.feedback.flash("Project changes require an agent-comms session", style="error")
 
     def request_compaction(self, view, instructions):
-        view.flash("Context compaction requires an agent-comms session", style="error")
+        view.feedback.flash("Context compaction requires an agent-comms session", style="error")
 
     async def observe_thread_presentation(self, presentation):
         """There is no connected agent to inform."""

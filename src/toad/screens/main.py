@@ -43,7 +43,7 @@ from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionView
 from toad.session_presentation import OperationalSessionPresentation
 from toad.session_scope import AgentBinding, NoAgent, ViewSessionOrigin
-from toad.session_tracker import SidebarState
+from toad.session_tracker import SessionDetails, SidebarState
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation
@@ -363,16 +363,16 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     def session_disposition(self) -> SessionDisposition:
         return self.presentation.operational_binding.session_disposition
 
+    session_details: SessionDetails
+    """The registered entry supplies its existing details before mounting this view."""
+
     def make_conversation(self) -> Conversation:
-        assert (
-            self.id is not None
-        ), "Conversation construction requires a registered session"
         return self._agent_binding.make_conversation(
             partial(
                 Conversation,
                 self.project_path,
                 session_pk=self._session_pk,
-                session_title=self.app.session_tracker.sessions[self.id].initial_title,
+                session_title=self.session_details.initial_title,
                 initial_prompt=self._initial_prompt,
                 transcript=self.presentation.transcript,
             )

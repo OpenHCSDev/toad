@@ -63,18 +63,16 @@ async def get_agent_binding(launch_agent: str) -> AgentBinding:
     try:
         agents = await read_agents()
     except AgentReadError:
-        agents = {}
+        return NoAgent()
 
     for agent_data in agents.values():
         if (
             agent_data.short_name.lower() == launch_agent
             or agent_data.identity.lower() == launch_agent
         ):
-            launch_agent = agent_data.identity
-            break
+            return AgentAttached(agent_data)
 
-    selected = agents.get(launch_agent)
-    return NoAgent() if selected is None else AgentAttached(selected)
+    return NoAgent()
 
 
 class DefaultCommandGroup(click.Group):

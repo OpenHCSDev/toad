@@ -107,14 +107,14 @@ class ConversationCommsHandlers(CoreEventReceiver):
         if not message.event.recover_draft:
             # Server notices (including unstarted queued/restored inputs) are
             # read-only evidence, not permission to change the local composer.
-            self.flash(
+            self.feedback.flash(
                 f"{message.event.update.failure.title}: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",
                 style="error",
             )
             return
         self.restore_user_message(message.event.update.text)
 
-        self.flash(
+        self.feedback.flash(
             f"{message.event.update.failure.title}; draft restored: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",
             style="error",
         )

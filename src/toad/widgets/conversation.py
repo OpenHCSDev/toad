@@ -471,21 +471,21 @@ class ConversationSessionBinding(
             self.call_later(self.delivery_observation.invalidate)
 
     def agent_connected(self, agent: AgentBase) -> None:
-        self.flash(Content.assemble(agent.get_info(), " connected"), style="success")
+        self.feedback.flash(Content.assemble(agent.get_info(), " connected"), style="success")
         if self._agent_data is not None:
             self.app.application.usage.publish(
                 "agent-session-begin", agent=self._agent_data.identity
             )
 
     async def cancel_bound_turn(self, agent: AgentBase) -> None:
-        self.flash("Cancelling agent turn…")
+        self.feedback.flash("Cancelling agent turn…")
         self.turns.describe("Cancelling…")
         if self._loading is not None and self._loading.is_attached:
             self._loading.update("Cancelling…")
         if await agent.cancel():
-            self.flash("Turn cancelled", style="success")
+            self.feedback.flash("Turn cancelled", style="success")
         else:
-            self.flash("Agent declined to cancel. Please wait.", style="error")
+            self.feedback.flash("Agent declined to cancel. Please wait.", style="error")
 
     @abstractmethod
     def _turn_changed(self, owner: TurnOwner) -> None:
@@ -1017,7 +1017,7 @@ class Conversation(
         if not event.teminal.is_finalized:
             await self.shell.interrupt()
             self.navigation.clear()
-            self.flash("Command interrupted", style="success")
+            self.feedback.flash("Command interrupted", style="success")
 
     def check_directory(self) -> None:
         """A finished turn or command may have changed the project's files."""
@@ -1041,7 +1041,7 @@ class Conversation(
             and not event.terminal.has_focus
             and not event.terminal.state.buffer.is_blank
         ):
-            self.flash("Press [b]ctrl+f[/b] to focus command", style="default")
+            self.feedback.flash("Press [b]ctrl+f[/b] to focus command", style="default")
 
     @on(Terminal.AlternateScreenChanged)
     def on_terminal_alternate_screen_(
@@ -1055,7 +1055,7 @@ class Conversation(
 
     @on(events.DescendantFocus, "Terminal")
     def on_terminal_focus(self, event: events.DescendantFocus) -> None:
-        self.flash("Press [b]escape[/b] [i]twice[/] to exit terminal", style="success")
+        self.feedback.flash("Press [b]escape[/b] [i]twice[/] to exit terminal", style="success")
 
     @on(events.DescendantBlur, "Terminal")
     def on_terminal_blur(self, event: events.DescendantFocus) -> None:
@@ -1064,7 +1064,7 @@ class Conversation(
     @on(messages.Flash)
     def on_flash(self, event: messages.Flash) -> None:
         event.stop()
-        self.flash(event.content, duration=event.duration, style=event.style)
+        self.feedback.flash(event.content, duration=event.duration, style=event.style)
 
     @property
     def terminal_action_state(self) -> bool | None:
@@ -1081,10 +1081,6 @@ class Conversation(
     @property
     def cursor_block(self) -> ConversationEntry | None:
         return self.navigation.current
-
-    @property
-    def cursor_block_child(self) -> Widget | None:
-        return self.navigation.selected
 
     def draws_user_message(self, sent) -> bool:
         from agent_comms.message_reference import MessageReference
@@ -1168,7 +1164,7 @@ class Conversation(
         agent = self.agent_binding
         methods = agent.presentation.auth_methods
         if not methods:
-            self.flash("This agent has not advertised any login methods", style="error")
+            self.feedback.flash("This agent has not advertised any login methods", style="error")
             return
         method_id = await ContextMenu.choose(
             self.screen,
@@ -1220,7 +1216,7 @@ class Conversation(
                 await agent.session.reconnect_after_login()
             else:
                 await agent.session.authenticate(method_id)
-            self.flash(
+            self.feedback.flash(
                 "Provider login finished; model catalogue refreshed", style="success"
             )
         finally:
@@ -1270,7 +1266,7 @@ class Conversation(
                 ):
                     self.app.show_error(error, "Set thinking level")
                     return
-            self.flash(
+            self.feedback.flash(
                 Content.from_markup(
                     "Model [b]$model[/] · thinking [b]$level",
                     model=model.name,
@@ -1345,8 +1341,7 @@ class Conversation(
             and self.navigation.accepts_menu_owner(event.owner)
         ):
             await self.run_action(event.action, {"block": event.owner})
-        if self.cursor_block_child is not None:
-            self.call_after_refresh(self.cursor.refresh)
+        self.call_after_refresh(self.cursor.refresh)
 
     @handles(CurrentWorkingDirectoryChanged)
     def on_current_working_directory_changed(self, event: CoreEventMessage) -> None:
@@ -1456,7 +1451,7 @@ class Conversation(
         if terminal is not None and not terminal.is_finalized:
             await self.shell.interrupt()
             # self._shell = None
-            self.flash("Command interrupted", style="success")
+            self.feedback.flash("Command interrupted", style="success")
         else:
             raise SkipAction()
 
@@ -1474,7 +1469,7 @@ class Conversation(
         if error is not None:
             self.app.show_error(error, "Set Mode")
         elif (mode := agent.current_mode) is not None:
-            self.flash(
+            self.feedback.flash(
                 Content.from_markup("Mode changed to [b]$mode", mode=mode.name),
                 style="success",
             )
@@ -1651,9 +1646,9 @@ class Conversation(
     async def compact_context(self, instructions: str | None) -> None:
         """Keep processing owner notifications while compaction is in flight."""
         self.window.anchor()
-        self.flash("Compaction requested")
+        self.feedback.flash("Compaction requested")
         await self.agent_binding.compact_context(instructions)
-        self.flash("Context compacted", style="success")
+        self.feedback.flash("Context compacted", style="success")
 
     def open_queue_menu(self) -> None:
         """Remote edits require exact input IDs and backend revision-CAS support."""
@@ -1661,7 +1656,7 @@ class Conversation(
             self._queue_edit_unavailable()
 
     def _queue_edit_unavailable(self) -> None:
-        self.flash(
+        self.feedback.flash(
             "Remote queue editing unavailable: requires ID-targeted, revision-checked backend support",
             style="error",
         )
@@ -1902,7 +1897,7 @@ class Conversation(
             await self.agent_binding.cancel_turn(self)
             self._last_escape_time = 0.0
         else:
-            self.flash(f"Press [b]{shortcut}[/] again to cancel agent's turn")
+            self.feedback.flash(f"Press [b]{shortcut}[/] again to cancel agent's turn")
             self._last_escape_time = monotonic()
 
     def focus_prompt(self, reset_cursor: bool = True, scroll_end: bool = True) -> None:
@@ -1951,13 +1946,13 @@ class Conversation(
         cursor = self.navigation.cursor
         if cursor is not None and (text := cursor.get_clipboard_text()):
             self.app.copy_to_clipboard(text)
-            self.flash("Copied to clipboard")
+            self.feedback.flash("Copied to clipboard")
 
     def action_copy_to_prompt(self) -> None:
         cursor = self.navigation.cursor
         if cursor is not None and (text := cursor.get_prompt_text()):
             self.prompt.append(text)
-            self.flash("Copied to prompt")
+            self.feedback.flash("Copied to prompt")
             self.focus_prompt()
 
     def action_maximize_block(self) -> None:
