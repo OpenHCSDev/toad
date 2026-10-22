@@ -25,7 +25,11 @@ class StatusThread(ABC):
 
     @staticmethod
     def route(root: Path, access) -> type[RoutedStatusThread]:
-        return LocalStatusThread if access.observation.observed().observes(root) else OtherRouteStatusThread
+        return (
+            LocalStatusThread
+            if access.observation.observed().observes(root)
+            else OtherRouteStatusThread
+        )
 
     @classmethod
     def for_root(cls, root: Path, name: str, access) -> StatusThread:
@@ -69,7 +73,11 @@ class RoutedStatusThread(StatusThread):
 class LocalStatusThread(RoutedStatusThread):
     @classmethod
     def conversation(cls, root: Path, conversation, access) -> LocalStatusThread:
-        references = access.observation.observed().sidebar.observation.require_snapshot().references
+        references = (
+            access.observation.observed()
+            .sidebar.observation.require_snapshot()
+            .references
+        )
         return cls(root, conversation.destination(references).name)
 
     def bind(self, activity: ObservedThreadActivity) -> None:
@@ -81,7 +89,9 @@ class LocalStatusThread(RoutedStatusThread):
             access.events,
             ThreadRowsChanged,
             activity.status_changed,
-            factory=partial(ThreadCallbackSubscription, scope=(str(self.root), self.name)),
+            factory=partial(
+                ThreadCallbackSubscription, scope=(str(self.root), self.name)
+            ),
         )
 
 

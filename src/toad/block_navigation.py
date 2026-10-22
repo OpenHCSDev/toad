@@ -371,11 +371,6 @@ class ContentNavigation:
     def cursor(self) -> BlockCursor | None:
         return self.current.block_cursor.active if self.current is not None else None
 
-    @property
-    def selected(self):
-        cursor = self.cursor
-        return None if cursor is None else cursor.selected
-
     def move(self, direction: CursorDirection) -> None:
         blocks = self.blocks
         if not blocks:

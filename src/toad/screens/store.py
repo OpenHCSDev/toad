@@ -28,7 +28,6 @@ import toad
 from toad.app import ToadApp
 from toad.format_path import format_path
 from toad.pill import pill
-from toad import messages
 from toad.widgets.directory_input import DirectoryInput
 from toad.widgets.mandelbrot import Mandelbrot
 from toad.widgets.condensed_path import CondensedPath

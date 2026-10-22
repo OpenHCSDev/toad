@@ -2,6 +2,7 @@
 
 import pytest
 
+from toad.core.events import SessionChangedEvent
 from toad.session_tracker import (
     AuthoredSessionName,
     SessionDetails,
@@ -40,11 +41,16 @@ def test_session_label_owns_identity_change(name, expected):
     assert name.adopt_identity("old", "new").display == expected
 
 
+class SessionChanges(list[SessionChangedEvent]):
+    def record(self, event: SessionChangedEvent, _subscription) -> None:
+        self.append(event)
+
+
 def test_session_tracker_publishes_only_changed_labels():
     tracker = SessionTracker()
     details = tracker.new_session(title="old")
-    changes = []
-    with tracker.events.subscribe(lambda event, _subscription: changes.append(event)):
+    changes = SessionChanges()
+    with tracker.events.subscribe(SessionChangedEvent, changes.record):
         tracker.bind_identity(details.mode_name, "old", "old")
         assert changes == []
         tracker.bind_identity(details.mode_name, "old", "new")
