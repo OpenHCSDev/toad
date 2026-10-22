@@ -5,7 +5,6 @@ from functools import partial
 
 import pytest
 
-from agent_comms.candidate_maintenance import drain_candidate_catchup
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.comms import Comms, wire
 from agent_comms.field_codec import FieldCodec
@@ -27,7 +26,6 @@ def copied_conversations(tmp_path):
     viewer = original.messaging.user_identity(str(tmp_path)).name
     original.messaging.send("peer", "#team", "channel body")
     original.messaging.send("peer", viewer, "direct body")
-    drain_candidate_catchup(original.root)
     StoreBackup.copy_tree(original.root, tmp_path / "copied")
     return Comms(tmp_path / "copied"), viewer
 

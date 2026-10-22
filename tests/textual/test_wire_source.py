@@ -1,6 +1,5 @@
 """Textual-facing: the presentation window; a wire source pages one conversation and notices when Core replaces its reading."""
 
-from agent_comms.candidate_maintenance import drain_candidate_catchup
 from agent_comms.channel_targets import ChannelTarget
 from agent_comms.comms import wire
 from agent_comms.historical_views import ConversationObservation
@@ -75,7 +74,6 @@ def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
     later = AfterSequence(LiveCursor(grown.through.cursor.sequence + 1))
     bounded = source.read(PageRequest(NEWER_END, grown.through), later)
     assert bodies(bounded) == ["arrived later"] and bounded.page.after == later and not bounded.page.has_newer
-    drain_candidate_catchup(comms.root)
     current = source.observe(grown.revision)
     assert isinstance(source.observe(current.revision), Unchanged)
 
