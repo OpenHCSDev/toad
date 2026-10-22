@@ -32,7 +32,7 @@ The directory says what a test depends on. `tests/guards/test_test_layers.py` en
 |---|---|---|
 | `tests/model` | Behaviour with no interface: Core answers, line blocks, view models, codecs, session and agent protocol objects | `agent_comms`, `ui_theme`, frontend-neutral `toad` modules, `tmp_path`. Never `textual`, `toad.widgets`, `toad.screens`, `toad.app` |
 | `tests/app` | The running app, asked only questions a second frontend could answer | `workspace`, `Ui` questions, Core reads. Never `textual`, widget classes, `ui.textual` |
-| `tests/textual` | Behaviour owned by the Textual frontend: paint, layout, strips, compositor, widget classes. The module docstring starts with `Textual-facing:` and says what Textual owns here | everything, through `ui.textual` |
+| `tests/textual` | Behaviour owned by the Textual frontend: paint, layout, strips, compositor, widget classes. The module docstring says which frontend behavior it exercises | everything, through `ui.textual` |
 | `tests/native` | The real native agent package | `native_package` (skips with its reason when absent) |
 | `tests/terminal` | Toad in a real pseudo-terminal | `terminal` (skips when the emulator is absent) |
 | `tests/guards` | Source checks: deleted mechanisms stay deleted, layers stay separate | `ast`, the source tree |

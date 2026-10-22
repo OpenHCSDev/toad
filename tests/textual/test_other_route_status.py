@@ -36,5 +36,8 @@ async def test_other_route_binds_its_status_without_starting_a_read(workspace):
         await app.selected_session.mount(surface)
         source.refresh(surface)
         assert surface.thread_activity.row == ThreadStatusModel.other_route("peer")
-        assert not any(worker.node is surface for worker in app.workers)
+        assert not any(
+            surface in worker.node.walk_ancestors(with_self=True)
+            for worker in app.workers
+        )
         assert not other_root.exists()
