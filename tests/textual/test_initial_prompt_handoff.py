@@ -3,10 +3,22 @@ conversation widget being evicted and remounted, and keeps the editor's document
 
 import asyncio
 from collections import Counter
+from unittest.mock import patch
+
+import pytest
+
+from toad.agent_binding import NoAgentBound
 
 from toad.core.input_events import UserInputSubmitted
-from toad.screens.main import MainScreen
-from toad.widgets.conversation import ConversationSessionBinding
+from toad.screens.main import MainScreen, NavigatedOpeningContent
+from toad.session_presentation import OperationalSessionSources
+
+
+class ObservedLaunchSources(OperationalSessionSources):
+    def make_conversation(self, screen):
+        conversation = super().make_conversation(screen)
+        screen.subscriptions.append(conversation.core_publications.subscribe(UserInputSubmitted, screen.observed))
+        return conversation
 
 
 class ObservedLaunchScreen(MainScreen):
@@ -17,38 +29,32 @@ class ObservedLaunchScreen(MainScreen):
         self.inputs = Counter()
         self.publication = asyncio.Event()
         self.subscriptions = []
+        self.presentation.sources = ObservedLaunchSources()
 
     def observed(self, event, subscription):
-        if isinstance(event, UserInputSubmitted):
-            assert not event.shell
-            self.inputs[event.body] += 1
-            self.publication.set()
-
-    def _make_conversation(self):
-        conversation = super()._make_conversation()
-        self.subscriptions.append(conversation.core_publications.subscribe(self.observed))
-        return conversation
+        assert not event.shell
+        self.inputs[event.body] += 1
+        self.publication.set()
 
 
 async def test_a_failed_conversation_construction_keeps_the_initial_prompt_and_a_successful_one_transfers_it(workspace):
     async with workspace.app(size=(110, 35)) as ui:
         app, _pilot = ui.textual
-        # Session title acquisition refuses an unregistered source before construction.
-        candidate = MainScreen(workspace.project, initial_prompt="CONSTRUCTOR_PENDING")
-        candidate.id = "not-a-registered-session"
-        try:
-            candidate._make_conversation()
-        except KeyError:
-            assert candidate._initial_prompt == "CONSTRUCTOR_PENDING"
-        else:
-            raise AssertionError("Unregistered source unexpectedly constructed a conversation")
-        successful = MainScreen(workspace.project, initial_prompt="CONSTRUCTOR_PENDING")
-        successful.id = app.selected_mode
-        constructed = successful._make_conversation()
-        assert successful._initial_prompt is None
-        assert candidate._initial_prompt == "CONSTRUCTOR_PENDING"
-        assert constructed.take_initial_prompt() == "CONSTRUCTOR_PENDING"
-        assert constructed.take_initial_prompt() is None
+        owner = ObservedLaunchScreen(workspace.project, initial_prompt="CONSTRUCTOR_PENDING")
+        owner.content = NavigatedOpeningContent()
+        await app.session_navigation.new(lambda: owner)
+        with patch.object(owner.presentation.sources, "make_conversation",
+                          side_effect=RuntimeError("Conversation construction failed")):
+            with pytest.raises(RuntimeError, match="construction failed"):
+                await owner._prepare_content()
+        assert owner.presentation.widget is None
+        assert owner._initial_prompt == "CONSTRUCTOR_PENDING"
+        await owner._prepare_content()
+        await owner.wait_content_ready()
+        await asyncio.wait_for(owner.publication.wait(), 12)
+        assert owner._initial_prompt is None
+        assert owner.conversation.take_initial_prompt() is None
+        assert owner.inputs == {"CONSTRUCTOR_PENDING": 1}
 
 
 async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_the_draft_and_undo_survive(workspace):
@@ -60,7 +66,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await asyncio.wait_for(owner.publication.wait(), 12)
         await ui.step()
         view = owner.conversation
-        assert view.agent is None and not view.submissions.active
+        assert isinstance(view.agent_binding, NoAgentBound) and not view.submissions.active
         assert owner._initial_prompt is None and view._initial_prompt is None
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1}
 
@@ -69,7 +75,6 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         editor.move_cursor((0, 5))
         editor.insert("Z")
         document, undo = editor.document, editor.history
-        view.set_reactive(ConversationSessionBinding.agent_ready, False)
         view._initial_prompt = "NEWEST_PENDING_LOCAL_UI_EVENT"
         owner.publication.clear()
         await app.session_navigation.new(lambda: MainScreen(workspace.project))
@@ -83,13 +88,15 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await asyncio.wait_for(owner.publication.wait(), 12)
         await ui.step()
         restored = owner.conversation
-        assert restored is not view and restored.agent is None
+        assert restored is not view and isinstance(restored.agent_binding, NoAgentBound)
         assert restored._initial_prompt is None and owner.presentation.state is None
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
         editor = restored.prompt.prompt_text_area
         assert editor.document is document and editor.history is undo
-        assert editor.text == "DRAFTZ"
+        assert editor.text == "DRAFTZ\n\nNEWEST_PENDING_LOCAL_UI_EVENT"
         editor.focus()
+        await ui.press("ctrl+z")
+        assert editor.text == "DRAFTZ"
         await ui.press("ctrl+z")
         assert editor.text == "DRAFT"
 
@@ -101,7 +108,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await ui.select_tab(owner.id)
         await ui.step()
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
-        assert owner.conversation.agent is None and not owner.conversation.submissions.active
+        assert isinstance(owner.conversation.agent_binding, NoAgentBound) and not owner.conversation.submissions.active
         await app.session_navigation.close(owner.id)
         assert owner.presentation.widget is None and owner.presentation.state is None
         assert owner.id not in app.workspace_sessions.views

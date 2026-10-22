@@ -7,6 +7,8 @@ from typing import get_args
 
 from acp.schema import PlanEntryStatus
 
+from toad.agent import AgentBase
+
 from support.agents import peer
 from support.textual_steps import painted_text, viewport_text
 from toad.plan import PlanStatus
@@ -35,8 +37,8 @@ async def planning_session(workspace, *plans):
     """The app with the plan peer connected; the prompt of `plans` is sent but the peer waits at each step."""
     async with workspace.app(size=(130, 44), agent=peer("plan", name="Local ACP plan acceptance", identity="plan-acceptance")) as ui:
         view = ui.conversation
-        await ui.until(lambda: view.agent is not None, why="the agent")
-        agent = view.agent
+        await ui.until(lambda: isinstance(view.agent_binding, AgentBase), why="the agent")
+        agent = view.agent_binding
         await ui.until(agent.session.settled.is_set, why="the agent session")
         assert agent.session.connected, "Real ACP startup/initialize/newSession failed"
         assert agent.process.process.returncode is None
@@ -169,7 +171,7 @@ async def test_a_plan_sent_while_no_view_shows_the_agent_is_drawn_when_its_view_
         await ui.until(lambda: painted_text(sidebar.query_one(Plan), "DETACHED_PLAN_ITEM"), why="the sidebar plan painted")
         assert restored_plan.entries is agent.controller.plan_entries
         assert sidebar.query_one(Plan).entries is restored_plan.entries
-        assert view.agent is agent and agent.process.process is original_process
+        assert view.agent_binding is agent and agent.process.process is original_process
         assert view.prompt.prompt_text_area.document is original_document
         assert view.prompt.prompt_text_area.history is original_history
         assert view.prompt.text == "Detached plan draft"

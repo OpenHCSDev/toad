@@ -607,6 +607,16 @@ class Prompt(TonePaint, containers.VerticalGroup):
             self.prompt_text_area.get_cursor_line_end_location()
         )
 
+    def restore_draft(self, text: str) -> None:
+        """Recover local input as an edit of the retained document and undo history."""
+        current = self.text
+        if text and current != text and not current.endswith("\n\n" + text):
+            editor = self.prompt_text_area
+            editor.history.checkpoint()
+            editor.insert(("\n\n" if current else "") + text,
+                          editor.document.end, maintain_selection_offset=True)
+            editor.history.checkpoint()
+
     def watch_agent_binding(self) -> None:
         if self.is_mounted:
             self.sync_configuration()

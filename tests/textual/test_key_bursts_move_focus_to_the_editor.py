@@ -4,6 +4,8 @@ The window hands focus to the editor on a printable key; keys that arrive before
 must not be lost, reordered or applied to the wrong control.
 """
 
+from toad.agent_binding import NoAgentBound
+
 from textual import events
 
 
@@ -23,7 +25,7 @@ async def send_burst(ui, keys):
 
 async def test_a_character_and_an_immediate_backspace_in_one_burst_leave_nothing(workspace):
     async with workspace.app(size=(100, 35)) as ui:
-        assert ui.conversation.agent is None
+        assert isinstance(ui.conversation.agent_binding, NoAgentBound)
         editor = await send_burst(ui, (("x", "x"), ("backspace", None)))
         await ui.until(lambda: ui.shows("❯"), why="the editor drawn")
         await ui.step(.2)

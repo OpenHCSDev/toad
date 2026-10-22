@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterator
 import inspect
 import json
 import os
@@ -40,9 +41,12 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def app_agents(tmp_path) -> AppAgents:
+def app_agents(tmp_path) -> Iterator[AppAgents]:
     """Agents of an app built on the test's own directory and never run."""
-    return AppAgents.unrun(tmp_path)
+    from agent_comms.launch_root import LaunchRoot
+
+    with LaunchRoot.from_path(tmp_path / "wire").selected():
+        yield AppAgents.unrun(tmp_path)
 
 
 @pytest.fixture

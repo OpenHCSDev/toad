@@ -9,6 +9,8 @@ from agent_comms.acp_extension import CoordinationChangedUpdate, TurnChangedUpda
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
+from agent_comms.thread_text import SavedSessionFile
+from agent_comms.fresh_private_session import create_fresh_private_session
 from ui_theme.effects import NEW_TEXT
 
 from support.agents import deliver
@@ -37,17 +39,17 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
     project = workspace.project
     comms = workspace.comms
     comms.messaging.initialize_private_initial_protocol()
-    saved = project / "first-native.jsonl"
-    prompt = json.dumps({"type": "message", "id": "first-user", "message": {
+    saved = create_fresh_private_session(project / "sessions", worktree=project).path
+    prompt = saved.read_text() + json.dumps({"type": "message", "id": "first-user",
+        "timestamp": "2026-10-22T00:00:00Z", "message": {
         "role": "user", "content": [{"type": "text", "text": "ASK_ROW"}]}}) + "\n"
     saved.write_text(prompt)
-    thread = comms.registry.declare(replace(workspace.thread("source"), session_file=str(saved)))
+    thread = comms.registry.declare(replace(workspace.thread("source"), session_file=SavedSessionFile(str(saved))))
     workspace.thread("peer")
-    comms.messaging.send_message("peer", "source", "EARLIER_NOTICE")
+    comms.messaging.send("peer", "source", "EARLIER_NOTICE")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
         agent = ui.detached_agent("arrival-fade")
-        view.set_reactive(type(view).agent, agent)
         view.bind_agent(agent)
         coordination = CoordinationChangedUpdate(
             thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner_pid=os.getpid(),
@@ -70,9 +72,10 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         await ui.until(lambda: ANSWER in ui.painted(view.window), why="the live answer")
         live = view.contents.query_one(AgentResponse)
         # The answer is saved and the turn ends; another sender's message lands in the same append.
-        saved.write_text(prompt + json.dumps({"type": "message", "id": "first-assistant", "message": {
+        saved.write_text(prompt + json.dumps({"type": "message", "id": "first-assistant",
+            "parentId": "first-user", "timestamp": "2026-10-22T00:00:01Z", "message": {
             "role": "assistant", "content": [{"type": "text", "text": ANSWER}]}}) + "\n")
-        comms.messaging.send_message("peer", "source", PEER)
+        comms.messaging.send("peer", "source", PEER)
         await deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
             "_meta": encode_updates(TurnChangedUpdate(TurnState(finished_turn_id="first-turn")))})

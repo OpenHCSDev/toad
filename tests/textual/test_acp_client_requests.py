@@ -12,7 +12,7 @@ async def test_agent_requests_are_served_and_the_reply_is_drawn(workspace):
         app, _pilot = ui.textual
         await ui.until_agent_ready()
         view = ui.conversation
-        agent = view.agent
+        agent = view.agent_binding
         try:
             await ui.until(lambda: agent.current_mode is not None, why="the advertised modes")
             assert agent.current_mode is agent.available_modes[0]

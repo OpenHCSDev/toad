@@ -69,10 +69,9 @@ class DeliveryFailureView:
         """Why this view's own send holds compose; empty when it does not."""
         return self._send_state.reason
 
-    def _enter_send_state(self, state: SendState, body: str) -> None:
+    def _enter_send_state(self, state: SendState) -> None:
         """The one place a send changes state; compose and the status line follow it."""
         self._send_state = state
-        self.prompt.text = body
         if self.is_attached:
             async def refresh() -> None:
                 read_only = await self.composer_read_only()
@@ -100,7 +99,7 @@ class DeliveryFailureView:
             read_only = await self.app.preparation.run_thread(conversation.read_only, comms)
         await self.refresh_composer(read_only)
         if read_only:
-            self.prompt.text = body
+            self.prompt.restore_draft(body)
             self.flash(self.status, style="error")
             return
         await self.deliver_user_message(root, conversation.send_target().name, body, current, present)
@@ -113,7 +112,7 @@ class DeliveryFailureView:
         if self.send_block_reason:
             self.flash(self.send_block_reason, style="error")
             return
-        self._enter_send_state(SendPending(), body)
+        self._enter_send_state(SendPending())
 
         async def require_route():
             route_current = await self.app.preparation.run_thread(root_is_current, root)
@@ -150,22 +149,25 @@ class DeliveryFailureView:
         except HumanSendError as error:
             delivery_failure(error).present(self, body)
             return None
-        self._enter_send_state(SentUndrawn(comms.root, sent), body)
+        self._enter_send_state(SentUndrawn(comms.root, sent))
         return sent
 
     def settle_user_message(self) -> None:
         """Enable compose only when the sent message is drawn."""
         if self._send_state.drawn_in(self):
-            self._enter_send_state(NoSend(), "")
+            self._enter_send_state(NoSend())
 
     def delivery_unknown(self, failure, body: str) -> None:
-        self._enter_send_state(SendUnknown(failure), body)
+        self.prompt.restore_draft(body)
+        self._enter_send_state(SendUnknown(failure))
         self.flash(self.send_block_reason, style="error")
 
     def delivery_blocked(self, description: str, body: str) -> None:
-        self._enter_send_state(SendBlocked(description), body)
+        self.prompt.restore_draft(body)
+        self._enter_send_state(SendBlocked(description))
         self.flash(self.send_block_reason, style="error")
 
     def delivery_refused(self, description: str, body: str) -> None:
-        self._enter_send_state(NoSend(), body)
+        self.prompt.restore_draft(body)
+        self._enter_send_state(NoSend())
         self.flash(f"Send failed: {description}", style="error")

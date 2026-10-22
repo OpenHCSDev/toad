@@ -6,6 +6,7 @@ from weakref import ref
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalUnavailable
+from toad.agent_binding import NoAgentBound
 
 
 class SessionObservation(ABC):
@@ -15,6 +16,7 @@ class SessionObservation(ABC):
         self._view = ref(view)
         self.revision = 0
         self.task = None
+        self.agent = NoAgentBound()
 
     @property
     def view(self):
@@ -56,6 +58,7 @@ class SessionObservation(ABC):
             self.task.cancel()
             await asyncio.gather(self.task, return_exceptions=True)
         self.task = None
+        self.agent = NoAgentBound()
 
     @staticmethod
     async def close_all(*observations: "SessionObservation") -> None:

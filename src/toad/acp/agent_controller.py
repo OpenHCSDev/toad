@@ -244,16 +244,20 @@ class AgentController(OperationalTerminalOwner):
             result = await agent.process.prompt(agent, content,
                 encode_request(command) if command is not None else {}, require)
         except RequestError as error:
+            request_failure = RequestFailure.from_error(error)
+        except OSError as error:
+            request_failure = RequestFailure(
+                ACPFailure.from_detail(None, f"{type(error).__name__}: {error}"), False)
+        else:
             if authority.retired:
                 return None
-            request_failure = RequestFailure.from_error(error)
-            failure = request_failure.failure
-            self._prompt_failed(command, authority, queue_scope, failure,
-                failure.title, failure.feedback, published=request_failure.notification_published)
-            return None
+            return StopReason.member_named(result.stop_reason)
         if authority.retired:
             return None
-        return StopReason.member_named(result.stop_reason)
+        failure = request_failure.failure
+        self._prompt_failed(command, authority, queue_scope, failure,
+            failure.title, failure.feedback, published=request_failure.notification_published)
+        return None
 
     def _prompt_failed(self, command, authority, queue_scope, failure, title, detail, *, published=False):
         agent = self.agent

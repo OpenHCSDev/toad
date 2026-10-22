@@ -4,6 +4,7 @@ even when Textual's pushed screen is not yet flushed while the request is cancel
 import asyncio
 
 import pytest
+from acp import schema
 from textual.worker import NoActiveWorker, get_current_worker
 
 from toad.screens.permissions import PermissionsScreen
@@ -46,13 +47,15 @@ async def test_a_request_changed_while_its_screen_push_is_pending_is_cancelled_o
         app, _pilot = ui.textual
         view = ui.conversation
         agent = ui.detached_agent("session")
-        view.agent = agent  # binds the view once, as opening a session does
+        view.bind_agent(agent)  # binds the view once, as opening a session does
         await ui.step()
         errors = []
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(lambda loop, context: errors.append(context))
         held = HeldPush(app, view)
-        task = asyncio.create_task(agent.server.call(diff_call(workspace, outcome)))
+        call = schema.RequestPermissionRequest.model_validate(diff_call(workspace, outcome)["params"])
+        task = asyncio.create_task(agent.permissions.request_permission(
+            call.session_id, call.options, call.tool_call, call.field_meta))
         await held.entered.wait()
         request, = agent.permissions.pending
         workers = [w for w in view.workers if w.node is view and w.name == "request_permissions"]
@@ -73,14 +76,14 @@ async def test_a_request_changed_while_its_screen_push_is_pending_is_cancelled_o
         await ui.step()
         if outcome == "cancel":
             result = await task
-            assert result["result"]["outcome"] == {"outcome": "cancelled"}
+            assert result.outcome == schema.DeniedOutcome(outcome="cancelled")
             assert not isinstance(app.screen, PermissionsScreen)
         else:
             await ui.until(lambda: isinstance(app.screen, PermissionsScreen), why="the review screen")
             assert ui.shows("visible value") and ui.shows("Allow")
             await ui.press("enter")
             result = await task
-            assert result["result"]["outcome"] == {"outcome": "selected", "optionId": "allow"}
+            assert result.outcome == schema.AllowedOutcome(outcome="selected", option_id="allow")
             await ui.until(lambda: not isinstance(app.screen, PermissionsScreen), why="the review screen closed")
         assert ui.failure() is None
         await agent.stop()
