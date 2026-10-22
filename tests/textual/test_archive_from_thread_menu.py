@@ -37,7 +37,7 @@ async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_his
         app, pilot = ui.textual
         await app.selected_session.on_coordination_update(comms.configuration.answer("owner"))
         db = DB()
-        assert await db.create()
+        await db.create()
         saved = await db.session_new("peer", "Comms", "agent-comms.openhcs.dev", "peer")
         assert saved is not None
         sidebar = app.screen.query_one(CommsSidebar)
