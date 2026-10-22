@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.input_disposition import InputDispositions
+from agent_comms.notification_progress import IgnoredProgress
+from agent_comms.presentation import MessageNotification
 
 from support.textual_steps import refresh_chat
 from toad.conversation_kind import ChannelConversation, DmConversation
@@ -58,8 +60,8 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     assert len(sent_rows) == 1
     sent = sent_rows[0]
     assert sent.sender == user and sent.target == target
-    await ui.until(lambda: "Responding" in str(feedback_of(chat, sent).title), seconds=20,
-                   why="'Responding' under the sent message")
+    await ui.until(lambda: feedback_of(chat, sent).working, seconds=20,
+                   why="active reply progress under the sent message")
     assert comms.registry.require(target).executing
 
     await ui.select_tab(owner_tab)
@@ -79,11 +81,15 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     assert len(replies()) == 1
     reply = replies()[0]
     assert reply.target == user and reply.reference != sent.reference
-    await ui.until(lambda: "Responded" in str(feedback_of(chat, sent).title), seconds=20,
-                   why="'Responded' under the sent message")
-    outcomes = await asyncio.to_thread(comms.views.message_notifications, (sent,))
-    assert any(item.recipient == target and item.state == "Responded"
-               for item in outcomes[sent.seq, sent.message_id])
+    outcomes = await asyncio.to_thread(comms.views.message_notifications_for_references,
+                                      (sent.reference,))
+    notifications = outcomes[sent.seq, sent.message_id]
+    assert any(item.recipient == target and item.answer == reply.reference and item.state.read
+               for item in notifications)
+    summary = MessageNotification.summary(notifications)
+    await ui.until(lambda: feedback_of(chat, sent).title == summary
+                   and not feedback_of(chat, sent).working, seconds=20,
+                   why="the recorded answer and settled progress under the sent message")
     if not hold:
         from agent_comms.input_origin import WireInputOrigin
 
@@ -106,8 +112,9 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
             for fragment in fresh.message_history.fragments_in_range) == 1
         for reference in (sent.reference, reply.reference)), seconds=20,
         why="the message and its reply once each after reopening")
-    await ui.until(lambda: "Responded" in str(feedback_of(fresh, sent).title), seconds=20,
-                   why="'Responded' after reopening")
+    await ui.until(lambda: feedback_of(fresh, sent).title == summary
+                   and not feedback_of(fresh, sent).working, seconds=20,
+                   why="the same recorded answer after reopening")
     await ui.select_tab(owner_tab)
 
 
@@ -135,8 +142,16 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     provider.release()
     await ui.until(lambda: not comms.registry.require("beta").executing, seconds=20, why="the decision to finish")
     await refresh_chat(chat)
-    await ui.until(lambda: "Checked" in feedback_of(chat, sent).title, seconds=10, why="'Checked' under the message")
-    assert "no response" in feedback_of(chat, sent).title.lower(), feedback_of(chat, sent).title
+    outcomes = await asyncio.to_thread(comms.views.message_notifications_for_references,
+                                      (sent.reference,))
+    notifications = outcomes[sent.seq, sent.message_id]
+    assert any(item.recipient == "beta" and isinstance(item.state, IgnoredProgress)
+               and item.state.read for item in notifications)
+    assert all(item.answer is None for item in notifications)
+    summary = MessageNotification.summary(notifications)
+    await ui.until(lambda: feedback_of(chat, sent).title == summary
+                   and not feedback_of(chat, sent).working, seconds=10,
+                   why="the recorded read-without-reply decision under the message")
 
 
 @asynccontextmanager
