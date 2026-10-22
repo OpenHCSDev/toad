@@ -26,10 +26,9 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
     text_fades = (NEW_TEXT,)
 
     def update(self, content: VisualType = "", *, layout: bool | None = None) -> None:
-        if self.content == content:
-            return
+        text_changed = self.content != content
         super().update(content, layout=layout)
-        if self.is_mounted:
+        if text_changed and self.is_mounted:
             for effect in self.text_fades:
                 self.run_effect(effect)
 

@@ -15,6 +15,17 @@ from support.agents import deliver
 from toad.widgets.transcript_history import TranscriptHistory
 
 
+async def test_native_unmount_retires_the_acquired_history_after_children_leave(workspace):
+    async with workspace.app() as ui:
+        view = ui.conversation
+        source = view.transcript.binding.history.page_source
+        await view.remove()
+        await ui.step()
+        assert source.closed
+        assert not view.transcript.binding.matches(view)
+        assert ui.failure() is None
+
+
 @pytest.mark.filterwarnings("error::RuntimeWarning", "error::pytest.PytestUnraisableExceptionWarning")
 async def test_closing_the_app_after_the_observation_process_exits_raises_nothing(workspace):
     project = workspace.project

@@ -12,8 +12,10 @@ from agent_comms.thread_identity import RecordedThreadIncarnation
 from textual.widgets import Button, Static
 
 from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
+from support.agents import RecordedEvents
 from support.textual_steps import channel_roster
 from toad.core.events import CommsUpdated
+from toad.core.input_events import SelectTarget
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar
@@ -40,8 +42,12 @@ async def shown_goal(workspace, ui):
     await channel_roster(ui, "#all")
     owner = goal_owner(workspace, ui.app)
     ui.attach_agent(owner)
+    screen = ui.app.selected_session
+    async with screen.presentation.transcript.changing_source(screen):
+        screen.bind_thread(workspace.comms.registry.require("goal-owner").incarnation,
+                           str(workspace.comms.root))
+    screen.link_context_changed()
     view = ui.conversation
-    view.agent_ready = True
     view.goal_display = owner.goal
     view.goal_execution = owner.execution
     view.prompt.text = "Composer draft stays"
@@ -61,10 +67,17 @@ async def test_standby_row_names_the_waited_peer_and_mentions_navigate(workspace
         owner, view, bar, status = await shown_goal(workspace, ui)
         assert "Standby" in str(status.render()) and "@peer" in str(status.render())
         original = ui.selected_tab
+        await ui.until_shows("Coordinate with @peer")
         await ui.until(lambda: ui.link_at("@peer", occurrence=1) is not None,
                        why="the observed goal mention becomes a navigation link")
-        await ui.click("@peer", occurrence=1)
-        await ui.until(lambda: ui.app.selected_session._comms_thread == "peer",
+        opened = RecordedEvents()
+        subscription = bar.summary.core_publications.subscribe(SelectTarget, opened.receive)
+        assert await ui.pilot.click(bar.summary, offset=(bar.summary.goal_text.index("@peer"), 0))
+        await ui.step()
+        await ui.until(lambda: bool(opened), why="the clicked goal mention emits its target")
+        assert opened[-1].target.name == "peer"
+        subscription.close()
+        await ui.until(lambda: ui.app.selected_session.thread_identity.thread_name() == "peer",
                        why="the goal mention opens the named peer")
         await ui.select_tab(original)
         assert view.prompt.text == "Composer draft stays"
