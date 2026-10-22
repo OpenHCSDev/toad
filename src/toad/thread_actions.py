@@ -108,8 +108,7 @@ class ThreadAction:
         if isinstance(result, TargetBatchResult) and not result.successful:
             failures = [f"{item.target}: {item.error}" for item in result.outcomes
                         if isinstance(item, TargetFailed)]
-            completed = sum(item.successful for item in result.outcomes)
-            app.show_error(f"{completed}/{len(result.outcomes)} completed\n" + "\n".join(failures), title)
+            app.show_error(f"{result.completed_count}/{len(result.outcomes)} completed\n" + "\n".join(failures), title)
         else:
             app.notify(self.definition.label, title=title)
 
