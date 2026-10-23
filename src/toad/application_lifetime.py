@@ -2,16 +2,19 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from functools import partial
+from functools import cached_property, partial
 from importlib import import_module
 import platform
 from time import monotonic
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable, ClassVar
 
+from toad import get_version
 from toad.version import VersionMonitor
 
 if TYPE_CHECKING:
+    from ssl import SSLContext
+
     from toad.app import ToadApp
 
 
@@ -20,9 +23,14 @@ class UsageReports:
 
     def __init__(self, app: ToadApp) -> None:
         self.app = app
+
+    @cached_property
+    def tls(self) -> SSLContext:
         # Built once, on the first delivery: loading the CA certificates holds
         # the GIL for 4-14 ms, which blocked the UI thread at every report.
-        self._tls = None
+        from httpx import create_ssl_context
+
+        return create_ssl_context()
 
     def publish(self, event_name: str, **properties: object):
         return self.app.run_worker(partial(self.send, event_name, properties))
@@ -33,7 +41,6 @@ class UsageReports:
     async def deliver(self, event_name: str, properties: dict[str, object]) -> None:
         app = self.app
         httpx = await app.preparation.run_thread(import_module, "httpx")
-        from toad import get_version
 
         width, height = app.size
         body = {
@@ -45,10 +52,9 @@ class UsageReports:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "os": platform.system(),
         }
-        if self._tls is None:
-            self._tls = await app.preparation.run_thread(httpx.create_ssl_context)
+        tls = await app.preparation.run_thread(lambda: self.tls)
         try:
-            async with httpx.AsyncClient(verify=self._tls) as client:
+            async with httpx.AsyncClient(verify=tls) as client:
                 await client.post("https://us.i.posthog.com/i/v0/e/", json=body)
         except httpx.HTTPError:
             # Optional collection cannot prevent normal application use.
@@ -136,7 +142,7 @@ class ApplicationLifetime:
         return request.read()
 
     def check_version(self) -> None:
-        self.app.run_worker(partial(self.version.check, self.app.preparation.run_thread))
+        self.app.run_worker(partial(self.version.check, self.app.preparation))
 
     def confirm_quit(self) -> None:
         now = monotonic()

@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
-from typing import Any, NamedTuple, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, NamedTuple
+
+from toad.work_preparation import ThreadScheduler
 
 if TYPE_CHECKING:
     from packaging.version import Version
 
 
 VERSION_TOML_URL = "https://www.batrachian.ai/toad.toml"
+_DEFAULT_SCHEDULER = ThreadScheduler()
 
 
 class VersionMeta(NamedTuple):
@@ -53,19 +55,20 @@ class VersionMonitor:
         self.status: VersionStatus = CurrentVersion()
 
     async def check(
-        self, run_thread: Callable[..., Awaitable[Any]] = asyncio.to_thread,
+        self, scheduler: ThreadScheduler = _DEFAULT_SCHEDULER,
     ) -> None:
         try:
-            self.status = await self.check_version(run_thread)
+            self.status = await self.check_version(scheduler)
         except VersionCheckFailed:
             return
 
     @staticmethod
     def prepare_version() -> Version:
         """Acquire cold dependencies and installed metadata outside UI work."""
+        import tomllib  # noqa: F401 - acquired before the UI decodes the response
+
         import httpx  # noqa: F401 - acquired before the UI consumes the module
         import packaging.version
-        import tomllib  # noqa: F401 - acquired before the UI decodes the response
 
         from toad import get_version
 
@@ -76,20 +79,21 @@ class VersionMonitor:
 
     @classmethod
     async def check_version(
-        cls, run_thread: Callable[..., Awaitable[Any]] = asyncio.to_thread,
+        cls, scheduler: ThreadScheduler = _DEFAULT_SCHEDULER,
     ) -> VersionStatus:
         """Check for a new version of Toad.
 
         The outcome owns whether an upgrade notice exists.
         """
-        current_version = await run_thread(cls.prepare_version)
+        current_version = await scheduler.run_thread(cls.prepare_version)
         # These modules were acquired by the preparation worker above.
-        import httpx
-        import packaging.version
         import tomllib
 
+        import httpx
+        import packaging.version
+
         try:
-            client = await run_thread(httpx.AsyncClient)
+            client = await scheduler.run_thread(httpx.AsyncClient)
             async with client:
                 response = await client.get(VERSION_TOML_URL)
                 version_toml_bytes = await response.aread()
