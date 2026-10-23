@@ -249,10 +249,15 @@ class WorkspaceSessions:
         owner.call_later(callback)
         return True
 
-    async def close(self, identity: str) -> None:
+    def detach(self, identity: str) -> SessionScope | None:
         if view := self.views.pop(identity, None):
             if self.source.matches(view):
                 self.source = DetachedWorkspaceSource()
+            return view
+        return None
+
+    async def close(self, identity: str) -> None:
+        if view := self.detach(identity):
             await view.close_presentation()
             await view.remove()
 
