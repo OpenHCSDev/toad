@@ -1108,9 +1108,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     @work(group="provider-login", exclusive=True)
     async def action_provider_login(self) -> None:
         import shlex
-
         from textual.geometry import Offset
-
         from toad.agent_schema import Command
         from toad.catalog_actions import CatalogCommandAction
         from toad.screens.action_modal import ActionModal

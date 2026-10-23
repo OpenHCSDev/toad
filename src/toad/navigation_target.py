@@ -3,17 +3,26 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.channel_targets import ChannelSelection, CommandTarget, ChannelTarget as CoreChannelTarget, ThreadTarget as CoreThreadTarget
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
+from agent_comms.channel_targets import ChannelSelection, CommandTarget
+from agent_comms.channel_targets import ChannelTarget as CoreChannelTarget
+from agent_comms.channel_targets import ThreadTarget as CoreThreadTarget
+from agent_comms.declared_family import DeclaredFamily
+
 from toad.constants import ALL_COMMS_TARGET
+from toad.conversation_kind import (
+    ChannelConversation,
+    ConversationKind,
+    DmConversation,
+    IrcConversation,
+)
 
 if TYPE_CHECKING:
     from agent_comms.display_references import CurrentDisplayReferences
+
     from toad.app import ToadApp
 
 

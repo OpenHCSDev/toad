@@ -1194,7 +1194,7 @@ class ConversationHistory[ViewT: "Conversation"](LineHistory):
                    view=view, notification_view=notification_view, source_state=cls.initial_state(view))
 
 
-class TranscriptHistory(CommittedHistory, ConversationHistory["Conversation"]):
+class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHistory[ViewT]):
     """The line history of a saved transcript.
 
     Its pages stand in for the conversation's live blocks: it reports which

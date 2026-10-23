@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from toad.widgets.comms_chat import CommsChatView
 
 
-class WireHistory(VisibleReadMarking, ConversationHistory["CommsChatView"]):
+class WireHistory[ViewT: "CommsChatView"](VisibleReadMarking, ConversationHistory[ViewT]):
     """The line history of a channel or direct conversation.
 
     Paging, preparation, trimming and the reader's position are the line
@@ -35,7 +35,7 @@ class WireHistory(VisibleReadMarking, ConversationHistory["CommsChatView"]):
     page_source: WirePageBuffer | ClosedHistory
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: WirePageBuffer | ClosedHistory,
-                 *, view, notification_view, **kwargs) -> None:
+                 *, view: ViewT, notification_view, **kwargs) -> None:
         super().__init__(prepared, page_source, view=view,
                          notification_view=notification_view, **kwargs)
         # Core's source observation is independent of paint readiness.
