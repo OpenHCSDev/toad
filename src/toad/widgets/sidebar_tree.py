@@ -4,39 +4,44 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from collections import Counter
 from collections.abc import Iterable
+from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import wraps
 from itertools import islice
-from contextlib import contextmanager
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from toad.widgets.comms_sidebar import CommsRow
-    from toad.comms_root import Observing, FailedObservation
     from toad.app import ToadApp
+    from toad.comms_root import FailedObservation, Observing
+    from toad.widgets.comms_sidebar import CommsRow
 
-from textual.app import ComposeResult
-from textual.binding import Binding
-from textual.reactive import reactive
-from textual.containers import Vertical, VerticalGroup
-from textual.widgets import Static
-from textual.widget import Widget
-from textual._activation import PrimaryActivation
-from textual.layouts.vertical import VerticalLayout
-from textual._measurement import FLOW_HEIGHT, height_dependency
-
+from agent_comms.display_order import ThreadSort
 from agent_comms.mro_dispatch import handles
-from toad.core.events import SessionSelected, CoordinationObserved, ThreadRowStateChanged
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from agent_comms.ui_model.unread import UnreadPresentation
-from agent_comms.display_order import ThreadSort
-from toad.widgets.sidebar_viewport import SidebarHeader
+from textual._activation import PrimaryActivation
+from textual._measurement import FLOW_HEIGHT, height_dependency
+from textual.app import ComposeResult
+from textual.binding import Binding
+from textual.containers import Vertical, VerticalGroup
+from textual.geometry import Size
+from textual.layouts.vertical import VerticalLayout
+from textual.reactive import reactive
+from textual.widget import Widget
+from textual.widgets import Static
+
+from toad.core.events import (
+    CoordinationObserved,
+    SessionSelected,
+    ThreadRowStateChanged,
+)
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.widgets.side_bar import SideBar
+from toad.widgets.sidebar_viewport import SidebarHeader
 
 
 class UnpaintedUnread(UnreadPresentation):
@@ -46,7 +51,7 @@ class UnpaintedUnread(UnreadPresentation):
 class UnpaintedChannel(ChannelRowModel):
     """An unobserved channel has no painted fields or known members."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         super().__init__(name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort)
 
 
@@ -88,7 +93,7 @@ class SidebarReaderLayout(VerticalLayout):
     """Native flow, preserving the viewport's reader before placements change."""
 
     @height_dependency(FLOW_HEIGHT)
-    def arrange(self, parent, children, size, greedy=True):
+    def arrange(self, parent, children, size: Size, greedy: bool=True):
         placements = super().arrange(parent, children, size, greedy)
         parent.query_ancestor(TargetTree).preserve_reader(placements)
         return placements
@@ -97,7 +102,7 @@ class SidebarReaderLayout(VerticalLayout):
 class RowReconciliation:
     """One sync's model membership and transferable native rows, never a retained cache."""
 
-    def __init__(self, tree):
+    def __init__(self, tree: TargetTree) -> None:
         demand = Counter(key for key in tree.member_keys if tree.matches(key))
         self.listed = frozenset(demand)
         self.sources = {}
@@ -125,18 +130,18 @@ class RowReconciliation:
                 return method(view, *args, **kwargs)
         return synchronized
 
-    def finish(self):
+    def finish(self) -> None:
         for group, keys in self.requests.items():
             if any(self.sources.get(key) for key in keys):
                 group.sync_members(frozenset(group.member_keys))
 
-    def retains(self, key, group):
+    def retains(self, key: str, group: SidebarGroup) -> bool:
         return key in self.listed and group in self.sources.get(key, ())
 
-    def has_spare(self, key):
+    def has_spare(self, key: str):
         return bool(self.sources.get(key))
 
-    def take(self, key, destination):
+    def take(self, key: str, destination: SidebarGroup):
         sources = self.sources.get(key)
         if not sources:
             return None
@@ -228,7 +233,7 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
     """The worker mounting pending rows after the following frames."""
 
     def __init__(self, row, *, expanded: bool, controls=(),
-                 disclosure_type=SidebarDisclosure, **kwargs):
+                 disclosure_type=SidebarDisclosure, **kwargs) -> None:
         super().__init__(**kwargs)
         self.row = row
         self.rows: dict[str, RowT] = {}
@@ -471,7 +476,7 @@ EMPTY = SidebarModel(lambda callback: None)
 
 class SidebarModelState(ABC):
     @abstractmethod
-    def shows_child(self, view, child: Widget) -> bool:
+    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
         """Whether this state's sidebar displays this direct child."""
 
     def root(self):
@@ -490,16 +495,16 @@ class SidebarModelState(ABC):
     def observes(self, observed: Observing) -> bool:
         return False
 
-    def unsubscribe(self, view) -> None:
+    def unsubscribe(self, view: SidebarModelView) -> None:
         pass
 
     def changes(self, changes):
         return changes
 
-    def apply(self, view, changes) -> None:
+    def apply(self, view: SidebarModelView, changes) -> None:
         pass
 
-    def present(self, view):
+    def present(self, view: SidebarModelView):
         view.app.coordination_access.show_sidebar(view, False)
         return self
 
@@ -585,7 +590,7 @@ class SidebarModelView(CoreEventReceiver, Widget):
     while this one is hidden are applied in one pass when it shows again.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.unavailable = Static("", markup=False)
 
@@ -738,7 +743,7 @@ class TargetTree(Vertical):
     def selection_state(self):
         raise NotImplementedError
 
-    def selection_for(self, row):
+    def selection_for(self, row: CommsRow):
         raise NotImplementedError
 
     def accepts_selection(self) -> bool:
@@ -769,7 +774,7 @@ class TargetTree(Vertical):
                 state.selected = self.selection_for(row)
                 state.selected_targets = ()
 
-    def pointer_select(self, row, *, control=False, shift=False, menu=False) -> None:
+    def pointer_select(self, row, *, control: bool=False, shift: bool=False, menu: bool=False) -> None:
         if not self.accepts_selection():
             return
         rows = self.rows
@@ -844,7 +849,7 @@ class TargetTree(Vertical):
             row = rows[max(0, min(len(rows) - 1, index + direction))]
             self.focus_row(row)
 
-    def focus_row(self, row) -> None:
+    def focus_row(self, row: CommsRow) -> None:
         row.scroll_visible(animate=False, immediate=True)
         self.screen.set_focus(row, scroll_visible=False)
 

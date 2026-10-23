@@ -4,27 +4,32 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 from acp.exceptions import RequestError
+from agent_comms.context_store import ContextManifestCursor
+from agent_comms.coordinator import Coordination
+from agent_comms.mro_dispatch import handles
+from agent_comms.route_selection import RouteSelection
 from textual import on, work
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Static, Tree
-from toad.widgets.process_text_area import ProcessTextArea
+from textual.widgets._tree import TreeNode
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
-from agent_comms.mro_dispatch import handles
-from agent_comms.coordinator import Coordination
-from agent_comms.context_store import ContextManifestCursor
 
 from toad.core.context_inspection import (
-    ContextNode, DetachedInspection, HoldingInspection, InspectionState,
+    ContextNode,
+    DetachedInspection,
+    HoldingInspection,
+    InspectionState,
 )
 from toad.core.events import CoordinationObserved, SessionSelected
 from toad.core_event_carrier import CoreEventMessage
-from agent_comms.route_selection import RouteSelection
-from toad.thread_identity import SessionIdentity, ThreadIdentity
-from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.screens.session_view import SessionView
+from toad.thread_identity import SessionIdentity, ThreadIdentity
+from toad.widgets.process_text_area import ProcessTextArea
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
+from toad.widgets.thread_identity import ShowsThreadIdentity
 
 
 @dataclass
@@ -38,7 +43,7 @@ class ContextTreeIntent:
     query: str = ""
     cursor: ContextManifestCursor | None = None
 
-    def select_page(self, cursor):
+    def select_page(self, cursor) -> bool:
         if cursor is None:
             return False
         self.cursor = cursor
@@ -48,11 +53,11 @@ class ContextTreeIntent:
     def search_current(self, query, selected):
         return self.query == query and self.selected is selected
 
-    def rebind(self, original, model):
+    def rebind(self, original, model) -> None:
         if self.selected is original:
             self.selected = model
 
-    def restore_detail(self, resolve, show_detail):
+    def restore_detail(self, resolve, show_detail) -> bool:
         if self.selected is None:
             return False
         node = resolve(self.selected.key)
@@ -66,7 +71,7 @@ class ContextTreeIntent:
 class ContextTree(Tree[ContextNode]):
     """Native nodes, disclosure and cursor share the Tree's mounted lifetime."""
 
-    def __init__(self, show_detail, show_placeholder):
+    def __init__(self, show_detail: Callable[..., Worker[None]], show_placeholder) -> None:
         self.show_detail = show_detail
         self.show_placeholder = show_placeholder
         self.context_nodes = {}
@@ -82,10 +87,10 @@ class ContextTree(Tree[ContextNode]):
         self.context_nodes.clear()
         return super().clear()
 
-    def on_unmount(self):
+    def on_unmount(self) -> None:
         self.context_nodes.clear()
 
-    def present(self, groups):
+    def present(self, groups) -> None:
         # Reconcile the original TreeNodes so Tree._build rebases its cursor.
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected,
                           Tree.NodeHighlighted):
@@ -102,7 +107,7 @@ class ContextTree(Tree[ContextNode]):
                 self._reconcile(group, models)
         self.restore_detail("Select a context segment to inspect.")
 
-    def search_results(self, matches, description, query):
+    def search_results(self, matches, description: str, query) -> None:
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
             self.clear()
             self.root.set_label(f"{description} · {query}")
@@ -111,7 +116,7 @@ class ContextTree(Tree[ContextNode]):
                 self._add(self.root, model)
         self.restore_detail("Select a matching original source to read its full public text.")
 
-    def _reconcile(self, parent, models):
+    def _reconcile(self, parent, models) -> None:
         previous = {node.data.key: node for node in parent.children}
         for index, model in enumerate(models):
             node = previous.pop(model.key, None)
@@ -135,14 +140,14 @@ class ContextTree(Tree[ContextNode]):
         for node in previous.values():
             self._retire(node)
 
-    def _retire(self, node):
+    def _retire(self, node) -> None:
         for child in tuple(node.children):
             self._retire(child)
         if self.owns_node(node):
             self.context_nodes.pop(node.data.key)
         node.remove()
 
-    def restore_detail(self, placeholder):
+    def restore_detail(self, placeholder: str) -> None:
         if not self.intent.restore_detail(self.resolve_reader, self.show_detail):
             self.show_placeholder(placeholder)
 
@@ -161,7 +166,7 @@ class ContextTree(Tree[ContextNode]):
                 break
         return node
 
-    def _add(self, parent, model, *, before=None):
+    def _add(self, parent: TreeNode[ContextNode], model, *, before=None):
         node = parent.add(model.label, model, before=before, allow_expand=True,
                           expand=model.key in self.intent.expanded)
         self.context_nodes[model.key] = node
@@ -176,7 +181,7 @@ class ContextTree(Tree[ContextNode]):
             return False
         return self.is_attached and self.context_nodes.get(node.data.key) is node
 
-    def _expand(self, node):
+    def _expand(self, node) -> None:
         if not self.owns_node(node) or node.children:
             return
         # TreeNode owns whether this native disclosure still admits expansion.
@@ -185,7 +190,7 @@ class ContextTree(Tree[ContextNode]):
                 self._add(node, model)
             node.allow_expand = bool(node.children)
 
-    def _toggle_node(self, node):
+    def _toggle_node(self, node) -> None:
         # Capture disclosure navigation before collapsing a selected descendant.
         # Data-less groups are native rows too; they don't select detail sources.
         with self.prevent(Tree.NodeHighlighted):
@@ -193,13 +198,13 @@ class ContextTree(Tree[ContextNode]):
         super()._toggle_node(node)
 
     @on(Tree.NodeExpanded, "#context-tree")
-    def node_expanded(self, event):
+    def node_expanded(self, event) -> None:
         if self.owns_node(event.node):
             self.intent.expanded.add(event.node.data.key)
             self._expand(event.node)
 
     @on(Tree.NodeCollapsed, "#context-tree")
-    def node_collapsed(self, event):
+    def node_collapsed(self, event) -> None:
         if self.owns_node(event.node):
             self.intent.expanded.discard(event.node.data.key)
 
@@ -221,9 +226,9 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     ContextExplorer > TextArea.-maximized { height: 1fr; width: 1fr; }
     """
     BINDINGS = [("r", "refresh", "Refresh context")]
-    def __init__(self, *, intents: dict[SessionIdentity, ContextTreeIntent]):
+    def __init__(self, *, intents: dict[SessionIdentity, ContextTreeIntent]) -> None:
         super().__init__()
-        self.state = DetachedInspection()
+        self.state: InspectionState = DetachedInspection()
         self._intents = intents
         self.search_field = Input(placeholder="Search current context or selected recorded request · Enter",
                                   id="context-search")
@@ -251,13 +256,13 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         yield Input(placeholder="Export to a new text file · path", id="context-export-path")
         yield Button("Export selected text + source", id="context-export")
 
-    def on_mount(self):
+    def on_mount(self) -> None:
         self.observe_core(self.app.coordination_access.events)
         self.observe_core(self.app.events)
         self.call_after_refresh(self.action_refresh)
 
     @handles(CoordinationObserved, SessionSelected)
-    def context_changed(self, message: CoreEventMessage):
+    def context_changed(self, message: CoreEventMessage) -> None:
         self._observed()
 
     def presentation_visible(self):
@@ -265,13 +270,13 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
                 and not self.query_ancestor(SideBar).collapsed
                 and not self.query_ancestor(SideBarCollapsible).collapsed)
 
-    def on_show(self):
+    def on_show(self) -> None:
         self.call_after_refresh(self._observed)
 
-    def sidebar_visibility_changed(self):
+    def sidebar_visibility_changed(self) -> None:
         self._observed()
 
-    def _observed(self, _value=None):
+    def _observed(self, _value=None) -> None:
         if not self.presentation_visible():
             return
         # Invalidation does not replace an original read still in flight.
@@ -282,12 +287,12 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self._read()
 
     @on(Worker.StateChanged)
-    def context_read_finished(self, event):
+    def context_read_finished(self, event) -> None:
         if (event.worker.node is self and event.worker.group == "context-read"
                 and event.state == WorkerState.SUCCESS):
             self._observed()
 
-    def on_unmount(self):
+    def on_unmount(self) -> None:
         self.state = DetachedInspection()
 
     def identity_changed(self, identity: SessionIdentity) -> None:
@@ -299,7 +304,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self._show_placeholder("No context selected.")
         self.action_refresh()
 
-    def action_refresh(self):
+    def action_refresh(self) -> None:
         if self.presentation_visible():
             self._read(force=True)
 
@@ -307,17 +312,17 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         return (self.is_attached and not get_current_worker().is_cancelled
                 and self.thread_view.thread_identity == identity)
 
-    def _working(self, group):
+    def _working(self, group: str):
         return any(worker.node is self and worker.group == group
                    and not worker.is_finished for worker in self.workers)
 
     @work(group="context-read", exclusive=True)
-    async def _read(self, *, force=False):
+    async def _read(self, *, force: bool=False) -> None:
         await self.thread_view.thread_identity.inspect_owner(
             lambda identity: self._read_owner(identity, force=force),
             self.query_one(".context-status", Static).update)
 
-    async def _read_owner(self, identity: ThreadIdentity, *, force=False):
+    async def _read_owner(self, identity: ThreadIdentity, *, force: bool=False):
         status = self.query_one(".context-status", Static)
         access = self.app.coordination_access
         previous = self.state
@@ -337,7 +342,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         except asyncio.CancelledError:
             raise
 
-    def _inspection_acquired(self, previous, current, force):
+    def _inspection_acquired(self, previous: InspectionState, current, force: bool) -> None:
         self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older()
         self.query_one("#context-newer", Button).disabled = not current.inspection.page.has_newer()
         if previous.inspection_differs(current.inspection):
@@ -363,19 +368,20 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             if self._reading(captured.thread_identity):
                 self._native_acquired(self.state.with_native(captured.inspection, native))
 
-    def _native_acquired(self, updated):
+    def _native_acquired(self, updated: InspectionState) -> None:
         if updated is not self.state:
             self.state = updated
             updated.present(self._present)
         self.query_one(".context-status", Static).update(updated.status)
 
-    def _show_placeholder(self, placeholder):
+    def _show_placeholder(self, placeholder: str) -> None:
         detail = self.query_one(ProcessTextArea)
         detail.load_text_prepared(placeholder)
 
     @on(Button.Pressed, "#context-correct")
-    def action_correct(self, event):
+    def action_correct(self, event) -> None:
         from functools import partial
+
         from toad.widgets.comms_menu import show_target_menu
 
         event.stop()
@@ -393,7 +399,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
              for answer in answers})
 
     @work(group="context-correction", exclusive=True)
-    async def _correct_annotation(self, model, answer):
+    async def _correct_annotation(self, model, answer) -> None:
         if not self._selected(model):
             return
         worktree = self.query_ancestor(SessionView).project_root
@@ -403,7 +409,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self._read()
 
     @work(group="context-presentation", exclusive=True)
-    async def _present(self, captured: HoldingInspection):
+    async def _present(self, captured: HoldingInspection) -> None:
         if self.intent.query:
             self._search(captured, self.intent.query, self.intent.selected)
             return
@@ -420,24 +426,24 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self.query_one(ContextTree).present(groups)
 
     @on(Button.Pressed, "#context-older")
-    def older_requests(self, event):
+    def older_requests(self, event) -> None:
         event.stop()
         self.state.present(self._older_requests)
 
-    def _older_requests(self, current):
+    def _older_requests(self, current) -> None:
         if self.intent.select_page(current.inspection.page.older):
             self._change_page()
 
     @on(Button.Pressed, "#context-newer")
-    def newer_requests(self, event):
+    def newer_requests(self, event) -> None:
         event.stop()
         self.state.present(self._newer_requests)
 
-    def _newer_requests(self, current):
+    def _newer_requests(self, current) -> None:
         if self.intent.select_page(current.inspection.page.newer):
             self._change_page()
 
-    def _change_page(self):
+    def _change_page(self) -> None:
         # Destination selection ends the acquired page's lifetime now, not
         # when the replacement read finishes. Unacquired inspection states
         # cannot publish old groups, searches or native results.
@@ -453,18 +459,18 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self._read()
 
     @on(Input.Changed, "#context-search")
-    def query_changed(self, event):
+    def query_changed(self, event) -> None:
         event.stop()
         self.intent.query = event.value
 
     @on(Input.Submitted, "#context-search")
     @on(Button.Pressed, "#context-find")
-    def action_search(self, event):
+    def action_search(self, event) -> None:
         event.stop()
         self.state.present(self._present)
 
     @work(group="context-search", exclusive=True)
-    async def _search(self, captured: HoldingInspection, query, selected):
+    async def _search(self, captured: HoldingInspection, query: str, selected: ContextNode | None) -> None:
         status = self.query_one(".context-status", Static)
         status.update("Searching original public context…")
         matches = await captured.find(query, selected)
@@ -474,13 +480,13 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self.query_one(ContextTree).search_results(matches, description, query)
         status.update(f"{len(matches)} matching sources · first 100 shown · {description}")
 
-    def _searching(self, captured, query, selected):
+    def _searching(self, captured: HoldingInspection, query, selected):
         return (self._reading(captured.thread_identity) and self.state.presentation_current(captured)
                 and self.intent.search_current(query, selected))
 
     @on(Button.Pressed, "#context-read-full")
     @work(group="context-full-read", exclusive=True)
-    async def action_read_full(self):
+    async def action_read_full(self) -> None:
         node = self.query_one(ContextTree).cursor_node
         if not self.query_one(ContextTree).owns_node(node):
             return
@@ -497,7 +503,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
 
     @on(Button.Pressed, "#context-copy")
     @work(group="context-copy", exclusive=True)
-    async def action_copy(self):
+    async def action_copy(self) -> None:
         node = self.query_one(ContextTree).cursor_node
         if self.query_one(ContextTree).owns_node(node):
             model = node.data
@@ -508,7 +514,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
 
     @on(Button.Pressed, "#context-export")
     @work(group="context-export", exclusive=True)
-    async def action_export(self):
+    async def action_export(self) -> None:
         node = self.query_one(ContextTree).cursor_node
         if not self.query_one(ContextTree).owns_node(node):
             return
@@ -522,7 +528,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self.notify(f"Exported selected public text and source to {destination}")
 
     @on(Tree.NodeHighlighted, "#context-tree")
-    def node_highlighted(self, event):
+    def node_highlighted(self, event) -> None:
         event.stop()
         if self.query_one(ContextTree).owns_node(event.node):
             if self.intent.selected is not event.node.data:
@@ -534,7 +540,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         return self.query_one(ContextTree).selected(model) if self.is_attached else False
 
     @work(group="context-detail", exclusive=True)
-    async def _show_detail(self, model):
+    async def _show_detail(self, model) -> None:
         # Publication belongs to this exact selected original tree model, not
         # a reusable string key shared by another thread or context snapshot.
         if not self._selected(model):
