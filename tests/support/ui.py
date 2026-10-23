@@ -153,10 +153,6 @@ class Ui(ABC):
         """Open a file preview tab for `path` and return its tab identity."""
 
     @abstractmethod
-    def sender_of(self, identity: str) -> str:
-        """The thread name a channel or direct-message tab sends as."""
-
-    @abstractmethod
     async def thread_renamed(self, owner: str, previous: str, current: str) -> None:
         """Tell the interface that the thread behind session tab `owner` was renamed on the wire."""
 
@@ -395,9 +391,6 @@ class TextualUi(AppAgents, Ui):
         identity = await self.app.session_navigation.preview(path)
         await self.step()
         return identity
-
-    def sender_of(self, identity: str) -> str:
-        return self.app.workspace_sessions.require(identity).thread_identity.thread_name()
 
     async def thread_renamed(self, owner: str, previous: str, current: str) -> None:
         self.app.session_navigation.sync_identity(owner, previous, current)

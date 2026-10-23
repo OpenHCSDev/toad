@@ -6,6 +6,8 @@ second session should get from the shared tab; they are open defects pending a
 product decision (tests/open_defects.toml, shared-channel-tab).
 """
 
+from agent_comms.channel_targets import CommandTarget
+
 
 async def two_sessions_on_one_channel(workspace, ui):
     for name in (workspace.project.name, "owner-a", "owner-b"):
@@ -35,7 +37,16 @@ async def test_going_back_from_a_shared_channel_tab_returns_to_the_session_it_wa
 async def test_a_shared_channel_tab_sends_as_the_session_it_was_opened_from(workspace):
     async with workspace.app(size=(120, 44)) as ui:
         first, second, channel = await two_sessions_on_one_channel(workspace, ui)
-        assert ui.sender_of(channel) == "owner-b"
+        await ui.write_draft("hello shared channel")
+        await ui.press("enter")
+
+        def sent_messages():
+            return tuple(message for message in workspace.comms.views.history_page(
+                CommandTarget.named("#all"),
+            ).messages if message.body == "hello shared channel")
+
+        await ui.until(sent_messages, why="the message on the wire")
+        assert sent_messages()[0].sender == "owner-b"
 
 
 async def test_closing_one_session_keeps_the_channel_tab_another_session_opened(workspace):
