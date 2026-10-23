@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from support.agents import AppAgents
 from support.roots import Roots, installed_wire
 from support.ui import TextualUi
+from agent_comms.threads import Thread
 from toad.session_scope import AgentBinding, NoAgent
 
 if TYPE_CHECKING:
@@ -39,7 +40,7 @@ class Workspace:
         from agent_comms.thread_text import ThreadText
 
         identity = ProcessIdentity.capture(os.getpid()) if running else NoProcess()
-        self.comms.registry.declare(self.comms.registry.new_thread(
+        self.comms.registry.declare(Thread(
             name, frozenset(tags), str(self.project), title=ThreadText.external(title), process_identity=identity))
         return self.comms.registry.require(name)
 
