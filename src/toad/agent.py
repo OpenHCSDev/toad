@@ -54,7 +54,9 @@ class AgentBase(AgentConnection):
     def borrowed_processes(self):
         return (self.process,)
 
-    async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None:
+    async def reconnect_session(
+        self, source: MainScreen, plan: ExistingSessionLoadPlan
+    ) -> None:
         await self.session.reconnect(plan)
 
     async def change_project(self, view: Conversation, path: Path) -> None:
@@ -70,7 +72,11 @@ class AgentBase(AgentConnection):
     def accepts_failed_input(self, message):
         if message.publisher is not self or message.event.session_id != self.session_id:
             return False
-        return self.queue_attachment.accepts_request(message.event.queue_scope) if message.event.recover_draft else True
+        return (
+            self.queue_attachment.accepts_request(message.event.queue_scope)
+            if message.event.recover_draft
+            else True
+        )
 
     def send_now(self, owner):
         return owner.send_bound_now(self)
@@ -111,7 +117,9 @@ class AgentBase(AgentConnection):
         if self.ready:
             view.session_ready()
 
-    def start_agent(self, sources: OperationalSessionSources, view: Conversation) -> None:
+    def start_agent(
+        self, sources: OperationalSessionSources, view: Conversation
+    ) -> None:
         """A connected agent is not created a second time."""
 
     def update_view(self, view: ConversationSessionBinding) -> None:
@@ -138,7 +146,9 @@ class AgentBase(AgentConnection):
         """The (wire root, thread name) whose status this agent shows; none without coordination."""
         return None
 
-    async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None:
+    async def observe_thread_presentation(
+        self, presentation: ThreadPresentation
+    ) -> None:
         """Consume a published canonical change; unmanaged agents need no binding."""
 
     @abstractmethod
