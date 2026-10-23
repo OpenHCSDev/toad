@@ -52,7 +52,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     async def execute[Result](self, owner: "TranscriptSourcePreparation", work: "Callable[[], Awaitable[Result]]") -> "Result | Literal[False]":
         raise RuntimeError("No transcript source operation is running")
 
-    def reserve(self, owner: "TranscriptSourcePreparation", operation=None) -> "WorkingTranscript":
+    def reserve(self, owner: "TranscriptSourcePreparation", operation: "type[WorkingTranscript] | None"=None) -> "WorkingTranscript":
         raise RuntimeError("The transcript source cannot start another operation")
 
     def request_latest(self, owner: "TranscriptSourcePreparation", request: "LatestViewportRequest") -> None:
@@ -128,7 +128,7 @@ class LiveTranscript(TranscriptState):
     def blocks_visible_read(self, owner: "TranscriptSourcePreparation") -> bool:
         return NEWER_END.visible_more(owner) or not self.source_ready(owner)
 
-    def reserve(self, owner, operation=None) -> "WorkingTranscript":
+    def reserve(self, owner, operation: "type[WorkingTranscript] | None"=None) -> "WorkingTranscript":
         return (operation or WorkingTranscript)(self, owner)
 
     def request_latest(self, owner: "TranscriptSourcePreparation", request: "LatestViewportRequest") -> None:
