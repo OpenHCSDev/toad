@@ -49,7 +49,7 @@ async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and
         ):
             mode = await target.open(context)
             screen = app.selected_session
-            assert screen.navigation_target_name == target.name
+            assert screen.navigation_target == target
             await screen.wait_content_ready()
             chat = screen.query_one(CommsChatView)
             await ui.until(
@@ -138,8 +138,8 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
         history = chat.message_history
         await ui.until(
             lambda: history.source_ready
-            and history.revision.selection.peer.name == "renamed"
-            and history.revision.selection.peer == peer.incarnation
+            and history.page_source.revision.selection.peer.name == "renamed"
+            and history.page_source.revision.selection.peer == peer.incarnation
             and "BEFORE_RENAME" in ui.painted(window),
             why="the renamed conversation's captured source and painted message",
         )

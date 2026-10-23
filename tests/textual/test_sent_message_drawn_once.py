@@ -23,7 +23,7 @@ async def test_a_start_notice_after_the_saved_history_draws_the_message_once(wor
         agent = ui.detached_agent("source")
         ui.attach_agent(agent)
         # The page read finds the message in the session file before Core's start notice arrives.
-        await view.transcript.snapshot(workspace.comms.transcripts.thread_transcript_page("source"))
+        view.transcript.received(workspace.comms.transcripts.thread_transcript_page("source"))
         await ui.until(lambda: ui.painted(view.window).count(TOKEN) == 1, why="the saved message")
 
         await agents.deliver(agent, {
