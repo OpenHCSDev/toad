@@ -61,7 +61,10 @@ class PreparedValue(ABC, Generic[ResultT]):
 
     __slots__ = ()
 
-    size: int
+    @property
+    @abstractmethod
+    def size(self) -> int:
+        """The retained bytes owned by this prepared representation."""
 
     @classmethod
     def accept(cls, value: object) -> PreparedValue:
