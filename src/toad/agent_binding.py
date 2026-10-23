@@ -1,12 +1,15 @@
 """The agent itself is a bound connection; a saved view may be unbound."""
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from functools import cached_property
+
 from agent_comms.thread_presentation import ThreadPresentation
 from textual.content import Content
-from toad.agent_presentation import LocalAgentPresentation
+
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import UnopenedSessionDisposition
+from toad.agent_presentation import LocalAgentPresentation
 
 
 class AgentConnection(ABC):
@@ -112,10 +115,10 @@ class NoAgentConnection(AgentConnection):
     def refresh_context(self, view) -> None:
         """There is no native measurement to display."""
 
-    async def set_model(self, model_id):
+    async def set_model(self, model_id) -> str:
         return "No agent is bound yet"
 
-    async def set_mode(self, mode_id):
+    async def set_mode(self, mode_id) -> str:
         return "No agent is bound yet"
 
     async def compact_context(self, instructions) -> None:
@@ -127,41 +130,41 @@ class NoAgentConnection(AgentConnection):
     def begin_submission(self, owner, submission):
         return owner.unbound(submission)
 
-    def accepts_failed_input(self, message):
+    def accepts_failed_input(self, message) -> bool:
         return False
 
-    def send_now(self, owner):
+    def send_now(self, owner) -> None:
         """No remote queue is bound."""
 
     async def get_goal_history(self, goal_id):
         return ()
 
-    async def update_goal(self, action, text):
+    async def update_goal(self, action, text: str):
         raise ValueError("Persistent goals require an agent-comms session")
 
-    def cancel_allowed(self, turn):
+    def cancel_allowed(self, turn) -> bool:
         return False
 
-    async def cancel(self):
+    async def cancel(self) -> bool:
         return False
 
-    def matches_session(self, session_id):
+    def matches_session(self, session_id) -> bool:
         return False
 
     def borrowed_processes(self):
         return ()
 
-    async def reconnect_session(self, source, plan):
+    async def reconnect_session(self, source, plan) -> None:
         source.presentation.sources.attach_started(source, plan)
 
-    async def change_project(self, view, path):
+    async def change_project(self, view, path) -> None:
         view.feedback.flash("Project changes require an agent-comms session", style="error")
 
-    def request_compaction(self, view, instructions):
+    def request_compaction(self, view, instructions) -> None:
         view.feedback.flash("Context compaction requires an agent-comms session", style="error")
 
-    async def observe_thread_presentation(self, presentation):
+    async def observe_thread_presentation(self, presentation) -> None:
         """There is no connected agent to inform."""
 
-    def invalidate_observation(self, observation):
+    def invalidate_observation(self, observation) -> None:
         """No native source exists to schedule a read against."""

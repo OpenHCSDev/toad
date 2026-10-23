@@ -1,29 +1,37 @@
 """ACP operations remain owned by the controller after their view retires."""
 from __future__ import annotations
-from toad.acp.status import StopReason
 
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from functools import partial
 
-from toad import surface_binding
-from toad.plan import PlanItem
-from .terminal_owner import OperationalTerminalOwner
-from .transcript_reader import CoordinationTranscriptReader
-from .client_session import ClientSessionRequest
-from .prompt import build as build_prompt
-from toad.core import events as core_events
 from acp.exceptions import RequestError
-from toad.core.events import LogAgentFail
 from agent_comms.acp_extension import (
-    PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
-    CompactRequest, CoordinationChangedUpdate, InputFailedUpdate, encode_request,
+    ClearQueueRequest,
+    CompactRequest,
+    CoordinationChangedUpdate,
+    InputFailedUpdate,
+    PromptRequest,
+    QueuePromptRequest,
+    SendNowRequest,
+    encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.observation import ReadInputDelivery
+
+from toad.acp.client_session import ClientSessionRequest
+from toad.acp.status import StopReason
+from toad.core import events as core_events
+from toad.core.events import LogAgentFail
+from toad.plan import PlanItem
+from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
+
+from .prompt import build as build_prompt
+from .terminal_owner import OperationalTerminalOwner
+from .transcript_reader import CoordinationTranscriptReader
 
 
 @dataclass(frozen=True)
@@ -32,10 +40,10 @@ class SessionBinding:
     session_id: str | None
 
     @property
-    def bound(self):
+    def bound(self) -> bool:
         return self.session_id is not None
 
-    def accepts_notification(self, session_id):
+    def accepts_notification(self, session_id: str):
         return self.bound and self.session_id == session_id
 
     def accepts_snapshot(self, identity: TranscriptReadIdentity,
@@ -57,7 +65,7 @@ class ThreadTaskRunner(TaskRunner):
 
 
 class ProcessTaskRunner(TaskRunner):
-    def __init__(self, processes):
+    def __init__(self, processes) -> None:
         self.processes = processes
 
     async def run(self, task):
@@ -66,9 +74,9 @@ class ProcessTaskRunner(TaskRunner):
 
 class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
-    def __init__(self, agent, transcripts: CoordinationTranscriptReader):
+    def __init__(self, agent, transcripts: CoordinationTranscriptReader) -> None:
         super().__init__(agent)
-        self.surface: surface_binding.SurfaceBinding = surface_binding.DetachedSurfaceBinding()
+        self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.task_runner: TaskRunner = ThreadTaskRunner()
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
@@ -78,7 +86,7 @@ class AgentController(OperationalTerminalOwner):
         self.commands = []
         self.plan_entries: list[PlanItem] | None = None
 
-    def bind_session(self, session_id):
+    def bind_session(self, session_id) -> None:
         if session_id != self.session.session_id:
             self.replace_terminal_session()
             self.agent.permissions.cancel()
@@ -87,7 +95,7 @@ class AgentController(OperationalTerminalOwner):
             self.session = SessionBinding(session_id)
             self.reset_configuration()
 
-    def attach(self, binding: surface_binding.SurfaceBinding):
+    def attach(self, binding: SurfaceBinding) -> None:
         previous = self.surface.target
         if self.surface.owns(binding.target):
             binding.close()
@@ -101,16 +109,15 @@ class AgentController(OperationalTerminalOwner):
         else:
             self.start_terminal_presentation(binding.target)
 
-    def detach(self, target):
+    def detach(self, target) -> None:
         if self.surface.owns(target):
             self.surface.close()
-            self.surface = surface_binding.DetachedSurfaceBinding()
+            self.surface = DetachedSurfaceBinding()
             self.agent.permissions.detach(target)
             self.terminals.detach()
 
-    async def restore(self, binding):
-        from toad.core.events import CommsUpdated
-        from toad.core.events import AvailableCommandsUpdate
+    async def restore(self, binding: SurfaceBinding) -> None:
+        from toad.core.events import AvailableCommandsUpdate, CommsUpdated
         if self.surface is not binding:
             return
         agent = self.agent
@@ -131,7 +138,7 @@ class AgentController(OperationalTerminalOwner):
 
 
 
-    async def publish_transcript_snapshot(self, update, binding, session):
+    async def publish_transcript_snapshot(self, update, binding, session) -> None:
         if binding.target is None or not session.accepts_snapshot(update.identity, self.coordination):
             return  # No view or matching request owns this publication.
         snapshot = await self.transcripts.publication(update)
@@ -143,7 +150,7 @@ class AgentController(OperationalTerminalOwner):
             return
         self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 
-    def connection_closed(self):
+    def connection_closed(self) -> None:
         from toad.core.events import McpClientStopped
         agent = self.agent
         agent.session.closed()
@@ -152,7 +159,7 @@ class AgentController(OperationalTerminalOwner):
         agent.presentation.turns.reset()
         agent.events.publish(McpClientStopped())
 
-    def reset_configuration(self):
+    def reset_configuration(self) -> None:
         self.agent.configuration.reset()
         self.agent.configuration.publish()
 
@@ -162,7 +169,7 @@ class AgentController(OperationalTerminalOwner):
         self.plan_entries = entries
         self.agent.events.publish(Plan(entries))
 
-    def publish_commands(self, commands):
+    def publish_commands(self, commands) -> None:
         from toad.core.events import AvailableCommandsUpdate
         self.commands = commands
         self.agent.events.publish(AvailableCommandsUpdate())
@@ -181,7 +188,7 @@ class AgentController(OperationalTerminalOwner):
             prompt, command, authority, agent.queue_attachment.scope,
             agent.project_root_path), authority))
 
-    async def _prompt_operation(self, operation, authority):
+    async def _prompt_operation(self, operation, authority: ClientSessionRequest):
         """Keep the request in flight until its operation ends."""
         coordination = self.coordination
         self.prompt_in_flight += 1
@@ -192,7 +199,7 @@ class AgentController(OperationalTerminalOwner):
             if self.prompt_in_flight == 0 and authority.current and coordination is not None:
                 self.start_operation(self.reconcile_turn(coordination, authority))
 
-    async def reconcile_turn(self, coordination, authority):
+    async def reconcile_turn(self, coordination, authority) -> None:
         """Release snapshot ordering through a fresh read of the same owner."""
         self.require_owner(coordination, authority)
         await self.agent.thread_read().reconcile(self.transcripts)
@@ -202,7 +209,7 @@ class AgentController(OperationalTerminalOwner):
         return (self.prompt_in_flight == 0
                 and sequence == self.agent.presentation.turns.sequence)
 
-    async def _submit(self, prompt, command, authority, queue_scope, project):
+    async def _submit(self, prompt: str, command, authority, queue_scope, project):
         submission = asyncio.current_task() if command.defer_display else None
         if submission is not None:
             self._deferred_submissions.add(submission)
@@ -226,7 +233,7 @@ class AgentController(OperationalTerminalOwner):
             if submission is not None:
                 self._deferred_submissions.discard(submission)
 
-    async def submit_blocks(self, content, command=None):
+    async def submit_blocks(self, content: list[dict[str, str]], command: ClearQueueRequest | None=None):
         agent = self.agent
         authority = ClientSessionRequest(agent, agent.session_id)
         return await self.operate(self._prompt_operation(partial(self._prompt,
@@ -263,7 +270,7 @@ class AgentController(OperationalTerminalOwner):
             published=request_failure.notification_published)
         return None
 
-    def _prompt_failed(self, command, authority, queue_scope, failure, report, *, published=False):
+    def _prompt_failed(self, command, authority, queue_scope, failure: ACPFailure, report, *, published: bool=False) -> None:
         agent = self.agent
         user_text = command.draft_text if command is not None else None
         if user_text:
@@ -271,10 +278,10 @@ class AgentController(OperationalTerminalOwner):
         if not published:
             report(LogAgentFail(failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
-    async def clear_queue(self):
+    async def clear_queue(self) -> None:
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())
 
-    async def send_now(self):
+    async def send_now(self) -> bool:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         queue_scope = self.agent.queue_attachment.scope
         if pending := tuple(self._deferred_submissions):
@@ -306,7 +313,7 @@ class AgentController(OperationalTerminalOwner):
         return await self.operate(self._cancel_prompt(
             ClientSessionRequest(self.agent, self.agent.session_id)))
 
-    async def _cancel_prompt(self, authority):
+    async def _cancel_prompt(self, authority: ClientSessionRequest):
         authority.require()
         try:
             await self.agent.process.rpc.cancel(authority.session_id)
@@ -318,6 +325,7 @@ class AgentController(OperationalTerminalOwner):
         if self.coordination is None:
             raise ValueError('This action requires an agent-comms thread.')
         from agent_comms.runtime import RuntimeProxy, socket_path
+
         from toad.owner_preparation import OwnerRequestContext
         coordination = self.coordination
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
@@ -339,13 +347,13 @@ class AgentController(OperationalTerminalOwner):
         finally:
             await proxy.close()
 
-    def require_owner(self, coordination, authority):
+    def require_owner(self, coordination, authority: ClientSessionRequest):
         if authority.retired or self.coordination is None:
             raise ValueError('The connected owner session retired; refresh its state.')
         if (self.coordination.wire_root, self.coordination.thread) != (coordination.wire_root, coordination.thread):
             raise ValueError('The owner identity changed while preparing the request.')
 
-    async def input_delivery(self, *, include_history=False) -> InputDelivery:
+    async def input_delivery(self, *, include_history: bool=False) -> InputDelivery:
         """The owner's delivery notices, read by the observation service."""
         coordination = self.coordination
         if coordination is None:

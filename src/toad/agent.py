@@ -9,6 +9,7 @@ from toad.agent_binding import AgentConnection
 from toad.agent_presentation import LocalAgentPresentation
 from toad.conversation_turn import NoTurn
 from toad.core.events import CoreEventStream
+from toad.surface_binding import SurfaceBinding
 
 
 class AgentBase(AgentConnection):
@@ -43,14 +44,14 @@ class AgentBase(AgentConnection):
     def borrowed_processes(self):
         return (self.process,)
 
-    async def reconnect_session(self, source, plan):
+    async def reconnect_session(self, source, plan) -> None:
         await self.session.reconnect(plan)
 
-    async def change_project(self, view, path):
+    async def change_project(self, view, path) -> None:
         project = await self.update_project(str(path))
         view.feedback.flash(Content(f"Project changed to {project}"), style="success")
 
-    def request_compaction(self, view, instructions):
+    def request_compaction(self, view, instructions) -> None:
         view.compact_context(instructions)
 
     def begin_submission(self, owner, submission):
@@ -68,11 +69,11 @@ class AgentBase(AgentConnection):
     def send_now(self, owner):
         return owner.send_bound_now(self)
 
-    def invalidate_observation(self, observation):
+    def invalidate_observation(self, observation) -> None:
         observation.schedule(self)
 
     @property
-    def automatic_titles(self):
+    def automatic_titles(self) -> bool:
         return self.observed_thread() is None
 
     async def project_changed(self, path) -> None:
@@ -121,10 +122,10 @@ class AgentBase(AgentConnection):
     def current_turn(self):
         return NoTurn()
 
-    def attach_surface(self, binding):
+    def attach_surface(self, binding: SurfaceBinding) -> None:
         binding.close()
 
-    async def retire_surface(self, surface):
+    async def retire_surface(self, surface) -> None:
         await self.stop()
 
     def observed_thread(self) -> tuple[str, str] | None:

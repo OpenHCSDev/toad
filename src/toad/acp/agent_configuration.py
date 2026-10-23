@@ -5,27 +5,30 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 
-from acp.schema import (SessionConfigSelectOption, SessionConfigSelectGroup,
-                        SessionConfigOptionSelect)
+from acp.exceptions import RequestError
+from acp.schema import (
+    SessionConfigOptionSelect,
+    SessionConfigSelectGroup,
+    SessionConfigSelectOption,
+)
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
-from acp.exceptions import RequestError
 
 
 class SelectChoices(MroDispatch):
     """Flatten only the SDK's decoded external flat/group variants."""
-    def __init__(self, option: SessionConfigOptionSelect):
+    def __init__(self, option: SessionConfigOptionSelect) -> None:
         self.values: list[SessionConfigSelectOption] = []
         for value in option.options:
             self.dispatch_sync(value)
 
     @handles(SessionConfigSelectOption)
-    def choice(self, value):
+    def choice(self, value) -> None:
         self.values.append(value)
 
     @handles(SessionConfigSelectGroup)
-    def group(self, value):
+    def group(self, value) -> None:
         self.values.extend(value.options)
 
 
@@ -39,7 +42,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
     def matches(cls, option: SessionConfigOptionSelect) -> bool: ...
 
     @classmethod
-    def bind(cls, option):
+    def bind(cls, option: SessionConfigOptionSelect):
         if option.current_value not in {value.value for value in SelectChoices(option).values}:
             raise ValueError(f"ACP configuration {option.id!r} has no advertised current value")
         return cls(option)
@@ -115,11 +118,11 @@ class ModeConfigurationSetting(ConfigurationSetting):
 
 
 class ConfigurationAdvertisements(MroDispatch):
-    def __init__(self, selections):
+    def __init__(self, selections: dict[type[ConfigurationSetting], ConfigurationSetting]) -> None:
         self.selections = selections
 
     @handles(SessionConfigOptionSelect)
-    def selection(self, option):
+    def selection(self, option) -> None:
         for kind in ConfigurationSetting.members_with(ConfigurationSetting):
             if kind.matches(option):
                 self.selections[kind] = kind.bind(option)
@@ -128,11 +131,11 @@ class ConfigurationAdvertisements(MroDispatch):
 
 class AgentConfiguration:
     """Single actual advertisement owner; detached surfaces keep this same value."""
-    def __init__(self, agent):
+    def __init__(self, agent) -> None:
         self.agent = agent
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self.selections = {kind: kind() for kind in ConfigurationSetting.members_with(ConfigurationSetting)}
 
     def setting[T: ConfigurationSetting](self, kind: type[T]) -> T:
@@ -155,7 +158,7 @@ class AgentConfiguration:
         self.selections[ModeConfigurationSetting] = self.mode.with_current(value)
         self.publish()
 
-    def receive(self, options):
+    def receive(self, options) -> None:
         if options is None:
             return
         # Official external decoder once; consumers use its guaranteed typed fields.
@@ -166,6 +169,6 @@ class AgentConfiguration:
         self.selections = selections
         self.publish()
 
-    def publish(self):
+    def publish(self) -> None:
         from toad.core.events import ConfigurationChanged
         self.agent.events.publish(ConfigurationChanged())

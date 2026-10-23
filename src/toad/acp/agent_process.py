@@ -1,22 +1,31 @@
 """ACP connection, admitted subprocess and attached-session lifetime."""
 from __future__ import annotations
+
 import asyncio
 import json
 import os
 from contextlib import ExitStack
 from contextvars import ContextVar
 from pathlib import Path
+from typing import Optional
+
 from acp import Client, ClientSideConnection, schema
 from acp.connection import StreamDirection, StreamEvent
 from acp.exceptions import RequestError
-from agent_comms.child_process import AttachedChild, StreamingChildStdio, join_retirement
+from agent_comms.child_process import (
+    AttachedChild,
+    StreamingChildStdio,
+    join_retirement,
+)
 from agent_comms.launch_root import LaunchRoot
+from agent_comms.route_selection import RouteSelection
+
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
 
 
 class AgentProcess(Client):
-    def __init__(self, agent):
+    def __init__(self, agent) -> None:
         self.agent = agent
         self.env = None
         self.cwd = None
@@ -38,7 +47,7 @@ class AgentProcess(Client):
             raise ConnectionError('ACP process is not connected')
         return self.connection
 
-    def accepts_attachment(self, agent, env, cwd, selection):
+    def accepts_attachment(self, agent, env: dict[str, str], cwd: str, selection: RouteSelection):
         response = self.initialization
         capabilities = response.agent_capabilities if response is not None else None
         lifecycle = capabilities.session_capabilities if capabilities is not None else None
@@ -51,12 +60,11 @@ class AgentProcess(Client):
                 and agent.session_id is not None
                 and all(member.agent.session_id != agent.session_id for member in self.sessions))
 
-    async def start(self, agent, processes=()):
+    async def start(self, agent, processes: tuple[AgentProcess, ...]=()):
         agent.session.reopen()
         agent.session.starting()
         await asyncio.to_thread(
             agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True)
-        from agent_comms.route_selection import RouteSelection
         env = os.environ.copy()
         cwd = str(agent.project_root_path.resolve())
         selection = RouteSelection.capture(agent.controller.transcripts.access.launch_root.path)
@@ -89,7 +97,7 @@ class AgentProcess(Client):
         require()
         return await self.rpc.prompt(agent.session_id, content, **metadata)
 
-    def observe_stream(self, event: StreamEvent):
+    def observe_stream(self, event: StreamEvent) -> None:
         """Keep the original frame with its SDK handler."""
         if event.direction is StreamDirection.INCOMING:
             # SDK creates the handler task immediately after this observer; its
@@ -116,14 +124,14 @@ class AgentProcess(Client):
         return await agent.session.start_operation(
             agent.permissions.request_permission(session_id, options, tool_call, kwargs))
 
-    async def session_update(self, session_id, update, **kwargs):
+    async def session_update(self, session_id, update, **kwargs) -> None:
         agent = self.recipient(session_id)
         notification = schema.SessionNotification.model_construct(
             session_id=session_id, update=update, field_meta=kwargs or None)
         raw = self._incoming.get()['params']['update']
         await agent.session.start_operation(agent.updates.receive(notification, raw))
 
-    async def read_text_file(self, session_id, path, line=None, limit=None, **kwargs):
+    async def read_text_file(self, session_id, path, line=None, limit: Optional[int]=None, **kwargs):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(asyncio.to_thread(
             agent.files.read_text_file, session_id, path, line, limit))
@@ -167,13 +175,13 @@ class AgentProcess(Client):
     async def ext_method(self, method, params):
         raise RequestError.method_not_found(f'_{method}')
 
-    async def ext_notification(self, method, params):
+    async def ext_notification(self, method, params) -> None:
         self.agent.log(f'[ACP unsupported notification] _{method}: {params}')
 
-    def on_connect(self, conn):
+    def on_connect(self, conn) -> None:
         pass
 
-    async def retire(self):
+    async def retire(self) -> None:
         for session in tuple(self.sessions):
             session.close()
             for task in tuple(session.responses):
@@ -182,7 +190,7 @@ class AgentProcess(Client):
             self.retirement = asyncio.create_task(self._retire())
         await join_retirement(self.retirement)
 
-    async def _retire(self):
+    async def _retire(self) -> None:
         try:
             if self.connection is not None:
                 await self.connection.close()
@@ -216,7 +224,7 @@ class AgentProcess(Client):
             if not self.sessions and self.retirement is None and self.runner is not None:
                 self.runner.cancel()
 
-    async def stop(self, agent):
+    async def stop(self, agent) -> None:
         agent.session.close()
         await agent.session.retire()
         if not self.sessions:
@@ -226,7 +234,7 @@ class AgentProcess(Client):
             await self.retire()
             self.runner = None
 
-    async def run(self):
+    async def run(self) -> None:
         try:
             await self.communicate()
         finally:
