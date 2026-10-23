@@ -402,7 +402,7 @@ class WorkingTranscript(SuspendedTranscript):
                 # This update could not use its original read. Keep the
                 # committed source; a new request owns any later advance.
                 return False
-            except (OSError, ValueError) as error:
+            except Exception as error:
                 owner.source_failed(error)
                 return False
 

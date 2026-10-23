@@ -37,7 +37,7 @@ async def threads_owned_here(comms, project, names=("alpha", "beta")):
     try:
         for name in names:
             comms.threads.claim_thread(name, tags=frozenset({"acp"}), worktree=str(project))
-            comms.threads.restore_stopped(comms.registry.snapshot(), (name,))
+            comms.registry.restore_stopped(comms.registry.snapshot(), (name,))
             thread = comms.owners.acquire_thread(name)
             await owner.sessions.bind_owned(thread, name)
         yield owner
