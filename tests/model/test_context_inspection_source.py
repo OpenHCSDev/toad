@@ -38,4 +38,3 @@ def test_native_message_text_includes_its_tool_calls():
     shown = json.loads(called)
     assert shown == FieldCodec.encode(call)
     assert (shown["name"], shown["arguments"]) == ("read", {"path": "notes.md"})
-
