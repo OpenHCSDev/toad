@@ -20,6 +20,7 @@ from agent_comms.ui_model.unread import UnobservedUnread
 from textual import on
 from textual.binding import Binding
 from textual.content import Content
+from textual.geometry import Offset
 from textual.widgets import Checkbox, Static
 
 from toad.core.input_events import SelectTarget
@@ -155,14 +156,6 @@ class RelationshipRow(ThreadStatusRow):
             )
             return
         tree.request_navigation(self)
-
-    def on_click(self, event) -> None:
-        if event.button == 3:
-            event.stop()
-            self.query_ancestor(ThreadCommsSidebar).show_row_menu(
-                self, event.screen_offset
-            )
-
 
 class RelationshipRows(SidebarGroup[RelationshipRow]):
     DEFAULT_CSS = """
@@ -574,9 +567,10 @@ class ThreadCommsSidebar(
             return
         self.open_target(entry_target(current))
 
-    def show_row_menu(self, row, offset):
+    def show_row_menu(self, row: RelationshipRow, offset: Offset) -> None:
         from toad.widgets.comms_menu import show_target_menu
 
+        self.pointer_select(row, menu=True)
         target, entry, generation = row.target_name, row.entry, self._generation
 
         def open_selected():
