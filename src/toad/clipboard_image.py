@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import shutil
 
-from agent_comms.image_inputs import MAX_IMAGE_BYTES
+from agent_comms.image_input import MAX_IMAGE_BYTES
 from toad import paths
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"

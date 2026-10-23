@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import mimetypes
 from pathlib import Path
 
-from agent_comms.image_inputs import MAX_IMAGE_BYTES
+from agent_comms.image_input import MAX_IMAGE_BYTES
 from toad.file_kind import FileKind
 
 
