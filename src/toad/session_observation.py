@@ -4,7 +4,7 @@ import asyncio
 from weakref import ref
 
 from agent_comms.goal_presentation import GoalSnapshot
-from agent_comms.ui_model.delivery import InputDelivery
+from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalUnavailable
 from toad.agent_binding import AgentConnection, NoAgentConnection
 
@@ -123,10 +123,10 @@ class GoalObservation(SessionObservation):
 class InputDeliveryObservation(SessionObservation):
     errors = (OSError, ValueError, RuntimeError, TimeoutError, KeyError)
 
-    async def read(self, agent) -> InputDelivery:
+    async def read(self, agent) -> DeliveryView:
         return await agent.controller.input_delivery()
 
-    def publish(self, view, result: InputDelivery):
+    def publish(self, view, result: DeliveryView):
         view.input_delivery = result
 
     def failed(self, view, error):
@@ -154,7 +154,7 @@ class InputDeliveryObservation(SessionObservation):
                 raise ValueError(self.view.input_delivery.error)
             if revision + 1 != self.revision or result.history_changed(self.view.input_delivery):
                 continue
-            return result.historical_inputs
+            return result.historical_records()
 
     async def dismiss_history(self):
         agent = self.current_owner()

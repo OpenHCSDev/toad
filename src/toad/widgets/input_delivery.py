@@ -15,8 +15,8 @@ from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Static
 from textual._activation import PrimaryActivation
 
-from agent_comms.input_attempt import HistoricalInput, UnresolvedInput
-from agent_comms.ui_model.delivery import InputDelivery
+from agent_comms.input_attempt import HistoricalInput
+from agent_comms.ui_model.delivery import DeliveryView
 from toad.project_link import AcpLogLink
 from toad.widgets.selection import ChangingText, InlineSelection
 from rich.style import Style as RichStyle
@@ -66,7 +66,7 @@ class InputDeliveryBar(HorizontalGroup):
     InputDeliveryBar #delivery-history-summary { width: 1fr; height: auto; color: $text-muted; }
     InputDeliveryBar #delivery-error { width: 1fr; height: auto; color: $warning; }
     """
-    delivery: var[InputDelivery] = var(InputDelivery())
+    delivery: var[DeliveryView] = var(DeliveryView())
 
     def compose(self) -> ComposeResult:
         yield ChangingText(markup=False, id="delivery-summary")
@@ -78,17 +78,14 @@ class InputDeliveryBar(HorizontalGroup):
 
     def _refresh_summary(self) -> None:
         delivery = self.delivery
-        current, history = delivery.current, delivery.historical_count
         self.display = delivery.shown or bool(delivery.error)
         if self.is_attached:
             summary = self.query_one("#delivery-summary", Static)
-            summary.display = bool(current)
+            summary.display = bool(delivery.current)
             summary.update(delivery.summary)
             historical = self.query_one("#delivery-history-summary", Static)
             historical.display = bool(delivery.notices)
-            label = delivery.notice_label
-            count = f"{history} {label}" if history else f"{delivery.dismissed_historical_count} {label} cleared"
-            historical.update(f"{' · ' if current else ''}{count}")
+            historical.update(delivery.notices_summary)
             error = self.query_one("#delivery-error", Static)
             error.display = bool(delivery.error)
             error.update(delivery.error)
@@ -131,7 +128,7 @@ class InputDeliveryDetails(ModalScreen[None]):
     InputDeliveryDetails #delivery-historical-summary { color: $text-muted; }
     InputDeliveryDetails DeliveryHistoryAction { height: 1; }
     """
-    delivery: var[InputDelivery] = var(InputDelivery())
+    delivery: var[DeliveryView] = var(DeliveryView())
     error: var[str] = var("")
     overview_text: var[str] = var("")
 
@@ -188,11 +185,7 @@ class InputDeliveryDetails(ModalScreen[None]):
                     yield Button(AcpLogLink.label, id="delivery-log")
                 yield Button("Close (Esc)", id="delivery-close")
 
-    @staticmethod
-    def _records(inputs: tuple[UnresolvedInput, ...]) -> str:
-        return "\n\n".join(row.record_text() for row in inputs)
-
-    def watch_delivery(self, old: InputDelivery, new: InputDelivery) -> None:
+    def watch_delivery(self, old: DeliveryView, new: DeliveryView) -> None:
         if new.history_changed(old):
             self._history = HiddenHistory()
         self._refresh_records()
@@ -214,24 +207,22 @@ class InputDeliveryDetails(ModalScreen[None]):
             return
         self.watch_error()
         self.query_one("#delivery-records", Static).update(
-            self._records(self.delivery.inputs) or "No inputs currently awaiting start."
+            self.delivery.pending_records_text()
         )
-        count = self.delivery.historical_count
-        dismissed = self.delivery.dismissed_historical_count
         self.query_one("#delivery-historical-summary", Static).update(
-            f"{count} earlier notices · {dismissed} cleared"
+            self.delivery.history_summary
         )
         self.query_one("#delivery-history-explanation").display = bool(
-            count or dismissed
+            self.delivery.notices
         )
         load = self.query_one("#delivery-load-history", DetailAction)
-        load.display = bool(count or dismissed) and self._history.load_offered
+        load.display = bool(self.delivery.notices) and self._history.load_offered
         load.disabled = self._busy
         clear = self.query_one("#delivery-clear-history", DetailAction)
-        clear.display = bool(count)
+        clear.display = self.delivery.dismissible_notices
         clear.disabled = self._busy
         self.query_one("#delivery-historical-records", Static).update(
-            self._records(self._history.inputs)
+            self.delivery.records_text(self._history.inputs)
         )
 
     def on_mount(self) -> None:
