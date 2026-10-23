@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, TypeGuard
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
+from agent_comms.child_process import join_retirement
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.ui_model.observation import NotPublished, Published, TranscriptPublicationState
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
@@ -845,19 +846,7 @@ class TranscriptPresentation:
             self._retire_presentations(contents, output, candidates),
             name="accepted source retirement",
         )
-        return AwaitComplete(self._join_retirement(retirement))
-
-    async def _join_retirement(self, retirement) -> None:
-        caller = asyncio.current_task()
-        while not retirement.done():
-            try:
-                await asyncio.shield(retirement)
-            except asyncio.CancelledError:
-                if retirement.cancelled():
-                    raise
-        retirement.result()
-        if caller.cancelling():
-            raise asyncio.CancelledError
+        return AwaitComplete(join_retirement(retirement))
 
     async def _retire_presentations(self, contents, output, candidates) -> None:
         try:

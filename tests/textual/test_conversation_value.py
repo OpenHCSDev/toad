@@ -24,7 +24,7 @@ async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and
             (DirectTarget("peer"), DmConversation(ThreadTarget("peer")),
              "DM_VALUE_HISTORY", "peer", "peer"),
             (FeedTarget(), IrcConversation(ChannelTarget(ALL_COMMS_TARGET)),
-             "CHANNEL_VALUE_HISTORY", "", AllChannel.declared_name),
+             "CHANNEL_VALUE_HISTORY", "", AllChannel.address()),
         ):
             mode = await target.open(context)
             screen = app.selected_session
