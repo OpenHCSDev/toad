@@ -13,6 +13,7 @@ class TabOrder:
         # What is shown while no tab is open.
         self.home = home
         self.db = db
+        self.db.prepare()
         self._visits: list[str] = []
         self._cursor = -1
         self._focus = focus

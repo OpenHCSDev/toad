@@ -187,6 +187,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.tab_order = TabOrder(
             lambda mode, index: self.select_session(mode, history_index=index),
             home=mode or WELCOME,
+            db=DB(),
         )
         self.coordination_access = CoordinationAccess(self)
 

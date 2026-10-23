@@ -86,8 +86,8 @@ class ModelHistory(ToadTables, TypedTable, declared_name="model_history"):
 class DB:
     """Toad's durable state; one transaction owner runs entirely off the UI thread."""
 
-    def __init__(self):
-        self.path = paths.get_state() / "toad.db"
+    def __init__(self, path: Path | None = None):
+        self.path = path if path is not None else paths.get_state() / "toad.db"
 
     def transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
         with closing(SQLiteFile.writer(self.path)) as db, db:
@@ -122,10 +122,10 @@ class DB:
         return [row.model_id for row in rows]
 
     async def create(self) -> None:
-        def create(db):
-            ToadTables.install_schema(db, WriterOwnedFile())
+        await asyncio.to_thread(self.prepare)
 
-        await self._transaction(create)
+    def prepare(self) -> None:
+        self.transaction(lambda db: ToadTables.install_schema(db, WriterOwnedFile()))
 
     async def session_new(
         self,
