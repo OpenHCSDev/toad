@@ -375,7 +375,7 @@ class SavedSettings:
         return paths.get_config() / "toad.json"
 
     def saved_key(self, path: DottedFieldPath) -> str:
-        owner = self.state.type_for_path(path.parent.value)
+        owner = DeclaredField(self.state, path).owner_type
         return next(key for declaration, key in FieldCodec.record_fields(owner)
                     if declaration.name == path.field_name)
 

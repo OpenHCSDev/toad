@@ -89,6 +89,18 @@ class DeclaredField:
     def annotation(self) -> object:
         return self.declaration.param_type
 
+    @property
+    def owner_type(self) -> type:
+        """The class of the resolved record containing this field.
+
+        ObjectState's declaration owner may instead be a function. Record
+        serialization needs the containing value's actual class, including
+        the delegate returned by to_object at the root.
+        """
+        parent = self.path.parent.value
+        owner = self.state.get_resolved_value(parent) if parent else self.state.to_object()
+        return type(owner)
+
     def metadata(self, kind: type[Metadata]) -> Metadata | None:
         """Metadata of the bound field, including an optional member's metadata."""
         for annotation in (self.annotation, resolve_optional(resolve_annotated(self.annotation))):

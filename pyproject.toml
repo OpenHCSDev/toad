@@ -74,3 +74,6 @@ pythonpath = ["src"]
 python_files = ["test_*.py"]
 addopts = "--strict-markers"
 markers = ["refactor_guard: permanent architecture deletion guards"]
+
+[tool.mypy]
+follow_untyped_imports = true
