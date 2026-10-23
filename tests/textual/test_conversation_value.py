@@ -140,8 +140,10 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
             lambda: history.source_ready
             and history.page_source.revision.selection.peer.name == "renamed"
             and history.page_source.revision.selection.peer == peer.incarnation
-            and "BEFORE_RENAME" in ui.painted(window),
-            why="the renamed conversation's captured source and painted message",
+            and "BEFORE_RENAME" in ui.painted(window)
+            and all(fragment.lines_for(history.line_width, app.colours.line_theme) is not None
+                    for fragment in history.fragments_in_range),
+            why="the renamed conversation's captured source and painted message and its styled rows",
         )
         fragments = history.fragments_in_range
         width, theme = history.line_width, app.colours.line_theme
