@@ -61,7 +61,7 @@ async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user
     )
     async with workspace.app(session=False) as ui:
         await ui.until_shows(THREADS)
-        await focus_row(ui, "ThreadRow")
+        await focus_row(ui, "ThreadStatusRow")
         await ui.press("enter")
         await ui.until(lambda: len(ui.tabs()) == 1, why="the thread's tab")
         assert ui.sender_of(ui.selected_tab) == workspace.viewer
@@ -96,6 +96,7 @@ async def test_going_back_from_the_only_tab_stays_on_it(workspace):
 
 
 async def test_a_launch_that_names_a_session_opens_it(workspace):
+    workspace.thread("saved-session", "team")
     async with workspace.app(session=False, resume="saved-session") as ui:
         await ui.until(lambda: len(ui.tabs()) == 1, why="the named session's tab")
         assert ui.selected_tab == ui.tabs()[0].identity
