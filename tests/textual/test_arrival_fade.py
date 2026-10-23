@@ -6,6 +6,7 @@ import json
 import os
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, TurnChangedUpdate, encode_updates
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
@@ -51,7 +52,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         agent = ui.detached_agent("arrival-fade")
         view.bind_agent(agent)
         coordination = CoordinationChangedUpdate(
-            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner_pid=os.getpid(),
+            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
             worktree=str(project), model="test-model", thinking_level=None, title=thread.name,
             context_usage=UnmeasuredContext())
         agent.coordination = coordination
