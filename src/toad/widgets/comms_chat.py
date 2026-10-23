@@ -114,7 +114,7 @@ class CommsChatView(Conversation):
             )
         comms = shared
         await self.app.coordination_access.current_sidebar()
-        self.message_history.open(WireSource(
+        self.message_history.initialize_source(WireSource(
             comms, self.conversation, Path(self.project_path), self._me,
             IrcMessageStyle(),
         ))
@@ -158,7 +158,7 @@ class CommsChatView(Conversation):
             # reads the observer's snapshot, which only now shows it.
             await self._refresh()
             return
-        if history.revision.stores == access.revision:
+        if source.revision.matches_stores(access.revision):
             return
         snapshot = history.source_snapshot()
         if not snapshot.current(history):
@@ -170,7 +170,7 @@ class CommsChatView(Conversation):
         revision = await source.read_revision()
         if (source is history.page_source and snapshot.current(history)
                 and source.uses_observation(access.observation.observed())
-                and history.revision.stores != revision):
+                and not source.revision.matches_stores(revision)):
             await self._refresh()
 
     def prepare_prompt(self) -> None:

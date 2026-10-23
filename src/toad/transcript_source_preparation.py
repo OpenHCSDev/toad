@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
     from textual.screen import Screen
 
+    from toad.transcript_filter import FilterState
     from toad.widgets.transcript_history import TranscriptPageView
 
 
@@ -64,6 +65,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     pages: deque[TranscriptPageView]
     _source_state: TranscriptState
+    filter: FilterState
 
     @classmethod
     def initial_state(cls, view) -> TranscriptState:
@@ -200,8 +202,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.state.request_latest(self, LatestViewportRequest(destination))
 
     async def jump_latest(self, request: LatestViewportRequest,
-                           publication_current: Callable[[], bool] = lambda: True, *,
-                           initial: PreparedTranscriptPage | None = None) -> bool:
+                           publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Publish one destination using its captured source and reader position.
 
         A preceding page's restoration may have left the window off its tail.
@@ -217,21 +218,21 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         request.restore(self.window)
         snapshot = self.source_snapshot()
         current = lambda: snapshot.current(self) and request.current(snapshot.window) and publication_current()
-        if await self._publish_latest(current, initial):
-            # Accepting a wire page advances the reader source. Capture the
-            # published source, rather than the request that acceptance replaced.
-            self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
-            return True
+        with request.reading(self) as (source, release):
+            prepared = await request.page(self, source)
+            if await self._publish_latest(current, source, prepared, release):
+                # Capture the source accepted with the destination's pages.
+                self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
+                return True
         self.latest = request.defer(self)
         return False
 
     async def _publish_latest(self, current: Callable[[], bool],
-                              initial: PreparedTranscriptPage | None = None) -> bool:
+                              source: PreparedPageSource, prepared: PreparedTranscriptPage,
+                              release: ResourceRelease) -> bool:
         """Prepare the bottom destination, keeping views of unchanged source pages."""
         window = self.window
         edge = self.pages[-1]
-        source = self.page_source
-        prepared = await source.latest(edge.prepared if initial is None else initial)
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
@@ -269,9 +270,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     # An empty answer is published too: the edge draws nothing,
                     # at its end. `latest` was never ranged by the loop above.
                     latest.set_fragment_range(slice(len(latest.fragments), len(latest.fragments)))
-                    edge.prepared = latest
-                    edge.range_changed()
-                    views.append(edge)
+                    destination.append((latest, None))
                 try:
                     async with AsyncExitStack() as acquisition:
                         for prepared, view in reversed(destination):
@@ -286,13 +285,18 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                                 view, slice(prepared.start, prepared.stop), current,
                             ):
                                 raise _DrawingStopped
-                        self.pages = views
+                        previous_source = self.page_source
+                        self.page_source, self.pages = source, views
+                        source.through = latest.page.after
+                        release.pop_all()
+                        if previous_source is not source:
+                            release.callback(previous_source.close)
+                            self.filter = self.filter.changed()
                 except _DrawingStopped:
                     return False
                 retired = tuple(page for page in previous if page not in views)
                 for page in retired:
                     page.display = False
-                source.through = latest.page.after
                 self._update_edges()
                 self.rows_published()
                 await self.remove_children(retired)
@@ -328,7 +332,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             return False
         if self.pages[-1] is not edge:
             return False
-        if not await self.accept_extension(edge, prepared):
+        if not await self.page_source.accept_page(self, edge, prepared):
             return False
         if not prepared.fragments:
             NEWER_END.advance_empty(edge.prepared, prepared)
@@ -336,7 +340,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             edge.prepared.page = replace(edge.prepared.page, has_newer=True)
             self._update_edges()
         else:
-            await self._load_page(NEWER_END, prepared, publication_current)
+            await self._load_page(NEWER_END, publication_current)
             if not snapshot.current(self) or not publication_current():
                 return False
             tail = self.pages[-1]
@@ -352,10 +356,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     async def source_is_current(self, snapshot) -> bool:
         return snapshot.current(self)
-
-    async def accept_extension(self, edge, prepared) -> bool:
-        """An immutable transcript reader already validates its source cut."""
-        return True
 
     def _complete_latest(
         self, snapshot: HistorySourceSnapshot, request: LatestViewportRequest,

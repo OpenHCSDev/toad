@@ -38,8 +38,6 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
                  *, view: ViewT, notification_view, **kwargs) -> None:
         super().__init__(prepared, page_source, view=view,
                          notification_view=notification_view, **kwargs)
-        # Core's source observation is independent of paint readiness.
-        self.revision = ConversationObservation()
 
     @classmethod
     def empty_page(cls):
@@ -47,10 +45,11 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
 
     # The source
 
-    def open(self, source: WireSource) -> None:
+    def initialize_source(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
         self.page_source.close()
-        self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation)
+        self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation,
+                                          revision=ConversationObservation())
 
     @property
     def undrawn(self) -> bool:
@@ -84,7 +83,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
     async def read_changes(self) -> bool:
         """Draw what changed in the source; False when the stores are as last drawn."""
         source = self.page_source
-        observed = await source.observe_changes(self.revision)
+        observed = await source.observe_changes(source.revision)
         if source is not self.page_source:
             return False
         return await observed.apply(self, source)
@@ -95,14 +94,6 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
         super().rows_published()
         if not self.undrawn and (placeholder := self.view.query_one_optional("#history-loading")):
             placeholder.remove()
-
-    async def accept_extension(self, edge, prepared) -> bool:
-        if self.page_source.accepts_page(edge.prepared.page, prepared.page):
-            return True
-        prepared.configure(batch_size=len(prepared.fragments))
-        await self.show_newest(self.page_source.through, PreparedWirePage.empty(WirePage.unread()),
-                               arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
-        return False
 
     def draws(self, message: Message) -> bool:
         """Whether the drawn rows include this message, checking the newest first."""
@@ -152,7 +143,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
-                await self._clear(PreparedWirePage.empty(WirePage.unread()))
+                source.revision = ConversationObservation()
                 await self.view._refresh()
         finally:
             if self.is_attached:

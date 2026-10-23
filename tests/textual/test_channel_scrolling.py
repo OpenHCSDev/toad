@@ -2,6 +2,11 @@
 
 from support.textual_steps import refresh_chat
 from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.presentation_window import NEWER_END
+
+
+def messages(history):
+    return tuple(fragment.message for fragment in history.fragments_in_range)
 
 
 async def long_channel(workspace, ui):
@@ -9,7 +14,7 @@ async def long_channel(workspace, ui):
     await ui.open_channel("#scroll", actor="sender")
     chat = app.screen.query_one(CommsChatView)
     history = chat.message_history
-    await ui.until(lambda: history.messages and history.state.accepts_source_work, why="channel messages")
+    await ui.until(lambda: messages(history) and history.state.accepts_source_work, why="channel messages")
     return chat, history, chat.window
 
 
@@ -46,7 +51,7 @@ async def test_held_paging_and_reversal_never_draw_a_blank_message_area_and_end_
         editor.history.checkpoint()
         editor.insert(" with undo")
         document, edit_history = editor.document, editor.history
-        newest = history.messages[-1].seq
+        newest = messages(history)[-1].seq
         frames, stop = record_blank_frames(app, window)
         try:
             window.focus(scroll_visible=False)
@@ -55,11 +60,11 @@ async def test_held_paging_and_reversal_never_draw_a_blank_message_area_and_end_
                 for _ in range(presses):
                     await ui.press(key)
             await ui.until(lambda: history.state.accepts_source_work, why="paging to settle")
-            assert history.messages[0].seq < newest - 100, "paging up did not reach earlier pages"
+            assert messages(history)[0].seq < newest - 100, "paging up did not reach earlier pages"
             assert not window.follows_tail
             await ui.press("end")
             await ui.until(lambda: window.follows_tail and window.scroll_y == window.max_scroll_y
-                           and history.messages and history.messages[-1].seq == newest and not history.has_newer,
+                           and messages(history) and messages(history)[-1].seq == newest and not history.has_more(NEWER_END),
                            why="End to reach the newest message")
         finally:
             stop()
@@ -94,12 +99,12 @@ async def test_a_growing_channel_draws_new_messages_for_a_tail_reader_and_keeps_
         for index in range(60):
             comms.messaging.send("sender", "#scroll", f"GROWN-WHILE-AWAY {index}")
         await refresh_chat(chat)
-        await ui.until(lambda: history.state.accepts_source_work and history.has_newer, why="the new messages offered")
+        await ui.until(lambda: history.state.accepts_source_work and history.has_more(NEWER_END), why="the new messages offered")
         await ui.step()
         # The reader's rows did not move and nothing new was drawn over them.
         assert window.scroll_y == position and not window.follows_tail
         assert not ui.shows("GROWN-WHILE-AWAY")
         assert top and message_rows() == top
         await ui.press("end")
-        await ui.until(lambda: window.follows_tail and not history.has_newer, why="End to reach the newest message")
+        await ui.until(lambda: window.follows_tail and not history.has_more(NEWER_END), why="End to reach the newest message")
         await ui.until_shows("GROWN-WHILE-AWAY 59")

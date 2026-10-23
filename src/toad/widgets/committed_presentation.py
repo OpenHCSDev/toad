@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
-from toad.transcript_state import CommitTranscript
+from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
+from toad.widgets.history_anchor import LatestPosition
 from agent_comms.sent_message import PublishedSentMessage, OutgoingMessageReference
 from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
@@ -19,7 +20,7 @@ from agent_comms.acp_extension import InputStartedUpdate
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
-    from toad.widgets.transcript_history import CommittedHistory
+    from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
     from toad.widgets.conversation import Conversation
     from toad.widgets.history_anchor import HistoryWindow
     from toad.transcript_preparation import PreparedTranscriptPage
@@ -217,9 +218,13 @@ class PreparedAdvanceCommit(PreparedSourceCommit):
         return await self.history.advance_committed(cursor, is_current)
 
 
+@dataclass(frozen=True)
 class PreparedPageCommit(PreparedSourceCommit):
+    history: TranscriptHistory
+
     async def publish(self, cursor, is_current):
-        return await self.history.show_newest(cursor, self.page, publication_current=is_current)
+        return await self.history.show_newest(PreparedReplacementViewportRequest(
+            LatestPosition.hold(self.history.window), self.page), publication_current=is_current)
 
 
 class CommitPlan(ABC):

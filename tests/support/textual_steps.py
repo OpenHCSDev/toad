@@ -78,7 +78,7 @@ async def refresh_chat(view) -> None:
     """Run the chat view's history read now and wait for it; a view that is not shown reads nothing."""
     history = view.message_history
     while (worker := await view._refresh()) is None:
-        if history.source is None or history.state.accepts_source_work:
+        if not history.can_draw_on_screen or history.state.accepts_source_work:
             return
         # Another read is in flight: read once it ends.
         await asyncio.sleep(0.01)

@@ -52,6 +52,7 @@ from toad.transcript_preparation import (
     PreparedTranscriptPage,
     ProjectedTranscriptSource,
     RangeCategoryProjection,
+    ReplaceablePageSource,
     SavedHistory,
     UnreadTranscriptPage,
 )
@@ -63,6 +64,7 @@ from toad.transcript_state import (
     LatestViewportRequest,
     LiveTranscript,
     ParkedSourceTranscript,
+    ReplacementViewportRequest,
     TranscriptState,
 )
 from toad.widgets.committed_presentation import (
@@ -505,7 +507,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
-        self.filter: FilterState = FilterState.for_selection(self)
+        self.filter = FilterState.for_selection(self)
         self._fragment_budget = self.budget.max_items
 
     async def park_document(self) -> PreparedPageSource:
@@ -902,51 +904,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         for page in self.pages:
             page.arrivals.clear()
 
-    async def show_newest(self, through, initial: PreparedTranscriptPage, *,
-                          arrivals: tuple[TranscriptFragment, ...] = (),
-                          publication_current: Callable[[], bool] = lambda: True) -> bool:
-        """Replace the drawn source, retaining the followed tail's active arrivals."""
-        retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
-                          if id(fragment) in page.arrivals)
-                    if self.follows_source_tail else ())
-        source, previous = self.page_source, self.page_source.through
-        self._generation += 1
-        generation = self._generation
-        source.restart(through)
-        published = False
-        try:
-            published = await self.jump_latest(
-                LatestViewportRequest(LatestPosition.hold(self.window)), publication_current, initial=initial)
-            if published:
-                self.repaint(arrivals, continuing=retained)
-            return published
-        finally:
-            # Old drawn pages remain valid until admission. A cancellation
-            # before the swap restores their read bound; teardown after an
-            # admitted swap cannot rewind that accepted source.
-            if (not published and self.page_source is source and self._generation == generation
-                    and not self.pages[-1].prepared.page.after.same_position(through)):
-                source.restart(previous)
-                self._generation += 1
-
-    async def _clear(self, initial: PreparedTranscriptPage) -> None:
-        """Forget every drawn page and everything prepared: they belong to another reading."""
-        async with self.window.history_lock:
-            async with self.window.preserve_history(root=self):
-                self._generation += 1
-                self.page_source.restart(initial.page.after)
-                retired = tuple(self.pages)
-                view = TranscriptPageView(initial,
-                                          batch_size=self.budget.batch_items)
-                view.visible_categories = self.selected_categories
-                await self.mount(view, before=self.newer)
-                self.pages = deque([view])
-                self.page_source.through = view.prepared.page.after
-                self.remove_children(retired)
-                self._update_edges()
-
     async def _load_page(
-        self, end: PageEnd, prepared: PreparedTranscriptPage | None = None,
+        self, end: PageEnd,
         publication_current: Callable[[], bool] = lambda: True,
     ) -> bool:
         """Publish one readable range; report whether its edge still needs rows."""
@@ -971,14 +930,17 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             missing = (window.lookahead.ahead_rows(window.outer_size.height) if followed_end
                        else window.lookahead.read_rows(self, end))
             local = end.can_extend(edge.prepared)
-            staged = edge.prepared.for_view() if local else prepared
-            if not local:
-                if staged is None:
-                    source = self.page_source
-                    if not source.has_more(end, edge.prepared.page):
-                        return False
-                    staged = await source.get(end.adjacent(edge.prepared.page))
-                    demand.source_read()
+            if local:
+                staged = edge.prepared.for_view()
+            else:
+                source = self.page_source
+                if not source.has_more(end, edge.prepared.page):
+                    return False
+                staged = await source.get(end.adjacent(edge.prepared.page))
+                demand.source_read()
+                if (not await self.source_is_current(snapshot) or not current()
+                        or not await source.accept_page(self, edge, staged)):
+                    return False
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
             window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, end)
@@ -1003,7 +965,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     self.repaint(arrivals)
                     self.rows_published()
                     if not local:
-                        await self._page_added(prepared.page, prepared.fragments)
+                        await self._page_added(staged.page, staged.fragments)
             self.state.delivered(self)
             advanced = end.edge(self.pages)
             if (advanced is edge and edge.prepared.capture_range() == page_range
@@ -1179,9 +1141,24 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
 class ConversationHistory[ViewT: "Conversation"](LineHistory):
     """A conversation owns its source binding and initial history state."""
 
+    page_source: ReplaceablePageSource
+
     def __init__(self, *args, view: ViewT, **kwargs):
         self.view = view
         super().__init__(*args, **kwargs)
+
+    async def show_newest(self, request: ReplacementViewportRequest, *,
+                          arrivals: tuple[TranscriptFragment, ...] = (),
+                          publication_current: Callable[[], bool] = lambda: True) -> bool:
+        """Replace the drawn source, retaining the followed tail's active arrivals."""
+        retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
+                          if id(fragment) in page.arrivals)
+                    if self.follows_source_tail else ())
+        self._generation += 1
+        published = await self.jump_latest(request, publication_current)
+        if published:
+            self.repaint(arrivals, continuing=retained)
+        return published
 
     @classmethod
     def empty_source(cls, view, through):
