@@ -2,9 +2,47 @@
 
 import asyncio
 import sys
+import threading
 
 from agent_comms.ui_model.observation import ObservationProcess, ObserveNotifications, ReadNotifications
 from toad.comms_root import AnsweringReads
+
+
+async def test_shutdown_drains_an_acquired_service_read_after_its_waiter_is_cancelled(workspace, monkeypatch):
+    entered, release = threading.Event(), threading.Event()
+    acquired = []
+    async with workspace.app() as ui:
+        access = ui.app.coordination_access
+        observing = access.observation.observed()
+        require = access.require
+
+        def held_require(selected):
+            entered.set()
+            release.wait()
+            observed = require(selected)
+            acquired.append(observed)
+            return observed
+
+        monkeypatch.setattr(access, "require", held_require)
+        reading = asyncio.create_task(access.transcripts.service(str(workspace.roots.wire)))
+        await asyncio.to_thread(entered.wait)
+        reading.cancel()
+        await asyncio.gather(reading, return_exceptions=True)
+        close_preparation = ui.app.preparation.aclose
+
+        async def finish_accepted_read():
+            release.set()
+            await close_preparation()
+
+        monkeypatch.setattr(ui.app.preparation, "aclose", finish_accepted_read)
+    try:
+        observed, = acquired
+        assert observed.process is observing.process, "Shutdown reopened the observer after closing its original owner"
+        assert observed.service is observing.service
+        assert not observing.process.process.is_alive()
+    finally:
+        release.set()
+        await access.close()
 
 
 async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(workspace):
