@@ -84,7 +84,7 @@ class BoundFrame:
     generation: int
 
     @classmethod
-    def capture(cls, binding: BoundView, owner: TranscriptPresentation, *args: ThreadPresentation, **extra) -> Self:
+    def capture(cls, binding: BoundView, owner: TranscriptPresentation, *args, **extra) -> Self:
         return cls(binding, owner, owner.generation, *args, **extra)
 
     def current(self):
@@ -499,7 +499,9 @@ class ViewBinding:
     def observe_thread(self, owner: TranscriptPresentation) -> None:
         pass
 
-    def capture[FrameT: BoundFrame](self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation) -> FrameT | None:
+    def capture[FrameT: BoundFrame](
+        self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation
+    ):
         return None
 
     def painted(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
@@ -563,7 +565,7 @@ class BoundView(ViewBinding):
                 and self.binding.window.scroll_revision == self.revision
             )
 
-        def refresh(self, publication: CanonicalSourcePublication | None) -> None:
+        def refresh(self, publication) -> None:
             if not self.current():
                 return
             if publication is None:
@@ -685,7 +687,9 @@ class BoundView(ViewBinding):
         self.painted(owner, history.page_source.through)
         view.query_one(SessionDetails)._refresh_summary()
 
-    def capture[FrameT: BoundFrame](self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation) -> FrameT | None:
+    def capture[FrameT: BoundFrame](
+        self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation
+    ):
         view = self.view
         if not view.is_attached or view.is_leaving:
             return None
@@ -699,7 +703,7 @@ class BoundView(ViewBinding):
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.observed, cursor))
 
-    def request(self, owner: TranscriptPresentation) -> Worker[bool] | None:
+    def request(self, owner: TranscriptPresentation):
         view = self.view
         if not view.is_attached:
             return None
@@ -805,7 +809,8 @@ class TranscriptPresentation:
         return self.binding.thread_scope.readable
 
     async def get_transcript_page(
-        self, *, before: TranscriptCursor | None=None, after: TranscriptCursor | None=None, through: TranscriptCursor | None=None
+        self, *, before: TranscriptCursor | None=None, after: TranscriptCursor | None=None,
+        through: TranscriptCursor | None=None
     ) -> TranscriptPage:
         frame = self.binding.capture(self, BoundFrame)
         scope = self.binding.thread_scope
@@ -869,7 +874,9 @@ class TranscriptPresentation:
         self.commit_required = self.dirty = True
         self.binding.request(self)
 
-    async def mark_read(self, through: TranscriptCursor, acknowledge: Callable[[TranscriptCursor], None], selected: Callable[[], bool]) -> None:
+    async def mark_read(
+        self, through: TranscriptCursor, acknowledge: Callable[[TranscriptCursor], None], selected: Callable[[], bool]
+    ) -> None:
         """A replaced source gets one fresh painted cursor, never a fatal read worker."""
         try:
             await asyncio.to_thread(acknowledge, through)
@@ -951,16 +958,18 @@ class TranscriptPresentation:
         worker, self.worker = self.worker, None
         workers = [worker, self.source_requests.cancel()]
         workers.extend(self.binding.cancel_workers())
-        for worker in workers:
-            if worker is None:
+        for retiring_worker in workers:
+            if retiring_worker is None:
                 continue
-            worker.cancel()
+            retiring_worker.cancel()
             try:
-                await worker.wait()
+                await retiring_worker.wait()
             except WorkerCancelled:
                 pass
 
-    def retire_presentations(self, contents: Contents, output: LiveOutput, candidates: Sequence[Widget]) -> AwaitComplete:
+    def retire_presentations(
+        self, contents: Contents, output: LiveOutput, candidates: Sequence[Widget]
+    ) -> AwaitComplete:
         """Withdraw covered native paint now; join teardown outside source locks.
 
         CommitEvidence has already selected these exact resources. Their native

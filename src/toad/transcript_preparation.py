@@ -161,7 +161,9 @@ class PreparedTranscriptPage:
 
     # A page draws its selected fragments as lines: drawing moves a range,
     # it never mounts or removes native members.
-    async def extend(self, view: TranscriptPageView, prepared: PreparedTranscriptPage, current: Callable[[], bool]) -> bool:
+    async def extend(
+        self, view: TranscriptPageView, prepared: PreparedTranscriptPage, current: Callable[[], bool],
+    ) -> bool:
         """Accept the staged rows; the range owner alone combines its membership."""
         if not current():
             return False
@@ -333,7 +335,9 @@ class PreparedPageSource(ABC):
             raise asyncio.CancelledError
         return prepared
 
-    async def accept_page(self, history: TranscriptSourcePreparation, edge: TranscriptPageView, prepared: PreparedTranscriptPage) -> bool:
+    async def accept_page(
+        self, history: TranscriptSourcePreparation, edge: TranscriptPageView, prepared: PreparedTranscriptPage,
+    ) -> bool:
         """Immutable saved reads already carry their validated source cut."""
         return True
 

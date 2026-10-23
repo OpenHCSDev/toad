@@ -41,56 +41,60 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     reports_coverage: ClassVar[bool] = False
     accepts_source_work: ClassVar[bool] = False
 
-    def source_ready(self, owner: "TranscriptSourcePreparation") -> bool:
+    def source_ready(self, owner: TranscriptSourcePreparation) -> bool:
         """The source accepts work and the filter is not scanning."""
         return self.accepts_source_work and owner.filter.idle
 
-    def blocks_visible_read(self, owner: "TranscriptSourcePreparation") -> bool:
+    def blocks_visible_read(self, owner: TranscriptSourcePreparation) -> bool:
         """An unpublished source must settle before its cursor is read."""
         return True
 
-    async def execute[Result](self, owner: "TranscriptSourcePreparation", work: "Callable[[], Awaitable[Result]]") -> "Result | Literal[False]":
+    async def execute[Result](
+        self, owner: TranscriptSourcePreparation, work: Callable[[], Awaitable[Result]]
+    ) -> Result | Literal[False]:
         raise RuntimeError("No transcript source operation is running")
 
-    def reserve(self, owner: "TranscriptSourcePreparation", operation: "type[WorkingTranscript] | None"=None) -> "WorkingTranscript":
+    def reserve(
+        self, owner: TranscriptSourcePreparation, operation: type[WorkingTranscript] | None = None
+    ) -> WorkingTranscript:
         raise RuntimeError("The transcript source cannot start another operation")
 
-    def request_latest(self, owner: "TranscriptSourcePreparation", request: "LatestViewportRequest") -> None:
+    def request_latest(self, owner: TranscriptSourcePreparation, request: LatestViewportRequest) -> None:
         """An inactive source starts no destination request."""
 
-    def check_edges(self, owner: "TranscriptSourcePreparation") -> None:
+    def check_edges(self, owner: TranscriptSourcePreparation) -> None:
         """A source that takes no work draws nothing beyond its edges."""
 
-    def delivered(self, owner: "TranscriptSourcePreparation") -> None:
+    def delivered(self, owner: TranscriptSourcePreparation) -> None:
         """Only a running source operation measures time to publication."""
 
-    def arriving(self, prepared: "PreparedTranscriptPage", followed_end: bool):
+    def arriving(self, prepared: PreparedTranscriptPage, followed_end: bool):
         """The staged range begins at the edge this append advances."""
-        return prepared.fragments[prepared.start:prepared.stop] if followed_end else ()
+        return prepared.fragments[prepared.start : prepared.stop] if followed_end else ()
 
-    def mounted(self, owner: "LineHistory") -> None:
+    def mounted(self, owner: LineHistory) -> None:
         """An already-read source needs no initial destination request."""
 
-    def rows_published(self, owner: "TranscriptSourcePreparation") -> None:
+    def rows_published(self, owner: TranscriptSourcePreparation) -> None:
         """Only a commit's advance has live blocks that its saved rows replace."""
 
-    def retirement_source(self) -> "TranscriptState":
+    def retirement_source(self) -> TranscriptState:
         return self
 
-    def retire_preparation(self, owner: "TranscriptSourcePreparation") -> None:
+    def retire_preparation(self, owner: TranscriptSourcePreparation) -> None:
         """Final source retirement releases its bounded prepared-page scope."""
         owner.close()
 
-    def resume(self) -> "TranscriptState":
+    def resume(self) -> TranscriptState:
         raise RuntimeError("Only a parked transcript can resume publication")
 
-    def resume_if_parked(self, owner: "TranscriptSourcePreparation") -> None:
+    def resume_if_parked(self, owner: TranscriptSourcePreparation) -> None:
         """Showing a resource does not start work on an inactive source."""
 
-    def validate_snapshot(self, owner: "TranscriptSourcePreparation", page: "TranscriptPage") -> None:
+    def validate_snapshot(self, owner: TranscriptSourcePreparation, page: TranscriptPage) -> None:
         """A captured source page may validate its existing parked resource."""
 
-    def observed(self, widget: Widget) -> "TranscriptState":
+    def observed(self, widget: Widget) -> TranscriptState:
         # Textual sets these before dispatching Prune/Unmount, including when
         # an ancestor is removed. Decode at this framework boundary so an
         # async page cannot publish during that interval. They are framework
@@ -101,14 +105,14 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
             return DetachedTranscript(self)
         return self
 
-    def for_projection(self, projection: "ProjectedTranscriptHistory", owner: "LineHistory | None") -> "TranscriptState":
+    def for_projection(self, projection: ProjectedTranscriptHistory, owner: LineHistory | None) -> TranscriptState:
         """A view may publish only while its source still owns that projection."""
         if owner is None or not owner.state.can_draw or not owner.filter.owns_projection(projection):
             return RetiredProjectionTranscript(self)
         return self
 
     @abstractmethod
-    def publish(self) -> "TranscriptState": ...
+    def publish(self) -> TranscriptState: ...
 
 
 class ProvisionalTranscript(TranscriptState):
@@ -125,13 +129,13 @@ class LiveTranscript(TranscriptState):
     reports_coverage = True
     accepts_source_work = True
 
-    def blocks_visible_read(self, owner: "TranscriptSourcePreparation") -> bool:
+    def blocks_visible_read(self, owner: TranscriptSourcePreparation) -> bool:
         return NEWER_END.visible_more(owner) or not self.source_ready(owner)
 
-    def reserve(self, owner, operation: "type[WorkingTranscript] | None"=None) -> "WorkingTranscript":
+    def reserve(self, owner, operation: type[WorkingTranscript] | None = None) -> WorkingTranscript:
         return (operation or WorkingTranscript)(self, owner)
 
-    def request_latest(self, owner: "TranscriptSourcePreparation", request: "LatestViewportRequest") -> None:
+    def request_latest(self, owner: TranscriptSourcePreparation, request: LatestViewportRequest) -> None:
         owner.schedule_source_work(partial(owner.jump_latest, request))
 
     def check_edges(self, owner) -> None:
@@ -140,8 +144,7 @@ class LiveTranscript(TranscriptState):
 
     @classmethod
     def successors(cls):
-        return (LiveTranscript, ParkedSourceTranscript, DetachedTranscript,
-                ClosingTranscript)
+        return (LiveTranscript, ParkedSourceTranscript, DetachedTranscript, ClosingTranscript)
 
     def publish(self) -> TranscriptState:
         return self
@@ -159,7 +162,7 @@ class UnreadTranscript(ProvisionalTranscript, LiveTranscript):
 
     reports_coverage = False
 
-    def mounted(self, owner: "LineHistory") -> None:
+    def mounted(self, owner: LineHistory) -> None:
         owner.call_after_refresh(owner.load_initial_page)
 
     def rows_published(self, owner) -> None:
@@ -172,7 +175,7 @@ class UnreadTranscript(ProvisionalTranscript, LiveTranscript):
 class SuspendedTranscript(TranscriptState):
     source: TranscriptState
 
-    def blocks_visible_read(self, owner: "TranscriptSourcePreparation") -> bool:
+    def blocks_visible_read(self, owner: TranscriptSourcePreparation) -> bool:
         """A parked or closing source need not paint now."""
         return False
 
@@ -190,50 +193,49 @@ class SuspendedTranscript(TranscriptState):
 
 class LatestViewportState(ABC):
     @abstractmethod
-    def resume(self, owner: "TranscriptSourcePreparation") -> "LatestViewportState": ...
+    def resume(self, owner: TranscriptSourcePreparation) -> LatestViewportState: ...
 
-    def prepare(self, owner: "TranscriptSourcePreparation") -> None:
+    def prepare(self, owner: TranscriptSourcePreparation) -> None:
         """No pending destination needs another preparation frame."""
 
 
 class NoLatestRequest(LatestViewportState):
-    def resume(self, owner: "TranscriptSourcePreparation") -> LatestViewportState:
+    def resume(self, owner: TranscriptSourcePreparation) -> LatestViewportState:
         return self
 
 
 @dataclass(frozen=True)
 class LatestViewportRequest(LatestViewportState):
-    destination: "LatestPosition"
+    destination: LatestPosition
 
     @contextmanager
-    def reading(self, owner: "TranscriptSourcePreparation"):
+    def reading(self, owner):
         with ResourceRelease() as release:
             yield owner.page_source, release
 
-    async def page(self, owner: "TranscriptSourcePreparation", source: "PreparedPageSource"):
+    async def page(self, owner: TranscriptSourcePreparation, source: PreparedPageSource):
         return await source.latest(owner.pages[-1].prepared)
 
-    def current(self, window: "HistoryWindow") -> bool:
+    def current(self, window: HistoryWindow) -> bool:
         return self.destination.current(window)
 
-    def restore(self, window: "HistoryWindow") -> None:
+    def restore(self, window: HistoryWindow) -> None:
         self.destination.restore(window)
 
-    def apply(self, owner: "TranscriptSourcePreparation") -> None:
+    def apply(self, owner: TranscriptSourcePreparation) -> None:
         if self.current(owner.window):
             owner.state.request_latest(owner, self)
 
-    def defer(self, owner: "TranscriptSourcePreparation") -> LatestViewportState:
+    def defer(self, owner: TranscriptSourcePreparation) -> LatestViewportState:
         """Keep only the reader's still-current destination for another draw."""
         return self if self.current(owner.window) else NoLatestRequest()
 
-    def prepare(self, owner: "TranscriptSourcePreparation") -> None:
+    def prepare(self, owner: TranscriptSourcePreparation) -> None:
         owner.request_preparation()
 
-    def resume(self, owner: "TranscriptSourcePreparation") -> LatestViewportState:
+    def resume(self, owner: TranscriptSourcePreparation) -> LatestViewportState:
         """Return the request state after this draw's source-work admission."""
-        if (not self.current(owner.window)
-                or owner.schedule_source_work(partial(owner.jump_latest, self))):
+        if not self.current(owner.window) or owner.schedule_source_work(partial(owner.jump_latest, self)):
             return NoLatestRequest()
         return self
 
@@ -253,8 +255,9 @@ class ReplacementViewportRequest(LatestViewportRequest):
             release.callback(source.close)
             yield source, release
 
-    async def page(self, owner: "TranscriptSourcePreparation", source: "PreparedPageSource"):
+    async def page(self, owner: TranscriptSourcePreparation, source: PreparedPageSource):
         return await source.get(PageRequest(OLDER_END, source.through))
+
 
 @dataclass(frozen=True)
 class LatestReplacementViewportRequest(ReplacementViewportRequest):
@@ -262,6 +265,7 @@ class LatestReplacementViewportRequest(ReplacementViewportRequest):
 
     def source(self, owner: ConversationHistory):
         return owner.page_source.replacement(self.through)
+
 
 @dataclass(frozen=True)
 class PreparedReplacementViewportRequest(ReplacementViewportRequest):
@@ -272,7 +276,7 @@ class PreparedReplacementViewportRequest(ReplacementViewportRequest):
     def source(self, owner: ConversationHistory):
         return owner.page_source.replacement(self.initial.page.after)
 
-    async def page(self, owner: "TranscriptSourcePreparation", source: "PreparedPageSource"):
+    async def page(self, owner: TranscriptSourcePreparation, source: PreparedPageSource):
         return self.initial.for_view()
 
 
@@ -280,22 +284,20 @@ class PreparedReplacementViewportRequest(ReplacementViewportRequest):
 class WaitingSourceWork[Result]:
     """The pager's observation keeps one paused operation alive until release."""
 
-    owner: "TranscriptSourcePreparation"
-    snapshot: "HistorySourceSnapshot"
-    work: "Callable[[], Awaitable[Result]]"
-    state: "WorkingTranscript"
+    owner: TranscriptSourcePreparation
+    snapshot: HistorySourceSnapshot
+    work: Callable[[], Awaitable[Result]]
+    state: WorkingTranscript
 
     @contextmanager
     def observe(self):
         from toad.widgets.conversation import Conversation
 
         scope = self.owner.query_ancestor(Conversation).transcript.binding.thread_scope
-        with self.owner.app.coordination_access.observe_thread_changes(
-            self.owner, scope, self.resume
-        ):
+        with self.owner.app.coordination_access.observe_thread_changes(self.owner, scope, self.resume):
             yield self
 
-    def resume(self, _event: "ThreadRowsChanged") -> None:
+    def resume(self, _event: ThreadRowsChanged) -> None:
         self.owner._source_observation.close()
         if self.snapshot.current(self.owner) and self.owner._source_state is self.state:
             self.state.schedule(self.owner, self.work)
@@ -317,10 +319,10 @@ class WorkingTranscript(SuspendedTranscript):
         # The screen asked for rows beyond an edge while this work held the source.
         self.edges_wait = False
 
-    def rows_published(self, owner: "TranscriptSourcePreparation") -> None:
+    def rows_published(self, owner: TranscriptSourcePreparation) -> None:
         self.source.rows_published(owner)
 
-    def blocks_visible_read(self, owner: "TranscriptSourcePreparation") -> bool:
+    def blocks_visible_read(self, owner: TranscriptSourcePreparation) -> bool:
         """A running source operation must finish before its cursor is read."""
         return True
 
@@ -344,10 +346,10 @@ class WorkingTranscript(SuspendedTranscript):
             owner.window.lookahead.delivered(now - self.delivery_started)
             self.delivery_window, self.delivery_started = window, now
 
-    def request_latest(self, owner: "TranscriptSourcePreparation", request: LatestViewportRequest) -> None:
+    def request_latest(self, owner: TranscriptSourcePreparation, request: LatestViewportRequest) -> None:
         owner.supersede_source_work(self, request)
 
-    def check_edges(self, owner: "TranscriptSourcePreparation") -> None:
+    def check_edges(self, owner: TranscriptSourcePreparation) -> None:
         # One work at a time holds the source. The check is made again when
         # this work ends, even if it changed nothing itself.
         self.edges_wait = True
@@ -363,16 +365,17 @@ class WorkingTranscript(SuspendedTranscript):
 
     @classmethod
     def successors(cls):
-        return (LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript,
-                ClosingTranscript, DetachedTranscript)
+        return (LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript, ClosingTranscript, DetachedTranscript)
 
-    def defer_source_work[Result](self, owner: "TranscriptSourcePreparation", work: "Callable[[], Awaitable[Result]]") -> None:
+    def defer_source_work[Result](
+        self, owner: TranscriptSourcePreparation, work: Callable[[], Awaitable[Result]]
+    ) -> None:
         """The existing observation scope owns the paused operation's lifetime."""
         waiting = WaitingSourceWork(owner, owner.source_snapshot(), work, self)
         owner._source_observation.close()
         owner._source_observation.enter_context(waiting.observe())
 
-    async def execute[Result](self, owner, work: "Callable[[], Awaitable[Result]]") -> "Result | Literal[False]":
+    async def execute[Result](self, owner, work: Callable[[], Awaitable[Result]]) -> Result | Literal[False]:
         from agent_comms.coordination_errors import (
             CoordinationReadUnavailable,
             StaleRevision,
@@ -403,7 +406,7 @@ class WorkingTranscript(SuspendedTranscript):
                 owner.source_failed(error)
                 return False
 
-    def schedule[Result](self, owner, work: "Callable[[], Awaitable[Result]]") -> "Worker[Result | Literal[False]]":
+    def schedule[Result](self, owner, work: Callable[[], Awaitable[Result]]) -> Worker[Result | Literal[False]]:
         return owner.run_worker(partial(self.execute, owner, work))
 
 
@@ -455,7 +458,7 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def retirement_source(self) -> TranscriptState:
         return self.source.retirement_source()
 
-    def retire_preparation(self, owner: "TranscriptSourcePreparation") -> None:
+    def retire_preparation(self, owner: TranscriptSourcePreparation) -> None:
         """Parking retains data-only work under the shared runtime's budget.
 
         Publication and speculative workers are revoked by the pager lifetime;
@@ -466,10 +469,10 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def resume(self) -> TranscriptState:
         return self.source
 
-    def resume_if_parked(self, owner: "TranscriptSourcePreparation") -> None:
+    def resume_if_parked(self, owner: TranscriptSourcePreparation) -> None:
         owner.resume_source()
 
-    def validate_snapshot(self, owner: "TranscriptSourcePreparation", page: "TranscriptPage") -> None:
+    def validate_snapshot(self, owner: TranscriptSourcePreparation, page: TranscriptPage) -> None:
         # The publication already holds a certified current source page. Its
         # native/assigned cursor, not rendered content, validates this resource.
         if owner.page_source.accepts_commit(page.after):
@@ -491,17 +494,20 @@ class CommitTranscript(WorkingTranscript):
         self.claims = tuple(cast("CommitParticipant", block).commit_claim for block in live_blocks)
         self.retirement = AwaitComplete.nothing()
 
-    async def execute[Result](self, owner, work: "Callable[[], Awaitable[Result]]") -> "Result | Literal[False]":
+    async def execute[Result](self, owner, work: Callable[[], Awaitable[Result]]) -> Result | Literal[False]:
         try:
             return await super().execute(owner, work)
         finally:
             await self.retirement
 
-    def arriving(self, prepared: "PreparedTranscriptPage", followed_end: bool):
+    def arriving(self, prepared: PreparedTranscriptPage, followed_end: bool):
         # Rows its live blocks already showed have not arrived again; every other row has.
         # The live blocks are the commit participants `retirement_candidates` chose.
-        return tuple(fragment for fragment in super().arriving(prepared, followed_end)
-                     if not any(fragment.shown_live_by(claim) for claim in self.claims))
+        return tuple(
+            fragment
+            for fragment in super().arriving(prepared, followed_end)
+            if not any(fragment.shown_live_by(claim) for claim in self.claims)
+        )
 
     def rows_published(self, owner) -> None:
         if self.live_blocks and not NEWER_END.visible_more(owner):

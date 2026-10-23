@@ -14,8 +14,6 @@ from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from textual.events import Click
     from textual.layout import WidgetPlacement
 
@@ -530,7 +528,7 @@ class SidebarModelState(ABC):
     def shows_model(self) -> bool:
         return False
 
-    def serves(self, path: Path | None) -> bool:
+    def serves(self, path) -> bool:
         return False
 
     def observes(self, observed: Observing) -> bool:
@@ -580,7 +578,7 @@ class BoundSidebar(SidebarModelState):
     def root(self):
         return self.observed.service.root
 
-    def serves(self, path: Path | None) -> bool:
+    def serves(self, path) -> bool:
         return self.observed.service.root.resolve() == path
 
     def observes(self, observed: Observing) -> bool:
@@ -894,7 +892,7 @@ class TargetTree(Vertical):
         )
 
     @handles(SessionSelected)
-    def session_selected(self, event: CoreEventMessage) -> None:
+    def session_selected(self, event) -> None:
         if not self.rows:
             return
         workspace = self.app.workspace_sessions

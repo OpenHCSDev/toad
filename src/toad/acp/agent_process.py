@@ -122,7 +122,13 @@ class AgentProcess(Client):
             return members[0]
         raise RequestError.invalid_params({'details': 'ACP session is retired or unknown'})
 
-    async def request_permission(self, session_id: str, tool_call: schema.ToolCallUpdate, options: list[schema.PermissionOption], **kwargs: JsonValue):
+    async def request_permission(
+        self,
+        session_id: str,
+        tool_call: schema.ToolCallUpdate,
+        options: list[schema.PermissionOption],
+        **kwargs: JsonValue,
+    ):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(
             agent.permissions.request_permission(session_id, options, tool_call, kwargs))
@@ -151,7 +157,14 @@ class AgentProcess(Client):
         raw = self._incoming.get()['params']['update']
         await agent.session.start_operation(agent.updates.receive(notification, raw))
 
-    async def read_text_file(self, session_id: str, path: str, line: int | None=None, limit: Optional[int]=None, **kwargs: JsonValue):
+    async def read_text_file(
+        self,
+        session_id: str,
+        path: str,
+        line: int | None = None,
+        limit: Optional[int] = None,
+        **kwargs: JsonValue,
+    ):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(asyncio.to_thread(
             agent.files.read_text_file, session_id, path, line, limit))
@@ -161,8 +174,16 @@ class AgentProcess(Client):
         return await agent.session.start_operation(asyncio.to_thread(
             agent.files.write_text_file, session_id, path, content))
 
-    async def create_terminal(self, session_id: str, command: str, args: list[str] | None=None, env: list[schema.EnvVariable] | None=None,
-                              cwd: str | None=None, output_byte_limit: int | None=None, **kwargs: JsonValue):
+    async def create_terminal(
+        self,
+        session_id: str,
+        command: str,
+        args: list[str] | None = None,
+        env: list[schema.EnvVariable] | None = None,
+        cwd: str | None = None,
+        output_byte_limit: int | None = None,
+        **kwargs: JsonValue,
+    ):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(agent.controller.terminal_create(
             session_id, command, kwargs, args, cwd, env, output_byte_limit))

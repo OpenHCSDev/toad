@@ -69,6 +69,7 @@ if TYPE_CHECKING:
     from agent_comms.comms import Comms
     from agent_comms.display_order import DisplayOrder
     from agent_comms.display_references import ReferenceContext
+    from agent_comms.thread_identity import ThreadIncarnation
 
     from toad.app import ToadApp
     from toad.session_entry import SessionEntry
@@ -106,7 +107,7 @@ class Observation:
     def uses(self, service: Comms) -> bool:
         return False
 
-    def tab(self, entry: SessionEntry | None, sessions: SessionNavigation):
+    def tab(self, entry: SessionEntry, sessions: SessionNavigation):
         return entry.unobserved_tab()
 
     def tabs(self, sessions: SessionNavigation):
@@ -130,7 +131,7 @@ class Observation:
         self.updates.close()
         return self
 
-    def attach(self, access: CoordinationAccess, previous: Observation):
+    def attach(self, access, previous):
         previous.subscriptions.close()
         if not self.is_current():
             self.subscriptions.close()
@@ -175,7 +176,7 @@ class FailedObservation(Observation):
     def sidebar(self):
         raise self.error
 
-    async def write_order(self, access: CoordinationAccess, root: str | None, channel: str | None, order: type[DisplayOrder]):
+    async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
         raise self.error
 
     def references_for(self, root: str) -> ReferenceContext:
@@ -187,7 +188,7 @@ class FailedObservation(Observation):
     def activate(self, access: CoordinationAccess):
         self.observe_sidebar(None)
 
-    def observe_sidebar(self, wanted: ObserveSidebar | None):
+    def observe_sidebar(self, wanted):
         access = self.access
         for view in tuple(access.sidebar_views):
             self.show_sidebar(view)
@@ -211,7 +212,7 @@ class Observing(Observation):
     def observes(self, root: str | Path) -> bool:
         return self.service.root == Path(root).resolve()
 
-    def tab(self, entry: SessionEntry | None, sessions: SessionNavigation):
+    def tab(self, entry: SessionEntry, sessions: SessionNavigation):
         return entry.tab(sessions, self)
 
     def show_sidebar(self, view: SidebarModelView) -> None:
@@ -221,7 +222,7 @@ class Observing(Observation):
     def uses(self, service: Comms) -> bool:
         return self.service is service
 
-    async def write_order(self, access: CoordinationAccess, root: str | None, channel: str | None, order: type[DisplayOrder]):
+    async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
         if root is not None and not self.observes(root):
             raise ValueError("Comms route changed before sorting")
         return await access.preparation.run_thread(
@@ -268,9 +269,10 @@ class Observing(Observation):
             self.failed(error, self.selection)
             access.app._handle_exception(error)
 
-    def views_changed(self, event: OpenTabsChanged | None=None, subscription: Subscription | None=None):
+    def views_changed(self, event=None, subscription: Subscription | None = None):
         access, root = self.access, str(self.service.root)
-        threads, channels = set(), set()
+        threads: set[ThreadIncarnation] = set()
+        channels: set[str] = set()
         for member in access.app.session_navigation.members:
             threads.update(identity for owner, identity in member.original_threads(access.app.session_navigation) if owner == root)
             channels.update(target for owner, target in member.original_channels() if owner == root)
@@ -292,7 +294,7 @@ class Observing(Observation):
     def thread_interest(self, access: CoordinationAccess):
         self.process.request(ObserveThreads(access.events.observed_threads(str(self.service.root))))
 
-    def observe_sidebar(self, wanted: ObserveSidebar | None):
+    def observe_sidebar(self, wanted):
         self.process.request(wanted if wanted is not None else StopSidebar())
 
     def observe_notifications(self, wanted: ObserveNotifications):
@@ -304,13 +306,13 @@ class AnsweringReads(Observing):
     def stop_updates(self) -> AnsweringReads:
         return self
 
-    def views_changed(self, event: OpenTabsChanged | None=None, subscription: Subscription | None=None):
+    def views_changed(self, event=None, subscription: Subscription | None = None):
         pass
 
     def thread_interest(self, access: CoordinationAccess):
         pass
 
-    def observe_sidebar(self, wanted: ObserveSidebar | None):
+    def observe_sidebar(self, wanted):
         pass
 
     def observe_notifications(self, wanted: ObserveNotifications):
@@ -502,7 +504,12 @@ class CoordinationAccess(MroDispatch):
             SETTINGS.sidebar.show_archived.bind(state).value,
         )
 
-    def observe_thread_changes(self, view: CoreEventReceiver, scope: tuple[str, str], resume: Callable[[ThreadRowsChanged], None]) -> ResourceRelease:
+    def observe_thread_changes(
+        self,
+        view: CoreEventReceiver,
+        scope: tuple[str, str],
+        resume: Callable[[ThreadRowsChanged], None],
+    ) -> ResourceRelease:
         """Hold the shared model while this native read waits for its own thread."""
         release = ResourceRelease()
 

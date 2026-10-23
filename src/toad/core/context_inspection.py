@@ -139,7 +139,7 @@ class ReferenceNode(ContextNode):
         original = await self.read_source(self.source)
         return f"{original.description}\n\n{original.text}"
 
-    def search_roots(self, current_roots: Callable[[], tuple[ContextNode, ...]]):
+    def search_roots(self, current_roots):
         return (self,)
 
     def search_description(self):
@@ -191,7 +191,7 @@ class RecordedTurnNode(ContextNode):
                                          self.inspection, i)
                      for i in range(len(self.manifest.segments)))
 
-    def search_roots(self, current_roots: Callable[[], tuple[ContextNode, ...]]):
+    def search_roots(self, current_roots):
         return (self,)
 
     def search_description(self):
@@ -297,7 +297,7 @@ class AnnotationNode(ContextNode):
                 f"{self.annotation.span.coordinates.length} UTF8 bytes\n"
                 f"Sources:\n{provenance}\n\n{text}")
 
-    def search_roots(self, current_roots: Callable[[], tuple[ContextNode, ...]]):
+    def search_roots(self, current_roots):
         return (self,)
 
     def search_description(self):
@@ -344,7 +344,7 @@ class AnnotationSourceNode(ContextNode):
         return (self.label + "\n\nOriginal source descriptions group these answers. "
                 "File paths or model probabilities do not establish an instruction's author.")
 
-    def search_roots(self, current_roots: Callable[[], tuple[ContextNode, ...]]):
+    def search_roots(self, current_roots):
         return (self,)
 
     def search_description(self):
@@ -527,7 +527,13 @@ class ContextInspection:
         return self.entry.thread
 
     @staticmethod
-    def read(comms: Comms, owner: str, *, cursor: ContextManifestCursor | None=None, previous: tuple[CapturedContext, ...]=()):
+    def read(
+        comms: Comms,
+        owner: str,
+        *,
+        cursor: ContextManifestCursor | None = None,
+        previous: tuple[CapturedContext, ...] = (),
+    ):
         entry = comms.registry.entry(owner).entry
         thread = entry.thread
         page = comms.contexts.page(owner, comms.registry,
@@ -735,7 +741,14 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def manifest_sources(self):
         return ()
 
-    async def acquire(self, service: Comms, revision: ReadState, identity: ThreadIdentity, *, cursor: ContextManifestCursor | None=None) -> InspectionState:
+    async def acquire(
+        self,
+        service: Comms,
+        revision: ReadState,
+        identity: ThreadIdentity,
+        *,
+        cursor: ContextManifestCursor | None = None,
+    ) -> InspectionState:
         if str(service.root.resolve()) != identity.root:
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
@@ -757,7 +770,9 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def present[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         """A detached or unacquired owner has no inspection to present."""
 
-    def present_acquired[Result](self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]) -> None:
+    def present_acquired[Result](
+        self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]
+    ) -> None:
         """Publish acquired answers through this inspection's resource state."""
         self.present(consumer)
 
@@ -783,7 +798,14 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
 
 
 class DetachedInspection(InspectionState):
-    async def acquire(self, service: Comms, revision: ReadState, identity: ThreadIdentity, *, cursor: ContextManifestCursor | None=None) -> InspectionState:
+    async def acquire(
+        self,
+        service: Comms,
+        revision: ReadState,
+        identity: ThreadIdentity,
+        *,
+        cursor: ContextManifestCursor | None = None,
+    ) -> InspectionState:
         return self
 
 
@@ -834,7 +856,9 @@ class HoldingInspection(InspectionState):
     def present[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         consumer(self)
 
-    def present_acquired[Result](self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]) -> None:
+    def present_acquired[Result](
+        self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]
+    ) -> None:
         # A recorded-only acquisition is not the replacement for an already
         # painted native context. Keep that original tree while native reads
         # join; success or refusal publishes the actual replacement below.
@@ -884,7 +908,9 @@ class SavedInspection(HoldingInspection):
     def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         pass
 
-    def present_acquired[Result](self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]) -> None:
+    def present_acquired[Result](
+        self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]
+    ) -> None:
         self.present(consumer)
 
     @property
@@ -897,7 +923,9 @@ class SavedInspection(HoldingInspection):
 class NativeInspection(HoldingInspection):
     native: NativeContextData
 
-    def present_acquired[Result](self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]) -> None:
+    def present_acquired[Result](
+        self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]
+    ) -> None:
         # This acquisition retains its original native source, so independently
         # changed recorded requests and annotations can publish immediately.
         self.present(consumer)
