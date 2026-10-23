@@ -45,7 +45,7 @@ class RenderExecution(ABC, Generic[ResultT]):
             break
         super().__init_subclass__(**kwargs)
 
-    async def complete(self, execution: Awaitable[object]) -> ResultT:
+    async def complete(self, execution: Awaitable[ResultT]) -> ResultT:
         """Accept the actual completed worker result through this task's contract."""
         return self.accept_result(await execution)
 
