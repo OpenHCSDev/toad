@@ -8,6 +8,9 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable
 
+from acp.exceptions import RequestError
+from pydantic import JsonValue
+
 from agent_comms.coordinator import Coordination
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
@@ -15,6 +18,7 @@ from agent_comms.importing import ImportedSessionMetadata
 from agent_comms.mro_dispatch import handles
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
+from agent_comms.presentation import ReadState
 from agent_comms.registry_document import RegistryEntry
 from agent_comms.session_revision import SessionObservation, SessionRevision
 from agent_comms.thread_status import ActiveThreadPresence, ThreadStatus
@@ -37,7 +41,11 @@ from toad.thread_identity import ThreadIdentity
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
-    from agent_comms.context_store import ContextManifestPage
+    from agent_comms.context_store import (
+        CapturedContext,
+        ContextManifestCursor,
+        ContextManifestPage,
+    )
 
 
 @dataclass(frozen=True)
@@ -87,7 +95,7 @@ class ContextNode(ABC):
             yield match
 
     @staticmethod
-    def search_roots(current_roots):
+    def search_roots(current_roots: Callable[[], tuple[ContextNode, ...]]):
         return current_roots()
 
     def search_description(self) -> str:
@@ -108,7 +116,7 @@ class ContextNode(ABC):
         await Coordination.run_worker(partial(self._write_export, destination, detail))
 
     @staticmethod
-    def _write_export(destination, detail) -> None:
+    def _write_export(destination: Path, detail: str) -> None:
         with destination.open("x", encoding="utf-8") as output:
             output.write(detail)
 
@@ -132,13 +140,13 @@ class ReferenceNode(ContextNode):
         original = await self.read_source(self.source)
         return f"{original.description}\n\n{original.text}"
 
-    def search_roots(self, current_roots):
+    def search_roots(self, current_roots: Callable[[], tuple[ContextNode, ...]]):
         return (self,)
 
     def search_description(self):
         return self.label
 
-    async def find(self, query, *, limit: int=100):
+    async def find(self, query: str, *, limit: int=100):
         original = await self.read_source(self.source)
         if query in original.text.casefold() or query in original.description.casefold():
             yield self
@@ -184,7 +192,7 @@ class RecordedTurnNode(ContextNode):
                                          self.inspection, i)
                      for i in range(len(self.manifest.segments)))
 
-    def search_roots(self, current_roots):
+    def search_roots(self, current_roots: Callable[[], tuple[ContextNode, ...]]):
         return (self,)
 
     def search_description(self):
@@ -196,7 +204,7 @@ class RecordedTurnNode(ContextNode):
                 "Historical request observation, not an additional active context section. "
                 "Segment counts are estimates, not provider measurements.")
 
-    async def find(self, query, *, limit: int=100):
+    async def find(self, query: str, *, limit: int=100):
         count = 0
         for child in self.children():
             async for match in child.find(query, limit=limit - count):
@@ -240,7 +248,7 @@ class RecordedSegmentNode(RecordedTurnNode):
         original = await self.source_text()
         return f"{original.description}\n\n{original.text}"
 
-    async def find(self, query, *, limit: int=100):
+    async def find(self, query: str, *, limit: int=100):
         # One complete selected value includes its annotation children. Search
         # that value once; opening a child still uses that exact child's path.
         original = await self.source_text()
@@ -290,13 +298,13 @@ class AnnotationNode(ContextNode):
                 f"{self.annotation.span.coordinates.length} UTF8 bytes\n"
                 f"Sources:\n{provenance}\n\n{text}")
 
-    def search_roots(self, current_roots):
+    def search_roots(self, current_roots: Callable[[], tuple[ContextNode, ...]]):
         return (self,)
 
     def search_description(self):
         return self.label
 
-    async def find(self, query, *, limit: int=100):
+    async def find(self, query: str, *, limit: int=100):
         if query in (await self.read()).casefold():
             yield self
 
@@ -324,7 +332,7 @@ class AnnotationSourceNode(ContextNode):
     def children(self):
         return self.answers
 
-    def reader_path(self, key):
+    def reader_path(self, key: str):
         # Label refinement can move an original answer between sections. Its
         # request/span key stays owned by the answer, not the grouping label.
         for answer in self.answers:
@@ -337,13 +345,13 @@ class AnnotationSourceNode(ContextNode):
         return (self.label + "\n\nOriginal source descriptions group these answers. "
                 "File paths or model probabilities do not establish an instruction's author.")
 
-    def search_roots(self, current_roots):
+    def search_roots(self, current_roots: Callable[[], tuple[ContextNode, ...]]):
         return (self,)
 
     def search_description(self):
         return self.label
 
-    async def find(self, query, *, limit: int=100):
+    async def find(self, query: str, *, limit: int=100):
         # One search borrows each authenticated selected value once. These
         # buffers leave with the operation; no corpus or text index is kept.
         acquired = {}
@@ -413,11 +421,11 @@ class NativeMessageNode(NativeSegmentNode):
 
 
 class SegmentNodes(MroProjection):
-    def __init__(self, key: str, read_source) -> None:
+    def __init__(self, key: str, read_source: Callable[[Provenance], Awaitable[ContextSourceText]]) -> None:
         self.key, self.read_source = key, read_source
 
     @handles(ContextSegment)
-    def segment(self, segment):
+    def segment(self, segment: ContextSegment):
         return NativeSegmentNode(self.key, segment, self.read_source)
 
     @handles(NativeMessages)
@@ -493,10 +501,10 @@ class UnavailableCoreInspection(CoreInspection):
 class AcquiredCoreInspection(CoreInspection):
     context: TurnContext
 
-    def roots(self, inspection):
+    def roots(self, inspection: ContextInspection):
         return inspection.contributors(self.context)
 
-    def groups(self, inspection):
+    def groups(self, inspection: ContextInspection):
         return (("Current Core instructions · before next input", self.roots(inspection), True),)
 
     @property
@@ -520,7 +528,7 @@ class ContextInspection:
         return self.entry.thread
 
     @staticmethod
-    def read(comms, owner, *, cursor=None, previous=()):
+    def read(comms: Comms, owner: str, *, cursor: ContextManifestCursor | None=None, previous: tuple[CapturedContext, ...]=()):
         entry = comms.registry.entry(owner).entry
         thread = entry.thread
         page = comms.contexts.page(owner, comms.registry,
@@ -533,7 +541,7 @@ class ContextInspection:
         return inspection_type(entry, page, SessionRevision.observe(thread.session_file), comms,
                                annotations, imported)
 
-    async def acquire(self, revision):
+    async def acquire(self, revision: ReadState):
         return HoldingInspection(await self.acquire_core(), revision)
 
     def same_native_source(self, other: ContextInspection):
@@ -558,7 +566,7 @@ class ContextInspection:
             f"imported/{source.sha256}/{source.offset}/{source.instruction}", source,
             self.imported_source) for source in self.imported_sources)
 
-    async def imported_source(self, source):
+    async def imported_source(self, source: Provenance):
         return await Coordination.run_worker(partial(
             ImportedSessionMetadata.public_source_text,
             self.service.registry, self.owner, source, self.service))
@@ -602,7 +610,7 @@ class ContextInspection:
                     return tuple(matches)
         return tuple(matches)
 
-    async def _request(self, action: str, **parameters):
+    async def _request(self, action: str, **parameters: JsonValue | tuple[int, ...]):
         from agent_comms.runtime import RuntimeConnection, socket_path
 
         owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
@@ -627,7 +635,7 @@ class ContextInspection:
             raise ValueError("Core context belongs to another thread incarnation")
         return replace(self, core=AcquiredCoreInspection(context))
 
-    async def core_source(self, context: TurnContext, position, source):
+    async def core_source(self, context: TurnContext, position: int, source: Provenance):
         def request():
             return dict(owner=FieldCodec.encode(context.thread), segment=position,
                 manifest=FieldCodec.encode(context.segments[position].manifest(0)),
@@ -636,13 +644,13 @@ class ContextInspection:
         payload = await self._request("context_core_source", **parameters)
         return await Coordination.run_worker(partial(FieldCodec.decode, ContextSourceText, payload))
 
-    async def current_source(self, context: NativeContextData, position, source):
+    async def current_source(self, context: NativeContextData, position: int, source: Provenance):
         payload = await self._request("context_source",
             observation=FieldCodec.encode(context.observation()), segment=position,
             source=FieldCodec.encode(source))
         return FieldCodec.decode(ContextSourceText, payload)
 
-    async def recorded_source(self, manifest, position, source):
+    async def recorded_source(self, manifest: ContextManifest, position: int, source: Provenance):
         payload = await self._request("context_reference",
             record=FieldCodec.encode(self.page.reference(manifest)),
             turn=FieldCodec.encode(manifest.turn), request_id=manifest.request_id.require_id(),
@@ -679,24 +687,24 @@ class ContextInspection:
 class SavedContextInspection(ContextInspection):
     """A stopped thread borrows retained records, never an owner socket."""
 
-    async def acquire(self, revision):
+    async def acquire(self, revision: ReadState):
         return SavedInspection(self, revision)
 
-    def saved_manifest(self, manifest):
+    def saved_manifest(self, manifest: ContextManifest):
         return self.page.reference(manifest).read(
             self.service.bus.log, self.owner.name, self.service.registry)
 
-    async def recorded_source(self, manifest, position, source):
+    async def recorded_source(self, manifest: ContextManifest, position: int, source: Provenance):
         def read():
             return self.saved_manifest(manifest).public_source_text(self.service, position, source)
         return await Coordination.run_worker(read)
 
-    async def recorded_segment(self, manifest, position, contributors: tuple[int, ...]=()):
+    async def recorded_segment(self, manifest: ContextManifest, position: int, contributors: tuple[int, ...]=()):
         def read():
             return self.saved_manifest(manifest).selected_segment(position, contributors)
         segment = await Coordination.run_worker(read)
 
-        async def unavailable(original) -> str:
+        async def unavailable(original: SegmentManifest) -> str:
             return "Public SDK text was not retained in this saved record; no live preview is available."
 
         text = await segment.public_text(unavailable)
@@ -707,66 +715,66 @@ class ThreadInspectionSource(MroProjection):
     """The original registry state selects the inspection's source capability."""
 
     @handles(ThreadStatus)
-    def saved(self, status):
+    def saved(self, status: ThreadStatus):
         return SavedContextInspection
 
     @handles(ActiveThreadPresence)
-    def live(self, status):
+    def live(self, status: ActiveThreadPresence):
         return ContextInspection
 
 
 class InspectionState(DeclaredFamily, affix="Inspection"):
     """One inspection lifetime; Textual owns workers and Tree resources separately."""
 
-    def observed_at(self, revision) -> bool:
+    def observed_at(self, revision: ReadState) -> bool:
         return True
 
-    def observe(self, revision) -> InspectionState:
+    def observe(self, revision: ReadState) -> InspectionState:
         return self
 
     @property
     def manifest_sources(self):
         return ()
 
-    async def acquire(self, service, revision, identity: ThreadIdentity, *, cursor=None) -> InspectionState:
+    async def acquire(self, service: Comms, revision: ReadState, identity: ThreadIdentity, *, cursor: ContextManifestCursor | None=None) -> InspectionState:
         if str(service.root.resolve()) != identity.root:
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
             identity.thread_name(), cursor=cursor, previous=self.manifest_sources))
         return await inspection.acquire(revision)
 
-    def receive_inspection(self, acquired) -> InspectionState:
+    def receive_inspection(self, acquired: InspectionState) -> InspectionState:
         return acquired
 
-    def inspection_differs(self, inspection) -> bool:
+    def inspection_differs(self, inspection: ContextInspection) -> bool:
         return True
 
-    def needs_native(self, inspection, force: bool) -> bool:
+    def needs_native(self, inspection: ContextInspection, force: bool) -> bool:
         return True
 
-    def same_source(self, inspection) -> bool:
+    def same_source(self, inspection: ContextInspection) -> bool:
         return False
 
-    def present(self, consumer) -> None:
+    def present[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         """A detached or unacquired owner has no inspection to present."""
 
-    def present_acquired(self, previous, consumer) -> None:
+    def present_acquired[Result](self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]) -> None:
         """Publish acquired answers through this inspection's resource state."""
         self.present(consumer)
 
-    def with_native(self, inspection, native) -> InspectionState:
+    def with_native(self, inspection: ContextInspection, native: NativeContextData) -> InspectionState:
         return self
 
-    def native_failed(self, inspection, error) -> InspectionState:
+    def native_failed(self, inspection: ContextInspection, error: RequestError) -> InspectionState:
         return self
 
-    def prepare_native(self, consumer) -> None:
+    def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         """An owner without an inspection cannot accept native context work."""
 
-    def presentation_current(self, captured) -> bool:
+    def presentation_current(self, captured: HoldingInspection) -> bool:
         return False
 
-    def contains_native(self, matches) -> bool:
+    def contains_native(self, matches: Callable[[NativeContextData], bool]) -> bool:
         """Ask the acquired native resource; unread states own no such resource."""
         return False
 
@@ -776,30 +784,30 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
 
 
 class DetachedInspection(InspectionState):
-    async def acquire(self, service, revision, identity: ThreadIdentity, *, cursor=None) -> InspectionState:
+    async def acquire(self, service: Comms, revision: ReadState, identity: ThreadIdentity, *, cursor: ContextManifestCursor | None=None) -> InspectionState:
         return self
 
 
 class ReadingOwnerInspection(InspectionState):
-    def observed_at(self, revision) -> bool:
+    def observed_at(self, revision: ReadState) -> bool:
         return False
 
-    def observe(self, revision) -> InspectionState:
+    def observe(self, revision: ReadState) -> InspectionState:
         return ObservedOwnerInspection(revision)
 
 
 @dataclass(frozen=True)
 class ObservedOwnerInspection(ReadingOwnerInspection):
-    revision: int
+    revision: ReadState
 
-    def observed_at(self, revision) -> bool:
+    def observed_at(self, revision: ReadState) -> bool:
         return self.revision == revision
 
 
 @dataclass(frozen=True)
 class HoldingInspection(InspectionState):
     inspection: ContextInspection
-    revision: int
+    revision: ReadState
 
     @property
     def manifest_sources(self):
@@ -809,25 +817,25 @@ class HoldingInspection(InspectionState):
     def thread_identity(self) -> ThreadIdentity:
         return ThreadIdentity(self.inspection.owner.incarnation, str(self.inspection.service.root))
 
-    def observed_at(self, revision) -> bool:
+    def observed_at(self, revision: ReadState) -> bool:
         return self.revision == revision
 
-    def observe(self, revision) -> InspectionState:
+    def observe(self, revision: ReadState) -> InspectionState:
         return replace(self, revision=revision)
 
-    def same_source(self, inspection) -> bool:
+    def same_source(self, inspection: ContextInspection) -> bool:
         return inspection.same_native_source(self.inspection)
 
-    def inspection_differs(self, inspection) -> bool:
+    def inspection_differs(self, inspection: ContextInspection) -> bool:
         return not self.same_source(inspection) or inspection.changed_since(self.inspection)
 
-    def needs_native(self, inspection, force: bool) -> bool:
+    def needs_native(self, inspection: ContextInspection, force: bool) -> bool:
         return force or self.inspection_differs(inspection)
 
-    def present(self, consumer) -> None:
+    def present[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         consumer(self)
 
-    def present_acquired(self, previous, consumer) -> None:
+    def present_acquired[Result](self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]) -> None:
         # A recorded-only acquisition is not the replacement for an already
         # painted native context. Keep that original tree while native reads
         # join; success or refusal publishes the actual replacement below.
@@ -840,27 +848,27 @@ class HoldingInspection(InspectionState):
                 ("Imported instructions · historical, not current", self.inspection.imported(), False),
                 ("Recorded requests · this page's source evidence", self.inspection.recorded(), False))
 
-    def prepare_native(self, consumer) -> None:
+    def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         consumer(self)
 
-    def with_native(self, inspection, native) -> InspectionState:
+    def with_native(self, inspection: ContextInspection, native: NativeContextData) -> InspectionState:
         return NativeInspection(self.inspection, self.revision, native) if self.same_source(inspection) else self
 
-    def native_failed(self, inspection, error) -> InspectionState:
+    def native_failed(self, inspection: ContextInspection, error: RequestError) -> InspectionState:
         return UnavailableNativeInspection(self.inspection, self.revision, str(error)) if self.same_source(inspection) else self
 
     def current_roots(self):
         return self.inspection.core.roots(self.inspection)
 
-    async def find(self, query, selected):
+    async def find(self, query: str, selected: ContextNode | None):
         roots = selected.search_roots if selected is not None else ContextNode.search_roots
         sources = await Coordination.run_worker(partial(roots, self.current_roots))
         return await self.inspection.find(sources, query)
 
-    def native_matches(self, current) -> bool:
+    def native_matches(self, current: InspectionState) -> bool:
         return not current.contains_native(bool)
 
-    def presentation_current(self, captured) -> bool:
+    def presentation_current(self, captured: HoldingInspection) -> bool:
         """Prepared content survives observations, not source/resource changes."""
         return (self.thread_identity == captured.thread_identity
                 and not self.inspection_differs(captured.inspection)
@@ -874,10 +882,10 @@ class HoldingInspection(InspectionState):
 class SavedInspection(HoldingInspection):
     """Only saved context is available; there is no native read to schedule."""
 
-    def prepare_native(self, consumer) -> None:
+    def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         pass
 
-    def present_acquired(self, previous, consumer) -> None:
+    def present_acquired[Result](self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]) -> None:
         self.present(consumer)
 
     @property
@@ -890,7 +898,7 @@ class SavedInspection(HoldingInspection):
 class NativeInspection(HoldingInspection):
     native: NativeContextData
 
-    def present_acquired(self, previous, consumer) -> None:
+    def present_acquired[Result](self, previous: InspectionState, consumer: Callable[[HoldingInspection], Result]) -> None:
         # This acquisition retains its original native source, so independently
         # changed recorded requests and annotations can publish immediately.
         self.present(consumer)
@@ -900,10 +908,10 @@ class NativeInspection(HoldingInspection):
             return NativeInspection(acquired.inspection, acquired.revision, self.native)
         return acquired
 
-    def needs_native(self, inspection, force: bool) -> bool:
+    def needs_native(self, inspection: ContextInspection, force: bool) -> bool:
         return force or not self.same_source(inspection)
 
-    def with_native(self, inspection, native) -> InspectionState:
+    def with_native(self, inspection: ContextInspection, native: NativeContextData) -> InspectionState:
         if not self.same_source(inspection) or native == self.native:
             return self
         return NativeInspection(self.inspection, self.revision, native)
@@ -917,10 +925,10 @@ class NativeInspection(HoldingInspection):
     def current_roots(self):
         return (*super().current_roots(), *self.inspection.active(self.native))
 
-    def contains_native(self, matches) -> bool:
+    def contains_native(self, matches: Callable[[NativeContextData], bool]) -> bool:
         return matches(self.native)
 
-    def native_matches(self, current):
+    def native_matches(self, current: InspectionState):
         return current.contains_native(lambda native: native is self.native)
 
     @property
