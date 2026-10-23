@@ -14,6 +14,8 @@ from typing import TYPE_CHECKING, Callable, ClassVar
 
 from toad import get_version
 from toad.version import VersionMonitor
+from toad.tab_identity.kinds import MailboxTab
+from toad.tab_identity import TabTargetGone
 
 if TYPE_CHECKING:
     from ssl import SSLContext
@@ -146,16 +148,22 @@ class ApplicationLifetime:
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")
         self.usage.publish("toad-run")
-        if self.resumed_session is None:
-            # No tab is open: the launch starts no agent and registers no thread.
-            await app.select_session(app.tab_order.home)
-        else:
+        for identity in await app.tab_order.load():
+            try:
+                await identity.restore(app.session_navigation)
+            except TabTargetGone as error:
+                await app.tab_order.close((identity,))
+                app.log.error(f"Removed stale tab {error.identity}: {error.reason}")
+        if self.resumed_session is not None:
             # The thread's declaration decides how it opens, as from the sidebar.
             navigation = await app.preparation.run_thread(self.launch_navigation)
             await app.session_navigation.new(
+                MailboxTab(navigation.thread.incarnation, navigation.root),
                 partial(navigation.launch_screen, app),
                 original=(navigation.root, navigation.thread.incarnation),
             )
+        if not app.tab_order.names:
+            await app.select_session(app.tab_order.home)
         app.terminal_attention.attach()
         app.set_timer(1, self.check_version)
         app.run_worker(partial(self.set_process_title, "toad"), thread=True)

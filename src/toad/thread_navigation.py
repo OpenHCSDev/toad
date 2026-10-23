@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.errors import RelationViolationError
+from toad.tab_identity.kinds import MailboxTab
 from toad.navigation_preparation import (
     OpenThread,
     ThreadNavigationRequest,
@@ -64,6 +65,11 @@ class ThreadNavigator:
         requested_root = str(comms.root)
         if not origin.current(self, owner_mode):
             return app.selected_mode
+        identity = await app.preparation.run_thread(
+            lambda: MailboxTab(
+                comms.registry.snapshot().require(target).incarnation, requested_root
+            )
+        )
         mounted_root = str(Path(requested_root).expanduser())
         open_threads = []
         for details in app.session_tracker.ordered_sessions:
@@ -82,7 +88,7 @@ class ThreadNavigator:
         key = owner_mode, request.root, request.target
         if pending := self.pending.get(key):
             return await asyncio.shield(pending.task)
-        opening = ThreadOpening(self, owner_mode, request, origin)
+        opening = ThreadOpening(self, owner_mode, request, origin, identity)
         self.pending[key] = opening
         return await asyncio.shield(opening.task)
 
@@ -98,7 +104,7 @@ class ThreadNavigator:
 
     async def mount_loading(self, opening: ThreadOpening) -> None:
         await self.app.session_navigation.new(
-            lambda: opening.view, title=opening.request.target
+            opening.identity, lambda: opening.view, title=opening.request.target
         )
 
     async def mount(self, prepared: ThreadNavigation, opening: ThreadOpening) -> str:

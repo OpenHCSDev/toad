@@ -178,7 +178,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.clipboard_transport = Clipboard.for_platform()
         self.terminal_attention = TerminalAttention(self)
 
-        self._session_tracker = SessionTracker()
         self.session_navigation = SessionNavigation(self)
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
@@ -187,9 +186,11 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.sidebar_layout = SidebarLayout()
         self._mode_switch_lock = asyncio.Lock()
         self.tab_order = TabOrder(
-            lambda mode, index: self.select_session(mode, history_index=index),
+            lambda identity, index: self.select_session(identity.mode_name, history_index=index),
             home=mode or WELCOME,
+            db=DB(),
         )
+        self._session_tracker = SessionTracker(self.tab_order)
         self.coordination_access = CoordinationAccess(self)
 
         from toad.file_kind import FileKind
@@ -369,7 +370,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
                         await after_input()
                         await self.workspace_screen.layout_navigation()
                 if mode != previous:
-                    self.tab_order.record_visit(mode, history_index)
+                    if entry := self.session_navigation.get(mode):
+                        self.tab_order.record_visit(entry.identity, history_index)
                     self.events.publish(core_events.SessionSelected(mode, previous))
             finally:
                 self.screen.refresh()

@@ -10,6 +10,7 @@ from toad.agent_binding import NoAgentConnection
 from toad.core.input_events import UserInputSubmitted
 from toad.screens.main import MainScreen
 from toad.session_presentation import OperationalSessionSources
+from support.ui import saved_tab
 
 
 class ObservedLaunchSources(OperationalSessionSources):
@@ -41,7 +42,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
     async with workspace.app(size=(110, 35)) as ui:
         app, _pilot = ui.textual
         owner = ObservedLaunchScreen(workspace.project, initial_prompt="INITIAL_LOCAL_UI_EVENT")
-        await app.session_navigation.new(lambda: owner)
+        await app.session_navigation.new(await saved_tab(app), lambda: owner)
         await owner.wait_content_ready()
         await asyncio.wait_for(owner.publication.wait(), 12)
         await ui.step()
@@ -57,7 +58,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         document, undo = editor.document, editor.history
         view._initial_prompt = "NEWEST_PENDING_LOCAL_UI_EVENT"
         owner.publication.clear()
-        await app.session_navigation.new(lambda: MainScreen(workspace.project))
+        await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(workspace.project))
         await app.selected_session.wait_content_ready()
         await owner.presentation.evict()
         assert view._initial_prompt is None
@@ -81,7 +82,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         assert editor.text == "DRAFT"
 
         # The consumed value must stay absent on another eviction.
-        await app.session_navigation.new(lambda: MainScreen(workspace.project))
+        await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(workspace.project))
         await app.selected_session.wait_content_ready()
         await owner.presentation.evict()
         assert owner.presentation.state.initial_prompt is None

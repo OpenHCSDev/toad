@@ -83,7 +83,7 @@ class NoTarget(NavigationTarget):
 class SessionTarget(NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         app = context.app
-        destination = context.owner_mode if app.session_tracker.get_session(context.owner_mode) else "store"
+        destination = context.owner_mode if app.session_navigation.session_details(context.owner_mode) else "store"
         if app.selected_mode != destination:
             await app.select_session(destination)
         return app.selected_mode

@@ -21,6 +21,7 @@ from agent_comms.ui_model.sidebar import ThreadRowModel
 from toad.core.projection import MroProjection
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.session_scope import SessionScope
+from toad.tab_identity import TabIdentity
 from toad.session_tracker import (
     CommsViewKey,
     NamedTab,
@@ -36,8 +37,12 @@ if TYPE_CHECKING:
 
 
 class SessionEntry(DeclaredFamily, affix="Entry"):
-    def __init__(self, mode: str) -> None:
-        self.mode = mode
+    def __init__(self, identity: TabIdentity) -> None:
+        self.identity = identity
+
+    @property
+    def mode(self) -> str:
+        return self.identity.mode_name
 
     @property
     def owner_mode(self) -> str:
@@ -88,7 +93,7 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
         """Only entries with a return destination retain entry intent."""
 
     async def return_to(self, sessions: SessionNavigation) -> None:
-        await sessions.app.select_session(sessions.app.tab_order.previous(self.mode))
+        await sessions.app.select_session(sessions.previous(self.identity))
 
     def forget(self, sessions: SessionNavigation) -> None:
         """End the view's observations before forgetting its logical membership."""
@@ -113,7 +118,7 @@ class NativeSessionEntry(SessionEntry):
         factory: Callable[[], MainScreen],
         original: tuple[str, ThreadIncarnation] | None = None,
     ) -> None:
-        super().__init__(details.mode_name)
+        super().__init__(details.identity)
         self.details = details
         self.factory = factory
         self.original = original
@@ -179,7 +184,7 @@ class NativeSessionEntry(SessionEntry):
         )
 
     def unobserved_tab(self) -> OpenTab:
-        return NamedTab(self.mode, self.details.name.display or "New Session")
+        return NamedTab(self.identity, self.details.name.display or "New Session")
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
         source = self.source(sessions)
@@ -198,7 +203,7 @@ class NativeSessionEntry(SessionEntry):
             return self.unobserved_tab()
         if row is not None:
             return ThreadTab(
-                self.mode, source.session_disposition.present(row, row.disconnected)
+                self.identity, source.session_disposition.present(row, row.disconnected)
             )
         return self.unobserved_tab()
 
@@ -206,30 +211,30 @@ class NativeSessionEntry(SessionEntry):
         app = sessions.app
         # Another session is preferred to a file or history tab between them.
         remaining = [
-            details.mode_name
+            details.identity
             for details in app.session_tracker.ordered_sessions
-            if details.mode_name != self.mode
+            if details.identity != self.identity
         ]
         await app.select_session(
-            app.tab_order.previous(self.mode, eligible=remaining or None)
+            sessions.previous(self.identity, eligible=remaining or None)
         )
 
     def forget(self, sessions: SessionNavigation) -> None:
         super().forget(sessions)
-        sessions.app.session_tracker.close_session(self.mode)
+        sessions.app.session_tracker.close_session(self.identity)
 
 
 class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
     def __init__(
         self,
-        mode: str,
+        identity: TabIdentity,
         key: CommsViewKey,
         project: Path,
         owner_root: str | None,
         participants: tuple[ThreadIncarnation, ...],
         owner,
     ) -> None:
-        super().__init__(mode)
+        super().__init__(identity)
         self.key, self.project, self.owner_root = key, project, owner_root
         self.participants, self.owner = participants, owner
 
@@ -267,7 +272,7 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
         return sessions.source(self.key.owner_mode)
 
     def unobserved_tab(self) -> OpenTab:
-        return NamedTab(self.mode, self.key.conversation.initial_label)
+        return NamedTab(self.identity, self.key.conversation.initial_label)
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
         return self.project_value(observed.references_for(self.key.root), observed)
@@ -280,7 +285,7 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
     def referenced_tab(self, references, observed) -> OpenTab:
         conversation = self.key.conversation
         return NamedTab(
-            self.mode,
+            self.identity,
             conversation.label(references),
             conversation.unread(observed.sidebar.observation),
         )
@@ -293,7 +298,7 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
         await app.select_session(
             owner
             if sessions.get(owner) is not None
-            else app.tab_order.previous(self.mode)
+            else sessions.previous(self.identity)
         )
 
     def sync_owner_root(
@@ -320,16 +325,16 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
 class PreviewSessionEntry(SessionEntry):
     """A read-only file in its own tab."""
 
-    def __init__(self, mode: str, path: Path, origin: str) -> None:
-        super().__init__(mode)
+    def __init__(self, identity: TabIdentity, path: Path, origin: str) -> None:
+        super().__init__(identity)
         self.path, self.origin = path, origin
 
     @classmethod
-    def of(cls, mode: str, path: Path, origin: str) -> PreviewSessionEntry:
+    def of(cls, identity: TabIdentity, path: Path, origin: str) -> PreviewSessionEntry:
         from toad.acp.agent_log import AgentLog
 
         return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(
-            mode, path, origin
+            identity, path, origin
         )
 
     def __call__(self):
@@ -351,7 +356,7 @@ class PreviewSessionEntry(SessionEntry):
         return self.path
 
     def unobserved_tab(self) -> OpenTab:
-        return NamedTab(self.mode, self.title)
+        return NamedTab(self.identity, self.title)
 
     def entered(self, previous: str) -> None:
         if previous != self.mode:
@@ -362,7 +367,7 @@ class PreviewSessionEntry(SessionEntry):
         target = (
             self.origin
             if sessions.get(self.origin) is not None
-            else app.tab_order.previous(self.mode)
+            else sessions.previous(self.identity)
         )
         await app.select_session(target)
 

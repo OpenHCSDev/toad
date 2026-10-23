@@ -18,6 +18,7 @@ from agent_comms.typed_table import (
 
 from toad import paths
 from toad.agent_schema import AgentDefinition
+from toad.tab_identity import TabIdentity
 
 SessionTimestamp = Annotated[RecordedTimestamp, TimestampText, Column(storage=TextStorage)]
 
@@ -42,7 +43,7 @@ class Session(ToadTables, TypedTable, declared_name="sessions"):
     id: Annotated[int | None, Column(primary_key=True, auto_increment=True)] = None
     agent: str
     agent_identity: str
-    agent_session_id: str
+    agent_session_id: str | None
     title: str
     protocol: str = "acp"
     prompt_count: int = 0
@@ -50,6 +51,12 @@ class Session(ToadTables, TypedTable, declared_name="sessions"):
     last_used: SessionTimestamp = field(default_factory=recorded_now)
     # The column keeps the durable file name; its value is always typed metadata.
     meta_json: SessionMeta = field(default_factory=SessionMeta)
+
+
+@dataclass(frozen=True)
+class OpenTabRow(ToadTables, TypedTable, declared_name="open_tabs"):
+    identity: Annotated[TabIdentity, Column(primary_key=True)]
+    position: int
 
 
 @dataclass(frozen=True)
@@ -78,17 +85,30 @@ class ModelHistory(ToadTables, TypedTable, declared_name="model_history"):
 
 
 class DB:
-    """Toad's durable state; one transaction owner runs entirely off the UI thread."""
+    """Toad's durable state; its transaction owner runs off the UI thread."""
 
-    def __init__(self):
-        self.path = paths.get_state() / "toad.db"
+    def __init__(self, path: Path | None = None):
+        self.path = path if path is not None else paths.get_state() / "toad.db"
+
+    def transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
+        with closing(SQLiteFile.writer(self.path)) as db, db:
+            return operation(db)
 
     async def _transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
-        def transaction():
-            with closing(SQLiteFile.writer(self.path)) as db, db:
-                return operation(db)
+        return await asyncio.to_thread(self.transaction, operation)
 
-        return await asyncio.to_thread(transaction)
+    async def tab_roster(self, identities: tuple[TabIdentity, ...]) -> None:
+        def write(db):
+            OpenTabRow.delete(db)
+            for position, identity in enumerate(identities):
+                OpenTabRow(identity, position).upsert(db)
+
+        await self._transaction(write)
+
+    async def tab_list(self) -> list[OpenTabRow]:
+        return await self._transaction(lambda db: OpenTabRow.select(
+            db, order_by=("position",),
+        ))
 
     async def record_model_usage(
         self, agent_identity: str, model_id: str, *, last_used: int | None = None,
@@ -103,20 +123,20 @@ class DB:
         return [row.model_id for row in rows]
 
     async def create(self) -> None:
-        def create(db):
-            ToadTables.install_schema(db, WriterOwnedFile())
+        await asyncio.to_thread(self.prepare)
 
-        await self._transaction(create)
+    def prepare(self) -> None:
+        self.transaction(lambda db: ToadTables.install_schema(db, WriterOwnedFile()))
 
     async def session_new(
         self,
         title: str,
         agent: str,
         agent_identity: str,
-        agent_session_id: str,
+        agent_session_id: str | None,
         protocol: str = "acp",
         meta: SessionMeta | None = None,
-    ) -> int | None:
+    ) -> int:
         row = Session(
             title=title,
             agent=agent,
@@ -125,7 +145,15 @@ class DB:
             protocol=protocol,
             meta_json=meta if meta is not None else SessionMeta(),
         )
-        return await self._transaction(lambda db: row.insert(db).lastrowid)
+        def insert(db):
+            identity = row.insert(db).lastrowid
+            assert identity is not None, "A saved ACP session must have a SQLite row id"
+            return identity
+
+        return await self._transaction(insert)
+
+    async def session_started(self, id: int, agent_session_id: str) -> None:
+        await self._update_session(id, agent_session_id=agent_session_id)
 
     async def _update_session(self, id: int, **changes) -> None:
         def update(db):

@@ -7,6 +7,7 @@ from toad.app import ToadApp
 from toad.screens.main import MainScreen
 from toad.session_tracker import SidebarSelection
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
+from toad.tab_identity.kinds import MailboxTab
 
 
 class FrameApp(ToadApp):
@@ -72,6 +73,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         await ui.step()
         owner = ui.selected_tab
         worker = await app.session_navigation.new(
+            MailboxTab(workspace.comms.registry.require("worker").incarnation, str(workspace.comms.root)),
             lambda: MainScreen.from_thread(
                 workspace.project,
                 str(workspace.comms.root),

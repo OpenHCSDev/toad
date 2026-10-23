@@ -335,6 +335,13 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
 class ProjectSessionOrigin(SessionOrigin, SessionScope):
     """A project source may navigate and resolve threads without an ACP session."""
 
+    @abstractmethod
+    def history_origin(self):
+        """The durable opening source of this view's history tabs."""
+
+    async def prepare_history_origin(self) -> None:
+        """An agent view already has its thread; resident views acquire theirs."""
+
     @property
     def origin(self) -> SessionOrigin:
         return self

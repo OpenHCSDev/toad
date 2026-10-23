@@ -112,7 +112,7 @@ class Observation:
         return entry.unobserved_tab()
 
     def tabs(self, sessions: SessionNavigation):
-        return {entry.mode: self.tab(entry, sessions) for entry in sessions.members}
+        return {entry.identity: self.tab(entry, sessions) for entry in sessions.members}
     def require(self, access: CoordinationAccess, selected: RouteSelection):
         return access.open_selected(selected)
     def references_for(self, root: str) -> ReferenceContext:

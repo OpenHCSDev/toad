@@ -19,6 +19,7 @@ from agent_comms.threads import Thread
 
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.session_tracker import CommsViewKey
+from toad.tab_identity import SessionTabIdentity
 
 ResultT = TypeVar("ResultT")
 
@@ -193,11 +194,13 @@ class ThreadOpening:
         owner_mode: str,
         request: ThreadNavigationRequest,
         origin: ThreadOrigin,
+        identity: SessionTabIdentity,
     ) -> None:
         from toad.screens.main import MainScreen
 
         self.navigator, self.owner_mode = navigator, owner_mode
         self.request, self.origin = request, origin
+        self.identity = identity
         self.view = MainScreen.opening(request, origin, navigator.app)
         self.task = asyncio.create_task(self.run(), name="thread-navigation")
 

@@ -184,7 +184,7 @@ class CloseViewCommand(ViewCommand, declared_name="close_view"):
         return (
             not ctx.targets
             and ctx.mode is not None
-            and ctx.app.session_tracker.get_session(ctx.mode) is not None
+            and ctx.app.session_navigation.session_details(ctx.mode) is not None
         )
 
     def execute(self, ctx: TargetContext) -> None:

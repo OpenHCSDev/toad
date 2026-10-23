@@ -12,15 +12,28 @@ import inspect
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 
-from support.agents import AppAgents
+from support.agents import AppAgents, command
 from toad.navigation_context import NavigationContext
 
 if TYPE_CHECKING:
     from textual.pilot import Pilot
 
     from toad.app import ToadApp
+    from toad.tab_identity.kinds import AcpTab
+
+
+async def saved_tab(app: ToadApp) -> AcpTab:
+    """A test-made native session is saved the way launch saves one, with the app's agent;
+    a session with no agent saves an inert one."""
+    from toad.session_scope import AgentAttached
+
+    binding = app.agent_binding
+    agent = (binding.agent if isinstance(binding, AgentAttached)
+             else command("true", name="Test session", identity="test-session"))
+    return await app.session_navigation.saved(agent, Path(app.project_dir))
 
 
 class NotShown(AssertionError):
@@ -317,7 +330,7 @@ class TextualUi(AppAgents, Ui):
 
         app = self.app
         details = await app.session_navigation.new(
-            lambda: MainScreen(app.project_dir, app.agent_binding)
+            await saved_tab(app), lambda: MainScreen(app.project_dir, app.agent_binding)
         )
         await self.step()
         return details.mode_name
