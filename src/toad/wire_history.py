@@ -32,8 +32,6 @@ from agent_comms.page_traversal import (
 from agent_comms.transcript_events import IncomingTranscript
 
 from toad.conversation_kind import ConversationKind
-from toad.transcript_state import LatestReplacementViewportRequest
-from toad.widgets.history_anchor import LatestPosition
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -44,6 +42,8 @@ from toad.transcript_preparation import (
     TranscriptPageWork,
     Unchanged,
 )
+from toad.transcript_state import LatestReplacementViewportRequest
+from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.widgets.transcript_fragments import (
     BusMessageFragment,

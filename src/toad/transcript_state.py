@@ -5,23 +5,29 @@ from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
-from typing import ClassVar, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 from textual.widget import Widget
+
 from toad.resource_release import ResourceRelease
-from toad.widgets.presentation_window import NEWER_END
+from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
-    from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
-    from toad.transcript_preparation import PreparedTranscriptPage
+
     from agent_comms.transcripts import TranscriptCursor
-    from toad.wire_history import WireCut
-    from toad.widgets.transcript_history import ConversationHistory
+
+    from toad.transcript_preparation import PreparedTranscriptPage
+    from toad.transcript_source_preparation import (
+        HistorySourceSnapshot,
+        TranscriptSourcePreparation,
+    )
     from toad.widgets.committed_presentation import CommitParticipant
     from toad.widgets.history_anchor import LatestPosition
+    from toad.widgets.transcript_history import ConversationHistory
+    from toad.wire_history import WireCut
 
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
@@ -228,14 +234,14 @@ class LatestViewportRequest(LatestViewportState):
 
 @dataclass(frozen=True)
 class ReplacementViewportRequest(LatestViewportRequest):
-    """A candidate source belongs to its request until page admission."""
+    """The request owns its new reading until the pages replace the old ones."""
 
     @abstractmethod
-    def source(self, owner: "ConversationHistory"):
+    def source(self, owner: ConversationHistory):
         """Open the complete reading selected by this replacement."""
 
     @contextmanager
-    def reading(self, owner: "ConversationHistory"):
+    def reading(self, owner: ConversationHistory):
         with ResourceRelease() as release:
             source = self.source(owner)
             release.callback(source.close)
@@ -243,14 +249,12 @@ class ReplacementViewportRequest(LatestViewportRequest):
 
 @dataclass(frozen=True)
 class LatestReplacementViewportRequest(ReplacementViewportRequest):
-    through: "TranscriptCursor | WireCut"
+    through: TranscriptCursor | WireCut
 
-    def source(self, owner: "ConversationHistory"):
+    def source(self, owner: ConversationHistory):
         return owner.page_source.replacement(self.through)
 
     async def page(self, owner, source):
-        from toad.widgets.presentation_window import OLDER_END, PageRequest
-
         return await source.get(PageRequest(OLDER_END, source.through))
 
 
@@ -258,9 +262,9 @@ class LatestReplacementViewportRequest(ReplacementViewportRequest):
 class PreparedReplacementViewportRequest(ReplacementViewportRequest):
     """An existing prepared page needs no storage read, including closed sources."""
 
-    initial: "PreparedTranscriptPage"
+    initial: PreparedTranscriptPage
 
-    def source(self, owner: "ConversationHistory"):
+    def source(self, owner: ConversationHistory):
         return owner.page_source.replacement(self.initial.page.after)
 
     async def page(self, owner, source):
@@ -364,7 +368,10 @@ class WorkingTranscript(SuspendedTranscript):
         owner._source_observation.enter_context(waiting.observe())
 
     async def execute(self, owner, work):
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+        from agent_comms.coordination_errors import (
+            CoordinationReadUnavailable,
+            StaleRevision,
+        )
 
         with ExitStack() as completion:
             completion.callback(owner.finish_source_work, self)

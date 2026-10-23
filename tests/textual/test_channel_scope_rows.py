@@ -14,7 +14,7 @@ async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(work
     comms.messaging.send("carol", "dave", "older newly visible DM")
     comms.messaging.send("alice", "#team", "current channel message")
     comms.channels.set_channel_any_mode("#team", True)
-    assert [m.body for m in comms.views.channel_display_page("#team", worktree=project).messages] == [
+    assert [m.body for m in comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(project)).messages] == [
         "current channel message"]
 
     async with workspace.app(size=(100, 30)) as ui:
@@ -26,7 +26,7 @@ async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(work
         assert not chat.message_history.has_more(OLDER_END)
 
         comms.channels.update_tags("carol", add=frozenset({"team"}))
-        expanded = comms.views.channel_display_page("#team", worktree=project)
+        expanded = comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(project))
         assert [m.body for m in expanded.messages][:2] == ["older newly visible DM", "current channel message"]
         await refresh_chat(chat)
         await ui.step()

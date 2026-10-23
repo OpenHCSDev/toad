@@ -534,7 +534,7 @@ class SavedPrefix(SavedHistory):
         super().__init__(loader, through, runtime)
         self.earlier = earlier
 
-    def replacement(self, through) -> ReplaceablePageSource:
+    def replacement(self, through) -> SavedHistory:
         # A replacement reads the complete source; it must not delegate older
         # reads to the superseded prefix's preparation scope.
         return self.earlier.replacement(through)
