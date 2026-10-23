@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
 from agent_comms.mro_dispatch import handles
-from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
@@ -155,7 +154,8 @@ class NativeSessionEntry(SessionEntry):
         return source.session_disposition.present(row, row.disconnected)
 
     async def reconnect(self, sessions, selected, snapshot, targets):
-        if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
+        sessions.app.coordination_access.confirm(selected)
+        if sessions.get(self.mode) is not self:
             return
         source = self.source(sessions)
         if source is None:

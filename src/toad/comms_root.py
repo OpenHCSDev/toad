@@ -361,10 +361,13 @@ class CoordinationAccess(MroDispatch):
             except (OSError, ValueError, RuntimeError) as error:
                 return self.observation.failed(error, selected)
 
-    def require(self, selected: RouteSelection) -> Observing:
-        """The service for ``selected``; a new selection opens it and starts its observation."""
+    def confirm(self, selected: RouteSelection) -> None:
         if RouteSelection.capture() != selected:
             raise RouteChangedError("Comms route changed before the operation")
+
+    def require(self, selected: RouteSelection) -> Observing:
+        """The service for ``selected``; a new selection opens it and starts its observation."""
+        self.confirm(selected)
         with self.opening:
             return self.observation.require(self, selected)
 
@@ -373,8 +376,9 @@ class CoordinationAccess(MroDispatch):
             previous = self.observation
             with selected.route.hold_client_route():
                 service = Comms(selected.route)
-                if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
+                if service.root.resolve() != selected.root:
                     raise RouteChangedError("Comms route changed while opening the service")
+                self.confirm(selected)
                 observed = Observing(
                     selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
                     self.app.running_loop, access=self)
