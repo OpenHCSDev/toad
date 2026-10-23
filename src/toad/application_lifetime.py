@@ -136,7 +136,7 @@ class ApplicationLifetime:
         return request.read()
 
     def check_version(self) -> None:
-        self.app.run_worker(partial(self.version.check, self.app.preparation.run_thread))
+        self.app.run_worker(partial(self.version.check, self.app.preparation))
 
     def confirm_quit(self) -> None:
         now = monotonic()

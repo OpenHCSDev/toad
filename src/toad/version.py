@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
-from typing import Any, NamedTuple, TYPE_CHECKING
+from typing import NamedTuple, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+
+from toad.work_preparation import ThreadScheduler
 
 if TYPE_CHECKING:
     from packaging.version import Version
@@ -53,10 +54,10 @@ class VersionMonitor:
         self.status: VersionStatus = CurrentVersion()
 
     async def check(
-        self, run_thread: Callable[..., Awaitable[Any]] = asyncio.to_thread,
+        self, scheduler: ThreadScheduler = ThreadScheduler(),
     ) -> None:
         try:
-            self.status = await self.check_version(run_thread)
+            self.status = await self.check_version(scheduler)
         except VersionCheckFailed:
             return
 
@@ -76,20 +77,20 @@ class VersionMonitor:
 
     @classmethod
     async def check_version(
-        cls, run_thread: Callable[..., Awaitable[Any]] = asyncio.to_thread,
+        cls, scheduler: ThreadScheduler = ThreadScheduler(),
     ) -> VersionStatus:
         """Check for a new version of Toad.
 
         The outcome owns whether an upgrade notice exists.
         """
-        current_version = await run_thread(cls.prepare_version)
+        current_version = await scheduler.run_thread(cls.prepare_version)
         # These modules were acquired by the preparation worker above.
         import httpx
         import packaging.version
         import tomllib
 
         try:
-            client = await run_thread(httpx.AsyncClient)
+            client = await scheduler.run_thread(httpx.AsyncClient)
             async with client:
                 response = await client.get(VERSION_TOML_URL)
                 version_toml_bytes = await response.aread()
