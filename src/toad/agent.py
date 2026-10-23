@@ -12,7 +12,6 @@ from toad.conversation_turn import NoTurn
 from toad.core.events import CoreEventStream
 from toad.surface_binding import SurfaceBinding
 
-
 if TYPE_CHECKING:
     from agent_comms.session_load import ExistingSessionLoadPlan
 
@@ -71,11 +70,7 @@ class AgentBase(AgentConnection):
     def accepts_failed_input(self, message):
         if message.publisher is not self or message.event.session_id != self.session_id:
             return False
-        return (
-            self.queue_attachment.accepts_request(message.event.queue_scope)
-            if message.event.recover_draft
-            else True
-        )
+        return self.queue_attachment.accepts_request(message.event.queue_scope) if message.event.recover_draft else True
 
     def send_now(self, owner):
         return owner.send_bound_now(self)
@@ -143,9 +138,7 @@ class AgentBase(AgentConnection):
         """The (wire root, thread name) whose status this agent shows; none without coordination."""
         return None
 
-    async def observe_thread_presentation(
-        self, presentation: ThreadPresentation
-    ) -> None:
+    async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None:
         """Consume a published canonical change; unmanaged agents need no binding."""
 
     @abstractmethod

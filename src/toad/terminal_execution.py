@@ -1,34 +1,40 @@
 """Owns the original PTY and its outcomes; mounted views only display them."""
+
 from __future__ import annotations
 
 import asyncio
-from abc import abstractmethod
-from collections import deque
-from contextlib import AsyncExitStack, suppress
-from dataclasses import dataclass, field
 import codecs
 import os
 import pty
 import shlex
 import signal
 import termios
+from abc import abstractmethod
+from collections import deque
+from contextlib import AsyncExitStack, suppress
+from dataclasses import dataclass, field
 from io import FileIO
 from typing import TYPE_CHECKING, Mapping
 from weakref import ref
 
 from acp import schema as protocol
 from agent_comms.child_process import (
-    AttachedChild, TerminalChildStdio, ChildOutcome, ExitedOutcome, SignaledOutcome,
+    AttachedChild,
+    ChildOutcome,
+    ExitedOutcome,
+    SignaledOutcome,
+    TerminalChildStdio,
     join_retirement,
 )
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
+
 from toad import ansi
 from toad.shell_read import shell_read
 from toad.terminal_environment import TerminalEnvironment
 
 if TYPE_CHECKING:
-    from toad.widgets.terminal_tool import TerminalTool
+    pass
 
 
 @dataclass
@@ -45,15 +51,12 @@ class Command:
     """Original launch shell; catalog scripts explicitly select /bin/sh."""
 
     @classmethod
-    def for_script(cls, script: str, *, env: Mapping[str, str] | None = None,
-                   cwd: str | None = None) -> Command:
+    def for_script(cls, script: str, *, env: Mapping[str, str] | None = None, cwd: str | None = None) -> Command:
         """Catalog shell scripts use the standard shell and terminal environment."""
-        return cls(script, TerminalEnvironment.for_child(os.environ) | (env or {}),
-                   cwd, shell="/bin/sh")
+        return cls(script, TerminalEnvironment.for_child(os.environ) | (env or {}), cwd, shell="/bin/sh")
 
     @classmethod
-    def for_argv(cls, command: str, args: list[str], *,
-                 env: Mapping[str, str], cwd: str) -> Command:
+    def for_argv(cls, command: str, args: list[str], *, env: Mapping[str, str], cwd: str) -> Command:
         """Compile ACP executable/arguments exactly once at its typed boundary."""
         return cls(shlex.join([command, *args]), env, cwd)
 
@@ -76,6 +79,7 @@ class TerminalOutcome(DeclaredFamily, affix="TerminalOutcome"):
     def exit_status(self) -> protocol.TerminalExitStatus | None:
         return None  # Official ACP absence, never an internal lifecycle field.
 
+
 class RunningTerminalOutcome(TerminalOutcome):
     """The original execution task has not returned a completion witness."""
 
@@ -86,6 +90,7 @@ class UnstartedTerminalOutcome(TerminalOutcome):
 
 class RetiredTerminalOutcome(TerminalOutcome):
     """Acquisition was revoked before any command could start."""
+
     finished = True
 
 
@@ -154,6 +159,7 @@ class SignaledTerminalOutcome(TerminalCompletion):
 
 class _TerminalCompletionDecoder(MroDispatch):
     """Typed original POSIX members enter the terminal family at acquisition."""
+
     completion: TerminalCompletion
 
     def __init__(self, original: ChildOutcome):
@@ -173,6 +179,7 @@ class FailedTerminalOutcome(TerminalOutcome):
     error: BaseException
     finished = True
 
+
 @dataclass(frozen=True)
 class ToolState:
     output: str
@@ -180,20 +187,31 @@ class ToolState:
     outcome: TerminalOutcome
 
     def response(self):
-        return protocol.TerminalOutputResponse(output=self.output, truncated=self.truncated,
-                                               exit_status=self.outcome.exit_status())
+        return protocol.TerminalOutputResponse(
+            output=self.output, truncated=self.truncated, exit_status=self.outcome.exit_status()
+        )
 
 
 @dataclass(frozen=True)
 class PtyProcess:
     """Complete acquired handles, scoped by the execution's AsyncExitStack."""
+
     child: AttachedChild
     master: FileIO
     reader: asyncio.StreamReader
 
     @classmethod
-    async def acquire(cls, command: tuple[str, ...], *, env: Mapping[str, str], cwd, width: int, height: int,
-                      cleanup: AsyncExitStack, buffer_size: int=128 * 1024):
+    async def acquire(
+        cls,
+        command: tuple[str, ...],
+        *,
+        env: Mapping[str, str],
+        cwd,
+        width: int,
+        height: int,
+        cleanup: AsyncExitStack,
+        buffer_size: int = 128 * 1024,
+    ):
         master, slave = pty.openpty()
         master_file = cleanup.enter_context(os.fdopen(master, "rb", 0))
         slave_file = cleanup.enter_context(os.fdopen(slave, "wb", 0))
@@ -204,13 +222,17 @@ class PtyProcess:
         reader = asyncio.StreamReader(buffer_size)
         protocol = asyncio.StreamReaderProtocol(reader)
         transport, _ = await asyncio.get_running_loop().connect_read_pipe(
-            lambda: protocol, master_file,
+            lambda: protocol,
+            master_file,
         )
         cleanup.callback(transport.close)
 
         async def acquire_child():
             child = await AttachedChild.start(
-                command, stdio=TerminalChildStdio(slave_file), env=env, cwd=cwd,
+                command,
+                stdio=TerminalChildStdio(slave_file),
+                env=env,
+                cwd=cwd,
             )
             cleanup.push_async_callback(child.stop)
             return child
@@ -239,7 +261,7 @@ class PtyProcess:
         # thread that could write to an unrelated reused descriptor.
         try:
             return os.write(self.master.fileno(), data)
-        except (OSError, ValueError):
+        except OSError, ValueError:
             return 0
 
     def kill(self) -> None:
@@ -367,10 +389,16 @@ class ActiveTerminalOperation(TerminalOperation):
 
 class TerminalExecution:
     """One ANSI/output owner and one acquired operation, independent of views."""
-    def __init__(self, command: Command, output_byte_limit: int | None = None, *,
-                 width: int = ansi.TerminalState.DEFAULT_WIDTH,
-                 height: int = ansi.TerminalState.DEFAULT_HEIGHT,
-                 state: ansi.TerminalState | None = None):
+
+    def __init__(
+        self,
+        command: Command,
+        output_byte_limit: int | None = None,
+        *,
+        width: int = ansi.TerminalState.DEFAULT_WIDTH,
+        height: int = ansi.TerminalState.DEFAULT_HEIGHT,
+        state: ansi.TerminalState | None = None,
+    ):
         self._command = command
         self._output_byte_limit = output_byte_limit
         self._output: deque[bytes] = deque()
@@ -378,8 +406,7 @@ class TerminalExecution:
         self._output_bytes_count = 0
         self.operation: TerminalOperation = NewTerminalOperation()
         # An existing ANSI resource retains prefixes and sequential command output.
-        self.state = (ansi.TerminalState(self.write_stdin, width=width, height=height)
-                      if state is None else state)
+        self.state = ansi.TerminalState(self.write_stdin, width=width, height=height) if state is None else state
         self._view = lambda: None
 
     @property
@@ -391,7 +418,7 @@ class TerminalExecution:
         output, truncated = self.get_output()
         return ToolState(output, truncated, self.operation.outcome())
 
-    def attach(self, terminal: TerminalTool):
+    def attach(self, terminal):
         self._view = ref(terminal)
         terminal.set_state(self.state)
         terminal.set_write_to_stdin(self.write_stdin)
@@ -428,8 +455,12 @@ class TerminalExecution:
             async with AsyncExitStack() as cleanup:
                 command = self.command
                 acquired = await PtyProcess.acquire(
-                    command.shell_command, env=os.environ | command.env, cwd=command.cwd,
-                    width=self.state.width, height=self.state.height, cleanup=cleanup,
+                    command.shell_command,
+                    env=os.environ | command.env,
+                    cwd=command.cwd,
+                    width=self.state.width,
+                    height=self.state.height,
+                    cleanup=cleanup,
                 )
                 ready.set_result(acquired)
                 decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
@@ -451,7 +482,7 @@ class TerminalExecution:
             # The task's result becomes authoritative only after this returns.
             asyncio.get_running_loop().call_soon(self.project, None, None)
 
-    async def write_stdin(self, text: str | bytes, hide_echo: bool=False):
+    async def write_stdin(self, text: str | bytes, hide_echo: bool = False):
         data = text.encode("utf-8", "ignore") if isinstance(text, str) else text
         return await self.operation.write(data)
 
@@ -497,10 +528,7 @@ class TerminalExecution:
             return (byte_value & 0b11000000) == 0b10000000
 
         truncated = self._bytes_read > len(output_bytes)
-        if (
-            self._output_byte_limit is not None
-            and len(output_bytes) > self._output_byte_limit
-        ):
+        if self._output_byte_limit is not None and len(output_bytes) > self._output_byte_limit:
             truncated = True
             output_bytes = output_bytes[len(output_bytes) - self._output_byte_limit :]
             # Must start on a utf-8 boundary

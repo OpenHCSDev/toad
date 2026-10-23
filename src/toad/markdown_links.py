@@ -1,10 +1,11 @@
 """One syntax and link resolver for line, inline and Textual Markdown views."""
+
 from __future__ import annotations
-from functools import partial
 
 import re
 from abc import abstractmethod
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from threading import local
 from typing import TYPE_CHECKING
@@ -16,9 +17,9 @@ from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
 
+from toad.file_position import FilePosition
 from toad.line_blocks import LineLink, LinkHref, OpenReference
 from toad.project_link import ProjectLink
-from toad.file_position import FilePosition
 
 if TYPE_CHECKING:
     from textual.widget import Widget
@@ -49,6 +50,7 @@ class LinkContext:
     @classmethod
     def containing(cls, widget: Widget):
         from toad.project_path_owner import ProjectPathOwner
+
         owner = ProjectPathOwner.containing(widget)
         return cls(owner.project_root.resolve(), owner.reference_context)
 
@@ -70,7 +72,7 @@ class LinkContext:
         for match in self.references.find(text):
             if any(start < match.end and match.start < end for start, end, _ in found):
                 continue
-            content = Token("text", "", 0, content=text[match.start:match.end])
+            content = Token("text", "", 0, content=text[match.start : match.end])
             found.append((match.start, match.end, OpenReference(match.reference).inline_tokens(content)))
         return sorted(found)
 
@@ -152,7 +154,7 @@ class ProjectTokenRenderer:
         self.rules = {FieldCodec.encode(rule): rule for rule in ProjectTokenRule.members_with(ProjectTokenRule)}
 
     def resolve(self, tokens: list[Token], context: _ProjectTokens):
-        result = []
+        result: list[Token] = []
         for token in tokens:
             rule = self.rules.get(token.type)
             result.extend(rule.resolve(self, token, context) if rule else (token,))
@@ -170,7 +172,7 @@ class _MarkdownParserState(local):
 _parser_state = _MarkdownParserState()
 
 
-def parse_markdown_syntax(source: str, env=None, *, inline: bool=False):
+def parse_markdown_syntax(source: str, env=None, *, inline: bool = False):
     state = StateCore(source, _parser_state.parser, {} if env is None else env)
     state.inlineMode = inline
     for rule in _parser_state.syntax_rules:

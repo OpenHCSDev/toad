@@ -5,15 +5,16 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import cached_property
 from typing import TYPE_CHECKING, ClassVar, cast
+
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
 from textual.geometry import Region
 from textual.widget import Widget
+from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
+
 from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
-from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
-from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
-from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
-
+from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.message_category import AgentActivityBoundary
@@ -174,11 +175,7 @@ class FragmentBlockCursor(BlockCursor):
     def current(self):
         """The message the cursor rests on, while the history still draws it."""
         fragment = self.fragment
-        return (
-            fragment
-            if fragment is not None and self.block.draws_fragment(fragment)
-            else None
-        )
+        return fragment if fragment is not None and self.block.draws_fragment(fragment) else None
 
     @property
     def selected(self):
@@ -196,15 +193,10 @@ class FragmentBlockCursor(BlockCursor):
     def move(self, direction: CursorDirection):
         fragments = self.block.drawn_fragments
         current = self.current
-        if current is None or all(
-            current is not seen for seen in self.block.visible_fragments()
-        ):
+        if current is None or all(current is not seen for seen in self.block.visible_fragments()):
             # The reader scrolled away from the cursor: it starts again from what they see.
             return self.enter(direction)
-        index = (
-            next(index for index, drawn in enumerate(fragments) if drawn is current)
-            + direction.step
-        )
+        index = next(index for index, drawn in enumerate(fragments) if drawn is current) + direction.step
         if 0 <= index < len(fragments):
             self.fragment = fragments[index]
             return True
@@ -273,9 +265,7 @@ class ChildBlockCursor(BlockCursor):
         return False
 
     def enter(self, direction: CursorDirection):
-        return self._enter_from(
-            direction.entry(len(self.block.displayed_children)), direction
-        )
+        return self._enter_from(direction.entry(len(self.block.displayed_children)), direction)
 
     def move(self, direction: CursorDirection):
         child = self.current
@@ -335,9 +325,7 @@ class CategorizedBlock(ConversationEntry):
         raise NotImplementedError
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
-        self.set_display_constraint(
-            "message-category", self.message_category in selected
-        )
+        self.set_display_constraint("message-category", self.message_category in selected)
 
     def starts_agent_activity(self, boundary: AgentActivityBoundary) -> bool:
         return self.message_category.observe(boundary)

@@ -1,24 +1,35 @@
 """Process ACP notifications in order; update declarations own their effects."""
+
 from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-from pydantic import JsonValue
+from acp.schema import (
+    AgentMessageChunk,
+    AgentPlanContentUpdate,
+    AgentPlanRemovedUpdate,
+    AgentPlanUpdate,
+    AgentThoughtChunk,
+    AvailableCommandsUpdate,
+    ConfigOptionUpdate,
+    CurrentModeUpdate,
+    SessionInfoUpdate,
+    SessionNotification,
+    TextContentBlock,
+    ToolCallProgress,
+    ToolCallStart,
+    UsageUpdate,
+    UserMessageChunk,
+)
 from agent_comms.acp_extension import AgentCommsUpdate
+from agent_comms.mro_dispatch import MroDispatch, handles
 
-from agent_comms.declared_family import DeclaredFamily
-
-from toad.core import events
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
-from agent_comms.mro_dispatch import MroDispatch, handles
-from acp.schema import (UserMessageChunk, AgentMessageChunk, AgentThoughtChunk,
-    ToolCallStart, ToolCallProgress, AgentPlanUpdate, AgentPlanContentUpdate, AgentPlanRemovedUpdate,
-    SessionNotification, AvailableCommandsUpdate,
-    CurrentModeUpdate, ConfigOptionUpdate, SessionInfoUpdate, UsageUpdate, TextContentBlock)
+from toad.core import events
 from toad.plan import decode_plan
 from toad.project_link import AcpLogLink
 
@@ -29,6 +40,7 @@ if TYPE_CHECKING:
 
 class SessionUpdateEffect(MroDispatch):
     """Effect registrations consume official SDK declarations, never raw shapes."""
+
     def __init__(self, agent: Agent, consumer: CommsUpdateConsumer):
         self.agent, self.consumer = agent, consumer
 
@@ -38,22 +50,24 @@ class SessionUpdateEffect(MroDispatch):
 
     def require_supported(
         self,
-        update: UserMessageChunk
-        | AgentMessageChunk
-        | AgentThoughtChunk
-        | ToolCallStart
-        | ToolCallProgress
-        | AgentPlanUpdate
-        | AgentPlanContentUpdate
-        | AgentPlanRemovedUpdate
-        | AvailableCommandsUpdate
-        | CurrentModeUpdate
-        | ConfigOptionUpdate
-        | SessionInfoUpdate
-        | UsageUpdate,
+        update: (
+            UserMessageChunk
+            | AgentMessageChunk
+            | AgentThoughtChunk
+            | ToolCallStart
+            | ToolCallProgress
+            | AgentPlanUpdate
+            | AgentPlanContentUpdate
+            | AgentPlanRemovedUpdate
+            | AvailableCommandsUpdate
+            | CurrentModeUpdate
+            | ConfigOptionUpdate
+            | SessionInfoUpdate
+            | UsageUpdate
+        ),
     ):
         if not any(self.handlers_for(update)):
-            raise ValueError(f'ACP update capability is not supported: {type(update).__name__}')
+            raise ValueError(f"ACP update capability is not supported: {type(update).__name__}")
 
     @handles(UserMessageChunk)
     def user(self, update: UserMessageChunk):
@@ -93,7 +107,7 @@ class SessionUpdateEffect(MroDispatch):
 
     @handles(SessionInfoUpdate)
     def info(self, update: SessionInfoUpdate):
-        if 'title' in update.model_fields_set:
+        if "title" in update.model_fields_set:
             self.agent.events.publish(events.SessionInfoUpdate(update.title))
 
     @handles(UsageUpdate)
@@ -128,9 +142,10 @@ class ThoughtContentEffect(MessageContentEffect):
 class AgentContentEffect(MessageContentEffect):
     def publish(self, content: TextContentBlock):
         text = content.text
-        if text.startswith('[agent error]'):
-            text += f'\n\n{AcpLogLink.markdown(self.agent.presentation.log_path)}'
+        if text.startswith("[agent error]"):
+            text += f"\n\n{AcpLogLink.markdown(self.agent.presentation.log_path)}"
         from toad.response_delivery import ResponseDelivery
+
         stream = self.agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(self.route))
         self.agent.events.publish(events.Update(content.type, text, stream))
 
@@ -140,13 +155,14 @@ class SessionNotificationOwner(ClientRequestOwner):
         super().__init__(agent)
         self.lock = asyncio.Lock()
 
-    async def receive(self, notification: SessionNotification, raw_update: dict[str, JsonValue]):
+    async def receive(self, notification, raw_update):
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         async with self.lock:
             if authority.retired or not authority.binding.accepts_notification(notification.session_id):
                 return
             validation = await self.agent.controller.task_runner.run(
-                ValidateSessionUpdateTask(notification, raw_update))
+                ValidateSessionUpdateTask(notification, raw_update)
+            )
             if authority.retired:
                 return
             validation.publish(self, notification.session_id, raw_update, notification.field_meta)
@@ -154,7 +170,8 @@ class SessionNotificationOwner(ClientRequestOwner):
     def reject(self, session_id: str, update, metadata, error: str):
         self.agent.log(
             f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
-            f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}")
+            f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
+        )
         self.agent.events.publish(events.RejectedSessionUpdate())
 
     def publish(self, session_id: str, update: SessionNotification, facts: tuple[AgentCommsUpdate, ...]):

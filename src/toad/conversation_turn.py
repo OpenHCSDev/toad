@@ -1,13 +1,16 @@
 """Local ACP turns and source-fenced projections of the backend's turn owner."""
+
 from __future__ import annotations
+
 from abc import abstractmethod
 from collections.abc import Callable
-from typing import TYPE_CHECKING
 from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
 
 from agent_comms.activity import ActivityState
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.turn_lease import NoTurn as IdleTurn, TurnState
+from agent_comms.turn_lease import NoTurn as IdleTurn
+from agent_comms.turn_lease import TurnState
 from agent_comms.ui_model.status import ThreadStatusModel
 
 if TYPE_CHECKING:
@@ -64,15 +67,18 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
         """Each original claim owns capture while this source is active."""
         from toad.widgets.committed_presentation import CommitParticipant
 
-        return frozenset(widget for widget in widgets
-                         if not isinstance(widget, CommitParticipant)
-                         or widget.commit_claim.capture(not self.busy))
+        return frozenset(
+            widget
+            for widget in widgets
+            if not isinstance(widget, CommitParticipant) or widget.commit_claim.capture(not self.busy)
+        )
 
     def with_activity(self, activity: str) -> "TurnOwner":
         return ActivityTurn(activity) if activity else self
 
     def response_stream(self, delivery: ResponseDelivery):
         from toad.live_output import CompleteResponseStream
+
         return CompleteResponseStream(delivery)
 
 
@@ -99,6 +105,7 @@ class ActivityTurn(TurnOwner):
 @dataclass(frozen=True)
 class AgentTurn(TurnOwner):
     """A generic ACP peer owns its local request, but cannot control Comms turns."""
+
     managed_id: str | None = None
     activity: str = "Thinking…"
     started_at: float | None = None
@@ -113,12 +120,14 @@ class AgentTurn(TurnOwner):
 
     def response_stream(self, delivery: ResponseDelivery):
         from toad.live_output import ResponseStream
+
         return ResponseStream(delivery, turn_id=self.managed_id)
 
 
 @dataclass(frozen=True)
 class ManagedTurn(TurnOwner):
     """The published lease owns phase, permissions, activity and identity."""
+
     state: TurnState = TurnState()
 
     @property
@@ -170,6 +179,7 @@ class ManagedTurn(TurnOwner):
     def response_stream(self, delivery: ResponseDelivery):
         if self.busy:
             from toad.live_output import ResponseStream
+
             return ResponseStream(delivery, turn_id=self.managed_id)
         return super().response_stream(delivery)
 
@@ -228,6 +238,7 @@ class LocalTurnBinding(TurnBinding):
 
     async def present_input(self, view: Conversation, text: str):
         from toad.widgets.user_input import UserInput
+
         await view.post(UserInput(text))
 
     def start_client(self):
@@ -276,6 +287,7 @@ class ManagedTurnBinding(TurnBinding):
 
 class ConversationTurn:
     """Read the actual source binding; the widget keeps no managed state or cursor."""
+
     def __init__(self, changed: Callable[[TurnOwner], None], source: Callable[[], TurnBinding]):
         self._source = source
         self._changed = changed

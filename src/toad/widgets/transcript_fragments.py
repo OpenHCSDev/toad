@@ -47,11 +47,15 @@ from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
-    from toad.widgets.transcript_lines import (
-        BlockLines, Lines, LineTheme, RichLineRenderer, TranscriptLinesRenderTask,
-    )
     from toad.tool_output import ToolOutputPart
     from toad.widgets.committed_presentation import CommitClaim
+    from toad.widgets.transcript_lines import (
+        BlockLines,
+        Lines,
+        LineTheme,
+        RichLineRenderer,
+        TranscriptLinesRenderTask,
+    )
 
 
 @dataclass(frozen=True)
@@ -76,10 +80,9 @@ class RenderBudget:
         table = part.tokens[0]
         assert table.map is not None
         ranges = []
-        for index, row in enumerate(lines[2:table.map[1]], 2):
+        for index, row in enumerate(lines[2 : table.map[1]], 2):
             if index > first and (
-                index - first >= row_limit
-                or len(header) + row_characters + len(row) > character_limit
+                index - first >= row_limit or len(header) + row_characters + len(row) > character_limit
             ):
                 ranges.append((first, index))
                 first = index
@@ -111,8 +114,13 @@ class RenderBudget:
         }
         starts = sorted({0, *blocks, len(lines)})
         parts = [
-            (start, stop, blocks.get(start, (0, None))[0],
-             blocks.get(stop, (len(source.tokens), None))[0], blocks.get(start, (0, None))[1])
+            (
+                start,
+                stop,
+                blocks.get(start, (0, None))[0],
+                blocks.get(stop, (len(source.tokens), None))[0],
+                blocks.get(start, (0, None))[1],
+            )
             for start, stop in zip(starts, starts[1:])
         ]
         pending_first = 0
@@ -121,15 +129,13 @@ class RenderBudget:
         pending_token_stop = 0
         pending_characters = 0
         pending_lines = 0
+
         def select(first: int, stop: int, token_first: int, token_stop: int):
-            return source.select_blocks(text[offsets[first]:offsets[stop]], first,
-                                        slice(token_first, token_stop))
+            return source.select_blocks(text[offsets[first] : offsets[stop]], first, slice(token_first, token_stop))
 
         for start, stop, token_first, token_stop, kind in parts:
-            part = text[offsets[start]:offsets[stop]]
-            if kind == "table_open" and (
-                len(part) > self.characters or part.count("\n") > self.lines
-            ):
+            part = text[offsets[start] : offsets[stop]]
+            if kind == "table_open" and (len(part) > self.characters or part.count("\n") > self.lines):
                 if pending_characters:
                     yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
                     pending_characters = 0
@@ -137,12 +143,8 @@ class RenderBudget:
                 yield from self._split_table(select(start, stop, token_first, token_stop))
                 continue
             part_lines = part.count("\n") + int(bool(part) and not part.endswith("\n"))
-            exceeds = (
-                pending_characters
-                and (
-                    pending_characters + len(part) > self.characters
-                    or pending_lines + part_lines > self.lines
-                )
+            exceeds = pending_characters and (
+                pending_characters + len(part) > self.characters or pending_lines + part_lines > self.lines
             )
             if exceeds:
                 yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
@@ -274,6 +276,7 @@ class TranscriptFragment:
     shown: Shown = field(default_factory=Shown, kw_only=True)
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
+
     @property
     def arrival_position(self) -> int | str:
         """The first event owns the fragment's stable source position."""
@@ -302,7 +305,7 @@ class TranscriptFragment:
         return ()
 
     @classmethod
-    def capture_part(cls, event: TextTranscript, text: str, **kwargs):
+    def capture_part(cls, event, text: str, **kwargs):
         return cls((replace(event, text=text),), **kwargs)
 
     def text_rows(self, lines: Lines) -> range:
@@ -346,8 +349,7 @@ class TranscriptFragment:
     @property
     def clipboard_text(self) -> str | None:
         """What copying this fragment gives: its text as written."""
-        return "\n\n".join(event.text for event in self.events
-                           if isinstance(event, TextTranscript)) or None
+        return "\n\n".join(event.text for event in self.events if isinstance(event, TextTranscript)) or None
 
     @property
     def block_menu(self) -> tuple[MenuItem, ...]:
@@ -485,17 +487,17 @@ class SentMessageFragment(BusMessageFragment):
     def shown_live_by(self, claim: CommitClaim) -> bool:
         return claim.repeats_sent(self)
 
+
 class ContextTranscriptFragment(TranscriptFragment):
     """The coordination context an agent was given: one line, and its text when opened."""
 
     has_details = True
 
-    def blocks(self, shown: Shown):
+    def blocks(self, shown):
         summary = shown.summary("Agent coordination context")
         if not shown.details_open:
             return (summary,)
-        return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole)
-                           for event in self.events))
+        return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole) for event in self.events))
 
 
 class TranscriptFragmentConsumer(MroProjection[None]):
@@ -523,8 +525,12 @@ class TranscriptFragmentConsumer(MroProjection[None]):
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage) -> None:
         original = message.message.core_message(AssignedTranscriptSource.open(message.scope))
-        self.text(message.message, SentMessageFragment, publication=message,
-                  row=MessageRow(original, message.scope.recipient.name))
+        self.text(
+            message.message,
+            SentMessageFragment,
+            publication=message,
+            row=MessageRow(original, message.scope.recipient.name),
+        )
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs) -> None:
@@ -532,9 +538,14 @@ class TranscriptFragmentConsumer(MroProjection[None]):
         source = PreparedMarkdownPart.capture(event.text)
         parts = kind.text_parts(source, self.budget)
         self.fragments.extend(
-            kind.capture_part(event, part.text, continuation=index > 0,
-                 part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
-                 starts_agent_activity=starts_activity and index == 0, **kwargs)
+            kind.capture_part(
+                event,
+                part.text,
+                continuation=index > 0,
+                part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
+                starts_agent_activity=starts_activity and index == 0,
+                **kwargs,
+            )
             for index, part in enumerate(parts)
         )
 
@@ -542,7 +553,9 @@ class TranscriptFragmentConsumer(MroProjection[None]):
     def tool(self, event: ToolTranscript) -> None:
         if event.tool_call_id not in self.tools:
             self.tools[event.tool_call_id] = (
-                len(self.fragments), [], self.boundary.observe(event.category),
+                len(self.fragments),
+                [],
+                self.boundary.observe(event.category),
             )
             self.fragments.append(None)  # Reserve the call's original position.
         _, events, _ = self.tools[event.tool_call_id]
@@ -550,7 +563,8 @@ class TranscriptFragmentConsumer(MroProjection[None]):
 
 
 def transcript_fragments(
-    events: tuple[TranscriptEvent, ...], *,
+    events: tuple[TranscriptEvent, ...],
+    *,
     resolve_sent: Callable[[Iterable[SentTranscript]], dict[int, SentTranscript | PublishedSentMessage]],
 ) -> tuple[TranscriptFragment, ...]:
     from toad.tool_output import ToolOutput
@@ -580,12 +594,17 @@ def transcript_fragments(
         elif index in tools:
             tool_events, starts_activity, call, parts = tools[index]
             parts = call.project_output(
-                parts, partial(ToolOutput.apply_sent, resolved=resolved),
+                parts,
+                partial(ToolOutput.apply_sent, resolved=resolved),
             )
-            fragments.append(ToolTranscriptFragment(
-                tool_events, starts_agent_activity=starts_activity,
-                tool_call=call, output_parts=parts,
-            ))
+            fragments.append(
+                ToolTranscriptFragment(
+                    tool_events,
+                    starts_agent_activity=starts_activity,
+                    tool_call=call,
+                    output_parts=parts,
+                )
+            )
         else:
             fragments.append(source)
     return tuple(fragments)
