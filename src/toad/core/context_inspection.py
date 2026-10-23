@@ -883,7 +883,7 @@ class HoldingInspection(InspectionState):
     def current_roots(self):
         return self.inspection.core.roots(self.inspection)
 
-    async def find(self, query: str, selected: ContextNode | None):
+    async def find(self, query: str, selected):
         roots = selected.search_roots if selected is not None else ContextNode.search_roots
         sources = await Coordination.run_worker(partial(roots, self.current_roots))
         return await self.inspection.find(sources, query)
