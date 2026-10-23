@@ -7,12 +7,11 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
 from itertools import islice
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Awaitable, Callable, ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.historical_views import ConversationObservation
 from agent_comms.sent_message import OutgoingMessageReference
-from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.transcripts import (
     TranscriptCursor,
     TranscriptPage,
@@ -65,7 +64,7 @@ class PreparedTranscriptPage:
         return cls.measured(page, fragments)
 
     @classmethod
-    def measured(cls, page, fragments, **view):
+    def measured(cls, page, fragments: tuple[TranscriptFragment, ...], **view):
         coverage = frozenset(reference for fragment in fragments
                              for reference in fragment.outgoing_sources)
         prepared = cls(page, fragments, 0, outgoing_coverage=coverage, **view)
@@ -76,7 +75,7 @@ class PreparedTranscriptPage:
     def source_payload_bytes(self) -> int:
         return sum(256 + 4 * event.text_size for event in self.page.events)
 
-    def measure_sources(self):
+    def measure_sources(self) -> None:
         """The page owns its events; each fragment owns only its acquired rows."""
         self.retained_bytes = (256 + 64 * len(self.outgoing_coverage)
                                + self.source_payload_bytes
@@ -92,7 +91,7 @@ class PreparedTranscriptPage:
             return self.for_view()
         return type(self).measured(self.page, fragments)
 
-    def configure(self, *, batch_size):
+    def configure(self, *, batch_size: int) -> None:
         if self.fragment_range is None:
             self.set_fragment_range(slice(max(0, len(self.fragments) - batch_size), len(self.fragments)))
 
@@ -365,7 +364,7 @@ class PreparedPageSource(ABC):
         return (await self.get(PageRequest(OLDER_END, self.through))).for_view()
 
     @abstractmethod
-    def prefix(self, through) -> PreparedPageSource: ...
+    def prefix(self, through: TranscriptCursor) -> PreparedPageSource: ...
 
     async def prepare_next(self, page: TranscriptPage, end: PageEnd) -> None:
         if self.has_more(end, page):
@@ -393,7 +392,7 @@ class TranscriptPageProjection(ABC):
 class CategoryProjection(TranscriptPageProjection):
     selected: frozenset[type[MessageCategory]]
 
-    def fragments_for(self, page):
+    def fragments_for(self, page: PreparedTranscriptPage):
         return page.fragments
 
     async def project(self, page: PreparedTranscriptPage, runtime: PreparationRuntime) -> PreparedTranscriptPage:
@@ -430,7 +429,7 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
 class TranscriptNoProgress(ValueError):
     """A page read returned no new edge while its end still claimed more."""
 
-    def __init__(self, request: PageRequest, through, page: TranscriptPage) -> None:
+    def __init__(self, request: PageRequest, through: TranscriptCursor | None, page: TranscriptPage) -> None:
         super().__init__(
             f"Transcript history made no cursor progress: {type(request.end).__name__} "
             f"from {request.cursor!r} through {through!r} returned before={page.before!r} "
@@ -523,7 +522,7 @@ class SavedHistory(ReplaceablePageSource):
 
 
 class SavedPrefix(SavedHistory):
-    def __init__(self, earlier, loader, through, runtime):
+    def __init__(self, earlier: SavedHistory, loader: Callable[..., Awaitable[TranscriptPage]], through, runtime: PreparationRuntime) -> None:
         super().__init__(loader, through, runtime)
         self.earlier = earlier
 
@@ -539,7 +538,7 @@ class SavedPrefix(SavedHistory):
     async def _get(self, request):
         return await request.end.edge((self.earlier.get, super()._get))(request)
 
-    async def _prepare(self, request):
+    async def _prepare(self, request) -> None:
         await request.end.edge((self.earlier.prepare, super()._prepare))(request)
 
 
@@ -562,7 +561,7 @@ class ClosedHistory(ReplaceablePageSource):
 
     revision = ConversationObservation()
 
-    def __init__(self, through, runtime):
+    def __init__(self, through: TranscriptCursor, runtime: PreparationRuntime) -> None:
         super().__init__()
         self.through, self.runtime = through, runtime
         self.scope = PreparationScope()
@@ -611,7 +610,7 @@ class ClosedHistory(ReplaceablePageSource):
     async def update_mentions(self, view) -> None:
         return
 
-    async def status_text(self, *, read_only):
+    async def status_text(self, *, read_only) -> str:
         return "Conversation source is not ready"
 
     def has_more(self, end, page) -> bool:
@@ -635,7 +634,7 @@ class ClosedHistory(ReplaceablePageSource):
     async def _get(self, request):
         raise ValueError("This transcript has no saved-source reader")
 
-    async def _prepare(self, request):
+    async def _prepare(self, request) -> None:
         # No saved read can be speculated for a retained-only range.
         return
 

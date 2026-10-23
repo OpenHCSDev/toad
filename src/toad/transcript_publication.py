@@ -10,9 +10,11 @@ from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING, TypeGuard
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate, TranscriptDraftUpdate, TranscriptSnapshotUpdate
+from agent_comms.external_transcript import DraftRow
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.ui_model.observation import (
     NotPublished,
@@ -26,6 +28,7 @@ from agent_comms.coordination_errors import (
 )
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
+from textual.widget import Widget
 from toad.widgets.history_anchor import (
     HeldReaderDestination,
     TailPosition,
@@ -54,7 +57,7 @@ from toad.session_scope import (
 )
 
 if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
+    from toad.widgets.conversation import Conversation, ConversationSessionBinding
 
 
 @dataclass(frozen=True)
@@ -64,7 +67,7 @@ class BoundFrame:
     generation: int
 
     @classmethod
-    def capture(cls, binding, owner, *args, **extra):
+    def capture(cls, binding: BoundView, owner, *args, **extra):
         return cls(binding, owner, owner.generation, *args, **extra)
 
     def current(self):
@@ -74,17 +77,17 @@ class BoundFrame:
             and self.binding.current()
         )
 
-    def painted(self, cursor):
+    def painted(self, cursor) -> None:
         if self.current():
             self.binding.view.retire_loading_splash()
             self.record(cursor)
 
-    def observed(self, cursor):
+    def observed(self, cursor) -> None:
         """A changed source cursor is not proof that its page has painted."""
         if self.current():
             self.record(cursor)
 
-    def record(self, cursor):
+    def record(self, cursor) -> None:
         self.owner.displayed_cursor = cursor
         view = self.binding.view
         view.app.history_displayed()
@@ -224,12 +227,11 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     @handles(TranscriptDraftUpdate)
     async def publish_draft(self, snapshot: TranscriptDraftUpdate) -> bool:
         if self.current():
-            self.show_draft(snapshot)
+            self.show_draft(snapshot.draft, snapshot.identity)
             self.owner.current_read = Published(snapshot.identity)
         return True
 
-    def show_draft(self, snapshot) -> None:
-        draft = snapshot.draft
+    def show_draft(self, draft: DraftRow | None, identity: TranscriptReadIdentity) -> None:
         widget = self.binding.view.cli_draft
         if self.binding.contents.children[-1] is not widget:
             self.binding.contents.move_child(widget, after=-1)
@@ -238,7 +240,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         else:
             widget.show(
                 draft,
-                resolve_sent=snapshot.identity.wire_frontier.resolve_sent_messages,
+                resolve_sent=identity.wire_frontier.resolve_sent_messages,
             )
 
     @handles(TranscriptSnapshotUpdate)
@@ -260,7 +262,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
                 return True
         published = await self.publish_source_page(page)
         if self.current():
-            self.show_draft(snapshot)
+            self.show_draft(snapshot.draft, snapshot.identity)
             if published and bound == snapshot.page.after:
                 self.owner.current_read = Published(snapshot.identity)
         if published and self.current() and self.destination is not None:
@@ -273,7 +275,8 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
 
 class ObservedSourcePublication(CanonicalSourcePublication):
-    def __init__(self, binding, owner, generation, presentation):
+    def __init__(self, binding: BoundView, owner: TranscriptPresentation,
+                 generation: int, presentation: ThreadPresentation) -> None:
         super().__init__(binding, owner, generation)
         self.presentation = presentation
         self.agent_binding = binding.view.agent_binding
@@ -289,13 +292,13 @@ class ObservedSourcePublication(CanonicalSourcePublication):
 class SourcePublicationRequests:
     """One running read and one coalesced original request, never model state."""
 
-    def __init__(self, owner: TranscriptPresentation):
+    def __init__(self, owner: TranscriptPresentation) -> None:
         self.owner = owner
         self.pending: deque[TranscriptPublication] = deque(maxlen=1)
         self.worker: Worker[None] | None = None
         self.observation = ResourceRelease()
 
-    def request(self, kind: type[TranscriptPublication], *args: object) -> None:
+    def request(self, kind: type[TranscriptPublication], *args: ThreadPresentation) -> None:
         publication = self.owner.binding.capture(self.owner, kind, *args)
         if publication is None:
             return
@@ -346,7 +349,7 @@ class SourcePublicationRequests:
 
 
 class CommitPublication(CanonicalSourcePublication):
-    def __init__(self, binding, owner, generation):
+    def __init__(self, binding, owner, generation) -> None:
         super().__init__(binding, owner, generation)
         self.plan = commit_plan(binding.window)
 
@@ -448,10 +451,10 @@ class CommitPublication(CanonicalSourcePublication):
 class ViewBinding:
     """The native view's binding and its view-dependent operations."""
 
-    def matches(self, view: object) -> TypeGuard[Conversation]:
+    def matches(self, view: ConversationSessionBinding) -> TypeGuard[Conversation]:
         return False
 
-    def bound_to(self, view):
+    def bound_to(self, view: Conversation):
         return view.transcript_binding()
 
     @property
@@ -460,13 +463,13 @@ class ViewBinding:
 
     reports_coverage = False
 
-    def covers_outgoing(self, message):
+    def covers_outgoing(self, message) -> bool:
         return False
 
-    def covers_input(self, started: InputStartedUpdate):
+    def covers_input(self, started: InputStartedUpdate) -> bool:
         return False
 
-    def close_source(self):
+    def close_source(self) -> None:
         pass
 
     def replace_source(self):
@@ -476,19 +479,19 @@ class ViewBinding:
     def history(self) -> TranscriptHistory:
         raise ValueError("Saved history requires a bound view")
 
-    def observe_thread(self, owner):
+    def observe_thread(self, owner: TranscriptPresentation) -> None:
         pass
 
-    def capture(self, owner, kind, *args):
+    def capture(self, owner: TranscriptPresentation, kind, *args):
         return None
 
-    def painted(self, owner, cursor):
+    def painted(self, owner, cursor) -> None:
         pass
 
-    def observed(self, owner, cursor):
+    def observed(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
         pass
 
-    def request(self, owner):
+    def request(self, owner: TranscriptPresentation) -> Worker[bool] | None:
         return None
 
     def cancel_workers(self):
@@ -497,13 +500,13 @@ class ViewBinding:
     def covered(self, owner, coverage, history):
         return AwaitComplete.nothing()
 
-    def reset_reader(self):
+    def reset_reader(self) -> None:
         pass
 
-    async def restore_documents(self, owner):
+    async def restore_documents(self, owner) -> None:
         pass
 
-    async def restore(self, owner):
+    async def restore(self, owner) -> None:
         pass
 
 
@@ -517,7 +520,7 @@ class BoundView(ViewBinding):
         source: SessionScope
 
         @classmethod
-        def capture(cls, binding, owner, **extra):
+        def capture(cls, binding: BoundView, owner, **extra):
             return super().capture(
                 binding,
                 owner,
@@ -543,7 +546,7 @@ class BoundView(ViewBinding):
                 and self.binding.window.scroll_revision == self.revision
             )
 
-        def refresh(self, publication):
+        def refresh(self, publication) -> None:
             if not self.current():
                 return
             if publication is None:
@@ -554,14 +557,14 @@ class BoundView(ViewBinding):
             else:
                 self.owner.source_requests.submit(publication)
 
-    def __init__(self, view: Conversation):
+    def __init__(self, view: Conversation) -> None:
         self.view, self.window, self.contents = view, view.window, view.contents
         self._history, = self.contents.query_children(TranscriptHistory)
 
-    def matches(self, view: object) -> TypeGuard[Conversation]:
+    def matches(self, view: ConversationSessionBinding) -> TypeGuard[Conversation]:
         return self.view is view
 
-    def bound_to(self, view):
+    def bound_to(self, view: Conversation):
         if not self.matches(view):
             raise ValueError("Transcript already has a native publisher")
         return self
@@ -587,7 +590,7 @@ class BoundView(ViewBinding):
     def history(self) -> TranscriptHistory:
         return self._history
 
-    def observe_thread(self, owner):
+    def observe_thread(self, owner) -> None:
         view = self.view
         owner._thread_observation.enter_context(
             self.thread_scope.observe(
@@ -605,7 +608,7 @@ class BoundView(ViewBinding):
     def covers_input(self, started: InputStartedUpdate):
         return self.history.covers_input(started)
 
-    def close_source(self):
+    def close_source(self) -> None:
         self.history.close()
 
     def replace_source(self):
@@ -613,7 +616,7 @@ class BoundView(ViewBinding):
         history = self.history
         retirement = history.retire_source()
 
-        async def replace():
+        async def replace() -> None:
             await retirement
             replacement = TranscriptHistory.empty(
                 view=self.view, notification_view=self.contents
@@ -628,7 +631,7 @@ class BoundView(ViewBinding):
 
         return AwaitComplete(replace())
 
-    async def restore_documents(self, owner):
+    async def restore_documents(self, owner) -> None:
         if not self.view.is_attached or not owner.documents:
             return
         moment = self.Moment.capture(self, owner)
@@ -639,7 +642,7 @@ class BoundView(ViewBinding):
         if moment.current():
             owner.documents = ()
 
-    async def restore(self, owner):
+    async def restore(self, owner) -> None:
         view = self.view
         view.resume_retained_history()
         if not owner.readable:
@@ -658,7 +661,7 @@ class BoundView(ViewBinding):
         publication = self.capture(owner, CanonicalSourcePublication)
         view.call_after_refresh(partial(moment.refresh, publication))
 
-    async def reveal_retained(self, owner, history):
+    async def reveal_retained(self, owner, history) -> None:
         view = self.view
         if not view.is_attached:
             return
@@ -671,11 +674,11 @@ class BoundView(ViewBinding):
             return None
         return kind.capture(self, owner, *args)
 
-    def painted(self, owner, cursor):
+    def painted(self, owner, cursor) -> None:
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.painted, cursor))
 
-    def observed(self, owner, cursor):
+    def observed(self, owner, cursor) -> None:
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.observed, cursor))
 
@@ -732,14 +735,14 @@ class BoundView(ViewBinding):
                 [child for child in candidates if child not in protected],
             )
 
-            async def complete():
+            async def complete() -> None:
                 await retirement
                 view.query_one(SessionDetails)._refresh_summary()
 
             return AwaitComplete(complete())
         return AwaitComplete.nothing()
 
-    def reset_reader(self):
+    def reset_reader(self) -> None:
         self.window.reader_position = TailPosition()
 
 
@@ -940,7 +943,7 @@ class TranscriptPresentation:
             except WorkerCancelled:
                 pass
 
-    def retire_presentations(self, contents, output, candidates) -> AwaitComplete:
+    def retire_presentations(self, contents, output, candidates: list[Widget]) -> AwaitComplete:
         """Withdraw covered native paint now; join teardown outside source locks.
 
         CommitEvidence has already selected these exact resources. Their native
