@@ -99,7 +99,7 @@ class AgentController(OperationalTerminalOwner):
         self.transcripts = transcripts
         self.coordination = None
         self.session = SessionBinding(None)
-        self.commands = []
+        self.commands: list[AvailableCommand] = []
         self.plan_entries: list[PlanItem] | None = None
 
     def bind_session(self, session_id) -> None:

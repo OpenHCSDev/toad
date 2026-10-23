@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 import asyncio
 from contextvars import Context, copy_context
 import os
+from types import get_original_bases
 from typing import ClassVar, TypeVar, Generic, TYPE_CHECKING, cast, get_args, get_origin
 
 from agent_comms.declared_family import DeclaredFamily
@@ -14,7 +15,7 @@ from toad.work_preparation import (
     PreparationStorage, SerializedStorage, PreparationRuntime, RenderPreparation,
 )
 
-ResultT = TypeVar("ResultT", covariant=True)
+ResultT = TypeVar("ResultT")
 
 if TYPE_CHECKING:
     from toad.work_preparation import WorkKey, PreparedValue
@@ -23,7 +24,7 @@ class RenderExecution(ABC, Generic[ResultT]):
     _matches_result: ClassVar[Callable[[object], bool]]
 
     def __init_subclass__(cls, **kwargs) -> None:
-        for base in cls.__orig_bases__:
+        for base in get_original_bases(cls):
             origin = get_origin(base)
             if origin is None or not issubclass(origin, RenderExecution):
                 continue
@@ -168,7 +169,8 @@ class Renderer(RendererSpawn):
         try:
             await asyncio.wait((pending,))
         finally:
-            asyncio.future_discard_from_awaited_by(pending, waiter)
+            if waiter is not None:
+                asyncio.future_discard_from_awaited_by(pending, waiter)
 
     def _submission_finished(self, task: asyncio.Task) -> None:
         self._submissions.discard(task)
