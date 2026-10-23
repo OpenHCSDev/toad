@@ -52,6 +52,8 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_drawn_names_clickable_at_ever
             assert body[-1].rstrip() == "second paragraph [literal markup]", (width, body)
             names = (shown.message.sender, target)
             drawn = "\n".join(text)
+            if width >= 80:
+                assert all(name in drawn for name in names), (width, text)
             expected = {OpenTarget(name).click for name in names if name in drawn}
             actual = clicks(rows) - {ToggleDetails().click}
             assert actual == expected, (width, text, actual, expected)
