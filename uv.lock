@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.14"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -1989,7 +1989,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?branch=main#60a324455552a6feeb3868c41551948a58bdcc67" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?branch=main#bb373820ab2d45c86f3b640d36b06a3c7a542706" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },
