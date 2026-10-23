@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from contextlib import suppress
-from functools import cached_property
+from functools import cached_property, partial
 from itertools import filterfalse
 from operator import attrgetter
 from pathlib import Path
@@ -403,7 +403,9 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         if self.query_ancestor(SessionView).is_current:
             from toad.transcript_publication import ObservedSourcePublication
             self._unpublished_presentation = None
-            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
+            self.transcript.source_requests.request(
+                partial(ObservedSourcePublication, presentation=presentation)
+            )
         else:
             self._unpublished_presentation = presentation
 
@@ -419,7 +421,9 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         if presentation is not None:
             from toad.transcript_publication import ObservedSourcePublication
             self._unpublished_presentation = None
-            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
+            self.transcript.source_requests.request(
+                partial(ObservedSourcePublication, presentation=presentation)
+            )
 
     @handles(core_events.ObservedServiceChanged)
     async def _thread_route_observed(self, event: CoreEventMessage) -> None:

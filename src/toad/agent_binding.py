@@ -2,6 +2,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from functools import cached_property
+from agent_comms.thread_presentation import ThreadPresentation
 from textual.content import Content
 from toad.agent_presentation import LocalAgentPresentation
 from toad.acp.agent_configuration import AgentConfiguration
@@ -9,6 +10,11 @@ from toad.acp.agent_session import UnopenedSessionDisposition
 
 
 class AgentBinding(ABC):
+    @abstractmethod
+    async def observe_thread_presentation(
+        self, presentation: ThreadPresentation | None
+    ) -> None: ...
+
     def thread_read(self):
         from toad.acp.comms_updates import NoPendingThreadRead
         return NoPendingThreadRead()

@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import deque
+from collections.abc import Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
 from functools import partial
@@ -22,6 +23,7 @@ from agent_comms.coordination_errors import (
 )
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import TranscriptCoverage
+from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.ui_model.observation import (
     NotPublished,
@@ -54,7 +56,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
-    from toad.widgets.conversation import Conversation
+    from toad.widgets.conversation import Conversation, ConversationSessionBinding
 
 
 @dataclass(frozen=True)
@@ -250,7 +252,8 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
 
 class ObservedSourcePublication(CanonicalSourcePublication):
-    def __init__(self, binding, owner, generation, presentation) -> None:
+    def __init__(self, binding: BoundView, owner: TranscriptPresentation,
+                 generation: int, presentation: ThreadPresentation) -> None:
         super().__init__(binding, owner, generation)
         self.presentation = presentation
         self.agent_binding = binding.view.agent_binding
@@ -272,11 +275,13 @@ class SourcePublicationRequests:
         self.worker: Worker[None] | None = None
         self.observation = ResourceRelease()
 
-    def request(self, kind: type[TranscriptPublication], *args) -> None:
-        publication = self.owner.binding.capture(self.owner, kind, *args)
-        if publication is None:
+    def request(
+        self, kind: Callable[[BoundView, TranscriptPresentation, int], TranscriptPublication]
+    ) -> None:
+        frame = self.owner.binding.capture(self.owner, BoundFrame)
+        if frame is None:
             return
-        self.submit(publication)
+        self.submit(kind(frame.binding, frame.owner, frame.generation))
 
     def submit(self, publication: TranscriptPublication) -> None:
         """Keep the original operation when its caller is the native UI pump."""
@@ -408,7 +413,7 @@ class CommitPublication(CanonicalSourcePublication):
 class ViewBinding:
     """The native view's binding and its view-dependent operations."""
 
-    def matches(self, view) -> TypeGuard[Conversation]:
+    def matches(self, view: ConversationSessionBinding) -> TypeGuard[Conversation]:
         return False
 
     def bound_to(self, view: Conversation):
@@ -506,10 +511,10 @@ class BoundView(ViewBinding):
         self.view, self.window, self.contents = view, view.window, view.contents
         self._history, = self.contents.query_children(TranscriptHistory)
 
-    def matches(self, view) -> TypeGuard[Conversation]:
+    def matches(self, view: ConversationSessionBinding) -> TypeGuard[Conversation]:
         return self.view is view
 
-    def bound_to(self, view):
+    def bound_to(self, view: Conversation):
         if not self.matches(view):
             raise ValueError("Transcript already has a native publisher")
         return self
