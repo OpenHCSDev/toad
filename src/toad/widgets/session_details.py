@@ -90,7 +90,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     @property
     def title_role(self) -> type[LineRole]:
-        return self.project(
+        return self.project_value(
             self.history.status.present_status(self.status_source().status)
         )
 

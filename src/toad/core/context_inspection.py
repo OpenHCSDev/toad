@@ -44,7 +44,6 @@ if TYPE_CHECKING:
     from agent_comms.comms import Comms
     from agent_comms.context_store import (
         CapturedContext,
-        ContextManifestCursor,
         ContextManifestPage,
     )
 
@@ -544,7 +543,7 @@ class ContextInspection:
             comms.root / "coordination.sqlite3",
             tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
-        inspection_type = ThreadInspectionSource().project(entry.status)
+        inspection_type = ThreadInspectionSource().project_value(entry.status)
         files = NativeSessionFiles.for_identity(
             NativeSessionIdentity.locate(thread.runtime.path),
             root=comms.root, owner=thread.incarnation.require_recorded(),
@@ -686,12 +685,12 @@ class ContextInspection:
 
     def active(self, context: NativeContextData):
         return tuple(SegmentNodes(f"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}",
-                                 partial(self.current_source, context, i)).project(segment)
+                                 partial(self.current_source, context, i)).project_value(segment)
                      for i, segment in enumerate(context.segments))
 
     def contributors(self, context: TurnContext):
         return tuple(SegmentNodes(f"core/{context.thread.name}/{context.thread.created_at}/{i}/{segment.declared_name}",
-                     partial(self.core_source, context, i)).project(segment)
+                     partial(self.core_source, context, i)).project_value(segment)
                      for i, segment in enumerate(context.segments))
 
 

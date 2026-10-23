@@ -316,7 +316,7 @@ class TranscriptFragment:
         if self.starts_agent_activity and not self.continuation:
             consumer.blocks.extend(AgentActivityPresentation.group)
         for event in self.events:
-            consumer.project(event)
+            consumer.project_value(event)
         return tuple(consumer.blocks)
 
     @cached_property
@@ -554,7 +554,7 @@ def transcript_fragments(
 
     consumer = TranscriptFragmentConsumer()
     for event in events:
-        consumer.project(event)
+        consumer.project_value(event)
     reports = list(consumer.reported_messages.values())
     tools = {}
     for index, pending, starts_activity in consumer.tools.values():
@@ -568,7 +568,7 @@ def transcript_fragments(
     canonical = {}
     for index, report in consumer.reported_messages.items():
         start = len(builder.fragments)
-        builder.project(resolved[id(report)])
+        builder.project_value(resolved[id(report)])
         canonical[index] = tuple(builder.fragments[start:])
     fragments = []
     for index, source in enumerate(consumer.fragments):

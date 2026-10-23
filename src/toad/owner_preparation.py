@@ -52,7 +52,7 @@ class ExistingOwnerPlan(MroProjection[OwnerPlan]):
 
     @classmethod
     def from_binding(cls, binding: ThreadOwnerBinding) -> OwnerPlan:
-        return cls().project(binding)
+        return cls().project_value(binding)
 
 
 @dataclass(frozen=True, slots=True)

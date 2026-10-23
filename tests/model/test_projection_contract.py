@@ -45,7 +45,7 @@ def test_projection_returns_the_specific_result_and_forwards_context(override: b
 
     projection = OverriddenProjection() if override else TextProjection()
     value = SpecificValue("original")
-    result = projection.project(value, "[", suffix="]")
+    result = projection.project_value(value, "[", suffix="]")
 
     assert result == Rendering("[override:original]" if override else "[original]")
     assert selected == ["override" if override else "specific"]
@@ -60,13 +60,13 @@ def test_projection_preserves_a_none_result_from_a_side_effect_handler() -> None
         def record(self, value: Value) -> None:
             selected.append(value.text)
 
-    assert RecordingProjection().project(Value("recorded")) is None
+    assert RecordingProjection().project_value(Value("recorded")) is None
     assert selected == ["recorded"]
 
 
 def test_projection_without_a_declared_handler_raises_stop_iteration() -> None:
     with pytest.raises(StopIteration):
-        MroProjection[Rendering]().project(Value("unhandled"))
+        MroProjection[Rendering]().project_value(Value("unhandled"))
 
 
 def test_unavailable_owner_projection_does_not_supply_a_load_plan():
