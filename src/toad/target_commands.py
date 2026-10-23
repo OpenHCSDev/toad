@@ -27,20 +27,26 @@ if TYPE_CHECKING:
 class TargetContext:
     app: ToadApp
     comms: Comms
-    subject: str | CommandTarget
+    subject: CommandTarget
     actor: str
     project: Path
     mode: str | None = None
     channel: ChannelSelection = field(default_factory=NoChannel)
-    targets: tuple[str, ...] = ()
+    targets: tuple[CommandTarget, ...] = ()
+
+    @property
+    def selection(self) -> CommandTarget | tuple[CommandTarget, ...]:
+        return self.targets or self.subject
 
     @property
     def selected_targets(self):
-        return self.targets or CommandTarget.named(self.subject).names
+        return (tuple(name for target in self.targets for name in target.names)
+                if self.targets else self.subject.names)
 
     @property
     def title(self):
-        return ", ".join(self.selected_targets) if self.selected_targets else str(self.project)
+        names = self.selected_targets
+        return ", ".join(names) if names else str(self.project)
 
     def current(self):
         if not root_is_current(self.comms.root):
@@ -52,9 +58,7 @@ class TargetContext:
         selected = RouteSelection.capture(self.comms.root)
         self.current()
         actions = CliCommand.target_catalog(self.comms,
-            CliCommand.selected_targets(
-                tuple(CommandTarget.named(name) for name in self.targets)
-                if self.targets else CommandTarget.named(self.subject)),
+            CliCommand.selected_targets(self.selection),
             self.channel, project=str(self.project))
         if RouteSelection.capture(self.comms.root) != selected:
             raise ValueError('Comms route changed during command discovery')
@@ -157,10 +161,11 @@ class DirectMessagesCommand(ViewCommand, declared_name="dm"):
     help = "Direct messages"
 
     def available(self, ctx: TargetContext) -> bool:
-        return len(ctx.selected_targets) == 1 and ctx.subject in ctx.comms.registry
+        names = ctx.selected_targets
+        return len(names) == 1 and names[0] in ctx.comms.registry
 
     def execute(self, ctx: TargetContext) -> None:
-        ctx.app.session_navigation.direct_messages(ctx.subject)
+        ctx.app.session_navigation.direct_messages(ctx.selected_targets[0])
 
 
 class CopyCommand(ViewCommand, declared_name="copy"):

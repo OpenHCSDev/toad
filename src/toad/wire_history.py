@@ -405,7 +405,7 @@ class WirePageBuffer(SavedHistory):
         from toad.target_commands import TargetContext
 
         references = view.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
-        return TargetContext(view.app, self.loader.comms, self.loader.conversation.destination(references).name, self.loader.me,
+        return TargetContext(view.app, self.loader.comms, self.loader.conversation.destination(references), self.loader.me,
                              self.loader.project, view.query_ancestor(SessionView).id)
 
     async def submit_input(self, view, event) -> None:

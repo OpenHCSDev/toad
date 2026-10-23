@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from acp import schema as acp_protocol
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
+from agent_comms.channel_targets import CommandTarget
 from agent_comms.goals import NoGoal
 from agent_comms.mro_dispatch import handles
 from agent_comms.ui_model.delivery import InputDelivery
@@ -1471,7 +1472,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         comms = await self.app.preparation.run_thread(lambda: self.app.coordination_access.observation.observed().service)
         if not self.is_attached or screen.navigation_context != nav:
             raise ValueError('Command view changed during discovery')
-        return screen.thread_identity.command_target(lambda actor: TargetContext(self.app, comms, actor, actor, nav.project_path, nav.owner_mode))
+        return screen.thread_identity.command_target(lambda actor: TargetContext(self.app, comms, CommandTarget.named(actor), actor, nav.project_path, nav.owner_mode))
 
     @work(group='command-catalog', exclusive=True)
     async def update_slash_commands(self) -> None:

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from agent_comms.channel_targets import CommandTarget
-
 from agent_comms.errors import RouteChangedError
 from toad.core import events as core_events
 
@@ -127,9 +125,7 @@ class ThreadAction:
             def prepare():
                 ctx.current()
                 return TargetEdit(declaration=definition.declaration,
-                    target=definition.declaration.selected_targets(
-                        tuple(CommandTarget.named(name) for name in definition.targets)
-                        if ctx.targets else CommandTarget.named(ctx.subject)),
+                    target=definition.declaration.selected_targets(ctx.selection),
                     arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),
                     channel=definition.channels, project=str(ctx.project))
             request = await ctx.app.preparation.run_thread(prepare)
