@@ -5,7 +5,6 @@ import asyncio
 import json
 import os
 from collections.abc import Callable
-from contextlib import ExitStack
 from contextvars import ContextVar
 from pathlib import Path
 from typing import Optional
@@ -19,6 +18,7 @@ from agent_comms.child_process import (
     join_retirement,
 )
 from agent_comms.launch_root import LaunchRoot
+from agent_comms.errors import RouteChangedError
 from agent_comms.route_selection import RouteSelection
 from pydantic import JsonValue
 
@@ -70,8 +70,7 @@ class AgentProcess(Client):
         env = os.environ.copy()
         cwd = str(agent.project_root_path.resolve())
         selection = RouteSelection.capture(agent.controller.transcripts.access.launch_root.path)
-        with ExitStack() as acquisition:
-            acquisition.enter_context(selection.route.hold_client_route())
+        with selection.route.hold_client_route():
             if not agent.session.accepts_updates:
                 return self
             for connection in dict.fromkeys((self, *processes)):
@@ -95,6 +94,8 @@ class AgentProcess(Client):
 
     async def prompt(self, agent, content, metadata: dict[str, JsonValue], require: Callable[[], None]):
         """The agent-comms-acp child writes the prompt under Core's maintenance gate."""
+        if RouteSelection.capture() != self.route_selection:
+            raise RouteChangedError(RouteChangedError.reader_sentence)
         require()
         return await self.rpc.prompt(agent.session_id, content, **metadata)
 

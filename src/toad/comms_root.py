@@ -14,7 +14,6 @@ from __future__ import annotations
 import asyncio
 import threading
 from collections.abc import Callable, Mapping
-from contextlib import ExitStack
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
@@ -372,8 +371,7 @@ class CoordinationAccess(MroDispatch):
     def open_selected(self, selected: RouteSelection) -> Observing:
         def attach() -> Observing:
             previous = self.observation
-            with ExitStack() as acquisition:
-                acquisition.enter_context(selected.route.hold_client_route())
+            with selected.route.hold_client_route():
                 service = Comms(selected.route)
                 if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
                     raise RouteChangedError("Comms route changed while opening the service")
