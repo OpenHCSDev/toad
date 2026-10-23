@@ -1,4 +1,5 @@
 """Fixed native workspace chrome; logical session switches never reparent it."""
+
 from typing import TYPE_CHECKING
 from textual.app import ComposeResult
 from textual.containers import Horizontal
@@ -12,10 +13,10 @@ from ui_theme.scheme import HeaderToneColour
 from toad.frame_presentation import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
+from toad.session_scope import SessionScope
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.screens.session_view import SessionView
 
 
 class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
@@ -26,6 +27,7 @@ class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
     def compose(self) -> ComposeResult:
         from toad.widgets.session_tabs import SessionsTabs
         from toad.widgets.side_bar import TabHistoryControls
+
         yield TabHistoryControls()
         yield SessionsTabs()
 
@@ -49,41 +51,61 @@ class WorkspaceChrome(VerticalLayout):
     def refresh_layout(self) -> None:
         """Placement changes retire both native parent arrangements."""
         source = self.channels.app.workspace_sessions.source
-        for parent in {bar.parent for bar in (self.channels, *source.sidebars()) if bar.is_mounted}:
+        for parent in {
+            bar.parent for bar in (self.channels, *source.sidebars()) if bar.is_mounted
+        }:
             parent.refresh(repaint=False, layout=True)
 
-    def arrange(self, parent: Widget, children: list[Widget], size: Size,
-                greedy: bool = True) -> ArrangeResult:
+    def arrange(
+        self, parent: Widget, children: list[Widget], size: Size, greedy: bool = True
+    ) -> ArrangeResult:
         """Place chrome and conversation directly in the native layout pass."""
         source = parent.app.workspace_sessions.source
         layout = parent.app.sidebar_layout
         own = tuple(source.sidebars())
-        bars = tuple(bar for bar in (self.channels, *own)
-                     if bar.presentation_visible and bar.id in layout.placements)
+        bars = tuple(
+            bar
+            for bar in (self.channels, *own)
+            if bar.presentation_visible and bar.id in layout.placements
+        )
         resolved = layout.resolve(size.width, {bar.id: bar.collapsed for bar in bars})
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.
         nested = parent is self.channels.parent and any(
-            bar.parent.layout is self for bar in own)
+            bar.parent.layout is self for bar in own
+        )
         left = 0 if nested else resolved.left_gutter
         right = 0 if nested else resolved.right_gutter
-        placements = [placement._replace(
-            region=placement.region + Offset(left, 0),
-            margin=placement.margin + Spacing(0, right, 0, left),
-        ) for placement in super().arrange(
-            parent, [child for child in children if child not in bars],
-            Size(max(0, size.width - left - right), size.height), greedy)]
+        placements = [
+            placement._replace(
+                region=placement.region + Offset(left, 0),
+                margin=placement.margin + Spacing(0, right, 0, left),
+            )
+            for placement in super().arrange(
+                parent,
+                [child for child in children if child not in bars],
+                Size(max(0, size.width - left - right), size.height),
+                greedy,
+            )
+        ]
         order = {identity: index for index, identity in enumerate(layout.ordered())}
         for bar in bars:
             if bar in children:
                 geometry = resolved.bars[bar.id]
-                placements.append(WidgetPlacement(
-                    Region(0, 0, geometry.width, size.height), Offset(geometry.x, 0),
-                    Spacing(), bar, order[bar.id], overlay=True, absolute=True,
-                ))
+                placements.append(
+                    WidgetPlacement(
+                        Region(0, 0, geometry.width, size.height),
+                        Offset(geometry.x, 0),
+                        Spacing(),
+                        bar,
+                        order[bar.id],
+                        overlay=True,
+                        absolute=True,
+                    )
+                )
         return placements
 
-    async def select(self, view: "SessionView") -> None:
+    async def select(self, view: "SessionScope") -> None:
         roster = self.channels.roster
         roster.navigation.capture()
         roster.set_enabled(view.shows_channels)

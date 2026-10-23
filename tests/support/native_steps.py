@@ -9,7 +9,8 @@ from agent_comms.channel_targets import ChannelTarget
 from agent_comms.notification_progress import AnsweredProgress, IgnoredProgress
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
-from toad.navigation_target import DirectTarget, NavigationContext, channel_target
+from toad.navigation_target import DirectTarget, channel_target
+from toad.navigation_context import NavigationContext
 from toad.widgets.comms_chat import CommsChatView
 from toad.notification_status import CheckedNotifications, NotificationStatus
 

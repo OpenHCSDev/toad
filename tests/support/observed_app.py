@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 
 from toad.app import ToadApp
+from toad.session_scope import AgentAttached
 from toad.cli import run_terminal
 
 from agents import peer
@@ -36,4 +37,4 @@ if __name__ == "__main__":
     from agent_comms.launch_root import LaunchRoot
 
     LaunchRoot.from_path(sys.argv[2]).install()
-    run_terminal(ObservedApp(project_dir=sys.argv[1], agent_data=peer("echo")))
+    run_terminal(ObservedApp(project_dir=sys.argv[1], agent_binding=AgentAttached(peer("echo"))))

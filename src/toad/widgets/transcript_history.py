@@ -43,7 +43,7 @@ from toad.core.source_events import TranscriptCoverage
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageClock, MessageRow
 from toad.response_delivery import ResponseDelivery
-from toad.screens.session_view import SessionView
+from toad.session_scope import SessionScope
 from toad.transcript_filter import FilterState
 from toad.transcript_preparation import (
     ClosedHistory,
@@ -1181,7 +1181,7 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
 
     @classmethod
     def initial_state(cls, view):
-        return view.query_ancestor(SessionView).thread_identity.transcript_state()
+        return view.query_ancestor(SessionScope).thread_identity.transcript_state()
 
     @classmethod
     def empty_page(cls):

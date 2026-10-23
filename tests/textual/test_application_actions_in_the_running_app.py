@@ -1,4 +1,5 @@
 """Textual-facing: application actions (help, settings screen, command palette, sidebar buttons, tab close) run through Textual screens and keep the session, its draft and the saved settings."""
+from toad.session_scope import AgentAttached
 
 from contextlib import asynccontextmanager
 import json
@@ -39,7 +40,7 @@ def save_settings(workspace, **ui):
 async def running_session(workspace):
     """The app on saved settings, its completion agent ready and one reply received."""
     config, path = save_settings(workspace)
-    async with workspace.app(size=(130, 44), agent=peer("completion", name="Action peer", identity="action-peer")) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(peer("completion", name="Action peer", identity="action-peer"))) as ui:
         await ui.until_agent_ready()
         await ui.type('FIRST_REPLY')
         await ui.press('enter')
@@ -151,7 +152,7 @@ async def test_quitting_from_a_focused_editor_saves_it_and_the_reopened_app_repl
     saved = json.loads(path.read_text())
     assert saved['ui']['column-width'] == 137, saved
     assert saved['anon_id'] == 'durable-id'
-    async with workspace.app(size=(130, 44), agent=peer("completion", name="Action peer", identity="action-peer")) as reopened:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(peer("completion", name="Action peer", identity="action-peer"))) as reopened:
         await reopened.until_agent_ready()
         app = reopened.textual[0]
         assert app.settings.ui.column_width == 137 and app.settings.ui.footer is True

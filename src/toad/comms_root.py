@@ -580,4 +580,3 @@ class CoordinationAccess(MroDispatch):
         # This method runs in the same worker as the actual sink. The existing
         # core route lock is held through the operation; no second lock/store.
         return run_selected_write(selected.root, operation, *args, **kwargs)
-

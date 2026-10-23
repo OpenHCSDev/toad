@@ -1,4 +1,5 @@
 """The status line shows context use as reported; a zero after compaction means unknown, not empty."""
+from toad.session_scope import AgentAttached
 
 from agent_comms.context_reading import ContextUsage, UnmeasuredContext
 from toad.acp.context_measurement import ContextMeasurement
@@ -36,7 +37,7 @@ async def test_usage_updates_reach_the_status_line(workspace):
 
 
 async def test_usage_measured_while_another_tab_is_shown_appears_on_return(workspace):
-    async with workspace.app(size=(100, 35), agent=peer("scripted")) as ui:
+    async with workspace.app(size=(100, 35), binding=AgentAttached(peer("scripted"))) as ui:
         await ui.until_agent_ready()
         first = ui.selected_tab
         late = {"update": usage(40000)}

@@ -8,7 +8,7 @@ from agent_comms.coordination_errors import StaleRevision
 from agent_comms.historical_views import ConversationObservation
 from agent_comms.messages import Message
 
-from toad.screens.session_view import SessionView
+from toad.session_scope import SessionScope
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.widgets.message_notifications import (
@@ -64,7 +64,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
     @property
     def can_draw_on_screen(self) -> bool:
         return (super().can_draw_on_screen
-                and self.view.query_ancestor(SessionView).is_current)
+                and self.view.query_ancestor(SessionScope).is_current)
 
     async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
         """Whether the route still selects this source's bus and nothing replaced the history."""

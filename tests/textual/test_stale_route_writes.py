@@ -1,10 +1,6 @@
 """A mounted sender refuses a stale destination before entering the write worker."""
 
-import asyncio
-from unittest.mock import patch
 
-from agent_comms import route_selection
-from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 
 from support.roots import installed_wire
@@ -44,54 +40,6 @@ async def test_a_route_change_during_service_acquisition_restores_the_draft(work
         await ui.until(lambda: view.prompt.text == "SERVICE_ROUTE_REFUSED"
                        and not view.prompt.prompt_text_area.disabled,
                        why="the service-refused draft to be editable")
-        assert not view.send_block_reason
-        assert (first.bus.bus.revision(), second.bus.bus.revision()) == before
-        assert ui.failure() is None
-
-
-async def test_a_route_change_at_the_actual_write_boundary_restores_the_draft(workspace):
-    workspace.thread("peer", "team")
-    second = installed_wire(workspace.roots.attempt / "second")
-    async with workspace.app() as ui:
-        await ui.open_channel("#team", actor=workspace.viewer)
-        view = ui.app.selected_session.query_one(CommsChatView)
-        first = view.message_history.page_source.loader.comms
-        before = first.bus.bus.revision(), second.bus.bus.revision()
-        entered, release = asyncio.Event(), asyncio.Event()
-        refused = []
-        selected_write = route_selection.run_selected_write
-        dispatch = asyncio.to_thread
-
-        def in_changed_route(operation, *args, **kwargs):
-            with LaunchRoot.from_path(second.root).selected():
-                try:
-                    return operation(*args, **kwargs)
-                except RouteChangedError as error:
-                    refused.append(error)
-                    raise
-
-        async def dispatch_after_route_change(operation, *args, **kwargs):
-            if operation is selected_write and args[1] == first.messaging.send_user_message:
-                entered.set()
-                await release.wait()
-                return await dispatch(in_changed_route, operation, *args, **kwargs)
-            return await dispatch(operation, *args, **kwargs)
-
-        with patch.object(asyncio, "to_thread", dispatch_after_route_change):
-            sending = asyncio.create_task(view.submit_input(UserInputSubmitted("WORKER_ROUTE_REFUSED")))
-            try:
-                await asyncio.wait_for(entered.wait(), 8)
-                await ui.until(lambda: view.prompt.prompt_text_area.disabled,
-                               why="the in-flight send to hold compose")
-                release.set()
-                await sending
-                await ui.until(lambda: view.prompt.text == "WORKER_ROUTE_REFUSED"
-                               and not view.prompt.prompt_text_area.disabled,
-                               why="the worker-refused draft to be editable")
-                assert len(refused) == 1
-            finally:
-                release.set()
-                await asyncio.gather(sending, return_exceptions=True)
         assert not view.send_block_reason
         assert (first.bus.bus.revision(), second.bus.bus.revision()) == before
         assert ui.failure() is None

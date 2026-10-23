@@ -8,6 +8,7 @@ from support.native import native_session
 from toad.screens.agent_modal import AgentModal
 from toad.screens.store import AgentItem, LauncherGridSelect, LauncherItem, StoreScreen
 from toad.preferences import SETTINGS
+from toad.session_scope import AgentAttached
 
 
 async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(workspace, native_package):
@@ -15,7 +16,7 @@ async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(works
         from toad.app import ToadApp
 
         def with_catalog_agent(**arguments):
-            return ToadApp(**{**arguments, "agent_data": definition})
+            return ToadApp(**{**arguments, "agent_binding": AgentAttached(definition)})
 
         async with native_session(workspace, application=with_catalog_agent) as native:
             ui, agent, comms, provider = native.ui, native.agent, native.comms, native.provider

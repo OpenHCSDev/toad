@@ -1,12 +1,22 @@
 """A session's absent, local or wire-bound thread, with its owned behavior."""
+
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from toad.format_path import format_path
-from toad.transcript_state import UnboundTranscript, UnreadTranscript
+from typing import TYPE_CHECKING
+
 from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
+
+from toad.format_path import format_path
+from toad.session_scope import KnownTranscript, NoTranscript, TranscriptScope
+from toad.transcript_state import UnboundTranscript, UnreadTranscript
+
+if TYPE_CHECKING:
+    from toad.session_tracker import SessionDetails
 
 
 class SessionIdentity(ABC):
@@ -35,8 +45,8 @@ class SessionIdentity(ABC):
     def wire_root(self) -> str | None:
         return None
 
-    def transcript_scope(self) -> tuple[str, str] | None:
-        return None
+    def transcript_scope(self) -> TranscriptScope:
+        return NoTranscript()
 
     def transcript_state(self):
         return UnboundTranscript()
@@ -49,6 +59,7 @@ class SessionIdentity(ABC):
 
     def inspection_state(self):
         from toad.core.context_inspection import DetachedInspection
+
         return DetachedInspection()
 
     def root_path(self) -> Path | None:
@@ -66,9 +77,14 @@ class SessionIdentity(ABC):
     def bind_history(self, histories) -> None:
         """An unbound session keeps its native input-history scope."""
 
+    def bind_initial_identity(self, details: SessionDetails) -> None:
+        """A session without a thread has no initial thread title."""
+
     def resolve_thread(self, registry, project: Path) -> str:
         """An unbound view asks Core to discover its project's session."""
-        return registry.session_thread(project, self.thread_name()).name_or(self.thread_name())
+        return registry.session_thread(project, self.thread_name()).name_or(
+            self.thread_name()
+        )
 
     def command_target[T](self, target: Callable[[str], T]) -> T:
         """A named session addresses backend commands as its thread."""
@@ -90,6 +106,9 @@ class NoThreadIdentity(SessionIdentity):
 
 @dataclass(frozen=True)
 class NamedThreadIdentity(SessionIdentity, ABC):
+    def bind_initial_identity(self, details: SessionDetails) -> None:
+        details.bind_initial_identity(self.thread_name())
+
     def display_thread(self) -> str:
         return f"@{self.thread_name()}"
 
@@ -97,6 +116,7 @@ class NamedThreadIdentity(SessionIdentity, ABC):
 @dataclass(frozen=True)
 class LocalThreadIdentity(NamedThreadIdentity):
     """A named session without a managed wire."""
+
     thread: str
 
     def thread_name(self) -> str:
@@ -137,8 +157,8 @@ class ThreadIdentity(NamedThreadIdentity):
     def wire_root(self) -> str:
         return self.root
 
-    def transcript_scope(self) -> tuple[str, str]:
-        return self.root, self.thread_name()
+    def transcript_scope(self) -> KnownTranscript:
+        return KnownTranscript(self.root, self.thread_name())
 
     def transcript_state(self):
         return UnreadTranscript()
@@ -148,6 +168,7 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def inspection_state(self):
         from toad.core.context_inspection import ReadingOwnerInspection
+
         return ReadingOwnerInspection()
 
     def root_path(self) -> Path:

@@ -2,6 +2,7 @@
 
 
 import asyncio
+from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -13,6 +14,15 @@ from agent_comms.errors import (
     RouteChangedError,
 )
 from agent_comms.messages import Message
+from rich.text import Text as RichText
+from textual import getters
+from textual.content import Content
+from textual.reactive import var
+from textual.widget import Widget
+
+from toad.app_node import ToadNode
+from toad.widgets.flash import Flash
+from toad.widgets.prompt import Prompt
 
 
 class SendState:
@@ -55,8 +65,18 @@ class SendBlocked(SendState):
         return f"Send blocked: {self.description}"
 
 
-class DeliveryFailureView:
-    """Own human-message delivery and its compose/failure controls."""
+class DeliveryFailureView(ToadNode, Widget):
+    """The composed input, status and delivery behavior shared by conversations."""
+
+    prompt = getters.query_one(Prompt)
+    feedback = getters.query_one(Flash)
+    status: var[str | Content | RichText] = var("")
+
+    @abstractmethod
+    def draws_user_message(self, message: Message) -> bool: ...
+
+    async def composer_read_only(self) -> bool:
+        return False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -97,7 +117,7 @@ class DeliveryFailureView:
         if not body.strip():
             return
         if self.send_block_reason:
-            self.flash(self.send_block_reason, style="error")
+            self.feedback.flash(self.send_block_reason, style="error")
             return
         try:
             comms = await self.app.coordination_access.transcripts.service(root)
@@ -105,7 +125,7 @@ class DeliveryFailureView:
             await self.refresh_composer(read_only)
             if read_only:
                 self.prompt.restore_draft(body)
-                self.flash(self.status, style="error")
+                self.feedback.flash(self.status, style="error")
                 return
             self._enter_send_state(SendPending())
             route_current = await self.app.preparation.run_thread(root_is_current, root)
@@ -147,9 +167,9 @@ class DeliveryFailureView:
     def delivery_blocked(self, description: str, body: str) -> None:
         self.prompt.restore_draft(body)
         self._enter_send_state(SendBlocked(description))
-        self.flash(self.send_block_reason, style="error")
+        self.feedback.flash(self.send_block_reason, style="error")
 
     def delivery_refused(self, description: str, body: str) -> None:
         self.prompt.restore_draft(body)
         self._enter_send_state(NoSend())
-        self.flash(f"Send failed: {description}", style="error")
+        self.feedback.flash(f"Send failed: {description}", style="error")

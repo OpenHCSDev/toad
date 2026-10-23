@@ -7,6 +7,7 @@ import shlex
 import sys
 from typing import TYPE_CHECKING
 
+from toad.session_scope import NoAgent
 from toad.core.events import CoreEvent
 
 if TYPE_CHECKING:
@@ -55,7 +56,7 @@ class AppAgents:
         """For a test with no app running: agents of an app built on ``project`` and never run."""
         from toad.app import ToadApp
 
-        return cls(ToadApp(project_dir=str(project)))
+        return cls(ToadApp(agent_binding=NoAgent(), project_dir=str(project)))
 
     def agent[A: Agent](self, kind: type[A], definition: AgentDefinition, session_id: str | None = None,
                         **fields: object) -> A:

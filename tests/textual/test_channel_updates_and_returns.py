@@ -1,48 +1,34 @@
 """A real shared observer updates a shown channel and leaves its parked view alone."""
 
-import os
-from unittest.mock import patch
-
-
-async def test_live_update_paints_parked_channel_unsubscribes_and_return_shows_the_update(workspace):
+async def test_live_update_paints_parked_channel_reads_nothing_and_return_shows_the_update(workspace):
     from toad.widgets.comms_chat import CommsChatView, session_thread_name
 
     comms = workspace.comms
     for name in ("sender", "reader", session_thread_name(workspace.project)):
         workspace.thread(name, "alpha")
-    comms.messaging.send("sender", "#alpha", "INITIAL ROW")
+    initial = comms.messaging.send("sender", "#alpha", "INITIAL ROW").message
     async with workspace.app(size=(113, 34)) as ui:
-        app = ui.app
+        app = ui.textual[0]
+        access = app.coordination_access
         owner = ui.selected_tab
         mode = await ui.open_channel("#alpha", actor="reader")
         chat = app.selected_session.query_one(CommsChatView)
         await ui.until_shows("INITIAL ROW")
         await chat.message_history.toggle_style()
-        feedback = chat.message_history.notification_view
-        access = app.coordination_access
-        await ui.until(lambda: feedback in access.notification_views,
-                       why="the channel's notification subscription")
-        assert access.observation.observed().process.process.pid != os.getpid()
-        arrivals = []
-        publish = feedback.notifications_observed
+        await ui.until(
+            lambda: any(initial.reference in read.references for read in access.notification_interest.reads),
+            why="the shown channel to subscribe to its notification references",
+        )
 
-        def received(results):
-            arrivals.append(results)
-            publish(results)
+        comms.messaging.send("sender", "#alpha", "LIVE UPDATE")
+        await ui.until_shows("LIVE UPDATE")
 
-        with patch.object(feedback, "notifications_observed", received):
-            comms.messaging.send("sender", "#alpha", "LIVE UPDATE")
-            await ui.until_shows("LIVE UPDATE")
-            await ui.until(lambda: bool(arrivals), why="the shared observer's notification reply")
-            await ui.select_tab(owner)
-            assert feedback not in access.notification_views
-            parked = len(arrivals)
-            comms.messaging.send("sender", "#alpha", "PARKED UPDATE")
-            await ui.step(1.2)
-            assert len(arrivals) == parked, "a parked channel received notification bodies"
-            assert feedback not in access.notification_views
-            await ui.select_tab(mode)
-            await ui.until_shows("PARKED UPDATE")
-            await ui.until(lambda: feedback in access.notification_views,
-                           why="the returned channel's notification subscription")
-            assert app.selected_session.query_one(CommsChatView) is chat
+        await ui.select_tab(owner)
+        await ui.until(lambda: not access.notification_interest.reads, why="the parked channel to unsubscribe")
+        comms.messaging.send("sender", "#alpha", "PARKED UPDATE")
+        await ui.step(1.2)
+        assert not access.notification_views and not access.notification_interest.reads
+        await ui.select_tab(mode)
+        await ui.until_shows("PARKED UPDATE")
+        await ui.until(lambda: bool(access.notification_interest.reads), why="the returned channel to resubscribe")
+        assert app.selected_session.query_one(CommsChatView) is chat

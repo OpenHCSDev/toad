@@ -1,5 +1,6 @@
 """Textual-facing: the "Open ACP log" link under a failed request is a Textual link target drawn with the
 widget's hover link style, and the tab it opens holds the log in the log view's text area."""
+from toad.session_scope import AgentAttached
 
 import asyncio
 
@@ -23,7 +24,7 @@ async def shown_log(ui):
 
 
 async def test_the_log_link_highlights_under_the_pointer_and_opens_the_agents_log_in_one_tab(workspace):
-    async with workspace.app(size=(139, 30), agent=peer("refuses_initialize")) as ui:
+    async with workspace.app(size=(139, 30), binding=AgentAttached(peer("refuses_initialize"))) as ui:
         app, pilot = ui.textual
         await ui.until_shows("AGENT_REFUSED_TO_START", seconds=20)
         await ui.until(lambda: ui.shows(LINK) and ui.link_at(LINK) is not None, why="the log link drawn as a link")

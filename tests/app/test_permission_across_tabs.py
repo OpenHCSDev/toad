@@ -1,4 +1,5 @@
 """A permission question asked while its tab is hidden is there on return and its answer reaches the agent."""
+from toad.session_scope import AgentAttached
 
 from support.agents import peer, script
 
@@ -8,7 +9,7 @@ def answers(workspace):
 
 
 async def test_permission_asked_in_the_shown_tab_is_answered(workspace):
-    async with workspace.app(size=(110, 40), agent=peer("scripted")) as ui:
+    async with workspace.app(size=(110, 40), binding=AgentAttached(peer("scripted"))) as ui:
         await ui.until_agent_ready()
         await ui.write_draft(script({"ask": "PERMISSION_FOR_EDIT"}))
         await ui.press("enter")
@@ -19,7 +20,7 @@ async def test_permission_asked_in_the_shown_tab_is_answered(workspace):
 
 
 async def test_permission_asked_while_another_tab_is_shown_is_answered_on_return(workspace):
-    async with workspace.app(size=(110, 40), agent=peer("scripted")) as ui:
+    async with workspace.app(size=(110, 40), binding=AgentAttached(peer("scripted"))) as ui:
         await ui.until_agent_ready()
         first = ui.selected_tab
         await ui.write_draft(script({"wait": "hidden"}, {"ask": "PERMISSION_WHILE_HIDDEN"}))
@@ -36,7 +37,7 @@ async def test_permission_asked_while_another_tab_is_shown_is_answered_on_return
 
 
 async def test_leaving_and_returning_keeps_a_pending_permission_question(workspace):
-    async with workspace.app(size=(110, 40), agent=peer("scripted")) as ui:
+    async with workspace.app(size=(110, 40), binding=AgentAttached(peer("scripted"))) as ui:
         await ui.until_agent_ready()
         first = ui.selected_tab
         await ui.write_draft(script({"ask": "PERMISSION_KEPT"}))

@@ -1,4 +1,5 @@
 """A declared local command shows its hint and runs while the agent is still starting."""
+from toad.session_scope import AgentAttached
 
 from support.agents import peer
 from toad.slash_command import NoArgumentsCommand
@@ -16,8 +17,8 @@ class CursorProofCommand(NoArgumentsCommand):
 async def test_declared_local_command_runs_before_the_agent_is_ready(workspace):
     hold = workspace.project / "hold-acp-startup"
     hold.touch()
-    async with workspace.app(size=(130, 44), agent=peer("completion", name="Physical completion peer",
-                                                         identity="completion-acceptance")) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(peer("completion", name="Physical completion peer",
+                                                         identity="completion-acceptance"))) as ui:
         try:
             assert not ui.agent_ready()
             await ui.write_draft(CursorProofCommand().command + " ")

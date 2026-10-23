@@ -1,4 +1,5 @@
 """A file named in an agent answer is a link to the project file; clicking it opens the file's preview and returning keeps the draft."""
+from toad.session_scope import AgentAttached
 
 from support.agents import peer
 
@@ -15,7 +16,7 @@ def file_links(ui, text):
 async def test_file_link_in_answer_opens_preview_and_return_keeps_draft(workspace):
     target = workspace.project / "file.md"
     target.write_text("# REAL_MARKDOWN_FILE_PREVIEW\n\n```python\nvalue = 42\n```\n")
-    async with workspace.app(size=(110, 36), agent=peer("echo")) as ui:
+    async with workspace.app(size=(110, 36), binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_agent_ready()
         owner = ui.selected_tab
         await ui.write_draft(ANSWER_SOURCE)

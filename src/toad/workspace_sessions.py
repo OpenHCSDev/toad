@@ -1,19 +1,27 @@
 """Logical session membership; Textual owns only the persistent native frame."""
-from collections.abc import Callable
+
 from abc import abstractmethod
+from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
+
+from agent_comms.declared_family import DeclaredFamily
 from textual._time import after_input
 from textual.containers import Container
-from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import WELCOME
+from toad.navigation_target import NavigationTarget, NoTarget
+from toad.session_scope import (
+    NoSessionOrigin,
+    SessionOrigin,
+    SessionScope,
+)
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.screens.session_view import SessionOrigin, SessionView
 
 
-def welcome_view() -> "SessionView":
+def welcome_view() -> "SessionScope":
     from toad.screens.welcome import WelcomeScreen
 
     return WelcomeScreen()
@@ -23,12 +31,12 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     """Owns the selected view, including closing it outside the workspace."""
 
     @abstractmethod
-    def matches(self, view: "SessionView") -> bool: ...
+    def matches(self, view: "SessionScope") -> bool: ...
 
-    def current(self, view: "SessionView") -> bool:
+    def current(self, view: "SessionScope") -> bool:
         return False
 
-    def shown(self, view: "SessionView") -> bool:
+    def shown(self, view: "SessionScope") -> bool:
         return False
 
     @abstractmethod
@@ -44,7 +52,10 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     def coordination_root(self): ...
 
     @abstractmethod
-    def sidebar_focus_target(self): ...
+    def focus_sidebar_return(self) -> None: ...
+
+    @abstractmethod
+    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget: ...
 
     @abstractmethod
     def sidebars(self):
@@ -71,19 +82,22 @@ class DetachedWorkspaceSource(WorkspaceSource):
     def coordination_root(self):
         return None
 
-    def sidebar_focus_target(self):
-        return None
+    def focus_sidebar_return(self) -> None:
+        """A detached workspace has no return target."""
+
+    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget:
+        return NoTarget()
 
     def sidebars(self):
         return ()
 
 
 class BoundWorkspaceSource(WorkspaceSource):
-    def __init__(self, view: "SessionView") -> None:
+    def __init__(self, view: "SessionScope") -> None:
         self.view = view
 
     @abstractmethod
-    def current(self, view: "SessionView") -> bool: ...
+    def current(self, view: "SessionScope") -> bool: ...
 
     @property
     def identity(self):
@@ -108,8 +122,15 @@ class BoundWorkspaceSource(WorkspaceSource):
     def coordination_root(self):
         return self.view.coordination_root
 
-    def sidebar_focus_target(self):
-        return self.view.sidebar_focus_target()
+    def focus_sidebar_return(self) -> None:
+        self.view.focus_sidebar_return()
+
+    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget:
+        return (
+            sessions.target_for_mode(self.identity, root)
+            if sessions.owns(self.view)
+            else NoTarget()
+        )
 
     def sidebars(self):
         return self.view.sidebars()
@@ -140,21 +161,24 @@ class WorkspaceSessions:
     def __init__(self, app: "ToadApp") -> None:
         self.app = app
         # Views the workspace always has; they are not tabs and never close.
-        self.resident: dict[str, Callable[[], SessionView]] = {WELCOME: welcome_view}
-        self.views: dict[str, SessionView] = {}
+        self.resident: dict[str, Callable[[], SessionScope]] = {WELCOME: welcome_view}
+        self.views: dict[str, SessionScope] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
 
-    def require(self, identity: str) -> "SessionView":
+    def require(self, identity: str) -> "SessionScope":
         return self.views[identity]
 
-    def origin(self, identity: str) -> "SessionOrigin | None":
-        """What sessions and histories requested from ``identity`` start from; None once it closed."""
-        if self.app.session_navigation.get(identity) is not None or identity in self.resident:
+    def origin(self, identity: str) -> SessionOrigin:
+        """The original source, or its explicit unavailable member once closed."""
+        if (
+            self.app.session_navigation.get(identity) is not None
+            or identity in self.resident
+        ):
             if view := self.views.get(identity):
                 return view.origin
-        return None
+        return NoSessionOrigin(identity)
 
-    async def prepare(self, identity: str) -> "SessionView":
+    async def prepare(self, identity: str) -> "SessionScope":
         if view := self.views.get(identity):
             return view
         view = (self.app.session_navigation.get(identity) or self.resident[identity])()
@@ -165,7 +189,7 @@ class WorkspaceSessions:
         await host.mount(view)
         return view
 
-    async def select(self, identity: str) -> "SessionView":
+    async def select(self, identity: str) -> "SessionScope":
         destination = await self.prepare(identity)
         if self.source.shown(destination):
             return destination
@@ -194,18 +218,21 @@ class WorkspaceSessions:
     async def retire(self) -> None:
         self.source = await self.source.retire()
 
-    def owns(self, view: "SessionView") -> bool:
+    def owns(self, view: "SessionScope") -> bool:
         return self.source.current(view)
 
-    def visible_target(self, root):
+    def visible_target(self, root: Path | None) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
-        view = self.source.view
-        return self.target_for_mode(view.id, root) if view is not None and self.owns(view) else None
+        return self.source.visible_target(self, root)
 
-    def target_for_mode(self, identity, root):
+    def target_for_mode(self, identity: str, root: Path | None) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""
         view = self.views.get(identity)
-        return view.navigation_target_name if root is not None and view is not None and view.belongs_to_wire(root) else None
+        return (
+            view.navigation_target
+            if root is not None and view is not None and view.belongs_to_wire(root)
+            else NoTarget()
+        )
 
     def release_frame_callback(self, owner, callback) -> bool:
         """Admit mounted work through its original logical source binding.
@@ -214,10 +241,8 @@ class WorkspaceSessions:
         chrome has no session binding. The frame still owns widget attachment
         and terminal writes; the owner's message pump executes source I/O.
         """
-        from toad.screens.session_view import SessionView
-
         for view in owner.walk_ancestors(with_self=True):
-            if isinstance(view, SessionView):
+            if isinstance(view, SessionScope):
                 if not self.owns(view):
                     return False
                 break

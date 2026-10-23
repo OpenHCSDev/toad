@@ -1,4 +1,5 @@
 """Textual-facing: a plan sent by an ACP agent is drawn as one Plan widget in the conversation and in the sidebar (status markers, completion strike-through animation, reset, return), and malformed plan updates are rejected with a visible note."""
+from toad.session_scope import AgentAttached
 
 import asyncio
 from contextlib import asynccontextmanager
@@ -35,7 +36,7 @@ async def reveal(source):
 @asynccontextmanager
 async def planning_session(workspace, *plans):
     """The app with the plan peer connected; the prompt of `plans` is sent but the peer waits at each step."""
-    async with workspace.app(size=(130, 44), agent=peer("plan", name="Local ACP plan acceptance", identity="plan-acceptance")) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(peer("plan", name="Local ACP plan acceptance", identity="plan-acceptance"))) as ui:
         view = ui.conversation
         await ui.until(lambda: isinstance(view.agent_binding, AgentBase), why="the agent")
         agent = view.agent_binding

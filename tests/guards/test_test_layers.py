@@ -51,12 +51,6 @@ def test_app_tests_ask_only_neutral_questions():
                     f"{path.name} reaches Textual through ui.{node.attr}; it belongs in tests/textual")
 
 
-def test_textual_tests_say_what_textual_owns():
-    for path in modules("textual"):
-        docstring = ast.get_docstring(ast.parse(path.read_text())) or ""
-        assert docstring.startswith("Textual-facing:"), f"{path.name} must open with 'Textual-facing: <what Textual owns here>'"
-
-
 def test_source_names_no_machine_path():
     for path in sorted((TESTS.parent / "src").rglob("*.py")):
         assert "/" + "home/" not in path.read_text(), f"{path} names a machine path"

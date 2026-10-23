@@ -1,4 +1,5 @@
 """Toad starts with no tab open and shows the welcome view until one is opened."""
+from toad.session_scope import AgentAttached
 
 from support.agents import peer
 
@@ -18,11 +19,17 @@ async def focus_row(ui, kind: str) -> None:
 
 async def test_starting_opens_no_tab_and_starts_no_agent(workspace):
     workspace.thread("alpha", "team")
-    async with workspace.app(session=False, agent=peer("echo")) as ui:
+    async with workspace.app(session=False, binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_shows(THREADS)
         assert ui.tabs() == ()
+        app, _ = ui.textual
+        assert not app.workspace_sessions.source.view.matches_launch(
+            peer("echo").identity, "unopened-session"
+        )
         assert ui.shows(HINT) and ui.shows(CHANNELS)
-        assert not workspace.child_processes("echo.py"), "starting Toad started its agent"
+        assert not workspace.child_processes(
+            "echo.py"
+        ), "starting Toad started its agent"
         assert not workspace.received()
         assert workspace.project.name not in workspace.comms.registry.snapshot().threads
 
@@ -38,11 +45,19 @@ async def test_opening_a_channel_opens_its_tab_in_place_of_the_view(workspace):
         assert not ui.shows(HINT)
 
 
-async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user(workspace):
+async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user(
+    workspace,
+):
     from agent_comms.thread_execution import ExternalThreadExecution
 
-    workspace.comms.registry.declare(workspace.comms.registry.new_thread(
-        "scribe", frozenset({"team"}), str(workspace.project), execution=ExternalThreadExecution))
+    workspace.comms.registry.declare(
+        workspace.comms.registry.new_thread(
+            "scribe",
+            frozenset({"team"}),
+            str(workspace.project),
+            execution=ExternalThreadExecution,
+        )
+    )
     async with workspace.app(session=False) as ui:
         await ui.until_shows(THREADS)
         await focus_row(ui, "ThreadRow")
@@ -53,7 +68,7 @@ async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user
 
 
 async def test_closing_the_last_tab_shows_the_view_again_and_starts_no_agent(workspace):
-    async with workspace.app(session=False, agent=peer("echo")) as ui:
+    async with workspace.app(session=False, binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_shows(HINT)
         await ui.press("n")
         await ui.until(lambda: len(ui.tabs()) == 1, why="the new session's tab")
@@ -62,7 +77,10 @@ async def test_closing_the_last_tab_shows_the_view_again_and_starts_no_agent(wor
         await ui.close_tab(ui.selected_tab)
         await ui.until_shows(HINT)
         assert ui.tabs() == ()
-        await ui.until(lambda: not workspace.child_processes("echo.py"), why="the closed session's agent to be gone")
+        await ui.until(
+            lambda: not workspace.child_processes("echo.py"),
+            why="the closed session's agent to be gone",
+        )
 
 
 async def test_going_back_from_the_only_tab_stays_on_it(workspace):

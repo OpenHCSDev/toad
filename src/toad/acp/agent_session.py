@@ -9,7 +9,7 @@ import os
 from dataclasses import dataclass, replace
 from collections.abc import Callable
 from agent_comms.route_selection import RouteSelection
-from agent_comms.thread_presentation import SessionDisconnected
+from agent_comms.thread_presentation import SessionDisconnected, ThreadPresentation
 import toad
 from toad import constants
 from acp.exceptions import RequestError
@@ -317,14 +317,14 @@ class AgentSession:
         self.agent.events.publish(AgentReady(session_id=self.agent.session_id, reconnected=self.reconnecting))
 
 
-    async def observe_owner(self, presentation) -> None:
+    async def observe_owner(self, presentation: ThreadPresentation) -> None:
         """Load again when Core shows a newer owner process than the one this session loaded.
 
         A restarted owner answers through the still-open connection, but the queue
         and cursor views are bound to the process named in the load response and
         refuse the new one's updates until a new load binds them.
         """
-        if not self.settled.is_set() or self.reconnecting or presentation is None:
+        if not self.settled.is_set() or self.reconnecting:
             return
         if self.agent.coordination is None:
             return
