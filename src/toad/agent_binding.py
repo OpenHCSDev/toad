@@ -1,8 +1,11 @@
 """The agent itself is a bound connection; a saved view may be unbound."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from functools import cached_property
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 from agent_comms.thread_presentation import ThreadPresentation
 from textual.content import Content
@@ -11,15 +14,26 @@ from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import UnopenedSessionDisposition
 from toad.agent_presentation import LocalAgentPresentation
 
+if TYPE_CHECKING:
+    from agent_comms.goal_actions import GoalAction
+    from agent_comms.session_load import ExistingSessionLoadPlan
+
+    from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
+    from toad.conversation_turn import TurnOwner
+    from toad.core_event_carrier import CoreEventMessage
+    from toad.screens.main import MainScreen
+    from toad.session_observation import SessionObservation
+    from toad.session_presentation import OperationalSessionSources
+    from toad.widgets.conversation import Conversation
+
 
 class AgentConnection(ABC):
     @abstractmethod
-    async def observe_thread_presentation(
-        self, presentation: ThreadPresentation | None
-    ) -> None: ...
+    async def observe_thread_presentation(self, presentation: ThreadPresentation | None) -> None: ...
 
     def thread_read(self):
         from toad.acp.comms_updates import NoPendingThreadRead
+
         return NoPendingThreadRead()
 
     def model_info(self, session_name: str) -> Content:
@@ -30,25 +44,25 @@ class AgentConnection(ABC):
         return Content(model.name + (f" · {level}" if level else ""))
 
     @abstractmethod
-    def attach_view(self, view) -> None: ...
+    def attach_view(self, view: Conversation) -> None: ...
 
     @abstractmethod
-    def refresh_projection(self, view) -> None: ...
+    def refresh_projection(self, view: Conversation) -> None: ...
 
     @abstractmethod
-    def start_session(self, view) -> None: ...
+    def start_session(self, view: Conversation) -> None: ...
 
     @abstractmethod
-    def start_agent(self, sources, view) -> None: ...
+    def start_agent(self, sources: OperationalSessionSources, view: Conversation) -> None: ...
 
     @abstractmethod
-    def update_view(self, view) -> None: ...
+    def update_view(self, view: Conversation) -> None: ...
 
     @abstractmethod
-    def connected(self, view) -> None: ...
+    def connected(self, view: Conversation) -> None: ...
 
     @abstractmethod
-    def accepts_message(self, message) -> bool: ...
+    def accepts_message(self, message: CoreEventMessage) -> bool: ...
 
     @abstractmethod
     def matches_agent(self, agent) -> bool: ...
@@ -56,6 +70,7 @@ class AgentConnection(ABC):
 
 class NoAgentConnection(AgentConnection):
     """A real saved view before it acquires any native connection."""
+
     ready = False
     automatic_titles = True
     available_modes = ()
@@ -73,25 +88,25 @@ class NoAgentConnection(AgentConnection):
     def get_info(self) -> str:
         return ""
 
-    async def retire_surface(self, view) -> None:
+    async def retire_surface(self, view: Conversation) -> None:
         """There is no native surface to retire."""
 
-    def attach_view(self, view) -> None:
+    def attach_view(self, view: Conversation) -> None:
         """There is no event stream to subscribe to."""
 
-    def refresh_projection(self, view) -> None:
+    def refresh_projection(self, view: Conversation) -> None:
         """There is no native projection to read."""
 
-    def start_session(self, view) -> None:
+    def start_session(self, view: Conversation) -> None:
         view.start_unbound_session()
 
-    def start_agent(self, sources, view) -> None:
+    def start_agent(self, sources: OperationalSessionSources, view: Conversation) -> None:
         sources.create_agent(view)
 
-    def update_view(self, view) -> None:
+    def update_view(self, view: Conversation) -> None:
         view.agent_info = Content.styled("shell")
 
-    def connected(self, view) -> None:
+    def connected(self, view: Conversation) -> None:
         """There is no connected-agent notification."""
 
     async def set_session_name(self, name: str) -> None:
@@ -100,71 +115,71 @@ class NoAgentConnection(AgentConnection):
     async def stop(self) -> None:
         """There is no agent process to stop."""
 
-    def detach_surface(self, view) -> None:
+    def detach_surface(self, view: Conversation) -> None:
         """There is no agent subscription to detach."""
 
-    def accepts_message(self, message) -> bool:
+    def accepts_message(self, message: CoreEventMessage) -> bool:
         return False
 
     def matches_agent(self, agent) -> bool:
         return False
 
-    async def project_changed(self, path) -> None:
+    async def project_changed(self, path: Path) -> None:
         """There is no native session project to persist."""
 
-    def refresh_context(self, view) -> None:
+    def refresh_context(self, view: Conversation) -> None:
         """There is no native measurement to display."""
 
-    async def set_model(self, model_id) -> str:
+    async def set_model(self, model_id: str) -> str:
         return "No agent is bound yet"
 
-    async def set_mode(self, mode_id) -> str:
+    async def set_mode(self, mode_id: str) -> str:
         return "No agent is bound yet"
 
     async def compact_context(self, instructions) -> None:
         """No native context exists to compact."""
 
-    async def cancel_turn(self, view) -> None:
+    async def cancel_turn(self, view: Conversation) -> None:
         """No native turn exists to cancel."""
 
-    def begin_submission(self, owner, submission):
+    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission):
         return owner.unbound(submission)
 
-    def accepts_failed_input(self, message) -> bool:
+    def accepts_failed_input(self, message: CoreEventMessage) -> bool:
         return False
 
-    def send_now(self, owner) -> None:
+    def send_now(self, owner: ConversationSubmissions) -> None:
         """No remote queue is bound."""
 
-    async def get_goal_history(self, goal_id):
+    async def get_goal_history(self, goal_id: str):
         return ()
 
-    async def update_goal(self, action, text: str):
+    async def update_goal(self, action: type[GoalAction], text: str):
         raise ValueError("Persistent goals require an agent-comms session")
 
-    def cancel_allowed(self, turn) -> bool:
+    def cancel_allowed(self, turn: TurnOwner) -> bool:
         return False
 
     async def cancel(self) -> bool:
         return False
 
-    def matches_session(self, session_id) -> bool:
+    def matches_session(self, session_id: str) -> bool:
         return False
 
     def borrowed_processes(self):
         return ()
 
-    async def reconnect_session(self, source, plan) -> None:
+    async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None:
         source.presentation.sources.attach_started(source, plan)
 
-    async def change_project(self, view, path) -> None:
+    async def change_project(self, view: Conversation, path: Path) -> None:
         view.feedback.flash("Project changes require an agent-comms session", style="error")
 
-    def request_compaction(self, view, instructions) -> None:
+    def request_compaction(self, view: Conversation, instructions) -> None:
         view.feedback.flash("Context compaction requires an agent-comms session", style="error")
 
     async def observe_thread_presentation(self, presentation) -> None:
         """There is no connected agent to inform."""
 
-    def invalidate_observation(self, observation) -> None:
+    def invalidate_observation(self, observation: SessionObservation) -> None:
         """No native source exists to schedule a read against."""
