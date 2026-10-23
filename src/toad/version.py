@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 
 VERSION_TOML_URL = "https://www.batrachian.ai/toad.toml"
-_DEFAULT_SCHEDULER = ThreadScheduler()
 
 
 class VersionMeta(NamedTuple):
@@ -55,7 +54,7 @@ class VersionMonitor:
         self.status: VersionStatus = CurrentVersion()
 
     async def check(
-        self, scheduler: ThreadScheduler = _DEFAULT_SCHEDULER,
+        self, scheduler: ThreadScheduler,
     ) -> None:
         try:
             self.status = await self.check_version(scheduler)
@@ -79,7 +78,7 @@ class VersionMonitor:
 
     @classmethod
     async def check_version(
-        cls, scheduler: ThreadScheduler = _DEFAULT_SCHEDULER,
+        cls, scheduler: ThreadScheduler,
     ) -> VersionStatus:
         """Check for a new version of Toad.
 
@@ -130,7 +129,7 @@ class VersionMonitor:
 if __name__ == "__main__":
 
     async def run() -> None:
-        result = await VersionMonitor.check_version()
+        result = await VersionMonitor.check_version(ThreadScheduler())
         from rich import print
 
         print(result)

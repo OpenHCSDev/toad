@@ -89,6 +89,18 @@ class DeclaredField:
     def annotation(self) -> object:
         return self.declaration.param_type
 
+    @property
+    def owner_type(self) -> type:
+        """The class of the resolved record containing this field.
+
+        ObjectState's declaration owner may instead be a function. Record
+        serialization needs the containing value's actual class, including
+        the delegate returned by to_object at the root.
+        """
+        parent = self.path.parent.value
+        owner = self.state.get_resolved_value(parent) if parent else self.state.to_object()
+        return type(owner)
+
     def metadata(self, kind: type[Metadata]) -> Metadata | None:
         """Metadata of the bound field, including an optional member's metadata."""
         for annotation in (self.annotation, resolve_optional(resolve_annotated(self.annotation))):
@@ -131,15 +143,15 @@ class DeclaredField:
         """The same field as declared without `None`."""
         return OptionalMemberField(self.state, self.path)
 
-    def edit(self, value: object) -> None:
-        """Give the field a value, unless its declaration does not accept it.
-
-        Raises:
-            TypeError, ValueError: the value is not one the annotation allows.
-        """
+    def validate(self, value: object) -> None:
+        """Require this field's declared type and constraints before edit or save."""
         # ObjectState takes any value for a field of the root object and only
         # fails later, when the object is rebuilt (ObjectState issue #47).
         validate_annotation_value(self.annotation, value, path=self.label)
+
+    def edit(self, value: object) -> None:
+        """Give the field a value accepted by its declaration."""
+        self.validate(value)
         self.state.update_parameter(self.path.value, value)
 
 

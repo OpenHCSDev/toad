@@ -30,6 +30,7 @@ from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.core import events
 from toad.plan import decode_plan
 from toad.project_link import AcpLogLink
+from toad.response_delivery import ResponseDelivery
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
@@ -43,8 +44,8 @@ class SessionUpdateEffect(MroDispatch):
         self.agent, self.consumer = agent, consumer
 
     @property
-    def route(self):
-        return self.consumer.route
+    def delivery(self) -> ResponseDelivery:
+        return self.consumer.delivery
 
     def require_supported(self, notification: SessionNotification):
         if not any(self.handlers_for(notification.update)):
@@ -52,15 +53,15 @@ class SessionUpdateEffect(MroDispatch):
 
     @handles(UserMessageChunk)
     def user(self, update: UserMessageChunk):
-        UserContentEffect(self.agent, self.route).dispatch_sync(update.content)
+        UserContentEffect(self.agent, self.delivery).dispatch_sync(update.content)
 
     @handles(AgentMessageChunk)
     def message(self, update: AgentMessageChunk):
-        AgentContentEffect(self.agent, self.route).dispatch_sync(update.content)
+        AgentContentEffect(self.agent, self.delivery).dispatch_sync(update.content)
 
     @handles(AgentThoughtChunk)
     def thought(self, update: AgentThoughtChunk):
-        ThoughtContentEffect(self.agent, self.route).dispatch_sync(update.content)
+        ThoughtContentEffect(self.agent, self.delivery).dispatch_sync(update.content)
 
     @handles(ToolCallStart)
     def tool_start(self, update: ToolCallStart):
@@ -98,8 +99,8 @@ class SessionUpdateEffect(MroDispatch):
 
 
 class MessageContentEffect(MroDispatch):
-    def __init__(self, agent: Agent, route):
-        self.agent, self.route = agent, route
+    def __init__(self, agent: Agent, delivery: ResponseDelivery):
+        self.agent, self.delivery = agent, delivery
 
     @handles(TextContentBlock)
     def text(self, content: TextContentBlock):
@@ -125,9 +126,7 @@ class AgentContentEffect(MessageContentEffect):
         text = content.text
         if text.startswith("[agent error]"):
             text += f"\n\n{AcpLogLink.markdown(self.agent.presentation.log_path)}"
-        from toad.response_delivery import ResponseDelivery
-
-        stream = self.agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(self.route))
+        stream = self.agent.presentation.turns.owner.response_stream(self.delivery)
         self.agent.events.publish(events.Update(content.type, text, stream))
 
 

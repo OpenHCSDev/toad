@@ -9,6 +9,7 @@ one ObjectState and saves them to `toad.json`.
 from __future__ import annotations
 
 import asyncio
+import builtins
 import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -351,7 +352,7 @@ class SavedSettings:
         setting = path.bind(self.state)
         setting.edit(not setting.value)
 
-    def changed(self, changed: set[str]) -> None:
+    def changed(self, changed: builtins.set[str]) -> None:
         from toad.core.preference_events import PreferenceChanged
 
         for name in changed:
@@ -374,7 +375,7 @@ class SavedSettings:
         return paths.get_config() / "toad.json"
 
     def saved_key(self, path: DottedFieldPath) -> str:
-        owner = self.state.type_for_path(path.parent.value)
+        owner = DeclaredField(self.state, path).owner_type
         return next(key for declaration, key in FieldCodec.record_fields(owner)
                     if declaration.name == path.field_name)
 
@@ -399,12 +400,12 @@ class SavedSettings:
                     document[key] = part
             elif below in self.user_set:
                 field = DeclaredField(self.state, below)
-                document[key] = FieldCodec.encode(field.value, field.annotation)
+                value = field.value
+                field.validate(value)
+                document[key] = FieldCodec.encode(value, field.annotation)
         return document
 
     def document(self) -> dict[str, JsonValue]:
-        # Rebuilding the root preserves whole-settings validation before writing.
-        _ = self.current
         return self.kept("")
 
     @property
