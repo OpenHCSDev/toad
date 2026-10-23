@@ -35,7 +35,7 @@ def clicks(rows):
             if segment.style is not None and "@click" in segment.style.meta}
 
 
-def test_rows_fit_the_width_wrap_on_words_and_keep_their_names_clickable_at_every_width(tmp_path):
+def test_rows_fit_the_width_wrap_on_words_and_keep_drawn_names_clickable_at_every_width(tmp_path):
     context = LinkContext(tmp_path, ProjectReferences())
     for target in ("#all", "receiver-with-long-name"):
         shown = fragment(target)
@@ -50,7 +50,12 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_their_names_clickable_at_ever
             words = [line.split() for line in body[:-1]]
             assert sum(words, []) == ["payload"] * 30, (width, body)
             assert body[-1].rstrip() == "second paragraph [literal markup]", (width, body)
-            assert {OpenTarget("explorer-grandchild").click, OpenTarget(target).click} <= clicks(rows)
+            names = (shown.message.sender, target)
+            drawn = "\n".join(text)
+            expected = {OpenTarget(name).click for name in names if name in drawn}
+            open_action = OpenTarget(shown.message.sender).click[0]
+            actual = {click for click in clicks(rows) if click[0] == open_action}
+            assert actual == expected, (width, text, actual, expected)
 
 
 def test_opening_notification_details_draws_more_rows_than_the_collapsed_message():
