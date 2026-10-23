@@ -15,6 +15,7 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import Goal, GoalDeclaration, NoGoal
+from agent_comms.runtime_requests import GoalHistoryReply
 from agent_comms.ui_model.observation import ReadOwnerGoal
 
 import toad
@@ -243,9 +244,9 @@ class Agent(AgentBase):
             consumer.dispatch_sync(fact)
         return snapshot
 
-    async def get_goal_history(self, goal_id: str):
+    async def get_goal_history(self, goal_id: str) -> GoalHistoryReply:
         result = await self.controller.request_owner("goal_history", goal_id=goal_id)
-        return result["history"]
+        return FieldCodec.decode(GoalHistoryReply, result)
 
     async def edit_goal(self, goal: Goal, text: str) -> Goal:
         result = await self.controller.request_owner(
