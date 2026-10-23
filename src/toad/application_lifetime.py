@@ -9,6 +9,7 @@ from time import monotonic
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable, ClassVar
 
+from toad import get_version
 from toad.version import VersionMonitor
 
 if TYPE_CHECKING:
@@ -40,7 +41,6 @@ class UsageReports:
     async def deliver(self, event_name: str, properties: dict[str, object]) -> None:
         app = self.app
         httpx = await app.preparation.run_thread(import_module, "httpx")
-        from toad import get_version
 
         width, height = app.size
         body = {

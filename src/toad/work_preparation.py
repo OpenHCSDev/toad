@@ -228,6 +228,7 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     def inputs(self) -> object:
         return (type(self.task), self.task.preparation_inputs)
 
+
 class ThreadScheduler:
     """Run a declared operation while preserving its result type."""
 

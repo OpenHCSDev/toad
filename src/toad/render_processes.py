@@ -112,7 +112,9 @@ class RenderProcessPool(Renderer):
         # No await between accepting and registering work: both happen together on
         # the owning loop. Waiting never propagates caller cancellation to the
         # underlying future (or logs an abandoned exception via shield).
-        future: asyncio.Future[Value] = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+        future: asyncio.Future[Value] = asyncio.wrap_future(
+            self._executor.submit(function, *args), loop=loop
+        )
         self._pending.add(future)
         future.add_done_callback(self._finished, context=self.execution_context())
         await self.wait_for_work(future)
