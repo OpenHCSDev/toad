@@ -9,14 +9,13 @@ import asyncio
 from contextlib import AsyncExitStack
 from functools import partial
 import json
-import os
 from pathlib import Path
 import sys
 
 import agent_comms.agent_events as agent_events
-from agent_comms.acp import CommsAgent
-from agent_comms.comms import wire
+from agent_comms.agent_event_updates import AcpEventConsumer
 from agent_comms.coordinator import Coordination
+from turn_source import turn_source
 
 SESSION = "pilot"
 
@@ -30,39 +29,27 @@ class Pipe:
 
 
 async def produce(wire_root: Path, project: Path):
-    # Inherited caller names must not select a different participant during same-process retirement.
-    for key in ("PI_AGENT_ID", "AGENT_COMMS_THREAD"):
-        os.environ.pop(key, None)
-    async with AsyncExitStack() as resources:
-        project.mkdir(parents=True, exist_ok=True)
-        comms = await Coordination.run_worker(partial(wire, wire_root))
-        producer = CommsAgent(comms, runtime_enabled=False, auto_wake=False)
-        resources.push_async_callback(producer.shutdown)
-
-        def declare():
-            thread = producer.sessions.declare_thread(str(project))
-            resources.push_async_callback(Coordination.run_worker, partial(comms.owners.stop, thread.name))
-            return thread
-
-        thread = await Coordination.run_worker(declare)
-        await producer.sessions.bind_owned(thread, SESSION)
+    async with turn_source(wire_root, project, SESSION) as producer:
         name = producer.sessions.require(SESSION)
         async with AsyncExitStack() as turns:
             retired_owner = await Coordination.run_worker(partial(
                 producer.turns.acquire_turn, turns, SESSION, name, "retired-producer", "Authored protocol; no input"))
+            retired_lease = retired_owner.turn_lease
         retired = await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION))
         producer.on_connect(Pipe())
+        consumer = AcpEventConsumer(producer, SESSION, producer._runtime)
         async with AsyncExitStack() as turns:
             await Coordination.run_worker(partial(
                 producer.turns.acquire_turn, turns, SESSION, name, "actual-producer", "Authored protocol; no input"))
-            await producer.turns.replay_turn_state(SESSION)
-            await producer._emit_event(SESSION, agent_events.CompactionStart())
-            await producer._emit_event(SESSION, agent_events.CompactionEnd(
+            await producer.turns.publish_turn_state(consumer)
+            await consumer.dispatch(agent_events.CompactionStart())
+            await consumer.dispatch(agent_events.CompactionEnd(
                 summary="Authored phase observation; not a native committed summary"))
-            assert await Coordination.run_worker(partial(
-                producer._comms.agents.finish_turn, retired_owner.turn_lease)) is None
+            before = await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION))
+            await Coordination.run_worker(partial(producer._comms.agents.finish_turn, retired_lease))
+            assert await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION)) == before
             # An earlier finished cut: the current binding must refuse it.
-            await producer._emit_event(SESSION, retired)
+            await consumer.dispatch(retired)
         await producer.turns.goals.sync_goal_execution(SESSION, name)
 
 
