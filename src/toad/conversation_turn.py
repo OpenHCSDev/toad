@@ -1,11 +1,22 @@
 """Local ACP turns and source-fenced projections of the backend's turn owner."""
+from __future__ import annotations
 from abc import abstractmethod
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 from dataclasses import dataclass, replace
 
 from agent_comms.activity import ActivityState
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.turn_lease import NoTurn as IdleTurn, TurnState
 from agent_comms.ui_model.status import ThreadStatusModel
+
+if TYPE_CHECKING:
+    from textual.widget import Widget
+
+    from toad.acp.agent import Agent
+    from toad.core_event_carrier import CoreEventMessage
+    from toad.response_delivery import ResponseDelivery
+    from toad.widgets.conversation import Conversation
 
 
 class TurnOwner(DeclaredFamily, affix="Turn"):
@@ -49,7 +60,7 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def matches_settlement(self, turn_id) -> bool:
         return not turn_id
 
-    def captured_snapshot(self, widgets):
+    def captured_snapshot(self, widgets: tuple[Widget, ...]):
         """Each original claim owns capture while this source is active."""
         from toad.widgets.committed_presentation import CommitParticipant
 
@@ -60,7 +71,7 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def with_activity(self, activity: str) -> "TurnOwner":
         return ActivityTurn(activity) if activity else self
 
-    def response_stream(self, delivery):
+    def response_stream(self, delivery: ResponseDelivery):
         from toad.live_output import CompleteResponseStream
         return CompleteResponseStream(delivery)
 
@@ -100,7 +111,7 @@ class AgentTurn(TurnOwner):
     def with_activity(self, activity: str) -> TurnOwner:
         return replace(self, activity=activity or "Thinking…")
 
-    def response_stream(self, delivery):
+    def response_stream(self, delivery: ResponseDelivery):
         from toad.live_output import ResponseStream
         return ResponseStream(delivery, turn_id=self.managed_id)
 
@@ -152,11 +163,11 @@ class ManagedTurn(TurnOwner):
     def matches_settlement(self, turn_id):
         return self.state.matches(turn_id)
 
-    def with_activity(self, activity):
+    def with_activity(self, activity: str):
         # Text, tool and heartbeat rendering cannot change backend phase.
         return self
 
-    def response_stream(self, delivery):
+    def response_stream(self, delivery: ResponseDelivery):
         if self.busy:
             from toad.live_output import ResponseStream
             return ResponseStream(delivery, turn_id=self.managed_id)
@@ -175,7 +186,7 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
     def status_row(self, observed: ThreadStatusModel) -> ThreadStatusModel: ...
 
     @abstractmethod
-    def accepts(self, message) -> bool: ...
+    def accepts(self, message: CoreEventMessage) -> bool: ...
 
     @abstractmethod
     def describe(self, activity: str) -> None: ...
@@ -183,7 +194,7 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
     @abstractmethod
     def reset(self) -> None: ...
 
-    async def present_input(self, view, text) -> None:
+    async def present_input(self, view: Conversation, text: str) -> None:
         """Display managed inputs only when the native process reports they started."""
 
     def start_client(self) -> None:
@@ -201,21 +212,21 @@ class LocalTurnBinding(TurnBinding):
     def owner(self):
         return self._owner
 
-    def status_row(self, observed):
+    def status_row(self, observed: ThreadStatusModel):
         owner = self.owner
         return ThreadStatusModel.known("", owner.activity_state.presentation("", owner.activity))
 
-    def accepts(self, message):
+    def accepts(self, message: CoreEventMessage):
         """A local turn cannot accept a backend-owned managed publication."""
         return False
 
-    def describe(self, activity):
+    def describe(self, activity: str):
         self._owner = self._owner.with_activity(activity)
 
     def reset(self):
         self._owner = NoTurn()
 
-    async def present_input(self, view, text):
+    async def present_input(self, view: Conversation, text: str):
         from toad.widgets.user_input import UserInput
         await view.post(UserInput(text))
 
@@ -229,7 +240,7 @@ class LocalTurnBinding(TurnBinding):
 class ManagedTurnBinding(TurnBinding):
     managed = True
 
-    def __init__(self, agent):
+    def __init__(self, agent: Agent):
         self.agent = agent
         self._owner = ManagedTurn()
         self.sequence = 0
@@ -238,7 +249,7 @@ class ManagedTurnBinding(TurnBinding):
     def owner(self):
         return self._owner
 
-    def status_row(self, observed):
+    def status_row(self, observed: ThreadStatusModel):
         return observed
 
     def accepts(self, message):
@@ -255,7 +266,7 @@ class ManagedTurnBinding(TurnBinding):
         self.sequence += 1
         return True
 
-    def describe(self, activity):
+    def describe(self, activity: str):
         """Only the backend publication changes a managed phase."""
 
     def reset(self):
@@ -265,7 +276,7 @@ class ManagedTurnBinding(TurnBinding):
 
 class ConversationTurn:
     """Read the actual source binding; the widget keeps no managed state or cursor."""
-    def __init__(self, changed, source):
+    def __init__(self, changed: Callable[[TurnOwner], None], source: Callable[[], TurnBinding]):
         self._source = source
         self._changed = changed
 
@@ -284,7 +295,7 @@ class ConversationTurn:
     def managed_id(self):
         return self.owner.managed_id
 
-    def changed(self, message):
+    def changed(self, message: CoreEventMessage):
         if not self.binding.accepts(message):
             return False
         # The binding changed before publishing this event. Comparing another
@@ -292,12 +303,12 @@ class ConversationTurn:
         self._changed(self.owner)
         return True
 
-    def describe(self, activity):
+    def describe(self, activity: str):
         before = self.owner
         self.binding.describe(activity)
         self._notify(before)
 
-    def _notify(self, before):
+    def _notify(self, before: TurnOwner):
         # Streaming describes the turn on every chunk and publications repeat
         # unchanged leases; consumers re-sync prompt, footer bindings and
         # details, so they hear only an actual change of owner.
