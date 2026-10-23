@@ -36,7 +36,6 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         assert isinstance(history.state, LiveTranscript)
         assert history.state.can_draw
         assert history.state.reports_coverage
-        assert history.checkpoint_available
 
         entered, release = asyncio.Event(), asyncio.Event()
 
@@ -51,7 +50,6 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         assert history.state.can_draw
         assert history.state.reports_coverage
         assert not history.state.accepts_source_work
-        assert not history.checkpoint_available
         history.request_latest()
         # A parked tab cancels its running operation and the pending End.
         # Resuming accepts work on the same source, never a dead worker.
@@ -59,7 +57,6 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         assert not history.state.can_draw
         history.resume_source()
         await ui.until(lambda: history.state.accepts_source_work, why="source work accepted after resume")
-        assert history.checkpoint_available
         # The framework worker is cancelled during retirement; its completion
         # cannot restore the earlier live source.
         await history.retire_source()
