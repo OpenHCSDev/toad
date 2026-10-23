@@ -4,9 +4,9 @@ The window hands focus to the editor on a printable key; keys that arrive before
 must not be lost, reordered or applied to the wrong control.
 """
 
-from textual import events
-
 from toad.agent_binding import NoAgentBound
+
+from textual import events
 
 
 async def send_burst(ui, keys):

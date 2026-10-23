@@ -89,7 +89,8 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     @property
     def navigation_target_name(self) -> str:
-        return self.conversation.target.name
+        references = self.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
+        return self.conversation.destination(references).name
 
     def rebind_identity(self, identity: str) -> None:
         with self.changing_identity():
@@ -118,7 +119,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         content = (
             (self.create_chat(),)
             if self._content_loaded
-            else (Static(f"Opening {self.conversation.target.name}…", id="comms-opening"),)
+            else (Static(f"Opening {self.conversation.initial_label}…", id="comms-opening"),)
         )
         yield containers.Center(
             ThreadSidebar(
@@ -161,7 +162,8 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             self.notify("No preserved history sources are attached yet.")
             return
         self.app.push_screen(self.conversation.historical_sessions(
-            partial(HistoricalSessions, comms, threads)))
+            partial(HistoricalSessions, comms, threads),
+            self.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references))
 
     def on_mount(self) -> None:
         if not self._content_loaded:

@@ -7,9 +7,10 @@ from typing import get_args
 
 from acp.schema import PlanEntryStatus
 
+from toad.agent import AgentBase
+
 from support.agents import peer
 from support.textual_steps import painted_text, viewport_text
-from toad.acp.agent import Agent
 from toad.plan import PlanStatus
 from toad.screens.main import MainScreen
 from toad.widgets.note import Note
@@ -36,7 +37,7 @@ async def planning_session(workspace, *plans):
     """The app with the plan peer connected; the prompt of `plans` is sent but the peer waits at each step."""
     async with workspace.app(size=(130, 44), agent=peer("plan", name="Local ACP plan acceptance", identity="plan-acceptance")) as ui:
         view = ui.conversation
-        await ui.until(lambda: isinstance(view.agent_binding, Agent), why="the agent")
+        await ui.until(lambda: isinstance(view.agent_binding, AgentBase), why="the agent")
         agent = view.agent_binding
         await ui.until(agent.session.settled.is_set, why="the agent session")
         assert agent.session.connected, "Real ACP startup/initialize/newSession failed"

@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
+from agent_comms.mro_dispatch import handles
+from toad.core.projection import MroProjection
 from agent_comms.route_selection import RouteSelection
 from toad.owner_preparation import ExistingOwnerPlan
 from agent_comms.thread_identity import ThreadIncarnation
@@ -18,7 +21,6 @@ from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
 from toad.session_tracker import CommsViewKey, OpenTab, NamedTab, ThreadTab, SessionDetails
-from agent_comms.ui_model.unread import UnobservedUnread
 
 if TYPE_CHECKING:
     from toad.session_navigation import SessionNavigation
@@ -186,7 +188,7 @@ class NativeSessionEntry(SessionEntry):
         sessions.app.session_tracker.close_session(self.mode)
 
 
-class HistorySessionEntry(SessionEntry):
+class HistorySessionEntry(SessionEntry, MroProjection):
     def __init__(self, mode: str, key: CommsViewKey, project: Path,
                  owner_root: str | None, participants: tuple[ThreadIncarnation, ...], owner) -> None:
         super().__init__(mode)
@@ -222,12 +224,20 @@ class HistorySessionEntry(SessionEntry):
         return sessions.source(self.key.owner_mode)
 
     def unobserved_tab(self) -> OpenTab:
-        return NamedTab(self.mode, self.key.title)
+        return NamedTab(self.mode, self.key.conversation.initial_label)
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
-        unread = (self.key.conversation.unread(observed.sidebar.observation)
-                  if observed.observes(self.key.root) else UnobservedUnread())
-        return NamedTab(self.mode, self.key.title, unread)
+        return self.dispatch_sync(observed.references_for(self.key.root), observed)
+
+    @handles(ReferenceContext)
+    def preparing_tab(self, references, observed) -> OpenTab:
+        return self.unobserved_tab()
+
+    @handles(CurrentDisplayReferences)
+    def referenced_tab(self, references, observed) -> OpenTab:
+        conversation = self.key.conversation
+        return NamedTab(self.mode, conversation.label(references),
+                        conversation.unread(observed.sidebar.observation))
 
     def depends_on(self, mode: str) -> bool:
         return super().depends_on(mode) or self.key.owner_mode == mode

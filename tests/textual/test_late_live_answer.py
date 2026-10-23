@@ -3,20 +3,20 @@ covers it is drawn once, never twice, whichever way the saved history arrived.""
 
 import asyncio
 from dataclasses import replace
-import json
 import os
 
 import pytest
 from agent_comms.acp_extension import (
-    CoordinationChangedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate, encode_updates,
+    TranscriptSnapshotUpdate, TurnChangedUpdate, encode_updates,
 )
-from agent_comms.comms import Comms
+from agent_comms.session_file import SavedSessionFile
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 
 from toad.core.events import CommsUpdated, Update
 from toad.transcript_publication import CommitPublication
-from support.textual_steps import saved_history
+from support.agents import deliver
+from support.journals import assistant_entry, write_journal
 
 TOKEN = "LATE_LIVE_ANSWER"
 
@@ -24,25 +24,36 @@ TOKEN = "LATE_LIVE_ANSWER"
 @pytest.mark.parametrize("arrival", ["read-in-flight", "commit", "queued-snapshot"])
 async def test_late_live_answer_is_drawn_once(workspace, arrival):
     project = workspace.project
-    comms = Comms(workspace.roots.wire)
-    comms.messaging.initialize_private_initial_protocol()
+    comms = workspace.comms
     thread = workspace.thread("source")
     workspace.thread("peer")
     comms.messaging.send("peer", "source", "WIRE_NOTICE")
-    first_page = comms.transcripts.thread_transcript_page("source")
     held, release, applied = asyncio.Event(), asyncio.Event(), asyncio.Event()
     read_release = asyncio.Event()
     pending = []
-    async with workspace.app(size=(120, 35)) as ui:
+    async with workspace.app(size=(120, 35), resume="source") as ui:
         app, _pilot = ui.textual
         view = ui.conversation
+        await ui.until_shows("WIRE_NOTICE")
+        reader = view.transcript.binding.reader
+        read_snapshot = reader.snapshot
         copies_drawn = []
+        duplicate_frame = []
         draw = app._display
 
         def recording_draw(screen, renderable):
             draw(screen, renderable)
             if renderable is not None and screen is app.screen:
-                copies_drawn.append(ui.painted(view.window).count(TOKEN))
+                copies = ui.painted(view.window).count(TOKEN)
+                copies_drawn.append(copies)
+                if copies > 1 and not duplicate_frame:
+                    duplicate_frame.append((
+                        type(view.transcript.binding.history.state).__name__,
+                        view.turns.owner.busy,
+                        tuple((type(child).__name__, child.display, child.region,
+                               ui.painted(child).count(TOKEN))
+                              for child in view.contents.children),
+                    ))
 
         app._display = recording_draw
         try:
@@ -61,44 +72,33 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
 
             view._dispatch_message = hold_the_live_answer
             agent = ui.detached_agent("late-live")
-            view.set_reactive(type(view).agent, agent)
             view.bind_agent(agent)
-            agent.coordination = CoordinationChangedUpdate(
-                thread.incarnation, str(workspace.roots.wire), os.getpid(), str(project), None, None, thread.name, None)
             turns = agent.presentation.managed_turns()
             turns.receive(TurnState(ActiveTurn("first-turn", os.getpid(), phase=PublishingPhase())))
-            agent.session.settled.clear()
-            history = await saved_history(view, first_page, view.transcript.get_transcript_page)
-            await view.contents.mount(history)
             await ui.step()
-            agent.session.settled.set()
             view.window.anchor()
             view.prompt.focus()
 
             if arrival == "read-in-flight":
                 read_entered = asyncio.Event()
-                read_page = view.transcript.get_transcript_page
-
                 async def held_read(*arguments, **options):
                     read_entered.set()
                     await read_release.wait()
-                    return await read_page(*arguments, **options)
+                    return await read_snapshot(*arguments, **options)
 
-                view.transcript.get_transcript_page = held_read
+                reader.snapshot = held_read
                 view.transcript.dirty = view.transcript.commit_required = True
                 pending.append(asyncio.create_task(view.transcript.publish(CommitPublication)))
                 await asyncio.wait_for(read_entered.wait(), 5)
 
-            answer = asyncio.create_task(agent.updates.receive("late-live", {
+            answer = asyncio.create_task(deliver(agent, {
                 "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": TOKEN}}))
             pending.append(answer)
             await asyncio.wait_for(held.wait(), 5)
             # The session file and the end of the turn arrive while the live answer is still unapplied.
-            saved = project / "first-native.jsonl"
-            saved.write_text(json.dumps({"type": "message", "id": "first-assistant", "message": {
-                "role": "assistant", "content": [{"type": "text", "text": TOKEN}]}}) + "\n")
-            comms.registry.declare(replace(thread, session_file=str(saved)))
-            pending.append(asyncio.create_task(agent.updates.receive("late-live", {
+            saved = write_journal(project / "first-native.jsonl", assistant_entry(TOKEN, id="first-assistant"))
+            comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(saved))))
+            pending.append(asyncio.create_task(deliver(agent, {
                 "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
                 "_meta": encode_updates(TurnChangedUpdate(TurnState(finished_turn_id="first-turn")))})))
             await asyncio.sleep(.05)
@@ -116,8 +116,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
 
                     async def saved_history_shown():
                         async with asyncio.timeout(8):
-                            while not any(item.page_source.through == page.after
-                                          for item in view.window.histories):
+                            while view.transcript.binding.history.page_source.through != page.after:
                                 await asyncio.sleep(.02)
 
                     pending.append(asyncio.create_task(saved_history_shown()))
@@ -129,12 +128,63 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                            why="exactly one drawn copy of the answer")
             await ui.step(.5)
             assert ui.painted(view.window).count(TOKEN) == 1
-            assert max(copies_drawn, default=0) <= 1, f"a frame drew the answer {max(copies_drawn)} times"
+            assert max(copies_drawn, default=0) <= 1, f"a frame drew the answer {max(copies_drawn)} times: {duplicate_frame!r}"
             assert agent.process.runner is None
         finally:
             release.set()
             read_release.set()
+            reader.snapshot = read_snapshot
             for task in pending:
                 if not task.done():
                     task.cancel()
             await asyncio.gather(*pending, return_exceptions=True)
+
+
+async def test_an_advancing_commit_retires_the_outgoing_body_and_its_tool_report(workspace):
+    from acp.schema import ToolCall as AcpToolCall
+    from agent_comms.sent_message import PublishedSentMessage
+    from agent_comms.transcript_events import SentTranscript
+    from toad.acp.status import ToolCallStatus
+    from toad.tool_output import ToolOutput
+    from toad.widgets.outgoing_message import OutgoingMessage
+    from toad.widgets.tool_call import ToolCall
+
+    source = workspace.thread("source")
+    workspace.thread("peer")
+    journal = write_journal(workspace.project / "source.jsonl",
+                            assistant_entry("SAVED_NATIVE_PREFIX", id="prefix"))
+    workspace.comms.registry.declare(replace(source, session_file=SavedSessionFile(str(journal))))
+    async with workspace.app(size=(120, 35), resume="source") as ui:
+        view = ui.conversation
+        await ui.until_shows("SAVED_NATIVE_PREFIX")
+        await view.transcript.suspend()
+        history = view.transcript.binding.history
+        previous = history.outgoing_coverage
+        record = workspace.comms.messaging.send("source", "peer", "ADVANCING_OUTGOING_BODY").message
+        snapshot = TranscriptSnapshotUpdate.capture(workspace.comms.transcripts, "source")
+        assert history.accepts_commit(snapshot.page.after), "This case must extend the existing source"
+        report = SentTranscript.from_message(record)
+        publication, = snapshot.identity.wire_frontier.resolve_sent((report,))
+        assert isinstance(publication, PublishedSentMessage)
+        status = ToolCallStatus.from_acp(AcpToolCall.model_validate({
+            "toolCallId": "published-send", "title": "Send", "status": "completed",
+            "content": [report.tool_content("published-send")],
+        }))
+        parts = ToolOutput.capture_projection(status, publication.scope)
+        part, = parts
+        tool = await view.post(ToolCall(status, output_parts=parts))
+        tool.set_expanded(False)
+        outgoing = await view.post(OutgoingMessage(part.message, row=part.row, binding=None, request=None))
+        await ui.until_shows("ADVANCING_OUTGOING_BODY")
+        assert publication.reference in tool.commit_claim.outgoing
+        assert publication.reference not in previous
+        view.window.anchor()
+        view.prompt.focus()
+        view.transcript.dirty = view.transcript.commit_required = True
+        await view.transcript.publish(CommitPublication)
+        await ui.until(lambda: not outgoing.is_attached and not tool.is_attached,
+                       why="the saved outgoing body and its tool report handed off together")
+        await ui.until(lambda: ui.painted(view.window).count("ADVANCING_OUTGOING_BODY") == 1,
+                       why="one saved outgoing body after the live report retires")
+        assert view.transcript.binding.history is history
+        assert previous | {publication.reference} <= history.outgoing_coverage

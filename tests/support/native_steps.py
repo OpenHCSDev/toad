@@ -5,17 +5,15 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 
-from agent_comms.channel_targets import ChannelTarget, ThreadTarget
-from agent_comms.input_disposition import InputDispositions
-from agent_comms.notification_progress import IgnoredProgress
-from agent_comms.presentation import MessageNotification
-
-from support.textual_steps import refresh_chat
+from agent_comms.channel_targets import ChannelTarget
+from agent_comms.notification_progress import AnsweredProgress, IgnoredProgress
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
 from toad.navigation_target import DirectTarget, NavigationContext, channel_target
-from toad.notification_status import NotificationStatus
 from toad.widgets.comms_chat import CommsChatView
+from toad.notification_status import CheckedNotifications, NotificationStatus
+
+from support.textual_steps import refresh_chat
 
 
 def rows_with(chat, predicate):
@@ -31,15 +29,14 @@ def feedback_of(chat, sent) -> NotificationStatus:
     return shown[0]
 
 
-async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: str = "beta",
-                                body: str = "DIRECT_NATIVE_MESSAGE",
-                                reply_prefix: str | None = "NATIVE_RESPONSE_") -> None:
+async def direct_reply_feedback(native, owner_tab: str, *, body: str) -> None:
     """Send one direct message and follow it: responding while open, settled while hidden,
     answered exactly once on return, and once again after closing and reopening the tab.
 
-    With `hold` the provider's reply waits until the tab is hidden.
+    The provider's reply waits until the tab is hidden.
     """
     ui, comms, provider = native.ui, native.comms, native.provider
+    target = native.thread
     app, _pilot = ui.textual
     user = comms.messaging.user_identity(str(native.project)).name
     navigation = NavigationContext(app, owner_tab, native.project, user)
@@ -47,13 +44,11 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     screen = app.selected_session
     await screen.wait_content_ready()
     chat = screen.query_one(CommsChatView)
-    assert chat.conversation == DmConversation(ThreadTarget(target))
+    assert chat.conversation == DmConversation(comms.registry.require(target).incarnation)
     assert not rows_with(chat, lambda message: message.body == body)
-    if hold:
-        provider.hold_next_request()
+    provider.hold_next_request()
     await chat.submit_input(input_events.UserInputSubmitted(body))
-    if hold:
-        await ui.until(provider.entered.is_set, seconds=30, why="the direct message at the provider")
+    await ui.until(provider.entered.is_set, seconds=30, why="the direct message at the provider")
     await ui.until(lambda: rows_with(chat, lambda message: message.body == body), seconds=20,
                    why="the sent message in the chat")
     sent_rows = rows_with(chat, lambda message: message.body == body)
@@ -61,7 +56,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     sent = sent_rows[0]
     assert sent.sender == user and sent.target == target
     await ui.until(lambda: feedback_of(chat, sent).working, seconds=20,
-                   why="active reply progress under the sent message")
+                   why="active delivery feedback under the sent message")
     assert comms.registry.require(target).executing
 
     await ui.select_tab(owner_tab)
@@ -72,8 +67,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     assert app.selected_session is not screen
 
     def replies():
-        return rows_with(chat, lambda message: message.sender == target and message.seq > sent.seq
-                         and (reply_prefix is None or message.body.startswith(reply_prefix)))
+        return rows_with(chat, lambda message: message.sender == target and message.seq > sent.seq)
 
     await DirectTarget(target).open(navigation)
     assert app.selected_session is screen, "Returning replaced the open direct-message tab"
@@ -81,40 +75,27 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     assert len(replies()) == 1
     reply = replies()[0]
     assert reply.target == user and reply.reference != sent.reference
-    outcomes = await asyncio.to_thread(comms.views.message_notifications_for_references,
-                                      (sent.reference,))
-    notifications = outcomes[sent.seq, sent.message_id]
-    assert any(item.recipient == target and item.answer == reply.reference and item.state.read
-               for item in notifications)
-    summary = MessageNotification.summary(notifications)
-    await ui.until(lambda: feedback_of(chat, sent).title == summary
-                   and not feedback_of(chat, sent).working, seconds=20,
-                   why="the recorded answer and settled progress under the sent message")
-    if not hold:
-        from agent_comms.input_origin import WireInputOrigin
-
-        recipient = comms.registry.require(target)
-        native_input = InputDispositions(comms.root / InputDispositions.filename).read().lookup(
-            InputDispositions.bus_key(sent, recipient))
-        assert native_input.has_started and native_input.matches_owner(recipient.incarnation)
-        assert isinstance(native_input.origin, WireInputOrigin)
-        assert native_input.origin.reference == sent.reference
-
+    await ui.until(lambda: AnsweredProgress.label in feedback_of(chat, sent).title, seconds=20,
+                   why="the answered delivery feedback")
+    feedback = feedback_of(chat, sent)
+    assert isinstance(feedback, CheckedNotifications)
+    assert any(item.recipient == target and isinstance(item.state, AnsweredProgress)
+               and item.answer == reply.reference
+               for item in feedback.notifications)
     await ui.close_tab(screen.id)
     await DirectTarget(target).open(navigation)
     reopened = app.selected_session
     assert reopened is not screen and reopened.id != screen.id
     await reopened.wait_content_ready()
     fresh = reopened.query_one(CommsChatView)
-    assert fresh.conversation == DmConversation(ThreadTarget(target))
+    assert fresh.conversation == DmConversation(comms.registry.require(target).incarnation)
     await ui.until(lambda: all(
         sum(fragment.message.reference == reference
             for fragment in fresh.message_history.fragments_in_range) == 1
         for reference in (sent.reference, reply.reference)), seconds=20,
         why="the message and its reply once each after reopening")
-    await ui.until(lambda: feedback_of(fresh, sent).title == summary
-                   and not feedback_of(fresh, sent).working, seconds=20,
-                   why="the same recorded answer after reopening")
+    await ui.until(lambda: AnsweredProgress.label in feedback_of(fresh, sent).title, seconds=20,
+                   why="answered feedback after reopening")
     await ui.select_tab(owner_tab)
 
 
@@ -142,16 +123,12 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     provider.release()
     await ui.until(lambda: not comms.registry.require("beta").executing, seconds=20, why="the decision to finish")
     await refresh_chat(chat)
-    outcomes = await asyncio.to_thread(comms.views.message_notifications_for_references,
-                                      (sent.reference,))
-    notifications = outcomes[sent.seq, sent.message_id]
-    assert any(item.recipient == "beta" and isinstance(item.state, IgnoredProgress)
-               and item.state.read for item in notifications)
-    assert all(item.answer is None for item in notifications)
-    summary = MessageNotification.summary(notifications)
-    await ui.until(lambda: feedback_of(chat, sent).title == summary
-                   and not feedback_of(chat, sent).working, seconds=10,
-                   why="the recorded read-without-reply decision under the message")
+    await ui.until(lambda: IgnoredProgress.label in feedback_of(chat, sent).title, seconds=10,
+                   why="read feedback after declining the channel message")
+    feedback = feedback_of(chat, sent)
+    assert isinstance(feedback, CheckedNotifications)
+    assert any(item.recipient == native.thread and isinstance(item.state, IgnoredProgress)
+               and item.answer is None for item in feedback.notifications)
 
 
 @asynccontextmanager

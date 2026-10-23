@@ -11,6 +11,8 @@ to that process, awaited here.
 
 from __future__ import annotations
 
+from agent_comms.errors import RouteChangedError
+
 import asyncio
 import threading
 from dataclasses import dataclass, field
@@ -22,13 +24,14 @@ from pathlib import Path
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.coordination_errors import StaleRevision
+from agent_comms.child_process import join_retirement
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
-from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
+from agent_comms.route_selection import RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
     ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
-    ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
+    ObservationProcess, ObserverDied, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
     SidebarObserved, SidebarPreparing, SidebarUnreadable, ViewsRetired,
     StopObserving, StopSidebar, ThreadsObserved,
 )
@@ -36,7 +39,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
-from toad.resource_release import ResourceRelease
+from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 
@@ -107,7 +110,7 @@ class Observation:
         waiters, access.sidebar_waiters = access.sidebar_waiters, []
         for _, waiter in waiters:
             if not waiter.done():
-                waiter.set_exception(RouteChanged("Comms service changed before the sidebar was read"))
+                waiter.set_exception(RouteChangedError("Comms service changed before the sidebar was read"))
         access.revision = NoRevision()
         access.sidebar_interest = access.sidebar_current = None
         access.thread_status.clear()
@@ -203,7 +206,6 @@ class Observing(Observation):
         self.loop.add_reader(self.process.fileno(), self.receive, access)
         access.update_sidebar_interest()
         self.thread_interest(access)
-        self.updates.callback(self.answer_reads)
         self.updates.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
         self.subscriptions.enter_context(self.updates)
         self.views_changed()
@@ -215,6 +217,7 @@ class Observing(Observation):
 
     def stop_updates(self) -> AnsweringReads:
         super().stop_updates()
+        self.answer_reads()
         return AnsweringReads(
             self.selection, self.service, self.sidebar, self.process, self.loop,
             access=self.access, subscriptions=self.subscriptions, updates=self.updates)
@@ -232,8 +235,9 @@ class Observing(Observation):
         try:
             for result in self.process.results():
                 access.dispatch_sync(result, self)
-        except (OSError, ValueError, RuntimeError) as error:
+        except ObserverDied as error:
             self.loop.remove_reader(self.process.fileno())
+            self.failed(error, self.selection)
             access.app._handle_exception(error)
 
     def views_changed(self, event=None, subscription=None):
@@ -253,7 +257,7 @@ class Observing(Observation):
     async def current_references(self, access, root):
         try:
             await access.current_sidebar()
-        except RouteChanged:
+        except RouteChangedError:
             return await access.observation.current_references(access, root)
         return access.reference_context(root)
 
@@ -331,7 +335,7 @@ class CoordinationAccess(MroDispatch):
     def require(self, selected: RouteSelection) -> Observing:
         """The service for ``selected``; a new selection opens it and starts its observation."""
         if RouteSelection.capture() != selected:
-            raise RouteChanged("Comms route changed before the operation")
+            raise RouteChangedError("Comms route changed before the operation")
         with self.opening:
             return self.observation.require(self, selected)
 
@@ -343,7 +347,7 @@ class CoordinationAccess(MroDispatch):
             acquisition.enter_context(selected.route.hold_client_route())
             service = wire(selected.route)
             if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
-                raise RouteChanged("Comms route changed while opening the service")
+                raise RouteChangedError("Comms route changed while opening the service")
             observed = Observing(
                 selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
                 self.app.running_loop, access=self)
@@ -547,11 +551,16 @@ class CoordinationAccess(MroDispatch):
 
     async def close(self) -> None:
         """Retire the observation once the views it served have closed."""
-        await self.stop_observing()
-        self.observation.subscriptions.close()
-        self.observation = NotObserving(access=self)
-        await asyncio.gather(*self.retiring, return_exceptions=True)
-        self.cleanup.close()
+        async with AsyncResourceRelease() as release:
+            release.callback(self.cleanup.close)
+            try:
+                with ResourceRelease() as observation:
+                    observation.callback(lambda: self.observation.subscriptions.close())
+                    await self.stop_observing()
+            finally:
+                self.observation = NotObserving(access=self)
+                for task in tuple(self.retiring):
+                    release.push_async_callback(join_retirement, task)
 
     async def route_changed(self) -> bool:
         previous = self.observation

@@ -47,6 +47,7 @@ class Terminal:
         master, slave = pty.openpty()
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", self.rows, self.columns, 0, 0))
         env = self.workspace.roots.environment(dict(os.environ)) | (environment or {})
+        env["PYTHONPATH"] = os.pathsep.join(str(Path(path).absolute()) for path in sys.path)
         self._master = master
         self.process = await asyncio.create_subprocess_exec(
             *command, cwd=str(self.workspace.project), env=env,
@@ -155,9 +156,3 @@ async def terminal_running(workspace, emulator, command: tuple[str, ...], *, siz
         raise
     finally:
         await terminal.stop()
-
-
-def native_wire_environment(workspace, native_package: Path) -> dict[str, str]:
-    """What a child needs to use the native route Core declares on this test's wire."""
-    return {"AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID": workspace.comms.messaging.initialize_private_initial_protocol(),
-            "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE": str(native_package)}

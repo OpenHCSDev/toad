@@ -8,30 +8,26 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from time import time_ns
-from typing import Annotated, Any
+from typing import Annotated, Self
 
-import aiosqlite
 from agent_comms.field_codec import PathText, RecordedTimestamp, TimestampText
-from agent_comms.typed_table import Column, JsonStorage, TextStorage, TypedTable
+from agent_comms.locked_store import SQLiteFile
+from agent_comms.typed_table import (
+    Column, DurableTables, SharedFileTables, TextStorage, TypedTable, WriterOwnedFile,
+)
 
 from toad import paths
 from toad.agent_schema import AgentDefinition
 
-MODEL_HISTORY_SCHEMA = """
-    CREATE TABLE IF NOT EXISTS model_history (
-        agent_identity TEXT NOT NULL,
-        model_id TEXT NOT NULL,
-        last_used INTEGER NOT NULL,
-        PRIMARY KEY (agent_identity, model_id)
-    )
-"""
-
-
-SessionTimestamp = Annotated[RecordedTimestamp, TimestampText]
+SessionTimestamp = Annotated[RecordedTimestamp, TimestampText, Column(storage=TextStorage)]
 
 
 def recorded_now() -> RecordedTimestamp:
     return RecordedTimestamp.written(datetime.now(UTC))
+
+
+class ToadTables(SharedFileTables, DurableTables):
+    """The database's durable rows share one declaration-derived schema."""
 
 
 @dataclass(frozen=True)
@@ -41,105 +37,76 @@ class SessionMeta:
     agent_data: AgentDefinition | None = None
 
 
-class SessionMetaStorage(JsonStorage):
-    @classmethod
-    def accepts(cls, annotation):
-        return annotation is SessionMeta
-
-
 @dataclass(frozen=True, kw_only=True)
-class Session(TypedTable, declared_name="sessions"):
-    id: int | None = field(
-        default=None, metadata={"sql": Column(primary_key=True, auto_increment=True)}
-    )
+class Session(ToadTables, TypedTable, declared_name="sessions"):
+    id: Annotated[int | None, Column(primary_key=True, auto_increment=True)] = None
     agent: str
     agent_identity: str
     agent_session_id: str
     title: str
     protocol: str = "acp"
     prompt_count: int = 0
-    created_at: SessionTimestamp = field(
-        default_factory=recorded_now,
-        metadata={"sql": Column(storage=TextStorage)},
-    )
-    last_used: SessionTimestamp = field(
-        default_factory=recorded_now,
-        metadata={"sql": Column(storage=TextStorage)},
-    )
+    created_at: SessionTimestamp = field(default_factory=recorded_now)
+    last_used: SessionTimestamp = field(default_factory=recorded_now)
     # The column keeps the durable file name; its value is always typed metadata.
-    meta_json: SessionMeta = field(
-        default_factory=SessionMeta,
-        metadata={"sql": Column(storage=SessionMetaStorage)},
-    )
+    meta_json: SessionMeta = field(default_factory=SessionMeta)
+
+
+@dataclass(frozen=True)
+class ModelHistory(ToadTables, TypedTable, declared_name="model_history"):
+    agent_identity: Annotated[str, Column(primary_key=True)]
+    model_id: Annotated[str, Column(primary_key=True)]
+    last_used: int
+
+    @classmethod
+    def recent(cls, db: sqlite3.Connection, agent_identity: str, limit: int) -> list[Self]:
+        return cls.read(db.execute(
+            f'SELECT {cls._column_list(cls.columns())} FROM "{cls.declared_name}" '
+            'WHERE agent_identity = ? ORDER BY last_used DESC, model_id LIMIT ?',
+            (agent_identity, limit),
+        ))
+
+    def remember(self, db: sqlite3.Connection) -> None:
+        """The first write serializes competing observations; older ones never replace newer use."""
+        self.insert_if_absent(db)
+        self.update(
+            db,
+            where="{agent_identity} = ? AND {model_id} = ? AND {last_used} < ?",
+            parameters=(self.agent_identity, self.model_id, self.last_used),
+            last_used=self.last_used,
+        )
 
 
 class DB:
-    """Toad's durable state; session transactions run entirely off the UI thread."""
+    """Toad's durable state; one transaction owner runs entirely off the UI thread."""
 
     def __init__(self):
         self.path = paths.get_state() / "toad.db"
 
-    def open(self) -> aiosqlite.Connection:
-        return aiosqlite.connect(self.path)
-
-    async def _sessions[T](
-        self, operation: Callable[[sqlite3.Connection], T], failure: T
-    ) -> T:
+    async def _transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
         def transaction():
-            try:
-                with closing(sqlite3.connect(self.path)) as db, db:
-                    return operation(db)
-            except sqlite3.Error:
-                return failure
+            with closing(SQLiteFile.writer(self.path)) as db, db:
+                return operation(db)
 
         return await asyncio.to_thread(transaction)
 
     async def record_model_usage(
         self, agent_identity: str, model_id: str, *, last_used: int | None = None,
-    ) -> bool:
+    ) -> None:
         """Remember a confirmed selection or completed turn, never a highlight."""
-        last_used = time_ns() if last_used is None else last_used
-        try:
-            async with self.open() as db:
-                await db.execute(MODEL_HISTORY_SCHEMA)
-                await db.execute(
-                    """INSERT INTO model_history (agent_identity, model_id, last_used)
-                    VALUES (?, ?, ?) ON CONFLICT(agent_identity, model_id)
-                    DO UPDATE SET last_used = MAX(model_history.last_used, excluded.last_used)""",
-                    (agent_identity, model_id, last_used),
-                )
-                await db.commit()
-        except aiosqlite.Error:
-            return False
-        return True
+        row = ModelHistory(agent_identity, model_id, time_ns() if last_used is None else last_used)
+        await self._transaction(row.remember)
 
     async def recent_models(self, agent_identity: str, limit: int = 20) -> list[str]:
         """Return this agent's most recently used model IDs, newest first."""
-        try:
-            async with self.open() as db:
-                await db.execute(MODEL_HISTORY_SCHEMA)
-                cursor = await db.execute(
-                    """SELECT model_id FROM model_history WHERE agent_identity = ?
-                    ORDER BY last_used DESC, model_id LIMIT ?""",
-                    (agent_identity, limit),
-                )
-                return [row[0] for row in await cursor.fetchall()]
-        except aiosqlite.Error:
-            return []
+        rows = await self._transaction(lambda db: ModelHistory.recent(db, agent_identity, limit))
+        return [row.model_id for row in rows]
 
-    async def create(self) -> bool:
+    async def create(self) -> None:
         def create(db):
-            if (
-                db.execute(
-                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
-                    (Session.declared_name,),
-                ).fetchone()
-                is None
-            ):
-                Session.create(db)
-            return True
+            ToadTables.install_schema(db, WriterOwnedFile())
 
-        return await self._sessions(create, False)
+        await self._transaction(create)
 
     async def session_new(
         self,
@@ -158,20 +125,19 @@ class DB:
             protocol=protocol,
             meta_json=meta if meta is not None else SessionMeta(),
         )
-        return await self._sessions(lambda db: row.insert(db).lastrowid, None)
+        return await self._transaction(lambda db: row.insert(db).lastrowid)
 
-    async def _update_session(self, id: int, **changes) -> bool:
+    async def _update_session(self, id: int, **changes) -> None:
         def update(db):
             Session.update(db, where="id = ?", parameters=(id,), **changes)
-            return True
 
-        return await self._sessions(update, False)
+        await self._transaction(update)
 
-    async def session_update_last_used(self, id: int) -> bool:
-        return await self._update_session(id, last_used=recorded_now())
+    async def session_update_last_used(self, id: int) -> None:
+        await self._update_session(id, last_used=recorded_now())
 
-    async def session_update_title(self, id: int, title: str) -> bool:
-        return await self._update_session(id, title=title)
+    async def session_update_title(self, id: int, title: str) -> None:
+        await self._update_session(id, title=title)
 
     async def session_update_project(self, id: int, cwd: Path) -> bool:
         def update(db):
@@ -187,18 +153,12 @@ class DB:
             )
             return True
 
-        return await self._sessions(update, False)
+        return await self._transaction(update)
 
     async def session_get(self, id: int) -> Session | None:
-        return await self._sessions(lambda db: Session.one(db, id=id), None)
+        return await self._transaction(lambda db: Session.one(db, id=id))
 
-    async def session_get_recent(self, max_results: int = 100) -> list[Session] | None:
-        return await self._sessions(
-            lambda db: Session.read(
-                db.execute(
-                    f'SELECT {Session._column_list(Session.columns())} FROM "{Session.declared_name}" ORDER BY last_used DESC LIMIT ?',
-                    (max_results,),
-                )
-            ),
-            None,
+    async def session_get_recent(self, max_results: int = 100) -> list[Session]:
+        return await self._transaction(
+            lambda db: Session.select(db, order_by=("last_used",), descending=True, limit=max_results),
         )

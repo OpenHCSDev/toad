@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from agent_comms.errors import RouteChangedError
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -121,12 +123,11 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(CoordinationChangedUpdate)
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
         from pathlib import Path
-        from agent_comms.route_selection import RouteChanged
 
         agent = self.agent
         root = agent.controller.transcripts.access.launch_root.path
         if Path(update.wire_root).resolve() != root.resolve():
-            raise RouteChanged("ACP owner reported a different coordination root")
+            raise RouteChangedError("ACP owner reported a different coordination root")
         agent.coordination = update
         agent.project_root_path = Path(update.worktree)
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)
@@ -179,7 +180,8 @@ class CommsUpdateConsumer(MroDispatch):
     def request_failed(self, update):
         from toad.core.events import RequestAgentFail
 
-        self.agent.session.record_failure(
+        # One request failed; the session that carried it is still open.
+        self.agent.events.publish(
             RequestAgentFail(update, self.agent.presentation.log_path)
         )
 

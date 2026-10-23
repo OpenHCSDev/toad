@@ -1,10 +1,12 @@
-"""A mounted view observes its actual agent binding and discards replaced reads."""
+"""Textual-facing: a SessionObservation reads for a mounted view, and Textual's mount and removal bound its lifetime."""
 
 import asyncio
 
 import pytest
 from textual.app import App
 from textual.widget import Widget
+
+from support.agents import AppAgents
 
 from toad.session_observation import InputDeliveryObservation, SessionObservation
 
@@ -30,14 +32,9 @@ class ProbeView(Widget):
     result = None
     error = None
 
-    def __init__(self, agent_binding):
+    def __init__(self, agent):
         super().__init__()
-        self.agent_binding = agent_binding
-
-
-@pytest.fixture
-def probe_view(workspace):
-    return ProbeView(workspace.agents.detached_agent())
+        self.agent_binding = agent
 
 
 async def next_read(observation):
@@ -45,8 +42,9 @@ async def next_read(observation):
         return await observation.entered.get()
 
 
-async def test_invalidation_during_a_read_supersedes_its_result(probe_view):
-    view, app = probe_view, App()
+async def test_invalidation_during_a_read_supersedes_its_result(workspace):
+    agents = AppAgents.unrun(workspace.project)
+    view, app = ProbeView(agents.detached_agent()), App()
     observation = ProbeObservation(view)
     async with app.run_test():
         await app.screen.mount(view)
@@ -62,8 +60,9 @@ async def test_invalidation_during_a_read_supersedes_its_result(probe_view):
         assert app._exception is None
 
 
-async def test_a_read_for_a_previous_agent_is_not_published(probe_view, workspace):
-    view, app = probe_view, App()
+async def test_a_read_for_a_previous_agent_is_not_published(workspace):
+    agents = AppAgents.unrun(workspace.project)
+    view, app = ProbeView(agents.detached_agent()), App()
     observation = ProbeObservation(view)
     async with app.run_test():
         await app.screen.mount(view)
@@ -73,17 +72,17 @@ async def test_a_read_for_a_previous_agent_is_not_published(probe_view, workspac
         await observation.task
         observation.invalidate()
         previous = await next_read(observation)
-        view.agent_binding = workspace.agents.detached_agent()
+        view.agent_binding = agents.detached_agent()
         observation.invalidate()
         observation.responses.put_nowait("previous owner")
-        assert await next_read(observation) is view.agent_binding
-        assert view.agent_binding is not previous
+        assert await next_read(observation) is view.agent_binding and view.agent_binding is not previous
         assert view.result == "current"
         assert app._exception is None
 
 
-async def test_a_closed_observation_starts_no_read_and_delivery_actions_refuse(probe_view):
-    view, app = probe_view, App()
+async def test_a_closed_observation_starts_no_read_and_delivery_actions_refuse(workspace):
+    agents = AppAgents.unrun(workspace.project)
+    view, app = ProbeView(agents.detached_agent()), App()
     observation = ProbeObservation(view)
     async with app.run_test() as pilot:
         await app.screen.mount(view)
@@ -91,10 +90,12 @@ async def test_a_closed_observation_starts_no_read_and_delivery_actions_refuse(p
         observation.invalidate()
         assert observation.task is None and observation.view is None
         delivery = InputDeliveryObservation(view)
-        await delivery.close()
-        for action in (delivery.history, delivery.dismiss_history):
-            with pytest.raises(ValueError, match="connected owner changed"):
-                await action()
+        for closed in (False, True):
+            if closed:
+                await delivery.close()
+            for action in (delivery.history, delivery.dismiss_history):
+                with pytest.raises(ValueError, match="connected owner changed"):
+                    await action()
         await view.remove()
         await pilot.pause()
         assert app._exception is None

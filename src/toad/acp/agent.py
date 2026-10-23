@@ -274,11 +274,11 @@ class Agent(AgentBase):
             raise ValueError("Project changes require an agent-comms thread.")
         authority = ClientSessionRequest(self, self.session_id)
         coordination = self.coordination
-        async with self.controller.transcripts.bind(coordination.wire_root) as comms:
-            authority.require()
-            result = await asyncio.to_thread(
-                comms.threads.set_project, coordination.thread.name, path,
-            )
+        comms = await self.controller.transcripts.service(coordination.wire_root)
+        authority.require()
+        result = await asyncio.to_thread(
+            comms.threads.set_project, coordination.thread.name, path,
+        )
         authority.require()
         self.coordination = replace(self.coordination, worktree=result.current)
         self.project_root_path = Path(result.current)

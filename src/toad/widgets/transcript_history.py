@@ -1,65 +1,109 @@
 """Bounded, cursor-paged saved history; all transcript interpretation is model-owned."""
 
 from __future__ import annotations
-from toad.block_navigation import ConversationEntry, FragmentBlockCursor
-from toad.screens.session_view import SessionView
-
-from agent_comms.ui_model.message_category import OtherCategory
 
 import asyncio
 from bisect import bisect_right
 from collections import deque
-from contextlib import ExitStack, asynccontextmanager
+from collections.abc import AsyncIterator, Callable, Iterator
+from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import chain, islice
-from collections.abc import AsyncIterator, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.mro_dispatch import handles
+from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.ui_model.message_category import (
+    MessageCategory,
+    OtherCategory,
+    all_categories,
+)
+from rich.style import Style as RichStyle
 from textual import events, on
+from textual._activation import PrimaryActivation
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+from textual._paint_state import PaintState
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from textual.geometry import Region
 from textual.message import Message
 from textual.selection import Selection
-from textual._activation import PrimaryActivation
-from textual.widget import Widget
-from textual._paint_state import PaintState
 from textual.strip import Strip
+from textual.widget import Widget
 from textual.widgets import Static
-
-from toad.transcript_filter import FilterState
-from toad.transcript_state import TranscriptState, LiveTranscript, ParkedSourceTranscript, LatestViewportRequest
-from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
-from toad.transcript_preparation import (
-    RangeCategoryProjection, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange,
-    ProjectedTranscriptSource, SavedHistory, ClosedHistory, UnreadTranscriptPage,
-)
-from toad.response_delivery import ResponseDelivery
-from toad.message_rows import MessageClock
-from toad.widgets.selection import HoverSelection
-from rich.style import Style as RichStyle
 from ui_theme.effects import NEW_TEXT
-from toad.widgets.presentation_window import PresentationBudget, PageEnd, OLDER_END, NEWER_END
+
+from toad.block_navigation import ConversationEntry, FragmentBlockCursor
+from toad.core.source_events import TranscriptCoverage
 from toad.line_blocks import ToggleDetails
-from toad.message_rows import MessageRow
+from toad.message_rows import MessageClock, MessageRow
+from toad.response_delivery import ResponseDelivery
+from toad.screens.session_view import SessionView
+from toad.transcript_filter import FilterState
+from toad.transcript_preparation import (
+    ClosedHistory,
+    PageFragmentRange,
+    PreparedPageSource,
+    PreparedTranscriptPage,
+    ProjectedTranscriptSource,
+    RangeCategoryProjection,
+    ReplaceablePageSource,
+    SavedHistory,
+    UnreadTranscriptPage,
+)
+from toad.transcript_source_preparation import (
+    TranscriptSourcePreparation,
+    _DrawingStopped,
+)
+from toad.transcript_state import (
+    LatestViewportRequest,
+    LiveTranscript,
+    ParkedSourceTranscript,
+    ReplacementViewportRequest,
+    TranscriptState,
+)
+from toad.widgets.committed_presentation import (
+    RETAINED_SOURCE_CLAIM,
+    CommitClaim,
+    SnapshotPresentation,
+)
+from toad.widgets.history_anchor import (
+    HeldReaderDestination,
+    HistoryWindow,
+    LatestPosition,
+)
+from toad.widgets.linked_rows import (
+    HorizontalRows,
+    OpensMessageNames,
+    ReferenceRendering,
+    selection_painted,
+)
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
-from toad.widgets.linked_rows import HorizontalRows, OpensMessageNames, ReferenceRendering, selection_painted
-from toad.widgets.transcript_lines import (
-    Lines, BlockLines, BlockSpan, LinePreparation, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+from toad.widgets.presentation_window import (
+    NEWER_END,
+    OLDER_END,
+    PageEnd,
+    PresentationBudget,
 )
-from toad.widgets.committed_presentation import CommittedHistory
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
-from agent_comms.ui_model.message_category import (
-    all_categories, MessageCategory,
-)
+from toad.widgets.selection import HoverSelection
 from toad.widgets.transcript_fragments import (
-    Shown, TranscriptFragment, transcript_fragments,
+    Shown,
+    TranscriptFragment,
+    transcript_fragments,
+)
+from toad.widgets.transcript_lines import (
+    BlockLines,
+    BlockSpan,
+    LinePreparation,
+    Lines,
+    PreparedLines,
+    TranscriptLinesBatchRenderTask,
+    TranscriptLinesRenderTask,
 )
 
 if TYPE_CHECKING:
@@ -400,13 +444,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         """Acquire the original prepared range, without selecting it a second time."""
         view = cls(prepared)
         view.visible_categories = owner.selected_categories
+        view.display = False
         # Styled before it is drawn: a page drawn plain first rewraps under
         # the reader as each styled batch arrives.
         await owner.prepare_fragments(prepared.fragments_in_range, current)
         if not current():
             raise _DrawingStopped
-        with ExitStack() as acquisition:
-            acquisition.callback(owner.remove_children, (view,))
+        async with AsyncExitStack() as acquisition:
+            acquisition.push_async_callback(owner.remove_children, (view,))
             await end.mount(owner, view, pages)
             if not current():
                 raise _DrawingStopped
@@ -427,7 +472,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             if not current():
                 return False
             async with window.preserve_history(root=self):
-                return await self.prepared.replace_range(self, selected, current)
+                return self.prepared.replace_range(self, selected, current)
 
 class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
@@ -439,15 +484,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_BUDGET = PresentationBudget(max_items=240)
-    @classmethod
-    def empty_source(cls, view, through):
-        return ClosedHistory(through, view.app.preparation)
-
-    @classmethod
-    def empty(cls, *, view, notification_view):
-        prepared = cls.empty_page()
-        return cls(prepared, cls.empty_source(view, prepared.page.after),
-                   view=view, notification_view=notification_view, source_state=cls.initial_state(view))
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.projection_changed()
@@ -460,9 +496,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         return FragmentBlockCursor(self)
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
-                  *, view, notification_view: HistoryNotifications, budget: PresentationBudget = DEFAULT_BUDGET,
+                  *, notification_view: HistoryNotifications, budget: PresentationBudget = DEFAULT_BUDGET,
                   source_state: TranscriptState | None = None):
-        self.view = view
         self.notification_view = notification_view
         super().__init__(source_state=source_state or LiveTranscript(), page_source=page_source)
         self.budget = budget
@@ -472,7 +507,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
-        self.filter: FilterState = FilterState.for_selection(self)
+        self.filter = FilterState.for_selection(self)
         self._fragment_budget = self.budget.max_items
 
     async def park_document(self) -> PreparedPageSource:
@@ -869,35 +904,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         for page in self.pages:
             page.arrivals.clear()
 
-    async def show_newest(self, through, initial: PreparedTranscriptPage, *,
-                          arrivals: tuple[TranscriptFragment, ...] = ()) -> None:
-        """Replace the drawn source, retaining the followed tail's active arrivals."""
-        retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
-                          if id(fragment) in page.arrivals)
-                    if self.follows_source_tail else ())
-        await self._clear(initial)
-        self.extend_source(through)
-        await self.jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        self.repaint(arrivals, continuing=retained)
-
-    async def _clear(self, initial: PreparedTranscriptPage) -> None:
-        """Forget every drawn page and everything prepared: they belong to another reading."""
-        async with self.window.history_lock:
-            async with self.window.preserve_history(root=self):
-                self._generation += 1
-                self.page_source.restart(initial.page.after)
-                retired = tuple(self.pages)
-                view = TranscriptPageView(initial,
-                                          batch_size=self.budget.batch_items)
-                view.visible_categories = self.selected_categories
-                await self.mount(view, before=self.newer)
-                self.pages = deque([view])
-                self.page_source.through = view.prepared.page.after
-                self.remove_children(retired)
-                self._update_edges()
-
     async def _load_page(
-        self, end: PageEnd, prepared: PreparedTranscriptPage | None = None,
+        self, end: PageEnd,
         publication_current: Callable[[], bool] = lambda: True,
     ) -> bool:
         """Publish one readable range; report whether its edge still needs rows."""
@@ -922,14 +930,17 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             missing = (window.lookahead.ahead_rows(window.outer_size.height) if followed_end
                        else window.lookahead.read_rows(self, end))
             local = end.can_extend(edge.prepared)
-            staged = edge.prepared.for_view() if local else prepared
-            if not local:
-                if staged is None:
-                    source = self.page_source
-                    if not source.has_more(end, edge.prepared.page):
-                        return False
-                    staged = await source.get(end.adjacent(edge.prepared.page))
-                    demand.source_read()
+            if local:
+                staged = edge.prepared.for_view()
+            else:
+                source = self.page_source
+                if not source.has_more(end, edge.prepared.page):
+                    return False
+                staged = await source.get(end.adjacent(edge.prepared.page))
+                demand.source_read()
+                if (not await self.source_is_current(snapshot) or not current()
+                        or not await source.accept_page(self, edge, staged)):
+                    return False
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
             window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, end)
@@ -953,6 +964,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     self._require_can_draw()
                     self.repaint(arrivals)
                     self.rows_published()
+                    if not local:
+                        await self._page_added(staged.page, staged.fragments)
             self.state.delivered(self)
             advanced = end.edge(self.pages)
             if (advanced is edge and edge.prepared.capture_range() == page_range
@@ -985,7 +998,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                 # A nonmatching interval advances the original source span,
                 # not the native tree. No empty page widget or decoded cache.
                 end.advance_empty(edge.prepared, prepared)
-                await self._page_added(prepared.page, prepared.fragments)
             elif local:
                 previous = {id(fragment) for fragment in edge.prepared.fragments_in_range}
                 if not await edge.prepared.extend(edge, prepared, current):
@@ -1002,7 +1014,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     end.append(self.pages, view)
                 protected.update(id(fragment) for fragment in view.prepared.fragments_in_range)
                 protected_pages.add(view)
-                await self._page_added(prepared.page, prepared.fragments)
             self._fragment_budget = limit = max(
                 self.budget.item_limit(len(protected)), self._visible_fragment_budget(),
             )
@@ -1043,7 +1054,124 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
 
-class TranscriptHistory(CommittedHistory, LineHistory):
+class CommittedHistory(LineHistory, SnapshotPresentation):
+    """A saved source block that precedes the conversation's live tail."""
+
+    conversation_order = 0
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return RETAINED_SOURCE_CLAIM
+
+    def accepts_commit(self, cursor: TranscriptCursor) -> bool:
+        return self.page_source.accepts_commit(cursor)
+
+    def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
+        return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
+
+    def covers_outgoing(self, message: PublishedSentMessage) -> bool:
+        return message.reference in self.outgoing_coverage
+
+    def source_resumed(self) -> None:
+        if self._source_state.reports_coverage:
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+
+    def publish_committed(self) -> None:
+        """Acquire source ownership now; report coverage after its first painted frame."""
+        self._source_state = self._source_state.publish()
+        self.call_after_refresh(self.publish_coverage)
+        self.request_preparation()
+
+    def publish_coverage(self) -> None:
+        if self._source_state.reports_coverage:
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+
+    @property
+    def coverage_events(self) -> Iterator[TranscriptEvent]:
+        return (event for page in self.pages for event in page.prepared.page.events)
+
+    @property
+    def outgoing_coverage(self):
+        if self._source_state.reports_coverage:
+            references = frozenset(reference for page in self.pages
+                                   for reference in page.prepared.outgoing_coverage)
+            return references | self.filter.overlay.outgoing_coverage
+        return frozenset()
+
+    def covers_incoming(self, sequence: int) -> bool:
+        if not self._source_state.reports_coverage:
+            return False
+        if self.page_source.through.covers_incoming(sequence):
+            return True
+        if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
+            return True
+        return self.filter.overlay.covers_incoming(sequence)
+
+    def covers_input(self, started: InputStartedUpdate) -> bool:
+        """Whether the loaded saved pages hold the input Core started under this identity."""
+        return (self._source_state.reports_coverage
+                and started.native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
+
+    def retain_committed(self, through: TranscriptCursor) -> None:
+        """Extend access to saved source without moving the displayed page window."""
+        if not self.accepts_commit(through):
+            raise ValueError("Commit replaces or rewinds the retained source")
+        self.extend_source(through)
+
+    async def advance_committed(
+        self, through: TranscriptCursor, is_current: Callable[[], bool],
+    ) -> bool:
+        """Extend a complete followed tail; read a bounded destination across a gap.
+
+        The prepared commit owns the shared live-block handoff operation;
+        this source changes only its followed saved range.
+        """
+        if not is_current() or not self.state.can_draw:
+            return False
+        if not self.accepts_commit(through):
+            raise ValueError("Commit replaces or rewinds the saved source")
+        if not NEWER_END.visible_more(self):
+            return await self.extend(through, is_current)
+        self.retain_committed(through)
+        request = LatestViewportRequest(LatestPosition.hold(self.window))
+        return await self.jump_latest(request, is_current)
+
+
+
+class ConversationHistory[ViewT: "Conversation"](LineHistory):
+    """A conversation owns its source binding and initial history state."""
+
+    page_source: ReplaceablePageSource
+
+    def __init__(self, *args, view: ViewT, **kwargs):
+        self.view = view
+        super().__init__(*args, **kwargs)
+
+    async def show_newest(self, request: ReplacementViewportRequest, *,
+                          arrivals: tuple[TranscriptFragment, ...] = (),
+                          publication_current: Callable[[], bool] = lambda: True) -> bool:
+        """Replace the drawn source, retaining the followed tail's active arrivals."""
+        retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
+                          if id(fragment) in page.arrivals)
+                    if self.follows_source_tail else ())
+        self._generation += 1
+        published = await self.jump_latest(request, publication_current)
+        if published:
+            self.repaint(arrivals, continuing=retained)
+        return published
+
+    @classmethod
+    def empty_source(cls, view, through):
+        return ClosedHistory(through, view.app.preparation)
+
+    @classmethod
+    def empty(cls, *, view, notification_view):
+        prepared = cls.empty_page()
+        return cls(prepared, cls.empty_source(view, prepared.page.after),
+                   view=view, notification_view=notification_view, source_state=cls.initial_state(view))
+
+
+class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHistory[ViewT]):
     """The line history of a saved transcript.
 
     Its pages stand in for the conversation's live blocks: it reports which
@@ -1062,6 +1190,12 @@ class TranscriptHistory(CommittedHistory, LineHistory):
     @classmethod
     def empty_source(cls, view, through):
         return SavedHistory(view.transcript.get_transcript_page, through, view.app.preparation)
+
+    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
+        if self._source_state.reports_coverage:
+            view = self.view
+            view.transcript.binding.covered(
+                view.transcript, TranscriptCoverage(page.events), self).call_when_ready(view)
 
     async def restore_source(self, source: PreparedPageSource, current) -> None:
         """Put the parked pages back into the same mounted reader."""
@@ -1086,18 +1220,18 @@ class TranscriptHistory(CommittedHistory, LineHistory):
             await self.remove_children(retired)
             self.acquire_document()
 
-class ProjectedTranscriptHistory(TranscriptHistory):
+class ProjectedTranscriptHistory(CommittedHistory):
     """A filtered source view with the ordinary pager's loading and eviction policy."""
 
-    def __init__(self, owner: TranscriptHistory, source: ProjectedTranscriptSource,
+    def __init__(self, owner: LineHistory, source: ProjectedTranscriptSource,
                  prepared: PreparedTranscriptPage) -> None:
         self._projection_owner = ref(owner)
-        super().__init__(prepared, source, view=owner.view, budget=owner.budget,
+        super().__init__(prepared, source, budget=owner.budget,
                          notification_view=owner.notification_view)
         self.add_class("filtered-history-results")
 
     @classmethod
-    def from_source(cls, source: ProjectedTranscriptSource, *, owner: TranscriptHistory):
+    def from_source(cls, source: ProjectedTranscriptSource, *, owner: LineHistory):
         if not source.held_pages or source.closed:
             raise ValueError("No kept projected range")
         history = cls(owner, source, source.held_pages[0])

@@ -43,7 +43,7 @@ async def test_a_command_in_the_pane_sees_the_terminal_environment(tmp_path):
 async def test_the_resume_modal_lists_a_saved_session_and_returns_it_typed(tmp_path):
     with patch("toad.db.paths.get_state", return_value=tmp_path):
         db = DB()
-        assert await db.create()
+        await db.create()
         saved = AgentDefinition.decode({"identity": "saved-agent", "name": "Agent", "run_command": {"*": "agent"}})
         pk = await db.session_new("Saved session", "Agent", "saved-agent", "saved-session",
                                   meta=SessionMeta(tmp_path, saved))

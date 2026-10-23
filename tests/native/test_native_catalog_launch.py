@@ -49,8 +49,8 @@ async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(works
             await choose_action(ui, modal, None)
             await ui.until(lambda: ui.selected_tab not in {first_tab, "store"}, seconds=20, why="the launched session's tab")
             launched = ui.conversation
-            await ui.until(lambda: launched.agent_ready, seconds=40, why="the launched agent to be ready")
-            assert launched.agent.definition.identity == IDENTITY
+            await ui.until_agent_ready(seconds=40)
+            assert launched.agent_binding.definition.identity == IDENTITY
             assert len(provider.requests) == 1, "Launching from the Store asked the model"
 
             await ui.select_tab(first_tab)
@@ -74,4 +74,4 @@ async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(works
             await ui.press("escape")
             await ui.until(lambda: isinstance(app.screen, StoreScreen), why="the Store again")
             assert len(provider.requests) == 1
-            await launched.agent.stop()
+            await launched.agent_binding.stop()

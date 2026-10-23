@@ -271,6 +271,7 @@ See on-screen instructions for details.
         return self.submission_allowed and not self.text and not self.shell_mode
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
+        self._clear_caches()
         self.notify_style_update()
         self.refresh()
 
@@ -607,6 +608,16 @@ class Prompt(TonePaint, containers.VerticalGroup):
             self.prompt_text_area.get_cursor_line_end_location()
         )
 
+    def restore_draft(self, text: str) -> None:
+        """Recover local input as an edit of the retained document and undo history."""
+        current = self.text
+        if text and current != text and not current.endswith("\n\n" + text):
+            editor = self.prompt_text_area
+            editor.history.checkpoint()
+            editor.insert(("\n\n" if current else "") + text,
+                          editor.document.end, maintain_selection_offset=True)
+            editor.history.checkpoint()
+
     def watch_agent_binding(self) -> None:
         if self.is_mounted:
             self.sync_configuration()
@@ -914,13 +925,14 @@ class MessagePrompt(Prompt):
         pass
 
     def watch_agent_info(self, agent_info: Content) -> None:
-        pass
+        if self.is_mounted:
+            self.update_prompt()
 
     def project_directory_updated(self) -> None:
         pass
 
     def update_prompt(self) -> None:
-        self.prompt_text_area.placeholder = self.simple_placeholder or "Message thread"
+        self.prompt_text_area.placeholder = self.simple_placeholder or f"Message {self.agent_info.plain or 'thread'}"
         self.prompt_text_area.highlight_language = "markdown"
         self.prompt_label.refresh()
 

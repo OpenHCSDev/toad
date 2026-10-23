@@ -8,20 +8,22 @@ tells it to. The wire, the Pi settings and the project are the test's private ro
 from __future__ import annotations
 
 import asyncio
-import json
-import os
-import shlex
-import sys
-import threading
 from collections.abc import Callable
-from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
+import os
 from pathlib import Path
+import shlex
+import sys
+import threading
 
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.thread_model import DeclaredModel
+
+from support.roots import installed_wire
 
 PROVIDER = "selected-offline"
 MODEL = DeclaredModel(f"{PROVIDER}/fixture")
@@ -51,24 +53,10 @@ def selected_triage_reply(request: dict, decision=None) -> dict | None:
         IgnoreSelectedTriage() if decision is None else decision))}
 
 
-def wire_reply(request: dict, answer: str) -> dict | None:
-    """The answer to a wire message, in the form Core asks for: its example records with `answer` as text."""
-    from agent_comms.turn_context import InstructionFile
-
-    placeholder = InstructionFile.read("selected-response-example.md").content
-    marker = "Declared Message examples: "
-    for text in last_user_texts(request):
-        if marker in text:
-            examples, _end = json.JSONDecoder().raw_decode(text[text.index(marker) + len(marker):])
-            records = json.loads(json.dumps(examples).replace(json.dumps(placeholder), json.dumps(answer)))
-            return {"role": "assistant", "content": json.dumps(records)}
-    return None
-
-
 def numbered_reply(request: dict, number: int) -> tuple[dict, str]:
     """Declines triage questions and answers anything else ``NATIVE_RESPONSE_<n>``."""
     answer = f"NATIVE_RESPONSE_{number}"
-    return (selected_triage_reply(request) or wire_reply(request, answer)
+    return (selected_triage_reply(request)
             or {"role": "assistant", "content": answer}), "stop"
 
 
@@ -175,12 +163,7 @@ class ControlledProvider:
 
 def start_private_native_wire(root: Path):
     """Create a private root; Core derives its root identity and reviewed package."""
-    from agent_comms.comms import Comms
-    from agent_comms.launch_root import LaunchRoot
-
-    comms = Comms(root)
-    comms.messaging.initialize_private_initial_protocol()
-    LaunchRoot.from_path(comms.root).install()
+    comms = installed_wire(root)
     for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
         os.environ.pop(key, None)
     return comms
@@ -209,11 +192,11 @@ def comms_agent():
     """The agent definition for Core's own ACP server (``python -m agent_comms.acp``)."""
     from toad.agent_schema import AgentDefinition
 
-    return AgentDefinition(
-        identity="native-fixture", name="Native fixture", short_name="native",
-        run_command={"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
-        accepts_comms_root=True,
-    )
+    return AgentDefinition.decode({
+        "name": "Native fixture", "identity": "native-fixture", "short_name": "native", "protocol": "acp",
+        "accepts_comms_root": True,
+        "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
+    })
 
 
 @dataclass
@@ -237,27 +220,27 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
                        application: type | None = None, attached: bool = True, project: Path | None = None):
     """Start Toad on declared thread `thread` through Core's ACP server; yields (ui, agent) once
     the session has settled. Stops the agent and every owner on the wire afterwards."""
-    from toad.acp.agent import Agent
     from toad.app import ToadApp
+    from toad.agent import AgentBase
 
+    agent = None
     started = partial(application or ToadApp, agent_session_id=thread)
     if project is not None:
         started = partial(started, project_dir=str(project))
     try:
-        async with AsyncExitStack() as resources, workspace.app(
-            size=size, agent=comms_agent(), application=_first_wins(started)
-        ) as ui:
-            await ui.until(lambda: isinstance(ui.conversation.agent_binding, Agent),
-                           seconds=20, why="the bound ACP agent")
+        async with workspace.app(size=size, agent=comms_agent(), application=_first_wins(started)) as ui:
+            await ui.until(lambda: isinstance(ui.conversation.agent_binding, AgentBase), seconds=20,
+                           why="the bound agent")
             agent = ui.conversation.agent_binding
-            resources.push_async_callback(agent.stop)
             await ui.until(agent.session.settled.is_set, seconds=30, why="the ACP session to settle")
             assert agent.session.connected is attached, "Unexpected ACP attachment outcome"
             yield ui, agent
     finally:
-        for thread in comms.registry.all_threads().values():
-            for name in thread.role.executor(thread.name):
-                await asyncio.to_thread(comms.owners.stop, name)
+        if agent is not None:
+            await agent.stop()
+        names = tuple(name for thread in comms.registry.all_threads().values()
+                      for name in thread.role.executor(thread.name))
+        await asyncio.to_thread(comms.owners.stop, *names)
 
 
 def _first_wins(started):

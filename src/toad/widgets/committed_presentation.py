@@ -1,10 +1,9 @@
 """Source evidence and viewport intent govern retirement of live presentation."""
 
 from __future__ import annotations
-from toad.widgets.presentation_window import NEWER_END
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable
 from functools import partial
 from dataclasses import dataclass
 from contextlib import asynccontextmanager
@@ -12,17 +11,16 @@ from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
-from agent_comms.transcript_events import TranscriptEvent
-from toad.transcript_state import CommitTranscript, LatestViewportRequest
+from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
+from toad.widgets.history_anchor import LatestPosition
 from agent_comms.sent_message import PublishedSentMessage, OutgoingMessageReference
 from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
 
-from toad.block_navigation import ConversationEntry
-from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
+    from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
     from toad.widgets.conversation import Conversation
     from toad.widgets.history_anchor import HistoryWindow
     from toad.transcript_preparation import PreparedTranscriptPage
@@ -155,105 +153,6 @@ class CommitBarrier:
 CAPTURED_CLAIM = CapturedClaim()
 RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
-class CommittedHistory(ConversationEntry, SnapshotPresentation):
-    """A saved source block that precedes the conversation's live tail."""
-
-    conversation_order = 0
-
-    @property
-    def commit_claim(self) -> CommitClaim:
-        return RETAINED_SOURCE_CLAIM
-
-    def accepts_commit(self, cursor: TranscriptCursor) -> bool:
-        return self.page_source.accepts_commit(cursor)
-
-    def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
-        return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
-
-    def covers_outgoing(self, message: PublishedSentMessage) -> bool:
-        return message.reference in self.outgoing_coverage
-
-    def source_resumed(self) -> None:
-        if self._source_state.reports_coverage:
-            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
-
-    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
-        # The live blocks this page covers are retired as part of adding
-        # the page, without holding the conversation's message pump. A
-        # saved viewer outside a conversation has no live blocks.
-        if self._source_state.reports_coverage and (conversation := self.conversation) is not None:
-            conversation.transcript.binding.covered(
-                conversation.transcript, TranscriptCoverage(page.events), self).call_when_ready(conversation)
-
-    def publish_committed(self) -> None:
-        """Acquire source ownership now; report coverage after its first painted frame."""
-        self._source_state = self._source_state.publish()
-        self.call_after_refresh(self.publish_coverage)
-        self.request_preparation()
-
-    def publish_coverage(self) -> None:
-        if self._source_state.reports_coverage:
-            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
-
-    @property
-    def coverage_events(self) -> Iterator[TranscriptEvent]:
-        return (event for page in self.pages for event in page.prepared.page.events)
-
-    @property
-    def outgoing_coverage(self):
-        if self._source_state.reports_coverage:
-            references = frozenset(reference for page in self.pages
-                                   for reference in page.prepared.outgoing_coverage)
-            return references | self.filter.overlay.outgoing_coverage
-        return frozenset()
-
-    def covers_incoming(self, sequence: int) -> bool:
-        if not self._source_state.reports_coverage:
-            return False
-        if self.page_source.through.covers_incoming(sequence):
-            return True
-        if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
-            return True
-        return self.filter.overlay.covers_incoming(sequence)
-
-    def covers_input(self, native_id: str | None) -> bool:
-        """Whether the loaded saved pages hold the input Core started under this identity."""
-        return (self._source_state.reports_coverage
-                and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
-
-    def retain_committed(self, through: TranscriptCursor) -> None:
-        """Extend access to saved source without moving the displayed page window."""
-        if not self.accepts_commit(through):
-            raise ValueError("Commit replaces or rewinds the retained source")
-        self.extend_source(through)
-
-    async def advance_committed(
-        self, through: TranscriptCursor, is_current: Callable[[], bool],
-        live_blocks: tuple[Widget, ...],
-    ) -> bool:
-        """Extend a complete followed tail; read a bounded destination across a gap.
-
-        The pages already drawn stay. The saved rows replace `live_blocks`,
-        the live copies of the same turn, in the change that draws them.
-        """
-        async with self.window.history_lock:
-            if not self.source_ready or not is_current():
-                return False
-            if not self.accepts_commit(through):
-                raise ValueError("Commit replaces or rewinds the saved source")
-            operation = self.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
-        return await operation.execute(self, partial(self._advance_committed, through, is_current))
-
-    async def _advance_committed(
-        self, through: TranscriptCursor, is_current: Callable[[], bool],
-    ) -> bool:
-        if not is_current() or not self.state.can_draw:
-            return False
-        if not NEWER_END.visible_more(self):
-            return await self.extend(through, is_current)
-        self.retain_committed(through)
-        request = LatestViewportRequest(LatestPosition.hold(self.window))
-        return await self.jump_latest(request, is_current)
 
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
     return [widget for widget in widgets
@@ -278,20 +177,54 @@ class PreparedCommit:
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
         return self.history.outgoing_coverage
 
-    async def draw(self, cursor: TranscriptCursor) -> None:
-        """An extended range already owns its drawn pages."""
+    async def draw(self, cursor: TranscriptCursor, is_current: Callable[[], bool],
+                   live_blocks: tuple[Widget, ...]) -> bool:
+        """A retained viewport changes source access without drawing rows."""
+        return True
 
 
 @dataclass(frozen=True)
-class PreparedPageCommit(PreparedCommit):
+class PreparedSourceCommit(PreparedCommit, ABC):
+    """Every saved-row mutation shares the live-block handoff operation."""
+
     page: PreparedTranscriptPage
+
+    @classmethod
+    async def capture(cls, view, history, page, sequences):
+        from toad.transcript_preparation import TranscriptPageRenderTask
+        from toad.work_preparation import RenderPreparation
+
+        prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+        return cls(history, sequences, prepared)
 
     @property
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
-        return self.page.outgoing_coverage
+        return self.history.outgoing_coverage | self.page.outgoing_coverage
 
-    async def draw(self, cursor: TranscriptCursor) -> None:
-        await self.history.show_newest(cursor, self.page)
+    async def draw(self, cursor, is_current, live_blocks) -> bool:
+        history = self.history
+        async with history.window.history_lock:
+            if not history.source_ready or not is_current():
+                return False
+            operation = history.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
+        return await operation.execute(history, partial(self.publish, cursor, is_current))
+
+    @abstractmethod
+    async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool: ...
+
+
+class PreparedAdvanceCommit(PreparedSourceCommit):
+    async def publish(self, cursor, is_current):
+        return await self.history.advance_committed(cursor, is_current)
+
+
+@dataclass(frozen=True)
+class PreparedPageCommit(PreparedSourceCommit):
+    history: TranscriptHistory
+
+    async def publish(self, cursor, is_current):
+        return await self.history.show_newest(PreparedReplacementViewportRequest(
+            LatestPosition.hold(self.history.window), self.page), publication_current=is_current)
 
 
 class CommitPlan(ABC):
@@ -311,13 +244,9 @@ class CommitPlan(ABC):
                       page: TranscriptPage, captured: frozenset[Widget],
                       is_current: Callable[[], bool]) -> PreparedCommit | None:
         """Grow a history that accepts the page; otherwise the page replaces it."""
-        from toad.transcript_preparation import TranscriptPageRenderTask
-        from toad.work_preparation import RenderPreparation
-
         if history.accepts_commit(page.after):
             return await self.extend(view, history, page, captured, is_current)
-        prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
-        return PreparedPageCommit(history, TranscriptCoverage(page.events).sequences, prepared)
+        return await PreparedPageCommit.capture(view, history, page, TranscriptCoverage(page.events).sequences)
 
     @abstractmethod
     async def extend(self, view: Conversation, history: CommittedHistory, page: TranscriptPage,
@@ -343,15 +272,8 @@ class FollowTailCommit(CommitPlan):
         return window.follows_tail and window.scroll_revision == self.revision
 
     async def extend(self, view, history, page, captured, is_current):
-        # The drawn history grows in place: unchanged pages keep their views,
-        # and the captured live blocks leave in the change that draws their saved rows.
-        live_blocks = tuple(retirement_candidates(
-            captured, CommitEvidence(frozenset(captured), retained_history=history),
-        ))
-        if not await history.advance_committed(page.after, is_current, live_blocks):
-            return None
-        return PreparedCommit(history, TranscriptCoverage(page.events).sequences
-                              | history.covered_sequences(required_sequences(captured)))
+        return await PreparedAdvanceCommit.capture(view, history, page, TranscriptCoverage(page.events).sequences
+                                                   | history.covered_sequences(required_sequences(captured)))
 
     def finish(self, view, cursor):
         view.transcript.binding.painted(view.transcript, cursor)

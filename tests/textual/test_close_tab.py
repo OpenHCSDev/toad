@@ -2,6 +2,8 @@
 
 from unittest.mock import patch
 
+from toad.agent_binding import NoAgentBound
+
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation
 from toad.widgets.prompt import Prompt
@@ -55,4 +57,4 @@ async def test_closing_a_tab_releases_its_agent_without_titling_or_configuring_t
               patch.object(Prompt, "sync_configuration", configured)):
             await ui.close_tab(identity)
         assert not updated, ("The closing view was updated again", updated)
-        assert conversation.agent is None and not conversation.is_attached
+        assert isinstance(conversation.agent_binding, NoAgentBound) and not conversation.is_attached

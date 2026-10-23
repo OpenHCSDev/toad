@@ -111,7 +111,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
                 style="error",
             )
             return
-        self.submissions.restore_draft(message.event.update.text)
+        self.prompt.restore_draft(message.event.update.text)
 
         self.flash(
             f"{message.event.update.failure.title}; draft restored: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",

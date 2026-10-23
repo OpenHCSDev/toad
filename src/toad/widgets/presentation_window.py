@@ -224,7 +224,7 @@ class OlderEnd(PageEnd):
     def wire_page(self, source, cursor, through):
         return source.conversation.page(source, PageBounds(
             cursor.older(),
-            source.tail_limit if cursor == through else source.page_limit, source.max_bytes))
+            source.tail_limit if cursor == through else source.page_limit))
 
     def advance_empty(self, edge, staged):
         edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
@@ -258,7 +258,7 @@ class NewerEnd(PageEnd):
         return await through.read_page(loader, after=cursor)
 
     def wire_page(self, source, cursor, through):
-        page = source.conversation.page(source, PageBounds(cursor.newer(), source.page_limit, source.max_bytes))
+        page = source.conversation.page(source, PageBounds(cursor.newer(), source.page_limit))
         kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor.sequence)
         return replace(page, messages=kept, has_newer=False) if len(kept) < len(page.messages) else page
 

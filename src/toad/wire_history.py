@@ -15,25 +15,48 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms.message_page import MessagePage
-from agent_comms.transcript_events import IncomingTranscript
-from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
-from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
+from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
-    ConversationHistoryView, ConversationObservation, ConversationRevision,
+    ConversationHistoryView,
+    ConversationObservation,
+    ConversationRevision,
 )
+from agent_comms.message_page import MessagePage
+from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
+from agent_comms.page_traversal import (
+    LiveCursor,
+    NewerTraversal,
+    OlderTraversal,
+    PageCursor,
+)
+from agent_comms.transcript_events import IncomingTranscript
 
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
-    PageRequest, PreparedTranscriptPage, SavedHistory, SourceObservation, TranscriptPageWork, Unchanged,
+    PageRequest,
+    PreparedTranscriptPage,
+    SavedHistory,
+    SourceObservation,
+    TranscriptPageWork,
+    Unchanged,
 )
+from toad.transcript_state import (
+    LatestReplacementViewportRequest,
+    ReplacementViewportRequest,
+)
+from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
-from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
+from toad.widgets.transcript_fragments import (
+    BusMessageFragment,
+    MessageShown,
+    TranscriptFragment,
+)
 
 if TYPE_CHECKING:
     from agent_comms.read_basis import NamedViewer
+
     from toad.widgets.transcript_lines import Lines
 
 
@@ -85,7 +108,7 @@ class AfterSequence(AfterMessage):
     kept = False
 
     def older(self) -> OlderTraversal:
-        return OlderTraversal(self.cursor.sequence + 1)
+        return OlderTraversal(LiveCursor(self.cursor.sequence + 1))
 
 
 @dataclass(frozen=True)
@@ -253,23 +276,27 @@ class WireSource:
     style: WireMessageStyle
     tail_limit: int = 8
     page_limit: int = 40
-    max_bytes: int = 256 * 1024
 
     @property
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(str(self.project))
 
+    def references(self) -> CurrentDisplayReferences:
+        """Resolve stable destinations through this read's registry cut."""
+        return CurrentDisplayReferences(str(self.comms.root), registry=self.comms.registry.snapshot())
+
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
         revision = self.conversation.history_view.revision(
-            self.comms.views, self.conversation.target.name, seen, worktree=str(self.project))
+            self.comms.views, self.conversation.retained_target(), seen, worktree=str(self.project))
         if revision == seen:
             return Unchanged()
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
-        replaced = revision.display_changed_since(seen)
-        return WireObservation(revision, high, replaced)
+        observation = (ReplacedWireObservation if revision.display_changed_since(seen)
+                       else GrowingWireObservation)
+        return observation(revision, high)
 
     def read(self, request: PageRequest[WireCut], through: AfterSequence) -> PreparedTranscriptPage:
         """Read the page a request names, never past `through`, as fragments to draw."""
@@ -291,20 +318,46 @@ class WireSource:
 
 
 @dataclass(frozen=True)
+class RestyledViewportRequest(ReplacementViewportRequest):
+    loader: WireSource
+
+    def source(self, owner):
+        return WirePageBuffer(self.loader, owner.page_source.through, owner.page_source.runtime,
+                              revision=owner.page_source.revision)
+
+
+@dataclass(frozen=True)
+class ObservedViewportRequest(ReplacementViewportRequest):
+    observation: WireObservation
+
+    def source(self, owner):
+        source = owner.page_source.replacement(self.observation.through)
+        source.revision = self.observation.revision
+        return source
+
+
+@dataclass(frozen=True)
 class WireObservation(SourceObservation):
     revision: ConversationRevision
     through: AfterSequence
-    replaced: bool
 
+
+class ReplacedWireObservation(WireObservation):
     async def apply(self, history, source) -> bool:
-        history.revision = self.revision
-        if self.replaced:
-            await history.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
-            return not history.undrawn
+        return await history.show_newest(ObservedViewportRequest(
+            LatestPosition.hold(history.window), self))
+
+
+class GrowingWireObservation(WireObservation):
+    async def apply(self, history, source) -> bool:
         if not history.undrawn:
-            return await history.extend(self.through)
-        history.extend_source(self.through)
-        return await super().apply(history, source)
+            published = await history.extend(self.through)
+        else:
+            history.extend_source(self.through)
+            published = await super().apply(history, source)
+        if published and history.page_source is source:
+            source.revision = self.revision
+        return published
 
 
 @dataclass(frozen=True)
@@ -329,6 +382,13 @@ class WirePageBuffer(SavedHistory):
 
     work = WirePageWork
 
+    def __init__(self, *args, revision: ConversationObservation, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.revision = revision
+
+    def replacement(self, through) -> WirePageBuffer:
+        return type(self)(self.loader, through, self.runtime, revision=self.revision)
+
     def uses_observation(self, observation) -> bool:
         return observation.uses(self.loader.comms)
 
@@ -341,10 +401,11 @@ class WirePageBuffer(SavedHistory):
         return self.loader.conversation.status_thread(self.loader.comms.root, access)
 
     def command_context(self, view):
-        from toad.target_commands import TargetContext
         from toad.screens.session_view import SessionView
+        from toad.target_commands import TargetContext
 
-        return TargetContext(view.app, self.loader.comms, self.loader.conversation.target.name, self.loader.me,
+        references = view.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
+        return TargetContext(view.app, self.loader.comms, self.loader.conversation.destination(references).name, self.loader.me,
                              self.loader.project, view.query_ancestor(SessionView).id)
 
     async def submit_input(self, view, event) -> None:
@@ -365,11 +426,8 @@ class WirePageBuffer(SavedHistory):
     async def change_style(self, history) -> None:
         if not history.can_draw_on_screen:
             return
-        style = self.loader.style.next()
-        history.open(self.loader.restyled(style))
-        await history._show([(fragment, replace(fragment.shown, style=style))
-                             for fragment in history.fragments])
-        history.window.scroll_end(animate=False)
+        await history.show_newest(RestyledViewportRequest(
+            LatestPosition.hold(history.window), self.loader.restyled(self.loader.style.next())))
 
     async def read_revision(self):
         return await self.runtime.run_thread(self.loader.comms.views.revision)
@@ -377,8 +435,13 @@ class WirePageBuffer(SavedHistory):
     async def observe_changes(self, revision):
         return await self.runtime.run_thread(self.loader.observe, revision)
 
-    def accepts_page(self, current, incoming) -> bool:
-        return current.accepts(incoming.source, self.loader.conversation.history_view)
+    async def accept_page(self, history, edge, prepared) -> bool:
+        if edge.prepared.page.accepts(prepared.page.source, self.loader.conversation.history_view):
+            return True
+        prepared.configure(batch_size=len(prepared.fragments))
+        await history.show_newest(LatestReplacementViewportRequest(LatestPosition.hold(history.window), self.through),
+                                  arrivals=history._source_state.arriving(prepared, history.drawn_tail_followed))
+        return False
 
     def seen_page(self, history, seen):
         return self.loader.conversation.seen_page(history, seen)

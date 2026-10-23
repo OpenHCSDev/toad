@@ -15,12 +15,22 @@ def test_deleted_scan_flags_and_external_projection_probes():
                    if isinstance(node, ast.ClassDef) and node.name == 'NoProjectionOverlay')
     operations = {node.name for node in overlay.body
                   if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    fields = {target.id for node in overlay.body if isinstance(node, ast.Assign)
+              for target in node.targets if isinstance(target, ast.Name)}
+    fields.update(node.target.id for node in overlay.body
+                  if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name))
+    fields.update(node.name for node in overlay.body if isinstance(node, ast.FunctionDef)
+                  and any(isinstance(marker, ast.Name) and marker.id == 'property'
+                          for marker in node.decorator_list))
     for path in (ROOT/'transcript_filter.py', ROOT/'transcript_state.py',
                  ROOT/'widgets/transcript_history.py'):
         tree = ast.parse(path.read_text())
         protocol_receivers = {node.func.value for node in ast.walk(tree)
                               if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
                               and node.func.attr in operations}
+        protocol_receivers.update(node.value for node in ast.walk(tree)
+                                  if isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load)
+                                  and node.attr in fields)
         for node in ast.walk(tree):
             if isinstance(node, ast.Name):
                 assert node.id not in retired
@@ -29,7 +39,7 @@ def test_deleted_scan_flags_and_external_projection_probes():
             if isinstance(node, ast.Attribute):
                 assert node.attr not in retired
                 if path.name != 'transcript_filter.py' and ast.unparse(node) in {'self.filter.overlay', 'owner.filter.overlay'}:
-                    # Only calls to the declared overlay operations cross this
+                    # Only declared overlay operations and field reads cross this
                     # boundary. Case/identity decisions belong to FilterState.
                     assert node in protocol_receivers, (path, node.lineno, ast.unparse(node))
                 elif path.name == 'transcript_filter.py' and node.attr in {'_loading', '_advancing', '_generation', '_selected_categories', '_prefetch_distance'}:

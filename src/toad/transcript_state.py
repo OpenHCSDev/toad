@@ -5,18 +5,29 @@ from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
-from typing import ClassVar, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 from textual.widget import Widget
-from toad.widgets.presentation_window import NEWER_END
+
+from toad.resource_release import ResourceRelease
+from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
-    from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
+
+    from agent_comms.transcripts import TranscriptCursor
+
+    from toad.transcript_preparation import PreparedTranscriptPage
+    from toad.transcript_source_preparation import (
+        HistorySourceSnapshot,
+        TranscriptSourcePreparation,
+    )
     from toad.widgets.committed_presentation import CommitParticipant
     from toad.widgets.history_anchor import LatestPosition
+    from toad.widgets.transcript_history import ConversationHistory
+    from toad.wire_history import WireCut
 
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
@@ -188,6 +199,14 @@ class NoLatestRequest(LatestViewportState):
 class LatestViewportRequest(LatestViewportState):
     destination: "LatestPosition"
 
+    @contextmanager
+    def reading(self, owner):
+        with ResourceRelease() as release:
+            yield owner.page_source, release
+
+    async def page(self, owner, source):
+        return await source.latest(owner.pages[-1].prepared)
+
     def current(self, window) -> bool:
         return self.destination.current(window)
 
@@ -211,6 +230,44 @@ class LatestViewportRequest(LatestViewportState):
                 or owner.schedule_source_work(partial(owner.jump_latest, self))):
             return NoLatestRequest()
         return self
+
+
+@dataclass(frozen=True)
+class ReplacementViewportRequest(LatestViewportRequest):
+    """The request owns its new reading until the pages replace the old ones."""
+
+    @abstractmethod
+    def source(self, owner: ConversationHistory):
+        """Open the complete reading selected by this replacement."""
+
+    @contextmanager
+    def reading(self, owner: ConversationHistory):
+        with ResourceRelease() as release:
+            source = self.source(owner)
+            release.callback(source.close)
+            yield source, release
+
+    async def page(self, owner, source):
+        return await source.get(PageRequest(OLDER_END, source.through))
+
+@dataclass(frozen=True)
+class LatestReplacementViewportRequest(ReplacementViewportRequest):
+    through: TranscriptCursor | WireCut
+
+    def source(self, owner: ConversationHistory):
+        return owner.page_source.replacement(self.through)
+
+@dataclass(frozen=True)
+class PreparedReplacementViewportRequest(ReplacementViewportRequest):
+    """An existing prepared page needs no storage read, including closed sources."""
+
+    initial: PreparedTranscriptPage
+
+    def source(self, owner: ConversationHistory):
+        return owner.page_source.replacement(self.initial.page.after)
+
+    async def page(self, owner, source):
+        return self.initial.for_view()
 
 
 @dataclass(frozen=True, eq=False)
@@ -310,7 +367,10 @@ class WorkingTranscript(SuspendedTranscript):
         owner._source_observation.enter_context(waiting.observe())
 
     async def execute(self, owner, work):
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+        from agent_comms.coordination_errors import (
+            CoordinationReadUnavailable,
+            StaleRevision,
+        )
 
         with ExitStack() as completion:
             completion.callback(owner.finish_source_work, self)
@@ -418,17 +478,27 @@ class CommitTranscript(WorkingTranscript):
     """
 
     def __init__(self, source: TranscriptState, owner, live_blocks: tuple[Widget, ...]):
+        from textual.await_complete import AwaitComplete
+
         super().__init__(source, owner)
         self.live_blocks = live_blocks
+        self.claims = tuple(cast("CommitParticipant", block).commit_claim for block in live_blocks)
+        self.retirement = AwaitComplete.nothing()
+
+    async def execute(self, owner, work):
+        try:
+            return await super().execute(owner, work)
+        finally:
+            await self.retirement
 
     def arriving(self, prepared, followed_end: bool):
         # Rows its live blocks already showed have not arrived again; every other row has.
         # The live blocks are the commit participants `retirement_candidates` chose.
-        claims = tuple(cast("CommitParticipant", block).commit_claim for block in self.live_blocks)
         return tuple(fragment for fragment in super().arriving(prepared, followed_end)
-                     if not any(fragment.shown_live_by(claim) for claim in claims))
+                     if not any(fragment.shown_live_by(claim) for claim in self.claims))
 
     def rows_published(self, owner) -> None:
-        if not NEWER_END.visible_more(owner):
-            for block in self.live_blocks:
-                block.display = False
+        if self.live_blocks and not NEWER_END.visible_more(owner):
+            blocks, self.live_blocks = self.live_blocks, ()
+            view = owner.view
+            self.retirement = view.transcript.retire_presentations(view.contents, view.output, blocks)

@@ -1,57 +1,32 @@
-"""An ACP child keeps the root selection it was started with: implicit follows the default route, explicit stays put."""
+"""An ACP child takes its application's explicit launch root, never an ambient override."""
 
-from types import SimpleNamespace
+import json
+import sys
+from dataclasses import replace
 
-import pytest
-
-from support.agents import AppAgents
-from support.routes import private_root, publish_route, select_root_by_default_route
-
-
-@pytest.fixture
-def routes(tmp_path, monkeypatch):
-    tmp_path.chmod(0o700)
-    for name in ("CONFIG", "DATA", "STATE"):
-        monkeypatch.setenv(f"XDG_{name}_HOME", str(tmp_path / name.lower()))
-    home = select_root_by_default_route(monkeypatch, tmp_path)
-    project = tmp_path / "project"
-    project.mkdir()
-    first, first_id = private_root(tmp_path / "first", tmp_path, "FIRST")
-    second, second_id = private_root(tmp_path / "second", tmp_path, "SECOND")
-    publish_route(home, first, first_id)
-    return SimpleNamespace(home=home, project=project, first=first, second=second, second_id=second_id)
+from support.agents import command
+from toad.acp.agent import Agent
 
 
-async def started_agent(project):
-    from toad.acp.agent import Agent
-    from toad.agent_schema import AgentDefinition
+async def test_the_real_child_receives_the_selected_root_as_arguments_and_drops_the_environment_override(
+        app_agents, tmp_path, monkeypatch):
+    from agent_comms.launch_root import LaunchRoot
 
-    agent = AppAgents.unrun(project).agent(Agent, AgentDefinition("fake", "fake", {"*": "true"}))
-    await agent.start()
-    assert agent.process.runner is not None
-    await agent.process.runner
-    return agent
-
-
-async def test_the_real_prompt_path_refuses_a_stale_implicit_child(routes, monkeypatch):
-    agent = await started_agent(routes.project)
-    publish_route(routes.home, routes.second, routes.second_id)
-    written = []
-    agent.process.process = SimpleNamespace(stdin=SimpleNamespace(write=written.append))
-    monkeypatch.setenv("AGENT_COMMS_ROOT", str(routes.first))
-    with pytest.raises(ValueError, match="route changed"):
-        async with agent.process.admitted_prompt(agent):
-            agent.send(SimpleNamespace(body={"method": "session/prompt"}, body_json=b"{}"))
-    assert not written
-
-
-async def test_an_explicit_child_stays_on_its_root_after_the_parent_drops_its_override(routes, monkeypatch):
-    monkeypatch.setenv("AGENT_COMMS_ROOT", str(routes.first))
-    agent = await started_agent(routes.project)
-    monkeypatch.delenv("AGENT_COMMS_ROOT")
-    assert not agent.process.route_selection.implicit
-    assert agent.process.env["AGENT_COMMS_ROOT"] == str(routes.first)
-    written = []
-    agent.process.process = SimpleNamespace(stdin=SimpleNamespace(write=written.append))
-    agent.send(SimpleNamespace(body={"method": "session/prompt"}, body_json=b"{}"))
-    assert written == [b"{}\n"]
+    output = tmp_path / "child-launch.json"
+    program = (
+        "import json,os,sys; from pathlib import Path; "
+        "Path(sys.argv[1]).write_text(json.dumps({'argv':sys.argv[2:],"
+        "'root_env':os.environ.get('AGENT_COMMS_ROOT')}))"
+    )
+    definition = replace(command(sys.executable, "-c", program, str(output)), accepts_comms_root=True)
+    agent = app_agents.agent(Agent, definition)
+    selected = LaunchRoot.current()
+    monkeypatch.setenv("AGENT_COMMS_ROOT", str(tmp_path / "wrong-wire"))
+    try:
+        await agent.start()
+        await agent.process.runner
+        recorded = json.loads(output.read_text())
+        assert recorded == {"argv": list(selected.arguments()), "root_env": None}
+        assert agent.process.route_selection.root == selected.path
+    finally:
+        await agent.stop()

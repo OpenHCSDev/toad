@@ -13,7 +13,6 @@ presentation that settles turns, owner actions and input capture.
 from __future__ import annotations
 
 import asyncio
-from contextlib import asynccontextmanager
 
 from agent_comms.route_selection import RouteSelection
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
@@ -41,12 +40,8 @@ class CoordinationTranscriptReader:
         """Read one thread presentation through this reader's bound service."""
         from toad.owner_preparation import read_thread_presentation
 
-        async with self.bind(root) as reader:
-            return await asyncio.to_thread(read_thread_presentation, reader, thread)
-
-    @asynccontextmanager
-    async def bind(self, root: str):
-        yield await self.service(root)
+        reader = await self.service(root)
+        return await asyncio.to_thread(read_thread_presentation, reader, thread)
 
     async def publication(self, update: TranscriptSnapshotUpdate) -> TranscriptSnapshotUpdate:
         """The published page while its witness is current, else the current page."""

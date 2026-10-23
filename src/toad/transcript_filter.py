@@ -233,6 +233,7 @@ class SeekingFilter(NoFilter):
 
 class Filtered(FilterState):
     active = True
+    overlay: ProjectedTranscriptHistory
 
     def __init__(self, owner: LineHistory, projection: ProjectedTranscriptHistory):
         super().__init__(owner)
@@ -249,6 +250,9 @@ class Filtered(FilterState):
     @property
     def scan_available(self):
         return self.overlay.older_page_available
+
+    def scan_needed(self) -> bool:
+        return self.has_older and not self.overlay.drawn_extent[0]
 
     async def prepare_rows(self, current, *, window, target, rows_needed: int) -> None:
         if rows_needed:

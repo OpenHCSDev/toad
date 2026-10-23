@@ -209,7 +209,7 @@ class SubmissionExecution(SubmissionStart):
                 from toad.widgets.conversation import INTERNAL_EROR
                 from toad.widgets.markdown_note import MarkdownNote
                 view.turns.finish_client()
-                self.owner.restore_draft(self.submission.text)
+                view.prompt.restore_draft(self.submission.text)
                 await view.post(MarkdownNote(INTERNAL_EROR.replace('$ERROR', str(error) or 'no details were provided'),
                                              classes='-stop-reason'))
         finally:
@@ -293,11 +293,6 @@ class ConversationSubmissions:
     def reset(self):
         self.active.clear()
         self.publish_pending()
-
-    def restore_draft(self, text):
-        current = self.view.prompt.text
-        if text and current != text and not current.endswith('\n\n' + text):
-            self.view.prompt.text = '\n\n'.join(filter(None, [current, text]))
 
     def send_now(self):
         return self.view.agent_binding.send_now(self)

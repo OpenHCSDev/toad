@@ -5,36 +5,39 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
-from itertools import islice
 from dataclasses import dataclass, field, replace
-from typing import ClassVar, TYPE_CHECKING
+from itertools import islice
+from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage, UnreadTranscriptCursor
-from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.historical_views import ConversationObservation
 from agent_comms.sent_message import OutgoingMessageReference
+from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.transcripts import (
+    TranscriptCursor,
+    TranscriptPage,
+    UnreadTranscriptCursor,
+)
+from agent_comms.ui_model.message_category import MessageCategory
 
-from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
+from toad.render_backend import ReusableRenderTask
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
-from toad.widgets.transcript_fragments import TranscriptFragment
-from toad.widgets.transcript_fragments import transcript_fragments
-from toad.render_backend import ReusableRenderTask
-from agent_comms.ui_model.message_category import MessageCategory
+from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
+from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
 from toad.work_preparation import (
     PreparationRuntime,
-    PreparedResult,
     PreparationScope,
+    PreparedResult,
     ReusableWork,
     ScopedWork,
     ThreadWork,
+    UniqueRevision,
     WorkKey,
     WorkLane,
     WorkRevision,
-    UniqueRevision,
 )
-
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Contents
@@ -159,9 +162,9 @@ class PreparedTranscriptPage:
         if prepared.fragments is not self.fragments:
             raise ValueError("Transcript input replacement requires a new prepared page")
         selected = slice(min(self.start, prepared.start), max(self.stop, prepared.stop))
-        return await self.replace_range(view, selected, current)
+        return self.replace_range(view, selected, current)
 
-    async def replace_range(self, view, selected, current) -> bool:
+    def replace_range(self, view, selected, current) -> bool:
         if not current():
             return False
         if self.fragment_range != (selected.start, selected.stop):
@@ -324,6 +327,10 @@ class PreparedPageSource(ABC):
             raise asyncio.CancelledError
         return prepared
 
+    async def accept_page(self, history, edge, prepared) -> bool:
+        """Immutable saved reads already carry their validated source cut."""
+        return True
+
     @abstractmethod
     async def _get(self, request: PageRequest) -> PreparedTranscriptPage: ...
 
@@ -363,16 +370,6 @@ class PreparedPageSource(ABC):
     async def prepare_next(self, page: TranscriptPage, end: PageEnd) -> None:
         if self.has_more(end, page):
             await self.prepare(end.adjacent(page))
-
-    def restart(self, through) -> None:
-        """Discard the old reading without discarding its storage binding."""
-        self._restart_reader()
-        self.through = through
-        self._release_ranges()
-
-    def _restart_reader(self) -> None:
-        self._close_reader()
-        self.scope = PreparationScope()
 
     def _close_reader(self) -> None:
         self.runtime.discard_scope(self.scope)
@@ -481,7 +478,14 @@ class UnreadTranscriptPage:
     has_newer: bool = False
 
 
-class SavedHistory(PreparedPageSource):
+class ReplaceablePageSource(PreparedPageSource):
+    """A complete source can prepare another reading without closing this one."""
+
+    @abstractmethod
+    def replacement(self, through) -> ReplaceablePageSource: ...
+
+
+class SavedHistory(ReplaceablePageSource):
     """Prepared pages for a snapshot; storage and work limits belong to the runtime.
 
     The loader retains ownership of transcript/routing semantics and off-loop
@@ -504,6 +508,9 @@ class SavedHistory(PreparedPageSource):
     def prefix(self, through) -> PreparedPageSource:
         return SavedPrefix(self, self.loader, through, self.runtime)
 
+    def replacement(self, through) -> SavedHistory:
+        return type(self)(self.loader, through, self.runtime)
+
     def read_task(self, request: PageRequest) -> TranscriptPageWork:
         return self.work(self.scope, self.loader, self.through, request)
 
@@ -519,6 +526,11 @@ class SavedPrefix(SavedHistory):
     def __init__(self, earlier, loader, through, runtime):
         super().__init__(loader, through, runtime)
         self.earlier = earlier
+
+    def replacement(self, through) -> SavedHistory:
+        # A replacement reads the complete source; it must not delegate older
+        # reads to the superseded prefix's preparation scope.
+        return self.earlier.replacement(through)
 
     def read_task(self, request):
         # Keep the upstream task's declared native/wire behavior, bounded here.
@@ -545,8 +557,10 @@ class Unchanged(SourceObservation):
         return await super().apply(history, source)
 
 
-class ClosedHistory(PreparedPageSource):
+class ClosedHistory(ReplaceablePageSource):
     """A retained range without a saved reader; its pages remain usable."""
+
+    revision = ConversationObservation()
 
     def __init__(self, through, runtime):
         super().__init__()
@@ -560,7 +574,7 @@ class ClosedHistory(PreparedPageSource):
         return False
 
     def status_thread(self, access):
-        from toad.widgets.observed_thread_activity import NoStatusThread
+        from toad.status_thread import NoStatusThread
 
         return NoStatusThread()
 
@@ -584,9 +598,6 @@ class ClosedHistory(PreparedPageSource):
 
     async def observe_changes(self, revision):
         return Unchanged()
-
-    def accepts_page(self, current, incoming) -> bool:
-        return False
 
     def seen_page(self, history, seen):
         return None
@@ -616,6 +627,9 @@ class ClosedHistory(PreparedPageSource):
         return prepared.for_view()
 
     def prefix(self, through):
+        return ClosedHistory(through, self.runtime)
+
+    def replacement(self, through) -> ClosedHistory:
         return ClosedHistory(through, self.runtime)
 
     async def _get(self, request):
@@ -678,11 +692,6 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
             await self.boundary()
         else:
             await self._raw.prepare(request)
-
-    def _restart_reader(self) -> None:
-        self._raw.restart(self._boundary.page.before)
-        self.scope = self._raw.scope
-        self._projected_boundary = None
 
     def _close_reader(self) -> None:
         self._raw.close()

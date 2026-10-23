@@ -3,26 +3,26 @@
 import asyncio
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from toad.resource_release import AsyncResourceRelease
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 from weakref import ref
 
+from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.session_load import EnsuringSessionLoadPlan
+from agent_comms.ui_model.message_category import MessageCategory
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
-from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.channel_targets import ThreadTarget
-from agent_comms.session_load import EnsuringSessionLoadPlan
-from toad.owner_preparation import ExistingOwnerPlan
-
-from toad.input_history import InputHistories
-from toad.agent_surface import AttachedSurfaceBinding
 from toad.agent_binding import NoAgentBound
+from toad.agent_surface import AttachedSurfaceBinding
+from toad.input_history import InputHistories
+from toad.owner_preparation import ExistingOwnerPlan
+from toad.resource_release import AsyncResourceRelease
+from toad.screens.session_view import SessionView
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
-from agent_comms.ui_model.message_category import MessageCategory
+from toad.widgets.prompt import MessagePrompt
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -233,10 +233,7 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        from toad.conversation_kind import DmConversation
-
-        root, name = conversation.transcript_scope()
-        return DmConversation(ThreadTarget(name)).prompt()
+        return MessagePrompt()
 
     def input_ready(self, conversation: Conversation) -> bool:
         return conversation.transcript.readable
@@ -261,7 +258,7 @@ class MailboxSessionSources(OperationalSessionSources):
             self.external_transcript_changed(view)
 
         await view.submit_comms_message(
-            root, DmConversation(ThreadTarget(target)), event.body,
+            root, DmConversation(view.query_ancestor(SessionView).thread_identity.thread_incarnation()), event.body,
             lambda: view.is_attached and view.transcript.binding.thread_scope == scope,
             presented,
         )

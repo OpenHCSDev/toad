@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-import os
 import shlex
 import sys
 
@@ -39,7 +38,7 @@ async def threads_owned_here(comms, project, names=("alpha", "beta")):
         for name in names:
             comms.threads.claim_thread(name, tags=frozenset({"acp"}), worktree=str(project))
             comms.threads.restore_stopped(comms.registry.snapshot(), (name,))
-            thread = comms.owners.acquire_thread(name, owner_pid=os.getpid())
+            thread = comms.owners.acquire_thread(name)
             await owner.sessions.bind_owned(thread, name)
         yield owner
     finally:

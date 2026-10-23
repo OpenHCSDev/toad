@@ -14,6 +14,7 @@ from pathlib import Path
 
 from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
+from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
 from agent_comms.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
@@ -33,7 +34,7 @@ from toad.widgets.conversation import (
     CursorContainer,
     Window,
 )
-from toad.widgets.observed_thread_activity import StatusThread
+from toad.status_thread import StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.screens.session_view import SessionView
@@ -75,7 +76,7 @@ class CommsChatView(Conversation):
         # The observer's announcement the last refresh began from.
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
-        self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.target.name}")
+        self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.input_scope}")
         self.message_contents = Contents(id="contents")
         self.message_history = WireHistory.empty(view=self, notification_view=self.message_contents)
 
@@ -112,12 +113,12 @@ class CommsChatView(Conversation):
                 f"Conversation root {self._bound_root} differs from observed root {shared.root}"
             )
         comms = shared
-        self.message_history.open(WireSource(
+        await self.app.coordination_access.current_sidebar()
+        self.message_history.initialize_source(WireSource(
             comms, self.conversation, Path(self.project_path), self._me,
             IrcMessageStyle(),
         ))
-        self.agent_info = Content(self.conversation.label())
-        self.refresh_thread_status()
+        self.refresh_identity(comms.root)
         self.prepare_prompt()
         self.window.anchor()
         # CommsScreen has already presented its route before mounting this
@@ -157,7 +158,7 @@ class CommsChatView(Conversation):
             # reads the observer's snapshot, which only now shows it.
             await self._refresh()
             return
-        if history.revision.stores == access.revision:
+        if source.revision.matches_stores(access.revision):
             return
         snapshot = history.source_snapshot()
         if not snapshot.current(history):
@@ -169,7 +170,7 @@ class CommsChatView(Conversation):
         revision = await source.read_revision()
         if (source is history.page_source and snapshot.current(history)
                 and source.uses_observation(access.observation.observed())
-                and history.revision.stores != revision):
+                and not source.revision.matches_stores(revision)):
             await self._refresh()
 
     def prepare_prompt(self) -> None:
@@ -197,8 +198,20 @@ class CommsChatView(Conversation):
             prompt.focus()
 
     def watch_agent_binding(self, agent) -> None:
-        """Keep the inherited agent reactive from turning this into a shell session."""
-        self.agent_info = Content(self.conversation.label())
+        """A message composer has no operational agent projection."""
+
+    def refresh_identity(self, root) -> None:
+        self.dispatch_sync(self.app.coordination_access.reference_context(str(root)))
+
+    @handles(ReferenceContext)
+    def preparing_identity(self, references) -> None:
+        self.agent_info = Content(self.conversation.initial_label)
+
+    @handles(CurrentDisplayReferences)
+    def referenced_identity(self, references) -> object:
+        self.agent_info = Content(self.conversation.label(references))
+        self.refresh_thread_status()
+        return self.DISCARD
 
     def transcript_scope(self) -> None:
         """DM/channel history belongs to WireHistory, not a native transcript."""
@@ -275,6 +288,7 @@ class CommsChatView(Conversation):
                         or not self.query_ancestor(SessionView).is_current):
                     return
             self.call_after_refresh(history.mark_visible)
+            self.refresh_identity(source.loader.comms.root)
             if not changed:
                 return
             status = await source.status_text(read_only=read_only)
