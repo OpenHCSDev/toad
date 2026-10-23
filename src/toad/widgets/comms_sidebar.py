@@ -286,7 +286,7 @@ class ThreadRow(ThreadStatusRow):
         return self.navigation_tree.open_views.get(self.target_name)
 
     def action_open_selected(self) -> None:
-        if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
+        if self.mode_name is None or cast("ToadApp", self.app).session_navigation.session_details(self.mode_name) is None:
             super().action_open_selected()
         else:
             self.navigation_tree.remember_row(self)

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Callable, ClassVar
 
 from toad import get_version
 from toad.version import VersionMonitor
+from toad.tab_identity.kinds import MailboxTab
 
 if TYPE_CHECKING:
     from ssl import SSLContext
@@ -121,21 +122,12 @@ class ApplicationLifetime:
         self.usage.publish("toad-run")
         database = app.tab_order.db
         for tab in database.tab_list():
-            saved = await database.session_get(tab.session_id)
-            if saved is None:
-                database.tab_delete(tab.session_id)
-                app.log.error(f"Removed open tab for missing saved session {tab.session_id}")
-                continue
-            await app.session_navigation.launch(
-                saved.agent_identity,
-                agent_session_id=saved.agent_session_id,
-                session_pk=tab.session_id,
-                project_path=saved.meta_json.cwd,
-            )
+            await tab.identity.restore(app.session_navigation)
         if self.resumed_session is not None:
             # The thread's declaration decides how it opens, as from the sidebar.
             navigation = await app.preparation.run_thread(self.launch_navigation)
             await app.session_navigation.new(
+                MailboxTab(navigation.thread.incarnation, navigation.root),
                 partial(navigation.launch_screen, app),
                 original=(navigation.root, navigation.thread.incarnation),
             )

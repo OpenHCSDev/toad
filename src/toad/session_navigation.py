@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from functools import partial
-from itertools import count
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -22,7 +21,7 @@ from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.core import events as core_events
 from toad.core.events import CoreEventStream
-from toad.navigation_preparation import CommsNavigationRequest
+from toad.navigation_preparation import CommsNavigationRequest, ThreadNavigationRequest
 from toad.session_entry import (
     HistorySessionEntry,
     NativeSessionEntry,
@@ -30,7 +29,10 @@ from toad.session_entry import (
     SessionEntry,
 )
 from toad.session_scope import AgentAttached, AgentBinding, AgentSession
-from toad.session_tracker import OpenTab, SessionDetails
+from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
+from toad.tab_identity import SessionTabIdentity, TabIdentity
+from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
+from toad.db import SessionMeta
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
@@ -45,7 +47,6 @@ class SessionNavigation:
     def __init__(self, app: ToadApp) -> None:
         self.app = app
         self.events = CoreEventStream(self)
-        self.identities = count(1)
         self.entries: dict[str, dict[str, SessionEntry]] = {}
         self._retire_task: asyncio.Task[None] | None = None
         self._retire_requested = False
@@ -121,6 +122,52 @@ class SessionNavigation:
         entry = self.get(mode)
         return entry.source(self) if entry else None
 
+    def session_details(self, mode: str | None) -> SessionDetails | None:
+        entry = self.get(mode)
+        return self.app.session_tracker.get_session(entry.identity) if entry else None
+
+    def previous(self, current: TabIdentity, *, eligible=None) -> str:
+        identity = self.app.tab_order.previous(current, eligible=eligible)
+        return identity.mode_name if identity is not None else self.app.tab_order.home
+
+    async def restore_mailbox(self, identity: MailboxTab) -> None:
+        def prepare():
+            service = self.app.coordination_access.observation.observed().service
+            if service.root != Path(identity.root):
+                raise ValueError(f"Mailbox tab belongs to another bus: {identity.root}")
+            snapshot = service.registry.snapshot()
+            name = snapshot.canonical_name(identity.key.name)
+            if not identity.key.matches_recorded_name(name, snapshot):
+                raise ValueError(f"Mailbox tab's thread was replaced: {identity.key}")
+            return ThreadNavigationRequest(service, name, self.app.project_dir, ()).read()
+
+        prepared = await self.app.preparation.run_thread(prepare)
+        await self.new(
+            identity, partial(prepared.launch_screen, self.app),
+            title=prepared.thread.name,
+            original=(prepared.root, prepared.thread.incarnation),
+        )
+
+    async def restore_history(self, identity: HistoryTab) -> None:
+        source = self.app.workspace_sessions.require(identity.owner.mode_name)
+
+        def participants():
+            service = self.app.coordination_access.observation.observed().service
+            if service.root != Path(identity.root):
+                raise ValueError(f"History tab belongs to another bus: {identity.root}")
+            return identity.key.threads_needed(
+                service.registry.snapshot(), source.thread_identity.thread_name()
+            )
+
+        entry = HistorySessionEntry(
+            identity,
+            CommsViewKey(identity.root, identity.owner.mode_name, identity.key),
+            source.project_root, source.coordination_root,
+            await self.app.preparation.run_thread(participants), source,
+        )
+        if self.get(entry.mode) is None:
+            await self.open(entry)
+
     def thread_row(self, row: ThreadRowModel) -> ThreadRowModel:
         """A thread's row as this app shows it, with the state of each open session of it."""
         for entry in self.members:
@@ -186,7 +233,8 @@ class SessionNavigation:
         if self.get(entry.mode) is not None:
             raise ValueError(f"Logical session already registered: {entry.mode}")
         self.entries.setdefault(entry.owner_mode, {})[entry.mode] = entry
-        app.tab_order.open(entry.mode, after=after)
+        previous = self.get(after)
+        app.tab_order.open(entry.identity, after=previous.identity if previous else None)
         self.publish()
         await app.select_session(entry.mode)
         await entry.ready(self)
@@ -194,12 +242,17 @@ class SessionNavigation:
 
     async def new(
         self,
+        identity: SessionTabIdentity,
         factory: Callable[[], MainScreen],
         *,
         title: str = "New Session",
         original=None,
     ) -> SessionDetails:
-        details = self.app.session_tracker.new_session(title=title)
+        existing = self.get(identity.mode_name)
+        if existing is not None:
+            await self.app.select_session(existing.mode)
+            return self.app.session_tracker.sessions[identity]
+        details = self.app.session_tracker.new_session(identity, title=title)
         await self.open(NativeSessionEntry(details, factory, original))
         return details
 
@@ -213,7 +266,6 @@ class SessionNavigation:
         initial_prompt: str | None = None,
     ) -> None:
         from toad.agents import read_agents
-        from toad.db import DB
         from toad.screens.main import MainScreen
 
         app = self.app
@@ -233,7 +285,7 @@ class SessionNavigation:
                 return
         agent, title = None, None
         if session_pk is not None:
-            saved = await DB().session_get(session_pk)
+            saved = await app.tab_order.db.session_get(session_pk)
             if saved is not None:
                 title, agent = saved.title, saved.meta_json.agent_data
         if agent is None:
@@ -244,7 +296,13 @@ class SessionNavigation:
                 app.show_error("Agent not found", "Launch agent")
                 return
         project = project_path if project_path is not None else app.project_dir
+        if session_pk is None:
+            session_pk = await app.tab_order.db.session_new(
+                title or "New Session", agent.name, agent.identity, agent_session_id,
+                meta=SessionMeta(cwd=project, agent_data=agent),
+            )
         await self.new(
+            AcpTab(session_pk),
             lambda: MainScreen(
                 project,
                 make_binding(agent),
@@ -301,7 +359,10 @@ class SessionNavigation:
         entry = self.find(prepared.key.conversation.view_identity(prepared.key))
         if entry is None:
             entry = HistorySessionEntry(
-                f"comms-{next(self.identities)}",
+                HistoryTab(
+                    prepared.key.conversation, source.history_origin(),
+                    prepared.key.root,
+                ),
                 prepared.key,
                 project_path,
                 prepared.owner_root,
@@ -319,7 +380,7 @@ class SessionNavigation:
         entry = self.find(path)
         if entry is None:
             entry = PreviewSessionEntry.of(
-                f"preview-{next(self.identities)}", path, self.app.selected_mode
+                PreviewTab(path), path, self.app.selected_mode
             )
             await self.open(entry, after=self.app.selected_mode)
         else:
@@ -370,7 +431,7 @@ class SessionNavigation:
         )
         for member in closing:
             member.forget(self)
-        self.app.tab_order.close({member.mode for member in closing})
+        self.app.tab_order.close({member.identity for member in closing})
         # Retire membership before publication and slow widget exits. Delayed
         # opening metadata cannot revive a closed owner during teardown.
         for member in closing:

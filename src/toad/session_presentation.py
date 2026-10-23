@@ -484,7 +484,7 @@ class NativeSessionSurface:
                 *(
                     owner
                     for identity in app.tab_order.recent
-                    for owner in candidates.get(identity, ())
+                    for owner in candidates.get(identity.mode_name, ())
                 ),
             )
         )

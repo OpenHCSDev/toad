@@ -18,6 +18,7 @@ from agent_comms.typed_table import (
 
 from toad import paths
 from toad.agent_schema import AgentDefinition
+from toad.tab_identity import TabIdentity
 
 SessionTimestamp = Annotated[RecordedTimestamp, TimestampText, Column(storage=TextStorage)]
 
@@ -42,7 +43,7 @@ class Session(ToadTables, TypedTable, declared_name="sessions"):
     id: Annotated[int | None, Column(primary_key=True, auto_increment=True)] = None
     agent: str
     agent_identity: str
-    agent_session_id: str
+    agent_session_id: str | None
     title: str
     protocol: str = "acp"
     prompt_count: int = 0
@@ -54,7 +55,7 @@ class Session(ToadTables, TypedTable, declared_name="sessions"):
 
 @dataclass(frozen=True)
 class OpenTabRow(ToadTables, TypedTable, declared_name="open_tabs"):
-    session_id: Annotated[int, Column(primary_key=True)]
+    identity: Annotated[TabIdentity, Column(primary_key=True)]
     position: int
 
 
@@ -84,7 +85,7 @@ class ModelHistory(ToadTables, TypedTable, declared_name="model_history"):
 
 
 class DB:
-    """Toad's durable state; one transaction owner runs entirely off the UI thread."""
+    """Toad's durable state, including the sole open-tab roster."""
 
     def __init__(self, path: Path | None = None):
         self.path = path if path is not None else paths.get_state() / "toad.db"
@@ -96,17 +97,21 @@ class DB:
     async def _transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
         return await asyncio.to_thread(self.transaction, operation)
 
-    def tab_write(self, session_id: int, position: int) -> None:
-        self.transaction(lambda db: OpenTabRow(session_id, position).upsert(db))
+    def tab_write(self, identity: TabIdentity, position: int) -> None:
+        self.transaction(lambda db: OpenTabRow(identity, position).upsert(db))
 
-    def tab_delete(self, session_id: int) -> None:
-        self.transaction(lambda db: OpenTabRow.delete(
-            db, where="{session_id} = ?", parameters=(session_id,),
-        ))
+    def tab_delete(self, identity: TabIdentity) -> None:
+        self.transaction(lambda db: OpenTabRow.delete(db, identity=identity))
+
+    def tab_reorder(self, identities: tuple[TabIdentity, ...]) -> None:
+        def reorder(db):
+            for position, identity in enumerate(identities):
+                OpenTabRow(identity, position).upsert(db)
+        self.transaction(reorder)
 
     def tab_list(self) -> list[OpenTabRow]:
         return self.transaction(lambda db: OpenTabRow.select(
-            db, order_by=("position", "session_id"),
+            db, order_by=("position",),
         ))
 
     async def record_model_usage(
@@ -132,10 +137,10 @@ class DB:
         title: str,
         agent: str,
         agent_identity: str,
-        agent_session_id: str,
+        agent_session_id: str | None,
         protocol: str = "acp",
         meta: SessionMeta | None = None,
-    ) -> int | None:
+    ) -> int:
         row = Session(
             title=title,
             agent=agent,
@@ -144,7 +149,14 @@ class DB:
             protocol=protocol,
             meta_json=meta if meta is not None else SessionMeta(),
         )
-        return await self._transaction(lambda db: row.insert(db).lastrowid)
+        def insert(db):
+            identity = row.insert(db).lastrowid
+            assert identity is not None, "A saved ACP session must have a SQLite row id"
+            return identity
+        return await self._transaction(insert)
+
+    async def session_started(self, id: int, agent_session_id: str) -> None:
+        await self._update_session(id, agent_session_id=agent_session_id)
 
     async def _update_session(self, id: int, **changes) -> None:
         def update(db):

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from operator import attrgetter
 from time import time
 from typing import TYPE_CHECKING, Iterable, Sequence
 
@@ -11,6 +10,8 @@ from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 from textual.content import Content
 
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
+from toad.tab_identity import SessionTabIdentity, TabIdentity
+from toad.tab_order import TabOrder
 
 if TYPE_CHECKING:
     from toad.conversation_kind import ConversationKind
@@ -20,8 +21,12 @@ if TYPE_CHECKING:
 class OpenTab(ABC):
     """A tab reads its label and activity from the source it represents."""
 
-    mode_name: str
+    identity: TabIdentity
     busy = False
+
+    @property
+    def mode_name(self) -> str:
+        return self.identity.mode_name
 
     @property
     @abstractmethod
@@ -143,10 +148,8 @@ class ThreadSessionName(SessionName):
 class SessionDetails:
     """Tracks a concurrent session."""
 
-    index: int
-    """Index of session, used in sorting."""
-    mode_name: str
-    """The screen mode name."""
+    identity: SessionTabIdentity
+    """The durable thing this tab opens."""
     name: SessionName = field(
         default_factory=lambda: ThreadSessionName("New Session")
     )
@@ -160,6 +163,10 @@ class SessionDetails:
     """Track updates to the session details."""
     created_at: float = field(default_factory=time)
     """Creation time for local sessions without a wire identity."""
+
+    @property
+    def mode_name(self) -> str:
+        return self.identity.mode_name
 
     @property
     def initial_title(self) -> str | None:
@@ -187,59 +194,53 @@ class SessionDetails:
 class SessionTracker:
     """Tracks concurrent agent settings"""
 
-    def __init__(self) -> None:
-        self.sessions: dict[str, SessionDetails] = {}
-        self._session_index = 0
+    def __init__(self, order: TabOrder) -> None:
+        self.sessions: dict[TabIdentity, SessionDetails] = {}
+        self.order = order
         self.events = CoreEventStream(self)
 
     @property
     def session_count(self) -> int:
         return len(self.sessions)
 
-    def new_session(self, *, title: str = "New Session") -> SessionDetails:
-        self._session_index += 1
-        mode_name = f"session-{self._session_index}"
-        session_meta = SessionDetails(
-            index=self._session_index,
-            mode_name=mode_name,
-            name=ThreadSessionName(title),
-        )
-        self.sessions[mode_name] = session_meta
-        self.events.publish(SessionChangedEvent(mode_name))
-        return session_meta
+    def new_session(self, identity: SessionTabIdentity, *, title: str = "New Session") -> SessionDetails:
+        details = SessionDetails(identity=identity, name=ThreadSessionName(title))
+        self.sessions[identity] = details
+        self.events.publish(SessionChangedEvent(identity.mode_name))
+        return details
 
-    def close_session(self, mode_name: str) -> None:
-        if mode_name in self.sessions:
-            del self.sessions[mode_name]
-            self.events.publish(SessionClosedEvent(mode_name))
+    def close_session(self, identity: TabIdentity) -> None:
+        if identity in self.sessions:
+            del self.sessions[identity]
+            self.events.publish(SessionClosedEvent(identity.mode_name))
 
-    def bind_identity(self, mode_name: str, previous: str, current: str) -> None:
+    def bind_identity(self, identity: TabIdentity, previous: str, current: str) -> None:
         """The thread's name arrives: the user's name keeps the tab's label."""
-        details = self.sessions[mode_name]
+        details = self.sessions[identity]
         adopted = details.name.adopt_identity(previous, current)
         if adopted != details.name:
             details.name = adopted
-            self.events.publish(SessionChangedEvent(mode_name))
+            self.events.publish(SessionChangedEvent(identity.mode_name))
 
-    def get_session(self, mode_name: str) -> SessionDetails | None:
-        return self.sessions.get(mode_name, None)
+    def get_session(self, identity: TabIdentity) -> SessionDetails | None:
+        return self.sessions.get(identity)
 
-    def name_session(self, mode_name: str, name: str) -> SessionDetails:
+    def name_session(self, identity: TabIdentity, name: str) -> SessionDetails:
         """The user named this session; its tab keeps the name."""
-        session_details = self.sessions[mode_name]
+        session_details = self.sessions[identity]
         before = session_details.name.display
         session_details.name_session(name)
         if session_details.name.display != before:
-            self.events.publish(SessionChangedEvent(mode_name))
+            self.events.publish(SessionChangedEvent(identity.mode_name))
         return session_details
 
     def update_session(
         self,
-        mode_name: str,
+        identity: TabIdentity,
         subtitle: str | None = None,
         path: str | None = None,
     ) -> SessionDetails:
-        session_details = self.sessions[mode_name]
+        session_details = self.sessions[identity]
         before = (
             session_details.name.display,
             session_details.subtitle,
@@ -255,12 +256,12 @@ class SessionTracker:
             session_details.path,
         )
         if after != before:
-            self.events.publish(SessionChangedEvent(mode_name))
+            self.events.publish(SessionChangedEvent(identity.mode_name))
         return session_details
 
     @property
     def ordered_sessions(self) -> Sequence[SessionDetails]:
-        return sorted(self.sessions.values(), key=attrgetter("index"))
+        return self.order.project(self.sessions)
 
     def __iter__(self) -> Iterable[SessionDetails]:
         return iter(self.ordered_sessions)

@@ -4,34 +4,35 @@ from collections.abc import Callable, Collection, Mapping
 
 from toad.core.events import CoreEventStream, TabHistoryChanged
 from toad.db import DB
+from toad.tab_identity import TabIdentity
 
 
 class TabOrder:
     def __init__(
-        self, focus: Callable[[str, int | None], object], home: str, db: DB
+        self, focus: Callable[[TabIdentity, int | None], object], home: str, db: DB
     ) -> None:
         # What is shown while no tab is open.
         self.home = home
         self.db = db
         self.db.prepare()
-        self._visits: list[str] = []
+        self._visits: list[TabIdentity] = []
         self._cursor = -1
         self._focus = focus
         self.events = CoreEventStream(self)
 
-    def __contains__(self, mode: str | None) -> bool:
+    def __contains__(self, mode: TabIdentity | None) -> bool:
         return mode in self.names
 
     @property
-    def names(self) -> tuple[str, ...]:
-        return tuple(str(row.session_id) for row in self.db.tab_list())
+    def names(self) -> tuple[TabIdentity, ...]:
+        return tuple(row.identity for row in self.db.tab_list())
 
     @property
-    def recent(self) -> tuple[str, ...]:
+    def recent(self) -> tuple[TabIdentity, ...]:
         """Visited sources first, derived from the existing navigation history."""
         return tuple(dict.fromkeys((*reversed(self._visits[:self._cursor + 1]), *self.names)))
 
-    def open(self, mode: str, *, after: str | None = None) -> None:
+    def open(self, mode: TabIdentity, *, after: TabIdentity | None = None) -> None:
         if mode in self:
             return
         order = list(self.names)
@@ -39,18 +40,17 @@ class TabOrder:
         order.insert(insertion, mode)
         self.reorder(order)
 
-    def reorder(self, modes: Collection[str]) -> None:
-        for position, mode in enumerate(modes):
-            self.db.tab_write(int(mode), position)
+    def reorder(self, modes: Collection[TabIdentity]) -> None:
+        self.db.tab_reorder(tuple(modes))
 
-    def project[T](self, values: Mapping[str, T]) -> tuple[T, ...]:
+    def project[T](self, values: Mapping[TabIdentity, T]) -> tuple[T, ...]:
         return tuple(values[mode] for mode in self.names if mode in values)
 
-    def previous(self, current: str, *, eligible: Collection[str] | None = None) -> str:
+    def previous(self, current: TabIdentity, *, eligible: Collection[TabIdentity] | None = None) -> TabIdentity | None:
         """The tab to show on leaving ``current``; home once no tab is open."""
         opened = self.names
         if not opened:
-            return self.home
+            return None
         candidates = [
             mode
             for mode in opened
@@ -64,7 +64,7 @@ class TabOrder:
             candidates[0] if candidates else current if current in self else opened[-1],
         )
 
-    def history_target(self, direction: int) -> tuple[int, str] | None:
+    def history_target(self, direction: int) -> tuple[int, TabIdentity] | None:
         index = self._cursor + direction
         if 0 <= index < len(self._visits):
             return index, self._visits[index]
@@ -78,7 +78,7 @@ class TabOrder:
             else:
                 self._focus(mode, index)
 
-    def record_visit(self, mode: str, history_index: int | None = None) -> None:
+    def record_visit(self, mode: TabIdentity, history_index: int | None = None) -> None:
         if mode not in self:
             return
         if (
@@ -93,9 +93,9 @@ class TabOrder:
             self._cursor = len(self._visits) - 1
         self.events.publish(TabHistoryChanged())
 
-    def close(self, modes: Collection[str]) -> None:
+    def close(self, modes: Collection[TabIdentity]) -> None:
         for mode in modes:
-            self.db.tab_delete(int(mode))
+            self.db.tab_delete(mode)
         self.reorder(self.names)
         retained = []
         cursor = -1

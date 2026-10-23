@@ -333,6 +333,10 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
 
 
 class ProjectSessionOrigin(SessionOrigin, SessionScope):
+    @abstractmethod
+    def history_origin(self):
+        """The durable opening source of this view's history tabs."""
+
     """A project source may navigate and resolve threads without an ACP session."""
 
     @property

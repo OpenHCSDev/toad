@@ -185,6 +185,9 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         self.present()
 
 
+from toad.tab_identity.history_origin import WelcomeHistoryOrigin
+
+
 class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
 
@@ -204,6 +207,9 @@ class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
         "[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
         "[b]↑ ↓[/b] choose   [b]enter[/b] open"
     )
+
+    def history_origin(self) -> WelcomeHistoryOrigin:
+        return WelcomeHistoryOrigin()
 
     def __init__(self) -> None:
         super().__init__()

@@ -430,7 +430,10 @@ class AgentSession:
             cursor_token=cursor_token, queue_token=queue_token,
         ).consume_metadata(response.field_meta)
 
-        if self.supports_load:
+        if self.pk is not None:
+            await DB().session_started(self.pk, self.agent.session_id)
+            authority.require()
+        elif self.supports_load:
             db = DB()
             session_name = (
                 self.chosen_name

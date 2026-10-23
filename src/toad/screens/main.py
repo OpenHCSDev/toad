@@ -44,6 +44,7 @@ from toad.screens.session_view import SessionView
 from toad.session_presentation import OperationalSessionPresentation
 from toad.session_scope import AgentBinding, NoAgent, ViewSessionOrigin
 from toad.session_tracker import SessionDetails, SidebarState
+from toad.tab_identity.history_origin import SessionHistoryOrigin
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation
@@ -311,7 +312,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     def identity_changed(self, previous) -> None:
         if self.id is not None:
             self.app.session_tracker.bind_identity(
-                self.id, previous.thread_name(), self.thread_identity.thread_name()
+                self.session_details.identity, previous.thread_name(), self.thread_identity.thread_name()
             )
 
     @classmethod
@@ -364,6 +365,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         return self.presentation.operational_binding.session_disposition
 
     session_details: SessionDetails
+
+    def history_origin(self) -> SessionHistoryOrigin:
+        return SessionHistoryOrigin(self.session_details.identity)
     """The registered entry supplies its existing details before mounting this view."""
 
     def make_conversation(self) -> Conversation:
@@ -559,12 +563,12 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     def on_session_title_changed(self, message: CoreEventMessage) -> None:
         """The user or the agent process named this session; the tab keeps it."""
         if self.id is not None:
-            self.app.session_tracker.name_session(self.id, message.event.name)
+            self.app.session_tracker.name_session(self.session_details.identity, message.event.name)
 
     @handles(core_events.SessionThreadTitle)
     def on_session_thread_title(self, message: CoreEventMessage) -> None:
         """The thread presented a title; an authored name keeps the tab's label."""
-        if (details := self.app.session_tracker.get_session(self.id)) is not None:
+        if (details := self.app.session_tracker.get_session(self.session_details.identity)) is not None:
             if details.update_thread_title(message.event.title):
                 self.app.session_tracker.events.publish(SessionChangedEvent(self.id))
 
@@ -572,13 +576,13 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     def on_session_subtitle_changed(self, message: CoreEventMessage) -> None:
         if self.id is not None:
             self.app.session_tracker.update_session(
-                self.id, subtitle=message.event.subtitle
+                self.session_details.identity, subtitle=message.event.subtitle
             )
 
     @handles(core_events.SessionPathChanged)
     def on_session_path_changed(self, message: CoreEventMessage) -> None:
         if self.id is not None:
-            self.app.session_tracker.update_session(self.id, path=message.event.path)
+            self.app.session_tracker.update_session(self.session_details.identity, path=message.event.path)
 
     def on_mount(self) -> None:
         self.observe_core(self.app.events)

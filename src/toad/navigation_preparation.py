@@ -210,15 +210,8 @@ class ThreadOpening:
 
         navigator = self.navigator
         try:
-            await navigator.mount_loading(self)
             prepared = await navigator.app.navigation_reader.read(self.request)
             if prepared is None:
-                await navigator.app.session_navigation.close_many((self.view.id,))
-                return navigator.app.selected_mode
-            if (
-                navigator.app.workspace_sessions.views.get(self.view.id)
-                is not self.view
-            ):
                 return navigator.app.selected_mode
             if not await navigator.app.preparation.run_thread(
                 root_is_current, self.request.root
