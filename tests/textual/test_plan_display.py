@@ -17,6 +17,7 @@ from toad.screens.main import MainScreen
 from toad.widgets.note import Note
 from toad.widgets.plan import Plan
 from toad.widgets.strike_text import StrikeText
+from support.ui import saved_tab
 
 FIRST = {"entries": [{"content": f"ACP_{name}_ITEM", "priority": "high", "status": name}
                      for name in get_args(PlanEntryStatus)]}
@@ -151,6 +152,7 @@ async def test_a_plan_sent_while_no_view_shows_the_agent_is_drawn_when_its_view_
         editor.insert("Detached plan draft")
         original_document, original_history = editor.document, editor.history
         await app.session_navigation.new(
+            await saved_tab(app),
             lambda: MainScreen(workspace.project, app.agent_binding.for_session("plan-blank"))
         )
         assert agent.controller.surface.target is None

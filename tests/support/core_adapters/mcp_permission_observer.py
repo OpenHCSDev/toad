@@ -157,13 +157,16 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
         app = ToadApp(agent_binding=NoAgent(), project_dir=str(root / "project"))
         async with app.run_test(size=(120, 40)) as pilot:
             # Toad starts with no tab open; the observed session is opened here.
-            await app.session_navigation.new(app.session_navigation.default_source)
+            definition = AgentDefinition.decode(AGENT_DATA)
+            await app.session_navigation.new(
+                await app.session_navigation.saved(definition, root / "project"),
+                lambda: MainScreen(app.project_dir, app.agent_binding))
             session = app.selected_session
             assert isinstance(session, MainScreen)
             await session.wait_content_ready()
             await pilot.pause()
             view = session.conversation
-            agent = Agent(root / "project", AgentDefinition.decode(AGENT_DATA), SESSION_ID)
+            agent = Agent(root / "project", definition, SESSION_ID)
             observer = Observer(case, app, pilot, agent, session, root)
             try:
                 view.bind_agent(agent)

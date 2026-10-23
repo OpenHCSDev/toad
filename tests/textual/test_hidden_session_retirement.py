@@ -14,6 +14,7 @@ from toad.core.events import CoordinationObserved
 from toad.screens.main import MainScreen
 from toad.target_commands import TargetContext
 from toad.widgets.conversation import Conversation
+from toad.tab_identity.kinds import MailboxTab
 
 
 def declare_owners(workspace):
@@ -36,6 +37,7 @@ async def open_hidden_sessions(workspace, ui, owners):
     modes = {}
     for owner in owners[1:]:
         details = await app.session_navigation.new(
+            MailboxTab(owner.incarnation, str(workspace.comms.root)),
             lambda owner=owner: source(owner), original=(str(workspace.comms.root), owner.incarnation))
         modes[owner.name] = details.mode_name
     await ui.select_tab(first)

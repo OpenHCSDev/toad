@@ -33,9 +33,11 @@ class TabOrder:
     @asynccontextmanager
     async def editing(self):
         async with self._write_lock:
+            before = self.names
             yield
-            # A cancelled caller must join its SQLite writer before releasing the lock.
-            await join_retirement(asyncio.create_task(self._db.tab_roster(self.names)))
+            if self.names != before:
+                # A cancelled caller must join its SQLite writer before releasing the lock.
+                await join_retirement(asyncio.create_task(self._db.tab_roster(self.names)))
 
     def __contains__(self, mode: TabIdentity | None) -> bool:
         return mode in self._open
@@ -54,10 +56,6 @@ class TabOrder:
             if mode not in self:
                 insertion = self._open.index(after) + 1 if after in self else len(self._open)
                 self._open.insert(insertion, mode)
-
-    async def reorder(self, modes: Collection[TabIdentity]) -> None:
-        async with self.editing():
-            self._open[:] = modes
 
     def project[T](self, values: Mapping[TabIdentity, T]) -> tuple[T, ...]:
         return tuple(values[mode] for mode in self.names if mode in values)

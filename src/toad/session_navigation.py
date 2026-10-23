@@ -256,6 +256,17 @@ class SessionNavigation:
         await self.open(NativeSessionEntry(details, factory, original))
         return details
 
+    async def saved(
+        self, agent: AgentDefinition, project: Path, *,
+        title: str = "New Session", agent_session_id: str | None = None,
+    ) -> AcpTab:
+        """A native session is saved before it opens; its row is the tab's identity."""
+        database = await self.app.get_db()
+        return AcpTab(await database.session_new(
+            title, agent.name, agent.identity, agent_session_id,
+            meta=SessionMeta(cwd=project, agent_data=agent),
+        ))
+
     async def launch(
         self,
         agent_identity: str,
@@ -297,17 +308,17 @@ class SessionNavigation:
                 app.show_error("Agent not found", "Launch agent")
                 return
         project = project_path if project_path is not None else app.project_dir
-        if session_pk is None:
-            session_pk = await database.session_new(
-                title or "New Session", agent.name, agent.identity, agent_session_id,
-                meta=SessionMeta(cwd=project, agent_data=agent),
-            )
+        tab = (
+            AcpTab(session_pk) if session_pk is not None
+            else await self.saved(agent, project, title=title or "New Session",
+                                  agent_session_id=agent_session_id)
+        )
         await self.new(
-            AcpTab(session_pk),
+            tab,
             lambda: MainScreen(
                 project,
                 make_binding(agent),
-                session_pk=session_pk,
+                session_pk=tab.key,
                 initial_prompt=initial_prompt,
             ),
             title=title or "New Session",

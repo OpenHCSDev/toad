@@ -16,6 +16,7 @@ from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBarCollapsible
 from toad.widgets.sidebar_viewport import SidebarViewport
 from toad.widgets.thread_comms import ThreadCommsSidebar
+from support.ui import saved_tab
 
 
 class InstalledApp(ToadApp):
@@ -185,13 +186,15 @@ async def test_leaving_a_view_stops_its_sidebar_hydration(workspace):
         app, _ = ui.textual
         screen = await started(workspace, ui)
         sidebar = await reveal(ui, screen)
+        # The next tab is saved first, so leaving the view does not wait on the database.
+        tab = await saved_tab(app)
         await sidebar.evict()
         sidebar._start_hydration()
         assert sidebar._panels_loading
         workers = tuple(worker for worker in sidebar.workers
                         if worker.node is sidebar and worker.group == "sidebar-panels")
         await asyncio.sleep(0)
-        await app.session_navigation.new(lambda: MainScreen(workspace.project))
+        await app.session_navigation.new(tab, lambda: MainScreen(workspace.project))
         await ui.step(.02)
         assert not sidebar.panels and not sidebar._panels_loading
         assert all(worker.is_finished for worker in workers)

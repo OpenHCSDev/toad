@@ -8,6 +8,7 @@ from support.shared_stdio import stdio_agent_definition, threads_owned_here
 from toad.app import ToadApp
 from toad.screens.main import MainScreen
 from toad.session_scope import AgentAttached, AgentSession
+from support.ui import saved_tab
 
 
 async def ready(agent):
@@ -42,6 +43,7 @@ async def test_a_second_tab_reuses_the_first_tabs_agent_process_and_closing_it_k
             connection = first.process
             owner_tab = ui.selected_tab
             details = await app.session_navigation.new(
+                await saved_tab(app),
                 lambda: MainScreen(project, AgentSession(definition, "beta"))
             )
             second_source = app.workspace_sessions.require(details.mode_name)

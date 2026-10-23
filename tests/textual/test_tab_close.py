@@ -9,6 +9,7 @@ from support.applications import record_notifications
 from toad.preferences import SETTINGS
 from toad.screens.main import MainScreen
 from toad.widgets.session_tabs import SessionTabClose
+from toad.tab_identity.kinds import MailboxTab
 
 
 @dataclass
@@ -58,6 +59,7 @@ async def test_closing_a_tab_keeps_its_thread_and_reports_no_error(workspace):
             for thread in threads:
                 owner = thread.incarnation
                 details = await app.session_navigation.new(
+                    MailboxTab(owner, root),
                     partial(MainScreen.from_thread, workspace.project, root, owner),
                     title=thread.name, original=(root, owner))
                 modes.append(details.mode_name)
