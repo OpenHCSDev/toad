@@ -5,59 +5,76 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import deque
+from collections.abc import Callable, Sequence
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, TypeGuard
+from typing import TYPE_CHECKING, Self, TypeGuard
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
-from agent_comms.thread_presentation import ThreadPresentation
-from agent_comms.transcript_events import TranscriptCoverage
-from agent_comms.acp_extension import InputStartedUpdate, TranscriptDraftUpdate, TranscriptSnapshotUpdate
-from agent_comms.external_transcript import DraftRow
-from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.ui_model.observation import (
-    NotPublished,
-    Published,
-    TranscriptPublicationState,
+from agent_comms.acp_extension import (
+    InputStartedUpdate,
+    TranscriptDraftUpdate,
+    TranscriptSnapshotUpdate,
 )
+from agent_comms.child_process import join_retirement
 from agent_comms.coordination_errors import (
     CoordinationReadUnavailable,
     StaleRevision,
     TranscriptChanged,
 )
-from textual.worker import Worker, WorkerCancelled
+from agent_comms.external_transcript import DraftRow
+from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.sent_message import PublishedSentMessage
+from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.transcript_events import TranscriptCoverage
+from agent_comms.transcripts import (
+    TranscriptCursor,
+    TranscriptPage,
+    TranscriptReadIdentity,
+)
+from agent_comms.ui_model.observation import (
+    NotPublished,
+    Published,
+    TranscriptPublicationState,
+)
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
-from toad.widgets.history_anchor import (
-    HeldReaderDestination,
-    TailPosition,
-    HistoryWindow,
-)
-from toad.widgets.committed_presentation import (
-    CommitBarrier,
-    CommitParticipant,
-    CommitEvidence,
-    commit_plan,
-    protected_blocks,
-    retirement_candidates,
-)
-from agent_comms.child_process import join_retirement
+from textual.worker import Worker, WorkerCancelled
 
 from toad.core.events import CoreEventStream
+from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
-from toad.transcript_preparation import PreparedPageSource
-from toad.widgets.session_details import SessionDetails
-from toad.widgets.transcript_history import TranscriptHistory
 from toad.session_scope import (
     NoTranscript,
     SessionOrigin,
     SessionScope,
     TranscriptScope,
 )
+from toad.transcript_preparation import PreparedPageSource
+from toad.widgets.committed_presentation import (
+    CommitBarrier,
+    CommitEvidence,
+    CommitParticipant,
+    commit_plan,
+    protected_blocks,
+    retirement_candidates,
+)
+from toad.widgets.history_anchor import (
+    HeldReaderDestination,
+    HistoryWindow,
+    TailPosition,
+)
+from toad.widgets.session_details import SessionDetails
+from toad.widgets.transcript_history import TranscriptHistory
 
 if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation, ConversationSessionBinding
+    from toad.live_output import LiveOutput
+    from toad.widgets.conversation import (
+        Contents,
+        Conversation,
+        ConversationSessionBinding,
+    )
+    from toad.widgets.transcript_history import CommittedHistory
 
 
 @dataclass(frozen=True)
@@ -67,7 +84,7 @@ class BoundFrame:
     generation: int
 
     @classmethod
-    def capture(cls, binding: BoundView, owner, *args, **extra):
+    def capture(cls, binding: BoundView, owner: TranscriptPresentation, *args, **extra) -> Self:
         return cls(binding, owner, owner.generation, *args, **extra)
 
     def current(self):
@@ -77,17 +94,17 @@ class BoundFrame:
             and self.binding.current()
         )
 
-    def painted(self, cursor) -> None:
+    def painted(self, cursor: TranscriptCursor) -> None:
         if self.current():
             self.binding.view.retire_loading_splash()
             self.record(cursor)
 
-    def observed(self, cursor) -> None:
+    def observed(self, cursor: TranscriptCursor) -> None:
         """A changed source cursor is not proof that its page has painted."""
         if self.current():
             self.record(cursor)
 
-    def record(self, cursor) -> None:
+    def record(self, cursor: TranscriptCursor) -> None:
         self.owner.displayed_cursor = cursor
         view = self.binding.view
         view.app.history_displayed()
@@ -349,7 +366,7 @@ class SourcePublicationRequests:
 
 
 class CommitPublication(CanonicalSourcePublication):
-    def __init__(self, binding, owner, generation) -> None:
+    def __init__(self, binding: BoundView, owner: TranscriptPresentation, generation: int) -> None:
         super().__init__(binding, owner, generation)
         self.plan = commit_plan(binding.window)
 
@@ -463,7 +480,7 @@ class ViewBinding:
 
     reports_coverage = False
 
-    def covers_outgoing(self, message) -> bool:
+    def covers_outgoing(self, message: PublishedSentMessage) -> bool:
         return False
 
     def covers_input(self, started: InputStartedUpdate) -> bool:
@@ -482,10 +499,12 @@ class ViewBinding:
     def observe_thread(self, owner: TranscriptPresentation) -> None:
         pass
 
-    def capture(self, owner: TranscriptPresentation, kind, *args):
+    def capture[FrameT: BoundFrame](
+        self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation
+    ):
         return None
 
-    def painted(self, owner, cursor) -> None:
+    def painted(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
         pass
 
     def observed(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
@@ -497,16 +516,16 @@ class ViewBinding:
     def cancel_workers(self):
         return ()
 
-    def covered(self, owner, coverage, history):
+    def covered(self, owner: TranscriptPresentation, coverage: CoverageEvent, history: CommittedHistory):
         return AwaitComplete.nothing()
 
     def reset_reader(self) -> None:
         pass
 
-    async def restore_documents(self, owner) -> None:
+    async def restore_documents(self, owner: TranscriptPresentation) -> None:
         pass
 
-    async def restore(self, owner) -> None:
+    async def restore(self, owner: TranscriptPresentation) -> None:
         pass
 
 
@@ -520,7 +539,7 @@ class BoundView(ViewBinding):
         source: SessionScope
 
         @classmethod
-        def capture(cls, binding: BoundView, owner, **extra):
+        def capture(cls, binding: BoundView, owner: TranscriptPresentation, **extra) -> Self:
             return super().capture(
                 binding,
                 owner,
@@ -590,7 +609,7 @@ class BoundView(ViewBinding):
     def history(self) -> TranscriptHistory:
         return self._history
 
-    def observe_thread(self, owner) -> None:
+    def observe_thread(self, owner: TranscriptPresentation) -> None:
         view = self.view
         owner._thread_observation.enter_context(
             self.thread_scope.observe(
@@ -602,7 +621,7 @@ class BoundView(ViewBinding):
     def reports_coverage(self):
         return self.history.state.reports_coverage
 
-    def covers_outgoing(self, message):
+    def covers_outgoing(self, message: PublishedSentMessage):
         return self.history.covers_outgoing(message)
 
     def covers_input(self, started: InputStartedUpdate):
@@ -631,7 +650,7 @@ class BoundView(ViewBinding):
 
         return AwaitComplete(replace())
 
-    async def restore_documents(self, owner) -> None:
+    async def restore_documents(self, owner: TranscriptPresentation) -> None:
         if not self.view.is_attached or not owner.documents:
             return
         moment = self.Moment.capture(self, owner)
@@ -642,7 +661,7 @@ class BoundView(ViewBinding):
         if moment.current():
             owner.documents = ()
 
-    async def restore(self, owner) -> None:
+    async def restore(self, owner: TranscriptPresentation) -> None:
         view = self.view
         view.resume_retained_history()
         if not owner.readable:
@@ -661,24 +680,26 @@ class BoundView(ViewBinding):
         publication = self.capture(owner, CanonicalSourcePublication)
         view.call_after_refresh(partial(moment.refresh, publication))
 
-    async def reveal_retained(self, owner, history) -> None:
+    async def reveal_retained(self, owner: TranscriptPresentation, history: TranscriptHistory) -> None:
         view = self.view
         if not view.is_attached:
             return
         self.painted(owner, history.page_source.through)
         view.query_one(SessionDetails)._refresh_summary()
 
-    def capture(self, owner, kind, *args):
+    def capture[FrameT: BoundFrame](
+        self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation
+    ):
         view = self.view
         if not view.is_attached or view.is_leaving:
             return None
         return kind.capture(self, owner, *args)
 
-    def painted(self, owner, cursor) -> None:
+    def painted(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.painted, cursor))
 
-    def observed(self, owner, cursor) -> None:
+    def observed(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.observed, cursor))
 
@@ -705,7 +726,7 @@ class BoundView(ViewBinding):
             for worker in view.workers.cancel_group(view, group)
         )
 
-    def covered(self, owner, coverage, history):
+    def covered(self, owner: TranscriptPresentation, coverage: CoverageEvent, history: CommittedHistory):
         view = self.view
         contents = self.contents
         if history.is_attached and history.parent is contents:
@@ -788,7 +809,8 @@ class TranscriptPresentation:
         return self.binding.thread_scope.readable
 
     async def get_transcript_page(
-        self, *, before=None, after=None, through=None
+        self, *, before=None, after=None,
+        through=None
     ) -> TranscriptPage:
         frame = self.binding.capture(self, BoundFrame)
         scope = self.binding.thread_scope
@@ -816,7 +838,7 @@ class TranscriptPresentation:
     def reports_coverage(self) -> bool:
         return self.binding.reports_coverage
 
-    def covers_outgoing(self, message) -> bool:
+    def covers_outgoing(self, message: PublishedSentMessage) -> bool:
         return self.binding.covers_outgoing(message)
 
     def covers_input(self, started: InputStartedUpdate) -> bool:
@@ -832,7 +854,7 @@ class TranscriptPresentation:
         """Revoke in-flight view work without forgetting its published source."""
         self.generation += 1
 
-    async def publish(self, kind: type[TranscriptPublication], *args) -> bool:
+    async def publish(self, kind: type[TranscriptPublication], *args: ThreadPresentation) -> bool:
         publication = self.binding.capture(self, kind, *args)
         if publication is not None and publication.current():
             return await publication.publish()
@@ -852,7 +874,9 @@ class TranscriptPresentation:
         self.commit_required = self.dirty = True
         self.binding.request(self)
 
-    async def mark_read(self, through, acknowledge, selected) -> None:
+    async def mark_read(
+        self, through: TranscriptCursor, acknowledge: Callable[[TranscriptCursor], None], selected: Callable[[], bool]
+    ) -> None:
         """A replaced source gets one fresh painted cursor, never a fatal read worker."""
         try:
             await asyncio.to_thread(acknowledge, through)
@@ -943,7 +967,9 @@ class TranscriptPresentation:
             except WorkerCancelled:
                 pass
 
-    def retire_presentations(self, contents, output, candidates: list[Widget]) -> AwaitComplete:
+    def retire_presentations(
+        self, contents: Contents, output: LiveOutput, candidates: Sequence[Widget]
+    ) -> AwaitComplete:
         """Withdraw covered native paint now; join teardown outside source locks.
 
         CommitEvidence has already selected these exact resources. Their native
@@ -966,7 +992,7 @@ class TranscriptPresentation:
         )
         return AwaitComplete(join_retirement(retirement))
 
-    async def _retire_presentations(self, contents, output, candidates) -> None:
+    async def _retire_presentations(self, contents: Contents, output: LiveOutput, candidates: Sequence[Widget]) -> None:
         try:
             await output.retire_presentations(candidates)
         finally:

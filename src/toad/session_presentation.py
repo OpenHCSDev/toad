@@ -151,7 +151,7 @@ class OperationalSessionSources:
             return False
         if conversation.transcript.readable:
             presentation = conversation.thread_presentation
-            return ExistingOwnerPlan.from_binding(presentation.binding) is not None
+            return ExistingOwnerPlan.from_binding(presentation.binding).available
         return True
 
     def unavailable_reason(self, conversation: Conversation) -> str:
@@ -159,7 +159,7 @@ class OperationalSessionSources:
         agent = conversation.agent_binding
         if (
             conversation.transcript.readable
-            and ExistingOwnerPlan.from_binding(presentation.binding) is None
+            and not ExistingOwnerPlan.from_binding(presentation.binding).available
         ):
             line = self.activity_row(conversation).presentation.summary
         elif agent.configuration.model.requires_selection:

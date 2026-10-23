@@ -12,6 +12,7 @@ from agent_comms.transcripts import RecordedTranscriptReadIdentity
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
 from toad.acp.comms_updates import OwnerSnapshotConsumer
+from toad.session_scope import KnownTranscript
 
 
 @pytest.fixture
@@ -31,7 +32,7 @@ async def test_recorded_snapshot_stays_immutable_when_original_grows_and_rejects
 
     async with workspace.app() as ui:
         reader = ui.app.coordination_access.transcripts
-        update = await reader.snapshot(str(live.root), "reader", historical_source=source.key)
+        update = await reader.snapshot(KnownTranscript(str(live.root), "reader"), historical_source=source.key)
         assert isinstance(update.identity, RecordedTranscriptReadIdentity)
         assert decode_updates(encode_updates(update)) == (update,)
         with native.open("a") as output:

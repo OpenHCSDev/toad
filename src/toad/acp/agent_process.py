@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from collections.abc import Callable
 from contextlib import ExitStack
 from contextvars import ContextVar
 from pathlib import Path
@@ -19,7 +20,9 @@ from agent_comms.child_process import (
 )
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.route_selection import RouteSelection
+from pydantic import JsonValue
 
+from toad.acp.agent_session import AgentSession
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
 
@@ -92,7 +95,7 @@ class AgentProcess(Client):
             connection.cleanup.enter_context(acquisition.pop_all())
             return connection
 
-    async def prompt(self, agent, content, metadata, require):
+    async def prompt(self, agent, content, metadata: dict[str, JsonValue], require: Callable[[], None]):
         """The agent-comms-acp child writes the prompt under Core's maintenance gate."""
         require()
         return await self.rpc.prompt(agent.session_id, content, **metadata)
@@ -119,66 +122,104 @@ class AgentProcess(Client):
             return members[0]
         raise RequestError.invalid_params({'details': 'ACP session is retired or unknown'})
 
-    async def request_permission(self, session_id, tool_call, options, **kwargs):
+    async def request_permission(
+        self,
+        session_id: str,
+        tool_call: schema.ToolCallUpdate,
+        options: list[schema.PermissionOption],
+        **kwargs: JsonValue,
+    ):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(
             agent.permissions.request_permission(session_id, options, tool_call, kwargs))
 
-    async def session_update(self, session_id, update, **kwargs) -> None:
+    async def session_update(
+        self,
+        session_id: str,
+        update: schema.UserMessageChunk
+        | schema.AgentMessageChunk
+        | schema.AgentThoughtChunk
+        | schema.ToolCallStart
+        | schema.ToolCallProgress
+        | schema.AgentPlanUpdate
+        | schema.AgentPlanContentUpdate
+        | schema.AgentPlanRemovedUpdate
+        | schema.AvailableCommandsUpdate
+        | schema.CurrentModeUpdate
+        | schema.ConfigOptionUpdate
+        | schema.SessionInfoUpdate
+        | schema.UsageUpdate,
+        **kwargs: JsonValue,
+    ) -> None:
         agent = self.recipient(session_id)
         notification = schema.SessionNotification.model_construct(
             session_id=session_id, update=update, field_meta=kwargs or None)
         raw = self._incoming.get()['params']['update']
         await agent.session.start_operation(agent.updates.receive(notification, raw))
 
-    async def read_text_file(self, session_id, path, line=None, limit: Optional[int]=None, **kwargs):
+    async def read_text_file(
+        self,
+        session_id: str,
+        path: str,
+        line=None,
+        limit: Optional[int] = None,
+        **kwargs: JsonValue,
+    ):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(asyncio.to_thread(
             agent.files.read_text_file, session_id, path, line, limit))
 
-    async def write_text_file(self, session_id, path, content, **kwargs):
+    async def write_text_file(self, session_id: str, path: str, content: str, **kwargs: JsonValue):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(asyncio.to_thread(
             agent.files.write_text_file, session_id, path, content))
 
-    async def create_terminal(self, session_id, command, args=None, env=None,
-                              cwd=None, output_byte_limit=None, **kwargs):
+    async def create_terminal(
+        self,
+        session_id: str,
+        command: str,
+        args=None,
+        env=None,
+        cwd=None,
+        output_byte_limit=None,
+        **kwargs: JsonValue,
+    ):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(agent.controller.terminal_create(
             session_id, command, kwargs, args, cwd, env, output_byte_limit))
 
-    async def terminal_output(self, session_id, terminal_id, **kwargs):
+    async def terminal_output(self, session_id: str, terminal_id: str, **kwargs: JsonValue):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(
             agent.controller.terminal_output(session_id, terminal_id, kwargs))
 
-    async def release_terminal(self, session_id, terminal_id, **kwargs):
+    async def release_terminal(self, session_id: str, terminal_id: str, **kwargs: JsonValue):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(
             agent.controller.terminal_release(session_id, terminal_id, kwargs))
 
-    async def wait_for_terminal_exit(self, session_id, terminal_id, **kwargs):
+    async def wait_for_terminal_exit(self, session_id: str, terminal_id: str, **kwargs: JsonValue):
         agent = self.recipient(session_id)
         return await agent.session.start_operation(
             agent.controller.terminal_wait_for_exit(session_id, terminal_id, kwargs))
 
-    async def kill_terminal(self, session_id, terminal_id, **kwargs):
+    async def kill_terminal(self, session_id: str, terminal_id: str, **kwargs: JsonValue):
         agent = self.recipient(session_id)
         return agent.controller.terminal_kill(session_id, terminal_id, kwargs)
 
-    async def create_elicitation(self, message, mode, **kwargs):
+    async def create_elicitation(self, message: str, mode: schema.ElicitationMode, **kwargs: JsonValue):
         raise RequestError.method_not_found('elicitation/create')
 
-    async def complete_elicitation(self, elicitation_id, **kwargs):
+    async def complete_elicitation(self, elicitation_id: str, **kwargs: JsonValue):
         raise RequestError.method_not_found('elicitation/complete')
 
-    async def ext_method(self, method, params):
+    async def ext_method(self, method: str, params: dict[str, JsonValue]):
         raise RequestError.method_not_found(f'_{method}')
 
-    async def ext_notification(self, method, params) -> None:
+    async def ext_notification(self, method: str, params: dict[str, JsonValue]) -> None:
         self.agent.log(f'[ACP unsupported notification] _{method}: {params}')
 
-    def on_connect(self, conn) -> None:
+    def on_connect(self, conn: ClientSideConnection) -> None:
         pass
 
     async def retire(self) -> None:
@@ -204,7 +245,7 @@ class AgentProcess(Client):
             self.sessions.clear()
             self.cleanup.close()
 
-    async def detach(self, session):
+    async def detach(self, session: AgentSession):
         async with self.attachment_lock:
             if session not in self.sessions:
                 return

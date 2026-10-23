@@ -2,8 +2,8 @@
 from agent_comms.mro_dispatch import MroDispatch
 
 
-class MroProjection(MroDispatch):
+class MroProjection[Result](MroDispatch):
     """A leaf returns projection data rather than replacing its original value."""
 
-    def consume_handlers_sync(self, value, handlers, *args, **kwargs):
-        return next(iter(handlers))(value, *args, **kwargs)
+    def project_value(self, value, *args, **kwargs) -> Result:
+        return next(self.handlers_for(value))(value, *args, **kwargs)
