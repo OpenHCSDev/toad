@@ -244,10 +244,14 @@ class AgentController(OperationalTerminalOwner):
             result = await agent.process.prompt(agent, content,
                 encode_request(command) if command is not None else {}, require)
         except RequestError as error:
+            # The agent answered: this request failed and its session stays open.
             request_failure = RequestFailure.from_error(error)
+            report = agent.events.publish
         except OSError as error:
+            # The transport is gone, and the session with it.
             request_failure = RequestFailure(
                 ACPFailure.from_detail(None, f"{type(error).__name__}: {error}"), False)
+            report = agent.session.record_failure
         else:
             if authority.retired:
                 return None
@@ -255,18 +259,17 @@ class AgentController(OperationalTerminalOwner):
         if authority.retired:
             return None
         failure = request_failure.failure
-        self._prompt_failed(command, authority, queue_scope, failure,
-            failure.title, failure.feedback, published=request_failure.notification_published)
+        self._prompt_failed(command, authority, queue_scope, failure, report,
+            published=request_failure.notification_published)
         return None
 
-    def _prompt_failed(self, command, authority, queue_scope, failure, title, detail, *, published=False):
+    def _prompt_failed(self, command, authority, queue_scope, failure, report, *, published=False):
         agent = self.agent
         user_text = command.draft_text if command is not None else None
         if user_text:
             agent.events.publish(core_events.CommsUpdated(InputFailedUpdate(user_text, failure), recover_draft=True, session_id=authority.session_id, queue_scope=queue_scope))
         if not published:
-            agent.session.record_failure(
-                LogAgentFail(title, detail, log_path=agent.presentation.log_path))
+            report(LogAgentFail(failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
     async def clear_queue(self):
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())
