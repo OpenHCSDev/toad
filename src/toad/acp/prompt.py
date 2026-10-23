@@ -3,6 +3,7 @@ from pathlib import Path
 
 from acp import schema
 from acp.helpers import ContentBlock
+from agent_comms.field_codec import FieldCodec
 from agent_comms.image_inputs import ImageInput, prompt_images
 
 from toad.clipboard_image import attachment_directory
@@ -38,7 +39,7 @@ def build(project_path: Path, prompt: str) -> list[ContentBlock]:
         uri = resource.path.resolve().as_uri()
         if resource.mime_type.startswith("image/") and resource.data is not None:
             image = ImageInput(base64.b64encode(resource.data).decode("ascii"), resource.mime_type)
-            prompt_content.append({**image.to_rpc(), "uri": uri})
+            prompt_content.append({**FieldCodec.encode_record(image), "uri": uri})
             image_spans.append((start, end))
         elif resource.text is not None:
             prompt_content.append(
