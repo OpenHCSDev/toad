@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections import deque
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, fields, replace
 from functools import partial
 from itertools import zip_longest
@@ -16,6 +16,14 @@ from agent_comms.transcripts import TranscriptCursor
 
 if TYPE_CHECKING:
     from agent_comms.transcripts import TranscriptPage
+    from agent_comms.message_page import MessagePage
+    from agent_comms.ui_model.message_category import MessageCategory
+    from collections.abc import Awaitable, Callable
+    from toad.transcript_preparation import PreparedTranscriptPage, ProjectedTranscriptSource
+    from toad.transcript_source_preparation import TranscriptSourcePreparation
+    from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.transcript_history import LineHistory, TranscriptPageView
+    from toad.wire_history import AfterSequence, WireCut, WireSource
     from textual.widget import Widget
 
 
@@ -122,13 +130,13 @@ class PageEnd(ABC):
     step: ClassVar[int]
     accepts_destination = True
 
-    def boundary(self, page) -> int:
+    def boundary(self, page: 'PreparedTranscriptPage') -> int:
         return self.entry(len(page.fragments) + 1)
 
-    def indices(self, page, boundary: int) -> range:
+    def indices(self, page: 'PreparedTranscriptPage', boundary: int) -> range:
         return range(boundary + min(self.step, 0), self.edge((-1, len(page.fragments))), self.step)
 
-    def can_extend(self, page) -> bool:
+    def can_extend(self, page: 'PreparedTranscriptPage') -> bool:
         return self.edge((page.start, len(page.fragments) - page.stop)) > 0
 
     def has_more(self, through, page) -> bool:
@@ -137,13 +145,13 @@ class PageEnd(ABC):
     def adjacent(self, page) -> PageRequest:
         return PageRequest(self, self.edge((page.before, page.after)))
     @abstractmethod
-    def advance_empty(self, edge, staged) -> None: ...
+    def advance_empty(self, edge: 'PreparedTranscriptPage', staged: 'PreparedTranscriptPage') -> None: ...
     @abstractmethod
-    def edge(self, pages): ...
-    def edge_boundary(self, edge, local: bool, staged) -> int:
+    def edge[Item](self, pages: Sequence[Item]) -> Item: ...
+    def edge_boundary(self, edge: 'TranscriptPageView', local: bool, staged: 'PreparedTranscriptPage') -> int:
         return self.edge((edge.prepared.start, edge.prepared.stop)) if local else self.boundary(staged)
     @abstractmethod
-    async def mount(self, history, view, pages) -> None: ...
+    async def mount(self, history: 'LineHistory', view: 'TranscriptPageView', pages: 'deque[TranscriptPageView]') -> None: ...
     @staticmethod
     @abstractmethod
     def append[Item](pages: deque[Item], view: Item, /) -> None: ...
@@ -151,11 +159,11 @@ class PageEnd(ABC):
     @abstractmethod
     def pop[Item](pages: deque[Item], /) -> Item: ...
 
-    def eviction_fragments(self, page):
+    def eviction_fragments(self, page: 'PreparedTranscriptPage'):
         return page.fragments_in_range[:: -self.step]
     def rows_toward(self, runway: Runway) -> int:
         return self.edge((runway.above, runway.below))
-    def at_boundary(self, window) -> bool:
+    def at_boundary(self, window: 'HistoryWindow') -> bool:
         boundary = self.edge((0, window.max_scroll_y))
         return all((position - boundary) * self.step >= 0
                    for position in (window.scroll_y, window.scroll_target_y))
@@ -163,31 +171,31 @@ class PageEnd(ABC):
     def work_cursor[Cursor](self, through: Cursor) -> Cursor | None:
         return self.edge((None, through))
     @abstractmethod
-    async def load_page(self, loader, cursor: TranscriptCursor | None, through): ...
+    async def load_page(self, loader: 'Callable[..., Awaitable[TranscriptPage]]', cursor: TranscriptCursor | None, through: 'TranscriptCursor') -> 'TranscriptPage': ...
     def progressed(self, page: "TranscriptPage", cursor: TranscriptCursor) -> bool:
         edge = self.edge((page.before, page.after))
         start, stop = self.edge(((edge, cursor), (cursor, edge)))
         return cursor.accepts_source(edge) and not (
             start.contains(stop) and self.edge((page.has_older, page.has_newer)))
     @abstractmethod
-    def wire_page(self, source, cursor, through): ...
+    def wire_page(self, source: 'WireSource', cursor: 'WireCut', through: 'AfterSequence') -> 'MessagePage': ...
 
     def entry(self, length: int):
         return self.edge((length - 1, 0))
 
-    async def project(self, source, initial, prepared):
+    async def project(self, source: 'ProjectedTranscriptSource', initial: 'PreparedTranscriptPage', prepared: 'PreparedTranscriptPage'):
         return replace(prepared, page=replace(prepared.page, has_newer=True))
 
-    def visible_more(self, history):
+    def visible_more(self, history: 'TranscriptSourcePreparation'):
         return history.has_more(self)
 
-    def fresh(self, history) -> bool:
+    def fresh(self, history: 'LineHistory') -> bool:
         return False
 
     def accepts_velocity(self, velocity: float) -> bool:
         return velocity * self.step > 0
 
-    async def walk(self, history, current, target, selected, start, rows_needed, limit: int):
+    async def walk(self, history: 'LineHistory', current: 'Callable[[], bool]', target, selected: 'frozenset[type[MessageCategory]]', start: 'tuple[int, int]', rows_needed: 'int', limit: int):
         for index in range(start[0], self.edge((-1, len(history.pages))), self.step):
             if not current() or rows_needed <= 0 or limit <= 0:
                 break
@@ -199,16 +207,16 @@ class PageEnd(ABC):
             limit -= page.stop - page.start
         return rows_needed, limit
 
-    def eviction_order(self, history):
+    def eviction_order(self, history: 'TranscriptSourcePreparation') -> 'tuple[PageEnd, PageEnd]':
         return OLDER_END, NEWER_END
 
-    def can_evict(self, overlay_visible) -> bool:
+    def can_evict(self, overlay_visible: 'bool') -> bool:
         return True
 
-    def leave_tail(self, window) -> None:
+    def leave_tail(self, window: 'HistoryWindow') -> None:
         pass
 
-    def trim(self, view, count: int) -> None:
+    def trim(self, view: 'TranscriptPageView', count: int) -> None:
         page = view.prepared
         page.set_fragment_range(slice(page.start + self.edge((count, 0)), page.stop - self.edge((0, count))))
         view.range_changed()
@@ -219,30 +227,30 @@ class OlderEnd(PageEnd):
     pop = staticmethod(deque.popleft)
     append = staticmethod(deque.appendleft)
 
-    async def load_page(self, loader, cursor, through):
+    async def load_page(self, loader: 'Callable[..., Awaitable[TranscriptPage]]', cursor: 'TranscriptCursor | None', through: 'TranscriptCursor') -> 'TranscriptPage':
         return await through.read_page(loader, before=cursor)
 
-    def wire_page(self, source, cursor, through):
+    def wire_page(self, source: 'WireSource', cursor: 'WireCut', through: 'AfterSequence') -> 'MessagePage':
         return source.conversation.page(source, PageBounds(
             cursor.older(),
             source.tail_limit if cursor == through else source.page_limit))
 
-    def advance_empty(self, edge, staged) -> None:
+    def advance_empty(self, edge: 'PreparedTranscriptPage', staged: 'PreparedTranscriptPage') -> None:
         edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
 
-    def edge(self, pages):
+    def edge[Item](self, pages: Sequence[Item]) -> Item:
         return pages[0]
 
-    async def mount(self, history, view, pages) -> None:
+    async def mount(self, history: 'LineHistory', view: 'TranscriptPageView', pages: 'deque[TranscriptPageView]') -> None:
         await history.mount(view, before=self.edge(pages) if pages else history.newer)
 
-    def eviction_order(self, history):
+    def eviction_order(self, history: 'TranscriptSourcePreparation') -> 'tuple[PageEnd, PageEnd]':
         return super().eviction_order(history) if history.follows_source_tail else (NEWER_END, self)
 
-    def can_evict(self, overlay_visible) -> bool:
+    def can_evict(self, overlay_visible: 'bool') -> bool:
         return not overlay_visible
 
-    def leave_tail(self, window) -> None:
+    def leave_tail(self, window: 'HistoryWindow') -> None:
         window.release_anchor()
 
 
@@ -255,31 +263,31 @@ class NewerEnd(PageEnd):
     def has_more(self, through, page):
         return super().has_more(through, page) or page.after != through
 
-    async def load_page(self, loader, cursor, through):
+    async def load_page(self, loader: 'Callable[..., Awaitable[TranscriptPage]]', cursor: 'TranscriptCursor | None', through: 'TranscriptCursor') -> 'TranscriptPage':
         return await through.read_page(loader, after=cursor)
 
-    def wire_page(self, source, cursor, through):
+    def wire_page(self, source: 'WireSource', cursor: 'WireCut', through: 'AfterSequence') -> 'MessagePage':
         page = source.conversation.page(source, PageBounds(cursor.newer(), source.page_limit))
         kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor.sequence)
         return replace(page, messages=kept, has_newer=False) if len(kept) < len(page.messages) else page
 
-    async def project(self, source, initial, prepared):
+    async def project(self, source: 'ProjectedTranscriptSource', initial: 'PreparedTranscriptPage', prepared: 'PreparedTranscriptPage'):
         if not prepared.fragments and not prepared.page.has_newer:
             boundary = await source.boundary()
             return replace(boundary, page=replace(boundary.page, before=initial.page.before,
                                                  has_older=initial.page.has_older))
         return await super().project(source, initial, prepared)
 
-    def advance_empty(self, edge, staged) -> None:
+    def advance_empty(self, edge: 'PreparedTranscriptPage', staged: 'PreparedTranscriptPage') -> None:
         edge.page = replace(edge.page, after=staged.page.after, has_newer=staged.page.has_newer)
 
-    def fresh(self, history):
+    def fresh(self, history: 'LineHistory'):
         return history.drawn_tail_followed
 
-    def edge(self, pages):
+    def edge[Item](self, pages: Sequence[Item]) -> Item:
         return pages[-1]
 
-    async def mount(self, history, view, pages) -> None:
+    async def mount(self, history: 'LineHistory', view: 'TranscriptPageView', pages: 'deque[TranscriptPageView]') -> None:
         await history.mount(view, before=history.newer)
 
 
@@ -305,18 +313,18 @@ class PreparationDemand(ABC):
     def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
         return MovingPreparation(travel / elapsed)
 
-    def accepts_result(self, end) -> bool:
+    def accepts_result(self, end: 'PageEnd') -> bool:
         """A running read may finish after input settles; it starts no next read."""
         return True
 
-    def read_rows(self, preparation: "DirectionalPreparation", history, end, runway: Runway) -> int:
+    def read_rows(self, preparation: "DirectionalPreparation", history: 'LineHistory', end: 'PageEnd', runway: Runway) -> int:
         """Stationary input never requests another source page."""
         return 0
 
     def source_read(self) -> None:
         """Only a bounded destination counts the pages its request read."""
 
-    def prepare_ahead(self, preparation, history, page, end) -> None:
+    def prepare_ahead(self, preparation: 'DirectionalPreparation', history: 'LineHistory', page, end: 'PageEnd') -> None:
         """Only measured movement speculates beyond its current destination."""
 
     def destination_painted(self) -> "PreparationDemand":
@@ -343,16 +351,16 @@ class MovingPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
 
-    def accepts_result(self, end) -> bool:
+    def accepts_result(self, end: 'PageEnd') -> bool:
         return end.accepts_velocity(self.velocity)
 
-    def read_rows(self, preparation, history, end, runway: Runway) -> int:
+    def read_rows(self, preparation: 'DirectionalPreparation', history: 'LineHistory', end: 'PageEnd', runway: Runway) -> int:
         if not self.accepts_result(end):
             return 0
         ahead = preparation.ahead_rows(preparation.window.outer_size.height)
         return max(0, ceil(ahead) - end.rows_toward(runway))
 
-    def prepare_ahead(self, preparation, history, page, end) -> None:
+    def prepare_ahead(self, preparation: 'DirectionalPreparation', history: 'LineHistory', page, end: 'PageEnd') -> None:
         if self.accepts_result(end):
             # The existing runtime owns the single decoded/prepared result.
             # This native worker only waits for that original bounded work;
@@ -375,11 +383,11 @@ class DestinationPreparation(PreparationDemand):
         # An explicit reversal immediately replaces the burst.
         return super().moved(travel, elapsed) if travel < 0 else self
 
-    def accepts_result(self, end) -> bool:
+    def accepts_result(self, end: 'PageEnd') -> bool:
         # A newer destination supersedes older work through its source snapshot.
         return end.accepts_destination
 
-    def read_rows(self, preparation, history, end, runway: Runway) -> int:
+    def read_rows(self, preparation: 'DirectionalPreparation', history: 'LineHistory', end: 'PageEnd', runway: Runway) -> int:
         if not self.accepts_result(end):
             return 0
         edge = end.edge(history.pages).prepared
@@ -403,7 +411,7 @@ class DirectionalPreparation:
     The presentation budget bounds how much of that prediction can be retained.
     """
 
-    def __init__(self, window) -> None:
+    def __init__(self, window: 'HistoryWindow') -> None:
         self.window = window
         self.position = 0.0
         self.sampled_at = monotonic()
@@ -497,13 +505,13 @@ class DirectionalPreparation:
         # destination items may exceed the nominal working-set item budget.
         return max(budget.item_limit(0), viewport_rows)
 
-    def read_rows(self, history, end: PageEnd) -> int:
+    def read_rows(self, history: 'LineHistory', end: PageEnd) -> int:
         if not end.visible_more(history):
             return 0
         runway = self.runway(history)
         return 0 if runway is None else self.demand.read_rows(self, history, end, runway)
 
-    def runway(self, history) -> Runway | None:
+    def runway(self, history: 'LineHistory') -> Runway | None:
         """Published rows above and below this viewport; None while the history is off screen."""
         window = self.window
         visible = window.screen._compositor.visible_widgets
@@ -513,7 +521,7 @@ class DirectionalPreparation:
         region, frame = geometry[0], viewport[0]
         return Runway(frame.y - region.y, region.bottom - frame.bottom)
 
-    def prepare_source(self, history) -> None:
+    def prepare_source(self, history: 'LineHistory') -> None:
         """Request the next page from what the screen shows now, not from window state."""
         window = self.window
         if (not window.screen.is_active or not history.selected_categories

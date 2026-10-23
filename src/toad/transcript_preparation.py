@@ -39,8 +39,14 @@ from toad.work_preparation import (
 )
 
 if TYPE_CHECKING:
+    from agent_comms.message_page import MessagePage
+    from toad.comms_root import CoordinationAccess, Observation
+    from toad.core.input_events import UserInputSubmitted
+    from toad.transcript_source_preparation import TranscriptSourcePreparation
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.wire_history import WireHistory
     from toad.widgets.conversation import Contents
-    from toad.widgets.transcript_history import LineHistory
+    from toad.widgets.transcript_history import LineHistory, TranscriptPageView
 
 
 @dataclass
@@ -85,7 +91,7 @@ class PreparedTranscriptPage:
     def empty(cls, page):
         return cls.measured(page, ())
 
-    def project(self, fragments):
+    def project(self, fragments: tuple[TranscriptFragment, ...]):
         if len(fragments) == len(self.fragments) and all(
                 selected is original for selected, original in zip(fragments, self.fragments)):
             return self.for_view()
@@ -154,7 +160,7 @@ class PreparedTranscriptPage:
 
     # A page draws its selected fragments as lines: drawing moves a range,
     # it never mounts or removes native members.
-    async def extend(self, view, prepared: PreparedTranscriptPage, current) -> bool:
+    async def extend(self, view: TranscriptPageView, prepared: PreparedTranscriptPage, current: Callable[[], bool]) -> bool:
         """Accept the staged rows; the range owner alone combines its membership."""
         if not current():
             return False
@@ -163,7 +169,7 @@ class PreparedTranscriptPage:
         selected = slice(min(self.start, prepared.start), max(self.stop, prepared.stop))
         return self.replace_range(view, selected, current)
 
-    def replace_range(self, view, selected, current) -> bool:
+    def replace_range(self, view: TranscriptPageView, selected: slice, current: Callable[[], bool]) -> bool:
         if not current():
             return False
         if self.fragment_range != (selected.start, selected.stop):
@@ -326,7 +332,7 @@ class PreparedPageSource(ABC):
             raise asyncio.CancelledError
         return prepared
 
-    async def accept_page(self, history, edge, prepared) -> bool:
+    async def accept_page(self, history: TranscriptSourcePreparation, edge: TranscriptPageView, prepared: PreparedTranscriptPage) -> bool:
         """Immutable saved reads already carry their validated source cut."""
         return True
 
@@ -409,7 +415,7 @@ class CategoryProjection(TranscriptPageProjection):
 class RangeCategoryProjection(CategoryProjection):
     boundary: PageFragmentRange
 
-    def fragments_for(self, page):
+    def fragments_for(self, page: PreparedTranscriptPage):
         if self.boundary.page() is page:
             return self.boundary.members
         return super().fragments_for(page)
@@ -531,25 +537,25 @@ class SavedPrefix(SavedHistory):
         # reads to the superseded prefix's preparation scope.
         return self.earlier.replacement(through)
 
-    def read_task(self, request):
+    def read_task(self, request: PageRequest):
         # Keep the upstream task's declared native/wire behavior, bounded here.
         return replace(self.earlier.read_task(request), scope=self.scope, through=self.through)
 
-    async def _get(self, request):
+    async def _get(self, request: PageRequest):
         return await request.end.edge((self.earlier.get, super()._get))(request)
 
-    async def _prepare(self, request) -> None:
+    async def _prepare(self, request: PageRequest) -> None:
         await request.end.edge((self.earlier.prepare, super()._prepare))(request)
 
 
 class SourceObservation:
-    async def apply(self, history, source) -> bool:
+    async def apply(self, history: WireHistory, source: ReplaceablePageSource) -> bool:
         await history.jump_latest(LatestViewportRequest(LatestPosition.hold(history.window)))
         return not history.undrawn
 
 
 class Unchanged(SourceObservation):
-    async def apply(self, history, source) -> bool:
+    async def apply(self, history: WireHistory, source: ReplaceablePageSource) -> bool:
         if not history.undrawn:
             return (history.pages[-1].prepared.page.after != source.through
                     and await history.extend(source.through))
@@ -566,63 +572,63 @@ class ClosedHistory(ReplaceablePageSource):
         self.through, self.runtime = through, runtime
         self.scope = PreparationScope()
 
-    def uses_observation(self, observation) -> bool:
+    def uses_observation(self, observation: Observation) -> bool:
         return False
 
     async def route_is_current(self) -> bool:
         return False
 
-    def status_thread(self, access):
+    def status_thread(self, access: CoordinationAccess):
         from toad.status_thread import NoStatusThread
 
         return NoStatusThread()
 
-    def command_context(self, view):
+    def command_context(self, view: CommsChatView):
         return None
 
-    async def submit_input(self, view, event) -> None:
+    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
         view.delivery_refused("Conversation source is not ready", event.body)
 
-    def schedule_refresh(self, view):
+    def schedule_refresh(self, view: CommsChatView):
         return None
 
-    def painted_read(self, history) -> PaintedRead:
+    def painted_read(self, history: WireHistory) -> PaintedRead:
         return NothingToRead()
 
-    async def change_style(self, history) -> None:
+    async def change_style(self, history: WireHistory) -> None:
         return
 
     async def read_revision(self):
         raise ValueError("This transcript has no saved-source reader")
 
-    async def observe_changes(self, revision):
+    async def observe_changes(self, revision: ConversationObservation):
         return Unchanged()
 
-    def seen_page(self, history, seen):
+    def seen_page(self, history: WireHistory, seen: tuple[TranscriptFragment, ...]):
         return None
 
-    async def mark_page(self, page) -> None:
+    async def mark_page(self, page: MessagePage) -> None:
         raise ValueError("This transcript has no saved-source reader")
 
     async def read_only(self) -> bool:
         return True
 
-    async def update_mentions(self, view) -> None:
+    async def update_mentions(self, view: CommsChatView) -> None:
         return
 
-    async def status_text(self, *, read_only) -> str:
+    async def status_text(self, *, read_only: bool) -> str:
         return "Conversation source is not ready"
 
-    def has_more(self, end, page) -> bool:
+    def has_more(self, end: PageEnd, page) -> bool:
         return False
 
     def has_older(self, page) -> bool:
         return False
 
-    def edge_reached(self, request, boundary) -> bool:
+    def edge_reached(self, request: PageRequest, boundary) -> bool:
         return True
 
-    async def latest(self, prepared):
+    async def latest(self, prepared: PreparedTranscriptPage):
         return prepared.for_view()
 
     def prefix(self, through):
@@ -631,10 +637,10 @@ class ClosedHistory(ReplaceablePageSource):
     def replacement(self, through) -> ClosedHistory:
         return ClosedHistory(through, self.runtime)
 
-    async def _get(self, request):
+    async def _get(self, request: PageRequest):
         raise ValueError("This transcript has no saved-source reader")
 
-    async def _prepare(self, request) -> None:
+    async def _prepare(self, request: PageRequest) -> None:
         # No saved read can be speculated for a retained-only range.
         return
 
