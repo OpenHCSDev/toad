@@ -589,7 +589,7 @@ class ConversationSessionBinding(
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
         self._auto_title_eligible = (
-            agent_session_id is None and session_pk is None and session_title is None
+            agent_session_id is None and session_title is None
         )
         self._agent_fail = False
         self._mouse_down_offset: Offset | None = None
