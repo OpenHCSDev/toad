@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from toad.widgets.comms_chat import CommsChatView
 
 
-class WireHistory[ViewT: "CommsChatView"](VisibleReadMarking, ConversationHistory[ViewT]):
+class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[ViewT]):
     """The line history of a channel or direct conversation.
 
     Paging, preparation, trimming and the reader's position are the line
