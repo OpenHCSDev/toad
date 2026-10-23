@@ -39,12 +39,12 @@ class TargetContext:
         return self.targets or self.subject
 
     @property
-    def selected_targets(self):
+    def selected_targets(self) -> tuple[str, ...]:
         return (tuple(name for target in self.targets for name in target.names)
                 if self.targets else self.subject.names)
 
     @property
-    def title(self):
+    def title(self) -> str:
         names = self.selected_targets
         return ", ".join(names) if names else str(self.project)
 
