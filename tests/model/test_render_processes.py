@@ -11,6 +11,8 @@ from unittest.mock import patch
 
 import pytest
 
+from agent_comms.launch_runtime import ThreadLaunch
+
 from toad.render_processes import RenderProcessPool
 
 
@@ -22,8 +24,7 @@ def worker_info():
     return (
         os.getpid(),
         multiprocessing.get_start_method(),
-        os.environ.get("PI_AGENT_ID"),
-        os.environ.get("AGENT_COMMS_THREAD"),
+        ThreadLaunch.inherited(os.environ),
     )
 
 
@@ -76,13 +77,14 @@ async def test_workers_are_spawned_apart_from_the_parent_and_errors_propagate(mo
     async with pools() as make:
         pool = make()
         assert pool._executor is None
-        monkeypatch.setenv("PI_AGENT_ID", "pilot-only")
-        monkeypatch.setenv("AGENT_COMMS_THREAD", "pilot-only")
-        pid, method, agent, thread = await pool.run(worker_info)
+        launch = ThreadLaunch("pilot-only", "/pilot-only", frozenset({"pilot"}), managed=True)
+        for name, value in launch.encode().items():
+            monkeypatch.setenv(name, value)
+        assert ThreadLaunch.inherited(os.environ) == launch.encode()
+        pid, method, inherited = await pool.run(worker_info)
         assert pid != os.getpid()
         assert method == "spawn"
-        assert agent is None
-        assert thread is None
+        assert inherited == {}
         with pytest.raises(ValueError, match="worker failure"):
             await pool.run(fail)
         # Serialization errors also propagate, without executing locally.

@@ -18,6 +18,7 @@ from toad.forms import editors
 from toad.forms.field_path import FieldPath
 from toad.forms.form_view import FormView, GroupView, ValueView
 from toad.forms.kinds import Multiline
+from toad.textual_colours import ThemedApp
 
 
 class Size(Enum):
@@ -53,7 +54,7 @@ class Everything(AnnotatedDataclassValidationMixin):
     secret: str = field(default="", metadata={"ui_hidden": True})
 
 
-class FormApp(App[None]):
+class FormApp(ThemedApp, App[None]):
     def __init__(self) -> None:
         super().__init__()
         self.state = ObjectState(Everything())

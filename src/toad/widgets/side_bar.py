@@ -23,7 +23,7 @@ from textual.widget import Widget
 from ui_theme.scheme import SidebarToneColour, AccentColour, ForegroundColour
 
 from toad.widget_view import WorkspaceHosted
-from toad.frame_presentation import TonePaint
+from toad.tone_paint import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (

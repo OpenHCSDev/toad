@@ -12,7 +12,7 @@ from textual.reactive import reactive, var
 from textual.widget import Widget
 
 from toad.answer import Answer
-from toad.frame_presentation import UntintedTonePaint
+from toad.tone_paint import UntintedTonePaint
 from toad.question_actions import QuestionAction, SelectKindAction
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import DeclaredWidgetActions

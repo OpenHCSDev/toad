@@ -26,6 +26,7 @@ from textual.geometry import Spacing
 from toad.forms.field_path import FieldPath
 from toad.forms.form_view import InlineFormView
 from toad.forms.presentation import FormModal
+from toad.screens.modal import ModalScreen
 from toad.widget_view import WidgetView
 from toad.forms.kinds import Placeholder
 from toad.preferences import SETTINGS
@@ -56,7 +57,7 @@ class SortPanel(WidgetView, VerticalScroll):
     overflow_y = "auto"
 
 
-class SortDialog(FormModal[type[DisplayOrder] | None]):
+class SortDialog(FormModal[type[DisplayOrder] | None], ModalScreen[type[DisplayOrder] | None]):
     """A short-lived edit form, not a second source of persisted ordering."""
 
     def __init__(self, control: SortControl, form: ThreadSortForm | ChannelSortForm):

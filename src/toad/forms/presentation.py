@@ -7,11 +7,11 @@ from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar
 from textual.geometry import Spacing
 from textual.layouts.horizontal import HorizontalLayout
+from textual.screen import ModalScreen
 from textual.widgets._select import SelectCurrent
 from textual.widgets import Checkbox, Input
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
 from toad.widget_view import AUTO, FocusWithinView, WidgetView
-from toad.screens.modal import ModalScreen
 
 
 class FramedControl(FocusWithinView):
@@ -73,7 +73,10 @@ class FormSelectCurrent(FramedControl, SelectCurrent):
 
 
 class FormModal[Result](WidgetView, ModalScreen[Result]):
-    """Shared native modal presentation and theme invalidation lifecycle."""
+    """Shared native modal presentation and theme invalidation lifecycle.
+
+    The form package knows no app key bindings: an app's own modal mixes in beside it.
+    """
 
     BINDINGS = [Binding("escape", "cancel", "Cancel", priority=True)]
 

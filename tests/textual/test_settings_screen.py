@@ -18,6 +18,7 @@ from toad.forms.form_view import ValueView
 from toad.preferences import SETTINGS, SavedSettings, ToadSettings
 from toad.screens.settings import SchemeEditor, SettingsScreen
 from toad.setting_effects import Effect
+from toad.widgets.footer import ToadFooter
 
 SAVED = Path(__file__).resolve().parents[1] / "fixtures" / "saved-settings.json"
 
@@ -35,8 +36,8 @@ class ShoutedEditor(editors.StrEditor):
 
 
 @Effect
-def badge_shown(app, value):
-    app.sub_title = value
+def badge_shown(app, field):
+    app.sub_title = field.value
 
 
 @dataclass(frozen=True)
@@ -118,7 +119,7 @@ async def test_a_boolean_and_a_theme_take_effect_when_edited(workspace):
         footer.value = not before
         await ui.step()
         assert app.settings.ui.footer is not before
-        assert app.has_class("-hide-footer") is before
+        assert app.screen.query_one(ToadFooter).display is not before
         theme = editor(app, SETTINGS.ui.theme)
         theme.value = "ansi-light"
         await ui.step()
@@ -153,7 +154,7 @@ async def test_a_changed_setting_is_marked_and_discarding_puts_the_file_back(wor
         assert app.settings == saved and not app.saved_settings.unsaved
         assert editor(app, SETTINGS.ui.column_width).value == str(saved.ui.column_width)
         assert editor(app, SETTINGS.ui.footer).value is saved.ui.footer
-        assert app.has_class("-hide-footer") is not saved.ui.footer
+        assert app.screen.query_one(ToadFooter).display is saved.ui.footer
 
 
 async def test_closing_the_form_sends_the_number_still_being_typed(workspace):
