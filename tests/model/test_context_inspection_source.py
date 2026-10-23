@@ -38,3 +38,27 @@ def test_native_message_text_includes_its_tool_calls():
     shown = json.loads(called)
     assert shown == FieldCodec.encode(call)
     assert (shown["name"], shown["arguments"]) == ("read", {"path": "notes.md"})
+
+
+def test_context_reader_observes_the_session_and_its_owner_proof(workspace):
+    from agent_comms.native_session_files import NativeSessionFiles
+    from agent_comms.native_session_reopen import NativeSessionIdentity
+    from agent_comms.session_file import SavedSessionFile
+
+    session = workspace.project / "context-session.jsonl"
+    session.write_text(json.dumps({"type": "session", "version": 3, "id": "context-reader"}) + "\n")
+    registry = workspace.comms.registry
+    registry.declare(registry.new_thread(
+        "context-reader", frozenset(), str(workspace.project), session_file=SavedSessionFile(str(session))))
+    thread = registry.require("context-reader")
+    files = NativeSessionFiles.for_identity(
+        NativeSessionIdentity.locate(str(session)), root=workspace.comms.root,
+        owner=thread.incarnation.require_recorded())
+
+    before = ContextInspection.read(workspace.comms, thread.name)
+    assert before.source == SessionRevision.observe(files)
+    files.input_proof.parent.mkdir(parents=True, exist_ok=True)
+    files.input_proof.touch()
+    after = ContextInspection.read(workspace.comms, thread.name)
+    assert after.source == SessionRevision.observe(files)
+    assert after.source != before.source

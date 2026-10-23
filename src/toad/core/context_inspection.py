@@ -14,6 +14,8 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from agent_comms.importing import ImportedSessionMetadata
 from agent_comms.mro_dispatch import handles
+from agent_comms.native_session_files import NativeSessionFiles
+from agent_comms.native_session_reopen import NativeSessionIdentity
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.presentation import ReadState
@@ -531,7 +533,7 @@ class ContextInspection:
         comms: Comms,
         owner: str,
         *,
-        cursor: ContextManifestCursor | None = None,
+        cursor=None,
         previous: tuple[CapturedContext, ...] = (),
     ):
         entry = comms.registry.entry(owner).entry
@@ -543,7 +545,11 @@ class ContextInspection:
             tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
         inspection_type = ThreadInspectionSource().dispatch_sync(entry.status)
-        return inspection_type(entry, page, SessionRevision.observe(thread.session_file), comms,
+        files = NativeSessionFiles.for_identity(
+            NativeSessionIdentity.locate(thread.runtime.path),
+            root=comms.root, owner=thread.incarnation.require_recorded(),
+        )
+        return inspection_type(entry, page, SessionRevision.observe(files), comms,
                                annotations, imported)
 
     async def acquire(self, revision: ReadState):
@@ -747,7 +753,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
         revision: ReadState,
         identity: ThreadIdentity,
         *,
-        cursor: ContextManifestCursor | None = None,
+        cursor=None,
     ) -> InspectionState:
         if str(service.root.resolve()) != identity.root:
             raise ValueError("Selected context belongs to another wire root")
@@ -804,7 +810,7 @@ class DetachedInspection(InspectionState):
         revision: ReadState,
         identity: ThreadIdentity,
         *,
-        cursor: ContextManifestCursor | None = None,
+        cursor=None,
     ) -> InspectionState:
         return self
 
