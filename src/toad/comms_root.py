@@ -340,12 +340,12 @@ class CoordinationAccess(MroDispatch):
             return self.observation.require(self, selected)
 
     def open_selected(self, selected: RouteSelection) -> Observing:
-        from agent_comms.comms import wire
+        from agent_comms.comms import Comms
 
         previous = self.observation
         with ExitStack() as acquisition:
             acquisition.enter_context(selected.route.hold_client_route())
-            service = wire(selected.route)
+            service = Comms(selected.route)
             if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
                 raise RouteChangedError("Comms route changed while opening the service")
             observed = Observing(

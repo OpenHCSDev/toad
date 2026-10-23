@@ -125,7 +125,7 @@ class ThreadAction:
             def prepare():
                 ctx.current()
                 return TargetEdit(declaration=definition.declaration,
-                    target=definition.declaration.selected_targets(definition.targets if ctx.targets else ctx.subject),
+                    target=definition.declaration.selected_targets(ctx.selection),
                     arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),
                     channel=definition.channels, project=str(ctx.project))
             request = await ctx.app.preparation.run_thread(prepare)
