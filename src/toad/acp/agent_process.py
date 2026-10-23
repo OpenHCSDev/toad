@@ -6,6 +6,7 @@ import json
 import os
 from collections.abc import Callable
 from contextvars import ContextVar
+from functools import partial
 from pathlib import Path
 from typing import Optional
 
@@ -17,7 +18,6 @@ from agent_comms.child_process import (
     StreamingChildStdio,
     join_retirement,
 )
-from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.route_selection import RouteSelection
 from pydantic import JsonValue
@@ -94,8 +94,8 @@ class AgentProcess(Client):
 
     async def prompt(self, agent, content, metadata: dict[str, JsonValue], require: Callable[[], None]):
         """The agent-comms-acp child writes the prompt under Core's maintenance gate."""
-        if RouteSelection.capture() != self.route_selection:
-            raise RouteChangedError(RouteChangedError.reader_sentence)
+        access = agent.controller.transcripts.access
+        await access.preparation.run_thread(partial(access.require, self.route_selection))
         require()
         return await self.rpc.prompt(agent.session_id, content, **metadata)
 
