@@ -258,8 +258,11 @@ class WorkspaceSessions:
 
     async def close(self, identity: str) -> None:
         if view := self.detach(identity):
-            await view.close_presentation()
-            await view.remove()
+            await self.finish(view)
+
+    async def finish(self, view: SessionScope) -> None:
+        await view.close_presentation()
+        await view.remove()
 
     async def aclose(self) -> None:
         """Finalize owned sources while their frame and operational bindings exist."""

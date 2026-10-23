@@ -49,6 +49,7 @@ class Detached:
     members: tuple[SessionEntry, ...]
     views: tuple[SessionScope, ...]
     returning: SessionEntry | None
+    returning_view: SessionScope | None
 
 
 class SessionNavigation:
@@ -443,7 +444,7 @@ class SessionNavigation:
             entry for mode in modes if (entry := self.get(mode)) is not None
         )
         if not entries:
-            return Detached((), (), None)
+            return Detached((), (), None, None)
         closing = tuple(
             member
             for member in self.members
@@ -456,6 +457,7 @@ class SessionNavigation:
         for member in closing:
             member.forget(self)
         views = []
+        returning_view = None
         for member in closing:
             group = self.entries[member.owner_mode]
             del group[member.mode]
@@ -463,23 +465,23 @@ class SessionNavigation:
                 del self.entries[member.owner_mode]
             if view := self.app.workspace_sessions.detach(member.mode):
                 views.append(view)
+                if member is returning:
+                    returning_view = view
         self.publish()
-        return Detached(closing, tuple(views), returning)
+        return Detached(closing, tuple(views), returning, returning_view)
 
     async def finish(self, detached: Detached) -> None:
         if not detached.members:
             return
         try:
             await self.app.tab_order.close({member.identity for member in detached.members})
+            if detached.returning_view is not None:
+                await detached.returning_view.retire_presentation()
             if detached.returning is not None:
-                for view in detached.views:
-                    if view.id == detached.returning.mode:
-                        await view.retire_presentation()
                 await detached.returning.return_to(self)
         finally:
             for view in detached.views:
-                await view.close_presentation()
-                await view.remove()
+                await self.app.workspace_sessions.finish(view)
 
     def observed(self, event: core_events.CoordinationObserved) -> None:
         # Views on the observed root retire through the observation service
