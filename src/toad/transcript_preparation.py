@@ -368,16 +368,6 @@ class PreparedPageSource(ABC):
         if self.has_more(end, page):
             await self.prepare(end.adjacent(page))
 
-    def restart(self, through) -> None:
-        """Discard the old reading without discarding its storage binding."""
-        self._restart_reader()
-        self.through = through
-        self._release_ranges()
-
-    def _restart_reader(self) -> None:
-        self._close_reader()
-        self.scope = PreparationScope()
-
     def _close_reader(self) -> None:
         self.runtime.discard_scope(self.scope)
 
@@ -697,11 +687,6 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
             await self.boundary()
         else:
             await self._raw.prepare(request)
-
-    def _restart_reader(self) -> None:
-        self._raw.restart(self._boundary.page.before)
-        self.scope = self._raw.scope
-        self._projected_boundary = None
 
     def _close_reader(self) -> None:
         self._raw.close()

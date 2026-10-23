@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
     from textual.screen import Screen
 
+    from toad.transcript_filter import FilterState
     from toad.widgets.transcript_history import TranscriptPageView
 
 
@@ -64,6 +65,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     pages: deque[TranscriptPageView]
     _source_state: TranscriptState
+    filter: FilterState
 
     @classmethod
     def initial_state(cls, view) -> TranscriptState:

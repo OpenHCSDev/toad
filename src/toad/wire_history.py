@@ -42,7 +42,10 @@ from toad.transcript_preparation import (
     TranscriptPageWork,
     Unchanged,
 )
-from toad.transcript_state import LatestReplacementViewportRequest
+from toad.transcript_state import (
+    LatestReplacementViewportRequest,
+    ReplacementViewportRequest,
+)
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.widgets.transcript_fragments import (
@@ -314,6 +317,14 @@ class WireSource:
 
 
 @dataclass(frozen=True)
+class RestyledViewportRequest(ReplacementViewportRequest):
+    loader: WireSource
+
+    def source(self, owner):
+        return WirePageBuffer(self.loader, owner.page_source.through, owner.page_source.runtime)
+
+
+@dataclass(frozen=True)
 class WireObservation(SourceObservation):
     revision: ConversationRevision
     through: AfterSequence
@@ -390,11 +401,8 @@ class WirePageBuffer(SavedHistory):
     async def change_style(self, history) -> None:
         if not history.can_draw_on_screen:
             return
-        style = self.loader.style.next()
-        history.open(self.loader.restyled(style))
-        await history._show([(fragment, replace(fragment.shown, style=style))
-                             for fragment in history.fragments])
-        history.window.scroll_end(animate=False)
+        await history.show_newest(RestyledViewportRequest(
+            LatestPosition.hold(history.window), self.loader.restyled(self.loader.style.next())))
 
     async def read_revision(self):
         return await self.runtime.run_thread(self.loader.comms.views.revision)

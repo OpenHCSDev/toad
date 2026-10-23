@@ -7,6 +7,9 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from agent_comms.thread_text import SavedSessionFile
 from agent_comms.ui_model.message_category import ThinkingCategory, UserCategory, all_categories
+from agent_comms.ui_model.message_category import InboundCategory
+from toad.message_rows import MarkdownMessageStyle
+from toad.widgets.comms_chat import CommsChatView
 
 from support.journals import assistant_entry, user_entry, write_journal
 from toad.widgets.transcript_history import ProjectedTranscriptHistory
@@ -86,4 +89,43 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
         await ui.until(lambda: projection not in history.children
                        and "REPLACEMENT_ASSISTANT_299" in ui.painted(view.window),
                        why="the original tail after removing the filter")
+        assert ui.failure() is None
+
+
+async def test_a_style_change_rebuilds_filtered_history_and_its_next_older_read(workspace):
+    workspace.thread("sender", "style")
+    for index in range(240):
+        workspace.comms.messaging.send("sender", "#style", f"**STYLE_ROW_{index}**")
+    async with workspace.app(size=(110, 30)) as ui:
+        await ui.open_channel("#style", actor=workspace.viewer)
+        chat = ui.app.selected_session.query_one(CommsChatView)
+        await ui.until_shows("**STYLE_ROW_239**")
+        history = chat.message_history
+        chat.visible_categories = frozenset({InboundCategory})
+        chat.window.release_anchor()
+        chat.window.scroll_home(animate=False, immediate=True)
+        history.filter.request_older()
+        await ui.until(lambda: isinstance(history.filter.overlay, ProjectedTranscriptHistory)
+                       and bool(history.filter.overlay.fragments_in_range),
+                       why="the original filtered older messages")
+        old_source, old_projection = history.page_source, history.filter.overlay
+        await history.toggle_style()
+        assert old_source.closed and not old_projection.display
+        assert chat.visible_categories == frozenset({InboundCategory})
+        await ui.until(lambda: "STYLE_ROW_239" in ui.painted(chat.window)
+                       and "**STYLE_ROW_239**" not in ui.painted(chat.window),
+                       why="Markdown drawing to replace the literal IRC asterisks")
+        history.filter.request_older()
+        await ui.until(lambda: isinstance(history.filter.overlay, ProjectedTranscriptHistory)
+                       and history.filter.overlay is not old_projection
+                       and bool(history.filter.overlay.fragments_in_range),
+                       why="the new style's filtered older messages")
+        projection = history.filter.overlay
+        first = projection.pages[0].prepared.page.before
+        history.filter.request_older()
+        await ui.until(lambda: projection.pages[0].prepared.page.before != first,
+                       why="another older read after the style change")
+        assert all(isinstance(fragment.shown.style, MarkdownMessageStyle)
+                   for fragment in (*history.fragments, *projection.fragments))
+        assert "**STYLE_ROW_" not in ui.painted(chat.window)
         assert ui.failure() is None

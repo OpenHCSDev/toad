@@ -507,7 +507,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
-        self.filter: FilterState = FilterState.for_selection(self)
+        self.filter = FilterState.for_selection(self)
         self._fragment_budget = self.budget.max_items
 
     async def park_document(self) -> PreparedPageSource:
@@ -903,22 +903,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def on_hide(self) -> None:
         for page in self.pages:
             page.arrivals.clear()
-
-    async def _clear(self, initial: PreparedTranscriptPage) -> None:
-        """Forget every drawn page and everything prepared: they belong to another reading."""
-        async with self.window.history_lock:
-            async with self.window.preserve_history(root=self):
-                self._generation += 1
-                self.page_source.restart(initial.page.after)
-                retired = tuple(self.pages)
-                view = TranscriptPageView(initial,
-                                          batch_size=self.budget.batch_items)
-                view.visible_categories = self.selected_categories
-                await self.mount(view, before=self.newer)
-                self.pages = deque([view])
-                self.page_source.through = view.prepared.page.after
-                self.remove_children(retired)
-                self._update_edges()
 
     async def _load_page(
         self, end: PageEnd,

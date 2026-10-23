@@ -114,7 +114,7 @@ class CommsChatView(Conversation):
             )
         comms = shared
         await self.app.coordination_access.current_sidebar()
-        self.message_history.open(WireSource(
+        self.message_history.initialize_source(WireSource(
             comms, self.conversation, Path(self.project_path), self._me,
             IrcMessageStyle(),
         ))

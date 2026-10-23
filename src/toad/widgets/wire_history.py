@@ -47,7 +47,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
 
     # The source
 
-    def open(self, source: WireSource) -> None:
+    def initialize_source(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
         self.page_source.close()
         self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation)
@@ -144,7 +144,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
-                await self._clear(PreparedWirePage.empty(WirePage.unread()))
+                self.revision = ConversationObservation()
                 await self.view._refresh()
         finally:
             if self.is_attached:

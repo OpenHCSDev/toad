@@ -247,16 +247,15 @@ class ReplacementViewportRequest(LatestViewportRequest):
             release.callback(source.close)
             yield source, release
 
+    async def page(self, owner, source):
+        return await source.get(PageRequest(OLDER_END, source.through))
+
 @dataclass(frozen=True)
 class LatestReplacementViewportRequest(ReplacementViewportRequest):
     through: TranscriptCursor | WireCut
 
     def source(self, owner: ConversationHistory):
         return owner.page_source.replacement(self.through)
-
-    async def page(self, owner, source):
-        return await source.get(PageRequest(OLDER_END, source.through))
-
 
 @dataclass(frozen=True)
 class PreparedReplacementViewportRequest(ReplacementViewportRequest):
