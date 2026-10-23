@@ -96,14 +96,6 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
         if not self.undrawn and (placeholder := self.view.query_one_optional("#history-loading")):
             placeholder.remove()
 
-    async def accept_extension(self, edge, prepared) -> bool:
-        if self.page_source.accepts_page(edge.prepared.page, prepared.page):
-            return True
-        prepared.configure(batch_size=len(prepared.fragments))
-        await self.show_newest(self.page_source.through, PreparedWirePage.empty(WirePage.unread()),
-                               arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
-        return False
-
     def draws(self, message: Message) -> bool:
         """Whether the drawn rows include this message, checking the newest first."""
         return any(fragment.message.view_key == message.view_key

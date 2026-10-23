@@ -910,6 +910,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                           if id(fragment) in page.arrivals)
                     if self.follows_source_tail else ())
         source, previous = self.page_source, self.page_source.through
+        previous_pages = self.pages
         self._generation += 1
         generation = self._generation
         source.restart(through)
@@ -925,7 +926,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             # before the swap restores their read bound; teardown after an
             # admitted swap cannot rewind that accepted source.
             if (not published and self.page_source is source and self._generation == generation
-                    and not self.pages[-1].prepared.page.after.same_position(through)):
+                    and self.pages is previous_pages):
                 source.restart(previous)
                 self._generation += 1
 
@@ -946,7 +947,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                 self._update_edges()
 
     async def _load_page(
-        self, end: PageEnd, prepared: PreparedTranscriptPage | None = None,
+        self, end: PageEnd,
         publication_current: Callable[[], bool] = lambda: True,
     ) -> bool:
         """Publish one readable range; report whether its edge still needs rows."""
@@ -971,14 +972,17 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             missing = (window.lookahead.ahead_rows(window.outer_size.height) if followed_end
                        else window.lookahead.read_rows(self, end))
             local = end.can_extend(edge.prepared)
-            staged = edge.prepared.for_view() if local else prepared
-            if not local:
-                if staged is None:
-                    source = self.page_source
-                    if not source.has_more(end, edge.prepared.page):
-                        return False
-                    staged = await source.get(end.adjacent(edge.prepared.page))
-                    demand.source_read()
+            if local:
+                staged = edge.prepared.for_view()
+            else:
+                source = self.page_source
+                if not source.has_more(end, edge.prepared.page):
+                    return False
+                staged = await source.get(end.adjacent(edge.prepared.page))
+                demand.source_read()
+                if (not await self.source_is_current(snapshot) or not current()
+                        or not await source.accept_page(self, edge, staged)):
+                    return False
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
             window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, end)
@@ -1003,7 +1007,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     self.repaint(arrivals)
                     self.rows_published()
                     if not local:
-                        await self._page_added(prepared.page, prepared.fragments)
+                        await self._page_added(staged.page, staged.fragments)
             self.state.delivered(self)
             advanced = end.edge(self.pages)
             if (advanced is edge and edge.prepared.capture_range() == page_range

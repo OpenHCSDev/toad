@@ -217,7 +217,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         request.restore(self.window)
         snapshot = self.source_snapshot()
         current = lambda: snapshot.current(self) and request.current(snapshot.window) and publication_current()
-        if await self._publish_latest(current, initial):
+        seed = self.pages[-1].prepared if initial is None else initial
+        if await self._publish_latest(current, seed):
             # Accepting a wire page advances the reader source. Capture the
             # published source, rather than the request that acceptance replaced.
             self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
@@ -226,12 +227,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         return False
 
     async def _publish_latest(self, current: Callable[[], bool],
-                              initial: PreparedTranscriptPage | None = None) -> bool:
+                              initial: PreparedTranscriptPage) -> bool:
         """Prepare the bottom destination, keeping views of unchanged source pages."""
         window = self.window
         edge = self.pages[-1]
         source = self.page_source
-        prepared = await source.latest(edge.prepared if initial is None else initial)
+        prepared = await source.latest(initial)
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
@@ -328,7 +329,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             return False
         if self.pages[-1] is not edge:
             return False
-        if not await self.accept_extension(edge, prepared):
+        if not await self.page_source.accept_page(self, edge, prepared):
             return False
         if not prepared.fragments:
             NEWER_END.advance_empty(edge.prepared, prepared)
@@ -336,7 +337,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             edge.prepared.page = replace(edge.prepared.page, has_newer=True)
             self._update_edges()
         else:
-            await self._load_page(NEWER_END, prepared, publication_current)
+            await self._load_page(NEWER_END, publication_current)
             if not snapshot.current(self) or not publication_current():
                 return False
             tail = self.pages[-1]
@@ -352,10 +353,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     async def source_is_current(self, snapshot) -> bool:
         return snapshot.current(self)
-
-    async def accept_extension(self, edge, prepared) -> bool:
-        """An immutable transcript reader already validates its source cut."""
-        return True
 
     def _complete_latest(
         self, snapshot: HistorySourceSnapshot, request: LatestViewportRequest,

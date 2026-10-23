@@ -399,8 +399,13 @@ class WirePageBuffer(SavedHistory):
     async def observe_changes(self, revision):
         return await self.runtime.run_thread(self.loader.observe, revision)
 
-    def accepts_page(self, current, incoming) -> bool:
-        return current.accepts(incoming.source, self.loader.conversation.history_view)
+    async def accept_page(self, history, edge, prepared) -> bool:
+        if edge.prepared.page.accepts(prepared.page.source, self.loader.conversation.history_view):
+            return True
+        prepared.configure(batch_size=len(prepared.fragments))
+        await history.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
+                                  arrivals=history._source_state.arriving(prepared, history.drawn_tail_followed))
+        return False
 
     def seen_page(self, history, seen):
         return self.loader.conversation.seen_page(history, seen)

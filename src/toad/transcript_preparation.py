@@ -324,6 +324,10 @@ class PreparedPageSource(ABC):
             raise asyncio.CancelledError
         return prepared
 
+    async def accept_page(self, history, edge, prepared) -> bool:
+        """Immutable saved reads already carry their validated source cut."""
+        return True
+
     @abstractmethod
     async def _get(self, request: PageRequest) -> PreparedTranscriptPage: ...
 
@@ -584,9 +588,6 @@ class ClosedHistory(PreparedPageSource):
 
     async def observe_changes(self, revision):
         return Unchanged()
-
-    def accepts_page(self, current, incoming) -> bool:
-        return False
 
     def seen_page(self, history, seen):
         return None
