@@ -13,7 +13,7 @@ import shlex
 import signal
 import termios
 from io import FileIO
-from typing import Mapping
+from typing import TYPE_CHECKING, Mapping
 from weakref import ref
 
 from acp import schema as protocol
@@ -26,6 +26,10 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from toad import ansi
 from toad.shell_read import shell_read
 from toad.terminal_environment import TerminalEnvironment
+
+if TYPE_CHECKING:
+    from toad.widgets.terminal_tool import TerminalTool
+
 
 @dataclass
 class Command:
@@ -152,15 +156,15 @@ class _TerminalCompletionDecoder(MroDispatch):
     """Typed original POSIX members enter the terminal family at acquisition."""
     completion: TerminalCompletion
 
-    def __init__(self, original):
+    def __init__(self, original: ChildOutcome):
         self.dispatch_sync(original)
 
     @handles(ExitedOutcome)
-    def exited(self, original):
+    def exited(self, original: ExitedOutcome):
         self.completion = ExitedTerminalOutcome(original)
 
     @handles(SignaledOutcome)
-    def signaled(self, original):
+    def signaled(self, original: SignaledOutcome):
         self.completion = SignaledTerminalOutcome(original)
 
 
@@ -188,8 +192,8 @@ class PtyProcess:
     reader: asyncio.StreamReader
 
     @classmethod
-    async def acquire(cls, command: tuple[str, ...], *, env, cwd, width, height,
-                      cleanup: AsyncExitStack, buffer_size=128 * 1024):
+    async def acquire(cls, command: tuple[str, ...], *, env: Mapping[str, str], cwd, width: int, height: int,
+                      cleanup: AsyncExitStack, buffer_size: int=128 * 1024):
         master, slave = pty.openpty()
         master_file = cleanup.enter_context(os.fdopen(master, "rb", 0))
         slave_file = cleanup.enter_context(os.fdopen(slave, "wb", 0))
@@ -222,12 +226,12 @@ class PtyProcess:
         slave_file.close()
         return cls(child, master_file, reader)
 
-    def resize(self, width, height):
+    def resize(self, width: int, height: int):
         with suppress(OSError, ValueError):
             self.resize_fd(self.master.fileno(), width, height)
 
     @staticmethod
-    def resize_fd(fd, width, height):
+    def resize_fd(fd: int, width: int, height: int):
         termios.tcsetwinsize(fd, (height, width))
 
     async def write(self, data: bytes) -> int:
@@ -255,10 +259,10 @@ class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
     def kill(self) -> None:
         pass
 
-    def resize(self, width, height):
+    def resize(self, width: int, height: int):
         pass
 
-    async def write(self, data):
+    async def write(self, data: bytes):
         return 0
 
     async def close(self):
@@ -305,7 +309,7 @@ class ActiveTerminalOperation(TerminalOperation):
     def start(self, execution):
         raise RuntimeError("Terminal execution already started")
 
-    def settle_startup(self, task):
+    def settle_startup(self, task: asyncio.Task[TerminalCompletion]):
         # A cancelled task may never enter run(), so its original cancellation
         # must settle the startup waiter too. Entered failures settle in run().
         if task.cancelled() and not self.ready.done():
@@ -321,11 +325,11 @@ class ActiveTerminalOperation(TerminalOperation):
         except BaseException as error:
             return FailedTerminalOutcome(error)
 
-    def resize(self, width, height):
+    def resize(self, width: int, height: int):
         if self.ready.done() and not self.task.done():
             self.ready.result().resize(width, height)
 
-    async def write(self, data):
+    async def write(self, data: bytes):
         if self.ready.done() and not self.task.done():
             return await self.ready.result().write(data)
         return 0
@@ -387,7 +391,7 @@ class TerminalExecution:
         output, truncated = self.get_output()
         return ToolState(output, truncated, self.operation.outcome())
 
-    def attach(self, terminal):
+    def attach(self, terminal: TerminalTool):
         self._view = ref(terminal)
         terminal.set_state(self.state)
         terminal.set_write_to_stdin(self.write_stdin)
@@ -401,7 +405,7 @@ class TerminalExecution:
         if (terminal := self._view()) is not None and terminal.is_attached:
             terminal.present_execution(scrollback, alternate)
 
-    def update_size(self, width, height):
+    def update_size(self, width: int, height: int):
         self.state.update_size(width, height)
         self.operation.resize(width, height)
 
@@ -419,7 +423,7 @@ class TerminalExecution:
         self.state.show_cursor = True
         await asyncio.shield(operation.ready)
 
-    async def run(self, ready):
+    async def run(self, ready: asyncio.Future[PtyProcess]):
         try:
             async with AsyncExitStack() as cleanup:
                 command = self.command
@@ -447,7 +451,7 @@ class TerminalExecution:
             # The task's result becomes authoritative only after this returns.
             asyncio.get_running_loop().call_soon(self.project, None, None)
 
-    async def write_stdin(self, text: str | bytes, hide_echo=False):
+    async def write_stdin(self, text: str | bytes, hide_echo: bool=False):
         data = text.encode("utf-8", "ignore") if isinstance(text, str) else text
         return await self.operation.write(data)
 
