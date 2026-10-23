@@ -14,39 +14,53 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from functools import lru_cache
-from typing import Any, ClassVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from rich.color import Color as RichColor
 from rich.console import RenderableType
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
-from textual.ansi_palette import AnsiPalette, NativeAnsiPalette, MappedAnsiPalette
+from textual.ansi_palette import AnsiPalette, MappedAnsiPalette, NativeAnsiPalette
 from textual.color import Color
-from textual.design import ColorSystem
 from textual.content import Content
+from textual.design import ColorSystem
 from textual.driver import TerminalGaveNoPalette
-from textual.style import Style as VisualStyle
-from textual.strip import Strip
-from toad.preferences import SavedSettings, ToadSettings
 from textual.screen import Screen
+from textual.strip import Strip
+from textual.style import Style as VisualStyle
 from textual.theme import Theme
 from textual.timer import Timer
-from watchdog.events import FileClosedEvent, FileSystemEvent, FileSystemEventHandler
-from watchdog.observers import Observer
-
 from ui_theme.backend import Backend, TerminalBackend
 from ui_theme.catalog import SCHEMES
 from ui_theme.clock import AnimationClock
-from ui_theme.colour import AnsiColour, Colour, Rgb, TerminalPalette, require_terminal_palette
+from ui_theme.colour import (
+    AnsiColour,
+    Colour,
+    Rgb,
+    TerminalPalette,
+    require_terminal_palette,
+)
 from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Gradient, Mix, PlayedText, TextFrame
+from ui_theme.scheme import (
+    BackgroundColour,
+    BlendColour,
+    ColourScheme,
+    ForegroundColour,
+    LayerColour,
+    TextStyle,
+    ThemeColour,
+)
 from ui_theme.splash import TextEffect
-from ui_theme.scheme import BackgroundColour, BlendColour, ColourScheme, ForegroundColour, LayerColour, ThemeColour, TextStyle
 from ui_theme.wal import WalFile
-from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
+from watchdog.events import FileClosedEvent, FileSystemEvent, FileSystemEventHandler
+from watchdog.observers import Observer
+
 from toad.line_blocks import LineRole
+from toad.preferences import SavedSettings, ToadSettings
 from toad.render_tasks import TextEffectRenderTask
+from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -186,7 +200,7 @@ class TextualScheme:
     palette: PaletteState
 
 
-class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[TerminalTheme]):
+class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBackend[TerminalTheme]):
     """The app's colour depth, schemes, terminal palettes, line styles and animation clock."""
 
     def __init__(self, app: ToadApp) -> None:
@@ -402,7 +416,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         """The palette state owns RGB blending or the native dim-to-normal step."""
         return self.schemes[self.app.theme].palette.paint_rising(self, frame, target)
 
-    def paint_text(self, frame: TextFrame, target: None) -> Content:
+    def paint_text(self, frame: TextFrame, target: Strip | None) -> Content:
         """Text in Textual's own styled text; each frame is built once."""
         return _text(frame)
 

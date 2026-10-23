@@ -8,7 +8,7 @@ from itertools import filterfalse
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time_ns
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal
 
 from acp import schema as acp_protocol
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
@@ -40,14 +40,15 @@ from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentBinding, NoAgentBound
-from toad.agent_presentation import AgentAttachmentView
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
 from toad.block_navigation import (
+    BlockCursor,
     ContentNavigation,
     ConversationBlock,
     ConversationEntry,
+    CursorDirection,
     DownCursor,
     UpCursor,
     require_blocks,
@@ -463,7 +464,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     visible_categories: var[frozenset[type[MessageCategory]]] = var(lambda: all_categories(), init=False)
 
 
-    project_path = var("")
+    project_path = var(Path)
 
 
     working_directory: var[str] = var("")
@@ -516,8 +517,8 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
                                  session_title, initial_prompt, transcript)
 
 
-    def _initialize_session(self, project_path, agent=None, agent_session_id=None,
-                            session_pk=None, session_title=None, initial_prompt=None,
+    def _initialize_session(self, project_path: Path, agent: AgentDefinition | None=None, agent_session_id: str | None=None,
+                            session_pk: int | None=None, session_title: str | None=None, initial_prompt: str | None=None,
                             transcript: TranscriptPresentation | None = None) -> None:
         project_path = project_path.resolve().absolute()
 
@@ -674,7 +675,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
             self.take_initial_prompt()
 
     @handles(core_events.ConfigurationChanged)
-    async def on_acp_configuration_changed(self, message: CoreEventMessage):
+    async def on_acp_configuration_changed(self, message: CoreEventMessage) -> None:
         self._update_model_info()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_configuration()
@@ -868,7 +869,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             prompt.sync_session()
 
     @on(events.Key)
-    async def on_key(self, event: events.Key):
+    async def on_key(self, event: events.Key) -> None:
         if self.prompt.prompt_text_area.editing_mode.modal:
             return
         if (
@@ -1101,14 +1102,16 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         await self.set_mode(event.event.mode_id)
 
     @handles(input_events.ProviderLogin)
-    def on_provider_login(self, event: CoreEventMessage):
+    def on_provider_login(self, event: CoreEventMessage) -> None:
         event.stop()
         self.action_provider_login()
 
     @work(group="provider-login", exclusive=True)
     async def action_provider_login(self) -> None:
         import shlex
+
         from textual.geometry import Offset
+
         from toad.agent_schema import Command
         from toad.catalog_actions import CatalogCommandAction
         from toad.screens.action_modal import ActionModal
@@ -1289,12 +1292,12 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         self._sync_working()
 
     @on(TerminalTool.Projection)
-    async def on_terminal_projection(self, message: TerminalTool.Projection):
+    async def on_terminal_projection(self, message: TerminalTool.Projection) -> None:
         message.stop()
         await message.binding.present_terminal(message, self)
 
     @handles(core_events.UpdateStatusLine)
-    async def on_update_status_line(self, message: CoreEventMessage):
+    async def on_update_status_line(self, message: CoreEventMessage) -> None:
         # The shared widget can receive a queued status message after its
         # source changes. The selected Agent owns the measured value.
         self.agent_binding.refresh_context(self)
@@ -1325,7 +1328,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
 
     @handles(core_events.Update)
-    async def on_acp_agent_message(self, message: CoreEventMessage):
+    async def on_acp_agent_message(self, message: CoreEventMessage) -> None:
         message.stop()
         if not self.agent_binding.matches_agent(message.publisher):
             return
@@ -1357,19 +1360,19 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             self.transcript.retry()
 
     @handles(core_events.Thinking)
-    async def on_acp_agent_thinking(self, message: CoreEventMessage):
+    async def on_acp_agent_thinking(self, message: CoreEventMessage) -> None:
         self.turns.describe("Thinking…")
         activity = " ".join(message.event.text.splitlines()).strip() or "Thinking"
         await self.output.append(ThoughtStream(), message.event.text)
 
     @handles(core_events.RequestPermission)
-    async def on_acp_request_permission(self, message: CoreEventMessage):
+    async def on_acp_request_permission(self, message: CoreEventMessage) -> None:
         for request in message.publisher.permissions.pending:
             self.request_permissions(request)
         self.output.boundary()
 
     @handles(core_events.Plan)
-    async def on_acp_plan(self, message: CoreEventMessage):
+    async def on_acp_plan(self, message: CoreEventMessage) -> None:
         from toad.widgets.plan import Plan
 
         if self.contents.children and isinstance(
@@ -1382,13 +1385,13 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     @handles(core_events.ToolCall)
     async def on_acp_tool_call_update(
         self, message: CoreEventMessage
-    ):
+    ) -> None:
         await message.publisher.controller.surface.present_tool(message, self)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
         self, message: CoreEventMessage
-    ):
+    ) -> None:
         self.update_slash_commands()
 
     async def action_interrupt(self) -> None:
@@ -1435,7 +1438,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         options: list[Answer],
         title: str = "",
         get_content: Callable[[], Widget] | None = None,
-        callback: Callable[[Answer], Any] | None = None,
+        callback: Callable[[Answer], None] | None = None,
     ) -> Ask:
         """Replace the prompt with a dialog to ask a question
 
@@ -1579,7 +1582,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
 
     @handles(input_events.GoalControlActivated)
-    async def on_goal_control(self, event: CoreEventMessage):
+    async def on_goal_control(self, event: CoreEventMessage) -> None:
         event.stop()
         await self.goal_controls.activate(event.event.action)
 
@@ -1819,7 +1822,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             width, height = self.get_terminal_dimensions()
             await self.shell.send(command, width, height)
 
-    def move_cursor(self, direction) -> None:
+    def move_cursor(self, direction: CursorDirection) -> None:
         self.navigation.move(direction)
         self.refresh_block_cursor(lambda cursor: cursor.show_moved_to(self.window))
 
@@ -1930,7 +1933,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
         webbrowser.open(f"file:///{svg_path}")
 
-    def refresh_block_cursor(self, show) -> None:
+    def refresh_block_cursor(self, show: Callable[[BlockCursor], None]) -> None:
         """Paint the cursor's new block; `show` scrolls for how the cursor got there."""
         self.cursor.refresh()
         if (cursor := self.navigation.cursor) is not None:
@@ -1944,7 +1947,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             self.prompt.focus()
         self.refresh_bindings()
 
-    def _present_block_cursor(self, cursor, show) -> None:
+    def _present_block_cursor(self, cursor, show: Callable[[BlockCursor], None]) -> None:
         from toad.screens.session_view import SessionView
 
         # A later prompt, tab or source event may already have moved the cursor
