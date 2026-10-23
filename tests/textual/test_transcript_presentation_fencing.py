@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import pytest
 
 from support.journals import assistant_entry, write_journal
-from agent_comms.session_file import SavedSessionFile
+from agent_comms.session_file import RegistrySessionLocation
 from toad.transcript_publication import CommitPublication, TranscriptPublication
 from toad.widgets.agent_response import AgentResponse
 
@@ -133,7 +133,7 @@ async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
 
 async def test_a_certified_read_that_expired_acquires_no_application(workspace):
     journal = write_journal(workspace.project / "source.jsonl", assistant_entry("Certified source", id="source"))
-    workspace.comms.registry.declare(workspace.comms.registry.new_thread("journal-source", frozenset(), str(workspace.project), session_file=SavedSessionFile(str(journal))))
+    workspace.comms.registry.declare(workspace.comms.registry.new_thread("journal-source", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     async with workspace.app(resume="journal-source") as ui:
         view = ui.conversation
         await ui.until_shows("Certified source")
@@ -177,7 +177,7 @@ async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage
 
     old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_RETAINED_ROWS", id="old"))
     thread = workspace.thread("source")
-    workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(old))))
+    workspace.comms.registry.declare(replace(thread, session_file=RegistrySessionLocation.from_path(str(old), workspace.comms.root)))
     async with workspace.app(resume="source") as ui:
         await ui.until_shows("OLD_RETAINED_ROWS")
         view = ui.conversation
@@ -188,7 +188,7 @@ async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage
         original = history.page_source
         new = write_journal(workspace.project / "new.jsonl", *(
             () if empty else (assistant_entry("PREPARED_REPLACEMENT", id="new"),)))
-        workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(new))))
+        workspace.comms.registry.declare(replace(thread, session_file=RegistrySessionLocation.from_path(str(new), workspace.comms.root)))
         page = workspace.comms.transcripts.thread_transcript_page("source")
         prepared = await ui.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
         assert await history.show_newest(PreparedReplacementViewportRequest(

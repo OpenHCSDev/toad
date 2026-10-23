@@ -3,6 +3,7 @@
 Textual owns mounting and removing the history and response widgets that the checkpoint replaces.
 """
 
+from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 from dataclasses import replace
 import os
@@ -42,7 +43,7 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
             journals.user_entry("FIRST_SAVED_NATIVE_USER", id="native-user-original"),
             journals.assistant_entry("FIRST_SAVED_NATIVE_RESPONSE", id="native-assistant-original",
                                      parent="native-user-original"))
-        installed = comms.registry.declare(replace(thread, session_file=str(source)))
+        installed = comms.registry.declare(replace(thread, session_file=RegistrySessionLocation.from_path(source, workspace.comms.root)))
         assert installed.incarnation == thread.incarnation
         page = await view.transcript.get_transcript_page()
         assert page.after.session_file != old_page.after.session_file

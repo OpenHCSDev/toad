@@ -9,7 +9,7 @@ import pytest
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.session_file import SavedSessionFile
+from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.fresh_private_session import create_fresh_private_session
 
 from support.agents import deliver
@@ -36,7 +36,7 @@ async def test_closing_the_app_after_the_observation_process_exits_raises_nothin
         stream.write(json.dumps({"type": "message", "id": "ask",
             "timestamp": "2026-10-22T00:00:00Z", "message": {
         "role": "user", "content": [{"type": "text", "text": "ASK_ROW"}]}}) + "\n")
-    thread = comms.registry.declare(replace(workspace.thread("source"), session_file=SavedSessionFile(str(saved))))
+    thread = comms.registry.declare(replace(workspace.thread("source"), session_file=RegistrySessionLocation.from_path(str(saved), workspace.comms.root)))
     workspace.thread("peer")
     comms.messaging.send("peer", "source", "SAVED_NOTICE")
     async with workspace.app(size=(120, 35)) as ui:

@@ -3,6 +3,7 @@
 Textual owns mounting, pruning and unmount of the history widgets that the publication replaces.
 """
 
+from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 from dataclasses import replace
 import os
@@ -23,7 +24,7 @@ def saved_page(workspace, name):
         entries.append(journals.assistant_entry(f"## {name} saved row {i}\n\nNative resource retirement.",
                                                 id=f"{name}-{i}", parent=entries[-1]["id"] if entries else None))
     source = journals.write_journal(workspace.project / f"{name}.jsonl", *entries)
-    workspace.comms.registry.declare(replace(workspace.thread(name), session_file=str(source)))
+    workspace.comms.registry.declare(replace(workspace.thread(name), session_file=RegistrySessionLocation.from_path(source, workspace.comms.root)))
     return workspace.comms.transcripts.thread_transcript_page(name)
 
 

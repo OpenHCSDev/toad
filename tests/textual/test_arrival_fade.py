@@ -10,7 +10,7 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
-from agent_comms.session_file import SavedSessionFile
+from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.fresh_private_session import create_fresh_private_session
 from ui_theme.effects import NEW_TEXT
 
@@ -44,7 +44,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         "timestamp": "2026-10-22T00:00:00Z", "message": {
         "role": "user", "content": [{"type": "text", "text": "ASK_ROW"}]}}) + "\n"
     saved.write_text(prompt)
-    thread = comms.registry.declare(replace(workspace.thread("source"), session_file=SavedSessionFile(str(saved))))
+    thread = comms.registry.declare(replace(workspace.thread("source"), session_file=RegistrySessionLocation.from_path(str(saved), workspace.comms.root)))
     workspace.thread("peer")
     comms.messaging.send("peer", "source", "EARLIER_NOTICE")
     async with workspace.app(size=(120, 35)) as ui:

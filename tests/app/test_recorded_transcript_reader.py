@@ -7,7 +7,7 @@ import pytest
 
 from agent_comms.acp_extension import TranscriptSnapshotUpdate, decode_updates, encode_updates
 from agent_comms.coordination_errors import HistoricalSourceChanged, StaleRevision
-from agent_comms.session_file import SavedSessionFile
+from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.transcripts import RecordedTranscriptReadIdentity
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
@@ -21,7 +21,7 @@ def recorded(tmp_path, workspace):
     old, live = installed_wire(tmp_path / "old"), workspace.comms
     native = write_journal(tmp_path / "authored.jsonl", assistant_entry("recorded answer", id="answer-1"))
     old.registry.declare(old.registry.new_thread("reader", frozenset(), str(old.root),
-                                created_at=10.0, session_file=SavedSessionFile(str(native))))
+                                created_at=10.0, session_file=RegistrySessionLocation.from_path(str(native), old.root)))
     live.registry.declare(live.registry.new_thread("reader", frozenset(), str(live.root), created_at=20.0))
     source = live.views.attach_history(old.root)
     return live, source, native
