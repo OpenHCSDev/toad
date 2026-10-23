@@ -6,6 +6,7 @@ import sys
 
 from agent_comms.comms import Comms
 from agent_comms.registry_store import RegistryStore
+from agent_comms.threads import Thread
 from textual.widgets import OptionList
 
 from support.roots import installed_wire
@@ -22,7 +23,7 @@ def declare_owners(workspace):
     for number in range(4):
         path = workspace.project if number == 0 else workspace.project / f"agent-{number}"
         path.mkdir(exist_ok=True)
-        owners.append(workspace.comms.registry.declare(workspace.comms.registry.new_thread(
+        owners.append(workspace.comms.registry.declare(Thread(
             "project" if number == 0 else f"agent-{number}", frozenset({"team"}), str(path))))
     return owners
 
@@ -120,7 +121,7 @@ async def test_a_same_name_successor_does_not_keep_the_deleted_threads_hidden_se
         old = registry.require(gone.name)
         registry.unregister(old.name)
         registry.remove_originals((registry.require(old.name),))
-        registry.declare(registry.new_thread(old.name, old.tags, old.worktree, created_at=old.created_at + 1))
+        registry.declare(Thread(old.name, old.tags, old.worktree, created_at=old.created_at + 1))
         await app.session_navigation.retire_missing()
         await ui.until(lambda: app.session_navigation.get(modes["agent-3"]) is None, seconds=15,
                        why="the deleted thread's hidden session to retire")

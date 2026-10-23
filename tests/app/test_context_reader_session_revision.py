@@ -3,6 +3,7 @@
 from dataclasses import replace
 
 from agent_comms.session_revision import SessionRevision
+from agent_comms.threads import Thread
 
 from toad.core.context_inspection import ContextInspection, HoldingInspection
 
@@ -14,7 +15,7 @@ def declared_reader(workspace):
 
     identity = create_fresh_private_session(workspace.comms.root, worktree=workspace.project)
     registry = workspace.comms.registry
-    registry.declare(registry.new_thread(
+    registry.declare(Thread(
         "context-reader", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(identity.session_file, workspace.comms.root)))
     thread = registry.require("context-reader")
     files = NativeSessionFiles.for_identity(

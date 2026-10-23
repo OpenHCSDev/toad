@@ -14,18 +14,20 @@ import sys
 
 import agent_comms.agent_events as agent_events
 from agent_comms.agent_event_updates import AcpEventConsumer
+from agent_comms.controller import SessionUpdateSink
 from agent_comms.coordinator import Coordination
 from turn_source import turn_source
 
 SESSION = "pilot"
 
 
-class Pipe:
-    async def session_update(self, session_id, update):
+class Pipe(SessionUpdateSink):
+    async def publish_update(self, *, session_id, update):
         print(json.dumps({"jsonrpc": "2.0", "method": "session/update", "params": {
             "sessionId": session_id,
             "update": update.model_dump(mode="json", by_alias=True, exclude_none=True),
         }}), flush=True)
+        return True
 
 
 async def produce(wire_root: Path, project: Path):

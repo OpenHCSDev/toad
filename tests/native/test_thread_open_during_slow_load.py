@@ -6,6 +6,7 @@ import asyncio
 from functools import partial
 
 from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
 import os
 
 from support.agents import peer
@@ -35,7 +36,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
     project = workspace.project
     comms = start_private_native_wire(workspace.roots.wire)
     for name in ("owner", "fresh-peer"):
-        comms.registry.declare(comms.registry.new_thread(name, frozenset({"journey"}), str(project),
+        comms.registry.declare(Thread(name, frozenset({"journey"}), str(project),
                                       process_identity=ProcessIdentity.capture(os.getpid())))
     comms.channels.create_tag("journey")
     comms.messaging.send("owner", "#journey", "SAVED_CHANNEL_JOURNEY")

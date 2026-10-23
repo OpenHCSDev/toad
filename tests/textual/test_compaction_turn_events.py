@@ -19,7 +19,7 @@ async def test_core_compaction_publications_retain_the_active_turn_and_refuse_a_
     import json
 
     command = (sys.executable, str(PRODUCER), str(workspace.roots.wire), str(workspace.project))
-    with SpawnedProcess.launch(command, output=subprocess.PIPE) as child:
+    with SpawnedProcess.launch(command, output=subprocess.PIPE, stderr=subprocess.PIPE) as child:
         stdout, stderr = await Coordination.run_worker(child.process.communicate)
         outcome = child.reap()
     assert outcome.successful, (outcome, stderr.decode())

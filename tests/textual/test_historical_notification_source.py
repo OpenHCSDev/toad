@@ -2,6 +2,7 @@
 
 from agent_comms.historical_views import HistoricalThread
 from agent_comms.ui_model.observation import ReadRecordedNotifications
+from agent_comms.threads import Thread
 
 from support.roots import installed_wire
 from toad.screens.historical_sessions import HistoricalSessions, RecordedContents
@@ -10,7 +11,7 @@ from toad.screens.historical_sessions import HistoricalSessions, RecordedContent
 async def test_historical_notification_keeps_selected_source_and_lifetime(workspace):
     old, live = installed_wire(workspace.roots.attempt / "old"), workspace.comms
     for name in ("sender", "agent"):
-        old.registry.declare(old.registry.new_thread(name, frozenset(), str(workspace.project)))
+        old.registry.declare(Thread(name, frozenset(), str(workspace.project)))
     workspace.thread("agent")
     message = old.messaging.send("sender", "agent", "HISTORICAL_NOTIFICATION").message
     source = live.views.attach_history(old.root)

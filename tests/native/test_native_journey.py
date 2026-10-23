@@ -14,6 +14,7 @@ from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.cli_commands import ForkCliCommand, RestartCliCommand, StartCliCommand
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.pi_vocabulary import OffThinkingLevel
+from agent_comms.threads import Thread
 
 from support.native import native_session
 from support.native_steps import channel_message_feedback, direct_reply_feedback
@@ -286,7 +287,7 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
     from support.native import MODEL
 
     async def declare_second(comms, project, _provider):
-        comms.registry.declare(comms.registry.new_thread("gamma", frozenset({"team"}), str(project), model=MODEL, thinking_level=OffThinkingLevel))
+        comms.registry.declare(Thread("gamma", frozenset({"team"}), str(project), model=MODEL, thinking_level=OffThinkingLevel))
 
     async with native_session(workspace, prepare=declare_second) as native:
         ui, provider = native.ui, native.provider

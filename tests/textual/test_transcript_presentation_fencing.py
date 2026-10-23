@@ -6,6 +6,7 @@ import pytest
 
 from support.journals import assistant_entry, write_journal
 from agent_comms.session_file import RegistrySessionLocation
+from agent_comms.threads import Thread
 from toad.transcript_publication import CommitPublication, TranscriptPublication
 from toad.widgets.agent_response import AgentResponse
 
@@ -133,7 +134,7 @@ async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
 
 async def test_a_certified_read_that_expired_acquires_no_application(workspace):
     journal = write_journal(workspace.project / "source.jsonl", assistant_entry("Certified source", id="source"))
-    workspace.comms.registry.declare(workspace.comms.registry.new_thread("journal-source", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    workspace.comms.registry.declare(Thread("journal-source", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     async with workspace.app(resume="journal-source") as ui:
         view = ui.conversation
         await ui.until_shows("Certified source")

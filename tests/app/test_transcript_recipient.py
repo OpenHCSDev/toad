@@ -4,6 +4,7 @@ from agent_comms.session_file import RegistrySessionLocation
 from dataclasses import replace
 
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from agent_comms.threads import Thread
 from toad.acp.agent_controller import SessionBinding
 
 from support.agents import deliver
@@ -16,7 +17,7 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
     for name in ("alpha", "beta"):
         entries = (assistant_entry("Alpha-only history", id="alpha-message"),) if name == "alpha" else ()
         journal = write_journal(workspace.project / f"{name}.jsonl", *entries)
-        workspace.comms.registry.declare(workspace.comms.registry.new_thread(
+        workspace.comms.registry.declare(Thread(
             name, frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
         read = workspace.comms.transcripts.capture_page_read(name)
         updates[name] = TranscriptSnapshotUpdate(read.read(), read.identity)
