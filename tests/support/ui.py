@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from rich.cells import cell_len
 from support.agents import AppAgents, command
 from toad.navigation_context import NavigationContext
 
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from textual.pilot import Pilot
 
     from toad.app import ToadApp
+    from toad.line_blocks import Divider, LineLink
     from toad.tab_identity.kinds import AcpTab
 
 
@@ -298,8 +300,6 @@ class TextualUi(AppAgents, Ui):
 
     def _cell_of(self, text: str, occurrence: int) -> tuple[int, int]:
         """The screen cell where the nth drawn `text` starts."""
-        from rich.cells import cell_len
-
         places = [
             (cell_len(line[: line.find(text)]), y)
             for y, line in enumerate(self.visible_lines())
@@ -308,6 +308,15 @@ class TextualUi(AppAgents, Ui):
         if len(places) <= occurrence:
             raise NotShown(f"{text!r} is not on screen:\n{self.visible_text()}")
         return places[occurrence]
+
+    def link_cell(self, header: Divider, link: LineLink, *, occurrence: int = 0) -> tuple[int, int]:
+        """Find a linked span using the header owner's text and span order."""
+        x, y = self._cell_of(header.label, occurrence)
+        for span in header.spans:
+            if span.link == link:
+                return x, y
+            x += cell_len(span.text)
+        raise NotShown(f"{link!r} is not in the header {header.label!r}")
 
     async def click(self, text: str, *, occurrence: int = 0) -> None:
         assert await self.pilot.click(

@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from functools import cached_property
 import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from support.agents import AppAgents
@@ -15,6 +16,7 @@ from toad.session_scope import AgentBinding, NoAgent
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
+    from toad.screens.main import MainScreen
 
 
 class Workspace:
@@ -34,15 +36,24 @@ class Workspace:
         """The name the user of this project sends as."""
         return self.comms.messaging.user_identity(str(self.project)).name
 
-    def thread(self, name: str, *tags: str, running: bool = False, title: str | None = None):
+    def thread(self, name: str, *tags: str, running: bool = False, title: str | None = None,
+               root: Path | None = None):
         """Declare a thread on the wire; a running thread is owned by this process."""
         from agent_comms.child_process import NoProcess, ProcessIdentity
         from agent_comms.thread_text import ThreadText
 
+        comms = self.comms if root is None else installed_wire(root)
         identity = ProcessIdentity.capture(os.getpid()) if running else NoProcess()
-        self.comms.registry.declare(Thread(
+        comms.registry.declare(Thread(
             name, frozenset(tags), str(self.project), title=ThreadText.external(title), process_identity=identity))
-        return self.comms.registry.require(name)
+        return comms.registry.require(name)
+
+    async def bind(self, screen: MainScreen, name: str, *, root: Path | None = None) -> None:
+        """Bind the declared thread through the view's source and identity owners."""
+        comms = self.comms if root is None else installed_wire(root)
+        async with screen.presentation.transcript.changing_source(screen):
+            screen.bind_thread(comms.registry.require(name).incarnation, str(comms.root))
+        screen.link_context_changed()
 
     def child_processes(self, marker: str) -> list:
         """This test's live child processes whose command line mentions `marker`."""

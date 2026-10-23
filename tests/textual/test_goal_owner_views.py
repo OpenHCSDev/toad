@@ -45,10 +45,7 @@ async def shown_goal(workspace, ui):
     owner = goal_owner(workspace, ui.app)
     ui.attach_agent(owner)
     screen = ui.app.selected_session
-    async with screen.presentation.transcript.changing_source(screen):
-        screen.bind_thread(workspace.comms.registry.require("goal-owner").incarnation,
-                           str(workspace.comms.root))
-    screen.link_context_changed()
+    await workspace.bind(screen, "goal-owner")
     view = ui.conversation
     view.goal_display = owner.goal
     view.goal_execution = owner.execution
