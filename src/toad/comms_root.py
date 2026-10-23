@@ -58,7 +58,6 @@ from toad.core.events import (
     LinkContextChanged,
     ObservedServiceChanged,
     OpenTabsChanged,
-    Subscription,
     ThreadRowsChanged,
 )
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
@@ -269,7 +268,7 @@ class Observing(Observation):
             self.failed(error, self.selection)
             access.app._handle_exception(error)
 
-    def views_changed(self, event=None, subscription: Subscription | None = None):
+    def views_changed(self, event=None, subscription=None):
         access, root = self.access, str(self.service.root)
         threads: set[ThreadIncarnation] = set()
         channels: set[str] = set()
@@ -306,7 +305,7 @@ class AnsweringReads(Observing):
     def stop_updates(self) -> AnsweringReads:
         return self
 
-    def views_changed(self, event=None, subscription: Subscription | None = None):
+    def views_changed(self, event=None, subscription=None):
         pass
 
     def thread_interest(self, access: CoordinationAccess):

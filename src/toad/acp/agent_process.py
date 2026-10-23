@@ -161,7 +161,7 @@ class AgentProcess(Client):
         self,
         session_id: str,
         path: str,
-        line: int | None = None,
+        line=None,
         limit: Optional[int] = None,
         **kwargs: JsonValue,
     ):
@@ -178,10 +178,10 @@ class AgentProcess(Client):
         self,
         session_id: str,
         command: str,
-        args: list[str] | None = None,
-        env: list[schema.EnvVariable] | None = None,
-        cwd: str | None = None,
-        output_byte_limit: int | None = None,
+        args=None,
+        env=None,
+        cwd=None,
+        output_byte_limit=None,
         **kwargs: JsonValue,
     ):
         agent = self.recipient(session_id)

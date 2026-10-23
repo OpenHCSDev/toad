@@ -41,7 +41,7 @@ from textual.await_complete import AwaitComplete
 from textual.widget import Widget
 from textual.worker import Worker, WorkerCancelled
 
-from toad.core.events import CoreEventStream, ThreadRowsChanged
+from toad.core.events import CoreEventStream
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.session_scope import (
@@ -338,7 +338,7 @@ class SourcePublicationRequests:
             )
         )
 
-    def resume(self, _event: ThreadRowsChanged | None=None) -> bool:
+    def resume(self, _event=None) -> bool:
         """Resume kept work only at an existing source/preparation signal."""
         if not self.pending:
             return False
@@ -703,7 +703,7 @@ class BoundView(ViewBinding):
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.observed, cursor))
 
-    def request(self, owner: TranscriptPresentation):
+    def request(self, owner):
         view = self.view
         if not view.is_attached:
             return None
@@ -779,7 +779,7 @@ class TranscriptPresentation:
         self.commit_required = False
         self.displayed_cursor: TranscriptCursor | None = None
         self.current_read: TranscriptPublicationState = NotPublished()
-        self.worker: Worker[bool] | None = None
+        self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
         self._thread_observation = ResourceRelease()
         self.events = CoreEventStream(self)
@@ -809,8 +809,8 @@ class TranscriptPresentation:
         return self.binding.thread_scope.readable
 
     async def get_transcript_page(
-        self, *, before: TranscriptCursor | None=None, after: TranscriptCursor | None=None,
-        through: TranscriptCursor | None=None
+        self, *, before=None, after=None,
+        through=None
     ) -> TranscriptPage:
         frame = self.binding.capture(self, BoundFrame)
         scope = self.binding.thread_scope
@@ -958,12 +958,12 @@ class TranscriptPresentation:
         worker, self.worker = self.worker, None
         workers = [worker, self.source_requests.cancel()]
         workers.extend(self.binding.cancel_workers())
-        for retiring_worker in workers:
-            if retiring_worker is None:
+        for worker in workers:
+            if worker is None:
                 continue
-            retiring_worker.cancel()
+            worker.cancel()
             try:
-                await retiring_worker.wait()
+                await worker.wait()
             except WorkerCancelled:
                 pass
 
