@@ -10,7 +10,7 @@ from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.footer import ToadFooter
 from ui_theme.scheme import HeaderToneColour
-from toad.frame_presentation import TonePaint
+from toad.tone_paint import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope

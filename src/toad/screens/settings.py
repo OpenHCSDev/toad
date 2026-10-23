@@ -16,6 +16,7 @@ from toad.app import ScreenWidth, ToadApp
 from toad.forms.editors import SelectEditor
 from toad.forms.form_view import FormView
 from toad.forms.presentation import FormInput, FormModal
+from toad.screens.modal import ModalScreen
 from toad.widget_view import WidgetView
 from toad.setting_choices import SchemeName
 
@@ -49,7 +50,7 @@ class SettingsSearch(WidgetView, containers.VerticalGroup):
     padding = Spacing(1, 0, 1, 0)
 
 
-class SettingsScreen(FormModal[None]):
+class SettingsScreen(FormModal[None], ModalScreen[None]):
     align_horizontal = "right"
     align_vertical = "top"
     app = getters.app(ToadApp)

@@ -201,7 +201,7 @@ class WireFragment(TranscriptFragment):
 
     @classmethod
     def from_message(cls, message, *, reader, **fields):
-        return cls((IncomingTranscript(message=message, reader=reader),), **fields)
+        return cls((IncomingTranscript.of(message, reader=reader),), **fields)
 
     @property
     def message(self) -> Message:
@@ -255,7 +255,7 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
     @classmethod
     def from_message(cls, message, *, reader, **fields):
         return cls(
-            (IncomingTranscript(message=message, reader=reader),),
+            (IncomingTranscript.of(message, reader=reader),),
             text_part=message.body,
             row=MessageRow(message, reader),
             **fields,

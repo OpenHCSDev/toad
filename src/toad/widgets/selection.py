@@ -22,7 +22,8 @@ from ui_theme.scheme import (
     ThemeColour,
 )
 
-from toad.frame_presentation import Animated, UntintedTonePaint
+from toad.frame_presentation import Animated
+from toad.tone_paint import UntintedTonePaint
 
 
 class ChangingText[FrameT: Frame](Animated[FrameT], Static):

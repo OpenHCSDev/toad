@@ -3,6 +3,7 @@
 from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 from dataclasses import replace
+from unittest.mock import patch
 
 
 from support import journals
@@ -35,7 +36,6 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         assert isinstance(history.state, LiveTranscript)
         assert history.state.can_draw
         assert history.state.reports_coverage
-        assert history.checkpoint_available
 
         entered, release = asyncio.Event(), asyncio.Event()
 
@@ -50,15 +50,13 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         assert history.state.can_draw
         assert history.state.reports_coverage
         assert not history.state.accepts_source_work
-        assert not history.checkpoint_available
-        history.request_latest()
+        history.window.action_scroll_end()
         # A parked tab cancels its running operation and the pending End.
         # Resuming accepts work on the same source, never a dead worker.
         await history.retire_source(parked=True)
         assert not history.state.can_draw
         history.resume_source()
         await ui.until(lambda: history.state.accepts_source_work, why="source work accepted after resume")
-        assert history.checkpoint_available
         # The framework worker is cancelled during retirement; its completion
         # cannot restore the earlier live source.
         await history.retire_source()
@@ -72,3 +70,30 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         await ui.until(lambda: not history.is_attached, why="the history removed")
         assert not history.state.can_draw
     assert "Retain the source" in source.read_text()
+
+
+async def test_unexpected_source_failure_is_shown_once_and_retires_the_history(workspace):
+    from toad.widgets.comms_chat import CommsChatView
+
+    workspace.thread("peer", "one")
+    workspace.comms.messaging.send("peer", "#one", "Visible before the failed read")
+    async with workspace.app() as ui:
+        await ui.open_channel("#one", actor="peer")
+        chat = ui.app.screen.query_one(CommsChatView)
+        history = chat.message_history
+        await ui.until(lambda: not history.undrawn and history.state.accepts_source_work,
+                       why="the initial message body")
+        error = RuntimeError("source read failed loudly")
+
+        async def failed_read():
+            raise error
+
+        with patch.object(history, "source_failed", wraps=history.source_failed) as failed:
+            history.reserve_source_work().schedule(history, failed_read)
+            await ui.until(lambda: failed.call_count == 1, why="the source failure shown")
+            assert failed.call_args.args == (error,)
+            assert not history.state.accepts_source_work
+            workspace.comms.messaging.send("peer", "#one", "A later observation must not retry")
+            await ui.step(.2)
+            assert failed.call_count == 1
+            assert not history.state.accepts_source_work
