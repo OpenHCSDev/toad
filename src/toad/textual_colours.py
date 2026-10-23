@@ -21,6 +21,7 @@ from rich.console import RenderableType
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
+from textual.app import App
 from textual.ansi_palette import AnsiPalette, MappedAnsiPalette, NativeAnsiPalette
 from textual.color import Color
 from textual.content import Content
@@ -56,6 +57,7 @@ from ui_theme.splash import TextEffect
 from ui_theme.wal import WalFile
 from watchdog.events import FileClosedEvent, FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
+from watchdog.observers.api import BaseObserver
 
 from toad.line_blocks import LineRole
 from toad.preferences import SavedSettings, ToadSettings
@@ -175,7 +177,7 @@ class KnownPalette(MappedAnsiPalette, PaletteState):
 
     def tint_style(self, style: RichStyle, amount: float) -> RichStyle:
         base = Color(*self._terminal_theme.background_color)
-        fill = base.blend(self.resolved(style.color, foreground=True), amount)
+        fill = base.blend(self.resolved(style.color or RichColor.default(), foreground=True), amount)
         return style + RichStyle(bgcolor=fill.rich_color)
 
     def paint_rising(self, colours: TextualColours, frame: Mix, target: Strip) -> Strip:
@@ -215,7 +217,7 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
         self.terminal_palette: PaletteState = UnknownPalette()
         for scheme in SCHEMES:
             self._add(scheme)
-        self._observer: Observer | None = None
+        self._observer: BaseObserver | None = None
         self._timer: Timer | None = None
         self.clock = AnimationClock(self._schedule)
 
@@ -430,7 +432,7 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
             self._timer = self.app.set_interval(interval, self.clock.tick, name="animation clock")
 
 
-class ThemedApp:
+class ThemedApp(App[None]):
     """A Textual app drawn through ui_theme: mix in before `App`.
 
     Holds the colours owner and answers Textual's three questions from it: the

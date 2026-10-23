@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 import asyncio
 from contextvars import Context, copy_context
 import os
-from typing import TypeVar, Generic, TYPE_CHECKING, cast, get_args, get_origin
+from typing import ClassVar, TypeVar, Generic, TYPE_CHECKING, cast, get_args, get_origin
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.work_preparation import (
@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from toad.work_preparation import WorkKey, PreparedValue
 
 class RenderExecution(ABC, Generic[ResultT]):
+    _matches_result: ClassVar[Callable[[object], bool]]
+
     def __init_subclass__(cls, **kwargs) -> None:
         for base in cls.__orig_bases__:
             origin = get_origin(base)
@@ -42,11 +44,6 @@ class RenderExecution(ABC, Generic[ResultT]):
             break
         super().__init_subclass__(**kwargs)
 
-    @staticmethod
-    @abstractmethod
-    def _matches_result(result: object) -> bool:
-        """Compiled from the concrete task's Generic declaration before registration."""
-
     async def complete(self, execution: Awaitable[object]) -> ResultT:
         """Accept the actual completed worker result through this task's contract."""
         return self.accept_result(await execution)
@@ -57,7 +54,7 @@ class RenderExecution(ABC, Generic[ResultT]):
 
     def accept_result(self, result: object) -> ResultT:
         """Validate the result at a transport boundary."""
-        if not self._matches_result(result):
+        if not type(self)._matches_result(result):
             raise TypeError(f"{type(self).__name__} returned an invalid renderer result")
         return cast(ResultT, result)
 

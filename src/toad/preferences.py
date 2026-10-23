@@ -9,6 +9,7 @@ one ObjectState and saves them to `toad.json`.
 from __future__ import annotations
 
 import asyncio
+import builtins
 import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -350,7 +351,7 @@ class SavedSettings:
         setting = path.bind(self.state)
         setting.edit(not setting.value)
 
-    def changed(self, changed: set[str]) -> None:
+    def changed(self, changed: builtins.set[str]) -> None:
         from toad.core.preference_events import PreferenceChanged
 
         for name in changed:
