@@ -39,6 +39,21 @@ if TYPE_CHECKING:
     from toad.acp.agent import Agent
 
 
+class CompactionReply:
+    """The reply owns whether /compact supplied a committed summary."""
+
+    def require(self) -> CompactionCommittedUpdate:
+        raise ValueError("Compaction result was missing")
+
+
+@dataclass(frozen=True)
+class CommittedCompactionReply(CompactionReply):
+    update: CompactionCommittedUpdate
+
+    def require(self) -> CompactionCommittedUpdate:
+        return self.update
+
+
 class CommsUpdateConsumer(MroDispatch):
     def __init__(
         self,
@@ -51,7 +66,7 @@ class CommsUpdateConsumer(MroDispatch):
         self.agent = agent
         self.session_id = session_id
         self.delivery: ResponseDelivery = UnroutedResponse()
-        self.compaction_update = None
+        self.compaction: CompactionReply = CompactionReply()
         self.cursor_token = cursor_token
         self.queue_token = queue_token
 
@@ -68,11 +83,6 @@ class CommsUpdateConsumer(MroDispatch):
 
     def accepts_turn(self):
         return self.agent.session.accepts_session(self.session_id)
-
-    def require_compaction_update(self):
-        if self.compaction_update is None:
-            raise ValueError("Compaction result was missing")
-        return self.compaction_update
 
     @handles(TextRouteUpdate)
     def text_route(self, update: TextRouteUpdate) -> None:
@@ -163,7 +173,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CompactionCommittedUpdate)
     def compaction_committed(self, update: CompactionCommittedUpdate) -> None:
-        self.compaction_update = update
+        self.compaction = CommittedCompactionReply(update)
 
     @handles(TranscriptSnapshotUpdate)
     def transcript_snapshot(self, update: TranscriptSnapshotUpdate) -> None:

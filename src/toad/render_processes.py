@@ -89,6 +89,10 @@ class RenderProcessPool(Renderer):
 
     def start(self) -> None:
         """Acquire real workers when the application selects this renderer."""
+        self.acquire_executor()
+
+    def acquire_executor(self) -> ProcessPoolExecutor:
+        """Acquire and return this pool's executor through its startup owner."""
         if self._closed:
             raise RuntimeError("RenderProcessPool is closed")
         if self._executor is None:
@@ -99,6 +103,7 @@ class RenderProcessPool(Renderer):
                 initializer=_initialize_worker,
             )
             self.start_workers(self._executor)
+        return self._executor
 
     async def run[*Args, Value](self, function: Callable[[*Args], Value], *args: *Args) -> Value:
         """Execute a data-only function in a child, propagating its result/error."""
@@ -108,12 +113,12 @@ class RenderProcessPool(Renderer):
             await self._changed.wait()
         if self._closed:
             raise RuntimeError("RenderProcessPool is closed")
-        self.start()
+        executor = self.acquire_executor()
         # No await between accepting and registering work: both happen together on
         # the owning loop. Waiting never propagates caller cancellation to the
         # underlying future (or logs an abandoned exception via shield).
         future: asyncio.Future[Value] = asyncio.wrap_future(
-            self._executor.submit(function, *args), loop=loop
+            executor.submit(function, *args), loop=loop
         )
         self._pending.add(future)
         future.add_done_callback(self._finished, context=self.execution_context())
