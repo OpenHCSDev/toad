@@ -397,7 +397,7 @@ class TextualUi(AppAgents, Ui):
         return identity
 
     def sender_of(self, identity: str) -> str:
-        return self.app.workspace_sessions.require(identity).me
+        return self.app.workspace_sessions.require(identity).thread_identity.thread_name()
 
     async def thread_renamed(self, owner: str, previous: str, current: str) -> None:
         self.app.session_navigation.sync_identity(owner, previous, current)

@@ -71,7 +71,7 @@ async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user
 async def test_closing_the_last_tab_shows_the_view_again_and_starts_no_agent(workspace):
     async with workspace.app(session=False, binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_shows(HINT)
-        await ui.press("n")
+        await ui.new_session()
         await ui.until(lambda: len(ui.tabs()) == 1, why="the new session's tab")
         await ui.until_agent_ready()
         assert not ui.shows(HINT)
