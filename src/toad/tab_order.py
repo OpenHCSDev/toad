@@ -1,6 +1,10 @@
 """One owner for logical open order and visited-tab navigation."""
 
+import asyncio
 from collections.abc import Callable, Collection, Mapping
+from contextlib import asynccontextmanager
+
+from agent_comms.child_process import join_retirement
 
 from toad.core.events import CoreEventStream, TabHistoryChanged
 from toad.db import DB
@@ -13,35 +17,47 @@ class TabOrder:
     ) -> None:
         # What is shown while no tab is open.
         self.home = home
-        self.db = db
-        self.db.prepare()
+        self._db = db
+        self._open: list[TabIdentity] = []
+        self._write_lock = asyncio.Lock()
         self._visits: list[TabIdentity] = []
         self._cursor = -1
         self._focus = focus
         self.events = CoreEventStream(self)
 
+    async def load(self) -> tuple[TabIdentity, ...]:
+        async with self._write_lock:
+            self._open = [row.identity for row in await self._db.tab_list()]
+            return self.names
+
+    @asynccontextmanager
+    async def editing(self):
+        async with self._write_lock:
+            yield
+            # A cancelled caller must join its SQLite writer before releasing the lock.
+            await join_retirement(asyncio.create_task(self._db.tab_roster(self.names)))
+
     def __contains__(self, mode: TabIdentity | None) -> bool:
-        return mode in self.names
+        return mode in self._open
 
     @property
     def names(self) -> tuple[TabIdentity, ...]:
-        return tuple(row.identity for row in self.db.tab_list())
+        return tuple(self._open)
 
     @property
     def recent(self) -> tuple[TabIdentity, ...]:
         """Visited sources first, derived from the existing navigation history."""
         return tuple(dict.fromkeys((*reversed(self._visits[:self._cursor + 1]), *self.names)))
 
-    def open(self, mode: TabIdentity, *, after: TabIdentity | None = None) -> None:
-        if mode in self:
-            return
-        order = list(self.names)
-        insertion = order.index(after) + 1 if after in self else len(order)
-        order.insert(insertion, mode)
-        self.reorder(order)
+    async def open(self, mode: TabIdentity, *, after: TabIdentity | None = None) -> None:
+        async with self.editing():
+            if mode not in self:
+                insertion = self._open.index(after) + 1 if after in self else len(self._open)
+                self._open.insert(insertion, mode)
 
-    def reorder(self, modes: Collection[TabIdentity]) -> None:
-        self.db.tab_reorder(tuple(modes))
+    async def reorder(self, modes: Collection[TabIdentity]) -> None:
+        async with self.editing():
+            self._open[:] = modes
 
     def project[T](self, values: Mapping[TabIdentity, T]) -> tuple[T, ...]:
         return tuple(values[mode] for mode in self.names if mode in values)
@@ -95,8 +111,9 @@ class TabOrder:
             self._cursor = len(self._visits) - 1
         self.events.publish(TabHistoryChanged())
 
-    def close(self, modes: Collection[TabIdentity]) -> None:
-        self.db.tab_close(tuple(modes))
+    async def close(self, modes: Collection[TabIdentity]) -> None:
+        async with self.editing():
+            self._open[:] = (identity for identity in self._open if identity not in modes)
         retained = []
         cursor = -1
         for index, mode in enumerate(self._visits):

@@ -85,7 +85,7 @@ class ModelHistory(ToadTables, TypedTable, declared_name="model_history"):
 
 
 class DB:
-    """Toad's durable state, including the sole open-tab roster."""
+    """Toad's durable state; its transaction owner runs off the UI thread."""
 
     def __init__(self, path: Path | None = None):
         self.path = path if path is not None else paths.get_state() / "toad.db"
@@ -97,24 +97,16 @@ class DB:
     async def _transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
         return await asyncio.to_thread(self.transaction, operation)
 
-    def tab_reorder(self, identities: tuple[TabIdentity, ...]) -> None:
-        def reorder(db):
+    async def tab_roster(self, identities: tuple[TabIdentity, ...]) -> None:
+        def write(db):
+            OpenTabRow.delete(db)
             for position, identity in enumerate(identities):
                 OpenTabRow(identity, position).upsert(db)
 
-        self.transaction(reorder)
+        await self._transaction(write)
 
-    def tab_close(self, identities: tuple[TabIdentity, ...]) -> None:
-        def close(db):
-            for identity in identities:
-                OpenTabRow.delete(db, identity=identity)
-            for position, row in enumerate(OpenTabRow.select(db, order_by=("position",))):
-                replace(row, position=position).upsert(db)
-
-        self.transaction(close)
-
-    def tab_list(self) -> list[OpenTabRow]:
-        return self.transaction(lambda db: OpenTabRow.select(
+    async def tab_list(self) -> list[OpenTabRow]:
+        return await self._transaction(lambda db: OpenTabRow.select(
             db, order_by=("position",),
         ))
 

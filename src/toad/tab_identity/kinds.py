@@ -8,7 +8,7 @@ from agent_comms.field_codec import PathText
 from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.conversation_kind import ConversationKind
-from toad.tab_identity import SessionTabIdentity, TabIdentity
+from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.history_origin import HistoryOrigin
 
 
@@ -17,11 +17,10 @@ class AcpTab(SessionTabIdentity):
     key: int
 
     async def restore(self, navigation) -> None:
-        saved = await navigation.app.tab_order.db.session_get(self.key)
+        database = await navigation.app.get_db()
+        saved = await database.session_get(self.key)
         if saved is None:
-            navigation.app.tab_order.close((self,))
-            navigation.app.log.error(f"Removed tab for missing ACP session {self.key}")
-            return
+            raise TabTargetGone(self, f"Saved ACP session {self.key} no longer exists")
         await navigation.launch(
             saved.agent_identity,
             agent_session_id=saved.agent_session_id,
@@ -55,4 +54,6 @@ class PreviewTab(TabIdentity):
     key: Annotated[Path, PathText]
 
     async def restore(self, navigation) -> None:
+        if not await navigation.app.preparation.run_thread(self.key.exists):
+            raise TabTargetGone(self, f"Preview file no longer exists: {self.key}")
         await navigation.preview(self.key)

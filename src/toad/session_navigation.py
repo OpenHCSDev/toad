@@ -30,7 +30,7 @@ from toad.session_entry import (
 )
 from toad.session_scope import AgentAttached, AgentBinding, AgentSession
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
-from toad.tab_identity import SessionTabIdentity, TabIdentity
+from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
 from toad.db import SessionMeta
 
@@ -134,11 +134,11 @@ class SessionNavigation:
         def prepare():
             service = self.app.coordination_access.observation.observed().service
             if service.root != Path(identity.root):
-                raise ValueError(f"Mailbox tab belongs to another bus: {identity.root}")
+                raise TabTargetGone(identity, f"Mailbox belongs to another bus: {identity.root}")
             snapshot = service.registry.snapshot()
             name = snapshot.canonical_name(identity.key.name)
             if not identity.key.matches_recorded_name(name, snapshot):
-                raise ValueError(f"Mailbox tab's thread was replaced: {identity.key}")
+                raise TabTargetGone(identity, f"Mailbox thread was replaced: {identity.key}")
             return ThreadNavigationRequest(service, name, self.app.project_dir, ()).read()
 
         prepared = await self.app.preparation.run_thread(prepare)
@@ -154,7 +154,7 @@ class SessionNavigation:
         def participants():
             service = self.app.coordination_access.observation.observed().service
             if service.root != Path(identity.root):
-                raise ValueError(f"History tab belongs to another bus: {identity.root}")
+                raise TabTargetGone(identity, f"History belongs to another bus: {identity.root}")
             return identity.key.threads_needed(
                 service.registry.snapshot(), source.thread_identity.thread_name()
             )
@@ -234,7 +234,7 @@ class SessionNavigation:
             raise ValueError(f"Logical session already registered: {entry.mode}")
         self.entries.setdefault(entry.owner_mode, {})[entry.mode] = entry
         previous = self.get(after)
-        app.tab_order.open(entry.identity, after=previous.identity if previous else None)
+        await app.tab_order.open(entry.identity, after=previous.identity if previous else None)
         self.publish()
         await app.select_session(entry.mode)
         await entry.ready(self)
@@ -269,6 +269,7 @@ class SessionNavigation:
         from toad.screens.main import MainScreen
 
         app = self.app
+        database = await app.get_db()
         make_binding: Callable[[AgentDefinition], AgentBinding] = AgentAttached
         if agent_session_id is not None:
             make_binding = partial(AgentSession, session_id=agent_session_id)
@@ -285,7 +286,7 @@ class SessionNavigation:
                 return
         agent, title = None, None
         if session_pk is not None:
-            saved = await app.tab_order.db.session_get(session_pk)
+            saved = await database.session_get(session_pk)
             if saved is not None:
                 title, agent = saved.title, saved.meta_json.agent_data
         if agent is None:
@@ -297,7 +298,7 @@ class SessionNavigation:
                 return
         project = project_path if project_path is not None else app.project_dir
         if session_pk is None:
-            session_pk = await app.tab_order.db.session_new(
+            session_pk = await database.session_new(
                 title or "New Session", agent.name, agent.identity, agent_session_id,
                 meta=SessionMeta(cwd=project, agent_data=agent),
             )
@@ -431,7 +432,7 @@ class SessionNavigation:
         )
         for member in closing:
             member.forget(self)
-        self.app.tab_order.close({member.identity for member in closing})
+        await self.app.tab_order.close({member.identity for member in closing})
         # Retire membership before publication and slow widget exits. Delayed
         # opening metadata cannot revive a closed owner during teardown.
         for member in closing:
