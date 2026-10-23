@@ -13,6 +13,8 @@ from collections.abc import Awaitable, Callable
 from concurrent.futures import ProcessPoolExecutor
 from typing import TYPE_CHECKING, TypeVar
 
+from agent_comms.launch_runtime import ThreadLaunch
+
 from toad.render_backend import Renderer
 
 if TYPE_CHECKING:
@@ -32,7 +34,7 @@ def _initialize_worker() -> None:
     implementations remain owned by those tasks, rather than Markdown startup.
     No notification or rendering job is made.
     """
-    os.environ.pop("AGENT_COMMS_THREAD", None)
+    ThreadLaunch.strip(os.environ)
     from toad import render_tasks  # noqa: F401 -- declare worker rendering capabilities
     from toad.acp import (
         sdk_boundary,  # noqa: F401 -- declare worker ingress capabilities

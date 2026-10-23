@@ -70,7 +70,8 @@ def build(project_path: Path, prompt: str) -> list[ContentBlock]:
         prompt = prompt[:start] + prompt[end:]
     if image_spans:
         prompt_content[0]["text"] = prompt.strip()
-    prompt_images(prompt_content)  # Validate the combined image count/size too.
-    return schema.PromptRequest.model_validate(
+    request = schema.PromptRequest.model_validate(
         {"sessionId": "attachments", "prompt": prompt_content}, strict=True
-    ).prompt
+    )
+    prompt_images(request)  # Validate the combined image count/size too.
+    return request.prompt

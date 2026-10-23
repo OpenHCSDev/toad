@@ -14,6 +14,7 @@ from toad.application_actions import ApplicationAction, PaletteAction
 from toad.preferences import SETTINGS
 from toad.screens.settings import SettingsScreen
 from toad.widgets.comms_sidebar import CommsSidebar, NewSessionButton
+from toad.widgets.footer import ToadFooter
 from toad.widgets.session_tabs import SessionTabClose
 
 
@@ -99,7 +100,7 @@ async def test_the_palette_runs_a_newly_declared_action_and_a_footer_toggle_is_s
         await palette(ui, app, 'Declaration proof', lambda: (workspace.project / 'declaration-proof.txt').exists())
         assert (workspace.project / 'declaration-proof.txt').read_text() == 'Actual palette applied declaration'
         await palette(ui, app, 'Hide footer shortcut bar', lambda: app.settings.ui.footer is False)
-        assert app.has_class('-hide-footer')
+        assert not app.screen.query_one(ToadFooter).display
         await ui.until(lambda: json.loads(path.read_text())['ui']['footer'] is False, why="the footer setting saved")
 
 

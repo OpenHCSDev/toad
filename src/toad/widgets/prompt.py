@@ -32,7 +32,7 @@ from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver
-from toad.frame_presentation import TonePaint
+from toad.tone_paint import TonePaint
 from toad.path_complete import PathComplete
 from toad.prompt_actions import PromptAction, SubmitNowAction
 from toad.prompt_cursor import (

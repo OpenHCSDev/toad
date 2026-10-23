@@ -27,6 +27,7 @@ from textual.app import App
 from textual.color import Color
 from textual.content import Content
 from textual.design import ColorSystem
+from textual.notifications import SeverityLevel
 from textual.driver import TerminalGaveNoPalette
 from textual.screen import Screen
 from textual.strip import Strip
@@ -469,6 +470,11 @@ class ThemedApp(App[None]):
 
     def watch_app_focus(self, focused: bool) -> None:
         self.colours.clock.refresh()
+
+    def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
+        """Every error Toad shows: its text verbatim, never parsed as markup."""
+        text = str(error)
+        self.notify(text, title=title, severity=severity, markup=False)
 
     def get_color_system(self) -> str:
         return self.colours.depth.name

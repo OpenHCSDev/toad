@@ -33,11 +33,11 @@ async def test_a_second_tab_reuses_the_first_tabs_agent_process_and_closing_it_k
         ) as ui:
             app, _pilot = ui.textual
             await ui.until(
-                lambda: app.selected_session.presentation.operational_agent is not None,
+                lambda: app.selected_session.presentation.operational_binding.ready,
                 why="the first tab's agent",
             )
             source = app.selected_session
-            first = source.presentation.operational_agent
+            first = source.presentation.operational_binding
             await ready(first)
             connection = first.process
             owner_tab = ui.selected_tab
@@ -46,14 +46,14 @@ async def test_a_second_tab_reuses_the_first_tabs_agent_process_and_closing_it_k
             )
             second_source = app.workspace_sessions.require(details.mode_name)
             await ui.until(
-                lambda: second_source.presentation.operational_agent is not None,
+                lambda: second_source.presentation.operational_binding.ready,
                 why="the second tab's agent",
             )
-            second = second_source.presentation.operational_agent
+            second = second_source.presentation.operational_binding
             await ready(second)
             assert second.process is connection
             await ui.select_tab(owner_tab)
-            assert source.presentation.operational_agent is first
+            assert source.presentation.operational_binding is first
             await ui.close_tab(details.mode_name)
             assert first.ready and connection.sessions == {first.session}
             assert connection.process is not None and not connection.runner.done()

@@ -27,7 +27,7 @@ from toad.forms.declared_views import DeclaredField, DeclaredViews, declarations
 from toad.forms.kinds import Multiline
 from toad.forms.presentation import FormCheckbox, FormInput, FormSelectCurrent, FramedControl
 from toad.widget_view import WidgetView
-from toad.frame_presentation import UntintedTonePaint
+from toad.tone_paint import UntintedTonePaint
 
 if TYPE_CHECKING:
     EditorWidget = Widget
