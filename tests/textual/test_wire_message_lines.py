@@ -1,12 +1,14 @@
 """Textual-facing: a wire message's lines wrap at the full width as Rich draws them, and its names stay clickable at every width."""
 
+from agent_comms.display_references import ProjectReferences
 from agent_comms.messages import InfoKind, Message
 from textual.app import App
 
 from toad.line_blocks import OpenTarget
+from toad.markdown_links import LinkContext
 from toad.notification_status import CheckedNotifications
 from toad.textual_colours import ThemedApp
-from toad.widgets.transcript_lines import PlainLines, RichLineRenderer
+from toad.widgets.transcript_lines import LinePreparation, PlainLines, RichLineRenderer, TranscriptLinesRenderTask
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.widgets.transcript_fragments import MessageShown
 from toad.wire_history import WireFragment
@@ -33,11 +35,14 @@ def clicks(rows):
             if segment.style is not None and "@click" in segment.style.meta}
 
 
-def test_rows_fit_the_width_wrap_on_words_and_keep_their_names_clickable_at_every_width():
+def test_rows_fit_the_width_wrap_on_words_and_keep_their_names_clickable_at_every_width(tmp_path):
+    context = LinkContext(tmp_path, ProjectReferences())
     for target in ("#all", "receiver-with-long-name"):
         shown = fragment(target)
+        renderer = RichLineRenderer(theme())
+        prepared = TranscriptLinesRenderTask(LinePreparation(shown.line_blocks, renderer.theme), context).execute()
         for width in (80, 36, 120):
-            lines = PlainLines(width, RichLineRenderer(theme()), shown.line_blocks)
+            lines = prepared.wrap(width, renderer)
             rows = tuple(lines)
             text = ["".join(segment.text for segment in row) for row in rows]
             assert all(len(line) <= width for line in text), (width, text)
