@@ -4,15 +4,24 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
-from typing import ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar, cast
+
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
 from textual.geometry import Region
 from textual.widget import Widget
+from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
+
 from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
-from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
-from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
-from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
+from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
+
+if TYPE_CHECKING:
+    from agent_comms.ui_model.message_category import AgentActivityBoundary
+    from textual.screen import Screen
+
+    from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.transcript_history import LineHistory
 
 
 class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
@@ -50,7 +59,7 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def active(self) -> BlockCursor | None:
         return self if self.selected is not None else None
 
-    def accepts(self, owner) -> bool:
+    def accepts(self, owner: Widget) -> bool:
         return owner is self.selected
 
     def clear(self) -> None:
@@ -69,7 +78,7 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def allow_maximize(self) -> bool:
         return False
 
-    def maximize(self, screen) -> None:
+    def maximize(self, screen: Screen) -> None:
         pass
 
     @property
@@ -83,10 +92,10 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def visible_region(self) -> Region | None:
         return None
 
-    def show_moved_to(self, window) -> None:
+    def show_moved_to(self, window: HistoryWindow) -> None:
         """Scroll for a keyboard move, which can land on a block out of view."""
 
-    def show_clicked(self, window) -> None:
+    def show_clicked(self, window: HistoryWindow) -> None:
         """Scroll for a click, which lands on a block that is already in view."""
 
     def export_render(self):
@@ -98,13 +107,13 @@ class AtomicBlockCursor(BlockCursor):
     def selected(self):
         return self.block
 
-    def enter(self, direction):
+    def enter(self, direction: CursorDirection):
         return True
 
-    def move(self, direction):
+    def move(self, direction: CursorDirection):
         return False
 
-    def select(self, widget):
+    def select(self, widget: Widget):
         return widget is self.block or self.block in widget.ancestors
 
     def get_clipboard_text(self):
@@ -120,7 +129,7 @@ class AtomicBlockCursor(BlockCursor):
     def allow_maximize(self):
         return self.block.allow_maximize
 
-    def maximize(self, screen):
+    def maximize(self, screen: Screen):
         screen.maximize(self.block, container=False)
         self.block.focus()
 
@@ -133,10 +142,10 @@ class AtomicBlockCursor(BlockCursor):
         geometry = self.block.screen._compositor.visible_widgets.get(self.block)
         return None if geometry is None else geometry[0]
 
-    def show_moved_to(self, window):
+    def show_moved_to(self, window: HistoryWindow):
         window.scroll_to_center(self.block, immediate=True)
 
-    def show_clicked(self, window):
+    def show_clicked(self, window: HistoryWindow):
         # The clicked block stays where it is. Only a block taller than the
         # viewport whose top is scrolled off moves, so that its top shows.
         block, viewport = self.block.region, window.content_region
@@ -158,7 +167,7 @@ class FragmentBlockCursor(BlockCursor):
     message (its fragment) and asks the history where its rows are.
     """
 
-    def __init__(self, block):
+    def __init__(self, block: LineHistory):
         super().__init__(block)
         self.fragment = None
 
@@ -176,7 +185,7 @@ class FragmentBlockCursor(BlockCursor):
     def selected(self):
         return self.block if self.current is not None else None
 
-    def enter(self, direction):
+    def enter(self, direction: CursorDirection):
         # The cursor arrives at the reader's side of the screen, not at an
         # end of the loaded history the reader may be far from.
         fragments = self.block.visible_fragments() or self.block.drawn_fragments
@@ -185,7 +194,7 @@ class FragmentBlockCursor(BlockCursor):
         self.fragment = fragments[direction.entry(len(fragments))]
         return True
 
-    def move(self, direction):
+    def move(self, direction: CursorDirection):
         fragments = self.block.drawn_fragments
         current = self.current
         if current is None or all(
@@ -204,7 +213,7 @@ class FragmentBlockCursor(BlockCursor):
         # scrolling to it loads the next page.
         return direction.visible_more(self.block)
 
-    def select(self, widget):
+    def select(self, widget: Widget):
         fragment = self.block.fragment_under_mouse(widget)
         if fragment is None:
             return False
@@ -229,7 +238,7 @@ class FragmentBlockCursor(BlockCursor):
 
     visible_region = region
 
-    def show_moved_to(self, window):
+    def show_moved_to(self, window: HistoryWindow):
         if (fragment := self.current) is not None:
             self.block.show_fragment(fragment)
 
@@ -252,7 +261,7 @@ class ChildBlockCursor(BlockCursor):
         cursor = self.active
         return None if cursor is None else cursor.selected
 
-    def _enter_from(self, index, direction):
+    def _enter_from(self, index: int, direction: CursorDirection):
         children = self.block.displayed_children
         while 0 <= index < len(children):
             self._child = children[index]
@@ -264,12 +273,12 @@ class ChildBlockCursor(BlockCursor):
         self._child = None
         return False
 
-    def enter(self, direction):
+    def enter(self, direction: CursorDirection):
         return self._enter_from(
             direction.entry(len(self.block.displayed_children)), direction
         )
 
-    def move(self, direction):
+    def move(self, direction: CursorDirection):
         child = self.current
         if child is None:
             return False
@@ -278,7 +287,7 @@ class ChildBlockCursor(BlockCursor):
         index = self.block.displayed_children.index(child) + direction.step
         return self._enter_from(index, direction)
 
-    def select(self, widget):
+    def select(self, widget: Widget):
         for child in self.block.displayed_children:
             if child.block_cursor.select(widget):
                 self._child = child
@@ -303,7 +312,7 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.set_display_constraint("message-category", OtherCategory in selected)
 
-    def starts_agent_activity(self, boundary) -> bool:
+    def starts_agent_activity(self, boundary: AgentActivityBoundary) -> bool:
         return OtherCategory.observe(boundary)
 
     def repaint(self) -> None:
@@ -331,7 +340,7 @@ class CategorizedBlock(ConversationEntry):
             "message-category", self.message_category in selected
         )
 
-    def starts_agent_activity(self, boundary) -> bool:
+    def starts_agent_activity(self, boundary: AgentActivityBoundary) -> bool:
         return self.message_category.observe(boundary)
 
 
@@ -407,7 +416,7 @@ class ContentNavigation:
         return False
 
 
-def require_blocks(widgets):
+def require_blocks(widgets: tuple[Widget, ...]):
     """Decode the Textual mount boundary once before category consumers."""
     for widget in widgets:
         if not isinstance(widget, ConversationEntry):
