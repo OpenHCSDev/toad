@@ -45,6 +45,7 @@ from agent_comms.display_references import PendingReferences, UnavailableReferen
 
 if TYPE_CHECKING:
     from agent_comms.display_order import DisplayOrder
+    from agent_comms.display_references import ReferenceContext
     from toad.session_entry import SessionEntry
     from toad.session_navigation import SessionNavigation
     from toad.widgets.linked_rows import ReferenceRendering
@@ -82,14 +83,14 @@ class Observation:
     def uses(self, service: Comms) -> bool:
         return False
 
-    def tab(self, entry: SessionEntry, sessions: SessionNavigation):
+    def tab(self, entry: SessionEntry | None, sessions: SessionNavigation):
         return entry.unobserved_tab()
 
     def tabs(self, sessions: SessionNavigation):
         return {entry.mode: self.tab(entry, sessions) for entry in sessions.members}
     def require(self, access: CoordinationAccess, selected: RouteSelection):
         return access.open_selected(selected)
-    def references_for(self, root: str):
+    def references_for(self, root: str) -> ReferenceContext:
         return PendingReferences(root)
     async def current_references(self, access: CoordinationAccess, root: str):
         return access.reference_context(root)
@@ -154,7 +155,7 @@ class FailedObservation(Observation):
     async def write_order(self, access: CoordinationAccess, root: str | None, channel: str | None, order: type[DisplayOrder]):
         raise self.error
 
-    def references_for(self, root: str):
+    def references_for(self, root: str) -> ReferenceContext:
         return UnavailableReferences(root, str(self.error))
 
     def show_sidebar(self, view: SidebarModelView):
@@ -187,7 +188,7 @@ class Observing(Observation):
     def observes(self, root: str | Path) -> bool:
         return self.service.root == Path(root).resolve()
 
-    def tab(self, entry: SessionEntry, sessions: SessionNavigation):
+    def tab(self, entry: SessionEntry | None, sessions: SessionNavigation):
         return entry.tab(sessions, self)
 
     def show_sidebar(self, view: SidebarModelView) -> None:
@@ -255,7 +256,7 @@ class Observing(Observation):
             access.views_interest = request
             self.process.request(request)
 
-    def references_for(self, root: str):
+    def references_for(self, root: str) -> ReferenceContext:
         return self.sidebar.observation.references_for(root)
 
     async def current_references(self, access: CoordinationAccess, root: str):
@@ -509,7 +510,7 @@ class CoordinationAccess(MroDispatch):
             self.reference_views.discard(view)
         self.update_sidebar_interest()
 
-    def reference_context(self, root: str):
+    def reference_context(self, root: str) -> ReferenceContext:
         return self.observation.references_for(root)
 
     async def current_sidebar(self) -> SidebarObservation:

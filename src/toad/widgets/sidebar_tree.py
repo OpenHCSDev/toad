@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import wraps
@@ -14,9 +14,15 @@ from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pathlib import Path
+    from textual.events import Click
+    from textual.layout import WidgetPlacement
     from toad.app import ToadApp
     from toad.comms_root import FailedObservation, Observing
-    from toad.widgets.comms_sidebar import CommsRow
+    from toad.navigation_target import NavigationTarget
+    from toad.widgets.channel_activity import ChannelActivity
+    from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
+    from toad.widgets.thread_comms import RelationshipRows
 
 from agent_comms.display_order import ThreadSort
 from agent_comms.mro_dispatch import handles
@@ -85,7 +91,7 @@ class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
     def action_toggle(self) -> None:
         self.query_ancestor(SidebarGroup).toggle_members()
 
-    def on_click(self, event) -> None:
+    def on_click(self, event: Click) -> None:
         if event.button == 1:
             event.stop()
             self.action_toggle()
@@ -95,7 +101,7 @@ class SidebarReaderLayout(VerticalLayout):
     """Native flow, preserving the viewport's reader before placements change."""
 
     @height_dependency(FLOW_HEIGHT)
-    def arrange(self, parent, children, size: Size, greedy: bool=True):
+    def arrange(self, parent: Widget, children: list[Widget], size: Size, greedy: bool=True):
         placements = super().arrange(parent, children, size, greedy)
         parent.query_ancestor(TargetTree).preserve_reader(placements)
         return placements
@@ -172,7 +178,7 @@ class KeyedRows[KeyT]:
     def update_row(self, key: KeyT, row) -> None:
         pass
 
-    def retire_row(self, row) -> None:
+    def retire_row(self, row: Widget) -> None:
         row.remove()
 
     def rows_changed(self) -> None:
@@ -181,7 +187,7 @@ class KeyedRows[KeyT]:
     def place_row(self, row, index: int) -> None:
         """Publish list-position facts only for a new or moved row."""
 
-    def reconcile_keys(self, keys, *, changed: frozenset[KeyT]):
+    def reconcile_keys(self, keys: Iterable[KeyT], *, changed: frozenset[KeyT]):
         rows = self.rows
         retained = set(rows.values())
         previous = {
@@ -250,8 +256,8 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
         row,
         *,
         expanded: bool,
-        controls=(),
-        disclosure_type=SidebarDisclosure,
+        controls: Iterable[Widget]=(),
+        disclosure_type: type[SidebarDisclosure]=SidebarDisclosure,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -309,7 +315,7 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
         """Native-order destinations, excluding explanatory placeholder widgets."""
         return tuple(row for row in self.visible_rows if row.is_navigation_row())
 
-    def rows_for_target(self, target):
+    def rows_for_target(self, target: str):
         if not self.accepts_members():
             return ()
         header = (
@@ -350,7 +356,7 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
         spare = self.reconciliation_tree.row_reconciliation.take(key, self)
         return spare if spare is not None else self.new_row(key)
 
-    def update_row(self, key: str, row) -> None:
+    def update_row(self, key: str, row: RowT) -> None:
         self.show_member(key, row)
 
     def place_row(self, row: RowT, index: int) -> None:
@@ -416,39 +422,39 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
 class SidebarChange:
     """The changed model rows choose which native rows need work."""
 
-    def apply_comms(self, sidebar, rows) -> None:
+    def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
         raise NotImplementedError
 
-    def apply_welcome(self, channel_list, thread_list) -> None:
+    def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
         raise NotImplementedError
 
-    def apply_relationships(self, groups) -> None:
+    def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
         raise NotImplementedError
 
-    def apply_activity(self, view) -> None:
+    def apply_activity(self, view: ChannelActivity) -> None:
         raise NotImplementedError
 
-    def apply_navigation(self, sidebar) -> None:
+    def apply_navigation(self, sidebar: CommsSidebar) -> None:
         sidebar.navigation.apply()
 
 
 class AllSidebarRows(SidebarChange):
-    def apply_comms(self, sidebar, rows) -> None:
+    def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
         sidebar.open_views = sidebar.find_open_views()
         with sidebar.reconcile_members():
             for name, group in sidebar.groups.items():
                 group.present(rows[name])
                 group.sync_members(frozenset(group.member_keys))
 
-    def apply_welcome(self, channel_list, thread_list) -> None:
+    def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
         channel_list.sync_members(frozenset(channel_list.member_keys))
         thread_list.sync_members(frozenset(thread_list.member_keys))
 
-    def apply_relationships(self, groups) -> None:
+    def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
         for group in groups:
             group.sync_members(frozenset(group.member_keys))
 
-    def apply_activity(self, view) -> None:
+    def apply_activity(self, view: ChannelActivity) -> None:
         view.call_next(view.sync_members, frozenset(view.member_keys))
 
 
@@ -456,7 +462,7 @@ class AllSidebarRows(SidebarChange):
 class ChangedChannels(SidebarChange):
     names: frozenset[str]
 
-    def apply_comms(self, sidebar, rows) -> None:
+    def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
         with sidebar.reconcile_members():
             for name in self.names:
                 group = sidebar.groups.get(name)
@@ -464,15 +470,15 @@ class ChangedChannels(SidebarChange):
                     group.present(rows[name])
                     group.sync_members(frozenset(group.member_keys))
 
-    def apply_welcome(self, channel_list, thread_list) -> None:
+    def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
         channel_list.sync_members(self.names)
         # A changed channel can change the welcome thread list's order.
         thread_list.sync_members(frozenset())
 
-    def apply_relationships(self, groups) -> None:
+    def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
         pass
 
-    def apply_activity(self, view) -> None:
+    def apply_activity(self, view: ChannelActivity) -> None:
         references = view.model_state.shown.observation.require_snapshot().references
         if view.view.conversation.destination(references).name in self.names:
             view.call_next(view.sync_members, frozenset(view.member_keys))
@@ -482,25 +488,25 @@ class ChangedChannels(SidebarChange):
 class ChangedThreads(SidebarChange):
     names: frozenset[str]
 
-    def apply_comms(self, sidebar, rows) -> None:
+    def apply_comms(self, sidebar: CommsSidebar, rows: Mapping[str, ChannelRowModel]) -> None:
         for group in sidebar.groups.values():
             group.repaint_members(self.names)
 
-    def apply_welcome(self, channel_list, thread_list) -> None:
+    def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
         thread_list.sync_members(self.names)
 
-    def apply_relationships(self, groups) -> None:
+    def apply_relationships(self, groups: Iterable[RelationshipRows]) -> None:
         for group in groups:
             changed = group.keys_for_threads(self.names)
             if changed:
                 group.sync_members(changed=changed)
 
-    def apply_activity(self, view) -> None:
+    def apply_activity(self, view: ChannelActivity) -> None:
         changed = view.changed_keys(self.names)
         if changed:
             view.call_next(view.sync_members, changed)
 
-    def apply_navigation(self, sidebar) -> None:
+    def apply_navigation(self, sidebar: CommsSidebar) -> None:
         pass
 
 
@@ -522,7 +528,7 @@ class SidebarModelState(ABC):
     def shows_model(self) -> bool:
         return False
 
-    def serves(self, path) -> bool:
+    def serves(self, path: Path | None) -> bool:
         return False
 
     def observes(self, observed: Observing) -> bool:
@@ -545,7 +551,7 @@ class SidebarModelState(ABC):
 class Detached(SidebarModelState):
     """No opened service or model belongs to this view."""
 
-    def shows_child(self, view, child: Widget) -> bool:
+    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
         return False
 
 
@@ -553,10 +559,10 @@ class Detached(SidebarModelState):
 class FailedSidebarState(SidebarModelState):
     observed: FailedObservation
 
-    def shows_child(self, view, child: Widget) -> bool:
+    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
         return child is view.unavailable
 
-    def present(self, view):
+    def present(self, view: SidebarModelView):
         view.unavailable.update(f"Comms unavailable\n{self.observed.error}")
         view.app.coordination_access.show_sidebar(view, view.accepts_observation())
         return self
@@ -566,23 +572,23 @@ class FailedSidebarState(SidebarModelState):
 class BoundSidebar(SidebarModelState):
     observed: Observing
 
-    def shows_child(self, view, child: Widget) -> bool:
+    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
         return (child is view.unavailable) == self.observed.sidebar.observation.shows_status()
 
     def root(self):
         return self.observed.service.root
 
-    def serves(self, path) -> bool:
+    def serves(self, path: Path | None) -> bool:
         return self.observed.service.root.resolve() == path
 
     def observes(self, observed: Observing) -> bool:
         return self.observed is observed
 
-    def unsubscribe(self, view) -> None:
+    def unsubscribe(self, view: SidebarModelView) -> None:
         self.observed.sidebar.channels.unsubscribe(view.channels_changed)
         self.observed.sidebar.threads.unsubscribe(view.threads_changed)
 
-    def present(self, view):
+    def present(self, view: SidebarModelView):
         view.unavailable.update(self.observed.sidebar.observation.status_text())
         shown = view.accepts_observation()
         view.app.coordination_access.show_sidebar(view, shown)
@@ -598,7 +604,7 @@ class Current(BoundSidebar):
     def shows_model(self) -> bool:
         return True
 
-    def apply(self, view, changes) -> None:
+    def apply(self, view: SidebarModelView, changes) -> None:
         if changes:
             view.sync(**changes)
 
@@ -623,7 +629,7 @@ class SidebarModelView(CoreEventReceiver, Widget):
     while this one is hidden are applied in one pass when it shows again.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Widget, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.unavailable = Static("", markup=False)
 
@@ -743,7 +749,7 @@ class TargetTree(Vertical):
     def matches(self, key: str) -> bool:
         return self.search in key.casefold()
 
-    def preserve_reader(self, placements) -> None:
+    def preserve_reader(self, placements: list[WidgetPlacement]) -> None:
         """A sidebar viewport may retain its reader across a native relayout."""
 
     _member_reconciliation = None
@@ -795,7 +801,7 @@ class TargetTree(Vertical):
     def row_for(self, selection):
         raise NotImplementedError
 
-    def row_selected(self, row) -> bool:
+    def row_selected(self, row: CommsRow) -> bool:
         return self.selection_for(row) in self.selection_state.selected_targets
 
     @contextmanager
@@ -810,7 +816,7 @@ class TargetTree(Vertical):
                 if (row := self.row_for(identity)) is not None:
                     row.refresh_paint()
 
-    def remember_row(self, row) -> None:
+    def remember_row(self, row: CommsRow) -> None:
         """Navigation establishes a range anchor; it is not bulk selection."""
         rows = self.rows
         if self.accepts_selection() and row in rows:
@@ -819,7 +825,7 @@ class TargetTree(Vertical):
                 state.selected = self.selection_for(row)
                 state.selected_targets = ()
 
-    def pointer_select(self, row, *, control: bool=False, shift: bool=False, menu: bool=False) -> None:
+    def pointer_select(self, row: CommsRow, *, control: bool=False, shift: bool=False, menu: bool=False) -> None:
         if not self.accepts_selection():
             return
         rows = self.rows
@@ -864,12 +870,12 @@ class TargetTree(Vertical):
     def navigation_root(self):
         raise NotImplementedError
 
-    def row_current(self, row) -> bool:
+    def row_current(self, row: CommsRow) -> bool:
         return self.app.workspace_sessions.visible_target(self.navigation_root).matches(
             row.target
         )
 
-    def rows_for_target(self, target):
+    def rows_for_target(self, target: NavigationTarget):
         return tuple(
             row for group in self.navigation_groups for row in target.rows_in(group)
         )
@@ -886,7 +892,7 @@ class TargetTree(Vertical):
         )
 
     @handles(SessionSelected)
-    def session_selected(self, event) -> None:
+    def session_selected(self, event: CoreEventMessage) -> None:
         if not self.rows:
             return
         workspace = self.app.workspace_sessions
