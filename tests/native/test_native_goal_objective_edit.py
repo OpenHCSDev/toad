@@ -2,14 +2,13 @@
 
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
+from support.native_steps import goal_on_real_owner
 from textual.widgets import Static
 
-from support.native_steps import goal_on_real_owner
 from toad.core.events import CommsUpdated
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_text import GoalText
-
 
 OBJECTIVE = "Work on draft PR #17 and report remaining gaps. " + "Detailed acceptance criteria. " * 30
 
@@ -25,8 +24,9 @@ def goal_in_toad(workspace):
 
 
 async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspace, native_package):
-    async with goal_in_toad(workspace) as (ui, agent, owner, session, first):
-        comms = owner.turns.comms
+    async with goal_in_toad(workspace) as native:
+        ui, agent, comms, session = native.ui, native.agent, native.comms, native.thread
+        first = comms.registry.require(session).goal.require()
         app, pilot = ui.textual
         conversation = ui.conversation
         current = first
@@ -48,10 +48,10 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
             else:
                 await pilot.click("#goal-save")
             await ui.until(lambda: not isinstance(app.screen, GoalEdit), why="the editor to close")
-            await ui.until(lambda: comms.registry.require(session).goal.text == objective, why="the saved objective")
+            await ui.until(lambda expected=objective: comms.registry.require(session).goal.text == expected, why="the saved objective")
             current = comms.registry.require(session).goal
             assert current.id == first.id
-            await ui.until(lambda: conversation.goal_display.snapshot == current, why="the saved goal in the bar")
+            await ui.until(lambda expected=current: conversation.goal_display.snapshot == expected, why="the saved goal in the bar")
             summary = conversation.query_one(".goal-summary", GoalText)
             assert objective in str(summary.render()), str(summary.render())
             assert ui.shows(" ".join(objective.split()[:3])) and ui.shows(objective.split()[-1])
@@ -71,7 +71,8 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
 
 
 async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(workspace, native_package):
-    async with goal_in_toad(workspace) as (ui, agent, _owner, session, first):
+    async with goal_in_toad(workspace) as native:
+        ui, agent = native.ui, native.agent
         conversation = ui.conversation
         before = await agent.get_goal_snapshot()
         older = before.goal.require()

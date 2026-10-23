@@ -133,34 +133,19 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
 
 @asynccontextmanager
 async def goal_on_real_owner(workspace, objective: str, *, size=(110, 35), arrange=None):
-    """A real owner (Core's ACP server in this process, no model) with an active goal, shown in Toad
-    through an agent object bound to the owner's session.
+    """Arrange a goal before the existing native workflow starts its managed owner.
 
-    `arrange(comms, session, goal)` may change the goal on the owner before the view binds the agent.
-    Yields (ui, agent, Core owner, session, goal as first set).
+    Yields the existing NativeSession. The model uses ControlledProvider.
     """
-    import os
-
     from agent_comms.goal_actions import SetGoalAction
 
-    from support.native import owner_server, start_private_native_wire
+    from support.native import NativeSession, native_session
 
-    os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"
-    comms = start_private_native_wire(workspace.roots.wire)
-    owner = owner_server(comms)
-    try:
-        session = (await owner.new_session(cwd=str(workspace.project))).session_id
-        async with workspace.app(size=size) as ui:
-            agent = ui.detached_agent()
-            agent.coordination = comms.configuration.answer(session)
-            goal = await agent.update_goal(SetGoalAction, objective)
-            if arrange is not None:
-                arrange(comms, session, goal)
-            conversation = ui.conversation
-            conversation.bind_agent(agent)
-            agent.ready = True
-            await conversation.goal_observation.refresh()
-            await ui.step()
-            yield ui, agent, owner, session, goal
-    finally:
-        await owner.shutdown()
+    async def prepare(comms, _project, _provider):
+        session = NativeSession.thread
+        goal = comms.goals.update_goal(session, SetGoalAction(text=objective))
+        if arrange is not None:
+            arrange(comms, session, goal)
+
+    async with native_session(workspace, prepare=prepare, size=size) as native:
+        yield native

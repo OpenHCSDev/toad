@@ -264,12 +264,12 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
     with provider.serving() as base_url:
         comms = start_private_native_wire(workspace.roots.wire)
         configure_provider(base_url, settings=settings)
-        comms.registry.declare(comms.registry.new_thread("beta", frozenset({"team"}), str(workspace.project),
+        comms.registry.declare(comms.registry.new_thread(NativeSession.thread, frozenset({"team"}), str(workspace.project),
                                       model=MODEL, thinking_level=OffThinkingLevel))
         try:
             if prepare is not None:
                 await prepare(comms, workspace.project, provider)
-            async with attached_app(workspace, comms, "beta", size=size, application=application,
+            async with attached_app(workspace, comms, NativeSession.thread, size=size, application=application,
                                     attached=attached) as (ui, agent):
                 yield NativeSession(ui, agent, comms, provider, workspace.project)
                 assert not provider.failures, provider.failures
@@ -284,13 +284,3 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
 def without_provider(models: str = "test/model") -> None:
     """Configure native owners with a model nothing serves, for tests that must never ask one."""
     os.environ.update(AGENT_COMMS_AGENT_BIN="pi", AGENT_COMMS_AGENT_ARGS="", AGENT_COMMS_AGENT_MODELS=models)
-
-
-def owner_server(comms, *, provider: str = "openrouter", model: str = "fake"):
-    """Core's ACP server object in this process, able to start native owners on the private wire."""
-    from agent_comms.acp import CommsAgent
-    from agent_comms.native_arguments import GivenArguments
-
-    return CommsAgent(
-        comms, agent_args=GivenArguments(("--provider", provider, "--model", model)),
-        runtime_enabled=True, auto_wake=False)
