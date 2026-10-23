@@ -24,7 +24,7 @@ async def test_real_conversation_discovers_screen_free_scope(workspace):
         await ui.write_draft("session scope journey")
         await ui.press("enter")
         await ui.until_shows("PEER_ANSWER session scope journey")
-        assert app.workspace_sessions.native_origins[first] is view
+        assert app.workspace_sessions.views[first] is view
         assert view.matches_launch(
             definition.identity, ui.conversation.agent_binding.session_id
         )
@@ -45,6 +45,6 @@ async def test_real_conversation_discovers_screen_free_scope(workspace):
         assert ui.conversation.query_ancestor(SessionScope) is view
         await ui.until_shows("PEER_ANSWER session scope journey")
         await ui.close_tab(second)
-        assert second not in app.workspace_sessions.native_origins
+        assert second not in app.workspace_sessions.views
         with pytest.raises(RelationViolationError):
             app.workspace_sessions.origin(second).resolve_thread()

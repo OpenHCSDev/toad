@@ -223,7 +223,7 @@ class SessionNavigation:
             existing = next(
                 (
                     identity
-                    for identity, origin in app.workspace_sessions.native_origins.items()
+                    for identity, origin in app.workspace_sessions.views.items()
                     if origin.matches_launch(agent_identity, agent_session_id)
                 ),
                 None,

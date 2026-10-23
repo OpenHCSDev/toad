@@ -198,6 +198,9 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
     footer_compact = False
     presentation: OperationalSessionPresentation
 
+    def matches_launch(self, agent_identity: str, session_id: str) -> bool:
+        return False
+
     @property
     @abstractmethod
     def is_current(self) -> bool: ...
