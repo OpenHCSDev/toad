@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?branch=main#34a2a9e3d900147f30d197e267848374d0ed5f1a" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?branch=main#3593a631ebed8cd4765646a38da77823a3740669" }
 dependencies = [
     { name = "agent-client-protocol" },
     { name = "aiohttp" },
