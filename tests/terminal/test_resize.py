@@ -2,7 +2,7 @@
 
 import sys
 
-from agent_comms.thread_text import SavedSessionFile
+from agent_comms.session_file import SavedSessionFile
 
 from support.journals import assistant_entry, write_journal
 from support.terminal import terminal_running, toad_command

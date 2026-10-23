@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import pytest
 
 from support.journals import assistant_entry, write_journal
-from agent_comms.thread_text import SavedSessionFile
+from agent_comms.session_file import SavedSessionFile
 from toad.transcript_publication import CommitPublication, TranscriptPublication
 from toad.widgets.agent_response import AgentResponse
 

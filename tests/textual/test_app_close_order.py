@@ -8,7 +8,7 @@ import os
 import pytest
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.thread_text import SavedSessionFile
+from agent_comms.session_file import SavedSessionFile
 from agent_comms.fresh_private_session import create_fresh_private_session
 
 from support.agents import deliver

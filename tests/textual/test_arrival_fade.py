@@ -9,7 +9,7 @@ from agent_comms.acp_extension import CoordinationChangedUpdate, TurnChangedUpda
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
-from agent_comms.thread_text import SavedSessionFile
+from agent_comms.session_file import SavedSessionFile
 from agent_comms.fresh_private_session import create_fresh_private_session
 from ui_theme.effects import NEW_TEXT
 

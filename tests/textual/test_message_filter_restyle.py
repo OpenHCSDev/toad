@@ -5,7 +5,7 @@ from dataclasses import replace
 
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-from agent_comms.thread_text import SavedSessionFile
+from agent_comms.session_file import SavedSessionFile
 from agent_comms.ui_model.message_category import ThinkingCategory, UserCategory, all_categories
 from agent_comms.ui_model.message_category import InboundCategory
 from toad.message_rows import MarkdownMessageStyle
