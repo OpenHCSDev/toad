@@ -11,8 +11,8 @@ from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Callable
 
 from acp import schema as acp_protocol
-from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.channel_targets import CommandTarget
+from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation

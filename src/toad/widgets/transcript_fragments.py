@@ -1,31 +1,49 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from collections.abc import Callable, Iterable, Iterator
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.mro_dispatch import handles
-from toad.core.projection import MroProjection
 from agent_comms.message_reference import MessageReference
+from agent_comms.mro_dispatch import handles
 from agent_comms.sent_message import PublishedSentMessage
-from agent_comms.transcript_sources import AssignedTranscriptSource
 from agent_comms.transcript_events import (
-    AgentTextTranscript, ContextTranscript, IncomingTranscript, MarkdownTranscript, SentTranscript,
-    TextTranscript, ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
+    AgentTextTranscript,
+    ContextTranscript,
+    IncomingTranscript,
+    MarkdownTranscript,
+    SentTranscript,
+    TextTranscript,
+    ThinkingTranscript,
+    ToolTranscript,
+    TranscriptEvent,
+    UserTranscript,
 )
+from agent_comms.transcript_sources import AssignedTranscriptSource
+from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory
 
+from toad.acp.status import ToolCallStatus
+from toad.core.projection import MroProjection
 from toad.line_blocks import (
-    AgentRole, Body, MarkdownBody, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ToggleDetails, UserRole,
+    AgentRole,
+    Body,
+    Divider,
+    Gap,
+    LineBlock,
+    LineRole,
+    MarkdownBody,
+    MutedRole,
+    Summary,
+    ToggleDetails,
+    UserRole,
 )
+from toad.markdown_preparation import PreparedMarkdownPart
+from toad.menus import MenuItem
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import NotificationStatus, UncheckedNotifications
-from toad.menus import MenuItem
-from toad.markdown_preparation import PreparedMarkdownPart
-from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityPresentation
-from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
@@ -100,7 +118,7 @@ class RenderBudget:
         pending_token_stop = 0
         pending_characters = 0
         pending_lines = 0
-        def select(first, stop, token_first, token_stop):
+        def select(first: int, stop: int, token_first: int, token_stop: int):
             return source.select_blocks(text[offsets[first]:offsets[stop]], first,
                                         slice(token_first, token_stop))
 
@@ -141,7 +159,7 @@ class RenderBudget:
 class FragmentLineConsumer(MroProjection):
     """Turn a fragment's events into line blocks, one handler per event family."""
 
-    def __init__(self, *, show_divider: bool):
+    def __init__(self, *, show_divider: bool) -> None:
         self.show_divider = show_divider
         self.blocks: list[LineBlock] = []
 
@@ -207,7 +225,7 @@ class PartPosition(ABC):
     def has_details(self) -> bool: ...
 
     @abstractmethod
-    def notification_references(self, event) -> tuple[MessageReference, ...]: ...
+    def notification_references(self, event: TranscriptEvent) -> tuple[MessageReference, ...]: ...
 
     @abstractmethod
     def status_blocks(self, shown: MessageShown) -> tuple[LineBlock, ...]: ...
@@ -273,7 +291,7 @@ class TranscriptFragment:
         return ()
 
     @classmethod
-    def text_parts(cls, source, budget):
+    def text_parts(cls, source: PreparedMarkdownPart, budget: RenderBudget):
         return tuple(budget.split(source))
 
     @property
@@ -281,7 +299,7 @@ class TranscriptFragment:
         return ()
 
     @classmethod
-    def capture_part(cls, event, text, **kwargs):
+    def capture_part(cls, event, text: str, **kwargs):
         return cls((replace(event, text=text),), **kwargs)
 
     def text_rows(self, lines) -> range:
@@ -355,7 +373,7 @@ class TranscriptFragment:
         """
         return self._lines.retains(lines, theme) or self._plain.retains(lines, theme)
 
-    def invalidate_lines(self):
+    def invalidate_lines(self) -> None:
         self._lines = NoRows()
 
     def hold_lines(self, request, lines) -> bool:
@@ -408,7 +426,7 @@ class BusMessageFragment(TranscriptFragment):
     row: MessageRow
 
     @classmethod
-    def capture_part(cls, event, text, **kwargs):
+    def capture_part(cls, event, text: str, **kwargs):
         return cls((event,), text_part=text, **kwargs)
 
     @classmethod
@@ -478,7 +496,7 @@ class ContextTranscriptFragment(TranscriptFragment):
 
 
 class TranscriptFragmentConsumer(MroProjection):
-    def __init__(self):
+    def __init__(self) -> None:
         self.fragments: list[TranscriptFragment | None] = []
         self.tools: dict[str, tuple[int, list[ToolTranscript], bool]] = {}
         self.reported_messages: dict[int, SentTranscript] = {}
@@ -486,27 +504,27 @@ class TranscriptFragmentConsumer(MroProjection):
         self.boundary = AgentActivityBoundary()
 
     @handles(ContextTranscript)
-    def context(self, event: ContextTranscript):
+    def context(self, event: ContextTranscript) -> None:
         # One lazy disclosure owns the full metadata source.
         self.fragments.append(ContextTranscriptFragment((event,)))
 
     @handles(IncomingTranscript)
-    def incoming(self, event: IncomingTranscript):
+    def incoming(self, event: IncomingTranscript) -> None:
         self.text(event, BusMessageFragment, row=MessageRow(event.message, event.reader))
 
     @handles(SentTranscript)
-    def sent(self, event: SentTranscript):
+    def sent(self, event: SentTranscript) -> None:
         self.reported_messages[len(self.fragments)] = event
         self.fragments.append(TranscriptFragment((event,)))
 
     @handles(PublishedSentMessage)
-    def published(self, message: PublishedSentMessage):
+    def published(self, message: PublishedSentMessage) -> None:
         original = message.message.core_message(AssignedTranscriptSource.open(message.scope))
         self.text(message.message, SentMessageFragment, publication=message,
                   row=MessageRow(original, message.scope.recipient.name))
 
     @handles(UserTranscript, MarkdownTranscript)
-    def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs):
+    def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs) -> None:
         starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
         parts = kind.text_parts(source, self.budget)
@@ -518,7 +536,7 @@ class TranscriptFragmentConsumer(MroProjection):
         )
 
     @handles(ToolTranscript)
-    def tool(self, event: ToolTranscript):
+    def tool(self, event: ToolTranscript) -> None:
         if event.tool_call_id not in self.tools:
             self.tools[event.tool_call_id] = (
                 len(self.fragments), [], self.boundary.observe(event.category),
