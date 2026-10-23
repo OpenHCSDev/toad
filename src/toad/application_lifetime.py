@@ -119,16 +119,28 @@ class ApplicationLifetime:
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")
         self.usage.publish("toad-run")
-        if self.resumed_session is None:
-            # No tab is open: the launch starts no agent and registers no thread.
-            await app.select_session(app.tab_order.home)
-        else:
+        database = app.tab_order.db
+        for tab in database.tab_list():
+            saved = await database.session_get(tab.session_id)
+            if saved is None:
+                database.tab_delete(tab.session_id)
+                app.log.error(f"Removed open tab for missing saved session {tab.session_id}")
+                continue
+            await app.session_navigation.launch(
+                saved.agent_identity,
+                agent_session_id=saved.agent_session_id,
+                session_pk=tab.session_id,
+                project_path=saved.meta_json.cwd,
+            )
+        if self.resumed_session is not None:
             # The thread's declaration decides how it opens, as from the sidebar.
             navigation = await app.preparation.run_thread(self.launch_navigation)
             await app.session_navigation.new(
                 partial(navigation.launch_screen, app),
                 original=(navigation.root, navigation.thread.incarnation),
             )
+        if not app.tab_order.names:
+            await app.select_session(app.tab_order.home)
         app.terminal_attention.attach()
         app.set_timer(1, self.check_version)
         app.run_worker(partial(self.set_process_title, "toad"), thread=True)
