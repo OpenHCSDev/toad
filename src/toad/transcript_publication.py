@@ -2,32 +2,54 @@
 from __future__ import annotations
 
 import asyncio
-from collections import deque
 from abc import ABC, abstractmethod
+from collections import deque
 from contextlib import AsyncExitStack, asynccontextmanager
-from toad.resource_release import AsyncResourceRelease, ResourceRelease
-from functools import partial
 from dataclasses import dataclass
+from functools import partial
 from typing import TYPE_CHECKING, TypeGuard
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from agent_comms.transcript_events import TranscriptCoverage
-from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
-from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.ui_model.observation import NotPublished, Published, TranscriptPublicationState
-from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
-from textual.worker import Worker, WorkerCancelled
-from textual.await_complete import AwaitComplete
-from toad.widgets.history_anchor import HeldReaderDestination, TailPosition, HistoryWindow
-from toad.widgets.committed_presentation import (
-    CommitBarrier, CommitParticipant, CommitEvidence, commit_plan,
-    protected_blocks, retirement_candidates,
+from agent_comms.acp_extension import (
+    InputStartedUpdate,
+    TranscriptDraftUpdate,
+    TranscriptSnapshotUpdate,
 )
-from toad.widgets.transcript_history import TranscriptHistory
-from toad.widgets.session_details import SessionDetails
-from toad.transcript_preparation import PreparedPageSource
+from agent_comms.child_process import join_retirement
+from agent_comms.coordination_errors import (
+    CoordinationReadUnavailable,
+    StaleRevision,
+    TranscriptChanged,
+)
+from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.transcript_events import TranscriptCoverage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.ui_model.observation import (
+    NotPublished,
+    Published,
+    TranscriptPublicationState,
+)
+from textual.await_complete import AwaitComplete
+from textual.worker import Worker, WorkerCancelled
+
 from toad.core.events import CoreEventStream
+from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.screens.session_view import SessionView
+from toad.transcript_preparation import PreparedPageSource
+from toad.widgets.committed_presentation import (
+    CommitBarrier,
+    CommitEvidence,
+    CommitParticipant,
+    commit_plan,
+    protected_blocks,
+    retirement_candidates,
+)
+from toad.widgets.history_anchor import (
+    HeldReaderDestination,
+    HistoryWindow,
+    TailPosition,
+)
+from toad.widgets.session_details import SessionDetails
+from toad.widgets.transcript_history import TranscriptHistory
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
@@ -346,9 +368,16 @@ class CommitPublication(CanonicalSourcePublication):
             TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
         )
+        retired = retirement_candidates(contents.children, evidence)
+        if not plan.permits(view, retired):
+            return True
+        def publication_current():
+            return is_current() and plan.permits(view, retired)
+
+        if not await prepared.draw(page.after, publication_current, tuple(retired)):
+            return True
         async with AsyncExitStack() as retirement:
             async with plan.publication(view, prepared):
-                await prepared.draw(page.after)
                 async with window.history_lock:
                     retired = retirement_candidates(contents.children, evidence)
                     if (
@@ -393,7 +422,7 @@ class ViewBinding:
     def covers_outgoing(self, message):
         return False
 
-    def covers_input(self, native_id):
+    def covers_input(self, started: InputStartedUpdate):
         return False
 
     def close_source(self):
@@ -515,8 +544,8 @@ class BoundView(ViewBinding):
     def covers_outgoing(self, message):
         return self.history.covers_outgoing(message)
 
-    def covers_input(self, native_id):
-        return self.history.covers_input(native_id)
+    def covers_input(self, started: InputStartedUpdate):
+        return self.history.covers_input(started)
 
     def close_source(self):
         self.history.close()
@@ -696,14 +725,14 @@ class TranscriptPresentation:
     def covers_outgoing(self, message) -> bool:
         return self.binding.covers_outgoing(message)
 
-    def covers_input(self, native_id: str | None) -> bool:
+    def covers_input(self, started: InputStartedUpdate) -> bool:
         """Whether saved history already draws the input Core started under this identity.
 
         A page read can reach the saved input before its start notice reaches
         the conversation. Retirement only removes live blocks that exist when
         a page is accepted, so a start arriving afterwards asks here first.
         """
-        return self.binding.covers_input(native_id)
+        return self.binding.covers_input(started)
 
     def invalidate_publications(self) -> None:
         """Revoke in-flight view work without forgetting its published source."""
@@ -776,7 +805,7 @@ class TranscriptPresentation:
             self.binding.request(self)
 
     def source_work_finished(self, history) -> None:
-        if self.binding.matches(history.view):
+        if self.binding.matches(history.conversation):
             self.retry()
 
     async def close(self) -> None:
@@ -838,19 +867,7 @@ class TranscriptPresentation:
             self._retire_presentations(contents, output, candidates),
             name="accepted source retirement",
         )
-        return AwaitComplete(self._join_retirement(retirement))
-
-    async def _join_retirement(self, retirement) -> None:
-        caller = asyncio.current_task()
-        while not retirement.done():
-            try:
-                await asyncio.shield(retirement)
-            except asyncio.CancelledError:
-                if retirement.cancelled():
-                    raise
-        retirement.result()
-        if caller.cancelling():
-            raise asyncio.CancelledError
+        return AwaitComplete(join_retirement(retirement))
 
     async def _retire_presentations(self, contents, output, candidates) -> None:
         try:

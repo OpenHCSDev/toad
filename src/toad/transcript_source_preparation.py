@@ -7,19 +7,35 @@ from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING
 
-from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
+from textual.worker import Worker, WorkerCancelled
+
+from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventReceiver
 from toad.resource_release import ResourceRelease
-from toad.transcript_state import TranscriptState, LiveTranscript, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest, LatestViewportState, NoLatestRequest
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
-from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
-from toad.widgets.presentation_window import PageEnd, PageRequest, OLDER_END, NEWER_END
+from toad.transcript_state import (
+    LatestViewportRequest,
+    LatestViewportState,
+    LiveTranscript,
+    NoLatestRequest,
+    ParkedSourceTranscript,
+    RetiredSourceTranscript,
+    TranscriptState,
+    WorkingTranscript,
+)
+from toad.widgets.history_anchor import (
+    HeldReaderDestination,
+    HistoryWindow,
+    LatestPosition,
+)
+from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageEnd, PageRequest
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
     from textual.screen import Screen
+
     from toad.widgets.transcript_history import TranscriptPageView
 
 
@@ -47,6 +63,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
 
     pages: deque[TranscriptPageView]
+    _source_state: TranscriptState
 
     @classmethod
     def initial_state(cls, view) -> TranscriptState:
@@ -67,6 +84,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     @property
     def state(self) -> TranscriptState:
         return self._source_state.observed(self)
+
+    def rows_published(self) -> None:
+        """Admit source rows and withdraw their live predecessors before yielding."""
+        self._source_state.rows_published(self)
+        for page in self.pages:
+            page.display = True
 
     @property
     def can_draw_on_screen(self) -> bool:
@@ -177,7 +200,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.state.request_latest(self, LatestViewportRequest(destination))
 
     async def jump_latest(self, request: LatestViewportRequest,
-                           publication_current: Callable[[], bool] = lambda: True) -> bool:
+                           publication_current: Callable[[], bool] = lambda: True, *,
+                           initial: PreparedTranscriptPage | None = None) -> bool:
         """Publish one destination using its captured source and reader position.
 
         A preceding page's restoration may have left the window off its tail.
@@ -193,7 +217,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         request.restore(self.window)
         snapshot = self.source_snapshot()
         current = lambda: snapshot.current(self) and request.current(snapshot.window) and publication_current()
-        if await self._publish_latest(current):
+        if await self._publish_latest(current, initial):
             # Accepting a wire page advances the reader source. Capture the
             # published source, rather than the request that acceptance replaced.
             self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
@@ -201,12 +225,13 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.latest = request.defer(self)
         return False
 
-    async def _publish_latest(self, current: Callable[[], bool]) -> bool:
+    async def _publish_latest(self, current: Callable[[], bool],
+                              initial: PreparedTranscriptPage | None = None) -> bool:
         """Prepare the bottom destination, keeping views of unchanged source pages."""
         window = self.window
         edge = self.pages[-1]
         source = self.page_source
-        prepared = await source.latest(edge.prepared)
+        prepared = await source.latest(edge.prepared if initial is None else initial)
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
@@ -257,17 +282,20 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                             views.appendleft(view)
                         # Keep existing fragments, prepared lines and documents.
                         for prepared, view in destination:
-                            if view is not None and not await view.prepared.replace_range(
+                            if view is not None and not view.prepared.replace_range(
                                 view, slice(prepared.start, prepared.stop), current,
                             ):
                                 raise _DrawingStopped
                         self.pages = views
                 except _DrawingStopped:
                     return False
-                await self.remove_children(page for page in previous if page not in views)
+                retired = tuple(page for page in previous if page not in views)
+                for page in retired:
+                    page.display = False
                 source.through = latest.page.after
                 self._update_edges()
                 self.rows_published()
+                await self.remove_children(retired)
             return True
 
     @property

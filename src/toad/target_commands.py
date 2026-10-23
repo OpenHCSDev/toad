@@ -1,6 +1,8 @@
 """One contextual command projection for pointer menus and slash discovery."""
 
 from __future__ import annotations
+
+from agent_comms.errors import RouteChangedError
 from toad.core import session_requests
 
 from abc import ABC, abstractmethod
@@ -11,7 +13,7 @@ from typing import TYPE_CHECKING, Self
 
 from agent_comms.comms import Comms
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
-from agent_comms.route_selection import RouteChanged, root_is_current
+from agent_comms.route_selection import root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_commands import CliCommand, TargetAction
 from toad.thread_actions import ThreadAction
@@ -42,7 +44,7 @@ class TargetContext:
 
     def current(self):
         if not root_is_current(self.comms.root):
-            raise RouteChanged('Comms route changed; reopen this view')
+            raise RouteChangedError('Comms route changed; reopen this view')
         return self
 
     def available_actions(self):

@@ -1,8 +1,7 @@
 """Textual-facing: the presentation window; a wire source pages one conversation and notices when Core replaces its reading."""
 
-from agent_comms.candidate_maintenance import drain_candidate_catchup
 from agent_comms.channel_targets import ChannelTarget
-from agent_comms.comms import wire
+from support.roots import installed_wire
 from agent_comms.historical_views import ConversationObservation
 from agent_comms.page_traversal import LiveCursor
 
@@ -31,7 +30,7 @@ def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_pat
 
     from agent_comms.child_process import ProcessIdentity
 
-    comms = wire(tmp_path / "wire")
+    comms = installed_wire(tmp_path / "wire")
     comms.registry.declare(comms.registry.new_thread("peer", frozenset(), str(tmp_path), process_identity=ProcessIdentity.capture(os.getpid())))
     viewer = comms.messaging.user_identity(str(tmp_path)).name
     comms.messaging.send("peer", viewer, "shown across turn claim")
@@ -42,7 +41,7 @@ def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_pat
 
 
 def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
-    comms = wire(tmp_path / "wire")
+    comms = installed_wire(tmp_path / "wire")
     comms.registry.declare(comms.registry.new_thread("sender", frozenset({"one", "two"}), str(tmp_path)))
     for index in range(60):
         comms.messaging.send("sender", "#one", f"Message {index}")
@@ -75,13 +74,12 @@ def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
     later = AfterSequence(LiveCursor(grown.through.cursor.sequence + 1))
     bounded = source.read(PageRequest(NEWER_END, grown.through), later)
     assert bodies(bounded) == ["arrived later"] and bounded.page.after == later and not bounded.page.has_newer
-    drain_candidate_catchup(comms.root)
     current = source.observe(grown.revision)
     assert isinstance(source.observe(current.revision), Unchanged)
 
 
 def test_any_mode_expansion_replaces_the_reading_without_new_bus_rows(tmp_path):
-    comms = wire(tmp_path / "wire")
+    comms = installed_wire(tmp_path / "wire")
     comms.registry.declare(comms.registry.new_thread("alice", frozenset({"team"}), str(tmp_path)))
     comms.registry.declare(comms.registry.new_thread("carol", frozenset({"team"}), str(tmp_path)))
     comms.registry.declare(comms.registry.new_thread("dave", frozenset(), str(tmp_path)))
@@ -91,7 +89,7 @@ def test_any_mode_expansion_replaces_the_reading_without_new_bus_rows(tmp_path):
     first, newest = observed(source)
     assert [fragment.message.body for fragment in newest.fragments] == ["channel message"]
     comms.channels.set_channel_any_mode("#team", True)
-    assert comms.bus.log.latest_sequence() == first.through.cursor.sequence
+    assert comms.bus.bus.revision() == first.through.cursor.sequence
     expanded = source.observe(first.revision)
     assert expanded.replaced and expanded.through == first.through
     again = source.read(PageRequest(OLDER_END, expanded.through), expanded.through)
@@ -99,8 +97,8 @@ def test_any_mode_expansion_replaces_the_reading_without_new_bus_rows(tmp_path):
 
 
 def test_attaching_or_detaching_history_replaces_the_reading_without_new_live_messages(tmp_path):
-    old = wire(tmp_path / "old")
-    comms = wire(tmp_path / "live")
+    old = installed_wire(tmp_path / "old")
+    comms = installed_wire(tmp_path / "live")
     for bus in (old, comms):
         bus.registry.declare(bus.registry.new_thread("alice", frozenset({"team"}), str(tmp_path)))
         bus.messaging.send("alice", "#team", bus.root.name)

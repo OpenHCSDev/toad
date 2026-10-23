@@ -210,9 +210,9 @@ class AgentController(OperationalTerminalOwner):
             coordination = self.coordination
             if coordination is not None:
                 self.require_owner(coordination, authority)
-                async with self.transcripts.bind(coordination.wire_root) as comms:
-                    origin = await asyncio.to_thread(
-                        self.agent.queue_attachment.capture_human_input, comms, queue_scope)
+                comms = await self.transcripts.service(coordination.wire_root)
+                origin = await asyncio.to_thread(
+                    self.agent.queue_attachment.capture_human_input, comms, queue_scope)
                 self.require_owner(coordination, authority)
                 command = replace(command, origin=origin)
             content = await asyncio.to_thread(build_prompt, project, prompt)
@@ -319,13 +319,13 @@ class AgentController(OperationalTerminalOwner):
         coordination = self.coordination
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         self.require_owner(coordination, authority)
-        async with self.transcripts.bind(coordination.wire_root) as comms:
-            def resolve():
-                owner = comms.registry.require(coordination.thread.name)
-                if owner.incarnation != coordination.thread:
-                    raise ValueError('The owner incarnation changed while preparing the request.')
-                return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.require_process().pid))
-            proxy = await asyncio.to_thread(resolve)
+        comms = await self.transcripts.service(coordination.wire_root)
+        def resolve():
+            owner = comms.registry.require(coordination.thread.name)
+            if owner.incarnation != coordination.thread:
+                raise ValueError('The owner incarnation changed while preparing the request.')
+            return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.require_process().pid))
+        proxy = await asyncio.to_thread(resolve)
         try:
             self.require_owner(coordination, authority)
             result = await proxy.request(method, **params)

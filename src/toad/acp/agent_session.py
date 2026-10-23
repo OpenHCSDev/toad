@@ -1,12 +1,14 @@
 """ACP session handshake, durable metadata and reconnection."""
 from __future__ import annotations
+
+from agent_comms.errors import RouteChangedError
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.child_process import join_retirement
 import asyncio
 import os
 from dataclasses import dataclass, replace
 from collections.abc import Callable
-from agent_comms.route_selection import RouteChanged, RouteSelection
+from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_presentation import SessionDisconnected
 import toad
 from toad import constants
@@ -340,7 +342,7 @@ class AgentSession:
             try:
                 await asyncio.to_thread(
                     RouteSelection.capture, self.agent.controller.transcripts.access.launch_root.path)
-            except RouteChanged as error:
+            except RouteChangedError as error:
                 self.startup_failed(f"Reconnect blocked before restart: {error}")
                 return
             await self.agent.stop()
@@ -506,12 +508,12 @@ class AgentSession:
 
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         owner_pid = self.agent.coordination.owner_pid
-        async with self.agent.controller.transcripts.bind(wire_root) as comms:
-            authority.require()
-            result = await asyncio.to_thread(
-                comms.threads.rename_managed_thread,
-                thread, display_name, owner_pid=owner_pid,
-            )
+        comms = await self.agent.controller.transcripts.service(wire_root)
+        authority.require()
+        result = await asyncio.to_thread(
+            comms.threads.rename_managed_thread,
+            thread, display_name, owner_pid=owner_pid,
+        )
         authority.require()
         self.agent.coordination = replace(
             self.agent.coordination,

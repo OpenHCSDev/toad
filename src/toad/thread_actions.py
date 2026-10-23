@@ -1,6 +1,8 @@
 """Thread menu declarations own presentation, input collection and execution."""
 
 from __future__ import annotations
+
+from agent_comms.errors import RouteChangedError
 from toad.core import events as core_events
 
 import asyncio
@@ -11,7 +13,7 @@ from typing import TYPE_CHECKING
 from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
 from agent_comms.cli_result import CliResult
 from agent_comms.native_pi import NativePiUnavailable
-from agent_comms.route_selection import RouteChanged, RouteSelection
+from agent_comms.route_selection import RouteSelection
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -137,7 +139,7 @@ class ThreadAction:
                     fields = await ctx.app.preparation.run_thread(
                         lambda: asyncio.run(definition.prepare_fields()))
                     ctx.current()
-                except (NativePiUnavailable, RouteChanged) as error:
+                except (NativePiUnavailable, RouteChangedError) as error:
                     ctx.app.show_error(error, definition.label)
                     return
                 if ctx.app.screen is screen:

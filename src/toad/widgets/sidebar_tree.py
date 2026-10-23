@@ -147,19 +147,19 @@ class RowReconciliation:
         return row
 
 
-class KeyedRows:
+class KeyedRows[KeyT]:
     """Retain native member widgets by model key; the container owns their order."""
 
-    def keep_row(self, key: str) -> bool:
+    def keep_row(self, key: KeyT) -> bool:
         return False
 
-    def should_mount(self, key: str) -> bool:
+    def should_mount(self, key: KeyT) -> bool:
         return True
 
-    def create_row(self, key: str):
+    def create_row(self, key: KeyT):
         raise NotImplementedError
 
-    def update_row(self, key: str, row) -> None:
+    def update_row(self, key: KeyT, row) -> None:
         pass
 
     def retire_row(self, row) -> None:
@@ -171,7 +171,7 @@ class KeyedRows:
     def place_row(self, row, index: int) -> None:
         """Publish list-position facts only for a new or moved row."""
 
-    def reconcile_keys(self, keys, *, changed: frozenset[str]):
+    def reconcile_keys(self, keys, *, changed: frozenset[KeyT]):
         rows = self.rows
         retained = set(rows.values())
         previous = {row: index for index, row in enumerate(
@@ -435,7 +435,8 @@ class ChangedChannels(SidebarChange):
         pass
 
     def apply_activity(self, view) -> None:
-        if view.view.conversation.target.name in self.names:
+        references = view.model_state.shown.observation.require_snapshot().references
+        if view.view.conversation.destination(references).name in self.names:
             view.call_next(view.sync_members, frozenset(view.member_keys))
 
 
@@ -457,7 +458,7 @@ class ChangedThreads(SidebarChange):
                 group.sync_members(changed=changed)
 
     def apply_activity(self, view) -> None:
-        changed = self.names.intersection((*view.member_keys, *view.rows))
+        changed = view.changed_keys(self.names)
         if changed:
             view.call_next(view.sync_members, changed)
 

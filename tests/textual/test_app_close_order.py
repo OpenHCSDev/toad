@@ -30,7 +30,6 @@ async def test_native_unmount_retires_the_acquired_history_after_children_leave(
 async def test_closing_the_app_after_the_observation_process_exits_raises_nothing(workspace):
     project = workspace.project
     comms = workspace.comms
-    comms.messaging.initialize_private_initial_protocol()
     saved = create_fresh_private_session(project / "sessions", worktree=project).path
     with saved.open("a") as stream:
         stream.write(json.dumps({"type": "message", "id": "ask",

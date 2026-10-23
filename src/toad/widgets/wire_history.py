@@ -2,19 +2,28 @@
 
 from __future__ import annotations
 
-from agent_comms.historical_views import ConversationObservation
+from typing import TYPE_CHECKING
 
-from agent_comms.messages import Message
 from agent_comms.coordination_errors import StaleRevision
+from agent_comms.historical_views import ConversationObservation
+from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
-from toad.widgets.transcript_history import LineHistory
+from toad.widgets.message_notifications import (
+    NothingToRead,
+    PaintedRead,
+    VisibleReadMarking,
+)
+from toad.widgets.transcript_history import ConversationHistory
 from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
 
-class WireHistory(VisibleReadMarking, LineHistory):
+if TYPE_CHECKING:
+    from toad.widgets.comms_chat import CommsChatView
+
+
+class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[ViewT]):
     """The line history of a channel or direct conversation.
 
     Paging, preparation, trimming and the reader's position are the line
@@ -26,7 +35,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     page_source: WirePageBuffer | ClosedHistory
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: WirePageBuffer | ClosedHistory,
-                 *, view, notification_view, **kwargs) -> None:
+                 *, view: ViewT, notification_view, **kwargs) -> None:
         super().__init__(prepared, page_source, view=view,
                          notification_view=notification_view, **kwargs)
         # Core's source observation is independent of paint readiness.

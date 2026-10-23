@@ -155,9 +155,11 @@ def painted_text(widget, text) -> bool:
 async def saved_history(view, page, loader, *, committed=True):
     """A saved transcript history prepared and paged the way the application builds one."""
     from toad.transcript_preparation import SavedHistory, TranscriptPageRenderTask
+    from toad.transcript_state import LiveTranscript, ProvisionalTranscript
     from toad.widgets.transcript_history import TranscriptHistory
     from toad.work_preparation import RenderPreparation
 
     prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
     return TranscriptHistory(prepared, SavedHistory(loader, page.after, view.app.preparation),
-                             committed=committed, notification_view=view.contents)
+                             view=view, notification_view=view.contents,
+                             source_state=LiveTranscript() if committed else ProvisionalTranscript())

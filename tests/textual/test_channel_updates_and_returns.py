@@ -10,7 +10,6 @@ async def test_live_update_paints_parked_channel_unsubscribes_and_return_shows_t
     comms = workspace.comms
     for name in ("sender", "reader", session_thread_name(workspace.project)):
         workspace.thread(name, "alpha")
-    comms.messaging.initialize_private_initial_protocol()
     comms.messaging.send("sender", "#alpha", "INITIAL ROW")
     async with workspace.app(size=(113, 34)) as ui:
         app = ui.app

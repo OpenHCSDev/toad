@@ -4,20 +4,25 @@ Focus owns widget-row selection; OptionList.highlighted owns virtual-row selecti
 Hover is an input to those owners, never another independently rendered state.
 """
 
-from textual import events, on
-from rich.segment import Segment
-from textual.content import Content
-from textual._paint_state import PaintState
-from textual.strip import Strip
-from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
-from ui_theme.scheme import ThemeColour, BlockCursorForegroundColour, BlockCursorBackgroundColour
 from typing import ClassVar
+
+from rich.segment import Segment
+from rich.style import Style
+from textual import events, on
+from textual._paint_state import PaintState
+from textual.content import Content
+from textual.message import Message
+from textual.strip import Strip
 from textual.visual import VisualType
+from textual.widgets import ListItem, ListView, OptionList, Static
+from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
+from ui_theme.scheme import (
+    BlockCursorBackgroundColour,
+    BlockCursorForegroundColour,
+    ThemeColour,
+)
 
 from toad.frame_presentation import Animated, UntintedTonePaint
-from rich.style import Style
-from textual.message import Message
-from textual.widgets import ListItem, ListView, OptionList, Static
 
 
 class ChangingText[FrameT: Frame](Animated[FrameT], Static):
@@ -92,7 +97,7 @@ class HoverSelection(UntintedTonePaint):
                 if self.paint_highlighted and self.highlight_background else None)
 
     @property
-    def text_style(self):
+    def paint_text_style(self):
         return self.highlighted_text_style if self.paint_highlighted else None
 
     def watch_mouse_hover(self):

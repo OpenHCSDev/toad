@@ -23,6 +23,8 @@ import threading
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.thread_model import DeclaredModel
 
+from support.roots import installed_wire
+
 PROVIDER = "selected-offline"
 MODEL = DeclaredModel(f"{PROVIDER}/fixture")
 KEY = "offline-only-fixture"
@@ -161,10 +163,7 @@ class ControlledProvider:
 
 def start_private_native_wire(root: Path):
     """Create a private root; Core derives its root identity and reviewed package."""
-    from agent_comms.comms import Comms
-
-    comms = Comms(root)
-    comms.messaging.initialize_private_initial_protocol()
+    comms = installed_wire(root)
     for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
         os.environ.pop(key, None)
     return comms

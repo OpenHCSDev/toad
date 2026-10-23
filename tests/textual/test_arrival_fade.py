@@ -38,7 +38,6 @@ async def test_every_live_conversation_block_runs_the_arrival_fade_on_mount(work
 async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(workspace):
     project = workspace.project
     comms = workspace.comms
-    comms.messaging.initialize_private_initial_protocol()
     saved = create_fresh_private_session(project / "sessions", worktree=project).path
     prompt = saved.read_text() + json.dumps({"type": "message", "id": "first-user",
         "timestamp": "2026-10-22T00:00:00Z", "message": {

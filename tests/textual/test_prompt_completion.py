@@ -3,7 +3,6 @@ in wrapped text, and the channel composer's mention list are Textual widgets tha
 
 import json
 
-from agent_comms.mentions import MentionCandidate
 from textual.widgets.text_area import Selection
 
 from support.agents import peer
@@ -27,7 +26,7 @@ def wire_records(workspace):
 async def ready_prompt(workspace, ui):
     await ui.until_agent_ready()
     view = ui.conversation
-    return view, view.prompt, view.agent
+    return view, view.prompt, view.agent_binding
 
 
 async def test_slash_command_discovered_from_the_agent_is_completed_by_keyboard_and_executed(workspace):
@@ -104,12 +103,11 @@ async def test_a_whole_command_is_selected_backwards_and_the_agents_hint_refresh
 
 
 async def test_channel_composer_completes_a_mention_with_tab_and_keeps_focus(workspace):
-    async with workspace.app(size=(130, 44), agent=completion_peer()) as ui:
-        app, _pilot = ui.textual
-        view, prompt, agent = await ready_prompt(workspace, ui)
-        channel = ChannelPrompt(simple_input=True)
-        await app.screen.mount(channel)
-        channel.set_mention_candidates((MentionCandidate("cursor-peer", "Cursor peer"),))
+    workspace.thread("cursor-peer", "comms")
+    workspace.thread("reader", "comms")
+    async with workspace.app(size=(130, 44)) as ui:
+        await ui.open_channel("#comms", actor="reader")
+        channel = ui.app.selected_session.query_one(ChannelPrompt)
         channel.focus()
         await ui.press("/", "c", "f7", "@", "c", "u")
         await ui.until(lambda: channel.mention_list.display, why="the mention list")
@@ -199,7 +197,7 @@ async def test_model_picker_selects_through_the_agent_and_keeps_the_draft(worksp
         await ui.press(*"second")
         await ui.until(lambda: painted_text(picker, "Local second"), why="the model in the picker")
         await ui.press("enter")
-        await ui.until(lambda: view.agent.configuration.model.current == "local/second", why="the selected model")
+        await ui.until(lambda: view.agent_binding.configuration.model.current == "local/second", why="the selected model")
         assert {"config_id": "model", "value": "local/second"} in wire_records(workspace)
         await ui.until(lambda: not picker.is_open and prompt.prompt_text_area.has_focus, why="the picker closed")
         assert prompt.text == "Unfinished draft"

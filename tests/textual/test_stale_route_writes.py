@@ -1,92 +1,97 @@
-"""Textual-facing: mounted view writes (read marks, thread actions) started before a route publication are refused after it."""
+"""A mounted sender refuses a stale destination before entering the write worker."""
 
 import asyncio
-import threading
-
-import pytest
 from unittest.mock import patch
 
-import agent_comms.private_nk_entrypoint as private_nk_entrypoint
-from agent_comms.active_route import ActiveRoute, publish_active_route
-from agent_comms.cli_commands import StartCliCommand
-from agent_comms.comms import Comms
-from agent_comms.route_selection import current_root, run_selected_write
-from agent_comms.thread_identity import ThreadRole
+from agent_comms import route_selection
+from agent_comms.errors import RouteChangedError
+from agent_comms.launch_root import LaunchRoot
 
-from support.routes import private_root, select_root_by_default_route
-from support.textual_steps import refresh_chat, request_target_command
+from support.roots import installed_wire
+from toad.core.input_events import UserInputSubmitted
+from toad.widgets.comms_chat import CommsChatView
 
 
-async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_refused(workspace, monkeypatch, native_package):
-    from toad import comms_root
-    from toad.widgets.comms_chat import CommsChatView
+async def test_a_view_that_changed_during_send_preflight_keeps_the_draft_editable(workspace):
+    workspace.thread("peer", "team")
+    workspace.comms.messaging.send("peer", "#team", "CURRENT_HISTORY")
+    async with workspace.app() as ui:
+        await ui.open_channel("#team", actor=workspace.viewer)
+        await ui.until_shows("CURRENT_HISTORY")
+        view = ui.app.selected_session.query_one(CommsChatView)
+        messaging = view.message_history.page_source.loader.comms.messaging
+        before = messaging.bus.bus.revision()
+        await view.submit_comms_message(workspace.roots.wire, view.conversation, "STALE_DRAFT",
+                                       lambda: False, view._show_sent)
+        await ui.until(lambda: not view.prompt.prompt_text_area.disabled,
+                       why="the refused draft editable again")
+        assert not view.send_block_reason
+        assert view.prompt.text == "STALE_DRAFT"
+        assert not view.prompt.prompt_text_area.disabled
+        assert messaging.bus.bus.revision() == before
 
-    attempt = workspace.roots.attempt
-    project = workspace.project
-    home = select_root_by_default_route(monkeypatch, attempt)
-    legacy = home / ".agent-comms"
-    legacy.mkdir(mode=0o700)
-    old = Comms(legacy)
-    old.registry.declare(old.registry.new_thread("user", frozenset(), str(project), role=ThreadRole.USER))
-    old.registry.declare(old.registry.new_thread("peer", frozenset({"team"}), str(project / "peer")))
-    old.messaging.send("peer", "#team", "LEGACY-PAINT")
-    private, private_id = private_root(attempt / "private", project, "PRIVATE-PAINT")
-    route = ActiveRoute(private, private_id, native_package)
-    assert current_root() == legacy
 
-    async with workspace.app(size=(115, 38)) as ui:
-        app = ui.textual[0]
-        await ui.open_channel("#team", actor="user")
-        view = app.screen.query_one(CommsChatView)
-        await refresh_chat(view)
-        await ui.step()
-        assert view.message_history.source.comms.root == legacy
-        old.messaging.send("peer", "#team", "UNREAD-OLD")
-        page = old.views.channel_display_page("#team", worktree=str(project), limit=8)
-        assert page.newest_seq == 2
-        marker = legacy / "read_markers.json"
-        before = marker.read_bytes() if marker.exists() else b""
+async def test_a_route_change_during_service_acquisition_restores_the_draft(workspace):
+    workspace.thread("peer", "team")
+    second = installed_wire(workspace.roots.attempt / "second")
+    async with workspace.app() as ui:
+        await ui.open_channel("#team", actor=workspace.viewer)
+        view = ui.app.selected_session.query_one(CommsChatView)
+        first = view.message_history.page_source.loader.comms
+        before = first.bus.bus.revision(), second.bus.bus.revision()
+        with LaunchRoot.from_path(second.root).selected():
+            await view.submit_input(UserInputSubmitted("SERVICE_ROUTE_REFUSED"))
+        await ui.until(lambda: view.prompt.text == "SERVICE_ROUTE_REFUSED"
+                       and not view.prompt.prompt_text_area.disabled,
+                       why="the service-refused draft to be editable")
+        assert not view.send_block_reason
+        assert (first.bus.bus.revision(), second.bus.bus.revision()) == before
+        assert ui.failure() is None
 
-        entered_ack, entered_action = asyncio.Event(), threading.Event()
-        release = threading.Event()
-        original_to_thread = asyncio.to_thread
-        real_write = comms_root.run_selected_write
-        invoked = []
 
-        async def delayed_dispatch(operation, *args, **kwargs):
-            if operation is run_selected_write and getattr(args[1], "__name__", "") == "mark_channel_view_read":
-                entered_ack.set()
-                await original_to_thread(release.wait, 20)
-            return await original_to_thread(operation, *args, **kwargs)
+async def test_a_route_change_at_the_actual_write_boundary_restores_the_draft(workspace):
+    workspace.thread("peer", "team")
+    second = installed_wire(workspace.roots.attempt / "second")
+    async with workspace.app() as ui:
+        await ui.open_channel("#team", actor=workspace.viewer)
+        view = ui.app.selected_session.query_one(CommsChatView)
+        first = view.message_history.page_source.loader.comms
+        before = first.bus.bus.revision(), second.bus.bus.revision()
+        entered, release = asyncio.Event(), asyncio.Event()
+        refused = []
+        selected_write = route_selection.run_selected_write
+        dispatch = asyncio.to_thread
 
-        def delayed_write(root, operation, *args, **kwargs):
-            entered_action.set()
-            release.wait(20)
-            return real_write(root, operation, *args, **kwargs)
+        def in_changed_route(operation, *args, **kwargs):
+            with LaunchRoot.from_path(second.root).selected():
+                try:
+                    return operation(*args, **kwargs)
+                except RouteChangedError as error:
+                    refused.append(error)
+                    raise
 
-        def safe_spy(command, comms):
-            invoked.append(command.name)
-            return {"thread": command.name, "pid": 0, "launched": False}
+        async def dispatch_after_route_change(operation, *args, **kwargs):
+            if operation is selected_write and args[1] == first.messaging.send_user_message:
+                entered.set()
+                await release.wait()
+                return await dispatch(in_changed_route, operation, *args, **kwargs)
+            return await dispatch(operation, *args, **kwargs)
 
-        with (patch("asyncio.to_thread", delayed_dispatch),
-              patch.object(comms_root, "run_selected_write", delayed_write),
-              patch.object(StartCliCommand, "apply", safe_spy),
-              patch.object(private_nk_entrypoint, "_trusted_package", lambda _: None)):
-            history = view.message_history
-            ack = asyncio.create_task(history.mark_page(page, None, snapshot=history.source_snapshot()))
-            request_target_command(app, StartCliCommand, "peer")
-            async with asyncio.timeout(8):
-                while not (entered_ack.is_set() and entered_action.is_set()):
-                    await original_to_thread(entered_action.wait, 0.05)
-                    await asyncio.sleep(0)
-            # The delayed view writes have not taken the route's lock yet, so publication passes them.
-            async with asyncio.timeout(5):
-                await asyncio.get_running_loop().run_in_executor(None, publish_active_route, route)
-            assert current_root() == private
-            release.set()
-            await ack
-            await ui.step()
-        assert not invoked, "stale old-root start reached its core operation"
-        assert (marker.read_bytes() if marker.exists() else b"") == before
-        with pytest.raises(ValueError):
-            run_selected_write(legacy, safe_spy, None, None, implicit=True)
+        with patch.object(asyncio, "to_thread", dispatch_after_route_change):
+            sending = asyncio.create_task(view.submit_input(UserInputSubmitted("WORKER_ROUTE_REFUSED")))
+            try:
+                await asyncio.wait_for(entered.wait(), 8)
+                await ui.until(lambda: view.prompt.prompt_text_area.disabled,
+                               why="the in-flight send to hold compose")
+                release.set()
+                await sending
+                await ui.until(lambda: view.prompt.text == "WORKER_ROUTE_REFUSED"
+                               and not view.prompt.prompt_text_area.disabled,
+                               why="the worker-refused draft to be editable")
+                assert len(refused) == 1
+            finally:
+                release.set()
+                await asyncio.gather(sending, return_exceptions=True)
+        assert not view.send_block_reason
+        assert (first.bus.bus.revision(), second.bus.bus.revision()) == before
+        assert ui.failure() is None
