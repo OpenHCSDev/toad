@@ -7,6 +7,7 @@ import os
 
 import pytest
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.session_file import SavedSessionFile
 from agent_comms.fresh_private_session import create_fresh_private_session
@@ -43,7 +44,7 @@ async def test_closing_the_app_after_the_observation_process_exits_raises_nothin
         agent = ui.detached_agent("closing")
         view.bind_agent(agent)
         agent.coordination = CoordinationChangedUpdate(
-            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner_pid=os.getpid(),
+            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
             worktree=str(project), model="test-model", thinking_level=None, title=thread.name,
             context_usage=UnmeasuredContext())
         await deliver(agent, {

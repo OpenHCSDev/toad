@@ -273,7 +273,7 @@ async def test_queue_line_follows_the_owner_after_restart_process(workspace, nat
         def queue_of_the_new_owner():
             scope = agent.queue_attachment.scope
             return (view.submissions.queue_projection.status == "available"
-                    and scope is not None and scope.owner_pid == restarted.pid)
+                    and scope is not None and scope.owner == restarted)
 
         await ui.until(queue_of_the_new_owner, seconds=30, why="the queue view of the restarted owner")
         await ui.step()

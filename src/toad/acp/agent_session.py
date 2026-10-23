@@ -507,12 +507,12 @@ class AgentSession:
             return
 
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        owner_pid = self.agent.coordination.owner_pid
+        owner = self.agent.coordination.owner
         comms = await self.agent.controller.transcripts.service(wire_root)
         authority.require()
         result = await asyncio.to_thread(
             comms.threads.rename_managed_thread,
-            thread, display_name, owner_pid=owner_pid,
+            thread, display_name, owner=owner,
         )
         authority.require()
         self.agent.coordination = replace(
