@@ -2,6 +2,7 @@ import base64
 from pathlib import Path
 
 from acp import schema
+from acp.helpers import ContentBlock
 from toad.file_kind import FileKind
 from toad.prompt.extract import extract_paths_from_prompt
 from toad.prompt.resource import load_resource, ResourceError
@@ -9,7 +10,7 @@ from toad.clipboard_image import attachment_directory
 from agent_comms.image_inputs import ImageInput, prompt_images
 
 
-def build(project_path: Path, prompt: str) -> list[object]:
+def build(project_path: Path, prompt: str) -> list[ContentBlock]:
     """Build the prompt structure and extract paths with the @ syntax.
 
     Args:
