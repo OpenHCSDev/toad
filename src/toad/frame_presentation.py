@@ -1,4 +1,5 @@
 """Each frame tracks terminal flush completion, readiness and deferred source work."""
+
 from __future__ import annotations
 
 import asyncio
@@ -21,8 +22,9 @@ from ui_theme.scheme import BackgroundColour, ThemeColour
 
 if TYPE_CHECKING:
     from textual.css.styles import StylesBase
-    from toad.widgets.transcript_history import TranscriptPageView
+
     from toad.screens.workspace import WorkspaceScreen
+    from toad.widgets.transcript_history import TranscriptPageView
 
 
 class ToneLayer(PaintLayer):
@@ -32,7 +34,15 @@ class ToneLayer(PaintLayer):
     alpha; with no tone the CSS paint is unchanged.
     """
 
-    __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "layer_opacity", "text_style", "background_tint")
+    __slots__ = (
+        "styles",
+        "paint_background",
+        "paint_foreground",
+        "auto_color",
+        "layer_opacity",
+        "text_style",
+        "background_tint",
+    )
 
     def __init__(self, styles: StylesBase, tone: Color | None, opacity: float, paint: TonePaint) -> None:
         self.styles = styles
@@ -48,6 +58,7 @@ class ToneLayer(PaintLayer):
         tint = paint.background_tint
         self.background_tint = styles.background_tint if tint is None else tint
         self.paint_background = stated if tone is None else tone if stated is None else tone + stated
+
     text_opacity = property(lambda self: self.styles.text_opacity)
 
 
@@ -65,8 +76,7 @@ class TonePaint:
     @property
     def paint_layer(self) -> PaintLayer:
         tone = self.tone
-        return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone),
-                         self.paint_opacity, self)
+        return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone), self.paint_opacity, self)
 
 
 class UntintedTonePaint(TonePaint):
@@ -200,8 +210,7 @@ class FramePresentation:
     def flush_owner(self, owner: Widget, callback: Callable[[], object]) -> None:
         """Wait for the sender's frame before waiting for the terminal writer."""
         if self.awaits_publication(owner, callback):
-            self.screen.app._driver.call_after_flush(
-                partial(self.release, owner, callback, self.state.scene))
+            self.screen.app._driver.call_after_flush(partial(self.release, owner, callback, self.state.scene))
 
     def release(self, owner: Widget, callback: Callable[[], object], scene: PendingFrame) -> None:
         """Release the admitted owner after its publication's writer join."""
@@ -320,8 +329,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
 
     def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
         animation = self.effects.get(effect)
-        return (EFFECT_UNSTARTED if animation is None else
-                EFFECT_FINISHED if animation.finished else EFFECT_RUNNING)
+        return EFFECT_UNSTARTED if animation is None else EFFECT_FINISHED if animation.finished else EFFECT_RUNNING
 
     async def on_unmount(self) -> None:
         self.stop_effect()
@@ -338,9 +346,17 @@ class AnimationEffects[FrameT: Frame](TonePaint):
     def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:
         # Background-origin text rises from the widget's tone; accent flashes
         # keep their declared origin. Both finish at each run's own ink.
-        for frame in (*frames, *(replace(self.effect_frame(effect), start=self.text_background)
-                                 if effect.start is BackgroundColour else self.effect_frame(effect)
-                                 for effect in self.text_fades)):
+        for frame in (
+            *frames,
+            *(
+                (
+                    replace(self.effect_frame(effect), start=self.text_background)
+                    if effect.start is BackgroundColour
+                    else self.effect_frame(effect)
+                )
+                for effect in self.text_fades
+            ),
+        ):
             strip = self.app.colours.paint_rising(frame, strip)
         return strip
 
@@ -351,7 +367,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         screen = self.screen
         try:
             current = self.app.screen
-        except (ScreenStackError, UnknownModeError):
+        except ScreenStackError, UnknownModeError:
             return False
         return screen is current and self in screen._compositor.visible_widgets
 

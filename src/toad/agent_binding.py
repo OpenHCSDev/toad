@@ -18,7 +18,11 @@ if TYPE_CHECKING:
     from agent_comms.goal_actions import GoalAction
     from agent_comms.session_load import ExistingSessionLoadPlan
 
-    from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions, SubmissionStart
+    from toad.conversation_submission import (
+        AgentInputSubmission,
+        ConversationSubmissions,
+        SubmissionStart,
+    )
     from toad.conversation_turn import TurnOwner
     from toad.core_event_carrier import CoreEventMessage
     from toad.screens.main import MainScreen
@@ -32,7 +36,7 @@ class AgentConnection(ABC):
     presentation: AgentPresentation
 
     @abstractmethod
-    async def observe_thread_presentation(self, presentation: ThreadPresentation | None) -> None: ...
+    async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None: ...
 
     def thread_read(self):
         from toad.acp.comms_updates import NoPendingThreadRead
@@ -68,9 +72,7 @@ class AgentConnection(ABC):
     def accepts_message(self, message: CoreEventMessage) -> bool: ...
 
     @abstractmethod
-    def begin_submission(
-        self, owner: ConversationSubmissions, submission: AgentInputSubmission
-    ) -> SubmissionStart: ...
+    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart: ...
 
     @abstractmethod
     def accepts_failed_input(self, message: CoreEventMessage) -> bool: ...
@@ -189,7 +191,7 @@ class NoAgentConnection(AgentConnection):
     def request_compaction(self, view: Conversation, instructions) -> None:
         view.feedback.flash("Context compaction requires an agent-comms session", style="error")
 
-    async def observe_thread_presentation(self, presentation) -> None:
+    async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None:
         """There is no connected agent to inform."""
 
     def invalidate_observation(self, observation: SessionObservation) -> None:

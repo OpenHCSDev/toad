@@ -286,7 +286,7 @@ class DmConversation(ConversationKind):
         """Direct-message composers have no channel mention roster."""
 
     @classmethod
-    def compose_activity(cls, view: CommsChatView) -> ComposeResult:
+    def compose_activity(cls, view) -> ComposeResult:
         view.thread_activity = ConversationSessionDetails(view.conversation.peer)
         yield view.thread_activity
 

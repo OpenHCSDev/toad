@@ -1,15 +1,19 @@
 """Textual attachment borrows original agent services and projection resources."""
 
-from weakref import ref
 from contextlib import AsyncExitStack
 from functools import partial
 from typing import TYPE_CHECKING
+from weakref import ref
 
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.surface_binding import SurfaceBinding
+
 from toad.acp.agent_controller import ProcessTaskRunner
-from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
+from toad.permission_presentation import (
+    DiffPermissionPresentation,
+    InlinePermissionPresentation,
+)
 from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
+from toad.surface_binding import SurfaceBinding
 
 if TYPE_CHECKING:
     from textual.message import Message
@@ -38,7 +42,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         app = self.target.app
         controller.task_runner = ProcessTaskRunner(app.render_processes)
 
-    def owns_publication(self, message: CoreEventMessage, target: Conversation):
+    def owns_publication(self, message, target: Conversation):
         if not self.subscription.accepts(message.subscription):
             return False
         if not self.owns(target) or not target.agent_binding.matches_agent(message.publisher):
@@ -48,16 +52,19 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         return target.is_attached and message.publisher.tools.presentation(message.event) is not None
 
     async def _post_native(
-        self, message: CoreEventMessage, target: Conversation, widget: Widget, retirement: AsyncExitStack,
+        self,
+        message: CoreEventMessage,
+        target: Conversation,
+        widget: Widget,
+        retirement: AsyncExitStack,
     ):
         if not self.owns_publication(message, target):
             return False
-        retirement.push_async_callback(target.transcript.retire_presentations,
-                                       target.contents, target.output, [widget])
+        retirement.push_async_callback(target.transcript.retire_presentations, target.contents, target.output, [widget])
         await target.post(widget, new_block=True)
         return self.owns_publication(message, target) and widget.is_attached
 
-    async def present_tool(self, message: CoreEventMessage, target: Conversation):
+    async def present_tool(self, message, target: Conversation):
         from toad.tool_output import ToolOutput
         from toad.widgets.outgoing_message import OutgoingMessage
         from toad.widgets.tool_call import ToolCall
@@ -69,7 +76,9 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         status = event.tool_call
         status.activity(target.turns, target.output, status.title)
         parts = await target.app.preparation.run_thread(
-            ToolOutput.capture_projection, status, event.scope,
+            ToolOutput.capture_projection,
+            status,
+            event.scope,
         )
         if not self.owns_publication(message, target):
             return
@@ -118,8 +127,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
     async def show_shell_command(self, output: ShellCommandOutput, target: Conversation):
         from toad.widgets.shell_result import ShellResult
 
-        if not any(isinstance(child, ShellResult) and child.source is output
-                   for child in target.contents.children):
+        if not any(isinstance(child, ShellResult) and child.source is output for child in target.contents.children):
             await target.post(ShellResult(output))
 
     @handles(ShellTerminalOutput)
@@ -127,8 +135,9 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         if output.terminal is None:
             from toad.widgets.shell_terminal import ShellTerminal
 
-            terminal = next((terminal for terminal in target.query(ShellTerminal)
-                             if terminal.state is output.state), None)
+            terminal = next(
+                (terminal for terminal in target.query(ShellTerminal) if terminal.state is output.state), None
+            )
             if terminal is None:
                 terminal = await target.new_terminal()
             output.attach(terminal)
@@ -145,7 +154,10 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     @handles(DiffPermissionPresentation)
     async def show_file_permission(
-        self, presentation: DiffPermissionPresentation, view: Conversation, request: PermissionRequest,
+        self,
+        presentation: DiffPermissionPresentation,
+        view: Conversation,
+        request: PermissionRequest,
     ):
         from toad.screens.permissions import PermissionReview
 
@@ -155,8 +167,9 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             return
         try:
             app.terminal_attention.require(screen)
-            app.terminal_attention.notify(f"{view.agent_title} would like to write files",
-                                          title="Permissions request", sound="question")
+            app.terminal_attention.notify(
+                f"{view.agent_title} would like to write files", title="Permissions request", sound="question"
+            )
             result = await app.push_screen_wait(screen, mode=view.screen.id)
             request.answer(self, result)
         finally:
@@ -164,20 +177,24 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     @handles(InlinePermissionPresentation)
     async def show_inline_permission(
-        self, presentation: InlinePermissionPresentation, view: Conversation, request: PermissionRequest,
+        self,
+        presentation: InlinePermissionPresentation,
+        view: Conversation,
+        request: PermissionRequest,
     ):
-        from toad.widgets.acp_content import ACPToolCallContent
         from toad.tool_output import decode_content
+        from toad.widgets.acp_content import ACPToolCallContent
 
-        parts = tuple(preview for item in presentation.parts
-                      if (preview := decode_content(item).permission_preview()) is not None)
+        parts = tuple(
+            preview for item in presentation.parts if (preview := decode_content(item).permission_preview()) is not None
+        )
 
         def answer(answer: Answer):
             request.answer(self, answer)
 
-        ask = view.ask(request.options, presentation.title,
-                       partial(ACPToolCallContent, parts) if parts else None,
-                       answer)
+        ask = view.ask(
+            request.options, presentation.title, partial(ACPToolCallContent, parts) if parts else None, answer
+        )
 
         def retire():
             if view.is_attached:
@@ -208,6 +225,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     def publish_terminal(self, controller: TerminalController, terminal_id: str, execution: TerminalExecution):
         from toad.widgets.terminal_tool import TerminalTool
+
         return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))
 
     def owns_terminal(self, projection: TerminalTool.Projection, target: Conversation):

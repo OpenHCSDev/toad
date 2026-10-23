@@ -3,11 +3,12 @@ from pathlib import Path
 
 from acp import schema
 from acp.helpers import ContentBlock
+from agent_comms.image_inputs import ImageInput, prompt_images
+
+from toad.clipboard_image import attachment_directory
 from toad.file_kind import FileKind
 from toad.prompt.extract import extract_paths_from_prompt
-from toad.prompt.resource import load_resource, ResourceError
-from toad.clipboard_image import attachment_directory
-from agent_comms.image_inputs import ImageInput, prompt_images
+from toad.prompt.resource import ResourceError, load_resource
 
 
 def build(project_path: Path, prompt: str) -> list[ContentBlock]:
@@ -69,4 +70,6 @@ def build(project_path: Path, prompt: str) -> list[ContentBlock]:
     if image_spans:
         prompt_content[0]["text"] = prompt.strip()
     prompt_images(prompt_content)  # Validate the combined image count/size too.
-    return schema.PromptRequest.model_validate({"sessionId": "attachments", "prompt": prompt_content}, strict=True).prompt
+    return schema.PromptRequest.model_validate(
+        {"sessionId": "attachments", "prompt": prompt_content}, strict=True
+    ).prompt
