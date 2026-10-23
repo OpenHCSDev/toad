@@ -10,6 +10,7 @@ from agent_comms.errors import (
     HumanSendError,
     HumanSendRefusedError,
     RelationViolationError,
+    RouteChangedError,
 )
 from agent_comms.messages import Message
 
@@ -90,48 +91,38 @@ class DeliveryFailureView:
 
     async def submit_comms_message(self, root, conversation, body, current, present):
         """CLI transcripts and wire pages use the same Core-send checks."""
-        if not body.strip():
-            return
-        async with self.app.coordination_access.transcripts.bind(root) as comms:
-            read_only = await self.app.preparation.run_thread(conversation.read_only, comms)
-        await self.refresh_composer(read_only)
-        if read_only:
-            self.prompt.restore_draft(body)
-            self.flash(self.status, style="error")
-            return
-        await self.deliver_user_message(root, conversation.send_target(), body, current, present)
-
-    async def deliver_user_message(self, root, target, body, current, present):
-        """One route check, write and failure path for CLI, DM and channel input."""
         from agent_comms.delivery_failure import delivery_failure
         from agent_comms.route_selection import root_is_current
 
+        if not body.strip():
+            return
         if self.send_block_reason:
             self.flash(self.send_block_reason, style="error")
             return
-        self._enter_send_state(SendPending())
-
-        async def require_route():
+        try:
+            comms = await self.app.coordination_access.transcripts.service(root)
+            read_only = await self.app.preparation.run_thread(conversation.read_only, comms)
+            await self.refresh_composer(read_only)
+            if read_only:
+                self.prompt.restore_draft(body)
+                self.flash(self.status, style="error")
+                return
+            self._enter_send_state(SendPending())
             route_current = await self.app.preparation.run_thread(root_is_current, root)
             if not route_current or not current():
                 raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
-
-        try:
-            async with self.app.coordination_access.transcripts.bind(root) as comms:
-                await require_route()
+            sent = await self.commit_user_message(comms, conversation.send_target(), body)
         except asyncio.CancelledError:
             self.delivery_refused("Cancelled before sending", body)
             raise
-        except HumanSendError as error:
+        except (HumanSendError, RouteChangedError) as error:
             delivery_failure(error).present(self, body)
             return
-        sent = await self.commit_user_message(comms, target, body)
         if sent is None:
             return
         await present(sent)
 
     async def commit_user_message(self, comms, target, body):
-        from agent_comms.delivery_failure import delivery_failure
         from agent_comms.route_selection import run_selected_write
 
         task = asyncio.create_task(asyncio.to_thread(
@@ -142,9 +133,6 @@ class DeliveryFailureView:
         except asyncio.CancelledError:
             self.delivery_blocked("Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry", body)
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
-            return None
-        except HumanSendError as error:
-            delivery_failure(error).present(self, body)
             return None
         except CommittedMessageError as error:
             sent = error.record

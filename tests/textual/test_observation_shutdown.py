@@ -3,9 +3,33 @@
 import asyncio
 import sys
 import threading
+import pytest
 
-from agent_comms.ui_model.observation import ObservationProcess, ObserveNotifications, ReadNotifications
+from agent_comms.ui_model.observation import ObservationProcess, ObserverDied, ObserveNotifications, ReadNotifications
 from toad.comms_root import AnsweringReads
+
+
+async def test_an_observer_dying_during_shutdown_still_releases_its_resources(workspace):
+    cleaned = threading.Event()
+    with pytest.raises(BaseExceptionGroup) as failures:
+        async with workspace.app() as ui:
+            access = ui.app.coordination_access
+            await access.current_sidebar()
+            observed = access.observation.observed()
+            process = observed.process
+            access.cleanup.callback(cleaned.set)
+            # The death has not been delivered to receive(); stop_updates must
+            # encounter it at its actual StopObserving request during shutdown.
+            asyncio.get_running_loop().remove_reader(process.fileno())
+            process.process.kill()
+            await asyncio.to_thread(process.process.join, 5)
+            assert process.process.exitcode is not None
+            assert not process.connection.closed
+    assert failures.value.subgroup(ObserverDied) is not None
+    assert process.connection.closed
+    assert not process.process.is_alive()
+    assert not access.retiring
+    assert cleaned.is_set()
 
 
 async def test_shutdown_drains_an_acquired_service_read_after_its_waiter_is_cancelled(workspace, monkeypatch):

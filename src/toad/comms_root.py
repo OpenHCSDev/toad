@@ -24,6 +24,7 @@ from pathlib import Path
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.coordination_errors import StaleRevision
+from agent_comms.child_process import join_retirement
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
@@ -38,7 +39,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
-from toad.resource_release import ResourceRelease
+from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 
@@ -550,11 +551,16 @@ class CoordinationAccess(MroDispatch):
 
     async def close(self) -> None:
         """Retire the observation once the views it served have closed."""
-        await self.stop_observing()
-        self.observation.subscriptions.close()
-        self.observation = NotObserving(access=self)
-        await asyncio.gather(*self.retiring, return_exceptions=True)
-        self.cleanup.close()
+        async with AsyncResourceRelease() as release:
+            release.callback(self.cleanup.close)
+            try:
+                with ResourceRelease() as observation:
+                    observation.callback(lambda: self.observation.subscriptions.close())
+                    await self.stop_observing()
+            finally:
+                self.observation = NotObserving(access=self)
+                for task in tuple(self.retiring):
+                    release.push_async_callback(join_retirement, task)
 
     async def route_changed(self) -> bool:
         previous = self.observation

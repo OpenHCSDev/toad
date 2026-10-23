@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 from agent_comms.active_route import ActiveRoute
-from agent_comms.errors import HumanClaimBlockedError, HumanSendRefusedError
+from agent_comms.errors import HumanClaimBlockedError, HumanSendRefusedError, RelationViolationError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.route_selection import current_root
 
@@ -73,7 +73,7 @@ async def test_a_fresh_launch_uses_the_published_root_and_preserves_refused_and_
             assert source.comms.root == second
             assert not ui.shows("FIRST_HISTORY")
             with patch.object(source.comms.messaging, "send_user_message",
-                              side_effect=HumanSendRefusedError("pre-append rejection")) as rejected:
+                              side_effect=HumanSendRefusedError(RelationViolationError("pre-append rejection"))) as rejected:
                 await view.submit_input(input_events.UserInputSubmitted("EDITABLE_REJECTION"))
                 await ui.until(lambda: not view.prompt.prompt_text_area.disabled,
                                why="the rejected draft editable on the fresh root")

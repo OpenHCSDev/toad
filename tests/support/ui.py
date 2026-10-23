@@ -344,7 +344,7 @@ class TextualUi(AppAgents, Ui):
 
     @property
     def core_service(self):
-        return self.app.coordination_access.service
+        return self.app.coordination_access.observation.observed().service
 
     def failure(self) -> BaseException | None:
         return self.app._exception
