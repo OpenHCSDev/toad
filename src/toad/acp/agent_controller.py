@@ -99,7 +99,7 @@ class AgentController(OperationalTerminalOwner):
         self.transcripts = transcripts
         self.coordination = None
         self.session = SessionBinding(None)
-        self.commands = []
+        self.commands: list[AvailableCommand] = []
         self.plan_entries: list[PlanItem] | None = None
 
     def bind_session(self, session_id) -> None:
@@ -371,7 +371,7 @@ class AgentController(OperationalTerminalOwner):
             raise ValueError("Compaction returned no result")
         consumer = agent.comms_consumer_class(agent, authority.session_id)
         await consumer.consume_metadata(response.field_meta)
-        return consumer.require_compaction_update()
+        return consumer.compaction.require()
 
     async def cancel_prompt(self):
         return await self.operate(self._cancel_prompt(ClientSessionRequest(self.agent, self.agent.session_id)))

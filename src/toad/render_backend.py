@@ -2,26 +2,33 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from collections.abc import Awaitable
 import asyncio
-from contextvars import Context, copy_context
 import os
-from typing import TypeVar, Generic, TYPE_CHECKING, cast, get_args, get_origin
+from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
+from contextvars import Context, copy_context
+from types import get_original_bases
+from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar, cast, get_args, get_origin
 
 from agent_comms.declared_family import DeclaredFamily
+
 from toad.work_preparation import (
-    PreparationStorage, SerializedStorage, PreparationRuntime, RenderPreparation,
+    PreparationRuntime,
+    PreparationStorage,
+    RenderPreparation,
+    SerializedStorage,
 )
 
-ResultT = TypeVar("ResultT", covariant=True)
+ResultT = TypeVar("ResultT")
 
 if TYPE_CHECKING:
-    from toad.work_preparation import WorkKey, PreparedValue
+    from toad.work_preparation import PreparedValue, WorkKey
 
 class RenderExecution(ABC, Generic[ResultT]):
+    _matches_result: ClassVar[Callable[[object], bool]]
+
     def __init_subclass__(cls, **kwargs) -> None:
-        for base in cls.__orig_bases__:
+        for base in get_original_bases(cls):
             origin = get_origin(base)
             if origin is None or not issubclass(origin, RenderExecution):
                 continue
@@ -42,12 +49,7 @@ class RenderExecution(ABC, Generic[ResultT]):
             break
         super().__init_subclass__(**kwargs)
 
-    @staticmethod
-    @abstractmethod
-    def _matches_result(result: object) -> bool:
-        """Compiled from the concrete task's Generic declaration before registration."""
-
-    async def complete(self, execution: Awaitable[object]) -> ResultT:
+    async def complete(self, execution: Awaitable[ResultT]) -> ResultT:
         """Accept the actual completed worker result through this task's contract."""
         return self.accept_result(await execution)
 
@@ -57,7 +59,7 @@ class RenderExecution(ABC, Generic[ResultT]):
 
     def accept_result(self, result: object) -> ResultT:
         """Validate the result at a transport boundary."""
-        if not self._matches_result(result):
+        if not type(self)._matches_result(result):
             raise TypeError(f"{type(self).__name__} returned an invalid renderer result")
         return cast(ResultT, result)
 
@@ -98,6 +100,7 @@ class RenderTask(RenderExecution[ResultT], PreparationStorage[ResultT], Declared
 class ReusableRenderTask(SerializedStorage[ResultT], RenderTask[ResultT]):
     async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
         from dataclasses import replace
+
         from toad.work_preparation import ContentAddressedWork
 
         return replace(await ContentAddressedWork.identity(work, runtime), scope=work.scope)
@@ -171,7 +174,8 @@ class Renderer(RendererSpawn):
         try:
             await asyncio.wait((pending,))
         finally:
-            asyncio.future_discard_from_awaited_by(pending, waiter)
+            if waiter is not None:
+                asyncio.future_discard_from_awaited_by(pending, waiter)
 
     def _submission_finished(self, task: asyncio.Task) -> None:
         self._submissions.discard(task)
