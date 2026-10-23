@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -13,7 +13,11 @@ from agent_comms.channel_targets import ThreadTarget
 from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.observation import ReadTranscript, ReadTranscriptUpdate
+from agent_comms.ui_model.observation import (
+    ReadTranscript,
+    ReadTranscriptUpdate,
+    TranscriptPublicationState,
+)
 
 from toad.app_node import ToadNode
 from toad.constants import WELCOME
@@ -25,10 +29,15 @@ from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 
 if TYPE_CHECKING:
+    from agent_comms.messages import Message
+    from agent_comms.transcripts import TranscriptCursor
     from textual.command import Provider
     from textual.dom import DOMNode
 
     from toad.agent_schema import AgentDefinition
+    from toad.comms_root import CoordinationAccess
+    from toad.conversation_kind import DmConversation
+    from toad.core.input_events import UserInputSubmitted
     from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
@@ -48,26 +57,47 @@ class TranscriptScope(ABC):
     ) -> tuple[tuple[str, ThreadIncarnation], ...]: ...
 
     @abstractmethod
-    def matches_session(self, access, session_id: str) -> bool: ...
+    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool: ...
 
     @abstractmethod
-    def status_thread(self, access) -> StatusThread: ...
+    def status_thread(self, access: CoordinationAccess) -> StatusThread: ...
 
     @abstractmethod
-    def observe(self, view, access, resume) -> ResourceRelease: ...
+    def observe(
+        self,
+        view: Conversation,
+        access: CoordinationAccess,
+        resume: Callable[[ThreadRowsChanged], bool | None],
+    ) -> ResourceRelease: ...
 
     @abstractmethod
-    def snapshot_request(self, **bounds) -> ReadTranscript: ...
+    def snapshot_request(
+        self,
+        *,
+        before: TranscriptCursor | None = None,
+        after: TranscriptCursor | None = None,
+        through: TranscriptCursor | None = None,
+        historical_source: str | None = None,
+    ) -> ReadTranscript: ...
 
     @abstractmethod
-    def update_request(self, previous, **bounds) -> ReadTranscriptUpdate: ...
+    def update_request(
+        self,
+        previous: TranscriptPublicationState,
+        *,
+        after: TranscriptCursor | None = None,
+    ) -> ReadTranscriptUpdate: ...
 
     @abstractmethod
     def mailbox_target(self) -> ThreadTarget: ...
 
     @abstractmethod
     async def submit_mailbox(
-        self, view, event, conversation_type, presented
+        self,
+        view: Conversation,
+        event: UserInputSubmitted,
+        conversation_type: type[DmConversation],
+        presented: Callable[[Message | None], Awaitable[None]],
     ) -> None: ...
 
 
@@ -82,17 +112,22 @@ class KnownTranscript(TranscriptScope):
     ) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ((self.root, identity.thread_incarnation()),)
 
-    def matches_session(self, access, session_id: str) -> bool:
+    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
         service = access.require(RouteSelection.capture(self.root)).service
         return (
             service.registry.canonical_name(session_id)
             == service.registry.require(self.name).name
         )
 
-    def status_thread(self, access) -> StatusThread:
+    def status_thread(self, access: CoordinationAccess) -> StatusThread:
         return StatusThread.for_root(Path(self.root), self.name, access)
 
-    def observe(self, view, access, resume) -> ResourceRelease:
+    def observe(
+        self,
+        view: Conversation,
+        access: CoordinationAccess,
+        resume: Callable[[ThreadRowsChanged], bool | None],
+    ) -> ResourceRelease:
         release = ResourceRelease()
         release.callback(
             view.retire_core,
@@ -107,16 +142,41 @@ class KnownTranscript(TranscriptScope):
         )
         return release
 
-    def snapshot_request(self, **bounds) -> ReadTranscript:
-        return ReadTranscript(self.root, self.name, **bounds)
+    def snapshot_request(
+        self,
+        *,
+        before: TranscriptCursor | None = None,
+        after: TranscriptCursor | None = None,
+        through: TranscriptCursor | None = None,
+        historical_source: str | None = None,
+    ) -> ReadTranscript:
+        return ReadTranscript(
+            self.root,
+            self.name,
+            before=before,
+            after=after,
+            through=through,
+            historical_source=historical_source,
+        )
 
-    def update_request(self, previous, **bounds) -> ReadTranscriptUpdate:
-        return ReadTranscriptUpdate(self.root, self.name, previous=previous, **bounds)
+    def update_request(
+        self,
+        previous: TranscriptPublicationState,
+        *,
+        after: TranscriptCursor | None = None,
+    ) -> ReadTranscriptUpdate:
+        return ReadTranscriptUpdate(self.root, self.name, previous=previous, after=after)
 
     def mailbox_target(self) -> ThreadTarget:
         return ThreadTarget(self.name)
 
-    async def submit_mailbox(self, view, event, conversation_type, presented) -> None:
+    async def submit_mailbox(
+        self,
+        view: Conversation,
+        event: UserInputSubmitted,
+        conversation_type: type[DmConversation],
+        presented: Callable[[Message | None], Awaitable[None]],
+    ) -> None:
         await view.submit_comms_message(
             self.root,
             conversation_type(
@@ -137,28 +197,51 @@ class NoTranscript(TranscriptScope):
     ) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
-    def matches_session(self, access, session_id: str) -> bool:
+    def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
         return False
 
-    def status_thread(self, access) -> StatusThread:
+    def status_thread(self, access: CoordinationAccess) -> StatusThread:
         return NoStatusThread()
 
-    def observe(self, view, access, resume) -> ResourceRelease:
+    def observe(
+        self,
+        view: Conversation,
+        access: CoordinationAccess,
+        resume: Callable[[ThreadRowsChanged], bool | None],
+    ) -> ResourceRelease:
         return ResourceRelease()
 
     def unavailable(self) -> Never:
         raise ValueError("Transcript paging requires a bound thread")
 
-    def snapshot_request(self, **bounds) -> Never:
+    def snapshot_request(
+        self,
+        *,
+        before: TranscriptCursor | None = None,
+        after: TranscriptCursor | None = None,
+        through: TranscriptCursor | None = None,
+        historical_source: str | None = None,
+    ) -> Never:
         self.unavailable()
 
-    def update_request(self, previous, **bounds) -> Never:
+    def update_request(
+        self,
+        previous: TranscriptPublicationState,
+        *,
+        after: TranscriptCursor | None = None,
+    ) -> Never:
         self.unavailable()
 
     def mailbox_target(self) -> Never:
         self.unavailable()
 
-    async def submit_mailbox(self, view, event, conversation_type, presented) -> None:
+    async def submit_mailbox(
+        self,
+        view: Conversation,
+        event: UserInputSubmitted,
+        conversation_type: type[DmConversation],
+        presented: Callable[[Message | None], Awaitable[None]],
+    ) -> None:
         view.delivery_refused("CLI transcript is not ready", event.body)
 
 

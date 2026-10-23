@@ -2,6 +2,7 @@
 
 from abc import abstractmethod
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
@@ -54,7 +55,7 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     def focus_sidebar_return(self) -> None: ...
 
     @abstractmethod
-    def visible_target(self, sessions: WorkspaceSessions, root) -> NavigationTarget: ...
+    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget: ...
 
     @abstractmethod
     def sidebars(self):
@@ -84,7 +85,7 @@ class DetachedWorkspaceSource(WorkspaceSource):
     def focus_sidebar_return(self) -> None:
         """A detached workspace has no return target."""
 
-    def visible_target(self, sessions: WorkspaceSessions, root) -> NavigationTarget:
+    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget:
         return NoTarget()
 
     def sidebars(self):
@@ -124,7 +125,7 @@ class BoundWorkspaceSource(WorkspaceSource):
     def focus_sidebar_return(self) -> None:
         self.view.focus_sidebar_return()
 
-    def visible_target(self, sessions: WorkspaceSessions, root) -> NavigationTarget:
+    def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget:
         return (
             sessions.target_for_mode(self.identity, root)
             if sessions.owns(self.view)
@@ -220,11 +221,11 @@ class WorkspaceSessions:
     def owns(self, view: "SessionScope") -> bool:
         return self.source.current(view)
 
-    def visible_target(self, root) -> NavigationTarget:
+    def visible_target(self, root: Path | None) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
         return self.source.visible_target(self, root)
 
-    def target_for_mode(self, identity, root) -> NavigationTarget:
+    def target_for_mode(self, identity: str, root: Path | None) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""
         view = self.views.get(identity)
         return (

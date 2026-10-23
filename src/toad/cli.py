@@ -58,12 +58,9 @@ async def get_agent_binding(launch_agent: str) -> AgentBinding:
         return NoAgent()
     launch_agent = launch_agent.lower()
 
-    from toad.agents import read_agents, AgentReadError
+    from toad.agents import read_agents
 
-    try:
-        agents = await read_agents()
-    except AgentReadError:
-        return NoAgent()
+    agents = await read_agents()
 
     for agent_data in agents.values():
         if (
