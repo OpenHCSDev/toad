@@ -33,13 +33,6 @@ tests = [
     "tests/textual/test_key_bursts_move_focus_to_the_editor.py::test_a_character_a_left_arrow_and_a_character_in_one_burst_keep_their_order",
 ]
 
-[command-hint-refresh]
-defect = "When an agent advertises a command again with a different input hint, the editor keeps showing the first hint after '/command '."
-owner = "unassigned: Toad prompt (widgets/prompt.py, slash completion)"
-tests = [
-    "tests/textual/test_prompt_completion.py::test_a_whole_command_is_selected_backwards_and_the_agents_hint_refreshes",
-]
-
 [history-admission-growth]
 defect = "Loading earlier pages over and over grows the admitted history without bound: the fragment count rises by four per load (84 after twenty loads, against a 32 limit the old test held). Scrolling far up a long history keeps every page admitted."
 owner = "frame-time / line-view owner (perf/line-history)"
@@ -68,15 +61,6 @@ defect = "A goal notice that arrives after a newer goal state is shown replaces 
 owner = "Core goal owner (agent_comms GoalSnapshot), then the Toad goal bar (GoalObservation.receive)"
 tests = [
     "tests/native/test_native_goal_objective_edit.py::test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one",
-]
-
-[late-answer-drawn-twice]
-defect = "A live answer that is applied after its session file and the end of its turn have arrived is sometimes drawn twice and stays that way (about one run in seven for the queued snapshot, less often for a direct snapshot): the saved history is mounted a second time below the first, so the whole history, not only the answer, appears twice."
-owner = "frame-time / line-view owner (perf/line-history), transcript_publication.py"
-intermittent = true
-tests = [
-    "tests/textual/test_late_live_answer.py::test_late_live_answer_is_drawn_once[snapshot]",
-    "tests/textual/test_late_live_answer.py::test_late_live_answer_is_drawn_once[queued-snapshot]",
 ]
 
 [reader-row-frame-during-page-load]

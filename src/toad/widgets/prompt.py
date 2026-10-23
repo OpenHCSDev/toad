@@ -271,6 +271,7 @@ See on-screen instructions for details.
         return self.submission_allowed and not self.text and not self.shell_mode
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
+        self._clear_caches()
         self.notify_style_update()
         self.refresh()
 
