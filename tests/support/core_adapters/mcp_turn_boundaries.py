@@ -16,6 +16,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.comms import wire
 from agent_comms.coordinator import Coordination
+from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.pi_payloads import (
     McpLiveAcknowledgement, McpServerReceipt, ReadyMcpServerState, ConfirmMcpCallPolicy,
 )
@@ -40,8 +41,8 @@ async def turn_source(root: Path, session_id: str):
     """Use the original declaration, attachment and retirement owners once."""
     # This authored owner has its own registry. Inherited public caller names
     # must not select a different participant during same-process retirement.
-    caller_keys = ("PI_AGENT_ID", "AGENT_COMMS_THREAD")
-    previous = {key: os.environ.pop(key, None) for key in caller_keys}
+    previous = ThreadLaunch.inherited(os.environ)
+    ThreadLaunch.strip(os.environ)
     try:
         async with AsyncExitStack() as resources:
             project = root / "project"
@@ -63,11 +64,8 @@ async def turn_source(root: Path, session_id: str):
             await producer.sessions.bind_owned(thread, session_id)
             yield producer
     finally:
-        for key, value in previous.items():
-            if value is not None:
-                os.environ[key] = value
-            else:
-                os.environ.pop(key, None)
+        ThreadLaunch.strip(os.environ)
+        os.environ.update(previous)
 
 
 async def exercise_boundaries(agent, view, pilot):

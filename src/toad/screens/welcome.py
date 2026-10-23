@@ -10,10 +10,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.mro_dispatch import handles
+from agent_comms.channel_targets import NoChannel
 from agent_comms.ui_model.sidebar import SidebarModel
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
+from textual.geometry import Offset
 from textual.widgets import Static
 
 from toad.constants import ALL_COMMS_TARGET
@@ -174,6 +176,10 @@ class WelcomeEntries(SidebarModelView, TargetTree):
 
     def row_selected(self, row) -> bool:
         return False
+
+    def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
+        self.pointer_select(row, menu=True)
+        row.target.menu_context(self, channel=NoChannel()).show_menu(self, offset)
 
     @RowReconciliation.sync
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:

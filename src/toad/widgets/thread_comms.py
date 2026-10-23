@@ -20,6 +20,7 @@ from agent_comms.ui_model.unread import UnobservedUnread
 from textual import on
 from textual.binding import Binding
 from textual.content import Content
+from textual.geometry import Offset
 from textual.widgets import Checkbox, Static
 
 from toad.core.input_events import SelectTarget
@@ -64,7 +65,7 @@ class RelationshipSort(SortControl[ThreadSort]):
         orders = {group.order for group in groups}
         self.update_order(next(iter(orders)) if len(orders) == 1 else None)
 
-    def order_writer(self):
+    async def order_writer(self):
         tree = self.query_ancestor(SideBarCollapsible).query_one(ThreadCommsSidebar)
         identity, generation = tree.thread_view.thread_identity, tree._generation
         snapshot = tree._snapshot
@@ -155,14 +156,6 @@ class RelationshipRow(ThreadStatusRow):
             )
             return
         tree.request_navigation(self)
-
-    def on_click(self, event) -> None:
-        if event.button == 3:
-            event.stop()
-            self.query_ancestor(ThreadCommsSidebar).show_row_menu(
-                self, event.screen_offset
-            )
-
 
 class RelationshipRows(SidebarGroup[RelationshipRow]):
     DEFAULT_CSS = """
@@ -574,9 +567,10 @@ class ThreadCommsSidebar(
             return
         self.open_target(entry_target(current))
 
-    def show_row_menu(self, row, offset):
+    def show_row_menu(self, row: RelationshipRow, offset: Offset) -> None:
         from toad.widgets.comms_menu import show_target_menu
 
+        self.pointer_select(row, menu=True)
         target, entry, generation = row.target_name, row.entry, self._generation
 
         def open_selected():
