@@ -9,7 +9,7 @@ import pytest
 from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate, TurnChangedUpdate, encode_updates,
 )
-from agent_comms.session_file import SavedSessionFile
+from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 
@@ -97,7 +97,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
             await asyncio.wait_for(held.wait(), 5)
             # The session file and the end of the turn arrive while the live answer is still unapplied.
             saved = write_journal(project / "first-native.jsonl", assistant_entry(TOKEN, id="first-assistant"))
-            comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(saved))))
+            comms.registry.declare(replace(thread, session_file=RegistrySessionLocation.from_path(str(saved), workspace.comms.root)))
             pending.append(asyncio.create_task(deliver(agent, {
                 "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
                 "_meta": encode_updates(TurnChangedUpdate(TurnState(finished_turn_id="first-turn")))})))
@@ -153,7 +153,7 @@ async def test_an_advancing_commit_retires_the_outgoing_body_and_its_tool_report
     workspace.thread("peer")
     journal = write_journal(workspace.project / "source.jsonl",
                             assistant_entry("SAVED_NATIVE_PREFIX", id="prefix"))
-    workspace.comms.registry.declare(replace(source, session_file=SavedSessionFile(str(journal))))
+    workspace.comms.registry.declare(replace(source, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     async with workspace.app(size=(120, 35), resume="source") as ui:
         view = ui.conversation
         await ui.until_shows("SAVED_NATIVE_PREFIX")

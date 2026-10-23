@@ -1,6 +1,7 @@
 """Textual-facing: a sent message whose start notice reaches the conversation after the saved history
 already holds it is drawn once, by the saved history, with no second live block under it."""
 
+from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.acp_extension import InputStartedUpdate, encode_updates
 
 from support import agents, journals
@@ -15,7 +16,7 @@ async def test_a_start_notice_after_the_saved_history_draws_the_message_once(wor
         journals.assistant_entry("An earlier answer.", id="earlier"),
         journals.user_entry(TOKEN, id="sent", parent="earlier", input_id=INPUT))
     workspace.comms.registry.declare(
-        workspace.comms.registry.new_thread("source", frozenset(), str(workspace.project), session_file=str(journal)))
+        workspace.comms.registry.new_thread("source", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     async with workspace.app(size=(110, 35)) as ui:
         view = ui.conversation
         agent = ui.detached_agent("source")

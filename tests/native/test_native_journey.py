@@ -3,6 +3,7 @@
 The model is the controlled loopback provider; everything else is the real path.
 """
 
+from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 import json
 from dataclasses import replace
@@ -118,7 +119,7 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         assert view.transcript.displayed_cursor is not None
 
         native_rows = [json.loads(line) for line in
-                       Path(comms.registry.require("beta").session_file).read_text().splitlines()]
+                       Path(comms.registry.require("beta").runtime.path).read_text().splitlines()]
         disposition = InputDispositions(comms.root / InputDispositions.filename).read().rows["acp:" + queued]
         assert any(row.get("message", {}).get("inputId") == disposition.native_id for row in native_rows)
         assert not disposition.unresolved

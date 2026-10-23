@@ -5,6 +5,7 @@ the project and waits until the test releases ``load-<id>`` (``Workspace.release
 one-answer session file, records it on the thread and publishes the transcript page.
 """
 
+from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 from dataclasses import replace
 import json
@@ -45,7 +46,7 @@ class DelayedLoadPeer(Peer):
         saved = self.project / f"sdk-history-{session_id}.jsonl"
         saved.write_text(json.dumps({"type": "message", "id": "saved-first-open", "message": {
             "role": "assistant", "content": [{"type": "text", "text": f"SAVED_FIRST_OPEN_{session_id}"}]}}) + "\n")
-        comms.registry.declare(replace(comms.registry.require(session_id), session_file=str(saved)))
+        comms.registry.declare(replace(comms.registry.require(session_id), session_file=RegistrySessionLocation.from_path(saved, comms.root)))
         read = comms.transcripts.capture_page_read(session_id)
         page = read.read()
         await self.connection.session_update(session_id=session_id, update=AgentMessageChunk(

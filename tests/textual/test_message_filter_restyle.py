@@ -5,7 +5,7 @@ from dataclasses import replace
 
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-from agent_comms.session_file import SavedSessionFile
+from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.ui_model.message_category import ThinkingCategory, UserCategory, all_categories
 from agent_comms.ui_model.message_category import InboundCategory
 from toad.message_rows import MarkdownMessageStyle
@@ -44,7 +44,7 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
                             parent=f"a{index - 1}" if index else "user")
             for index in range(300)))
     workspace.comms.registry.declare(replace(
-        workspace.thread("source"), session_file=SavedSessionFile(str(journal))))
+        workspace.thread("source"), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     async with workspace.app(size=(120, 35), resume="source") as ui:
         view = ui.conversation
         await ui.until(lambda: "SAVED_ASSISTANT_299" in ui.painted(view.window),
@@ -69,7 +69,7 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
                                 parent=f"new-a{index - 1}" if index else "new-user")
                 for index in range(300)))
         workspace.comms.registry.declare(replace(
-            workspace.comms.registry.require("source"), session_file=SavedSessionFile(str(replacement))))
+            workspace.comms.registry.require("source"), session_file=RegistrySessionLocation.from_path(str(replacement), workspace.comms.root)))
         page = await ui.app.preparation.run_thread(workspace.comms.transcripts.thread_transcript_page, "source")
         prepared = await ui.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
         assert await history.show_newest(PreparedReplacementViewportRequest(

@@ -1,5 +1,6 @@
 """Textual-facing: the main menu button opens Toad's menu and its dialogs drive Core's wire export and stopped-thread import."""
 
+from agent_comms.session_file import RegistrySessionLocation
 import json
 from pathlib import Path
 
@@ -94,4 +95,4 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
         await ui.until(lambda: comms.registry.snapshot().taken("imported"), seconds=10, why="the imported thread")
         thread = comms.registry.require("imported")
         assert comms.registry.status(thread.name).stopped
-        assert "Imported history" in Path(thread.session_file).read_text()
+        assert "Imported history" in Path(thread.runtime.path).read_text()
