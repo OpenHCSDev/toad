@@ -18,7 +18,7 @@ from toad.acp.queue_attachment import QueueAttachment
 def declared_scope(tmp_path):
     comms = installed_wire(tmp_path / "wire")
     owner = ProcessIdentity.capture(os.getpid())
-    comms.registry.declare(comms.registry.new_thread("source", frozenset(), str(tmp_path),
+    comms.registry.declare(Thread("source", frozenset(), str(tmp_path),
                                   process_identity=owner))
     return comms, LiveQueueScope(
         session_id="source", claimed_identity=comms.registry.snapshot().claimed_identity("source"), owner=owner,

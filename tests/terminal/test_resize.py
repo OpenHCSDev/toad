@@ -3,6 +3,7 @@
 import sys
 
 from agent_comms.session_file import RegistrySessionLocation
+from agent_comms.threads import Thread
 
 from support.journals import assistant_entry, write_journal
 from support.terminal import terminal_running, toad_command
@@ -17,7 +18,7 @@ async def test_every_terminal_resize_repaints_transcript_sidebar_and_composer(
     environment = {
         "AGENT_COMMS_AGENT_BIN": "pi", "AGENT_COMMS_AGENT_MODELS": "test/model",
         "AGENT_COMMS_AGENT_ARGS": "--model test/model"}
-    workspace.comms.registry.declare(workspace.comms.registry.new_thread(
+    workspace.comms.registry.declare(Thread(
         "resize", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     command = toad_command("acp", f"{sys.executable} -m agent_comms.acp", "--session", "resize")
     async with terminal_running(workspace, terminal_emulator, command, environment=environment) as terminal:

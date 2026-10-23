@@ -4,6 +4,7 @@ import asyncio
 
 from agent_comms.channel_targets import ChannelTarget
 from agent_comms.channels import AllChannel
+from agent_comms.threads import Thread
 from toad.constants import ALL_COMMS_TARGET
 from toad.conversation_kind import ChannelConversation, DmConversation, IrcConversation
 from toad.navigation_context import NavigationContext
@@ -188,7 +189,7 @@ async def test_recreated_dm_peer_retires_the_old_view_and_opens_a_new_incarnatio
             registry = workspace.comms.registry
             registry.unregister(peer.name)
             registry.remove_originals((registry.require(peer.name),))
-            return registry.declare(registry.new_thread(
+            return registry.declare(Thread(
                 peer.name, peer.tags, peer.worktree, created_at=peer.created_at + 1,
             ))
 

@@ -6,6 +6,7 @@ Not carried over from the old script: the wait for a nested rendering pager insi
 
 
 from agent_comms.session_file import RegistrySessionLocation
+from agent_comms.threads import Thread
 from support import journals
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.session_details import SessionDetails
@@ -18,7 +19,7 @@ async def saved_history(workspace, ui):
                                  "Canonical retained source owns coverage independently of painted resources.",
                                  id=f"a{number}", parent=f"a{number - 1}" if number else None)
         for number in range(8)))
-    workspace.comms.registry.declare(workspace.comms.registry.new_thread("saved", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
+    workspace.comms.registry.declare(Thread("saved", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     page = workspace.comms.transcripts.thread_transcript_page("saved")
     conversation = ui.conversation
     ui.attach_agent(ui.detached_agent())

@@ -76,7 +76,7 @@ async def test_closing_one_session_leaves_the_others_on_the_shared_process(attac
             assert shared.process is child and shared.runner is not None and not shared.runner.done()
             with pytest.raises(RequestError):
                 shared.recipient('alpha')
-            await owner._runtime.session_update(session_id='beta', update=AvailableCommandsUpdate(
+            await owner._runtime.publish_update(session_id='beta', update=AvailableCommandsUpdate(
                 session_update='available_commands_update',
                 available_commands=[AvailableCommand(name='still_attached', description='Beta command')]))
             async with asyncio.timeout(5):

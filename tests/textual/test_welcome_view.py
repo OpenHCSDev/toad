@@ -2,6 +2,7 @@
 from toad.session_scope import AgentAttached
 
 from support.agents import peer
+from agent_comms.threads import Thread
 
 HINT = "n new session"
 # The view's own lists (the sidebar's panel is headed differently).
@@ -51,7 +52,7 @@ async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user
     from agent_comms.thread_execution import ExternalThreadExecution
 
     workspace.comms.registry.declare(
-        workspace.comms.registry.new_thread(
+        Thread(
             "scribe",
             frozenset({"team"}),
             str(workspace.project),
