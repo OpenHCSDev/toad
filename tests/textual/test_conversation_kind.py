@@ -6,6 +6,7 @@ from functools import partial
 import pytest
 from agent_comms.channel_targets import ChannelTarget
 from agent_comms.comms import Comms
+from agent_comms.active_route import resolve_comms_route
 from support.roots import installed_wire
 from agent_comms.field_codec import FieldCodec
 from agent_comms.installer.backup import StoreBackup
@@ -31,7 +32,7 @@ def copied_conversations(tmp_path):
     original.messaging.send("peer", "#team", "channel body")
     original.messaging.send("peer", viewer, "direct body")
     StoreBackup.copy_tree(original.root, tmp_path / "copied")
-    return Comms(tmp_path / "copied"), viewer
+    return Comms(resolve_comms_route(tmp_path / "copied")), viewer
 
 
 @pytest.mark.parametrize("route,label,body", [

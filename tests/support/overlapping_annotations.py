@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from agent_comms.active_route import resolve_comms_route
+
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -53,7 +55,7 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         RecordedContextTurn(TurnId("authored-unsealed-navigation"), TurnIdentity(owner.incarnation, 1)),
         (observed,), "authored-navigation")
     inspection = ContextInspection(owner, (manifest,), SessionRevision.observe(None),
-                                   Comms(directory / "unused-wire"), labels)
+                                   Comms(resolve_comms_route(directory / "unused-wire")), labels)
     ((_, (source,), _),) = inspection.working_memory()
     short, long = source.children()
     corrected = HumanLabel.correct(labels[0], RuleSpan, RecordedThreadIncarnation("authored-user", 2.0))

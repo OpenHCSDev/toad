@@ -52,7 +52,9 @@ class TargetContext:
         selected = RouteSelection.capture(self.comms.root)
         self.current()
         actions = CliCommand.target_catalog(self.comms,
-            CliCommand.selected_targets(self.targets or self.subject),
+            CliCommand.selected_targets(
+                tuple(CommandTarget.named(name) for name in self.targets)
+                if self.targets else CommandTarget.named(self.subject)),
             self.channel, project=str(self.project))
         if RouteSelection.capture(self.comms.root) != selected:
             raise ValueError('Comms route changed during command discovery')

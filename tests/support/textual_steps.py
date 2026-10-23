@@ -112,12 +112,14 @@ def text_rows_of(chat, message) -> range | None:
 def request_target_command(app, command, subject) -> None:
     """Invoke a target command (as the sidebar menu would) on `subject`."""
     from agent_comms.cli_commands import CliCommand, TargetEdit
+    from agent_comms.channel_targets import CommandTarget
     from toad.thread_actions import ThreadAction
 
     comms = app.coordination_access.service
-    definition = next(item for item in CliCommand.target_catalog(comms, CliCommand.selected_targets(subject), project=str(app.project_dir))
+    target = CommandTarget.named(subject)
+    definition = next(item for item in CliCommand.target_catalog(comms, CliCommand.selected_targets(target), project=str(app.project_dir))
                       if item.declaration is command)
-    app.thread_actions.invoke(ThreadAction(definition, TargetEdit(target=command.selected_targets(subject), declaration=command, arguments={})),
+    app.thread_actions.invoke(ThreadAction(definition, TargetEdit(target=command.selected_targets(target), declaration=command, arguments={})),
                               subject, source_root=comms.root)
 
 
