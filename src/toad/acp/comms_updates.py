@@ -33,6 +33,7 @@ from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresenta
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
 from toad.core import events as core_events
+from toad.response_delivery import ResponseDelivery, UnroutedResponse
 
 
 class CommsUpdateConsumer(MroDispatch):
@@ -46,7 +47,7 @@ class CommsUpdateConsumer(MroDispatch):
     ) -> None:
         self.agent = agent
         self.session_id = session_id
-        self.route = None
+        self.delivery: ResponseDelivery = UnroutedResponse()
         self.compaction_update = None
         self.cursor_token = cursor_token
         self.queue_token = queue_token
@@ -72,7 +73,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(TextRouteUpdate)
     def text_route(self, update: TextRouteUpdate) -> None:
-        self.route = update.route
+        self.delivery = ResponseDelivery.from_route(update.route)
 
     @handles(InputFailedUpdate)
     def input_failed(self, update: InputFailedUpdate) -> None:

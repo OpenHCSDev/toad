@@ -135,8 +135,8 @@ class ApplicationLifetime:
                                           self.resumed_session, self.app.project_dir, ())
         return request.read()
 
-    def check_version(self) -> None:
-        self.app.run_worker(partial(self.version.check, self.app.preparation.run_thread))
+    async def check_version(self) -> None:
+        await self.version.check(self.app.preparation.run_thread)
 
     def confirm_quit(self) -> None:
         now = monotonic()
