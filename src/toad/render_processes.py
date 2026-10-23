@@ -77,7 +77,9 @@ class RenderProcessPool(Renderer):
         if self._loop is None:
             self._loop = loop
         elif self._loop is not loop:
-            raise RuntimeError("RenderProcessPool must be used on its owning event loop")
+            raise RuntimeError(
+                "RenderProcessPool must be used on its owning event loop"
+            )
         return loop
 
     def _finished[Value](self, future: asyncio.Future[Value]) -> None:
@@ -100,7 +102,9 @@ class RenderProcessPool(Renderer):
             )
             self.start_workers(self._executor)
 
-    async def run[*Args, Value](self, function: Callable[[*Args], Value], *args: *Args) -> Value:
+    async def run[*Args, Value](
+        self, function: Callable[[*Args], Value], *args: *Args
+    ) -> Value:
         """Execute a data-only function in a child, propagating its result/error."""
         loop = self._bind_loop()
         while not self._closed and len(self._pending) >= self._max_pending:
@@ -112,7 +116,9 @@ class RenderProcessPool(Renderer):
         # No await between accepting and registering work: both happen together on
         # the owning loop. Waiting never propagates caller cancellation to the
         # underlying future (or logs an abandoned exception via shield).
-        future: asyncio.Future[Value] = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+        future: asyncio.Future[Value] = asyncio.wrap_future(
+            self._executor.submit(function, *args), loop=loop
+        )
         self._pending.add(future)
         future.add_done_callback(self._finished, context=self.execution_context())
         await self.wait_for_work(future)
@@ -131,7 +137,11 @@ class RenderProcessPool(Renderer):
             await self._close_submissions()
             return
         if self._shutdown is None:
-            self._shutdown = asyncio.create_task(self._join(), name="render-process-shutdown", context=self.execution_context())
+            self._shutdown = asyncio.create_task(
+                self._join(),
+                name="render-process-shutdown",
+                context=self.execution_context(),
+            )
         await self.wait_for_work(self._shutdown)
         self._shutdown.result()
 
