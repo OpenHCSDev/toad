@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import deque
-from collections.abc import Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
 from functools import partial
@@ -275,13 +274,11 @@ class SourcePublicationRequests:
         self.worker: Worker[None] | None = None
         self.observation = ResourceRelease()
 
-    def request(
-        self, kind: Callable[[BoundView, TranscriptPresentation, int], TranscriptPublication]
-    ) -> None:
-        frame = self.owner.binding.capture(self.owner, BoundFrame)
-        if frame is None:
+    def request(self, kind: type[TranscriptPublication], *args: ThreadPresentation) -> None:
+        publication = self.owner.binding.capture(self.owner, kind, *args)
+        if publication is None:
             return
-        self.submit(kind(frame.binding, frame.owner, frame.generation))
+        self.submit(publication)
 
     def submit(self, publication: TranscriptPublication) -> None:
         """Keep the original operation when its caller is the native UI pump."""
