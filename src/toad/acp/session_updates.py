@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING
 
 from acp.schema import (
     AgentMessageChunk,
-    AgentPlanContentUpdate,
-    AgentPlanRemovedUpdate,
     AgentPlanUpdate,
     AgentThoughtChunk,
     AvailableCommandsUpdate,
@@ -48,26 +46,9 @@ class SessionUpdateEffect(MroDispatch):
     def route(self):
         return self.consumer.route
 
-    def require_supported(
-        self,
-        update: (
-            UserMessageChunk
-            | AgentMessageChunk
-            | AgentThoughtChunk
-            | ToolCallStart
-            | ToolCallProgress
-            | AgentPlanUpdate
-            | AgentPlanContentUpdate
-            | AgentPlanRemovedUpdate
-            | AvailableCommandsUpdate
-            | CurrentModeUpdate
-            | ConfigOptionUpdate
-            | SessionInfoUpdate
-            | UsageUpdate
-        ),
-    ):
-        if not any(self.handlers_for(update)):
-            raise ValueError(f"ACP update capability is not supported: {type(update).__name__}")
+    def require_supported(self, notification: SessionNotification):
+        if not any(self.handlers_for(notification.update)):
+            raise ValueError(f"ACP update capability is not supported: {type(notification.update).__name__}")
 
     @handles(UserMessageChunk)
     def user(self, update: UserMessageChunk):
@@ -179,7 +160,7 @@ class SessionNotificationOwner(ClientRequestOwner):
         consumer = self.agent.comms_consumer_class(self.agent, session_id)
         effect = SessionUpdateEffect(self.agent, consumer)
         try:
-            effect.require_supported(update.update)
+            effect.require_supported(update)
         except (TypeError, ValueError) as error:
             self.reject(session_id, update, metadata, str(error))
             return
