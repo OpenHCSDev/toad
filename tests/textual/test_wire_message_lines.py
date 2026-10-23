@@ -4,7 +4,7 @@ from agent_comms.display_references import ProjectReferences
 from agent_comms.messages import InfoKind, Message
 from textual.app import App
 
-from toad.line_blocks import OpenTarget
+from toad.line_blocks import OpenTarget, ToggleDetails
 from toad.markdown_links import LinkContext
 from toad.notification_status import CheckedNotifications
 from toad.textual_colours import ThemedApp
@@ -53,8 +53,7 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_drawn_names_clickable_at_ever
             names = (shown.message.sender, target)
             drawn = "\n".join(text)
             expected = {OpenTarget(name).click for name in names if name in drawn}
-            open_action = OpenTarget(shown.message.sender).click[0]
-            actual = {click for click in clicks(rows) if click[0] == open_action}
+            actual = clicks(rows) - {ToggleDetails().click}
             assert actual == expected, (width, text, actual, expected)
 
 
