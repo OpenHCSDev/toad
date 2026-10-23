@@ -1,14 +1,16 @@
 """Toad as a user runs it in a terminal, whose conversation raises when it is closed.
 
-Run as a script by ``terminal/test_failed_close.py``: ``failed_close_app.py PROJECT``.
+Run as a script by ``terminal/test_failed_close.py``: ``failed_close_app.py PROJECT WIRE_ROOT``.
 """
 
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 from toad.app import ToadApp
 from toad.cli import run_terminal
 from toad.widgets.conversation import Conversation
+from toad.goal_interaction import GoalSession
 
 from agents import peer
 from stylesheets import INSTALLED
@@ -16,10 +18,6 @@ from stylesheets import INSTALLED
 
 class CloseStepFailed(Exception):
     """The controlled failure of the first step of releasing a conversation."""
-
-
-def fail():
-    raise CloseStepFailed("goal controls")
 
 
 class FailedCloseApp(ToadApp):
@@ -34,9 +32,12 @@ class FailedCloseApp(ToadApp):
         """Once a conversation is open, break its release and tell the test."""
         for conversation in self.screen.query(Conversation):
             self.noting.stop()
-            conversation.goal_controls.close = fail
             (Path(self.project_dir) / "conversation-open").touch()
 
 
 if __name__ == "__main__":
-    run_terminal(FailedCloseApp(project_dir=sys.argv[1], agent_data=peer("echo")))
+    from agent_comms.launch_root import LaunchRoot
+
+    LaunchRoot.from_path(sys.argv[2]).install()
+    with patch.object(GoalSession, "close", side_effect=CloseStepFailed("goal controls")):
+        run_terminal(FailedCloseApp(project_dir=sys.argv[1], agent_data=peer("echo")))

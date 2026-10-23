@@ -26,7 +26,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
         comms.registry.declare(comms.registry.new_thread(name, frozenset({"journey"}), str(project),
                                       process_identity=ProcessIdentity.capture(os.getpid())))
     comms.channels.create_tag("journey")
-    comms.messaging.send_initial_cohort("owner", "#journey", "SAVED_CHANNEL_JOURNEY")
+    comms.messaging.send("owner", "#journey", "SAVED_CHANNEL_JOURNEY")
     tab_sets_drawn = []
 
     def started(**arguments):

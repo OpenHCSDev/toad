@@ -1,6 +1,6 @@
 """Toad in a terminal whose UI raises a controlled error after its first paint.
 
-Run as a script by ``terminal/test_terminal_crash.py``: ``terminal_crash_app.py PROJECT``.
+Run as a script by ``terminal/test_terminal_crash.py``: ``terminal_crash_app.py PROJECT WIRE_ROOT``.
 """
 
 import sys
@@ -9,6 +9,7 @@ from toad.app import ToadApp
 from toad.cli import run_terminal
 
 from stylesheets import INSTALLED
+from agents import peer
 
 
 class TerminalCrashApp(ToadApp):
@@ -24,4 +25,7 @@ class TerminalCrashApp(ToadApp):
 
 
 if __name__ == "__main__":
-    run_terminal(TerminalCrashApp(project_dir=sys.argv[1]))
+    from agent_comms.launch_root import LaunchRoot
+
+    LaunchRoot.from_path(sys.argv[2]).install()
+    run_terminal(TerminalCrashApp(project_dir=sys.argv[1], agent_data=peer("echo")))

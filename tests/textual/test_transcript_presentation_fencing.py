@@ -182,9 +182,11 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
         workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(new))))
         entered, release = asyncio.Event(), asyncio.Event()
         render_for = TranscriptLinesBatchRenderTask.render_for
+        render_owners = []
 
         async def held_rows(cls, target, preparations):
-            if target is history:
+            if target is history and not release.is_set():
+                render_owners.append(asyncio.current_task())
                 entered.set()
                 await release.wait()
             return await render_for(target, preparations)
@@ -200,9 +202,9 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
             assert "OLD_VISIBLE_SOURCE" in ui.painted(view.window)
             assert "NEW_VISIBLE_SOURCE" not in ui.painted(view.window)
             assert tuple(history.pages) == pages
-            pending.cancel()
-            outcome, = await asyncio.gather(pending, return_exceptions=True)
-            assert isinstance(outcome, asyncio.CancelledError)
+            applying, = render_owners
+            assert applying.cancel()
+            await asyncio.gather(applying, return_exceptions=True)
             assert history.page_source.through == through
             assert tuple(history.pages) == pages and all(page.display for page in pages)
             release.set()
@@ -211,6 +213,10 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
             assert "OLD_VISIBLE_SOURCE" not in ui.painted(view.window)
         finally:
             release.set()
+            for applying in render_owners:
+                if not applying.done():
+                    applying.cancel()
+            await asyncio.gather(*render_owners, return_exceptions=True)
             if not pending.done():
                 pending.cancel()
             await asyncio.gather(pending, return_exceptions=True)

@@ -440,15 +440,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_BUDGET = PresentationBudget(max_items=240)
-    @classmethod
-    def empty_source(cls, view, through):
-        return ClosedHistory(through, view.app.preparation)
-
-    @classmethod
-    def empty(cls, *, view, notification_view):
-        prepared = cls.empty_page()
-        return cls(prepared, cls.empty_source(view, prepared.page.after),
-                   view=view, notification_view=notification_view, source_state=cls.initial_state(view))
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.projection_changed()
@@ -461,9 +452,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         return FragmentBlockCursor(self)
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
-                  *, view, notification_view: HistoryNotifications, budget: PresentationBudget = DEFAULT_BUDGET,
+                  *, notification_view: HistoryNotifications, budget: PresentationBudget = DEFAULT_BUDGET,
                   source_state: TranscriptState | None = None):
-        self.view = view
         self.notification_view = notification_view
         super().__init__(source_state=source_state or LiveTranscript(), page_source=page_source)
         self.budget = budget
@@ -1060,7 +1050,25 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
 
-class TranscriptHistory(CommittedHistory, LineHistory):
+class ConversationHistory(LineHistory):
+    """A conversation owns its source binding and initial history state."""
+
+    def __init__(self, *args, view: Conversation, **kwargs):
+        self.view = view
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def empty_source(cls, view, through):
+        return ClosedHistory(through, view.app.preparation)
+
+    @classmethod
+    def empty(cls, *, view, notification_view):
+        prepared = cls.empty_page()
+        return cls(prepared, cls.empty_source(view, prepared.page.after),
+                   view=view, notification_view=notification_view, source_state=cls.initial_state(view))
+
+
+class TranscriptHistory(CommittedHistory, ConversationHistory):
     """The line history of a saved transcript.
 
     Its pages stand in for the conversation's live blocks: it reports which
@@ -1103,18 +1111,18 @@ class TranscriptHistory(CommittedHistory, LineHistory):
             await self.remove_children(retired)
             self.acquire_document()
 
-class ProjectedTranscriptHistory(TranscriptHistory):
+class ProjectedTranscriptHistory(CommittedHistory, LineHistory):
     """A filtered source view with the ordinary pager's loading and eviction policy."""
 
-    def __init__(self, owner: TranscriptHistory, source: ProjectedTranscriptSource,
+    def __init__(self, owner: LineHistory, source: ProjectedTranscriptSource,
                  prepared: PreparedTranscriptPage) -> None:
         self._projection_owner = ref(owner)
-        super().__init__(prepared, source, view=owner.view, budget=owner.budget,
+        super().__init__(prepared, source, budget=owner.budget,
                          notification_view=owner.notification_view)
         self.add_class("filtered-history-results")
 
     @classmethod
-    def from_source(cls, source: ProjectedTranscriptSource, *, owner: TranscriptHistory):
+    def from_source(cls, source: ProjectedTranscriptSource, *, owner: LineHistory):
         if not source.held_pages or source.closed:
             raise ValueError("No kept projected range")
         history = cls(owner, source, source.held_pages[0])

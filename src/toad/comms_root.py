@@ -203,7 +203,6 @@ class Observing(Observation):
         self.loop.add_reader(self.process.fileno(), self.receive, access)
         access.update_sidebar_interest()
         self.thread_interest(access)
-        self.updates.callback(self.answer_reads)
         self.updates.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
         self.subscriptions.enter_context(self.updates)
         self.views_changed()
@@ -215,6 +214,7 @@ class Observing(Observation):
 
     def stop_updates(self) -> AnsweringReads:
         super().stop_updates()
+        self.answer_reads()
         return AnsweringReads(
             self.selection, self.service, self.sidebar, self.process, self.loop,
             access=self.access, subscriptions=self.subscriptions, updates=self.updates)
@@ -234,6 +234,7 @@ class Observing(Observation):
                 access.dispatch_sync(result, self)
         except (OSError, ValueError, RuntimeError) as error:
             self.loop.remove_reader(self.process.fileno())
+            self.failed(error, self.selection)
             access.app._handle_exception(error)
 
     def views_changed(self, event=None, subscription=None):

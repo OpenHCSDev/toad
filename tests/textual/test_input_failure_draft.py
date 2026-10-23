@@ -64,7 +64,6 @@ async def test_a_successful_wire_send_keeps_a_different_unsent_draft(workspace):
 
     comms = workspace.comms
     workspace.thread("peer")
-    comms.messaging.initialize_private_initial_protocol()
     async with workspace.app(size=(110, 32)) as ui:
         await ui.open_direct("peer", actor=workspace.viewer)
         chat = ui.app.selected_session.query_one(CommsChatView)

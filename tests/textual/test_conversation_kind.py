@@ -5,12 +5,12 @@ from functools import partial
 
 import pytest
 
-from agent_comms.candidate_maintenance import drain_candidate_catchup
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
-from agent_comms.comms import Comms, wire
+from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
 from agent_comms.installer.backup import StoreBackup
 from agent_comms.message_page import PageBounds
+from support.roots import installed_wire
 from toad.constants import ALL_COMMS_TARGET
 from toad.conversation_kind import (
     ChannelConversation, ConversationKind, DmConversation, IrcConversation, ResolvedConversation,
@@ -22,12 +22,11 @@ from toad.wire_history import WireSource
 
 @pytest.fixture
 def copied_conversations(tmp_path):
-    original = wire(tmp_path / "original")
+    original = installed_wire(tmp_path / "original")
     original.registry.declare(original.registry.new_thread("peer", frozenset({"team"}), str(tmp_path)))
     viewer = original.messaging.user_identity(str(tmp_path)).name
     original.messaging.send("peer", "#team", "channel body")
     original.messaging.send("peer", viewer, "direct body")
-    drain_candidate_catchup(original.root)
     StoreBackup.copy_tree(original.root, tmp_path / "copied")
     return Comms(tmp_path / "copied"), viewer
 
@@ -83,7 +82,7 @@ def test_conversation_value_is_frozen_and_its_kind_is_part_of_tab_identity():
 
 
 def test_conversation_resolves_a_renamed_peer_before_presentation(tmp_path):
-    comms = wire(tmp_path / "wire")
+    comms = installed_wire(tmp_path / "wire")
     comms.registry.declare(comms.registry.new_thread("peer", frozenset(), str(tmp_path)))
     viewer = comms.messaging.user_identity(str(tmp_path)).name
     comms.registry.rename("peer", "renamed")
@@ -98,7 +97,7 @@ def test_conversation_selects_the_saved_history_identity_and_channel_status(tmp_
     from toad.screens.historical_sessions import HistoricalSessions
     from toad.widgets.observed_thread_activity import NoStatusThread
 
-    comms = wire(tmp_path / "wire")
+    comms = installed_wire(tmp_path / "wire")
     create_view = partial(HistoricalSessions, comms, ())
     channel = ChannelConversation(ChannelTarget("#team"))
     assert channel.historical_sessions(create_view).initial_name is None

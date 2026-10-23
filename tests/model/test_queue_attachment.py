@@ -7,16 +7,16 @@ from agent_comms.acp_extension import (
     AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, LiveQueueScope,
 )
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.comms import Comms
 from agent_comms.input_origin import HumanInputOrigin
 from agent_comms.threads import Thread
+
+from support.roots import installed_wire
 
 from toad.acp.queue_attachment import QueueAttachment
 
 
 def declared_scope(tmp_path):
-    comms = Comms(tmp_path / "wire")
-    comms.messaging.initialize_private_initial_protocol()
+    comms = installed_wire(tmp_path / "wire")
     comms.registry.declare(comms.registry.new_thread("source", frozenset(), str(tmp_path),
                                   process_identity=ProcessIdentity.capture(os.getpid())))
     return comms, LiveQueueScope("source", comms.registry.snapshot().claimed_identity("source"), os.getpid())

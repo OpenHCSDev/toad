@@ -8,6 +8,8 @@ from agent_comms.comms import Comms
 from agent_comms.registry_store import RegistryStore
 from textual.widgets import OptionList
 
+from support.roots import installed_wire
+
 from toad.core.events import CoordinationObserved
 from toad.screens.main import MainScreen
 from toad.target_commands import TargetContext
@@ -124,13 +126,12 @@ async def test_a_same_name_successor_does_not_keep_the_deleted_threads_hidden_se
                        why="the deleted thread's hidden session to retire")
 
 
-async def test_an_unavailable_route_is_no_evidence_that_a_hidden_thread_is_gone(workspace, monkeypatch):
+async def test_an_ambient_root_change_does_not_retire_a_hidden_thread(workspace, monkeypatch):
     owners = declare_owners(workspace)
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
         modes = await open_hidden_sessions(workspace, ui, owners)
-        other = Comms(workspace.roots.wire.parent / "other", private_initial_writes=True)
-        other.messaging.initialize_private_initial_protocol()
+        other = installed_wire(workspace.roots.wire.parent / "other")
         monkeypatch.setenv("AGENT_COMMS_ROOT", str(other.root))
         await app.session_navigation.retire_missing()
         assert app.session_navigation.get(modes["agent-2"]) is not None
