@@ -1,14 +1,17 @@
 """Decode the specification once; typed SDK models own ACP values thereafter."""
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING
+
 from abc import abstractmethod
 from dataclasses import dataclass
-from agent_comms.declared_family import DeclaredFamily
-from toad.render_backend import RenderTask
+from typing import TYPE_CHECKING
+
 from acp.schema import SessionNotification, ToolCall
-from agent_comms.field_codec import FieldRepresentation
-from toad.acp.notification_items import NotificationItems
 from agent_comms.acp_extension import AgentCommsUpdate, decode_updates
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldRepresentation
+
+from toad.acp.notification_items import NotificationItems
+from toad.render_backend import RenderTask
 
 if TYPE_CHECKING:
     from toad.acp.status import ToolCallStatus
@@ -41,7 +44,7 @@ class AcceptedSessionUpdateValidation(SessionUpdateValidation):
     notification: SessionNotification
     updates: tuple[AgentCommsUpdate, ...]
 
-    def publish(self, owner, session_id, raw, metadata):
+    def publish(self, owner, session_id, raw, metadata) -> None:
         owner.publish(session_id, self.notification, self.updates)
 
 
@@ -49,7 +52,7 @@ class AcceptedSessionUpdateValidation(SessionUpdateValidation):
 class RejectedSessionUpdateValidation(SessionUpdateValidation):
     error: str
 
-    def publish(self, owner, session_id, raw, metadata):
+    def publish(self, owner, session_id, raw, metadata) -> None:
         owner.reject(session_id, raw, metadata, self.error)
 
 
