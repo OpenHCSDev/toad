@@ -4,8 +4,7 @@ from agent_comms.mro_dispatch import handles
 
 from datetime import datetime
 
-from agent_comms.field_codec import FieldCodec
-from agent_comms.goals import Goal
+from agent_comms.runtime_requests import GoalHistoryReply
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
@@ -32,10 +31,10 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
     GoalDetails Button { dock: bottom; margin-top: 1; }
     """
 
-    def __init__(self, source: GoalSession, *, history=()):
+    def __init__(self, source: GoalSession, *, history: GoalHistoryReply):
         super().__init__()
         self.source = source
-        self.history = history
+        self.history = history.history
 
     @property
     def project_root(self):
@@ -66,14 +65,13 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
                 if self.history:
                     yield Static("Revision history", markup=False)
                     for entry in reversed(self.history):
-                        goal_data = entry["after"] or entry["before"]
-                        revision_goal = FieldCodec.decode(Goal, goal_data)
+                        revision_goal = (entry.after if entry.after.shows_document else entry.before).require()
                         when = (
-                            datetime.fromtimestamp(entry["observed_at"])
+                            datetime.fromtimestamp(entry.observed_at)
                             .astimezone()
                             .strftime("%Y-%m-%d %H:%M:%S")
                         )
-                        kind = entry["kind"].replace("_", " ")
+                        kind = entry.kind.replace("_", " ")
                         yield Static(
                             f"Revision {revision_goal.revision} · {kind} · observed {when}",
                             markup=False,
