@@ -47,6 +47,9 @@ from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
+    from toad.widgets.transcript_lines import (
+        BlockLines, Lines, LineTheme, RichLineRenderer, TranscriptLinesRenderTask,
+    )
     from toad.tool_output import ToolOutputPart
     from toad.widgets.committed_presentation import CommitClaim
 
@@ -241,10 +244,10 @@ class LastPart(PartPosition):
     def notification_references(self, event):
         return (event.source,)
 
-    def status_blocks(self, shown):
+    def status_blocks(self, shown: MessageShown):
         return shown.status.blocks(shown)
 
-    def outgoing_sources(self, publication):
+    def outgoing_sources(self, publication: PublishedSentMessage):
         return (publication.reference,)
 
 
@@ -252,13 +255,13 @@ class InnerPart(PartPosition):
     __slots__ = ()
     has_details = False
 
-    def notification_references(self, event):
+    def notification_references(self, event: TranscriptEvent):
         return ()
 
-    def status_blocks(self, shown):
+    def status_blocks(self, shown: MessageShown):
         return ()
 
-    def outgoing_sources(self, publication):
+    def outgoing_sources(self, publication: PublishedSentMessage):
         return ()
 
 
@@ -299,10 +302,10 @@ class TranscriptFragment:
         return ()
 
     @classmethod
-    def capture_part(cls, event, text: str, **kwargs):
+    def capture_part(cls, event: TextTranscript, text: str, **kwargs):
         return cls((replace(event, text=text),), **kwargs)
 
-    def text_rows(self, lines) -> range:
+    def text_rows(self, lines: Lines) -> range:
         """The fragment's content occupies its drawn rows unless it owns a header."""
         return range(lines.height)
 
@@ -362,11 +365,11 @@ class TranscriptFragment:
 
         return link_place()
 
-    def lines_for(self, width: int, theme):
+    def lines_for(self, width: int, theme: LineTheme):
         """Cached lookup is geometry-only; source changes use declared invalidation."""
         return self._lines.for_view(width, theme)
 
-    def retains_lines(self, lines, theme) -> bool:
+    def retains_lines(self, lines: BlockLines, theme: LineTheme) -> bool:
         """Whether measured rows still belong to this source and palette.
 
         RowAcquisition.for_view owns wrapping those rows at the layout width.
@@ -376,14 +379,14 @@ class TranscriptFragment:
     def invalidate_lines(self) -> None:
         self._lines = NoRows()
 
-    def hold_lines(self, request, lines) -> bool:
+    def hold_lines(self, request: TranscriptLinesRenderTask, lines: BlockLines) -> bool:
         """Report whether these rows were retained for the fragment's source."""
         if request.blocks is self.line_blocks:
             self._lines = AcquiredRows(request.preparation, lines)
             return True
         return False
 
-    def plain_lines(self, width: int, renderer):
+    def plain_lines(self, width: int, renderer: RichLineRenderer):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""
         self._plain = acquired = self._plain.plain(width, renderer, self.line_blocks)
         return acquired.lines
@@ -408,7 +411,7 @@ class ToolTranscriptFragment(TranscriptFragment):
             self.tool_call, any(part.has_details for part in self.output_parts)
         )
 
-    def blocks(self, shown):
+    def blocks(self, shown: Shown):
         return AgentActivityPresentation.tool(
             self.tool_call,
             has_details=self.has_details,
@@ -426,11 +429,11 @@ class BusMessageFragment(TranscriptFragment):
     row: MessageRow
 
     @classmethod
-    def capture_part(cls, event, text: str, **kwargs):
+    def capture_part(cls, event: TextTranscript, text: str, **kwargs):
         return cls((event,), text_part=text, **kwargs)
 
     @classmethod
-    def text_parts(cls, source, budget):
+    def text_parts(cls, source: PreparedMarkdownPart, budget: RenderBudget):
         # Even an empty bus message owns its header and notification footer.
         return super().text_parts(source, budget) or (source,)
 
@@ -487,7 +490,7 @@ class ContextTranscriptFragment(TranscriptFragment):
 
     has_details = True
 
-    def blocks(self, shown):
+    def blocks(self, shown: Shown):
         summary = shown.summary("Agent coordination context")
         if not shown.details_open:
             return (summary,)

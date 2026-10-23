@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING
 from toad.patch import PatchCell
 
 if TYPE_CHECKING:
+    from toad.widgets.transcript_fragments import Shown, TranscriptFragment
+    from toad.widgets.transcript_history import LineHistory
     from toad.textual_colours import PaletteState, TextualColours
 
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -232,7 +234,7 @@ class PreparedLines(Lines, LineBlock):
     def height(self) -> int:
         return len(self.rows)
 
-    def prepared_rows(self, width, draw) -> PreparedLines:
+    def prepared_rows(self, width: int, draw: Callable[[LineBlock], PreparedLines]) -> PreparedLines:
         if width != self.width:
             raise ValueError("Prepared rows belong to a different width")
         return self
@@ -281,7 +283,7 @@ class PreparedBlock(LineBlock):
 
     _rows: PreparedLines = PreparedLines(width=-1, rows=())
 
-    def prepared_rows(self, width, draw) -> PreparedLines:
+    def prepared_rows(self, width: int, draw: Callable[[LineBlock], PreparedLines]) -> PreparedLines:
         rows = self._rows
         if rows.width != width:
             self._rows = rows = draw(self)
@@ -578,10 +580,10 @@ class NoRows(RowAcquisition):
     def preparation(self) -> NoRows:
         return self
 
-    def for_view(self, width: int, theme):
+    def for_view(self, width: int, theme: LineTheme):
         return None
 
-    def retains(self, lines, theme) -> bool:
+    def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
         return False
 
 
@@ -594,16 +596,16 @@ class AcquiredRows(RowAcquisition):
     def preparation(self) -> LinePreparation:
         return self.lines.preparation
 
-    def for_view(self, width: int, theme):
+    def for_view(self, width: int, theme: LineTheme):
         if self.source.theme is not theme:
             return None
         self.lines = self.lines.rewrap(width)
         return self.lines
 
-    def retains(self, lines, theme) -> bool:
+    def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
         return self.source.theme is theme and self.lines.preparation is lines.preparation
 
-    def plain(self, width: int, renderer, blocks):
+    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
         if self.source.theme is renderer.theme:
             self.lines = self.lines.rewrap(width)
             return self
@@ -611,7 +613,7 @@ class AcquiredRows(RowAcquisition):
 
 
 class PlainRows(AcquiredRows):
-    def retains(self, lines, theme) -> bool:
+    def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
         return self.source.theme is theme and self.lines.preparation.blocks is lines.preparation.blocks
 
 
@@ -633,11 +635,11 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
     def current_for(self, view) -> bool:
         return self.context.current_for(view) and self.preparation.theme is view.app.colours.line_theme
 
-    def hold(self, view, fragment, lines) -> bool:
+    def hold(self, view, fragment: TranscriptFragment, lines: LinePreparation) -> bool:
         return self.current_for(view) and fragment.hold_lines(self, lines.wrap(view.line_width, view.app.colours.line_renderer))
 
     @staticmethod
-    def show(view, fragment, shown, rendered) -> None:
+    def show(view: LineHistory, fragment: TranscriptFragment, shown: Shown, rendered) -> None:
         """Apply the requested state, retaining rows only through their render request."""
         fragment.show(shown)
         if rendered is not None:
@@ -702,7 +704,7 @@ class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, .
     items: tuple[TranscriptLinesRenderTask, ...]
 
     @classmethod
-    async def render_for(cls, view, preparations):
+    async def render_for(cls, view, preparations: Iterable[LinePreparation]):
         """One captured reference source for a batch; requests own result publication."""
         preparations = tuple(preparations)
         if not preparations:
