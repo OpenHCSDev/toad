@@ -92,12 +92,12 @@ class FrameState(DeclaredFamily, affix="Frame"):
     def scene(self):
         return self
 
-    def displayed(self, frame: FramePresentation):
+    def displayed(self, frame):
         writing = WritingFrame(self.scene)
         frame.state = writing
         frame.screen.app._driver.call_after_flush(partial(frame.written, writing))
 
-    def defer(self, frame: FramePresentation, owner: Widget, callback: Callable[[], None]):
+    def defer[Result](self, frame: FramePresentation, owner: Widget, callback: Callable[[], Result]):
         frame.callbacks[owner, callback] = None
         owner.call_after_refresh(frame.flush_owner, owner, callback)
 
@@ -168,7 +168,7 @@ class ClosedFrame(FrameState):
     def displayed(self, frame: FramePresentation):
         pass
 
-    def defer(self, frame: FramePresentation, owner: Widget, callback: Callable[[], None]):
+    def defer[Result](self, frame: FramePresentation, owner: Widget, callback: Callable[[], Result]):
         pass
 
     def begin(self, frame: FramePresentation):

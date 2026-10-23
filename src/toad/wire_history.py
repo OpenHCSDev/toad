@@ -58,13 +58,11 @@ from toad.widgets.transcript_fragments import (
 if TYPE_CHECKING:
     from agent_comms.read_basis import NamedViewer
 
-    from toad.comms_root import CoordinationAccess, Observation
+    from toad.comms_root import Observation
     from toad.core.input_events import UserInputSubmitted
     from toad.widgets.comms_chat import CommsChatView
-    from toad.widgets.transcript_history import TranscriptPageView
     from toad.widgets.transcript_lines import Lines
     from toad.widgets.wire_history import WireHistory
-    from toad.work_preparation import PreparationRuntime, WorkKey
 
 
 @dataclass(frozen=True)
