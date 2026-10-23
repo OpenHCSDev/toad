@@ -13,31 +13,36 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
+from agent_comms.field_codec import RecordedTimestamp
+from agent_comms.native_entries import MessageEntry, NativeEntry, RootEntry, SessionEntry
+from agent_comms.pi_payloads import (
+    AssistantMessage, PiMessage, PiOmitted, ReportedText, TextContent, UnknownMessage, UserMessage,
+)
 
-def message_entry(role: str, text: str, *, id: str, parent: str | None = None) -> dict:
-    """One ``message`` line: `role` is ``assistant`` or ``user``."""
-    return {"type": "message", "id": id, "parentId": parent, "timestamp": "2026-10-18T00:00:00+00:00",
-            "message": {"role": role, "content": [{"type": "text", "text": text}]}}
+
+def message_entry(message: PiMessage, *, id: str, parent: str | None = None) -> dict:
+    """One journal message, encoded by its declared Core record."""
+    return MessageEntry(
+        id=id, parent_id=RootEntry.from_input(parent),
+        timestamp=RecordedTimestamp.written(datetime(2026, 10, 18, tzinfo=UTC)),
+        message=message,
+    ).to_wire()
 
 
 def assistant_entry(text: str, *, id: str, parent: str | None = None) -> dict:
-    return message_entry("assistant", text, id=id, parent=parent)
+    return message_entry(AssistantMessage(content=(TextContent(text),)), id=id, parent=parent)
 
 
 def user_entry(text: str, *, id: str, parent: str | None = None, input_id: str | None = None) -> dict:
     """A user line; `input_id` is the identity Core gave the input when it sent it to the agent."""
-    entry = message_entry("user", text, id=id, parent=parent)
-    if input_id is not None:
-        entry["message"]["inputId"] = input_id
-    return entry
+    return message_entry(UserMessage(
+        content=(TextContent(text),),
+        input_id=PiOmitted() if input_id is None else ReportedText(input_id),
+    ), id=id, parent=parent)
 
 
 def write_journal(path: Path, *entries: dict) -> Path:
     """Write `entries` as the lines of a session journal and return its path."""
-    from agent_comms.field_codec import RecordedTimestamp
-    from agent_comms.native_entries import MessageEntry, NativeEntry, SessionEntry
-    from agent_comms.pi_payloads import UnknownMessage
-
     for entry in entries:
         decoded = NativeEntry.read(json.dumps(entry).encode())
         if isinstance(decoded, MessageEntry) and isinstance(decoded.message, UnknownMessage):

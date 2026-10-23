@@ -13,6 +13,7 @@ from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Static
 from textual._activation import PrimaryActivation
 
+from agent_comms.input_attempt import HistoricalInput, UnresolvedInput
 from agent_comms.ui_model.delivery import InputDelivery
 from toad.project_link import AcpLogLink
 from toad.widgets.selection import ChangingText, InlineSelection
@@ -117,14 +118,14 @@ class InputDeliveryDetails(ModalScreen[None]):
         self,
         *,
         log_path: Path | None,
-        load_history: Callable[[], Awaitable[tuple[dict, ...]]],
+        load_history: Callable[[], Awaitable[tuple[HistoricalInput, ...]]],
         dismiss_history: Callable[[], Awaitable[None]],
     ):
         super().__init__()
         self.log_path = log_path
         self._load_history = load_history
         self._dismiss_history = dismiss_history
-        self._historical_inputs: tuple[dict, ...] | None = None
+        self._historical_inputs: tuple[HistoricalInput, ...] | None = None
         self._busy = False
 
     def compose(self) -> ComposeResult:
@@ -167,13 +168,8 @@ class InputDeliveryDetails(ModalScreen[None]):
                 yield Button("Close (Esc)", id="delivery-close")
 
     @staticmethod
-    def _records(inputs: tuple[dict, ...]) -> str:
-        return "\n\n".join(
-            f"Sequence: {row['sequence'] if row['sequence'] is not None else 'direct input'}"
-            f" · Target: {row['target']}\nInput: {row['inputId']}\n{row['text']}"
-            + ("\nNotice cleared." if row.get("noticeDismissed") else "")
-            for row in inputs
-        )
+    def _records(inputs: tuple[UnresolvedInput, ...]) -> str:
+        return "\n\n".join(row.record_text() for row in inputs)
 
     def watch_delivery(self, old: InputDelivery, new: InputDelivery) -> None:
         if new.history_changed(old):
@@ -231,7 +227,7 @@ class InputDeliveryDetails(ModalScreen[None]):
 
     async def update_history(
         self, event: DetailAction.Activated,
-        operation: Callable[[], Awaitable[tuple[dict, ...] | None]],
+        operation: Callable[[], Awaitable[tuple[HistoricalInput, ...] | None]],
     ) -> None:
         event.stop()
         if self._busy:

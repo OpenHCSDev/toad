@@ -5,7 +5,6 @@ The model is the controlled loopback provider; everything else is the real path.
 
 from agent_comms.session_file import RegistrySessionLocation
 import asyncio
-import json
 from dataclasses import replace
 from pathlib import Path
 
@@ -13,6 +12,7 @@ import psutil
 from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.cli_commands import ForkCliCommand, RestartCliCommand, StartCliCommand
 from agent_comms.input_disposition import InputDispositions
+from agent_comms.native_entries import NativeEntry
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.threads import Thread
 
@@ -119,10 +119,10 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         assert not any(isinstance(child, AgentResponse) for child in view.contents.children)
         assert view.transcript.displayed_cursor is not None
 
-        native_rows = [json.loads(line) for line in
+        native_rows = [NativeEntry.read(line.encode()) for line in
                        Path(comms.registry.require("beta").runtime.path).read_text().splitlines()]
         disposition = InputDispositions(comms.root / InputDispositions.filename).read().rows["acp:" + queued]
-        assert any(row.get("message", {}).get("inputId") == disposition.native_id for row in native_rows)
+        assert any(row.input_id == disposition.native_id for row in native_rows)
         assert not disposition.unresolved
 
         # A second ACP attachment to the same owner shows the same history and asks the model nothing.
