@@ -13,7 +13,7 @@ from textual.layouts.horizontal import HorizontalLayout
 
 from toad.menus import MenuItem
 from toad.widgets.selection import SelectionListItem
-from toad.frame_presentation import UntintedTonePaint
+from toad.tone_paint import UntintedTonePaint
 
 
 

@@ -12,7 +12,7 @@ from agent_comms.thread_presentation import (
 )
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.core.projection import MroProjection
-from toad.frame_presentation import TonePaint
+from toad.tone_paint import TonePaint
 from ui_theme.scheme import TurnBandColour
 from textual.content import Content
 from textual.reactive import var
