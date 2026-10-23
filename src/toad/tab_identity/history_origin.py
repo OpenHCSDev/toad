@@ -26,6 +26,8 @@ class WelcomeHistoryOrigin(HistoryOrigin):
 
     async def restore(self, navigation) -> None:
         await navigation.app.select_session(WELCOME)
+        source = navigation.app.workspace_sessions.origin(WELCOME).require()
+        await source.prepare_history_origin()
 
 
 @dataclass(frozen=True)

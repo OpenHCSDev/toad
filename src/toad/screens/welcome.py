@@ -26,6 +26,7 @@ from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
 from toad.tab_identity.history_origin import WelcomeHistoryOrigin
+from toad.thread_identity import ThreadIdentity
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import (
@@ -233,19 +234,20 @@ class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
             self.app, self.id, self.project_path, self.thread_identity.thread_name()
         )
 
-    async def open_sidebar_target(self, target: NavigationTarget) -> str:
+    def read_history_identity(self, project: str) -> ThreadIdentity:
+        service = self.app.coordination_access.observation.observed().service
+        return ThreadIdentity(
+            service.messaging.user_identity(project).incarnation, str(service.root)
+        )
+
+    async def prepare_history_origin(self) -> None:
         app = cast("ToadApp", self.app)
         project = str(self.project_path)
-        from toad.thread_identity import ThreadIdentity
-
-        def identity():
-            service = app.coordination_access.observation.observed().service
-            return ThreadIdentity(
-                service.messaging.user_identity(project).incarnation, str(service.root)
-            )
-
         with self.changing_identity():
-            self._identity = await app.preparation.run_thread(identity)
+            self._identity = await app.preparation.run_thread(self.read_history_identity, project)
+
+    async def open_sidebar_target(self, target: NavigationTarget) -> str:
+        await self.prepare_history_origin()
         return await super().open_sidebar_target(target)
 
     async def prepare_presentation(self) -> None:
