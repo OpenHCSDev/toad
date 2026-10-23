@@ -35,13 +35,12 @@ class TargetContext:
     targets: tuple[CommandTarget, ...] = ()
 
     @property
-    def selection(self) -> CommandTarget | tuple[CommandTarget, ...]:
-        return self.targets or self.subject
+    def selection(self) -> tuple[CommandTarget, ...]:
+        return self.targets or (self.subject,)
 
     @property
     def selected_targets(self) -> tuple[str, ...]:
-        return (tuple(name for target in self.targets for name in target.names)
-                if self.targets else self.subject.names)
+        return tuple(name for target in self.selection for name in target.names)
 
     @property
     def title(self) -> str:
