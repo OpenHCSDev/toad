@@ -1,13 +1,12 @@
 """Application startup, graceful exit and optional reporting own their lifetime."""
-
 from __future__ import annotations
 
-import platform
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import cached_property, partial
 from importlib import import_module
+import platform
 from time import monotonic
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable, ClassVar
 
 from toad.version import VersionMonitor
@@ -36,9 +35,7 @@ class UsageReports:
         return self.app.run_worker(partial(self.send, event_name, properties))
 
     async def send(self, event_name: str, properties: dict[str, object]) -> None:
-        await self.app.settings.statistics.collect(
-            partial(self.deliver, event_name, properties)
-        )
+        await self.app.settings.statistics.collect(partial(self.deliver, event_name, properties))
 
     async def deliver(self, event_name: str, properties: dict[str, object]) -> None:
         app = self.app
@@ -50,13 +47,8 @@ class UsageReports:
             "api_key": "phc_mJWPV7GP3ar1i9vxBg2U8aiKsjNgVwum6F6ZggaD4ri",
             "event": event_name,
             "distinct_id": app.settings.anon_id,
-            "properties": {
-                "toad_version": get_version(),
-                "term_program": app.terminal_attention.program,
-                "term_width": width,
-                "term_height": height,
-            }
-            | properties,
+            "properties": {"toad_version": get_version(), "term_program": app.terminal_attention.program,
+                           "term_width": width, "term_height": height} | properties,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "os": platform.system(),
         }
@@ -76,9 +68,7 @@ class ApplicationStartupObserverAlreadyInstalled(RuntimeError):
 class ApplicationStartupHook:
     """One-shot startup observation state owned by the application lifetime."""
 
-    def install(
-        self, observer: Callable[[ApplicationLifetime], None]
-    ) -> ApplicationStartupHook:
+    def install(self, observer: Callable[[ApplicationLifetime], None]) -> ApplicationStartupHook:
         return PendingApplicationStartupHook(observer)
 
     def notify(self, lifetime: ApplicationLifetime) -> ApplicationStartupHook:
@@ -89,12 +79,9 @@ class ApplicationStartupHook:
 class PendingApplicationStartupHook(ApplicationStartupHook):
     observer: Callable[[ApplicationLifetime], None]
 
-    def install(
-        self, observer: Callable[[ApplicationLifetime], None]
-    ) -> ApplicationStartupHook:
+    def install(self, observer: Callable[[ApplicationLifetime], None]) -> ApplicationStartupHook:
         raise ApplicationStartupObserverAlreadyInstalled(
-            "An application startup observer is already installed"
-        )
+            "An application startup observer is already installed")
 
     def notify(self, lifetime: ApplicationLifetime) -> ApplicationStartupHook:
         self.observer(lifetime)
@@ -107,9 +94,7 @@ class ApplicationLifetime:
     _startup_hook: ClassVar[ApplicationStartupHook] = ApplicationStartupHook()
 
     @classmethod
-    def observe_next_start(
-        cls, observer: Callable[[ApplicationLifetime], None]
-    ) -> None:
+    def observe_next_start(cls, observer: Callable[[ApplicationLifetime], None]) -> None:
         """Install the sole one-shot observer for the next owned startup."""
         cls._startup_hook = cls._startup_hook.install(observer)
 
@@ -152,12 +137,8 @@ class ApplicationLifetime:
     def launch_navigation(self):
         from toad.navigation_preparation import ThreadNavigationRequest
 
-        request = ThreadNavigationRequest(
-            self.app.coordination_access.observation.observed().service,
-            self.resumed_session,
-            self.app.project_dir,
-            (),
-        )
+        request = ThreadNavigationRequest(self.app.coordination_access.observation.observed().service,
+                                          self.resumed_session, self.app.project_dir, ())
         return request.read()
 
     def check_version(self) -> None:
@@ -169,10 +150,7 @@ class ApplicationLifetime:
             self.quit()
         else:
             self.quit_warning_deadline = now + 5.0
-            self.app.notify(
-                "Press [b]ctrl+c[/b] again to quit the app",
-                title="Do you want to quit?",
-            )
+            self.app.notify("Press [b]ctrl+c[/b] again to quit the app", title="Do you want to quit?")
 
     def quit(self) -> None:
         app = self.app

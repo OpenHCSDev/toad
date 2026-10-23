@@ -19,15 +19,16 @@ from uuid import uuid4
 from agent_comms.field_codec import FieldCodec, WireName
 from annotated_types import Ge
 from objectstate import DottedFieldPath, ObjectState, set_base_config_type
-from pydantic import JsonValue
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
+from pydantic import JsonValue
 
 from toad import atomic, paths
 from toad import setting_effects as effects
+from toad.setting_declarations import Effect, FamilyChoices
+from toad.patch import DiffSettings
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
-from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
     BlurNotification,
@@ -41,7 +42,6 @@ from toad.setting_choices import (
     Scrollbar,
     SessionBar,
 )
-from toad.setting_declarations import Effect, FamilyChoices
 from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
@@ -51,10 +51,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True)
 class UiSettings(AnnotatedDataclassValidationMixin):
     wheel_scroll_rows: Annotated[
-        int,
-        FieldLabel("Rows per mouse wheel notch"),
-        Ge(1),
-        effects.wheel_scroll_rows,
+        int, FieldLabel("Rows per mouse wheel notch"), Ge(1), effects.wheel_scroll_rows,
         WireName("wheel-scroll-rows"),
     ] = 1
     """Vertical rows per wheel event in transcripts and sidebars. Increase for faster travel."""
@@ -71,23 +68,14 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     theme: Annotated[str, SchemeName(), effects.theme] = "wal"
     """wal follows pywal's palette in true colour. ANSI themes inherit your terminal palette."""
 
-    vim_keys: Annotated[
-        bool,
-        FieldLabel("Vim editing and navigation"),
-        effects.vim_keys,
-        WireName("vim-keys"),
-    ] = False
+    vim_keys: Annotated[bool, FieldLabel("Vim editing and navigation"), effects.vim_keys, WireName("vim-keys"),] = False
     """Opt in to modal prompts. Escape leaves Insert; Normal Enter never sends. Ctrl+Alt+X cancels a turn."""
 
-    prompt_message: Annotated[str, FieldLabel("Prompt message")] = (
-        "How can I help you today?"
-    )
+    prompt_message: Annotated[str, FieldLabel("Prompt message")] = "How can I help you today?"
     """Text shown as placeholder in prompt text area"""
 
     compact_input: Annotated[
-        bool,
-        FieldLabel("Compact text input?"),
-        effects.visibility,
+        bool, FieldLabel("Compact text input?"), effects.visibility,
         WireName("compact-input"),
     ] = False
     """Remove border and margin around the text area for additional space"""
@@ -104,40 +92,26 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     footer: Annotated[bool, FieldLabel("Enable footer?"), effects.visibility] = True
     """Disable the footer if you want additional room."""
 
-    info_bar: Annotated[
-        bool,
-        FieldLabel("Enable info bar?"),
-        effects.visibility,
-        WireName("info-bar"),
-    ] = True
+    info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility, WireName("info-bar"),] = True
     """The info bar is the text below the prompt text area. Disable for more space."""
 
     status_line: Annotated[
-        bool,
-        FieldLabel("Show status line in the info bar?"),
-        effects.visibility,
+        bool, FieldLabel("Show status line in the info bar?"), effects.visibility,
         WireName("status-line"),
     ] = True
     """The status line shows tokens and cost (not available in all agents)."""
 
     agent_title: Annotated[
-        bool,
-        FieldLabel("Show agent title the info bar?"),
-        effects.visibility,
+        bool, FieldLabel("Show agent title the info bar?"), effects.visibility,
         WireName("agent-title"),
     ] = True
     """Disable for a little extras space."""
 
-    column: Annotated[
-        bool, FieldLabel("Enable column?"), effects.conversation_layout
-    ] = False
+    column: Annotated[bool, FieldLabel("Enable column?"), effects.conversation_layout] = False
     """Enable for a fixed column size. Disable to use the full screen width."""
 
     column_width: Annotated[
-        int,
-        FieldLabel("Width of the column"),
-        Ge(40),
-        effects.conversation_layout,
+        int, FieldLabel("Width of the column"), Ge(40), effects.conversation_layout,
         WireName("column-width"),
     ] = 100
     """Width of the column if enabled. Minimum 40 characters."""
@@ -150,9 +124,7 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     ] = NormalScrollbar
 
     throbber: Annotated[
-        type[LoadingStyle],
-        FieldLabel("Thinking animation"),
-        FamilyChoices(LoadingStyle),
+        type[LoadingStyle], FieldLabel("Thinking animation"), FamilyChoices(LoadingStyle)
     ] = PulseLoading
     """Animation to show while waiting for the agent to respond"""
 
@@ -179,16 +151,12 @@ class NotificationsSettings(AnnotatedDataclassValidationMixin):
     ] = BlurNotification
 
     blink_title: Annotated[
-        bool,
-        FieldLabel("Blink terminal title when input is required?"),
-        effects.blink_title,
+        bool, FieldLabel("Blink terminal title when input is required?"), effects.blink_title
     ] = True
 
     enable_sounds: Annotated[bool, FieldLabel("Allow sound in notifications?")] = True
 
-    turn_over: Annotated[
-        bool, FieldLabel("Desktop notification when agent has finished?")
-    ] = True
+    turn_over: Annotated[bool, FieldLabel("Desktop notification when agent has finished?")] = True
 
     hide_low_severity: Annotated[
         bool, FieldLabel("Limit desktop notifications to warning and errors?")
@@ -228,9 +196,7 @@ class ShellSettings(AnnotatedDataclassValidationMixin):
     """Command used to launch your shell on macOS.
     [bold]Note:[/] Requires restart."""
 
-    command_start: Annotated[str, FieldLabel("Startup commands"), Multiline()] = (
-        'PS1=""'
-    )
+    command_start: Annotated[str, FieldLabel("Startup commands"), Multiline()] = 'PS1=""'
     """Command(s) to run on shell start."""
 
     warn_dangerous: Annotated[
@@ -240,14 +206,14 @@ class ShellSettings(AnnotatedDataclassValidationMixin):
 
     Note that false positive [i]and[/] false negatives are possible."""
 
-    allow_commands: Annotated[
-        str, FieldLabel("Shell command completions"), Multiline()
-    ] = "python\ngit\nls\ncat\ncd\nmv\ncp\ntree\nrm\necho\nrmdir\nmkdir\ntouch\nopen\npwd\nnano\nhead\ntail"
+    allow_commands: Annotated[str, FieldLabel("Shell command completions"), Multiline()] = (
+        "python\ngit\nls\ncat\ncd\nmv\ncp\ntree\nrm\necho\nrmdir\nmkdir\ntouch\nopen\npwd\nnano\nhead\ntail"
+    )
     """Commands offered as completions after explicitly entering shell mode with !. Typing a command name in an agent prompt does not enter shell mode."""
 
-    directory_commands: Annotated[
-        str, FieldLabel("Directory commands"), Multiline()
-    ] = "cd\nrmdir"
+    directory_commands: Annotated[str, FieldLabel("Directory commands"), Multiline()] = (
+        "cd\nrmdir"
+    )
     """List of commands (one per line) which accept only a directory as their first argument (used in tab completion)."""
 
     file_commands: Annotated[str, FieldLabel("File commands"), Multiline()] = "cat"
@@ -256,9 +222,7 @@ class ShellSettings(AnnotatedDataclassValidationMixin):
 
 @dataclass(frozen=True)
 class LauncherSettings(AnnotatedDataclassValidationMixin):
-    agents: Annotated[
-        str, FieldLabel("Agents to show in the launcher"), Multiline()
-    ] = ""
+    agents: Annotated[str, FieldLabel("Agents to show in the launcher"), Multiline()] = ""
 
 
 @dataclass(frozen=True)
@@ -391,13 +355,9 @@ class SavedSettings:
         from toad.core.preference_events import PreferenceChanged
 
         for name in changed:
-            if (
-                name in self.state.parameter_structure.declarations
-                and not self.state.has_parameter_descendants(name)
-            ):
-                setting = DeclaredField(
-                    self.state, self.state.parameter_structure.path(name)
-                )
+            if (name in self.state.parameter_structure.declarations
+                    and not self.state.has_parameter_descendants(name)):
+                setting = DeclaredField(self.state, self.state.parameter_structure.path(name))
                 self.user_set.add(setting.path)
                 self.applied(setting)
                 self.events.publish(PreferenceChanged(setting))
@@ -415,11 +375,8 @@ class SavedSettings:
 
     def saved_key(self, path: DottedFieldPath) -> str:
         owner = self.state.type_for_path(path.parent.value)
-        return next(
-            key
-            for declaration, key in FieldCodec.record_fields(owner)
-            if declaration.name == path.field_name
-        )
+        return next(key for declaration, key in FieldCodec.record_fields(owner)
+                    if declaration.name == path.field_name)
 
     def keys_held(self, path: str, raw: object) -> list[DottedFieldPath]:
         """The settings and groups a document read from the file has a key for."""

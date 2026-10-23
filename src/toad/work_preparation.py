@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import pickle
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Callable
@@ -11,6 +10,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from hashlib import sha256
+import pickle
 from sys import getsizeof
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar, cast
 
@@ -103,9 +103,7 @@ def serialize_result(result: ResultT) -> SerializedValue[ResultT]:
     return SerializedValue(payload)
 
 
-type PreparedResult[ResultT] = tuple[
-    PreparedValue[ResultT], int, PreparationStorage[ResultT]
-]
+type PreparedResult[ResultT] = tuple[PreparedValue[ResultT], int, PreparationStorage[ResultT]]
 
 
 class PreparationStorage[ResultT](ABC):
@@ -117,9 +115,7 @@ class PreparationStorage[ResultT](ABC):
         return 0
 
     def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
-        return CopiedValue(
-            result, self.result_size(result) if self.retain_result else 0
-        )
+        return CopiedValue(result, self.result_size(result) if self.retain_result else 0)
 
     def finish_result(self, key: WorkKey, result: ResultT) -> PreparedResult[ResultT]:
         """Finish representation and retained cost within the executing worker.
@@ -131,16 +127,11 @@ class PreparationStorage[ResultT](ABC):
         return self.finish_prepared(key, self.store_result(result))
 
     def finish_prepared(
-        self,
-        key: WorkKey,
-        prepared: PreparedValue[ResultT],
+        self, key: WorkKey, prepared: PreparedValue[ResultT],
     ) -> PreparedResult[ResultT]:
         """Account for the original representation without encoding it again."""
-        size = (
-            prepared.size + getsizeof(key) + key.revision.size
-            if self.retain_result
-            else 0
-        )
+        size = (prepared.size + getsizeof(key) + key.revision.size
+                if self.retain_result else 0)
         return prepared, size, self
 
 
@@ -171,16 +162,13 @@ class PreparationWork(ABC, Generic[ResultT]):
 
     @abstractmethod
     async def execute(
-        self,
-        runtime: PreparationRuntime,
-        key: WorkKey,
+        self, runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[ResultT]:
         """Complete result storage and accounting through the worker policy."""
 
 
 class ReusableWork(ReusableStorage[ResultT], PreparationWork[ResultT]):
     """Mixin for results whose declared identity fully describes their inputs."""
-
 
 class ContentAddressedWork(PreparationWork[ResultT]):
     @property
@@ -189,9 +177,7 @@ class ContentAddressedWork(PreparationWork[ResultT]):
         """Data-only inputs; no widgets, services or mutable presentation state."""
 
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
-        digest = await runtime.run_thread(
-            lambda: sha256(pickle.dumps(self.inputs, protocol=5)).digest()
-        )
+        digest = await runtime.run_thread(lambda: sha256(pickle.dumps(self.inputs, protocol=5)).digest())
         return WorkKey(type(self), ContentRevision(digest))
 
 
@@ -213,9 +199,7 @@ class ThreadWork(PreparationStorage[ResultT], PreparationWork[ResultT]):
         """Prepare captured data on a worker thread."""
 
     async def execute(
-        self,
-        runtime: PreparationRuntime,
-        key: WorkKey,
+        self, runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[ResultT]:
         return await runtime.run_thread(lambda: self.finish_result(key, self.prepare()))
 
@@ -226,9 +210,7 @@ class RendererWork(PreparationWork[ResultT]):
     task: RenderTask[ResultT]
 
     async def execute(
-        self,
-        runtime: PreparationRuntime,
-        key: WorkKey,
+        self, runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[ResultT]:
         prepared = await runtime.renderer.capture(self.task)
         return await runtime.run_thread(self.task.finish_prepared, key, prepared)
@@ -245,7 +227,6 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     @property
     def inputs(self) -> object:
         return (type(self.task), self.task.preparation_inputs)
-
 
 class ThreadScheduler:
     """Run a declared operation while preserving its result type."""
@@ -265,27 +246,13 @@ class PreparationRuntime(ThreadScheduler):
     native consumers may mutate tokens without corrupting another view's result.
     """
 
-    def __init__(
-        self,
-        renderer: Renderer,
-        *,
-        max_entries: int = 256,
-        max_bytes: int = 64 * 1024 * 1024,
-        max_pending: int = 32,
-    ) -> None:
-        for name, value in (
-            ("max_entries", max_entries),
-            ("max_bytes", max_bytes),
-            ("max_pending", max_pending),
-        ):
+    def __init__(self, renderer: Renderer, *, max_entries: int = 256,
+                 max_bytes: int = 64 * 1024 * 1024, max_pending: int = 32) -> None:
+        for name, value in (("max_entries", max_entries), ("max_bytes", max_bytes), ("max_pending", max_pending)):
             if isinstance(value, bool) or not isinstance(value, int) or value < 1:
                 raise ValueError(f"{name} must be a positive integer")
         self.renderer = renderer
-        self.max_entries, self.max_bytes, self.max_pending = (
-            max_entries,
-            max_bytes,
-            max_pending,
-        )
+        self.max_entries, self.max_bytes, self.max_pending = max_entries, max_bytes, max_pending
         self._ready: OrderedDict[WorkKey, tuple[PreparedValue, int]] = OrderedDict()
         self._pending: dict[WorkKey, asyncio.Task[PreparedValue]] = {}
         self._admitted = dict.fromkeys(WorkLane, 0)
@@ -307,11 +274,8 @@ class PreparationRuntime(ThreadScheduler):
             self._threads.release()
             raise asyncio.CancelledError
         context = self.renderer.execution_context()
-        task = asyncio.create_task(
-            asyncio.to_thread(function, *args),
-            name="preparation-thread",
-            context=context,
-        )
+        task = asyncio.create_task(asyncio.to_thread(function, *args), name="preparation-thread",
+                                   context=context)
         self._thread_tasks.add(task)
 
         def finished(completed):
@@ -341,8 +305,7 @@ class PreparationRuntime(ThreadScheduler):
         await self._prepare(work)
 
     async def _prepare(
-        self,
-        work: PreparationWork[ResultT],
+        self, work: PreparationWork[ResultT],
     ) -> tuple[WorkKey, PreparedValue[ResultT]]:
         if self._closed:
             raise asyncio.CancelledError
@@ -361,11 +324,8 @@ class PreparationRuntime(ThreadScheduler):
                 self.misses += 1
                 self._admitted[work.lane] += 1
                 context = self.renderer.execution_context()
-                pending = asyncio.create_task(
-                    self._execute(key, work),
-                    name=f"prepare-{type(work).__name__}",
-                    context=context,
-                )
+                pending = asyncio.create_task(self._execute(key, work), name=f"prepare-{type(work).__name__}",
+                                              context=context)
                 self._pending[key] = pending
 
                 def finished(completed, lane=work.lane):
@@ -394,20 +354,12 @@ class PreparationRuntime(ThreadScheduler):
             raise asyncio.CancelledError
         return copied
 
-    async def _execute(
-        self, key: WorkKey, work: PreparationWork[ResultT]
-    ) -> PreparedValue[ResultT]:
+    async def _execute(self, key: WorkKey, work: PreparationWork[ResultT]) -> PreparedValue[ResultT]:
         prepared, size, storage = await work.execute(self, key)
         if storage.retain_result:
-            if (
-                not self._closed
-                and (key.scope is None or not key.scope.closed)
-                and size <= self.max_bytes
-            ):
-                while self._ready and (
-                    len(self._ready) >= self.max_entries
-                    or self.retained_bytes + size > self.max_bytes
-                ):
+            if not self._closed and (key.scope is None or not key.scope.closed) and size <= self.max_bytes:
+                while self._ready and (len(self._ready) >= self.max_entries
+                                       or self.retained_bytes + size > self.max_bytes):
                     _, (_, old_size) = self._ready.popitem(last=False)
                     self.retained_bytes -= old_size
                 self._ready[key] = prepared, size
@@ -418,11 +370,8 @@ class PreparationRuntime(ThreadScheduler):
         self._closed = True
         self._changed.set()
         if self._shutdown is None:
-            self._shutdown = asyncio.create_task(
-                self._close(),
-                name="preparation-shutdown",
-                context=self.renderer.execution_context(),
-            )
+            self._shutdown = asyncio.create_task(self._close(), name="preparation-shutdown",
+                                                 context=self.renderer.execution_context())
         await self.renderer.wait_for_work(self._shutdown)
         self._shutdown.result()
 

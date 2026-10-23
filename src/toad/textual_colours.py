@@ -73,10 +73,7 @@ class _WalFileClosed(FileSystemEventHandler):
         self.colours = colours
 
     def on_any_event(self, event: FileSystemEvent) -> None:
-        if (
-            isinstance(event, FileClosedEvent)
-            and os.path.basename(event.src_path) == WalFile.NAME
-        ):
+        if isinstance(event, FileClosedEvent) and os.path.basename(event.src_path) == WalFile.NAME:
             self.colours.app.call_from_thread(self.colours.read_wal)
 
 
@@ -95,13 +92,9 @@ class BlockInk:
         return cls.GLYPHS[level]
 
     @classmethod
-    def paint(
-        cls, level: int, ink: Color, background: Color, style: RichStyle
-    ) -> Segment:
-        return Segment(
-            cls.glyph(level),
-            style + RichStyle(color=ink.rich_color, bgcolor=background.rich_color),
-        )
+    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
+        return Segment(cls.glyph(level), style + RichStyle(
+            color=ink.rich_color, bgcolor=background.rich_color))
 
 
 class BottomInk(BlockInk):
@@ -117,100 +110,66 @@ class PaletteState(AnsiPalette, ABC):
         """Native colours already in the stylesheet need no RGB replacement."""
 
     @abstractmethod
-    async def text_effect(
-        self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme
-    ) -> PlayedText: ...
+    async def text_effect(self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme) -> PlayedText: ...
 
     @abstractmethod
-    def paint_rising(
-        self, colours: TextualColours, frame: Mix, target: Strip
-    ) -> Strip: ...
+    def paint_rising(self, colours: TextualColours, frame: Mix, target: Strip) -> Strip: ...
 
     @abstractmethod
     def resolved(self, colour: RichColor, *, foreground: bool) -> Color: ...
 
     @abstractmethod
-    def derived(
-        self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]
-    ) -> Color: ...
+    def derived(self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]) -> Color: ...
 
     @abstractmethod
     def tint_style(self, style: RichStyle, amount: float) -> RichStyle: ...
 
 
+
 class UnknownPalette(NativeAnsiPalette, PaletteState):
     """Native ANSI styles remain usable when the terminal cannot report RGB."""
 
-    async def text_effect(
-        self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme
-    ) -> PlayedText:
-        return PlayedText(
-            (
-                TextFrame(
-                    tuple(
-                        tuple((character, None) for character in line)
-                        for line in effect.text.splitlines()
-                    )
-                ),
-            ),
-            effect.frames_per_second,
-        )
+    async def text_effect(self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme) -> PlayedText:
+        return PlayedText((TextFrame(tuple(tuple((character, None) for character in line)
+                                           for line in effect.text.splitlines())),), effect.frames_per_second)
 
     def paint_rising(self, colours: TextualColours, frame: Mix, target: Strip) -> Strip:
         if frame.amount >= 0.5:
             return target
-        return Strip(
-            Segment.apply_style(target, post_style=RichStyle(dim=True)),
-            target.cell_length,
-        )
+        return Strip(Segment.apply_style(target, post_style=RichStyle(dim=True)), target.cell_length)
 
     def resolved(self, colour: RichColor, *, foreground: bool) -> Color:
         return Color.from_rich_color(colour, foreground=foreground)
 
-    def derived(
-        self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]
-    ) -> Color:
+    def derived(self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]) -> Color:
         return colours[BackgroundColour if member.background else ForegroundColour]
 
     def tint_style(self, style: RichStyle, amount: float) -> RichStyle:
         return style
 
 
+
 class KnownPalette(MappedAnsiPalette, PaletteState):
     def __init__(self, colours: TerminalPalette) -> None:
         self.colours = colours
         ansi = [colour.triple for colour in colours.ansi]
-        super().__init__(
-            TerminalTheme(
-                colours.background.triple, colours.foreground.triple, ansi[:8], ansi[8:]
-            )
-        )
+        super().__init__(TerminalTheme(colours.background.triple, colours.foreground.triple,
+                                       ansi[:8], ansi[8:]))
 
     def refresh_colours(self, colours: TextualColours) -> None:
         colours.app.refresh_css(animate=False)
 
-    async def text_effect(
-        self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme
-    ) -> PlayedText:
+    async def text_effect(self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme) -> PlayedText:
         return await colours.app.prepare_background(
-            TextEffectRenderTask(effect, replace(scheme, terminal=self.colours))
-        )
+            TextEffectRenderTask(effect, replace(scheme, terminal=self.colours)))
 
     def resolved(self, colour: RichColor, *, foreground: bool) -> Color:
         return Color(*colour.get_truecolor(self._terminal_theme, foreground=foreground))
 
-    def derived(
-        self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]
-    ) -> Color:
+    def derived(self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]) -> Color:
         def read(role: type[ThemeColour]) -> Rgb:
             value = colours[role]
-            return Rgb(
-                *value.rich_color.get_truecolor(
-                    self._terminal_theme, foreground=not role.background
-                ),
-                value.a,
-            )
-
+            return Rgb(*value.rich_color.get_truecolor(self._terminal_theme, foreground=not role.background), value.a)
         value = member.resolve_rgb(read)
         return Color(value.red, value.green, value.blue, value.alpha)
 
@@ -227,15 +186,10 @@ class KnownPalette(MappedAnsiPalette, PaletteState):
 
         def risen(segment: Segment) -> Segment:
             text, style, control = segment
-            own = (
-                self.resolved(style.color, foreground=True)
-                if style is not None and style.color is not None
-                else resting_foreground
-            )
+            own = (self.resolved(style.color, foreground=True)
+                   if style is not None and style.color is not None else resting_foreground)
             colour = start.blend(own, frame.amount).rich_color
-            return Segment(
-                text, (style or RichStyle()) + RichStyle(color=colour), control
-            )
+            return Segment(text, (style or RichStyle()) + RichStyle(color=colour), control)
 
         return Strip([risen(segment) for segment in target], target.cell_length)
 
@@ -246,9 +200,7 @@ class TextualScheme:
     palette: PaletteState
 
 
-class TextualColours(
-    Backend[Theme, Color, Strip | Content, Strip], TerminalBackend[TerminalTheme]
-):
+class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBackend[TerminalTheme]):
     """The app's colour depth, schemes, terminal palettes, line styles and animation clock."""
 
     def __init__(self, app: ToadApp) -> None:
@@ -308,11 +260,8 @@ class TextualColours(
         self.app.register_theme(self.theme(scheme))
 
     def _add(self, scheme: ColourScheme) -> None:
-        palette = (
-            self.terminal_palette
-            if scheme.from_terminal
-            else KnownPalette(scheme.terminal.resolve(require_terminal_palette))
-        )
+        palette = (self.terminal_palette if scheme.from_terminal else
+                   KnownPalette(scheme.terminal.resolve(require_terminal_palette)))
         self.schemes[scheme.name] = TextualScheme(scheme, palette)
 
     async def mount(self) -> None:
@@ -326,15 +275,9 @@ class TextualColours(
     def choose(self, name: str) -> None:
         if name not in self.schemes:
             # `wal` exists once pywal has written its palette.
-            self.app.show_error(
-                f"Theme {name!r} is not available"
-                + (
-                    f": pywal has not written {self.wal_directory / WalFile.NAME}"
-                    if name == WalFile.SCHEME
-                    else ""
-                ),
-                "Theme",
-            )
+            self.app.show_error(f"Theme {name!r} is not available"
+                                + (f": pywal has not written {self.wal_directory / WalFile.NAME}"
+                                   if name == WalFile.SCHEME else ""), "Theme")
             return
         self.app.theme = name
 
@@ -350,32 +293,20 @@ class TextualColours(
         """Read the terminal's colours once, through its existing input driver."""
         try:
             driver = self.app._driver
-            assert (
-                driver is not None
-            ), "Palette query requires the running terminal driver"
+            assert driver is not None, "Palette query requires the running terminal driver"
             colours = await driver.query_colours(timeout=0.25)
         except TerminalGaveNoPalette:
             return UnknownPalette()
         foreground = Rgb(*colours.foreground)
-        return KnownPalette(
-            TerminalPalette(
-                Rgb(*colours.background),
-                foreground,
-                foreground,
-                tuple(Rgb(*colour) for colour in colours.ansi),
-            )
-        )
+        return KnownPalette(TerminalPalette(Rgb(*colours.background), foreground, foreground,
+                               tuple(Rgb(*colour) for colour in colours.ansi)))
 
     def variables_changed(self, variables: dict[str, str], system: ColorSystem) -> None:
         palette = self.schemes[self.app.theme].palette
         variables = dict(variables)
-        self._colours = {
-            member: value.native(self)
-            for member, value in self.scheme.resolved_colours.items()
-        }
-        self._colours.update(
-            {member: system.color(member.name) for member in LayerColour.members()}
-        )
+        self._colours = {member: value.native(self)
+                         for member, value in self.scheme.resolved_colours.items()}
+        self._colours.update({member: system.color(member.name) for member in LayerColour.members()})
 
         for member in BlendColour.members():
             derived = palette.derived(member, self._colours)
@@ -394,28 +325,16 @@ class TextualColours(
     # The backend.
 
     def theme(self, scheme: ColourScheme) -> Theme:
-        colours = {
-            member.name: member.variable(value, self)
-            for member, value in scheme.colours.items()
-        }
-        variables = {
-            member.name: member.variable(value, self)
-            for member, value in scheme.resolved_elements.items()
-        }
-        theme = Theme(
-            name=scheme.name,
-            dark=scheme.dark,
-            ansi=scheme.from_terminal,
-            variables=variables,
-            **colours,
-        )
+        colours = {member.name: member.variable(value, self) for member, value in scheme.colours.items()}
+        variables = {member.name: member.variable(value, self)
+                     for member, value in scheme.resolved_elements.items()}
+        theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
+                      variables=variables, **colours)
         return theme
 
     def palette(self, palette: TerminalPalette) -> TerminalTheme:
         ansi = [colour.triple for colour in palette.ansi]
-        return TerminalTheme(
-            palette.background.triple, palette.foreground.triple, ansi[:8], ansi[8:]
-        )
+        return TerminalTheme(palette.background.triple, palette.foreground.triple, ansi[:8], ansi[8:])
 
     def rgb(self, colour: Rgb) -> Color:
         return Color(colour.red, colour.green, colour.blue, colour.alpha)
@@ -438,13 +357,9 @@ class TextualColours(
 
     def style(self, role: type[LineRole]) -> VisualStyle:
         """The same resolved line role for Textual content as for rendered rows."""
-        return self.schemes[self.app.theme].palette.rich_style(
-            self.line_theme.style(role)
-        )
+        return self.schemes[self.app.theme].palette.rich_style(self.line_theme.style(role))
 
-    def mixed(
-        self, start: type[ThemeColour], end: type[ThemeColour], amount: float
-    ) -> Color:
+    def mixed(self, start: type[ThemeColour], end: type[ThemeColour], amount: float) -> Color:
         first, last = self.colour(start), self.colour(end)
         # Terminal colours cannot be blended; they step.
         if first.ansi is not None or last.ansi is not None:
@@ -453,13 +368,10 @@ class TextualColours(
 
     def resolved(self, colour: RichColor, *, foreground: bool) -> Color:
         """Resolve palette ink or background against the active terminal theme."""
-        return self.schemes[self.app.theme].palette.resolved(
-            colour, foreground=foreground
-        )
+        return self.schemes[self.app.theme].palette.resolved(colour, foreground=foreground)
 
-    def paint_gradient(
-        self, frame: Gradient, target: Strip, *, edge: type[BlockInk] = BottomInk
-    ) -> Strip:
+    def paint_gradient(self, frame: Gradient, target: Strip,
+                       *, edge: type[BlockInk] = BottomInk) -> Strip:
         """Sample shared colour/shape into truecolour cells; never change row geometry."""
         width = target.cell_length
         if width == 0:
@@ -467,14 +379,11 @@ class TextualColours(
         first = next(iter(target))
         style = first.style or RichStyle()
         colours = {
-            role: self.resolved(
-                self.colour(role).rich_color, foreground=not role.background
-            )
+            role: self.resolved(self.colour(role).rich_color, foreground=not role.background)
             for role in dict.fromkeys(frame.stops)
         }
         background = self.resolved(
-            style.bgcolor or self.colour(BackgroundColour).rich_color, foreground=False
-        )
+            style.bgcolor or self.colour(BackgroundColour).rich_color, foreground=False)
         segments = []
         for cell in range(width):
             start, end, amount, height = frame.sample((cell + 0.5) / width)
@@ -490,30 +399,17 @@ class TextualColours(
         return Strip(Segment.simplify(segments), cell_length=width)
 
     def paint_mix(self, frame: Mix, target: Strip) -> Strip:
-        return Strip(
-            Segment.apply_style(
-                target,
-                post_style=RichStyle(
-                    color=self.mixed(frame.start, frame.end, frame.amount).rich_color
-                ),
-            ),
-            target.cell_length,
-        )
+        return Strip(Segment.apply_style(target, post_style=RichStyle(
+            color=self.mixed(frame.start, frame.end, frame.amount).rich_color)), target.cell_length)
 
     def paint_band(self, frame: Band, target: Strip) -> Strip:
         width = target.cell_length
-        start, end = (
-            max(0, min(width, round(edge * width))) for edge in (frame.start, frame.end)
-        )
+        start, end = (max(0, min(width, round(edge * width))) for edge in (frame.start, frame.end))
         if start >= end:
             return target
         before, band, after = target.divide((start, end, width))
-        band = Strip(
-            Segment.apply_style(
-                band, post_style=RichStyle(color=self.colour(frame.colour).rich_color)
-            ),
-            band.cell_length,
-        )
+        band = Strip(Segment.apply_style(band, post_style=RichStyle(
+            color=self.colour(frame.colour).rich_color)), band.cell_length)
         return Strip.join((before, band, after))
 
     def paint_rising(self, frame: Mix, target: Strip) -> Strip:
@@ -531,9 +427,7 @@ class TextualColours(
             self._timer.stop()
             self._timer = None
         if interval is not None:
-            self._timer = self.app.set_interval(
-                interval, self.clock.tick, name="animation clock"
-            )
+            self._timer = self.app.set_interval(interval, self.clock.tick, name="animation clock")
 
 
 class ThemedApp:
@@ -588,15 +482,6 @@ class ThemedApp:
 @lru_cache(maxsize=128)
 def _text(frame: TextFrame) -> Content:
     return Content("\n").join(
-        Content.assemble(
-            *(
-                (
-                    (character, VisualStyle(foreground=Color(*colour.triple)))
-                    if colour is not None
-                    else character
-                )
-                for character, colour in line
-            )
-        )
-        for line in frame.lines
-    )
+        Content.assemble(*((character, VisualStyle(foreground=Color(*colour.triple)))
+                           if colour is not None else character for character, colour in line))
+        for line in frame.lines)

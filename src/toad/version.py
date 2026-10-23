@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+from typing import NamedTuple, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, NamedTuple
 
 from toad.work_preparation import ThreadScheduler
 
@@ -43,18 +43,9 @@ class AvailableVersion(VersionStatus):
     def print_notice(self) -> None:
         from rich.console import Console
         from rich.panel import Panel
-
         console = Console()
-        console.print(
-            Panel(
-                self.metadata.upgrade_message,
-                style="magenta",
-                border_style="dim green",
-                title="🐸 [bold green not dim]Update available![/] 🐸",
-                expand=False,
-                padding=(1, 2),
-            )
-        )
+        console.print(Panel(self.metadata.upgrade_message, style="magenta", border_style="dim green",
+                            title="🐸 [bold green not dim]Update available![/] 🐸", expand=False, padding=(1, 2)))
         console.print(f"Please visit {self.metadata.visit_url}")
 
 
@@ -63,8 +54,7 @@ class VersionMonitor:
         self.status: VersionStatus = CurrentVersion()
 
     async def check(
-        self,
-        scheduler: ThreadScheduler = ThreadScheduler(),
+        self, scheduler: ThreadScheduler = ThreadScheduler(),
     ) -> None:
         try:
             self.status = await self.check_version(scheduler)
@@ -74,10 +64,9 @@ class VersionMonitor:
     @staticmethod
     def prepare_version() -> Version:
         """Acquire cold dependencies and installed metadata outside UI work."""
-        import tomllib  # noqa: F401 - acquired before the UI decodes the response
-
         import httpx  # noqa: F401 - acquired before the UI consumes the module
         import packaging.version
+        import tomllib  # noqa: F401 - acquired before the UI decodes the response
 
         from toad import get_version
 
@@ -88,8 +77,7 @@ class VersionMonitor:
 
     @classmethod
     async def check_version(
-        cls,
-        scheduler: ThreadScheduler = ThreadScheduler(),
+        cls, scheduler: ThreadScheduler = ThreadScheduler(),
     ) -> VersionStatus:
         """Check for a new version of Toad.
 
@@ -97,10 +85,9 @@ class VersionMonitor:
         """
         current_version = await scheduler.run_thread(cls.prepare_version)
         # These modules were acquired by the preparation worker above.
-        import tomllib
-
         import httpx
         import packaging.version
+        import tomllib
 
         try:
             client = await scheduler.run_thread(httpx.AsyncClient)
@@ -134,11 +121,7 @@ class VersionMonitor:
         except packaging.version.InvalidVersion as error:
             raise VersionCheckFailed(f"Invalid remote version;{error}")
 
-        return (
-            AvailableVersion(verison_meta)
-            if new_version > current_version
-            else CurrentVersion()
-        )
+        return AvailableVersion(verison_meta) if new_version > current_version else CurrentVersion()
 
 
 if __name__ == "__main__":
