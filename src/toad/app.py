@@ -17,9 +17,10 @@ from enum import IntEnum
 from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
-from typing import TYPE_CHECKING, Callable, TypeVar, cast
+from typing import TYPE_CHECKING, Callable, Never, TypeVar, cast
 
 from agent_comms.acp_extension import TranscriptChangedUpdate
+from rich.console import RenderableType
 from textual._time import after_input
 from textual import events, on, work
 from textual.app import App
@@ -58,10 +59,11 @@ from toad.terminal_attention import TerminalAttention
 from toad.textual_colours import ThemedApp
 from toad.application_actions import ApplicationCommands
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
-from toad.application_lifetime import ApplicationLifetime
+from toad.application_lifetime import ApplicationLifetime, Ended, Succeeded, TerminalOutcome
 from toad.resource_release import AsyncResourceRelease
 
 if TYPE_CHECKING:
+    from agent_comms.launch_runtime import LaunchRuntime
     from toad.db import DB
     from toad.render_backend import RenderTask
     from toad.screens.main import MainScreen
@@ -127,7 +129,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
+class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App[TerminalOutcome], inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -193,8 +195,27 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         from toad.file_kind import FileKind
         FileKind.prepare_terminal()
         super().__init__()
+        self._return_value: TerminalOutcome = Ended(self.application.version)
         self.session_navigation.bind_events()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
+
+    @property
+    def return_value(self) -> TerminalOutcome:
+        return self._return_value
+
+    def exit(
+        self, result: TerminalOutcome | None = None, return_code: int = 0,
+        message: RenderableType | None = None,
+    ) -> None:
+        """Textual's omitted result is a normal terminal ending."""
+        super().exit(
+            Ended(self.application.version) if result is None else result,
+            return_code=return_code, message=message,
+        )
+
+    def succeed_onto(self, runtime: LaunchRuntime) -> Never:
+        self.call_from_thread(self.exit, Succeeded(runtime))
+        raise asyncio.CancelledError
 
 
     async def _close_all(self) -> None:

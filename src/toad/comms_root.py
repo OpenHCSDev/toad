@@ -22,13 +22,16 @@ from typing import TYPE_CHECKING, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.child_process import join_retirement
+from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
+from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
 from agent_comms.route_selection import RouteSelection, run_selected_write
+from agent_comms.root_runtime import RootRuntime
 from agent_comms.ui_model.observation import (
     NotificationsObserved,
     NotificationsUnreadable,
@@ -65,7 +68,6 @@ from toad.preferences import SETTINGS
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 
 if TYPE_CHECKING:
-    from agent_comms.comms import Comms
     from agent_comms.display_order import DisplayOrder
     from agent_comms.display_references import ReferenceContext
     from agent_comms.thread_identity import ThreadIncarnation
@@ -334,7 +336,6 @@ class CoordinationAccess(MroDispatch):
         self.revision: ReadState = NoRevision()
         self.route_task: asyncio.Task[None] | None = None
         self.timer = None
-        self.cleanup = ExitStack()
         self.opening = threading.RLock()
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
@@ -369,22 +370,24 @@ class CoordinationAccess(MroDispatch):
             return self.observation.require(self, selected)
 
     def open_selected(self, selected: RouteSelection) -> Observing:
-        from agent_comms.comms import Comms
+        def attach() -> Observing:
+            previous = self.observation
+            with ExitStack() as acquisition:
+                acquisition.enter_context(selected.route.hold_client_route())
+                service = Comms(selected.route)
+                if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
+                    raise RouteChangedError("Comms route changed while opening the service")
+                observed = Observing(
+                    selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
+                    self.app.running_loop, access=self)
+            observed.subscriptions.callback(observed.retire, self)
+            self.observation = observed
+            observed.loop.call_soon_threadsafe(observed.attach, self, previous)
+            return observed
 
-        previous = self.observation
-        with ExitStack() as acquisition:
-            acquisition.enter_context(selected.route.hold_client_route())
-            service = Comms(selected.route)
-            if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
-                raise RouteChangedError("Comms route changed while opening the service")
-            observed = Observing(
-                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
-                self.app.running_loop, access=self)
-            self.cleanup.enter_context(acquisition.pop_all())
-        observed.subscriptions.callback(observed.retire, self)
-        self.observation = observed
-        observed.loop.call_soon_threadsafe(observed.attach, self, previous)
-        return observed
+        return RootRuntime.attachment(selected.root, LaunchRuntime.running()).proceed(
+            attach, self.app.succeed_onto,
+        )
 
     @handles(RevisionObserved)
     def revision_observed(self, result: RevisionObserved, observed: Observing) -> None:
@@ -586,7 +589,6 @@ class CoordinationAccess(MroDispatch):
     async def close(self) -> None:
         """Retire the observation once the views it served have closed."""
         async with AsyncResourceRelease() as release:
-            release.callback(self.cleanup.close)
             try:
                 with ResourceRelease() as observation:
                     observation.callback(lambda: self.observation.subscriptions.close())

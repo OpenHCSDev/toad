@@ -1,6 +1,9 @@
 """Application startup, graceful exit and optional reporting own their lifetime."""
 from __future__ import annotations
 
+import os
+import sys
+from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from functools import cached_property, partial
 from importlib import import_module
@@ -15,7 +18,31 @@ from toad.version import VersionMonitor
 if TYPE_CHECKING:
     from ssl import SSLContext
 
+    from agent_comms.launch_runtime import LaunchRuntime
     from toad.app import ToadApp
+
+
+class TerminalOutcome(ABC):
+    @abstractmethod
+    def finish(self) -> None: ...
+
+
+@dataclass(frozen=True)
+class Ended(TerminalOutcome):
+    version: VersionMonitor
+
+    def finish(self) -> None:
+        self.version.status.print_notice()
+
+
+@dataclass(frozen=True)
+class Succeeded(TerminalOutcome):
+    runtime: LaunchRuntime
+
+    def finish(self) -> None:
+        self.runtime.require_available()
+        executable = str(self.runtime.interpreter.with_name("toad"))
+        os.execve(executable, [executable, *sys.argv[1:]], self.runtime.environment(os.environ))
 
 
 class UsageReports:
