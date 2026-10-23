@@ -1,16 +1,3 @@
-from toad.acp.agent_session import AgentSession
-from toad.acp.session_updates import SessionNotificationOwner
-from toad.acp.client_session import ClientSessionRequest
-from toad.acp.client_files import FileClientRequestOwner
-from toad.acp.tool_calls import SessionToolCalls
-from toad.acp.agent_configuration import ModelConfigurationSetting, ThinkingConfigurationSetting
-from toad.acp.context_measurement import ContextMeasurement
-from toad.acp.agent_log import AgentLog
-from toad.acp.agent_process import AgentProcess
-from toad.acp.agent_controller import AgentController
-from toad.acp.transcript_reader import CoordinationTranscriptReader
-from toad.acp.permission_controller import PermissionController
-from toad.agent_presentation import ACPAgentPresentation
 import asyncio
 from contextlib import suppress
 from dataclasses import replace
@@ -20,12 +7,11 @@ from pathlib import Path
 import rich.repr
 from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
-    PromptRequest,
     InputStartedUpdate,
+    PromptRequest,
 )
-from agent_comms.acp_failure import ACPFailure
-from agent_comms.field_codec import FieldCodec
 from agent_comms.context_reading import UnmeasuredContext
+from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import Goal, GoalDeclaration, NoGoal
@@ -33,14 +19,34 @@ from agent_comms.ui_model.observation import ReadOwnerGoal
 
 import toad
 from toad import paths
-from toad.core import events as core_events
+from toad.acp.agent_configuration import (
+    ModelConfigurationSetting,
+    ThinkingConfigurationSetting,
+)
+from toad.acp.agent_controller import AgentController
+from toad.acp.agent_log import AgentLog
+from toad.acp.agent_process import AgentProcess
+from toad.acp.agent_session import AgentSession
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.acp.comms_updates import CommsUpdateConsumer, NoPendingThreadRead, PendingThreadRead, ThreadRead
+from toad.acp.client_files import FileClientRequestOwner
+from toad.acp.client_session import ClientSessionRequest
+from toad.acp.comms_updates import (
+    CommsUpdateConsumer,
+    NoPendingThreadRead,
+    PendingThreadRead,
+    ThreadRead,
+)
+from toad.acp.context_measurement import ContextMeasurement
+from toad.acp.permission_controller import PermissionController
 from toad.acp.projection_attachment import CursorAttachment
 from toad.acp.queue_attachment import QueueAttachment
-from toad.core.events import UnsupportedResumeAgentFail, AgentReady
+from toad.acp.session_updates import SessionNotificationOwner
+from toad.acp.tool_calls import SessionToolCalls
+from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.agent import AgentBase
+from toad.agent_presentation import ACPAgentPresentation
 from toad.agent_schema import AgentDefinition
+from toad.core import events as core_events
 
 
 def generate_datetime_filename(
@@ -131,7 +137,7 @@ class Agent(AgentBase):
     def get_info(self) -> str:
         return self.definition.name
 
-    async def start(self, processes=()) -> None:
+    async def start(self, processes: tuple[AgentProcess, ...] = ()) -> None:
         """Start the operational agent; attachment resources are acquired separately."""
         await self.process.start(self, processes)
 
@@ -159,7 +165,7 @@ class Agent(AgentBase):
         return self.controller.session.session_id
 
     @session_id.setter
-    def session_id(self, value):
+    def session_id(self, value) -> None:
         self.controller.bind_session(value)
 
     @property
@@ -170,7 +176,7 @@ class Agent(AgentBase):
     def current_turn(self):
         return self.presentation.turns.owner
 
-    async def retire_surface(self, surface):
+    async def retire_surface(self, surface) -> None:
         if self.controller.surface.owns(surface):
             self.detach_surface(surface)
             await self.stop()
