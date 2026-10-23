@@ -192,7 +192,7 @@ async def test_standby_goal_mention_opens_its_peer_and_returns_to_the_draft(work
             summary.region.x + offset[0], summary.region.y,
         ).meta.get("@click") is not None, why="the objective's bound goal mention")
         assert await ui.pilot.click(summary, offset=offset)
-        await ui.until(lambda: ui.app.selected_session._comms_thread == "peer",
+        await ui.until(lambda: ui.app.selected_session.thread_identity.thread_name() == "peer",
                        why="the goal mention opens its peer")
         await ui.select_tab(original)
         assert ui.draft() == "Composer draft stays"

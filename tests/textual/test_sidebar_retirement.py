@@ -42,8 +42,7 @@ def project_with_files(workspace):
 
 async def started(workspace, ui):
     screen = ui.app.selected_session
-    screen._comms_thread = "owner"
-    screen.initial_coordination_root = str(workspace.roots.wire)
+    await workspace.bind(screen, "owner")
     return screen
 
 

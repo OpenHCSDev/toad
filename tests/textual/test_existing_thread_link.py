@@ -12,20 +12,18 @@ async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(worksp
     workspace.thread("owner", "team", running=True)
     workspace.thread("peer", "team", running=True)
     workspace.comms.messaging.send("peer", "#team", "a message from the open thread")
-    wire_root = str(workspace.roots.wire)
+    foreign_root = workspace.project / "foreign-wire"
+    workspace.thread("peer", "team", running=True, root=foreign_root)
     async with workspace.app(size=(100, 36)) as ui:
         app, _pilot = ui.textual
         owner = ui.selected_tab
         source = app.selected_session
-        source.initial_coordination_root = wire_root
-        source._comms_thread = "owner"
+        await workspace.bind(source, "owner")
         foreign = await ui.new_session()
-        app.selected_session.initial_coordination_root = str(workspace.project / "foreign-wire")
-        app.selected_session._comms_thread = "peer"
+        await workspace.bind(app.selected_session, "peer", root=foreign_root)
         existing = await ui.new_session()
         destination = app.selected_session
-        destination.initial_coordination_root = wire_root
-        destination._comms_thread = "peer"
+        await workspace.bind(destination, "peer")
         await ui.write_draft("Keep this draft")
         await ui.select_tab(owner)
         await ui.open_channel("#team", actor="owner", owner=owner)
@@ -57,14 +55,12 @@ async def test_name_clicked_in_a_narrow_direct_chat_reuses_the_open_thread_tab(w
     workspace.thread("peer")
     viewer = workspace.viewer
     workspace.comms.messaging.send("peer", viewer, "a direct message")
-    wire_root = str(workspace.roots.wire)
     async with workspace.app(size=(100, 36)) as ui:
         app, _pilot = ui.textual
         owner = ui.selected_tab
         existing = await ui.new_session()
         destination = app.selected_session
-        destination.initial_coordination_root = wire_root
-        destination._comms_thread = "peer"
+        await workspace.bind(destination, "peer")
         await ui.write_draft("Keep this draft")
         # Chat views inherit the conversation's mouse handlers but omit goal
         # controls. A real click on a name must still reuse the tab.
