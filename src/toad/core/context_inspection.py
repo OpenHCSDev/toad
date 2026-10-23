@@ -701,7 +701,7 @@ class SavedContextInspection(ContextInspection):
     async def acquire(self, revision: ReadState):
         return SavedInspection(self, revision)
 
-    def saved_manifest(self, manifest: ContextManifest):
+    def saved_manifest(self, manifest):
         return self.page.reference(manifest).read(
             self.service.bus.log, self.owner.name, self.service.registry)
 
