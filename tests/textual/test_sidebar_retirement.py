@@ -4,7 +4,7 @@ import asyncio
 import gc
 from weakref import ref
 
-from agent_comms.relationships import AddRelationshipEdit
+from agent_comms.relationships import AddRelationshipEdit, CollaboratingRelationshipGroup
 
 from support.stylesheets import INSTALLED
 from toad.app import ToadApp
@@ -68,13 +68,15 @@ async def prepare_project(ui, sidebar):
 async def exercise(ui, screen, root):
     sidebar = await reveal(ui, screen)
     relationships = sidebar.query_one(ThreadCommsSidebar)
-    await ui.until(lambda: len(relationships.groups) == 5, seconds=12, why="the relationship groups")
-    group = relationships.groups["collaborating"]
+    await ui.until(lambda: CollaboratingRelationshipGroup in relationships.groups, seconds=12, why="the collaborating group")
+    group = relationships.groups[CollaboratingRelationshipGroup]
     if not group.expanded:
         group.toggle_members()
     await ui.until(lambda: bool(group.rows), seconds=12, why="the collaborating rows")
     row = next(iter(group.rows.values()))
     relationships.remember_row(row)
+    chosen = relationships.selection_for(row)
+    assert chosen[0] is CollaboratingRelationshipGroup and row.entry.target == "peer"
     if group.expanded:
         group.toggle_members()
     await ui.step(.02)
@@ -93,7 +95,7 @@ async def exercise(ui, screen, root):
     await ui.step(.02)
     state = relationships.view_state
     tree_scroll, panel_scroll = tree.scroll_y, viewport.scroll_y
-    assert state.selected == ("collaborating", "peer")
+    assert state.selected == chosen
     saved = [ref(panel.widget) for panel in sidebar.panels]
     tree_ref = ref(tree)
     await sidebar.retire_presentation()
@@ -119,10 +121,10 @@ async def exercise(ui, screen, root):
     await ui.step(.02)
     assert sidebar.query_one(Plan).entries is latest
     relationships = sidebar.query_one(ThreadCommsSidebar)
-    await ui.until(lambda: len(relationships.groups) == 5, seconds=12, why="the relationship groups after rebuild")
+    await ui.until(lambda: CollaboratingRelationshipGroup in relationships.groups, seconds=12, why="the collaborating group after rebuild")
     assert relationships.view_state is state
-    assert state.selected == ("collaborating", "peer")
-    assert not relationships.groups["collaborating"].expanded
+    assert state.selected == chosen
+    assert not relationships.groups[CollaboratingRelationshipGroup].expanded
     tree = await prepare_project(ui, sidebar)
     await ui.until(lambda: tree.cursor_node is not None and tree.cursor_node.data.path == root / "folder/deep/item-38.txt",
                    seconds=12, why="the project tree cursor to be restored")
