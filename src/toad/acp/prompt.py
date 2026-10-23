@@ -2,14 +2,17 @@ import base64
 from pathlib import Path
 
 from acp import schema
-from toad.file_kind import FileKind
-from toad.prompt.extract import extract_paths_from_prompt
-from toad.prompt.resource import load_resource, ResourceError
-from toad.clipboard_image import attachment_directory
+from acp.helpers import ContentBlock
+from agent_comms.field_codec import FieldCodec
 from agent_comms.image_inputs import ImageInput, prompt_images
 
+from toad.clipboard_image import attachment_directory
+from toad.file_kind import FileKind
+from toad.prompt.extract import extract_paths_from_prompt
+from toad.prompt.resource import ResourceError, load_resource
 
-def build(project_path: Path, prompt: str) -> list[object]:
+
+def build(project_path: Path, prompt: str) -> list[ContentBlock]:
     """Build the prompt structure and extract paths with the @ syntax.
 
     Args:
@@ -36,7 +39,7 @@ def build(project_path: Path, prompt: str) -> list[object]:
         uri = resource.path.resolve().as_uri()
         if resource.mime_type.startswith("image/") and resource.data is not None:
             image = ImageInput(base64.b64encode(resource.data).decode("ascii"), resource.mime_type)
-            prompt_content.append({**image.to_rpc(), "uri": uri})
+            prompt_content.append({**FieldCodec.encode_record(image), "uri": uri})
             image_spans.append((start, end))
         elif resource.text is not None:
             prompt_content.append(
@@ -68,4 +71,6 @@ def build(project_path: Path, prompt: str) -> list[object]:
     if image_spans:
         prompt_content[0]["text"] = prompt.strip()
     prompt_images(prompt_content)  # Validate the combined image count/size too.
-    return schema.PromptRequest.model_validate({"sessionId": "attachments", "prompt": prompt_content}, strict=True).prompt
+    return schema.PromptRequest.model_validate(
+        {"sessionId": "attachments", "prompt": prompt_content}, strict=True
+    ).prompt

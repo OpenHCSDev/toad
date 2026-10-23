@@ -1813,7 +1813,7 @@ class Conversation(
 
         self.call_later(self.window.anchor)
 
-    async def new_terminal(self) -> Terminal:
+    async def new_terminal(self) -> ShellTerminal:
         """Create a new interactive Terminal.
 
         Args:
