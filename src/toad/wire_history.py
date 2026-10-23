@@ -39,6 +39,7 @@ from toad.transcript_preparation import (
     PreparedTranscriptPage,
     SavedHistory,
     SourceObservation,
+    ReplaceablePageSource,
     TranscriptPageWork,
     Unchanged,
 )
@@ -56,6 +57,13 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from agent_comms.read_basis import NamedViewer
+
+    from toad.comms_root import CoordinationAccess, Observation
+    from toad.core.input_events import UserInputSubmitted
+    from toad.work_preparation import PreparationRuntime, WorkKey
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.transcript_history import TranscriptPageView
+    from toad.widgets.wire_history import WireHistory
 
     from toad.widgets.transcript_lines import Lines
 
@@ -178,7 +186,7 @@ class WireFragment(TranscriptFragment):
     evidence: MessagePage | None
     checks_notifications: ClassVar[bool] = False
 
-    def _unhandled_message(message, **fields):
+    def _unhandled_message(message: Message, **fields):
         raise TypeError(f"No fragment declared for {type(message.role).__name__}")
 
     _roles = singledispatch(_unhandled_message)
@@ -193,7 +201,7 @@ class WireFragment(TranscriptFragment):
         return cls._roles.dispatch(type(message.role))(message, reader=reader, **fields)
 
     @classmethod
-    def from_message(cls, message, *, reader, **fields):
+    def from_message(cls, message: Message, *, reader: str, **fields):
         return cls((IncomingTranscript(message=message, reader=reader),), **fields)
 
     @property
@@ -235,7 +243,7 @@ class WireFragment(TranscriptFragment):
 class MembershipFragment(WireFragment, roles=(Membership,)):
     """Someone joined or left: one muted line."""
 
-    def text(self, shown):
+    def text(self, shown: MessageShown):
         return (Body("— " + self.message.body, role=MutedRole),)
 
 
@@ -244,7 +252,7 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
     """A sent message: its header, text and the state of its notifications."""
 
     @classmethod
-    def from_message(cls, message, *, reader, **fields):
+    def from_message(cls, message: Message, *, reader: str, **fields):
         return cls((IncomingTranscript(message=message, reader=reader),),
                    text_part=message.body, row=MessageRow(message, reader), **fields)
 
@@ -343,13 +351,13 @@ class WireObservation(SourceObservation):
 
 
 class ReplacedWireObservation(WireObservation):
-    async def apply(self, history, source) -> bool:
+    async def apply(self, history: WireHistory, source: ReplaceablePageSource) -> bool:
         return await history.show_newest(ObservedViewportRequest(
             LatestPosition.hold(history.window), self))
 
 
 class GrowingWireObservation(WireObservation):
-    async def apply(self, history, source) -> bool:
+    async def apply(self, history: WireHistory, source) -> bool:
         if not history.undrawn:
             published = await history.extend(self.through)
         else:
@@ -368,7 +376,7 @@ class WirePageWork(TranscriptPageWork[WireCut]):
     def retain_result(self) -> bool:
         return self.request.cursor.kept
 
-    async def execute(self, runtime, key):
+    async def execute(self, runtime: PreparationRuntime, key: WorkKey):
         import asyncio
 
         prepared = await runtime.run_thread(self.loader.read, self.request, self.through)
@@ -389,7 +397,7 @@ class WirePageBuffer(SavedHistory):
     def replacement(self, through) -> WirePageBuffer:
         return type(self)(self.loader, through, self.runtime, revision=self.revision)
 
-    def uses_observation(self, observation) -> bool:
+    def uses_observation(self, observation: Observation) -> bool:
         return observation.uses(self.loader.comms)
 
     async def route_is_current(self) -> bool:
@@ -397,10 +405,10 @@ class WirePageBuffer(SavedHistory):
 
         return not self.closed and await self.runtime.run_thread(root_is_current, self.loader.comms.root)
 
-    def status_thread(self, access):
+    def status_thread(self, access: CoordinationAccess):
         return self.loader.conversation.status_thread(self.loader.comms.root, access)
 
-    def command_context(self, view):
+    def command_context(self, view: CommsChatView):
         from toad.session_scope import SessionScope
         from toad.target_commands import TargetContext
 
@@ -408,7 +416,7 @@ class WirePageBuffer(SavedHistory):
         return TargetContext(view.app, self.loader.comms, self.loader.conversation.destination(references), self.loader.me,
                              self.loader.project, view.query_ancestor(SessionScope).id)
 
-    async def submit_input(self, view, event) -> None:
+    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
         conversation = self.loader.conversation
         current = lambda: (view.is_attached and self is view.message_history.page_source
                            and conversation == view.conversation)
@@ -416,14 +424,14 @@ class WirePageBuffer(SavedHistory):
             self.loader.comms.root, conversation, event.body, current,
             partial(view._show_sent, body=event.body))
 
-    def schedule_refresh(self, view):
+    def schedule_refresh(self, view: CommsChatView):
         history = view.message_history
         return history.schedule_source_work(view._refresh_source)
 
-    def painted_read(self, history) -> PaintedRead:
+    def painted_read(self, history: WireHistory) -> PaintedRead:
         return ReadWork(history._mark_read(history.source_snapshot()))
 
-    async def change_style(self, history) -> None:
+    async def change_style(self, history: WireHistory) -> None:
         if not history.can_draw_on_screen:
             return
         await history.show_newest(RestyledViewportRequest(
@@ -432,10 +440,10 @@ class WirePageBuffer(SavedHistory):
     async def read_revision(self):
         return await self.runtime.run_thread(self.loader.comms.views.revision)
 
-    async def observe_changes(self, revision):
+    async def observe_changes(self, revision: ConversationObservation):
         return await self.runtime.run_thread(self.loader.observe, revision)
 
-    async def accept_page(self, history, edge, prepared) -> bool:
+    async def accept_page(self, history, edge: TranscriptPageView, prepared: PreparedTranscriptPage) -> bool:
         if edge.prepared.page.accepts(prepared.page.source, self.loader.conversation.history_view):
             return True
         prepared.configure(batch_size=len(prepared.fragments))
@@ -443,10 +451,10 @@ class WirePageBuffer(SavedHistory):
                                   arrivals=history._source_state.arriving(prepared, history.drawn_tail_followed))
         return False
 
-    def seen_page(self, history, seen):
+    def seen_page(self, history: WireHistory, seen):
         return self.loader.conversation.seen_page(history, seen)
 
-    async def mark_page(self, page) -> None:
+    async def mark_page(self, page: MessagePage) -> None:
         from agent_comms.route_selection import run_selected_write
 
         comms = self.loader.comms
@@ -458,13 +466,13 @@ class WirePageBuffer(SavedHistory):
         return await self.runtime.run_thread(
             self.loader.conversation.read_only, self.loader.comms)
 
-    async def update_mentions(self, view) -> None:
+    async def update_mentions(self, view: CommsChatView) -> None:
         await self.loader.conversation.update_mentions(view, self.loader.comms)
 
-    async def status_text(self, *, read_only):
+    async def status_text(self, *, read_only: bool):
         return await self.loader.conversation.status_text(self.loader.comms,
                                                   read_only=read_only)
 
-    def accepts(self, loader, through) -> bool:
+    def accepts(self, loader: WireSource, through) -> bool:
         # Earlier wire cuts stay valid while the bus grows.
         return self.loader is loader

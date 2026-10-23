@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from acp.exceptions import RequestError
 from agent_comms.context_store import ContextManifestCursor
@@ -33,6 +33,11 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibility
 from toad.widgets.thread_identity import ShowsThreadIdentity
 
 
+if TYPE_CHECKING:
+    from agent_comms.working_memory_questions import SpanAnswer
+    from textual.message import Message
+
+
 @dataclass
 class ContextTreeIntent:
     """Detail selection and initial disclosures survive widget retirement.
@@ -45,21 +50,21 @@ class ContextTreeIntent:
     query: str = ""
     cursor: ContextManifestCursor | None = None
 
-    def select_page(self, cursor) -> bool:
+    def select_page(self, cursor: ContextManifestCursor) -> bool:
         if cursor is None:
             return False
         self.cursor = cursor
         self.selected = None
         return True
 
-    def search_current(self, query, selected):
+    def search_current(self, query: str, selected):
         return self.query == query and self.selected is selected
 
-    def rebind(self, original, model) -> None:
+    def rebind(self, original: ContextNode, model: ContextNode) -> None:
         if self.selected is original:
             self.selected = model
 
-    def restore_detail(self, resolve, show_detail) -> bool:
+    def restore_detail(self, resolve, show_detail: Callable[[ContextNode], Worker[None]]) -> bool:
         if self.selected is None:
             return False
         node = resolve(self.selected.key)
@@ -73,7 +78,7 @@ class ContextTreeIntent:
 class ContextTree(Tree[ContextNode]):
     """Native nodes, disclosure and cursor share the Tree's mounted lifetime."""
 
-    def __init__(self, show_detail: Callable[..., Worker[None]], show_placeholder) -> None:
+    def __init__(self, show_detail: Callable[..., Worker[None]], show_placeholder: Callable[[str], None]) -> None:
         self.show_detail = show_detail
         self.show_placeholder = show_placeholder
         self.context_nodes = {}
@@ -92,7 +97,7 @@ class ContextTree(Tree[ContextNode]):
     def on_unmount(self) -> None:
         self.context_nodes.clear()
 
-    def present(self, groups) -> None:
+    def present(self, groups: tuple[tuple[str, tuple[ContextNode, ...], bool], ...]) -> None:
         # Reconcile the original TreeNodes so Tree._build rebases its cursor.
         with self.prevent(
             Tree.NodeExpanded,
@@ -115,7 +120,7 @@ class ContextTree(Tree[ContextNode]):
                 self._reconcile(group, models)
         self.restore_detail("Select a context segment to inspect.")
 
-    def search_results(self, matches, description: str, query) -> None:
+    def search_results(self, matches: tuple[ContextNode, ...], description: str, query: str) -> None:
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
             self.clear()
             self.root.set_label(f"{description} · {query}")
@@ -126,7 +131,7 @@ class ContextTree(Tree[ContextNode]):
             "Select a matching original source to read its full public text."
         )
 
-    def _reconcile(self, parent, models) -> None:
+    def _reconcile(self, parent: TreeNode[ContextNode], models: tuple[ContextNode, ...]) -> None:
         previous = {node.data.key: node for node in parent.children}
         for index, model in enumerate(models):
             node = previous.pop(model.key, None)
@@ -150,7 +155,7 @@ class ContextTree(Tree[ContextNode]):
         for node in previous.values():
             self._retire(node)
 
-    def _retire(self, node) -> None:
+    def _retire(self, node: TreeNode[ContextNode]) -> None:
         for child in tuple(node.children):
             self._retire(child)
         if self.owns_node(node):
@@ -161,7 +166,7 @@ class ContextTree(Tree[ContextNode]):
         if not self.intent.restore_detail(self.resolve_reader, self.show_detail):
             self.show_placeholder(placeholder)
 
-    def resolve_reader(self, key):
+    def resolve_reader(self, key: str):
         """Rebind the detail source without changing native navigation."""
         node = self.context_nodes.get(key)
         if node is None:
@@ -176,7 +181,7 @@ class ContextTree(Tree[ContextNode]):
                 break
         return node
 
-    def _add(self, parent: TreeNode[ContextNode], model, *, before=None):
+    def _add(self, parent: TreeNode[ContextNode], model: ContextNode, *, before=None):
         node = parent.add(
             model.label,
             model,
@@ -196,7 +201,7 @@ class ContextTree(Tree[ContextNode]):
             return False
         return self.is_attached and self.context_nodes.get(node.data.key) is node
 
-    def _expand(self, node) -> None:
+    def _expand(self, node: TreeNode[ContextNode]) -> None:
         if not self.owns_node(node) or node.children:
             return
         # TreeNode owns whether this native disclosure still admits expansion.
@@ -205,7 +210,7 @@ class ContextTree(Tree[ContextNode]):
                 self._add(node, model)
             node.allow_expand = bool(node.children)
 
-    def _toggle_node(self, node) -> None:
+    def _toggle_node(self, node: TreeNode[ContextNode]) -> None:
         # Capture disclosure navigation before collapsing a selected descendant.
         # Data-less groups are native rows too; they don't select detail sources.
         with self.prevent(Tree.NodeHighlighted):
@@ -213,17 +218,17 @@ class ContextTree(Tree[ContextNode]):
         super()._toggle_node(node)
 
     @on(Tree.NodeExpanded, "#context-tree")
-    def node_expanded(self, event) -> None:
+    def node_expanded(self, event: Tree.NodeExpanded[ContextNode]) -> None:
         if self.owns_node(event.node):
             self.intent.expanded.add(event.node.data.key)
             self._expand(event.node)
 
     @on(Tree.NodeCollapsed, "#context-tree")
-    def node_collapsed(self, event) -> None:
+    def node_collapsed(self, event: Tree.NodeCollapsed[ContextNode]) -> None:
         if self.owns_node(event.node):
             self.intent.expanded.discard(event.node.data.key)
 
-    def selected(self, model):
+    def selected(self, model: ContextNode):
         node = self.context_nodes.get(model.key)
         return (
             self.owns_node(node)
@@ -322,7 +327,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self._read()
 
     @on(Worker.StateChanged)
-    def context_read_finished(self, event) -> None:
+    def context_read_finished(self, event: Worker.StateChanged) -> None:
         if (
             event.worker.node is self
             and event.worker.group == "context-read"
@@ -394,7 +399,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         except asyncio.CancelledError:
             raise
 
-    def _inspection_acquired(self, previous: InspectionState, current, force: bool) -> None:
+    def _inspection_acquired(self, previous: InspectionState, current: HoldingInspection, force: bool) -> None:
         self.query_one("#context-older", Button).disabled = (
             not current.inspection.page.has_older()
         )
@@ -439,7 +444,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         detail.load_text_prepared(placeholder)
 
     @on(Button.Pressed, "#context-correct")
-    def action_correct(self, event) -> None:
+    def action_correct(self, event: Button.Pressed) -> None:
         from functools import partial
 
         from toad.widgets.comms_menu import show_target_menu
@@ -465,7 +470,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         )
 
     @work(group="context-correction", exclusive=True)
-    async def _correct_annotation(self, model, answer) -> None:
+    async def _correct_annotation(self, model: ContextNode, answer: type[SpanAnswer]) -> None:
         if not self._selected(model):
             return
         worktree = self.query_ancestor(SessionScope).project_root
@@ -495,20 +500,20 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self.query_one(ContextTree).present(groups)
 
     @on(Button.Pressed, "#context-older")
-    def older_requests(self, event) -> None:
+    def older_requests(self, event: Button.Pressed) -> None:
         event.stop()
         self.state.present(self._older_requests)
 
-    def _older_requests(self, current) -> None:
+    def _older_requests(self, current: HoldingInspection) -> None:
         if self.intent.select_page(current.inspection.page.older):
             self._change_page()
 
     @on(Button.Pressed, "#context-newer")
-    def newer_requests(self, event) -> None:
+    def newer_requests(self, event: Button.Pressed) -> None:
         event.stop()
         self.state.present(self._newer_requests)
 
-    def _newer_requests(self, current) -> None:
+    def _newer_requests(self, current: HoldingInspection) -> None:
         if self.intent.select_page(current.inspection.page.newer):
             self._change_page()
 
@@ -528,13 +533,13 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self._read()
 
     @on(Input.Changed, "#context-search")
-    def query_changed(self, event) -> None:
+    def query_changed(self, event: Input.Changed) -> None:
         event.stop()
         self.intent.query = event.value
 
     @on(Input.Submitted, "#context-search")
     @on(Button.Pressed, "#context-find")
-    def action_search(self, event) -> None:
+    def action_search(self, event: Message) -> None:
         event.stop()
         self.state.present(self._present)
 
@@ -555,7 +560,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             f"{len(matches)} matching sources · first 100 shown · {description}"
         )
 
-    def _searching(self, captured: HoldingInspection, query, selected):
+    def _searching(self, captured: HoldingInspection, query: str, selected):
         return (
             self._reading(captured.thread_identity)
             and self.state.presentation_current(captured)
@@ -606,7 +611,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self.notify(f"Exported selected public text and source to {destination}")
 
     @on(Tree.NodeHighlighted, "#context-tree")
-    def node_highlighted(self, event) -> None:
+    def node_highlighted(self, event: Tree.NodeHighlighted[ContextNode]) -> None:
         event.stop()
         if self.query_one(ContextTree).owns_node(event.node):
             if self.intent.selected is not event.node.data:
@@ -614,13 +619,13 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self.intent.selected = event.node.data
             self._show_detail(event.node.data)
 
-    def _selected(self, model):
+    def _selected(self, model: ContextNode):
         return (
             self.query_one(ContextTree).selected(model) if self.is_attached else False
         )
 
     @work(group="context-detail", exclusive=True)
-    async def _show_detail(self, model) -> None:
+    async def _show_detail(self, model: ContextNode) -> None:
         # Publication belongs to this exact selected original tree model, not
         # a reusable string key shared by another thread or context snapshot.
         if not self._selected(model):

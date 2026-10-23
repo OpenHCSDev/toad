@@ -5,6 +5,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from functools import partial
+from typing import TYPE_CHECKING
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
@@ -34,6 +35,19 @@ from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
 
 
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable, Coroutine
+    from pathlib import Path
+
+    from acp.schema import AvailableCommand
+    from agent_comms.acp_extension import QueueScope, TranscriptSnapshotUpdate
+    from pydantic import JsonValue
+
+    from toad.acp.agent import Agent
+    from toad.core.events import AgentFail
+    from toad.render_backend import Renderer, RenderTask
+
+
 @dataclass(frozen=True)
 class SessionBinding:
     """Actual ACP binding identity, preserved only until session replacement."""
@@ -56,25 +70,25 @@ class SessionBinding:
 
 class TaskRunner(ABC):
     @abstractmethod
-    async def run(self, task): ...
+    async def run[Result](self, task: RenderTask[Result]) -> Result: ...
 
 
 class ThreadTaskRunner(TaskRunner):
-    async def run(self, task):
+    async def run[Result](self, task: RenderTask[Result]) -> Result:
         return await asyncio.to_thread(task.execute)
 
 
 class ProcessTaskRunner(TaskRunner):
-    def __init__(self, processes) -> None:
+    def __init__(self, processes: Renderer) -> None:
         self.processes = processes
 
-    async def run(self, task):
+    async def run[Result](self, task: RenderTask[Result]) -> Result:
         return await self.processes.submit(task)
 
 
 class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
-    def __init__(self, agent, transcripts: CoordinationTranscriptReader) -> None:
+    def __init__(self, agent: Agent, transcripts: CoordinationTranscriptReader) -> None:
         super().__init__(agent)
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.task_runner: TaskRunner = ThreadTaskRunner()
@@ -138,7 +152,9 @@ class AgentController(OperationalTerminalOwner):
 
 
 
-    async def publish_transcript_snapshot(self, update, binding, session) -> None:
+    async def publish_transcript_snapshot(
+        self, update: TranscriptSnapshotUpdate, binding: SurfaceBinding, session: SessionBinding
+    ) -> None:
         if binding.target is None or not session.accepts_snapshot(update.identity, self.coordination):
             return  # No view or matching request owns this publication.
         snapshot = await self.transcripts.publication(update)
@@ -169,15 +185,15 @@ class AgentController(OperationalTerminalOwner):
         self.plan_entries = entries
         self.agent.events.publish(Plan(entries))
 
-    def publish_commands(self, commands) -> None:
+    def publish_commands(self, commands: list[AvailableCommand]) -> None:
         from toad.core.events import AvailableCommandsUpdate
         self.commands = commands
         self.agent.events.publish(AvailableCommandsUpdate())
 
-    def start_operation(self, operation):
+    def start_operation[Result](self, operation: Coroutine[None, None, Result]) -> asyncio.Task[Result]:
         return self.agent.session.start_operation(operation)
 
-    async def operate(self, operation):
+    async def operate[Result](self, operation: Coroutine[None, None, Result]) -> Result:
         return await asyncio.shield(self.start_operation(operation))
 
     async def submit(self, prompt: str, *, request: PromptRequest | None = None):
@@ -188,7 +204,9 @@ class AgentController(OperationalTerminalOwner):
             prompt, command, authority, agent.queue_attachment.scope,
             agent.project_root_path), authority))
 
-    async def _prompt_operation(self, operation, authority: ClientSessionRequest):
+    async def _prompt_operation[Result](
+        self, operation: Callable[[], Awaitable[Result]], authority: ClientSessionRequest
+    ) -> Result:
         """Keep the request in flight until its operation ends."""
         coordination = self.coordination
         self.prompt_in_flight += 1
@@ -199,17 +217,24 @@ class AgentController(OperationalTerminalOwner):
             if self.prompt_in_flight == 0 and authority.current and coordination is not None:
                 self.start_operation(self.reconcile_turn(coordination, authority))
 
-    async def reconcile_turn(self, coordination, authority) -> None:
+    async def reconcile_turn(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
         """Release snapshot ordering through a fresh read of the same owner."""
         self.require_owner(coordination, authority)
         await self.agent.thread_read().reconcile(self.transcripts)
 
-    def accepts_turn_snapshot(self, sequence):
+    def accepts_turn_snapshot(self, sequence: int):
         """A remote busy turn does not imply an ordered response on this client."""
         return (self.prompt_in_flight == 0
                 and sequence == self.agent.presentation.turns.sequence)
 
-    async def _submit(self, prompt: str, command, authority, queue_scope, project):
+    async def _submit(
+        self,
+        prompt: str,
+        command: PromptRequest,
+        authority: ClientSessionRequest,
+        queue_scope: QueueScope,
+        project: Path,
+    ):
         submission = asyncio.current_task() if command.defer_display else None
         if submission is not None:
             self._deferred_submissions.add(submission)
@@ -239,7 +264,7 @@ class AgentController(OperationalTerminalOwner):
         return await self.operate(self._prompt_operation(partial(self._prompt,
             content, command, authority, agent.queue_attachment.scope), authority))
 
-    async def _prompt(self, content, command, authority, queue_scope):
+    async def _prompt(self, content, command, authority: ClientSessionRequest, queue_scope: QueueScope):
         agent = self.agent
 
         def require():
@@ -270,7 +295,16 @@ class AgentController(OperationalTerminalOwner):
             published=request_failure.notification_published)
         return None
 
-    def _prompt_failed(self, command, authority, queue_scope, failure: ACPFailure, report, *, published: bool=False) -> None:
+    def _prompt_failed(
+        self,
+        command,
+        authority: ClientSessionRequest,
+        queue_scope: QueueScope,
+        failure: ACPFailure,
+        report: Callable[[AgentFail], None],
+        *,
+        published: bool = False,
+    ) -> None:
         agent = self.agent
         user_text = command.draft_text if command is not None else None
         if user_text:
@@ -294,7 +328,7 @@ class AgentController(OperationalTerminalOwner):
         return await self.operate(self._prompt_operation(partial(self._compact_context,
             instructions, authority), authority))
 
-    async def _compact_context(self, instructions, authority):
+    async def _compact_context(self, instructions, authority: ClientSessionRequest):
         agent = self.agent
         try:
             response = await agent.process.prompt(agent, [{'type': 'text', 'text': ' '}],
@@ -321,7 +355,7 @@ class AgentController(OperationalTerminalOwner):
             return False
         return authority.current
 
-    async def request_owner(self, method: str, **params):
+    async def request_owner(self, method: str, **params: JsonValue):
         if self.coordination is None:
             raise ValueError('This action requires an agent-comms thread.')
         from agent_comms.runtime import RuntimeProxy, socket_path
@@ -347,7 +381,7 @@ class AgentController(OperationalTerminalOwner):
         finally:
             await proxy.close()
 
-    def require_owner(self, coordination, authority: ClientSessionRequest):
+    def require_owner(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest):
         if authority.retired or self.coordination is None:
             raise ValueError('The connected owner session retired; refresh its state.')
         if (self.coordination.wire_root, self.coordination.thread) != (coordination.wire_root, coordination.thread):

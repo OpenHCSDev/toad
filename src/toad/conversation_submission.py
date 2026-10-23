@@ -5,16 +5,22 @@ import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import partial
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.acp_extension import InputStartedUpdate, QueuePromptRequest, SteerPromptRequest
+from agent_comms.acp_extension import InputStartedUpdate, QueuePromptRequest, QueueScope, SteerPromptRequest
 from agent_comms.declared_family import DeclaredFamily
 from toad import messages
 from acp.exceptions import RequestError
 from toad.acp.client_session import ClientSessionRequest
+from toad.core.input_events import UserInputSubmitted
+from toad.core_event_carrier import CoreEventMessage
 from agent_comms.acp_extension import PendingQueueProjection
 from toad.widgets.prompt import Prompt
 from toad.command_catalog import CommandCatalog
+
+if TYPE_CHECKING:
+    from toad.acp.agent import Agent
+    from toad.widgets.conversation import Conversation
 
 
 @dataclass(frozen=True)
@@ -28,13 +34,13 @@ class InputSubmission(DeclaredFamily, affix="InputSubmission"):
 
     @classmethod
     @abstractmethod
-    def matches(cls, event, view): ...
+    def matches(cls, event: UserInputSubmitted, view: Conversation): ...
 
     @abstractmethod
-    async def execute(self, owner): ...
+    async def execute(self, owner: ConversationSubmissions): ...
 
     @classmethod
-    def from_event(cls, event, view):
+    def from_event(cls, event: UserInputSubmitted, view: Conversation):
         kind = next(kind for kind in sorted(cls.members_with(InputSubmission),
                                             key=lambda kind: kind.priority, reverse=True)
                     if kind.matches(event, view))
@@ -44,20 +50,20 @@ class InputSubmission(DeclaredFamily, affix="InputSubmission"):
 class NoInputSubmission(InputSubmission):
     priority = -1
     @classmethod
-    def matches(cls, event, view):
+    def matches(cls, event: UserInputSubmitted, view: Conversation):
         return True
-    async def execute(self, owner):
+    async def execute(self, owner: ConversationSubmissions):
         pass
 
 
 class QueueNowInputSubmission(InputSubmission):
     priority = 100
     @classmethod
-    def matches(cls, event, view):
+    def matches(cls, event: UserInputSubmitted, view: Conversation):
         if event.shell or event.body.strip():
             return False
         return event.immediate and view.agent_binding.presentation.queue_supported
-    async def execute(self, owner):
+    async def execute(self, owner: ConversationSubmissions):
         projection = owner.queue_projection
         if projection.status == 'available' and projection.items:
             owner.send_now()
@@ -66,9 +72,9 @@ class QueueNowInputSubmission(InputSubmission):
 class ShellInputSubmission(InputSubmission):
     priority = 90
     @classmethod
-    def matches(cls, event, view):
+    def matches(cls, event: UserInputSubmitted, view: Conversation):
         return event.shell and bool(event.body.strip())
-    async def execute(self, owner):
+    async def execute(self, owner: ConversationSubmissions):
         view = owner.view
         shell = view.shell
         if await shell.is_busy():
@@ -88,7 +94,7 @@ class SubmissionStart(ABC):
 
 
 class UnboundSubmissionStart(SubmissionStart):
-    def __init__(self, owner, submission):
+    def __init__(self, owner: ConversationSubmissions, submission: AgentInputSubmission):
         self.owner, self.submission = owner, submission
 
     async def prepare(self):
@@ -101,7 +107,7 @@ class AgentInputSubmission(InputSubmission):
     @abstractmethod
     def request(self): ...
 
-    async def feedback(self, execution):
+    async def feedback(self, execution: SubmissionExecution):
         view = execution.owner.view
         await view.turns.binding.present_input(view, self.text)
         if execution.retired:
@@ -114,14 +120,14 @@ class AgentInputSubmission(InputSubmission):
         view.turns.describe(waiting)
         await asyncio.sleep(0)
 
-    async def execute(self, owner):
+    async def execute(self, owner: ConversationSubmissions):
         view = owner.view
         return await owner.begin(self).prepare()
 
 
 class OrdinaryInputSubmission(AgentInputSubmission):
     @classmethod
-    def matches(cls, event, view):
+    def matches(cls, event: UserInputSubmitted, view: Conversation):
         if event.shell:
             return False
         return bool(event.body.strip())
@@ -133,7 +139,7 @@ class OrdinaryInputSubmission(AgentInputSubmission):
 class DeferredInputSubmission(OrdinaryInputSubmission):
     priority = 70
     @classmethod
-    def matches(cls, event, view):
+    def matches(cls, event: UserInputSubmitted, view: Conversation):
         if not super().matches(event, view):
             return False
         if event.immediate:
@@ -142,7 +148,7 @@ class DeferredInputSubmission(OrdinaryInputSubmission):
     @property
     def request(self):
         return QueuePromptRequest(self.text, True)
-    async def feedback(self, execution):
+    async def feedback(self, execution: SubmissionExecution):
         # Native queue/start publications own confirmation and message display.
         pass
 
@@ -150,7 +156,7 @@ class DeferredInputSubmission(OrdinaryInputSubmission):
 class ImmediateInputSubmission(OrdinaryInputSubmission):
     priority = 80
     @classmethod
-    def matches(cls, event, view):
+    def matches(cls, event: UserInputSubmitted, view: Conversation):
         if not super().matches(event, view):
             return False
         return event.immediate and view.agent_binding.presentation.queue_supported
@@ -160,7 +166,7 @@ class ImmediateInputSubmission(OrdinaryInputSubmission):
 
 class SubmissionExecution(SubmissionStart):
     """Immutable source binding and the real outstanding local request."""
-    def __init__(self, owner, submission, agent):
+    def __init__(self, owner: ConversationSubmissions, submission: AgentInputSubmission, agent: Agent):
         self.owner, self.submission, self.agent = owner, submission, agent
         self.authority = ClientSessionRequest(agent, agent.session_id)
         self.scope = agent.queue_attachment.scope
@@ -224,17 +230,17 @@ class SubmissionExecution(SubmissionStart):
 
 class ConversationSubmissions:
     """Own pending local transactions; remote membership stays with QueueAttachment."""
-    def __init__(self, view):
+    def __init__(self, view: Conversation):
         self.view = view
         self.active: list[SubmissionExecution] = []
 
-    def begin(self, submission):
+    def begin(self, submission: AgentInputSubmission):
         return self.view.agent_binding.begin_submission(self, submission)
 
-    def unbound(self, submission):
+    def unbound(self, submission: AgentInputSubmission):
         return UnboundSubmissionStart(self, submission)
 
-    def start(self, submission, agent):
+    def start(self, submission: AgentInputSubmission, agent: Agent):
         execution = SubmissionExecution(self, submission, agent)
         self.active.append(execution)
         return execution
@@ -247,13 +253,13 @@ class ConversationSubmissions:
     def unavailable_reason(self):
         return self.view.operational_sources.unavailable_reason(self.view)
 
-    async def submit(self, event):
+    async def submit(self, event: UserInputSubmitted):
         text = event.body.strip()
         if not event.shell and text.startswith('/') and await CommandCatalog.execute(text, self.view):
             return
         return await self.view.operational_sources.submit(self, event)
 
-    def accepts_failure(self, message):
+    def accepts_failure(self, message: CoreEventMessage):
         return self.view.agent_binding.accepts_failed_input(message)
 
     @property
@@ -284,7 +290,7 @@ class ConversationSubmissions:
         if (prompt := self.view.query_one_optional(Prompt)) is not None:
             prompt.sync_queue()
 
-    def finish(self, execution):
+    def finish(self, execution: SubmissionExecution):
         if execution in self.active:
             self.active.remove(execution)
         if execution.current:
@@ -297,12 +303,12 @@ class ConversationSubmissions:
     def send_now(self):
         return self.view.agent_binding.send_now(self)
 
-    def send_bound_now(self, agent):
+    def send_bound_now(self, agent: Agent):
         session, scope = agent.session_id, agent.queue_attachment.scope
         return self.view.run_worker(partial(self._send_now, agent, session, scope),
                                     group='send-queued-now', exclusive=True)
 
-    async def _send_now(self, agent, session, scope):
+    async def _send_now(self, agent: Agent, session, scope: QueueScope):
         try:
             if await agent.controller.send_now():
                 return
