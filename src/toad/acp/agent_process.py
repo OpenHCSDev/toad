@@ -17,8 +17,8 @@ from agent_comms.child_process import (
     StreamingChildStdio,
     join_retirement,
 )
-from agent_comms.launch_root import LaunchRoot
 from agent_comms.errors import RouteChangedError
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.route_selection import RouteSelection
 from pydantic import JsonValue
 
