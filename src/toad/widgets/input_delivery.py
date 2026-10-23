@@ -1,6 +1,8 @@
 """Server-owned current delivery state and dismissible historical notices."""
 
+from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
 
@@ -13,6 +15,7 @@ from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Static
 from textual._activation import PrimaryActivation
 
+from agent_comms.input_attempt import HistoricalInput, UnresolvedInput
 from agent_comms.ui_model.delivery import InputDelivery
 from toad.project_link import AcpLogLink
 from toad.widgets.selection import ChangingText, InlineSelection
@@ -94,6 +97,25 @@ class InputDeliveryBar(HorizontalGroup):
         self._refresh_summary()
 
 
+class HistoryView(ABC):
+    inputs: tuple[HistoricalInput, ...] = ()
+
+    @property
+    @abstractmethod
+    def load_offered(self) -> bool: ...
+
+
+@dataclass(frozen=True)
+class HiddenHistory(HistoryView):
+    load_offered: ClassVar[bool] = True
+
+
+@dataclass(frozen=True)
+class ShownHistory(HistoryView):
+    inputs: tuple[HistoricalInput, ...]
+    load_offered: ClassVar[bool] = False
+
+
 class InputDeliveryDetails(ModalScreen[None]):
     BINDINGS: ClassVar[list[tuple[str, str, str]]] = [("escape", "close", "Close")]
     DEFAULT_CSS = """
@@ -117,14 +139,14 @@ class InputDeliveryDetails(ModalScreen[None]):
         self,
         *,
         log_path: Path | None,
-        load_history: Callable[[], Awaitable[tuple[dict, ...]]],
+        load_history: Callable[[], Awaitable[tuple[HistoricalInput, ...]]],
         dismiss_history: Callable[[], Awaitable[None]],
     ):
         super().__init__()
         self.log_path = log_path
         self._load_history = load_history
         self._dismiss_history = dismiss_history
-        self._historical_inputs: tuple[dict, ...] | None = None
+        self._history: HistoryView = HiddenHistory()
         self._busy = False
 
     def compose(self) -> ComposeResult:
@@ -167,17 +189,12 @@ class InputDeliveryDetails(ModalScreen[None]):
                 yield Button("Close (Esc)", id="delivery-close")
 
     @staticmethod
-    def _records(inputs: tuple[dict, ...]) -> str:
-        return "\n\n".join(
-            f"Sequence: {row['sequence'] if row['sequence'] is not None else 'direct input'}"
-            f" · Target: {row['target']}\nInput: {row['inputId']}\n{row['text']}"
-            + ("\nNotice cleared." if row.get("noticeDismissed") else "")
-            for row in inputs
-        )
+    def _records(inputs: tuple[UnresolvedInput, ...]) -> str:
+        return "\n\n".join(row.record_text() for row in inputs)
 
     def watch_delivery(self, old: InputDelivery, new: InputDelivery) -> None:
         if new.history_changed(old):
-            self._historical_inputs = None
+            self._history = HiddenHistory()
         self._refresh_records()
 
     def watch_overview_text(self, value: str) -> None:
@@ -208,30 +225,37 @@ class InputDeliveryDetails(ModalScreen[None]):
             count or dismissed
         )
         load = self.query_one("#delivery-load-history", DetailAction)
-        load.display = bool(count or dismissed) and self._historical_inputs is None
+        load.display = bool(count or dismissed) and self._history.load_offered
         load.disabled = self._busy
         clear = self.query_one("#delivery-clear-history", DetailAction)
         clear.display = bool(count)
         clear.disabled = self._busy
         self.query_one("#delivery-historical-records", Static).update(
-            self._records(self._historical_inputs or ())
+            self._records(self._history.inputs)
         )
 
     def on_mount(self) -> None:
         self._refresh_records()
         self.watch_error()
 
+    async def _shown(self) -> HistoryView:
+        return ShownHistory(await self._load_history())
+
+    async def _cleared(self) -> HistoryView:
+        await self._dismiss_history()
+        return HiddenHistory()
+
     @on(DetailAction.Activated, "#delivery-load-history")
     async def load_history(self, event: DetailAction.Activated) -> None:
-        await self.update_history(event, self._load_history)
+        await self.update_history(event, self._shown)
 
     @on(DetailAction.Activated, "#delivery-clear-history")
     async def clear_history(self, event: DetailAction.Activated) -> None:
-        await self.update_history(event, self._dismiss_history)
+        await self.update_history(event, self._cleared)
 
     async def update_history(
         self, event: DetailAction.Activated,
-        operation: Callable[[], Awaitable[tuple[dict, ...] | None]],
+        operation: Callable[[], Awaitable[HistoryView]],
     ) -> None:
         event.stop()
         if self._busy:
@@ -240,7 +264,7 @@ class InputDeliveryDetails(ModalScreen[None]):
         self.error = ""
         self._refresh_records()
         try:
-            self._historical_inputs = await operation()
+            self._history = await operation()
         finally:
             self._busy = False
             self._refresh_records()
