@@ -95,11 +95,11 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
 async def test_a_style_change_rebuilds_filtered_history_and_its_next_older_read(workspace):
     workspace.thread("sender", "style")
     for index in range(240):
-        workspace.comms.messaging.send("sender", "#style", f"**STYLE_ROW_{index}**")
+        workspace.comms.messaging.send("sender", "#style", f"# STYLE_ROW_{index}")
     async with workspace.app(size=(110, 30)) as ui:
         await ui.open_channel("#style", actor=workspace.viewer)
         chat = ui.app.selected_session.query_one(CommsChatView)
-        await ui.until_shows("**STYLE_ROW_239**")
+        await ui.until_shows("# STYLE_ROW_239")
         history = chat.message_history
         chat.visible_categories = frozenset({InboundCategory})
         chat.window.release_anchor()
@@ -113,19 +113,22 @@ async def test_a_style_change_rebuilds_filtered_history_and_its_next_older_read(
         assert old_source.closed and not old_projection.display
         assert chat.visible_categories == frozenset({InboundCategory})
         await ui.until(lambda: "STYLE_ROW_239" in ui.painted(chat.window)
-                       and "**STYLE_ROW_239**" not in ui.painted(chat.window),
-                       why="Markdown drawing to replace the literal IRC asterisks")
+                       and "# STYLE_ROW_239" not in ui.painted(chat.window),
+                       why="Markdown headings to replace the literal IRC heading marker")
         history.filter.request_older()
         await ui.until(lambda: isinstance(history.filter.overlay, ProjectedTranscriptHistory)
                        and history.filter.overlay is not old_projection
                        and bool(history.filter.overlay.fragments_in_range),
                        why="the new style's filtered older messages")
         projection = history.filter.overlay
+        await ui.until(lambda: history.filter.idle, why="the filtered style preparation to finish")
         first = projection.pages[0].prepared.page.before
-        history.filter.request_older()
-        await ui.until(lambda: projection.pages[0].prepared.page.before != first,
-                       why="another older read after the style change")
+        for _ in range(len(projection.pages[0].prepared.fragments) + 1):
+            if projection.pages[0].prepared.page.before != first:
+                break
+            await projection.load_older()
+        assert projection.pages[0].prepared.page.before != first
         assert all(isinstance(fragment.shown.style, MarkdownMessageStyle)
                    for fragment in (*history.fragments, *projection.fragments))
-        assert "**STYLE_ROW_" not in ui.painted(chat.window)
+        assert "# STYLE_ROW_" not in ui.painted(chat.window)
         assert ui.failure() is None

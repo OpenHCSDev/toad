@@ -38,8 +38,6 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
                  *, view: ViewT, notification_view, **kwargs) -> None:
         super().__init__(prepared, page_source, view=view,
                          notification_view=notification_view, **kwargs)
-        # Core's source observation is independent of paint readiness.
-        self.revision = ConversationObservation()
 
     @classmethod
     def empty_page(cls):
@@ -84,7 +82,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
     async def read_changes(self) -> bool:
         """Draw what changed in the source; False when the stores are as last drawn."""
         source = self.page_source
-        observed = await source.observe_changes(self.revision)
+        observed = await source.observe_changes(source.revision)
         if source is not self.page_source:
             return False
         return await observed.apply(self, source)
@@ -144,7 +142,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
-                self.revision = ConversationObservation()
+                source.revision = ConversationObservation()
                 await self.view._refresh()
         finally:
             if self.is_attached:

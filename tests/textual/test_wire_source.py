@@ -9,7 +9,7 @@ from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.transcript_preparation import PageRequest, Unchanged
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.message_rows import IrcMessageStyle
-from toad.wire_history import AfterSequence, MessageFragment, WireSource
+from toad.wire_history import AfterSequence, GrowingWireObservation, MessageFragment, ReplacedWireObservation, WireSource
 
 
 def channel_source(comms, target, project):
@@ -20,7 +20,7 @@ def channel_source(comms, target, project):
 def observed(source):
     """What a view that just drew the newest page remembers of it."""
     first = source.observe(ConversationObservation())
-    assert first.replaced
+    assert isinstance(first, ReplacedWireObservation)
     newest = source.read(PageRequest(OLDER_END, first.through), first.through)
     return first, newest
 
@@ -66,7 +66,7 @@ def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
 
     comms.messaging.send("sender", "#two", "Elsewhere again")
     grown = source.observe(first.revision)
-    assert grown.through.cursor.sequence > first.through.cursor.sequence and not grown.replaced
+    assert grown.through.cursor.sequence > first.through.cursor.sequence and isinstance(grown, GrowingWireObservation)
     nothing = source.read(PageRequest(NEWER_END, first.through), grown.through)
     assert not nothing.fragments and nothing.page.after == grown.through
     comms.messaging.send("sender", "#one", "arrived later")
@@ -91,7 +91,7 @@ def test_any_mode_expansion_replaces_the_reading_without_new_bus_rows(tmp_path):
     comms.channels.set_channel_any_mode("#team", True)
     assert comms.bus.bus.revision() == first.through.cursor.sequence
     expanded = source.observe(first.revision)
-    assert expanded.replaced and expanded.through == first.through
+    assert isinstance(expanded, ReplacedWireObservation) and expanded.through == first.through
     again = source.read(PageRequest(OLDER_END, expanded.through), expanded.through)
     assert [fragment.message.body for fragment in again.fragments] == ["older DM", "channel message"]
 
@@ -106,12 +106,12 @@ def test_attaching_or_detaching_history_replaces_the_reading_without_new_live_me
     first, _newest = observed(source)
     comms.views.attach_history(old.root)
     attached = source.observe(first.revision)
-    assert attached.replaced and attached.through == first.through
+    assert isinstance(attached, ReplacedWireObservation) and attached.through == first.through
     page = source.read(PageRequest(OLDER_END, attached.through), attached.through)
     assert [message.body for message in page.page.events] == ["old", "live"]
     comms.bus.history.path.unlink()
     detached = source.observe(attached.revision)
-    assert detached.replaced
+    assert isinstance(detached, ReplacedWireObservation)
     remaining = source.read(PageRequest(OLDER_END, detached.through), detached.through)
     assert [message.body for message in remaining.page.events] == ["live"]
     assert not remaining.page.has_older

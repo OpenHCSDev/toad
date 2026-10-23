@@ -294,8 +294,9 @@ class WireSource:
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
-        replaced = revision.display_changed_since(seen)
-        return WireObservation(revision, high, replaced)
+        observation = (ReplacedWireObservation if revision.display_changed_since(seen)
+                       else GrowingWireObservation)
+        return observation(revision, high)
 
     def read(self, request: PageRequest[WireCut], through: AfterSequence) -> PreparedTranscriptPage:
         """Read the page a request names, never past `through`, as fragments to draw."""
@@ -321,25 +322,42 @@ class RestyledViewportRequest(ReplacementViewportRequest):
     loader: WireSource
 
     def source(self, owner):
-        return WirePageBuffer(self.loader, owner.page_source.through, owner.page_source.runtime)
+        return WirePageBuffer(self.loader, owner.page_source.through, owner.page_source.runtime,
+                              revision=owner.page_source.revision)
+
+
+@dataclass(frozen=True)
+class ObservedViewportRequest(ReplacementViewportRequest):
+    observation: WireObservation
+
+    def source(self, owner):
+        source = owner.page_source.replacement(self.observation.through)
+        source.revision = self.observation.revision
+        return source
 
 
 @dataclass(frozen=True)
 class WireObservation(SourceObservation):
     revision: ConversationRevision
     through: AfterSequence
-    replaced: bool
 
+
+class ReplacedWireObservation(WireObservation):
     async def apply(self, history, source) -> bool:
-        history.revision = self.revision
-        if self.replaced:
-            await history.show_newest(LatestReplacementViewportRequest(
-                LatestPosition.hold(history.window), self.through))
-            return not history.undrawn
+        return await history.show_newest(ObservedViewportRequest(
+            LatestPosition.hold(history.window), self))
+
+
+class GrowingWireObservation(WireObservation):
+    async def apply(self, history, source) -> bool:
         if not history.undrawn:
-            return await history.extend(self.through)
-        history.extend_source(self.through)
-        return await super().apply(history, source)
+            published = await history.extend(self.through)
+        else:
+            history.extend_source(self.through)
+            published = await super().apply(history, source)
+        if published and history.page_source is source:
+            source.revision = self.revision
+        return published
 
 
 @dataclass(frozen=True)
@@ -363,6 +381,13 @@ class WirePageBuffer(SavedHistory):
     """The line history's page reader over a wire source."""
 
     work = WirePageWork
+
+    def __init__(self, *args, revision: ConversationObservation = ConversationObservation(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.revision = revision
+
+    def replacement(self, through) -> WirePageBuffer:
+        return type(self)(self.loader, through, self.runtime, revision=self.revision)
 
     def uses_observation(self, observation) -> bool:
         return observation.uses(self.loader.comms)

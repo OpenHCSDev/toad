@@ -166,25 +166,44 @@ async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
 
 
 @pytest.mark.parametrize("after_admission", (False, True))
-async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_read_bound(workspace, monkeypatch, after_admission):
+@pytest.mark.parametrize("wire", (False, True))
+async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_read_bound(workspace, monkeypatch, after_admission, wire):
     from dataclasses import replace
     from types import MethodType
     from textual.widget import Widget
     from toad.widgets.transcript_lines import TranscriptLinesBatchRenderTask
+    from toad.widgets.comms_chat import CommsChatView
+    from support.textual_steps import refresh_chat
+    from toad.wire_history import ReplacedWireObservation
 
-    old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_VISIBLE_SOURCE", id="old"))
-    thread = workspace.thread("source")
-    workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(old))))
-    async with workspace.app(resume="source") as ui:
+    if wire:
+        workspace.thread("sender", "scope")
+        workspace.thread("carol")
+        workspace.thread("dave")
+        workspace.comms.messaging.send("carol", "dave", "NEW_VISIBLE_SOURCE")
+        workspace.comms.messaging.send("sender", "#scope", "OLD_VISIBLE_SOURCE")
+        workspace.comms.channels.set_channel_any_mode("#scope", True)
+    else:
+        old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_VISIBLE_SOURCE", id="old"))
+        thread = workspace.thread("source")
+        workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(old))))
+    async with workspace.app(resume=None if wire else "source") as ui:
+        if wire:
+            await ui.open_channel("#scope", actor=workspace.viewer)
         await ui.until_shows("OLD_VISIBLE_SOURCE")
-        view = ui.conversation
+        view = ui.app.selected_session.query_one(CommsChatView) if wire else ui.conversation
         await ui.app.coordination_access.stop_observing()
-        await view.transcript.suspend()
-        history = view.transcript.binding.history
+        if not wire:
+            await view.transcript.suspend()
+        history = view.message_history if wire else view.transcript.binding.history
+        await ui.until(lambda: history.source_ready, why="the original source to finish its work")
         original_source, original_scope = history.page_source, history.page_source.scope
         pages, through = tuple(history.pages), history.page_source.through
-        new = write_journal(workspace.project / "new.jsonl", assistant_entry("NEW_VISIBLE_SOURCE", id="new"))
-        workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(new))))
+        if wire:
+            workspace.comms.channels.update_tags("carol", add=frozenset({"scope"}))
+        else:
+            new = write_journal(workspace.project / "new.jsonl", assistant_entry("NEW_VISIBLE_SOURCE", id="new"))
+            workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(new))))
         entered, release = asyncio.Event(), asyncio.Event()
         render_for = TranscriptLinesBatchRenderTask.render_for
         dispatch = asyncio.to_thread
@@ -211,8 +230,14 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
         monkeypatch.setattr(Widget, "remove_children", held_removal)
         view.window.anchor()
         view.prompt.focus()
-        view.transcript.dirty = view.transcript.commit_required = True
-        pending = asyncio.create_task(view.transcript.publish(CommitPublication))
+        async def publish():
+            if wire:
+                await refresh_chat(view)
+            else:
+                view.transcript.dirty = view.transcript.commit_required = True
+                await view.transcript.publish(CommitPublication)
+
+        pending = asyncio.create_task(publish())
         try:
             await asyncio.wait_for(entered.wait(), 8)
             await ui.step()
@@ -224,12 +249,17 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
             if after_admission:
                 assert history.page_source is not original_source
                 accepted_source = history.page_source
-                assert accepted_source.through.session_file == str(new)
+                if wire:
+                    assert not isinstance(await accepted_source.observe_changes(accepted_source.revision), ReplacedWireObservation)
+                else:
+                    assert accepted_source.through.session_file == str(new)
                 assert tuple(history.pages) != pages
             else:
                 assert "OLD_VISIBLE_SOURCE" in ui.painted(view.window)
                 assert "NEW_VISIBLE_SOURCE" not in ui.painted(view.window)
                 assert history.page_source is original_source
+                if wire:
+                    assert isinstance(await original_source.observe_changes(original_source.revision), ReplacedWireObservation)
                 assert history.page_source.scope is original_scope and not original_scope.closed
                 assert tuple(history.pages) == pages
             applying, = render_owners
@@ -238,16 +268,22 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
             if after_admission:
                 assert history.page_source is accepted_source and not accepted_source.closed
                 assert original_scope.closed
-                assert history.page_source.through.session_file == str(new)
+                if wire:
+                    assert not isinstance(await accepted_source.observe_changes(accepted_source.revision), ReplacedWireObservation)
+                else:
+                    assert history.page_source.through.session_file == str(new)
             else:
                 assert history.page_source is original_source
+                if wire:
+                    assert isinstance(await original_source.observe_changes(original_source.revision), ReplacedWireObservation)
                 assert history.page_source.scope is original_scope and not original_scope.closed
                 assert history.page_source.through == through
                 assert tuple(history.pages) == pages and all(page.display for page in pages)
             release.set()
-            await view.transcript.publish(CommitPublication)
+            await publish()
             await ui.until_shows("NEW_VISIBLE_SOURCE")
-            assert "OLD_VISIBLE_SOURCE" not in ui.painted(view.window)
+            if not wire:
+                assert "OLD_VISIBLE_SOURCE" not in ui.painted(view.window)
         finally:
             release.set()
             for applying in render_owners:

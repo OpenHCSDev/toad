@@ -5,36 +5,39 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
-from itertools import islice
 from dataclasses import dataclass, field, replace
-from typing import ClassVar, TYPE_CHECKING
+from itertools import islice
+from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage, UnreadTranscriptCursor
-from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.historical_views import ConversationObservation
 from agent_comms.sent_message import OutgoingMessageReference
+from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.transcripts import (
+    TranscriptCursor,
+    TranscriptPage,
+    UnreadTranscriptCursor,
+)
+from agent_comms.ui_model.message_category import MessageCategory
 
-from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
+from toad.render_backend import ReusableRenderTask
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
-from toad.widgets.transcript_fragments import TranscriptFragment
-from toad.widgets.transcript_fragments import transcript_fragments
-from toad.render_backend import ReusableRenderTask
-from agent_comms.ui_model.message_category import MessageCategory
+from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
+from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
 from toad.work_preparation import (
     PreparationRuntime,
-    PreparedResult,
     PreparationScope,
+    PreparedResult,
     ReusableWork,
     ScopedWork,
     ThreadWork,
+    UniqueRevision,
     WorkKey,
     WorkLane,
     WorkRevision,
-    UniqueRevision,
 )
-
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Contents
@@ -556,6 +559,8 @@ class Unchanged(SourceObservation):
 
 class ClosedHistory(ReplaceablePageSource):
     """A retained range without a saved reader; its pages remain usable."""
+
+    revision = ConversationObservation()
 
     def __init__(self, through, runtime):
         super().__init__()
