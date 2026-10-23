@@ -229,26 +229,16 @@ class CommittedHistory(ConversationEntry, SnapshotPresentation):
 
     async def advance_committed(
         self, through: TranscriptCursor, is_current: Callable[[], bool],
-        live_blocks: tuple[Widget, ...],
     ) -> bool:
         """Extend a complete followed tail; read a bounded destination across a gap.
 
-        The pages already drawn stay. The saved rows replace `live_blocks`,
-        the live copies of the same turn, in the change that draws them.
+        The prepared commit owns the shared live-block handoff operation;
+        this source changes only its followed saved range.
         """
-        async with self.window.history_lock:
-            if not self.source_ready or not is_current():
-                return False
-            if not self.accepts_commit(through):
-                raise ValueError("Commit replaces or rewinds the saved source")
-            operation = self.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
-        return await operation.execute(self, partial(self._advance_committed, through, is_current))
-
-    async def _advance_committed(
-        self, through: TranscriptCursor, is_current: Callable[[], bool],
-    ) -> bool:
         if not is_current() or not self.state.can_draw:
             return False
+        if not self.accepts_commit(through):
+            raise ValueError("Commit replaces or rewinds the saved source")
         if not NEWER_END.visible_more(self):
             return await self.extend(through, is_current)
         self.retain_committed(through)
@@ -278,20 +268,50 @@ class PreparedCommit:
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
         return self.history.outgoing_coverage
 
-    async def draw(self, cursor: TranscriptCursor) -> None:
-        """An extended range already owns its drawn pages."""
+    async def draw(self, cursor: TranscriptCursor, is_current: Callable[[], bool],
+                   live_blocks: tuple[Widget, ...]) -> bool:
+        """A retained viewport changes source access without drawing rows."""
+        return True
 
 
 @dataclass(frozen=True)
-class PreparedPageCommit(PreparedCommit):
+class PreparedSourceCommit(PreparedCommit, ABC):
+    """Every saved-row mutation shares the live-block handoff operation."""
+
     page: PreparedTranscriptPage
+
+    @classmethod
+    async def capture(cls, view, history, page, sequences):
+        from toad.transcript_preparation import TranscriptPageRenderTask
+        from toad.work_preparation import RenderPreparation
+
+        prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+        return cls(history, sequences, prepared)
 
     @property
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
-        return self.page.outgoing_coverage
+        return self.history.outgoing_coverage | self.page.outgoing_coverage
 
-    async def draw(self, cursor: TranscriptCursor) -> None:
-        await self.history.show_newest(cursor, self.page)
+    async def draw(self, cursor, is_current, live_blocks) -> bool:
+        history = self.history
+        async with history.window.history_lock:
+            if not history.source_ready or not is_current():
+                return False
+            operation = history.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
+        return await operation.execute(history, partial(self.publish, cursor, is_current))
+
+    @abstractmethod
+    async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool: ...
+
+
+class PreparedAdvanceCommit(PreparedSourceCommit):
+    async def publish(self, cursor, is_current):
+        return await self.history.advance_committed(cursor, is_current)
+
+
+class PreparedPageCommit(PreparedSourceCommit):
+    async def publish(self, cursor, is_current):
+        return await self.history.show_newest(cursor, self.page, publication_current=is_current)
 
 
 class CommitPlan(ABC):
@@ -311,13 +331,9 @@ class CommitPlan(ABC):
                       page: TranscriptPage, captured: frozenset[Widget],
                       is_current: Callable[[], bool]) -> PreparedCommit | None:
         """Grow a history that accepts the page; otherwise the page replaces it."""
-        from toad.transcript_preparation import TranscriptPageRenderTask
-        from toad.work_preparation import RenderPreparation
-
         if history.accepts_commit(page.after):
             return await self.extend(view, history, page, captured, is_current)
-        prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
-        return PreparedPageCommit(history, TranscriptCoverage(page.events).sequences, prepared)
+        return await PreparedPageCommit.capture(view, history, page, TranscriptCoverage(page.events).sequences)
 
     @abstractmethod
     async def extend(self, view: Conversation, history: CommittedHistory, page: TranscriptPage,
@@ -343,15 +359,8 @@ class FollowTailCommit(CommitPlan):
         return window.follows_tail and window.scroll_revision == self.revision
 
     async def extend(self, view, history, page, captured, is_current):
-        # The drawn history grows in place: unchanged pages keep their views,
-        # and the captured live blocks leave in the change that draws their saved rows.
-        live_blocks = tuple(retirement_candidates(
-            captured, CommitEvidence(frozenset(captured), retained_history=history),
-        ))
-        if not await history.advance_committed(page.after, is_current, live_blocks):
-            return None
-        return PreparedCommit(history, TranscriptCoverage(page.events).sequences
-                              | history.covered_sequences(required_sequences(captured)))
+        return await PreparedAdvanceCommit.capture(view, history, page, TranscriptCoverage(page.events).sequences
+                                                   | history.covered_sequences(required_sequences(captured)))
 
     def finish(self, view, cursor):
         view.transcript.binding.painted(view.transcript, cursor)

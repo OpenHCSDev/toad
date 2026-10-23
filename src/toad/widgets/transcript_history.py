@@ -9,7 +9,7 @@ from agent_comms.ui_model.message_category import OtherCategory
 import asyncio
 from bisect import bisect_right
 from collections import deque
-from contextlib import ExitStack, asynccontextmanager
+from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import chain, islice
@@ -400,13 +400,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         """Acquire the original prepared range, without selecting it a second time."""
         view = cls(prepared)
         view.visible_categories = owner.selected_categories
+        view.display = False
         # Styled before it is drawn: a page drawn plain first rewraps under
         # the reader as each styled batch arrives.
         await owner.prepare_fragments(prepared.fragments_in_range, current)
         if not current():
             raise _DrawingStopped
-        with ExitStack() as acquisition:
-            acquisition.callback(owner.remove_children, (view,))
+        async with AsyncExitStack() as acquisition:
+            acquisition.push_async_callback(owner.remove_children, (view,))
             await end.mount(owner, view, pages)
             if not current():
                 raise _DrawingStopped
@@ -427,7 +428,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             if not current():
                 return False
             async with window.preserve_history(root=self):
-                return await self.prepared.replace_range(self, selected, current)
+                return self.prepared.replace_range(self, selected, current)
 
 class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
@@ -870,15 +871,31 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             page.arrivals.clear()
 
     async def show_newest(self, through, initial: PreparedTranscriptPage, *,
-                          arrivals: tuple[TranscriptFragment, ...] = ()) -> None:
+                          arrivals: tuple[TranscriptFragment, ...] = (),
+                          publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Replace the drawn source, retaining the followed tail's active arrivals."""
         retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
                           if id(fragment) in page.arrivals)
                     if self.follows_source_tail else ())
-        await self._clear(initial)
-        self.extend_source(through)
-        await self.jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        self.repaint(arrivals, continuing=retained)
+        source, previous = self.page_source, self.page_source.through
+        self._generation += 1
+        generation = self._generation
+        source.restart(through)
+        published = False
+        try:
+            published = await self.jump_latest(
+                LatestViewportRequest(LatestPosition.hold(self.window)), publication_current, initial=initial)
+            if published:
+                self.repaint(arrivals, continuing=retained)
+            return published
+        finally:
+            # Old drawn pages remain valid until admission. A cancellation
+            # before the swap restores their read bound; teardown after an
+            # admitted swap cannot rewind that accepted source.
+            if (not published and self.page_source is source and self._generation == generation
+                    and not self.pages[-1].prepared.page.after.same_position(through)):
+                source.restart(previous)
+                self._generation += 1
 
     async def _clear(self, initial: PreparedTranscriptPage) -> None:
         """Forget every drawn page and everything prepared: they belong to another reading."""
@@ -953,6 +970,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     self._require_can_draw()
                     self.repaint(arrivals)
                     self.rows_published()
+                    if not local:
+                        await self._page_added(prepared.page, prepared.fragments)
             self.state.delivered(self)
             advanced = end.edge(self.pages)
             if (advanced is edge and edge.prepared.capture_range() == page_range
@@ -985,7 +1004,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                 # A nonmatching interval advances the original source span,
                 # not the native tree. No empty page widget or decoded cache.
                 end.advance_empty(edge.prepared, prepared)
-                await self._page_added(prepared.page, prepared.fragments)
             elif local:
                 previous = {id(fragment) for fragment in edge.prepared.fragments_in_range}
                 if not await edge.prepared.extend(edge, prepared, current):
@@ -1002,7 +1020,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     end.append(self.pages, view)
                 protected.update(id(fragment) for fragment in view.prepared.fragments_in_range)
                 protected_pages.add(view)
-                await self._page_added(prepared.page, prepared.fragments)
             self._fragment_budget = limit = max(
                 self.budget.item_limit(len(protected)), self._visible_fragment_budget(),
             )

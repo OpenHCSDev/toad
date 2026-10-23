@@ -1,49 +1,46 @@
 """Textual-facing: transcript presentations queue behind Textual's callback pump and paint into the conversation window."""
 
 import asyncio
+from contextlib import asynccontextmanager
 
-from support.coordination import registered_coordination_fact
 from support.journals import assistant_entry, write_journal
-from toad.transcript_publication import CanonicalSourcePublication, TranscriptPublication
+from agent_comms.thread_text import SavedSessionFile
+from toad.transcript_publication import CommitPublication, TranscriptPublication
 from toad.widgets.agent_response import AgentResponse
 
 
 class DeclaredCase(TranscriptPublication):
     """A newly declared case: it paints one response, unless it is no longer current."""
 
-    def __init__(self, owner, view, window, contents, entered, release):
-        super().__init__(owner, view, window, contents)
+    def __init__(self, binding, owner, generation, entered, release):
+        super().__init__(binding, owner, generation)
         self.entered, self.release = entered, release
 
     async def publish_applied(self):
         self.entered.set()
         await self.release.wait()
         if self.current():
-            await self.contents.mount(AgentResponse("Declared case painted"))
+            await self.binding.contents.mount(AgentResponse("Declared case painted"))
         return True
 
 
-class HeldSourceCase(CanonicalSourcePublication):
+class HeldSourceCase(CommitPublication):
     """A real certified read, held before its application is joined."""
 
-    def __init__(self, owner, view, window, contents, entered, release):
-        super().__init__(owner, view, window, contents)
+    def __init__(self, binding, owner, generation, entered, release):
+        super().__init__(binding, owner, generation)
         self.entered, self.release = entered, release
 
-    async def read_page(self):
-        page = await super().read_page()
+    async def read_snapshot(self):
+        page = await super().read_snapshot()
         self.entered.set()
         await self.release.wait()
         return page
 
 
-async def settle_ready(ui):
-    await ui.app.screen.prepare_navigation()
-    await ui.app.screen.layout_navigation()
-
-
-async def hold_application(ui, view):
-    """Occupy the view's callback pump until the returned event is set."""
+@asynccontextmanager
+async def hold_application(view):
+    """Release the occupied callback pump even when its caller's assertion fails."""
     started, release = asyncio.Event(), asyncio.Event()
 
     async def held():
@@ -52,8 +49,11 @@ async def hold_application(ui, view):
 
     view.call_later(held)
     # The pump is busy once the callback runs, so the pilot cannot step: wait on the event itself.
-    await asyncio.wait_for(started.wait(), 10)
-    return release
+    try:
+        await asyncio.wait_for(started.wait(), 10)
+        yield
+    finally:
+        release.set()
 
 
 async def stays_waiting(task) -> bool:
@@ -69,44 +69,39 @@ async def finish(ui, task, why):
 
 async def test_a_case_queued_behind_the_pump_does_not_adopt_a_replacement_generation(workspace):
     async with workspace.app() as ui:
-        await settle_ready(ui)
         view = ui.conversation
-        release_pump = await hold_application(ui, view)
-        entered, release = asyncio.Event(), asyncio.Event()
-        release.set()
-        case = view.transcript.capture(DeclaredCase, entered, release)
-        pending = asyncio.create_task(case.publish())
-        assert await stays_waiting(pending) and not entered.is_set()
-        view.transcript.invalidate()
-        release_pump.set()
+        async with hold_application(view):
+            entered, release = asyncio.Event(), asyncio.Event()
+            release.set()
+            case = view.transcript.binding.capture(view.transcript, DeclaredCase, entered, release)
+            pending = asyncio.create_task(case.publish())
+            assert await stays_waiting(pending) and not entered.is_set()
+            view.transcript.invalidate_publications()
         await finish(ui, pending, "the queued case to return")
         assert not entered.is_set()
 
 
 async def test_cancelling_a_waiting_caller_leaves_the_pump_and_runs_nothing(workspace):
     async with workspace.app() as ui:
-        await settle_ready(ui)
         view = ui.conversation
-        release_pump = await hold_application(ui, view)
-        entered, release = asyncio.Event(), asyncio.Event()
-        pending = asyncio.create_task(view.transcript.publish(DeclaredCase, entered, release))
-        assert await stays_waiting(pending)
-        pending.cancel()
-        result = await asyncio.gather(pending, return_exceptions=True)
-        assert isinstance(result[0], asyncio.CancelledError)
-        assert not entered.is_set() and not view.task.done()
-        release_pump.set()
+        async with hold_application(view):
+            entered, release = asyncio.Event(), asyncio.Event()
+            pending = asyncio.create_task(view.transcript.publish(DeclaredCase, entered, release))
+            assert await stays_waiting(pending)
+            pending.cancel()
+            result = await asyncio.gather(pending, return_exceptions=True)
+            assert isinstance(result[0], asyncio.CancelledError)
+            assert not entered.is_set() and not view.task.done()
         await ui.step()
 
 
 async def test_a_case_invalidated_while_applying_paints_nothing_and_the_next_one_paints(workspace):
     async with workspace.app() as ui:
-        await settle_ready(ui)
         view = ui.conversation
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(DeclaredCase, entered, release))
         await ui.until(entered.is_set, why="the case to start applying")
-        view.transcript.invalidate()
+        view.transcript.invalidate_publications()
         release.set()
         await finish(ui, pending, "the invalidated case to return")
         assert not view.contents.query(AgentResponse)
@@ -116,7 +111,6 @@ async def test_a_case_invalidated_while_applying_paints_nothing_and_the_next_one
 
 async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
     async with workspace.app() as ui:
-        await settle_ready(ui)
         view = ui.conversation
         requests = view.transcript.source_requests
         entered, release = asyncio.Event(), asyncio.Event()
@@ -125,7 +119,7 @@ async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
         queued_entered, queued_release = asyncio.Event(), asyncio.Event()
         queued_release.set()
         requests.request(DeclaredCase, queued_entered, queued_release)
-        view.transcript.invalidate()
+        view.transcript.invalidate_publications()
         release.set()
         await requests.worker.wait()
         await ui.step()
@@ -138,28 +132,27 @@ async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
 
 async def test_a_certified_read_that_expired_acquires_no_application(workspace):
     journal = write_journal(workspace.project / "source.jsonl", assistant_entry("Certified source", id="source"))
-    workspace.comms.registry.declare(workspace.comms.registry.new_thread("journal-source", frozenset(), str(workspace.project), session_file=str(journal)))
-    async with workspace.app() as ui:
-        await settle_ready(ui)
+    workspace.comms.registry.declare(workspace.comms.registry.new_thread("journal-source", frozenset(), str(workspace.project), session_file=SavedSessionFile(str(journal))))
+    async with workspace.app(resume="journal-source") as ui:
         view = ui.conversation
-        agent = ui.detached_agent("journal-source")
-        agent.coordination = registered_coordination_fact(workspace.comms, "journal-source", worktree=str(workspace.project))
-        view.agent = agent
+        await ui.until_shows("Certified source")
+        await view.transcript.suspend()
+        view.transcript.dirty = view.transcript.commit_required = True
+        original = view.transcript.binding.history
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(HeldSourceCase, entered, release))
         await ui.until(entered.is_set, why="the certified read to be held")
-        view.transcript.invalidate()
+        view.transcript.invalidate_publications()
         release.set()
         await finish(ui, pending, "the expired read to return")
-        assert not view.transcript.histories, "Expired read acquired a replacement application"
+        assert view.transcript.binding.history is original, "Expired read replaced the mounted history"
         await view.transcript.publish(HeldSourceCase, entered, release)
-        await ui.until(lambda: len(view.transcript.histories) == 1, why="the current read to acquire its application")
-        assert view.transcript.histories[0].page_source.through.session_file == str(journal)
+        assert view.transcript.binding.history is original
+        assert view.transcript.binding.history.page_source.through.session_file == str(journal)
 
 
 async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
     async with workspace.app() as ui:
-        await settle_ready(ui)
         view = ui.conversation
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(DeclaredCase, entered, release))
@@ -168,4 +161,56 @@ async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
         release.set()
         await finish(ui, pending, "the case to return after close")
         assert not view.contents.query(AgentResponse)
-        assert view.transcript.view is None
+        assert not view.transcript.binding.matches(view)
+
+
+async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_read_bound(workspace, monkeypatch):
+    from dataclasses import replace
+    from toad.widgets.transcript_lines import TranscriptLinesBatchRenderTask
+
+    old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_VISIBLE_SOURCE", id="old"))
+    thread = workspace.thread("source")
+    workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(old))))
+    async with workspace.app(resume="source") as ui:
+        await ui.until_shows("OLD_VISIBLE_SOURCE")
+        view = ui.conversation
+        await ui.app.coordination_access.stop_observing()
+        await view.transcript.suspend()
+        history = view.transcript.binding.history
+        pages, through = tuple(history.pages), history.page_source.through
+        new = write_journal(workspace.project / "new.jsonl", assistant_entry("NEW_VISIBLE_SOURCE", id="new"))
+        workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(new))))
+        entered, release = asyncio.Event(), asyncio.Event()
+        render_for = TranscriptLinesBatchRenderTask.render_for
+
+        async def held_rows(cls, target, preparations):
+            if target is history:
+                entered.set()
+                await release.wait()
+            return await render_for(target, preparations)
+
+        monkeypatch.setattr(TranscriptLinesBatchRenderTask, "render_for", classmethod(held_rows))
+        view.window.anchor()
+        view.prompt.focus()
+        view.transcript.dirty = view.transcript.commit_required = True
+        pending = asyncio.create_task(view.transcript.publish(CommitPublication))
+        try:
+            await asyncio.wait_for(entered.wait(), 8)
+            await ui.step()
+            assert "OLD_VISIBLE_SOURCE" in ui.painted(view.window)
+            assert "NEW_VISIBLE_SOURCE" not in ui.painted(view.window)
+            assert tuple(history.pages) == pages
+            pending.cancel()
+            outcome, = await asyncio.gather(pending, return_exceptions=True)
+            assert isinstance(outcome, asyncio.CancelledError)
+            assert history.page_source.through == through
+            assert tuple(history.pages) == pages and all(page.display for page in pages)
+            release.set()
+            await view.transcript.publish(CommitPublication)
+            await ui.until_shows("NEW_VISIBLE_SOURCE")
+            assert "OLD_VISIBLE_SOURCE" not in ui.painted(view.window)
+        finally:
+            release.set()
+            if not pending.done():
+                pending.cancel()
+            await asyncio.gather(pending, return_exceptions=True)

@@ -159,9 +159,9 @@ class PreparedTranscriptPage:
         if prepared.fragments is not self.fragments:
             raise ValueError("Transcript input replacement requires a new prepared page")
         selected = slice(min(self.start, prepared.start), max(self.stop, prepared.stop))
-        return await self.replace_range(view, selected, current)
+        return self.replace_range(view, selected, current)
 
-    async def replace_range(self, view, selected, current) -> bool:
+    def replace_range(self, view, selected, current) -> bool:
         if not current():
             return False
         if self.fragment_range != (selected.start, selected.stop):

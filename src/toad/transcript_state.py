@@ -418,17 +418,27 @@ class CommitTranscript(WorkingTranscript):
     """
 
     def __init__(self, source: TranscriptState, owner, live_blocks: tuple[Widget, ...]):
+        from textual.await_complete import AwaitComplete
+
         super().__init__(source, owner)
         self.live_blocks = live_blocks
+        self.claims = tuple(cast("CommitParticipant", block).commit_claim for block in live_blocks)
+        self.retirement = AwaitComplete.nothing()
+
+    async def execute(self, owner, work):
+        try:
+            return await super().execute(owner, work)
+        finally:
+            await self.retirement
 
     def arriving(self, prepared, followed_end: bool):
         # Rows its live blocks already showed have not arrived again; every other row has.
         # The live blocks are the commit participants `retirement_candidates` chose.
-        claims = tuple(cast("CommitParticipant", block).commit_claim for block in self.live_blocks)
         return tuple(fragment for fragment in super().arriving(prepared, followed_end)
-                     if not any(fragment.shown_live_by(claim) for claim in claims))
+                     if not any(fragment.shown_live_by(claim) for claim in self.claims))
 
     def rows_published(self, owner) -> None:
-        if not NEWER_END.visible_more(owner):
-            for block in self.live_blocks:
-                block.display = False
+        if self.live_blocks and not NEWER_END.visible_more(owner):
+            blocks, self.live_blocks = self.live_blocks, ()
+            view = owner.view
+            self.retirement = view.transcript.retire_presentations(view.contents, view.output, blocks)

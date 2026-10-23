@@ -346,9 +346,16 @@ class CommitPublication(CanonicalSourcePublication):
             TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
         )
+        retired = retirement_candidates(contents.children, evidence)
+        if not plan.permits(view, retired):
+            return True
+        def publication_current():
+            return is_current() and plan.permits(view, retired)
+
+        if not await prepared.draw(page.after, publication_current, tuple(retired)):
+            return True
         async with AsyncExitStack() as retirement:
             async with plan.publication(view, prepared):
-                await prepared.draw(page.after)
                 async with window.history_lock:
                     retired = retirement_candidates(contents.children, evidence)
                     if (
