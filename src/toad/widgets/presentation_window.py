@@ -15,16 +15,21 @@ from agent_comms.message_page import PageBounds
 from agent_comms.transcripts import TranscriptCursor
 
 if TYPE_CHECKING:
-    from agent_comms.transcripts import TranscriptPage
-    from agent_comms.message_page import MessagePage
-    from agent_comms.ui_model.message_category import MessageCategory
     from collections.abc import Awaitable, Callable
-    from toad.transcript_preparation import PreparedTranscriptPage, ProjectedTranscriptSource
+
+    from agent_comms.message_page import MessagePage
+    from agent_comms.transcripts import TranscriptPage
+    from agent_comms.ui_model.message_category import MessageCategory
+    from textual.widget import Widget
+
+    from toad.transcript_preparation import (
+        PreparedTranscriptPage,
+        ProjectedTranscriptSource,
+    )
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory, TranscriptPageView
     from toad.wire_history import AfterSequence, WireCut, WireSource
-    from textual.widget import Widget
 
 
 def protected_presentations(items: Iterable["Widget"], endpoints: Iterable["Widget"]) -> set["Widget"]:

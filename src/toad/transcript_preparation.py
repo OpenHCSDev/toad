@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
 from itertools import islice
-from typing import TYPE_CHECKING, Awaitable, Callable, ClassVar
+from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.historical_views import ConversationObservation
@@ -40,13 +40,14 @@ from toad.work_preparation import (
 
 if TYPE_CHECKING:
     from agent_comms.message_page import MessagePage
+
     from toad.comms_root import CoordinationAccess, Observation
     from toad.core.input_events import UserInputSubmitted
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.comms_chat import CommsChatView
-    from toad.widgets.wire_history import WireHistory
     from toad.widgets.conversation import Contents
     from toad.widgets.transcript_history import LineHistory, TranscriptPageView
+    from toad.widgets.wire_history import WireHistory
 
 
 @dataclass

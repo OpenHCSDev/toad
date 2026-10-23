@@ -9,8 +9,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable
 
 from acp.exceptions import RequestError
-from pydantic import JsonValue
-
 from agent_comms.coordinator import Coordination
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
@@ -35,6 +33,7 @@ from agent_comms.turn_context import (
 from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.working_memory_labels import JevClassifier, ModelLabel
 from agent_comms.working_memory_questions import SpanAnswer
+from pydantic import JsonValue
 
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity

@@ -11,48 +11,71 @@ to that process, awaited here.
 
 from __future__ import annotations
 
-from agent_comms.errors import RouteChangedError
-
 import asyncio
 import threading
-from dataclasses import dataclass, field
-from functools import partial
 from collections.abc import Callable, Mapping
 from contextlib import ExitStack
-from typing import TYPE_CHECKING, TypeVar
+from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
+from typing import TYPE_CHECKING, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
-from agent_comms.coordination_errors import StaleRevision
 from agent_comms.child_process import join_retirement
+from agent_comms.coordination_errors import StaleRevision
+from agent_comms.display_references import PendingReferences, UnavailableReferences
+from agent_comms.errors import RouteChangedError
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
 from agent_comms.route_selection import RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
-    ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
-    ObservationProcess, ObserverDied, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
-    SidebarObserved, SidebarPreparing, SidebarUnreadable, ViewsRetired,
-    StopObserving, StopSidebar, ThreadsObserved,
+    NotificationsObserved,
+    NotificationsUnreadable,
+    ObservationProcess,
+    ObserveNotifications,
+    ObserverDied,
+    ObserveSidebar,
+    ObserveThreads,
+    ObserveViews,
+    ReadNotifications,
+    RevisionObserved,
+    SidebarObserved,
+    SidebarPreparing,
+    SidebarUnreadable,
+    StopObserving,
+    StopSidebar,
+    ThreadsObserved,
+    ViewsRetired,
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
-from toad.core.events import Subscription, CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
+
+from toad.core.events import (
+    CoordinationObserved,
+    CoreEventStream,
+    ExternalTranscriptChanged,
+    LinkContextChanged,
+    ObservedServiceChanged,
+    OpenTabsChanged,
+    Subscription,
+    ThreadRowsChanged,
+)
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
-from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.preferences import SETTINGS
-from agent_comms.display_references import PendingReferences, UnavailableReferences
+from toad.resource_release import AsyncResourceRelease, ResourceRelease
 
 if TYPE_CHECKING:
+    from agent_comms.comms import Comms
     from agent_comms.display_order import DisplayOrder
     from agent_comms.display_references import ReferenceContext
+
+    from toad.app import ToadApp
     from toad.session_entry import SessionEntry
     from toad.session_navigation import SessionNavigation
     from toad.widgets.linked_rows import ReferenceRendering
     from toad.widgets.message_notifications import HistoryNotifications
     from toad.widgets.sidebar_tree import SidebarModelView
-    from agent_comms.comms import Comms
-    from toad.app import ToadApp
 
 T = TypeVar("T")
 

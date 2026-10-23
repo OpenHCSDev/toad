@@ -13,7 +13,6 @@ from typing import Optional
 from acp import Client, ClientSideConnection, schema
 from acp.connection import StreamDirection, StreamEvent
 from acp.exceptions import RequestError
-from pydantic import JsonValue
 from agent_comms.child_process import (
     AttachedChild,
     StreamingChildStdio,
@@ -21,6 +20,7 @@ from agent_comms.child_process import (
 )
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.route_selection import RouteSelection
+from pydantic import JsonValue
 
 from toad.acp.agent_session import AgentSession
 from toad.acp.shell_command import ShellCommand

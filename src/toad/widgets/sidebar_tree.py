@@ -15,8 +15,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
+
     from textual.events import Click
     from textual.layout import WidgetPlacement
+
     from toad.app import ToadApp
     from toad.comms_root import FailedObservation, Observing
     from toad.navigation_target import NavigationTarget
