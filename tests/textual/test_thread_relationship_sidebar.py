@@ -1,11 +1,11 @@
 """Textual-facing: the right-hand relationship panel (collapsible side bar, row widgets, menus) follows Core's relationships."""
 
-import os
 from unittest.mock import patch
 
 from agent_comms.activity import ActivityState
 from agent_comms.display_order import ThreadSort
 from agent_comms.relationships import AddRelationshipEdit
+from agent_comms.tool_caller import ThreadCaller
 from agent_comms.tools import invoke_tool
 
 
@@ -61,24 +61,25 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         assert peer_group.entries[0].target == "owner"
         assert peer_group.entries[0].detail == "Review the sidebar"
 
-        with patch.dict(os.environ, {"PI_AGENT_ID": "peer"}):
-            invoke_tool(comms, "comms_collaboration", {"action": "remove", "peer": "owner"})
+        invoke_tool(comms, "comms_collaboration", {"action": "remove", "peer": "owner"},
+                    caller=ThreadCaller("peer"))
         await ui.until(lambda: not tree.groups["collaborating"].model.entries
                        and ("thread", "peer") not in tree.groups["collaborating"].rows,
                        why="the removed collaboration to leave the panel")
         assert comms.relationships.snapshot("peer").groups[4].entries == ()
-        with patch.dict(os.environ, {"PI_AGENT_ID": "peer"}):
-            invoke_tool(comms, "comms_collaboration", {"action": "add", "peer": "owner", "note": "Review the sidebar"})
+        invoke_tool(comms, "comms_collaboration",
+                    {"action": "add", "peer": "owner", "note": "Review the sidebar"},
+                    caller=ThreadCaller("peer"))
         await ui.until(lambda: ("thread", "peer") in tree.groups["collaborating"].rows, why="the restored collaboration")
         row = tree.groups["collaborating"].rows["thread", "peer"]
         assert row.available and "Review the sidebar" in str(row.tooltip)
-        with patch.dict(os.environ, {"PI_AGENT_ID": "owner"}):
-            invoke_tool(comms, "comms_collaboration",
-                        {"action": "add", "peer": "child-one", "note": "Joint implementation"})
+        invoke_tool(comms, "comms_collaboration",
+                    {"action": "add", "peer": "child-one", "note": "Joint implementation"},
+                    caller=ThreadCaller("owner"))
         await ui.until(lambda: ("thread", "child-one") in tree.groups["collaborating"].rows, why="a second collaboration")
         assert tree.groups["collaborating"].rows["thread", "peer"] is row
-        with patch.dict(os.environ, {"PI_AGENT_ID": "owner"}):
-            invoke_tool(comms, "comms_collaboration", {"action": "remove", "peer": "child-one"})
+        invoke_tool(comms, "comms_collaboration", {"action": "remove", "peer": "child-one"},
+                    caller=ThreadCaller("owner"))
         await ui.until(lambda: ("thread", "child-one") not in tree.groups["collaborating"].rows,
                        why="the second collaboration to leave")
 
@@ -140,8 +141,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
             await ui.step()
             copy.assert_called_once_with("peer")
 
-        with patch.dict(os.environ, {"PI_AGENT_ID": "owner"}):
-            comms.threads.rename_self("renamed-owner")
+        comms.threads.rename_self("renamed-owner", caller=ThreadCaller("owner"))
         await main.on_coordination_update(comms.configuration.answer("renamed-owner"))
         await ui.until(lambda: tree._snapshot is not None and tree._snapshot.owner == "renamed-owner",
                        why="the panel to follow the rename")
