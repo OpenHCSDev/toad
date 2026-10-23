@@ -10,7 +10,9 @@ from agent_comms.messages import InfoKind, Message
 from agent_comms.notification_progress import AcknowledgedProgress
 from agent_comms.presentation import MessageNotification
 from agent_comms.thread_presentation import ThreadPresentation
-from agent_comms.ui_model.delivery import InputDelivery
+from agent_comms.ui_model.delivery import ReadDeliveryView
+from agent_comms.input_disposition import DeliveryOverview
+from agent_comms.input_attempt import UnobservedInputDeliveryScope
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.line_blocks import NoticeRole
 from toad.widgets.input_delivery import InputDeliveryBar
@@ -29,7 +31,10 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
     history = NativeHistory()
     history.status = NoneCursorStatus
     delivery = InputDeliveryBar()
-    delivery.delivery = InputDelivery(dismissed_historical_count=5)
+    delivery.delivery = ReadDeliveryView(DeliveryOverview(
+        inputs=(), historical_count=0, dismissed_historical_count=5, historical_inputs=(),
+        current_scope=UnobservedInputDeliveryScope,
+    ))
     details = SessionDetails(history=history, delivery=delivery)
     row = ThreadStatusModel.known("owner", state)
 
@@ -69,5 +74,5 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         assert "Delivery unavailable" in str(details.title)
         assert composer.value == "Untouched draft"
         assert history.status is NoneCursorStatus
-        assert delivery.delivery.dismissed_historical_count == 5
+        assert delivery.delivery.notices == 5
 

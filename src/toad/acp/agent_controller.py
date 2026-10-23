@@ -21,8 +21,8 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.transcripts import TranscriptReadIdentity
-from agent_comms.ui_model.delivery import InputDelivery
-from agent_comms.ui_model.observation import ReadInputDelivery
+from agent_comms.ui_model.delivery import DeliveryView
+from agent_comms.ui_model.observation import ReadDeliveryOverview
 
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.status import StopReason
@@ -421,14 +421,14 @@ class AgentController(OperationalTerminalOwner):
         if (self.coordination.wire_root, self.coordination.thread) != (coordination.wire_root, coordination.thread):
             raise ValueError("The owner identity changed while preparing the request.")
 
-    async def input_delivery(self, *, include_history: bool = False) -> InputDelivery:
+    async def input_delivery(self, *, include_history: bool = False) -> DeliveryView:
         """The owner's delivery notices, read by the observation service."""
         coordination = self.coordination
         if coordination is None:
-            return InputDelivery()
+            return DeliveryView()
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         delivery = await self.transcripts.read(
-            ReadInputDelivery(coordination.wire_root, coordination.thread, include_history=include_history)
+            ReadDeliveryOverview(coordination.wire_root, coordination.thread, include_history=include_history)
         )
         self.require_owner(coordination, authority)
         return delivery

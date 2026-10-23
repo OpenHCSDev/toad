@@ -16,7 +16,7 @@ from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
-from agent_comms.ui_model.delivery import InputDelivery
+from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
 from rich.segment import Segment
@@ -519,7 +519,7 @@ class ConversationSessionBinding(
     def mode_selection_available(self) -> bool:
         return bool(self.agent_binding.available_modes)
 
-    input_delivery: var[InputDelivery] = var(InputDelivery())
+    input_delivery: var[DeliveryView] = var(DeliveryView())
 
     native_history_status: var[type[CursorStatus]] = var(lambda: HiddenCursorStatus)
 
