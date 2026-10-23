@@ -48,7 +48,8 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
     def initialize_source(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
         self.page_source.close()
-        self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation)
+        self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation,
+                                          revision=ConversationObservation())
 
     @property
     def undrawn(self) -> bool:

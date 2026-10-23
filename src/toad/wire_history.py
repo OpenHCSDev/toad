@@ -382,7 +382,7 @@ class WirePageBuffer(SavedHistory):
 
     work = WirePageWork
 
-    def __init__(self, *args, revision: ConversationObservation = ConversationObservation(), **kwargs):
+    def __init__(self, *args, revision: ConversationObservation, **kwargs):
         super().__init__(*args, **kwargs)
         self.revision = revision
 
