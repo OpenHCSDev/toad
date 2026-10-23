@@ -6,7 +6,7 @@ import asyncio
 from bisect import bisect_right
 from collections import deque
 from collections.abc import AsyncIterator, Callable, Iterator
-from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import chain, islice
@@ -20,19 +20,17 @@ from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.ui_model.message_category import (
     MessageCategory,
-    OtherCategory,
     all_categories,
 )
 from rich.style import Style as RichStyle
-from textual import events, on
+from textual import on
 from textual._activation import PrimaryActivation
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
-from textual.geometry import Region
+from textual.geometry import Region, Size
 from textual.message import Message
-from textual.selection import Selection
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
@@ -42,7 +40,6 @@ from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageClock, MessageRow
-from toad.response_delivery import ResponseDelivery
 from toad.session_scope import SessionScope
 from toad.transcript_filter import FilterState
 from toad.transcript_preparation import (
@@ -73,7 +70,6 @@ from toad.widgets.committed_presentation import (
     SnapshotPresentation,
 )
 from toad.widgets.history_anchor import (
-    HeldReaderDestination,
     HistoryWindow,
     LatestPosition,
 )
@@ -94,14 +90,12 @@ from toad.widgets.selection import HoverSelection
 from toad.widgets.transcript_fragments import (
     Shown,
     TranscriptFragment,
-    transcript_fragments,
 )
 from toad.widgets.transcript_lines import (
     BlockLines,
     BlockSpan,
     LinePreparation,
     Lines,
-    PreparedLines,
     TranscriptLinesBatchRenderTask,
     TranscriptLinesRenderTask,
 )
@@ -161,7 +155,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     RENDER_BATCH = 8
 
     def __init__(self, prepared: PreparedTranscriptPage, *,
-                 batch_size: int = PresentationBudget.batch_items):
+                 batch_size: int = PresentationBudget.batch_items) -> None:
         self.arrivals: set[int] = set()
         self.prepared = prepared
         self.visible_categories = all_categories()
@@ -372,7 +366,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         span = lines.block_span(lambda span: span.contains(row - first))
         return None if span is None else FragmentSpan.in_page(fragment, first, span)
 
-    def visible_rows(self, window) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
+    def visible_rows(self, window: HistoryWindow) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
         """Each loaded fragment in the window's viewport, with its rows that are in view."""
         # A page the viewport layout did not place is off screen; computing
         # its offset would rebuild the compositor's whole map.
@@ -389,7 +383,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             if first + lines.height > top:
                 yield fragment, range(max(0, top - first), min(lines.height, bottom - first)), lines
 
-    def visible_fragments(self, window) -> tuple[TranscriptFragment, ...]:
+    def visible_fragments(self, window: HistoryWindow) -> tuple[TranscriptFragment, ...]:
         """The fragments this page draws inside the window's viewport."""
         return tuple(fragment for fragment, _rows, _lines in self.visible_rows(window))
 
@@ -497,7 +491,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
                   *, notification_view: HistoryNotifications, budget: PresentationBudget = DEFAULT_BUDGET,
-                  source_state: TranscriptState | None = None):
+                  source_state: TranscriptState | None = None) -> None:
         self.notification_view = notification_view
         super().__init__(source_state=source_state or LiveTranscript(), page_source=page_source)
         self.budget = budget
@@ -862,7 +856,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         pages = [page for page in self.pages if page.line_count]
         return sum(page.line_count for page in pages), sum(page.prepared.stop - page.prepared.start for page in pages)
 
-    def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
+    def _size_updated(self, size: Size, virtual_size: Size, container_size: Size, layout: bool=True) -> bool:
         # Edges are read from this history's laid-out box. A check made
         # before layout gave it one (a filter just chosen, a first page) finds
         # none, and a history shorter than its window changes no size but its own.
@@ -1143,7 +1137,7 @@ class ConversationHistory[ViewT: "Conversation"](LineHistory):
 
     page_source: ReplaceablePageSource
 
-    def __init__(self, *args, view: ViewT, **kwargs):
+    def __init__(self, *args, view: ViewT, **kwargs) -> None:
         self.view = view
         super().__init__(*args, **kwargs)
 

@@ -1,5 +1,8 @@
 """Each launch binding keeps matching with its existing native view."""
 
+import click
+import pytest
+
 from support.agents import peer
 
 from toad.agents import read_agents
@@ -14,11 +17,12 @@ async def test_startup_binding_is_decoded_once_and_retained_by_the_app(workspace
     selected = AgentAttached(definition)
     for spelling, expected in (
         ("", NoAgent()),
-        ("no-such-startup-agent", NoAgent()),
         (definition.identity.upper(), selected),
         (definition.short_name.upper(), selected),
     ):
         assert await get_agent_binding(spelling) == expected
+    with pytest.raises(click.BadParameter, match="no-such-startup-agent"):
+        await get_agent_binding("no-such-startup-agent")
     async with workspace.app(binding=selected, session=False) as ui:
         app, _ = ui.textual
         assert app.agent_binding is selected

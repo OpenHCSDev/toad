@@ -4,27 +4,31 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
-from functools import partial
-from dataclasses import dataclass
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from functools import partial
 from typing import TYPE_CHECKING
 
+from agent_comms.acp_extension import InputStartedUpdate
+from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
+
+from toad.core.source_events import TranscriptCoverage
 from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
 from toad.widgets.history_anchor import LatestPosition
-from agent_comms.sent_message import PublishedSentMessage, OutgoingMessageReference
-from toad.core.source_events import TranscriptCoverage
-from agent_comms.acp_extension import InputStartedUpdate
-
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
-    from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
+    from toad.transcript_preparation import PreparedTranscriptPage
     from toad.widgets.conversation import Conversation
     from toad.widgets.history_anchor import HistoryWindow
-    from toad.transcript_preparation import PreparedTranscriptPage
-    from toad.widgets.transcript_fragments import BusMessageFragment, SentMessageFragment, TranscriptFragment
+    from toad.widgets.transcript_fragments import (
+        BusMessageFragment,
+        SentMessageFragment,
+        TranscriptFragment,
+    )
+    from toad.widgets.transcript_history import CommittedHistory, TranscriptHistory
 
 @dataclass(frozen=True)
 class CommitEvidence:
@@ -190,7 +194,7 @@ class PreparedSourceCommit(PreparedCommit, ABC):
     page: PreparedTranscriptPage
 
     @classmethod
-    async def capture(cls, view, history, page, sequences):
+    async def capture(cls, view: Conversation, history: CommittedHistory, page: TranscriptPage, sequences: frozenset[int]):
         from toad.transcript_preparation import TranscriptPageRenderTask
         from toad.work_preparation import RenderPreparation
 
@@ -201,7 +205,7 @@ class PreparedSourceCommit(PreparedCommit, ABC):
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
         return self.history.outgoing_coverage | self.page.outgoing_coverage
 
-    async def draw(self, cursor, is_current, live_blocks) -> bool:
+    async def draw(self, cursor, is_current: Callable[[], bool], live_blocks) -> bool:
         history = self.history
         async with history.window.history_lock:
             if not history.source_ready or not is_current():
@@ -214,7 +218,7 @@ class PreparedSourceCommit(PreparedCommit, ABC):
 
 
 class PreparedAdvanceCommit(PreparedSourceCommit):
-    async def publish(self, cursor, is_current):
+    async def publish(self, cursor, is_current: Callable[[], bool]):
         return await self.history.advance_committed(cursor, is_current)
 
 
@@ -222,7 +226,7 @@ class PreparedAdvanceCommit(PreparedSourceCommit):
 class PreparedPageCommit(PreparedSourceCommit):
     history: TranscriptHistory
 
-    async def publish(self, cursor, is_current):
+    async def publish(self, cursor, is_current: Callable[[], bool]):
         return await self.history.show_newest(PreparedReplacementViewportRequest(
             LatestPosition.hold(self.history.window), self.page), publication_current=is_current)
 
@@ -271,15 +275,15 @@ class FollowTailCommit(CommitPlan):
     def current(self, window: HistoryWindow) -> bool:
         return window.follows_tail and window.scroll_revision == self.revision
 
-    async def extend(self, view, history, page, captured, is_current):
+    async def extend(self, view, history, page, captured, is_current: Callable[[], bool]):
         return await PreparedAdvanceCommit.capture(view, history, page, TranscriptCoverage(page.events).sequences
                                                    | history.covered_sequences(required_sequences(captured)))
 
-    def finish(self, view, cursor):
+    def finish(self, view, cursor) -> None:
         view.transcript.binding.painted(view.transcript, cursor)
         view.call_after_refresh(self.restore_reader, view.window)
 
-    def restore_reader(self, window):
+    def restore_reader(self, window) -> None:
         # The publication's captured intent owns its deferred layout effect as
         # well. A later scroll or source return cannot inherit an older anchor.
         if self.current(window):
@@ -291,7 +295,7 @@ class RetainViewportCommit(CommitPlan):
         # Retirement checks the current viewport again when applying the change.
         return not window.follows_tail
 
-    def permits(self, view, candidates):
+    def permits(self, view, candidates) -> bool:
         candidates = tuple(candidates)
         if not super().permits(view, candidates):
             return False
@@ -306,14 +310,14 @@ class RetainViewportCommit(CommitPlan):
         return not any(widget in visible and visible[widget][0].overlaps(viewport)
                        for widget in candidates)
 
-    async def extend(self, view, history, page, captured, is_current):
+    async def extend(self, view, history, page, captured, is_current: Callable[[], bool]):
         required = required_sequences(captured)
         known = TranscriptCoverage(page.events).sequences | history.covered_sequences(required)
         covered = frozenset(sequence for sequence in required
                             if page.after.covers_incoming(sequence))
         return PreparedCommit(history, known | covered)
 
-    def commit(self, prepared, cursor):
+    def commit(self, prepared, cursor) -> None:
         prepared.history.retain_committed(cursor)
 
 def commit_plan(window: HistoryWindow) -> CommitPlan:

@@ -2,20 +2,28 @@
 
 from __future__ import annotations
 
+import asyncio
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property
-from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
-import asyncio
 from typing import TYPE_CHECKING
 from weakref import WeakSet
 
-from textual.widget import Widget
-from toad.widget_view import WorkspaceHosted
 from textual import events
 from textual.containers import VerticalScroll
-from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget, OLDER_END, NEWER_END
+from textual.geometry import Size
+from textual.widget import Widget
+
 from toad.transcript_state import LatestViewportRequest
+from toad.widget_view import WorkspaceHosted
+from toad.widgets.presentation_window import (
+    NEWER_END,
+    OLDER_END,
+    DirectionalPreparation,
+    PresentationBudget,
+)
 
 if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
@@ -106,7 +114,7 @@ class ReaderPosition(ABC):
         """Where preparation begins when no message supplies a more exact place."""
         return 0, history.pages[0].prepared.start
 
-    async def prepare(self, history, current, target, selected, rows_needed, limit):
+    async def prepare(self, history, current, target, selected, rows_needed, limit: int):
         """Fill the reader's earlier rows, then the later rows in the remaining budget."""
         start = self.preparation_start(history)
         anchor = history.pages[start[0]].prepared
@@ -134,7 +142,7 @@ class TailPosition(ReaderPosition):
     def preparation_start(self, history) -> tuple[int, int]:
         return len(history.pages) - 1, len(history.pages[-1].prepared.fragments)
 
-    async def prepare(self, history, current, target, selected, rows_needed, limit):
+    async def prepare(self, history, current, target, selected, rows_needed, limit: int):
         return await OLDER_END.walk(history, current, target, selected,
                                   self.preparation_start(history), rows_needed, limit)
 
@@ -262,7 +270,7 @@ class UnreachedPosition(ReaderPosition):
 
     position: ReaderPosition
 
-    async def prepare(self, history, current, target, selected, rows_needed, limit):
+    async def prepare(self, history, current, target, selected, rows_needed, limit: int):
         return await self.position.prepare(history, current, target, selected, rows_needed, limit)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
@@ -765,7 +773,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             self.anchor(True)
         self.tail_follow_changed()
 
-    def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
+    def _size_updated(self, size: Size, virtual_size: Size, container_size: Size, layout: bool=True) -> bool:
         # Native size commit owns scrollbar clamping. Compensate that movement
         # here, without treating unrelated Screen layouts as reader restoration.
         with self.layout_scroll():
@@ -794,7 +802,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             return None
         return self if self._history_mutation_root is None else self._history_mutation_root
 
-    def visible_history_items(self, items):
+    def visible_history_items(self, items: Iterable[Widget]):
         """Borrow this window's clipped cohort from the original native scene."""
         compositor = self.screen._compositor
         visible = compositor.published_widgets

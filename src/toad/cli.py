@@ -56,7 +56,7 @@ def check_directory(path: str) -> None:
 async def get_agent_binding(launch_agent: str) -> AgentBinding:
     if not launch_agent:
         return NoAgent()
-    launch_agent = launch_agent.lower()
+    requested = launch_agent.lower()
 
     from toad.agents import read_agents
 
@@ -64,12 +64,19 @@ async def get_agent_binding(launch_agent: str) -> AgentBinding:
 
     for agent_data in agents.values():
         if (
-            agent_data.short_name.lower() == launch_agent
-            or agent_data.identity.lower() == launch_agent
+            agent_data.short_name.lower() == requested
+            or agent_data.identity.lower() == requested
         ):
             return AgentAttached(agent_data)
 
-    return NoAgent()
+    known = ", ".join(sorted(
+        f"{agent.short_name} ({agent.identity})" if agent.short_name else agent.identity
+        for agent in agents.values()
+    ))
+    raise click.BadParameter(
+        f"Unknown agent {launch_agent!r}. Known agents: {known}",
+        param_hint="-a / --agent",
+    )
 
 
 class DefaultCommandGroup(click.Group):

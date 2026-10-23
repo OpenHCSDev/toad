@@ -6,42 +6,53 @@ viewport owns its measured rows. Unprepared source retains its initial preview.
 
 from __future__ import annotations
 
+import io
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property
-import io
 from itertools import chain, count, zip_longest
 from typing import TYPE_CHECKING
+
+from toad.patch import PatchCell
 
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
 
+from agent_comms.mro_dispatch import MroDispatch, handles
+from rich._wrap import divide_line
 from rich.cells import cell_len, set_cell_size
 from rich.columns import Columns
 from rich.console import Console
 from rich.containers import Renderables
-from rich.syntax import Syntax
-from rich.text import Text
-from rich._wrap import divide_line
+from rich.padding import Padding
 from rich.segment import Segment
 from rich.style import Style
-from rich.padding import Padding
+from rich.syntax import Syntax
+from rich.text import Text
 from textual.strip import Strip
-from toad.rich_preparation import RichTextBody
-
-from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import ForegroundColour, MutedColour, ThemeColour
+
 from toad.line_blocks import (
-    Body, Divider, Gap, LineBlock, LineLink, LineRole, Span, Spans, SpanColumns,
-    Summary, MutedRole, TextRole,
+    Body,
+    Divider,
+    Gap,
+    LineBlock,
+    LineLink,
+    LineRole,
+    MutedRole,
+    Span,
+    SpanColumns,
+    Spans,
+    Summary,
+    TextRole,
 )
-from toad.message_rows import MessageClock, WireBody
 from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
-from toad.render_backend import ReusableRenderTask
+from toad.message_rows import MessageClock, WireBody
 from toad.patch import DiffSettings, Patch
-from toad.rich_preparation import SyntaxPalette
+from toad.render_backend import ReusableRenderTask
+from toad.rich_preparation import RichTextBody, SyntaxPalette
 
 Row = tuple[Segment, ...]
 
@@ -161,7 +172,7 @@ def _plain_spans(line: str, width: int) -> range:
 class PatchLayout:
     """Diff geometry used by the native row painter."""
 
-    def __init__(self, patch: Patch, width: int, settings: DiffSettings):
+    def __init__(self, patch: Patch, width: int, settings: DiffSettings) -> None:
         self.patch, self.settings = patch, settings
         self.number_width = patch.number_width
         longest = max((cell_len(line.expandtabs(4)) for line in (*patch.before.values(), *patch.after.values())), default=0)
@@ -284,7 +295,7 @@ class SpanColumnLayout(Columns, PreparedBlock):
     links remain clickable even before styled worker output arrives.
     """
 
-    def __init__(self, block: SpanColumns, theme: LineTheme | None = None):
+    def __init__(self, block: SpanColumns, theme: LineTheme | None = None) -> None:
         self.indent = block.indent
         cells = [Text.assemble(*((span.text, (theme.style(span.role) if theme is not None else Style.null())
                                  + link_style(span.link)) for span in cell)) for cell in block.cells]
@@ -314,7 +325,7 @@ class StyledPatch(Patch, PreparedBlock):
 class RichLineRenderer(MroDispatch):
     """Paint each primitive through its most-specific declared renderer."""
 
-    def __init__(self, theme: LineTheme, width: int = 1):
+    def __init__(self, theme: LineTheme, width: int = 1) -> None:
         self.theme, self.width = theme, max(1, width)
         self.output: list[Row] = []
 
@@ -344,7 +355,7 @@ class RichLineRenderer(MroDispatch):
         number_width, split = layout.number_width, layout.split
         pane_width, prefix_width, code_width = layout.pane_width, layout.prefix_width, layout.code_width
         console = self.console
-        def paint(cell, source, old, new):
+        def paint(cell: PatchCell | None, source: dict[int, Text], old: str, new: str):
             if cell is None:
                 return [Text(" " * pane_width)]
             style = self.theme.style(cell.role)
@@ -507,7 +518,7 @@ class BlockSpan:
 class BlockLines(Lines):
     """A viewport retains immutable references to block-owned row snapshots."""
 
-    def __init__(self, width: int, preparation: LinePreparation, renderer: RichLineRenderer):
+    def __init__(self, width: int, preparation: LinePreparation, renderer: RichLineRenderer) -> None:
         self.width, self.preparation, self.renderer = width, preparation, renderer
 
     def rewrap(self, width: int) -> BlockLines:
@@ -539,7 +550,7 @@ class BlockLines(Lines):
 class PlainLines(BlockLines):
     """Unstyled source measurement before its first worker result arrives."""
 
-    def __init__(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
+    def __init__(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> None:
         super().__init__(width, LinePreparation(blocks, renderer.theme), renderer)
 
 class RowAcquisition(ABC):
@@ -567,10 +578,10 @@ class NoRows(RowAcquisition):
     def preparation(self) -> NoRows:
         return self
 
-    def for_view(self, width, theme):
+    def for_view(self, width: int, theme):
         return None
 
-    def retains(self, lines, theme):
+    def retains(self, lines, theme) -> bool:
         return False
 
 
@@ -583,16 +594,16 @@ class AcquiredRows(RowAcquisition):
     def preparation(self) -> LinePreparation:
         return self.lines.preparation
 
-    def for_view(self, width, theme):
+    def for_view(self, width: int, theme):
         if self.source.theme is not theme:
             return None
         self.lines = self.lines.rewrap(width)
         return self.lines
 
-    def retains(self, lines, theme):
+    def retains(self, lines, theme) -> bool:
         return self.source.theme is theme and self.lines.preparation is lines.preparation
 
-    def plain(self, width, renderer, blocks):
+    def plain(self, width: int, renderer, blocks):
         if self.source.theme is renderer.theme:
             self.lines = self.lines.rewrap(width)
             return self
@@ -600,7 +611,7 @@ class AcquiredRows(RowAcquisition):
 
 
 class PlainRows(AcquiredRows):
-    def retains(self, lines, theme):
+    def retains(self, lines, theme) -> bool:
         return self.source.theme is theme and self.lines.preparation.blocks is lines.preparation.blocks
 
 
@@ -672,7 +683,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
 
     @handles(Patch)
     def patch(self, block: Patch) -> StyledPatch:
-        def highlight(lines, path):
+        def highlight(lines: dict[int, str], path: str):
             code = "\n".join(lines.values()).expandtabs(4)
             syntax = Syntax(code, Syntax.guess_lexer(path, code),
                             theme=self.preparation.theme.syntax.pygments_theme, background_color="default")
