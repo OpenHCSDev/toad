@@ -8,6 +8,8 @@ from agent_comms.ui_model.status import ThreadStatusModel
 from textual.message import Message
 from textual.reactive import var
 from textual.widget import Widget
+
+from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.status_thread import NoStatusThread, StatusThread
@@ -42,7 +44,7 @@ class NoActivityView(ActivityView):
         return False
 
 
-class ObservedThreadActivity(CoreEventReceiver, Widget, ActivityView):
+class ObservedThreadActivity(CoreEventReceiver, ToadNode, Widget, ActivityView):
     """The composed status row; observation never starts or settles an ACP turn."""
 
     row: var[ThreadStatusModel] = var(lambda: ThreadStatusModel.pending(""), init=False)
@@ -83,7 +85,7 @@ class ObservedThreadActivity(CoreEventReceiver, Widget, ActivityView):
         return self.row.status.working
 
 
-class ThreadStatusOwner:
+class ThreadStatusOwner(ToadNode):
     """A view with a composed row and a declared status source."""
 
     # Before compose there is no status view yet; the kind supplies its view.

@@ -2,19 +2,28 @@
 
 from __future__ import annotations
 
-from agent_comms.historical_views import ConversationObservation
+from typing import TYPE_CHECKING
 
-from agent_comms.messages import Message
 from agent_comms.coordination_errors import StaleRevision
+from agent_comms.historical_views import ConversationObservation
+from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
+from toad.widgets.message_notifications import (
+    NothingToRead,
+    PaintedRead,
+    VisibleReadMarking,
+)
 from toad.widgets.transcript_history import ConversationHistory
 from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
 
-class WireHistory(VisibleReadMarking, ConversationHistory):
+if TYPE_CHECKING:
+    from toad.widgets.comms_chat import CommsChatView
+
+
+class WireHistory(VisibleReadMarking, ConversationHistory["CommsChatView"]):
     """The line history of a channel or direct conversation.
 
     Paging, preparation, trimming and the reader's position are the line

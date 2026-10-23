@@ -16,25 +16,42 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.display_references import CurrentDisplayReferences
-from agent_comms.message_page import MessagePage
-from agent_comms.transcript_events import IncomingTranscript
-from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
-from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import (
-    ConversationHistoryView, ConversationObservation, ConversationRevision,
+    ConversationHistoryView,
+    ConversationObservation,
+    ConversationRevision,
 )
+from agent_comms.message_page import MessagePage
+from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
+from agent_comms.page_traversal import (
+    LiveCursor,
+    NewerTraversal,
+    OlderTraversal,
+    PageCursor,
+)
+from agent_comms.transcript_events import IncomingTranscript
 
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
-    PageRequest, PreparedTranscriptPage, SavedHistory, SourceObservation, TranscriptPageWork, Unchanged,
+    PageRequest,
+    PreparedTranscriptPage,
+    SavedHistory,
+    SourceObservation,
+    TranscriptPageWork,
+    Unchanged,
 )
 from toad.widgets.message_notifications import PaintedRead, ReadWork
-from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
+from toad.widgets.transcript_fragments import (
+    BusMessageFragment,
+    MessageShown,
+    TranscriptFragment,
+)
 
 if TYPE_CHECKING:
     from agent_comms.read_basis import NamedViewer
+
     from toad.widgets.transcript_lines import Lines
 
 
@@ -266,7 +283,7 @@ class WireSource:
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
         revision = self.conversation.history_view.revision(
-            self.comms.views, self.conversation.destination(self.references()).name, seen, worktree=str(self.project))
+            self.comms.views, self.conversation.retained_target(), seen, worktree=str(self.project))
         if revision == seen:
             return Unchanged()
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
@@ -345,8 +362,8 @@ class WirePageBuffer(SavedHistory):
         return self.loader.conversation.status_thread(self.loader.comms.root, access)
 
     def command_context(self, view):
-        from toad.target_commands import TargetContext
         from toad.screens.session_view import SessionView
+        from toad.target_commands import TargetContext
 
         references = view.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
         return TargetContext(view.app, self.loader.comms, self.loader.conversation.destination(references).name, self.loader.me,

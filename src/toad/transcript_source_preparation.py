@@ -7,19 +7,35 @@ from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING
 
-from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
+from textual.worker import Worker, WorkerCancelled
+
+from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventReceiver
 from toad.resource_release import ResourceRelease
-from toad.transcript_state import TranscriptState, LiveTranscript, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest, LatestViewportState, NoLatestRequest
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
-from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
-from toad.widgets.presentation_window import PageEnd, PageRequest, OLDER_END, NEWER_END
+from toad.transcript_state import (
+    LatestViewportRequest,
+    LatestViewportState,
+    LiveTranscript,
+    NoLatestRequest,
+    ParkedSourceTranscript,
+    RetiredSourceTranscript,
+    TranscriptState,
+    WorkingTranscript,
+)
+from toad.widgets.history_anchor import (
+    HeldReaderDestination,
+    HistoryWindow,
+    LatestPosition,
+)
+from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageEnd, PageRequest
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
     from textual.screen import Screen
+
     from toad.widgets.transcript_history import TranscriptPageView
 
 
@@ -47,6 +63,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
 
     pages: deque[TranscriptPageView]
+    _source_state: TranscriptState
 
     @classmethod
     def initial_state(cls, view) -> TranscriptState:

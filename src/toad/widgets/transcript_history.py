@@ -1,67 +1,107 @@
 """Bounded, cursor-paged saved history; all transcript interpretation is model-owned."""
 
 from __future__ import annotations
-from toad.block_navigation import ConversationEntry, FragmentBlockCursor
-from toad.screens.session_view import SessionView
-from toad.core.source_events import TranscriptCoverage
-
-from agent_comms.ui_model.message_category import OtherCategory
 
 import asyncio
 from bisect import bisect_right
 from collections import deque
+from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import chain, islice
-from collections.abc import AsyncIterator, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.mro_dispatch import handles
+from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.ui_model.message_category import (
+    MessageCategory,
+    OtherCategory,
+    all_categories,
+)
+from rich.style import Style as RichStyle
 from textual import events, on
+from textual._activation import PrimaryActivation
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+from textual._paint_state import PaintState
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from textual.geometry import Region
 from textual.message import Message
 from textual.selection import Selection
-from textual._activation import PrimaryActivation
-from textual.widget import Widget
-from textual._paint_state import PaintState
 from textual.strip import Strip
+from textual.widget import Widget
 from textual.widgets import Static
-
-from toad.transcript_filter import FilterState
-from toad.transcript_state import TranscriptState, LiveTranscript, ParkedSourceTranscript, LatestViewportRequest
-from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
-from toad.transcript_preparation import (
-    RangeCategoryProjection, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange,
-    ProjectedTranscriptSource, SavedHistory, ClosedHistory, UnreadTranscriptPage,
-)
-from toad.response_delivery import ResponseDelivery
-from toad.message_rows import MessageClock
-from toad.widgets.selection import HoverSelection
-from rich.style import Style as RichStyle
 from ui_theme.effects import NEW_TEXT
-from toad.widgets.presentation_window import PresentationBudget, PageEnd, OLDER_END, NEWER_END
+
+from toad.block_navigation import ConversationEntry, FragmentBlockCursor
+from toad.core.source_events import TranscriptCoverage
 from toad.line_blocks import ToggleDetails
-from toad.message_rows import MessageRow
+from toad.message_rows import MessageClock, MessageRow
+from toad.response_delivery import ResponseDelivery
+from toad.screens.session_view import SessionView
+from toad.transcript_filter import FilterState
+from toad.transcript_preparation import (
+    ClosedHistory,
+    PageFragmentRange,
+    PreparedPageSource,
+    PreparedTranscriptPage,
+    ProjectedTranscriptSource,
+    RangeCategoryProjection,
+    SavedHistory,
+    UnreadTranscriptPage,
+)
+from toad.transcript_source_preparation import (
+    TranscriptSourcePreparation,
+    _DrawingStopped,
+)
+from toad.transcript_state import (
+    LatestViewportRequest,
+    LiveTranscript,
+    ParkedSourceTranscript,
+    TranscriptState,
+)
+from toad.widgets.committed_presentation import (
+    RETAINED_SOURCE_CLAIM,
+    CommitClaim,
+    SnapshotPresentation,
+)
+from toad.widgets.history_anchor import (
+    HeldReaderDestination,
+    HistoryWindow,
+    LatestPosition,
+)
+from toad.widgets.linked_rows import (
+    HorizontalRows,
+    OpensMessageNames,
+    ReferenceRendering,
+    selection_painted,
+)
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
-from toad.widgets.linked_rows import HorizontalRows, OpensMessageNames, ReferenceRendering, selection_painted
-from toad.widgets.transcript_lines import (
-    Lines, BlockLines, BlockSpan, LinePreparation, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+from toad.widgets.presentation_window import (
+    NEWER_END,
+    OLDER_END,
+    PageEnd,
+    PresentationBudget,
 )
-from toad.widgets.committed_presentation import CommitClaim, RETAINED_SOURCE_CLAIM, SnapshotPresentation
-from agent_comms.sent_message import PublishedSentMessage
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
-from agent_comms.ui_model.message_category import (
-    all_categories, MessageCategory,
-)
+from toad.widgets.selection import HoverSelection
 from toad.widgets.transcript_fragments import (
-    Shown, TranscriptFragment, transcript_fragments,
+    Shown,
+    TranscriptFragment,
+    transcript_fragments,
+)
+from toad.widgets.transcript_lines import (
+    BlockLines,
+    BlockSpan,
+    LinePreparation,
+    Lines,
+    PreparedLines,
+    TranscriptLinesBatchRenderTask,
+    TranscriptLinesRenderTask,
 )
 
 if TYPE_CHECKING:
@@ -1074,14 +1114,6 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
         if self._source_state.reports_coverage:
             self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
 
-    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
-        # The live blocks this page covers are retired as part of adding
-        # the page, without holding the conversation's message pump. A
-        # saved viewer outside a conversation has no live blocks.
-        if self._source_state.reports_coverage and (conversation := self.conversation) is not None:
-            conversation.transcript.binding.covered(
-                conversation.transcript, TranscriptCoverage(page.events), self).call_when_ready(conversation)
-
     def publish_committed(self) -> None:
         """Acquire source ownership now; report coverage after its first painted frame."""
         self._source_state = self._source_state.publish()
@@ -1113,10 +1145,10 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
             return True
         return self.filter.overlay.covers_incoming(sequence)
 
-    def covers_input(self, native_id: str | None) -> bool:
+    def covers_input(self, started: InputStartedUpdate) -> bool:
         """Whether the loaded saved pages hold the input Core started under this identity."""
         return (self._source_state.reports_coverage
-                and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
+                and started.native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
 
     def retain_committed(self, through: TranscriptCursor) -> None:
         """Extend access to saved source without moving the displayed page window."""
@@ -1144,10 +1176,10 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
 
 
 
-class ConversationHistory(LineHistory):
+class ConversationHistory[ViewT: "Conversation"](LineHistory):
     """A conversation owns its source binding and initial history state."""
 
-    def __init__(self, *args, view: Conversation, **kwargs):
+    def __init__(self, *args, view: ViewT, **kwargs):
         self.view = view
         super().__init__(*args, **kwargs)
 
@@ -1162,7 +1194,7 @@ class ConversationHistory(LineHistory):
                    view=view, notification_view=notification_view, source_state=cls.initial_state(view))
 
 
-class TranscriptHistory(CommittedHistory, ConversationHistory):
+class TranscriptHistory(CommittedHistory, ConversationHistory["Conversation"]):
     """The line history of a saved transcript.
 
     Its pages stand in for the conversation's live blocks: it reports which
@@ -1181,6 +1213,12 @@ class TranscriptHistory(CommittedHistory, ConversationHistory):
     @classmethod
     def empty_source(cls, view, through):
         return SavedHistory(view.transcript.get_transcript_page, through, view.app.preparation)
+
+    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
+        if self._source_state.reports_coverage:
+            view = self.view
+            view.transcript.binding.covered(
+                view.transcript, TranscriptCoverage(page.events), self).call_when_ready(view)
 
     async def restore_source(self, source: PreparedPageSource, current) -> None:
         """Put the parked pages back into the same mounted reader."""

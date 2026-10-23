@@ -137,7 +137,8 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
         history = chat.message_history
         await ui.until(
             lambda: history.source_ready
-            and history.revision.selection.requested_peer == "renamed"
+            and history.revision.selection.peer.name == "renamed"
+            and history.revision.selection.peer == peer.incarnation
             and "BEFORE_RENAME" in ui.painted(window),
             why="the renamed conversation's captured source and painted message",
         )

@@ -4,7 +4,13 @@
 import asyncio
 from dataclasses import dataclass
 from pathlib import Path
-from agent_comms.errors import CommittedMessageError, HumanSendError, HumanSendRefusedError
+
+from agent_comms.errors import (
+    CommittedMessageError,
+    HumanSendError,
+    HumanSendRefusedError,
+    RelationViolationError,
+)
 from agent_comms.messages import Message
 
 
@@ -93,13 +99,12 @@ class DeliveryFailureView:
             self.prompt.restore_draft(body)
             self.flash(self.status, style="error")
             return
-        references = self.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
-        await self.deliver_user_message(root, conversation.send_target(references).name, body, current, present)
+        await self.deliver_user_message(root, conversation.send_target(), body, current, present)
 
     async def deliver_user_message(self, root, target, body, current, present):
         """One route check, write and failure path for CLI, DM and channel input."""
-        from agent_comms.route_selection import root_is_current
         from agent_comms.delivery_failure import delivery_failure
+        from agent_comms.route_selection import root_is_current
 
         if self.send_block_reason:
             self.flash(self.send_block_reason, style="error")
@@ -109,7 +114,7 @@ class DeliveryFailureView:
         async def require_route():
             route_current = await self.app.preparation.run_thread(root_is_current, root)
             if not route_current or not current():
-                raise HumanSendRefusedError("Message route changed; reopen this view")
+                raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
 
         try:
             async with self.app.coordination_access.transcripts.bind(root) as comms:
@@ -126,8 +131,8 @@ class DeliveryFailureView:
         await present(sent)
 
     async def commit_user_message(self, comms, target, body):
-        from agent_comms.route_selection import run_selected_write
         from agent_comms.delivery_failure import delivery_failure
+        from agent_comms.route_selection import run_selected_write
 
         task = asyncio.create_task(asyncio.to_thread(
             run_selected_write, comms.root, comms.messaging.send_user_message,

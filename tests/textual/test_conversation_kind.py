@@ -116,7 +116,7 @@ def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copie
     assert key == CommsViewKey(str(comms.root), "owner", reopened)
     assert direct.input_scope == reopened.input_scope == scope
     assert direct.label(references) == "@renamed"
-    assert direct.send_target(references).name == "renamed"
+    assert direct.send_target().selected_name(references.registry) == "renamed"
     assert HistoryTarget.for_conversation(direct, references) == DirectTarget("renamed")
 
 
