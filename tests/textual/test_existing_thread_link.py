@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 from toad.line_blocks import OpenTarget
+from toad.message_rows import MessageRow
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.session_tabs import SessionsTabs, Underline
@@ -11,7 +12,9 @@ from toad.widgets.session_tabs import SessionsTabs, Underline
 async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(workspace):
     workspace.thread("owner", "team", running=True)
     workspace.thread("peer", "team", running=True)
-    workspace.comms.messaging.send("peer", "#team", "a message from the open thread")
+    message = workspace.comms.messaging.send("peer", "#team", "a message from the open thread").message
+    header = MessageRow(message, "owner").header
+    sender = OpenTarget("peer")
     foreign_root = workspace.project / "foreign-wire"
     workspace.thread("peer", "team", running=True, root=foreign_root)
     async with workspace.app(size=(100, 36)) as ui:
@@ -27,15 +30,17 @@ async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(worksp
         await ui.write_draft("Keep this draft")
         await ui.select_tab(owner)
         await ui.open_channel("#team", actor="owner", owner=owner)
-        await ui.until_shows("peer → #team")
-        await ui.until(lambda: ui.link_at("peer → #team") == OpenTarget("peer").click, why="the sender drawn as a link")
+        await ui.until_shows(header.label)
+        await ui.until(lambda: app.screen.get_style_at(*ui.link_cell(header, sender)).meta.get("@click") == sender.click,
+                       why="the sender drawn as a link")
         # The channel tab's unread count clears as its message is read; the tabs themselves must not change.
         def order():
             return [tab.identity for tab in ui.tabs()]
 
         opened = order()
         with patch.object(app.navigation_reader, "read", wraps=app.navigation_reader.read) as reads:
-            await ui.click("peer → #team")
+            assert await ui.pilot.click(offset=ui.link_cell(header, sender))
+            await ui.step()
             await ui.until(lambda: ui.selected_tab == existing, seconds=3, why="the open thread's tab")
             assert app.selected_session is destination and ui.selected_tab != foreign
             assert reads.call_count == 0, "Existing mounted identity needed route discovery"
@@ -54,7 +59,9 @@ async def test_name_clicked_in_a_narrow_direct_chat_reuses_the_open_thread_tab(w
     workspace.thread("owner")
     workspace.thread("peer")
     viewer = workspace.viewer
-    workspace.comms.messaging.send("peer", viewer, "a direct message")
+    message = workspace.comms.messaging.send("peer", viewer, "a direct message").message
+    header = MessageRow(message, viewer).header
+    sender = OpenTarget("peer")
     async with workspace.app(size=(100, 36)) as ui:
         app, _pilot = ui.textual
         owner = ui.selected_tab
@@ -74,11 +81,13 @@ async def test_name_clicked_in_a_narrow_direct_chat_reuses_the_open_thread_tab(w
         underline = tabs.query_one(Underline)
         clip = app.screen._compositor.find_widget(underline).clip
         assert underline.region.intersection(clip).height == 1
-        await ui.until_shows(f"peer → {viewer}")
-        await ui.until(lambda: ui.link_at(f"peer → {viewer}") == OpenTarget("peer").click, why="the sender drawn as a link")
+        await ui.until_shows(header.label)
+        await ui.until(lambda: app.screen.get_style_at(*ui.link_cell(header, sender)).meta.get("@click") == sender.click,
+                       why="the sender drawn as a link")
         # The chat tab's title drops its unread count once the message is marked read.
         order = [tab.identity for tab in ui.tabs()]
-        await ui.click(f"peer → {viewer}")
+        assert await ui.pilot.click(offset=ui.link_cell(header, sender))
+        await ui.step()
         await ui.until(lambda: ui.selected_tab == existing, seconds=3, why="the open thread's tab")
         assert app.selected_session is destination
         assert [tab.identity for tab in ui.tabs()] == order

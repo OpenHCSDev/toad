@@ -14,7 +14,6 @@ from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBarCollapsible
-from toad.widgets.sidebar_viewport import SidebarViewport
 from toad.widgets.thread_comms import ThreadCommsSidebar
 from support.ui import saved_tab
 
@@ -90,7 +89,7 @@ async def exercise(ui, screen, root):
     selected = next(node for node in deep.children if node.data.path.name == "item-38.txt")
     tree.move_cursor(selected, animate=False)
     tree.scroll_to(y=12, animate=False, immediate=True)
-    viewport = sidebar.query_one("#sidebar-panels", SidebarViewport)
+    viewport = sidebar.panels_viewport
     viewport.scroll_to(y=3, animate=False, immediate=True)
     await ui.step(.02)
     state = relationships.view_state

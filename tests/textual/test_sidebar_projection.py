@@ -21,7 +21,7 @@ class FrameApp(ToadApp):
             sidebar = screen.query_one_optional("#channels-sidebar", SideBar)
             if sidebar is not None:
                 self.frames.append((self.selected_mode, sidebar.collapsed, sidebar.size.width,
-                                    sidebar.query_one("#sidebar-panels").display))
+                                    sidebar.panels_viewport.display))
         return result
 
 
