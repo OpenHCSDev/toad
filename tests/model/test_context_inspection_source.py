@@ -44,9 +44,11 @@ def test_context_reader_observes_the_session_and_its_owner_proof(workspace):
     from agent_comms.native_session_files import NativeSessionFiles
     from agent_comms.native_session_reopen import NativeSessionIdentity
     from agent_comms.session_file import SavedSessionFile
+    from agent_comms.store_files import AtomicFile
 
     session = workspace.project / "context-session.jsonl"
-    session.write_text(json.dumps({"type": "session", "version": 3, "id": "context-reader"}) + "\n")
+    AtomicFile(session).write_text(
+        json.dumps({"type": "session", "version": 3, "id": "context-reader"}) + "\n")
     registry = workspace.comms.registry
     registry.declare(registry.new_thread(
         "context-reader", frozenset(), str(workspace.project), session_file=SavedSessionFile(str(session))))
