@@ -98,15 +98,15 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def send_target(self) -> NamedTarget:
         return self.retained_target()
 
-    def read_only(self, comms):
+    def read_only(self, comms: Comms) -> bool:
         return False
 
     @classmethod
     @abstractmethod
-    async def update_mentions(cls, view, comms) -> None: ...
+    async def update_mentions(cls, view, comms: Comms) -> None: ...
 
     @abstractmethod
-    async def status_text(self, comms, *, read_only: bool) -> str: ...
+    async def status_text(self, comms: Comms, *, read_only: bool) -> str: ...
 
     def activity_members(self, model):
         return (self.destination(model.observation.require_snapshot().references).name,)
@@ -192,7 +192,7 @@ class ChannelConversation(ConversationKind):
     def compose_activity(cls, view) -> ComposeResult:
         yield ChannelActivity(view)
 
-    async def status_text(self, comms, *, read_only: bool) -> str:
+    async def status_text(self, comms: Comms, *, read_only: bool) -> str:
         return "Read-only saved view" if read_only else ""
 
     @property
@@ -204,11 +204,11 @@ class ChannelConversation(ConversationKind):
 
         return ChannelPrompt(placeholder=self.initial_placeholder)
 
-    def read_only(self, comms):
+    def read_only(self, comms: Comms) -> bool:
         return comms.bus.require_channel(self.target.name).read_only
 
     @classmethod
-    async def update_mentions(cls, view, comms):
+    async def update_mentions(cls, view, comms: Comms):
         from toad.widgets.channel_prompt import ChannelPrompt
 
         history = view.message_history
@@ -284,7 +284,7 @@ class DmConversation(ConversationKind):
         return f"@{self.destination(references).name}"
 
     @classmethod
-    async def update_mentions(cls, view, comms) -> None:
+    async def update_mentions(cls, view, comms: Comms) -> None:
         """Direct-message composers have no channel mention roster."""
 
     @classmethod
@@ -297,7 +297,7 @@ class DmConversation(ConversationKind):
 
         return MessagePrompt()
 
-    async def status_text(self, comms, *, read_only: bool) -> str:
+    async def status_text(self, comms: Comms, *, read_only: bool) -> str:
         def read():
             references = CurrentDisplayReferences(
                 str(comms.root), registry=comms.registry.snapshot()
