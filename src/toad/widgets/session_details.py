@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
 
 
-class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjection):
+class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjection[type[LineRole]]):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
@@ -90,7 +90,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     @property
     def title_role(self) -> type[LineRole]:
-        return self.dispatch_sync(
+        return self.project(
             self.history.status.present_status(self.status_source().status)
         )
 

@@ -177,9 +177,9 @@ class ThreadConversationPreparation(ConversationPreparation):
     def native(self) -> ThreadNavigation:
         binding = self.thread.execution.owner_binding(self.snapshot, self.thread)
         plan = ExistingOwnerPlan.from_binding(binding)
-        if plan is None:
+        if not plan.available:
             return ThreadNavigation(self.root, self.thread, self.project)
-        return NativeThreadNavigation(self.root, self.thread, self.project, plan)
+        return NativeThreadNavigation(self.root, self.thread, self.project, plan.require_plan())
 
 
 class ThreadOpening:

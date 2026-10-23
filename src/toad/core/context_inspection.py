@@ -421,16 +421,16 @@ class NativeMessageNode(NativeSegmentNode):
         return f"{super().detail()}\n\n{usage}" if usage else super().detail()
 
 
-class SegmentNodes(MroProjection):
+class SegmentNodes(MroProjection[NativeSegmentNode]):
     def __init__(self, key: str, read_source: Callable[[Provenance], Awaitable[ContextSourceText]]) -> None:
         self.key, self.read_source = key, read_source
 
     @handles(ContextSegment)
-    def segment(self, segment: ContextSegment):
+    def segment(self, segment: ContextSegment) -> NativeSegmentNode:
         return NativeSegmentNode(self.key, segment, self.read_source)
 
     @handles(NativeMessages)
-    def messages(self, segment):
+    def messages(self, segment) -> NativeSegmentNode:
         return NativeMessagesNode(self.key, segment, self.read_source)
 
 
@@ -544,7 +544,7 @@ class ContextInspection:
             comms.root / "coordination.sqlite3",
             tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
-        inspection_type = ThreadInspectionSource().dispatch_sync(entry.status)
+        inspection_type = ThreadInspectionSource().project(entry.status)
         files = NativeSessionFiles.for_identity(
             NativeSessionIdentity.locate(thread.runtime.path),
             root=comms.root, owner=thread.incarnation.require_recorded(),
@@ -686,12 +686,12 @@ class ContextInspection:
 
     def active(self, context: NativeContextData):
         return tuple(SegmentNodes(f"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}",
-                                 partial(self.current_source, context, i)).dispatch_sync(segment)
+                                 partial(self.current_source, context, i)).project(segment)
                      for i, segment in enumerate(context.segments))
 
     def contributors(self, context: TurnContext):
         return tuple(SegmentNodes(f"core/{context.thread.name}/{context.thread.created_at}/{i}/{segment.declared_name}",
-                     partial(self.core_source, context, i)).dispatch_sync(segment)
+                     partial(self.core_source, context, i)).project(segment)
                      for i, segment in enumerate(context.segments))
 
 
@@ -722,15 +722,15 @@ class SavedContextInspection(ContextInspection):
         return ContextSourceText(segment.public_description(), text)
 
 
-class ThreadInspectionSource(MroProjection):
+class ThreadInspectionSource(MroProjection[type[ContextInspection]]):
     """The original registry state selects the inspection's source capability."""
 
     @handles(ThreadStatus)
-    def saved(self, status: ThreadStatus):
+    def saved(self, status: ThreadStatus) -> type[ContextInspection]:
         return SavedContextInspection
 
     @handles(ActiveThreadPresence)
-    def live(self, status: ActiveThreadPresence):
+    def live(self, status: ActiveThreadPresence) -> type[ContextInspection]:
         return ContextInspection
 
 

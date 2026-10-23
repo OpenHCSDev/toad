@@ -172,9 +172,9 @@ class NativeSessionEntry(SessionEntry):
         thread = snapshot.require(snapshot.canonical_name(original.name))
         binding = thread.execution.owner_binding(snapshot, thread)
         plan = ExistingOwnerPlan.from_binding(binding)
-        if plan is None:
+        if not plan.available:
             return
-        await source.presentation.operational_binding.reconnect_session(source, plan)
+        await source.presentation.operational_binding.reconnect_session(source, plan.require_plan())
 
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.mode, self.details.name.display or "New Session")
@@ -217,7 +217,7 @@ class NativeSessionEntry(SessionEntry):
         sessions.app.session_tracker.close_session(self.mode)
 
 
-class HistorySessionEntry(SessionEntry, MroProjection):
+class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
     def __init__(
         self,
         mode: str,
@@ -268,7 +268,7 @@ class HistorySessionEntry(SessionEntry, MroProjection):
         return NamedTab(self.mode, self.key.conversation.initial_label)
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
-        return self.dispatch_sync(observed.references_for(self.key.root), observed)
+        return self.project(observed.references_for(self.key.root), observed)
 
     @handles(ReferenceContext)
     def preparing_tab(self, references, observed) -> OpenTab:

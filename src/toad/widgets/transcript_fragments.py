@@ -156,7 +156,7 @@ class RenderBudget:
             yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
 
 
-class FragmentLineConsumer(MroProjection):
+class FragmentLineConsumer(MroProjection[None]):
     """Turn a fragment's events into line blocks, one handler per event family."""
 
     def __init__(self, *, show_divider: bool) -> None:
@@ -316,7 +316,7 @@ class TranscriptFragment:
         if self.starts_agent_activity and not self.continuation:
             consumer.blocks.extend(AgentActivityPresentation.group)
         for event in self.events:
-            consumer.dispatch_sync(event)
+            consumer.project(event)
         return tuple(consumer.blocks)
 
     @cached_property
@@ -495,7 +495,7 @@ class ContextTranscriptFragment(TranscriptFragment):
                            for event in self.events))
 
 
-class TranscriptFragmentConsumer(MroProjection):
+class TranscriptFragmentConsumer(MroProjection[None]):
     def __init__(self) -> None:
         self.fragments: list[TranscriptFragment | None] = []
         self.tools: dict[str, tuple[int, list[ToolTranscript], bool]] = {}
@@ -554,7 +554,7 @@ def transcript_fragments(
 
     consumer = TranscriptFragmentConsumer()
     for event in events:
-        consumer.dispatch_sync(event)
+        consumer.project(event)
     reports = list(consumer.reported_messages.values())
     tools = {}
     for index, pending, starts_activity in consumer.tools.values():
@@ -568,7 +568,7 @@ def transcript_fragments(
     canonical = {}
     for index, report in consumer.reported_messages.items():
         start = len(builder.fragments)
-        builder.dispatch_sync(resolved[id(report)])
+        builder.project(resolved[id(report)])
         canonical[index] = tuple(builder.fragments[start:])
     fragments = []
     for index, source in enumerate(consumer.fragments):
