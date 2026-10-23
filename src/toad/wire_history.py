@@ -401,12 +401,12 @@ class WirePageBuffer(SavedHistory):
         return self.loader.conversation.status_thread(self.loader.comms.root, access)
 
     def command_context(self, view):
-        from toad.screens.session_view import SessionView
+        from toad.session_scope import SessionScope
         from toad.target_commands import TargetContext
 
         references = view.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
         return TargetContext(view.app, self.loader.comms, self.loader.conversation.destination(references), self.loader.me,
-                             self.loader.project, view.query_ancestor(SessionView).id)
+                             self.loader.project, view.query_ancestor(SessionScope).id)
 
     async def submit_input(self, view, event) -> None:
         conversation = self.loader.conversation

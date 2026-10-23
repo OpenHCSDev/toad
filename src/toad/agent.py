@@ -1,16 +1,17 @@
-from toad.agent_presentation import LocalAgentPresentation
-from toad.agent_binding import AgentBinding
-from textual.content import Content
-from toad.acp.status import StopReason
-from toad.conversation_turn import NoTurn
 from abc import abstractmethod
 from pathlib import Path
+
 from agent_comms.thread_presentation import ThreadPresentation
+from textual.content import Content
+
+from toad.acp.status import StopReason
+from toad.agent_binding import AgentConnection
+from toad.agent_presentation import LocalAgentPresentation
+from toad.conversation_turn import NoTurn
 from toad.core.events import CoreEventStream
 
 
-
-class AgentBase(AgentBinding):
+class AgentBase(AgentConnection):
     """Base class for an 'agent'."""
 
     def __init__(self, project_root: Path) -> None:
@@ -18,6 +19,7 @@ class AgentBase(AgentBinding):
         self.events = CoreEventStream(self)
         self.presentation = LocalAgentPresentation(self)
         from toad.acp.agent_configuration import AgentConfiguration
+
         self.configuration = AgentConfiguration(self)
 
     ready = False
@@ -25,6 +27,7 @@ class AgentBase(AgentBinding):
     def attach_view(self, view) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
         from toad.core.events import SessionAgentAttached
+
         self.attach_surface(AttachedSurfaceBinding(view, self.events))
         view.publish_core(SessionAgentAttached())
 
@@ -45,7 +48,7 @@ class AgentBase(AgentBinding):
 
     async def change_project(self, view, path):
         project = await self.update_project(str(path))
-        view.flash(Content(f"Project changed to {project}"), style="success")
+        view.feedback.flash(Content(f"Project changed to {project}"), style="success")
 
     def request_compaction(self, view, instructions):
         view.compact_context(instructions)
@@ -56,8 +59,11 @@ class AgentBase(AgentBinding):
     def accepts_failed_input(self, message):
         if message.publisher is not self or message.event.session_id != self.session_id:
             return False
-        return (self.queue_attachment.accepts_request(message.event.queue_scope)
-                if message.event.recover_draft else True)
+        return (
+            self.queue_attachment.accepts_request(message.event.queue_scope)
+            if message.event.recover_draft
+            else True
+        )
 
     def send_now(self, owner):
         return owner.send_bound_now(self)
@@ -71,6 +77,7 @@ class AgentBase(AgentBinding):
 
     async def project_changed(self, path) -> None:
         from toad.db import DB
+
         self.project_root_path = path
         if (session_pk := self.session.pk) is not None:
             await DB().session_update_project(session_pk, path)
@@ -124,7 +131,9 @@ class AgentBase(AgentBinding):
         """The (wire root, thread name) whose status this agent shows; none without coordination."""
         return None
 
-    async def observe_thread_presentation(self, presentation: ThreadPresentation | None) -> None:
+    async def observe_thread_presentation(
+        self, presentation: ThreadPresentation
+    ) -> None:
         """Consume a published canonical change; unmanaged agents need no binding."""
 
     @abstractmethod

@@ -13,13 +13,21 @@ presentation that settles turns, owner actions and input capture.
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 
-from agent_comms.route_selection import RouteSelection
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
+from agent_comms.route_selection import RouteSelection
+from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.observation import (
-    AwaitedRead, ReadTranscript, ReadTranscriptUpdate, RefreshTranscript,
+    AwaitedRead,
+    RefreshTranscript,
+    StoredRead,
     TranscriptPublicationState,
+    UnreadableHistory,
 )
+
+from toad.owner_preparation import read_thread_presentation
+from toad.session_scope import TranscriptScope
 
 
 class CoordinationTranscriptReader:
@@ -29,39 +37,75 @@ class CoordinationTranscriptReader:
         self.access = access
 
     async def read(self, request: AwaitedRead):
-        observed = await self.access.preparation.run_thread(self.access.observation.observed)
+        observed = await self.access.preparation.run_thread(
+            self.access.observation.observed
+        )
         return await observed.process.read(request)
 
     async def service(self, root):
         return await self.access.preparation.run_thread(
-            lambda: self.access.require(RouteSelection.capture(root)).service)
+            lambda: self.access.require(RouteSelection.capture(root)).service
+        )
 
-    async def thread_presentation(self, root: str, thread: str):
-        """Read one thread presentation through this reader's bound service."""
-        from toad.owner_preparation import read_thread_presentation
-
+    async def thread_presentation(
+        self, root: str, thread: str
+    ) -> StoredRead[ThreadPresentation]:
+        """The stored-read owner classifies failures inside the read worker."""
         reader = await self.service(root)
-        return await asyncio.to_thread(read_thread_presentation, reader, thread)
+        return await asyncio.to_thread(
+            UnreadableHistory.outcome,
+            partial(read_thread_presentation, reader, thread),
+        )
 
-    async def publication(self, update: TranscriptSnapshotUpdate) -> TranscriptSnapshotUpdate:
+    async def publication(
+        self, update: TranscriptSnapshotUpdate
+    ) -> TranscriptSnapshotUpdate:
         """The published page while its witness is current, else the current page."""
         identity = update.identity
         current = await self.read(RefreshTranscript(identity.root, identity))
         return update if current is None else current
 
-    async def page(self, root, thread, *, before=None, after=None, through=None,
-                   historical_source: str | None = None):
-        snapshot = await self.snapshot(root, thread, before=before, after=after, through=through,
-                                       historical_source=historical_source)
+    async def page(
+        self,
+        scope: TranscriptScope,
+        *,
+        before=None,
+        after=None,
+        through=None,
+        historical_source: str | None = None,
+    ):
+        snapshot = await self.snapshot(
+            scope,
+            before=before,
+            after=after,
+            through=through,
+            historical_source=historical_source,
+        )
         return snapshot.page
 
-    async def snapshot(self, root, thread, *, before=None, after=None, through=None,
-                       historical_source: str | None = None) -> TranscriptSnapshotUpdate:
-        return await self.read(ReadTranscript(
-            root, thread, before=before, after=after, through=through,
-            historical_source=historical_source))
+    async def snapshot(
+        self,
+        scope: TranscriptScope,
+        *,
+        before=None,
+        after=None,
+        through=None,
+        historical_source: str | None = None,
+    ) -> TranscriptSnapshotUpdate:
+        return await self.read(
+            scope.snapshot_request(
+                before=before,
+                after=after,
+                through=through,
+                historical_source=historical_source,
+            )
+        )
 
     async def updates(
-        self, root: str, thread: str, previous: TranscriptPublicationState, *, after=None,
+        self,
+        scope: TranscriptScope,
+        previous: TranscriptPublicationState,
+        *,
+        after=None,
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
-        return await self.read(ReadTranscriptUpdate(root, thread, after=after, previous=previous))
+        return await self.read(scope.update_request(previous, after=after))

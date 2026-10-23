@@ -1,17 +1,18 @@
 """Shared budgets for a source-backed window of native widget presentation."""
 
-from dataclasses import dataclass, fields, replace
-from collections import deque
-from agent_comms.transcripts import TranscriptCursor
-from agent_comms.message_page import PageBounds
 from abc import ABC, abstractmethod
+from collections import deque
 from collections.abc import Iterable
-from itertools import zip_longest
+from dataclasses import dataclass, fields, replace
 from functools import partial
+from itertools import zip_longest
 from math import ceil
-from operator import gt, ge
-from time import monotonic, get_clock_info
-from typing import Annotated, ClassVar, TYPE_CHECKING, get_args
+from operator import ge, gt
+from time import get_clock_info, monotonic
+from typing import TYPE_CHECKING, Annotated, ClassVar, get_args
+
+from agent_comms.message_page import PageBounds
+from agent_comms.transcripts import TranscriptCursor
 
 if TYPE_CHECKING:
     from agent_comms.transcripts import TranscriptPage
@@ -76,7 +77,7 @@ class PresentationBudget:
     def runway_rows(self, viewport_rows: int) -> int:
         return max(1, viewport_rows) * self.buffer_viewports
 
-    def fit(self, candidates, required, viewport_rows: int, max_bytes: int):
+    def fit(self, candidates, required: "tuple[Widget, ...]", viewport_rows: int, max_bytes: int):
         """Visible/protected native bodies first, then ordered bounded resources."""
         kept = set(required)
         widgets = source_bytes = 0
@@ -163,7 +164,7 @@ class PageEnd(ABC):
         return self.edge((None, through))
     @abstractmethod
     async def load_page(self, loader, cursor: TranscriptCursor | None, through): ...
-    def progressed(self, page, cursor: TranscriptCursor) -> bool:
+    def progressed(self, page: "TranscriptPage", cursor: TranscriptCursor) -> bool:
         edge = self.edge((page.before, page.after))
         start, stop = self.edge(((edge, cursor), (cursor, edge)))
         return cursor.accepts_source(edge) and not (
@@ -171,7 +172,7 @@ class PageEnd(ABC):
     @abstractmethod
     def wire_page(self, source, cursor, through): ...
 
-    def entry(self, length):
+    def entry(self, length: int):
         return self.edge((length - 1, 0))
 
     async def project(self, source, initial, prepared):
@@ -186,7 +187,7 @@ class PageEnd(ABC):
     def accepts_velocity(self, velocity: float) -> bool:
         return velocity * self.step > 0
 
-    async def walk(self, history, current, target, selected, start, rows_needed, limit):
+    async def walk(self, history, current, target, selected, start, rows_needed, limit: int):
         for index in range(start[0], self.edge((-1, len(history.pages))), self.step):
             if not current() or rows_needed <= 0 or limit <= 0:
                 break
@@ -207,7 +208,7 @@ class PageEnd(ABC):
     def leave_tail(self, window) -> None:
         pass
 
-    def trim(self, view, count) -> None:
+    def trim(self, view, count: int) -> None:
         page = view.prepared
         page.set_fragment_range(slice(page.start + self.edge((count, 0)), page.stop - self.edge((0, count))))
         view.range_changed()
@@ -226,22 +227,22 @@ class OlderEnd(PageEnd):
             cursor.older(),
             source.tail_limit if cursor == through else source.page_limit))
 
-    def advance_empty(self, edge, staged):
+    def advance_empty(self, edge, staged) -> None:
         edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
 
     def edge(self, pages):
         return pages[0]
 
-    async def mount(self, history, view, pages):
+    async def mount(self, history, view, pages) -> None:
         await history.mount(view, before=self.edge(pages) if pages else history.newer)
 
     def eviction_order(self, history):
         return super().eviction_order(history) if history.follows_source_tail else (NEWER_END, self)
 
-    def can_evict(self, overlay_visible):
+    def can_evict(self, overlay_visible) -> bool:
         return not overlay_visible
 
-    def leave_tail(self, window):
+    def leave_tail(self, window) -> None:
         window.release_anchor()
 
 
@@ -269,7 +270,7 @@ class NewerEnd(PageEnd):
                                                  has_older=initial.page.has_older))
         return await super().project(source, initial, prepared)
 
-    def advance_empty(self, edge, staged):
+    def advance_empty(self, edge, staged) -> None:
         edge.page = replace(edge.page, after=staged.page.after, has_newer=staged.page.has_newer)
 
     def fresh(self, history):
@@ -278,7 +279,7 @@ class NewerEnd(PageEnd):
     def edge(self, pages):
         return pages[-1]
 
-    async def mount(self, history, view, pages):
+    async def mount(self, history, view, pages) -> None:
         await history.mount(view, before=history.newer)
 
 
@@ -291,7 +292,7 @@ class PageRequest[Cursor = TranscriptCursor | None]:
     end: PageEnd
     cursor: Cursor
 
-    def progressed(self: PageRequest[TranscriptCursor | None], page: TranscriptPage) -> bool:
+    def progressed(self: PageRequest[TranscriptCursor | None], page: "TranscriptPage") -> bool:
         return self.cursor is None or self.end.progressed(page, self.cursor)
 
 
@@ -308,7 +309,7 @@ class PreparationDemand(ABC):
         """A running read may finish after input settles; it starts no next read."""
         return True
 
-    def read_rows(self, preparation, history, end, runway: Runway) -> int:
+    def read_rows(self, preparation: "DirectionalPreparation", history, end, runway: Runway) -> int:
         """Stationary input never requests another source page."""
         return 0
 
@@ -402,7 +403,7 @@ class DirectionalPreparation:
     The presentation budget bounds how much of that prediction can be retained.
     """
 
-    def __init__(self, window):
+    def __init__(self, window) -> None:
         self.window = window
         self.position = 0.0
         self.sampled_at = monotonic()
@@ -496,7 +497,7 @@ class DirectionalPreparation:
         # destination items may exceed the nominal working-set item budget.
         return max(budget.item_limit(0), viewport_rows)
 
-    def read_rows(self, history, end) -> int:
+    def read_rows(self, history, end: PageEnd) -> int:
         if not end.visible_more(history):
             return 0
         runway = self.runway(history)

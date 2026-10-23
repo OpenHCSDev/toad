@@ -7,10 +7,10 @@ constructing a pool starts no processes.
 """
 
 import asyncio
-from collections.abc import Callable
-from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 import os
+from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from toad.render_backend import Renderer
@@ -33,8 +33,10 @@ def _initialize_worker() -> None:
     No notification or rendering job is made.
     """
     os.environ.pop("AGENT_COMMS_THREAD", None)
-    from toad.acp import sdk_boundary  # noqa: F401 -- declare worker ingress capabilities
     from toad import render_tasks  # noqa: F401 -- declare worker rendering capabilities
+    from toad.acp import (
+        sdk_boundary,  # noqa: F401 -- declare worker ingress capabilities
+    )
 
 
 class RenderProcessPool(Renderer):
@@ -98,7 +100,7 @@ class RenderProcessPool(Renderer):
             )
             self.start_workers(self._executor)
 
-    async def run(self, function: Callable[..., Result], *args: Any) -> Result:
+    async def run[*Args, Value](self, function: Callable[[*Args], Value], *args: *Args) -> Value:
         """Execute a data-only function in a child, propagating its result/error."""
         loop = self._bind_loop()
         while not self._closed and len(self._pending) >= self._max_pending:

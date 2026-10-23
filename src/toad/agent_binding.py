@@ -2,13 +2,19 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from functools import cached_property
+from agent_comms.thread_presentation import ThreadPresentation
 from textual.content import Content
 from toad.agent_presentation import LocalAgentPresentation
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import UnopenedSessionDisposition
 
 
-class AgentBinding(ABC):
+class AgentConnection(ABC):
+    @abstractmethod
+    async def observe_thread_presentation(
+        self, presentation: ThreadPresentation | None
+    ) -> None: ...
+
     def thread_read(self):
         from toad.acp.comms_updates import NoPendingThreadRead
         return NoPendingThreadRead()
@@ -45,7 +51,7 @@ class AgentBinding(ABC):
     def matches_agent(self, agent) -> bool: ...
 
 
-class NoAgentBound(AgentBinding):
+class NoAgentConnection(AgentConnection):
     """A real saved view before it acquires any native connection."""
     ready = False
     automatic_titles = True
@@ -149,10 +155,10 @@ class NoAgentBound(AgentBinding):
         source.presentation.sources.attach_started(source, plan)
 
     async def change_project(self, view, path):
-        view.flash("Project changes require an agent-comms session", style="error")
+        view.feedback.flash("Project changes require an agent-comms session", style="error")
 
     def request_compaction(self, view, instructions):
-        view.flash("Context compaction requires an agent-comms session", style="error")
+        view.feedback.flash("Context compaction requires an agent-comms session", style="error")
 
     async def observe_thread_presentation(self, presentation):
         """There is no connected agent to inform."""

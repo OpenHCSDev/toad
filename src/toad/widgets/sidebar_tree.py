@@ -4,39 +4,44 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from collections import Counter
 from collections.abc import Iterable
+from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import wraps
 from itertools import islice
-from contextlib import contextmanager
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from toad.widgets.comms_sidebar import CommsRow
-    from toad.comms_root import Observing, FailedObservation
     from toad.app import ToadApp
+    from toad.comms_root import FailedObservation, Observing
+    from toad.widgets.comms_sidebar import CommsRow
 
-from textual.app import ComposeResult
-from textual.binding import Binding
-from textual.reactive import reactive
-from textual.containers import Vertical, VerticalGroup
-from textual.widgets import Static
-from textual.widget import Widget
-from textual._activation import PrimaryActivation
-from textual.layouts.vertical import VerticalLayout
-from textual._measurement import FLOW_HEIGHT, height_dependency
-
+from agent_comms.display_order import ThreadSort
 from agent_comms.mro_dispatch import handles
-from toad.core.events import SessionSelected, CoordinationObserved, ThreadRowStateChanged
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from agent_comms.ui_model.unread import UnreadPresentation
-from agent_comms.display_order import ThreadSort
-from toad.widgets.sidebar_viewport import SidebarHeader
+from textual._activation import PrimaryActivation
+from textual._measurement import FLOW_HEIGHT, height_dependency
+from textual.app import ComposeResult
+from textual.binding import Binding
+from textual.containers import Vertical, VerticalGroup
+from textual.geometry import Size
+from textual.layouts.vertical import VerticalLayout
+from textual.reactive import reactive
+from textual.widget import Widget
+from textual.widgets import Static
+
+from toad.core.events import (
+    CoordinationObserved,
+    SessionSelected,
+    ThreadRowStateChanged,
+)
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.widgets.side_bar import SideBar
+from toad.widgets.sidebar_viewport import SidebarHeader
 
 
 class UnpaintedUnread(UnreadPresentation):
@@ -46,8 +51,10 @@ class UnpaintedUnread(UnreadPresentation):
 class UnpaintedChannel(ChannelRowModel):
     """An unobserved channel has no painted fields or known members."""
 
-    def __init__(self, name: str):
-        super().__init__(name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort)
+    def __init__(self, name: str) -> None:
+        super().__init__(
+            name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort
+        )
 
 
 class TargetTreeMember:
@@ -88,7 +95,7 @@ class SidebarReaderLayout(VerticalLayout):
     """Native flow, preserving the viewport's reader before placements change."""
 
     @height_dependency(FLOW_HEIGHT)
-    def arrange(self, parent, children, size, greedy=True):
+    def arrange(self, parent, children, size: Size, greedy: bool=True):
         placements = super().arrange(parent, children, size, greedy)
         parent.query_ancestor(TargetTree).preserve_reader(placements)
         return placements
@@ -97,7 +104,7 @@ class SidebarReaderLayout(VerticalLayout):
 class RowReconciliation:
     """One sync's model membership and transferable native rows, never a retained cache."""
 
-    def __init__(self, tree):
+    def __init__(self, tree: TargetTree) -> None:
         demand = Counter(key for key in tree.member_keys if tree.matches(key))
         self.listed = frozenset(demand)
         self.sources = {}
@@ -113,8 +120,10 @@ class RowReconciliation:
                     self.sources.setdefault(key, {})[group] = None
         # A thread can have simultaneous views. Keep only the native rows
         # needed by unfilled model slots; a removed duplicate must retire.
-        self.sources = {key: dict.fromkeys(islice(groups, max(0, demand[key])))
-                        for key, groups in self.sources.items()}
+        self.sources = {
+            key: dict.fromkeys(islice(groups, max(0, demand[key])))
+            for key, groups in self.sources.items()
+        }
         self.requests = requests
 
     @staticmethod
@@ -123,20 +132,21 @@ class RowReconciliation:
         def synchronized(view, *args, **kwargs):
             with view.reconciliation_tree.reconcile_members():
                 return method(view, *args, **kwargs)
+
         return synchronized
 
-    def finish(self):
+    def finish(self) -> None:
         for group, keys in self.requests.items():
             if any(self.sources.get(key) for key in keys):
                 group.sync_members(frozenset(group.member_keys))
 
-    def retains(self, key, group):
+    def retains(self, key: str, group: SidebarGroup) -> bool:
         return key in self.listed and group in self.sources.get(key, ())
 
-    def has_spare(self, key):
+    def has_spare(self, key: str):
         return bool(self.sources.get(key))
 
-    def take(self, key, destination):
+    def take(self, key: str, destination: SidebarGroup):
         sources = self.sources.get(key)
         if not sources:
             return None
@@ -174,8 +184,12 @@ class KeyedRows[KeyT]:
     def reconcile_keys(self, keys, *, changed: frozenset[KeyT]):
         rows = self.rows
         retained = set(rows.values())
-        previous = {row: index for index, row in enumerate(
-            child for child in self.member_container.children if child in retained)}
+        previous = {
+            row: index
+            for index, row in enumerate(
+                child for child in self.member_container.children if child in retained
+            )
+        }
         wanted = set(keys)
         retired = [key for key in rows if key not in wanted and not self.keep_row(key)]
         for key in retired:
@@ -198,16 +212,20 @@ class KeyedRows[KeyT]:
         for row, index in positions.items():
             if previous.get(row) != index:
                 self.place_row(row, index)
-        live = tuple(child for child in self.member_container.children if child in positions)
+        live = tuple(
+            child for child in self.member_container.children if child in positions
+        )
         reordered = bool(ordered) and live != ordered
         if reordered:
-            self.member_container.sort_children(key=lambda child: positions.get(child, len(positions)))
+            self.member_container.sort_children(
+                key=lambda child: positions.get(child, len(positions))
+            )
         if retired or mounted or reordered:
             self.rows_changed()
         return ordered
 
 
-class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
+class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False
@@ -227,8 +245,15 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
     _row_mounting = None
     """The worker mounting pending rows after the following frames."""
 
-    def __init__(self, row, *, expanded: bool, controls=(),
-                 disclosure_type=SidebarDisclosure, **kwargs):
+    def __init__(
+        self,
+        row,
+        *,
+        expanded: bool,
+        controls=(),
+        disclosure_type=SidebarDisclosure,
+        **kwargs,
+    ) -> None:
         super().__init__(**kwargs)
         self.row = row
         self.rows: dict[str, RowT] = {}
@@ -261,7 +286,9 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
     def watch_expanded(self, previous: bool, expanded: bool) -> None:
         self.disclosure.refresh(layout=False)
         if self.is_mounted:
-            self.member_container.set_display_constraint("members", self.members_visible)
+            self.member_container.set_display_constraint(
+                "members", self.members_visible
+            )
             self.members_visibility_changed(previous, expanded)
             self.rows_changed()
 
@@ -285,9 +312,16 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
     def rows_for_target(self, target):
         if not self.accepts_members():
             return ()
-        header = (self.row,) if self.navigation_header and self.row.target_name == target else ()
+        header = (
+            (self.row,)
+            if self.navigation_header and self.row.target_name == target
+            else ()
+        )
         member = self.rows.get(target)
-        return (*header, *((member,) if member is not None and member.is_navigation_row() else ()))
+        return (
+            *header,
+            *((member,) if member is not None and member.is_navigation_row() else ()),
+        )
 
     def accepts_navigation(self) -> bool:
         return self.display and self.accepts_members()
@@ -360,8 +394,12 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
         self._rows_pending = False
         self._row_deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
         ordered = self.reconcile_keys(keys, changed=changed)
-        if self._rows_pending and (self._row_mounting is None or self._row_mounting.is_finished):
-            self._row_mounting = self.run_worker(self._mount_pending_rows(), group="sidebar-rows")
+        if self._rows_pending and (
+            self._row_mounting is None or self._row_mounting.is_finished
+        ):
+            self._row_mounting = self.run_worker(
+                self._mount_pending_rows(), group="sidebar-rows"
+            )
         return ordered
 
     async def _mount_pending_rows(self) -> None:
@@ -471,7 +509,7 @@ EMPTY = SidebarModel(lambda callback: None)
 
 class SidebarModelState(ABC):
     @abstractmethod
-    def shows_child(self, view, child: Widget) -> bool:
+    def shows_child(self, view: SidebarModelView, child: Widget) -> bool:
         """Whether this state's sidebar displays this direct child."""
 
     def root(self):
@@ -490,16 +528,16 @@ class SidebarModelState(ABC):
     def observes(self, observed: Observing) -> bool:
         return False
 
-    def unsubscribe(self, view) -> None:
+    def unsubscribe(self, view: SidebarModelView) -> None:
         pass
 
     def changes(self, changes):
         return changes
 
-    def apply(self, view, changes) -> None:
+    def apply(self, view: SidebarModelView, changes) -> None:
         pass
 
-    def present(self, view):
+    def present(self, view: SidebarModelView):
         view.app.coordination_access.show_sidebar(view, False)
         return self
 
@@ -585,7 +623,7 @@ class SidebarModelView(CoreEventReceiver, Widget):
     while this one is hidden are applied in one pass when it shows again.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.unavailable = Static("", markup=False)
 
@@ -595,7 +633,8 @@ class SidebarModelView(CoreEventReceiver, Widget):
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
         observed = await self.app.preparation.run_thread(
-            self.app.coordination_access.observation.observed)
+            self.app.coordination_access.observation.observed
+        )
         observed.show_sidebar(self)
 
     def on_unmount(self) -> None:
@@ -656,11 +695,15 @@ class SidebarModelView(CoreEventReceiver, Widget):
     def channels_changed(self, changes: Changes[str]) -> None:
         self.present(
             change=ChangedChannels(frozenset((*changes.added, *changes.changed))),
-            reorder=bool(changes.added or changes.removed or changes.order is not None))
+            reorder=bool(changes.added or changes.removed or changes.order is not None),
+        )
 
     def threads_changed(self, changes: Changes[str]) -> None:
-        self.present(change=ChangedThreads(frozenset(
-            (*changes.added, *changes.removed, *changes.changed))))
+        self.present(
+            change=ChangedThreads(
+                frozenset((*changes.added, *changes.removed, *changes.changed))
+            )
+        )
 
     def present(self, **changes) -> None:
         """Publish the next state before it applies pending model changes."""
@@ -680,7 +723,9 @@ class SidebarModelView(CoreEventReceiver, Widget):
 
 class SearchFollower:
     def on_mount(self) -> None:
-        self.watch(self.query_ancestor(SideBar), "search", self._apply_search, init=True)
+        self.watch(
+            self.query_ancestor(SideBar), "search", self._apply_search, init=True
+        )
 
     def _apply_search(self, value: str) -> None:
         self.search = value.casefold()
@@ -723,7 +768,10 @@ class TargetTree(Vertical):
             yield
         finally:
             try:
-                if self._member_reconciliation_depth == 1 and self._member_reconciliation is not None:
+                if (
+                    self._member_reconciliation_depth == 1
+                    and self._member_reconciliation is not None
+                ):
                     self._member_reconciliation.finish()
             finally:
                 self._member_reconciliation_depth -= 1
@@ -738,7 +786,7 @@ class TargetTree(Vertical):
     def selection_state(self):
         raise NotImplementedError
 
-    def selection_for(self, row):
+    def selection_for(self, row: CommsRow):
         raise NotImplementedError
 
     def accepts_selection(self) -> bool:
@@ -756,7 +804,9 @@ class TargetTree(Vertical):
         try:
             yield
         finally:
-            for identity in previous.symmetric_difference(self.selection_state.selected_targets):
+            for identity in previous.symmetric_difference(
+                self.selection_state.selected_targets
+            ):
                 if (row := self.row_for(identity)) is not None:
                     row.refresh_paint()
 
@@ -769,7 +819,7 @@ class TargetTree(Vertical):
                 state.selected = self.selection_for(row)
                 state.selected_targets = ()
 
-    def pointer_select(self, row, *, control=False, shift=False, menu=False) -> None:
+    def pointer_select(self, row, *, control: bool=False, shift: bool=False, menu: bool=False) -> None:
         if not self.accepts_selection():
             return
         rows = self.rows
@@ -783,12 +833,19 @@ class TargetTree(Vertical):
         identities = tuple(self.selection_for(item) for item in rows)
         with self.selection_change():
             if shift and state.selected in identities:
-                start, end = sorted((identities.index(state.selected), identities.index(selected)))
-                span = identities[start:end + 1]
-                state.selected_targets = tuple(dict.fromkeys((*current, *span))) if control else span
+                start, end = sorted(
+                    (identities.index(state.selected), identities.index(selected))
+                )
+                span = identities[start : end + 1]
+                state.selected_targets = (
+                    tuple(dict.fromkeys((*current, *span))) if control else span
+                )
             elif control:
-                state.selected_targets = (tuple(item for item in current if item != selected)
-                                          if selected in current else (*current, selected))
+                state.selected_targets = (
+                    tuple(item for item in current if item != selected)
+                    if selected in current
+                    else (*current, selected)
+                )
                 state.selected = selected
             else:
                 state.selected = selected
@@ -797,38 +854,56 @@ class TargetTree(Vertical):
     def apply_selection(self) -> None:
         with self.selection_change():
             state = self.selection_state
-            state.selected_targets = tuple(identity for identity in state.selected_targets
-                                           if self.row_for(identity) is not None)
+            state.selected_targets = tuple(
+                identity
+                for identity in state.selected_targets
+                if self.row_for(identity) is not None
+            )
 
     @property
     def navigation_root(self):
         raise NotImplementedError
 
     def row_current(self, row) -> bool:
-        return row.target_name == self.app.workspace_sessions.visible_target(self.navigation_root)
+        return self.app.workspace_sessions.visible_target(self.navigation_root).matches(
+            row.target
+        )
 
     def rows_for_target(self, target):
-        return tuple(row for group in self.navigation_groups for row in group.rows_for_target(target)) if target is not None else ()
+        return tuple(
+            row for group in self.navigation_groups for row in target.rows_in(group)
+        )
 
     @property
     def current_rows(self):
         target = self.app.workspace_sessions.visible_target(self.navigation_root)
-        return tuple(row for group in self.navigation_groups if group.accepts_navigation()
-                     for row in group.rows_for_target(target) if row is group.row or group.members_visible)
+        return tuple(
+            row
+            for group in self.navigation_groups
+            if group.accepts_navigation()
+            for row in target.rows_in(group)
+            if row is group.row or group.members_visible
+        )
 
     @handles(SessionSelected)
     def session_selected(self, event) -> None:
         if not self.rows:
             return
         workspace = self.app.workspace_sessions
-        previous = workspace.target_for_mode(event.event.previous_mode, self.navigation_root)
+        previous = workspace.target_for_mode(
+            event.event.previous_mode, self.navigation_root
+        )
         current = workspace.visible_target(self.navigation_root)
-        for row in set(self.rows_for_target(previous)).symmetric_difference(self.rows_for_target(current)):
+        for row in set(self.rows_for_target(previous)).symmetric_difference(
+            self.rows_for_target(current)
+        ):
             row.paint_current()
 
     @property
     def rows(self) -> list[CommsRow]:
-        return [row for group in self.navigation_groups for row in group.navigation_rows]
+        return [
+            row for group in self.navigation_groups for row in group.navigation_rows
+        ]
 
     def action_cursor_up(self) -> None:
         self.move_cursor(-1)
@@ -840,11 +915,15 @@ class TargetTree(Vertical):
         rows = self.rows
         if rows:
             focused = self.app.focused
-            index = rows.index(focused) if focused in rows else -1 if direction > 0 else len(rows)
+            index = (
+                rows.index(focused)
+                if focused in rows
+                else -1 if direction > 0 else len(rows)
+            )
             row = rows[max(0, min(len(rows) - 1, index + direction))]
             self.focus_row(row)
 
-    def focus_row(self, row) -> None:
+    def focus_row(self, row: CommsRow) -> None:
         row.scroll_visible(animate=False, immediate=True)
         self.screen.set_focus(row, scroll_visible=False)
 

@@ -2,31 +2,38 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import partial
+from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable
 
-from agent_comms.field_codec import FieldCodec
-from agent_comms.declared_family import DeclaredFamily
 from agent_comms.coordinator import Coordination
-from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldCodec
 from agent_comms.importing import ImportedSessionMetadata
 from agent_comms.mro_dispatch import handles
-from toad.core.projection import MroProjection
-from toad.thread_identity import ThreadIdentity
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
-from agent_comms.session_revision import SessionRevision, SessionObservation
 from agent_comms.registry_document import RegistryEntry
+from agent_comms.session_revision import SessionObservation, SessionRevision
 from agent_comms.thread_status import ActiveThreadPresence, ThreadStatus
 from agent_comms.turn_context import (
-    CodexRolloutProvenance, ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,
-    SegmentManifest, TurnContext,
+    CodexRolloutProvenance,
+    ContextManifest,
+    ContextSegment,
+    ContextSourceText,
+    NativeMessages,
+    Provenance,
+    SegmentManifest,
+    TurnContext,
 )
+from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.working_memory_labels import JevClassifier, ModelLabel
 from agent_comms.working_memory_questions import SpanAnswer
+
+from toad.core.projection import MroProjection
+from toad.thread_identity import ThreadIdentity
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
@@ -63,13 +70,13 @@ class ContextNode(ABC):
         """Only original public content is searchable, never private reasoning."""
         return ""
 
-    def _find_public(self, query):
+    def _find_public(self, query: str):
         if query in self.public_text().casefold():
             yield self
         for child in self.children():
             yield from child._find_public(query)
 
-    async def find(self, query: str, *, limit=100):
+    async def find(self, query: str, *, limit: int=100):
         """Search one observed tree in one worker, without a second text index."""
         from itertools import islice
 
@@ -83,7 +90,7 @@ class ContextNode(ABC):
     def search_roots(current_roots):
         return current_roots()
 
-    def search_description(self):
+    def search_description(self) -> str:
         return "Current public context"
 
     def correction_answers(self):
@@ -95,13 +102,13 @@ class ContextNode(ABC):
     async def read(self):
         return await Coordination.run_worker(self.detail)
 
-    async def export(self, destination: Path):
+    async def export(self, destination: Path) -> None:
         """Export this original observation; never overwrite a session/source file."""
         detail = await self.read()
         await Coordination.run_worker(partial(self._write_export, destination, detail))
 
     @staticmethod
-    def _write_export(destination, detail):
+    def _write_export(destination, detail) -> None:
         with destination.open("x", encoding="utf-8") as output:
             output.write(detail)
 
@@ -112,7 +119,7 @@ class ReferenceNode(ContextNode):
     read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     @property
-    def label(self):
+    def label(self) -> str:
         return f"Source · {self.source.public_description()}"
 
     def detail(self):
@@ -121,7 +128,7 @@ class ReferenceNode(ContextNode):
     def public_text(self):
         return self.source.public_description()
 
-    async def read(self):
+    async def read(self) -> str:
         original = await self.read_source(self.source)
         return f"{original.description}\n\n{original.text}"
 
@@ -131,7 +138,7 @@ class ReferenceNode(ContextNode):
     def search_description(self):
         return self.label
 
-    async def find(self, query, *, limit=100):
+    async def find(self, query, *, limit: int=100):
         original = await self.read_source(self.source)
         if query in original.text.casefold() or query in original.description.casefold():
             yield self
@@ -154,7 +161,7 @@ class ManifestNode(ContextNode):
               for i, source in enumerate(self.segment.provenance)),
         )
 
-    def detail(self):
+    def detail(self) -> str:
         return (f"{self.segment.kind.public_title()}\nEstimate: {self.segment.tokens:,} tokens\n"
                 f"Original bytes: {self.segment.utf8_bytes:,}\n"
                 f"Digest: {self.segment.sha256}\n\n"
@@ -168,7 +175,7 @@ class RecordedTurnNode(ContextNode):
     inspection: ContextInspection
 
     @property
-    def label(self):
+    def label(self) -> str:
         turn = self.manifest.turn.require_recorded()
         return f"Request {turn.occurrence.generation} · {turn.identity.value[:12]}"
 
@@ -183,13 +190,13 @@ class RecordedTurnNode(ContextNode):
     def search_description(self):
         return self.label
 
-    def detail(self):
+    def detail(self) -> str:
         return (f"Recorded turn · {self.manifest.turn.require_recorded().identity.value}\n"
                 f"Counter: {self.manifest.counter}\n\n"
                 "Historical request observation, not an additional active context section. "
                 "Segment counts are estimates, not provider measurements.")
 
-    async def find(self, query, *, limit=100):
+    async def find(self, query, *, limit: int=100):
         count = 0
         for child in self.children():
             async for match in child.find(query, limit=limit - count):
@@ -229,18 +236,18 @@ class RecordedSegmentNode(RecordedTurnNode):
         return await self.inspection.recorded_segment(
             self.manifest, self.position, self.contributors)
 
-    async def read(self):
+    async def read(self) -> str:
         original = await self.source_text()
         return f"{original.description}\n\n{original.text}"
 
-    async def find(self, query, *, limit=100):
+    async def find(self, query, *, limit: int=100):
         # One complete selected value includes its annotation children. Search
         # that value once; opening a child still uses that exact child's path.
         original = await self.source_text()
         if query in original.text.casefold() or query in original.description.casefold():
             yield self
 
-    def search_description(self):
+    def search_description(self) -> str:
         return f"{super().search_description()} · {self.manifest.turn.require_recorded().identity.value[:12]}"
 
     def original_segments(self):
@@ -258,7 +265,7 @@ class AnnotationNode(ContextNode):
     source: RecordedSegmentNode
 
     @property
-    def label(self):
+    def label(self) -> str:
         original = self.annotation
         return (f"{original.question.question.public_title()} · {original.answer.public_title()} · "
                 f"{original.public_description()}")
@@ -273,7 +280,7 @@ class AnnotationNode(ContextNode):
         original = await self.source.source_text()
         return self.describe_original(original)
 
-    def describe_original(self, original: ContextSourceText):
+    def describe_original(self, original: ContextSourceText) -> str:
         text = self.annotation.span.coordinates.public_text(original.text)
         provenance = "\n".join(source.public_description()
             for source in self.annotation.span.coordinates.provenance)
@@ -289,7 +296,7 @@ class AnnotationNode(ContextNode):
     def search_description(self):
         return self.label
 
-    async def find(self, query, *, limit=100):
+    async def find(self, query, *, limit: int=100):
         if query in (await self.read()).casefold():
             yield self
 
@@ -336,7 +343,7 @@ class AnnotationSourceNode(ContextNode):
     def search_description(self):
         return self.label
 
-    async def find(self, query, *, limit=100):
+    async def find(self, query, *, limit: int=100):
         # One search borrows each authenticated selected value once. These
         # buffers leave with the operation; no corpus or text index is kept.
         acquired = {}
@@ -369,7 +376,7 @@ class NativeSegmentNode(ContextNode):
               for i, source in enumerate(self.segment.provenance)),
         )
 
-    def detail(self):
+    def detail(self) -> str:
         sources = "\n\n".join(
             source.public_description()
             for source in self.segment.provenance
@@ -386,7 +393,7 @@ class NativeMessageNode(NativeSegmentNode):
     position: int
 
     @property
-    def label(self):
+    def label(self) -> str:
         text = " ".join(self.message.text[:120].split())
         return (f"{self.segment.declared_name.replace('_', ' ')} · "
                 f"{self.message.declared_name} {self.position + 1} · {text or 'no public text'}")
@@ -406,7 +413,7 @@ class NativeMessageNode(NativeSegmentNode):
 
 
 class SegmentNodes(MroProjection):
-    def __init__(self, key, read_source):
+    def __init__(self, key: str, read_source) -> None:
         self.key, self.read_source = key, read_source
 
     @handles(ContextSegment)
@@ -422,12 +429,12 @@ class SegmentNodes(MroProjection):
 class NativeMessagesNode(NativeSegmentNode):
     page_size: int = 64
 
-    def public_text(self):
+    def public_text(self) -> str:
         # This navigation container delegates searching to its original
         # message children rather than concatenating the same history twice.
         return ""
 
-    def detail(self):
+    def detail(self) -> str:
         return f"{self.label}\nExpand a message range to read each original public message."
 
     def children(self):
@@ -445,7 +452,7 @@ class NativeMessageRange(ContextNode):
     stop: int
 
     @property
-    def label(self):
+    def label(self) -> str:
         return f"Messages {self.start + 1}–{self.stop}"
 
     def children(self):
@@ -454,22 +461,22 @@ class NativeMessageRange(ContextNode):
                                       message=PiMessage.from_wire(self.segment.messages[i]), position=i)
                      for i in range(self.start, self.stop))
 
-    def detail(self):
+    def detail(self) -> str:
         return "Current native message range; expand to read the original public text."
 
 
 class CoreInspection(ABC):
     """Availability of the backend's original Core contributor observation."""
 
-    def roots(self, inspection):
+    def roots(self, inspection: ContextInspection):
         return ()
 
-    def groups(self, inspection):
+    def groups(self, inspection: ContextInspection) -> tuple[tuple[str, tuple[ContextNode, ...], bool], ...]:
         return ()
 
     @property
     @abstractmethod
-    def status(self):
+    def status(self) -> str:
         """Describe only this independently acquired contributor resource."""
 
 
@@ -478,7 +485,7 @@ class UnavailableCoreInspection(CoreInspection):
     error: str = "Core contributors have not been acquired"
 
     @property
-    def status(self):
+    def status(self) -> str:
         return f"Core instructions unavailable: {self.error}"
 
 
@@ -493,7 +500,7 @@ class AcquiredCoreInspection(CoreInspection):
         return (("Current Core instructions · before next input", self.roots(inspection), True),)
 
     @property
-    def status(self):
+    def status(self) -> str:
         return "Current Core instructions available"
 
 
@@ -584,7 +591,7 @@ class ContextInspection:
                 for (kind, provenance), answers in sources.items()), False))
         return tuple(groups)
 
-    async def find(self, roots: tuple[ContextNode, ...], query: str, *, limit=100):
+    async def find(self, roots: tuple[ContextNode, ...], query: str, *, limit: int=100):
         """Bound result widgets while reading the selected original public sources."""
         normalized = query.casefold()
         matches = []
@@ -595,7 +602,7 @@ class ContextInspection:
                     return tuple(matches)
         return tuple(matches)
 
-    async def _request(self, action, **parameters):
+    async def _request(self, action: str, **parameters):
         from agent_comms.runtime import RuntimeConnection, socket_path
 
         owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
@@ -620,7 +627,7 @@ class ContextInspection:
             raise ValueError("Core context belongs to another thread incarnation")
         return replace(self, core=AcquiredCoreInspection(context))
 
-    async def core_source(self, context, position, source):
+    async def core_source(self, context: TurnContext, position, source):
         def request():
             return dict(owner=FieldCodec.encode(context.thread), segment=position,
                 manifest=FieldCodec.encode(context.segments[position].manifest(0)),
@@ -629,7 +636,7 @@ class ContextInspection:
         payload = await self._request("context_core_source", **parameters)
         return await Coordination.run_worker(partial(FieldCodec.decode, ContextSourceText, payload))
 
-    async def current_source(self, context, position, source):
+    async def current_source(self, context: NativeContextData, position, source):
         payload = await self._request("context_source",
             observation=FieldCodec.encode(context.observation()), segment=position,
             source=FieldCodec.encode(source))
@@ -638,22 +645,22 @@ class ContextInspection:
     async def recorded_source(self, manifest, position, source):
         payload = await self._request("context_reference",
             record=FieldCodec.encode(self.page.reference(manifest)),
-            turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
+            turn=FieldCodec.encode(manifest.turn), request_id=manifest.request_id.require_id(),
             segment=position, source=FieldCodec.encode(source))
         return FieldCodec.decode(ContextSourceText, payload)
 
-    async def recorded_segment(self, manifest, position, contributors=()):
+    async def recorded_segment(self, manifest: ContextManifest, position: int, contributors: tuple[int, ...]=()):
         payload = await self._request("context_recorded_segment",
             record=FieldCodec.encode(self.page.reference(manifest)),
-            turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
+            turn=FieldCodec.encode(manifest.turn), request_id=manifest.request_id.require_id(),
             segment=position, contributors=contributors)
         return FieldCodec.decode(ContextSourceText, payload)
 
-    async def correct_annotation(self, source, label, answer, worktree):
+    async def correct_annotation(self, source: RecordedSegmentNode, label: ModelLabel, answer: type[SpanAnswer], worktree: Path):
         payload = await self._request("context_annotation_correction",
             record=FieldCodec.encode(self.page.reference(source.manifest)),
             turn=FieldCodec.encode(source.manifest.turn),
-            request_id=source.manifest.require_request_id(), segment=source.position,
+            request_id=source.manifest.request_id.require_id(), segment=source.position,
             contributors=source.contributors, label=FieldCodec.encode(label),
             answer=FieldCodec.encode(answer), worktree=str(worktree))
         return FieldCodec.decode(ModelLabel, payload)
@@ -684,12 +691,12 @@ class SavedContextInspection(ContextInspection):
             return self.saved_manifest(manifest).public_source_text(self.service, position, source)
         return await Coordination.run_worker(read)
 
-    async def recorded_segment(self, manifest, position, contributors=()):
+    async def recorded_segment(self, manifest, position, contributors: tuple[int, ...]=()):
         def read():
             return self.saved_manifest(manifest).selected_segment(position, contributors)
         segment = await Coordination.run_worker(read)
 
-        async def unavailable(original):
+        async def unavailable(original) -> str:
             return "Public SDK text was not retained in this saved record; no live preview is available."
 
         text = await segment.public_text(unavailable)
@@ -734,7 +741,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def inspection_differs(self, inspection) -> bool:
         return True
 
-    def needs_native(self, inspection, force) -> bool:
+    def needs_native(self, inspection, force: bool) -> bool:
         return True
 
     def same_source(self, inspection) -> bool:
@@ -764,7 +771,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
         return False
 
     @property
-    def status(self):
+    def status(self) -> str:
         return "No managed thread context available"
 
 
@@ -814,7 +821,7 @@ class HoldingInspection(InspectionState):
     def inspection_differs(self, inspection) -> bool:
         return not self.same_source(inspection) or inspection.changed_since(self.inspection)
 
-    def needs_native(self, inspection, force) -> bool:
+    def needs_native(self, inspection, force: bool) -> bool:
         return force or self.inspection_differs(inspection)
 
     def present(self, consumer) -> None:
@@ -850,7 +857,7 @@ class HoldingInspection(InspectionState):
         sources = await Coordination.run_worker(partial(roots, self.current_roots))
         return await self.inspection.find(sources, query)
 
-    def native_matches(self, current):
+    def native_matches(self, current) -> bool:
         return not current.contains_native(bool)
 
     def presentation_current(self, captured) -> bool:
@@ -860,7 +867,7 @@ class HoldingInspection(InspectionState):
                 and captured.native_matches(self))
 
     @property
-    def status(self):
+    def status(self) -> str:
         return f"{self.thread_identity.thread_name()} · {self.inspection.core.status}\nReading native context…"
 
 
@@ -874,7 +881,7 @@ class SavedInspection(HoldingInspection):
         self.present(consumer)
 
     @property
-    def status(self):
+    def status(self) -> str:
         return (f"{self.thread_identity.thread_name()} · stopped · saved context records\n"
                 "Live Core/native preview unavailable; no owner process is required.")
 
@@ -893,7 +900,7 @@ class NativeInspection(HoldingInspection):
             return NativeInspection(acquired.inspection, acquired.revision, self.native)
         return acquired
 
-    def needs_native(self, inspection, force) -> bool:
+    def needs_native(self, inspection, force: bool) -> bool:
         return force or not self.same_source(inspection)
 
     def with_native(self, inspection, native) -> InspectionState:
@@ -917,7 +924,7 @@ class NativeInspection(HoldingInspection):
         return current.contains_native(lambda native: native is self.native)
 
     @property
-    def status(self):
+    def status(self) -> str:
         return (f"{self.thread_identity.thread_name()} · {self.inspection.core.status}; native base available\n"
                 f"Segment counts: estimates ({self.native.counter}) · provider totals unavailable")
 
@@ -932,5 +939,5 @@ class UnavailableNativeInspection(HoldingInspection):
         return acquired
 
     @property
-    def status(self):
+    def status(self) -> str:
         return f"{self.thread_identity.thread_name()} · {self.inspection.core.status}\nNative detail unavailable: {self.error}"

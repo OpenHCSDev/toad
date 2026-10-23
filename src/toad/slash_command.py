@@ -141,7 +141,7 @@ class ProjectCommand(SlashCommand, LocalCommand):
 
     async def apply(self, conversation: Conversation) -> bool:
         if self.path is None:
-            conversation.flash(Content(f"Project: {conversation.project_path}"))
+            conversation.feedback.flash(Content(f"Project: {conversation.project_path}"))
         else:
             await conversation.agent_binding.change_project(conversation, self.path)
         return True
@@ -193,7 +193,7 @@ class GoalCommand(SlashCommand, LocalCommand):
             await conversation.goal_controls.change(SetGoalAction, self.objective)
         else:
             await conversation.goal_observation.refresh()
-            conversation.flash(
+            conversation.feedback.flash(
                 f"Use /goal {self.hint} to set, edit or manage this thread's goal."
             )
         return True
@@ -211,7 +211,7 @@ class CompactCommand(SlashCommand, LocalCommand):
 
     async def apply(self, conversation: Conversation) -> bool:
         if not conversation.turns.owner.can_compact:
-            conversation.flash(
+            conversation.feedback.flash(
                 "Wait for the current response before compacting", style="error"
             )
         else:
@@ -226,7 +226,7 @@ class ModelCommand(NoArgumentsCommand):
         if conversation.model_selection_available:
             conversation.prompt.model_switcher.focus()
         else:
-            conversation.flash("This agent has no model selector", style="error")
+            conversation.feedback.flash("This agent has no model selector", style="error")
         return True
 
 
@@ -282,7 +282,7 @@ class RenameCommand(SlashCommand, LocalCommand, declared_name="toad:rename"):
 
     async def apply(self, conversation: Conversation) -> bool:
         await conversation.rename_session(self.name)
-        conversation.flash(f"Renamed session to [b]'{self.name}'", style="success")
+        conversation.feedback.flash(f"Renamed session to [b]'{self.name}'", style="success")
         return True
 
 
@@ -290,8 +290,6 @@ class SessionCloseCommand(NoArgumentsCommand, declared_name="toad:session-close"
     help = "Close the current session"
 
     async def apply(self, conversation: Conversation) -> bool:
-        from toad import messages
-
         if conversation.turns.owner.busy:
             await conversation.agent_binding.cancel()
         if conversation.screen.id is not None:
@@ -310,8 +308,6 @@ class SessionNewCommand(SlashCommand, LocalCommand, declared_name="toad:session-
         return cls(arguments.strip())
 
     async def apply(self, conversation: Conversation) -> bool:
-        from toad import messages
-
         if conversation._agent_data is not None:
             conversation.app.session_navigation.events.publish(
                 session_requests.SessionNew(

@@ -1,4 +1,5 @@
 """Textual-facing: the conversation widget draws a submitted message before its slow history write finishes."""
+from toad.session_scope import AgentAttached
 
 import asyncio
 
@@ -7,7 +8,7 @@ from toad.widgets.user_input import UserInput
 
 
 async def test_submission_is_drawn_before_slow_history_persistence_finishes(workspace):
-    async with workspace.app(agent=peer("echo")) as ui:
+    async with workspace.app(binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_agent_ready()
         conversation = ui.conversation
         gate = asyncio.Event()

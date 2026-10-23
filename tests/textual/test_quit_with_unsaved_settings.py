@@ -1,4 +1,5 @@
 """Textual-facing: quitting with a settings edit that cannot be written keeps the app open, shows the error and keeps the draft; a retry saves the exact edit and exits."""
+from toad.session_scope import AgentAttached
 
 import json
 
@@ -14,7 +15,7 @@ async def test_quit_that_cannot_save_stays_open_and_a_retry_saves_the_edit_and_e
     path = config / 'toad.json'
     path.write_text(json.dumps({'anon_id': 'quit-save-durable', 'statistics': {'allow_collect': False},
                                 'ui': {'column-width': 100}}))
-    async with workspace.app(size=(130, 44), agent=peer("completion", name="Quit save peer", identity="quit-save-peer")) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(peer("completion", name="Quit save peer", identity="quit-save-peer"))) as ui:
         app, pilot = ui.textual
         view = ui.conversation
         record_notifications(app)

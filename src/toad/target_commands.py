@@ -49,7 +49,7 @@ class TargetContext:
 
     def current(self):
         if not root_is_current(self.comms.root):
-            raise RouteChangedError('Comms route changed; reopen this view')
+            raise RouteChangedError(RouteChangedError.reader_sentence)
         return self
 
     def available_actions(self):

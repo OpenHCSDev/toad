@@ -86,7 +86,7 @@ class ToggleInteraction(GoalInteraction):
         if isinstance(execution, ControlledExecution):
             await session.change(execution.toggle)
         else:
-            session.view.flash(session.display.heading(execution))
+            session.view.feedback.flash(session.display.heading(execution))
 
 
 class EditInteraction(GoalInteraction):
@@ -155,7 +155,7 @@ class GoalSession:
         if not self.owns(agent):
             return
         if not action.enabled(self):
-            view.flash(view.goal_display.heading(view.goal_execution))
+            view.feedback.flash(view.goal_display.heading(view.goal_execution))
             return
         await action.apply(self)
 
