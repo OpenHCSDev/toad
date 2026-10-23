@@ -27,7 +27,7 @@ class FrameApp(ToadApp):
 
 async def test_hidden_sidebars_keep_geometry_and_activated_views_first_frame_matches_intent(workspace):
     viewer = workspace.viewer
-    workspace.thread(viewer, "fixture", running=True)
+    workspace.thread(viewer, "fixture")
     workspace.comms.channels.create_tag("projection")
     workspace.comms.messaging.send(viewer, "#projection", "Channel history")
     async with workspace.app(size=(120, 40), application=FrameApp) as ui:
