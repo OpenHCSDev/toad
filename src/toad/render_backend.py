@@ -2,23 +2,27 @@
 
 from __future__ import annotations
 
+import asyncio
+import os
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
-import asyncio
 from contextvars import Context, copy_context
-import os
 from types import get_original_bases
-from typing import ClassVar, TypeVar, Generic, TYPE_CHECKING, cast, get_args, get_origin
+from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar, cast, get_args, get_origin
 
 from agent_comms.declared_family import DeclaredFamily
+
 from toad.work_preparation import (
-    PreparationStorage, SerializedStorage, PreparationRuntime, RenderPreparation,
+    PreparationRuntime,
+    PreparationStorage,
+    RenderPreparation,
+    SerializedStorage,
 )
 
 ResultT = TypeVar("ResultT")
 
 if TYPE_CHECKING:
-    from toad.work_preparation import WorkKey, PreparedValue
+    from toad.work_preparation import PreparedValue, WorkKey
 
 class RenderExecution(ABC, Generic[ResultT]):
     _matches_result: ClassVar[Callable[[object], bool]]
@@ -96,6 +100,7 @@ class RenderTask(RenderExecution[ResultT], PreparationStorage[ResultT], Declared
 class ReusableRenderTask(SerializedStorage[ResultT], RenderTask[ResultT]):
     async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
         from dataclasses import replace
+
         from toad.work_preparation import ContentAddressedWork
 
         return replace(await ContentAddressedWork.identity(work, runtime), scope=work.scope)

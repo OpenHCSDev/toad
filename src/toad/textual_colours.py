@@ -22,8 +22,8 @@ from rich.console import RenderableType
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
-from textual.app import App
 from textual.ansi_palette import AnsiPalette, MappedAnsiPalette, NativeAnsiPalette
+from textual.app import App
 from textual.color import Color
 from textual.content import Content
 from textual.design import ColorSystem
