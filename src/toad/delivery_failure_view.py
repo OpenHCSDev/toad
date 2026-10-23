@@ -3,7 +3,9 @@
 
 import asyncio
 from dataclasses import dataclass
+from pathlib import Path
 from agent_comms.errors import CommittedMessageError, HumanSendError, HumanSendRefusedError
+from agent_comms.messages import Message
 
 
 class SendState:
@@ -26,8 +28,8 @@ class SendPending(SendState):
 
 @dataclass(frozen=True)
 class SentUndrawn(SendState):
-    root: str
-    sent: object
+    root: Path
+    sent: Message
 
     @property
     def reason(self) -> str:

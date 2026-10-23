@@ -90,13 +90,16 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
         messaging = channel.message_history.page_source.loader.comms.messaging
         with (patch.object(WireSource, "read", held_read),
               patch.object(messaging, "send_user_message", wraps=messaging.send_user_message) as sender):
+            channel.prompt.text = "DIFFERENT_UNSENT_DRAFT"
             sent = input_events.UserInputSubmitted("COMMITTED-NOT-DRAWN")
             await channel.submit_input(sent)
             rows = on_wire(root, sent.body)
             assert len(rows) == 1 and sender.call_count == 1
-            # The message is on the wire but not drawn: its text stays, unsendable, under its identity.
+            await ui.until(lambda: rows[0].message_id in channel.status,
+                           why="the undrawn send's exact record in its visible status")
+            # The sent record owns the hold; a different draft remains untouched.
             assert channel.send_block_reason
-            assert channel.prompt.text == sent.body
+            assert channel.prompt.text == "DIFFERENT_UNSENT_DRAFT"
             assert channel.prompt.prompt_text_area.disabled
             assert str(rows[0].seq) in channel.status
             assert rows[0].message_id in channel.status
@@ -105,7 +108,7 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
             release.set()
             await ui.until(lambda: not channel.send_block_reason, why="the sent message drawn")
             assert ui.shows(sent.body)
-            assert channel.prompt.text == "" and not channel.prompt.prompt_text_area.disabled
+            assert channel.prompt.text == "DIFFERENT_UNSENT_DRAFT" and not channel.prompt.prompt_text_area.disabled
 
 
 async def test_a_send_whose_completion_fails_after_commit_shows_the_committed_record_and_is_not_resent(
@@ -137,13 +140,16 @@ async def test_a_send_whose_completion_fails_after_commit_shows_the_committed_re
 
         with (patch.object(WireSource, "read", held_read),
               patch.object(messaging, "send_user_message", side_effect=commit_then_fail) as sender):
+            channel.prompt.text = "DIFFERENT_UNSENT_DRAFT"
             sent = input_events.UserInputSubmitted("COMMITTED-THEN-FAILED")
             await channel.submit_input(sent)
             [record] = committed
+            await ui.until(lambda: record.message_id in channel.status,
+                           why="the committed record in its visible status after completion failed")
             assert times_on_wire(root, sent.body) == 1 and sender.call_count == 1
             # The exact committed record owns the status; nothing claims the message was not sent.
             assert channel.send_block_reason == f"Sent {root}/{record.seq}/{record.message_id}; waiting to be drawn, do not retry"
-            assert channel.prompt.text == sent.body
+            assert channel.prompt.text == "DIFFERENT_UNSENT_DRAFT"
             assert channel.prompt.prompt_text_area.disabled
             await channel.submit_input(sent)
             assert sender.call_count == 1
@@ -151,3 +157,4 @@ async def test_a_send_whose_completion_fails_after_commit_shows_the_committed_re
             await ui.until(lambda: not channel.send_block_reason, why="the committed message drawn")
             assert ui.shows(sent.body)
             assert times_on_wire(root, sent.body) == 1
+            assert channel.prompt.text == "DIFFERENT_UNSENT_DRAFT"

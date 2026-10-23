@@ -85,7 +85,7 @@ class AfterSequence(AfterMessage):
     kept = False
 
     def older(self) -> OlderTraversal:
-        return OlderTraversal(self.cursor.sequence + 1)
+        return OlderTraversal(LiveCursor(self.cursor.sequence + 1))
 
 
 @dataclass(frozen=True)
@@ -253,7 +253,6 @@ class WireSource:
     style: WireMessageStyle
     tail_limit: int = 8
     page_limit: int = 40
-    max_bytes: int = 256 * 1024
 
     @property
     def viewer(self) -> NamedViewer:

@@ -16,6 +16,8 @@ async def test_a_view_that_changed_during_send_preflight_keeps_the_draft_editabl
         with patch.object(messaging, "send_user_message", wraps=messaging.send_user_message) as sender:
             await view.deliver_user_message(workspace.roots.wire, "#team", "STALE_DRAFT",
                                             lambda: False, view._show_sent)
+            await ui.until(lambda: not view.prompt.prompt_text_area.disabled,
+                           why="the refused draft editable again")
             assert sender.call_count == 0
             assert not view.send_block_reason
             assert view.prompt.text == "STALE_DRAFT"

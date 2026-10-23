@@ -75,6 +75,8 @@ async def test_a_fresh_launch_uses_the_published_root_and_preserves_refused_and_
             with patch.object(source.comms.messaging, "send_user_message",
                               side_effect=HumanSendRefusedError("pre-append rejection")) as rejected:
                 await view.submit_input(input_events.UserInputSubmitted("EDITABLE_REJECTION"))
+                await ui.until(lambda: not view.prompt.prompt_text_area.disabled,
+                               why="the rejected draft editable on the fresh root")
                 assert rejected.call_count == 1
                 assert view.prompt.text == "EDITABLE_REJECTION"
                 assert not view.prompt.prompt_text_area.disabled
@@ -84,6 +86,8 @@ async def test_a_fresh_launch_uses_the_published_root_and_preserves_refused_and_
                               side_effect=HumanClaimBlockedError("prior reservation cannot be retried")) as sender:
                 event = input_events.UserInputSubmitted("BLOCKED_NO_RETRY")
                 await view.submit_input(event)
+                await ui.until(lambda: view.prompt.prompt_text_area.disabled,
+                               why="the blocked send visibly holds compose")
                 assert sender.call_count == 1
                 assert view.send_block_reason == "Send blocked: prior reservation cannot be retried"
                 assert view.prompt.text == event.body
