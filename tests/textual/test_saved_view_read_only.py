@@ -1,7 +1,7 @@
 """Textual-facing: a saved view opens from the sidebar as normal history with a disabled composer (widget state)."""
 
 from agent_comms.catalog_document import CatalogDocument, ChannelPreferences
-from agent_comms.channels import AnyOfMatch, SavedView, ViewKind, ViewPredicate
+from agent_comms.channels import ActivityView, AnyOfMatch, ViewPredicate
 
 from support.textual_steps import channel_roster
 
@@ -21,8 +21,8 @@ async def test_saved_view_shows_union_history_keeps_its_pin_and_refuses_to_send(
     comms.channels.catalog.replace(CatalogDocument(
         tags=frozenset({"api", "ui"}),
         preferences={"#engineering": ChannelPreferences(pinned=True, created_at=17)},
-        saved_views={"engineering": SavedView(
-            "engineering", ViewKind.ACTIVITY, ViewPredicate(AnyOfMatch, frozenset({"api", "ui"})), 17,
+        saved_views={"engineering": ActivityView(
+            "engineering", ViewPredicate(AnyOfMatch, frozenset({"api", "ui"})), 17,
             frozenset({"#engineering"}))},
     ))
     before = comms.bus.log.path.read_bytes()
