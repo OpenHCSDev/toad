@@ -53,12 +53,6 @@ class Session(ToadTables, TypedTable, declared_name="sessions"):
 
 
 @dataclass(frozen=True)
-class OpenTabRow(ToadTables, TypedTable, declared_name="open_tabs"):
-    session_id: Annotated[int, Column(primary_key=True)]
-    position: int
-
-
-@dataclass(frozen=True)
 class ModelHistory(ToadTables, TypedTable, declared_name="model_history"):
     agent_identity: Annotated[str, Column(primary_key=True)]
     model_id: Annotated[str, Column(primary_key=True)]
@@ -95,23 +89,6 @@ class DB:
                 return operation(db)
 
         return await asyncio.to_thread(transaction)
-
-    async def tab_write(self, session_id: int, position: int) -> None:
-        def write(db):
-            OpenTabRow.delete(db, where="{session_id} = ?", parameters=(session_id,))
-            OpenTabRow(session_id, position).insert(db)
-
-        await self._transaction(write)
-
-    async def tab_delete(self, session_id: int) -> None:
-        await self._transaction(lambda db: OpenTabRow.delete(
-            db, where="{session_id} = ?", parameters=(session_id,),
-        ))
-
-    async def tab_list(self) -> list[OpenTabRow]:
-        return await self._transaction(lambda db: OpenTabRow.select(
-            db, order_by=("position", "session_id"),
-        ))
 
     async def record_model_usage(
         self, agent_identity: str, model_id: str, *, last_used: int | None = None,
