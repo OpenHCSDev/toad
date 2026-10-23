@@ -213,6 +213,20 @@ class TextualUi(AppAgents, Ui):
     def visible_lines(self) -> list[str]:
         return [strip.text for strip in self.app.screen._compositor.render_strips()]
 
+    async def menu(self, why: str) -> dict:
+        """The open context menu's actions and their labels, once it shows."""
+        from toad.widgets.comms_menu import ContextMenu
+
+        await self.until(lambda: isinstance(self.app.screen, ContextMenu) and self.app.screen.options.option_count > 0,
+                         why=why)
+        return {item.action: str(item.prompt) for item in self.app.screen.options.options}
+
+    async def choose_menu_action(self, action) -> None:
+        """Choose one action of the open context menu the way a keyboard user does."""
+        options = self.app.screen.options
+        options.highlighted = [item.action for item in options.options].index(action)
+        await self.pilot.press("enter")
+
     def tabs(self) -> tuple[Tab, ...]:
         from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
