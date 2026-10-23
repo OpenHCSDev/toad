@@ -6,8 +6,27 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 import tempfile
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from agent_comms.comms import Comms
 
 ATTEMPT = "TOAD_TEST_ATTEMPT"
+
+
+def installed_wire(root: Path) -> Comms:
+    """Prepare the same bus and native schemas that an installed owner uses."""
+    from agent_comms.bus import Bus
+    from agent_comms.comms import Comms
+    from agent_comms.coordination_database import CoordinationStore
+    from agent_comms.coordinator import Coordination
+
+    comms = Comms(root)
+    comms.registry.prepare_native_root()
+    Bus.install(Bus.path_in(root))
+    with Coordination(str(CoordinationStore.path_in(root))) as coordinator:
+        coordinator.install_private_runtime()
+    return comms
 
 
 @dataclass(frozen=True)

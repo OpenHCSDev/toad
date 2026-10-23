@@ -3,30 +3,37 @@
 import asyncio
 import threading
 from unittest.mock import patch
+import pytest
 
 from agent_comms.comms import wire
 
-from support.routes import private_root, publish_route, select_root_by_default_route
-from support.textual_steps import refresh_chat
+
+@pytest.fixture
+def conversation(workspace):
+    workspace.thread("peer", "team")
+    workspace.comms.messaging.send("peer", "#team", "INITIAL")
+    return workspace
+
+
+def on_wire(root, body):
+    bus = wire(root).bus.bus
+    return [row for row in bus.since(0, bus.revision()) if row.body == body]
 
 
 def times_on_wire(root, body):
-    return [row.body for row in wire(root).bus.log.full_history()].count(body)
+    return len(on_wire(root, body))
 
 
-async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_replayed(workspace, monkeypatch):
+async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_replayed(conversation):
     from toad.core import input_events
     from toad.widgets.comms_chat import CommsChatView
 
-    attempt = workspace.roots.attempt
-    home = select_root_by_default_route(monkeypatch, attempt)
-    root, root_id = private_root(attempt / "wire-private", workspace.project, "INITIAL")
-    publish_route(home, root, root_id)
+    root = conversation.roots.wire
 
-    async with workspace.app(size=(105, 32)) as ui:
-        await ui.open_direct("peer", actor="user")
+    async with conversation.app(size=(105, 32)) as ui:
+        await ui.open_direct("peer", actor=conversation.viewer)
         view = ui.textual[0].screen.query_one(CommsChatView)
-        messaging = view.message_history.source.comms.messaging
+        messaging = view.message_history.page_source.loader.comms.messaging
         original_send = messaging.send_user_message
         started, release, settled = threading.Event(), threading.Event(), threading.Event()
         calls = 0
@@ -48,7 +55,7 @@ async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_rep
             assert await asyncio.to_thread(started.wait, 8)
             task.cancel()
             await task
-            assert view._send_block_reason
+            assert view.send_block_reason
             assert view.prompt.text == event.body
             assert view.prompt.prompt_text_area.disabled
             await view.submit_input(event)
@@ -62,20 +69,17 @@ async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_rep
 
 
 async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_until_it_is_drawn(
-        workspace, monkeypatch):
+        conversation):
     from toad.core import input_events
     from toad.widgets.comms_chat import CommsChatView
     from toad.wire_history import WireSource
 
-    attempt = workspace.roots.attempt
-    home = select_root_by_default_route(monkeypatch, attempt)
-    root, root_id = private_root(attempt / "wire-private", workspace.project, "INITIAL")
-    publish_route(home, root, root_id)
+    root = conversation.roots.wire
 
-    async with workspace.app(size=(105, 32)) as ui:
-        await ui.open_channel("#team", actor="user")
+    async with conversation.app(size=(105, 32)) as ui:
+        await ui.open_channel("#team", actor=conversation.viewer)
         channel = ui.textual[0].screen.query_one(CommsChatView)
-        await refresh_chat(channel)
+        await ui.until_shows("INITIAL")
         release = threading.Event()
         real_read = WireSource.read
 
@@ -83,15 +87,15 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
             assert release.wait(8), "the held read was not released"
             return real_read(source, request, through)
 
-        messaging = channel.message_history.source.comms.messaging
+        messaging = channel.message_history.page_source.loader.comms.messaging
         with (patch.object(WireSource, "read", held_read),
               patch.object(messaging, "send_user_message", wraps=messaging.send_user_message) as sender):
             sent = input_events.UserInputSubmitted("COMMITTED-NOT-DRAWN")
             await channel.submit_input(sent)
-            rows = [row for row in wire(root).bus.log.full_history() if row.body == sent.body]
+            rows = on_wire(root, sent.body)
             assert len(rows) == 1 and sender.call_count == 1
             # The message is on the wire but not drawn: its text stays, unsendable, under its identity.
-            assert channel._send_block_reason
+            assert channel.send_block_reason
             assert channel.prompt.text == sent.body
             assert channel.prompt.prompt_text_area.disabled
             assert str(rows[0].seq) in channel.status
@@ -99,6 +103,51 @@ async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_
             await channel.submit_input(sent)
             assert sender.call_count == 1
             release.set()
-            await ui.until(lambda: not channel._send_block_reason, why="the sent message drawn")
+            await ui.until(lambda: not channel.send_block_reason, why="the sent message drawn")
             assert ui.shows(sent.body)
             assert channel.prompt.text == "" and not channel.prompt.prompt_text_area.disabled
+
+
+async def test_a_send_whose_completion_fails_after_commit_shows_the_committed_record_and_is_not_resent(
+        conversation):
+    from agent_comms.errors import CommittedMessageError
+    from toad.core import input_events
+    from toad.widgets.comms_chat import CommsChatView
+    from toad.wire_history import WireSource
+
+    root = conversation.roots.wire
+
+    async with conversation.app(size=(105, 32)) as ui:
+        await ui.open_channel("#team", actor=conversation.viewer)
+        channel = ui.textual[0].screen.query_one(CommsChatView)
+        await ui.until_shows("INITIAL")
+        release = threading.Event()
+        real_read = WireSource.read
+        messaging = channel.message_history.page_source.loader.comms.messaging
+        original_send = messaging.send_user_message
+        committed = []
+
+        def held_read(source, request, through):
+            assert release.wait(8), "the held read was not released"
+            return real_read(source, request, through)
+
+        def commit_then_fail(*args, **kwargs):
+            committed.append(original_send(*args, **kwargs))
+            raise CommittedMessageError(committed[-1])
+
+        with (patch.object(WireSource, "read", held_read),
+              patch.object(messaging, "send_user_message", side_effect=commit_then_fail) as sender):
+            sent = input_events.UserInputSubmitted("COMMITTED-THEN-FAILED")
+            await channel.submit_input(sent)
+            [record] = committed
+            assert times_on_wire(root, sent.body) == 1 and sender.call_count == 1
+            # The exact committed record owns the status; nothing claims the message was not sent.
+            assert channel.send_block_reason == f"Sent {root}/{record.seq}/{record.message_id}; waiting to be drawn, do not retry"
+            assert channel.prompt.text == sent.body
+            assert channel.prompt.prompt_text_area.disabled
+            await channel.submit_input(sent)
+            assert sender.call_count == 1
+            release.set()
+            await ui.until(lambda: not channel.send_block_reason, why="the committed message drawn")
+            assert ui.shows(sent.body)
+            assert times_on_wire(root, sent.body) == 1

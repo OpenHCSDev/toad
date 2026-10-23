@@ -3,7 +3,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from agent_comms.errors import HumanSendError
+from agent_comms.errors import CommittedMessageError, HumanSendError, HumanSendRefusedError
 
 
 class SendState:
@@ -44,17 +44,6 @@ class SendBlocked(SendState):
     @property
     def reason(self) -> str:
         return f"Send blocked: {self.description}"
-
-
-@dataclass(frozen=True)
-class SendUnknown(SendState):
-    failure: object
-
-    @property
-    def reason(self) -> str:
-        failure = self.failure
-        return (f"Send UNKNOWN {failure.wire_root_id}/{failure.wire_seq}/{failure.message_id}: "
-                f"{failure.description}; inspect the bus, do not retry")
 
 
 class DeliveryFailureView:
@@ -117,7 +106,7 @@ class DeliveryFailureView:
         async def require_route():
             route_current = await self.app.preparation.run_thread(root_is_current, root)
             if not route_current or not current():
-                raise ValueError("Message route changed; reopen this view")
+                raise HumanSendRefusedError("Message route changed; reopen this view")
 
         try:
             async with self.app.coordination_access.transcripts.bind(root) as comms:
@@ -149,6 +138,8 @@ class DeliveryFailureView:
         except HumanSendError as error:
             delivery_failure(error).present(self, body)
             return None
+        except CommittedMessageError as error:
+            sent = error.record
         self._enter_send_state(SentUndrawn(comms.root, sent))
         return sent
 
@@ -156,11 +147,6 @@ class DeliveryFailureView:
         """Enable compose only when the sent message is drawn."""
         if self._send_state.drawn_in(self):
             self._enter_send_state(NoSend())
-
-    def delivery_unknown(self, failure, body: str) -> None:
-        self.prompt.restore_draft(body)
-        self._enter_send_state(SendUnknown(failure))
-        self.flash(self.send_block_reason, style="error")
 
     def delivery_blocked(self, description: str, body: str) -> None:
         self.prompt.restore_draft(body)
