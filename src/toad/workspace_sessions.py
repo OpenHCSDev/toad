@@ -249,12 +249,20 @@ class WorkspaceSessions:
         owner.call_later(callback)
         return True
 
-    async def close(self, identity: str) -> None:
+    def detach(self, identity: str) -> SessionScope | None:
         if view := self.views.pop(identity, None):
             if self.source.matches(view):
                 self.source = DetachedWorkspaceSource()
-            await view.close_presentation()
-            await view.remove()
+            return view
+        return None
+
+    async def close(self, identity: str) -> None:
+        if view := self.detach(identity):
+            await self.finish(view)
+
+    async def finish(self, view: SessionScope) -> None:
+        await view.close_presentation()
+        await view.remove()
 
     async def aclose(self) -> None:
         """Finalize owned sources while their frame and operational bindings exist."""

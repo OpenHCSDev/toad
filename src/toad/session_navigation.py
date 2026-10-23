@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -28,7 +29,7 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.session_scope import AgentAttached, AgentBinding, AgentSession
+from toad.session_scope import AgentAttached, AgentBinding, AgentSession, SessionScope
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
@@ -41,6 +42,14 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.navigation_target import HistoryRouted
     from toad.screens.main import MainScreen
+
+
+@dataclass(frozen=True)
+class Detached:
+    members: tuple[SessionEntry, ...]
+    views: tuple[SessionScope, ...]
+    returning: SessionEntry | None
+    returning_view: SessionScope | None
 
 
 class SessionNavigation:
@@ -224,7 +233,8 @@ class SessionNavigation:
             )
         )
         if removed:
-            task = asyncio.ensure_future(self.close_many(removed))
+            detached = self.detach(removed)
+            task = asyncio.ensure_future(self.finish(detached))
             self._closing_retired.add(task)
             task.add_done_callback(self._closing_retired.discard)
 
@@ -427,11 +437,14 @@ class SessionNavigation:
         await self.close_many((mode,))
 
     async def close_many(self, modes: tuple[str, ...]) -> None:
+        await self.finish(self.detach(modes))
+
+    def detach(self, modes: tuple[str, ...]) -> Detached:
         entries = tuple(
             entry for mode in modes if (entry := self.get(mode)) is not None
         )
         if not entries:
-            return
+            return Detached((), (), None, None)
         closing = tuple(
             member
             for member in self.members
@@ -443,23 +456,32 @@ class SessionNavigation:
         )
         for member in closing:
             member.forget(self)
-        await self.app.tab_order.close({member.identity for member in closing})
-        # Retire membership before publication and slow widget exits. Delayed
-        # opening metadata cannot revive a closed owner during teardown.
+        views = []
+        returning_view = None
         for member in closing:
             group = self.entries[member.owner_mode]
             del group[member.mode]
             if not group:
                 del self.entries[member.owner_mode]
+            if view := self.app.workspace_sessions.detach(member.mode):
+                views.append(view)
+                if member is returning:
+                    returning_view = view
         self.publish()
+        return Detached(closing, tuple(views), returning, returning_view)
+
+    async def finish(self, detached: Detached) -> None:
+        if not detached.members:
+            return
         try:
-            # Closed entries cannot reopen. Show the surviving workspace
-            # before joining hydration, native sessions and widget removal.
-            if returning is not None:
-                await returning.return_to(self)
+            await self.app.tab_order.close({member.identity for member in detached.members})
+            if detached.returning_view is not None:
+                await detached.returning_view.retire_presentation()
+            if detached.returning is not None:
+                await detached.returning.return_to(self)
         finally:
-            for member in closing:
-                await self.app.workspace_sessions.close(member.mode)
+            for view in detached.views:
+                await self.app.workspace_sessions.finish(view)
 
     def observed(self, event: core_events.CoordinationObserved) -> None:
         # Views on the observed root retire through the observation service
