@@ -89,27 +89,23 @@ class DB:
     def __init__(self):
         self.path = paths.get_state() / "toad.db"
 
+    def transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
+        with closing(SQLiteFile.writer(self.path)) as db, db:
+            return operation(db)
+
     async def _transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
-        def transaction():
-            with closing(SQLiteFile.writer(self.path)) as db, db:
-                return operation(db)
+        return await asyncio.to_thread(self.transaction, operation)
 
-        return await asyncio.to_thread(transaction)
+    def tab_write(self, session_id: int, position: int) -> None:
+        self.transaction(lambda db: OpenTabRow(session_id, position).upsert(db))
 
-    async def tab_write(self, session_id: int, position: int) -> None:
-        def write(db):
-            OpenTabRow.delete(db, where="{session_id} = ?", parameters=(session_id,))
-            OpenTabRow(session_id, position).insert(db)
-
-        await self._transaction(write)
-
-    async def tab_delete(self, session_id: int) -> None:
-        await self._transaction(lambda db: OpenTabRow.delete(
+    def tab_delete(self, session_id: int) -> None:
+        self.transaction(lambda db: OpenTabRow.delete(
             db, where="{session_id} = ?", parameters=(session_id,),
         ))
 
-    async def tab_list(self) -> list[OpenTabRow]:
-        return await self._transaction(lambda db: OpenTabRow.select(
+    def tab_list(self) -> list[OpenTabRow]:
+        return self.transaction(lambda db: OpenTabRow.select(
             db, order_by=("position", "session_id"),
         ))
 
