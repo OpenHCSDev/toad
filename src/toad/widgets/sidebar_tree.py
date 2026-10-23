@@ -34,7 +34,7 @@ from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalGroup
-from textual.geometry import Size
+from textual.geometry import Offset, Size
 from textual.layouts.vertical import VerticalLayout
 from textual.reactive import reactive
 from textual.widget import Widget
@@ -793,6 +793,9 @@ class TargetTree(Vertical):
         raise NotImplementedError
 
     def selection_for(self, row: CommsRow):
+        raise NotImplementedError
+
+    def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
         raise NotImplementedError
 
     def accepts_selection(self) -> bool:
