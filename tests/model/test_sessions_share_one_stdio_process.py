@@ -1,33 +1,34 @@
 """Sessions attached to one stdio agent process share its connection; closing one session, or one the agent refused, leaves the others and the process running."""
 import asyncio
+import os
 
 import pytest
 
 from acp.schema import AvailableCommand, AvailableCommandsUpdate
 from agent_comms.comms import wire
+from agent_comms.launch_runtime import ThreadLaunch
 from support.shared_stdio import stdio_agent_definition, threads_owned_here
 from toad.acp.agent import Agent
 
 
 @pytest.fixture
-def attachment_scope(tmp_path, monkeypatch):
+def attachment_scope(tmp_path, monkeypatch, app_agents):
     root = tmp_path / 'wire'
-    project = tmp_path / 'project'
-    project.mkdir()
+    project = tmp_path
     monkeypatch.setenv('AGENT_COMMS_ROOT', str(root))
     monkeypatch.setenv('AGENT_COMMS_AGENT_MODELS', 'test/one')
     monkeypatch.setenv('XDG_STATE_HOME', str(tmp_path / 'state'))
     monkeypatch.setenv('XDG_CONFIG_HOME', str(tmp_path / 'config'))
     monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path / 'data'))
-    for key in ('AGENT_COMMS_THREAD', 'AGENT_COMMS_MANAGED', 'PI_AGENT_ID', 'PI_PARENT_ID'):
-        monkeypatch.delenv(key, raising=False)
-    return project, stdio_agent_definition(), wire(root)
+    for key in ThreadLaunch.inherited(os.environ):
+        monkeypatch.delenv(key)
+    return app_agents, project, stdio_agent_definition(), wire(root)
 
 
 async def test_closing_one_session_leaves_the_others_on_the_shared_process(attachment_scope):
-    project, definition, comms = attachment_scope
+    agents, project, definition, comms = attachment_scope
     permissions = []
-    alpha, beta, reopened = [Agent(project, definition, name) for name in ('alpha', 'beta', 'alpha')]
+    alpha, beta, reopened = [agents.agent(Agent, definition, name) for name in ('alpha', 'beta', 'alpha')]
     shared = None
     try:
         async with threads_owned_here(comms, project) as owner:
@@ -98,8 +99,8 @@ async def test_closing_one_session_leaves_the_others_on_the_shared_process(attac
 
 
 async def test_stopping_a_session_the_agent_refused_leaves_the_shared_process(attachment_scope):
-    project, definition, comms = attachment_scope
-    alpha, refused = Agent(project, definition, 'alpha'), Agent(project, definition, 'never-declared')
+    agents, project, definition, comms = attachment_scope
+    alpha, refused = agents.agent(Agent, definition, 'alpha'), agents.agent(Agent, definition, 'never-declared')
     shared = None
     try:
         async with threads_owned_here(comms, project):
