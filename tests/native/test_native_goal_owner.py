@@ -2,6 +2,7 @@
 
 import pytest
 from agent_comms.goal_actions import SetGoalAction
+from agent_comms.runtime_requests import GoalHistoryReply
 from support.native import native_session
 
 
@@ -27,10 +28,12 @@ async def test_editing_a_goal_keeps_its_identity_and_refuses_a_stale_edit(worksp
         assert comms.registry.require(session).goal == changed
         with pytest.raises(ValueError):
             await agent.edit_goal(first, "Stale overwrite")
-        history = await agent.get_goal_history(changed.id)
-        assert any(entry["after"] and entry["after"]["text"] == "First objective" for entry in history)
-        assert any(entry["before"] and entry["before"]["text"] == "First objective"
-                   and entry["after"]["text"] == "Revised objective" for entry in history)
-        assert not any(entry["after"] and entry["after"]["text"] == "Stale overwrite" for entry in history)
+        history: GoalHistoryReply = await agent.get_goal_history(changed.id)
+        assert any(entry.after.shows_document and entry.after.require().text == "First objective"
+                   for entry in history.history)
+        assert any(entry.before.shows_document and entry.before.require().text == "First objective"
+                   and entry.after.require().text == "Revised objective" for entry in history.history)
+        assert not any(entry.after.shows_document and entry.after.require().text == "Stale overwrite"
+                       for entry in history.history)
         snapshot = await agent.get_goal_snapshot()
         assert snapshot.goal == changed and snapshot.execution.goal_id == changed.id

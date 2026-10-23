@@ -3,11 +3,13 @@
 from dataclasses import replace
 
 from agent_comms.acp_extension import GoalChangedUpdate
+from agent_comms.goal_history import RecordedGoalRevision
 from agent_comms.goal_presentation import (
     GoalWaitTarget, IdleGoalExecution, PausedExecution, RunnableExecution, StandbyExecution,
 )
 from agent_comms.goal_states import PausedGoal
 from agent_comms.goals import NoGoal
+from agent_comms.runtime_requests import GoalHistoryReply
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from textual.widgets import Button, Static
 
@@ -26,13 +28,13 @@ def goal_owner(workspace, app):
     goal = bound_mentions(published_goal("Coordinate with @peer", "stable-goal", progress="Keep evidence", revision=4),
                           workspace.thread("goal-owner"), workspace.comms.registry.snapshot())
     execution = StandbyExecution(goal.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),), ())
-    history = [
-        {"sequence": 1, "kind": "baseline", "observed_at": 1000.0, "before": None,
-         "after": replace(goal, text="HISTORICAL_OBJECTIVE", revision=4).to_wire()},
-        {"sequence": 2, "kind": "transition", "observed_at": 1001.0,
-         "before": replace(goal, revision=4).to_wire(), "after": goal.to_wire()},
-    ]
-    owner = ScriptedGoalOwner.owning(app, goal, execution, history=tuple(history))
+    history = GoalHistoryReply((
+        RecordedGoalRevision(sequence=1, kind="baseline", observed_at=1000.0, before=NoGoal(),
+                             after=replace(goal, text="HISTORICAL_OBJECTIVE", revision=4)),
+        RecordedGoalRevision(sequence=2, kind="transition", observed_at=1001.0,
+                             before=replace(goal, revision=4), after=goal),
+    ))
+    owner = ScriptedGoalOwner.owning(app, goal, execution, history=history)
     owner.reject = True
     return owner
 
