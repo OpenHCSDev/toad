@@ -174,7 +174,7 @@ class Renderer(RendererSpawn):
         try:
             await asyncio.wait((pending,))
         finally:
-            if waiter is not None:
+            if isinstance(waiter, asyncio.Task):
                 asyncio.future_discard_from_awaited_by(pending, waiter)
 
     def _submission_finished(self, task: asyncio.Task) -> None:
