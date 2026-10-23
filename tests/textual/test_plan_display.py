@@ -150,7 +150,9 @@ async def test_a_plan_sent_while_no_view_shows_the_agent_is_drawn_when_its_view_
         editor = view.prompt.prompt_text_area
         editor.insert("Detached plan draft")
         original_document, original_history = editor.document, editor.history
-        await app.session_navigation.new(lambda: MainScreen(workspace.project, agent_session_id="plan-blank"))
+        await app.session_navigation.new(
+            lambda: MainScreen(workspace.project, app.agent_binding.for_session("plan-blank"))
+        )
         assert agent.controller.surface.target is None
         detached_plan = {"entries": [{"content": "DETACHED_PLAN_ITEM", "priority": "high", "status": "pending"}]}
         advance(workspace, 0)

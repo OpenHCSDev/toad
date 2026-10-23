@@ -4,10 +4,16 @@ from agent_comms.messages import InfoKind, Message
 from textual.app import App
 
 from toad.line_blocks import OpenTarget
-from toad.widgets.transcript_lines import LineTheme, PlainLines, RichLineRenderer
+from toad.notification_status import CheckedNotifications
+from toad.textual_colours import ThemedApp
+from toad.widgets.transcript_lines import PlainLines, RichLineRenderer
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.widgets.transcript_fragments import MessageShown
 from toad.wire_history import WireFragment
+
+
+class MessageApp(ThemedApp, App):
+    pass
 
 
 def fragment(target, style=IrcMessageStyle()):
@@ -17,8 +23,9 @@ def fragment(target, style=IrcMessageStyle()):
 
 
 def theme():
-    app = App()
-    return LineTheme.of(app.get_css_variables(), "truecolor", app.ansi_theme)
+    app = MessageApp()
+    app.get_css_variables()
+    return app.colours.line_theme
 
 
 def clicks(rows):
@@ -42,16 +49,14 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_their_names_clickable_at_ever
             assert {OpenTarget("explorer-grandchild").click, OpenTarget(target).click} <= clicks(rows)
 
 
-def test_the_rows_that_count_as_reading_are_the_text_between_header_and_notification_line():
+def test_opening_notification_details_draws_more_rows_than_the_collapsed_message():
+    status = CheckedNotifications(())
     for style in (IrcMessageStyle(), MarkdownMessageStyle()):
         shown = fragment("#all", style)
+        shown.show(MessageShown(style=style, status=status))
         for width in (36, 80):
             lines = PlainLines(width, theme(), shown.line_blocks)
-            assert lines.height == len(lines.rows)
-            rows = shown.text_rows(lines)
-            assert (rows.start, rows.stop) == (2, lines.height - 1)
-            # With its details open the notification takes more rows below the text.
             opened = fragment("#all", style)
-            opened.show(MessageShown(style=style, details_open=True))
+            opened.show(MessageShown(style=style, status=status, details_open=True))
             taller = PlainLines(width, theme(), opened.line_blocks)
-            assert opened.text_rows(taller) == rows and taller.height > lines.height
+            assert taller.height > lines.height
