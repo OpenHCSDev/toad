@@ -3,44 +3,48 @@
 from dataclasses import replace
 
 from agent_comms.audience_manifest import FrozenRecipient
+from agent_comms.notification_progress import CompletedProgress, ReadingProgress, ShownToModelProgress
 from agent_comms.presentation import MessageNotification
-from textual.app import App
+from agent_comms.thread_identity import RecordedThreadIncarnation
 
-from toad.textual_colours import ThemedApp
+from toad.notification_status import CheckedNotifications, UnavailableNotifications
 from toad.widgets.message_notifications import MessageNotifications
 
 
-class FeedbackApp(ThemedApp, App):
-    def compose(self):
-        yield MessageNotifications()
-
-
-async def test_changed_details_and_errors_keep_the_title_layout_but_changed_summaries_publish():
-    app = FeedbackApp()
-    async with app.run_test(size=(90, 20)) as pilot:
-        feedback = app.query_one(MessageNotifications)
-        first = MessageNotification(FrozenRecipient("peer", "peer"), "Responding", "First outcome", 1, True)
-        feedback.show_result((first,))
-        await pilot.pause()
+async def test_changed_details_and_errors_keep_the_title_layout_but_changed_summaries_publish(workspace):
+    workspace.thread("source")
+    feedback = MessageNotifications()
+    async with workspace.app(size=(90, 30), resume="source") as ui:
+        app, pilot = ui.textual
+        # Sent-message feedback lives inside a conversation, which owns its project path.
+        await ui.conversation.mount(feedback)
+        # The state Core shows while the recipient is producing its response.
+        responding = MessageNotification(FrozenRecipient("peer", "peer"), "owner", ReadingProgress(1))
+        feedback.show(CheckedNotifications((responding,)))
+        await ui.step()
         title = feedback.query_one("CollapsibleTitle")
-        await pilot.click(title)
-        await pilot.pause()
+        assert await pilot.click(title)
+        await ui.step()
         assert not feedback.collapsed
         before = title._layout_updates
-        feedback.show_result((replace(first, detail="Updated outcome"),))
-        await pilot.pause()
+        read_by = replace(responding, displayed_to=(RecordedThreadIncarnation("reader", 1.0),))
+        feedback.show(CheckedNotifications((read_by,)))
+        await ui.step()
         assert title._layout_updates == before
-        assert "Updated outcome" in str(feedback.details.render())
-        assert "Responding (1)" in str(feedback.title) and feedback.has_class("-working")
-        feedback.show_result((replace(first, state="Responded", busy=False),))
-        await pilot.pause()
-        assert "Responded (1)" in str(feedback.title) and not feedback.has_class("-working")
-        feedback.show_error(OSError("First read error"))
-        await pilot.pause()
+        await ui.until(lambda: "Read by reader" in " ".join(ui.painted(feedback).split()), why="the changed details")
+        assert str(feedback.title) == MessageNotification.summary((read_by,))
+        assert feedback.has_class("-working")
+        completed = replace(read_by, state=CompletedProgress(ShownToModelProgress(1)))
+        feedback.show(CheckedNotifications((completed,)))
+        await ui.step()
+        assert str(feedback.title) == MessageNotification.summary((completed,))
+        assert str(feedback.title) != MessageNotification.summary((read_by,))
+        assert not feedback.has_class("-working")
+        feedback.show(UnavailableNotifications("First read error"))
+        await ui.step()
         before = title._layout_updates
-        feedback.show_error(OSError("Changed read error"))
-        await pilot.pause()
+        feedback.show(UnavailableNotifications("Changed read error"))
+        await ui.step()
         assert title._layout_updates == before
-        assert "Changed read error" in str(feedback.details.render())
+        await ui.until(lambda: "Changed read error" in " ".join(ui.painted(feedback).split()), why="the changed error")
         assert feedback.has_class("-unavailable")
-        assert app._exception is None
