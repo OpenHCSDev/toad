@@ -50,7 +50,7 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         assert history.state.can_draw
         assert history.state.reports_coverage
         assert not history.state.accepts_source_work
-        history.request_latest()
+        history.window.action_scroll_end()
         # A parked tab cancels its running operation and the pending End.
         # Resuming accepts work on the same source, never a dead worker.
         await history.retire_source(parked=True)
