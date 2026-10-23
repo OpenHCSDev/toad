@@ -44,7 +44,7 @@ def test_capture_after_binding_names_the_bound_scope(tmp_path):
     attachment = QueueAttachment()
     token = attachment.begin("source")
     attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
-    assert attachment.capture_human_input(comms, scope) == HumanInputOrigin.capture(comms, scope.claim_scope)
+    assert attachment.capture_human_input(comms, scope) == HumanInputOrigin.capture(comms, scope.claimed_identity)
 
 
 def test_capture_after_a_replacement_begins_is_refused(tmp_path):

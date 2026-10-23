@@ -23,7 +23,7 @@ async def saved_history(workspace, ui):
     page = workspace.comms.transcripts.thread_transcript_page("saved")
     conversation = ui.conversation
     ui.attach_agent(ui.detached_agent())
-    await conversation.transcript.snapshot(page)
+    conversation.transcript.received(page)
     await ui.until(lambda: conversation.contents.query_children(TranscriptHistory), why="the saved history")
     return page, conversation.contents.query_children(TranscriptHistory).first(), conversation.query_one(SessionDetails)
 
@@ -40,7 +40,7 @@ async def test_saved_history_is_unavailable_while_its_source_is_parked_and_retur
         await ui.until(lambda: "Saved history not loaded" in details.title, why="saved history reported not loaded")
         assert not history.state.reports_coverage
 
-        await conversation.transcript.snapshot(page)
+        conversation.transcript.received(page)
         await ui.until(lambda: history.state.reports_coverage, why="coverage reported again")
         await ui.until(lambda: "Saved history available" in details.title, why="saved history reported available again")
         assert "Saved history available" in details.overview_text
@@ -61,6 +61,6 @@ async def test_a_live_message_does_not_count_as_saved_history_coverage(workspace
         await conversation.transcript.reveal_retained(history)
         await ui.until(lambda: "Saved history not loaded" in details.title, why="saved history reported not loaded")
         assert not conversation.transcript.reports_coverage
-        await conversation.transcript.snapshot(page)
+        conversation.transcript.received(page)
         await ui.until(lambda: "Saved history available" in details.title, why="saved history reported available")
         assert tuple(history.pages) == pages
