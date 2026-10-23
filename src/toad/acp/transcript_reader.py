@@ -13,7 +13,6 @@ presentation that settles turns, owner actions and input capture.
 from __future__ import annotations
 
 import asyncio
-from contextlib import asynccontextmanager
 from functools import partial
 
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
@@ -52,15 +51,11 @@ class CoordinationTranscriptReader:
         self, root: str, thread: str
     ) -> StoredRead[ThreadPresentation]:
         """The stored-read owner classifies failures inside the read worker."""
-        async with self.bind(root) as reader:
-            return await asyncio.to_thread(
-                UnreadableHistory.outcome,
-                partial(read_thread_presentation, reader, thread),
-            )
-
-    @asynccontextmanager
-    async def bind(self, root: str):
-        yield await self.service(root)
+        reader = await self.service(root)
+        return await asyncio.to_thread(
+            UnreadableHistory.outcome,
+            partial(read_thread_presentation, reader, thread),
+        )
 
     async def publication(
         self, update: TranscriptSnapshotUpdate

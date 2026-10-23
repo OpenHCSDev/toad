@@ -1,6 +1,8 @@
 """One contextual command projection for pointer menus and slash discovery."""
 
 from __future__ import annotations
+
+from agent_comms.errors import RouteChangedError
 from toad.core import session_requests
 
 from abc import ABC, abstractmethod
@@ -11,7 +13,6 @@ from typing import TYPE_CHECKING, Self
 
 from agent_comms.comms import Comms
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
-from agent_comms.errors import RouteChangedError
 from agent_comms.route_selection import root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_commands import CliCommand, TargetAction

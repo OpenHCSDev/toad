@@ -6,8 +6,9 @@ from pathlib import Path
 
 from acp.schema import ToolCall as SDKToolCall
 
-from support.agents import peer
-from toad.acp.agent import Agent
+from toad.agent import AgentBase
+
+from support.agents import deliver, peer
 from toad.acp.tool_calls import SessionToolCalls
 from toad.tool_output import ReadToolOutputPart
 from toad.widgets.tool_call import ToolCall
@@ -25,24 +26,26 @@ async def test_tool_start_progress_and_missing_start_in_the_running_app(workspac
 
     async with workspace.app(size=(110, 35), binding=AgentAttached(peer("echo"))) as ui:
         view = ui.conversation
-        await ui.until(lambda: isinstance(view.agent_binding, Agent), seconds=20, why="the agent to be created")
+        await ui.until(lambda: isinstance(view.agent_binding, AgentBase), seconds=20, why="the agent to be created")
         agent = view.agent_binding
         await agent.session.settled.wait()
         pid = agent.process.process.pid
         previous = sys.getprofile()
         sys.setprofile(profile)
         try:
-            await agent.updates.receive(agent.session_id, {
+            await deliver(agent, {
                 "sessionUpdate": "tool_call", "toolCallId": "native-read", "title": "Read file",
                 "kind": "read", "status": "pending", "rawInput": {"path": "first.py"},
                 "content": [{"type": "content", "content": {"type": "text", "text": "original = 1"}}]})
             await ui.until(lambda: view.query(ToolCall), seconds=20, why="the tool call widget")
-            first = agent.tools.calls["native-read"]
+            current = agent.tools.calls["native-read"]
+            assert current.request.current
+            first = current.call
             assert type(first) is SDKToolCall
             assert "sessionUpdate" not in first.model_dump(mode="json", by_alias=True)
-            await agent.updates.receive(agent.session_id, {
+            await deliver(agent, {
                 "sessionUpdate": "tool_call_update", "toolCallId": "native-read", "status": "in_progress"})
-            await agent.updates.receive(agent.session_id, {
+            await deliver(agent, {
                 "sessionUpdate": "tool_call_update", "toolCallId": "native-read", "status": "completed",
                 "rawInput": {"path": "second.txt"}})
             await ui.until(lambda: view.query_one(ToolCall).tool_call.completed, seconds=20,
@@ -55,9 +58,9 @@ async def test_tool_start_progress_and_missing_start_in_the_running_app(workspac
             await tool.output.sync()
             await ui.until_shows("original = 1")
             # The genuine absent-start path still acquires its default.
-            await agent.updates.receive(agent.session_id, {
+            await deliver(agent, {
                 "sessionUpdate": "tool_call_update", "toolCallId": "missing-start", "status": "completed"})
-            assert agent.tools.calls["missing-start"].title == "Tool call"
+            assert agent.tools.calls["missing-start"].call.title == "Tool call"
             assert counts == {"missing_start_constructions": 1}
         finally:
             sys.setprofile(previous)

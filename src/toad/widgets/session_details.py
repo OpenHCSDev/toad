@@ -170,10 +170,7 @@ class ConversationSessionDetails(SessionDetails):
         event.prevent_default()
         event.stop()
         context = self.app.selected_session.navigation_context
-        references = (
-            self.app.coordination_access.observation.observed()
-            .sidebar.observation.require_snapshot().references
-        )
+        references = self.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
         await self.app.thread_navigation.open(
             owner_mode=context.owner_mode, project_path=context.project_path,
             target=references.thread(self.peer).name)

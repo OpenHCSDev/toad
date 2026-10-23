@@ -4,7 +4,6 @@ from toad.session_scope import AgentAttached
 
 import json
 
-from agent_comms.mentions import MentionCandidate
 from textual.widgets.text_area import Selection
 
 from support.agents import peer
@@ -105,12 +104,11 @@ async def test_a_whole_command_is_selected_backwards_and_the_agents_hint_refresh
 
 
 async def test_channel_composer_completes_a_mention_with_tab_and_keeps_focus(workspace):
-    async with workspace.app(size=(130, 44), binding=AgentAttached(completion_peer())) as ui:
-        app, _pilot = ui.textual
-        view, prompt, agent = await ready_prompt(workspace, ui)
-        channel = ChannelPrompt(simple_input=True)
-        await app.screen.mount(channel)
-        channel.set_mention_candidates((MentionCandidate("cursor-peer", "Cursor peer"),))
+    workspace.thread("cursor-peer", "comms")
+    workspace.thread("reader", "comms")
+    async with workspace.app(size=(130, 44)) as ui:
+        await ui.open_channel("#comms", actor="reader")
+        channel = ui.app.selected_session.query_one(ChannelPrompt)
         channel.focus()
         await ui.press("/", "c", "f7", "@", "c", "u")
         await ui.until(lambda: channel.mention_list.display, why="the mention list")

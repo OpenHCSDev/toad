@@ -5,18 +5,19 @@ The model is the controlled loopback provider; everything else is the real path.
 
 import asyncio
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import psutil
 from agent_comms.acp_extension import QueuePromptRequest
-from agent_comms.cli_commands import RestartCliCommand, StartCliCommand
+from agent_comms.cli_commands import ForkCliCommand, RestartCliCommand, StartCliCommand
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.pi_vocabulary import OffThinkingLevel
+
 from support.native import native_session
 from support.native_steps import channel_message_feedback, direct_reply_feedback
-from toad.acp.agent import Agent
 from support.textual_steps import request_target_command
-
+from toad.agent import AgentBase
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad.widgets.prompt import QueueSummary
@@ -167,9 +168,41 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
         assert ui.draft() == "unsent local draft"
 
 
-async def test_direct_message_is_answered_once_and_marked_responded(workspace, native_package):
+async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(workspace, native_package):
     async with native_session(workspace) as native:
-        await direct_reply_feedback(native, native.ui.selected_tab, hold=True)
+        ui, comms = native.ui, native.comms
+        app, _pilot = ui.textual
+        parent_tab = ui.selected_tab
+        await ui.until_agent_ready()
+        await ui.write_draft("SAVED_PARENT_INPUT")
+        await ui.press("enter")
+        await ui.until(lambda: answered(native, "NATIVE_RESPONSE_1"), seconds=30,
+                       why="the parent's saved answer")
+        await ui.until(lambda: not native.executing, seconds=20, why="the parent turn to finish")
+        parent = comms.registry.require(native.thread)
+        source = Path(parent.runtime.path)
+        original = source.read_bytes()
+        result = await asyncio.to_thread(ForkCliCommand(
+            name="fork", parent=parent.name, project=str(native.project),
+            model=parent.model, thinking_level=parent.thinking_level,
+        ).apply, comms)
+        assert result.created == "fork"
+        child_tab = await app.thread_navigation.open(
+            owner_mode=parent_tab, project_path=native.project, target="fork")
+        assert child_tab != parent_tab and ui.selected_tab == child_tab
+        await ui.until_agent_ready()
+        view = ui.conversation
+        await ui.until(lambda: "NATIVE_RESPONSE_1" in ui.painted(view.window), seconds=20,
+                       why="the inherited answer in the newly opened fork")
+        child = replace(native, agent=view.agent_binding, thread="fork")
+        await direct_reply_feedback(child, child_tab,
+                                    body="FIRST_DIRECT_MESSAGE_TO_FORK")
+        await ui.select_tab(child_tab)
+        assert ui.conversation is view and view.agent_binding is child.agent
+        await ui.until(lambda: "NATIVE_RESPONSE_2" in ui.painted(view.window), seconds=20,
+                       why="the fork's first reply on tab return")
+        assert len(native.provider.requests) == 2
+        assert source.read_bytes() == original
 
 
 async def test_channel_message_the_thread_declines_is_marked_checked(workspace, native_package):
@@ -240,7 +273,7 @@ async def test_queue_line_follows_the_owner_after_restart_process(workspace, nat
         def queue_of_the_new_owner():
             scope = agent.queue_attachment.scope
             return (view.submissions.queue_projection.status == "available"
-                    and scope is not None and scope.owner_pid == restarted.pid)
+                    and scope is not None and scope.owner == restarted)
 
         await ui.until(queue_of_the_new_owner, seconds=30, why="the queue view of the restarted owner")
         await ui.step()
@@ -263,7 +296,8 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
         assert opened != owner_tab and ui.selected_tab == opened
         assert [tab.identity for tab in ui.tabs()] == [owner_tab, opened]
         view = ui.conversation
-        await ui.until(lambda: isinstance(view.agent_binding, Agent) and view.agent_binding is not native.agent, seconds=20,
+        await ui.until(lambda: isinstance(view.agent_binding, AgentBase)
+                       and view.agent_binding is not native.agent, seconds=20,
                        why="the second thread's agent")
         await ui.until_agent_ready()
         await ui.write_draft("FIRST_MESSAGE_TO_GAMMA")

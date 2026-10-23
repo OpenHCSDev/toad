@@ -3,20 +3,20 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from functools import partial
 from dataclasses import replace
-from weakref import ref
+from functools import partial
 from typing import TYPE_CHECKING, ClassVar
+from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from textual._paint_state import PaintLayer, PaintState
-from textual.color import Color, TRANSPARENT
-from ui_theme.scheme import BackgroundColour, ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
-from textual.widget import Widget
+from textual.color import TRANSPARENT, Color
 from textual.strip import Strip
+from textual.widget import Widget
 from ui_theme.clock import Animation
 from ui_theme.effects import Effect, Fade, Frame, Mix
+from ui_theme.scheme import BackgroundColour, ThemeColour
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceScreen
@@ -40,7 +40,7 @@ class ToneLayer(PaintLayer):
         foreground = paint.paint_foreground
         self.paint_foreground = styles.paint_foreground if foreground is None else foreground
         self.auto_color = styles.auto_color if foreground is None else foreground.auto
-        text_style = paint.text_style
+        text_style = paint.paint_text_style
         self.text_style = styles.text_style if text_style is None else text_style
         tint = paint.background_tint
         self.background_tint = styles.background_tint if tint is None else tint
@@ -52,7 +52,7 @@ class TonePaint:
     """Paints a screen area on its declared theme tone; ``None`` keeps the parent's."""
 
     tone: ClassVar[type[ThemeColour] | None] = None
-    paint_background = paint_foreground = text_style = background_tint = None
+    paint_background = paint_foreground = paint_text_style = background_tint = None
     paint_opacity = 1.0
 
     @property
@@ -320,7 +320,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         return (EFFECT_UNSTARTED if animation is None else
                 EFFECT_FINISHED if animation.finished else EFFECT_RUNNING)
 
-    def on_unmount(self) -> None:
+    async def on_unmount(self) -> None:
         self.stop_effect()
 
     def on_hide(self) -> None:

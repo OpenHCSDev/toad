@@ -1395,7 +1395,7 @@ class Conversation(
 
         self.output.boundary()
         if started.text:
-            if not self.transcript.covers_input(started.native_id):
+            if not self.transcript.covers_input(started):
                 await self.post(
                     UserInput(started.text, claim=StartedInputClaim(started))
                 )

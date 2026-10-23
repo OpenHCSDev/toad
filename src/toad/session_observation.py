@@ -58,6 +58,7 @@ class SessionObservation(ABC):
             self.task.cancel()
             await asyncio.gather(self.task, return_exceptions=True)
         self.task = None
+        self.agent = NoAgentConnection()
 
     @staticmethod
     async def close_all(*observations: "SessionObservation") -> None:

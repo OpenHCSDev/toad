@@ -10,25 +10,27 @@ import json
 import sys
 
 from acp.schema import (
-    CurrentModeUpdate, EnvVariable, FileEditToolCallContent, NewSessionResponse, PermissionOption,
-    SessionMode, SessionModeState, SetSessionModeResponse, ToolCallProgress, ToolCallStart, ToolCallUpdate,
+    EnvVariable, FileEditToolCallContent, NewSessionResponse, PermissionOption,
+    SessionConfigOptionSelect, SessionConfigSelectOption, SetSessionConfigOptionResponse,
+    ToolCallProgress, ToolCallStart, ToolCallUpdate,
 )
 
 from base import Peer
 
 
 class SpecificationPeer(Peer):
+    def mode(self, current):
+        return SessionConfigOptionSelect(id="sdk-mode", name="Mode", category="mode", type="select",
+            current_value=current, options=[SessionConfigSelectOption(value="read", name="SDK Read"),
+                                            SessionConfigSelectOption(value="write", name="SDK Write")])
+
     async def new_session(self, cwd, **kwargs):
         response = await super().new_session(cwd, **kwargs)
-        return NewSessionResponse(session_id=response.session_id, modes=SessionModeState(
-            current_mode_id="read", available_modes=[SessionMode(id="read", name="SDK Read"),
-                                                     SessionMode(id="write", name="SDK Write")]))
+        return NewSessionResponse(session_id=response.session_id, config_options=[self.mode("read")])
 
-    async def set_session_mode(self, session_id, mode_id, **kwargs):
-        assert mode_id == "write"
-        await self.connection.session_update(session_id=session_id, update=CurrentModeUpdate(
-            sessionUpdate="current_mode_update", current_mode_id=mode_id))
-        return SetSessionModeResponse()
+    async def set_config_option(self, config_id, session_id, value, **kwargs):
+        assert config_id == "sdk-mode" and value == "write"
+        return SetSessionConfigOptionResponse(config_options=[self.mode(value)])
 
     async def answer(self, session_id: str, text: str) -> None:
         assert text == "SDK_SPECIFICATION_JOURNEY"

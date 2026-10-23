@@ -22,7 +22,6 @@ from toad.core.input_events import SelectHistoricalIdentity
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.session_tracker import SidebarState
-from toad.widgets.side_bar import SideBar
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import HistoryTarget, NavigationTarget
 from toad.widgets.session_tabs import SessionsTabs

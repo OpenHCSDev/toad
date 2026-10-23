@@ -4,9 +4,9 @@ from dataclasses import FrozenInstanceError
 from functools import partial
 
 import pytest
-from agent_comms.candidate_maintenance import drain_candidate_catchup
 from agent_comms.channel_targets import ChannelTarget
-from agent_comms.comms import Comms, wire
+from agent_comms.comms import Comms
+from support.roots import installed_wire
 from agent_comms.field_codec import FieldCodec
 from agent_comms.installer.backup import StoreBackup
 from agent_comms.message_page import PageBounds
@@ -23,14 +23,13 @@ from toad.wire_history import WireSource
 
 @pytest.fixture
 def copied_conversations(tmp_path):
-    original = wire(tmp_path / "original")
+    original = installed_wire(tmp_path / "original")
     original.registry.declare(
         original.registry.new_thread("peer", frozenset({"team"}), str(tmp_path))
     )
     viewer = original.messaging.user_identity(str(tmp_path)).name
     original.messaging.send("peer", "#team", "channel body")
     original.messaging.send("peer", viewer, "direct body")
-    drain_candidate_catchup(original.root)
     StoreBackup.copy_tree(original.root, tmp_path / "copied")
     return Comms(tmp_path / "copied"), viewer
 
@@ -117,7 +116,7 @@ def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copie
     assert key == CommsViewKey(str(comms.root), "owner", reopened)
     assert direct.input_scope == reopened.input_scope == scope
     assert direct.label(references) == "@renamed"
-    assert direct.send_target(references).name == "renamed"
+    assert direct.send_target().selected_name(references.registry) == "renamed"
     assert HistoryTarget.for_conversation(direct, references) == DirectTarget("renamed")
 
 

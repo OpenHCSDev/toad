@@ -7,7 +7,12 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.channel_targets import ChannelTarget, NamedTarget, ThreadTarget
+from agent_comms.channel_targets import (
+    ChannelTarget,
+    IncarnationThreadTarget,
+    NamedTarget,
+    ThreadTarget,
+)
 from agent_comms.channels import AllChannel
 from agent_comms.comms import Comms
 from agent_comms.declared_family import DeclaredFamily
@@ -45,6 +50,9 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @abstractmethod
     def destination(self, references: CurrentDisplayReferences) -> NamedTarget: ...
 
+    @abstractmethod
+    def retained_target(self) -> NamedTarget: ...
+
     def threads_needed(self, snapshot, me):
         return ()
 
@@ -55,9 +63,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def view_identity(cls, key):
         return key
 
-    @classmethod
     @abstractmethod
-    def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage: ...
+    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage: ...
 
     @classmethod
     @abstractmethod
@@ -88,8 +95,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
             self.destination(observation.require_snapshot().references).name
         )
 
-    def send_target(self, references) -> NamedTarget:
-        return self.destination(references)
+    def send_target(self) -> NamedTarget:
+        return self.retained_target()
 
     def read_only(self, comms):
         return False
@@ -150,6 +157,9 @@ class ChannelConversation(ConversationKind):
     def destination(self, references: CurrentDisplayReferences) -> ChannelTarget:
         return self.target
 
+    def retained_target(self) -> ChannelTarget:
+        return self.target
+
     def activity_members(self, model):
         return model.channels.rows.get(
             self.target.name, UnpaintedChannel(self.target.name)
@@ -164,10 +174,9 @@ class ChannelConversation(ConversationKind):
 
         return ChannelViewAddress(key.root, key.conversation)
 
-    @classmethod
-    def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
+    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.channel_display_page(
-            source.conversation.destination(source.references()).name,
+            self.target.name,
             viewer=source.viewer, bounds=bounds,
         )
 
@@ -236,6 +245,9 @@ class DmConversation(ConversationKind):
     def destination(self, references: CurrentDisplayReferences) -> ThreadTarget:
         return ThreadTarget(references.thread(self.peer).name)
 
+    def retained_target(self) -> IncarnationThreadTarget:
+        return IncarnationThreadTarget(self.peer)
+
     def status_thread(self, root, access) -> StatusThread:
         return StatusThread.for_conversation(root, self, access)
 
@@ -254,10 +266,9 @@ class DmConversation(ConversationKind):
             self.destination(observation.require_snapshot().references).name
         )
 
-    @classmethod
-    def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
+    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.dm_display_page(
-            source.conversation.destination(source.references()).name,
+            self.retained_target(),
             worktree=str(source.project), bounds=bounds,
         )
 
@@ -306,5 +317,5 @@ class IrcConversation(ChannelConversation):
 
     initial_placeholder = "Message #all (broadcast)"
 
-    def send_target(self, references) -> ChannelTarget:
+    def send_target(self) -> ChannelTarget:
         return AllChannel.target()

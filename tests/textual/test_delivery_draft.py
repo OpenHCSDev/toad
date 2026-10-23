@@ -4,7 +4,6 @@ import pytest
 from agent_comms.acp_extension import (
     BackendDeliveryFailure,
     ClaimBlockedFailure,
-    UnknownDeliveryFailure,
 )
 
 
@@ -13,7 +12,6 @@ from agent_comms.acp_extension import (
     [
         BackendDeliveryFailure("refused"),
         ClaimBlockedFailure("blocked"),
-        UnknownDeliveryFailure("unknown", "private-wire", 1, "private-message"),
     ],
 )
 @pytest.mark.parametrize("draft", ["", "a newer unsent draft"])

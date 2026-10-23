@@ -210,9 +210,9 @@ class AgentController(OperationalTerminalOwner):
             coordination = self.coordination
             if coordination is not None:
                 self.require_owner(coordination, authority)
-                async with self.transcripts.bind(coordination.wire_root) as comms:
-                    origin = await asyncio.to_thread(
-                        self.agent.queue_attachment.capture_human_input, comms, queue_scope)
+                comms = await self.transcripts.service(coordination.wire_root)
+                origin = await asyncio.to_thread(
+                    self.agent.queue_attachment.capture_human_input, comms, queue_scope)
                 self.require_owner(coordination, authority)
                 command = replace(command, origin=origin)
             content = await asyncio.to_thread(build_prompt, project, prompt)
@@ -244,25 +244,32 @@ class AgentController(OperationalTerminalOwner):
             result = await agent.process.prompt(agent, content,
                 encode_request(command) if command is not None else {}, require)
         except RequestError as error:
+            # The agent answered: this request failed and its session stays open.
+            request_failure = RequestFailure.from_error(error)
+            report = agent.events.publish
+        except OSError as error:
+            # The transport is gone, and the session with it.
+            request_failure = RequestFailure(
+                ACPFailure.from_detail(None, f"{type(error).__name__}: {error}"), False)
+            report = agent.session.record_failure
+        else:
             if authority.retired:
                 return None
-            request_failure = RequestFailure.from_error(error)
-            failure = request_failure.failure
-            self._prompt_failed(command, authority, queue_scope, failure,
-                failure.title, failure.feedback, published=request_failure.notification_published)
-            return None
+            return StopReason.member_named(result.stop_reason)
         if authority.retired:
             return None
-        return StopReason.member_named(result.stop_reason)
+        failure = request_failure.failure
+        self._prompt_failed(command, authority, queue_scope, failure, report,
+            published=request_failure.notification_published)
+        return None
 
-    def _prompt_failed(self, command, authority, queue_scope, failure, title, detail, *, published=False):
+    def _prompt_failed(self, command, authority, queue_scope, failure, report, *, published=False):
         agent = self.agent
         user_text = command.draft_text if command is not None else None
         if user_text:
             agent.events.publish(core_events.CommsUpdated(InputFailedUpdate(user_text, failure), recover_draft=True, session_id=authority.session_id, queue_scope=queue_scope))
         if not published:
-            agent.session.record_failure(
-                LogAgentFail(title, detail, log_path=agent.presentation.log_path))
+            report(LogAgentFail(failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
     async def clear_queue(self):
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())
@@ -315,13 +322,13 @@ class AgentController(OperationalTerminalOwner):
         coordination = self.coordination
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         self.require_owner(coordination, authority)
-        async with self.transcripts.bind(coordination.wire_root) as comms:
-            def resolve():
-                owner = comms.registry.require(coordination.thread.name)
-                if owner.incarnation != coordination.thread:
-                    raise ValueError('The owner incarnation changed while preparing the request.')
-                return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.require_process().pid))
-            proxy = await asyncio.to_thread(resolve)
+        comms = await self.transcripts.service(coordination.wire_root)
+        def resolve():
+            owner = comms.registry.require(coordination.thread.name)
+            if owner.incarnation != coordination.thread:
+                raise ValueError('The owner incarnation changed while preparing the request.')
+            return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.require_process().pid))
+        proxy = await asyncio.to_thread(resolve)
         try:
             self.require_owner(coordination, authority)
             result = await proxy.request(method, **params)

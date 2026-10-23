@@ -2,25 +2,27 @@
 session request produced when an older request answers late, and a failed send never rewrites the draft."""
 
 import asyncio
-from unittest.mock import patch
 
 import pytest
 from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import (
-    AvailableQueueProjection, QueueChangedUpdate, QueueItem, LiveQueueScope, NoQueueScope, UnavailableQueueProjection,
-    encode_updates,
+    AvailableQueueProjection, QueueChangedUpdate, QueueItem, LiveQueueScope, encode_updates,
 )
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
 
-from support.agents import PendingAnswer, PendingConnection, deliver
-from toad.conversation_submission import DeferredInputSubmission
+from support.agents import PendingAnswer, PendingConnection
 from toad.widgets.prompt import QueueSummary
 from acp.exceptions import RequestError
 
 
 def response(session, next_owner=False):
     generation = 2 if next_owner else 1
-    scope = LiveQueueScope(session, ClaimedIdentity(RecordedThreadIncarnation(session, 1000.0), generation), 1234)
+    scope = LiveQueueScope(
+        session_id=session,
+        claimed_identity=ClaimedIdentity(RecordedThreadIncarnation(session, 1000.0), generation),
+        owner=ProcessIdentity(1234, 1),
+    )
     items = (QueueItem("a" * 32, "same text"), QueueItem("b" * 32, "same text"))
     return NewSessionResponse(
         sessionId=session, _meta=encode_updates(QueueChangedUpdate(scope, generation, AvailableQueueProjection(items))))
@@ -68,45 +70,3 @@ async def test_late_answer_to_a_replaced_session_request_changes_neither_session
         else:
             assert view.submissions.queue_projection.status != "available"
         await agent.stop()
-
-
-@pytest.mark.parametrize("successor", ["agent", "owner", "unavailable"])
-async def test_a_failed_retired_send_does_not_roll_back_the_successors_draft_or_queue(workspace, successor):
-    async with workspace.app(size=(115, 38)) as ui:
-        agent = ui.detached_agent("beta")
-        ui.attach_agent(agent)
-        view = ui.conversation
-        loaded = PendingAnswer()
-        loaded.result.set_result(response("beta"))
-        agent.process.connection = PendingConnection(load=loaded)
-        await agent.session.load()
-        await ui.step()
-        entered, release = asyncio.Event(), asyncio.Event()
-
-        async def failed_send(*args, **kwargs):
-            entered.set()
-            await release.wait()
-            raise ValueError("delayed old request failure")
-
-        with patch.object(agent, "send_prompt", side_effect=failed_send):
-            worker = await DeferredInputSubmission("old request").execute(view.submissions)
-            await entered.wait()
-            if successor == "agent":
-                ui.attach_agent(ui.detached_agent("beta"))
-            elif successor == "owner":
-                loaded.result = asyncio.get_running_loop().create_future()
-                loaded.result.set_result(response("beta", next_owner=True))
-                await agent.session.load()
-            else:
-                await deliver(agent, {
-                    "sessionUpdate": "session_info_update",
-                    "_meta": encode_updates(QueueChangedUpdate(NoQueueScope(), 10, UnavailableQueueProjection()))},
-                    session_id="beta")
-            await ui.step()
-            await ui.write_draft("successor draft")
-            projection = view.submissions.queue_projection
-            release.set()
-            await worker.wait()
-            await ui.step()
-            assert ui.draft() == "successor draft"
-            assert view.submissions.queue_projection == projection

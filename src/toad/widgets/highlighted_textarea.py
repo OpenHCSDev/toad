@@ -151,8 +151,7 @@ class HighlightedTextArea(TextArea):
 
     @on(TextArea.Changed)
     def _on_changed(self) -> None:
-        self._highlight_lines = None
-        self._text_cache.clear()
+        self._clear_caches()
 
     def get_line(self, line_index: int) -> Text:
         if (cached_line := self._text_cache.get(line_index)) is not None:

@@ -1,6 +1,6 @@
 """Toad as a user runs it in a terminal, which also notes the process id of its comms observer.
 
-Run as a script by ``terminal/test_observer_death.py``: ``observed_app.py PROJECT``.
+Run as a script by ``terminal/test_observer_death.py``: ``observed_app.py PROJECT WIRE_ROOT``.
 """
 
 from pathlib import Path
@@ -34,4 +34,7 @@ class ObservedApp(ToadApp):
 
 
 if __name__ == "__main__":
+    from agent_comms.launch_root import LaunchRoot
+
+    LaunchRoot.from_path(sys.argv[2]).install()
     run_terminal(ObservedApp(project_dir=sys.argv[1], agent_binding=AgentAttached(peer("echo"))))

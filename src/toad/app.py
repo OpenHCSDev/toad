@@ -201,11 +201,13 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         # View release can fail. The application still owns its observation
         # pipe and process pools; an Unmount event may never follow that error.
         async with AsyncResourceRelease() as release:
-            release.push_async_callback(self.render_processes.aclose)
-            release.push_async_callback(self.navigation_reader.aclose)
             release.callback(self.terminal_attention.close)
             release.callback(self.colours.stop)
             release.push_async_callback(self.coordination_access.close)
+            # Accepted preparation survives its UI waiter. Keep the observer
+            # available until those workers and their read replies finish.
+            release.push_async_callback(self.render_processes.aclose)
+            release.push_async_callback(self.navigation_reader.aclose)
             release.push_async_callback(super()._close_all)
             release.push_async_callback(self.coordination_access.stop_observing)
             release.push_async_callback(self.thread_actions.close)

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from agent_comms.errors import RouteChangedError
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -26,7 +28,6 @@ from agent_comms.acp_extension import (
     TurnChangedUpdate,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.errors import RouteChangedError
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 
@@ -196,7 +197,8 @@ class CommsUpdateConsumer(MroDispatch):
     def request_failed(self, update):
         from toad.core.events import RequestAgentFail
 
-        self.agent.session.record_failure(
+        # One request failed; the session that carried it is still open.
+        self.agent.events.publish(
             RequestAgentFail(update, self.agent.presentation.log_path)
         )
 

@@ -21,7 +21,7 @@ from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.native_entries import NativeEntry
 from agent_comms.retained_task_facts import HumanInputTaskFact
-from toad.acp.agent import Agent
+from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.session_scope import AgentAttached
@@ -186,7 +186,7 @@ async def _open_actual_s2_ingress(owner, subject, output):
             await until(pilot, lambda: app.selected_session is not None)
             await app.selected_session.wait_content_ready()
             view = app.selected_session.conversation
-            await until(pilot, lambda: isinstance(view.agent_binding, Agent))
+            await until(pilot, lambda: isinstance(view.agent_binding, AgentBase))
             phase('actual_original_view_before_acp_attachment_settlement')
             await until(pilot, view.agent_binding.session.settled.is_set)
             assert view.agent_binding.session.connected

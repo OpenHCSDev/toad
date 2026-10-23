@@ -1,4 +1,4 @@
-"""Textual-facing: a shown channel view paints live updates; a parked one reads nothing and shows its update on return (same widget)."""
+"""A real shared observer updates a shown channel and leaves its parked view alone."""
 
 async def test_live_update_paints_parked_channel_reads_nothing_and_return_shows_the_update(workspace):
     from toad.widgets.comms_chat import CommsChatView, session_thread_name
@@ -6,7 +6,6 @@ async def test_live_update_paints_parked_channel_reads_nothing_and_return_shows_
     comms = workspace.comms
     for name in ("sender", "reader", session_thread_name(workspace.project)):
         workspace.thread(name, "alpha")
-    comms.messaging.initialize_private_initial_protocol()
     initial = comms.messaging.send("sender", "#alpha", "INITIAL ROW").message
     async with workspace.app(size=(113, 34)) as ui:
         app = ui.textual[0]

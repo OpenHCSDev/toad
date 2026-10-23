@@ -1,34 +1,40 @@
-from toad.core import events as core_events
-from toad.core_event_carrier import CoreEventMessage
-from toad.core import session_requests
 import asyncio
 from collections.abc import Iterable
 from typing import ClassVar
 
+from agent_comms.mro_dispatch import handles
 from rich.style import Style as RichStyle
 from textual import containers, events, getters, widgets
+from textual._activation import PrimaryActivation
 from textual.app import ComposeResult, RenderResult
 from textual.binding import BindingType
-from textual.content import Content
-from textual.geometry import Offset, Region, Spacing
-from textual.css.scalar import Scalar, ScalarOffset
 from textual.color import TRANSPARENT
+from textual.content import Content
+from textual.css.scalar import Scalar, ScalarOffset
+from textual.geometry import Offset, Region, Spacing
 from textual.layouts.vertical import VerticalLayout
-from toad.widget_view import AUTO, FILL, WidgetView
 from textual.message import Message
 from textual.renderables.bar import Bar
 from textual.style import Style
-from ui_theme.scheme import AccentColour, ErrorColour, ForegroundColour, HeaderToneColour, MutedColour
-from textual._activation import PrimaryActivation
 from textual.widget import Widget
-
-from agent_comms.mro_dispatch import handles
-from toad.core.events import SessionChangedEvent
-from toad.core_event_carrier import CoreEventReceiver
-from toad.app import ToadApp
-from toad.session_tracker import OpenTab
-from toad.frame_presentation import Animated
 from ui_theme.effects import NEW_TEXT, Mix
+from ui_theme.scheme import (
+    AccentColour,
+    ErrorColour,
+    ForegroundColour,
+    HeaderToneColour,
+    MutedColour,
+)
+
+from toad import messages
+from toad.app import ToadApp
+from toad.core import events as core_events
+from toad.core import session_requests
+from toad.core.events import SessionChangedEvent
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.frame_presentation import Animated
+from toad.session_tracker import OpenTab
+from toad.widget_view import AUTO, FILL, WidgetView
 from toad.widgets.selection import ChangingText, ViewLabel
 
 
@@ -43,7 +49,7 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
         return self.id == self.app.selected_mode
 
     @property
-    def text_style(self):
+    def paint_text_style(self):
         return RichStyle(dim=not self.mouse_hover)
 
     @property

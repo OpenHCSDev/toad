@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterator
 import inspect
 import json
 import os
@@ -26,11 +27,11 @@ class OrphanDefect(pytest.PytestWarning):
     """An open defect stays recorded after its test is deleted; it needs a new reproducer."""
 
 
-def open_defects() -> dict[str, tuple[str, bool]]:
-    """Test id -> (why it is expected to fail, whether it only fails some of the time)."""
+def open_defects() -> dict[str, str]:
+    """Recorded investigations annotate results; each run owns its actual outcome."""
     import tomllib
 
-    return {test: (f"open defect {name} ({entry['owner']}): {entry['defect']}", entry.get("intermittent", False))
+    return {test: f"Recorded defect {name} ({entry['owner']}): {entry['defect']}"
             for name, entry in tomllib.loads(OPEN_DEFECTS.read_text()).items() for test in entry["tests"]}
 
 
@@ -40,9 +41,12 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def app_agents(tmp_path) -> AppAgents:
+def app_agents(tmp_path) -> Iterator[AppAgents]:
     """Agents of an app built on the test's own directory and never run."""
-    return AppAgents.unrun(tmp_path)
+    from agent_comms.launch_root import LaunchRoot
+
+    with LaunchRoot.from_path(tmp_path / "wire").selected():
+        yield AppAgents.unrun(tmp_path)
 
 
 @pytest.fixture
@@ -84,15 +88,9 @@ class OwnProcessTest(pytest.Item):
         reports = [json.loads(line) for line in result.read_text().splitlines()] if result.exists() else []
         output = child.stdout.decode(errors="replace")[-12000:] + child.stderr.decode(errors="replace")[-4000:]
         failed = not child.outcome.successful or not reports
-        if (defect := open_defects().get(self.nodeid)) is not None:
-            reason, intermittent = defect
-            shutil.rmtree(roots.attempt, ignore_errors=True)
-            if failed:
-                pytest.xfail(reason)
-            if intermittent:
-                return
-            pytest.fail(f"{self.nodeid} passes; remove it from tests/open_defects.toml", pytrace=False)
         if failed:
+            (roots.attempt / "stdout.log").write_bytes(child.stdout)
+            (roots.attempt / "stderr.log").write_bytes(child.stderr)
             pytest.fail(f"{child.outcome!r}\n{output}\nRoots kept: {roots.attempt}", pytrace=False)
         shutil.rmtree(roots.attempt)
         for report in reports:
@@ -109,13 +107,12 @@ def pytest_collection_modifyitems(config, items):
     defects = open_defects()
     if not config.args_source == config.ArgsSource.ARGS:
         for test in sorted(set(defects) - {item.nodeid for item in items}):
-            warnings.warn(OrphanDefect(f"{defects[test][0]} Its test {test} no longer exists: the defect needs a new test."))
-    for item in items:
-        if item.nodeid in defects and "workspace" not in getattr(item, "fixturenames", ()):
-            reason, intermittent = defects[item.nodeid]
-            item.add_marker(pytest.mark.xfail(reason=reason, strict=not intermittent))
+            warnings.warn(OrphanDefect(f"{defects[test]} Its test {test} no longer exists: the defect needs a new test."))
     items[:] = [OwnProcessTest.from_parent(item.parent, name=item.name)
                 if "workspace" in getattr(item, "fixturenames", ()) else item for item in items]
+    for item in items:
+        if note := defects.get(item.nodeid):
+            item.add_report_section("call", "Recorded defect", note)
 
 
 def pytest_runtest_logreport(report):

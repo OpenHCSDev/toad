@@ -8,6 +8,7 @@ import sys
 from typing import TYPE_CHECKING
 
 from toad.session_scope import NoAgent
+from toad.core.events import CoreEvent
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
@@ -15,6 +16,13 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 PEERS = Path(__file__).with_name("peers")
+
+
+class RecordedEvents(list[CoreEvent]):
+    """A retained receiver for the event stream's weak subscription."""
+
+    def receive(self, event: CoreEvent, subscription) -> None:
+        self.append(event)
 
 
 def peer(script: str, *, name: str = "Test peer", identity: str = "test-peer"):

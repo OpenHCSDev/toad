@@ -6,19 +6,13 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.channel_targets import (
-    ChannelSelection,
-    CommandTarget,
-)
-from agent_comms.channel_targets import (
-    ChannelTarget as CoreChannelTarget,
-)
-from agent_comms.channel_targets import (
-    ThreadTarget as CoreThreadTarget,
-)
+from agent_comms.channel_targets import ChannelSelection, CommandTarget
+from agent_comms.channel_targets import ChannelTarget as CoreChannelTarget
+from agent_comms.channel_targets import ThreadTarget as CoreThreadTarget
 from agent_comms.declared_family import DeclaredFamily
 
 from toad.constants import ALL_COMMS_TARGET
+from toad.navigation_context import NavigationContext, NavigationOwner
 from toad.conversation_kind import (
     ChannelConversation,
     ConversationKind,
@@ -28,9 +22,6 @@ from toad.conversation_kind import (
 
 if TYPE_CHECKING:
     from agent_comms.display_references import CurrentDisplayReferences
-
-    from toad.navigation_context import NavigationContext, NavigationOwner
-
 
 @dataclass(frozen=True)
 class NavigationTarget(DeclaredFamily, affix="Target"):
@@ -50,16 +41,9 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
 
     def menu_context(self, sidebar, *, channel: ChannelSelection, mode_name=None):
         from toad.target_commands import TargetContext
-
-        return TargetContext(
-            sidebar.app,
-            sidebar.model_state.observed.service,
-            self.name,
-            sidebar.app.workspace_sessions.source.view.navigation_context.actor,
-            sidebar.app.project_dir,
-            mode_name,
-            channel,
-        )
+        return TargetContext(sidebar.app, sidebar.model_state.observed.service, self.name,
+                             sidebar.app.workspace_sessions.source.view.navigation_context.actor,
+                             sidebar.app.project_dir, mode_name, channel)
 
     def selected(self, owner: NavigationOwner) -> None:
         """Apply view-specific selection intent before beginning navigation."""
@@ -102,11 +86,7 @@ class NoTarget(NavigationTarget):
 class SessionTarget(NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         app = context.app
-        destination = (
-            context.owner_mode
-            if app.session_tracker.get_session(context.owner_mode)
-            else "store"
-        )
+        destination = context.owner_mode if app.session_tracker.get_session(context.owner_mode) else "store"
         if app.selected_mode != destination:
             await app.select_session(destination)
         return app.selected_mode
@@ -115,9 +95,7 @@ class SessionTarget(NavigationTarget):
 class ThreadTarget(NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
-            owner_mode=context.owner_mode,
-            project_path=context.project_path,
-            target=self.name,
+            owner_mode=context.owner_mode, project_path=context.project_path, target=self.name,
         )
 
 
@@ -130,19 +108,15 @@ class HistoryRoute:
     @abstractmethod
     def for_name(cls, name: str) -> HistoryTarget: ...
 
-
 class HistoryTarget(HistoryRoute, NavigationTarget):
     @classmethod
     def for_name(cls, name: str) -> HistoryTarget:
         return cls(name)
 
     @classmethod
-    def for_conversation(
-        cls, conversation: ConversationKind, references: CurrentDisplayReferences
-    ) -> HistoryTarget:
-        return HistoryRoute.routes[type(conversation)].for_name(
-            conversation.destination(references).name
-        )
+    def for_conversation(cls, conversation: ConversationKind,
+                         references: CurrentDisplayReferences) -> HistoryTarget:
+        return HistoryRoute.routes[type(conversation)].for_name(conversation.destination(references).name)
 
 
 class HistoryRouted(HistoryTarget, declared_name=None):
@@ -152,22 +126,18 @@ class HistoryRouted(HistoryTarget, declared_name=None):
 
     def __init_subclass__(cls, **kwargs) -> None:
         if cls.history_kind in HistoryRoute.routes:
-            raise TypeError(
-                f"A history route already serves {cls.history_kind.__name__}"
-            )
+            raise TypeError(f"A history route already serves {cls.history_kind.__name__}")
         super().__init_subclass__(**kwargs)
         HistoryRoute.routes[cls.history_kind] = cls
 
     def prepare(self, comms, me):
-        """Decode the opening intent on the metadata reader, before retaining a key."""
+        """Resolve opening intent before retaining a stable conversation key."""
         return self.history_kind.resolve(comms, me, self.name)
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
-            owner_mode=context.owner_mode,
-            project_path=context.project_path,
-            me=context.actor,
-            route=self,
+            owner_mode=context.owner_mode, project_path=context.project_path,
+            me=context.actor, route=self,
         )
 
 
@@ -176,26 +146,20 @@ class ChannelLike:
 
     def menu_context(self, sidebar, **kwargs):
         from toad.target_commands import TargetContext
-
-        return TargetContext(
-            sidebar.app,
-            sidebar.model_state.observed.service,
-            self.name,
-            sidebar.app.workspace_sessions.source.view.navigation_context.actor,
-            sidebar.app.project_dir,
-        )
+        return TargetContext(sidebar.app, sidebar.model_state.observed.service, self.name,
+                              sidebar.app.workspace_sessions.source.view.navigation_context.actor,
+                              sidebar.app.project_dir)
 
 
 @dataclass(frozen=True)
 class FeedTarget(ChannelLike, HistoryRouted):
-    history_kind = IrcConversation
     name: str = field(default=ALL_COMMS_TARGET, init=False)
+    history_kind = IrcConversation
     expanded_by_default = True
 
     @classmethod
     def for_name(cls, name: str):
         return cls()
-
 
 class ChannelTarget(ChannelLike, HistoryRouted):
     history_kind = ChannelConversation

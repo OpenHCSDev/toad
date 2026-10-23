@@ -8,7 +8,7 @@ import os
 from typing import TYPE_CHECKING
 
 from support.agents import AppAgents
-from support.roots import Roots
+from support.roots import Roots, installed_wire
 from support.ui import TextualUi
 from toad.session_scope import AgentBinding, NoAgent
 
@@ -26,13 +26,7 @@ class Workspace:
         self.project = roots.project
         self.project.mkdir(parents=True, exist_ok=True)
         LaunchRoot.from_path(roots.wire).install()
-
-    @cached_property
-    def comms(self) -> Comms:
-        """The test's own wire, as Core serves it."""
-        from agent_comms.comms import wire
-
-        return wire(self.roots.wire)
+        self.comms = installed_wire(roots.wire)
 
     @property
     def viewer(self) -> str:

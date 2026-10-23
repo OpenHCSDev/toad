@@ -15,7 +15,6 @@ async def test_blocked_goal_offers_retry_and_retry_reaches_the_owner(workspace):
                               state=BlockedGoal(block_reason="Original turn failed"))
         owner = ScriptedGoalOwner.owning(ui.app, goal, DecidedBlockExecution(goal.id, goal.state.block_reason))
         ui.attach_agent(owner)
-        view.agent_ready = True
         await view.goal_observation.refresh()
         bar = view.query_one(GoalBar)
         await ui.until_shows("Retry")

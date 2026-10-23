@@ -65,9 +65,6 @@ class SessionResumeModal(ModalScreen[Session]):
         table.add_columns("Agent", "Session", "Created", "Last Used", "Path")
         db = DB()
         sessions = await db.session_get_recent()
-        if sessions is None:
-            return
-
         for session in sessions:
             cwd = str(session.meta_json.cwd or "")
 
