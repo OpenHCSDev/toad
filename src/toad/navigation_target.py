@@ -13,6 +13,7 @@ from toad.conversation_kind import ConversationKind, ChannelConversation, DmConv
 from toad.constants import ALL_COMMS_TARGET
 
 if TYPE_CHECKING:
+    from agent_comms.display_references import CurrentDisplayReferences
     from toad.app import ToadApp
 
 
@@ -86,17 +87,44 @@ class ThreadTarget(NavigationTarget):
 
 
 class HistoryRoute:
-    """Conversation families declare the history source used for navigation."""
+    """A route declaration registers its conversation kind exactly once."""
 
-    @property
+    routes: ClassVar[dict[type[ConversationKind], type[HistoryRoute]]] = {}
+
+    @classmethod
     @abstractmethod
-    def history_kind(self) -> type[ConversationKind]: ...
+    def for_name(cls, name: str) -> HistoryTarget: ...
 
 class HistoryTarget(HistoryRoute, NavigationTarget):
+    @classmethod
+    def for_name(cls, name: str) -> HistoryTarget:
+        return cls(name)
+
+    @classmethod
+    def for_conversation(cls, conversation: ConversationKind,
+                         references: CurrentDisplayReferences) -> HistoryTarget:
+        return HistoryRoute.routes[type(conversation)].for_name(conversation.destination(references).name)
+
+
+class HistoryRouted(HistoryTarget, declared_name=None):
+    """Routed destinations supply their kind; the intermediate is not a destination."""
+
+    history_kind: ClassVar[type[ConversationKind]]
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        if cls.history_kind in HistoryRoute.routes:
+            raise TypeError(f"A history route already serves {cls.history_kind.__name__}")
+        super().__init_subclass__(**kwargs)
+        HistoryRoute.routes[cls.history_kind] = cls
+
+    def prepare(self, comms, me):
+        """Resolve opening intent before retaining a stable conversation key."""
+        return self.history_kind.resolve(comms, me, self.name)
+
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
             owner_mode=context.owner_mode, project_path=context.project_path,
-            me=context.actor, conversation=self.history_kind(CommandTarget.named(self.name)),
+            me=context.actor, route=self,
         )
 
 
@@ -111,17 +139,20 @@ class ChannelLike:
 
 
 @dataclass(frozen=True)
-class FeedTarget(ChannelLike, HistoryTarget):
+class FeedTarget(ChannelLike, HistoryRouted):
     name: str = field(default=ALL_COMMS_TARGET, init=False)
     history_kind = IrcConversation
     expanded_by_default = True
 
+    @classmethod
+    def for_name(cls, name: str):
+        return cls()
 
-class ChannelTarget(ChannelLike, HistoryTarget):
+class ChannelTarget(ChannelLike, HistoryRouted):
     history_kind = ChannelConversation
 
 
-class DirectTarget(HistoryTarget):
+class DirectTarget(HistoryRouted):
     history_kind = DmConversation
 
     def selected(self, owner: NavigationOwner) -> None:

@@ -76,8 +76,9 @@ from toad.session_observation import GoalObservation, InputDeliveryObservation, 
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import (
-    NoStatusThread, ObservedThreadActivity, StatusThread, ThreadStatusOwner,
+    ObservedThreadActivity, ThreadStatusOwner,
 )
+from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
 from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
@@ -379,9 +380,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         read = self._thread_read
         self.arm_thread_read()
         read.settle(presentation).present(self.thread_presented)
-
-    def foreign_thread_read(self, presentation) -> None:
-        self.thread_presented(presentation)
 
     def thread_presented(self, presentation) -> None:
         """A settled presentation refreshes the transcript source of the shown view."""

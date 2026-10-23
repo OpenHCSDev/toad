@@ -233,6 +233,7 @@ class SeekingFilter(NoFilter):
 
 class Filtered(FilterState):
     active = True
+    overlay: ProjectedTranscriptHistory
 
     def __init__(self, owner: LineHistory, projection: ProjectedTranscriptHistory):
         super().__init__(owner)

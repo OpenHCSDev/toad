@@ -13,7 +13,6 @@ from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.channel_targets import ThreadTarget
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from toad.owner_preparation import ExistingOwnerPlan
 
@@ -234,9 +233,9 @@ class MailboxSessionSources(OperationalSessionSources):
 
     def prompt(self, conversation: Conversation):
         from toad.conversation_kind import DmConversation
+        from toad.screens.session_view import SessionView
 
-        root, name = conversation.transcript_scope()
-        return DmConversation(ThreadTarget(name)).prompt()
+        return DmConversation(conversation.query_ancestor(SessionView).thread_identity.thread_incarnation()).prompt()
 
     def input_ready(self, conversation: Conversation) -> bool:
         return conversation.transcript.readable
@@ -247,6 +246,7 @@ class MailboxSessionSources(OperationalSessionSources):
 
     async def submit(self, owner, event):
         from toad.conversation_kind import DmConversation
+        from toad.screens.session_view import SessionView
 
         view = owner.view
         scope = view.transcript.binding.thread_scope
@@ -261,7 +261,7 @@ class MailboxSessionSources(OperationalSessionSources):
             self.external_transcript_changed(view)
 
         await view.submit_comms_message(
-            root, DmConversation(ThreadTarget(target)), event.body,
+            root, DmConversation(view.query_ancestor(SessionView).thread_identity.thread_incarnation()), event.body,
             lambda: view.is_attached and view.transcript.binding.thread_scope == scope,
             presented,
         )

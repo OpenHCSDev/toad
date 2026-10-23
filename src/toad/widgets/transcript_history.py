@@ -3,6 +3,7 @@
 from __future__ import annotations
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.screens.session_view import SessionView
+from toad.core.source_events import TranscriptCoverage
 
 from agent_comms.ui_model.message_category import OtherCategory
 
@@ -53,7 +54,8 @@ from toad.widgets.linked_rows import HorizontalRows, OpensMessageNames, Referenc
 from toad.widgets.transcript_lines import (
     Lines, BlockLines, BlockSpan, LinePreparation, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )
-from toad.widgets.committed_presentation import CommittedHistory
+from toad.widgets.committed_presentation import CommitClaim, RETAINED_SOURCE_CLAIM, SnapshotPresentation
+from agent_comms.sent_message import PublishedSentMessage
 from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
 from agent_comms.ui_model.message_category import (
     all_categories, MessageCategory,
@@ -1050,6 +1052,98 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
 
+class CommittedHistory(LineHistory, SnapshotPresentation):
+    """A saved source block that precedes the conversation's live tail."""
+
+    conversation_order = 0
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return RETAINED_SOURCE_CLAIM
+
+    def accepts_commit(self, cursor: TranscriptCursor) -> bool:
+        return self.page_source.accepts_commit(cursor)
+
+    def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
+        return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
+
+    def covers_outgoing(self, message: PublishedSentMessage) -> bool:
+        return message.reference in self.outgoing_coverage
+
+    def source_resumed(self) -> None:
+        if self._source_state.reports_coverage:
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+
+    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
+        # The live blocks this page covers are retired as part of adding
+        # the page, without holding the conversation's message pump. A
+        # saved viewer outside a conversation has no live blocks.
+        if self._source_state.reports_coverage and (conversation := self.conversation) is not None:
+            conversation.transcript.binding.covered(
+                conversation.transcript, TranscriptCoverage(page.events), self).call_when_ready(conversation)
+
+    def publish_committed(self) -> None:
+        """Acquire source ownership now; report coverage after its first painted frame."""
+        self._source_state = self._source_state.publish()
+        self.call_after_refresh(self.publish_coverage)
+        self.request_preparation()
+
+    def publish_coverage(self) -> None:
+        if self._source_state.reports_coverage:
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+
+    @property
+    def coverage_events(self) -> Iterator[TranscriptEvent]:
+        return (event for page in self.pages for event in page.prepared.page.events)
+
+    @property
+    def outgoing_coverage(self):
+        if self._source_state.reports_coverage:
+            references = frozenset(reference for page in self.pages
+                                   for reference in page.prepared.outgoing_coverage)
+            return references | self.filter.overlay.outgoing_coverage
+        return frozenset()
+
+    def covers_incoming(self, sequence: int) -> bool:
+        if not self._source_state.reports_coverage:
+            return False
+        if self.page_source.through.covers_incoming(sequence):
+            return True
+        if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
+            return True
+        return self.filter.overlay.covers_incoming(sequence)
+
+    def covers_input(self, native_id: str | None) -> bool:
+        """Whether the loaded saved pages hold the input Core started under this identity."""
+        return (self._source_state.reports_coverage
+                and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
+
+    def retain_committed(self, through: TranscriptCursor) -> None:
+        """Extend access to saved source without moving the displayed page window."""
+        if not self.accepts_commit(through):
+            raise ValueError("Commit replaces or rewinds the retained source")
+        self.extend_source(through)
+
+    async def advance_committed(
+        self, through: TranscriptCursor, is_current: Callable[[], bool],
+    ) -> bool:
+        """Extend a complete followed tail; read a bounded destination across a gap.
+
+        The prepared commit owns the shared live-block handoff operation;
+        this source changes only its followed saved range.
+        """
+        if not is_current() or not self.state.can_draw:
+            return False
+        if not self.accepts_commit(through):
+            raise ValueError("Commit replaces or rewinds the saved source")
+        if not NEWER_END.visible_more(self):
+            return await self.extend(through, is_current)
+        self.retain_committed(through)
+        request = LatestViewportRequest(LatestPosition.hold(self.window))
+        return await self.jump_latest(request, is_current)
+
+
+
 class ConversationHistory(LineHistory):
     """A conversation owns its source binding and initial history state."""
 
@@ -1111,7 +1205,7 @@ class TranscriptHistory(CommittedHistory, ConversationHistory):
             await self.remove_children(retired)
             self.acquire_document()
 
-class ProjectedTranscriptHistory(CommittedHistory, LineHistory):
+class ProjectedTranscriptHistory(CommittedHistory):
     """A filtered source view with the ordinary pager's loading and eviction policy."""
 
     def __init__(self, owner: LineHistory, source: ProjectedTranscriptSource,

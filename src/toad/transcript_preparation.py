@@ -560,7 +560,7 @@ class ClosedHistory(PreparedPageSource):
         return False
 
     def status_thread(self, access):
-        from toad.widgets.observed_thread_activity import NoStatusThread
+        from toad.status_thread import NoStatusThread
 
         return NoStatusThread()
 

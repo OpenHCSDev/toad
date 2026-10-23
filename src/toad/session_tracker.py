@@ -79,11 +79,6 @@ class CommsViewKey:
     owner_mode: str
     conversation: ConversationKind
 
-    @property
-    def title(self) -> str:
-        return self.conversation.label()
-
-
 @dataclass(frozen=True)
 class ChannelViewAddress:
     root: str

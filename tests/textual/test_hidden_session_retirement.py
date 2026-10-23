@@ -31,9 +31,7 @@ async def open_hidden_sessions(workspace, ui, owners):
     first = ui.selected_tab
 
     def source(owner):
-        view = MainScreen(Path(owner.worktree))
-        view.initial_coordination_root = str(workspace.comms.root)
-        return view
+        return MainScreen.from_thread(Path(owner.worktree), str(workspace.comms.root), owner.incarnation)
 
     modes = {}
     for owner in owners[1:]:
@@ -51,7 +49,7 @@ async def test_idle_retirement_passes_read_nothing_and_a_hidden_prompt_skips_dis
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
         modes = await open_hidden_sessions(workspace, ui, owners)
-        observed = app.coordination_access.observed_service
+        observed = app.coordination_access.observation.observed()
         calls = Counter()
         watched = {Comms.__init__.__code__: "service_constructions",
                    RegistryStore._decode.__code__: "registry_decodes",
@@ -68,7 +66,7 @@ async def test_idle_retirement_passes_read_nothing_and_a_hidden_prompt_skips_dis
                 await app.session_navigation.retire_missing()
                 app.coordination_access.events.publish(CoordinationObserved(None))
                 await ui.step()
-            assert app.coordination_access.observed_service is observed
+            assert app.coordination_access.observation.observed() is observed
             assert calls["service_constructions"] == calls["registry_decodes"] == 0
             assert calls["action_discovery"] == calls["option_rebuilds"] == 0
             before = calls["action_discovery"]

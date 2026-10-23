@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 
-from agent_comms.channel_targets import ChannelTarget, ThreadTarget
+from agent_comms.channel_targets import ChannelTarget
 from agent_comms.notification_progress import AnsweredProgress, IgnoredProgress
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
@@ -44,7 +44,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, body: str) -> None:
     screen = app.selected_session
     await screen.wait_content_ready()
     chat = screen.query_one(CommsChatView)
-    assert chat.conversation == DmConversation(ThreadTarget(target))
+    assert chat.conversation == DmConversation(comms.registry.require(target).incarnation)
     assert not rows_with(chat, lambda message: message.body == body)
     provider.hold_next_request()
     await chat.submit_input(input_events.UserInputSubmitted(body))
@@ -88,7 +88,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, body: str) -> None:
     assert reopened is not screen and reopened.id != screen.id
     await reopened.wait_content_ready()
     fresh = reopened.query_one(CommsChatView)
-    assert fresh.conversation == DmConversation(ThreadTarget(target))
+    assert fresh.conversation == DmConversation(comms.registry.require(target).incarnation)
     await ui.until(lambda: all(
         sum(fragment.message.reference == reference
             for fragment in fresh.message_history.fragments_in_range) == 1

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
+from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.message_page import MessagePage
 from agent_comms.transcript_events import IncomingTranscript
 from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
@@ -258,10 +259,14 @@ class WireSource:
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(str(self.project))
 
+    def references(self) -> CurrentDisplayReferences:
+        """Resolve stable destinations through this read's registry cut."""
+        return CurrentDisplayReferences(str(self.comms.root), registry=self.comms.registry.snapshot())
+
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
         revision = self.conversation.history_view.revision(
-            self.comms.views, self.conversation.target.name, seen, worktree=str(self.project))
+            self.comms.views, self.conversation.destination(self.references()).name, seen, worktree=str(self.project))
         if revision == seen:
             return Unchanged()
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
@@ -343,7 +348,8 @@ class WirePageBuffer(SavedHistory):
         from toad.target_commands import TargetContext
         from toad.screens.session_view import SessionView
 
-        return TargetContext(view.app, self.loader.comms, self.loader.conversation.target.name, self.loader.me,
+        references = view.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
+        return TargetContext(view.app, self.loader.comms, self.loader.conversation.destination(references).name, self.loader.me,
                              self.loader.project, view.query_ancestor(SessionView).id)
 
     async def submit_input(self, view, event) -> None:
