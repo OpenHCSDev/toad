@@ -131,15 +131,15 @@ class DeclaredField:
         """The same field as declared without `None`."""
         return OptionalMemberField(self.state, self.path)
 
-    def edit(self, value: object) -> None:
-        """Give the field a value, unless its declaration does not accept it.
-
-        Raises:
-            TypeError, ValueError: the value is not one the annotation allows.
-        """
+    def validate(self, value: object) -> None:
+        """Require this field's declared type and constraints before edit or save."""
         # ObjectState takes any value for a field of the root object and only
         # fails later, when the object is rebuilt (ObjectState issue #47).
         validate_annotation_value(self.annotation, value, path=self.label)
+
+    def edit(self, value: object) -> None:
+        """Give the field a value accepted by its declaration."""
+        self.validate(value)
         self.state.update_parameter(self.path.value, value)
 
 

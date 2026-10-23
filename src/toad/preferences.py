@@ -400,12 +400,12 @@ class SavedSettings:
                     document[key] = part
             elif below in self.user_set:
                 field = DeclaredField(self.state, below)
-                document[key] = FieldCodec.encode(field.value, field.annotation)
+                value = field.value
+                field.validate(value)
+                document[key] = FieldCodec.encode(value, field.annotation)
         return document
 
     def document(self) -> dict[str, JsonValue]:
-        # Rebuilding the root preserves whole-settings validation before writing.
-        _ = self.current
         return self.kept("")
 
     @property
