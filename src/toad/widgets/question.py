@@ -1,25 +1,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Callable
 
-from textual.app import ComposeResult
-from textual import events, on
-from textual.binding import Binding
-from textual import containers
-from textual.content import Content
-from textual.reactive import var, reactive
-from textual.message import Message
+from textual import containers, events, on, widgets
 from textual._activation import PrimaryActivation
+from textual.app import ComposeResult
+from textual.content import Content
+from textual.message import Message
+from textual.reactive import reactive, var
 from textual.widget import Widget
 
-from textual import widgets
-
 from toad.answer import Answer
+from toad.frame_presentation import UntintedTonePaint
+from toad.question_actions import QuestionAction, SelectKindAction
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import DeclaredWidgetActions
-from toad.question_actions import QuestionAction, SelectKindAction
-from toad.frame_presentation import UntintedTonePaint
 
 type Options = list[Answer]
 
@@ -31,7 +27,7 @@ class Ask:
     question: str
     options: Options
     get_content: Callable[[], Widget] | None = None
-    callback: Callable[[Answer], Any] | None = None
+    callback: Callable[[Answer], None] | None = None
 
 
 class NonSelectableLabel(widgets.Label):
@@ -178,7 +174,7 @@ class Question(DeclaredWidgetActions, containers.VerticalGroup, can_focus=True):
         id: str | None = None,
         classes: str | None = None,
         disabled: bool = False,
-    ):
+    ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.set_reactive(Question.title, title)
         self.presentation = QuestionPresentation()

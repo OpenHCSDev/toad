@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from agent_comms.errors import RouteChangedError
-
 from dataclasses import dataclass
 from typing import Any
 
@@ -16,8 +14,8 @@ from agent_comms.acp_extension import (
     InputDeliveryChangedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
-    PromptCancelledUpdate,
     McpClientAcknowledgementUpdate,
+    PromptCancelledUpdate,
     QueueChangedUpdate,
     RequestFailedUpdate,
     SelectedWriteAcceptedUpdate,
@@ -27,11 +25,12 @@ from agent_comms.acp_extension import (
     TurnChangedUpdate,
 )
 from agent_comms.context_reading import UnmeasuredContext
+from agent_comms.errors import RouteChangedError
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import ThreadPresentation
+
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
-
 from toad.core import events as core_events
 
 
@@ -43,7 +42,7 @@ class CommsUpdateConsumer(MroDispatch):
         *,
         cursor_token: int | None = None,
         queue_token: int | None = None,
-    ):
+    ) -> None:
         self.agent = agent
         self.session_id = session_id
         self.route = None
@@ -51,7 +50,7 @@ class CommsUpdateConsumer(MroDispatch):
         self.cursor_token = cursor_token
         self.queue_token = queue_token
 
-    async def consume_metadata(self, metadata):
+    async def consume_metadata(self, metadata) -> None:
         from .sdk_boundary import DecodeCommsMetadataTask
 
         authority = ClientSessionRequest(self.agent, self.session_id)
@@ -173,11 +172,11 @@ class CommsUpdateConsumer(MroDispatch):
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(SelectedWriteAcceptedUpdate)
-    def selected_write_accepted(self, update):
+    def selected_write_accepted(self, update) -> None:
         pass
 
     @handles(RequestFailedUpdate)
-    def request_failed(self, update):
+    def request_failed(self, update) -> None:
         from toad.core.events import RequestAgentFail
 
         # One request failed; the session that carried it is still open.
@@ -186,14 +185,14 @@ class CommsUpdateConsumer(MroDispatch):
         )
 
     @handles(PromptCancelledUpdate)
-    def prompt_cancelled(self, update):
+    def prompt_cancelled(self, update) -> None:
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
 
 class OwnerSnapshotConsumer(CommsUpdateConsumer):
     """Canonical reads reconcile a turn without overtaking this client's request."""
 
-    def __init__(self, agent, session_id, *, turn_token):
+    def __init__(self, agent, session_id, *, turn_token) -> None:
         super().__init__(agent, session_id)
         self.turn_token = turn_token
 
@@ -202,7 +201,7 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
                 and self.agent.controller.accepts_turn_snapshot(self.turn_token))
 
     @handles(ThreadPresentation)
-    def thread_presentation(self, presentation):
+    def thread_presentation(self, presentation) -> None:
         identity = presentation.read_identity
         if identity is None:
             return  # An unavailable source supplies no turn settlement.
