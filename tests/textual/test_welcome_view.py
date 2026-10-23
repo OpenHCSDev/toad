@@ -2,6 +2,8 @@
 from toad.session_scope import AgentAttached
 
 from support.agents import peer
+from agent_comms.channel_targets import CommandTarget
+from agent_comms.read_basis import NamedViewer
 from agent_comms.threads import Thread
 
 HINT = "n new session"
@@ -64,14 +66,25 @@ async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user
         await focus_row(ui, "ThreadStatusRow")
         await ui.press("enter")
         await ui.until(lambda: len(ui.tabs()) == 1, why="the thread's tab")
-        assert ui.sender_of(ui.selected_tab) == workspace.viewer
+        app, _ = ui.textual
+        assert app.selected_session.thread_identity.thread_name() == "scribe"
+        await ui.write_draft("hello scribe")
+        await ui.press("enter")
+
+        def sent_messages():
+            return tuple(message for message in workspace.comms.views.history_page(
+                CommandTarget.named("scribe"), viewer=NamedViewer(workspace.viewer),
+            ).messages if message.body == "hello scribe" and message.target == "scribe")
+
+        await ui.until(sent_messages, why="the message on the wire")
+        assert sent_messages()[0].sender == workspace.viewer
         assert not ui.shows(HINT)
 
 
 async def test_closing_the_last_tab_shows_the_view_again_and_starts_no_agent(workspace):
     async with workspace.app(session=False, binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_shows(HINT)
-        await ui.press("n")
+        await ui.new_session()
         await ui.until(lambda: len(ui.tabs()) == 1, why="the new session's tab")
         await ui.until_agent_ready()
         assert not ui.shows(HINT)
