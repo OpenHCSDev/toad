@@ -702,7 +702,7 @@ class SavedContextInspection(ContextInspection):
 
     def saved_manifest(self, manifest):
         return self.page.reference(manifest).read(
-            self.service.bus.log, self.owner.name, self.service.registry)
+            self.service.contexts, self.owner.name, self.service.registry)
 
     async def recorded_source(self, manifest: ContextManifest, position: int, source: Provenance):
         def read():
