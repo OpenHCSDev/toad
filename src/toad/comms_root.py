@@ -334,7 +334,6 @@ class CoordinationAccess(MroDispatch):
         self.revision: ReadState = NoRevision()
         self.route_task: asyncio.Task[None] | None = None
         self.timer = None
-        self.cleanup = ExitStack()
         self.opening = threading.RLock()
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
@@ -380,7 +379,6 @@ class CoordinationAccess(MroDispatch):
             observed = Observing(
                 selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
                 self.app.running_loop, access=self)
-            self.cleanup.enter_context(acquisition.pop_all())
         observed.subscriptions.callback(observed.retire, self)
         self.observation = observed
         observed.loop.call_soon_threadsafe(observed.attach, self, previous)
@@ -586,7 +584,6 @@ class CoordinationAccess(MroDispatch):
     async def close(self) -> None:
         """Retire the observation once the views it served have closed."""
         async with AsyncResourceRelease() as release:
-            release.callback(self.cleanup.close)
             try:
                 with ResourceRelease() as observation:
                     observation.callback(lambda: self.observation.subscriptions.close())
