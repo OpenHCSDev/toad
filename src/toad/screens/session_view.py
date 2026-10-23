@@ -1,56 +1,28 @@
 """Logical session surfaces hosted by the one native WorkspaceScreen."""
+
 from textual.containers import Vertical
-from textual.widget import Widget
 from textual.reactive import reactive
 from pathlib import Path
 from contextlib import contextmanager
 from agent_comms.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
 from toad.core.source_events import TranscriptSourceWorkFinished
-from typing import TYPE_CHECKING
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
-from toad.project_path_owner import ProjectPathOwner
-from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
+from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
+from toad.navigation_target import NavigationTarget, NoTarget
+from toad.widgets.message_notifications import (
+    NothingToRead,
+    PaintedRead,
+    VisibleReadMarking,
+)
 
-if TYPE_CHECKING:
-    from toad.agent_schema import AgentDefinition
 
-
-class SessionOrigin:
-    """A view sessions and histories are opened from: it names their agent, project and bus sender."""
-
-    _agent: "AgentDefinition | None"
-
-    @property
-    def origin(self) -> "SessionOrigin":
-        return self
-
-    def transcript_scope(self) -> tuple[str, str] | None:
-        """The canonical history source, independent of an ACP connection."""
-        return self.thread_identity.transcript_scope()
-
-    def resolve_thread(self) -> str:
-        """Resolve a navigation name without rebinding this displayed source."""
-        from agent_comms.route_selection import RouteSelection
-
-        identity = self.thread_identity
-        selected = RouteSelection.capture(identity.wire_root())
-        service = self.app.coordination_access.require(selected).service
-        return identity.resolve_thread(service.registry, self.project_path)
-
-    def has_agent(self) -> bool:
-        return self._agent is not None
-
-class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Vertical):
+class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
     title = reactive("")
     sub_title = reactive("")
 
     DEFAULT_CSS = "SessionView { width: 1fr; height: 1fr; }"
-    AUTO_FOCUS = ""
-    COMMANDS = set()
-    footer_compact = False
-    shows_channels = True
 
     def __init__(self, *args, **kwargs):
         self._identity: SessionIdentity = NoThreadIdentity()
@@ -60,7 +32,9 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Verti
     def display_name(self) -> str:
         """Borrow this view's current label from the same projection as its tab."""
         sessions = self.app.session_navigation
-        return self.app.coordination_access.observation.tab(sessions.get(self.id), sessions).title
+        return self.app.coordination_access.observation.tab(
+            sessions.get(self.id), sessions
+        ).title
 
     @property
     def project_root(self) -> Path:
@@ -75,13 +49,18 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Verti
         return self._identity.wire_root()
 
     @property
-    def origin(self) -> SessionOrigin | None:
+    def origin(self) -> SessionOrigin:
         """What a session or history requested from this view starts from."""
-        return None
+        return NoSessionOrigin(str(self))
+
+    @property
+    def navigation_target(self) -> NavigationTarget:
+        return NoTarget()
 
     def belongs_to_wire(self, root) -> bool:
         """Unbound views may project the selected wire; bound views stay on it."""
         from pathlib import Path
+
         source = self.coordination_root
         return source is None or Path(source).expanduser().resolve() == root
 
@@ -97,19 +76,13 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Verti
 
     async def open_direct_messages(self) -> None:
         """Open this session's direct-message destination when it has one."""
-        self.notify("Direct messages are unavailable from this view", title="Direct messages")
-
-    def sidebar_focus_target(self) -> Widget | None:
-        return None
+        self.notify(
+            "Direct messages are unavailable from this view", title="Direct messages"
+        )
 
     def sidebars(self):
         """Supply this view's native sidebar resources through its declaration."""
         return ()
-
-    @property
-    def navigation_target_name(self) -> str | None:
-        """The displayed destination, independent of sidebar click intent."""
-        return None
 
     @property
     def thread_identity(self) -> SessionIdentity:
@@ -172,4 +145,3 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Verti
     def retained_native_presentations(self):
         """Declare accepted native trees; non-native views own no such trees."""
         return ()
-

@@ -10,9 +10,10 @@ from typing import TYPE_CHECKING
 from support.agents import AppAgents
 from support.roots import Roots, installed_wire
 from support.ui import TextualUi
+from toad.session_scope import AgentBinding, NoAgent
 
 if TYPE_CHECKING:
-    from toad.agent_schema import AgentDefinition
+    from agent_comms.comms import Comms
 
 
 class Workspace:
@@ -78,7 +79,7 @@ class Workspace:
         return AppAgents.unrun(self.project)
 
     @asynccontextmanager
-    async def app(self, *, size: tuple[int, int] = (120, 40), agent: AgentDefinition | None = None,
+    async def app(self, *, size: tuple[int, int] = (120, 40), binding: AgentBinding = NoAgent(),
                   application: type | None = None, session: bool = True, resume: str | None = None):
         """Start Toad headless on this project; yields once its first session is shown.
 
@@ -88,7 +89,7 @@ class Workspace:
         from toad.app import ToadApp
 
         launch = {} if resume is None else {"agent_session_id": resume}
-        app = (application or ToadApp)(agent_data=agent, project_dir=str(self.project), **launch)
+        app = (application or ToadApp)(agent_binding=binding, project_dir=str(self.project), **launch)
         async with app.run_test(size=size) as pilot:
             ui = TextualUi(app, pilot)
             if session:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from agent_comms.acp_extension import (
@@ -27,7 +28,7 @@ from agent_comms.acp_extension import (
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.errors import RouteChangedError
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
@@ -54,7 +55,9 @@ class CommsUpdateConsumer(MroDispatch):
         from .sdk_boundary import DecodeCommsMetadataTask
 
         authority = ClientSessionRequest(self.agent, self.session_id)
-        facts = await self.agent.controller.task_runner.run(DecodeCommsMetadataTask(metadata))
+        facts = await self.agent.controller.task_runner.run(
+            DecodeCommsMetadataTask(metadata)
+        )
         authority.require()
         for fact in facts:
             self.dispatch_sync(fact)
@@ -64,7 +67,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     def require_compaction_update(self):
         if self.compaction_update is None:
-            raise ValueError('Compaction result was missing')
+            raise ValueError("Compaction result was missing")
         return self.compaction_update
 
     @handles(TextRouteUpdate)
@@ -73,7 +76,11 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(InputFailedUpdate)
     def input_failed(self, update: InputFailedUpdate) -> None:
-        self.agent.events.publish(core_events.CommsUpdated(update, recover_draft=False, session_id=self.session_id))
+        self.agent.events.publish(
+            core_events.CommsUpdated(
+                update, recover_draft=False, session_id=self.session_id
+            )
+        )
 
     @handles(TranscriptChangedUpdate)
     def transcript_changed(self, update: TranscriptChangedUpdate) -> None:
@@ -87,7 +94,11 @@ class CommsUpdateConsumer(MroDispatch):
         binding = agent.presentation.managed_turns()
         if not binding.receive(update.state):
             return
-        agent.events.publish(core_events.CommsUpdated(update, session_id=self.session_id, sequence=binding.sequence))
+        agent.events.publish(
+            core_events.CommsUpdated(
+                update, session_id=self.session_id, sequence=binding.sequence
+            )
+        )
 
     @handles(CursorAdvancedUpdate)
     def cursor_advanced(self, update: CursorAdvancedUpdate) -> None:
@@ -114,15 +125,15 @@ class CommsUpdateConsumer(MroDispatch):
     def input_started(self, update: InputStartedUpdate) -> None:
         if update.scope.unidentified_start(update.input_id):
             if self.session_id == self.agent.session_id:
-                self.agent.events.publish(core_events.CommsUpdated(update, session_id=self.session_id))
+                self.agent.events.publish(
+                    core_events.CommsUpdated(update, session_id=self.session_id)
+                )
         elif update.scope.matches_session(self.session_id):
             starts = self.agent.queue_attachment.started(update, self.session_id)
             self.agent._post_queue_view(starts)
 
     @handles(CoordinationChangedUpdate)
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
-        from pathlib import Path
-
         agent = self.agent
         root = agent.controller.transcripts.access.launch_root.path
         if Path(update.wire_root).resolve() != root.resolve():
@@ -131,7 +142,9 @@ class CommsUpdateConsumer(MroDispatch):
         agent.project_root_path = Path(update.worktree)
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)
         agent.update_status_line()
-        agent.events.publish(core_events.CommsUpdated(agent.coordination, self.session_id))
+        agent.events.publish(
+            core_events.CommsUpdated(agent.coordination, self.session_id)
+        )
         agent.session.coordinated_title(update.title)
 
     @handles(GoalChangedUpdate)
@@ -151,12 +164,16 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(TranscriptSnapshotUpdate)
     def transcript_snapshot(self, update: TranscriptSnapshotUpdate) -> None:
         controller = self.agent.controller
-        controller.start_operation(controller.publish_transcript_snapshot(
-            update, controller.surface, controller.session))
+        controller.start_operation(
+            controller.publish_transcript_snapshot(
+                update, controller.surface, controller.session
+            )
+        )
 
     @handles(InputDeliveryChangedUpdate)
     def input_delivery_changed(self, update: InputDeliveryChangedUpdate) -> None:
         from toad.core.events import InputDispositionsChanged
+
         self.agent.events.publish(InputDispositionsChanged())
 
     @handles(McpClientAcknowledgementUpdate)
@@ -197,11 +214,16 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
         self.turn_token = turn_token
 
     def accepts_turn(self):
-        return (super().accepts_turn()
-                and self.agent.controller.accepts_turn_snapshot(self.turn_token))
+        return super().accepts_turn() and self.agent.controller.accepts_turn_snapshot(
+            self.turn_token
+        )
+
+    @handles(NoThreadPresentation)
+    def missing_thread_presentation(self, presentation: NoThreadPresentation) -> object:
+        return self.DISCARD
 
     @handles(ThreadPresentation)
-    def thread_presentation(self, presentation) -> None:
+    def thread_presentation(self, presentation: ThreadPresentation) -> None:
         identity = presentation.read_identity
         if identity is None:
             return  # An unavailable source supplies no turn settlement.
@@ -211,9 +233,10 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
         """Only the live transcript member can supply actual owner settlement."""
         coordination = self.agent.coordination
         self.agent.controller.require_owner(
-            coordination, ClientSessionRequest(self.agent, self.session_id))
-        if (root != coordination.wire_root or thread.incarnation != coordination.thread):
-            raise ValueError('Turn snapshot belongs to another original thread source')
+            coordination, ClientSessionRequest(self.agent, self.session_id)
+        )
+        if root != coordination.wire_root or thread.incarnation != coordination.thread:
+            raise ValueError("Turn snapshot belongs to another original thread source")
         self.turn_changed(TurnChangedUpdate(thread.turn_state))
 
 
@@ -234,7 +257,7 @@ class ChangedAttachmentRead(ThreadReadOutcome):
 
 @dataclass(frozen=True)
 class SettledThreadRead(ThreadReadOutcome):
-    presentation: ThreadPresentation | None
+    presentation: ThreadPresentation
 
     def present(self, consumer) -> None:
         consumer(self.presentation)
@@ -243,7 +266,7 @@ class SettledThreadRead(ThreadReadOutcome):
 class ThreadRead:
     """A presentation read, with settlement owned by its captured source."""
 
-    def settle(self, presentation: ThreadPresentation | None) -> ThreadReadOutcome:
+    def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
         return SettledThreadRead(presentation)
 
     async def reconcile(self, transcripts) -> None:
@@ -268,18 +291,20 @@ class PendingThreadRead(ThreadRead):
     authority: ClientSessionRequest
     snapshot: OwnerSnapshotConsumer
 
-    def settle(self, presentation: ThreadPresentation | None) -> ThreadReadOutcome:
+    def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
         current = self.agent.coordination
         if current is None or (current.wire_root, current.thread) != (
-            self.coordination.wire_root, self.coordination.thread
+            self.coordination.wire_root,
+            self.coordination.thread,
         ):
             return ChangedAttachmentRead()
         if self.authority.retired:
             return EndedSessionRead()
-        if presentation is not None:
-            self.snapshot.dispatch_sync(presentation)
+        self.snapshot.dispatch_sync(presentation)
         return SettledThreadRead(presentation)
 
     async def reconcile(self, transcripts) -> None:
-        self.settle(await transcripts.thread_presentation(
-            self.coordination.wire_root, self.coordination.thread.name))
+        read = await transcripts.thread_presentation(
+            self.coordination.wire_root, self.coordination.thread.name
+        )
+        self.settle(read.raised())

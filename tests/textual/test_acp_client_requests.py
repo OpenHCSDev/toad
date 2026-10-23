@@ -1,5 +1,6 @@
 """Textual-facing: a scripted ACP agent uses every client request (modes, files, permission, terminals);
 the permission dialog and the tool call block are the Textual widgets that answer and show them."""
+from toad.session_scope import AgentAttached
 
 from support.agents import peer
 from toad.core import input_events
@@ -8,7 +9,7 @@ from toad.widgets.tool_call import ToolCall
 
 
 async def test_agent_requests_are_served_and_the_reply_is_drawn(workspace):
-    async with workspace.app(size=(130, 44), agent=peer("specification")) as ui:
+    async with workspace.app(size=(130, 44), binding=AgentAttached(peer("specification"))) as ui:
         app, _pilot = ui.textual
         await ui.until_agent_ready()
         view = ui.conversation

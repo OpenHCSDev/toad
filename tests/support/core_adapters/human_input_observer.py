@@ -24,6 +24,7 @@ from agent_comms.retained_task_facts import HumanInputTaskFact
 from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
+from toad.session_scope import AgentAttached
 
 
 async def until(pilot, predicate, seconds=20):
@@ -177,7 +178,7 @@ async def _open_actual_s2_ingress(owner, subject, output):
             'run_command': {'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])},
             'accepts_comms_root': True,
         })
-        app = ToadApp(agent_data=definition, project_dir=subject.worktree,
+        app = ToadApp(agent_binding=AgentAttached(definition), project_dir=subject.worktree,
                       agent_session_id=subject.name)
         phase('before_actual_toad_run_test')
         async with app.run_test(headless=True, size=(160, 44)) as pilot:

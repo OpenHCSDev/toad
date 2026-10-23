@@ -1,4 +1,5 @@
 """Textual actions, bindings and palette entries share their declarations."""
+
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -6,9 +7,15 @@ from functools import partial
 from typing import TYPE_CHECKING, ClassVar
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from toad.preferences import SETTINGS
-from toad.widget_actions import ApplicationAction, KeyboundAction, MenuAction, VimApplicationAction
+from toad.widget_actions import (
+    ApplicationAction,
+    KeyboundAction,
+    MenuAction,
+    VimApplicationAction,
+)
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
+from agent_comms.errors import RelationViolationError
 from agent_comms.cli_commands import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
 
@@ -29,17 +36,33 @@ class NewThreadAction(ApplicationAction, MenuAction):
 
     async def apply(self, app: ToadApp) -> None:
         mode = app.selected_mode
-        source = app.workspace_sessions.origin(mode)
-        project = source.project_path if source is not None else app.project_dir
-        app.run_worker(partial(self.collect, app, mode, project), group="new-session", exclusive=True)
+        try:
+            project = app.workspace_sessions.origin(mode).require().project_root
+        except RelationViolationError:
+            project = app.project_dir
+        app.run_worker(
+            partial(self.collect, app, mode, project),
+            group="new-session",
+            exclusive=True,
+        )
 
     async def collect(self, app, mode, project):
         def prepare():
-            ctx = TargetContext(app, app.coordination_access.observation.observed().service,
-                                ProjectTarget(str(project)), '', project, mode)
-            definition = next(action for action in ctx.available_actions()
-                              if action.declaration is NewThreadCliCommand)
+            ctx = TargetContext(
+                app,
+                app.coordination_access.observation.observed().service,
+                ProjectTarget(str(project)),
+                "",
+                project,
+                mode,
+            )
+            definition = next(
+                action
+                for action in ctx.available_actions()
+                if action.declaration is NewThreadCliCommand
+            )
             return partial(ThreadAction.collect, ctx, definition)
+
         open_form = await app.preparation.run_thread(prepare)
         if app.selected_mode == mode:
             open_form()
@@ -61,6 +84,7 @@ class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction, MenuActio
 
     async def edit(self, app: ToadApp) -> None:
         from toad.screens.settings import SettingsScreen
+
         await app.push_screen_wait(SettingsScreen())
         await app.saved_settings.save()
 
@@ -79,15 +103,25 @@ class SetFooterAction(ApplicationAction):
     async def apply(self, app: ToadApp) -> None:
         app.saved_settings.set(SETTINGS.ui.footer, self.visible)
         await app.saved_settings.save()
-        app.notify("Footer shortcut bar shown" if self.visible else "Footer shortcut bar hidden",
-                   title="Interface")
+        app.notify(
+            (
+                "Footer shortcut bar shown"
+                if self.visible
+                else "Footer shortcut bar hidden"
+            ),
+            title="Interface",
+        )
 
 
 class ToggleFooterAction(ApplicationAction, PaletteAction):
     help = "Toggle the key-shortcut bar at the bottom of Toad"
 
     def label(self, app: ToadApp) -> str:
-        return "Hide footer shortcut bar" if app.settings.ui.footer else "Show footer shortcut bar"
+        return (
+            "Hide footer shortcut bar"
+            if app.settings.ui.footer
+            else "Show footer shortcut bar"
+        )
 
     async def apply(self, app: ToadApp) -> None:
         await SetFooterAction(not app.settings.ui.footer).apply(app)
@@ -167,6 +201,7 @@ class VimNavigationAction(VimApplicationAction):
     @staticmethod
     def conversation(app):
         from toad.widgets.conversation import Conversation
+
         view = app.selected_session
         return None if view is None else view.query_one_optional(Conversation)
 
@@ -228,6 +263,7 @@ class VimFocusPromptAction(VimNavigationAction):
 
     async def apply(self, app):
         from textual.widgets.text_area import VimInsert
+
         conversation = self.conversation(app)
         conversation.prompt.prompt_text_area.editing_mode = VimInsert()
         conversation.focus_prompt(reset_cursor=False, scroll_end=False)
@@ -256,11 +292,18 @@ class ApplicationCommands(Provider):
             command = declaration()
             label = command.label(self.app)
             if score := matcher.match(label):
-                yield Hit(score, matcher.highlight(label), partial(command.apply, self.app),
-                          help=command.help)
+                yield Hit(
+                    score,
+                    matcher.highlight(label),
+                    partial(command.apply, self.app),
+                    help=command.help,
+                )
 
     async def discover(self) -> Hits:
         for declaration in ApplicationAction.members_with(PaletteAction):
             command = declaration()
-            yield DiscoveryHit(command.label(self.app), partial(command.apply, self.app),
-                               help=command.help)
+            yield DiscoveryHit(
+                command.label(self.app),
+                partial(command.apply, self.app),
+                help=command.help,
+            )

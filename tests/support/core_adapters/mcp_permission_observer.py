@@ -144,6 +144,7 @@ class Observer:
 @asynccontextmanager
 async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer]:
     from toad.app import ToadApp
+    from toad.session_scope import NoAgent
 
     root = Path(artifact_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -153,7 +154,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
     previous = {key: os.environ.get(key) for key in env}
     os.environ.update(env)
     try:
-        app = ToadApp(project_dir=str(root / "project"))
+        app = ToadApp(agent_binding=NoAgent(), project_dir=str(root / "project"))
         async with app.run_test(size=(120, 40)) as pilot:
             # Toad starts with no tab open; the observed session is opened here.
             await app.session_navigation.new(app.session_navigation.default_source)

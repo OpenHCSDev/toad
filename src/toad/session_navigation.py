@@ -1,29 +1,41 @@
 """Opening and closing sessions use the existing workspace's declared factories."""
+
 from __future__ import annotations
 
-from agent_comms.errors import RouteChangedError
 import asyncio
-from toad.core import events as core_events
-from toad.core.events import CoreEventStream
-
 from collections.abc import Callable
+from functools import partial
 from itertools import count
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-
+from agent_comms.errors import (
+    RelationViolationError,
+    RouteChangedError,
+    UnknownChannelError,
+    UnregisteredThreadError,
+)
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import RegistrationsView
-from agent_comms.errors import UnknownChannelError, UnregisteredThreadError
 from agent_comms.route_selection import root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
+
+from toad.core import events as core_events
+from toad.core.events import CoreEventStream
 from toad.navigation_preparation import CommsNavigationRequest
-from toad.session_entry import (HistorySessionEntry, NativeSessionEntry,
-                                PreviewSessionEntry, SessionEntry)
+from toad.session_entry import (
+    HistorySessionEntry,
+    NativeSessionEntry,
+    PreviewSessionEntry,
+    SessionEntry,
+)
+from toad.session_scope import AgentAttached, AgentBinding, AgentSession
 from toad.session_tracker import OpenTab, SessionDetails
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.sidebar import ThreadRowModel
+
+    from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
     from toad.navigation_target import HistoryRouted
     from toad.screens.main import MainScreen
@@ -48,18 +60,25 @@ class SessionNavigation:
         source = self.app.selected_session
         if source is None:
             raise ValueError("Direct messages require an open session")
-        operation = (source.open_direct_messages() if target is None
-                     else source.open_sidebar_target(DirectTarget(target)))
+        operation = (
+            source.open_direct_messages()
+            if target is None
+            else source.open_sidebar_target(DirectTarget(target))
+        )
         return self.app.run_worker(operation, group="direct-messages")
 
     def bind_events(self) -> None:
         self.app.subscribe_core(self.events)
-        self.app.observe_core_callback(self.app.coordination_access.events,
-                                       core_events.CoordinationObserved, self.observed)
+        self.app.observe_core_callback(
+            self.app.coordination_access.events,
+            core_events.CoordinationObserved,
+            self.observed,
+        )
 
     async def reveal(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
+
         app = self.app
         sidebar = app.screen.query_one_optional(CommsSidebar)
         if sidebar is None:
@@ -76,17 +95,24 @@ class SessionNavigation:
 
     @property
     def members(self) -> tuple[SessionEntry, ...]:
-        return tuple(entry for group in self.entries.values() for entry in group.values())
+        return tuple(
+            entry for group in self.entries.values() for entry in group.values()
+        )
 
     @property
     def processes(self):
         """Borrow connections from actual native sources; keep no second roster."""
-        return tuple(process for member in self.members
-                     if (source := member.source(self)) is not None
-                     for process in source.presentation.operational_binding.borrowed_processes())
+        return tuple(
+            process
+            for member in self.members
+            if (source := member.source(self)) is not None
+            for process in source.presentation.operational_binding.borrowed_processes()
+        )
 
     def get(self, mode: str) -> SessionEntry | None:
-        return next((group[mode] for group in self.entries.values() if mode in group), None)
+        return next(
+            (group[mode] for group in self.entries.values() if mode in group), None
+        )
 
     def find(self, address: object) -> SessionEntry | None:
         return next((entry for entry in self.members if entry.address == address), None)
@@ -106,12 +132,21 @@ class SessionNavigation:
             return
         originals = self.members
         snapshot = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.require(selected).service.registry.snapshot())
+            lambda: self.app.coordination_access.require(
+                selected
+            ).service.registry.snapshot()
+        )
         for member in originals:
             await member.reconnect(self, selected, snapshot, targets)
 
-    def bind_opened(self, view: MainScreen, *, original: tuple[str, ThreadIncarnation],
-                    name: str, project: Path) -> None:
+    def bind_opened(
+        self,
+        view: MainScreen,
+        *,
+        original: tuple[str, ThreadIncarnation],
+        name: str,
+        project: Path,
+    ) -> None:
         """Bind the accepted source facts before preparing its native resources."""
         entry = cast(NativeSessionEntry, self.get(view.id))
         view.bind_project(project)
@@ -127,9 +162,20 @@ class SessionNavigation:
     def views_retired(self, root, retired) -> None:
         """Close the open views on ``root`` whose sources the observation service found retired."""
         root = str(root)
-        removed = tuple(member.mode for member in self.members if (
-            any(owner == root and identity in retired.threads for owner, identity in member.original_threads(self))
-            or any(owner == root and target in retired.channels for owner, target in member.original_channels())))
+        removed = tuple(
+            member.mode
+            for member in self.members
+            if (
+                any(
+                    owner == root and identity in retired.threads
+                    for owner, identity in member.original_threads(self)
+                )
+                or any(
+                    owner == root and target in retired.channels
+                    for owner, target in member.original_channels()
+                )
+            )
+        )
         if removed:
             task = asyncio.ensure_future(self.close_many(removed))
             self._closing_retired.add(task)
@@ -146,19 +192,45 @@ class SessionNavigation:
         await entry.ready(self)
         return entry.mode
 
-    async def new(self, factory: Callable[[], MainScreen], *, title: str = "New Session", original=None) -> SessionDetails:
+    async def new(
+        self,
+        factory: Callable[[], MainScreen],
+        *,
+        title: str = "New Session",
+        original=None,
+    ) -> SessionDetails:
         details = self.app.session_tracker.new_session(title=title)
         await self.open(NativeSessionEntry(details, factory, original))
         return details
 
-    async def launch(self, agent_identity: str, *, agent_session_id: str | None = None,
-                     session_pk: int | None = None, project_path: Path | None = None,
-                     initial_prompt: str | None = None) -> None:
+    async def launch(
+        self,
+        agent_identity: str,
+        *,
+        agent_session_id: str | None = None,
+        session_pk: int | None = None,
+        project_path: Path | None = None,
+        initial_prompt: str | None = None,
+    ) -> None:
         from toad.agents import read_agents
         from toad.db import DB
         from toad.screens.main import MainScreen
 
         app = self.app
+        make_binding: Callable[[AgentDefinition], AgentBinding] = AgentAttached
+        if agent_session_id is not None:
+            make_binding = partial(AgentSession, session_id=agent_session_id)
+            existing = next(
+                (
+                    identity
+                    for identity, origin in app.workspace_sessions.views.items()
+                    if origin.matches_launch(agent_identity, agent_session_id)
+                ),
+                None,
+            )
+            if existing is not None:
+                await app.select_session(existing)
+                return
         agent, title = None, None
         if session_pk is not None:
             saved = await DB().session_get(session_pk)
@@ -172,33 +244,47 @@ class SessionNavigation:
                 app.show_error("Agent not found", "Launch agent")
                 return
         project = project_path if project_path is not None else app.project_dir
-        if agent_session_id is not None:
-            existing = next((entry for entry in self.members
-                             if entry.accepts_launch(self, agent_identity, agent_session_id)), None)
-            if existing is not None:
-                await app.select_session(existing.mode)
-                return
-        await self.new(lambda: MainScreen(project, agent, agent_session_id,
-            session_pk=session_pk, initial_prompt=initial_prompt),
-            title=title or "New Session")
+        await self.new(
+            lambda: MainScreen(
+                project,
+                make_binding(agent),
+                session_pk=session_pk,
+                initial_prompt=initial_prompt,
+            ),
+            title=title or "New Session",
+        )
 
-    async def history(self, *, owner_mode: str, project_path: Path, me: str,
-                      route: HistoryRouted) -> str:
+    async def history(
+        self,
+        *,
+        owner_mode: str,
+        project_path: Path,
+        me: str,
+        route: HistoryRouted,
+    ) -> str:
         from toad.thread_navigation import ThreadOrigin
 
         app = self.app
-        source = app.workspace_sessions.origin(owner_mode)
-        if source is None:
-            app.show_error("The owning agent tab was closed", "Comms target unavailable")
+        try:
+            source = app.workspace_sessions.origin(owner_mode).require()
+        except RelationViolationError:
+            app.show_error(
+                "The owning agent tab was closed", "Comms target unavailable"
+            )
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            comms = await app.preparation.run_thread(lambda: app.coordination_access.observation.observed().service)
+            comms = await app.preparation.run_thread(
+                lambda: app.coordination_access.observation.observed().service
+            )
             requested_root = str(comms.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
-            prepared = await app.navigation_reader.read(CommsNavigationRequest(
-                comms, owner_mode, me, route, source.coordination_root))
+            prepared = await app.navigation_reader.read(
+                CommsNavigationRequest(
+                    comms, owner_mode, me, route, source.coordination_root
+                )
+            )
         except (UnknownChannelError, UnregisteredThreadError, RouteChangedError) as error:
             app.show_error(error, "Comms target unavailable")
             return app.selected_mode
@@ -214,8 +300,14 @@ class SessionNavigation:
         # factories carry its identity, so no key-to-mode mirror can go stale.
         entry = self.find(prepared.key.conversation.view_identity(prepared.key))
         if entry is None:
-            entry = HistorySessionEntry(f"comms-{next(self.identities)}", prepared.key,
-                                                project_path, prepared.owner_root, prepared.participants, source)
+            entry = HistorySessionEntry(
+                f"comms-{next(self.identities)}",
+                prepared.key,
+                project_path,
+                prepared.owner_root,
+                prepared.participants,
+                source,
+            )
             await self.open(entry)
         else:
             await app.select_session(entry.mode)
@@ -226,7 +318,9 @@ class SessionNavigation:
         path = path.expanduser().resolve()
         entry = self.find(path)
         if entry is None:
-            entry = PreviewSessionEntry.of(f"preview-{next(self.identities)}", path, self.app.selected_mode)
+            entry = PreviewSessionEntry.of(
+                f"preview-{next(self.identities)}", path, self.app.selected_mode
+            )
             await self.open(entry, after=self.app.selected_mode)
         else:
             await self.app.select_session(entry.mode)
@@ -260,12 +354,20 @@ class SessionNavigation:
         await self.close_many((mode,))
 
     async def close_many(self, modes: tuple[str, ...]) -> None:
-        entries = tuple(entry for mode in modes if (entry := self.get(mode)) is not None)
+        entries = tuple(
+            entry for mode in modes if (entry := self.get(mode)) is not None
+        )
         if not entries:
             return
-        closing = tuple(member for member in self.members
-                        if any(member.depends_on(entry.mode) for entry in entries))
-        returning = next((member for member in closing if member.mode == self.app.selected_mode), None)
+        closing = tuple(
+            member
+            for member in self.members
+            if any(member.depends_on(entry.mode) for entry in entries)
+        )
+        returning = next(
+            (member for member in closing if member.mode == self.app.selected_mode),
+            None,
+        )
         for member in closing:
             member.forget(self)
         self.app.tab_order.close({member.mode for member in closing})
@@ -292,9 +394,13 @@ class SessionNavigation:
         # registration or channel changed.
         observed = self.app.coordination_access.observation.observed()
         if not any(
-                not observed.observes(owner)
-                for member in self.members
-                for owner, _ in (*member.original_threads(self), *member.original_channels())):
+            not observed.observes(owner)
+            for member in self.members
+            for owner, _ in (
+                *member.original_threads(self),
+                *member.original_channels(),
+            )
+        ):
             return
         revision = event.revision
         if not revision.changed_since(RegistrationsView(), self._retired_at):
@@ -317,8 +423,10 @@ class SessionNavigation:
 
         # Borrow each open entry, including hidden views. Core decides
         # which of their sources no longer exist; Toad only closes the views.
-        originals = tuple((member, member.original_threads(self), member.original_channels())
-                          for member in self.members)
+        originals = tuple(
+            (member, member.original_threads(self), member.original_channels())
+            for member in self.members
+        )
         asked: dict[str, tuple[set, set]] = {}
         # The observation service retires views on its own root.
         observed = self.app.coordination_access.observation.observed()
@@ -349,9 +457,24 @@ class SessionNavigation:
         answers = await self.app.preparation.run_thread(read)
         # A service replaced while the read joined revokes its answer.
         observed = self.app.coordination_access.observation.observed()
-        retired = {root: answer for root, (service, answer) in answers.items() if observed.uses(service)}
-        removed = tuple(member.mode for member, threads, channels in originals
-                        if self.get(member.mode) is member and (
-                            any(root in retired and identity in retired[root].threads for root, identity in threads)
-                            or any(root in retired and target in retired[root].channels for root, target in channels)))
+        retired = {
+            root: answer
+            for root, (service, answer) in answers.items()
+            if observed.uses(service)
+        }
+        removed = tuple(
+            member.mode
+            for member, threads, channels in originals
+            if self.get(member.mode) is member
+            and (
+                any(
+                    root in retired and identity in retired[root].threads
+                    for root, identity in threads
+                )
+                or any(
+                    root in retired and target in retired[root].channels
+                    for root, target in channels
+                )
+            )
+        )
         await self.close_many(removed)

@@ -1,11 +1,12 @@
 """Textual-facing: the prompt widget. Typing ! in an empty prompt enters shell mode for one submission."""
 
 from support.agents import peer
+from toad.session_scope import AgentAttached
 from toad.widgets.prompt import Prompt
 
 
 async def test_shell_mode_runs_one_command_then_returns_to_agent_input(workspace):
-    async with workspace.app(agent=peer("echo")) as ui:
+    async with workspace.app(binding=AgentAttached(peer("echo"))) as ui:
         await ui.until_agent_ready()
         app, _pilot = ui.textual
         prompt = app.selected_session.query_one(Prompt)
