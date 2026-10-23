@@ -16,6 +16,7 @@ from dataclasses import dataclass, replace
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, ClassVar
 
+from agent_comms.field_codec import FieldCodec
 from rich.color import Color as RichColor
 from rich.console import RenderableType
 from rich.segment import Segment
@@ -327,12 +328,13 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
     # The backend.
 
     def theme(self, scheme: ColourScheme) -> Theme:
-        colours = {member.name: member.variable(value, self) for member, value in scheme.colours.items()}
-        variables = {member.name: member.variable(value, self)
+        colours = {member.name: value.variable(self) for member, value in scheme.colours.items()}
+        variables = {member.name: value.variable(self)
                      for member, value in scheme.resolved_elements.items()}
-        theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
-                      variables=variables, **colours)
-        return theme
+        return FieldCodec.decode(Theme, {
+            "name": scheme.name, "dark": scheme.dark, "ansi": scheme.from_terminal,
+            "variables": variables, **colours,
+        })
 
     def palette(self, palette: TerminalPalette) -> TerminalTheme:
         ansi = [colour.triple for colour in palette.ansi]
