@@ -52,6 +52,7 @@ from toad.transcript_preparation import (
     PreparedTranscriptPage,
     ProjectedTranscriptSource,
     RangeCategoryProjection,
+    ReplaceablePageSource,
     SavedHistory,
     UnreadTranscriptPage,
 )
@@ -63,6 +64,7 @@ from toad.transcript_state import (
     LatestViewportRequest,
     LiveTranscript,
     ParkedSourceTranscript,
+    ReplacementViewportRequest,
     TranscriptState,
 )
 from toad.widgets.committed_presentation import (
@@ -902,34 +904,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         for page in self.pages:
             page.arrivals.clear()
 
-    async def show_newest(self, through, initial: PreparedTranscriptPage, *,
-                          arrivals: tuple[TranscriptFragment, ...] = (),
-                          publication_current: Callable[[], bool] = lambda: True) -> bool:
-        """Replace the drawn source, retaining the followed tail's active arrivals."""
-        retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
-                          if id(fragment) in page.arrivals)
-                    if self.follows_source_tail else ())
-        source, previous = self.page_source, self.page_source.through
-        previous_pages = self.pages
-        self._generation += 1
-        generation = self._generation
-        source.restart(through)
-        published = False
-        try:
-            published = await self.jump_latest(
-                LatestViewportRequest(LatestPosition.hold(self.window)), publication_current, initial=initial)
-            if published:
-                self.repaint(arrivals, continuing=retained)
-            return published
-        finally:
-            # Old drawn pages remain valid until admission. A cancellation
-            # before the swap restores their read bound; teardown after an
-            # admitted swap cannot rewind that accepted source.
-            if (not published and self.page_source is source and self._generation == generation
-                    and self.pages is previous_pages):
-                source.restart(previous)
-                self._generation += 1
-
     async def _clear(self, initial: PreparedTranscriptPage) -> None:
         """Forget every drawn page and everything prepared: they belong to another reading."""
         async with self.window.history_lock:
@@ -1183,9 +1157,24 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
 class ConversationHistory[ViewT: "Conversation"](LineHistory):
     """A conversation owns its source binding and initial history state."""
 
+    page_source: ReplaceablePageSource
+
     def __init__(self, *args, view: ViewT, **kwargs):
         self.view = view
         super().__init__(*args, **kwargs)
+
+    async def show_newest(self, request: ReplacementViewportRequest, *,
+                          arrivals: tuple[TranscriptFragment, ...] = (),
+                          publication_current: Callable[[], bool] = lambda: True) -> bool:
+        """Replace the drawn source, retaining the followed tail's active arrivals."""
+        retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
+                          if id(fragment) in page.arrivals)
+                    if self.follows_source_tail else ())
+        self._generation += 1
+        published = await self.jump_latest(request, publication_current)
+        if published:
+            self.repaint(arrivals, continuing=retained)
+        return published
 
     @classmethod
     def empty_source(cls, view, through):

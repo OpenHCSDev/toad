@@ -10,11 +10,16 @@ from typing import ClassVar, TYPE_CHECKING, cast
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 from textual.widget import Widget
+from toad.resource_release import ResourceRelease
 from toad.widgets.presentation_window import NEWER_END
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
+    from toad.transcript_preparation import PreparedTranscriptPage
+    from agent_comms.transcripts import TranscriptCursor
+    from toad.wire_history import WireCut
+    from toad.widgets.transcript_history import ConversationHistory
     from toad.widgets.committed_presentation import CommitParticipant
     from toad.widgets.history_anchor import LatestPosition
 
@@ -188,6 +193,14 @@ class NoLatestRequest(LatestViewportState):
 class LatestViewportRequest(LatestViewportState):
     destination: "LatestPosition"
 
+    @contextmanager
+    def reading(self, owner):
+        with ResourceRelease() as release:
+            yield owner.page_source, release
+
+    async def page(self, owner, source):
+        return await source.latest(owner.pages[-1].prepared)
+
     def current(self, window) -> bool:
         return self.destination.current(window)
 
@@ -211,6 +224,47 @@ class LatestViewportRequest(LatestViewportState):
                 or owner.schedule_source_work(partial(owner.jump_latest, self))):
             return NoLatestRequest()
         return self
+
+
+@dataclass(frozen=True)
+class ReplacementViewportRequest(LatestViewportRequest):
+    """A candidate source belongs to its request until page admission."""
+
+    @abstractmethod
+    def source(self, owner: "ConversationHistory"):
+        """Open the complete reading selected by this replacement."""
+
+    @contextmanager
+    def reading(self, owner: "ConversationHistory"):
+        with ResourceRelease() as release:
+            source = self.source(owner)
+            release.callback(source.close)
+            yield source, release
+
+@dataclass(frozen=True)
+class LatestReplacementViewportRequest(ReplacementViewportRequest):
+    through: "TranscriptCursor | WireCut"
+
+    def source(self, owner: "ConversationHistory"):
+        return owner.page_source.replacement(self.through)
+
+    async def page(self, owner, source):
+        from toad.widgets.presentation_window import OLDER_END, PageRequest
+
+        return await source.get(PageRequest(OLDER_END, source.through))
+
+
+@dataclass(frozen=True)
+class PreparedReplacementViewportRequest(ReplacementViewportRequest):
+    """An existing prepared page needs no storage read, including closed sources."""
+
+    initial: "PreparedTranscriptPage"
+
+    def source(self, owner: "ConversationHistory"):
+        return owner.page_source.replacement(self.initial.page.after)
+
+    async def page(self, owner, source):
+        return self.initial.for_view()
 
 
 @dataclass(frozen=True, eq=False)

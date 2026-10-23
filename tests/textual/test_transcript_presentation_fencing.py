@@ -2,6 +2,7 @@
 
 import asyncio
 from contextlib import asynccontextmanager
+import pytest
 
 from support.journals import assistant_entry, write_journal
 from agent_comms.thread_text import SavedSessionFile
@@ -164,8 +165,10 @@ async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
         assert not view.transcript.binding.matches(view)
 
 
-async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_read_bound(workspace, monkeypatch):
+@pytest.mark.parametrize("after_admission", (False, True))
+async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_read_bound(workspace, monkeypatch, after_admission):
     from dataclasses import replace
+    from textual.widget import Widget
     from toad.widgets.transcript_lines import TranscriptLinesBatchRenderTask
 
     old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_VISIBLE_SOURCE", id="old"))
@@ -177,21 +180,32 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
         await ui.app.coordination_access.stop_observing()
         await view.transcript.suspend()
         history = view.transcript.binding.history
+        original_source, original_scope = history.page_source, history.page_source.scope
         pages, through = tuple(history.pages), history.page_source.through
         new = write_journal(workspace.project / "new.jsonl", assistant_entry("NEW_VISIBLE_SOURCE", id="new"))
         workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(new))))
         entered, release = asyncio.Event(), asyncio.Event()
         render_for = TranscriptLinesBatchRenderTask.render_for
+        remove_children = Widget.remove_children
         render_owners = []
 
         async def held_rows(cls, target, preparations):
-            if target is history and not release.is_set():
+            if not after_admission and target is history and not release.is_set():
                 render_owners.append(asyncio.current_task())
                 entered.set()
                 await release.wait()
             return await render_for(target, preparations)
 
+        async def held_removal(owner, *args, **kwargs):
+            removal = remove_children(owner, *args, **kwargs)
+            if after_admission and owner is history and not release.is_set():
+                render_owners.append(asyncio.current_task())
+                entered.set()
+                await release.wait()
+            return await removal
+
         monkeypatch.setattr(TranscriptLinesBatchRenderTask, "render_for", classmethod(held_rows))
+        monkeypatch.setattr(Widget, "remove_children", held_removal)
         view.window.anchor()
         view.prompt.focus()
         view.transcript.dirty = view.transcript.commit_required = True
@@ -199,14 +213,29 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
         try:
             await asyncio.wait_for(entered.wait(), 8)
             await ui.step()
-            assert "OLD_VISIBLE_SOURCE" in ui.painted(view.window)
-            assert "NEW_VISIBLE_SOURCE" not in ui.painted(view.window)
-            assert tuple(history.pages) == pages
+            if after_admission:
+                assert history.page_source is not original_source
+                accepted_source = history.page_source
+                assert accepted_source.through.session_file == str(new)
+                assert tuple(history.pages) != pages
+            else:
+                assert "OLD_VISIBLE_SOURCE" in ui.painted(view.window)
+                assert "NEW_VISIBLE_SOURCE" not in ui.painted(view.window)
+                assert history.page_source is original_source
+                assert history.page_source.scope is original_scope and not original_scope.closed
+                assert tuple(history.pages) == pages
             applying, = render_owners
             assert applying.cancel()
             await asyncio.gather(applying, return_exceptions=True)
-            assert history.page_source.through == through
-            assert tuple(history.pages) == pages and all(page.display for page in pages)
+            if after_admission:
+                assert history.page_source is accepted_source and not accepted_source.closed
+                assert original_scope.closed
+                assert history.page_source.through.session_file == str(new)
+            else:
+                assert history.page_source is original_source
+                assert history.page_source.scope is original_scope and not original_scope.closed
+                assert history.page_source.through == through
+                assert tuple(history.pages) == pages and all(page.display for page in pages)
             release.set()
             await view.transcript.publish(CommitPublication)
             await ui.until_shows("NEW_VISIBLE_SOURCE")
@@ -220,3 +249,41 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
             if not pending.done():
                 pending.cancel()
             await asyncio.gather(pending, return_exceptions=True)
+
+
+@pytest.mark.parametrize("empty", (False, True))
+async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage_read(workspace, empty):
+    from dataclasses import replace
+    from toad.transcript_preparation import ClosedHistory, TranscriptPageRenderTask
+    from toad.transcript_state import PreparedReplacementViewportRequest
+    from toad.widgets.history_anchor import LatestPosition
+    from toad.work_preparation import RenderPreparation
+
+    old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_RETAINED_ROWS", id="old"))
+    thread = workspace.thread("source")
+    workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(old))))
+    async with workspace.app(resume="source") as ui:
+        await ui.until_shows("OLD_RETAINED_ROWS")
+        view = ui.conversation
+        await ui.app.coordination_access.stop_observing()
+        await view.transcript.suspend()
+        history = view.transcript.binding.history
+        history.close()
+        original = history.page_source
+        new = write_journal(workspace.project / "new.jsonl", *(
+            () if empty else (assistant_entry("PREPARED_REPLACEMENT", id="new"),)))
+        workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(new))))
+        page = workspace.comms.transcripts.thread_transcript_page("source")
+        prepared = await ui.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+        assert await history.show_newest(PreparedReplacementViewportRequest(
+            LatestPosition.hold(history.window), prepared))
+        await ui.step()
+        assert original.closed
+        assert isinstance(history.page_source, ClosedHistory) and history.page_source is not original
+        assert not history.page_source.closed and history.page_source.through == page.after
+        assert "OLD_RETAINED_ROWS" not in ui.painted(view.window)
+        if empty:
+            assert not history.fragments_in_range
+        else:
+            await ui.until_shows("PREPARED_REPLACEMENT")
+        assert ui.failure() is None

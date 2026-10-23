@@ -485,7 +485,14 @@ class UnreadTranscriptPage:
     has_newer: bool = False
 
 
-class SavedHistory(PreparedPageSource):
+class ReplaceablePageSource(PreparedPageSource):
+    """A complete source can prepare another reading without closing this one."""
+
+    @abstractmethod
+    def replacement(self, through) -> ReplaceablePageSource: ...
+
+
+class SavedHistory(ReplaceablePageSource):
     """Prepared pages for a snapshot; storage and work limits belong to the runtime.
 
     The loader retains ownership of transcript/routing semantics and off-loop
@@ -508,6 +515,9 @@ class SavedHistory(PreparedPageSource):
     def prefix(self, through) -> PreparedPageSource:
         return SavedPrefix(self, self.loader, through, self.runtime)
 
+    def replacement(self, through) -> SavedHistory:
+        return type(self)(self.loader, through, self.runtime)
+
     def read_task(self, request: PageRequest) -> TranscriptPageWork:
         return self.work(self.scope, self.loader, self.through, request)
 
@@ -523,6 +533,11 @@ class SavedPrefix(SavedHistory):
     def __init__(self, earlier, loader, through, runtime):
         super().__init__(loader, through, runtime)
         self.earlier = earlier
+
+    def replacement(self, through) -> ReplaceablePageSource:
+        # A replacement reads the complete source; it must not delegate older
+        # reads to the superseded prefix's preparation scope.
+        return self.earlier.replacement(through)
 
     def read_task(self, request):
         # Keep the upstream task's declared native/wire behavior, bounded here.
@@ -549,7 +564,7 @@ class Unchanged(SourceObservation):
         return await super().apply(history, source)
 
 
-class ClosedHistory(PreparedPageSource):
+class ClosedHistory(ReplaceablePageSource):
     """A retained range without a saved reader; its pages remain usable."""
 
     def __init__(self, through, runtime):
@@ -617,6 +632,9 @@ class ClosedHistory(PreparedPageSource):
         return prepared.for_view()
 
     def prefix(self, through):
+        return ClosedHistory(through, self.runtime)
+
+    def replacement(self, through) -> ClosedHistory:
         return ClosedHistory(through, self.runtime)
 
     async def _get(self, request):

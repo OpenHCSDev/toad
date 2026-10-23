@@ -32,6 +32,8 @@ from agent_comms.page_traversal import (
 from agent_comms.transcript_events import IncomingTranscript
 
 from toad.conversation_kind import ConversationKind
+from toad.transcript_state import LatestReplacementViewportRequest
+from toad.widgets.history_anchor import LatestPosition
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -320,7 +322,8 @@ class WireObservation(SourceObservation):
     async def apply(self, history, source) -> bool:
         history.revision = self.revision
         if self.replaced:
-            await history.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
+            await history.show_newest(LatestReplacementViewportRequest(
+                LatestPosition.hold(history.window), self.through))
             return not history.undrawn
         if not history.undrawn:
             return await history.extend(self.through)
@@ -403,7 +406,7 @@ class WirePageBuffer(SavedHistory):
         if edge.prepared.page.accepts(prepared.page.source, self.loader.conversation.history_view):
             return True
         prepared.configure(batch_size=len(prepared.fragments))
-        await history.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
+        await history.show_newest(LatestReplacementViewportRequest(LatestPosition.hold(history.window), self.through),
                                   arrivals=history._source_state.arriving(prepared, history.drawn_tail_followed))
         return False
 

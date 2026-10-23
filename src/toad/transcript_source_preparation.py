@@ -200,8 +200,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.state.request_latest(self, LatestViewportRequest(destination))
 
     async def jump_latest(self, request: LatestViewportRequest,
-                           publication_current: Callable[[], bool] = lambda: True, *,
-                           initial: PreparedTranscriptPage | None = None) -> bool:
+                           publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Publish one destination using its captured source and reader position.
 
         A preceding page's restoration may have left the window off its tail.
@@ -217,22 +216,21 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         request.restore(self.window)
         snapshot = self.source_snapshot()
         current = lambda: snapshot.current(self) and request.current(snapshot.window) and publication_current()
-        seed = self.pages[-1].prepared if initial is None else initial
-        if await self._publish_latest(current, seed):
-            # Accepting a wire page advances the reader source. Capture the
-            # published source, rather than the request that acceptance replaced.
-            self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
-            return True
+        with request.reading(self) as (source, release):
+            prepared = await request.page(self, source)
+            if await self._publish_latest(current, source, prepared, release):
+                # Capture the source accepted with the destination's pages.
+                self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
+                return True
         self.latest = request.defer(self)
         return False
 
     async def _publish_latest(self, current: Callable[[], bool],
-                              initial: PreparedTranscriptPage) -> bool:
+                              source: PreparedPageSource, prepared: PreparedTranscriptPage,
+                              release: ResourceRelease) -> bool:
         """Prepare the bottom destination, keeping views of unchanged source pages."""
         window = self.window
         edge = self.pages[-1]
-        source = self.page_source
-        prepared = await source.latest(initial)
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
@@ -270,9 +268,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     # An empty answer is published too: the edge draws nothing,
                     # at its end. `latest` was never ranged by the loop above.
                     latest.set_fragment_range(slice(len(latest.fragments), len(latest.fragments)))
-                    edge.prepared = latest
-                    edge.range_changed()
-                    views.append(edge)
+                    destination.append((latest, None))
                 try:
                     async with AsyncExitStack() as acquisition:
                         for prepared, view in reversed(destination):
@@ -287,13 +283,17 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                                 view, slice(prepared.start, prepared.stop), current,
                             ):
                                 raise _DrawingStopped
-                        self.pages = views
+                        previous_source = self.page_source
+                        self.page_source, self.pages = source, views
+                        source.through = latest.page.after
+                        release.pop_all()
+                        if previous_source is not source:
+                            release.callback(previous_source.close)
                 except _DrawingStopped:
                     return False
                 retired = tuple(page for page in previous if page not in views)
                 for page in retired:
                     page.display = False
-                source.through = latest.page.after
                 self._update_edges()
                 self.rows_published()
                 await self.remove_children(retired)
