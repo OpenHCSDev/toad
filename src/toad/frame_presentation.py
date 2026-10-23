@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+from collections import deque
+from collections.abc import Callable, Iterable
 from dataclasses import replace
 from functools import partial
 from typing import TYPE_CHECKING, ClassVar
@@ -19,6 +20,8 @@ from ui_theme.effects import Effect, Fade, Frame, Mix
 from ui_theme.scheme import BackgroundColour, ThemeColour
 
 if TYPE_CHECKING:
+    from textual.css.styles import StylesBase
+    from toad.widgets.transcript_history import TranscriptPageView
     from toad.screens.workspace import WorkspaceScreen
 
 
@@ -31,7 +34,7 @@ class ToneLayer(PaintLayer):
 
     __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "layer_opacity", "text_style", "background_tint")
 
-    def __init__(self, styles, tone: Color | None, opacity: float, paint) -> None:
+    def __init__(self, styles: StylesBase, tone: Color | None, opacity: float, paint: TonePaint) -> None:
         self.styles = styles
         self.layer_opacity = styles.layer_opacity * opacity
         stated = paint.paint_background
@@ -79,26 +82,26 @@ class FrameState(DeclaredFamily, affix="Frame"):
     def scene(self):
         return self
 
-    def displayed(self, frame):
+    def displayed(self, frame: FramePresentation):
         writing = WritingFrame(self.scene)
         frame.state = writing
         frame.screen.app._driver.call_after_flush(partial(frame.written, writing))
 
-    def defer(self, frame, owner, callback):
+    def defer(self, frame: FramePresentation, owner: Widget, callback: Callable[[], None]):
         frame.callbacks[owner, callback] = None
         owner.call_after_refresh(frame.flush_owner, owner, callback)
 
-    def begin(self, frame):
+    def begin(self, frame: FramePresentation):
         frame.state = PendingFrame()
         frame.presented.clear()
 
-    def suspend(self, frame):
+    def suspend(self, frame: FramePresentation):
         frame.state = SuspendedFrame(self)
 
-    def resume(self, frame):
+    def resume(self, frame: FramePresentation):
         pass
 
-    def restore(self, frame):
+    def restore(self, frame: FramePresentation):
         self.begin(frame)
         frame.screen.refresh()
 
@@ -124,13 +127,13 @@ class SuspendedFrame(FrameState):
     def scene(self):
         return self.previous.scene
 
-    def resume(self, frame):
+    def resume(self, frame: FramePresentation):
         self.previous.restore(frame)
 
-    def suspend(self, frame):
+    def suspend(self, frame: FramePresentation):
         pass
 
-    def displayed(self, frame):
+    def displayed(self, frame: FramePresentation):
         pass
 
 
@@ -144,24 +147,24 @@ class PresentedFrame(FrameState):
     def scene(self):
         return self._scene
 
-    def restore(self, frame):
+    def restore(self, frame: FramePresentation):
         frame.present()
 
-    def displayed(self, frame):
+    def displayed(self, frame: FramePresentation):
         pass
 
 
 class ClosedFrame(FrameState):
-    def displayed(self, frame):
+    def displayed(self, frame: FramePresentation):
         pass
 
-    def defer(self, frame, owner, callback):
+    def defer(self, frame: FramePresentation, owner: Widget, callback: Callable[[], None]):
         pass
 
-    def begin(self, frame):
+    def begin(self, frame: FramePresentation):
         pass
 
-    def suspend(self, frame):
+    def suspend(self, frame: FramePresentation):
         pass
 
 
@@ -248,27 +251,27 @@ class FramePresentation:
 
 
 class EffectPhase:
-    def paint(self, owner, effect, strip):
+    def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
         return owner.paint_effects(strip, owner.effect_frame(effect))
 
-    def keeps_arrivals(self, arrivals):
+    def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
         return arrivals
 
-    def on_new_arrival(self, owner, effect, pages):
+    def on_new_arrival(self, owner: AnimationEffects[Mix], effect: Effect[Mix], pages: deque[TranscriptPageView]):
         pass
 
 
 class EffectUnstarted(EffectPhase):
-    def paint(self, owner, effect, strip):
+    def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
         owner.run_effect(effect)
         return super().paint(owner, effect, strip)
 
 
 class EffectFinished(EffectPhase):
-    def keeps_arrivals(self, arrivals):
+    def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
         return ()
 
-    def on_new_arrival(self, owner, effect, pages):
+    def on_new_arrival(self, owner: AnimationEffects[Mix], effect: Effect[Mix], pages: deque[TranscriptPageView]):
         for page in pages:
             page.arrivals.clear()
         owner.stop_effect(effect)

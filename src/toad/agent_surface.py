@@ -3,6 +3,7 @@
 from weakref import ref
 from contextlib import AsyncExitStack
 from functools import partial
+from typing import TYPE_CHECKING
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.surface_binding import SurfaceBinding
@@ -10,16 +11,34 @@ from toad.acp.agent_controller import ProcessTaskRunner
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
 from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
 
+if TYPE_CHECKING:
+    from textual.message import Message
+    from textual.widget import Widget
+
+    from toad.acp.agent_controller import AgentController
+    from toad.acp.permission_controller import PermissionRequest
+    from toad.acp.terminal_controller import TerminalController
+    from toad.acp.terminal_owner import OperationalTerminalOwner
+    from toad.ansi import TerminalState
+    from toad.answer import Answer
+    from toad.core.events import CoreEventStream
+    from toad.core_event_carrier import CoreEventMessage
+    from toad.shell_output import ShellOutput
+    from toad.terminal_execution import TerminalExecution
+    from toad.widgets.conversation import Conversation
+    from toad.widgets.terminal_tool import TerminalTool
+
+
 class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
-    def __init__(self, target, events):
+    def __init__(self, target: Conversation, events: CoreEventStream):
         self._target = ref(target)
         self.subscription = target.subscribe_core(events)
 
-    def prepare(self, controller) -> None:
+    def prepare(self, controller: AgentController) -> None:
         app = self.target.app
         controller.task_runner = ProcessTaskRunner(app.render_processes)
 
-    def owns_publication(self, message, target):
+    def owns_publication(self, message: CoreEventMessage, target: Conversation):
         if not self.subscription.accepts(message.subscription):
             return False
         if not self.owns(target) or not target.agent_binding.matches_agent(message.publisher):
@@ -28,7 +47,9 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             return False
         return target.is_attached and message.publisher.tools.presentation(message.event) is not None
 
-    async def _post_native(self, message, target, widget, retirement):
+    async def _post_native(
+        self, message: CoreEventMessage, target: Conversation, widget: Widget, retirement: AsyncExitStack,
+    ):
         if not self.owns_publication(message, target):
             return False
         retirement.push_async_callback(target.transcript.retire_presentations,
@@ -36,7 +57,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         await target.post(widget, new_block=True)
         return self.owns_publication(message, target) and widget.is_attached
 
-    async def present_tool(self, message, target):
+    async def present_tool(self, message: CoreEventMessage, target: Conversation):
         from toad.tool_output import ToolOutput
         from toad.widgets.outgoing_message import OutgoingMessage
         from toad.widgets.tool_call import ToolCall
@@ -79,7 +100,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         if (target := self.target) is not None:
             target.submissions.publish_pending()
 
-    def prepare_terminal(self, state) -> None:
+    def prepare_terminal(self, state: TerminalState) -> None:
         target = self.target
         if target is not None:
             state.update_size(*target.get_terminal_dimensions())
@@ -89,12 +110,12 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             target.working_directory = source.working_directory
             source.update_size(*target.get_terminal_dimensions())
 
-    async def present_shell(self, output) -> None:
+    async def present_shell(self, output: ShellOutput) -> None:
         if (target := self.target) is not None:
             await self.dispatch(output, target)
 
     @handles(ShellCommandOutput)
-    async def show_shell_command(self, output, target):
+    async def show_shell_command(self, output: ShellCommandOutput, target: Conversation):
         from toad.widgets.shell_result import ShellResult
 
         if not any(isinstance(child, ShellResult) and child.source is output
@@ -102,7 +123,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             await target.post(ShellResult(output))
 
     @handles(ShellTerminalOutput)
-    async def show_shell_terminal(self, output, target):
+    async def show_shell_terminal(self, output: ShellTerminalOutput, target: Conversation):
         if output.terminal is None:
             from toad.widgets.shell_terminal import ShellTerminal
 
@@ -112,18 +133,20 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
                 terminal = await target.new_terminal()
             output.attach(terminal)
 
-    def shell_failed(self, error) -> None:
+    def shell_failed(self, error: Exception) -> None:
         if (target := self.target) is not None:
             target.app.show_error(error, "Unable to start shell; check your settings")
 
-    async def present_permission(self, request, view) -> None:
+    async def present_permission(self, request: PermissionRequest, view: Conversation) -> None:
         await self.dispatch(request.presentation, view, request)
 
-    def permission_changed(self, view) -> None:
+    def permission_changed(self, view: Conversation) -> None:
         view.refresh_bindings()
 
     @handles(DiffPermissionPresentation)
-    async def show_file_permission(self, presentation, view, request):
+    async def show_file_permission(
+        self, presentation: DiffPermissionPresentation, view: Conversation, request: PermissionRequest,
+    ):
         from toad.screens.permissions import PermissionReview
 
         screen = PermissionReview(request, view, presentation.diffs, self)
@@ -140,14 +163,16 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             app.terminal_attention.release(screen)
 
     @handles(InlinePermissionPresentation)
-    async def show_inline_permission(self, presentation, view, request):
+    async def show_inline_permission(
+        self, presentation: InlinePermissionPresentation, view: Conversation, request: PermissionRequest,
+    ):
         from toad.widgets.acp_content import ACPToolCallContent
         from toad.tool_output import decode_content
 
         parts = tuple(preview for item in presentation.parts
                       if (preview := decode_content(item).permission_preview()) is not None)
 
-        def answer(answer):
+        def answer(answer: Answer):
             request.answer(self, answer)
 
         ask = view.ask(request.options, presentation.title,
@@ -162,7 +187,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
         request.watch(self, retire)
 
-    def schedule_terminal_presentation(self, controller):
+    def schedule_terminal_presentation(self, controller: OperationalTerminalOwner):
         if (target := self.target) is not None:
             target.call_later(controller.start_terminal_presentation, target)
 
@@ -176,22 +201,22 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
     def target(self):
         return self._target()
 
-    def post(self, message):
+    def post(self, message: Message):
         target = self.target
         # MessagePump decides whether to accept messages while closing/closed.
         return target.post_message(message) if target is not None else False
 
-    def publish_terminal(self, controller, terminal_id, execution):
+    def publish_terminal(self, controller: TerminalController, terminal_id: str, execution: TerminalExecution):
         from toad.widgets.terminal_tool import TerminalTool
         return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))
 
-    def owns_terminal(self, projection, target):
+    def owns_terminal(self, projection: TerminalTool.Projection, target: Conversation):
         """Same original surface, controller lifetime and acquired address."""
         if not self.owns(target):
             return False
         return projection.controller.owner.owns_terminal_projection(self, projection)
 
-    async def present_terminal(self, projection, target):
+    async def present_terminal(self, projection: TerminalTool.Projection, target: Conversation):
         if not self.owns_terminal(projection, target):
             return
         from toad.widgets.terminal_tool import TerminalTool
