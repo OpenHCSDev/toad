@@ -168,6 +168,7 @@ async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
 @pytest.mark.parametrize("after_admission", (False, True))
 async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_read_bound(workspace, monkeypatch, after_admission):
     from dataclasses import replace
+    from types import MethodType
     from textual.widget import Widget
     from toad.widgets.transcript_lines import TranscriptLinesBatchRenderTask
 
@@ -186,15 +187,17 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
         workspace.comms.registry.declare(replace(thread, session_file=SavedSessionFile(str(new))))
         entered, release = asyncio.Event(), asyncio.Event()
         render_for = TranscriptLinesBatchRenderTask.render_for
+        dispatch = asyncio.to_thread
         remove_children = Widget.remove_children
         render_owners = []
 
-        async def held_rows(cls, target, preparations):
-            if not after_admission and target is history and not release.is_set():
-                render_owners.append(asyncio.current_task())
+        async def held_dispatch(function, *args, **kwargs):
+            if (not after_admission and isinstance(function, MethodType)
+                    and isinstance(function.__self__, TranscriptLinesBatchRenderTask)
+                    and not release.is_set()):
                 entered.set()
                 await release.wait()
-            return await render_for(target, preparations)
+            return await dispatch(function, *args, **kwargs)
 
         async def held_removal(owner, *args, **kwargs):
             removal = remove_children(owner, *args, **kwargs)
@@ -204,7 +207,7 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
                 await release.wait()
             return await removal
 
-        monkeypatch.setattr(TranscriptLinesBatchRenderTask, "render_for", classmethod(held_rows))
+        monkeypatch.setattr(asyncio, "to_thread", held_dispatch)
         monkeypatch.setattr(Widget, "remove_children", held_removal)
         view.window.anchor()
         view.prompt.focus()
@@ -213,6 +216,11 @@ async def test_cancelling_a_staged_replacement_keeps_old_rows_and_restores_the_r
         try:
             await asyncio.wait_for(entered.wait(), 8)
             await ui.step()
+            if not after_admission:
+                render_owners.extend(task for task in asyncio.all_tasks()
+                                     if any(entry.frame.f_code is render_for.__func__.__code__
+                                            and entry.frame.f_locals["view"] is history
+                                            for entry in asyncio.capture_call_graph(task).call_stack))
             if after_admission:
                 assert history.page_source is not original_source
                 accepted_source = history.page_source

@@ -289,6 +289,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                         release.pop_all()
                         if previous_source is not source:
                             release.callback(previous_source.close)
+                            self.filter = self.filter.changed()
                 except _DrawingStopped:
                     return False
                 retired = tuple(page for page in previous if page not in views)
