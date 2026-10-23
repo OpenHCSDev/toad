@@ -1,10 +1,25 @@
 """Specification-spelled reasons and statuses own toolkit independent facts."""
+from dataclasses import dataclass
+
+from acp.schema import ToolCall
+from agent_comms.agent_event_updates import AcpToolAction
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript
-from dataclasses import dataclass
-from acp.schema import ToolCall
-from toad.line_blocks import FailureRole, Span, SuccessRole, Summary, ToolArgumentRole, ToolVerbRole, WorkingRole
+from agent_comms.transcript_events import (
+    ToolEndTranscript,
+    ToolStartTranscript,
+    ToolTranscript,
+)
+
+from toad.line_blocks import (
+    FailureRole,
+    Span,
+    SuccessRole,
+    Summary,
+    ToolArgumentRole,
+    ToolVerbRole,
+    WorkingRole,
+)
 
 
 class StopReason(DeclaredFamily, affix='StopReason'):
@@ -50,7 +65,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         """
         first = events[0]
         call = ToolCall(tool_call_id=first.tool_call_id, title=first.title,
-                        kind=first.kind, status='completed')
+                        kind=AcpToolAction.kind(first.kind), status='completed')
         consumer = cls(call)
         for event in events:
             consumer.dispatch_sync(event)
@@ -60,7 +75,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     def recorded_start(self, event: ToolStartTranscript):
         self.call.status = 'in_progress'
         self.call.title = event.title
-        self.call.kind = event.kind
+        self.call.kind = AcpToolAction.kind(event.kind)
         self.call.raw_input = event.raw_input
 
     @handles(ToolEndTranscript)
