@@ -10,14 +10,14 @@ from agent_comms.acp import CommsAgent
 from agent_comms.comms import wire
 from agent_comms.coordinator import Coordination
 from agent_comms.launch_root import LaunchRoot
+from agent_comms.launch_runtime import ThreadLaunch
 
 
 @asynccontextmanager
 async def turn_source(wire_root: Path, project: Path, session_id: str):
     """Retain declaration and attachment custody without sending native input."""
     with patch.dict(os.environ), LaunchRoot.from_path(wire_root).selected():
-        for key in ("PI_AGENT_ID", "AGENT_COMMS_THREAD"):
-            os.environ.pop(key, None)
+        ThreadLaunch.strip(os.environ)
         async with AsyncExitStack() as resources:
             project.mkdir(parents=True, exist_ok=True)
             comms = await Coordination.run_worker(partial(wire, wire_root))

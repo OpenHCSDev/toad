@@ -5,6 +5,9 @@ from unittest.mock import patch
 from agent_comms.activity import ActivityState
 from agent_comms.display_order import ThreadSort
 from agent_comms.relationships import AddRelationshipEdit
+from agent_comms.thread_creation import RecordedCreationTime
+from agent_comms.thread_text import ForkedParent, NoParent
+from agent_comms.threads import Thread
 from agent_comms.tool_caller import ThreadCaller
 from agent_comms.tools import invoke_tool
 
@@ -30,9 +33,10 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
 
     comms = workspace.comms
     project = str(workspace.project)
-    for name, parent in (("origin", None), ("owner", "origin"), ("peer", None),
-                         ("child-one", "owner"), ("child-two", "owner")):
-        comms.registry.declare(comms.registry.new_thread(name, frozenset({"team"}), project, parent=parent))
+    for name, parent in (("origin", NoParent()), ("owner", ForkedParent("origin")),
+                         ("peer", NoParent()), ("child-one", ForkedParent("owner")),
+                         ("child-two", ForkedParent("owner"))):
+        comms.registry.declare(Thread(name, frozenset({"team"}), project, parent=parent))
     comms.messaging.send("peer", "owner", "Review request")
     comms.messaging.send("owner", "#team", "Published status")
     comms.relationships.edit("owner", AddRelationshipEdit, "peer", "Review the sidebar")
@@ -119,7 +123,8 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         old_peer = comms.registry.require("peer")
         comms.owners.stop("peer")
         comms.registry.remove("peer")
-        comms.registry.declare(comms.registry.new_thread("peer", frozenset(), project, created_at=old_peer.created_at + 1))
+        comms.registry.declare(Thread("peer", frozenset(), project,
+                                      created_at=RecordedCreationTime(old_peer.created_at + 1)))
         open_item = next(item for item in app.screen.query(ContextMenuItem) if item.action == "open")
         assert await pilot.click(open_item)
         await ui.until(lambda: not tree.groups["collaborating"].rows["thread", "peer"].available,
