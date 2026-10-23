@@ -37,7 +37,6 @@ class AgentProcess(Client):
         self.connection: ClientSideConnection | None = None
         self.runner = None
         self.retirement = None
-        self.cleanup = ExitStack()
         self.sessions = set()
         self.initialization = None
         self.command = None
@@ -92,7 +91,6 @@ class AgentProcess(Client):
             connection.sessions.add(agent.session)
             agent.controller.replace_terminal_session()
             connection.runner = asyncio.create_task(connection.run())
-            connection.cleanup.enter_context(acquisition.pop_all())
             return connection
 
     async def prompt(self, agent, content, metadata: dict[str, JsonValue], require: Callable[[], None]):
@@ -243,7 +241,6 @@ class AgentProcess(Client):
                 await self.process.stop()
             self.process = None
             self.sessions.clear()
-            self.cleanup.close()
 
     async def detach(self, session: AgentSession):
         async with self.attachment_lock:

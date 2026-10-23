@@ -22,6 +22,7 @@ import sys
 import threading
 
 from agent_comms.pi_vocabulary import OffThinkingLevel
+from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.thread_model import DeclaredModel
 
 from support.roots import installed_wire
@@ -165,8 +166,7 @@ class ControlledProvider:
 def start_private_native_wire(root: Path):
     """Create a private root; Core derives its root identity and reviewed package."""
     comms = installed_wire(root)
-    for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
-        os.environ.pop(key, None)
+    ThreadLaunch.strip(os.environ)
     return comms
 
 

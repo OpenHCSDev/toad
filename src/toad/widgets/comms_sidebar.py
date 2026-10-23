@@ -24,6 +24,7 @@ from agent_comms.ui_model.sidebar import ChannelRowModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
+from textual.geometry import Offset
 from textual.reactive import reactive
 from ui_theme.effects import NEW_MESSAGE
 from textual.widgets import Static
@@ -161,9 +162,8 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSele
     def target_name(self) -> str:
         return self.target.name
 
-    def show_menu(self, sidebar, offset) -> None:
-        sidebar.pointer_select(self, menu=True)
-        sidebar.navigation.menu_context(self).show_menu(sidebar, offset)
+    def show_menu(self, sidebar: TargetTree, offset: Offset) -> None:
+        sidebar.show_row_menu(self, offset)
 
 
 
@@ -393,6 +393,10 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         """The mounted widget owns the legality of writing its presentation."""
         return (self.is_attached and not self.is_leaving
                 and self.app.is_running and self.screen.is_current)
+
+    def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
+        self.pointer_select(row, menu=True)
+        self.navigation.menu_context(row).show_menu(self, offset)
 
     def accepts_observation(self) -> bool:
         return (self.enabled and self.accepts_publication()

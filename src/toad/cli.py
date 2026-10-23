@@ -37,7 +37,7 @@ def run_terminal(app: ToadApp) -> None:
             persist_terminal_failure(app._exception)
     if app._exception is not None:
         raise SystemExit(app.return_code or 1)
-    app.application.version.status.print_notice()
+    app.return_value.finish()
 
 
 def check_directory(path: str) -> None:
