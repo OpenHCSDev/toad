@@ -12,22 +12,25 @@ from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import UnopenedSessionDisposition
-from toad.agent_presentation import LocalAgentPresentation
+from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 
 if TYPE_CHECKING:
     from agent_comms.goal_actions import GoalAction
     from agent_comms.session_load import ExistingSessionLoadPlan
 
-    from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
+    from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions, SubmissionStart
     from toad.conversation_turn import TurnOwner
     from toad.core_event_carrier import CoreEventMessage
     from toad.screens.main import MainScreen
     from toad.session_observation import SessionObservation
     from toad.session_presentation import OperationalSessionSources
-    from toad.widgets.conversation import Conversation
+    from toad.widgets.conversation import Conversation, ConversationSessionBinding
 
 
 class AgentConnection(ABC):
+    configuration: AgentConfiguration
+    presentation: AgentPresentation
+
     @abstractmethod
     async def observe_thread_presentation(self, presentation: ThreadPresentation | None) -> None: ...
 
@@ -44,25 +47,33 @@ class AgentConnection(ABC):
         return Content(model.name + (f" · {level}" if level else ""))
 
     @abstractmethod
-    def attach_view(self, view: Conversation) -> None: ...
+    def attach_view(self, view: ConversationSessionBinding) -> None: ...
 
     @abstractmethod
-    def refresh_projection(self, view: Conversation) -> None: ...
+    def refresh_projection(self, view: ConversationSessionBinding) -> None: ...
 
     @abstractmethod
-    def start_session(self, view: Conversation) -> None: ...
+    def start_session(self, view: ConversationSessionBinding) -> None: ...
 
     @abstractmethod
     def start_agent(self, sources: OperationalSessionSources, view: Conversation) -> None: ...
 
     @abstractmethod
-    def update_view(self, view: Conversation) -> None: ...
+    def update_view(self, view: ConversationSessionBinding) -> None: ...
 
     @abstractmethod
-    def connected(self, view: Conversation) -> None: ...
+    def connected(self, view: ConversationSessionBinding) -> None: ...
 
     @abstractmethod
     def accepts_message(self, message: CoreEventMessage) -> bool: ...
+
+    @abstractmethod
+    def begin_submission(
+        self, owner: ConversationSubmissions, submission: AgentInputSubmission
+    ) -> SubmissionStart: ...
+
+    @abstractmethod
+    def accepts_failed_input(self, message: CoreEventMessage) -> bool: ...
 
     @abstractmethod
     def matches_agent(self, agent) -> bool: ...
@@ -91,22 +102,22 @@ class NoAgentConnection(AgentConnection):
     async def retire_surface(self, view: Conversation) -> None:
         """There is no native surface to retire."""
 
-    def attach_view(self, view: Conversation) -> None:
+    def attach_view(self, view: ConversationSessionBinding) -> None:
         """There is no event stream to subscribe to."""
 
-    def refresh_projection(self, view: Conversation) -> None:
+    def refresh_projection(self, view: ConversationSessionBinding) -> None:
         """There is no native projection to read."""
 
-    def start_session(self, view: Conversation) -> None:
+    def start_session(self, view: ConversationSessionBinding) -> None:
         view.start_unbound_session()
 
     def start_agent(self, sources: OperationalSessionSources, view: Conversation) -> None:
         sources.create_agent(view)
 
-    def update_view(self, view: Conversation) -> None:
+    def update_view(self, view: ConversationSessionBinding) -> None:
         view.agent_info = Content.styled("shell")
 
-    def connected(self, view: Conversation) -> None:
+    def connected(self, view: ConversationSessionBinding) -> None:
         """There is no connected-agent notification."""
 
     async def set_session_name(self, name: str) -> None:
