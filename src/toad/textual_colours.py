@@ -14,7 +14,7 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.field_codec import FieldCodec
 from rich.color import Color as RichColor
@@ -446,12 +446,12 @@ class ThemedApp(App[None]):
     colours: TextualColours
     saved_settings: SavedSettings
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(self) -> None:
         # Line styles read the diff settings, so a themed app holds settings before its colours.
         self.saved_settings = self.open_settings()
         # Textual asks for the colour system and the palette while it builds the app.
         self.colours = TextualColours(self)  # type: ignore[arg-type]
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self.colours.register_catalog()
 
     def open_settings(self) -> SavedSettings:

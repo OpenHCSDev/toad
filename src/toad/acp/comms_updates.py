@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
@@ -34,6 +34,9 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
 from toad.core import events as core_events
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
+
+if TYPE_CHECKING:
+    from toad.acp.agent import Agent
 
 
 class CommsUpdateConsumer(MroDispatch):
@@ -287,7 +290,7 @@ class PendingThreadRead(ThreadRead):
     requested for still hold.
     """
 
-    agent: Any
+    agent: Agent
     coordination: CoordinationChangedUpdate
     authority: ClientSessionRequest
     snapshot: OwnerSnapshotConsumer

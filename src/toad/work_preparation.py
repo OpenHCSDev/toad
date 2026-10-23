@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import OrderedDict
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
@@ -230,7 +231,17 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     def inputs(self) -> object:
         return (type(self.task), self.task.preparation_inputs)
 
-class PreparationRuntime:
+
+class ThreadScheduler:
+    """Run a declared operation while preserving its result type."""
+
+    async def run_thread[*Args, Value](
+        self, function: Callable[[*Args], Value], *args: *Args
+    ) -> Value:
+        return await asyncio.to_thread(function, *args)
+
+
+class PreparationRuntime(ThreadScheduler):
     """Application-owned cache and in-flight work shared across every consumer.
 
     Model and render work use separate slots, so a backlog of CPU rendering
@@ -257,7 +268,9 @@ class PreparationRuntime:
         self.retained_bytes = 0
         self.hits = self.misses = self.shared = 0
 
-    async def run_thread(self, function, *args):
+    async def run_thread[*Args, Value](
+        self, function: Callable[[*Args], Value], *args: *Args
+    ) -> Value:
         if self._closed:
             raise asyncio.CancelledError
         await self._threads.acquire()
