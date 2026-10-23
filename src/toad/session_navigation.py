@@ -110,7 +110,7 @@ class SessionNavigation:
             for process in source.presentation.operational_binding.borrowed_processes()
         )
 
-    def get(self, mode: str) -> SessionEntry | None:
+    def get(self, mode: str | None) -> SessionEntry | None:
         return next(
             (group[mode] for group in self.entries.values() if mode in group), None
         )

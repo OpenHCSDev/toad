@@ -25,6 +25,7 @@ from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
+from toad.tab_identity.history_origin import WelcomeHistoryOrigin
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import (
@@ -183,9 +184,6 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     @handles(SessionSelected)
     async def present_selected(self, event: CoreEventMessage) -> None:
         self.present()
-
-
-from toad.tab_identity.history_origin import WelcomeHistoryOrigin
 
 
 class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):

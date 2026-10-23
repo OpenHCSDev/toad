@@ -3,6 +3,9 @@
 import pytest
 
 from toad.core.events import SessionChangedEvent
+from toad.db import DB
+from toad.tab_order import TabOrder
+from toad.tab_identity.kinds import AcpTab
 from toad.session_tracker import (
     AuthoredSessionName,
     SessionDetails,
@@ -22,7 +25,7 @@ from toad.session_tracker import (
     ],
 )
 def test_session_label_owns_presented_title(name, expected):
-    details = SessionDetails(index=1, mode_name="session-1", name=name)
+    details = SessionDetails(identity=AcpTab(1), name=name)
     assert details.update_thread_title("Presented title") == (name.display != expected)
     assert details.name.display == expected
 
@@ -46,18 +49,19 @@ class SessionChanges(list[SessionChangedEvent]):
         self.append(event)
 
 
-def test_session_tracker_publishes_only_changed_labels():
-    tracker = SessionTracker()
-    details = tracker.new_session(title="old")
+def test_session_tracker_publishes_only_changed_labels(tmp_path):
+    order = TabOrder(lambda identity, index: None, home="home", db=DB(tmp_path / "toad.db"))
+    tracker = SessionTracker(order)
+    details = tracker.new_session(AcpTab(1), title="old")
     changes = SessionChanges()
     with tracker.events.subscribe(SessionChangedEvent, changes.record):
-        tracker.bind_identity(details.mode_name, "old", "old")
+        tracker.bind_identity(details.identity, "old", "old")
         assert changes == []
-        tracker.bind_identity(details.mode_name, "old", "new")
+        tracker.bind_identity(details.identity, "old", "new")
         assert details.name.display == "new"
         assert len(changes) == 1
-        tracker.name_session(details.mode_name, "Chosen")
+        tracker.name_session(details.identity, "Chosen")
         assert len(changes) == 2
-        tracker.bind_identity(details.mode_name, "new", "renamed")
+        tracker.bind_identity(details.identity, "new", "renamed")
         assert details.name.display == "Chosen"
         assert len(changes) == 2

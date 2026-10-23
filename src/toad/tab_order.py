@@ -46,8 +46,10 @@ class TabOrder:
     def project[T](self, values: Mapping[TabIdentity, T]) -> tuple[T, ...]:
         return tuple(values[mode] for mode in self.names if mode in values)
 
-    def previous(self, current: TabIdentity, *, eligible: Collection[TabIdentity] | None = None) -> TabIdentity | None:
-        """The tab to show on leaving ``current``; home once no tab is open."""
+    def previous(
+        self, current: TabIdentity, *, eligible: Collection[TabIdentity] | None = None
+    ) -> TabIdentity | None:
+        """The previous tab, or no tab when the roster is empty."""
         opened = self.names
         if not opened:
             return None
@@ -94,9 +96,7 @@ class TabOrder:
         self.events.publish(TabHistoryChanged())
 
     def close(self, modes: Collection[TabIdentity]) -> None:
-        for mode in modes:
-            self.db.tab_delete(mode)
-        self.reorder(self.names)
+        self.db.tab_close(tuple(modes))
         retained = []
         cursor = -1
         for index, mode in enumerate(self._visits):

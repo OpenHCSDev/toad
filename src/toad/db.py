@@ -97,17 +97,21 @@ class DB:
     async def _transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
         return await asyncio.to_thread(self.transaction, operation)
 
-    def tab_write(self, identity: TabIdentity, position: int) -> None:
-        self.transaction(lambda db: OpenTabRow(identity, position).upsert(db))
-
-    def tab_delete(self, identity: TabIdentity) -> None:
-        self.transaction(lambda db: OpenTabRow.delete(db, identity=identity))
-
     def tab_reorder(self, identities: tuple[TabIdentity, ...]) -> None:
         def reorder(db):
             for position, identity in enumerate(identities):
                 OpenTabRow(identity, position).upsert(db)
+
         self.transaction(reorder)
+
+    def tab_close(self, identities: tuple[TabIdentity, ...]) -> None:
+        def close(db):
+            for identity in identities:
+                OpenTabRow.delete(db, identity=identity)
+            for position, row in enumerate(OpenTabRow.select(db, order_by=("position",))):
+                replace(row, position=position).upsert(db)
+
+        self.transaction(close)
 
     def tab_list(self) -> list[OpenTabRow]:
         return self.transaction(lambda db: OpenTabRow.select(
@@ -153,6 +157,7 @@ class DB:
             identity = row.insert(db).lastrowid
             assert identity is not None, "A saved ACP session must have a SQLite row id"
             return identity
+
         return await self._transaction(insert)
 
     async def session_started(self, id: int, agent_session_id: str) -> None:

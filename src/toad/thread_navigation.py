@@ -65,6 +65,11 @@ class ThreadNavigator:
         requested_root = str(comms.root)
         if not origin.current(self, owner_mode):
             return app.selected_mode
+        identity = await app.preparation.run_thread(
+            lambda: MailboxTab(
+                comms.registry.snapshot().require(target).incarnation, requested_root
+            )
+        )
         mounted_root = str(Path(requested_root).expanduser())
         open_threads = []
         for details in app.session_tracker.ordered_sessions:
@@ -83,7 +88,7 @@ class ThreadNavigator:
         key = owner_mode, request.root, request.target
         if pending := self.pending.get(key):
             return await asyncio.shield(pending.task)
-        opening = ThreadOpening(self, owner_mode, request, origin)
+        opening = ThreadOpening(self, owner_mode, request, origin, identity)
         self.pending[key] = opening
         return await asyncio.shield(opening.task)
 
@@ -97,13 +102,13 @@ class ThreadNavigator:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
 
+    async def mount_loading(self, opening: ThreadOpening) -> None:
+        await self.app.session_navigation.new(
+            opening.identity, lambda: opening.view, title=opening.request.target
+        )
+
     async def mount(self, prepared: ThreadNavigation, opening: ThreadOpening) -> str:
         view = opening.view
-        await self.app.session_navigation.new(
-            MailboxTab(prepared.thread.incarnation, prepared.root),
-            lambda: view, title=prepared.thread.name,
-            original=(prepared.root, prepared.thread.incarnation),
-        )
         prepared.bind(view)
         self.app.session_navigation.bind_opened(
             view,

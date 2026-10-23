@@ -85,8 +85,8 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
             agent = view.conversation.agent_binding
             await ui.until(lambda: bool(view.query(ThreadLoading)), why="the loading block")
             await ui.until_shows(ThreadLoading.LABEL)
-            assert tuple(app.tab_order.names) == (*tabs_before, tab)
-            details = app.session_tracker.get_session(tab)
+            assert tuple(app.tab_order.names) == (*tabs_before, app.session_navigation.get(tab).identity)
+            details = app.session_navigation.session_details(tab)
             assert details.name.display == "fresh-peer"
 
             workspace.release("load-fresh-peer")
@@ -94,11 +94,11 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
             await ui.until(lambda: view.conversation.agent_ready, seconds=12, why="the opened thread to be ready")
             await ui.until_shows("SAVED_FIRST_OPEN_fresh-peer")
             assert app.selected_session is view and view.conversation.agent_binding is agent
-            assert app.session_tracker.get_session(tab) is details
+            assert app.session_navigation.session_details(tab) is details
             await ui.until(lambda: not view.query(ThreadLoading), why="the loading block to go")
             # This peer has no Core input queue. The real-owner first-message case is
             # test_native_journey.py::test_a_second_thread_opened_from_the_app_answers_its_first_message.
-            assert tuple(app.tab_order.names) == (*tabs_before, tab)
+            assert tuple(app.tab_order.names) == (*tabs_before, app.session_navigation.get(tab).identity)
             assert all(len(drawn) <= 3 and not any(name.startswith("pending-") for name in drawn)
                        for drawn in app.tab_sets_drawn)
         finally:
