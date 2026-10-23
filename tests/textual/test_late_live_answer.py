@@ -9,7 +9,7 @@ import pytest
 from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate, TurnChangedUpdate, encode_updates,
 )
-from agent_comms.thread_text import SavedSessionFile
+from agent_comms.session_file import SavedSessionFile
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 

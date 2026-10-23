@@ -3,7 +3,7 @@
 import asyncio
 from dataclasses import replace
 
-from agent_comms.thread_text import SavedSessionFile
+from agent_comms.session_file import SavedSessionFile
 from support import journals
 import pytest
 from support.textual_steps import saved_history
