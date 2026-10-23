@@ -9,9 +9,9 @@ constructing a pool starts no processes.
 import asyncio
 import multiprocessing
 import os
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from concurrent.futures import ProcessPoolExecutor
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from toad.render_backend import Renderer
 
@@ -62,7 +62,7 @@ class RenderProcessPool(Renderer):
         self._max_pending = max_pending
         self._executor: ProcessPoolExecutor | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
-        self._pending: set[asyncio.Future[Any]] = set()
+        self._pending: set[Awaitable[object]] = set()
         self._changed = asyncio.Event()
         self._closed = False
         self._shutdown: asyncio.Task[None] | None = None
@@ -80,7 +80,7 @@ class RenderProcessPool(Renderer):
             raise RuntimeError("RenderProcessPool must be used on its owning event loop")
         return loop
 
-    def _finished(self, future: asyncio.Future[Any]) -> None:
+    def _finished[Value](self, future: asyncio.Future[Value]) -> None:
         self._pending.discard(future)
         # Retrieve errors even when the original caller abandoned its result.
         if not future.cancelled():
@@ -112,7 +112,7 @@ class RenderProcessPool(Renderer):
         # No await between accepting and registering work: both happen together on
         # the owning loop. Waiting never propagates caller cancellation to the
         # underlying future (or logs an abandoned exception via shield).
-        future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+        future: asyncio.Future[Value] = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
         self._pending.add(future)
         future.add_done_callback(self._finished, context=self.execution_context())
         await self.wait_for_work(future)

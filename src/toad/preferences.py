@@ -13,13 +13,14 @@ import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import TYPE_CHECKING, Annotated
 from uuid import uuid4
 
 from agent_comms.field_codec import FieldCodec, WireName
 from annotated_types import Ge
 from objectstate import DottedFieldPath, ObjectState, set_base_config_type
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
+from pydantic import JsonValue
 
 from toad import atomic, paths
 from toad import setting_effects as effects
@@ -387,21 +388,24 @@ class SavedSettings:
                 held += [below, *self.keys_held(below.value, raw[key])]
         return held
 
-    def kept(self, path: str, encoded: dict[str, Any]) -> dict[str, Any]:
+    def kept(self, path: str) -> dict[str, JsonValue]:
         """The part of the whole encoded tree that belongs in the file."""
-        document = {}
+        document: dict[str, JsonValue] = {}
         for below in self.state.direct_parameter_paths(path):
             key = self.saved_key(below)
             if self.state.has_parameter_descendants(below.value):
-                part = self.kept(below.value, encoded[key])
+                part = self.kept(below.value)
                 if part or below in self.user_set:
                     document[key] = part
             elif below in self.user_set:
-                document[key] = encoded[key]
+                field = DeclaredField(self.state, below)
+                document[key] = FieldCodec.encode(field.value, field.annotation)
         return document
 
-    def document(self) -> dict[str, Any]:
-        return self.kept("", FieldCodec.encode(self.current))
+    def document(self) -> dict[str, JsonValue]:
+        # Rebuilding the root preserves whole-settings validation before writing.
+        self.current
+        return self.kept("")
 
     @property
     def json(self) -> str:
