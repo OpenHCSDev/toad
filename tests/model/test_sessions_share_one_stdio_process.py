@@ -4,6 +4,7 @@ import os
 
 import pytest
 
+from acp.exceptions import RequestError
 from acp.schema import AvailableCommand, AvailableCommandsUpdate
 from agent_comms.comms import wire
 from agent_comms.launch_runtime import ThreadLaunch
@@ -46,9 +47,10 @@ async def test_closing_one_session_leaves_the_others_on_the_shared_process(attac
             assert beta.ready and beta.process is shared
             assert shared.process is child and shared.initialization is handshake
             assert shared.sessions == {alpha.session, beta.session}
-            assert shared.recipient({'params': {'sessionId': 'alpha'}}) is alpha
-            assert shared.recipient({'params': {'sessionId': 'beta'}}) is beta
-            assert shared.recipient({'params': {'sessionId': 'foreign'}}) is None
+            assert shared.recipient('alpha') is alpha
+            assert shared.recipient('beta') is beta
+            with pytest.raises(RequestError):
+                shared.recipient('foreign')
             assert not shared.accepts_attachment(beta, shared.env, shared.cwd, shared.route_selection)
             changed_env = dict(shared.env, SHARED_TRANSPORT_FOREIGN_ENV='different')
             assert not shared.accepts_attachment(reopened, changed_env, shared.cwd, shared.route_selection)
@@ -57,23 +59,23 @@ async def test_closing_one_session_leaves_the_others_on_the_shared_process(attac
             for name in ('alpha', 'beta'):
                 selected = next(iter(owner._runtime.clients[name]))
                 permissions.append(asyncio.create_task(owner._runtime.request_permission(
-                    name, selected, {'toolCall': {'toolCallId': f'{name}-owned'},
-                                     'options': [{'optionId': 'reject', 'name': 'Reject',
-                                                  'kind': 'reject_once'}]})))
+                    name, selected, {'toolCallId': f'{name}-owned'},
+                    [{'optionId': 'reject', 'name': 'Reject', 'kind': 'reject_once'}])))
             async with asyncio.timeout(5):
                 while not alpha.permissions.pending or not beta.permissions.pending:
                     await asyncio.sleep(0)
             await alpha.stop()
             async with asyncio.timeout(5):
                 answer = await permissions[0]
-                assert answer is None or answer['outcome'] == 'cancelled'
+                assert answer is None or answer.outcome.outcome == 'cancelled'
             assert not permissions[1].done() and beta.permissions.pending
             beta.permissions.cancel()
             async with asyncio.timeout(5):
-                assert (await permissions[1])['outcome'] == 'cancelled'
+                assert (await permissions[1]).outcome.outcome == 'cancelled'
             assert shared.sessions == {beta.session} and beta.ready
             assert shared.process is child and shared.runner is not None and not shared.runner.done()
-            assert shared.recipient({'params': {'sessionId': 'alpha'}}) is None
+            with pytest.raises(RequestError):
+                shared.recipient('alpha')
             await owner._runtime.session_update(session_id='beta', update=AvailableCommandsUpdate(
                 session_update='available_commands_update',
                 available_commands=[AvailableCommand(name='still_attached', description='Beta command')]))
