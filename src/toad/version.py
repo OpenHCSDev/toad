@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-from typing import NamedTuple, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, NamedTuple
 
 from toad.work_preparation import ThreadScheduler
 
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 
 VERSION_TOML_URL = "https://www.batrachian.ai/toad.toml"
+_DEFAULT_SCHEDULER = ThreadScheduler()
 
 
 class VersionMeta(NamedTuple):
@@ -54,7 +55,7 @@ class VersionMonitor:
         self.status: VersionStatus = CurrentVersion()
 
     async def check(
-        self, scheduler: ThreadScheduler = ThreadScheduler(),
+        self, scheduler: ThreadScheduler = _DEFAULT_SCHEDULER,
     ) -> None:
         try:
             self.status = await self.check_version(scheduler)
@@ -64,9 +65,10 @@ class VersionMonitor:
     @staticmethod
     def prepare_version() -> Version:
         """Acquire cold dependencies and installed metadata outside UI work."""
+        import tomllib  # noqa: F401 - acquired before the UI decodes the response
+
         import httpx  # noqa: F401 - acquired before the UI consumes the module
         import packaging.version
-        import tomllib  # noqa: F401 - acquired before the UI decodes the response
 
         from toad import get_version
 
@@ -77,7 +79,7 @@ class VersionMonitor:
 
     @classmethod
     async def check_version(
-        cls, scheduler: ThreadScheduler = ThreadScheduler(),
+        cls, scheduler: ThreadScheduler = _DEFAULT_SCHEDULER,
     ) -> VersionStatus:
         """Check for a new version of Toad.
 
@@ -85,9 +87,10 @@ class VersionMonitor:
         """
         current_version = await scheduler.run_thread(cls.prepare_version)
         # These modules were acquired by the preparation worker above.
+        import tomllib
+
         import httpx
         import packaging.version
-        import tomllib
 
         try:
             client = await scheduler.run_thread(httpx.AsyncClient)

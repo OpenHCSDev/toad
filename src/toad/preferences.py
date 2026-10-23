@@ -19,16 +19,15 @@ from uuid import uuid4
 from agent_comms.field_codec import FieldCodec, WireName
 from annotated_types import Ge
 from objectstate import DottedFieldPath, ObjectState, set_base_config_type
-from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 from pydantic import JsonValue
+from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 
 from toad import atomic, paths
 from toad import setting_effects as effects
-from toad.setting_declarations import Effect, FamilyChoices
-from toad.patch import DiffSettings
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
+from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
     BlurNotification,
@@ -42,6 +41,7 @@ from toad.setting_choices import (
     Scrollbar,
     SessionBar,
 )
+from toad.setting_declarations import Effect, FamilyChoices
 from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
@@ -404,7 +404,7 @@ class SavedSettings:
 
     def document(self) -> dict[str, JsonValue]:
         # Rebuilding the root preserves whole-settings validation before writing.
-        self.current
+        _ = self.current
         return self.kept("")
 
     @property
