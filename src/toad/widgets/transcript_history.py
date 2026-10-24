@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from abc import abstractmethod
 from bisect import bisect_right
 from collections import deque
 from collections.abc import AsyncIterator, Callable, Iterator
@@ -472,11 +471,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
                 return self.prepared.replace_range(self, selected, current)
 
 class DrawsBusMessages:
-    """Whether the drawn rows include a bus message, scrolled into view or not."""
+    """The fragments the loaded pages draw, and whether they include a bus message, scrolled into view or not."""
+
+    pages: deque[TranscriptPageView]
 
     @property
-    @abstractmethod
-    def fragments_in_range(self) -> tuple[TranscriptFragment, ...]: ...
+    def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
 
     def draws(self, message: BusMessage) -> bool:
         return any(fragment.draws(message) for fragment in reversed(self.fragments_in_range))
@@ -583,10 +584,6 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
     @property
     def fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.prepared.fragments)
-
-    @property
-    def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
 
     def read_fragments(self) -> tuple[TranscriptFragment, ...]:
         """Fragments whose own text has a row in the viewport."""
