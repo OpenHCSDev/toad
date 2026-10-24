@@ -428,6 +428,7 @@ class ConversationSessionBinding(
         """A settled member owns whether this view has source work to publish."""
         self.thread_presentation = presentation
         self._update_model_info()
+        self.operational_sources.thread_presented(self)
         self.dispatch_sync(presentation)
 
     @handles(NoThreadPresentation)
@@ -467,7 +468,7 @@ class ConversationSessionBinding(
 
     def apply_bound_agent(self, agent: AgentBase) -> None:
         self._update_model_info()
-        self.status = agent.context_measurement.status()
+        self.thread_status = agent.context_measurement.status()
         if agent.ready:
             self.session_ready()
             self.call_later(self.goal_observation.invalidate)

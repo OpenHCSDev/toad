@@ -1039,3 +1039,10 @@ class MessagePrompt(Prompt):
     def compose_completions(self) -> ComposeResult:
         if (popup := SlashComplete.for_prompt(self)) is not None:
             yield popup
+
+
+class MailboxPrompt(MessagePrompt):
+    """A CLI thread's composer shows its project; Core's status line names the model, read-only."""
+
+    def compose_agent_info(self) -> ComposeResult:
+        yield CondensedPath().data_bind(path=Prompt.display_directory)
