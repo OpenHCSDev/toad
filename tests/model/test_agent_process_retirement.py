@@ -8,7 +8,7 @@ import sys
 import psutil
 import pytest
 
-from support.agents import AppAgents, command
+from support.agents import command
 from toad.acp.agent import Agent
 
 
@@ -44,7 +44,7 @@ async def until(ui_condition, why):
 
 
 @pytest.mark.parametrize("how", ["cancel", "stop", "eof"])
-async def test_the_child_and_session_are_retired_and_the_route_released(home, how):
+async def test_the_child_and_session_are_retired_and_the_route_released(home, how, app_agents):
     pid_file = home / f"{how}.pid"
     code = (
         "import subprocess,sys,time;from pathlib import Path;"
@@ -53,7 +53,7 @@ async def test_the_child_and_session_are_retired_and_the_route_released(home, ho
         f"Path({str(pid_file)!r}).write_text(str(p.pid));"
         + ("time.sleep(60)" if how != "eof" else "")
     )
-    agent = AppAgents.unrun(home).agent(
+    agent = app_agents.agent(
         Agent, command(sys.executable, "-c", code, name="Retirement", identity="retirement"),
     )
 
