@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.cli_commands import TargetAction, TargetEdit
+from agent_comms.cli_protocol import CLI_FAILURES
 from agent_comms.cli_result import CliResult
 from agent_comms.errors import RouteChangedError
 from agent_comms.native_pi import NativePiUnavailable
@@ -51,7 +52,7 @@ class ThreadActions:
     async def close(self) -> None:
         # Domain writes already accepted at their sink must finish, not be
         # reported as absent because a UI task was cancelled during shutdown.
-        # A failed action was already raised to the app by its worker.
+        # A failed action was already reported or raised to the app by its worker.
         await asyncio.gather(*(request.task.wait() for request in set(self.requests.values())),
                              return_exceptions=True)
 
@@ -72,6 +73,10 @@ class ThreadActionExecution:
         app = self.owner.app
         try:
             result = await app.preparation.run_thread(self.apply)
+        except CLI_FAILURES as error:
+            # Core declares these as answers to report, the way its CLI reports them.
+            app.show_error(error, self.action.definition.label)
+        else:
             # Original start result owns whether a connection changed. This is
             # native connection resource refresh, never backend status mutation.
             await self.action.completed(app, self.selected, result)
