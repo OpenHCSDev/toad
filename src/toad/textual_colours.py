@@ -457,7 +457,7 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
         a short interval never returned and froze the app.
         """
         self._cadence.cancel()
-        self._cadence = ClockCadence() if interval is None else self._arm(interval)
+        self._cadence = self._arm(interval) if interval is not None else ClockCadence()
 
     def _arm(self, interval: float) -> ClockRunning:
         return ClockRunning(interval, partial(self.app.call_later, self._tick))
