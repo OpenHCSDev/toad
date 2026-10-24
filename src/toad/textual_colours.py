@@ -13,8 +13,9 @@ from __future__ import annotations
 import asyncio
 import os
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, replace
-from functools import lru_cache
+from functools import lru_cache, partial
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.field_codec import FieldCodec
@@ -28,8 +29,8 @@ from textual.app import App
 from textual.color import Color
 from textual.content import Content
 from textual.design import ColorSystem
-from textual.notifications import SeverityLevel
 from textual.driver import TerminalGaveNoPalette
+from textual.notifications import SeverityLevel
 from textual.screen import Screen
 from textual.strip import Strip
 from textual.style import Style as VisualStyle
@@ -79,6 +80,24 @@ class _WalFileClosed(FileSystemEventHandler):
     def on_any_event(self, event: FileSystemEvent) -> None:
         if isinstance(event, FileClosedEvent) and os.path.basename(event.src_path) == WalFile.NAME:
             self.colours.app.call_from_thread(self.colours.read_wal)
+
+
+class ClockCadence:
+    """The animation clock's cadence; this base is the stopped one, with no tick due."""
+
+    def cancel(self) -> None:
+        pass
+
+
+class ClockRunning(ClockCadence):
+    """A tick every `interval` seconds; `handle` is the one pending tick."""
+
+    def __init__(self, interval: float, tick: Callable[[ClockRunning], object]) -> None:
+        self.interval = interval
+        self.handle = asyncio.get_running_loop().call_later(interval, tick, self)
+
+    def cancel(self) -> None:
+        self.handle.cancel()
 
 
 class BlockInk:
@@ -220,8 +239,7 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
         for scheme in SCHEMES:
             self._add(scheme)
         self._observer: BaseObserver | None = None
-        self._timer: asyncio.TimerHandle | None = None
-        self._interval: float | None = None
+        self._cadence = ClockCadence()
         self.clock = AnimationClock(self._schedule)
 
     # The catalog and pywal.
@@ -431,30 +449,27 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
     def _schedule(self, interval: float | None) -> None:
         """Run `tick` every `interval` seconds, or never when interval is None.
 
-        Each tick is an event-loop callback, so it always returns to the loop. A
+        Each tick is a Textual callback message posted after the interval, so it
+        always returns to the event loop, and Textual handles what it raises. A
         Textual interval timer started from inside `tick` (its `refresh` asks for
-        a new interval) runs its first tick inline under Textual's eager task
+        a new interval) ran its first tick inline under Textual's eager task
         factory, and Textual's sleep does not yield below half a millisecond, so
         a short interval never returned and froze the app.
         """
-        self._interval = interval
-        if self._timer is not None:
-            self._timer.cancel()
-            self._timer = None
-        if interval is not None:
-            self._timer = asyncio.get_running_loop().call_later(interval, self._tick)
+        self._cadence.cancel()
+        self._cadence = ClockCadence() if interval is None else self._arm(interval)
 
-    def _tick(self) -> None:
-        self._timer = None
-        try:
-            self.clock.tick()
-        except Exception as error:
-            self.app._handle_exception(error)
+    def _arm(self, interval: float) -> ClockRunning:
+        return ClockRunning(interval, partial(self.app.call_later, self._tick))
+
+    def _tick(self, cadence: ClockRunning) -> None:
+        if self._cadence is not cadence:
             return
-        # `tick` re-arms through `_schedule` when its interval changed; otherwise
-        # the same cadence continues.
-        if self._timer is None and self._interval is not None:
-            self._timer = asyncio.get_running_loop().call_later(self._interval, self._tick)
+        self.clock.tick()
+        # `tick` replaces the cadence through `_schedule` when its interval
+        # changed; otherwise the same cadence continues.
+        if self._cadence is cadence:
+            self._cadence = self._arm(cadence.interval)
 
 
 class ThemedApp(App[None]):
