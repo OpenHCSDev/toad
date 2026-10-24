@@ -58,7 +58,7 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def session_state(self) -> str | None: ...
 
     def accepts_update(self, update) -> bool:
-        return update.matches_turn(IdleTurn.report_turn)
+        return update.matches_turn(IdleTurn.reported_turn)
 
     def matches_settlement(self, turn_id) -> bool:
         return not turn_id
@@ -167,7 +167,7 @@ class ManagedTurn(TurnOwner):
         return "busy" if self.busy else "idle"
 
     def accepts_update(self, update) -> bool:
-        return update.matches_turn(self.state.active.report_turn)
+        return update.matches_turn(self.state.active.reported_turn)
 
     def matches_settlement(self, turn_id):
         return self.state.matches(turn_id)
