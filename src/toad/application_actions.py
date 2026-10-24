@@ -262,11 +262,7 @@ class VimFocusPromptAction(VimNavigationAction):
     key = "i"
 
     async def apply(self, app):
-        from textual.widgets.text_area import VimInsert
-
-        conversation = self.conversation(app)
-        conversation.prompt.prompt_text_area.editing_mode = VimInsert()
-        conversation.focus_prompt(reset_cursor=False, scroll_end=False)
+        self.conversation(app).prompt.enter_insert()
 
 
 class VimNextTabAction(VimNavigationAction):
