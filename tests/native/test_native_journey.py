@@ -11,7 +11,7 @@ from pathlib import Path
 
 import psutil
 from agent_comms.acp_extension import QueuePromptRequest
-from agent_comms.cli_commands import ForkCliCommand, RestartCliCommand, StartCliCommand
+from agent_comms.cli_commands import ForkCliCommand, QueueRestartCliCommand, StartCliCommand
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.threads import Thread
@@ -267,10 +267,10 @@ async def test_queue_line_follows_the_owner_after_restart_process(workspace, nat
                        why="the queue view before the restart")
         first_owner = comms.registry.require("beta").process_identity
 
-        request_target_command(app, RestartCliCommand, "beta")
-        await ui.until(lambda: "beta" not in app.thread_actions.pending, seconds=60, why="Restart process to finish")
+        request_target_command(app, QueueRestartCliCommand, "beta")
+        await ui.until(lambda: comms.registry.require("beta").process_identity not in (None, first_owner),
+                       seconds=60, why="the queued restart to replace the idle owner")
         restarted = comms.registry.require("beta").process_identity
-        assert restarted is not None and restarted != first_owner, "Restart process did not replace the owner"
 
         def queue_of_the_new_owner():
             scope = agent.queue_attachment.scope
