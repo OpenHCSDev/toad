@@ -1,4 +1,4 @@
-"""A channel tab saved at exit is restored on the next start, and the workspace draws."""
+"""Textual-facing: a channel tab saved at exit is restored on the next start, and the workspace draws."""
 
 from toad.screens.workspace import WorkspaceScreen
 
