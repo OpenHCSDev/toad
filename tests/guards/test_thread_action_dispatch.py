@@ -40,13 +40,13 @@ def test_action_names_are_not_strings_outside_their_declaration_owner():
 class RecordingResultShower(ResultShower):
     def __init__(self) -> None:
         self.done: list[tuple[str, str]] = []
-        self.failures: list[tuple[str, str]] = []
+        self.failures: list[tuple[Exception | str, str]] = []
 
     def show_done(self, text: str, title: str) -> None:
         self.done.append((text, title))
 
-    def show_failure(self, text: str, title: str) -> None:
-        self.failures.append((text, title))
+    def show_error(self, error: Exception | str, title: str) -> None:
+        self.failures.append((error, title))
 
 
 def test_mixed_target_batch_shows_each_outcome_once() -> None:

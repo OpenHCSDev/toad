@@ -517,9 +517,6 @@ class ThemedApp(App[None], ResultShower, metaclass=_ThemedAppMeta):
     def show_done(self, text: str, title: str) -> None:
         self.notify(text, title=title)
 
-    def show_failure(self, text: str, title: str) -> None:
-        self.show_error(text, title)
-
     def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
         """Every error Toad shows: its text verbatim, never parsed as markup."""
         text = str(error)
