@@ -170,9 +170,7 @@ class OperationalSessionSources:
             line = self.activity_row(conversation).presentation.summary
         return self.activity_row(conversation).status.with_disconnection(
             line,
-            lambda: agent.session_disposition.present(
-                line, lambda status: status.notice
-            ),
+            lambda: agent.session_disposition.input_notice(line),
         )
 
     def start_agent(self, conversation: Conversation) -> None:

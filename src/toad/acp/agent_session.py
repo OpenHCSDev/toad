@@ -52,6 +52,10 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
         """One session presentation, projected into a row or an input notice."""
         return ordinary
 
+    def input_notice(self, line: str) -> str:
+        """Why the input cannot send now; the thread's own state when the session explains nothing."""
+        return self.present(line, lambda status: status.notice)
+
     async def present_failure(self, failure: AgentFail, view) -> None:
         await failure.present(view)
 
@@ -72,8 +76,9 @@ class ActiveSessionDisposition(SessionDisposition):
     session: AgentSession
     accepts_updates = True
 
-    def present[T](self, ordinary: T, show: Callable[[SessionDisconnected], T]) -> T:
-        return ordinary if self.session.ready else show(SessionDisconnected("Connecting to agent…"))
+    def input_notice(self, line: str) -> str:
+        """A handshake in progress blocks only this viewer's input; the thread is not disconnected."""
+        return super().input_notice(line if self.session.ready else "Connecting to agent…")
 
     def close(self, agent):
         agent.controller.connection_closed()
@@ -379,7 +384,7 @@ class AgentSession:
         """Only a session that is ready after its restart counts as a finished login."""
         await self.reconnect()
         if not self.ready:
-            raise LoginNotReady(self.disposition.present("Session did not become ready after login", lambda status: status.notice))
+            raise LoginNotReady(self.disposition.input_notice("Session did not become ready after login"))
 
     async def authenticate(self, method_id: str) -> None:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
