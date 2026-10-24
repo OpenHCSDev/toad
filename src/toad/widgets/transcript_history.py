@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from abc import abstractmethod
 from bisect import bisect_right
 from collections import deque
 from collections.abc import AsyncIterator, Callable, Iterator
@@ -102,6 +103,7 @@ from toad.widgets.transcript_lines import (
 
 if TYPE_CHECKING:
     from agent_comms.messages import Message as BusMessage
+
     from toad.widgets.conversation import Contents, Conversation
 
 
@@ -469,7 +471,18 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             async with window.preserve_history(root=self):
                 return self.prepared.replace_range(self, selected, current)
 
-class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
+class DrawsBusMessages:
+    """Whether the drawn rows include a bus message, scrolled into view or not."""
+
+    @property
+    @abstractmethod
+    def fragments_in_range(self) -> tuple[TranscriptFragment, ...]: ...
+
+    def draws(self, message: BusMessage) -> bool:
+        return any(fragment.draws(message) for fragment in reversed(self.fragments_in_range))
+
+
+class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the newest page and the reader's position.
@@ -574,10 +587,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     @property
     def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
-
-    def draws(self, message: BusMessage) -> bool:
-        """Whether the drawn rows include this message, scrolled into view or not, newest first."""
-        return any(fragment.draws(message) for fragment in reversed(self.fragments_in_range))
 
     def read_fragments(self) -> tuple[TranscriptFragment, ...]:
         """Fragments whose own text has a row in the viewport."""
