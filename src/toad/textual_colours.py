@@ -12,12 +12,13 @@ from __future__ import annotations
 
 import asyncio
 import os
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from functools import lru_cache, partial
 from typing import TYPE_CHECKING, ClassVar
 
+from agent_comms.cli_result import ResultShower
 from agent_comms.field_codec import FieldCodec
 from rich.color import Color as RichColor
 from rich.console import RenderableType
@@ -30,6 +31,7 @@ from textual.color import Color
 from textual.content import Content
 from textual.design import ColorSystem
 from textual.driver import TerminalGaveNoPalette
+from textual.message_pump import _MessagePumpMeta
 from textual.notifications import SeverityLevel
 from textual.screen import Screen
 from textual.strip import Strip
@@ -472,7 +474,11 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
             self._cadence = self._arm(cadence.interval)
 
 
-class ThemedApp(App[None]):
+class _ThemedAppMeta(_MessagePumpMeta, ABCMeta):
+    """Compose Textual message dispatch with the result display capability."""
+
+
+class ThemedApp(App[None], ResultShower, metaclass=_ThemedAppMeta):
     """A Textual app drawn through ui_theme: mix in before `App`.
 
     Holds the colours owner and answers Textual's three questions from it: the
@@ -507,6 +513,9 @@ class ThemedApp(App[None]):
 
     def watch_app_focus(self, focused: bool) -> None:
         self.colours.clock.refresh()
+
+    def show_done(self, text: str, title: str) -> None:
+        self.notify(text, title=title)
 
     def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
         """Every error Toad shows: its text verbatim, never parsed as markup."""

@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-from agent_comms.errors import RouteChangedError
-from toad.core import events as core_events
-
 import asyncio
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
+from agent_comms.cli_commands import TargetAction, TargetEdit
 from agent_comms.cli_result import CliResult
+from agent_comms.errors import RouteChangedError
 from agent_comms.native_pi import NativePiUnavailable
 from agent_comms.route_selection import RouteSelection
+
+from toad.core import events as core_events
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -105,13 +105,7 @@ class ThreadAction:
         for target in result.open_targets():
             await app.thread_navigation.open(owner_mode=self.context.mode,
                 project_path=self.context.project, target=target)
-        title = self.context.title
-        if isinstance(result, TargetBatchResult) and not result.successful:
-            failures = [f"{item.target}: {item.error}" for item in result.outcomes
-                        if isinstance(item, TargetFailed)]
-            app.show_error(f"{result.completed_count}/{len(result.outcomes)} completed\n" + "\n".join(failures), title)
-        else:
-            app.notify(self.definition.label, title=title)
+        result.show(app, self.definition.label, self.context.title)
 
     @classmethod
     def collect(cls, ctx, definition):
