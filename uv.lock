@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.14"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?branch=main#3593a631ebed8cd4765646a38da77823a3740669" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?branch=main#35859110b038a6435d685925c359b5a175838fc9" }
 dependencies = [
     { name = "agent-client-protocol" },
     { name = "aiohttp" },
