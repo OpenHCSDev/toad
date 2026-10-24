@@ -7,7 +7,8 @@ from unittest.mock import patch
 from textual.containers import VerticalGroup
 from textual.widgets import Static
 
-from toad.widgets.history_anchor import BlockPosition, HistoryWindow, RowPosition, TailPosition
+from toad.block_navigation import ConversationBlock
+from toad.widgets.history_anchor import BlockPosition, HistoryWindow, ReaderPosition, RowPosition, TailPosition
 
 
 def records(count):
@@ -88,6 +89,28 @@ async def test_a_record_layout_has_not_placed_has_no_row(workspace):
         await window.query_one("#geometry-records", VerticalGroup).mount(Static("Prepended"), before=0)
         await ui.step()
         # Layout places only what is visible or a declared geometry target; a kept position's widget is one of those.
-        assert window.placed_row(marker) is None
+        assert not tuple(window.placements((marker,)))
         with pytest.raises(LookupError, match="must be visible or declared geometry targets"):
             window.row_of(marker)
+
+
+class LiveBlock(ConversationBlock, Static):
+    pass
+
+
+async def test_a_live_block_hidden_since_the_last_frame_does_not_hold_the_reader(workspace):
+    async with workspace.app(size=(100, 35)) as ui:
+        window = await long_window(ui)
+        block = LiveBlock("Draft", id="live-draft")
+        await window.query_one("#geometry-records", VerticalGroup).mount(block)
+        window.scroll_end(animate=False, immediate=True)
+        await ui.step()
+        window.release_anchor()
+        screen = window.screen
+        assert block in screen._compositor.published_widgets
+        # The CLI draft ends: it hides, layout drops it, and the published frame still holds it.
+        block.display = False
+        screen._compositor.reflow(screen, screen.size, retain_geometry=screen._layout_geometry_targets())
+        assert block in screen._compositor.published_widgets
+        assert not tuple(window.placements((block,)))
+        assert ReaderPosition.of(window) == RowPosition(window.scroll_y)
