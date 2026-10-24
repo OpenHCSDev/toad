@@ -443,10 +443,14 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         # The terminal driver is running now, so ANSI themes can query its colours.
         await self.colours.mount()
         self.coordination_access.start()
-        await self.application.start()
         # Background threads (Core reads, preparation) give the GIL back to
         # the UI thread within 1 ms instead of the default 5 ms.
         sys.setswitchinterval(0.001)
+
+    def on_ready(self) -> None:
+        # Mount runs inside Textual's batch, which draws no frame, and restored
+        # tabs wait for drawn frames; Ready follows the first frame.
+        self.application.begin()
 
     heap: HeapBeforeFreeze | HeapFrozen = HeapBeforeFreeze()
     """Whether the heap's one freeze has happened (see HeapBeforeFreeze)."""

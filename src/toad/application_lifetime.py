@@ -1,6 +1,7 @@
 """Application startup, graceful exit and optional reporting own their lifetime."""
 from __future__ import annotations
 
+import asyncio
 import os
 import sys
 from abc import ABC, abstractmethod
@@ -141,33 +142,43 @@ class ApplicationLifetime:
         self.quit_warning_deadline = 0.0
         self.usage = UsageReports(app)
         self.version = VersionMonitor()
+        # Set once start has finished or failed; a failure reaches the app as the worker's error.
+        self.started = asyncio.Event()
+
+    def begin(self) -> None:
+        """Start as its own task: start awaits drawn frames, which the App's
+        message queue must stay free to produce (its timers end delayed updates)."""
+        self.app.run_worker(self.start(), name="application start")
 
     async def start(self) -> None:
-        type(self)._startup_hook = type(self)._startup_hook.notify(self)
-        app = self.app
-        if app.saved_settings.ensure_installation():
-            app.call_later(self.usage.publish, "toad-install")
-        self.usage.publish("toad-run")
-        for identity in await app.tab_order.load():
-            try:
-                await identity.restore(app.session_navigation)
-            except TabTargetGone as error:
-                await app.tab_order.close((identity,))
-                app.log.error(f"Removed stale tab {error.identity}: {error.reason}")
-        if self.resumed_session is not None:
-            # The thread's declaration decides how it opens, as from the sidebar.
-            navigation = await app.preparation.run_thread(self.launch_navigation)
-            await app.session_navigation.new(
-                MailboxTab(navigation.thread.incarnation, navigation.root),
-                partial(navigation.launch_screen, app),
-                original=(navigation.root, navigation.thread.incarnation),
-            )
-        if not app.tab_order.names:
-            await app.select_session(app.tab_order.home)
-        app.terminal_attention.attach()
-        app.set_timer(1, self.check_version)
-        app.run_worker(partial(self.set_process_title, "toad"), thread=True)
-        app.update_show_sessions()
+        try:
+            type(self)._startup_hook = type(self)._startup_hook.notify(self)
+            app = self.app
+            if app.saved_settings.ensure_installation():
+                app.call_later(self.usage.publish, "toad-install")
+            self.usage.publish("toad-run")
+            for identity in await app.tab_order.load():
+                try:
+                    await identity.restore(app.session_navigation)
+                except TabTargetGone as error:
+                    await app.tab_order.close((identity,))
+                    app.log.error(f"Removed stale tab {error.identity}: {error.reason}")
+            if self.resumed_session is not None:
+                # The thread's declaration decides how it opens, as from the sidebar.
+                navigation = await app.preparation.run_thread(self.launch_navigation)
+                await app.session_navigation.new(
+                    MailboxTab(navigation.thread.incarnation, navigation.root),
+                    partial(navigation.launch_screen, app),
+                    original=(navigation.root, navigation.thread.incarnation),
+                )
+            if not app.tab_order.names:
+                await app.select_session(app.tab_order.home)
+            app.terminal_attention.attach()
+            app.set_timer(1, self.check_version)
+            app.run_worker(partial(self.set_process_title, "toad"), thread=True)
+            app.update_show_sessions()
+        finally:
+            self.started.set()
 
     def launch_navigation(self):
         from toad.navigation_preparation import ThreadNavigationRequest
