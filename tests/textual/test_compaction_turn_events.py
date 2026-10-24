@@ -51,10 +51,10 @@ async def test_core_compaction_publications_retain_the_active_turn_and_refuse_a_
             await consume_until(CompactionChangedUpdate)
             assert "Compacting context" not in view.turns.owner.activity
             stale = await consume_until(TurnChangedUpdate)
-            assert not stale.state.active.phase.busy and not stale.state.matches(turn_id)
+            assert not stale.state.settles(active.state.active)
             assert agent.current_turn.managed_id == view.turns.managed_id == turn_id
             terminal = await consume_until(TurnChangedUpdate)
-            assert not terminal.state.active.phase.busy and terminal.state.matches(turn_id)
+            assert not terminal.state.active.phase.busy and terminal.state.settles(active.state.active)
             assert agent.current_turn.managed_id is view.turns.managed_id is None
             assert not agent.current_turn.busy and not view.turns.owner.busy
             await consume_until(GoalChangedUpdate)

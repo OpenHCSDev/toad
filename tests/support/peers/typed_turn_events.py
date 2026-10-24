@@ -16,6 +16,7 @@ import agent_comms.agent_events as agent_events
 from agent_comms.agent_event_updates import AcpEventConsumer
 from agent_comms.controller import SessionUpdateSink
 from agent_comms.coordinator import Coordination
+from agent_comms.field_codec import TurnId
 from turn_source import turn_source
 
 SESSION = "pilot"
@@ -35,14 +36,14 @@ async def produce(wire_root: Path, project: Path):
         name = producer.sessions.require(SESSION)
         async with AsyncExitStack() as turns:
             retired_owner = await Coordination.run_worker(partial(
-                producer.turns.acquire_turn, turns, SESSION, name, "retired-producer", "Authored protocol; no input"))
+                producer.turns.acquire_turn, turns, SESSION, name, TurnId("5e7a1d0c3b2f4e6a8c9d0b1a2f3e4d5c"), "Authored protocol; no input"))
             retired_lease = retired_owner.turn_lease
         retired = await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION))
         producer.on_connect(Pipe())
         consumer = AcpEventConsumer(producer, SESSION, producer._runtime)
         async with AsyncExitStack() as turns:
             await Coordination.run_worker(partial(
-                producer.turns.acquire_turn, turns, SESSION, name, "actual-producer", "Authored protocol; no input"))
+                producer.turns.acquire_turn, turns, SESSION, name, TurnId("a1c2e3f4b5d6e7f8091a2b3c4d5e6f70"), "Authored protocol; no input"))
             await producer.turns.publish_turn_state(consumer)
             await consumer.dispatch(agent_events.CompactionStart())
             await consumer.dispatch(agent_events.CompactionEnd(
