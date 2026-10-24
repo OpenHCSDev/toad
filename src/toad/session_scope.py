@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Never
 
 from agent_comms.channel_targets import ThreadTarget
+from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
@@ -186,7 +187,7 @@ class KnownTranscript(TranscriptScope):
             self.root,
             self.mailbox_conversation(view, conversation_type),
             event.body,
-            lambda: view.is_attached and view.transcript.binding.thread_scope == self,
+            lambda: self.shown_by(view),
             presented,
         )
 
@@ -194,11 +195,6 @@ class KnownTranscript(TranscriptScope):
         self, view: Conversation, conversation_type: type[DmConversation]
     ) -> None:
         """A CLI thread shows the same Core configuration answer a DM shows."""
-        from agent_comms.coordination_errors import (
-            CoordinationReadUnavailable,
-            StaleRevision,
-        )
-
         try:
             comms = await view.app.coordination_access.transcripts.service(self.root)
             status = await self.mailbox_conversation(view, conversation_type).status_text(
@@ -207,8 +203,12 @@ class KnownTranscript(TranscriptScope):
         except (CoordinationReadUnavailable, StaleRevision):
             # The next observed presentation reads the answer again.
             return
-        if view.is_attached and view.transcript.binding.thread_scope == self:
+        if self.shown_by(view):
             view.thread_status = status
+
+    def shown_by(self, view: Conversation) -> bool:
+        """This transcript is still the one the view is bound to."""
+        return view.is_attached and view.transcript.binding.thread_scope == self
 
     @staticmethod
     def mailbox_conversation(

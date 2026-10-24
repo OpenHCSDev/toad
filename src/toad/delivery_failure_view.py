@@ -73,6 +73,8 @@ class DeliveryFailureView(ToadNode, Widget):
     status: var[str | Content | RichText] = var("")
     thread_status: var[str | Content | RichText] = var("")
     """The thread's own status from its owner; a send or read-only block shows over it."""
+    composer_block: var[str] = var("")
+    """Why compose is held: this view's send, or a read-only saved view; empty when open."""
 
     @abstractmethod
     def draws_user_message(self, message: Message) -> bool: ...
@@ -83,7 +85,6 @@ class DeliveryFailureView(ToadNode, Widget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._send_state: SendState = NoSend()
-        self._composer_block = ""
 
     @property
     def send_block_reason(self) -> str:
@@ -100,8 +101,8 @@ class DeliveryFailureView(ToadNode, Widget):
 
             self.run_worker(refresh(), group="composer-access", exclusive=True)
 
-    def watch_thread_status(self) -> None:
-        self.status = self._composer_block or self.thread_status
+    def compute_status(self) -> str | Content | RichText:
+        return self.composer_block or self.thread_status
 
     async def refresh_composer(self, read_only: bool) -> None:
         """Draw compose from the caller's Core answer and the current send state."""
@@ -111,8 +112,7 @@ class DeliveryFailureView(ToadNode, Widget):
         area = self.prompt.prompt_text_area
         area.disabled = bool(reason)
         area.tooltip = reason or None
-        self._composer_block = reason
-        self.watch_thread_status()
+        self.composer_block = reason
         if not area.disabled and self.screen.focused is None:
             self.screen.set_focus(area)
 
