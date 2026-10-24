@@ -41,11 +41,17 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def app_agents(tmp_path) -> Iterator[AppAgents]:
-    """Agents of an app built on the test's own directory and never run."""
+def launch_root(tmp_path):
+    """The comms root the test's app selects: a private one; a module overrides it to need another."""
     from agent_comms.launch_root import LaunchRoot
 
-    with LaunchRoot.from_path(tmp_path / "wire").selected():
+    return LaunchRoot.from_path(tmp_path / "wire")
+
+
+@pytest.fixture
+def app_agents(tmp_path, launch_root) -> Iterator[AppAgents]:
+    """Agents of an app built on the test's own directory and never run."""
+    with launch_root.selected():
         yield AppAgents.unrun(tmp_path)
 
 

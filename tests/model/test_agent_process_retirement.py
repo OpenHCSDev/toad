@@ -8,22 +8,29 @@ import sys
 import psutil
 import pytest
 
+from agent_comms.active_route import active_route_path
 from support.agents import command
 from toad.acp.agent import Agent
 
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    """The user's home is private, so the default-route lock directory is this test's own."""
+    """The user's home is private, so the default route and its lock directory are this test's own."""
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("AGENT_COMMS_ROOT", str(tmp_path / ".agent-comms"))
-    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / ".agent-comms" / "state"))
-    (tmp_path / ".agent-comms").mkdir()
     return tmp_path
 
 
-def route_lock_available(home):
-    directory = os.open(home / ".local/state/agent-comms", os.O_RDONLY | os.O_DIRECTORY)
+@pytest.fixture
+def launch_root(home):
+    """The published default root: only its borrowers take the default-route lock."""
+    from agent_comms.active_route import LocalRoute
+    from agent_comms.launch_root import LaunchRoot
+
+    return LaunchRoot.from_path(LocalRoute.default().root)
+
+
+def route_lock_available():
+    directory = os.open(active_route_path().parent, os.O_RDONLY | os.O_DIRECTORY)
     try:
         try:
             fcntl.flock(directory, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -44,7 +51,7 @@ async def until(ui_condition, why):
 
 
 @pytest.mark.parametrize("how", ["cancel", "stop", "eof"])
-async def test_the_child_and_session_are_retired_and_the_route_released(home, how):
+async def test_the_child_and_session_are_retired_and_the_route_released(home, how, app_agents):
     pid_file = home / f"{how}.pid"
     code = (
         "import subprocess,sys,time;from pathlib import Path;"
@@ -53,7 +60,9 @@ async def test_the_child_and_session_are_retired_and_the_route_released(home, ho
         f"Path({str(pid_file)!r}).write_text(str(p.pid));"
         + ("time.sleep(60)" if how != "eof" else "")
     )
-    agent = Agent(home, command(sys.executable, "-c", code, name="Retirement", identity="retirement"), None)
+    agent = app_agents.agent(
+        Agent, command(sys.executable, "-c", code, name="Retirement", identity="retirement"),
+    )
 
     async def session():
         await asyncio.Future()
@@ -71,4 +80,4 @@ async def test_the_child_and_session_are_retired_and_the_route_released(home, ho
     await until(lambda: not descendant.is_running() or descendant.status() == psutil.STATUS_ZOMBIE, "the child to end")
     assert agent.process.process is None and agent.session.task is None
     assert not agent.session.responses and not agent.session.accepts_updates
-    assert route_lock_available(home), "retired process retained the route lock"
+    assert route_lock_available(), "retired process retained the route lock"
