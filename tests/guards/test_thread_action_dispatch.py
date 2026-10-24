@@ -3,6 +3,14 @@
 import ast
 from pathlib import Path
 
+from agent_comms.cli_commands import (
+    ChannelsCliCommand,
+    TargetBatchResult,
+    TargetCompleted,
+    TargetFailed,
+)
+from agent_comms.cli_result import ResultShower, ToolCatalogResult
+
 SOURCE = Path(__file__).resolve().parents[2] / "src/toad"
 ACTION_NAMES = {"comms_start", "comms_stop", "comms_archive", "comms_ack", "comms_fork"}
 
@@ -27,3 +35,28 @@ def test_action_names_are_not_strings_outside_their_declaration_owner():
                 assert node.value not in ACTION_NAMES, (path, node.lineno, node.value)
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                 assert node.func.id not in {"invoke_context_tool", "context_tool_catalog"}, (path, node.lineno)
+
+
+class RecordingResultShower(ResultShower):
+    def __init__(self) -> None:
+        self.done: list[tuple[str, str]] = []
+        self.failures: list[tuple[str, str]] = []
+
+    def show_done(self, text: str, title: str) -> None:
+        self.done.append((text, title))
+
+    def show_failure(self, text: str, title: str) -> None:
+        self.failures.append((text, title))
+
+
+def test_mixed_target_batch_shows_each_outcome_once() -> None:
+    shower = RecordingResultShower()
+    result = TargetBatchResult((
+        TargetCompleted("started", ChannelsCliCommand(), ToolCatalogResult(())),
+        TargetFailed("failed", "RuntimeError", "No provider configured"),
+    ))
+
+    result.show(shower, "Start", "Threads")
+
+    assert shower.done == [("Start: started", "Threads")]
+    assert shower.failures == [("failed: RuntimeError: No provider configured", "Threads")]
