@@ -69,7 +69,7 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         region = window.region
         hit = screen.get_widget_and_offset_at(region.x + 2, region.y + 2)
         placed = [child for child in window.walk_children() if child in layout_map]
-        offsets = [window.placed_row(child) for child in placed]
+        offsets = [row for _, row in window.placements(placed)]
         block = window.top_block()
         assert placed and block is not None
         with screen.hold_frames():
@@ -88,7 +88,7 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
                         published[window].clip)
                     assert screen.get_widget_and_offset_at(region.x + 2, region.y + 2) == hit
                     if committed is None:
-                        assert [window.placed_row(child) for child in placed] == offsets
+                        assert [row for _, row in window.placements(placed)] == offsets
                         assert window.top_block() is block
                     else:
                         assert compositor._layout_map is committed, "the arrangement changed again after its commit"

@@ -89,7 +89,7 @@ async def test_a_record_layout_has_not_placed_has_no_row(workspace):
         await window.query_one("#geometry-records", VerticalGroup).mount(Static("Prepended"), before=0)
         await ui.step()
         # Layout places only what is visible or a declared geometry target; a kept position's widget is one of those.
-        assert window.placed_row(marker) is None
+        assert not tuple(window.placements((marker,)))
         with pytest.raises(LookupError, match="must be visible or declared geometry targets"):
             window.row_of(marker)
 
@@ -112,5 +112,5 @@ async def test_a_live_block_hidden_since_the_last_frame_does_not_hold_the_reader
         block.display = False
         screen._compositor.reflow(screen, screen.size, retain_geometry=screen._layout_geometry_targets())
         assert block in screen._compositor.published_widgets
-        assert window.placed_row(block) is None
+        assert not tuple(window.placements((block,)))
         assert ReaderPosition.of(window) == RowPosition(window.scroll_y)

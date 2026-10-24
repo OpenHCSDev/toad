@@ -66,7 +66,7 @@ class ReaderPosition(ABC):
     def laid_out(self, window: "HistoryWindow") -> bool:
         """Whether the layout just made placed what this position is measured from."""
         bodies = self.bodies(window)
-        return bodies is not None and all(window.placed_row(body) is not None for body in bodies)
+        return bodies is not None and sum(1 for _ in window.placements(bodies)) == len(bodies)
 
     @abstractmethod
     def place(self, window: "HistoryWindow") -> bool:
@@ -538,10 +538,6 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
                 path.append(path[-1].parent)
             if all(node in geometry for node in path):
                 yield widget, sum(geometry[node].virtual_region.y for node in path)
-
-    def placed_row(self, widget: Widget) -> int | None:
-        """The widget's first row in this window's laid-out content, or None if layout did not place it."""
-        return next((row for _, row in self.placements((widget,))), None)
 
     def row_of(self, widget: Widget) -> int:
         """The row of a widget layout must have placed: one on screen, or one the kept position names."""
