@@ -1086,13 +1086,7 @@ class Conversation(
         return self.navigation.current
 
     def draws_user_message(self, sent) -> bool:
-        from agent_comms.message_reference import MessageReference
-
-        reference = MessageReference(sent.seq, sent.message_id)
-        return any(
-            reference in fragment.notification_references
-            for fragment in self.transcript.binding.history.visible_fragments()
-        )
+        return self.transcript.binding.history.draws(sent)
 
     async def _apply_session_name(self, name: str) -> None:
         await self.agent_binding.set_session_name(name)
