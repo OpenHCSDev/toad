@@ -7,7 +7,7 @@ from textual.widgets import Input
 
 from agent_comms.audience_manifest import FrozenRecipient
 from agent_comms.messages import InfoKind, Message
-from agent_comms.notification_progress import AcknowledgedProgress
+from agent_comms.notification_progress import InboxReadProgress
 from agent_comms.presentation import MessageNotification
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.delivery import ReadDeliveryView
@@ -24,7 +24,7 @@ from toad.widgets.session_details import SessionDetails
 @pytest.mark.parametrize("ansi", [False, True], ids=["rgb", "ansi"])
 async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi):
     notifications = tuple(MessageNotification(
-        FrozenRecipient("owner", "owner"), "peer", AcknowledgedProgress(), message=Message("peer", "#comms", f"Notice {index}: " + "body " * 30,
+        FrozenRecipient("owner", "owner"), "peer", InboxReadProgress(), message=Message("peer", "#comms", f"Notice {index}: " + "body " * 30,
                                                  InfoKind, seq=index + 1),
     ) for index in range(30))
     state = ThreadPresentation("owner", "●", "Ready", notifications=notifications)
