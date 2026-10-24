@@ -101,6 +101,7 @@ from toad.widgets.transcript_lines import (
 )
 
 if TYPE_CHECKING:
+    from agent_comms.messages import Message as BusMessage
     from toad.widgets.conversation import Contents, Conversation
 
 
@@ -573,6 +574,10 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     @property
     def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
+
+    def draws(self, message: BusMessage) -> bool:
+        """Whether the drawn rows include this message, scrolled into view or not, newest first."""
+        return any(fragment.draws(message) for fragment in reversed(self.fragments_in_range))
 
     def read_fragments(self) -> tuple[TranscriptFragment, ...]:
         """Fragments whose own text has a row in the viewport."""
