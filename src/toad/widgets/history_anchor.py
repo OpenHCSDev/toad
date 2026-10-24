@@ -58,9 +58,7 @@ class ReaderPosition(ABC):
             fragment = span.fragment
             return FragmentPosition(fragment.arrival_position, (y - first - span.first) / span.height,
                                     span.height, part=fragment.part_position.index, block=span.index)
-        if (position := BlockPosition.of(window)) is not None:
-            return position
-        return RowPosition(y)
+        return BlockPosition.of(window)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         """The widgets layout must place to find this position; None when nothing drawn holds it."""
@@ -241,17 +239,22 @@ class BlockPosition(OffsetPosition):
     y: float
 
     @classmethod
-    def of(cls, window: "HistoryWindow") -> "BlockPosition | None":
-        """The topmost drawn live block; containers of other blocks do not hold the reader."""
+    def of(cls, window: "HistoryWindow") -> ReaderPosition:
+        """The topmost live block the last layout placed, else the bare scroll offset.
+
+        Candidates come from the published frame but are measured in the layout just
+        made, so a block published last frame and not placed now (a CLI draft hidden
+        since) is no candidate. Containers of other blocks do not hold the reader.
+        """
         from toad.block_navigation import ConversationBlock
 
-        visible = window.screen._compositor.published_widgets
-        blocks = [widget for widget in visible
+        blocks = [widget for widget in window.screen._compositor.published_widgets
                   if isinstance(widget, ConversationBlock) and window in widget.ancestors]
         holders = {ancestor for block in blocks for ancestor in block.ancestors}
-        block = min(window.visible_history_items(block for block in blocks if block not in holders),
-                    key=lambda node: visible[node][0].y, default=None)
-        return None if block is None else cls(block, window.row_of(block), window.scroll_y)
+        placed = (cls(block, row, window.scroll_y) for block in window.visible_history_items(
+                      block for block in blocks if block not in holders)
+                  if (row := window.placed_row(block)) is not None)
+        return min(placed, key=lambda position: position.row, default=RowPosition(window.scroll_y))
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         return (self.block,) if self.block.is_attached and window.displays(self.block) else None
