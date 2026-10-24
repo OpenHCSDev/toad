@@ -8,7 +8,7 @@ import sys
 import psutil
 import pytest
 
-from support.agents import command
+from support.agents import AppAgents, command
 from toad.acp.agent import Agent
 
 
@@ -53,7 +53,9 @@ async def test_the_child_and_session_are_retired_and_the_route_released(home, ho
         f"Path({str(pid_file)!r}).write_text(str(p.pid));"
         + ("time.sleep(60)" if how != "eof" else "")
     )
-    agent = Agent(home, command(sys.executable, "-c", code, name="Retirement", identity="retirement"), None)
+    agent = AppAgents.unrun(home).agent(
+        Agent, command(sys.executable, "-c", code, name="Retirement", identity="retirement"),
+    )
 
     async def session():
         await asyncio.Future()
