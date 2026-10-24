@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import Annotated, ClassVar
+from typing import TYPE_CHECKING, Annotated, ClassVar
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.declared_family import DeclaredFamily
@@ -20,6 +20,9 @@ from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream
 from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
+
+if TYPE_CHECKING:
+    from agent_comms.commander_hud import CommanderHud
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
@@ -155,6 +158,16 @@ class CoordinationObserved(CoreEvent):
         # A newer observation supersedes a pending older one. The native
         # carrier still never replaces an intervening input or Comms update.
         return isinstance(event, CoordinationObserved)
+
+
+@dataclass(frozen=True)
+class CommanderHudChanged(CoreEvent):
+    """The commander heartbeat replaced its frames; Core derived every field."""
+
+    huds: tuple[CommanderHud, ...]
+
+    def can_replace(self, event: CoreEvent) -> bool:
+        return isinstance(event, CommanderHudChanged)
 
 
 @dataclass(frozen=True)

@@ -211,6 +211,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
     BINDINGS = [
         Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+h", "go_home", "Home", show=False),
+        Binding("f2", "commander_page", "Commander"),
         Binding(
             "ctrl+left_square_bracket",
             "session_previous",
@@ -608,6 +609,12 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
             target = conversation.prompt.prompt_text_area
             if target.focusable:
                 self.screen.set_focus(target, scroll_visible=False)
+
+    def action_commander_page(self) -> None:
+        """Every unit's state, orders and PRs, as the commander heartbeat published them."""
+        from toad.screens.commander import CommanderPage
+
+        self.app.push_screen(CommanderPage())
 
     async def action_go_home(self) -> None:
         await self.app.select_session("store")
