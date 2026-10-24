@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property
@@ -48,9 +48,8 @@ class ReaderPosition(ABC):
         if window.follows_tail:
             return TailPosition()
         y = window.scroll_y
-        reading = min(((first, page) for page in window.drawn_pages()
-                       if page.line_count and (first := window.placed_row(page)) is not None
-                       and first + page.line_count > y),
+        reading = min(((first, page) for page, first in window.placements(window.drawn_pages())
+                       if page.line_count and first + page.line_count > y),
                       key=lambda placed: max(y, placed[0]), default=None)
         if reading is not None:
             first, page = reading
@@ -251,9 +250,8 @@ class BlockPosition(OffsetPosition):
         blocks = [widget for widget in window.screen._compositor.published_widgets
                   if isinstance(widget, ConversationBlock) and window in widget.ancestors]
         holders = {ancestor for block in blocks for ancestor in block.ancestors}
-        placed = (cls(block, row, window.scroll_y) for block in window.visible_history_items(
-                      block for block in blocks if block not in holders)
-                  if (row := window.placed_row(block)) is not None)
+        placed = (cls(block, row, window.scroll_y) for block, row in window.placements(
+                      window.visible_history_items(block for block in blocks if block not in holders)))
         return min(placed, key=lambda position: position.row, default=RowPosition(window.scroll_y))
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
@@ -527,30 +525,30 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             node = node.parent
         return True
 
-    def placed_row(self, widget: Widget) -> int | None:
-        """The widget's first row in this window's laid-out content, or None if layout did not place it.
+    def placements[Placed: Widget](self, widgets: Iterable[Placed]) -> Iterator[tuple[Placed, int]]:
+        """Each widget the last layout placed, with its first row in this window's content.
 
         Viewport layout places what is on screen plus the screen's declared
-        geometry targets, so None means the widget is off screen.
+        geometry targets; a widget off screen is not yielded.
         """
-        row = 0
-        node = widget
         geometry = self.screen._compositor._layout_map
-        while node is not self:
-            if (placed := geometry.get(node)) is None:
-                return None
-            row += placed.virtual_region.y
-            if not isinstance(node.parent, Widget):
-                break
-            node = node.parent
-        return row
+        for widget in widgets:
+            path = [widget]
+            while path[-1].parent is not self and isinstance(path[-1].parent, Widget):
+                path.append(path[-1].parent)
+            if all(node in geometry for node in path):
+                yield widget, sum(geometry[node].virtual_region.y for node in path)
+
+    def placed_row(self, widget: Widget) -> int | None:
+        """The widget's first row in this window's laid-out content, or None if layout did not place it."""
+        return next((row for _, row in self.placements((widget,))), None)
 
     def row_of(self, widget: Widget) -> int:
         """The row of a widget layout must have placed: one on screen, or one the kept position names."""
-        if (row := self.placed_row(widget)) is None:
-            raise LookupError(f"{widget!r} is not placed in {self!r}'s layout; "
-                              "a reader position's widgets must be visible or declared geometry targets")
-        return row
+        for _, row in self.placements((widget,)):
+            return row
+        raise LookupError(f"{widget!r} is not placed in {self!r}'s layout; "
+                          "a reader position's widgets must be visible or declared geometry targets")
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""
