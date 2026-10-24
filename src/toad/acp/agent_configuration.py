@@ -88,7 +88,11 @@ class ModelConfigurationSetting(ConfigurationSetting):
 
     @property
     def requires_selection(self) -> bool:
-        return self.available and not self.current
+        """No advertised model can run: Core's empty catalogue is provider setup state.
+
+        An unset current value beside advertised models is a thread running its
+        runtime's default model, which sends like any other."""
+        return self.available and not self.choices
 
     @property
     def choices(self) -> tuple[SessionConfigSelectOption, ...]:
