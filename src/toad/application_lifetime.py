@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from ssl import SSLContext
 
     from agent_comms.launch_runtime import LaunchRuntime
+    from textual.worker import Worker
     from toad.app import ToadApp
 
 
@@ -141,6 +142,12 @@ class ApplicationLifetime:
         self.quit_warning_deadline = 0.0
         self.usage = UsageReports(app)
         self.version = VersionMonitor()
+
+    def begin(self) -> None:
+        """Run start as its own task: it awaits drawn frames, so neither Mount
+        (drawn after its batch closes) nor the App's message queue (whose timers
+        end delayed updates) may wait on it. The worker records its completion and error."""
+        self.start_worker: Worker[None] = self.app.run_worker(self.start, name="application start")
 
     async def start(self) -> None:
         type(self)._startup_hook = type(self)._startup_hook.notify(self)
