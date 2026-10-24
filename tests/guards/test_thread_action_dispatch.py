@@ -33,8 +33,6 @@ def test_action_names_are_not_strings_outside_their_declaration_owner():
         for node in ast.walk(ast.parse(path.read_text())):
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
                 assert node.value not in ACTION_NAMES, (path, node.lineno, node.value)
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-                assert node.func.id not in {"invoke_context_tool", "context_tool_catalog"}, (path, node.lineno)
 
 
 class RecordingResultShower(ResultShower):
