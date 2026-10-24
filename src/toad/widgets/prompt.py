@@ -744,9 +744,9 @@ class Prompt(TonePaint, containers.VerticalGroup):
     def sync_turn(self) -> None:
         if not self.is_mounted:
             return
-        if (editor := self.query_one_optional(PromptTextArea)) is not None:
-            self.set_class(SubmitNowAction().available(editor), "-queue-mode")
-            editor.refresh_bindings()
+        editor = self.prompt_text_area
+        self.set_class(SubmitNowAction().available(editor), "-queue-mode")
+        editor.refresh_bindings()
         from toad.widgets.conversation import Conversation
 
         self.query_ancestor(Conversation).goal_bar._queue_separator_update()
@@ -864,6 +864,19 @@ class Prompt(TonePaint, containers.VerticalGroup):
         )
         editor.highlight_language = "shell" if shell else "markdown"
         self.prompt_label.refresh()
+
+    def enter_insert(self) -> None:
+        """Vim `i`: the editor takes insert mode and focus.
+
+        Textual composes the editor before it marks the prompt mounted, so a key
+        pressed while a tab is still opening has no editor to act on yet.
+        """
+        if not self.is_mounted:
+            return
+        from textual.widgets.text_area import VimInsert
+
+        self.prompt_text_area.editing_mode = VimInsert()
+        self.focus()
 
     def focus(self, scroll_visible: bool = True) -> Self:
         if self._ask is not None:
