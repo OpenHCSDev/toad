@@ -317,7 +317,7 @@ class ConversationSubmissions:
     def native_input_presented(self, started: InputStartedUpdate):
         """Retain this request's actual response while its RPC is outstanding."""
         for execution in self.active:
-            if execution.current and execution.request.input_id == started.input_id:
+            if execution.current and started.started_request(execution.request.input_id):
                 execution.started_update = started
 
     def publish_pending(self):

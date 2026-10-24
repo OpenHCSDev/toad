@@ -2,7 +2,8 @@
 already holds it is drawn once, by the saved history, with no second live block under it."""
 
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.acp_extension import InputStartedUpdate, encode_updates
+from agent_comms.acp_extension import NoQueueScope, UnidentifiedInputStarted, encode_updates
+from agent_comms.field_codec import InputId
 from agent_comms.threads import Thread
 
 from support import agents, journals
@@ -28,7 +29,7 @@ async def test_a_start_notice_after_the_saved_history_draws_the_message_once(wor
 
         await agents.deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
-            "_meta": encode_updates(InputStartedUpdate(None, TOKEN, None, None, INPUT))})
+            "_meta": encode_updates(UnidentifiedInputStarted(TOKEN, NoQueueScope(), None, InputId(INPUT)))})
         await ui.step(.5)
 
         assert ui.painted(view.window).count(TOKEN) == 1, ui.painted(view.window)

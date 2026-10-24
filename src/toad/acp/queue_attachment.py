@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from agent_comms.acp_extension import (
+    IdentifiedInputStarted,
     InputStartedUpdate,
     NoQueueScope,
     PendingQueueProjection,
@@ -16,7 +17,7 @@ from .projection_attachment import ProjectionAttachment
 class QueueAttachment(ProjectionAttachment):
     def __init__(self):
         super().__init__()
-        self._last_started: InputStartedUpdate | None = None
+        self._last_started: IdentifiedInputStarted | None = None
         self._pending_starts: list[InputStartedUpdate] = []
         # Core's load answer may name why this attachment cannot take input.
         self.unavailable: UnavailableQueueProjection = UnavailableQueueProjection()
@@ -64,6 +65,11 @@ class QueueAttachment(ProjectionAttachment):
     def started(
         self, update: InputStartedUpdate, session_id: str
     ) -> tuple[InputStartedUpdate, ...]:
+        return update.queue_started(lambda identified: self._identified_started(identified, session_id))
+
+    def _identified_started(
+        self, update: IdentifiedInputStarted, session_id: str,
+    ) -> tuple[IdentifiedInputStarted, ...]:
         if not update.scope.matches_session(session_id):
             return ()
         if self._pending:
@@ -77,8 +83,7 @@ class QueueAttachment(ProjectionAttachment):
             return ()
         previous = self._last_started
         if (
-            update.input_id is None
-            or update.text is None
+            update.text is None
             or update.revision is None
             or (previous is not None and previous.scope.current_for(update.scope)
                 and update.revision <= previous.revision)

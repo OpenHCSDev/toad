@@ -137,7 +137,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(InputStartedUpdate)
     def input_started(self, update: InputStartedUpdate) -> None:
-        if update.scope.unidentified_start(update.input_id):
+        if update.posts_unidentified():
             if self.session_id == self.agent.session_id:
                 self.agent.events.publish(
                     core_events.CommsUpdated(update, session_id=self.session_id)
