@@ -10,6 +10,7 @@ one Textual timer.
 
 from __future__ import annotations
 
+import asyncio
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
@@ -33,7 +34,6 @@ from textual.screen import Screen
 from textual.strip import Strip
 from textual.style import Style as VisualStyle
 from textual.theme import Theme
-from textual.timer import Timer
 from ui_theme.backend import Backend, TerminalBackend
 from ui_theme.catalog import SCHEMES
 from ui_theme.clock import AnimationClock
@@ -220,7 +220,8 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
         for scheme in SCHEMES:
             self._add(scheme)
         self._observer: BaseObserver | None = None
-        self._timer: Timer | None = None
+        self._timer: asyncio.TimerHandle | None = None
+        self._interval: float | None = None
         self.clock = AnimationClock(self._schedule)
 
     # The catalog and pywal.
@@ -428,11 +429,32 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
     # The animation clock's one timer.
 
     def _schedule(self, interval: float | None) -> None:
+        """Run `tick` every `interval` seconds, or never when interval is None.
+
+        Each tick is an event-loop callback, so it always returns to the loop. A
+        Textual interval timer started from inside `tick` (its `refresh` asks for
+        a new interval) runs its first tick inline under Textual's eager task
+        factory, and Textual's sleep does not yield below half a millisecond, so
+        a short interval never returned and froze the app.
+        """
+        self._interval = interval
         if self._timer is not None:
-            self._timer.stop()
+            self._timer.cancel()
             self._timer = None
         if interval is not None:
-            self._timer = self.app.set_interval(interval, self.clock.tick, name="animation clock")
+            self._timer = asyncio.get_running_loop().call_later(interval, self._tick)
+
+    def _tick(self) -> None:
+        self._timer = None
+        try:
+            self.clock.tick()
+        except Exception as error:
+            self.app._handle_exception(error)
+            return
+        # `tick` re-arms through `_schedule` when its interval changed; otherwise
+        # the same cadence continues.
+        if self._timer is None and self._interval is not None:
+            self._timer = asyncio.get_running_loop().call_later(self._interval, self._tick)
 
 
 class ThemedApp(App[None]):
