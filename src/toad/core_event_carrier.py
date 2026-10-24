@@ -32,7 +32,7 @@ class CoreEventMessage(Message):
     def can_replace(self, message: Message) -> bool:
         return (isinstance(message, CoreEventMessage)
                 and self.subscription is message.subscription
-                and self.event.can_replace(message.event))
+                and self.event.replaces(message.event))
 
 
 @dataclass(eq=False)

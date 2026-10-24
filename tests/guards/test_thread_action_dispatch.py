@@ -1,7 +1,9 @@
 """Deleted action string routing must not return outside its declaration owner."""
 
 import ast
+import asyncio
 from pathlib import Path
+from types import SimpleNamespace
 
 from agent_comms.cli_commands import (
     ChannelsCliCommand,
@@ -10,6 +12,9 @@ from agent_comms.cli_commands import (
     TargetFailed,
 )
 from agent_comms.cli_result import ResultShower, ToolCatalogResult
+from agent_comms.restart_refusals import OwnerBusyRefusal
+
+from toad.thread_actions import ThreadActionExecution
 
 SOURCE = Path(__file__).resolve().parents[2] / "src/toad"
 ACTION_NAMES = {"comms_start", "comms_stop", "comms_archive", "comms_ack", "comms_fork"}
@@ -58,3 +63,42 @@ def test_mixed_target_batch_shows_each_outcome_once() -> None:
 
     assert shower.done == [("Start: started", "Threads")]
     assert shower.failures == [("failed: RuntimeError: No provider configured", "Threads")]
+
+
+class RefusingApp(RecordingResultShower):
+    """Runs the action's worker inline, as Toad's preparation thread would."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.preparation = self
+        self.tasks: list[asyncio.Task] = []
+
+    async def run_thread(self, apply):
+        return apply()
+
+    def run_worker(self, work, name: str) -> asyncio.Task:
+        self.tasks.append(asyncio.ensure_future(work))
+        return self.tasks[-1]
+
+
+class RefusedExecution(ThreadActionExecution):
+    def apply(self):
+        raise OwnerBusyRefusal()
+
+
+def test_core_refusal_is_shown_and_releases_the_action() -> None:
+    app = RefusingApp()
+    finished: list[ThreadActionExecution] = []
+    owner = SimpleNamespace(app=app, finished=finished.append)
+    action = SimpleNamespace(definition=SimpleNamespace(label="Restart"))
+
+    async def run() -> RefusedExecution:
+        execution = RefusedExecution(owner, action, None, "unit-backend")
+        await asyncio.gather(*app.tasks)
+        return execution
+
+    execution = asyncio.run(run())
+
+    assert [(str(error), title) for error, title in app.failures] == [
+        ("Wait until the owner is idle before restart.", "Restart")]
+    assert finished == [execution]
