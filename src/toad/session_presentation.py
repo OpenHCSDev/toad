@@ -22,7 +22,7 @@ from toad.owner_preparation import ExistingOwnerPlan
 from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
-from toad.widgets.prompt import MessagePrompt
+from toad.widgets.prompt import MailboxPrompt
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -126,6 +126,9 @@ class OperationalSessionSources:
 
     def agent_info(self, conversation: Conversation) -> str:
         return "shell"
+
+    def thread_presented(self, conversation: Conversation) -> None:
+        """A native agent reports its configuration through ACP."""
 
     def external_transcript_changed(self, conversation: Conversation) -> None:
         """Core publishes native and CLI drafts through the same transcript store."""
@@ -242,7 +245,16 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        return MessagePrompt()
+        return MailboxPrompt()
+
+    def thread_presented(self, conversation: Conversation) -> None:
+        conversation.run_worker(
+            conversation.transcript.binding.thread_scope.show_mailbox_status(
+                conversation, DmConversation
+            ),
+            group="mailbox-status",
+            exclusive=True,
+        )
 
     def input_ready(self, conversation: Conversation) -> bool:
         return conversation.transcript.readable
@@ -250,6 +262,7 @@ class MailboxSessionSources(OperationalSessionSources):
     async def present(self, conversation: Conversation) -> None:
         await super().present(conversation)
         self.external_transcript_changed(conversation)
+        self.thread_presented(conversation)
 
     async def submit(self, owner, event):
         view = owner.view

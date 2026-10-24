@@ -96,7 +96,7 @@ class AgentBase(AgentConnection):
             await DB().session_update_project(session_pk, path)
 
     def refresh_context(self, view: Conversation) -> None:
-        view.status = self.context_measurement.status()
+        view.thread_status = self.context_measurement.status()
 
     async def compact_context(self, instructions) -> None:
         await self.controller.compact_context(instructions)
@@ -108,7 +108,7 @@ class AgentBase(AgentConnection):
         return message.publisher is self and message.event.session_id == self.session_id
 
     def refresh_projection(self, view: ConversationSessionBinding) -> None:
-        view.status = self.context_measurement.status()
+        view.thread_status = self.context_measurement.status()
         view.turns.bound()
         view.submissions.publish_pending()
         view.delivery_observation.invalidate()

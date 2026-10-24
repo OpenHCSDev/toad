@@ -100,6 +100,11 @@ class TranscriptScope(ABC):
         presented: Callable[[Message | None], Awaitable[None]],
     ) -> None: ...
 
+    @abstractmethod
+    async def show_mailbox_status(
+        self, view: Conversation, conversation_type: type[DmConversation]
+    ) -> None: ...
+
 
 @dataclass(frozen=True)
 class KnownTranscript(TranscriptScope):
@@ -179,12 +184,38 @@ class KnownTranscript(TranscriptScope):
     ) -> None:
         await view.submit_comms_message(
             self.root,
-            conversation_type(
-                view.query_ancestor(SessionScope).thread_identity.thread_incarnation()
-            ),
+            self.mailbox_conversation(view, conversation_type),
             event.body,
             lambda: view.is_attached and view.transcript.binding.thread_scope == self,
             presented,
+        )
+
+    async def show_mailbox_status(
+        self, view: Conversation, conversation_type: type[DmConversation]
+    ) -> None:
+        """A CLI thread shows the same Core configuration answer a DM shows."""
+        from agent_comms.coordination_errors import (
+            CoordinationReadUnavailable,
+            StaleRevision,
+        )
+
+        try:
+            comms = await view.app.coordination_access.transcripts.service(self.root)
+            status = await self.mailbox_conversation(view, conversation_type).status_text(
+                comms, read_only=False
+            )
+        except (CoordinationReadUnavailable, StaleRevision):
+            # The next observed presentation reads the answer again.
+            return
+        if view.is_attached and view.transcript.binding.thread_scope == self:
+            view.thread_status = status
+
+    @staticmethod
+    def mailbox_conversation(
+        view: Conversation, conversation_type: type[DmConversation]
+    ) -> DmConversation:
+        return conversation_type(
+            view.query_ancestor(SessionScope).thread_identity.thread_incarnation()
         )
 
 
@@ -243,6 +274,11 @@ class NoTranscript(TranscriptScope):
         presented: Callable[[Message | None], Awaitable[None]],
     ) -> None:
         view.delivery_refused("CLI transcript is not ready", event.body)
+
+    async def show_mailbox_status(
+        self, view: Conversation, conversation_type: type[DmConversation]
+    ) -> None:
+        """No bound thread has no configuration to show."""
 
 
 class SessionOrigin:
