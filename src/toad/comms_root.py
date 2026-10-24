@@ -32,6 +32,9 @@ from agent_comms.revision_views import ExternalTranscriptsView, StatusView
 from agent_comms.route_selection import RouteSelection, run_selected_write
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.ui_model.observation import (
+    CommanderHudObserved,
+    ObserveCommanderHud,
+    StopCommanderHud,
     NotificationsObserved,
     NotificationsUnreadable,
     ObservationProcess,
@@ -54,6 +57,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 
 from toad.core.events import (
+    CommanderHudChanged,
     CoordinationObserved,
     CoreEventStream,
     ExternalTranscriptChanged,
@@ -72,6 +76,7 @@ if TYPE_CHECKING:
     from agent_comms.thread_identity import ThreadIncarnation
 
     from toad.app import ToadApp
+    from toad.screens.commander import CommanderPage
     from toad.session_entry import SessionEntry
     from toad.session_navigation import SessionNavigation
     from toad.widgets.linked_rows import ReferenceRendering
@@ -142,6 +147,7 @@ class Observation:
                 waiter.set_exception(RouteChangedError("Comms service changed before the sidebar was read"))
         access.revision = NoRevision()
         access.sidebar_interest = access.sidebar_current = None
+        access.commander_interest = StopCommanderHud()
         access.thread_status.clear()
         access.views_interest = None
         access.notification_views.clear()
@@ -200,6 +206,10 @@ class FailedObservation(Observation):
     def thread_interest(self, access: CoordinationAccess):
         access.app.show_error(self.error, "Thread status unavailable")
 
+    def observe_commander(self, wanted: ObserveCommanderHud | StopCommanderHud):
+        for page in tuple(self.access.commander_pages):
+            page.observation_failed(self.error)
+
 
 @dataclass(frozen=True)
 class Observing(Observation):
@@ -234,6 +244,7 @@ class Observing(Observation):
     def activate(self, access: CoordinationAccess):
         self.loop.add_reader(self.process.fileno(), self.receive, access)
         access.update_sidebar_interest()
+        access.update_commander_interest()
         self.thread_interest(access)
         self.updates.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
         self.subscriptions.enter_context(self.updates)
@@ -300,6 +311,9 @@ class Observing(Observation):
     def observe_notifications(self, wanted: ObserveNotifications):
         self.process.request(wanted)
 
+    def observe_commander(self, wanted: ObserveCommanderHud | StopCommanderHud):
+        self.process.request(wanted)
+
 class AnsweringReads(Observing):
     """Interests have ended; acquired reads keep their process and release owners."""
 
@@ -316,6 +330,9 @@ class AnsweringReads(Observing):
         pass
 
     def observe_notifications(self, wanted: ObserveNotifications):
+        pass
+
+    def observe_commander(self, wanted: ObserveCommanderHud | StopCommanderHud):
         pass
 
 
@@ -350,6 +367,9 @@ class CoordinationAccess(MroDispatch):
         self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
         self.notification_outcomes: dict[ReadNotifications, Mapping[tuple[int, str], tuple[MessageNotification, ...]]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
+        # Open commander pages; the heartbeat's frames are observed only while one is shown.
+        self.commander_pages: WeakSet[CommanderPage] = WeakSet()
+        self.commander_interest: ObserveCommanderHud | StopCommanderHud = StopCommanderHud()
 
     def open_current(self) -> Observing | FailedObservation:
         """Capture the current route and open its service, or expose the opening error."""
@@ -399,6 +419,10 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(CoordinationObserved(result.revision))
         if result.revision.changed_since(ExternalTranscriptsView(), previous):
             self.events.publish(ExternalTranscriptChanged())
+
+    @handles(CommanderHudObserved)
+    def commander_hud_observed(self, result: CommanderHudObserved, observed: Observing) -> None:
+        self.events.publish(CommanderHudChanged(result.huds))
 
     @handles(SidebarObserved)
     def sidebar_observed(self, result: SidebarObserved, observed: Observing) -> None:
@@ -528,6 +552,20 @@ class CoordinationAccess(MroDispatch):
             observed = self.observation.observed()
             self.sidebar_interest = wanted
             observed.observe_sidebar(wanted)
+
+    def update_commander_interest(self) -> None:
+        wanted = ObserveCommanderHud() if self.commander_pages else StopCommanderHud()
+        if wanted != self.commander_interest:
+            self.commander_interest = wanted
+            self.observation.observed().observe_commander(wanted)
+
+    def show_commander(self, page: CommanderPage, shown: bool) -> None:
+        """A commander page started or stopped showing the heartbeat's frames."""
+        if shown:
+            self.commander_pages.add(page)
+        else:
+            self.commander_pages.discard(page)
+        self.update_commander_interest()
 
     def show_sidebar(self, view: SidebarModelView, shown: bool) -> None:
         """A view started or stopped showing the sidebar model."""
