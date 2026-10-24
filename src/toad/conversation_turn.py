@@ -60,9 +60,6 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def accepts_update(self, update) -> bool:
         return update.matches_turn(IdleTurn.reported_turn)
 
-    def matches_settlement(self, turn_id) -> bool:
-        return not turn_id
-
     def captured_snapshot(self, widgets: tuple[Widget, ...]):
         """Each original claim owns capture while this source is active."""
         from toad.widgets.committed_presentation import CommitParticipant
@@ -111,9 +108,6 @@ class AgentTurn(TurnOwner):
     started_at: float | None = None
     activity_state = ActivityState.WORKING
     session_state = "busy"
-
-    def matches_settlement(self, turn_id) -> bool:
-        return self.managed_id == turn_id
 
     def with_activity(self, activity: str) -> TurnOwner:
         return replace(self, activity=activity or "Thinking…")
@@ -168,9 +162,6 @@ class ManagedTurn(TurnOwner):
 
     def accepts_update(self, update) -> bool:
         return update.matches_turn(self.state.active.reported_turn)
-
-    def matches_settlement(self, turn_id):
-        return self.state.matches(turn_id)
 
     def with_activity(self, activity: str):
         # Text, tool and heartbeat rendering cannot change backend phase.
@@ -268,7 +259,7 @@ class ManagedTurnBinding(TurnBinding):
         return message.event.sequence == self.sequence
 
     def receive(self, state: TurnState):
-        if not state.active.phase.busy and not state.matches(self.owner.managed_id):
+        if not state.settles(self.owner.state.active):
             return False
         owner = ManagedTurn(state)
         if owner == self.owner:
