@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.historical_views import ConversationObservation
-from agent_comms.messages import Message
 
 from toad.session_scope import SessionScope
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
@@ -94,11 +93,6 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
         super().rows_published()
         if not self.undrawn and (placeholder := self.view.query_one_optional("#history-loading")):
             placeholder.remove()
-
-    def draws(self, message: Message) -> bool:
-        """Whether the drawn rows include this message, checking the newest first."""
-        return any(fragment.message.view_key == message.view_key
-                   for fragment in reversed(self.fragments_in_range))
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""

@@ -107,3 +107,28 @@ async def test_a_successful_wire_send_keeps_a_different_unsent_draft(workspace):
                        why="the committed message drawn and composing released")
         assert chat.prompt.text == "A different unsent draft"
         assert editor.document is document and editor.history is history
+
+
+async def test_a_sent_message_scrolled_past_by_a_long_reply_still_releases_composing(workspace):
+    """Drawn means in the history's drawn rows, not inside the viewport: a long reply
+    landing in the same read pushes the sent message off screen, and composing must open."""
+    from toad.delivery_failure_view import DeliveryFailureView
+    from toad.widgets.comms_chat import CommsChatView
+
+    comms = workspace.comms
+    workspace.thread("peer")
+    commit = DeliveryFailureView.commit_user_message
+
+    async def commit_then_reply(view, *args, **kwargs):
+        sent = await commit(view, *args, **kwargs)
+        comms.messaging.send("peer", workspace.viewer, "\n\n".join(f"reply line {n}" for n in range(80)))
+        return sent
+
+    async with workspace.app(size=(110, 24)) as ui:
+        await ui.open_direct("peer", actor=workspace.viewer)
+        chat = ui.app.selected_session.query_one(CommsChatView)
+        with patch.object(DeliveryFailureView, "commit_user_message", commit_then_reply):
+            await chat.submit_input(UserInputSubmitted("SCROLLED_PAST_SEND"))
+            await ui.until(lambda: ui.shows("reply line 79") and not chat.send_block_reason,
+                           why="the long reply drawn and composing released")
+        assert not ui.shows("SCROLLED_PAST_SEND")
