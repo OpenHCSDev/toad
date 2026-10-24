@@ -39,6 +39,7 @@ from toad.navigation_target import (
     NavigationTarget,
     ThreadTarget,
 )
+from toad.screens.commander import CommanderPage
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionView
 from toad.session_presentation import OperationalSessionPresentation
@@ -612,8 +613,6 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
 
     def action_commander_page(self) -> None:
         """Every unit's state, orders and PRs, as the commander heartbeat published them."""
-        from toad.screens.commander import CommanderPage
-
         self.app.push_screen(CommanderPage())
 
     async def action_go_home(self) -> None:

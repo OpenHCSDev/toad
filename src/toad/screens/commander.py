@@ -4,9 +4,11 @@ Core's CommanderHud derives every field, UnitState included, and the heartbeat
 replaces each commander's CommanderFrame every beat. This page keeps no fleet state
 and decides nothing: each Core row class picks its widget through MroDispatch.
 """
+
 from __future__ import annotations
 
 import time
+from typing import ClassVar
 
 from agent_comms.commander.vibe_check import OverloadDegradation
 from agent_comms.commander_hud import CommanderHud, CommanderPhase, CommanderUnit
@@ -17,6 +19,7 @@ from textual.containers import Vertical, VerticalScroll
 from textual.widget import Widget
 from textual.widgets import Button, Static
 
+from toad.app_node import ToadNode
 from toad.core.events import CommanderHudChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.screens.modal import ModalScreen
@@ -25,14 +28,23 @@ from toad.screens.modal import ModalScreen
 class HudRowWidgets(MroDispatch):
     """One widget per Core row class; a new row class declares its widget here."""
 
-    def widget(self, row: OverloadDegradation | CommanderPhase | CommanderUnit) -> Widget:
+    def widget(
+        self, row: OverloadDegradation | CommanderPhase | CommanderUnit
+    ) -> Widget:
         return type(self).handler_for(type(row))(self, row)
 
     def frame(self, hud: CommanderHud) -> tuple[Widget, ...]:
         """The heartbeat's order: load, then phases, then units most urgent first."""
+        rows: tuple[OverloadDegradation | CommanderPhase | CommanderUnit, ...] = (
+            hud.load,
+            *hud.phases,
+            *hud.units,
+        )
         return (
-            Static(f"Commander {hud.commander.name}", markup=False, classes="hud-commander"),
-            *(self.widget(row) for row in (hud.load, *hud.phases, *hud.units)),
+            Static(
+                f"Commander {hud.commander.name}", markup=False, classes="hud-commander"
+            ),
+            *(self.widget(row) for row in rows),
         )
 
     @handles(OverloadDegradation)
@@ -50,7 +62,9 @@ class HudRowWidgets(MroDispatch):
             f"  {card.clock.line(time.time())}; strikes {card.strikes}",
         ]
         for order in card.orders:
-            lines.append(f"  {order.problem} ({order.order}) {order.state}: {order.text}")
+            lines.append(
+                f"  {order.problem} ({order.order}) {order.state}: {order.text}"
+            )
             lines.append(
                 f"    {order.progress.line}; timers up {len(order.review_timers_up)}; "
                 f"strikes {order.strikes}; unjudged edits {order.unjudged_edits}"
@@ -60,10 +74,10 @@ class HudRowWidgets(MroDispatch):
         return Static("\n".join(lines), markup=False, classes="hud-unit")
 
 
-class CommanderPage(CoreEventReceiver, ModalScreen[None]):
+class CommanderPage(CoreEventReceiver, ToadNode, ModalScreen[None]):
     """Every unit's state, orders and PRs, in the UnitState family's declared order."""
 
-    BINDINGS = [("escape", "close", "Close")]
+    BINDINGS: ClassVar = [("escape", "close", "Close")]
     DEFAULT_CSS = """
     CommanderPage { align: center middle; background: $background 40%; }
     CommanderPage > Vertical {
@@ -98,7 +112,9 @@ class CommanderPage(CoreEventReceiver, ModalScreen[None]):
     async def hud_changed(self, event: CommanderHudChanged) -> None:
         rows = self.query_one("#hud-rows", VerticalScroll)
         await rows.remove_children()
-        await rows.mount_all(widget for hud in event.huds for widget in self.widgets.frame(hud))
+        await rows.mount_all(
+            widget for hud in event.huds for widget in self.widgets.frame(hud)
+        )
 
     def observation_failed(self, error: Exception) -> None:
         rows = self.query_one("#hud-rows", VerticalScroll)
