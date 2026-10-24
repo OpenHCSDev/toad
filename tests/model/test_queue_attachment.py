@@ -55,3 +55,27 @@ def test_capture_after_a_replacement_begins_is_refused(tmp_path):
     attachment.begin("source")  # keeps the old observed scope behind a pending projection
     with pytest.raises(ValueError, match="Checking input queue"):
         attachment.capture_human_input(comms, scope)
+
+
+def test_input_start_members_dispatch_before_queue_revision_checks(tmp_path):
+    from agent_comms.acp_extension import (
+        IdentifiedInputStarted,
+        UnidentifiedInputStarted,
+    )
+    from agent_comms.field_codec import InputId
+
+    _, scope = declared_scope(tmp_path)
+    attachment = QueueAttachment()
+    token = attachment.begin("source")
+    native_id, input_id = InputId.mint(), InputId.mint()
+    unidentified = UnidentifiedInputStarted("routed", scope, 1, native_id)
+    assert attachment.started(unidentified, "source") == ()
+    identified = IdentifiedInputStarted("queued", scope, 2, native_id, input_id)
+    assert attachment.started(identified, "source") == ()
+    _, starts = attachment.bind(
+        QueueChangedUpdate(scope, 1, AvailableQueueProjection()), "source", token,
+    )
+    assert starts == (identified,)
+    assert attachment.started(identified, "source") == ()
+    newer = IdentifiedInputStarted("queued", scope, 3, native_id, input_id)
+    assert attachment.started(newer, "source") == (newer,)
