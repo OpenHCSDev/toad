@@ -9,7 +9,7 @@ from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from itertools import chain, islice
+from itertools import accumulate, chain, islice
 from typing import TYPE_CHECKING
 from weakref import ref
 
@@ -694,17 +694,14 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         Layout places only the pages near the screen. Pages follow one another
         without a gap, so one placed page gives the rows of every other.
         """
-        y, rows, starts = 0, None, {}
-        for page in self.pages:
-            starts[page] = y
-            if rows is None and (within := page.fragment_rows(fragment)) is not None:
-                rows = range(y + within.start, y + within.stop)
-            y += page.line_count
-        if rows is None:
-            return None
-        for page, placed in self.window.placements(self.pages):
-            shift = placed - starts[page]
-            return range(rows.start + shift, rows.stop + shift)
+        pages = self.pages
+        starts = dict(zip(pages, accumulate((p.line_count for p in pages), initial=0)))
+        for page in pages:
+            if (within := page.fragment_rows(fragment)) is not None:
+                for placed_page, placed in self.window.placements(pages):
+                    shift = starts[page] + placed - starts[placed_page]
+                    return range(within.start + shift, within.stop + shift)
+                return None
         return None
 
     def show_fragment(self, fragment: TranscriptFragment) -> None:
