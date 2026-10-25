@@ -151,8 +151,8 @@ class FragmentSpan(BlockSpan, FragmentLocation):
         return cls(index=span.index, first=first + span.first, height=span.height,
                    drawn=span.drawn, fragment=fragment, page=page)
 
-    def locations(self) -> tuple[FragmentSpan, ...]:
-        return (self,)
+    def location(self) -> FragmentSpan:
+        return self
 
     def bodies(self) -> tuple[Widget, ...]:
         return (self.page,)
@@ -346,10 +346,10 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         position = fragment.arrival_position
         part = fragment.part_position.index
         occurrence = self.occurrence_of(fragment)
-        for placed in self.fragment_row(position, part, 0, occurrence).locations():
-            if placed.drawn:
-                window.reader_position = FragmentPosition(
-                    position, 0, placed.height, part=part, block=0, occurrence=occurrence)
+        placed = self.fragment_row(position, part, 0, occurrence).location()
+        if placed.drawn:
+            window.reader_position = FragmentPosition(
+                position, 0, placed.height, part=part, block=0, occurrence=occurrence)
 
     def fragment_row(self, position: int | str, part: int, block: int,
                      occurrence: int) -> FragmentLocation:

@@ -40,7 +40,7 @@ class FragmentLocation(ABC):
     """A source fragment's drawn location, or the declared not-loaded result."""
 
     @abstractmethod
-    def locations(self) -> tuple[FragmentSpan, ...]: ...
+    def location(self) -> FragmentSpan: ...
 
     @abstractmethod
     def bodies(self) -> tuple[Widget, ...]: ...
@@ -61,8 +61,8 @@ class FragmentLocation(ABC):
 class UnloadedFragment(FragmentLocation):
     """No loaded page draws a destination for this fragment occurrence."""
 
-    def locations(self) -> tuple[FragmentSpan, ...]:
-        return ()
+    def location(self) -> FragmentSpan:
+        raise FragmentNotLoaded("The source fragment has no drawn location")
 
     def bodies(self) -> tuple[Widget, ...]:
         return ()

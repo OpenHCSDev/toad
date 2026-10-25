@@ -138,10 +138,10 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
                 for fragment in page.prepared.fragments_in_range:
                     occurrence = page.occurrence_of(fragment)
                     if occurrence > 0 and fragment.has_details:
-                        for span in page.fragment_row(fragment.arrival_position,
-                                fragment.part_position.index, 0, occurrence).locations():
-                            if span.drawn:
-                                candidates.append((page, first, fragment, span, occurrence))
+                        span = page.fragment_row(fragment.arrival_position,
+                            fragment.part_position.index, 0, occurrence).location()
+                        if span.drawn:
+                            candidates.append((page, first, fragment, span, occurrence))
             if candidates:
                 break
         assert candidates, "No second occurrence with a disclosure link was loaded"

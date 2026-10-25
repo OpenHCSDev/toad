@@ -9,7 +9,7 @@ from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import (
-    BlockPosition, FragmentPosition, HistoryWindow, ReaderPosition, RowPosition,
+    BlockPosition, FragmentNotLoaded, FragmentPosition, HistoryWindow, ReaderPosition, RowPosition,
     TailPosition, UnreachedPosition,
 )
 
@@ -103,7 +103,8 @@ async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspac
         window.release_anchor()
         position = FragmentPosition(123, 0, 1, part=0, block=0, occurrence=0)
         window.reader_position = UnreachedPosition(position)
-        assert not position.page(window).locations()
+        with pytest.raises(FragmentNotLoaded):
+            position.page(window).location()
         assert not position.laid_out(window)
         assert not window.place_reader()
         with pytest.raises(LookupError, match="no drawn destination yet"):
