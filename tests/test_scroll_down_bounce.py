@@ -99,15 +99,11 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         await ui.until(lambda: history.pages and all(page.rows_measured for page in history.pages),
                        why="the initial retained page to be measured")
         # Walk backwards through the real lazy pager before measuring downward travel.
-        print("P758 initial:", window.scroll_y, window.max_scroll_y,
-              [(page.prepared.start, page.prepared.stop) for page in history.pages], flush=True)
         for _ in range(4096):
             await wheel(ui, window, events.MouseScrollUp)
             if history.has_more(NEWER_END):
                 break
         await ui.step()
-        print("P758 after upward setup:", window.scroll_y, window.max_scroll_y,
-              [(page.prepared.start, page.prepared.stop) for page in history.pages], flush=True)
         assert not window.follows_tail
         assert history.has_more(NEWER_END)
         oldest = history.pages[0].prepared.fragments_in_range[0].arrival_position
@@ -122,12 +118,9 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         await ui.step()
         screen.recording = False
         frames = screen.frames
-        print("P758 per-published-frame (scroll_y, reader, range_start, range_stop):", flush=True)
-        for frame in frames:
-            print(frame, flush=True)
         assert len(frames) > 1, frames
-        assert history.pages[0].prepared.fragments_in_range[0].arrival_position > oldest, (
-            "No older fragments were evicted during downward travel")
         backwards = [(before, after) for before, after in zip(frames, frames[1:])
                      if after[1] < before[1]]
         assert not backwards, f"Downward inputs published backwards reader movement: {backwards}"
+        assert history.pages[0].prepared.fragments_in_range[0].arrival_position > oldest, (
+            "No older fragments were evicted during downward travel")
