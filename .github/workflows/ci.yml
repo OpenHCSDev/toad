@@ -10,10 +10,6 @@ on:
       head:
         required: true
         type: string
-      stock_pi_version:
-        description: Stock Pi version accepted by the pinned core native builder
-        required: true
-        type: string
 permissions:
   contents: read
 concurrency:
@@ -51,29 +47,25 @@ jobs:
       - name: Run surface guards
         run: .venv/bin/pytest tests/guards
   suite:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.head }}
+          ref: ${{ github.event.pull_request.head.sha || inputs.head }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
       - uses: ./.github/actions/core-from-main
         with:
           path: .artifacts/core
-      - uses: actions/setup-node@v4
+      - run: uv sync --project .artifacts/core/stack
+      # Core's own preparation, with the stock Pi and node it pins.
+      - uses: ./.artifacts/core/.github/actions/prepare-native
         with:
-          node-version: '22'
-      - name: Prepare native package from the resolved Core
-        env:
-          STOCK_PI_VERSION: ${{ inputs.stock_pi_version }}
+          core: .artifacts/core
+          python: ${{ github.workspace }}/.artifacts/core/stack/.venv/bin/python
+      - name: Qualify the native package from the resolved Core
         run: |
-          uv sync --project .artifacts/core/stack
-          npm install --prefix .artifacts/pi-stock --install-strategy=nested "@earendil-works/pi-coding-agent@$STOCK_PI_VERSION"
-          export PI_STOCK_DIR="$PWD/.artifacts/pi-stock/node_modules/@earendil-works/pi-coding-agent"
-          .artifacts/core/stack/bin/prepare-pi-native
           .venv/bin/python - <<'PYCORE'
           import os
           from pathlib import Path
