@@ -58,7 +58,7 @@ async def test_agent_actions_run_edit_fail_cancel_and_take_input(workspace):
             modal = app.screen
             import toad
 
-            install = agent.commands_for(toad.platform)["install"]
+            install = agent.commands_for(toad.host)["install"]
             # Cancelling the editor runs nothing.
             await choose_action(ui, modal, "install")
             await ui.until(lambda: isinstance(app.screen, CommandEditModal), why="the command editor")

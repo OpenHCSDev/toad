@@ -124,7 +124,7 @@ class Agent(AgentBase):
     @property
     def command(self) -> str | None:
         """The command used to launch the agent, or `None` if there isn't one."""
-        return toad.platform.select(self.definition.run_command)
+        return toad.host.select(self.definition.run_command)
 
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.project_root_path

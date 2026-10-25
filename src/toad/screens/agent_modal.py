@@ -46,7 +46,7 @@ class AgentModal(ModalScreen[LaunchAgent | None]):
         launcher_set = frozenset(app.settings.launcher.agents.splitlines())
         agent = self.agent
         operations = [CatalogCommandAction.bind(name, command)
-                      for name, command in agent.commands_for(toad.platform).items()]
+                      for name, command in agent.commands_for(toad.host).items()]
         choices = [*operations, LaunchAction(agent)]
 
         with containers.Vertical(id="container"):

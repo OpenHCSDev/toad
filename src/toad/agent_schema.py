@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Annotated, Literal
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, TextRepresentation, WireName
-from toad import Platform
+from toad.platform import Platform
 
 
 class AgentKind(DeclaredFamily, affix='AgentKind'):

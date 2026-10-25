@@ -46,7 +46,7 @@ def catalog_text() -> str:
     text += '\n[run_command]\n"*" = ' + json.dumps(shlex.join([sys.executable, "-m", "agent_comms.acp"])) + "\n"
     text += '\n[actions."*".install]\ndescription = "Wrong platform"\ncommand = "exit 91"\n'
     for name, (label, command) in COMMANDS.items():
-        text += f"\n[actions.{json.dumps(toad.platform.key)}.{json.dumps(name)}]\n"
+        text += f"\n[actions.{json.dumps(toad.host.key)}.{json.dumps(name)}]\n"
         text += f"description = {json.dumps(label)}\ncommand = {json.dumps(command)}\n"
         if name == "bootstrap":
             text += "bootstrap_uv = true\n"
