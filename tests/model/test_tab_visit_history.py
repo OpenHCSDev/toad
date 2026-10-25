@@ -1,13 +1,10 @@
 """Tab order keeps one opening order and a branching visit history."""
 
-import pytest
-
 from toad.tab_order import TabOrder
 from toad.db import DB
 from toad.tab_identity.kinds import PreviewTab
 
 
-@pytest.mark.asyncio
 async def test_history_branches_closing_prunes_it_and_a_new_kind_of_tab_needs_no_new_code(tmp_path):
     first, second, third, new_kind, closed = (
         PreviewTab(tmp_path / name) for name in ("first", "second", "third", "new-kind", "closed")
@@ -38,7 +35,6 @@ async def test_history_branches_closing_prunes_it_and_a_new_kind_of_tab_needs_no
     assert order.project({first: 1, new_kind: 2, closed: 3}) == (1, 2)
 
 
-@pytest.mark.asyncio
 async def test_home_is_shown_only_while_no_tab_is_open(tmp_path):
     only, closed = PreviewTab(tmp_path / "only"), PreviewTab(tmp_path / "closed")
     database = DB(tmp_path / "toad.db")
