@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from uuid import uuid4
+from agent_comms.native_session_reopen import PiSessionId
 
 
 def message_entry(role: str, text: str, *, id: str, parent: str | None = None) -> dict:
@@ -42,7 +42,7 @@ def write_journal(path: Path, *entries: dict) -> Path:
         decoded = NativeEntry.read(json.dumps(entry).encode())
         if isinstance(decoded, MessageEntry) and isinstance(decoded.message, UnknownMessage):
             raise ValueError(f"Core does not read this journal line as a known message: {entry}")
-    header = SessionEntry(id=uuid4().hex, version=3, cwd=ReportedText(str(path.parent)),
+    header = SessionEntry(id=PiSessionId.fresh(), version=3, cwd=ReportedText(str(path.parent)),
                           timestamp=RecordedTimestamp.written(datetime.now(UTC)))
     path.write_text(json.dumps(header.to_wire()) + "\n"
                     + "".join(json.dumps(entry) + "\n" for entry in entries))
