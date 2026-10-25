@@ -31,7 +31,7 @@ from toad.app import ToadApp
 from toad.core import events as core_events
 from toad.core import session_requests
 from toad.core.events import SessionChangedEvent
-from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated
 from toad.session_tracker import OpenTab
 from toad.widget_view import AUTO, FILL, WidgetView
@@ -228,9 +228,9 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
         self.call_after_refresh(self.show_selected_tab)
 
     @handles(core_events.SessionSelected)
-    async def handle_mode_change(self, event: CoreEventMessage) -> None:
+    async def handle_mode_change(self, event: core_events.SessionSelected) -> None:
         if self.screen.is_active:
-            for mode in (event.event.previous_mode, event.event.mode_name):
+            for mode in (event.previous_mode, event.mode_name):
                 if mode and (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
                     label.paint_current()
             self.call_later(self._sync_tabs)
@@ -268,12 +268,12 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
         yield Underline()
 
     @handles(SessionChangedEvent)
-    async def handle_session_update(self, event: CoreEventMessage) -> None:
+    async def handle_session_update(self, event: SessionChangedEvent) -> None:
         if self.screen.is_active:
             await self._sync_tabs()
 
     @handles(core_events.NamedThreadRowsChanged)
-    async def _row_state_changed(self, event: CoreEventMessage) -> None:
+    async def _row_state_changed(self, event: core_events.NamedThreadRowsChanged) -> None:
         if not self.screen.is_active:
             return
         async with self._sync_lock:
@@ -283,7 +283,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
             observation = self.app.coordination_access.observation
             geometry_changed = False
             for mode, previous in self._last_tabs.items():
-                if previous.affected_by(event.event.names):
+                if previous.affected_by(event.names):
                     if (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
                         tab = observation.tab(sessions.get(mode), sessions)
                         geometry_changed |= label.present(tab)
@@ -292,7 +292,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
                 self.call_after_refresh(self.show_selected_tab)
 
     @handles(core_events.OpenTabsChanged, core_events.LinkContextChanged)
-    async def _tabs_changed(self, event: CoreEventMessage) -> None:
+    async def _tabs_changed(self, event: core_events.OpenTabsChanged | core_events.LinkContextChanged) -> None:
         """A thread tab is a thread row: it repaints when an open session's state changes too."""
         if self.screen.is_active:
             await self._sync_tabs()

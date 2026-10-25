@@ -12,7 +12,6 @@ View, not authority: renders Core's sidebar presentation model
 """
 
 from __future__ import annotations
-from toad.core_event_carrier import CoreEventMessage
 
 import shlex
 from agent_comms.native_arguments import ConfiguredBinary, InheritedArguments
@@ -511,7 +510,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         return views
 
     @handles(SessionChangedEvent, ThreadIdentityChanged)
-    async def session_changed(self, event: CoreEventMessage) -> None:
+    async def session_changed(self, event: SessionChangedEvent | ThreadIdentityChanged) -> None:
         self.open_views = self.find_open_views()
 
     @property

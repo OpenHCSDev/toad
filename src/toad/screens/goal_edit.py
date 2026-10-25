@@ -66,9 +66,9 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
         self.editor.text = self.goal.text
 
     @handles(UserInputSubmitted)
-    async def submit(self, event: CoreEventMessage) -> None:
-        event.stop()
-        await self.save(event.event.body)
+    async def submit(self, event: UserInputSubmitted, message: CoreEventMessage) -> None:
+        message.stop()
+        await self.save(event.body)
 
     async def save(self, text: str) -> None:
         if not text.strip() or self.saving:

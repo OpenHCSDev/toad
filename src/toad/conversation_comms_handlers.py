@@ -119,8 +119,8 @@ class ConversationCommsHandlers(CoreEventReceiver):
         )
 
     @handles(core_events.CommsUpdated)
-    async def on_comms_updated(self, event: CoreEventMessage) -> None:
-        await self.dispatch(event.event.update, event)
+    async def on_comms_updated(self, event: core_events.CommsUpdated, message: CoreEventMessage) -> None:
+        await self.dispatch(event.update, message)
 
     @handles(CoordinationChangedUpdate)
     def on_coordination_changed(

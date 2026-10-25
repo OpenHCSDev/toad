@@ -107,7 +107,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         self.dismiss(None)
 
     @handles(SelectTarget)
-    def open_target(self, event: CoreEventMessage) -> None:
-        event.stop()
+    def open_target(self, event: SelectTarget, message: CoreEventMessage) -> None:
+        message.stop()
         self.dismiss(None)
-        self.source.view.publish_core(event.event)
+        self.source.view.publish_core(event)

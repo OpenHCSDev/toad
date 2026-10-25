@@ -43,7 +43,7 @@ class ReferenceRendering(CoreEventReceiver):
         self.app.coordination_access.show_references(self, False)
 
     @handles(LinkContextChanged)
-    def reference_context_changed(self, message):
+    def reference_context_changed(self, event: LinkContextChanged):
         owner = ProjectPathOwner.containing(self)
         self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
         self.invalidate_lines()

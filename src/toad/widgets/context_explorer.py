@@ -25,7 +25,6 @@ from toad.core.context_inspection import (
     InspectionState,
 )
 from toad.core.events import CoordinationObserved, SessionSelected
-from toad.core_event_carrier import CoreEventMessage
 from toad.session_scope import SessionScope
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.process_text_area import ProcessTextArea
@@ -288,7 +287,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self.call_after_refresh(self.action_refresh)
 
     @handles(CoordinationObserved, SessionSelected)
-    def context_changed(self, message: CoreEventMessage) -> None:
+    def context_changed(self, event: CoordinationObserved | SessionSelected) -> None:
         self._observed()
 
     def presentation_visible(self):

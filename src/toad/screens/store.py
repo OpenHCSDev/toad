@@ -1,7 +1,7 @@
 from toad.core import session_requests, input_events
 from agent_comms.field_codec import FieldCodec
 from toad.core.preference_events import PreferenceChanged
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core_event_carrier import CoreEventReceiver
 from agent_comms.mro_dispatch import handles
 from toad.preferences import SETTINGS
 from contextlib import suppress
@@ -497,9 +497,9 @@ class StoreScreen(CoreEventReceiver, Screen):
 
     @handles(input_events.OpenAgentDetails)
     @work
-    async def open_agent_detail(self, message: CoreEventMessage) -> None:
+    async def open_agent_detail(self, event: input_events.OpenAgentDetails) -> None:
         try:
-            agent = self._agents[message.event.identity]
+            agent = self._agents[event.identity]
         except KeyError:
             return
         await self.show_agent(agent)
@@ -521,8 +521,8 @@ class StoreScreen(CoreEventReceiver, Screen):
             self.app.session_navigation.events.publish(modal_response)
 
     @handles(input_events.ChangeDirectory)
-    def on_change_directory(self, event: CoreEventMessage) -> None:
-        self.project_dir = Path(event.event.path)
+    def on_change_directory(self, event: input_events.ChangeDirectory) -> None:
+        self.project_dir = Path(event.path)
         self.app.project_dir = self.project_dir
 
     @work
@@ -539,8 +539,8 @@ class StoreScreen(CoreEventReceiver, Screen):
                 first_grid.focus(scroll_visible=False)
 
     @handles(PreferenceChanged)
-    async def _preferences_changed(self, message: CoreEventMessage) -> None:
-        if SETTINGS.launcher.agents.matches(message.event.field):
+    async def _preferences_changed(self, event: PreferenceChanged) -> None:
+        if SETTINGS.launcher.agents.matches(event.field):
             await self.launcher.recompose()
 
             def focus_screen():
