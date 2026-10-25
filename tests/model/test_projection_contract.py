@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 import pytest
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 
 from toad.core.projection import MroProjection
 

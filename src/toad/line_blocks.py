@@ -114,6 +114,12 @@ class OutgoingRole(LineRole):
     colour = SuccessColour
 
 
+class GreenTextRole(LineRole):
+    """A quoted line, drawn as greentext."""
+
+    colour = SuccessColour
+
+
 class NoticeRole(LineRole):
     colour = WarningColour
 

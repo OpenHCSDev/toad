@@ -16,7 +16,7 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from textual.content import Content
 from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
@@ -119,8 +119,8 @@ class ConversationCommsHandlers(CoreEventReceiver):
         )
 
     @handles(core_events.CommsUpdated)
-    async def on_comms_updated(self, event: CoreEventMessage) -> None:
-        await self.dispatch(event.event.update, event)
+    async def on_comms_updated(self, event: core_events.CommsUpdated, message: CoreEventMessage) -> None:
+        await self.dispatch(event.update, message)
 
     @handles(CoordinationChangedUpdate)
     def on_coordination_changed(

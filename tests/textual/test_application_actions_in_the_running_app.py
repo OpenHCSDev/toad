@@ -10,7 +10,7 @@ from textual.widgets import Input, OptionList
 from support.applications import record_notifications
 from support.agents import peer
 from support.completion_record import completion_prompts
-from toad.application_actions import ApplicationAction, PaletteAction
+from toad.application_actions import ApplicationAction
 from toad.preferences import SETTINGS
 from toad.screens.settings import SettingsScreen
 from toad.widgets.comms_sidebar import CommsSidebar, NewSessionButton
@@ -18,11 +18,8 @@ from toad.widgets.footer import ToadFooter
 from toad.widgets.session_tabs import SessionTabClose
 
 
-class DeclarationProofAction(ApplicationAction, PaletteAction):
-    help = 'Declared application action needs no App dispatch or catalog edit'
-
-    def label(self, app):
-        return 'Declaration proof'
+class DeclarationProofAction(ApplicationAction):
+    """Declared application action needs no App dispatch or catalog edit."""
 
     async def apply(self, app):
         (app.project_dir / 'declaration-proof.txt').write_text('Actual palette applied declaration')
@@ -50,7 +47,7 @@ async def running_session(workspace):
 
 
 async def open_column_width_editor(ui, app):
-    await ui.press('f2')
+    await ui.press('ctrl+comma')
     await ui.until(lambda: isinstance(app.screen, SettingsScreen), why="the settings screen")
     assert await ui.textual[1].click(app.screen.search)
     await ui.type('Width of the column')

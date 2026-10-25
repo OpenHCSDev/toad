@@ -47,3 +47,19 @@ def test_configuration_owns_typed_groups_replacement_and_new_case(app_agents, tm
     finally:
         ConfigurationSetting.__registry__.pop(BudgetConfigurationSetting.declared_name)
     subscription.close()
+
+
+def test_an_unset_model_beside_advertised_models_runs_the_default(app_agents):
+    """P585: Core advertises "Not configured" for a thread on its runtime's default
+    model, and the composer refused every send while the thread ran live."""
+    configuration = AgentConfiguration(app_agents.detached_agent())
+
+    def advertise(*values):
+        configuration.receive(SetSessionConfigOptionResponse.model_validate({'configOptions': [
+            {'id':'ModelConfigOption','name':'Model','category':'model','type':'select','currentValue':'',
+             'options':[{'value':value,'name':value or 'Not configured'} for value in values]},
+        ]}, strict=True).config_options)
+        return configuration.setting(ModelConfigurationSetting)
+
+    assert not advertise('', 'openai-codex/gpt-5.4').requires_selection
+    assert advertise('').requires_selection

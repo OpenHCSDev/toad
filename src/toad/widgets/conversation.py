@@ -14,7 +14,7 @@ from acp import schema as acp_protocol
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay
@@ -55,6 +55,7 @@ from toad.block_navigation import (
     require_blocks,
 )
 from toad.command_catalog import CommandCatalog
+from toad.target_commands import CommandContextChanged, TargetContext
 from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.conversation_submission import ConversationSubmissions
 from toad.conversation_turn import ConversationTurn, TurnOwner
@@ -112,7 +113,7 @@ from toad.widgets.shell_terminal import ShellTerminal
 from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.terminal import Terminal
 from toad.widgets.terminal_tool import TerminalTool
-from toad.widgets.throbber import AboveThrobber, BelowThrobber
+from toad.widgets.throbber import AboveThrobber
 from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
 from toad.widgets.user_input import UserInput
 
@@ -428,6 +429,7 @@ class ConversationSessionBinding(
         """A settled member owns whether this view has source work to publish."""
         self.thread_presentation = presentation
         self._update_model_info()
+        self.operational_sources.thread_presented(self)
         self.dispatch_sync(presentation)
 
     @handles(NoThreadPresentation)
@@ -450,7 +452,7 @@ class ConversationSessionBinding(
             self._unpublished_presentation = presentation
 
     @handles(core_events.SessionSelected)
-    async def _thread_view_selected(self, event: CoreEventMessage) -> None:
+    async def _thread_view_selected(self, event: core_events.SessionSelected) -> None:
         if not self.query_ancestor(SessionScope).is_current:
             return
         self.refresh_thread_status()
@@ -458,7 +460,7 @@ class ConversationSessionBinding(
         self.dispatch_sync(self._unpublished_presentation)
 
     @handles(core_events.ObservedServiceChanged)
-    async def _thread_route_observed(self, event: CoreEventMessage) -> None:
+    async def _thread_route_observed(self, event: core_events.ObservedServiceChanged) -> None:
         self.refresh_thread_status()
 
     def bind_agent(self, agent: AgentConnection) -> None:
@@ -467,7 +469,7 @@ class ConversationSessionBinding(
 
     def apply_bound_agent(self, agent: AgentBase) -> None:
         self._update_model_info()
-        self.status = agent.context_measurement.status()
+        self.thread_status = agent.context_measurement.status()
         if agent.ready:
             self.session_ready()
             self.call_later(self.goal_observation.invalidate)
@@ -494,8 +496,6 @@ class ConversationSessionBinding(
     def _turn_changed(self, owner: TurnOwner) -> None:
         """Publish the concrete conversation's changed turn projection."""
         raise NotImplementedError
-
-    busy_count = var(0)
 
     visible_categories: var[frozenset[type[MessageCategory]]] = var(
         lambda: all_categories(), init=False
@@ -543,7 +543,6 @@ class ConversationSessionBinding(
         self.turns = ConversationTurn(
             self._turn_changed, lambda: self.agent_binding.presentation.turns
         )
-        self.throbber = BelowThrobber(self.working, id="throbber")
         self.throbber_above = AboveThrobber(self.working)
         self._initialize_session(
             project_path,
@@ -738,7 +737,7 @@ class ConversationSessionBinding(
             self.take_initial_prompt()
 
     @handles(core_events.ConfigurationChanged)
-    async def on_acp_configuration_changed(self, message: CoreEventMessage) -> None:
+    async def on_acp_configuration_changed(self, event: core_events.ConfigurationChanged) -> None:
         self._update_model_info()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_configuration()
@@ -751,8 +750,8 @@ class ConversationSessionBinding(
         self.agent_info = self.agent_binding.model_info(self.agent_title)
 
     @handles(AgentReady)
-    async def on_agent_ready(self, message: CoreEventMessage) -> None:
-        if not message.event.reconnected:
+    async def on_agent_ready(self, event: AgentReady) -> None:
+        if not event.reconnected:
             self.session_start_time = monotonic()
             self.agent_binding.connected(self)
 
@@ -778,7 +777,6 @@ class ConversationSessionBinding(
         if self.is_attached:
             self.refresh_thread_status()
         self.turns.bound()
-        self.busy_count = 0
         binding.update_view(self)
 
         if self.is_mounted:
@@ -909,15 +907,18 @@ class Conversation(
                     await self._shell.change_directory(str(path))
         await self.agent_binding.project_changed(path)
 
-    def working(self) -> bool:
-        return self.busy_count > 0 or self.turns.owner.busy or self._observed_working
+    def history_loading(self) -> bool:
+        """Whether this view's history is reading its first page; only wire histories page in."""
+        return False
 
-    def _sync_working(self) -> None:
-        for throbber in (self.throbber, self.throbber_above):
-            throbber.sync()
+    def working(self) -> bool:
+        return self.turns.owner.busy or self._observed_working or self.history_loading()
+
+    def sync_working(self) -> None:
+        self.throbber_above.sync()
 
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self._sync_working()
+        self.sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
@@ -927,7 +928,7 @@ class Conversation(
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
-        self._sync_working()
+        self.sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_session()
 
@@ -981,10 +982,7 @@ class Conversation(
                 model_history_scope=Conversation.model_history_scope,
                 status=Conversation.status,
             )
-            yield self.throbber
-            self.goal_bar: GoalBar = GoalBar(
-                self, throbber=self.throbber, prompt=prompt
-            )
+            self.goal_bar: GoalBar = GoalBar(self, prompt=prompt)
             yield self.goal_bar
             yield prompt
 
@@ -1106,46 +1104,40 @@ class Conversation(
         await self._apply_session_name(make_session_title(prompt))
 
     @handles(core_events.SessionInfoUpdate)
-    async def on_session_info_update(self, message: CoreEventMessage) -> None:
+    async def on_session_info_update(self, event: core_events.SessionInfoUpdate) -> None:
         self._auto_title_eligible = False
-        self.publish_core(core_events.SessionThreadTitle(message.event.title or ""))
+        self.publish_core(core_events.SessionThreadTitle(event.title or ""))
 
     @handles(AgentFail)
-    async def on_agent_fail(self, message: CoreEventMessage) -> None:
+    async def on_agent_fail(self, event: AgentFail) -> None:
         self.retire_loading_splash()
         self.turns.finish_client()
         self._agent_fail = True
         self.prompt.sync_session()
         if (details := self.query_one_optional(SessionDetails)) is not None:
             details.sync_turn()
-        self.app.show_error(message.event.message, "Agent failure")
+        self.app.show_error(event.message, "Agent failure")
 
         if self._agent_data is not None:
             self.app.application.usage.publish(
                 "agent-session-error",
                 agent=self._agent_data.identity,
-                message=message.event.message,
-                details=message.event.details,
+                message=event.message,
+                details=event.details,
             )
 
         await self.agent_binding.session_disposition.present_failure(
-            message.event, self
+            event, self
         )
-
-    def on_work_started(self) -> None:
-        self.busy_count += 1
-
-    def on_work_finished(self) -> None:
-        self.busy_count -= 1
 
     @work
     @handles(input_events.ChangeMode)
-    async def on_change_mode(self, event: CoreEventMessage) -> None:
-        await self.set_mode(event.event.mode_id)
+    async def on_change_mode(self, event: input_events.ChangeMode) -> None:
+        await self.set_mode(event.mode_id)
 
     @handles(input_events.ProviderLogin)
-    def on_provider_login(self, event: CoreEventMessage) -> None:
-        event.stop()
+    def on_provider_login(self, event: input_events.ProviderLogin, message: CoreEventMessage) -> None:
+        message.stop()
         self.action_provider_login()
 
     @work(group="provider-login", exclusive=True)
@@ -1223,13 +1215,13 @@ class Conversation(
 
     @work
     @handles(input_events.ChangeModel)
-    async def on_change_model(self, event: CoreEventMessage) -> None:
+    async def on_change_model(self, event: input_events.ChangeModel) -> None:
         agent = self.agent_binding
         # Selecting the current model opens its thinking choices. Reapplying it
         # would ask native SetModel to restore that model's default effort.
         error = None
-        if event.event.model_id != agent.configuration.model.current:
-            error = await agent.set_model(event.event.model_id)
+        if event.model_id != agent.configuration.model.current:
+            error = await agent.set_model(event.model_id)
         if agent is not self.agent_binding:
             return
         if error is not None:
@@ -1273,9 +1265,9 @@ class Conversation(
             )
 
     @handles(input_events.UserInputSubmitted)
-    async def on_user_input_submitted(self, event: CoreEventMessage) -> None:
-        event.stop()
-        await self.submit_input(event.event)
+    async def on_user_input_submitted(self, event: input_events.UserInputSubmitted, message: CoreEventMessage) -> None:
+        message.stop()
+        await self.submit_input(event)
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
         """Wire views override the same submission boundary."""
@@ -1341,12 +1333,9 @@ class Conversation(
         self.call_after_refresh(self.cursor.refresh)
 
     @handles(CurrentWorkingDirectoryChanged)
-    def on_current_working_directory_changed(self, event: CoreEventMessage) -> None:
+    def on_current_working_directory_changed(self, event: CurrentWorkingDirectoryChanged) -> None:
         if self._shell is None or self._shell.pending_directory is None:
-            self.working_directory = str(Path(event.event.path).resolve().absolute())
-
-    async def watch_busy_count(self, _busy: int) -> None:
-        self._sync_working()
+            self.working_directory = str(Path(event.path).resolve().absolute())
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection) -> None:
@@ -1354,13 +1343,13 @@ class Conversation(
         await message.binding.present_terminal(message, self)
 
     @handles(core_events.UpdateStatusLine)
-    async def on_update_status_line(self, message: CoreEventMessage) -> None:
+    async def on_update_status_line(self, event: core_events.UpdateStatusLine) -> None:
         # The shared widget can receive a queued status message after its
         # source changes. The selected Agent owns the measured value.
         self.agent_binding.refresh_context(self)
 
     @handles(core_events.RejectedSessionUpdate)
-    async def on_rejected_session_update(self, message: CoreEventMessage) -> None:
+    async def on_rejected_session_update(self, event: core_events.RejectedSessionUpdate) -> None:
         self.output.boundary()
         await self.post(
             Note(
@@ -1375,17 +1364,17 @@ class Conversation(
             self._mcp_live_note = None
 
     @handles(core_events.McpClientStopped)
-    async def on_mcp_client_stopped(self, message: CoreEventMessage) -> None:
+    async def on_mcp_client_stopped(self, event: core_events.McpClientStopped) -> None:
         await self._clear_mcp_live()
 
     @handles(core_events.Update)
-    async def on_acp_agent_message(self, message: CoreEventMessage) -> None:
+    async def on_acp_agent_message(self, event: core_events.Update, message: CoreEventMessage) -> None:
         message.stop()
         if not self.agent_binding.matches_agent(message.publisher):
             return
         if self.turns.owner.busy:
             self.turns.describe("Writing response…")
-        await self.output.append(message.event.stream, message.event.text)
+        await self.output.append(event.stream, event.text)
 
     async def present_started_input(self, started) -> None:
         from toad.widgets.committed_presentation import StartedInputClaim
@@ -1399,14 +1388,14 @@ class Conversation(
         self.submissions.native_input_presented(started)
 
     @handles(TranscriptCoverage)
-    async def on_transcript_coverage(self, message: CoreEventMessage) -> None:
+    async def on_transcript_coverage(self, event: TranscriptCoverage, message: CoreEventMessage) -> None:
         message.stop()
         await self.transcript.binding.covered(
-            self.transcript, message.event, message.publisher
+            self.transcript, event, message.publisher
         )
 
     @handles(TranscriptSourceWorkFinished)
-    def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
+    def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
         self.transcript.source_work_finished(message.publisher)
 
     def on_worker_state_changed(self, message) -> None:
@@ -1414,36 +1403,36 @@ class Conversation(
             self.transcript.retry()
 
     @handles(core_events.Thinking)
-    async def on_acp_agent_thinking(self, message: CoreEventMessage) -> None:
+    async def on_acp_agent_thinking(self, event: core_events.Thinking) -> None:
         self.turns.describe("Thinking…")
-        await self.output.append(ThoughtStream(), message.event.text)
+        await self.output.append(ThoughtStream(), event.text)
 
     @handles(core_events.RequestPermission)
-    async def on_acp_request_permission(self, message: CoreEventMessage) -> None:
+    async def on_acp_request_permission(self, event: core_events.RequestPermission, message: CoreEventMessage) -> None:
         for request in message.publisher.permissions.pending:
             self.request_permissions(request)
         self.output.boundary()
 
     @handles(core_events.Plan)
-    async def on_acp_plan(self, message: CoreEventMessage) -> None:
+    async def on_acp_plan(self, event: core_events.Plan) -> None:
         from toad.widgets.plan import Plan
 
         if self.contents.children and isinstance(
             (current_plan := self.contents.children[-1]), Plan
         ):
-            current_plan.entries = message.event.entries
+            current_plan.entries = event.entries
         else:
-            await self.post(Plan(message.event.entries))
+            await self.post(Plan(event.entries))
 
     @handles(core_events.ToolCall)
     async def on_acp_tool_call_update(
-        self, message: CoreEventMessage
+        self, event: core_events.ToolCall, message: CoreEventMessage
     ) -> None:
         await message.publisher.controller.surface.present_tool(message, self)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
-        self, message: CoreEventMessage
+        self, event: core_events.AvailableCommandsUpdate
     ) -> None:
         self.update_slash_commands()
 
@@ -1476,10 +1465,10 @@ class Conversation(
             )
 
     @handles(input_events.HistoryMove)
-    async def on_history_move(self, message: CoreEventMessage) -> None:
+    async def on_history_move(self, event: input_events.HistoryMove, message: CoreEventMessage) -> None:
         message.stop()
-        history = self.input_histories.history(message.event.history_kind)
-        entry = await history.navigate(message.event.direction, message.event.body)
+        history = self.input_histories.history(event.history_kind)
+        entry = await history.navigate(event.direction, event.body)
         history.present(self.prompt, entry)
 
     @work
@@ -1519,7 +1508,6 @@ class Conversation(
 
     async def command_target_context(self):
         from toad.screens.main import MainScreen
-        from toad.target_commands import TargetContext
 
         screen = self.query_ancestor(MainScreen)
         nav = screen.navigation_context
@@ -1527,7 +1515,7 @@ class Conversation(
             lambda: self.app.coordination_access.observation.observed().service
         )
         if not self.is_attached or screen.navigation_context != nav:
-            raise ValueError("Command view changed during discovery")
+            raise CommandContextChanged("Command view changed during discovery")
         return screen.thread_identity.command_target(
             lambda actor: TargetContext(
                 self.app, comms, CommandTarget.named(actor), actor, nav.project_path, nav.owner_mode
@@ -1563,15 +1551,15 @@ class Conversation(
             or source.navigation_context != navigation
             or agent is not self.agent_binding
         ):
-            raise ValueError("Command view changed during discovery")
+            raise CommandContextChanged("Command view changed during discovery")
         return catalog
 
     @handles(core_events.LinkContextChanged)
-    async def _command_source_changed(self, event: CoreEventMessage) -> None:
+    async def _command_source_changed(self, event: core_events.LinkContextChanged) -> None:
         self.prompt.slash_complete.refresh_commands()
 
     @handles(core_events.SessionSelected, core_events.OpenTabsChanged)
-    async def _selected_commands_changed(self, event: CoreEventMessage) -> None:
+    async def _selected_commands_changed(self, event: core_events.SessionSelected | core_events.OpenTabsChanged) -> None:
         self.update_slash_commands()
 
     def transcript_binding(self) -> ViewBinding:
@@ -1610,7 +1598,7 @@ class Conversation(
         self.window.anchor()
 
     @handles(core_events.InputDispositionsChanged)
-    async def on_input_dispositions_changed(self, event: CoreEventMessage) -> None:
+    async def on_input_dispositions_changed(self, event: core_events.InputDispositionsChanged) -> None:
         self.delivery_observation.invalidate()
 
     @on(DetailAction.Activated, "#session-inspect")
@@ -1639,9 +1627,9 @@ class Conversation(
             )
 
     @handles(input_events.GoalControlActivated)
-    async def on_goal_control(self, event: CoreEventMessage) -> None:
-        event.stop()
-        await self.goal_controls.activate(event.event.action)
+    async def on_goal_control(self, event: input_events.GoalControlActivated, message: CoreEventMessage) -> None:
+        message.stop()
+        await self.goal_controls.activate(event.action)
 
     @work(group="context-compaction")
     async def compact_context(self, instructions: str | None) -> None:
@@ -1669,8 +1657,8 @@ class Conversation(
             self._queue_edit_unavailable()
 
     @handles(PreferenceChanged)
-    async def _settings_changed(self, message: CoreEventMessage) -> None:
-        if SETTINGS.shell.allow_commands.matches(message.event.field):
+    async def _settings_changed(self, event: PreferenceChanged) -> None:
+        if SETTINGS.shell.allow_commands.matches(event.field):
             self.input_histories.shell.complete.add_words(
                 self.app.settings.shell.allow_commands.split()
             )

@@ -5,16 +5,18 @@ from dataclasses import replace
 import json
 import os
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, TurnChangedUpdate, encode_updates
+from agent_comms.acp_extension import CoordinationChangedUpdate, TurnChangedUpdate
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.turn_lease import ActiveTurn, TurnState
+from agent_comms.field_codec import TurnId
+from agent_comms.turn_lease import ActiveTurn, FinishedTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.fresh_private_session import create_fresh_private_session
 from ui_theme.effects import NEW_TEXT
 
 from support.agents import deliver
+from support.coordination import carrying
 from support.textual_steps import tool_status
 from toad.frame_presentation import EFFECT_UNSTARTED
 from toad.widgets.agent_response import AgentResponse
@@ -22,6 +24,8 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.transcript_history import TranscriptHistory
 
 ANSWER, PEER = "LIVE_ANSWER_ROW", "PEER_SAVED_ROW"
+
+FIRST_TURN = TurnId("f1e2d3c4b5a697881726354453627180")
 
 
 async def test_every_live_conversation_block_runs_the_arrival_fade_on_mount(workspace):
@@ -56,11 +60,9 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
             worktree=str(project), model="test-model", thinking_level=None, title=thread.name,
             context_usage=UnmeasuredContext())
         agent.coordination = coordination
-        await deliver(agent, {
-            "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
-            "_meta": encode_updates(coordination)})
+        await deliver(agent, carrying(coordination))
         agent.presentation.managed_turns().receive(
-            TurnState(ActiveTurn("first-turn", os.getpid(), phase=PublishingPhase())))
+            TurnState(ActiveTurn(FIRST_TURN, os.getpid(), phase=PublishingPhase())))
         # The saved history the commit grows: the earlier notice, read once the view binds its thread.
         await ui.until(lambda: "EARLIER_NOTICE" in ui.painted(view.window), why="the saved history")
         history = view.contents.query_one(TranscriptHistory)
@@ -76,9 +78,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
             "parentId": "first-user", "timestamp": "2026-10-22T00:00:01Z", "message": {
             "role": "assistant", "content": [{"type": "text", "text": ANSWER}]}}) + "\n")
         comms.messaging.send("peer", "source", PEER)
-        await deliver(agent, {
-            "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
-            "_meta": encode_updates(TurnChangedUpdate(TurnState(finished_turn_id="first-turn")))})
+        await deliver(agent, carrying(TurnChangedUpdate(FinishedTurn(FIRST_TURN).state())))
         view.transcript.require_commit()
 
         def rows(arriving: bool) -> str:

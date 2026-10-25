@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
@@ -23,6 +23,7 @@ from toad.session_scope import SessionScope
 from toad.tab_identity import TabIdentity
 from toad.session_tracker import (
     CommsViewKey,
+    ConversationTab,
     NamedTab,
     OpenTab,
     SessionDetails,
@@ -284,10 +285,12 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
     @handles(CurrentDisplayReferences)
     def referenced_tab(self, references, observed) -> OpenTab:
         conversation = self.key.conversation
-        return NamedTab(
+        return ConversationTab(
             self.identity,
             conversation.label(references),
-            conversation.unread(observed.sidebar.observation),
+            conversation,
+            observed.sidebar,
+            references,
         )
 
     def depends_on(self, mode: str) -> bool:

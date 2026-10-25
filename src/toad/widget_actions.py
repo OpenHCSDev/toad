@@ -1,55 +1,55 @@
-"""Native action declarations and their Textual dispatch projection."""
+"""The Action family and its Textual dispatch projection."""
+import inspect
 from abc import abstractmethod
+from collections.abc import Iterator
 from functools import partialmethod
-from typing import ClassVar, Generic, TypeVar
+from typing import ClassVar, Generic, Self, TypeVar
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from textual.binding import Binding
 
+Context = TypeVar("Context")
 
-class KeyboundAction:
-    key: ClassVar[str]
-    description: ClassVar[str] = ""
-    tooltip: ClassVar[str] = ""
+
+class DeclaredTitle:
+    """A member's title is its declared name in words until a class on its MRO declares one."""
+
+    def __get__(self, instance, owner) -> str:
+        return owner.declared_name.replace("_", " ").capitalize()
+
+
+class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
+    """Only the Textual boundary decodes an external action name. A member declares its
+    keys, and its title and docstring are the only text any view shows for it."""
+
+    keys: ClassVar[tuple[str, ...]] = ()
+    title: ClassVar[str] = DeclaredTitle()
     show: ClassVar[bool] = False
     priority: ClassVar[bool] = False
     system: ClassVar[bool] = False
     group: ClassVar[Binding.Group | None] = None
     key_display: ClassVar[str | None] = None
-
-    @classmethod
-    def binding(cls) -> Binding:
-        return Binding(cls.key, cls.binding_name(), cls.description, tooltip=cls.tooltip,
-                       show=cls.show, priority=cls.priority, system=cls.system,
-                       group=cls.group, key_display=cls.key_display)
-
-    @classmethod
-    def bindings(cls):
-        return (cls.binding(),)
-
-
-class MenuAction:
-    menu_order: ClassVar[int]
-    menu_label: str
-
-    @classmethod
-    def menu_items(cls):
-        yield cls()
-
-
-Context = TypeVar("Context")
-
-
-class NativeAction(Command, Generic[Context]):
-    """Only the Textual boundary decodes an external action name."""
-
     binding_prefix: ClassVar[str] = ""
+
+    @classmethod
+    def summary(cls) -> str:
+        """The nearest docstring a member declares; the family roots document code, not keys."""
+        root = cls.family_root()
+        return next((inspect.cleandoc(base.__doc__) for base in cls.__mro__
+                     if issubclass(base, root) and base is not root and base.__doc__), "")
 
     @classmethod
     def binding_name(cls) -> str:
         return cls.binding_prefix + FieldCodec.encode(cls)
+
+    @classmethod
+    def bindings(cls) -> tuple[Binding, ...]:
+        return tuple(Binding(key, cls.binding_name(), cls.title, tooltip=cls.summary(),
+                             show=cls.show, priority=cls.priority, system=cls.system,
+                             group=cls.group, key_display=cls.key_display, id=cls.declared_name)
+                     for key in cls.keys)
 
     @classmethod
     def parse(cls, parameters: tuple[object, ...]):
@@ -58,8 +58,15 @@ class NativeAction(Command, Generic[Context]):
         return cls()
 
     @classmethod
-    def bindings(cls):
-        return ()
+    def offered(cls, context: Context) -> Iterator[Self]:
+        """What the menu and the palette offer for this member: itself, where it is available."""
+        command = cls()
+        if command.available(context):
+            yield command
+
+    def label(self, context: Context) -> str:
+        """A state-dependent title overrides this; every other member shows its title."""
+        return self.title
 
     def available(self, context: Context) -> bool | None:
         return True
@@ -68,25 +75,40 @@ class NativeAction(Command, Generic[Context]):
     async def apply(self, context: Context) -> None: ...
 
 
-class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
-    """Application action membership and native namespace belong here."""
+class System:
+    """Only its key reaches the action: no menu, palette or key panel shows it."""
 
+    system: ClassVar[bool] = True
+
+    @classmethod
+    def offered(cls, context) -> Iterator[Action]:
+        return iter(())
+
+
+class YieldingKey:
+    """An application key that any binding closer to the focus replaces: it answers only
+    where nothing local claims the key, so the claim is no conflict."""
+
+
+class ApplicationAction(Action, affix="Action"):
     binding_prefix = "app."
 
     @classmethod
-    def menu(cls):
-        return tuple((action, action.menu_label)
-                     for kind in sorted(cls.members_with(MenuAction), key=lambda kind: kind.menu_order)
-                     for action in kind.menu_items())
+    def menu(cls, app):
+        """Every offered member under its label, in declaration order."""
+        return tuple((command, command.label(app))
+                     for member in cls.members_with(cls) for command in member.offered(app))
 
 
-class VimApplicationAction(KeyboundAction, ApplicationAction):
+class VimApplicationAction(YieldingKey, ApplicationAction):
     def available(self, app):
         return app.settings.ui.vim_keys and app.current_mode == "workspace"
 
 
 class VimHintsAction(VimApplicationAction):
-    key = "f"
+    """Label every clickable widget with a key to reach it."""
+
+    keys = ("f",)
 
     async def apply(self, app):
         await app.screen.action_show_hints()

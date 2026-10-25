@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import Annotated, ClassVar
+from typing import TYPE_CHECKING, Annotated, ClassVar
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.declared_family import DeclaredFamily
@@ -21,6 +21,9 @@ from toad.live_output import OutputStream
 from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
+if TYPE_CHECKING:
+    from agent_comms.commander_hud import CommanderHud
+
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
@@ -31,19 +34,39 @@ class CoreEvent(DeclaredFamily, affix="Event"):
         for event_type in type(self).__mro__:
             yield from stream.subscriptions.get(event_type, ())
 
-    def can_replace(self, event: CoreEvent) -> bool:
-        """Only declared coalescing invalidations replace queued publications."""
+    def replaces(self, queued: CoreEvent) -> bool:
+        """Only a CoalescingEvent replaces a queued publication."""
+        return False
+
+    def keyed_as(self, key: object) -> bool:
+        """Only a queued CoalescingEvent carries a coalescing key."""
         return False
 
 
+class CoalescingEvent(CoreEvent, declared_name=None):
+    """A newer publication supersedes a queued one with an equal coalescing key.
+
+    The native carrier still never replaces an intervening input or Comms update.
+    """
+
+    def coalescing_key(self) -> object:
+        return type(self)
+
+    def replaces(self, queued: CoreEvent) -> bool:
+        return queued.keyed_as(self.coalescing_key())
+
+    def keyed_as(self, key: object) -> bool:
+        return self.coalescing_key() == key
+
+
 @dataclass(frozen=True)
-class ThreadIdentityChanged(CoreEvent):
+class ThreadIdentityChanged(CoalescingEvent):
     """The originating session's current thread or wire changed."""
 
     view: object
 
-    def can_replace(self, event: CoreEvent) -> bool:
-        return isinstance(event, ThreadIdentityChanged) and event.view is self.view
+    def coalescing_key(self) -> object:
+        return type(self), self.view
 
 
 @dataclass(frozen=True)
@@ -114,14 +137,13 @@ class SessionSelected(CoreEvent):
 
 
 @dataclass(frozen=True)
-class OpenTabsChanged(CoreEvent):
-    """Read the open sessions and tab order again."""
+class OpenTabsChanged(CoalescingEvent):
+    """Read the open sessions and tab order again.
 
-    def can_replace(self, event: CoreEvent) -> bool:
-        # No transition payload belongs to this invalidation. Its receivers
-        # read the currently open sessions; adjacent identical requests need one
-        # publication, not another traversal for each busy recipient.
-        return self == event
+    No transition payload belongs to this invalidation. Its receivers read the
+    currently open sessions; adjacent requests need one publication, not another
+    traversal for each busy recipient.
+    """
 
 
 @dataclass(frozen=True)
@@ -142,7 +164,7 @@ class ThreadRowStateChanged(NamedThreadRowsChanged):
 
 
 @dataclass(frozen=True)
-class CoordinationObserved(CoreEvent):
+class CoordinationObserved(CoalescingEvent):
     """Core's stores changed; NoRevision requests a first read without a service.
 
     Consumers ask the revision what changed (Core answers) instead of
@@ -151,18 +173,22 @@ class CoordinationObserved(CoreEvent):
 
     revision: ReadState
 
-    def can_replace(self, event: CoreEvent) -> bool:
-        # A newer observation supersedes a pending older one. The native
-        # carrier still never replaces an intervening input or Comms update.
-        return isinstance(event, CoordinationObserved)
+
+@dataclass(frozen=True)
+class SidebarPresented(CoalescingEvent):
+    """The sidebar's current observation is ready for every view of its counts."""
 
 
 @dataclass(frozen=True)
-class ExternalTranscriptChanged(CoreEvent):
-    """A CLI published text; its open transcript reads the current source."""
+class CommanderHudChanged(CoalescingEvent):
+    """The commander heartbeat replaced its frames; Core derived every field."""
 
-    def can_replace(self, event: CoreEvent) -> bool:
-        return self == event
+    huds: tuple[CommanderHud, ...]
+
+
+@dataclass(frozen=True)
+class ExternalTranscriptChanged(CoalescingEvent):
+    """A CLI published text; its open transcript reads the current source."""
 
 
 @dataclass(frozen=True)

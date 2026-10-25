@@ -3,7 +3,7 @@ name = "batrachian-toad"
 version = "0.6.20"
 description = "A unified experience for AI in your terminal."
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.14.8,<3.15"
 dependencies = [
     "textual[syntax]==8.2.8",
     "click==8.4.0",
@@ -19,6 +19,7 @@ dependencies = [
     "bashlex==0.18",
     "pathspec==1.1.1",
     "notify-py==0.3.43",
+    "jeepney==0.9.0; sys_platform == 'linux'",
     "pyperclip==1.11.0",
     "watchdog==6.0.0",
     "setproctitle==1.3.7",
@@ -27,6 +28,7 @@ dependencies = [
     "typing-extensions==4.15.0",
     "format-currency>=0.0.10",
     "agent-comms",
+    "metaclass-registry",
     "agent-client-protocol==0.12.1",
     "ui-theme",
     "formbridge==0.2.0",
@@ -39,6 +41,7 @@ members = ["toad"]
 [tool.uv.sources]
 ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", branch = "main" }
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", branch = "main" }
+metaclass-registry = { git = "https://github.com/OpenHCSDev/metaclass-registry", branch = "main" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", branch = "main" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "ebe2fa9173428e2bd7154a0de23698757677c3c2" }
 objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "b5dd9f78b9293df145d7629f21deb89b042b9400" }
@@ -47,6 +50,9 @@ textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git
 
 [project.scripts]
 toad = "toad.cli:main"
+
+[project.entry-points."agent_comms.writer_owned_stores"]
+toad = "toad.db"
 
 [build-system]
 requires = ["hatchling==1.28.0"]

@@ -35,7 +35,7 @@ async def saved_history(workspace, ui):
     conversation = ui.conversation
     await ui.until(lambda: conversation.transcript.reports_coverage,
                    why="the retained owner's saved history")
-    page = workspace.comms.transcripts.thread_transcript_page(owner.name)
+    page = workspace.comms.transcripts.capture_page_read(owner.name).read()
     return page, conversation.contents.query_children(TranscriptHistory).first(), conversation.query_one(SessionDetails)
 
 

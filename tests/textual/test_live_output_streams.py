@@ -1,9 +1,10 @@
 """Textual-facing: live agent output merges into blocks that the conversation window paints and retires."""
 
 from agent_comms.routing import MessageRoute
+from support.agents import RecordedEvents
 
-from toad.core.events import Update
-from toad.core_event_carrier import CoreEventMessage
+from toad.core.events import CoreEvent, Update
+from toad.core_event_carrier import CoreEventMessage, dispatch_publication
 from toad.live_output import OutputStream, ResponseStream, ThoughtStream
 from toad.response_delivery import RoutedResponse, UnroutedResponse
 from toad.widgets.agent_response import AgentResponse
@@ -34,7 +35,7 @@ async def test_fragments_of_one_stream_merge_and_different_streams_split(workspa
         assert await output.append(ResponseStream(), " continued") is response
         routed = await output.append(ResponseStream(RoutedResponse(MessageRoute("worker", ("#test",)))), "Routed answer")
         assert routed is not response
-        assert thought.body.text == "Thinking first and next"
+        assert thought.text == "Thinking first and next"
         assert response.body.text == "Visible answer continued"
 
 
@@ -63,8 +64,8 @@ async def test_queued_client_replies_of_one_local_turn_form_one_reply(workspace)
         first = view.turns.owner.response_stream(UnroutedResponse())
         second = view.turns.owner.response_stream(UnroutedResponse())
         view.turns.finish_client()
-        await view.on_acp_agent_message(CoreEventMessage(Update("text", "Local queued", first), subscription))
-        await view.on_acp_agent_message(CoreEventMessage(Update("text", " response", second), subscription))
+        await dispatch_publication(view, CoreEventMessage(Update("text", "Local queued", first), subscription))
+        await dispatch_publication(view, CoreEventMessage(Update("text", " response", second), subscription))
         local = view.output.streams[ResponseStream].block
         await view.output.finish(ResponseStream)
         assert local.body.text == "Local queued response"
@@ -90,13 +91,13 @@ async def test_an_update_published_by_another_agent_adds_no_block(workspace):
         view.turns.start_client()
         queued = view.turns.owner.response_stream(UnroutedResponse())
         view.turns.finish_client()
-        await view.on_acp_agent_message(CoreEventMessage(Update("text", "Local queued", queued), subscription))
+        await dispatch_publication(view, CoreEventMessage(Update("text", "Local queued", queued), subscription))
         await view.output.finish(ResponseStream)
         count = len(view.query(AgentResponse))
         # The view shows `agent`; an update published by any other agent is not its output.
         other = ui.detached_agent(identity="another-agent")
-        foreign = other.events.subscribe(lambda event, subscription: None)
-        await view.on_acp_agent_message(CoreEventMessage(Update("text", "Retired source", ResponseStream()), foreign))
+        foreign = other.events.subscribe(CoreEvent, RecordedEvents().receive)
+        await dispatch_publication(view, CoreEventMessage(Update("text", "Retired source", ResponseStream()), foreign))
         assert len(view.query(AgentResponse)) == count
 
 

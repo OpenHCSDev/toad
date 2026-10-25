@@ -1,5 +1,5 @@
 """Original nominal leaf projection, shared by context and native forms."""
-from agent_comms.mro_dispatch import MroDispatch
+from metaclass_registry.mro_dispatch import MroDispatch
 
 
 class MroProjection[Result](MroDispatch):

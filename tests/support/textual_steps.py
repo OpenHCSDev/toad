@@ -101,11 +101,9 @@ def text_rows_of(chat, message) -> range | None:
     for page in chat.message_history.pages:
         for fragment, first, lines in page._layout:
             if fragment.message.view_key == message.view_key:
-                offset = chat.window.placed_row(page)
-                if offset is None:
-                    return None
                 rows = fragment.text_rows(lines)
-                return range(int(offset) + first + rows.start, int(offset) + first + rows.stop)
+                return next((range(int(offset) + first + rows.start, int(offset) + first + rows.stop)
+                             for _, offset in chat.window.placements((page,))), None)
     return None
 
 

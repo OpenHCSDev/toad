@@ -15,9 +15,10 @@ from pathlib import Path
 from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
+from toad.core_event_carrier import CoreEventMessage
 from agent_comms.messages import Message as WireMessage
 from textual import containers, work
 from textual.app import ComposeResult
@@ -94,7 +95,7 @@ class CommsChatView(Conversation):
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation.compose_activity(self)
-            yield self.throbber
+            yield self.throbber_above
             yield self.conversation.prompt().data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -128,25 +129,25 @@ class CommsChatView(Conversation):
         await self._refresh()
 
     @handles(core_events.CoordinationObserved)
-    async def _command_source_changed(self, event) -> None:
+    async def _command_source_changed(self, event: core_events.CoordinationObserved) -> None:
         """One canonical observation invalidates commands and the mounted source."""
-        await super()._command_source_changed(event)
+        self.prompt.slash_complete.refresh_commands()
         await self._refresh()
 
     @handles(core_events.SessionSelected)
-    async def _selected_source_changed(self, event) -> None:
+    async def _selected_source_changed(self, event: core_events.SessionSelected) -> None:
         """A retained view reads current source after its tab opens."""
-        await super()._selected_commands_changed(event)
+        self.update_slash_commands()
         await self._refresh()
 
     @handles(TranscriptSourceWorkFinished)
-    async def on_transcript_source_work_finished(self, event) -> None:
+    async def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
         """Reconcile an observation which arrived during this source's work."""
-        super().on_transcript_source_work_finished(event)
+        super().on_transcript_source_work_finished(event, message)
         history = self.message_history
         source = history.page_source
         access = self.app.coordination_access
-        if event.publisher is not history:
+        if message.publisher is not history:
             return
         self.settle_user_message()
         if (not history.state.accepts_source_work
@@ -227,6 +228,9 @@ class CommsChatView(Conversation):
             return
         return history.page_source.schedule_refresh(self)
 
+    def history_loading(self) -> bool:
+        return self.message_history.reading
+
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
@@ -235,14 +239,7 @@ class CommsChatView(Conversation):
             history = self.message_history
             announced = self.app.coordination_access.revision
             newly_announced = announced != self._refreshed_from
-            undrawn = history.undrawn
-            if undrawn:
-                self.on_work_started()
-            try:
-                changed = await history.read_changes()
-            finally:
-                if undrawn:
-                    self.on_work_finished()
+            changed = await history.read_changes()
             # Source observation and its pending first page belong to the
             # history, even before this tab is drawable. Composer work follows.
             source = history.page_source
@@ -298,7 +295,7 @@ class CommsChatView(Conversation):
             return
         if not await history.source_is_current(snapshot) or self.conversation != conversation:
             return
-        await self.refresh_composer(read_only, status)
+        self.thread_status = status
         if self.window.follows_tail:
             self.window.anchor()
         if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):

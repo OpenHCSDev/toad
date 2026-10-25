@@ -4,23 +4,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from agent_comms.declared_family import DeclaredFamily
 from textual.binding import Binding
-from toad.widget_actions import NativeAction, KeyboundAction
+from toad.widget_actions import Action
 
 if TYPE_CHECKING:
     from toad.widgets.question import Question
 
 
-class QuestionAction(NativeAction, DeclaredFamily, affix="Action"):
-    @classmethod
-    def bindings(cls):
-        return ()
+class QuestionAction(Action, affix="Action"):
+    pass
 
 
-class SelectionAction(KeyboundAction, QuestionAction):
-    key: str
-    description: str
+class SelectionAction(QuestionAction):
+    """Move the selection through the options."""
 
     group = Binding.Group("Cursor", compact=True)
     show = True
@@ -30,8 +26,7 @@ class SelectionAction(KeyboundAction, QuestionAction):
 
 
 class SelectionUpAction(SelectionAction):
-    key = "up"
-    description = "Up"
+    keys = ("up",)
 
     async def apply(self, question):
         question._reset_blink()
@@ -39,17 +34,17 @@ class SelectionUpAction(SelectionAction):
 
 
 class SelectionDownAction(SelectionAction):
-    key = "down"
-    description = "Down"
+    keys = ("down",)
 
     async def apply(self, question):
         question._reset_blink()
         question.selection = min(len(question.options) - 1, question.selection + 1)
 
 
-class SelectAction(KeyboundAction, QuestionAction):
-    key = "enter"
-    description = "Select"
+class SelectAction(QuestionAction):
+    """Answer with the selected option."""
+
+    keys = ("enter",)
     show = True
 
     def available(self, question):

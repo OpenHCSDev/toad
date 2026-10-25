@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.channel_targets import NoChannel
 from agent_comms.ui_model.sidebar import SidebarModel
 from textual.app import ComposeResult
@@ -20,7 +20,6 @@ from textual.widgets import Static
 
 from toad.constants import ALL_COMMS_TARGET
 from toad.core.events import SessionSelected
-from toad.core_event_carrier import CoreEventMessage
 from toad.format_path import format_path
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import FeedTarget, NavigationTarget
@@ -189,7 +188,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         change.apply_welcome(channel_list, thread_list)
 
     @handles(SessionSelected)
-    async def present_selected(self, event: CoreEventMessage) -> None:
+    async def present_selected(self, event: SessionSelected) -> None:
         self.present()
 
 

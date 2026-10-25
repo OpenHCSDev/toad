@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.session_load import ExistingSessionLoadPlan
 from agent_comms.thread_presentation import (
     LiveThreadOwnerBinding,

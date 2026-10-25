@@ -1,6 +1,6 @@
 """Reject incomplete SDK plans rather than clearing the user's valid plan."""
 from acp.schema import AgentPlanUpdate
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 
 class NotificationItems(MroDispatch):

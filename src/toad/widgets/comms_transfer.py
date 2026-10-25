@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from toad.core import events as core_events
-from toad.widget_actions import ApplicationAction, MenuAction
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -35,13 +34,10 @@ from textual.widgets import Button, Input, Select, Static
 
 
 class TransferRequest(DeclaredFamily, affix="Request"):
-    failure_title: ClassVar[str]
-    menu_label: ClassVar[str]
-    menu_order: ClassVar[int]
+    """Declaration order is the order of the application menu's transfer entries."""
 
-    @classmethod
-    def menu(cls):
-        return tuple(sorted(cls.members_with(cls), key=lambda request: request.menu_order))
+    failure_title: ClassVar[str]
+    title: ClassVar[str]
 
     @classmethod
     @abstractmethod
@@ -62,8 +58,7 @@ class WireExportRequest(TransferRequest):
     limit: WireExportLimit
 
     failure_title = "Wire export failed"
-    menu_label = "Export wire history…"
-    menu_order = 0
+    title = "Export wire history…"
 
     @classmethod
     def dialog(cls, selected):
@@ -85,8 +80,7 @@ class ThreadImportRequest(TransferRequest):
     worktree: str | None
 
     failure_title = "Thread import failed"
-    menu_label = "Thread Import…"
-    menu_order = 1
+    title = "Thread Import…"
 
     @classmethod
     def dialog(cls, selected):
@@ -100,31 +94,6 @@ class ThreadImportRequest(TransferRequest):
         app.events.publish(core_events.ThreadRowStateChanged(frozenset((result.thread,))))
         app.notify(f"Imported @{result.thread} ({result.imported_messages} messages) as a stopped thread",
                    title="Thread Import")
-
-
-class TransferMenuAction(ApplicationAction, MenuAction):
-    """The transfer declarations supply their own application-menu entries."""
-    menu_order = 20
-
-    def __init__(self, kind: type[TransferRequest]):
-        self.kind = kind
-
-    @property
-    def menu_label(self):
-        return self.kind.menu_label
-
-    @classmethod
-    def menu_items(cls):
-        yield from (cls(kind) for kind in TransferRequest.menu())
-
-    @classmethod
-    def parse(cls, parameters):
-        if len(parameters) != 1:
-            raise ValueError("transfer_menu requires one declared transfer kind")
-        return cls(FieldCodec.decode(type[TransferRequest], parameters[0]))
-
-    async def apply(self, app):
-        app.transfers.open(self.kind)
 
 
 class Transfers:

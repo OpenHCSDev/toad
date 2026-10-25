@@ -6,6 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
 
+from rich.cells import cell_len
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
 from textual._activation import PrimaryActivation
@@ -13,18 +14,16 @@ from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.color import TRANSPARENT
 from textual.content import Content, Span
-from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar
-from textual.geometry import Spacing
+from textual.geometry import Size, Spacing
 from textual.reactive import Initialize, var
 from textual.strip import Strip
 from textual.style import Style
 from textual.widgets import Label, OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
-from ui_theme.scheme import PrimaryColour, PromptToneColour, SecondaryColour
+from ui_theme.scheme import PrimaryColour, PromptToneColour
 
 from toad import messages
 from toad.agent_binding import NoAgentConnection
@@ -44,7 +43,7 @@ from toad.prompt_cursor import (
 from toad.setting_widget import SettingVisibility
 from toad.slash_command import SlashCommand
 from toad.widget_actions import DeclaredWidgetActions
-from toad.widget_view import AUTO, FocusWithinView, WidgetView
+from toad.widget_view import AUTO, WidgetView
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
 from toad.widgets.model_switcher import ModelSwitcher
@@ -185,22 +184,7 @@ class PromptLabel(WidgetView, Label):
         return self.query_ancestor(Prompt).label_glyph()
 
 
-class PromptContainer(FocusWithinView, containers.HorizontalGroup):
-    @property
-    def border(self):
-        prompt = self.query_ancestor(Prompt)
-        if self.app.settings.ui.compact_input:
-            if prompt._ask:
-                colour = PrimaryColour
-            else:
-                return super().border
-        else:
-            colour = PrimaryColour if prompt.shell_mode else SecondaryColour
-        paint = (
-            self.app.colours.colour(colour) if self.has_focus_within else TRANSPARENT
-        )
-        return Edges(*(("tall", paint),) * 4)
-
+class PromptContainer(WidgetView, containers.HorizontalGroup):
     def on_mouse_down(self, event: events.MouseUp) -> None:
         self.query_ancestor(Prompt).focus()
 
@@ -275,20 +259,21 @@ See on-screen instructions for details.
 
     slash_commands: var[list[SlashCommand]] = var([])
 
-    def __init__(self, *, turns: ConversationTurn | None = None) -> None:
+    def __init__(self, *, prompt: Prompt) -> None:
         self.input_cursor = PromptCursor(self)
         super().__init__()
-        self.turns = turns
+        # The composer that built this editor owns its turns, popups and modes.
+        self.prompt = prompt
         self._submit_pending = False
         self._submit_immediate = False
 
     @property
     def agent_busy(self) -> bool:
-        return self.turns.owner.busy if self.turns is not None else False
+        return self.prompt.agent_busy
 
     @property
     def agent_ready(self) -> bool:
-        return self.shell_mode or self.query_ancestor(Prompt).agent_ready
+        return self.shell_mode or self.prompt.agent_ready
 
     @property
     def can_enter_shell(self) -> bool:
@@ -329,8 +314,52 @@ See on-screen instructions for details.
         self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
     def show_editing_mode(self, mode) -> None:
+        # The mode label is painted on the last text row, so a new label can move it.
         if self.is_mounted:
-            self.query_ancestor(PromptContainer).border_subtitle = mode.label
+            self._refresh_size()
+            self.refresh()
+
+    @property
+    def mode_label(self) -> Content:
+        label = self.editing_mode.label
+        styled = Content.styled(f" {label} ", "reverse") if label else Content()
+        # Never wider than the box: at width 0 the label is empty and nothing wraps.
+        return styled.truncate(self.content_size.width)
+
+    @property
+    def text_width(self) -> int:
+        """Columns left for text on the row the mode label shares."""
+        return self.content_size.width - self.mode_label.cell_length
+
+    @property
+    def mode_row_below(self) -> bool:
+        """The last text row reaches the label, so the label takes the next row."""
+        if not self.mode_label.cell_length:
+            return False
+        if not self.text and self.placeholder:
+            rows = Content.from_text(self.placeholder, markup=False).wrap(self.content_size.width)
+            last = rows[-1].cell_length if rows else 0
+        else:
+            sections = self.wrapped_document.get_sections(self.document.line_count - 1)
+            last = cell_len(sections[-1]) if sections else 0
+        # One cell stays free for the cursor resting after the text.
+        return last + 1 > self.text_width
+
+    def _refresh_size(self) -> None:
+        super()._refresh_size()
+        if self.mode_row_below:
+            width, height = self.virtual_size
+            self.virtual_size = Size(width, height + 1)
+
+    def render_line(self, y: int, paint: PaintState) -> Strip:
+        line = super().render_line(y, paint)
+        label = self.mode_label
+        if not label.cell_length or self.scroll_offset.y + y != self.virtual_size.height - 1:
+            return line
+        return Strip.join((
+            line.crop_extend(0, self.text_width, None),
+            Strip(label.render_segments(paint.visual_style), label.cell_length),
+        ))
 
     def apply_keyboard_profile(self) -> None:
         from textual.widgets.text_area import EditingMode, VimInsert
@@ -343,7 +372,7 @@ See on-screen instructions for details.
     def submission_allowed(self) -> bool:
         return (
             self.editing_mode.accepts_text
-            and not self.query_ancestor(Prompt).active_popup
+            and not self.prompt.active_popup
         )
 
     def leave_modal_editor(self) -> None:
@@ -440,7 +469,7 @@ See on-screen instructions for details.
             if " " not in self.text:
                 self.insert(self.suggestion + " ")
             else:
-                prompt = self.query_ancestor(Prompt)
+                prompt = self.prompt
                 last_token = shlex.split(self.text + self.suggestion)[-1]
                 last_token_path = Path(prompt.working_directory) / last_token
                 if last_token_path.is_dir():
@@ -454,7 +483,7 @@ See on-screen instructions for details.
         self.clear()
         self.publish_core(UserInputSubmitted(text, shell, immediate=immediate))
         if shell:
-            self.query_ancestor(Prompt).shell_mode = False
+            self.prompt.shell_mode = False
 
     def action_cursor_up(self, select: bool = False):
         PreviousHistoryCursor.move(self, select, super().action_cursor_up)
@@ -467,7 +496,7 @@ See on-screen instructions for details.
             return super().action_delete_left()
         selection = self.selection
         if selection.start == selection.end and self.selection.end == (0, 0):
-            self.query_ancestor(Prompt).shell_mode = False
+            self.prompt.shell_mode = False
             return
         return super().action_delete_left()
 
@@ -494,7 +523,7 @@ See on-screen instructions for details.
 
         import shlex
 
-        prompt = self.query_ancestor(Prompt)
+        prompt = self.prompt
 
         if not self.cursor_at_end_of_text:
             return
@@ -953,7 +982,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
                 yield PromptLabel(id="prompt", markup=False)
-                yield self.TEXT_AREA_CLASS(turns=self.turns).data_bind(
+                yield self.TEXT_AREA_CLASS(prompt=self).data_bind(
                     shell_mode=Prompt.shell_mode,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,
@@ -1039,3 +1068,10 @@ class MessagePrompt(Prompt):
     def compose_completions(self) -> ComposeResult:
         if (popup := SlashComplete.for_prompt(self)) is not None:
             yield popup
+
+
+class MailboxPrompt(MessagePrompt):
+    """A CLI thread's composer shows its project; Core's status line names the model, read-only."""
+
+    def compose_agent_info(self) -> ComposeResult:
+        yield CondensedPath().data_bind(path=Prompt.display_directory)

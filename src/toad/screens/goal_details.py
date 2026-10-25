@@ -1,6 +1,6 @@
 """A full-height, scrollable projection of a persistent goal."""
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 
 from datetime import datetime
 
@@ -35,6 +35,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         super().__init__()
         self.source = source
         self.history = history.history
+        self.failures = history.failures
 
     @property
     def project_root(self):
@@ -79,6 +80,14 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
                         yield GoalText(revision_goal.summary, classes="goal-text")
                         if revision_goal.progress:
                             yield GoalText(revision_goal.progress, classes="goal-text")
+                if self.failures:
+                    yield Static("Failed attempts", markup=False)
+                    for evidence in reversed(self.failures):
+                        failure = evidence.failure.declared_name.replace("_", " ")
+                        yield Static(
+                            f"Attempt {evidence.generation} · revision {evidence.goal_revision} · {failure}",
+                            markup=False,
+                        )
             yield Button("Close (Esc)", id="goal-details-close")
 
     def on_mount(self) -> None:
@@ -107,7 +116,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         self.dismiss(None)
 
     @handles(SelectTarget)
-    def open_target(self, event: CoreEventMessage) -> None:
-        event.stop()
+    def open_target(self, event: SelectTarget, message: CoreEventMessage) -> None:
+        message.stop()
         self.dismiss(None)
-        self.source.view.publish_core(event.event)
+        self.source.view.publish_core(event)

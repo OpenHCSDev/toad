@@ -11,9 +11,9 @@ from acp.schema import (
     SessionConfigSelectGroup,
     SessionConfigSelectOption,
 )
-from agent_comms.acp_failure import ACPFailure
+from agent_comms.acp_failure import RequestFailure
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 
 class SelectChoices(MroDispatch):
@@ -78,7 +78,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
             result = await agent.process.rpc.set_config_option(self.option.id, agent.session_id, value)
             authority.require()
         except RequestError as error:
-            return ACPFailure.from_error(error).feedback
+            return RequestFailure.from_error(error).failure.feedback
         agent.configuration.receive(result.config_options)
         return None
 
@@ -88,7 +88,11 @@ class ModelConfigurationSetting(ConfigurationSetting):
 
     @property
     def requires_selection(self) -> bool:
-        return self.available and not self.current
+        """No advertised model can run: Core's empty catalogue is provider setup state.
+
+        An unset current value beside advertised models is a thread running its
+        runtime's default model, which sends like any other."""
+        return self.available and not self.choices
 
     @property
     def choices(self) -> tuple[SessionConfigSelectOption, ...]:

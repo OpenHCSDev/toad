@@ -11,7 +11,7 @@ from pathlib import Path
 
 import psutil
 from agent_comms.acp_extension import QueuePromptRequest
-from agent_comms.cli_commands import ForkCliCommand, RestartCliCommand, StartCliCommand
+from agent_comms.cli_commands import ForkCliCommand, QueueRestartCliCommand, StartCliCommand
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.threads import Thread
@@ -159,7 +159,7 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
         await ui.until(lambda: view.agent_binding.configuration.model.selected is not None, seconds=20,
                        why="the model selection")
         assert view.agent_binding.configuration.model.current == "selected-offline/fixture"
-        assert view.turns.owner.busy  # what the activity indicator draws from; busy_count now counts only chat history reads
+        assert view.turns.owner.busy
         assert agent.queue_attachment is queue
         assert agent.process.process is process and process.returncode is None
         await ui.until(lambda: bool(view.submissions.queue_projection.items), seconds=20,
@@ -267,10 +267,10 @@ async def test_queue_line_follows_the_owner_after_restart_process(workspace, nat
                        why="the queue view before the restart")
         first_owner = comms.registry.require("beta").process_identity
 
-        request_target_command(app, RestartCliCommand, "beta")
-        await ui.until(lambda: "beta" not in app.thread_actions.pending, seconds=60, why="Restart process to finish")
+        request_target_command(app, QueueRestartCliCommand, "beta")
+        await ui.until(lambda: comms.registry.require("beta").process_identity not in (None, first_owner),
+                       seconds=60, why="the queued restart to replace the idle owner")
         restarted = comms.registry.require("beta").process_identity
-        assert restarted is not None and restarted != first_owner, "Restart process did not replace the owner"
 
         def queue_of_the_new_owner():
             scope = agent.queue_attachment.scope

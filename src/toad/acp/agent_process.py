@@ -70,27 +70,26 @@ class AgentProcess(Client):
         env = os.environ.copy()
         cwd = str(agent.project_root_path.resolve())
         selection = RouteSelection.capture(agent.controller.transcripts.access.launch_root.path)
-        with selection.route.hold_client_route():
-            if not agent.session.accepts_updates:
-                return self
-            for connection in dict.fromkeys((self, *processes)):
-                if connection.accepts_attachment(agent, env, cwd, selection):
-                    agent.process = connection
-                    connection.sessions.add(agent.session)
-                    agent.controller.replace_terminal_session()
-                    agent.session.start()
-                    return connection
-            connection = AgentProcess(agent) if self.sessions else self
-            connection.agent = agent
-            connection.env, connection.cwd, connection.route_selection = env, cwd, selection
-            connection.command = agent.command
-            connection.initialization = None
-            connection.retirement = None
-            agent.process = connection
-            connection.sessions.add(agent.session)
-            agent.controller.replace_terminal_session()
-            connection.runner = asyncio.create_task(connection.run())
-            return connection
+        if not agent.session.accepts_updates:
+            return self
+        for connection in dict.fromkeys((self, *processes)):
+            if connection.accepts_attachment(agent, env, cwd, selection):
+                agent.process = connection
+                connection.sessions.add(agent.session)
+                agent.controller.replace_terminal_session()
+                agent.session.start()
+                return connection
+        connection = AgentProcess(agent) if self.sessions else self
+        connection.agent = agent
+        connection.env, connection.cwd, connection.route_selection = env, cwd, selection
+        connection.command = agent.command
+        connection.initialization = None
+        connection.retirement = None
+        agent.process = connection
+        connection.sessions.add(agent.session)
+        agent.controller.replace_terminal_session()
+        connection.runner = asyncio.create_task(connection.run())
+        return connection
 
     async def prompt(self, agent, content, metadata: dict[str, JsonValue], require: Callable[[], None]):
         """The agent-comms-acp child writes the prompt under Core's maintenance gate."""

@@ -16,7 +16,7 @@ from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import TurnBandColour
 
 from toad.frame_presentation import Animated
-from toad.textual_colours import BlockInk, BottomInk, TopInk
+from toad.textual_colours import BlockInk, BottomInk
 
 
 class ThrobberVisual(Visual):
@@ -92,9 +92,3 @@ class AboveThrobber(ObservedThrobber):
     """The upper bar hugs the status from its cell's bottom edge."""
 
     ink_edge = BottomInk
-
-
-class BelowThrobber(ObservedThrobber):
-    """The lower bar hugs the status from its cell's top edge."""
-
-    ink_edge = TopInk

@@ -9,12 +9,12 @@ from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from itertools import chain, islice
+from itertools import accumulate, chain, islice
 from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.acp_extension import InputStartedUpdate
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -372,18 +372,16 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         """Each loaded fragment in the window's viewport, with its rows that are in view."""
         # A page the viewport layout did not place is off screen; computing
         # its offset would rebuild the compositor's whole map.
-        offset = window.placed_row(self)
-        if offset is None:
-            return
-        top = int(window.scroll_y - offset)
-        bottom = top + window.outer_size.height
-        slot = max(0, bisect_right(self._starts, top) - 1)
-        for index in range(slot, len(self._layout)):
-            fragment, first, lines = self._layout[index]
-            if first >= bottom:
-                break
-            if first + lines.height > top:
-                yield fragment, range(max(0, top - first), min(lines.height, bottom - first)), lines
+        for _, offset in window.placements((self,)):
+            top = int(window.scroll_y - offset)
+            bottom = top + window.outer_size.height
+            slot = max(0, bisect_right(self._starts, top) - 1)
+            for index in range(slot, len(self._layout)):
+                fragment, first, lines = self._layout[index]
+                if first >= bottom:
+                    break
+                if first + lines.height > top:
+                    yield fragment, range(max(0, top - first), min(lines.height, bottom - first)), lines
 
     def visible_fragments(self, window: HistoryWindow) -> tuple[TranscriptFragment, ...]:
         """The fragments this page draws inside the window's viewport."""
@@ -397,7 +395,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         pending = [fragment for fragment in self.visible_fragments(window)
                    if id(fragment) in self._pending]
         # Render only visible viewport rows, nearest the reader first.
-        if (offset := window.placed_row(self)) is not None:
+        for _, offset in window.placements((self,)):
             reader = window.scroll_y - offset
             pending.sort(key=lambda fragment: abs(self._layout[slots[id(fragment)]][1] - reader))
         return pending[:self.RENDER_BATCH]
@@ -696,16 +694,15 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         Layout places only the pages near the screen. Pages follow one another
         without a gap, so one placed page gives the rows of every other.
         """
-        y, rows, shift = 0, None, None
-        for page in self.pages:
-            if shift is None and (placed := self.window.placed_row(page)) is not None:
-                shift = placed - y
-            if rows is None and (within := page.fragment_rows(fragment)) is not None:
-                rows = range(y + within.start, y + within.stop)
-            y += page.line_count
-        if rows is None or shift is None:
-            return None
-        return range(rows.start + shift, rows.stop + shift)
+        pages = self.pages
+        starts = dict(zip(pages, accumulate((p.line_count for p in pages), initial=0)))
+        for page in pages:
+            if (within := page.fragment_rows(fragment)) is not None:
+                for placed_page, placed in self.window.placements(pages):
+                    shift = starts[page] + placed - starts[placed_page]
+                    return range(within.start + shift, within.stop + shift)
+                return None
+        return None
 
     def show_fragment(self, fragment: TranscriptFragment) -> None:
         """Scroll just far enough that a fragment's rows are on screen, its first row before its last."""

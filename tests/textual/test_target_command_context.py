@@ -16,6 +16,8 @@ async def test_target_discovery_keeps_declared_channel_selection(workspace, sele
         app, _pilot = ui.textual
         context = TargetContext(app, workspace.comms, CommandTarget.named("owner"), workspace.viewer,
                                 workspace.project, app.selected_mode, selection)
+        assert context.selected_targets == ("owner",)
+        assert context.title == "owner"
         actions = await app.preparation.run_thread(context.available_actions)
         assert actions
         assert all(action.targets == ("owner",) for action in actions)

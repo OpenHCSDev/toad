@@ -71,6 +71,10 @@ class DeliveryFailureView(ToadNode, Widget):
     prompt = getters.query_one(Prompt)
     feedback = getters.query_one(Flash)
     status: var[str | Content | RichText] = var("")
+    thread_status: var[str | Content | RichText] = var("")
+    """The thread's own status from its owner; a send or read-only block shows over it."""
+    composer_block: var[str] = var("")
+    """Why compose is held: this view's send, or a read-only saved view; empty when open."""
 
     @abstractmethod
     def draws_user_message(self, message: Message) -> bool: ...
@@ -97,7 +101,10 @@ class DeliveryFailureView(ToadNode, Widget):
 
             self.run_worker(refresh(), group="composer-access", exclusive=True)
 
-    async def refresh_composer(self, read_only: bool, status: str = "") -> None:
+    def compute_status(self) -> str | Content | RichText:
+        return self.composer_block or self.thread_status
+
+    async def refresh_composer(self, read_only: bool) -> None:
         """Draw compose from the caller's Core answer and the current send state."""
         if not self.is_attached:
             return
@@ -105,7 +112,7 @@ class DeliveryFailureView(ToadNode, Widget):
         area = self.prompt.prompt_text_area
         area.disabled = bool(reason)
         area.tooltip = reason or None
-        self.status = reason or status
+        self.composer_block = reason
         if not area.disabled and self.screen.focused is None:
             self.screen.set_focus(area)
 
@@ -143,11 +150,8 @@ class DeliveryFailureView(ToadNode, Widget):
         await present(sent)
 
     async def commit_user_message(self, comms, target, body):
-        from agent_comms.route_selection import run_selected_write
-
         task = asyncio.create_task(asyncio.to_thread(
-            run_selected_write, comms.root, comms.messaging.send_user_message,
-            target, body, worktree=str(self.project_path)))
+            comms.messaging.send_user_message, target, body, worktree=str(self.project_path)))
         try:
             sent = await asyncio.shield(task)
         except asyncio.CancelledError:

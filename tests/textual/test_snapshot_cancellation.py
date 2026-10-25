@@ -10,10 +10,14 @@ import os
 from unittest.mock import patch
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.context_reading import UnmeasuredContext
 import pytest
 from textual.worker import WorkerCancelled
 
 from support import journals
+from support.agents import deliver
+from support.coordination import carrying
 from toad.live_output import ResponseStream
 from support.textual_steps import saved_history
 
@@ -25,7 +29,7 @@ def saved_page(workspace, name):
                                                 id=f"{name}-{i}", parent=entries[-1]["id"] if entries else None))
     source = journals.write_journal(workspace.project / f"{name}.jsonl", *entries)
     workspace.comms.registry.declare(replace(workspace.thread(name), session_file=RegistrySessionLocation.from_path(source, workspace.comms.root)))
-    return workspace.comms.transcripts.thread_transcript_page(name)
+    return workspace.comms.transcripts.capture_page_read(name).read()
 
 
 async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_history_and_covered_stream(workspace):
@@ -33,15 +37,17 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
     old_page, new_page = saved_page(workspace, "old"), saved_page(workspace, "replacement")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
-        agent = ui.detached_agent()
+        agent = ui.detached_agent("snapshot-cancel")
         ui.attach_agent(agent)
         old = await saved_history(view, old_page, view.transcript.get_transcript_page)
         await view.contents.mount(old)
         await ui.until(lambda: old in view.window.histories, why="the old history")
         thread = workspace.comms.registry.require("replacement")
-        agent.coordination = CoordinationChangedUpdate(
-            thread.incarnation, str(workspace.roots.wire), os.getpid(), str(workspace.project),
-            None, None, thread.name, None)
+        agent.coordination = coordination = CoordinationChangedUpdate(
+            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
+            worktree=str(workspace.project), model="test-model", thinking_level=None, title=thread.name,
+            context_usage=UnmeasuredContext())
+        await deliver(agent, carrying(coordination))
         agent.session.settled.set()
         # A live stream block that the saved page already covers.
         block = await view.output.append(ResponseStream(), new_page.events[0].text)
