@@ -4,7 +4,7 @@ import json
 from dataclasses import replace
 
 from agent_comms.commander.vibe_check import OverloadDegradation
-from agent_comms.commander_hud import CommanderFrame, CommanderHud
+from agent_comms.commander_hud import CommanderFrame, CommanderHud, CodexUsage, UnreadableUsage
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from textual.widgets import Static
 
@@ -17,6 +17,7 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         RecordedThreadIncarnation("claude-code", 1.0), (), (),
         OverloadDegradation.from_orders((), 0, 0),
         (RecordedThreadIncarnation("fork-hud", 2.0),),
+        CodexUsage(UnreadableUsage(reason="not requested")),
     )
     CommanderFrame.replace_all(workspace.comms.root, (hud,))
     frame, = CommanderFrame.matching_in(workspace.comms.root)
@@ -40,7 +41,7 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         assert not notice.display
         last_good = tuple(rows.children)
         assert [str(row.render()) for row in last_good] == [
-            "Commander claude-code", str(hud.load), "forks: fork-hud",
+            "Commander claude-code", str(hud.load), hud.usage.line(), "forks: fork-hud",
         ]
 
         frame.write_text(unreadable)
