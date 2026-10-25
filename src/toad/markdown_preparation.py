@@ -10,6 +10,7 @@ from rich.markdown import BlockQuote, CodeBlock, Markdown
 from rich.padding import Padding
 from rich.segment import Segment
 from rich.syntax import Syntax
+from toad.line_blocks import GreenTextRole
 from toad.markdown_links import MessageMarkdownParser, parse_markdown_syntax
 
 
@@ -26,9 +27,10 @@ class StyledCodeBlock(CodeBlock):
 
 
 class GreenText(BlockQuote):
-    """A quoted line keeps its `>` and reads green."""
+    """A quoted line keeps its `>` and reads in the greentext role's colour."""
 
-    style_name = "green"
+    def on_enter(self, context):
+        self.style = context.enter_style(context.console.line_theme.style(GreenTextRole))
 
     def __rich_console__(self, console, options):
         marker, new_line = Segment("> ", self.style), Segment("\n")
@@ -40,6 +42,10 @@ class GreenText(BlockQuote):
 
 class MarkdownStyleConsole(Console):
     """Rich builds its styled element tree; width-dependent rendering runs later."""
+
+    def __init__(self, line_theme, **options):
+        super().__init__(color_system=line_theme.color_system, **options)
+        self.line_theme = line_theme
 
     def render(self, renderable, options=None):
         self.parts.append(renderable)

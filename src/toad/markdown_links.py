@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from abc import abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 from threading import local
@@ -77,10 +77,28 @@ class LinkContext:
         return sorted(found)
 
 
+class JoinedLines:
+    """Paragraph source lines join with a space, as Markdown draws them."""
+
+    @staticmethod
+    def softbreak(token: Token) -> Token:
+        return token
+
+
+class QuotedLines(JoinedLines):
+    """Every quoted source line stays its own line, as greentext."""
+
+    @staticmethod
+    def softbreak(token: Token) -> Token:
+        return Token("hardbreak", "br", 0)
+
+
 @dataclass(slots=True)
 class _ProjectTokens:
     links: LinkContext
     linked: int = 0
+    # The innermost open block decides how a source newline inside it is drawn.
+    lines: list[type[JoinedLines]] = field(default_factory=lambda: [JoinedLines])
 
 
 class ProjectTokenRule(DeclaredFamily, affix="TokenRule"):
@@ -93,8 +111,28 @@ class InlineTokenRule(ProjectTokenRule):
     @classmethod
     def resolve(cls, renderer: ProjectTokenRenderer, token: Token, context: _ProjectTokens):
         if token.children:
-            token.children = renderer.resolve(token.children, _ProjectTokens(context.links))
+            token.children = renderer.resolve(token.children, _ProjectTokens(context.links, lines=context.lines))
         return [token]
+
+
+class BlockquoteOpenTokenRule(ProjectTokenRule):
+    @classmethod
+    def resolve(cls, renderer: ProjectTokenRenderer, token: Token, context: _ProjectTokens):
+        context.lines.append(QuotedLines)
+        return [token]
+
+
+class BlockquoteCloseTokenRule(ProjectTokenRule):
+    @classmethod
+    def resolve(cls, renderer: ProjectTokenRenderer, token: Token, context: _ProjectTokens):
+        context.lines.pop()
+        return [token]
+
+
+class SoftbreakTokenRule(ProjectTokenRule):
+    @classmethod
+    def resolve(cls, renderer: ProjectTokenRenderer, token: Token, context: _ProjectTokens):
+        return [context.lines[-1].softbreak(token)]
 
 
 class LinkOpenTokenRule(ProjectTokenRule):
@@ -161,23 +199,10 @@ class ProjectTokenRenderer:
         return result
 
 
-def greentext_lines(state: StateCore) -> None:
-    """Each quoted source line stays its own line, as greentext."""
-    depth = 0
-    for token in state.tokens:
-        if token.tag == "blockquote":
-            depth += token.nesting
-        if depth and token.children:
-            for child in token.children:
-                if child.type == "softbreak":
-                    child.type = "hardbreak"
-
-
 class _MarkdownParserState(local):
     def __init__(self):
         self.parser = MarkdownIt("gfm-like")
         self.parser.validateLink = ProjectLink.opens
-        self.parser.core.ruler.push("greentext_lines", greentext_lines)
         self.resolver = ProjectTokenRenderer()
         self.syntax_rules = tuple(self.parser.core.ruler.getRules(""))
 
