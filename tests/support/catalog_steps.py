@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from textual import widgets
+from toad.platform import host
 
 
 async def open_agent(ui, item) -> None:
@@ -22,17 +23,16 @@ async def open_agent(ui, item) -> None:
 
 async def choose_action(ui, modal, name: str | None) -> None:
     """Pick action `name` in the agent dialog (None: the launch entry after the actions) and run it."""
-    import toad
 
     _app, pilot = ui.textual
-    order = list(modal.agent.commands_for(toad.host))
+    order = list(modal.agent.commands_for(host))
     index = len(order) if name is None else order.index(name)
     modal.action_select.focus()
     await ui.press("enter", "home", *(["down"] * (index + 1)), "enter")
     if name is not None:
         chosen = modal.action_select.value
         assert chosen.name == name, (name, chosen)
-        assert chosen.command is modal.agent.commands_for(toad.host)[name]
+        assert chosen.command is modal.agent.commands_for(host)[name]
     assert await pilot.click(modal.query_one("#run-action", widgets.Button))
 
 

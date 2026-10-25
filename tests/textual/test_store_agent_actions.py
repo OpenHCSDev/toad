@@ -16,6 +16,7 @@ from toad.catalog_actions import CatalogCommandAction
 from toad.screens.command_edit_modal import CommandEditModal
 from toad.screens.store import AgentItem, StoreScreen
 from support.ui import TextualUi
+from toad.platform import host
 
 
 class AuditAction(CatalogCommandAction):
@@ -56,9 +57,8 @@ async def test_agent_actions_run_edit_fail_cancel_and_take_input(workspace):
 
             await open_agent(ui, item)
             modal = app.screen
-            import toad
 
-            install = agent.commands_for(toad.host)["install"]
+            install = agent.commands_for(host)["install"]
             # Cancelling the editor runs nothing.
             await choose_action(ui, modal, "install")
             await ui.until(lambda: isinstance(app.screen, CommandEditModal), why="the command editor")

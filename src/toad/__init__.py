@@ -1,13 +1,7 @@
 from __future__ import annotations
 
-import platform as _platform
-
-from toad.platform import OS, Platform  # noqa: F401 -- OS is the catalog key type
-
 NAME = "toad"
 TITLE = "Toad"
-
-host: type[Platform] = Platform.decode(_platform.system())
 
 
 def get_version() -> str:

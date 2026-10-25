@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import platform
 from typing import ClassVar, Literal, Mapping
 
 type OS = Literal["linux", "macos", "windows", "*"]
@@ -123,3 +124,6 @@ class UnknownPlatform(Platform):
 
     system = ""
     key = "*"
+
+
+host: type[Platform] = Platform.decode(platform.system())
