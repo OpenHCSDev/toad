@@ -2,6 +2,7 @@
 
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
+from agent_comms.goal_scope import OneGoal
 from support.native_steps import goal_on_real_owner
 from textual.widgets import Static
 
@@ -16,7 +17,7 @@ OBJECTIVE = "Work on draft PR #17 and report remaining gaps. " + "Detailed accep
 def with_progress(comms, session, goal):
     comms.goals.update_goal(session, ActiveGoalAction(
         progress="Renamed parent thread to pr17 and forked implementation.",
-        expect=GoalPrecondition(goal_id=goal.id)))
+        expect=GoalPrecondition(goal_id=OneGoal(goal.id))))
 
 
 def goal_in_toad(workspace):
