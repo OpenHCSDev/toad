@@ -8,7 +8,7 @@ from agent_comms.commander_hud import CommanderFrame, CommanderHud, CodexUsage, 
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from textual.widgets import Static
 
-from toad.core.events import CommanderHudChanged
+from toad.core.events import CommanderHudChanged, CommanderHudFailed
 from toad.screens.commander import CommanderPage
 
 
@@ -53,6 +53,11 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         CommanderFrame.replace_all(workspace.comms.root, (repaired,))
         await ui.until_shows("forks: recovered")
         assert not notice.display
+        recovered_rows = tuple(rows.children)
+        app.coordination_access.events.publish(CommanderHudFailed(OSError("observer process exited")))
+        await ui.until(lambda: notice.display, why="the observer failure notice")
+        assert str(notice.render()) == "Commander rows unavailable: observer process exited"
+        assert tuple(rows.children) == recovered_rows
         await pilot.press("escape")
         await ui.step()
         assert app.screen is not page

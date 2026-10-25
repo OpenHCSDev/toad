@@ -211,7 +211,7 @@ class FailedObservation(Observation):
 
     def observe_commander(self, wanted: ObserveCommanderHud | StopCommanderHud):
         for page in tuple(self.access.commander_pages):
-            page.observation_failed(self.error)
+            page.hud_failed(CommanderHudFailed(self.error))
 
 
 @dataclass(frozen=True)

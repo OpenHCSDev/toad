@@ -121,11 +121,8 @@ class CommanderPage(CoreEventReceiver, ToadNode, ModalScreen[None]):
 
     @handles(CommanderHudFailed)
     def hud_failed(self, event: CommanderHudFailed) -> None:
-        self.observation_failed(event.error)
-
-    def observation_failed(self, error: Exception) -> None:
         notice = self.query_one("#hud-error", Static)
-        notice.update(f"Commander frame unreadable: {' '.join(str(error).splitlines())}")
+        notice.update(f"Commander rows unavailable: {' '.join(str(event.error).splitlines())}")
         notice.display = True
 
     @on(Button.Pressed, "#commander-close")
