@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 from random import choice
@@ -10,9 +10,9 @@ from threading import Lock
 from textual.content import Content
 from toad.widgets.future_text import FutureText
 
-import toad
 from agent_comms.declared_family import DeclaredFamily
 from toad.setting_declarations import Choice
+from toad.platform import DesktopService, host
 
 
 @dataclass(frozen=True)
@@ -98,72 +98,8 @@ class NeverSessionBar(SessionBar):
         return False
 
 
-class DesktopService:
-    """The platform's notification service, as notifypy detects it."""
-
-    def notification(self):
-        from notifypy import Notify
-
-        return Notify()
-
-    def send(self, app, notification) -> DesktopService:
-        notification.send()
-        return self
-
-
-class DBusDesktop(DesktopService):
-    """notifypy's notify-send path inherits Toad's terminal as stderr; its D-Bus
-    notifier starts no child process that could write over the TUI."""
-
-    def notification(self):
-        from notifypy import Notify
-        from notifypy.os_notifiers.linux import LinuxNotifier
-
-        return Notify(use_custom_notifier=LinuxNotifier)
-
-
-class UncheckedDBusDesktop(DBusDesktop):
-    """Asks the session bus once whether anything serves notifications, because
-    notifypy's D-Bus notifier reports an error reply as a delivery."""
-
-    name: ClassVar[str] = "org.freedesktop.Notifications"
-
-    def send(self, app, notification) -> DesktopService:
-        return self.served(app).send(app, notification)
-
-    def served(self, app) -> DesktopService:
-        from jeepney import DBusAddress, new_method_call
-        from jeepney.io.blocking import open_dbus_connection
-
-        bus = DBusAddress("/org/freedesktop/DBus", bus_name="org.freedesktop.DBus",
-                          interface="org.freedesktop.DBus")
-        try:
-            with open_dbus_connection(bus="SESSION") as connection:
-                owned = connection.send_and_get_reply(
-                    new_method_call(bus, "NameHasOwner", "s", (self.name,)), timeout=2).body[0]
-                activatable = self.name in connection.send_and_get_reply(
-                    new_method_call(bus, "ListActivatableNames"), timeout=2).body[0]
-        except OSError:
-            owned = activatable = False
-        if owned or activatable:
-            return DBusDesktop()
-        app.call_from_thread(
-            app.notify,
-            "Desktop notifications are off for this session: no notification daemon is running.",
-            severity="warning",
-        )
-        return AbsentDesktop()
-
-
-class AbsentDesktop(DesktopService):
-    """Nothing serves notifications; asking again per message only fails again."""
-
-    def send(self, app, notification) -> DesktopService:
-        return self
-
-
 class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
-    desktop: ClassVar[DesktopService] = UncheckedDBusDesktop() if toad.os == "linux" else DesktopService()
+    desktop: ClassVar[DesktopService] = host.desktop()
     sending: ClassVar[Lock] = Lock()
 
     @classmethod
@@ -176,7 +112,7 @@ class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
         notification = cls.desktop.notification()
         notification.message = message
         notification.title = title
-        notification.application_name = "🐸 Toad" if toad.os == "macos" else "Toad"
+        notification.application_name = host.application_name
         if sound and app.settings.notifications.enable_sounds:
             notification.audio = str(files("toad.data").joinpath(f"sounds/{sound}.wav"))
         notification.icon = str(files("toad.data").joinpath("images/frog.png"))
