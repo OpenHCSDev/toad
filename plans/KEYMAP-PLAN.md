@@ -83,6 +83,15 @@ Each finding is stated as: pattern, the fact, where it is restated (at), the mec
 
 ## Target
 
+**Rule: no key is fixed.** Every key in this plan is a default declared on its action. That includes:
+- F1, which opens the keybinding menu;
+- F2, ctrl+comma and escape on `Dismisses`;
+- every mixin binding and every vim key in every `KeyMode`.
+
+The one remap owner, the `Keymap` preference, overrides any of them, including the key that opens the menu.
+
+A key literal may appear in exactly two places: an action's default declaration and the preference store. The K0 guard counts every other occurrence as a violation.
+
 1. **One action family root**, `Action(DeclaredFamily)`, in `widget_actions.py`. It merges `NativeAction` and `KeyboundAction`.
    - Each member declares `title` once, and its docstring is its summary.
    - It declares `keys: ClassVar[KeyMap]`: a mapping from `KeyMode` members to key strings, so one member owns its default and its vim keys.
@@ -91,8 +100,13 @@ Each finding is stated as: pattern, the fact, where it is restated (at), the mec
 2. **`KeyMode` family**, with members `Standard`, `VimNormal`, `VimInsert` and `VimVisual`.
    - The `vim_keys` setting decodes once, at the settings boundary, into the active member.
    - Each member answers which of an action's keys are live, and which Textual-fork `EditingMode` the prompt takes. That deletes `vim_profile`, `VimCancelAction`, the `vim_keys` reads at 3 sites and the `"workspace"` string compare. Workspace-only actions move to `WorkspaceScreen`'s `ACTIONS`.
+   - Each mode's keys are defaults for that mode and can be remapped per mode. A `Keymap` row names the action, the `KeyMode` and the key, so remapping `j` in `VimNormal` leaves `Standard` alone.
 3. **Capability mixins carry the shared bindings once**: `Dismisses` (escape), `MovesCursor` (up/down), `Submits` (enter), `Selects` (enter), `Launches` (space), `CyclesFocus` (tab/shift+tab), `CyclesSessions` (ctrl+[ / ctrl+]) and `TogglesIrc` (ctrl+g). Each of the 41 copies becomes a parent class on its widget.
 4. **Textual is the external contract below one projection.** `DeclaredWidgetActions.__init_subclass__` (`widget_actions.py:98-110`) stays the only producer of `BINDINGS` and `action_*`. Each `Binding` gets `id = declared_name`. Remapping is one owner, a `Keymap` preference decoded once and applied through `App.set_keymap` (`textual/app.py:4094`). No widget writes `BINDINGS`, `Binding(` or `action_*` by hand.
+   - **Conflicts are a registry fact, not an owner question.** An action's effective keys are its defaults with its remaps applied. Two actions whose effective keys collide in the same scope are a `KeyConflict`, and the registry reports it.
+   - The menu shows the conflict on both rows. A remap that would create one is refused, and the refusal names the other action.
+   - Shadowing across scopes is declared on the overriding action, for example a screen action that `shadows` an app action on purpose. An undeclared shadow is a conflict.
+   - The first case the check must catch is today's F2 collision: `application_actions.py:74` (Settings) against `screens/main.py:215` (commander page), an undeclared shadow.
 5. **The editor's vim family joins the same registry.**
    - In the Textual fork, `EditorCommand` gains `title`, and registers at `__init_subclass__` instead of walking `__subclasses__()` and decoding by linear search (`_editing.py:209-217`).
    - Its keys stay keyed by `VimNormal`.
@@ -113,6 +127,9 @@ Textual's own mechanism ends at `Binding`, `check_action`, `run_action`, `HelpPa
 | Add an editor motion and show it in the menu | impossible today: `EditorCommand` has no title and no registry the menu can read | 1: the `Motion` subclass |
 | Give a new picker widget escape, up, down and enter | 4 `Binding(...)` lines plus 4 `action_*` methods, copied | 0: add parents `Dismisses, MovesCursor, Submits` |
 | Let the user remap a key | impossible: no `Binding.id` anywhere | 0 code: one `Keymap` preference row |
+| Remap F1 (the menu) or F2 | impossible: both are literals at their sites | 0 code: one `Keymap` preference row |
+| Remap a vim key in one mode only | impossible: vim keys are forwarder class attributes | 0 code: one `Keymap` row naming the `KeyMode` |
+| Detect a key collision | by accident: the F2 conflict has been live since #1198, and nothing reports it | automatic: the registry reports `KeyConflict`, the menu flags both rows, and a colliding remap is refused |
 
 ## Surfaces and waves
 
@@ -120,26 +137,31 @@ The crossings were checked against the open Toad PRs at 6a573c4b4: #1211 touches
 
 | Wave | Surface | Files | Deletes |
 |---|---|---|---|
-| 0 | **K0 guard.** A test fails on: `BINDINGS =`, `Binding(` or `def action_` outside `widget_actions.py`; a key literal compared in `on_key` outside the two contract sites; a `vim_keys` read outside `KeyMode`; and `menu_order`. It starts as a ratchet at today's counts (64 / 98 / 145 / 6 / 4 / 6) that can only fall. | `tests/guards/test_keymap_owner.py` (new) | none |
+| 0 | **K0 guard.** A test fails on: `BINDINGS =`, `Binding(` or `def action_` outside `widget_actions.py`; a key literal compared in `on_key` outside the two contract sites; a `vim_keys` read outside `KeyMode`; `menu_order`; and any key literal outside an action's default declaration or the preference store. It starts as a ratchet at today's counts (64 / 98 / 145 / 6 / 4 / 6) that can only fall. A second test builds the registry and requires zero undeclared `KeyConflict`. It starts failing on F2 by design, and K3 makes it pass. | `tests/guards/test_keymap_owner.py` (new) | none |
 | 1 | **K1 family root.** `Action` merges `NativeAction` and `KeyboundAction`. `title` plus the docstring replace `description`, `tooltip`, `help` and `menu_label`. `Binding.id` derives from the declared name. Exposure defaults to on, and `System` hides. | `widget_actions.py`, `application_actions.py`, `conversation_actions.py`, `prompt_actions.py`, `question_actions.py` | `MenuAction`, `PaletteAction`, `menu_order` ×6, 54 name strings |
 | 1 | **K5 editor registry.** `EditorCommand` registers at `__init_subclass__` and gains `title`. The shared keyed-declaration base goes in. | OpenHCSDev/textual `document/_editing.py`, `binding.py` | the `__subclasses__` walk and the linear `decode` |
 | 2 | **K2 capability mixins.** Each of the 12 repeated pairs is declared once. | the 20 widget files in the table | 41 `Binding` copies and their `action_*` bodies |
 | 2 | **K4 `KeyMode` family.** Vim keys live on the actions. | `widget_actions.py`, `application_actions.py:198-279`, `conversation_actions.py:47-62`, `widgets/prompt.py:337-341, 869-880`, `setting_effects.py:57`, `preferences.py:72` | 11 forwarders, `VimCancelAction`, `vim_profile`, 3 flag reads, the `"workspace"` compare |
-| 3 | **K3 migration.** The remaining raw `BINDINGS` and `action_*` move onto their owners' families, screen by screen. The `f2` conflict is resolved by one owner. | the remaining raw `BINDINGS` classes (64 minus those K2 absorbs) | every hand `Binding(` and `def action_` |
+| 3 | **K3 migration.** The remaining raw `BINDINGS` and `action_*` move onto their owners' families, screen by screen. The defaults land as F1 for the menu, F2 for the commander page and ctrl+comma for Settings, all remappable. The `KeyConflict` test passes. | the remaining raw `BINDINGS` classes (64 minus those K2 absorbs) | every hand `Binding(` and `def action_` |
 | 3 | **K6 key literals.** Launcher slots and search focus become actions. | `screens/store.py:345, 551-562`, `widgets/side_bar.py:773-777`, `widgets/prompt.py:355-359` | `LAUNCHER_KEYS`, the `key_display="1-9 a-f"` copy |
-| 4 | **K7 menu and remap.** A keymap screen over the registry. Footer, palette and sidebar menu become filters on it. The `Keymap` preference goes through `set_keymap`. | `screens/keymap.py` (new), `widgets/side_bar.py:343`, `application_actions.py:282-305`, `preferences.py` | `ApplicationCommands`' separate roster walk |
+| 4 | **K7 menu and remap.** A keymap screen over the registry. Footer, palette and sidebar menu become filters on it. The `Keymap` preference (per action and per `KeyMode`) goes through `set_keymap`, and it refuses any remap that collides, naming the other action. The menu flags conflicts on both rows. | `screens/keymap.py` (new), `widgets/side_bar.py:343`, `application_actions.py:282-305`, `preferences.py` | `ApplicationCommands`' separate roster walk |
 
 Done means K0's ratchet reads zero on every count except the two named contract sites. The real app must show:
 - the keymap screen listing every action, including the editor motions;
 - vim mode toggled in Settings, changing the live keys without a restart;
-- one remapped key surviving a restart.
+- one remapped key surviving a restart, F1 among them;
+- a colliding remap refused with the other action named.
 
-## Owner questions (each has a default)
+## Defaults (every one remappable)
 
-1. **Remapping in this plan or later?** Default: in it (K7). `set_keymap` exists, so the cost is one preference row.
-2. **Does the menu replace Textual's `HelpPanel` (F1) or sit beside it?** Default: replace. F1 opens the keymap screen filtered to the focused widget, so one view serves both.
-3. **Which key wins F2, Settings or the commander page?** Default: the commander page keeps `f2`, and Settings keeps `ctrl+comma`. #1198 made F2 the commander page.
-4. **Are vim app-level keys live on every screen or only the workspace?** Default: the workspace only, as today, now declared by `WorkspaceScreen`'s family instead of a string compare.
+- **F1** opens the keybinding menu, filtered to the focused widget. It replaces Textual's `HelpPanel` view.
+- **F2** opens the commander page (#1198).
+- **ctrl+comma** opens Settings.
+
+## Owner questions
+
+1. **Remapping in this plan or later?** Answered: in this plan (K7).
+2. **Are vim app-level keys live on every screen or only the workspace?** Default: the workspace only, as today, now declared by `WorkspaceScreen`'s family instead of a string compare.
 
 ## Assumed
 
