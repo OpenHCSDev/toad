@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable
 
 from acp.exceptions import RequestError
+from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
@@ -532,7 +533,7 @@ class ContextInspection:
         comms: Comms,
         owner: str,
         *,
-        cursor=None,
+        cursor: ContextManifestCursor = LATEST_CONTEXT,
         previous: tuple[CapturedContext, ...] = (),
     ):
         entry = comms.registry.entry(owner).entry
@@ -752,7 +753,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
         revision: ReadState,
         identity: ThreadIdentity,
         *,
-        cursor=None,
+        cursor: ContextManifestCursor = LATEST_CONTEXT,
     ) -> InspectionState:
         if str(service.root.resolve()) != identity.root:
             raise ValueError("Selected context belongs to another wire root")
@@ -809,7 +810,7 @@ class DetachedInspection(InspectionState):
         revision: ReadState,
         identity: ThreadIdentity,
         *,
-        cursor=None,
+        cursor: ContextManifestCursor = LATEST_CONTEXT,
     ) -> InspectionState:
         return self
 
