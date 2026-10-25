@@ -210,8 +210,7 @@ class FailedObservation(Observation):
         access.app.show_error(self.error, "Thread status unavailable")
 
     def observe_commander(self, wanted: ObserveCommanderHud | StopCommanderHud):
-        for page in tuple(self.access.commander_pages):
-            page.hud_failed(CommanderHudFailed(self.error))
+        self.access.events.publish(CommanderHudFailed(self.error))
 
 
 @dataclass(frozen=True)
