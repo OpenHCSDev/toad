@@ -206,3 +206,14 @@ async def test_model_picker_selects_through_the_agent_and_keeps_the_draft(worksp
         await ui.until(lambda: picker.search_input.has_focus, why="the picker reopened")
         await ui.press("escape")
         await ui.until(lambda: not picker.is_open and prompt.prompt_text_area.has_focus, why="the picker dismissed")
+
+
+async def test_a_channel_editor_out_of_the_tree_still_answers_its_bindings_from_its_composer(workspace):
+    workspace.thread("reader", "comms")
+    async with workspace.app(size=(130, 44)) as ui:
+        await ui.open_channel("#comms", actor="reader")
+        channel = ui.app.selected_session.query_one(ChannelPrompt)
+        editor = channel.prompt_text_area
+        await channel.remove()
+        assert editor.prompt is channel
+        assert editor.check_action("submit_now", ()) is False

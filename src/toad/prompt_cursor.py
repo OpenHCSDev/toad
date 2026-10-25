@@ -117,14 +117,13 @@ class PromptCursor:
         self._editor = ref(editor)
 
     def changed(self, previous: Selection, current: Selection) -> None:
-        from toad.widgets.prompt import Prompt
         from toad.widgets.prompt_popup import CompletionPopup
 
         editor = self._editor()
         if editor is None or not editor.editing_mode.accepts_text:
             return
         movement = CursorMovement(previous, current)
-        prompt = editor.query_ancestor(Prompt)
+        prompt = editor.prompt
         if prompt.supports_completion and movement.moved_cursor:
             for popup in prompt.query(CompletionPopup):
                 popup.cursor_changed(movement)

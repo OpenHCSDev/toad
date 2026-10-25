@@ -275,20 +275,21 @@ See on-screen instructions for details.
 
     slash_commands: var[list[SlashCommand]] = var([])
 
-    def __init__(self, *, turns: ConversationTurn | None = None) -> None:
+    def __init__(self, *, prompt: Prompt) -> None:
         self.input_cursor = PromptCursor(self)
         super().__init__()
-        self.turns = turns
+        # The composer that built this editor owns its turns, popups and modes.
+        self.prompt = prompt
         self._submit_pending = False
         self._submit_immediate = False
 
     @property
     def agent_busy(self) -> bool:
-        return self.turns.owner.busy if self.turns is not None else False
+        return self.prompt.agent_busy
 
     @property
     def agent_ready(self) -> bool:
-        return self.shell_mode or self.query_ancestor(Prompt).agent_ready
+        return self.shell_mode or self.prompt.agent_ready
 
     @property
     def can_enter_shell(self) -> bool:
@@ -343,7 +344,7 @@ See on-screen instructions for details.
     def submission_allowed(self) -> bool:
         return (
             self.editing_mode.accepts_text
-            and not self.query_ancestor(Prompt).active_popup
+            and not self.prompt.active_popup
         )
 
     def leave_modal_editor(self) -> None:
@@ -440,7 +441,7 @@ See on-screen instructions for details.
             if " " not in self.text:
                 self.insert(self.suggestion + " ")
             else:
-                prompt = self.query_ancestor(Prompt)
+                prompt = self.prompt
                 last_token = shlex.split(self.text + self.suggestion)[-1]
                 last_token_path = Path(prompt.working_directory) / last_token
                 if last_token_path.is_dir():
@@ -454,7 +455,7 @@ See on-screen instructions for details.
         self.clear()
         self.publish_core(UserInputSubmitted(text, shell, immediate=immediate))
         if shell:
-            self.query_ancestor(Prompt).shell_mode = False
+            self.prompt.shell_mode = False
 
     def action_cursor_up(self, select: bool = False):
         PreviousHistoryCursor.move(self, select, super().action_cursor_up)
@@ -467,7 +468,7 @@ See on-screen instructions for details.
             return super().action_delete_left()
         selection = self.selection
         if selection.start == selection.end and self.selection.end == (0, 0):
-            self.query_ancestor(Prompt).shell_mode = False
+            self.prompt.shell_mode = False
             return
         return super().action_delete_left()
 
@@ -494,7 +495,7 @@ See on-screen instructions for details.
 
         import shlex
 
-        prompt = self.query_ancestor(Prompt)
+        prompt = self.prompt
 
         if not self.cursor_at_end_of_text:
             return
@@ -953,7 +954,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
                 yield PromptLabel(id="prompt", markup=False)
-                yield self.TEXT_AREA_CLASS(turns=self.turns).data_bind(
+                yield self.TEXT_AREA_CLASS(prompt=self).data_bind(
                     shell_mode=Prompt.shell_mode,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,

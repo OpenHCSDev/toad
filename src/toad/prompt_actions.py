@@ -16,9 +16,7 @@ class EnterShellAction(KeyboundAction, PromptAction):
         return editor.can_enter_shell
 
     async def apply(self, editor):
-        from toad.widgets.prompt import Prompt
-
-        editor.query_ancestor(Prompt).shell_mode = True
+        editor.prompt.shell_mode = True
 
 
 class SubmitAction(KeyboundAction, PromptAction):
@@ -42,10 +40,8 @@ class SubmitNowAction(SubmitAction):
     priority = True
 
     def available(self, editor):
-        from toad.widgets.prompt import Prompt
-
         return (super().available(editor) and editor.agent_ready and editor.agent_busy
-                and editor.query_ancestor(Prompt).agent_binding.presentation.queue_supported)
+                and editor.prompt.agent_binding.presentation.queue_supported)
 
     async def apply(self, editor):
         editor.schedule_submission(immediate=True)
