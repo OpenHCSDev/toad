@@ -108,7 +108,7 @@ class VimApplicationAction(YieldingKey, ApplicationAction):
 class VimHintsAction(VimApplicationAction):
     """Label every clickable widget with a key to reach it."""
 
-    keys = ("f",)
+    keys = ("f", "ctrl+f")
 
     async def apply(self, app):
         await app.screen.action_show_hints()
