@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
-from acp.exceptions import RequestError
+from agent_comms.coordination_errors import Refused
 from agent_comms.comms import Comms
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.registry_document import RegistrySnapshot
@@ -228,7 +228,7 @@ class ThreadOpening:
             ):
                 raise RuntimeError("The thread's bus route changed while opening")
             return await prepared.open(self)
-        except RequestError as error:
+        except Refused as error:
             self.view.opening_failed(error)
             return navigator.app.selected_mode
         finally:

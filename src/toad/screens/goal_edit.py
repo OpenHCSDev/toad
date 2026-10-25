@@ -2,7 +2,7 @@
 
 from collections.abc import Awaitable, Callable
 
-from acp.exceptions import RequestError
+from agent_comms.coordination_errors import Refused
 from agent_comms.goals import Goal
 from agent_comms.mentions import MentionCandidate
 from textual import on
@@ -78,7 +78,7 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
         save_button.disabled = True
         try:
             await self.on_save(text.strip())
-        except (RequestError, ValueError) as error:
+        except (Refused, ValueError) as error:
             self.query_one("#goal-edit-error", Static).update(str(error))
         else:
             self.dismiss(text.strip())

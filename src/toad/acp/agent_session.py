@@ -9,7 +9,7 @@ from dataclasses import dataclass, replace
 from acp import schema
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import HistoryOnlyQueueProjection
-from agent_comms.acp_failure import ACPFailure
+from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.child_process import join_retirement
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.errors import RouteChangedError
@@ -325,7 +325,7 @@ class AgentSession:
             except RequestError as error:
                 # The handshake has not accepted a prompt, regardless of the
                 # server's reason for refusing this attachment.
-                failure = replace(ACPFailure.from_error(error),
+                failure = replace(RequestFailure.from_error(error).failure,
                                   input_state=NotSentInput)
                 self.session_failed(failure)
                 return

@@ -11,7 +11,7 @@ from acp.schema import (
     SessionConfigSelectGroup,
     SessionConfigSelectOption,
 )
-from agent_comms.acp_failure import ACPFailure
+from agent_comms.acp_failure import RequestFailure
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 
@@ -78,7 +78,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
             result = await agent.process.rpc.set_config_option(self.option.id, agent.session_id, value)
             authority.require()
         except RequestError as error:
-            return ACPFailure.from_error(error).feedback
+            return RequestFailure.from_error(error).failure.feedback
         agent.configuration.receive(result.config_options)
         return None
 

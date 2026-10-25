@@ -4,9 +4,8 @@ from collections.abc import Iterable
 from functools import partial
 from pathlib import Path
 
-from acp.exceptions import RequestError
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.coordination_errors import DMScopeChanged
+from agent_comms.coordination_errors import DMScopeChanged, Refused
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
@@ -336,7 +335,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         except asyncio.CancelledError as error:
             self.opening_failed(error)
             raise
-        except RequestError as error:
+        except Refused as error:
             self.opening_failed(error)
         else:
             self.content.finish(self, ReadyContent())

@@ -8,7 +8,7 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable
 
-from acp.exceptions import RequestError
+from agent_comms.coordination_errors import Refused
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
 from agent_comms.declared_family import DeclaredFamily
@@ -785,7 +785,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def with_native(self, inspection: ContextInspection, native: NativeContextData) -> InspectionState:
         return self
 
-    def native_failed(self, inspection: ContextInspection, error: RequestError) -> InspectionState:
+    def native_failed(self, inspection: ContextInspection, error: Refused) -> InspectionState:
         return self
 
     def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
@@ -883,7 +883,7 @@ class HoldingInspection(InspectionState):
     def with_native(self, inspection: ContextInspection, native: NativeContextData) -> InspectionState:
         return NativeInspection(self.inspection, self.revision, native) if self.same_source(inspection) else self
 
-    def native_failed(self, inspection: ContextInspection, error: RequestError) -> InspectionState:
+    def native_failed(self, inspection: ContextInspection, error: Refused) -> InspectionState:
         return UnavailableNativeInspection(self.inspection, self.revision, str(error)) if self.same_source(inspection) else self
 
     def current_roots(self):
