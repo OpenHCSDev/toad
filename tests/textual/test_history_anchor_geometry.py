@@ -104,7 +104,7 @@ async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspac
         window = await long_window(ui)
         window.release_anchor()
         fragment = TranscriptFragment((MarkdownTranscript("Unloaded", position=123, timestamp=0),))
-        position = FragmentPosition(fragment, 0, 1, block=0)
+        position = FragmentPosition(fragment.key, 0, 1, block=0)
         window.reader_position = UnreachedPosition(position)
         with pytest.raises(FragmentNotLoaded):
             position.page(window).location()

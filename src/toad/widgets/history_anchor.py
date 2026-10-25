@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
-    from toad.widgets.transcript_fragments import TranscriptFragment
+    from toad.widgets.transcript_fragments import FragmentKey
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
 
 
@@ -80,7 +80,7 @@ class UnloadedFragment(FragmentLocation):
 
     def find_in(self, pages: Iterator[TranscriptPageView], position: FragmentPosition) -> FragmentLocation:
         for page in pages:
-            return page.fragment_row(position.fragment, position.block).find_in(pages, position)
+            return page.fragment_row(position.key, position.block).find_in(pages, position)
         return self
 
 
@@ -108,7 +108,7 @@ class ReaderPosition(ABC):
             first, page = reading
             span = page.fragment_at(max(0, int(y - first)))
             fragment = span.fragment
-            return FragmentPosition(fragment, (y - first - span.first) / span.height,
+            return FragmentPosition(fragment.key, (y - first - span.first) / span.height,
                                     span.height, block=span.index)
         return BlockPosition.of(window)
 
@@ -247,10 +247,10 @@ class FragmentPosition(OffsetPosition):
 
     The source child and fraction within it survive changes to sibling blocks.
     Its captured child height converts explicit reader motion to that coordinate.
-    Prepared pages retain the source fragment itself across range changes.
+    Its source key survives eviction and re-preparation into fresh fragments.
     """
 
-    fragment: TranscriptFragment
+    key: FragmentKey
     fraction: float
     height: int
     block: int = field(kw_only=True)
@@ -273,7 +273,7 @@ class FragmentPosition(OffsetPosition):
     def preparation_start(self, history) -> tuple[int, int]:
         return next(((index, boundary) for index, page in enumerate(history.pages)
                      for boundary, fragment in enumerate(page.prepared.fragments)
-                     if fragment is self.fragment),
+                     if fragment.key == self.key),
                     super().preparation_start(history))
 
     def destination(self, window: "HistoryWindow") -> float:

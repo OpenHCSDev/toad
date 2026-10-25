@@ -93,6 +93,7 @@ from toad.widgets.presentation_window import (
 )
 from toad.widgets.selection import HoverSelection
 from toad.widgets.transcript_fragments import (
+    FragmentKey,
     Shown,
     TranscriptFragment,
 )
@@ -331,13 +332,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
-    def hold_fragment_top(self, window: HistoryWindow, fragment: TranscriptFragment) -> None:
-        """Keep this page's activated fragment at the top while its details change."""
-        placed = self.fragment_row(fragment, 0).location()
+    def hold_fragment_top(self, window: HistoryWindow, key: FragmentKey) -> None:
+        """Keep this page's activated source occurrence at the top while its details change."""
+        placed = self.fragment_row(key, 0).location()
         if placed.drawn:
-            window.reader_position = FragmentPosition(fragment, 0, placed.height, block=0)
+            window.reader_position = FragmentPosition(key, 0, placed.height, block=0)
 
-    def fragment_row(self, fragment: TranscriptFragment, block: int) -> FragmentLocation:
+    def fragment_row(self, key: FragmentKey, block: int) -> FragmentLocation:
         """A source child's first measured row, height and whether the page draws it.
 
         A hidden fragment lands on the next drawn fragment, otherwise the
@@ -346,12 +347,12 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         """
         loaded = self.prepared.fragments_in_range
         for at, target in enumerate(loaded):
-            if target is not fragment:
+            if target.key != key:
                 continue
             for candidate in chain(loaded[at:], reversed(loaded[:at])):
                 if (slot := self._fragment_slots.get(id(candidate))) is not None:
                     _fragment, first, lines = self._layout[slot]
-                    same = candidate is target
+                    same = candidate.key == key
                     wanted = block if same else 0
                     span = lines.block_span(lambda span: span.drawn and span.index >= wanted)
                     if span is not None:
@@ -655,16 +656,16 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
                 page.range_changed()  # A page holding a changed fragment measures again.
         self.window.check_follow()
 
-    def page_holding(self, fragment: TranscriptFragment) -> TranscriptPageView:
-        """The loaded page holding this exact fragment; absence is an invalid request."""
+    def page_holding(self, key: FragmentKey) -> TranscriptPageView:
+        """The loaded page holding this source occurrence; absence is an invalid request."""
         for page in self.pages:
-            if any(candidate is fragment for candidate in page.prepared.fragments_in_range):
+            if any(candidate.key == key for candidate in page.prepared.fragments_in_range):
                 return page
         raise FragmentNotLoaded("No loaded page holds the requested fragment")
 
     async def toggle_details(self, fragment: TranscriptFragment) -> None:
         """Show a fragment's details, or hide them when they are shown."""
-        self.page_holding(fragment).hold_fragment_top(self.window, fragment)
+        self.page_holding(fragment.key).hold_fragment_top(self.window, fragment.key)
         await self._show([(fragment, fragment.shown.toggled())])
 
     def can_expand(self) -> bool | None:
