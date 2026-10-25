@@ -25,3 +25,15 @@ async def test_opening_the_commander_page_renders_a_hud_change(workspace):
         assert [str(row.render()) for row in rows][:2] == [
             "Commander claude-code", str(hud.load),
         ]
+
+
+async def test_a_heartbeat_with_no_frames_still_says_it_is_waiting(workspace):
+    async with workspace.app() as ui:
+        app, _pilot = ui.textual
+        page = CommanderPage()
+        await app.push_screen(page)
+        await ui.step()
+        app.coordination_access.events.publish(CommanderHudChanged(()))
+        await ui.step()
+        rows = page.query_one("#hud-rows").query(Static)
+        assert [str(row.render()) for row in rows] == ["Waiting for the commander heartbeat."]

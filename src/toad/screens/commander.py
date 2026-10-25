@@ -33,6 +33,12 @@ class HudRowWidgets(MroDispatch):
     ) -> Widget:
         return type(self).handler_for(type(row))(self, row)
 
+    def frames(self, huds: tuple[CommanderHud, ...]) -> tuple[Widget, ...]:
+        """Every commander's frame; with none written yet, the line saying so."""
+        return tuple(widget for hud in huds for widget in self.frame(hud)) or (
+            Static("Waiting for the commander heartbeat.", markup=False),
+        )
+
     def frame(self, hud: CommanderHud) -> tuple[Widget, ...]:
         """The heartbeat's order: load, then phases, then units most urgent first."""
         rows: tuple[OverloadDegradation | CommanderPhase | CommanderUnit, ...] = (
@@ -95,8 +101,7 @@ class CommanderPage(CoreEventReceiver, ToadNode, ModalScreen[None]):
 
     def compose(self) -> ComposeResult:
         with Vertical():
-            with VerticalScroll(id="hud-rows"):
-                yield Static("Waiting for the commander heartbeat.", markup=False)
+            yield VerticalScroll(*self.widgets.frames(()), id="hud-rows")
             yield Button("Close (Esc)", id="commander-close")
 
     def on_mount(self) -> None:
@@ -112,9 +117,7 @@ class CommanderPage(CoreEventReceiver, ToadNode, ModalScreen[None]):
     async def hud_changed(self, event: CommanderHudChanged) -> None:
         rows = self.query_one("#hud-rows", VerticalScroll)
         await rows.remove_children()
-        await rows.mount_all(
-            widget for hud in event.huds for widget in self.widgets.frame(hud)
-        )
+        await rows.mount_all(self.widgets.frames(event.huds))
 
     def observation_failed(self, error: Exception) -> None:
         rows = self.query_one("#hud-rows", VerticalScroll)
