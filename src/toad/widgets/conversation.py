@@ -54,7 +54,7 @@ from toad.block_navigation import (
     UpCursor,
     require_blocks,
 )
-from toad.command_catalog import CommandCatalog
+from toad.command_catalog import CommandCatalog, CommandDiscoveryCancelled
 from toad.conversation_comms_handlers import ConversationCommsHandlers
 from toad.conversation_submission import ConversationSubmissions
 from toad.conversation_turn import ConversationTurn, TurnOwner
@@ -1515,7 +1515,7 @@ class Conversation(
             lambda: self.app.coordination_access.observation.observed().service
         )
         if not self.is_attached or screen.navigation_context != nav:
-            raise ValueError("Command view changed during discovery")
+            raise CommandDiscoveryCancelled("Command view changed during discovery")
         return screen.thread_identity.command_target(
             lambda actor: TargetContext(
                 self.app, comms, CommandTarget.named(actor), actor, nav.project_path, nav.owner_mode
@@ -1551,7 +1551,7 @@ class Conversation(
             or source.navigation_context != navigation
             or agent is not self.agent_binding
         ):
-            raise ValueError("Command view changed during discovery")
+            raise CommandDiscoveryCancelled("Command view changed during discovery")
         return catalog
 
     @handles(core_events.LinkContextChanged)
