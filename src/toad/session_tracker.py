@@ -5,7 +5,8 @@ from dataclasses import dataclass, field
 from time import time
 from typing import TYPE_CHECKING, Iterable, Sequence
 
-from agent_comms.ui_model.sidebar import ThreadRowModel
+from agent_comms.display_references import CurrentDisplayReferences
+from agent_comms.ui_model.sidebar import SidebarModel, ThreadRowModel
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 from textual.content import Content
 
@@ -33,8 +34,8 @@ class OpenTab(ABC):
     def title(self) -> str: ...
 
     @property
-    @abstractmethod
-    def unread(self) -> UnreadPresentation: ...
+    def unread(self) -> UnreadPresentation:
+        return ExactUnread()
 
     def label(self) -> Content:
         return Content(self.title)
@@ -47,11 +48,21 @@ class OpenTab(ABC):
 @dataclass(frozen=True)
 class NamedTab(OpenTab):
     name: str
-    unread: UnreadPresentation = ExactUnread()
 
     @property
     def title(self) -> str:
         return self.name
+
+
+@dataclass(frozen=True)
+class ConversationTab(NamedTab):
+    conversation: ConversationKind
+    sidebar: SidebarModel
+    references: CurrentDisplayReferences
+
+    @property
+    def unread(self) -> UnreadPresentation:
+        return self.conversation.unread(self.sidebar.observation, self.references)
 
 
 @dataclass(frozen=True)

@@ -291,6 +291,16 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
             if geometry_changed:
                 self.call_after_refresh(self.show_selected_tab)
 
+    @handles(core_events.SidebarPresented)
+    async def _sidebar_presented(self, event: core_events.SidebarPresented) -> None:
+        async with self._sync_lock:
+            geometry_changed = False
+            for mode, tab in (self._last_tabs or {}).items():
+                if (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
+                    geometry_changed |= label.present(tab)
+            if geometry_changed:
+                self.call_after_refresh(self.show_selected_tab)
+
     @handles(core_events.OpenTabsChanged, core_events.LinkContextChanged)
     async def _tabs_changed(self, event: core_events.OpenTabsChanged | core_events.LinkContextChanged) -> None:
         """A thread tab is a thread row: it repaints when an open session's state changes too."""

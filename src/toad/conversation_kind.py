@@ -101,8 +101,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         await screen.action_back_to_agent()
         screen.app.session_navigation.direct_messages()
 
-    def unread(self, observation: SidebarObservation):
-        return observation.channel_unread(self.destination(observation.require_snapshot().references).name)
+    def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
+        return observation.channel_unread(self.destination(references).name)
 
     def send_target(self) -> NamedTarget:
         return self.retained_target()
@@ -262,8 +262,8 @@ class DmConversation(ConversationKind):
     def threads_needed(self, snapshot: RegistrySnapshot, me: str):
         return snapshot.require(me).incarnation, self.peer
 
-    def unread(self, observation: SidebarObservation):
-        return observation.bus_unread(self.destination(observation.require_snapshot().references).name)
+    def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
+        return observation.bus_unread(self.destination(references).name)
 
     def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.dm_display_page(
