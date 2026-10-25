@@ -13,8 +13,9 @@ from toad.widgets.presentation_window import OLDER_END
 
 @pytest.mark.parametrize("cause", ("current", "revision", "edge", "parked", "loader"))
 async def test_older_page_is_published_only_when_the_source_did_not_change_during_the_read(workspace, cause):
+    rows = 21
     journal = journals.write_journal(workspace.project / "saved.jsonl", *(
-        journals.assistant_entry(f"Saved row {i}.", id=f"a{i}", parent=f"a{i - 1}" if i else None) for i in range(21)))
+        journals.assistant_entry(f"Saved row {i}.", id=f"a{i}", parent=f"a{i - 1}" if i else None) for i in range(rows)))
     transcripts = workspace.comms.transcripts
     workspace.comms.registry.declare(replace(workspace.thread("saved"), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     page = transcripts.capture_page_read("saved").read()
@@ -32,6 +33,9 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
         await view.contents.mount(history)
         # Reserved source work keeps automatic edge requests from reading before this controlled read.
         history.reserve_source_work()
+        # A real page holds undrawn older rows; draw them so the next older load reads the source.
+        while OLDER_END.can_extend(history.pages[0].prepared):
+            await history._load_page(OLDER_END)
         task = asyncio.create_task(history._load_page(OLDER_END))
         try:
             await asyncio.wait_for(entered.wait(), 5)
@@ -60,7 +64,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
                 assert cause != "current" and isinstance(result, asyncio.CancelledError), result
             if cause == "current":
                 assert len(history.pages) > len(pages)
-                assert len(tuple(history.coverage_events)) == 2
+                assert len(tuple(history.coverage_events)) == rows
                 assert ui.failure() is None
             else:
                 assert tuple(history.pages) == pages
