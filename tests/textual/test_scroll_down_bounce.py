@@ -79,7 +79,7 @@ async def wheel(ui, window, event_type):
         await ui.app.screen.next_frame.wait()
 
 
-async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
+async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, record_property):
     # Derived from the laptop's saved mfd conversation, not invented heights.
     # Native entry kinds, text whitespace/punctuation/cell widths and identities
     # are retained; letters/digits are masked and image pixels are blanked.
@@ -165,4 +165,5 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         await ui.step()
         assert window.scroll_y == destination, (destination, window.scroll_y)
         assert page.occurrence_of(fragment) == occurrence
-        print(f"second-occurrence click lands on {window.scroll_y}; occurrence={occurrence}")
+        record_property("second_occurrence_click_y", window.scroll_y)
+        record_property("fragment_occurrence", occurrence)

@@ -70,12 +70,13 @@ from toad.widgets.committed_presentation import (
     SnapshotPresentation,
 )
 from toad.widgets.history_anchor import (
+    FragmentLocation,
     FragmentPosition,
     HistoryWindow,
     LatestPosition,
     ReaderPosition,
+    UnloadedFragment,
 )
-from toad.widgets.history_anchor import FragmentLocation, UnloadedFragment
 from toad.widgets.linked_rows import (
     HorizontalRows,
     OpensMessageNames,
