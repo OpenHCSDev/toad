@@ -1,15 +1,15 @@
 """Prompt bindings, eligibility and effects share the native action owners."""
-from agent_comms.declared_family import DeclaredFamily
-from toad.widget_actions import KeyboundAction, NativeAction
+from toad.widget_actions import Action
 
 
-class PromptAction(NativeAction, DeclaredFamily, affix="Action"):
+class PromptAction(Action, affix="Action"):
     pass
 
 
-class EnterShellAction(KeyboundAction, PromptAction):
-    key = "exclamation_mark"
-    description = "Shell command"
+class EnterShellAction(PromptAction):
+    """Run the prompt as a shell command."""
+
+    keys = ("exclamation_mark",)
     priority = True
 
     def available(self, editor):
@@ -19,11 +19,12 @@ class EnterShellAction(KeyboundAction, PromptAction):
         editor.prompt.shell_mode = True
 
 
-class SubmitAction(KeyboundAction, PromptAction):
-    key = "enter"
-    description = "Send"
+class SubmitAction(PromptAction):
+    """Send the prompt to the agent."""
+
+    keys = ("enter",)
+    title = "Send"
     key_display = "⏎"
-    tooltip = "Send the prompt to the agent"
     priority = True
 
     def available(self, editor):
@@ -34,10 +35,11 @@ class SubmitAction(KeyboundAction, PromptAction):
 
 
 class SubmitNowAction(SubmitAction):
-    key = "ctrl+enter,ctrl+y"
+    """Send the prompt now, ahead of the queue."""
+
+    keys = ("ctrl+enter", "ctrl+y")
+    title = "Send now"
     key_display = None
-    description = "Send now"
-    priority = True
 
     def available(self, editor):
         return (super().available(editor) and editor.agent_ready and editor.agent_busy
@@ -47,12 +49,11 @@ class SubmitNowAction(SubmitAction):
         editor.schedule_submission(immediate=True)
 
 
-class CopyOrClearInputAction(KeyboundAction, PromptAction):
-    key = "ctrl+c"
-    description = "Copy / Clear"
-    tooltip = "Copy selected text or clear the prompt"
+class CopyOrClearInputAction(PromptAction):
+    """Copy selected text or clear the prompt."""
+
+    keys = ("ctrl+c",)
     priority = True
-    show = False
 
     def available(self, editor):
         return bool(editor.text)
