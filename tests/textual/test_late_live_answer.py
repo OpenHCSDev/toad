@@ -7,18 +7,22 @@ import os
 
 import pytest
 from agent_comms.acp_extension import (
-    TranscriptSnapshotUpdate, TurnChangedUpdate, encode_updates,
+    TranscriptSnapshotUpdate, TurnChangedUpdate,
 )
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.turn_lease import ActiveTurn, TurnState
+from agent_comms.field_codec import TurnId
+from agent_comms.turn_lease import ActiveTurn, FinishedTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 
 from toad.core.events import CommsUpdated, Update
 from toad.transcript_publication import CommitPublication
 from support.agents import deliver
+from support.coordination import carrying
 from support.journals import assistant_entry, write_journal
 
 TOKEN = "LATE_LIVE_ANSWER"
+
+FIRST_TURN = TurnId("f1e2d3c4b5a697881726354453627180")
 
 
 @pytest.mark.parametrize("arrival", ["read-in-flight", "commit", "queued-snapshot"])
@@ -74,7 +78,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
             agent = ui.detached_agent("late-live")
             view.bind_agent(agent)
             turns = agent.presentation.managed_turns()
-            turns.receive(TurnState(ActiveTurn("first-turn", os.getpid(), phase=PublishingPhase())))
+            turns.receive(TurnState(ActiveTurn(FIRST_TURN, os.getpid(), phase=PublishingPhase())))
             await ui.step()
             view.window.anchor()
             view.prompt.focus()
@@ -98,9 +102,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
             # The session file and the end of the turn arrive while the live answer is still unapplied.
             saved = write_journal(project / "first-native.jsonl", assistant_entry(TOKEN, id="first-assistant"))
             comms.registry.declare(replace(thread, session_file=RegistrySessionLocation.from_path(str(saved), workspace.comms.root)))
-            pending.append(asyncio.create_task(deliver(agent, {
-                "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
-                "_meta": encode_updates(TurnChangedUpdate(TurnState(finished_turn_id="first-turn")))})))
+            pending.append(asyncio.create_task(deliver(agent, carrying(TurnChangedUpdate(FinishedTurn(FIRST_TURN).state())))))
             await asyncio.sleep(.05)
 
             if arrival == "read-in-flight":
