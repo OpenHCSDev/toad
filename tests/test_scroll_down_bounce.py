@@ -7,15 +7,17 @@ from textual import events
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.threads import Thread
 from support import journals
+from toad.app import ToadApp
 from toad.preferences import SETTINGS
 from toad.screens.main import MainScreen
+from toad.screens.workspace import WorkspaceScreen
 from toad.tab_identity.kinds import MailboxTab
 from toad.widgets.conversation import Conversation
 from toad.widgets.presentation_window import NEWER_END
 from toad.widgets.transcript_history import TranscriptHistory
 
 
-class RecordedHistoryScreen(MainScreen):
+class RecordedHistoryScreen(WorkspaceScreen):
     """Observe the native publication hook without replacing application methods."""
 
     recording = False
@@ -44,6 +46,10 @@ class RecordedHistoryScreen(MainScreen):
         self.frames.append((y, reader, page.prepared.start, page.prepared.stop))
 
 
+class RecordedToadApp(ToadApp):
+    MODES = ToadApp.MODES | {"workspace": partial(RecordedHistoryScreen, id="workspace")}
+
+
 async def wheel(ui, window, event_type):
     """Send a real wheel event through the screen's normal mouse route."""
     _app, pilot = ui.textual
@@ -60,11 +66,11 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         "scroll-reader", frozenset(), str(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     root = str(workspace.comms.root)
-    async with workspace.app(size=(100, 32), session=False) as ui:
+    async with workspace.app(size=(100, 32), session=False, application=RecordedToadApp) as ui:
         ui.app.saved_settings.set(SETTINGS.ui.history_buffer_viewports, 1)
         await ui.app.session_navigation.new(
             MailboxTab(owner.incarnation, root),
-            partial(RecordedHistoryScreen.from_thread, workspace.project, root, owner.incarnation),
+            partial(MainScreen.from_thread, workspace.project, root, owner.incarnation),
             original=(root, owner.incarnation))
         await ui.until(lambda: ui.conversation.transcript.reports_coverage,
                        why="the retained transcript to load")
