@@ -91,12 +91,9 @@ class GoalBar(VerticalGroup):
     _document_height: int | None = None
     _resize_origin: tuple[int, int] | None = None
 
-    def __init__(self, source, *, throbber, prompt):
+    def __init__(self, source, *, prompt):
         super().__init__()
         self._source = ref(source)
-        self._throbber = throbber
-        # The busy row is a sibling, but this bar still owns separator dragging.
-        throbber.listen(events.MouseDown, self.on_mouse_down)
         self._prompt = prompt
         self._horizontal_layout = HorizontalLayout()
         self._grid_layout = GridLayout()
@@ -127,7 +124,6 @@ class GoalBar(VerticalGroup):
     def on_mount(self) -> None:
         self.watch(self._source(), "goal_display", self.watch_goal_display)
         self.watch(self._source(), "goal_execution", self.watch_execution)
-        self.watch(self._throbber, "busy", self._queue_separator_update)
         self._queue_separator_update()
 
     def notify_style_update(self) -> None:
@@ -144,16 +140,9 @@ class GoalBar(VerticalGroup):
 
     def _update_separators(self) -> None:
         self._separator_update_pending = False
-        throbber = self._throbber
         controls = self._prompt.query_one_optional(".delivery-controls")
-        loading = (
-            throbber.busy
-            and throbber.display
-            and throbber.visible
-        )
         queue_visible = controls is not None and controls.display and controls.visible
-        # Reuse the theme-resolved separator; only these local box edges change.
-        self.styles.border_top = ("none", "transparent") if loading else None
+        # Reuse the theme-resolved separator; only this local box edge changes.
         self.styles.border_bottom = (
             self.styles.base.border_top if queue_visible else None
         )
@@ -219,13 +208,7 @@ class GoalBar(VerticalGroup):
     def on_mouse_down(self, event: events.MouseDown) -> None:
         if event.button != 1 or self.collapsed or not self.goal_display.visible or not self.goal_display.snapshot.shows_document:
             return
-        throbber = self._throbber
-        own_edge = bool(self.styles.border_top[0]) and event.screen_y == self.region.y
-        loading_edge = (
-            throbber is not None and throbber.busy and throbber.display and throbber.visible
-            and throbber.region.contains(event.screen_x, event.screen_y)
-        )
-        if own_edge or loading_edge:
+        if bool(self.styles.border_top[0]) and event.screen_y == self.region.y:
             event.stop()
             self._resize_origin = (event.screen_y, self.document.region.height)
             self.set_class(True, "-resizing")
