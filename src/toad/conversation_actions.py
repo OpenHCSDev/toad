@@ -60,6 +60,23 @@ class VimCancelAction(CancelAction):
     vim_profile = True
 
 
+class QuarterPageUpAction(ConversationAction):
+    """Scroll the conversation up a quarter page."""
+
+    keys = ("shift+pageup",)
+    direction = -1
+
+    async def apply(self, conversation):
+        conversation.window.scroll_quarter_page(self.direction)
+
+
+class QuarterPageDownAction(QuarterPageUpAction):
+    """Scroll the conversation down a quarter page."""
+
+    keys = ("shift+pagedown",)
+    direction = 1
+
+
 class ExpandBlockAction(ConversationAction):
     """Expand the block under the cursor."""
 
