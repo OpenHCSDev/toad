@@ -13,7 +13,8 @@ from typing import Annotated, Self
 from agent_comms.field_codec import PathText, RecordedTimestamp, TimestampText
 from agent_comms.locked_store import SQLiteFile
 from agent_comms.typed_table import (
-    Column, DurableTables, SharedFileTables, TextStorage, TypedTable, WriterOwnedFile,
+    Column, DurableTables, SharedFileTables, TableSchema, TextStorage, TypedTable,
+    WriterOwnedFile, WriterOwnedStore,
 )
 
 from toad import paths
@@ -29,6 +30,19 @@ def recorded_now() -> RecordedTimestamp:
 
 class ToadTables(SharedFileTables, DurableTables):
     """The database's durable rows share one declaration-derived schema."""
+
+
+class ToadDatabase(WriterOwnedStore):
+    """Toad's one durable file. The installer opens a copy of it with the target's
+    declaration before cutover, so a stored schema Toad could not open fails the install."""
+
+    @classmethod
+    def path(cls) -> Path:
+        return paths.get_state() / "toad.db"
+
+    @classmethod
+    def table_schema(cls) -> type[TableSchema]:
+        return ToadTables
 
 
 @dataclass(frozen=True)
@@ -88,7 +102,7 @@ class DB:
     """Toad's durable state; its transaction owner runs off the UI thread."""
 
     def __init__(self, path: Path | None = None):
-        self.path = path if path is not None else paths.get_state() / "toad.db"
+        self.path = path if path is not None else ToadDatabase.path()
 
     def transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
         with closing(SQLiteFile.writer(self.path)) as db, db:
