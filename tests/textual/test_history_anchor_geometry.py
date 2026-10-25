@@ -108,6 +108,7 @@ async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspac
         with pytest.raises(LookupError, match="no drawn destination yet"):
             position.destination(window)
         assert window.history_geometry_targets() == ()
+        assert window.reader_position == RowPosition(window.scroll_y)
 
 
 class LiveBlock(ConversationBlock, Static):
@@ -130,3 +131,6 @@ async def test_a_live_block_hidden_since_the_last_frame_does_not_hold_the_reader
         assert block in screen._compositor.published_widgets
         assert not tuple(window.placements((block,)))
         assert ReaderPosition.of(window) == RowPosition(window.scroll_y)
+        window.reader_position = UnreachedPosition(BlockPosition(block, 0, window.scroll_y))
+        assert not window.place_reader()
+        assert window.reader_for_layout() == RowPosition(window.scroll_y)

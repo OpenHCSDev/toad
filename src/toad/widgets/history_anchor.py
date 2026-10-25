@@ -29,7 +29,33 @@ if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
-    from toad.widgets.transcript_history import FragmentLocation
+    from toad.widgets.transcript_history import FragmentSpan
+
+
+class FragmentLocation:
+    """A source fragment's drawn location, or the declared not-loaded result."""
+
+    def locations(self) -> tuple[FragmentSpan, ...]:
+        return ()
+
+    def bodies(self) -> tuple[Widget, ...]:
+        return ()
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        return position
+
+    def laid_out(self, window: HistoryWindow) -> bool:
+        return False
+
+    def destination(self, window: HistoryWindow, fraction: float) -> float:
+        raise LookupError("The reader's source fragment has no drawn destination yet")
+
+
+class UnloadedFragment(FragmentLocation):
+    """No loaded page draws a destination for this fragment occurrence."""
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        return position.without_holder(window)
 
 
 class ReaderPosition(ABC):
@@ -64,14 +90,18 @@ class ReaderPosition(ABC):
                                     occurrence=occurrence)
         return BlockPosition.of(window)
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
-        """The widgets layout must place to find this position; None when nothing drawn holds it."""
+    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+        """The widgets layout must place to find this position."""
         return ()
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        """The held position to use in this layout."""
+        return position
 
     def laid_out(self, window: "HistoryWindow") -> bool:
         """Whether the layout just made placed what this position is measured from."""
         bodies = self.bodies(window)
-        return bodies is not None and sum(1 for _ in window.placements(bodies)) == len(bodies)
+        return sum(1 for _ in window.placements(bodies)) == len(bodies)
 
     @abstractmethod
     def place(self, window: "HistoryWindow") -> bool:
@@ -207,15 +237,16 @@ class FragmentPosition(OffsetPosition):
 
     def page(self, window: "HistoryWindow") -> FragmentLocation:
         """The drawn location of this occurrence, or its not-loaded state."""
-        from toad.widgets.transcript_history import UnloadedFragment
-
         return next((location for page in window.drawn_pages()
                      for location in page.fragment_row(
                          self.position, self.part, self.block, self.occurrence).locations()),
                     UnloadedFragment())
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
+    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
         return self.page(window).bodies()
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        return self.page(window).for_layout(window, position)
 
     def laid_out(self, window: "HistoryWindow") -> bool:
         # A page whose messages changed after layout measured it has rows for
@@ -260,8 +291,14 @@ class BlockPosition(OffsetPosition):
                       window.visible_history_items(block for block in blocks if block not in holders)))
         return min(placed, key=lambda position: position.row, default=RowPosition(window.scroll_y))
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
-        return (self.block,) if self.block.is_attached and window.displays(self.block) else None
+    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+        return (self.block,) if self.block.is_attached and window.displays(self.block) else ()
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        return position if self.bodies(window) else position.without_holder(window)
+
+    def laid_out(self, window: HistoryWindow) -> bool:
+        return any(window.placements(self.bodies(window)))
 
     def destination(self, window: "HistoryWindow") -> float:
         return window.row_of(self.block) + self.y - self.row
@@ -280,8 +317,11 @@ class UnreachedPosition(ReaderPosition):
     async def prepare(self, history, current, target, selected, rows_needed, limit: int):
         return await self.position.prepare(history, current, target, selected, rows_needed, limit)
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
+    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
         return self.position.bodies(window)
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        return self.position.for_layout(window, position)
 
     def laid_out(self, window: "HistoryWindow") -> bool:
         return self.position.laid_out(window)
@@ -597,10 +637,8 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         position = self.reader_position
         if not self.shown:
             return None
-        if position.bodies(self) is None:
-            self.reader_position = position.without_holder(self)
-            return None
-        return position
+        self.reader_position = position.for_layout(self, position)
+        return self.reader_position
 
     def place_reader(self) -> bool:
         """Put the reader on the kept position in the layout just made; True when that scrolled the window.

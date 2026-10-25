@@ -73,6 +73,7 @@ from toad.widgets.history_anchor import (
     HistoryWindow,
     LatestPosition,
 )
+from toad.widgets.history_anchor import FragmentLocation, UnloadedFragment
 from toad.widgets.linked_rows import (
     HorizontalRows,
     OpensMessageNames,
@@ -104,6 +105,7 @@ if TYPE_CHECKING:
     from agent_comms.messages import Message as BusMessage
 
     from toad.widgets.conversation import Contents, Conversation
+    from toad.widgets.history_anchor import HistoryWindow
 
 
 class HistoryEdge(PrimaryActivation, Static, can_focus=True):
@@ -133,26 +135,6 @@ class JumpToLatest(HoverSelection, HistoryEdge):
     class Requested(Message):
         pass
 
-class FragmentLocation:
-    """A source fragment's drawn location, or the declared not-loaded result."""
-
-    def locations(self) -> tuple[FragmentSpan, ...]:
-        return ()
-
-    def bodies(self) -> tuple[Widget, ...] | None:
-        return None
-
-    def laid_out(self, window) -> bool:
-        return False
-
-    def destination(self, window, fraction: float) -> float:
-        raise LookupError("The reader's source fragment has no drawn destination yet")
-
-
-class UnloadedFragment(FragmentLocation):
-    """No loaded page draws a destination for this fragment occurrence."""
-
-
 @dataclass(frozen=True)
 class FragmentSpan(BlockSpan, FragmentLocation):
     """A block span placed in its page, carrying the message it belongs to."""
@@ -172,10 +154,10 @@ class FragmentSpan(BlockSpan, FragmentLocation):
     def bodies(self) -> tuple[Widget, ...]:
         return (self.page,)
 
-    def laid_out(self, window) -> bool:
+    def laid_out(self, window: HistoryWindow) -> bool:
         return self.page.rows_measured and any(window.placements(self.bodies()))
 
-    def destination(self, window, fraction: float) -> float:
+    def destination(self, window: HistoryWindow, fraction: float) -> float:
         # A hidden child lands on the next drawn sibling, otherwise the previous.
         return window.row_of(self.page) + self.first + (fraction * self.height if self.drawn else 0)
 
