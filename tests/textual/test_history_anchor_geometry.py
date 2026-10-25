@@ -8,7 +8,10 @@ from textual.containers import VerticalGroup
 from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
-from toad.widgets.history_anchor import BlockPosition, HistoryWindow, ReaderPosition, RowPosition, TailPosition
+from toad.widgets.history_anchor import (
+    BlockPosition, FragmentPosition, HistoryWindow, ReaderPosition, RowPosition,
+    TailPosition, UnreachedPosition,
+)
 
 
 def records(count):
@@ -92,6 +95,19 @@ async def test_a_record_layout_has_not_placed_has_no_row(workspace):
         assert not tuple(window.placements((marker,)))
         with pytest.raises(LookupError, match="must be visible or declared geometry targets"):
             window.row_of(marker)
+
+
+async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspace):
+    async with workspace.app(size=(100, 35)) as ui:
+        window = await long_window(ui)
+        position = FragmentPosition(123, 0, 1, part=0, block=0)
+        window.reader_position = UnreachedPosition(position)
+        assert not position.page(window).locations()
+        assert not position.laid_out(window)
+        assert not window.place_reader()
+        with pytest.raises(LookupError, match="no drawn destination yet"):
+            position.destination(window)
+        assert window.history_geometry_targets() == ()
 
 
 class LiveBlock(ConversationBlock, Static):

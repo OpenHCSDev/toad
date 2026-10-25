@@ -133,16 +133,51 @@ class JumpToLatest(HoverSelection, HistoryEdge):
     class Requested(Message):
         pass
 
+class FragmentLocation:
+    """A source fragment's drawn location, or the declared not-loaded result."""
+
+    def locations(self) -> tuple[FragmentSpan, ...]:
+        return ()
+
+    def bodies(self) -> tuple[Widget, ...] | None:
+        return None
+
+    def laid_out(self, window) -> bool:
+        return False
+
+    def destination(self, window, fraction: float) -> float:
+        raise LookupError("The reader's source fragment has no drawn destination yet")
+
+
+class UnloadedFragment(FragmentLocation):
+    """No loaded page draws a destination for this fragment occurrence."""
+
+
 @dataclass(frozen=True)
-class FragmentSpan(BlockSpan):
+class FragmentSpan(BlockSpan, FragmentLocation):
     """A block span placed in its page, carrying the message it belongs to."""
 
     fragment: TranscriptFragment = field(kw_only=True)
+    page: TranscriptPageView = field(kw_only=True)
 
     @classmethod
-    def in_page(cls, fragment: TranscriptFragment, first: int, span: BlockSpan) -> FragmentSpan:
+    def in_page(cls, page: TranscriptPageView, fragment: TranscriptFragment,
+                first: int, span: BlockSpan) -> FragmentSpan:
         return cls(index=span.index, first=first + span.first, height=span.height,
-                   drawn=span.drawn, fragment=fragment)
+                   drawn=span.drawn, fragment=fragment, page=page)
+
+    def locations(self) -> tuple[FragmentSpan, ...]:
+        return (self,)
+
+    def bodies(self) -> tuple[Widget, ...]:
+        return (self.page,)
+
+    def laid_out(self, window) -> bool:
+        return self.page.rows_measured and any(window.placements(self.bodies()))
+
+    def destination(self, window, fraction: float) -> float:
+        # A hidden child lands on the next drawn sibling, otherwise the previous.
+        return window.row_of(self.page) + self.first + (fraction * self.height if self.drawn else 0)
 
 
 class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
@@ -311,28 +346,26 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
                 if fragment.matches_position(position, part))
 
     def fragment_row(self, position: int | str, part: int, block: int,
-                     occurrence: int = 0) -> FragmentSpan | None:
+                     occurrence: int = 0) -> FragmentLocation:
         """A source child's first measured row, height and whether the page draws it.
 
         A hidden fragment lands on the next drawn fragment, otherwise the
-        previous one. None means this page has no drawn destination for the
-        source position; an empty range is filled by source preparation.
+        previous one. UnloadedFragment means this page has no drawn destination
+        for the source position; source preparation fills an empty range.
         """
         loaded = self.prepared.fragments_in_range
-        target = next(islice(self.fragment_matches(position, part), occurrence, None), None)
-        if target is None:
-            return None
-        at = loaded.index(target)
-        for candidate in chain(loaded[at:], reversed(loaded[:at])):
-            if (slot := self._fragment_slots.get(id(candidate))) is not None:
-                _fragment, first, lines = self._layout[slot]
-                same = candidate is target
-                wanted = block if same else 0
-                span = lines.block_span(lambda span: span.drawn and span.index >= wanted)
-                if span is not None:
-                    placed = FragmentSpan.in_page(candidate, first, span)
-                    return replace(placed, drawn=same and span.index == block)
-        return None
+        for target in islice(self.fragment_matches(position, part), occurrence, occurrence + 1):
+            at = loaded.index(target)
+            for candidate in chain(loaded[at:], reversed(loaded[:at])):
+                if (slot := self._fragment_slots.get(id(candidate))) is not None:
+                    _fragment, first, lines = self._layout[slot]
+                    same = candidate is target
+                    wanted = block if same else 0
+                    span = lines.block_span(lambda span: span.drawn and span.index >= wanted)
+                    if span is not None:
+                        placed = FragmentSpan.in_page(self, candidate, first, span)
+                        return replace(placed, drawn=same and span.index == block)
+        return UnloadedFragment()
 
     @property
     def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
@@ -372,7 +405,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             return None
         fragment, first, lines = self._layout[slot]
         span = lines.block_span(lambda span: span.contains(row - first))
-        return None if span is None else FragmentSpan.in_page(fragment, first, span)
+        return None if span is None else FragmentSpan.in_page(self, fragment, first, span)
 
     def visible_rows(self, window: HistoryWindow) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
         """Each loaded fragment in the window's viewport, with its rows that are in view."""
@@ -646,12 +679,10 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         position = fragment.arrival_position
         part = fragment.part_position.index
         for page in self.pages:
-            placed = page.fragment_row(position, part, 0)
-            if placed is None:
-                continue
-            if placed.drawn:
-                self.window.reader_position = FragmentPosition(position, 0, placed.height, part=part, block=0)
-            return
+            for placed in page.fragment_row(position, part, 0).locations():
+                if placed.drawn:
+                    self.window.reader_position = FragmentPosition(position, 0, placed.height, part=part, block=0)
+                return
 
     def can_expand(self) -> bool | None:
         fragment = self.block_cursor.current

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
+    from toad.widgets.transcript_history import FragmentLocation
 
 
 class ReaderPosition(ABC):
@@ -204,19 +205,22 @@ class FragmentPosition(OffsetPosition):
     block: int = field(kw_only=True)
     occurrence: int = field(default=0, kw_only=True)
 
-    def page(self, window: "HistoryWindow"):
-        """The displayed page that holds this message."""
-        return next((page for page in window.drawn_pages()
-                     if page.fragment_row(self.position, self.part, self.block, self.occurrence) is not None), None)
+    def page(self, window: "HistoryWindow") -> FragmentLocation:
+        """The drawn location of this occurrence, or its not-loaded state."""
+        from toad.widgets.transcript_history import UnloadedFragment
+
+        return next((location for page in window.drawn_pages()
+                     for location in page.fragment_row(
+                         self.position, self.part, self.block, self.occurrence).locations()),
+                    UnloadedFragment())
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
-        page = self.page(window)
-        return None if page is None else (page,)
+        return self.page(window).bodies()
 
     def laid_out(self, window: "HistoryWindow") -> bool:
         # A page whose messages changed after layout measured it has rows for
         # the earlier ones; the layout that change asked for places this.
-        return super().laid_out(window) and self.page(window).rows_measured
+        return self.page(window).laid_out(window)
 
     def preparation_start(self, history) -> tuple[int, int]:
         return next(((index, boundary) for index, page in enumerate(history.pages)
@@ -225,10 +229,7 @@ class FragmentPosition(OffsetPosition):
                     super().preparation_start(history))
 
     def destination(self, window: "HistoryWindow") -> float:
-        page = self.page(window)
-        span = page.fragment_row(self.position, self.part, self.block, self.occurrence)
-        # A hidden child lands on the next drawn sibling, otherwise the previous.
-        return window.row_of(page) + span.first + (self.fraction * span.height if span.drawn else 0)
+        return self.page(window).destination(window, self.fraction)
 
     def shifted(self, rows: float) -> ReaderPosition:
         return replace(self, fraction=self.fraction + rows / self.height)
