@@ -11,7 +11,7 @@
 from textual import messages
 from textual._compositor import StepDeadline
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.history_anchor import HistoryChange
+from toad.widgets.history_anchor import BlockPosition, HistoryChange
 
 
 def drive(screen):
@@ -70,8 +70,8 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         hit = screen.get_widget_and_offset_at(region.x + 2, region.y + 2)
         placed = [child for child in window.walk_children() if child in layout_map]
         offsets = [row for _, row in window.placements(placed)]
-        block = window.top_block()
-        assert placed and block is not None
+        position = BlockPosition.of(window)
+        assert placed and position is not None and position.bodies(window)
         with screen.hold_frames():
             steps = drive(screen)
             restoration.request_layout(window)  # made while the layout is paused
@@ -89,14 +89,15 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
                     assert screen.get_widget_and_offset_at(region.x + 2, region.y + 2) == hit
                     if committed is None:
                         assert [row for _, row in window.placements(placed)] == offsets
-                        assert window.top_block() is block
+                        assert BlockPosition.of(window) == position
                     else:
                         assert compositor._layout_map is committed, "the arrangement changed again after its commit"
                     pauses += 1
                     next(steps)
             except StopIteration:
                 screen._stepped_layout = None
-        assert committed is not None
+        # The arrangement may commit in the last step itself, where it is published at once.
+        assert compositor._layout_map is not layout_map, "the stepped layout never committed"
         assert pauses > 10, pauses
         assert scene(screen) == one_shot
         assert not restoration.layout_ready.is_set(), "released by a layout that started before its request"
