@@ -24,6 +24,11 @@ LoadingIndicator {
     background: transparent;
 }
 
+Throbber {
+    width: 100%;
+    height: 1;
+}
+
 .-hidden {
     display: none;
 }

@@ -95,6 +95,7 @@ class CommsChatView(Conversation):
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation.compose_activity(self)
+            yield self.throbber_above
             yield self.conversation.prompt().data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -226,6 +227,9 @@ class CommsChatView(Conversation):
         if not self.is_attached or not self.query_ancestor(SessionScope).is_current:
             return
         return history.page_source.schedule_refresh(self)
+
+    def history_loading(self) -> bool:
+        return self.message_history.reading
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""

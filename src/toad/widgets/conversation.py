@@ -112,6 +112,7 @@ from toad.widgets.shell_terminal import ShellTerminal
 from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.terminal import Terminal
 from toad.widgets.terminal_tool import TerminalTool
+from toad.widgets.throbber import AboveThrobber
 from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
 from toad.widgets.user_input import UserInput
 
@@ -541,6 +542,7 @@ class ConversationSessionBinding(
         self.turns = ConversationTurn(
             self._turn_changed, lambda: self.agent_binding.presentation.turns
         )
+        self.throbber_above = AboveThrobber(self.working)
         self._initialize_session(
             project_path,
             agent,
@@ -904,7 +906,18 @@ class Conversation(
                     await self._shell.change_directory(str(path))
         await self.agent_binding.project_changed(path)
 
+    def history_loading(self) -> bool:
+        """Whether this view's history is reading its first page; only wire histories page in."""
+        return False
+
+    def working(self) -> bool:
+        return self.turns.owner.busy or self._observed_working or self.history_loading()
+
+    def sync_working(self) -> None:
+        self.throbber_above.sync()
+
     def _turn_changed(self, owner: TurnOwner) -> None:
+        self.sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
@@ -914,6 +927,7 @@ class Conversation(
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
+        self.sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_session()
 
@@ -957,6 +971,7 @@ class Conversation(
                 ),
             )
             self.refresh_thread_status()
+            yield self.throbber_above
             yield self.thread_activity
             prompt = self.operational_sources.prompt(self).data_bind(
                 project_path=Conversation.project_path,

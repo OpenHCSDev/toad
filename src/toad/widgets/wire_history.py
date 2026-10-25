@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from textual.reactive import var
+
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.historical_views import ConversationObservation
 
@@ -32,6 +34,8 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
     """
 
     page_source: WirePageBuffer | ClosedHistory
+    # Reading the bound source's first page: the view's activity bar shows it.
+    reading = var(False)
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: WirePageBuffer | ClosedHistory,
                  *, view: ViewT, notification_view, **kwargs) -> None:
@@ -82,10 +86,17 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
     async def read_changes(self) -> bool:
         """Draw what changed in the source; False when the stores are as last drawn."""
         source = self.page_source
-        observed = await source.observe_changes(source.revision)
-        if source is not self.page_source:
-            return False
-        return await observed.apply(self, source)
+        self.reading = self.undrawn
+        try:
+            observed = await source.observe_changes(source.revision)
+            if source is not self.page_source:
+                return False
+            return await observed.apply(self, source)
+        finally:
+            self.reading = False
+
+    def watch_reading(self, _reading: bool) -> None:
+        self.view.sync_working()
 
     # What is drawn
 
