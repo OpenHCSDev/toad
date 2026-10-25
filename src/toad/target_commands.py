@@ -119,8 +119,10 @@ class ContextualCommand(CommandPresentation, ABC):
         return self
 
     async def apply(self, conversation: Conversation, ctx: TargetContext) -> bool:
+        from toad.command_catalog import CommandDiscoveryCancelled
+
         if await conversation.command_target_context() != ctx:
-            raise ValueError("Command target changed; refresh this view")
+            raise CommandDiscoveryCancelled("Command target changed; refresh this view")
         if not self.available(ctx):
             raise ValueError("Action is no longer available for this target")
         self.execute(ctx)
