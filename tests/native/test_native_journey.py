@@ -159,7 +159,7 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
         await ui.until(lambda: view.agent_binding.configuration.model.selected is not None, seconds=20,
                        why="the model selection")
         assert view.agent_binding.configuration.model.current == "selected-offline/fixture"
-        assert view.turns.owner.busy  # what the activity indicator draws from; busy_count now counts only chat history reads
+        assert view.turns.owner.busy
         assert agent.queue_attachment is queue
         assert agent.process.process is process and process.returncode is None
         await ui.until(lambda: bool(view.submissions.queue_projection.items), seconds=20,

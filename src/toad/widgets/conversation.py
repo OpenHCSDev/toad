@@ -112,7 +112,6 @@ from toad.widgets.shell_terminal import ShellTerminal
 from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.terminal import Terminal
 from toad.widgets.terminal_tool import TerminalTool
-from toad.widgets.throbber import AboveThrobber, BelowThrobber
 from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
 from toad.widgets.user_input import UserInput
 
@@ -496,8 +495,6 @@ class ConversationSessionBinding(
         """Publish the concrete conversation's changed turn projection."""
         raise NotImplementedError
 
-    busy_count = var(0)
-
     visible_categories: var[frozenset[type[MessageCategory]]] = var(
         lambda: all_categories(), init=False
     )
@@ -544,8 +541,6 @@ class ConversationSessionBinding(
         self.turns = ConversationTurn(
             self._turn_changed, lambda: self.agent_binding.presentation.turns
         )
-        self.throbber = BelowThrobber(self.working, id="throbber")
-        self.throbber_above = AboveThrobber(self.working)
         self._initialize_session(
             project_path,
             agent,
@@ -779,7 +774,6 @@ class ConversationSessionBinding(
         if self.is_attached:
             self.refresh_thread_status()
         self.turns.bound()
-        self.busy_count = 0
         binding.update_view(self)
 
         if self.is_mounted:
@@ -910,15 +904,7 @@ class Conversation(
                     await self._shell.change_directory(str(path))
         await self.agent_binding.project_changed(path)
 
-    def working(self) -> bool:
-        return self.busy_count > 0 or self.turns.owner.busy or self._observed_working
-
-    def _sync_working(self) -> None:
-        for throbber in (self.throbber, self.throbber_above):
-            throbber.sync()
-
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self._sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
@@ -928,7 +914,6 @@ class Conversation(
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
-        self._sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_session()
 
@@ -972,7 +957,6 @@ class Conversation(
                 ),
             )
             self.refresh_thread_status()
-            yield self.throbber_above
             yield self.thread_activity
             prompt = self.operational_sources.prompt(self).data_bind(
                 project_path=Conversation.project_path,
@@ -982,10 +966,7 @@ class Conversation(
                 model_history_scope=Conversation.model_history_scope,
                 status=Conversation.status,
             )
-            yield self.throbber
-            self.goal_bar: GoalBar = GoalBar(
-                self, throbber=self.throbber, prompt=prompt
-            )
+            self.goal_bar: GoalBar = GoalBar(self, prompt=prompt)
             yield self.goal_bar
             yield prompt
 
@@ -1132,12 +1113,6 @@ class Conversation(
         await self.agent_binding.session_disposition.present_failure(
             event, self
         )
-
-    def on_work_started(self) -> None:
-        self.busy_count += 1
-
-    def on_work_finished(self) -> None:
-        self.busy_count -= 1
 
     @work
     @handles(input_events.ChangeMode)
@@ -1345,9 +1320,6 @@ class Conversation(
     def on_current_working_directory_changed(self, event: CurrentWorkingDirectoryChanged) -> None:
         if self._shell is None or self._shell.pending_directory is None:
             self.working_directory = str(Path(event.path).resolve().absolute())
-
-    async def watch_busy_count(self, _busy: int) -> None:
-        self._sync_working()
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection) -> None:

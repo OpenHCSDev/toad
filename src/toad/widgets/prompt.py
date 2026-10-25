@@ -6,6 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
 
+from rich.cells import cell_len
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
 from textual._activation import PrimaryActivation
@@ -17,7 +18,7 @@ from textual.color import TRANSPARENT
 from textual.content import Content, Span
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar
-from textual.geometry import Spacing
+from textual.geometry import Size, Spacing
 from textual.reactive import Initialize, var
 from textual.strip import Strip
 from textual.style import Style
@@ -199,7 +200,9 @@ class PromptContainer(FocusWithinView, containers.HorizontalGroup):
         paint = (
             self.app.colours.colour(colour) if self.has_focus_within else TRANSPARENT
         )
-        return Edges(*(("tall", paint),) * 4)
+        # Side bars only: the text and its mode label share rows, no padding rows.
+        side, none = ("tall", paint), ("", TRANSPARENT)
+        return Edges(none, side, none, side)
 
     def on_mouse_down(self, event: events.MouseUp) -> None:
         self.query_ancestor(Prompt).focus()
@@ -330,8 +333,47 @@ See on-screen instructions for details.
         self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
     def show_editing_mode(self, mode) -> None:
+        # The mode label is painted on the last text row, so a new label can move it.
         if self.is_mounted:
-            self.query_ancestor(PromptContainer).border_subtitle = mode.label
+            self._refresh_size()
+            self.refresh()
+
+    @property
+    def mode_label(self) -> Content:
+        label = self.editing_mode.label
+        return Content.styled(f" {label} ", "reverse") if label else Content()
+
+    @property
+    def mode_row_below(self) -> bool:
+        """The last text row reaches the label, so the label takes the next row."""
+        label = self.mode_label.cell_length
+        if not label:
+            return False
+        if not self.text and self.placeholder:
+            rows = Content.from_text(self.placeholder, markup=False).wrap(self.content_size.width)
+            last = rows[-1].cell_length if rows else 0
+        else:
+            sections = self.wrapped_document.get_sections(self.document.line_count - 1)
+            last = cell_len(sections[-1]) if sections else 0
+        # One cell stays free for the cursor resting after the text.
+        return last + 1 > self.content_size.width - label
+
+    def _refresh_size(self) -> None:
+        super()._refresh_size()
+        if self.mode_row_below:
+            width, height = self.virtual_size
+            self.virtual_size = Size(width, height + 1)
+
+    def render_line(self, y: int, paint: PaintState) -> Strip:
+        line = super().render_line(y, paint)
+        label = self.mode_label
+        if not label.cell_length or self.scroll_offset.y + y != self.virtual_size.height - 1:
+            return line
+        text_width = self.content_size.width - label.cell_length
+        return Strip.join((
+            line.crop_extend(0, text_width, None),
+            Strip(label.render_segments(paint.visual_style), label.cell_length),
+        ))
 
     def apply_keyboard_profile(self) -> None:
         from textual.widgets.text_area import EditingMode, VimInsert

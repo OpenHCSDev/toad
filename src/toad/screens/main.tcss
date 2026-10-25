@@ -322,8 +322,6 @@ Prompt {
         &:light {
             background: $surface;
         }
-        border-subtitle-align: left;
-        border-subtitle-style: reverse;
         
         
         PromptTextArea {

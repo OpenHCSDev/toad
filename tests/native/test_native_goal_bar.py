@@ -28,7 +28,6 @@ from textual.widgets import Static
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
-from toad.widgets.throbber import Throbber
 
 OBJECTIVE = "OBJECTIVE_BEGIN " + "Fully wrapped acceptance criteria. " * 40 + " OBJECTIVE_END"
 
@@ -62,10 +61,6 @@ async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(works
         assert conversation.goal_display.snapshot.state.declared_name == "active"
         pulse = bar.query_one(StandbyPulse)
         assert pulse.active
-        conversation.busy_count += 1  # the activity indicator is computed from this and the turn
-        await ui.until(lambda: conversation.query_one(Throbber).busy, why="the activity indicator")
-        assert pulse.active, "A busy activity indicator hid the owner's standby"
-        conversation.busy_count -= 1
         document = bar.query_one(".goal-document", VerticalScroll)
         assert document.max_scroll_y > 0
         assert document.size.height <= 7

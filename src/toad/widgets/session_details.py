@@ -111,12 +111,13 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
             self._refresh_summary()
 
     @property
-    def label(self) -> str:
-        return "Session details"
+    def title_names(self) -> tuple[str, ...]:
+        """The operational row is its own session; its status leads the title."""
+        return ()
 
     def summary_title(self, row: ThreadStatusModel) -> str:
-        """The collapsed row: what this is, its status, saved history and delivery notices."""
-        parts = [self.label, *row.summary, *self.history_details.summary]
+        """The collapsed row: its status, saved history and delivery notices."""
+        parts = [*self.title_names, *row.summary, *self.history_details.summary]
         delivery = self.delivery.delivery
         if delivery.notices:
             parts.append(f"{delivery.notices} notices")
@@ -165,6 +166,10 @@ class ConversationSessionDetails(SessionDetails):
     @property
     def label(self) -> str:
         return self.row.name
+
+    @property
+    def title_names(self) -> tuple[str, ...]:
+        return (self.label,)
 
     async def _on_collapsible_title_toggle(self, event) -> None:
         event.prevent_default()

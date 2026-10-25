@@ -24,7 +24,6 @@ from toad.core.input_events import SelectTarget
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar
-from toad.widgets.throbber import Throbber
 
 
 def goal_owner(workspace, app):
@@ -87,18 +86,6 @@ async def test_standby_row_names_the_waited_peer_and_mentions_navigate(workspace
                        why="the goal mention opens the named peer")
         await ui.select_tab(original)
         assert view.prompt.text == "Composer draft stays"
-
-
-async def test_standby_stays_visible_while_the_previous_turn_settles(workspace):
-    async with workspace.app(size=(100, 35)) as ui:
-        owner, view, bar, status = await shown_goal(workspace, ui)
-        throbber = view.query_one(Throbber)
-        view.busy_count = 1
-        await ui.until(lambda: throbber.busy, why="the busy indicator")
-        assert status.display, "Canonical standby remains visible while the previous turn settles"
-        view.busy_count = 0
-        await ui.until(lambda: not throbber.busy, why="the busy indicator settled")
-        assert status.display
 
 
 async def test_standby_is_never_inferred_from_the_goal_text_or_a_paused_goal(workspace):
