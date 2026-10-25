@@ -18,21 +18,22 @@ class MentionList(SelectionOptionList):
 
 class ChannelTextArea(MessageTextArea):
     ATTACHES_IMAGES = False
+    prompt: ChannelPrompt
 
     async def action_tab_complete(self) -> None:
-        prompt = self.query_ancestor(ChannelPrompt)
+        prompt = self.prompt
         prompt.refresh_mentions(force=True)
         prompt.accept_mention()
 
     def action_cursor_up(self, select: bool = False):
-        prompt = self.query_ancestor(ChannelPrompt)
+        prompt = self.prompt
         if prompt.mention_list.display and not select:
             prompt.mention_list.action_cursor_up()
         else:
             super().action_cursor_up(select)
 
     def action_cursor_down(self, select: bool = False):
-        prompt = self.query_ancestor(ChannelPrompt)
+        prompt = self.prompt
         if prompt.mention_list.display and not select:
             prompt.mention_list.action_cursor_down()
         else:
@@ -41,7 +42,7 @@ class ChannelTextArea(MessageTextArea):
     def watch_selection(self, previous_selection: Selection, selection: Selection) -> None:
         super().watch_selection(previous_selection, selection)
         if self.is_mounted:
-            self.query_ancestor(ChannelPrompt).refresh_mentions()
+            self.prompt.refresh_mentions()
 
 
 class ChannelPrompt(MessagePrompt):
