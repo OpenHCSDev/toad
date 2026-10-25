@@ -3,7 +3,6 @@
 import asyncio
 import sqlite3
 from collections.abc import Callable
-from contextlib import closing
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -11,7 +10,7 @@ from time import time_ns
 from typing import Annotated, Self
 
 from agent_comms.field_codec import PathText, RecordedTimestamp, TimestampText
-from agent_comms.locked_store import SQLiteFile
+from agent_comms.store_files import DEFAULT_ISOLATION
 from agent_comms.typed_table import (
     Column, DurableTables, SharedFileTables, TableSchema, TextStorage, TypedTable,
     WriterOwnedFile, WriterOwnedStore,
@@ -105,7 +104,7 @@ class DB:
         self.path = path if path is not None else ToadDatabase.path()
 
     def transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
-        with closing(SQLiteFile.writer(self.path)) as db, db:
+        with ToadDatabase.exclusive_writer(self.path, isolation_level=DEFAULT_ISOLATION) as db, db:
             return operation(db)
 
     async def _transaction[T](self, operation: Callable[[sqlite3.Connection], T]) -> T:
@@ -140,7 +139,7 @@ class DB:
         await asyncio.to_thread(self.prepare)
 
     def prepare(self) -> None:
-        self.transaction(lambda db: ToadTables.install_schema(db, WriterOwnedFile()))
+        self.transaction(lambda db: ToadDatabase.table_schema().install_schema(db, WriterOwnedFile()))
 
     async def session_new(
         self,
