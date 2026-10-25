@@ -14,7 +14,7 @@ from acp import schema as acp_protocol
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay

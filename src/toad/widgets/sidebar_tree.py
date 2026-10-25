@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from toad.widgets.thread_comms import RelationshipRows
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from agent_comms.ui_model.unread import UnreadPresentation

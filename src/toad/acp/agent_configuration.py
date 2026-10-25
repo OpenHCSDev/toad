@@ -13,7 +13,7 @@ from acp.schema import (
 )
 from agent_comms.acp_failure import RequestFailure
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 
 class SelectChoices(MroDispatch):

@@ -7,7 +7,7 @@ from pathlib import Path
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination_errors import DMScopeChanged, Refused
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
 from textual import containers, getters, on
 from textual.app import ComposeResult

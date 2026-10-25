@@ -27,7 +27,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.errors import RouteChangedError
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 
 from toad.acp.client_session import ClientSessionRequest

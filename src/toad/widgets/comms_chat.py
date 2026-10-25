@@ -15,7 +15,7 @@ from pathlib import Path
 from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage

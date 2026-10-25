@@ -16,7 +16,7 @@ from toad.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction
 from toad.core.source_events import CommandComplete
 from toad.core_event_carrier import CoreEventReceiver
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 

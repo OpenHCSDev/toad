@@ -22,7 +22,7 @@ from acp.schema import (
     UserMessageChunk,
 )
 from agent_comms.acp_extension import AgentCommsUpdate
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement

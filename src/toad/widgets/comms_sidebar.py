@@ -31,7 +31,7 @@ from textual._activation import PrimaryActivation
 from ui_theme.scheme import AlternateRowToneColour
 
 
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent, ThreadIdentityChanged
 from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.thread_identity import SessionIdentity

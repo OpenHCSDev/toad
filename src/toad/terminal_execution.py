@@ -27,7 +27,7 @@ from agent_comms.child_process import (
     join_retirement,
 )
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad import ansi
 from toad.shell_read import shell_read

@@ -2,7 +2,7 @@ import asyncio
 from collections.abc import Iterable
 from typing import ClassVar
 
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from rich.style import Style as RichStyle
 from textual import containers, events, getters, widgets
 from textual._activation import PrimaryActivation
