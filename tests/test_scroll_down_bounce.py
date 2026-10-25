@@ -1,6 +1,8 @@
 """Downward wheel travel must not publish a backwards reader after page eviction."""
 
 from functools import partial
+from inspect import getfile
+from pathlib import Path
 
 from textual import events
 
@@ -20,6 +22,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 class RecordedHistoryScreen(WorkspaceScreen):
     """Observe the native publication hook without replacing application methods."""
 
+    CSS_PATH = [Path(getfile(WorkspaceScreen)).parent / path for path in WorkspaceScreen.CSS_PATH]
     recording = False
 
     def __init__(self, *args, **kwargs):
@@ -46,8 +49,11 @@ class RecordedHistoryScreen(WorkspaceScreen):
         self.frames.append((y, reader, page.prepared.start, page.prepared.stop))
 
 
-class RecordedToadApp(ToadApp):
-    MODES = ToadApp.MODES | {"workspace": partial(RecordedHistoryScreen, id="workspace")}
+def recorded_app(**kwargs):
+    app = ToadApp(**kwargs)
+    app.remove_mode("workspace")
+    app.add_mode("workspace", partial(RecordedHistoryScreen, id="workspace"))
+    return app
 
 
 async def wheel(ui, window, event_type):
@@ -66,7 +72,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         "scroll-reader", frozenset(), str(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     root = str(workspace.comms.root)
-    async with workspace.app(size=(100, 32), session=False, application=RecordedToadApp) as ui:
+    async with workspace.app(size=(100, 32), session=False, application=recorded_app) as ui:
         ui.app.saved_settings.set(SETTINGS.ui.history_buffer_viewports, 1)
         await ui.app.session_navigation.new(
             MailboxTab(owner.incarnation, root),
