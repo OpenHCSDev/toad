@@ -122,11 +122,16 @@ Steps for one file:
 
 ## Running
 
+Tests run in the checkout's own `.venv`, synced from the committed `uv.lock`: the environment CI's `core-from-main` action builds. Sync it once per checkout, and again after the lock moves; it reuses uv's cache, so it takes seconds:
+
 ```
-python -m pytest tests -n 6                 # everything
-python -m pytest tests/model tests/guards   # no app, seconds
-TOAD_TEST_NATIVE_PACKAGE=/path/to/pi-coding-agent python -m pytest tests/native
+uv sync --locked --all-extras --no-editable
+.venv/bin/python -m pytest tests -n 6                 # everything
+.venv/bin/python -m pytest tests/model tests/guards   # no app, seconds
+TOAD_TEST_NATIVE_PACKAGE=/path/to/pi-coding-agent .venv/bin/python -m pytest tests/native
 ```
+
+No other interpreter runs these tests. A venv built by hand, or one from another checkout, holds whatever versions it was last synced to. Putting an agent-comms source tree on `PYTHONPATH` loads a second copy of Core beside the locked one, and its classes then fail `super()` against their own bases. Testing unreleased Core means moving the lock's pin, never shadowing it.
 
 Every test that asks for `workspace` runs in its own interpreter, so the suite is safe under `-n`. A failing app test prints its child output and keeps its roots under the configured temporary directory as `toad-test-*`, with full output in `stdout.log` and `stderr.log`. A test whose requirement is missing (the native package, the `pyte` terminal emulator) is skipped with the requirement's name; nothing else skips.
 
