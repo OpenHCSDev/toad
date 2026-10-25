@@ -299,15 +299,14 @@ class TranscriptFragment:
 
     @property
     def source_identity(self) -> EventSourceKey | ToolCallId:
-        event = self.events[0]
-        return EventSourceKey(type(event), event.position)
+        return EventSourceKey(type(self.events[0]), self.arrival_position)
 
     @cached_property
     def key(self) -> FragmentKey:
         return FragmentKey(self.source_identity, self.part_position.index)
 
     @property
-    def arrival_position(self) -> int | str:
+    def arrival_position(self) -> int | NativeItemId:
         """The first event owns the fragment's stable source position."""
         return self.events[0].position
 
