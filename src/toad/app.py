@@ -456,7 +456,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def history_displayed(self) -> None:
         """A view's history was painted."""
         self.heap.history_displayed(self)
-        self.selected_session.mark_visible()
 
     @handles(session_requests.WorkspaceSessionRequest)
     async def on_workspace_session_request(self, event: CoreEventMessage) -> None:

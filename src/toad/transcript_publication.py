@@ -44,6 +44,7 @@ from textual.worker import Worker, WorkerCancelled
 from toad.core.events import CoreEventStream
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
+from toad.screens.session_view import SessionView
 from toad.session_scope import (
     NoTranscript,
     SessionOrigin,
@@ -108,6 +109,7 @@ class BoundFrame:
         self.owner.displayed_cursor = cursor
         view = self.binding.view
         view.app.history_displayed()
+        view.query_ancestor(SessionView).mark_visible()
         view.settle_user_message()
 
 
