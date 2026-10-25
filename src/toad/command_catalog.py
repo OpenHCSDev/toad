@@ -1,19 +1,14 @@
 """One derived command view joins ACP advertisements and local declarations."""
 
-import asyncio
 from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
 from typing import TYPE_CHECKING
 
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
-from toad.target_commands import TargetContext, ThreadCommand
+from toad.target_commands import CommandContextChanged, TargetContext, ThreadCommand
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
-
-
-class CommandDiscoveryCancelled(asyncio.CancelledError):
-    """The view that requested commands changed before discovery completed."""
 
 
 @dataclass(frozen=True)
@@ -73,7 +68,7 @@ class CommandCatalog:
             if command is None:
                 return False
             return await command.parse_arguments(arguments).apply(conversation)
-        except CommandDiscoveryCancelled:
+        except CommandContextChanged:
             # A recognized UI command must never fall through to agent input
             # because its original target disappeared during an awaited read.
             conversation.app.notify(
