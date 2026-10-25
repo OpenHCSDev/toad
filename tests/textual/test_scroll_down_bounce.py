@@ -134,19 +134,19 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         candidates = []
         for _ in range(8192):
             await wheel(ui, window, events.MouseScrollUp)
-            for page in history.pages:
+            for page, first in window.placements(window.drawn_pages()):
                 for fragment in page.prepared.fragments_in_range:
                     occurrence = page.occurrence_of(fragment)
                     if occurrence > 0 and fragment.has_details:
                         for span in page.fragment_row(fragment.arrival_position,
                                 fragment.part_position.index, 0, occurrence).locations():
                             if span.drawn:
-                                candidates.append((page, fragment, span, occurrence))
+                                candidates.append((page, first, fragment, span, occurrence))
             if candidates:
                 break
         assert candidates, "No second occurrence with a disclosure link was loaded"
-        page, fragment, span, occurrence = candidates[0]
-        destination = window.row_of(page) + span.first
+        page, first, fragment, span, occurrence = candidates[0]
+        destination = first + span.first
         window.scroll_to(y=destination, animate=False, immediate=True)
         await ui.step()
         links = []
