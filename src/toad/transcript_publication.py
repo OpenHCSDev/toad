@@ -109,7 +109,7 @@ class BoundFrame:
         self.owner.displayed_cursor = cursor
         view = self.binding.view
         view.app.history_displayed()
-        view.query_ancestor(SessionView).mark_visible()
+        view.query_ancestor(SessionView).history_painted()
         view.settle_user_message()
 
 

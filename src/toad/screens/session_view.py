@@ -68,11 +68,15 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
         """Views without a conversation have no native transcript to mark read."""
         return NothingToRead()
 
+    def history_painted(self) -> None:
+        """Only the session on screen reads what it painted; hidden tabs stay unread."""
+        if self.is_current:
+            self.mark_visible()
+
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
         message.stop()
-        if self.is_current:
-            self.mark_visible()
+        self.history_painted()
 
     async def open_direct_messages(self) -> None:
         """Open this session's direct-message destination when it has one."""
