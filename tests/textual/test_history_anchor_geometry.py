@@ -4,10 +4,12 @@ import pytest
 
 from unittest.mock import patch
 
+from agent_comms.transcript_events import MarkdownTranscript
 from textual.containers import VerticalGroup
 from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
+from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.history_anchor import (
     BlockPosition, FragmentNotLoaded, FragmentPosition, HistoryWindow, ReaderPosition, RowPosition,
     TailPosition, UnreachedPosition,
@@ -101,7 +103,8 @@ async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspac
     async with workspace.app(size=(100, 35)) as ui:
         window = await long_window(ui)
         window.release_anchor()
-        position = FragmentPosition(123, 0, 1, part=0, block=0, occurrence=0)
+        fragment = TranscriptFragment((MarkdownTranscript("Unloaded", position=123, timestamp=0),))
+        position = FragmentPosition(fragment, 0, 1, block=0)
         window.reader_position = UnreachedPosition(position)
         with pytest.raises(FragmentNotLoaded):
             position.page(window).location()

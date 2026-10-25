@@ -135,11 +135,13 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
         for _ in range(8192):
             await wheel(ui, window, events.MouseScrollUp)
             for page, first in window.placements(window.drawn_pages()):
+                occurrences = {}
                 for fragment in page.prepared.fragments_in_range:
-                    occurrence = page.occurrence_of(fragment)
+                    source = fragment.arrival_position, fragment.part_position.index
+                    occurrence = occurrences.get(source, 0)
+                    occurrences[source] = occurrence + 1
                     if occurrence > 0 and fragment.has_details:
-                        span = page.fragment_row(fragment.arrival_position,
-                            fragment.part_position.index, 0, occurrence).location()
+                        span = page.fragment_row(fragment, 0).location()
                         if span.drawn:
                             candidates.append((page, first, fragment, span, occurrence))
             if candidates:
@@ -164,6 +166,6 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
                        why="the clicked second occurrence's disclosure to toggle")
         await ui.step()
         assert window.scroll_y == destination, (destination, window.scroll_y)
-        assert page.occurrence_of(fragment) == occurrence
+        assert page.fragment_at(int(window.scroll_y - first)).fragment is fragment
         record_property("second_occurrence_click_y", window.scroll_y)
         record_property("fragment_occurrence", occurrence)

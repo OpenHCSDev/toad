@@ -284,9 +284,6 @@ class TranscriptFragment:
         """The first event owns the fragment's stable source position."""
         return self.events[0].position
 
-    def matches_position(self, position: int | str, part: int) -> bool:
-        return self.arrival_position == position and self.part_position.index == part
-
     def shown_live_by(self, claim: CommitClaim) -> bool:
         """Whether the live block that claim retires already showed this saved row."""
         return claim.repeats_native(self)

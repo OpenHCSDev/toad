@@ -331,28 +331,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
-    def fragment_matches(self, position: int | str, part: int) -> Iterator[TranscriptFragment]:
-        """Loaded occurrences of this source position, in page order, including hidden ones."""
-        return (fragment for fragment in self.prepared.fragments_in_range
-                if fragment.matches_position(position, part))
-
-    def occurrence_of(self, fragment: TranscriptFragment) -> int:
-        """The exact fragment's ordinal among matching source positions on this page."""
-        return next(index for index, candidate in enumerate(self.fragment_matches(
-            fragment.arrival_position, fragment.part_position.index)) if candidate is fragment)
-
     def hold_fragment_top(self, window: HistoryWindow, fragment: TranscriptFragment) -> None:
-        """Keep this page's activated occurrence at the top while its details change."""
-        position = fragment.arrival_position
-        part = fragment.part_position.index
-        occurrence = self.occurrence_of(fragment)
-        placed = self.fragment_row(position, part, 0, occurrence).location()
+        """Keep this page's activated fragment at the top while its details change."""
+        placed = self.fragment_row(fragment, 0).location()
         if placed.drawn:
-            window.reader_position = FragmentPosition(
-                position, 0, placed.height, part=part, block=0, occurrence=occurrence)
+            window.reader_position = FragmentPosition(fragment, 0, placed.height, block=0)
 
-    def fragment_row(self, position: int | str, part: int, block: int,
-                     occurrence: int) -> FragmentLocation:
+    def fragment_row(self, fragment: TranscriptFragment, block: int) -> FragmentLocation:
         """A source child's first measured row, height and whether the page draws it.
 
         A hidden fragment lands on the next drawn fragment, otherwise the
@@ -360,8 +345,9 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         for the source position; source preparation fills an empty range.
         """
         loaded = self.prepared.fragments_in_range
-        for target in islice(self.fragment_matches(position, part), occurrence, occurrence + 1):
-            at = loaded.index(target)
+        for at, target in enumerate(loaded):
+            if target is not fragment:
+                continue
             for candidate in chain(loaded[at:], reversed(loaded[:at])):
                 if (slot := self._fragment_slots.get(id(candidate))) is not None:
                     _fragment, first, lines = self._layout[slot]

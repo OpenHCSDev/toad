@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
+    from toad.widgets.transcript_fragments import TranscriptFragment
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
 
 
@@ -79,8 +80,7 @@ class UnloadedFragment(FragmentLocation):
 
     def find_in(self, pages: Iterator[TranscriptPageView], position: FragmentPosition) -> FragmentLocation:
         for page in pages:
-            return page.fragment_row(position.position, position.part, position.block,
-                                     position.occurrence).find_in(pages, position)
+            return page.fragment_row(position.fragment, position.block).find_in(pages, position)
         return self
 
 
@@ -108,10 +108,8 @@ class ReaderPosition(ABC):
             first, page = reading
             span = page.fragment_at(max(0, int(y - first)))
             fragment = span.fragment
-            occurrence = page.occurrence_of(fragment)
-            return FragmentPosition(fragment.arrival_position, (y - first - span.first) / span.height,
-                                    span.height, part=fragment.part_position.index, block=span.index,
-                                    occurrence=occurrence)
+            return FragmentPosition(fragment, (y - first - span.first) / span.height,
+                                    span.height, block=span.index)
         return BlockPosition.of(window)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
@@ -248,16 +246,14 @@ class FragmentPosition(OffsetPosition):
     """A message of a line-drawn history.
 
     The source child and fraction within it survive changes to sibling blocks.
-    Its captured child height converts explicit reader motion to that coordinate;
-    the saved arrival and part positions name the message after a reload.
+    Its captured child height converts explicit reader motion to that coordinate.
+    Prepared pages retain the source fragment itself across range changes.
     """
 
-    position: int | str
+    fragment: TranscriptFragment
     fraction: float
     height: int
-    part: int = field(kw_only=True)
     block: int = field(kw_only=True)
-    occurrence: int = field(kw_only=True)
 
     def page(self, window: "HistoryWindow") -> FragmentLocation:
         """The drawn location of this occurrence, or its not-loaded state."""
@@ -277,7 +273,7 @@ class FragmentPosition(OffsetPosition):
     def preparation_start(self, history) -> tuple[int, int]:
         return next(((index, boundary) for index, page in enumerate(history.pages)
                      for boundary, fragment in enumerate(page.prepared.fragments)
-                     if fragment.matches_position(self.position, self.part)),
+                     if fragment is self.fragment),
                     super().preparation_start(history))
 
     def destination(self, window: "HistoryWindow") -> float:
