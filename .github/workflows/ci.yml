@@ -58,14 +58,14 @@ jobs:
       - uses: ./.github/actions/core-from-main
         with:
           path: .artifacts/core
-      - uses: actions/setup-node@v4
+      - run: uv sync --project .artifacts/core/stack
+      # Core's own preparation, with the stock Pi and node it pins.
+      - uses: ./.artifacts/core/.github/actions/prepare-native
         with:
-          node-version: '22'
-      # prepare-pi-native fetches the stock Pi that Core pins in stack/pi-native.sha256.
-      - name: Prepare native package from the resolved Core
+          core: .artifacts/core
+          python: ${{ github.workspace }}/.artifacts/core/stack/.venv/bin/python
+      - name: Qualify the native package from the resolved Core
         run: |
-          uv sync --project .artifacts/core/stack
-          .artifacts/core/stack/bin/prepare-pi-native
           .venv/bin/python - <<'PYCORE'
           import os
           from pathlib import Path
