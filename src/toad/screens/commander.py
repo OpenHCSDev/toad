@@ -11,7 +11,7 @@ import time
 from typing import ClassVar
 
 from agent_comms.commander.vibe_check import OverloadDegradation
-from agent_comms.commander_hud import CommanderHud, CommanderPhase, CommanderUnit
+from agent_comms.commander_hud import CommanderHud, CommanderUnit, HudRow
 from agent_comms.mro_dispatch import MroDispatch, handles
 from textual import on
 from textual.app import ComposeResult
@@ -28,9 +28,7 @@ from toad.screens.modal import ModalScreen
 class HudRowWidgets(MroDispatch):
     """One widget per Core row class; a new row class declares its widget here."""
 
-    def widget(
-        self, row: OverloadDegradation | CommanderPhase | CommanderUnit
-    ) -> Widget:
+    def widget(self, row: OverloadDegradation | HudRow) -> Widget:
         return type(self).handler_for(type(row))(self, row)
 
     def frames(self, huds: tuple[CommanderHud, ...]) -> tuple[Widget, ...]:
@@ -40,26 +38,23 @@ class HudRowWidgets(MroDispatch):
         )
 
     def frame(self, hud: CommanderHud) -> tuple[Widget, ...]:
-        """The heartbeat's order: load, then phases, then units most urgent first."""
-        rows: tuple[OverloadDegradation | CommanderPhase | CommanderUnit, ...] = (
-            hud.load,
-            *hud.phases,
-            *hud.units,
-        )
+        """The load line, then Core's rows in the order CommanderHud.rows declares."""
         return (
             Static(
                 f"Commander {hud.commander.name}", markup=False, classes="hud-commander"
             ),
-            *(self.widget(row) for row in rows),
+            self.widget(hud.load),
+            *(self.widget(row) for row in hud.rows()),
         )
 
     @handles(OverloadDegradation)
     def load(self, load: OverloadDegradation) -> Widget:
         return Static(str(load), markup=False, classes="hud-load")
 
-    @handles(CommanderPhase)
-    def phase(self, phase: CommanderPhase) -> Widget:
-        return Static(phase.line(), markup=False, classes="hud-phase")
+    @handles(HudRow)
+    def row(self, row: HudRow) -> Widget:
+        """Phases, the fork roll call and each plan's finished count are one line each."""
+        return Static(row.line(), markup=False, classes="hud-row")
 
     @handles(CommanderUnit)
     def unit(self, card: CommanderUnit) -> Widget:

@@ -13,6 +13,7 @@ async def test_opening_the_commander_page_renders_a_hud_change(workspace):
     hud = CommanderHud(
         RecordedThreadIncarnation("claude-code", 1.0), (), (),
         OverloadDegradation.from_orders((), 0, 0),
+        (RecordedThreadIncarnation("fork-hud", 2.0),),
     )
     async with workspace.app() as ui:
         app, _pilot = ui.textual
@@ -22,8 +23,8 @@ async def test_opening_the_commander_page_renders_a_hud_change(workspace):
         app.coordination_access.events.publish(CommanderHudChanged((hud,)))
         await ui.step()
         rows = page.query_one("#hud-rows").query(Static)
-        assert [str(row.render()) for row in rows][:2] == [
-            "Commander claude-code", str(hud.load),
+        assert [str(row.render()) for row in rows] == [
+            "Commander claude-code", str(hud.load), "forks: fork-hud",
         ]
 
 
