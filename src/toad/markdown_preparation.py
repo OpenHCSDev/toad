@@ -6,8 +6,9 @@ from dataclasses import dataclass, field
 
 from markdown_it.token import Token
 from rich.console import Console
-from rich.markdown import CodeBlock, Markdown
+from rich.markdown import BlockQuote, CodeBlock, Markdown
 from rich.padding import Padding
+from rich.segment import Segment
 from rich.syntax import Syntax
 from toad.markdown_links import MessageMarkdownParser, parse_markdown_syntax
 
@@ -24,6 +25,19 @@ class StyledCodeBlock(CodeBlock):
         yield Padding(self.text, 1, style=self.text.style)
 
 
+class GreenText(BlockQuote):
+    """A quoted line keeps its `>` and reads green."""
+
+    style_name = "green"
+
+    def __rich_console__(self, console, options):
+        marker, new_line = Segment("> ", self.style), Segment("\n")
+        for line in console.render_lines(self.elements, options.update(width=options.max_width - 2), style=self.style):
+            yield marker
+            yield from line
+            yield new_line
+
+
 class MarkdownStyleConsole(Console):
     """Rich builds its styled element tree; width-dependent rendering runs later."""
 
@@ -34,7 +48,8 @@ class MarkdownStyleConsole(Console):
     def prepare(self, text, context):
         self.parts = []
         markdown = Markdown("")
-        markdown.elements = {**markdown.elements, "fence": StyledCodeBlock, "code_block": StyledCodeBlock}
+        markdown.elements = {**markdown.elements, "fence": StyledCodeBlock, "code_block": StyledCodeBlock,
+                             "blockquote_open": GreenText}
         markdown.parsed = MessageMarkdownParser(context).parse(text)
         for segment in markdown.__rich_console__(self, self.options):
             self.parts.append(segment)

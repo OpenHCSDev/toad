@@ -161,10 +161,23 @@ class ProjectTokenRenderer:
         return result
 
 
+def greentext_lines(state: StateCore) -> None:
+    """Each quoted source line stays its own line, as greentext."""
+    depth = 0
+    for token in state.tokens:
+        if token.tag == "blockquote":
+            depth += token.nesting
+        if depth and token.children:
+            for child in token.children:
+                if child.type == "softbreak":
+                    child.type = "hardbreak"
+
+
 class _MarkdownParserState(local):
     def __init__(self):
         self.parser = MarkdownIt("gfm-like")
         self.parser.validateLink = ProjectLink.opens
+        self.parser.core.ruler.push("greentext_lines", greentext_lines)
         self.resolver = ProjectTokenRenderer()
         self.syntax_rules = tuple(self.parser.core.ruler.getRules(""))
 
