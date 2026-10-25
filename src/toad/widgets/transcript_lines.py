@@ -729,9 +729,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
         return block.prepare(self.markdown)
 
     def markdown(self, block: Body) -> StyledBody:
-        console = MarkdownStyleConsole(
-            force_terminal=True, file=io.StringIO(), color_system=self.preparation.theme.color_system
-        )
+        console = MarkdownStyleConsole(self.preparation.theme, force_terminal=True, file=io.StringIO())
         return StyledBody(block, console.prepare(block.text, self.context))
 
     @handles(WireBody)
