@@ -496,8 +496,6 @@ class ConversationSessionBinding(
         """Publish the concrete conversation's changed turn projection."""
         raise NotImplementedError
 
-    busy_count = var(0)
-
     visible_categories: var[frozenset[type[MessageCategory]]] = var(
         lambda: all_categories(), init=False
     )
@@ -778,7 +776,6 @@ class ConversationSessionBinding(
         if self.is_attached:
             self.refresh_thread_status()
         self.turns.bound()
-        self.busy_count = 0
         binding.update_view(self)
 
         if self.is_mounted:
@@ -909,14 +906,18 @@ class Conversation(
                     await self._shell.change_directory(str(path))
         await self.agent_binding.project_changed(path)
 
-    def working(self) -> bool:
-        return self.busy_count > 0 or self.turns.owner.busy or self._observed_working
+    def history_loading(self) -> bool:
+        """Whether this view's history is reading its first page; only wire histories page in."""
+        return False
 
-    def _sync_working(self) -> None:
+    def working(self) -> bool:
+        return self.turns.owner.busy or self._observed_working or self.history_loading()
+
+    def sync_working(self) -> None:
         self.throbber_above.sync()
 
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self._sync_working()
+        self.sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
@@ -926,7 +927,7 @@ class Conversation(
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
-        self._sync_working()
+        self.sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_session()
 
@@ -1127,12 +1128,6 @@ class Conversation(
         await self.agent_binding.session_disposition.present_failure(
             event, self
         )
-
-    def on_work_started(self) -> None:
-        self.busy_count += 1
-
-    def on_work_finished(self) -> None:
-        self.busy_count -= 1
 
     @work
     @handles(input_events.ChangeMode)
@@ -1340,9 +1335,6 @@ class Conversation(
     def on_current_working_directory_changed(self, event: CurrentWorkingDirectoryChanged) -> None:
         if self._shell is None or self._shell.pending_directory is None:
             self.working_directory = str(Path(event.path).resolve().absolute())
-
-    async def watch_busy_count(self, _busy: int) -> None:
-        self._sync_working()
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection) -> None:

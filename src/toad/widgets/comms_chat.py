@@ -228,6 +228,9 @@ class CommsChatView(Conversation):
             return
         return history.page_source.schedule_refresh(self)
 
+    def history_loading(self) -> bool:
+        return self.message_history.reading
+
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
@@ -236,14 +239,7 @@ class CommsChatView(Conversation):
             history = self.message_history
             announced = self.app.coordination_access.revision
             newly_announced = announced != self._refreshed_from
-            undrawn = history.undrawn
-            if undrawn:
-                self.on_work_started()
-            try:
-                changed = await history.read_changes()
-            finally:
-                if undrawn:
-                    self.on_work_finished()
+            changed = await history.read_changes()
             # Source observation and its pending first page belong to the
             # history, even before this tab is drawable. Composer work follows.
             source = history.page_source
