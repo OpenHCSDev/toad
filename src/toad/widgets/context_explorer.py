@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
 from acp.exceptions import RequestError
-from agent_comms.context_store import ContextManifestCursor
+from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
 from agent_comms.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
@@ -46,14 +46,11 @@ class ContextTreeIntent:
     expanded: set[str] = field(default_factory=set)
     selected: ContextNode | None = None
     query: str = ""
-    cursor: ContextManifestCursor | None = None
+    cursor: ContextManifestCursor = LATEST_CONTEXT
 
-    def select_page(self, cursor: ContextManifestCursor) -> bool:
-        if cursor is None:
-            return False
+    def select_page(self, cursor: ContextManifestCursor) -> None:
         self.cursor = cursor
         self.selected = None
-        return True
 
     def search_current(self, query: str, selected):
         return self.query == query and self.selected is selected
@@ -465,8 +462,8 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self.state.present(self._older_requests)
 
     def _older_requests(self, current: HoldingInspection) -> None:
-        if self.intent.select_page(current.inspection.page.older):
-            self._change_page()
+        self.intent.select_page(current.inspection.page.older)
+        self._change_page()
 
     @on(Button.Pressed, "#context-newer")
     def newer_requests(self, event: Button.Pressed) -> None:
@@ -474,8 +471,8 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self.state.present(self._newer_requests)
 
     def _newer_requests(self, current: HoldingInspection) -> None:
-        if self.intent.select_page(current.inspection.page.newer):
-            self._change_page()
+        self.intent.select_page(current.inspection.page.newer)
+        self._change_page()
 
     def _change_page(self) -> None:
         # Destination selection ends the acquired page's lifetime now, not
