@@ -305,7 +305,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
-    def fragment_row(self, position: int | str, part: int, block: int) -> FragmentSpan | None:
+    def fragment_matches(self, position: int | str, part: int) -> Iterator[TranscriptFragment]:
+        """Loaded occurrences of this source position, in page order, including hidden ones."""
+        return (fragment for fragment in self.prepared.fragments_in_range
+                if fragment.matches_position(position, part))
+
+    def fragment_row(self, position: int | str, part: int, block: int,
+                     occurrence: int = 0) -> FragmentSpan | None:
         """A source child's first measured row, height and whether the page draws it.
 
         A hidden fragment lands on the next drawn fragment, otherwise the
@@ -313,14 +319,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         source position; an empty range is filled by source preparation.
         """
         loaded = self.prepared.fragments_in_range
-        at = next((index for index, candidate in enumerate(loaded)
-                   if candidate.matches_position(position, part)), None)
-        if at is None:
+        target = next(islice(self.fragment_matches(position, part), occurrence, None), None)
+        if target is None:
             return None
+        at = loaded.index(target)
         for candidate in chain(loaded[at:], reversed(loaded[:at])):
             if (slot := self._fragment_slots.get(id(candidate))) is not None:
                 _fragment, first, lines = self._layout[slot]
-                same = candidate.matches_position(position, part)
+                same = candidate is target
                 wanted = block if same else 0
                 span = lines.block_span(lambda span: span.drawn and span.index >= wanted)
                 if span is not None:

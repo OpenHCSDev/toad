@@ -55,8 +55,12 @@ class ReaderPosition(ABC):
             first, page = reading
             span = page.fragment_at(max(0, int(y - first)))
             fragment = span.fragment
+            occurrence = next(index for index, candidate in enumerate(
+                page.fragment_matches(fragment.arrival_position, fragment.part_position.index))
+                if candidate is fragment)
             return FragmentPosition(fragment.arrival_position, (y - first - span.first) / span.height,
-                                    span.height, part=fragment.part_position.index, block=span.index)
+                                    span.height, part=fragment.part_position.index, block=span.index,
+                                    occurrence=occurrence)
         return BlockPosition.of(window)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
@@ -198,11 +202,12 @@ class FragmentPosition(OffsetPosition):
     height: int
     part: int = field(kw_only=True)
     block: int = field(kw_only=True)
+    occurrence: int = field(default=0, kw_only=True)
 
     def page(self, window: "HistoryWindow"):
         """The displayed page that holds this message."""
         return next((page for page in window.drawn_pages()
-                     if page.fragment_row(self.position, self.part, self.block) is not None), None)
+                     if page.fragment_row(self.position, self.part, self.block, self.occurrence) is not None), None)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         page = self.page(window)
@@ -221,7 +226,7 @@ class FragmentPosition(OffsetPosition):
 
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
-        span = page.fragment_row(self.position, self.part, self.block)
+        span = page.fragment_row(self.position, self.part, self.block, self.occurrence)
         # A hidden child lands on the next drawn sibling, otherwise the previous.
         return window.row_of(page) + span.first + (self.fraction * span.height if span.drawn else 0)
 

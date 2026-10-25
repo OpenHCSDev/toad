@@ -48,7 +48,10 @@ class RecordedHistoryScreen(WorkspaceScreen):
         if span is None:
             return
         fragment = span.fragment
-        reader = (fragment.arrival_position, fragment.part_position.index, span.index,
+        # Distinct fragments may share source position and part. Observe their
+        # source-page order too: moving to the next occurrence resets its block.
+        reader = (fragment.arrival_position, fragment.part_position.index,
+                  page.prepared.fragments.index(fragment), span.index,
                   (y - first - span.first) / span.height)
         self.frames.append((y, reader, page.prepared.start, page.prepared.stop))
 
