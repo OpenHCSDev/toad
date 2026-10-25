@@ -4,7 +4,7 @@ from textual.containers import Vertical
 from textual.reactive import reactive
 from pathlib import Path
 from contextlib import contextmanager
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver

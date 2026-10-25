@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.routing import MessageRoute
+from agent_comms.routing import MessageRoute, NoMessageRoute
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.message_category import MessageCategory
@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 
 class ResponseDelivery(DeclaredFamily, affix="Response"):
     @classmethod
-    def from_route(cls, route: MessageRoute | None) -> ResponseDelivery:
-        """Decode the optional routing annotation at the ACP/transcript boundary."""
-        return UnroutedResponse() if route is None else RoutedResponse(route)
+    def from_route(cls, route: MessageRoute | NoMessageRoute) -> ResponseDelivery:
+        """Derive response delivery from the route's declared presence."""
+        return next(map(RoutedResponse, route.present()), UnroutedResponse())
 
     @property
     @abstractmethod

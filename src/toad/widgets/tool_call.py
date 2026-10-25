@@ -14,7 +14,7 @@ from textual.widget import Widget
 
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
 from toad.line_blocks import Body, ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem

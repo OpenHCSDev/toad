@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.acp_extension import InputStartedUpdate
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage

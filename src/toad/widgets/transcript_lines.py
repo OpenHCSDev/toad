@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
     from toad.widgets.transcript_fragments import Shown, TranscriptFragment
 
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from rich._wrap import divide_line
 from rich.cells import cell_len, set_cell_size
 from rich.columns import Columns
@@ -729,9 +729,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
         return block.prepare(self.markdown)
 
     def markdown(self, block: Body) -> StyledBody:
-        console = MarkdownStyleConsole(
-            force_terminal=True, file=io.StringIO(), color_system=self.preparation.theme.color_system
-        )
+        console = MarkdownStyleConsole(self.preparation.theme, force_terminal=True, file=io.StringIO())
         return StyledBody(block, console.prepare(block.text, self.context))
 
     @handles(WireBody)

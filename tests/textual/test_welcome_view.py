@@ -114,3 +114,18 @@ async def test_a_launch_that_names_a_session_opens_it(workspace):
         await ui.until(lambda: len(ui.tabs()) == 1, why="the named session's tab")
         assert ui.selected_tab == ui.tabs()[0].identity
         assert not ui.shows(HINT)
+
+
+async def test_a_thread_row_tooltip_names_its_model_by_text(workspace):
+    from dataclasses import replace
+
+    from agent_comms.thread_model import DeclaredModel
+    from toad.widgets.comms_sidebar import ThreadStatusRow
+
+    thread = Thread("alpha", frozenset({"team"}), str(workspace.project))
+    workspace.comms.registry.declare(replace(thread, model=DeclaredModel("openai-codex/gpt-6.1-sol")))
+    async with workspace.app(session=False) as ui:
+        await ui.until_shows(THREADS)
+        app, _ = ui.textual
+        row = next(row for row in app.screen.query(ThreadStatusRow) if row.thread_row.name == "alpha")
+        assert "openai-codex/gpt-6.1-sol" in str(row.tooltip).splitlines()

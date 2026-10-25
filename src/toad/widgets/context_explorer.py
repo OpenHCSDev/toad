@@ -7,10 +7,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-from acp.exceptions import RequestError
+from agent_comms.coordination_errors import Refused
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
 from textual import on, work
 from textual.containers import Horizontal, Vertical
@@ -386,7 +386,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             native = await captured.inspection.native()
         except asyncio.CancelledError:
             raise
-        except RequestError as error:
+        except Refused as error:
             if self._reading(captured.thread_identity):
                 self._native_acquired(self.state.native_failed(captured.inspection, error))
         else:

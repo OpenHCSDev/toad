@@ -1,7 +1,7 @@
 """Owner-scoped right-sidebar communication and explicitly declared work links."""
 
 from __future__ import annotations
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.session_scope import SessionScope
 from toad.thread_identity import ThreadIdentity, SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity

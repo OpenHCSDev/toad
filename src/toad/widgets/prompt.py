@@ -357,7 +357,7 @@ See on-screen instructions for details.
         if not label.cell_length or self.scroll_offset.y + y != self.virtual_size.height - 1:
             return line
         return Strip.join((
-            line.crop_extend(0, self.text_width, None),
+            line.crop_extend(0, self.text_width, paint.visual_style.rich_style),
             Strip(label.render_segments(paint.visual_style), label.cell_length),
         ))
 

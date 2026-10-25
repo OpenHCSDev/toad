@@ -1,6 +1,6 @@
 """The Textual message pump carries application publications unchanged."""
 
-from agent_comms.mro_dispatch import MroDispatch
+from metaclass_registry.mro_dispatch import MroDispatch
 from textual._callback import invoke
 from textual.message import Message
 from functools import cached_property, partial

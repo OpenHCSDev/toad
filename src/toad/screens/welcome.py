@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.channel_targets import NoChannel
 from agent_comms.ui_model.sidebar import SidebarModel
 from textual.app import ComposeResult

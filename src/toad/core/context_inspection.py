@@ -8,20 +8,18 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable
 
-from acp.exceptions import RequestError
+from agent_comms.coordination_errors import Refused
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from agent_comms.importing import ImportedSessionMetadata
-from agent_comms.mro_dispatch import handles
-from agent_comms.native_session_files import NativeSessionFiles
-from agent_comms.native_session_reopen import NativeSessionIdentity
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.presentation import ReadState
 from agent_comms.registry_document import RegistryEntry
-from agent_comms.session_revision import SessionObservation, SessionRevision
+from agent_comms.session_revision import SessionObservation
 from agent_comms.thread_status import ActiveThreadPresence, ThreadStatus
 from agent_comms.turn_context import (
     CodexRolloutProvenance,
@@ -545,12 +543,8 @@ class ContextInspection:
             tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
         inspection_type = ThreadInspectionSource().project_value(entry.status)
-        files = NativeSessionFiles.for_identity(
-            NativeSessionIdentity.locate(thread.runtime.path),
-            root=comms.root, owner=thread.incarnation.require_recorded(),
-        )
-        return inspection_type(entry, page, SessionRevision.observe(files), comms,
-                               annotations, imported)
+        return inspection_type(entry, page, thread.runtime.session_observation(comms.root, thread),
+                               comms, annotations, imported)
 
     async def acquire(self, revision: ReadState):
         return HoldingInspection(await self.acquire_core(), revision)
@@ -785,7 +779,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def with_native(self, inspection: ContextInspection, native: NativeContextData) -> InspectionState:
         return self
 
-    def native_failed(self, inspection: ContextInspection, error: RequestError) -> InspectionState:
+    def native_failed(self, inspection: ContextInspection, error: Refused) -> InspectionState:
         return self
 
     def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
@@ -883,7 +877,7 @@ class HoldingInspection(InspectionState):
     def with_native(self, inspection: ContextInspection, native: NativeContextData) -> InspectionState:
         return NativeInspection(self.inspection, self.revision, native) if self.same_source(inspection) else self
 
-    def native_failed(self, inspection: ContextInspection, error: RequestError) -> InspectionState:
+    def native_failed(self, inspection: ContextInspection, error: Refused) -> InspectionState:
         return UnavailableNativeInspection(self.inspection, self.revision, str(error)) if self.same_source(inspection) else self
 
     def current_roots(self):
