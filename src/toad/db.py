@@ -41,6 +41,10 @@ class ToadDatabase(WriterOwnedStore):
         return paths.get_state() / "toad.db"
 
     @classmethod
+    def paths(cls) -> tuple[Path, ...]:
+        return (cls.path(),)
+
+    @classmethod
     def table_schema(cls) -> type[TableSchema]:
         return ToadTables
 
