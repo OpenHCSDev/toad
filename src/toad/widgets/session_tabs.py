@@ -296,9 +296,8 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
         async with self._sync_lock:
             geometry_changed = False
             for mode, tab in (self._last_tabs or {}).items():
-                if tab.repainted_by(event.observation):
-                    if (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
-                        geometry_changed |= label.present(tab)
+                if (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
+                    geometry_changed |= label.present(tab)
             if geometry_changed:
                 self.call_after_refresh(self.show_selected_tab)
 

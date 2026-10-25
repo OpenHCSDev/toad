@@ -23,7 +23,6 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 
 if TYPE_CHECKING:
     from agent_comms.commander_hud import CommanderHud
-    from agent_comms.ui_model.sidebar import SidebarObservation
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
@@ -178,8 +177,6 @@ class CoordinationObserved(CoalescingEvent):
 @dataclass(frozen=True)
 class SidebarPresented(CoalescingEvent):
     """The sidebar's current observation is ready for every view of its counts."""
-
-    observation: SidebarObservation
 
 
 @dataclass(frozen=True)

@@ -6,7 +6,7 @@ from time import time
 from typing import TYPE_CHECKING, Iterable, Sequence
 
 from agent_comms.display_references import CurrentDisplayReferences
-from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation, ThreadRowModel
+from agent_comms.ui_model.sidebar import SidebarModel, ThreadRowModel
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 from textual.content import Content
 
@@ -37,9 +37,6 @@ class OpenTab(ABC):
     def unread(self) -> UnreadPresentation:
         return ExactUnread()
 
-    def repainted_by(self, observation: SidebarObservation) -> bool:
-        return False
-
     def label(self) -> Content:
         return Content(self.title)
 
@@ -66,9 +63,6 @@ class ConversationTab(NamedTab):
     @property
     def unread(self) -> UnreadPresentation:
         return self.conversation.unread(self.sidebar.observation, self.references)
-
-    def repainted_by(self, observation: SidebarObservation) -> bool:
-        return True
 
 
 @dataclass(frozen=True)
