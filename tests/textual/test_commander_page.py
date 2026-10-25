@@ -23,5 +23,5 @@ async def test_opening_the_commander_page_renders_a_hud_change(workspace):
         await ui.step()
         rows = page.query_one("#hud-rows").query(Static)
         assert [str(row.render()) for row in rows][:2] == [
-            "Commander claude-code", f"Load {hud.load}",
+            "Commander claude-code", str(hud.load),
         ]

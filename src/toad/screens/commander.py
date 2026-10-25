@@ -49,7 +49,7 @@ class HudRowWidgets(MroDispatch):
 
     @handles(OverloadDegradation)
     def load(self, load: OverloadDegradation) -> Widget:
-        return Static(f"Load {load}", markup=False, classes="hud-load")
+        return Static(str(load), markup=False, classes="hud-load")
 
     @handles(CommanderPhase)
     def phase(self, phase: CommanderPhase) -> Widget:
