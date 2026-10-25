@@ -75,8 +75,7 @@ class UnloadedFragment(FragmentLocation):
         return False
 
     def destination(self, window: HistoryWindow, fraction: float) -> float:
-        raise LookupError("The reader's source fragment has no drawn destination yet")
-
+        raise FragmentNotLoaded("The reader's source fragment has no drawn destination yet")
 
     def find_in(self, pages: Iterator[TranscriptPageView], position: FragmentPosition) -> FragmentLocation:
         for page in pages:
