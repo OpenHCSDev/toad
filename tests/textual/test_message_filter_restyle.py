@@ -70,7 +70,8 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
                 for index in range(300)))
         workspace.comms.registry.declare(replace(
             workspace.comms.registry.require("source"), session_file=RegistrySessionLocation.from_path(str(replacement), workspace.comms.root)))
-        page = await ui.app.preparation.run_thread(workspace.comms.transcripts.thread_transcript_page, "source")
+        page = await ui.app.preparation.run_thread(
+            lambda: workspace.comms.transcripts.capture_page_read("source").read())
         prepared = await ui.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
         assert await history.show_newest(PreparedReplacementViewportRequest(
             LatestPosition.hold(view.window), prepared))

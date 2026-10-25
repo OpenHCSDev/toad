@@ -14,10 +14,10 @@ from toad.widgets.presentation_window import OLDER_END
 @pytest.mark.parametrize("cause", ("current", "revision", "edge", "parked", "loader"))
 async def test_older_page_is_published_only_when_the_source_did_not_change_during_the_read(workspace, cause):
     journal = journals.write_journal(workspace.project / "saved.jsonl", *(
-        journals.assistant_entry(f"Saved row {i}.", id=f"a{i}", parent=f"a{i - 1}" if i else None) for i in range(4)))
+        journals.assistant_entry(f"Saved row {i}.", id=f"a{i}", parent=f"a{i - 1}" if i else None) for i in range(21)))
     transcripts = workspace.comms.transcripts
     workspace.comms.registry.declare(replace(workspace.thread("saved"), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
-    page = transcripts.thread_transcript_page("saved", max_messages=1)
+    page = transcripts.capture_page_read("saved").read()
     assert page.has_older
     async with workspace.app(size=(110, 35)) as ui:
         view = ui.conversation
@@ -26,7 +26,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
         async def loader(**bounds):
             entered.set()
             await release.wait()
-            return await asyncio.to_thread(transcripts.thread_transcript_page, "saved", max_messages=1, **bounds)
+            return await asyncio.to_thread(lambda: transcripts.capture_page_read("saved", **bounds).read())
 
         history = await saved_history(view, page, loader)
         await view.contents.mount(history)
@@ -74,13 +74,13 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
 
 async def test_requested_older_page_is_read_by_the_history_worker(workspace):
     journal = journals.write_journal(workspace.project / "saved.jsonl", *(
-        journals.assistant_entry(f"Saved row {i}.", id=f"a{i}", parent=f"a{i - 1}" if i else None) for i in range(4)))
+        journals.assistant_entry(f"Saved row {i}.", id=f"a{i}", parent=f"a{i - 1}" if i else None) for i in range(21)))
     transcripts = workspace.comms.transcripts
     workspace.comms.registry.declare(replace(workspace.thread("saved"), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
-    page = transcripts.thread_transcript_page("saved", max_messages=1)
+    page = transcripts.capture_page_read("saved").read()
 
     async def loader(**bounds):
-        return await asyncio.to_thread(transcripts.thread_transcript_page, "saved", max_messages=1, **bounds)
+        return await asyncio.to_thread(lambda: transcripts.capture_page_read("saved", **bounds).read())
 
     async with workspace.app(size=(110, 35)) as ui:
         scheduled = await saved_history(ui.conversation, page, loader)

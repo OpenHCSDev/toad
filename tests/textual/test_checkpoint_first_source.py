@@ -22,7 +22,7 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
     thread = workspace.thread("source")
     workspace.thread("peer")
     notice = comms.messaging.send("peer", "source", "ORIGINAL_WIRE_NOTICE").message
-    old_page = comms.transcripts.thread_transcript_page("source")
+    old_page = comms.transcripts.capture_page_read("source").read()
     assert not old_page.after.session_file
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation

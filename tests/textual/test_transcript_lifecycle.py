@@ -15,10 +15,11 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
     source = journals.write_journal(workspace.project / "session.jsonl",
                                     journals.assistant_entry("Retain the source", id="a1"))
     workspace.comms.registry.declare(replace(workspace.thread("source"), session_file=RegistrySessionLocation.from_path(source, workspace.comms.root)))
-    page = workspace.comms.transcripts.thread_transcript_page("source")
+    page = workspace.comms.transcripts.capture_page_read("source").read()
     async with workspace.app() as ui:
         async def loader(**bounds):
-            return await asyncio.to_thread(workspace.comms.transcripts.thread_transcript_page, "source", **bounds)
+            return await asyncio.to_thread(
+                lambda: workspace.comms.transcripts.capture_page_read("source", **bounds).read())
 
         history = await saved_history(ui.conversation, page, loader, committed=False)
         assert isinstance(history.state, DetachedTranscript)

@@ -25,7 +25,7 @@ def saved_page(workspace, name):
                                                 id=f"{name}-{i}", parent=entries[-1]["id"] if entries else None))
     source = journals.write_journal(workspace.project / f"{name}.jsonl", *entries)
     workspace.comms.registry.declare(replace(workspace.thread(name), session_file=RegistrySessionLocation.from_path(source, workspace.comms.root)))
-    return workspace.comms.transcripts.thread_transcript_page(name)
+    return workspace.comms.transcripts.capture_page_read(name).read()
 
 
 async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_history_and_covered_stream(workspace):
