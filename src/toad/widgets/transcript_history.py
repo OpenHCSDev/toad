@@ -340,6 +340,16 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         return next(index for index, candidate in enumerate(self.fragment_matches(
             fragment.arrival_position, fragment.part_position.index)) if candidate is fragment)
 
+    def hold_fragment_top(self, window: HistoryWindow, fragment: TranscriptFragment) -> None:
+        """Keep this page's activated occurrence at the top while its details change."""
+        position = fragment.arrival_position
+        part = fragment.part_position.index
+        occurrence = self.occurrence_of(fragment)
+        for placed in self.fragment_row(position, part, 0, occurrence).locations():
+            if placed.drawn:
+                window.reader_position = FragmentPosition(
+                    position, 0, placed.height, part=part, block=0, occurrence=occurrence)
+
     def fragment_row(self, position: int | str, part: int, block: int,
                      occurrence: int) -> FragmentLocation:
         """A source child's first measured row, height and whether the page draws it.
@@ -660,25 +670,10 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
 
     async def toggle_details(self, fragment: TranscriptFragment) -> None:
         """Show a fragment's details, or hide them when they are shown."""
-        self.hold_fragment_top(fragment)
+        page = next(page for page in self.pages
+                    if any(candidate is fragment for candidate in page.prepared.fragments_in_range))
+        page.hold_fragment_top(self.window, fragment)
         await self._show([(fragment, fragment.shown.toggled())])
-
-    def hold_fragment_top(self, fragment: TranscriptFragment) -> None:
-        """Row activation owns the reader: the activated row's top stays visible.
-
-        Activation is the reader's own choice of place; the layout keeps the
-        row's top on screen across the rows the toggle adds or removes.
-        """
-        position = fragment.arrival_position
-        part = fragment.part_position.index
-        for page in self.pages:
-            if any(candidate is fragment for candidate in page.prepared.fragments_in_range):
-                occurrence = page.occurrence_of(fragment)
-                for placed in page.fragment_row(position, part, 0, occurrence).locations():
-                    if placed.drawn:
-                        self.window.reader_position = FragmentPosition(
-                            position, 0, placed.height, part=part, block=0, occurrence=occurrence)
-                return
 
     def can_expand(self) -> bool | None:
         fragment = self.block_cursor.current
