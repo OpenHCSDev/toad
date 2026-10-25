@@ -290,6 +290,7 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
             conversation.label(references),
             conversation,
             observed.sidebar,
+            references,
         )
 
     def depends_on(self, mode: str) -> bool:
