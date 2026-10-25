@@ -23,6 +23,7 @@ from toad.session_scope import SessionScope
 from toad.tab_identity import TabIdentity
 from toad.session_tracker import (
     CommsViewKey,
+    ConversationTab,
     NamedTab,
     OpenTab,
     SessionDetails,
@@ -284,10 +285,11 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
     @handles(CurrentDisplayReferences)
     def referenced_tab(self, references, observed) -> OpenTab:
         conversation = self.key.conversation
-        return NamedTab(
+        return ConversationTab(
             self.identity,
             conversation.label(references),
-            conversation.unread(observed.sidebar.observation),
+            conversation,
+            observed.sidebar,
         )
 
     def depends_on(self, mode: str) -> bool:
