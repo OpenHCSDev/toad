@@ -33,6 +33,7 @@ from agent_comms.route_selection import RouteSelection
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.ui_model.observation import (
     CommanderHudObserved,
+    CommanderHudUnreadable,
     ObserveCommanderHud,
     StopCommanderHud,
     NotificationsObserved,
@@ -58,6 +59,7 @@ from agent_comms.ui_model.status import OpenThreadStatus
 
 from toad.core.events import (
     CommanderHudChanged,
+    CommanderHudFailed,
     CoordinationObserved,
     CoreEventStream,
     ExternalTranscriptChanged,
@@ -423,6 +425,10 @@ class CoordinationAccess(MroDispatch):
     @handles(CommanderHudObserved)
     def commander_hud_observed(self, result: CommanderHudObserved, observed: Observing) -> None:
         self.events.publish(CommanderHudChanged(result.huds))
+
+    @handles(CommanderHudUnreadable)
+    def commander_hud_unreadable(self, result: CommanderHudUnreadable, observed: Observing) -> None:
+        self.events.publish(CommanderHudFailed(result.error))
 
     @handles(SidebarObserved)
     def sidebar_observed(self, result: SidebarObserved, observed: Observing) -> None:

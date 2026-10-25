@@ -23,6 +23,7 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 
 if TYPE_CHECKING:
     from agent_comms.commander_hud import CommanderHud
+    from agent_comms.ui_model.observation import UnreadableHistory
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
@@ -184,6 +185,13 @@ class CommanderHudChanged(CoalescingEvent):
     """The commander heartbeat replaced its frames; Core derived every field."""
 
     huds: tuple[CommanderHud, ...]
+
+
+@dataclass(frozen=True)
+class CommanderHudFailed(CoalescingEvent):
+    """A commander frame is unreadable; the page retains its last good frame."""
+
+    error: UnreadableHistory
 
 
 @dataclass(frozen=True)
