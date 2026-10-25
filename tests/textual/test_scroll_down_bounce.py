@@ -1,4 +1,4 @@
-"""Downward wheel travel must not publish a backwards reader after page eviction."""
+"""Textual-facing: downward wheel travel never publishes a backwards reader after page eviction."""
 
 import asyncio
 from functools import partial
@@ -82,7 +82,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
     # Derived from the laptop's saved mfd conversation, not invented heights.
     # Native entry kinds, text whitespace/punctuation/cell widths and identities
     # are retained; letters/digits are masked and image pixels are blanked.
-    fixture = Path(__file__).with_name("fixtures") / "laptop_scroll_shape.jsonl.gz"
+    fixture = Path(__file__).parents[1] / "fixtures" / "laptop_scroll_shape.jsonl.gz"
     journal = workspace.project / "laptop-history.jsonl"
     journal.write_bytes(gzip.decompress(fixture.read_bytes()))
     owner = workspace.comms.registry.declare(Thread(
