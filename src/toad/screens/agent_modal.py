@@ -1,4 +1,3 @@
-from typing import cast
 
 from textual import on
 from textual import getters
@@ -13,7 +12,7 @@ from toad.widgets.footer import ToadFooter
 
 import toad
 from textual.binding import Binding
-from toad.agent_schema import AgentDefinition, OS
+from toad.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction, LaunchAction
 from toad.core.session_requests import LaunchAgent
 from toad.app import ToadApp
@@ -47,7 +46,7 @@ class AgentModal(ModalScreen[LaunchAgent | None]):
         launcher_set = frozenset(app.settings.launcher.agents.splitlines())
         agent = self.agent
         operations = [CatalogCommandAction.bind(name, command)
-                      for name, command in agent.commands_for(cast(OS, toad.os)).items()]
+                      for name, command in agent.commands_for(toad.platform).items()]
         choices = [*operations, LaunchAction(agent)]
 
         with containers.Vertical(id="container"):

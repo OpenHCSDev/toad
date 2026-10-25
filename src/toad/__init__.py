@@ -1,32 +1,64 @@
-from typing import Literal, Mapping
-import platform
+from __future__ import annotations
+
+import platform as _platform
+from typing import TYPE_CHECKING, ClassVar, Literal, Mapping
+
+if TYPE_CHECKING:
+    from toad.setting_choices import DesktopService
 
 NAME = "toad"
 TITLE = "Toad"
 
 type OS = Literal["linux", "macos", "windows", "*"]
 
-_system = platform.system()
-_OS_map: dict[str, OS] = {
-    "Linux": "linux",
-    "Darwin": "macos",
-    "Windows": "windows",
-}
-os: OS = _OS_map.get(_system, "linux")
+
+class Platform:
+    """The operating system Toad runs on; each member owns what differs there."""
+
+    system: ClassVar[str]
+    key: ClassVar[OS]
+    application_name: ClassVar[str] = "Toad"
+    members: ClassVar[dict[str, type[Platform]]] = {}
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        Platform.members[cls.system] = cls
+
+    @classmethod
+    def select[V](cls, matrix: Mapping[OS, V]) -> V | None:
+        """The catalog's exact platform entry, or its declared wildcard."""
+        return matrix.get(cls.key, matrix.get("*"))
+
+    @classmethod
+    def desktop(cls) -> DesktopService:
+        from toad.setting_choices import DesktopService
+
+        return DesktopService()
 
 
-def get_os_matrix(matrix: Mapping[OS, str]) -> str | None:
-    """Get a value from a mapping where the key is an OS, falling back to a wildcard ("*").
+class LinuxPlatform(Platform):
+    system = "Linux"
+    key = "linux"
 
-    Args:
-        matrix: A mapping where an OS literal is the key.
+    @classmethod
+    def desktop(cls) -> DesktopService:
+        from toad.setting_choices import UncheckedDBusDesktop
 
-    Returns:
-        The value, if one is found, or `None`.
-    """
-    if (result := matrix.get(os)) is None:
-        result = matrix.get("*")
-    return result
+        return UncheckedDBusDesktop()
+
+
+class MacPlatform(Platform):
+    system = "Darwin"
+    key = "macos"
+    application_name = "🐸 Toad"
+
+
+class WindowsPlatform(Platform):
+    system = "Windows"
+    key = "windows"
+
+
+platform: type[Platform] = Platform.members.get(_platform.system(), LinuxPlatform)
 
 
 def get_version() -> str:
