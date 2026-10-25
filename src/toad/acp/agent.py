@@ -18,7 +18,6 @@ from agent_comms.goals import Goal, GoalDeclaration, NoGoal
 from agent_comms.runtime_requests import GoalHistoryReply
 from agent_comms.ui_model.observation import ReadOwnerGoal
 
-import toad
 from toad import paths
 from toad.acp.agent_configuration import (
     ModelConfigurationSetting,
@@ -48,6 +47,7 @@ from toad.agent import AgentBase
 from toad.agent_presentation import ACPAgentPresentation
 from toad.agent_schema import AgentDefinition
 from toad.core import events as core_events
+from toad.platform import host
 
 
 def generate_datetime_filename(
@@ -124,8 +124,7 @@ class Agent(AgentBase):
     @property
     def command(self) -> str | None:
         """The command used to launch the agent, or `None` if there isn't one."""
-        acp_command = toad.get_os_matrix(self.definition.run_command)
-        return acp_command
+        return host.select(self.definition.run_command)
 
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.project_root_path

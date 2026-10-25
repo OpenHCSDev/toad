@@ -166,7 +166,7 @@ class NoAgentConnection(AgentConnection):
         """No remote queue is bound."""
 
     async def get_goal_history(self, goal_id: str) -> GoalHistoryReply:
-        return GoalHistoryReply(())
+        return GoalHistoryReply.empty()
 
     async def update_goal(self, action: type[GoalAction], text: str):
         raise ValueError("Persistent goals require an agent-comms session")

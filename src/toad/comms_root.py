@@ -26,7 +26,7 @@ from agent_comms.coordination_errors import StaleRevision
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_runtime import LaunchRuntime
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
 from agent_comms.route_selection import RouteSelection
@@ -64,6 +64,7 @@ from toad.core.events import (
     LinkContextChanged,
     ObservedServiceChanged,
     OpenTabsChanged,
+    SidebarPresented,
     ThreadRowsChanged,
 )
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
@@ -463,9 +464,10 @@ class CoordinationAccess(MroDispatch):
         self.app.show_error(result.error, "Sidebar unavailable")
 
     def present_sidebar(self) -> None:
-        """Present the current backend answer even when its row set stays empty."""
+        """Present the same backend answer to the sidebar and its other views."""
         for view in tuple(self.sidebar_views):
             view.present()
+        self.events.publish(SidebarPresented())
 
     def take_sidebar_waiters(self, answered: ObserveSidebar) -> list[asyncio.Future[SidebarObservation]]:
         """Retire answered reads once, leaving other interests subscribed."""

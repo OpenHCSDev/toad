@@ -4,8 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from agent_comms.declared_family import DeclaredFamily
-from toad.widget_actions import NativeAction
+from toad.widget_actions import Action
 from toad.agent_schema import AgentDefinition, Command
 
 if TYPE_CHECKING:
@@ -14,7 +13,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class CatalogCommandAction(NativeAction, DeclaredFamily, affix="Action"):
+class CatalogCommandAction(Action, affix="Action"):
     """A bounded selector binding references the original configured record."""
 
     name: str
@@ -92,7 +91,7 @@ class LoginAction(CatalogCommandAction):
 
 
 @dataclass(frozen=True, eq=False)
-class LaunchAction(NativeAction):
+class LaunchAction(Action):
     """Native selector resource bound to the original agent definition."""
 
     agent: AgentDefinition

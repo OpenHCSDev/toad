@@ -8,7 +8,6 @@ from acp import schema
 
 from support.native import ControlledProvider, native_session
 from toad.answer import Answer
-from toad.application_actions import KeyboundAction
 from toad.question_actions import QuestionAction
 from toad.screens.permissions import PermissionsScreen
 from toad.widgets.flash import Flash
@@ -93,9 +92,8 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
                 await result
 
         # A newly declared question action gets its key, availability and effect with no other edit.
-        class ReviewAction(KeyboundAction, QuestionAction):
-            key = "f8"
-            description = "Review"
+        class ReviewAction(QuestionAction):
+            keys = ("f8",)
 
             def available(self, question):
                 return question.accepts_selection

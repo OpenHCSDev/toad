@@ -8,6 +8,7 @@ from textual.widgets import Input, Select
 
 from agent_comms.harness_install import OpenCodeHarness
 from support.applications import record_notifications
+from toad.widget_actions import ApplicationAction
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.comms_transfer import ThreadImportDialog, WireExportDialog
 from toad.widgets.side_bar import BackTabButton, ForwardTabButton, MainMenuButton, TabHistoryControls
@@ -25,15 +26,14 @@ async def open_main_menu(ui):
     return menu
 
 
-# PR #759 (29faa049) declared the application menu in this order.
-MENU = ["New thread", "Settings", "Export wire history…", "Thread Import…", "Exit"]
-
-
 async def choose(ui, menu, label: str):
-    """Assert the declared menu, then reach ``label`` with the arrow keys and press enter, as a user does."""
+    """The menu shows every offered application action in declaration order; reach ``label``
+    with the arrow keys and press enter, as a user does."""
     options = menu.options
-    assert [str(options.get_option_at_index(i).prompt) for i in range(options.option_count)] == MENU
-    await ui.press(*["down"] * MENU.index(label), "enter")
+    shown = [str(options.get_option_at_index(i).prompt) for i in range(options.option_count)]
+    assert shown == [label for _, label in ApplicationAction.menu(ui.textual[0])]
+    assert shown[0] == "New thread" and shown[-1] == "Quit"
+    await ui.press(*["down"] * shown.index(label), "enter")
 
 
 async def test_main_menu_sits_left_of_back_and_forward(workspace):

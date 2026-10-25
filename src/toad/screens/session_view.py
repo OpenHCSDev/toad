@@ -4,7 +4,7 @@ from textual.containers import Vertical
 from textual.reactive import reactive
 from pathlib import Path
 from contextlib import contextmanager
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
@@ -68,11 +68,15 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
         """Views without a conversation have no native transcript to mark read."""
         return NothingToRead()
 
-    @handles(TranscriptSourceWorkFinished)
-    def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
-        message.stop()
+    def history_painted(self) -> None:
+        """Only the session on screen reads what it painted; hidden tabs stay unread."""
         if self.is_current:
             self.mark_visible()
+
+    @handles(TranscriptSourceWorkFinished)
+    def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
+        message.stop()
+        self.history_painted()
 
     async def open_direct_messages(self) -> None:
         """Open this session's direct-message destination when it has one."""

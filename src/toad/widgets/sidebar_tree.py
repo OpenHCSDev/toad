@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from toad.widgets.thread_comms import RelationshipRows
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from agent_comms.ui_model.unread import UnreadPresentation
@@ -45,7 +45,7 @@ from toad.core.events import (
     SessionSelected,
     ThreadRowStateChanged,
 )
-from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.side_bar import SideBar
 from toad.widgets.sidebar_viewport import SidebarHeader
 
@@ -718,13 +718,13 @@ class SidebarModelView(CoreEventReceiver, Widget):
         self.model_state.apply(self, previous.changes(changes))
 
     @handles(CoordinationObserved)
-    async def coordination_observed(self, event: CoreEventMessage) -> None:
+    async def coordination_observed(self, event: CoordinationObserved) -> None:
         self.app.coordination_access.observation.observed().show_sidebar(self)
 
     @handles(ThreadRowStateChanged)
-    async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
+    async def thread_row_state_changed(self, event: ThreadRowStateChanged) -> None:
         """Repaint only the thread rows named by the app event."""
-        self.present(change=ChangedThreads(event.event.names))
+        self.present(change=ChangedThreads(event.names))
 
 
 class SearchFollower:
@@ -895,12 +895,12 @@ class TargetTree(Vertical):
         )
 
     @handles(SessionSelected)
-    def session_selected(self, event) -> None:
+    def session_selected(self, event: SessionSelected) -> None:
         if not self.rows:
             return
         workspace = self.app.workspace_sessions
         previous = workspace.target_for_mode(
-            event.event.previous_mode, self.navigation_root
+            event.previous_mode, self.navigation_root
         )
         current = workspace.visible_target(self.navigation_root)
         for row in set(self.rows_for_target(previous)).symmetric_difference(

@@ -12,7 +12,6 @@ View, not authority: renders Core's sidebar presentation model
 """
 
 from __future__ import annotations
-from toad.core_event_carrier import CoreEventMessage
 
 import shlex
 from agent_comms.native_arguments import ConfiguredBinary, InheritedArguments
@@ -32,7 +31,7 @@ from textual._activation import PrimaryActivation
 from ui_theme.scheme import AlternateRowToneColour
 
 
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent, ThreadIdentityChanged
 from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.thread_identity import SessionIdentity
@@ -258,8 +257,8 @@ class ThreadStatusRow(CommsRow):
         previous = self.thread_row
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         summary = action_status if action_status is not None else row.summary
-        self.tooltip = Content("\n".join(str(value) for value in (
-            row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
+        self.tooltip = Content("\n".join(value for value in (
+            row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, *row.model.texts(),
         ) if value))
         badge = f"{row.unread.label} " if row.unread.label else ""
         title = self.activity_content(row.title, Content(row.label), self.busy,
@@ -511,7 +510,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         return views
 
     @handles(SessionChangedEvent, ThreadIdentityChanged)
-    async def session_changed(self, event: CoreEventMessage) -> None:
+    async def session_changed(self, event: SessionChangedEvent | ThreadIdentityChanged) -> None:
         self.open_views = self.find_open_views()
 
     @property

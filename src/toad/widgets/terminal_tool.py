@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from textual.content import Content
 from textual.message import Message
 
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from toad.terminal_execution import (
     TerminalExecution, TerminalCompletion, FailedTerminalOutcome,
     RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome,

@@ -1,6 +1,6 @@
 """The Textual message pump carries application publications unchanged."""
 
-from agent_comms.mro_dispatch import MroDispatch
+from metaclass_registry.mro_dispatch import MroDispatch
 from textual._callback import invoke
 from textual.message import Message
 from functools import cached_property, partial
@@ -10,7 +10,10 @@ from toad.core.events import CoreEvent, CoreEventStream, Subscription, ThreadCha
 
 
 async def dispatch_publication(receiver, message) -> None:
-    await receiver.consume_handlers(message, receiver.handlers_for(message.event))
+    # A handler declared for a case receives that case. The carrier follows as
+    # the second value, which only a handler declaring it as a parameter takes.
+    event = message.event
+    await receiver.consume_handlers(event, receiver.handlers_for(event), message)
 
 
 class CoreEventMessage(Message):
@@ -80,12 +83,12 @@ class CoreEventReceiver(MroDispatch):
     def accepts(self, message: CoreEventMessage) -> bool:
         return True
 
-    async def consume_handlers(self, message, handlers, *args, **kwargs):
+    async def consume_handlers(self, event, handlers, *args, **kwargs):
         # Textual callbacks may return native Worker resources. Publications
         # retain their identity; callback returns do not replace their data.
         for handler in handlers:
-            await invoke(partial(handler, **kwargs), message, *args)
-        return message
+            await invoke(partial(handler, **kwargs), event, *args)
+        return event
 
     def observe_core(self, stream: CoreEventStream) -> Subscription:
         """Broadcast observations terminate at their original native recipient."""

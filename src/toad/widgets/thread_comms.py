@@ -1,8 +1,7 @@
 """Owner-scoped right-sidebar communication and explicitly declared work links."""
 
 from __future__ import annotations
-from agent_comms.mro_dispatch import handles
-from toad.core_event_carrier import CoreEventMessage
+from metaclass_registry.mro_dispatch import handles
 from toad.session_scope import SessionScope
 from toad.thread_identity import ThreadIdentity, SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
@@ -358,14 +357,14 @@ class ThreadCommsSidebar(
         )
 
     @handles(core_events.OpenTabsChanged, core_events.SessionSelected)
-    async def _session_changed(self, event: CoreEventMessage) -> None:
+    async def _session_changed(self, event: core_events.OpenTabsChanged | core_events.SessionSelected) -> None:
         if not self._presentation_visible():
             return
         self._sync_filter_control()
         self.refresh_relationships()
 
     @handles(core_events.CoordinationObserved)
-    async def _observed(self, event: CoreEventMessage) -> None:
+    async def _observed(self, event: core_events.CoordinationObserved) -> None:
         if not self._presentation_visible():
             return
         self.refresh_relationships()

@@ -1,5 +1,5 @@
-from agent_comms.mro_dispatch import handles
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from metaclass_registry.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver
 from toad.core import events as core_events
 from textual.content import Content
 from toad.widget_actions import ApplicationAction
@@ -340,7 +340,7 @@ class MainMenuButton(HeaderButton):
             self.screen,
             Offset(self.region.x, self.region.bottom),
             "Toad",
-            ApplicationAction.menu(),
+            ApplicationAction.menu(self.app),
             callback=self.chosen,
         )
 
@@ -372,7 +372,7 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
         self._sync()
 
     @handles(core_events.TabHistoryChanged, core_events.OpenTabsChanged)
-    async def history_changed(self, event: CoreEventMessage) -> None:
+    async def history_changed(self, event: core_events.TabHistoryChanged | core_events.OpenTabsChanged) -> None:
         self._sync()
 
     def _sync(self) -> None:
@@ -945,9 +945,9 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
         return ("<" if self.right else ">") if self.collapsed else ""
 
     @handles(PreferenceChanged)
-    async def _settings_changed(self, message: CoreEventMessage) -> None:
-        if SETTINGS.sidebar.hide.matches(message.event.field):
-            self.collapsed = message.event.field.value
+    async def _settings_changed(self, event: PreferenceChanged) -> None:
+        if SETTINGS.sidebar.hide.matches(event.field):
+            self.collapsed = event.field.value
 
     @on(SideBarToggle.Pressed)
     def on_toggle_pressed(self, event: SideBarToggle.Pressed) -> None:

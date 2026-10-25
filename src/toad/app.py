@@ -1,5 +1,4 @@
 from toad.core import events as core_events
-from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoordinationAccess
@@ -34,7 +33,7 @@ from textual.screen import Screen
 from toad import messages
 from toad.core import session_requests
 from toad.core_event_carrier import CoreEventReceiver
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.session_scope import AgentBinding
 from toad.render_backend import Renderer
 from toad.work_preparation import PreparationRuntime
@@ -456,11 +455,10 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def history_displayed(self) -> None:
         """A view's history was painted."""
         self.heap.history_displayed(self)
-        self.selected_session.mark_visible()
 
     @handles(session_requests.WorkspaceSessionRequest)
-    async def on_workspace_session_request(self, event: CoreEventMessage) -> None:
-        await event.event.apply(self.session_navigation)
+    async def on_workspace_session_request(self, event: session_requests.WorkspaceSessionRequest) -> None:
+        await event.apply(self.session_navigation)
 
     @on(events.TextSelected)
     async def on_text_selected(self) -> None:

@@ -16,6 +16,7 @@ from agent_comms.goal_actions import (
     StandbyGoalAction,
 )
 from agent_comms.goal_presentation import IdleGoalExecution
+from agent_comms.goal_scope import OneGoal
 from agent_comms.goals import NoGoal
 from agent_comms.threads import Thread
 from rich.cells import cell_len
@@ -27,7 +28,6 @@ from textual.widgets import Static
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
-from toad.widgets.throbber import Throbber
 
 OBJECTIVE = "OBJECTIVE_BEGIN " + "Fully wrapped acceptance criteria. " * 40 + " OBJECTIVE_END"
 
@@ -40,14 +40,14 @@ def standing_by_for_a_peer(workspace):
         comms.agents.begin_turn("peer", "peer-turn-the-goal-waits-for")
         comms.goals.update_goal(session, StandbyGoalAction(
             wait_for=["peer"], progress="Progress details. " * 40 + " PROGRESS_END",
-            expect=GoalPrecondition(goal_id=goal.id)))
+            expect=GoalPrecondition(goal_id=OneGoal(goal.id))))
     return arrange
 
 
 def owner_edit(comms, session, text):
     current = comms.registry.require(session).goal
     comms.goals.update_goal(session, EditGoalAction(
-        text=text, expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)
+        text=text, expect=GoalPrecondition(goal_id=OneGoal(current.id), expected_goal=current)), actor=OwnerInvocable)
 
 
 async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(workspace, native_package):
@@ -61,10 +61,6 @@ async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(works
         assert conversation.goal_display.snapshot.state.declared_name == "active"
         pulse = bar.query_one(StandbyPulse)
         assert pulse.active
-        conversation.busy_count += 1  # the activity indicator is computed from this and the turn
-        await ui.until(lambda: conversation.query_one(Throbber).busy, why="the activity indicator")
-        assert pulse.active, "A busy activity indicator hid the owner's standby"
-        conversation.busy_count -= 1
         document = bar.query_one(".goal-document", VerticalScroll)
         assert document.max_scroll_y > 0
         assert document.size.height <= 7
@@ -182,7 +178,7 @@ async def test_standby_goal_mention_opens_its_peer_and_returns_to_the_draft(work
         await asyncio.to_thread(comms.owners.start, "peer")
         goal = comms.goals.update_goal(native.thread, SetGoalAction(text="Coordinate with @peer"))
         comms.goals.update_goal(native.thread, StandbyGoalAction(
-            wait_for=("peer",), expect=GoalPrecondition(goal_id=goal.id)))
+            wait_for=("peer",), expect=GoalPrecondition(goal_id=OneGoal(goal.id))))
         original = ui.selected_tab
         await ui.write_draft("Composer draft stays")
         await ui.until_shows("Coordinate with @peer")

@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 from random import choice
+from threading import Lock
 from textual.content import Content
 from toad.widgets.future_text import FutureText
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.setting_declarations import Choice
+from toad.platform import DesktopService, host
 
 
 @dataclass(frozen=True)
@@ -97,23 +99,25 @@ class NeverSessionBar(SessionBar):
 
 
 class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
+    desktop: ClassVar[DesktopService] = host.desktop()
+    sending: ClassVar[Lock] = Lock()
+
     @classmethod
     def deliver(cls, app, message: str, *, title: str = "", sound: str | None = None) -> None:
         """Shared delivery belongs to the policy that admits it."""
         if not cls.enabled(app.app_focus):
             return
         from importlib.resources import files
-        from notifypy import Notify
-        import toad
 
-        notification = Notify()
+        notification = cls.desktop.notification()
         notification.message = message
         notification.title = title
-        notification.application_name = "🐸 Toad" if toad.os == "macos" else "Toad"
+        notification.application_name = host.application_name
         if sound and app.settings.notifications.enable_sounds:
             notification.audio = str(files("toad.data").joinpath(f"sounds/{sound}.wav"))
         notification.icon = str(files("toad.data").joinpath("images/frog.png"))
-        notification.send()
+        with cls.sending:
+            NotificationPolicy.desktop = NotificationPolicy.desktop.send(app, notification)
 
     @classmethod
     @abstractmethod

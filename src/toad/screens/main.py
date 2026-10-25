@@ -3,13 +3,11 @@ from abc import abstractmethod
 from collections.abc import Iterable
 from functools import partial
 from pathlib import Path
-from typing import cast
 
-from acp.exceptions import RequestError
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.coordination_errors import DMScopeChanged
+from agent_comms.coordination_errors import DMScopeChanged, Refused
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
 from textual import containers, getters, on
 from textual.app import ComposeResult
@@ -30,7 +28,6 @@ from toad.core import events as core_events
 from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent
 from toad.core.input_events import SelectTarget
-from toad.core_event_carrier import CoreEventMessage
 from toad.format_path import format_path
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
@@ -338,7 +335,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         except asyncio.CancelledError as error:
             self.opening_failed(error)
             raise
-        except RequestError as error:
+        except Refused as error:
             self.opening_failed(error)
         else:
             self.content.finish(self, ReadyContent())
@@ -422,11 +419,11 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         await self.presentation.close(self)
 
     @handles(core_events.CommsUpdated)
-    async def on_comms_updated(self, event: CoreEventMessage) -> None:
-        await self.dispatch(event.event.update)
+    async def on_comms_updated(self, event: core_events.CommsUpdated) -> None:
+        await self.dispatch(event.update)
 
     @handles(core_events.ExternalTranscriptChanged, core_events.SessionSelected)
-    def external_transcript_changed(self, message: CoreEventMessage) -> None:
+    def external_transcript_changed(self, event: core_events.ExternalTranscriptChanged | core_events.SessionSelected) -> None:
         if self.is_current:
             self.presentation.external_transcript_changed()
 
@@ -458,8 +455,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)
-    async def on_session_attached(self, message: CoreEventMessage) -> None:
-        event = cast(core_events.AgentReady, message.event)
+    async def on_session_attached(self, event: core_events.AgentReady) -> None:
         with self.changing_identity() as previous:
             self._identity = previous.with_session(event.session_id)
         await self.content.attached(self)
@@ -506,9 +502,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
             await self.open_sidebar_target(DirectTarget(target))
 
     @handles(SelectTarget)
-    async def on_comms_select_target(self, event: CoreEventMessage) -> None:
+    async def on_comms_select_target(self, event: SelectTarget) -> None:
         """Open channels and DMs through Toad's native session modes."""
-        await self.open_sidebar_target(event.event.target)
+        await self.open_sidebar_target(event.target)
 
     def action_session_previous(self) -> None:
         if self.id is not None:
@@ -549,42 +545,42 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         await self.app.session_navigation.preview(path)
 
     @handles(core_events.Plan)
-    async def on_acp_plan(self, message: CoreEventMessage):
-        self.thread_sidebar.update_plan(message.event.entries)
+    async def on_acp_plan(self, event: core_events.Plan):
+        self.thread_sidebar.update_plan(event.entries)
 
     @handles(SessionChangedEvent)
-    def on_session_details_changed(self, message: CoreEventMessage) -> None:
-        if message.event.mode_name == self.id:
+    def on_session_details_changed(self, event: SessionChangedEvent) -> None:
+        if event.mode_name == self.id:
             self.update_title()
 
     @handles(core_events.ThreadRowsChanged)
-    def on_session_tabs_changed(self, message: CoreEventMessage) -> None:
+    def on_session_tabs_changed(self, event: core_events.ThreadRowsChanged) -> None:
         self.update_title()
 
     @handles(core_events.SessionTitleChanged)
-    def on_session_title_changed(self, message: CoreEventMessage) -> None:
+    def on_session_title_changed(self, event: core_events.SessionTitleChanged) -> None:
         """The user or the agent process named this session; the tab keeps it."""
         if self.id is not None:
-            self.app.session_tracker.name_session(self.session_details.identity, message.event.name)
+            self.app.session_tracker.name_session(self.session_details.identity, event.name)
 
     @handles(core_events.SessionThreadTitle)
-    def on_session_thread_title(self, message: CoreEventMessage) -> None:
+    def on_session_thread_title(self, event: core_events.SessionThreadTitle) -> None:
         """The thread presented a title; an authored name keeps the tab's label."""
         if (details := self.app.session_tracker.get_session(self.session_details.identity)) is not None:
-            if details.update_thread_title(message.event.title):
+            if details.update_thread_title(event.title):
                 self.app.session_tracker.events.publish(SessionChangedEvent(self.id))
 
     @handles(core_events.SessionSubtitleChanged)
-    def on_session_subtitle_changed(self, message: CoreEventMessage) -> None:
+    def on_session_subtitle_changed(self, event: core_events.SessionSubtitleChanged) -> None:
         if self.id is not None:
             self.app.session_tracker.update_session(
-                self.session_details.identity, subtitle=message.event.subtitle
+                self.session_details.identity, subtitle=event.subtitle
             )
 
     @handles(core_events.SessionPathChanged)
-    def on_session_path_changed(self, message: CoreEventMessage) -> None:
+    def on_session_path_changed(self, event: core_events.SessionPathChanged) -> None:
         if self.id is not None:
-            self.app.session_tracker.update_session(self.session_details.identity, path=message.event.path)
+            self.app.session_tracker.update_session(self.session_details.identity, path=event.path)
 
     def on_mount(self) -> None:
         self.observe_core(self.app.events)

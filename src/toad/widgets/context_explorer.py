@@ -7,10 +7,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-from acp.exceptions import RequestError
-from agent_comms.context_store import ContextManifestCursor
+from agent_comms.coordination_errors import Refused
+from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
 from textual import on, work
 from textual.containers import Horizontal, Vertical
@@ -25,7 +25,6 @@ from toad.core.context_inspection import (
     InspectionState,
 )
 from toad.core.events import CoordinationObserved, SessionSelected
-from toad.core_event_carrier import CoreEventMessage
 from toad.session_scope import SessionScope
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.process_text_area import ProcessTextArea
@@ -47,14 +46,11 @@ class ContextTreeIntent:
     expanded: set[str] = field(default_factory=set)
     selected: ContextNode | None = None
     query: str = ""
-    cursor: ContextManifestCursor | None = None
+    cursor: ContextManifestCursor = LATEST_CONTEXT
 
-    def select_page(self, cursor: ContextManifestCursor) -> bool:
-        if cursor is None:
-            return False
+    def select_page(self, cursor: ContextManifestCursor) -> None:
         self.cursor = cursor
         self.selected = None
-        return True
 
     def search_current(self, query: str, selected):
         return self.query == query and self.selected is selected
@@ -288,7 +284,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self.call_after_refresh(self.action_refresh)
 
     @handles(CoordinationObserved, SessionSelected)
-    def context_changed(self, message: CoreEventMessage) -> None:
+    def context_changed(self, event: CoordinationObserved | SessionSelected) -> None:
         self._observed()
 
     def presentation_visible(self):
@@ -390,7 +386,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             native = await captured.inspection.native()
         except asyncio.CancelledError:
             raise
-        except RequestError as error:
+        except Refused as error:
             if self._reading(captured.thread_identity):
                 self._native_acquired(self.state.native_failed(captured.inspection, error))
         else:
@@ -466,8 +462,8 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self.state.present(self._older_requests)
 
     def _older_requests(self, current: HoldingInspection) -> None:
-        if self.intent.select_page(current.inspection.page.older):
-            self._change_page()
+        self.intent.select_page(current.inspection.page.older)
+        self._change_page()
 
     @on(Button.Pressed, "#context-newer")
     def newer_requests(self, event: Button.Pressed) -> None:
@@ -475,8 +471,8 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self.state.present(self._newer_requests)
 
     def _newer_requests(self, current: HoldingInspection) -> None:
-        if self.intent.select_page(current.inspection.page.newer):
-            self._change_page()
+        self.intent.select_page(current.inspection.page.newer)
+        self._change_page()
 
     def _change_page(self) -> None:
         # Destination selection ends the acquired page's lifetime now, not

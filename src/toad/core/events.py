@@ -175,6 +175,11 @@ class CoordinationObserved(CoalescingEvent):
 
 
 @dataclass(frozen=True)
+class SidebarPresented(CoalescingEvent):
+    """The sidebar's current observation is ready for every view of its counts."""
+
+
+@dataclass(frozen=True)
 class CommanderHudChanged(CoalescingEvent):
     """The commander heartbeat replaced its frames; Core derived every field."""
 

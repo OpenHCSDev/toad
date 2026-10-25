@@ -14,7 +14,7 @@ from acp.schema import (
     ContentChunk, SessionNotification, TextContentBlock,
 )
 from pydantic import TypeAdapter, ValidationError
-from agent_comms.acp_failure import ACPFailure
+from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.declared_family import DeclaredFamily
 
 
@@ -151,9 +151,9 @@ class RecordFragment(LogRecord):
 
 class ErrorLogMessage(AgentErrorMessage):
     def log_record(self, raw: str, source: type[LogSource]) -> LogRecord:
-        return FailureLogRecord(raw, source, str(self.id), ACPFailure.from_error(
+        return FailureLogRecord(raw, source, str(self.id), RequestFailure.from_error(
             RequestError(**self.error.model_dump()),
-        ))
+        ).failure)
 
 
 class SessionUpdateLogMessage(AgentNotification):
