@@ -152,7 +152,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
         links = []
         for row in page.fragment_rows(fragment):
             x = 0
-            for segment in page.render_line(row):
+            for segment in page.render_line(row, page._paint_state):
                 if segment.style is not None and segment.style.meta.get("@click") == ToggleDetails().click:
                     links.append((x, row))
                 x += segment.cell_length
