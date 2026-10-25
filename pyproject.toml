@@ -3,7 +3,7 @@ name = "batrachian-toad"
 version = "0.6.20"
 description = "A unified experience for AI in your terminal."
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.14.8,<3.15"
 dependencies = [
     "textual[syntax]==8.2.8",
     "click==8.4.0",
