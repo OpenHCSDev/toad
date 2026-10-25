@@ -19,6 +19,7 @@ dependencies = [
     "bashlex==0.18",
     "pathspec==1.1.1",
     "notify-py==0.3.43",
+    "jeepney==0.9.0; sys_platform == 'linux'",
     "pyperclip==1.11.0",
     "watchdog==6.0.0",
     "setproctitle==1.3.7",
