@@ -48,6 +48,9 @@ textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git
 [project.scripts]
 toad = "toad.cli:main"
 
+[project.entry-points."agent_comms.writer_owned_stores"]
+toad = "toad.db"
+
 [build-system]
 requires = ["hatchling==1.28.0"]
 build-backend = "hatchling.build"
