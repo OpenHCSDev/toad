@@ -71,6 +71,7 @@ from toad.widgets.committed_presentation import (
 )
 from toad.widgets.history_anchor import (
     FragmentLocation,
+    FragmentNotLoaded,
     FragmentPosition,
     HistoryWindow,
     LatestPosition,
@@ -668,11 +669,16 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
                 page.range_changed()  # A page holding a changed fragment measures again.
         self.window.check_follow()
 
+    def page_holding(self, fragment: TranscriptFragment) -> TranscriptPageView:
+        """The loaded page holding this exact fragment; absence is an invalid request."""
+        for page in self.pages:
+            if any(candidate is fragment for candidate in page.prepared.fragments_in_range):
+                return page
+        raise FragmentNotLoaded("No loaded page holds the requested fragment")
+
     async def toggle_details(self, fragment: TranscriptFragment) -> None:
         """Show a fragment's details, or hide them when they are shown."""
-        page = next(page for page in self.pages
-                    if any(candidate is fragment for candidate in page.prepared.fragments_in_range))
-        page.hold_fragment_top(self.window, fragment)
+        self.page_holding(fragment).hold_fragment_top(self.window, fragment)
         await self._show([(fragment, fragment.shown.toggled())])
 
     def can_expand(self) -> bool | None:

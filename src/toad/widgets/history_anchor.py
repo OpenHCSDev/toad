@@ -32,6 +32,10 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
 
 
+class FragmentNotLoaded(LookupError):
+    """A requested source fragment has no loaded page or drawn location."""
+
+
 class FragmentLocation(ABC):
     """A source fragment's drawn location, or the declared not-loaded result."""
 
