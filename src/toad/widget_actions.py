@@ -30,6 +30,11 @@ class KeyboundAction:
         return (cls.binding(),)
 
 
+class YieldingKey:
+    """An application key that any binding closer to the focus replaces: it answers only
+    where nothing local claims the key, so the claim is no conflict."""
+
+
 class MenuAction:
     menu_order: ClassVar[int]
     menu_label: str
@@ -80,7 +85,7 @@ class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
                      for action in kind.menu_items())
 
 
-class VimApplicationAction(KeyboundAction, ApplicationAction):
+class VimApplicationAction(YieldingKey, KeyboundAction, ApplicationAction):
     def available(self, app):
         return app.settings.ui.vim_keys and app.current_mode == "workspace"
 
