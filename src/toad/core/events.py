@@ -187,6 +187,13 @@ class CommanderHudChanged(CoalescingEvent):
 
 
 @dataclass(frozen=True)
+class CommanderHudFailed(CoalescingEvent):
+    """Commander rows are unavailable; the page retains its last good frame."""
+
+    error: Exception
+
+
+@dataclass(frozen=True)
 class ExternalTranscriptChanged(CoalescingEvent):
     """A CLI published text; its open transcript reads the current source."""
 

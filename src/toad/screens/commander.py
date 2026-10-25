@@ -20,7 +20,7 @@ from textual.widget import Widget
 from textual.widgets import Button, Static
 
 from toad.app_node import ToadNode
-from toad.core.events import CommanderHudChanged
+from toad.core.events import CommanderHudChanged, CommanderHudFailed
 from toad.core_event_carrier import CoreEventReceiver
 from toad.screens.modal import ModalScreen
 
@@ -85,6 +85,7 @@ class CommanderPage(CoreEventReceiver, ToadNode, ModalScreen[None]):
         width: 95%; height: 95%; padding: 1;
         border: solid $primary; background: $surface;
     }
+    CommanderPage #hud-error { display: none; height: 1; color: $error; }
     CommanderPage #hud-rows { height: 1fr; scrollbar-gutter: stable; }
     CommanderPage .hud-unit { margin-bottom: 1; }
     CommanderPage .hud-commander { text-style: bold reverse; }
@@ -96,6 +97,7 @@ class CommanderPage(CoreEventReceiver, ToadNode, ModalScreen[None]):
 
     def compose(self) -> ComposeResult:
         with Vertical():
+            yield Static("", id="hud-error", markup=False)
             yield VerticalScroll(*self.widgets.frames(()), id="hud-rows")
             yield Button("Close (Esc)", id="commander-close")
 
@@ -110,14 +112,18 @@ class CommanderPage(CoreEventReceiver, ToadNode, ModalScreen[None]):
 
     @handles(CommanderHudChanged)
     async def hud_changed(self, event: CommanderHudChanged) -> None:
+        error = self.query_one("#hud-error", Static)
+        error.update("")
+        error.display = False
         rows = self.query_one("#hud-rows", VerticalScroll)
         await rows.remove_children()
         await rows.mount_all(self.widgets.frames(event.huds))
 
-    def observation_failed(self, error: Exception) -> None:
-        rows = self.query_one("#hud-rows", VerticalScroll)
-        rows.remove_children()
-        rows.mount(Static(f"Commander rows unavailable: {error}", markup=False))
+    @handles(CommanderHudFailed)
+    def hud_failed(self, event: CommanderHudFailed) -> None:
+        notice = self.query_one("#hud-error", Static)
+        notice.update(f"Commander rows unavailable: {' '.join(str(event.error).splitlines())}")
+        notice.display = True
 
     @on(Button.Pressed, "#commander-close")
     def action_close(self) -> None:
