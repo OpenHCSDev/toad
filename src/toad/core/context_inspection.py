@@ -15,13 +15,11 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from agent_comms.importing import ImportedSessionMetadata
 from agent_comms.mro_dispatch import handles
-from agent_comms.native_session_files import NativeSessionFiles
-from agent_comms.native_session_reopen import NativeSessionIdentity
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.presentation import ReadState
 from agent_comms.registry_document import RegistryEntry
-from agent_comms.session_revision import SessionObservation, SessionRevision
+from agent_comms.session_revision import SessionObservation
 from agent_comms.thread_status import ActiveThreadPresence, ThreadStatus
 from agent_comms.turn_context import (
     CodexRolloutProvenance,
@@ -545,12 +543,8 @@ class ContextInspection:
             tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
         inspection_type = ThreadInspectionSource().project_value(entry.status)
-        files = NativeSessionFiles.for_identity(
-            NativeSessionIdentity.locate(thread.runtime.path),
-            root=comms.root, owner=thread.incarnation.require_recorded(),
-        )
-        return inspection_type(entry, page, SessionRevision.observe(files), comms,
-                               annotations, imported)
+        return inspection_type(entry, page, thread.runtime.session_observation(comms.root, thread),
+                               comms, annotations, imported)
 
     async def acquire(self, revision: ReadState):
         return HoldingInspection(await self.acquire_core(), revision)
