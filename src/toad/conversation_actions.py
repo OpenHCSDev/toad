@@ -65,15 +65,30 @@ class QuarterPageUpAction(ConversationAction):
 
     keys = ("shift+pageup",)
     direction = -1
+    page_divisor = 4
 
     async def apply(self, conversation):
-        conversation.window.scroll_quarter_page(self.direction)
+        conversation.window.scroll_page_fraction(self.direction, self.page_divisor)
 
 
 class QuarterPageDownAction(QuarterPageUpAction):
     """Scroll the conversation down a quarter page."""
 
     keys = ("shift+pagedown",)
+    direction = 1
+
+
+class EighthPageUpAction(QuarterPageUpAction):
+    """Scroll the conversation up an eighth of a page."""
+
+    keys = ("ctrl+pageup",)
+    page_divisor = 8
+
+
+class EighthPageDownAction(EighthPageUpAction):
+    """Scroll the conversation down an eighth of a page."""
+
+    keys = ("ctrl+pagedown",)
     direction = 1
 
 

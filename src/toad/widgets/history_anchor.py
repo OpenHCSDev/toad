@@ -478,8 +478,8 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
     def action_page_down(self) -> None:
         self._scroll_or_prepare(max(1, self.scrollable_content_region.height), super().action_page_down)
 
-    def scroll_quarter_page(self, direction: int) -> None:
-        distance = direction * max(1, self.scrollable_content_region.height // 4)
+    def scroll_page_fraction(self, direction: int, divisor: int) -> None:
+        distance = direction * max(1, self.scrollable_content_region.height // divisor)
         self._scroll_or_prepare(distance, self.scroll_relative, None, distance)
 
     def _on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
