@@ -163,7 +163,7 @@ class AbsentDesktop(DesktopService):
 
 
 class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
-    desktop: ClassVar[DesktopService] = UncheckedDBusDesktop() if toad.os == "linux" else DesktopService()
+    desktop: ClassVar[DesktopService] = toad.platform.desktop()
     sending: ClassVar[Lock] = Lock()
 
     @classmethod
@@ -176,7 +176,7 @@ class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
         notification = cls.desktop.notification()
         notification.message = message
         notification.title = title
-        notification.application_name = "🐸 Toad" if toad.os == "macos" else "Toad"
+        notification.application_name = toad.platform.application_name
         if sound and app.settings.notifications.enable_sounds:
             notification.audio = str(files("toad.data").joinpath(f"sounds/{sound}.wav"))
         notification.icon = str(files("toad.data").joinpath("images/frog.png"))

@@ -25,14 +25,14 @@ async def choose_action(ui, modal, name: str | None) -> None:
     import toad
 
     _app, pilot = ui.textual
-    order = list(modal.agent.commands_for(toad.os))
+    order = list(modal.agent.commands_for(toad.platform))
     index = len(order) if name is None else order.index(name)
     modal.action_select.focus()
     await ui.press("enter", "home", *(["down"] * (index + 1)), "enter")
     if name is not None:
         chosen = modal.action_select.value
         assert chosen.name == name, (name, chosen)
-        assert chosen.command is modal.agent.commands_for(toad.os)[name]
+        assert chosen.command is modal.agent.commands_for(toad.platform)[name]
     assert await pilot.click(modal.query_one("#run-action", widgets.Button))
 
 

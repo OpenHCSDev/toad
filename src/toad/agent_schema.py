@@ -4,8 +4,7 @@ from dataclasses import dataclass, field
 from typing import Annotated, Literal
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, TextRepresentation, WireName
-
-type OS = Literal['macos', 'linux', 'windows', '*']
+from toad import Platform
 
 
 class AgentKind(DeclaredFamily, affix='AgentKind'):
@@ -74,9 +73,8 @@ class AgentDefinition:
     active: bool = True
     recommended: bool = False
 
-    def commands_for(self, platform: OS) -> dict[str, Command]:
-        """Select the catalog's exact platform or its declared wildcard."""
-        return self.actions.get(platform, self.actions.get('*', {}))
+    def commands_for(self, platform: type[Platform]) -> dict[str, Command]:
+        return platform.select(self.actions) or {}
 
     @classmethod
     def decode(cls, value: object) -> AgentDefinition:
