@@ -1,6 +1,6 @@
 """Panels read identity from their logical session, not the native workspace."""
 
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from textual.widget import Widget
 
 from toad.core.events import ThreadIdentityChanged

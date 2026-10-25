@@ -23,7 +23,7 @@ from agent_comms.coordination_errors import (
     TranscriptChanged,
 )
 from agent_comms.external_transcript import DraftRow
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transcript_events import TranscriptCoverage

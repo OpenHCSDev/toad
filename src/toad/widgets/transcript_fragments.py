@@ -7,7 +7,7 @@ from functools import cached_property, partial
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.message_reference import MessageReference
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import (
     AgentTextTranscript,

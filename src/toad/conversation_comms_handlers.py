@@ -16,7 +16,7 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from textual.content import Content
 from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation

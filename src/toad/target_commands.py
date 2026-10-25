@@ -6,6 +6,7 @@ from agent_comms.errors import RouteChangedError
 from toad.core import session_requests
 
 from abc import ABC, abstractmethod
+from asyncio import CancelledError
 from dataclasses import dataclass, field
 from pathlib import Path
 from functools import partial
@@ -21,6 +22,10 @@ from toad.thread_actions import ThreadAction
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.widgets.conversation import Conversation
+
+
+class CommandContextChanged(CancelledError):
+    """A command's captured target context is no longer current."""
 
 
 @dataclass(frozen=True)
@@ -120,7 +125,7 @@ class ContextualCommand(CommandPresentation, ABC):
 
     async def apply(self, conversation: Conversation, ctx: TargetContext) -> bool:
         if await conversation.command_target_context() != ctx:
-            raise ValueError("Command target changed; refresh this view")
+            raise CommandContextChanged("Command target changed; refresh this view")
         if not self.available(ctx):
             raise ValueError("Action is no longer available for this target")
         self.execute(ctx)

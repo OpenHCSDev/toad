@@ -126,10 +126,6 @@ class BottomInk(BlockInk):
     GLYPHS = " ▄█"
 
 
-class TopInk(BlockInk):
-    GLYPHS = " ▀█"
-
-
 class PaletteState(AnsiPalette, ABC):
     def refresh_colours(self, colours: TextualColours) -> None:
         """Native colours already in the stylesheet need no RGB replacement."""

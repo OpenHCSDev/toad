@@ -1,4 +1,4 @@
-"""Textual-facing: dragging the goal bar's separator (mouse capture, regions, bounds) with idle and busy separators."""
+"""Textual-facing: dragging the goal bar's separator (mouse capture, regions, bounds)."""
 
 from dataclasses import replace
 
@@ -64,24 +64,19 @@ async def test_dragged_height_survives_a_new_revision_and_a_collapse_cycle(works
         assert document.region.height == resized
 
 
-async def test_busy_separator_drags_within_bounds_and_follows_terminal_resize(workspace):
+async def test_separator_drags_within_bounds_and_follows_terminal_resize(workspace):
     async with workspace.app(size=(110, 50)) as ui:
         app, pilot = ui.textual
         view, bar, document = await shown_bar(ui)
         await drag(ui, bar, bar, 3)
         resized = document.region.height
-        # During activity, the colored separator of the busy indicator owns this row.
-        view.busy_count = 1
+        # A working turn leaves the separator with the bar: no busy row takes it.
         view.turns.start_client()
-        # The bar hands its edge to the throbber it is built with, directly above it.
-        throbber = view.throbber
-        await ui.until(lambda: throbber.busy, why="the busy indicator")
-        await ui.until(lambda: not bar.styles.border_top[0], why="the separator row handed to the busy indicator")
-        await drag(ui, bar, throbber, 2)
+        await drag(ui, bar, bar, 2)
         assert document.region.height == resized + 2
-        await drag(ui, bar, throbber, -100)
+        await drag(ui, bar, bar, -100)
         assert document.region.height == 1
-        await drag(ui, bar, throbber, 100)
+        await drag(ui, bar, bar, 100)
         assert document.region.height <= app.size.height // 2
         await ui.resize(110, 30)
         assert document.region.height <= 15
