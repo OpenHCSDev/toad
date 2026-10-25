@@ -50,7 +50,7 @@ async def running_session(workspace):
 
 
 async def open_column_width_editor(ui, app):
-    await ui.press('f2')
+    await ui.press('ctrl+comma')
     await ui.until(lambda: isinstance(app.screen, SettingsScreen), why="the settings screen")
     assert await ui.textual[1].click(app.screen.search)
     await ui.type('Width of the column')

@@ -27,7 +27,7 @@ async def test_quit_that_cannot_save_stays_open_and_a_retry_saves_the_edit_and_e
         await ui.type('preserved retry draft')
         draft = ui.draft()
         document = view.prompt.prompt_text_area.document
-        await ui.press('f2')
+        await ui.press('ctrl+comma')
         await ui.until(lambda: isinstance(app.screen, SettingsScreen), why="the settings screen")
         assert await pilot.click(app.screen.search)
         await ui.type('Width of the column')

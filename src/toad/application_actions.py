@@ -12,6 +12,7 @@ from toad.widget_actions import (
     KeyboundAction,
     MenuAction,
     VimApplicationAction,
+    YieldingKey,
 )
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
@@ -71,7 +72,7 @@ class NewThreadAction(ApplicationAction, MenuAction):
 class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction, MenuAction):
     menu_order = 10
     menu_label = "Settings"
-    key = "f2,ctrl+comma"
+    key = "ctrl+comma"
     description = "Settings"
     tooltip = "Settings screen"
     help = "Edit persistent application preferences"
@@ -143,7 +144,7 @@ class QuitAction(KeyboundAction, ApplicationAction, PaletteAction, MenuAction):
         app.application.quit()
 
 
-class HelpQuitAction(KeyboundAction, ApplicationAction):
+class HelpQuitAction(YieldingKey, KeyboundAction, ApplicationAction):
     key = "ctrl+c"
     system = True
 
