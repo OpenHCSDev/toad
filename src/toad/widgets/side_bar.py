@@ -340,7 +340,7 @@ class MainMenuButton(HeaderButton):
             self.screen,
             Offset(self.region.x, self.region.bottom),
             "Toad",
-            ApplicationAction.menu(),
+            ApplicationAction.menu(self.app),
             callback=self.chosen,
         )
 

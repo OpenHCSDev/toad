@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
 from functools import partial
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 from textual.command import DiscoveryHit, Hit, Hits, Provider
+from agent_comms.field_codec import FieldCodec
 from toad.preferences import SETTINGS
 from toad.widget_actions import (
     ApplicationAction,
-    KeyboundAction,
-    MenuAction,
+    System,
     VimApplicationAction,
     YieldingKey,
 )
+from toad.widgets.comms_transfer import TransferRequest
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 from agent_comms.errors import RelationViolationError
@@ -24,16 +24,9 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class PaletteAction:
-    help: ClassVar[str]
-
-    @abstractmethod
-    def label(self, app: ToadApp) -> str: ...
-
-
-class NewThreadAction(ApplicationAction, MenuAction):
-    menu_order = 0
-    menu_label = "New thread"
+# Declaration order is the order of the menu and the palette.
+class NewThreadAction(ApplicationAction):
+    """Start a thread in the selected project."""
 
     async def apply(self, app: ToadApp) -> None:
         mode = app.selected_mode
@@ -69,16 +62,10 @@ class NewThreadAction(ApplicationAction, MenuAction):
             open_form()
 
 
-class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction, MenuAction):
-    menu_order = 10
-    menu_label = "Settings"
-    key = "ctrl+comma"
-    description = "Settings"
-    tooltip = "Settings screen"
-    help = "Edit persistent application preferences"
+class SettingsAction(ApplicationAction):
+    """Edit persistent application preferences."""
 
-    def label(self, app: ToadApp) -> str:
-        return self.menu_label
+    keys = ("ctrl+comma",)
 
     async def apply(self, app: ToadApp) -> None:
         app.run_worker(partial(self.edit, app))
@@ -90,7 +77,30 @@ class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction, MenuActio
         await app.saved_settings.save()
 
 
-class SetFooterAction(ApplicationAction):
+class TransferMenuAction(ApplicationAction):
+    """Export wire history or import a thread through Core."""
+
+    def __init__(self, kind: type[TransferRequest]):
+        self.kind = kind
+
+    @classmethod
+    def offered(cls, app):
+        yield from (cls(kind) for kind in TransferRequest.members_with(TransferRequest))
+
+    def label(self, app: ToadApp) -> str:
+        return self.kind.title
+
+    @classmethod
+    def parse(cls, parameters):
+        if len(parameters) != 1:
+            raise ValueError("transfer_menu requires one declared transfer kind")
+        return cls(FieldCodec.decode(type[TransferRequest], parameters[0]))
+
+    async def apply(self, app: ToadApp) -> None:
+        app.transfers.open(self.kind)
+
+
+class SetFooterAction(System, ApplicationAction):
     def __init__(self, visible: bool) -> None:
         self.visible = visible
 
@@ -114,8 +124,8 @@ class SetFooterAction(ApplicationAction):
         )
 
 
-class ToggleFooterAction(ApplicationAction, PaletteAction):
-    help = "Toggle the key-shortcut bar at the bottom of Toad"
+class ToggleFooterAction(ApplicationAction):
+    """Toggle the key-shortcut bar at the bottom of Toad."""
 
     def label(self, app: ToadApp) -> str:
         return (
@@ -128,35 +138,18 @@ class ToggleFooterAction(ApplicationAction, PaletteAction):
         await SetFooterAction(not app.settings.ui.footer).apply(app)
 
 
-class QuitAction(KeyboundAction, ApplicationAction, PaletteAction, MenuAction):
-    menu_order = 100
-    menu_label = "Exit"
-    key = "ctrl+q"
-    description = "Quit"
-    tooltip = "Quit the app and return to the command prompt."
-    priority = True
-    help = "Save preferences and quit the application"
-
-    def label(self, app: ToadApp) -> str:
-        return "Quit"
-
-    async def apply(self, app: ToadApp) -> None:
-        app.application.quit()
-
-
-class HelpQuitAction(YieldingKey, KeyboundAction, ApplicationAction):
-    key = "ctrl+c"
-    system = True
+class HelpQuitAction(System, YieldingKey, ApplicationAction):
+    keys = ("ctrl+c",)
 
     async def apply(self, app: ToadApp) -> None:
         app.application.confirm_quit()
 
 
-class ToggleHelpPanelAction(KeyboundAction, ApplicationAction, PaletteAction):
-    key = "f1"
-    description = "Help"
+class ToggleHelpPanelAction(ApplicationAction):
+    """Toggle help for the focused widget and available keys."""
+
+    keys = ("f1",)
     priority = True
-    help = "Toggle help for the focused widget and available keys"
 
     def label(self, app: ToadApp) -> str:
         return "Hide keys help" if app.screen.query("HelpPanel") else "Show keys help"
@@ -168,36 +161,27 @@ class ToggleHelpPanelAction(KeyboundAction, ApplicationAction, PaletteAction):
             app.action_show_help_panel()
 
 
-class SessionsAction(KeyboundAction, ApplicationAction, PaletteAction):
-    key = "ctrl+s"
-    description = "Channels"
-    show = True
-    help = "Reveal channels and focus the selected session"
+class ChannelsAction(ApplicationAction):
+    """Reveal channels and focus the selected session."""
 
-    def label(self, app: ToadApp) -> str:
-        return "Channels"
+    keys = ("ctrl+s",)
+    show = True
 
     async def apply(self, app: ToadApp) -> None:
         app.run_worker(app.session_navigation.reveal)
 
 
-class DirectMessagesAction(KeyboundAction, ApplicationAction, PaletteAction):
-    """Reach the pairwise message view without changing thread-row navigation."""
+class DirectMessagesAction(ApplicationAction):
+    """Open the most recently selected direct conversation."""
 
-    key = "ctrl+shift+d"
-    description = "Direct message"
-    tooltip = "Open direct messages"
-    help = "Open the most recently selected direct conversation"
-
-    def label(self, app: ToadApp) -> str:
-        return "Direct messages"
+    keys = ("ctrl+shift+d",)
 
     async def apply(self, app: ToadApp) -> None:
         app.session_navigation.direct_messages()
 
 
 class VimNavigationAction(VimApplicationAction):
-    """Aliases scroll the selected view without moving focus or redirecting input."""
+    """Move through the selected conversation without moving focus or redirecting input."""
 
     @staticmethod
     def conversation(app):
@@ -211,73 +195,89 @@ class VimNavigationAction(VimApplicationAction):
 
 
 class VimScrollDownAction(VimNavigationAction):
-    key = "j"
+    keys = ("j",)
 
     async def apply(self, app):
         self.conversation(app).window.action_scroll_down()
 
 
 class VimScrollUpAction(VimNavigationAction):
-    key = "k"
+    keys = ("k",)
 
     async def apply(self, app):
         self.conversation(app).window.action_scroll_up()
 
 
 class VimScrollLeftAction(VimNavigationAction):
-    key = "h"
+    keys = ("h",)
 
     async def apply(self, app):
         self.conversation(app).window.action_scroll_left()
 
 
 class VimScrollRightAction(VimNavigationAction):
-    key = "l"
+    keys = ("l",)
 
     async def apply(self, app):
         self.conversation(app).window.action_scroll_right()
 
 
 class VimPageDownAction(VimNavigationAction):
-    key = "ctrl+d"
+    keys = ("ctrl+d",)
 
     async def apply(self, app):
         self.conversation(app).window.action_page_down()
 
 
 class VimPageUpAction(VimNavigationAction):
-    key = "ctrl+u"
+    keys = ("ctrl+u",)
 
     async def apply(self, app):
         self.conversation(app).window.action_page_up()
 
 
 class VimLatestAction(VimNavigationAction):
-    key = "G"
+    keys = ("G",)
 
     async def apply(self, app):
         self.conversation(app).jump_to_latest()
 
 
 class VimFocusPromptAction(VimNavigationAction):
-    key = "i"
+    """Focus the prompt, ready to type."""
+
+    keys = ("i",)
 
     async def apply(self, app):
         self.conversation(app).prompt.enter_insert()
 
 
 class VimNextTabAction(VimNavigationAction):
-    key = "J"
+    """Select the next tab."""
+
+    keys = ("J",)
 
     async def apply(self, app):
         app.selected_session.action_session_next()
 
 
 class VimPreviousTabAction(VimNavigationAction):
-    key = "K"
+    """Select the previous tab."""
+
+    keys = ("K",)
 
     async def apply(self, app):
         app.selected_session.action_session_previous()
+
+
+class QuitAction(ApplicationAction):
+    """Save preferences and quit the application."""
+
+    keys = ("ctrl+q",)
+    priority = True
+
+    async def apply(self, app: ToadApp) -> None:
+        app.application.quit()
 
 
 class ApplicationCommands(Provider):
@@ -285,22 +285,15 @@ class ApplicationCommands(Provider):
 
     async def search(self, query: str) -> Hits:
         matcher = self.matcher(query)
-        for declaration in ApplicationAction.members_with(PaletteAction):
-            command = declaration()
-            label = command.label(self.app)
+        for command, label in ApplicationAction.menu(self.app):
             if score := matcher.match(label):
                 yield Hit(
                     score,
                     matcher.highlight(label),
                     partial(command.apply, self.app),
-                    help=command.help,
+                    help=command.summary(),
                 )
 
     async def discover(self) -> Hits:
-        for declaration in ApplicationAction.members_with(PaletteAction):
-            command = declaration()
-            yield DiscoveryHit(
-                command.label(self.app),
-                partial(command.apply, self.app),
-                help=command.help,
-            )
+        for command, label in ApplicationAction.menu(self.app):
+            yield DiscoveryHit(label, partial(command.apply, self.app), help=command.summary())
