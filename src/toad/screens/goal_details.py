@@ -1,6 +1,6 @@
 """A full-height, scrollable projection of a persistent goal."""
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 
 from datetime import datetime
 

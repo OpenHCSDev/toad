@@ -13,7 +13,7 @@ from textual.widgets import Button, Static
 
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.widgets.channel_prompt import ChannelPrompt
 
 

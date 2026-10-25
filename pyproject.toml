@@ -28,6 +28,7 @@ dependencies = [
     "typing-extensions==4.15.0",
     "format-currency>=0.0.10",
     "agent-comms",
+    "metaclass-registry",
     "agent-client-protocol==0.12.1",
     "ui-theme",
     "formbridge==0.2.0",
@@ -40,6 +41,7 @@ members = ["toad"]
 [tool.uv.sources]
 ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", branch = "main" }
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", branch = "main" }
+metaclass-registry = { git = "https://github.com/OpenHCSDev/metaclass-registry", branch = "main" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", branch = "main" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "ebe2fa9173428e2bd7154a0de23698757677c3c2" }
 objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "b5dd9f78b9293df145d7629f21deb89b042b9400" }

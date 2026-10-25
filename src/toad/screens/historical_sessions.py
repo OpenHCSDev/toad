@@ -9,7 +9,7 @@ from typing import ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.ui_model.observation import ReadTranscript, ReadRecordedNotifications
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms.historical_views import HistoricalThread

@@ -12,7 +12,7 @@ from typing import ClassVar
 
 from agent_comms.commander.vibe_check import OverloadDegradation
 from agent_comms.commander_hud import CommanderHud, CommanderPhase, CommanderUnit
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll

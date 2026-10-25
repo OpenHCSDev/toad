@@ -5,7 +5,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.agent_controller import ProcessTaskRunner
 from toad.permission_presentation import (

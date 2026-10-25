@@ -2,7 +2,7 @@ from toad.core import session_requests, input_events
 from agent_comms.field_codec import FieldCodec
 from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventReceiver
-from agent_comms.mro_dispatch import handles
+from metaclass_registry.mro_dispatch import handles
 from toad.preferences import SETTINGS
 from contextlib import suppress
 from itertools import zip_longest

@@ -6,7 +6,7 @@ from abc import abstractmethod
 from typing import cast
 
 from agent_comms.display_references import ChannelDisplayReference, HistoricalDisplayReference, ThreadDisplayReference
-from agent_comms.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from rich.segment import Segment
 from textual._paint_state import PaintState
 from textual.geometry import Size
