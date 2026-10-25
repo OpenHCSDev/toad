@@ -3,6 +3,8 @@
 from dataclasses import replace
 
 from agent_comms.acp_extension import GoalChangedUpdate
+from agent_comms.field_codec import TurnId
+from agent_comms.goal_failure_observation import FailedTurnEvidence
 from agent_comms.goal_history import RecordedGoalRevision
 from agent_comms.goal_presentation import (
     GoalWaitTarget, IdleGoalExecution, PausedExecution, RunnableExecution, StandbyExecution,
@@ -11,6 +13,7 @@ from agent_comms.goal_states import PausedGoal
 from agent_comms.goals import NoGoal
 from agent_comms.runtime_requests import GoalHistoryReply
 from agent_comms.thread_identity import RecordedThreadIncarnation
+from agent_comms.turn_failure import NativeChildSignaled
 from textual.widgets import Button, Static
 
 from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
@@ -33,7 +36,11 @@ def goal_owner(workspace, app):
                              after=replace(goal, text="HISTORICAL_OBJECTIVE", revision=4)),
         RecordedGoalRevision(sequence=2, kind="transition", observed_at=1001.0,
                              before=replace(goal, revision=4), after=goal),
-    ))
+    ), (FailedTurnEvidence(
+        attempt_id="attempt-1", goal_id=goal.id, generation=3, owner="goal-owner", owner_created_at=1.0,
+        worktree="/work", claim_generation=1, turn_generation=1, goal_revision=4, turn_id=TurnId.mint(),
+        failure=NativeChildSignaled,
+    ),))
     owner = ScriptedGoalOwner.owning(app, goal, execution, history=history)
     owner.reject = True
     return owner
@@ -151,7 +158,7 @@ async def test_goal_history_lists_earlier_revisions(workspace):
         await ui.until_shows("History")
         await pilot.click("#goal-history")
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the goal details screen")
-        for text in ("HISTORICAL_OBJECTIVE", "baseline", "observed"):
+        for text in ("HISTORICAL_OBJECTIVE", "baseline", "observed", "Attempt 3 · revision 4 · native child signaled"):
             await ui.until_shows(text)
         await ui.press("escape")
         assert view.prompt.text == "Composer draft stays"
