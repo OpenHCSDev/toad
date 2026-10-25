@@ -190,7 +190,7 @@ async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage
         new = write_journal(workspace.project / "new.jsonl", *(
             () if empty else (assistant_entry("PREPARED_REPLACEMENT", id="new"),)))
         workspace.comms.registry.declare(replace(thread, session_file=RegistrySessionLocation.from_path(str(new), workspace.comms.root)))
-        page = workspace.comms.transcripts.thread_transcript_page("source")
+        page = workspace.comms.transcripts.capture_page_read("source").read()
         prepared = await ui.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
         assert await history.show_newest(PreparedReplacementViewportRequest(
             LatestPosition.hold(history.window), prepared))
