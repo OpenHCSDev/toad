@@ -18,6 +18,7 @@ from agent_comms.display_references import CurrentDisplayReferences, ReferenceCo
 from agent_comms.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
+from toad.core_event_carrier import CoreEventMessage
 from agent_comms.messages import Message as WireMessage
 from textual import containers, work
 from textual.app import ComposeResult
@@ -128,25 +129,25 @@ class CommsChatView(Conversation):
         await self._refresh()
 
     @handles(core_events.CoordinationObserved)
-    async def _command_source_changed(self, event) -> None:
+    async def _command_source_changed(self, event: core_events.CoordinationObserved) -> None:
         """One canonical observation invalidates commands and the mounted source."""
-        await super()._command_source_changed(event)
+        self.prompt.slash_complete.refresh_commands()
         await self._refresh()
 
     @handles(core_events.SessionSelected)
-    async def _selected_source_changed(self, event) -> None:
+    async def _selected_source_changed(self, event: core_events.SessionSelected) -> None:
         """A retained view reads current source after its tab opens."""
-        await super()._selected_commands_changed(event)
+        self.update_slash_commands()
         await self._refresh()
 
     @handles(TranscriptSourceWorkFinished)
-    async def on_transcript_source_work_finished(self, event) -> None:
+    async def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
         """Reconcile an observation which arrived during this source's work."""
-        super().on_transcript_source_work_finished(event)
+        super().on_transcript_source_work_finished(event, message)
         history = self.message_history
         source = history.page_source
         access = self.app.coordination_access
-        if event.publisher is not history:
+        if message.publisher is not history:
             return
         self.settle_user_message()
         if (not history.state.accepts_source_work

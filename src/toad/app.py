@@ -1,5 +1,4 @@
 from toad.core import events as core_events
-from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoordinationAccess
@@ -458,8 +457,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.heap.history_displayed(self)
 
     @handles(session_requests.WorkspaceSessionRequest)
-    async def on_workspace_session_request(self, event: CoreEventMessage) -> None:
-        await event.event.apply(self.session_navigation)
+    async def on_workspace_session_request(self, event: session_requests.WorkspaceSessionRequest) -> None:
+        await event.apply(self.session_navigation)
 
     @on(events.TextSelected)
     async def on_text_selected(self) -> None:

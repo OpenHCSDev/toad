@@ -15,7 +15,7 @@ from toad.terminal_execution import Command, TerminalExecution
 from toad.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction
 from toad.core.source_events import CommandComplete
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core_event_carrier import CoreEventReceiver
 from agent_comms.mro_dispatch import handles
 
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
@@ -68,8 +68,8 @@ class ActionModal(CoreEventReceiver, ModalScreen):
         self.ok_button.focus()
 
     @handles(CommandComplete)
-    def on_command_complete(self, event: CoreEventMessage) -> None:
-        self.operation.command_complete(self, event.event.return_code)
+    def on_command_complete(self, event: CommandComplete) -> None:
+        self.operation.command_complete(self, event.return_code)
 
     def on_mount(self) -> None:
         self.ok_button.loading = True

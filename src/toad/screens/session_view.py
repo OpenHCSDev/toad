@@ -74,7 +74,7 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
             self.mark_visible()
 
     @handles(TranscriptSourceWorkFinished)
-    def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
+    def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
         message.stop()
         self.history_painted()
 
