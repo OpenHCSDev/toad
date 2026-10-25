@@ -29,7 +29,7 @@ from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
-from agent_comms.route_selection import RouteSelection, run_selected_write
+from agent_comms.route_selection import RouteSelection
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.ui_model.observation import (
     CommanderHudObserved,
@@ -394,14 +394,13 @@ class CoordinationAccess(MroDispatch):
     def open_selected(self, selected: RouteSelection) -> Observing:
         def attach() -> Observing:
             previous = self.observation
-            with selected.route.hold_client_route():
-                service = Comms(selected.route)
-                if service.root.resolve() != selected.root:
-                    raise RouteChangedError("Comms route changed while opening the service")
-                self.confirm(selected)
-                observed = Observing(
-                    selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
-                    self.app.running_loop, access=self)
+            service = Comms(selected.route)
+            if service.root.resolve() != selected.root:
+                raise RouteChangedError("Comms route changed while opening the service")
+            self.confirm(selected)
+            observed = Observing(
+                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
+                self.app.running_loop, access=self)
             observed.subscriptions.callback(observed.retire, self)
             self.observation = observed
             observed.loop.call_soon_threadsafe(observed.attach, self, previous)
@@ -653,6 +652,7 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(CoordinationObserved(self.revision))
 
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
-        # This method runs in the same worker as the actual sink. The existing
-        # core route lock is held through the operation; no second lock/store.
-        return run_selected_write(selected.root, operation, *args, **kwargs)
+        # This method runs in the same worker as the actual sink. No route lock: the
+        # store refuses a write an install holds, inside its own write transaction.
+        RouteSelection.capture(selected.root)
+        return operation(*args, **kwargs)
