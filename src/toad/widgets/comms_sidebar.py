@@ -257,8 +257,8 @@ class ThreadStatusRow(CommsRow):
         previous = self.thread_row
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         summary = action_status if action_status is not None else row.summary
-        self.tooltip = Content("\n".join(str(value) for value in (
-            row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
+        self.tooltip = Content("\n".join(value for value in (
+            row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, *row.model.texts(),
         ) if value))
         badge = f"{row.unread.label} " if row.unread.label else ""
         title = self.activity_content(row.title, Content(row.label), self.busy,
