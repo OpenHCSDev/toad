@@ -112,7 +112,7 @@ class VimFlagReads(KeymapMeasure):
 
 class MenuOrders(KeymapMeasure):
     """`menu_order`: a hand-numbered rank where declaration order already orders."""
-    ceiling = 10
+    ceiling = 0
     exempt = frozenset()
 
     @classmethod
@@ -171,9 +171,9 @@ def keys(binding: Binding) -> list[str]:
 
 def test_no_app_key_is_claimed_twice_without_a_declaration():
     from toad.app import ToadApp
-    from toad.widget_actions import ApplicationAction, KeyboundAction, YieldingKey
-    app = {key: action for action in ApplicationAction.members_with(KeyboundAction)
-           if not issubclass(action, YieldingKey) for key in keys(action.binding())}
+    from toad.widget_actions import ApplicationAction, YieldingKey
+    app = {key: action for action in ApplicationAction.members_with(ApplicationAction)
+           if not issubclass(action, YieldingKey) for binding in action.bindings() for key in keys(binding)}
     conflicts = [(key, app[key].__name__, f'{owner.__module__}.{owner.__qualname__}', str(binding.action))
                  for owner in declared_nodes() if owner is not ToadApp and not issubclass(owner, ModalScreen)
                  for binding in Binding.make_bindings(owner.__dict__['BINDINGS'])
