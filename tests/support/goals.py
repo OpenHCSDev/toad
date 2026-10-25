@@ -48,7 +48,7 @@ class ScriptedGoalOwner(Agent):
     @classmethod
     def owning(cls, app: ToadApp, goal: GoalDeclaration,
                execution: GoalExecution, *,
-               history: GoalHistoryReply = GoalHistoryReply(())) -> ScriptedGoalOwner:
+               history: GoalHistoryReply = GoalHistoryReply.empty()) -> ScriptedGoalOwner:
         """The goal owner of ``app``, built through the app's own Agent constructor."""
         return AppAgents(app).agent(cls, AgentDefinition("goal-owner", "goal-owner", {"*": "true"}), "goal-owner",
                                     goal=goal, execution=execution, history=history)
