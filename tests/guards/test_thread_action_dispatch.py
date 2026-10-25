@@ -5,6 +5,7 @@ import asyncio
 from pathlib import Path
 from types import SimpleNamespace
 
+from agent_comms.channel_targets import ThreadTarget
 from agent_comms.cli_commands import (
     ChannelsCliCommand,
     TargetBatchResult,
@@ -55,8 +56,8 @@ class RecordingResultShower(ResultShower):
 def test_mixed_target_batch_shows_each_outcome_once() -> None:
     shower = RecordingResultShower()
     result = TargetBatchResult((
-        TargetCompleted("started", ChannelsCliCommand(), ToolCatalogResult(())),
-        TargetFailed("failed", "RuntimeError", "No provider configured"),
+        TargetCompleted(ThreadTarget("started"), ChannelsCliCommand(), ToolCatalogResult(())),
+        TargetFailed(ThreadTarget("failed"), "RuntimeError", "No provider configured"),
     ))
 
     result.show(shower, "Start", "Threads")

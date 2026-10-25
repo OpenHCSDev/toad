@@ -40,7 +40,7 @@ class TargetContext:
 
     @property
     def selected_targets(self) -> tuple[str, ...]:
-        return tuple(name for target in self.selection for name in target.names)
+        return tuple(name for target in self.selection for name in target.destination_names)
 
     @property
     def title(self) -> str:
