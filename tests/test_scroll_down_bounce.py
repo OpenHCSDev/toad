@@ -1,14 +1,16 @@
 """Downward wheel travel must not publish a backwards reader after page eviction."""
 
+import asyncio
 from functools import partial
+import gzip
 from inspect import getfile
 from pathlib import Path
 
 from textual import events
+from textual.pilot import _get_mouse_message_arguments
 
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.threads import Thread
-from support import journals
 from toad.app import ToadApp
 from toad.preferences import SETTINGS
 from toad.screens.main import MainScreen
@@ -28,9 +30,11 @@ class RecordedHistoryScreen(WorkspaceScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.frames = []
+        self.next_frame = asyncio.Event()
 
     def _on_frame_published(self):
         super()._on_frame_published()
+        self.next_frame.set()
         if not self.recording:
             return
         window = self.query_one(Conversation).window
@@ -57,17 +61,27 @@ def recorded_app(**kwargs):
 
 
 async def wheel(ui, window, event_type):
-    """Send a real wheel event through the screen's normal mouse route."""
-    _app, pilot = ui.textual
-    await pilot._post_mouse_events([event_type], window, offset=(3, 3))
+    """Feed Pilot's native mouse route without draining page preparation.
+
+    Pilot._post_mouse_events waits for an idle screen before and after every
+    event. A real wheel does not wait for the next page to finish preparing.
+    Publications pace input while that preparation remains free to overlap it.
+    """
+    arguments = _get_mouse_message_arguments(window, (3, 3), button=0,
+                                             shift=False, meta=False, control=False)
+    ui.app.screen.next_frame.clear()
+    await ui.app._post_message_and_wait(event_type(**arguments))
+    async with asyncio.timeout(10):
+        await ui.app.screen.next_frame.wait()
 
 
 async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
-    journal = journals.write_journal(workspace.project / "long-history.jsonl", *(
-        journals.assistant_entry(
-            f"Message {index:04d}: retained Markdown rows.",
-            id=f"a{index}", parent=f"a{index - 1}" if index else None)
-        for index in range(600)))
+    # Derived from the laptop's saved mfd conversation, not invented heights.
+    # Native entry kinds, text whitespace/punctuation/cell widths and identities
+    # are retained; letters/digits are masked and image pixels are blanked.
+    fixture = Path(__file__).with_name("fixtures") / "laptop_scroll_shape.jsonl.gz"
+    journal = workspace.project / "laptop-history.jsonl"
+    journal.write_bytes(gzip.decompress(fixture.read_bytes()))
     owner = workspace.comms.registry.declare(Thread(
         "scroll-reader", frozenset(), str(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
@@ -82,10 +96,12 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
                        why="the retained transcript to load")
         window = ui.conversation.window
         history = ui.conversation.contents.query_one(TranscriptHistory)
+        await ui.until(lambda: history.pages and all(page.rows_measured for page in history.pages),
+                       why="the initial retained page to be measured")
         # Walk backwards through the real lazy pager before measuring downward travel.
         print("P758 initial:", window.scroll_y, window.max_scroll_y,
               [(page.prepared.start, page.prepared.stop) for page in history.pages], flush=True)
-        for _ in range(2048):
+        for _ in range(4096):
             await wheel(ui, window, events.MouseScrollUp)
             if history.has_more(NEWER_END):
                 break
@@ -97,8 +113,10 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         oldest = history.pages[0].prepared.fragments_in_range[0].arrival_position
         screen = ui.app.screen
         screen.recording = True
-        for _ in range(2048):
+        for _ in range(8192):
             await wheel(ui, window, events.MouseScrollDown)
+            if len(screen.frames) > 1 and screen.frames[-1][1] < screen.frames[-2][1]:
+                break
             if window.follows_tail:
                 break
         await ui.step()
@@ -107,7 +125,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         print("P758 per-published-frame (scroll_y, reader, range_start, range_stop):", flush=True)
         for frame in frames:
             print(frame, flush=True)
-        assert len(frames) > 10, frames
+        assert len(frames) > 1, frames
         assert history.pages[0].prepared.fragments_in_range[0].arrival_position > oldest, (
             "No older fragments were evicted during downward travel")
         backwards = [(before, after) for before, after in zip(frames, frames[1:])
