@@ -101,7 +101,7 @@ async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspac
     async with workspace.app(size=(100, 35)) as ui:
         window = await long_window(ui)
         window.release_anchor()
-        position = FragmentPosition(123, 0, 1, part=0, block=0)
+        position = FragmentPosition(123, 0, 1, part=0, block=0, occurrence=0)
         window.reader_position = UnreachedPosition(position)
         assert not position.page(window).locations()
         assert not position.laid_out(window)

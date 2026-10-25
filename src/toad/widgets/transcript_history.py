@@ -70,8 +70,10 @@ from toad.widgets.committed_presentation import (
     SnapshotPresentation,
 )
 from toad.widgets.history_anchor import (
+    FragmentPosition,
     HistoryWindow,
     LatestPosition,
+    ReaderPosition,
 )
 from toad.widgets.history_anchor import FragmentLocation, UnloadedFragment
 from toad.widgets.linked_rows import (
@@ -105,7 +107,6 @@ if TYPE_CHECKING:
     from agent_comms.messages import Message as BusMessage
 
     from toad.widgets.conversation import Contents, Conversation
-    from toad.widgets.history_anchor import HistoryWindow
 
 
 class HistoryEdge(PrimaryActivation, Static, can_focus=True):
@@ -153,6 +154,12 @@ class FragmentSpan(BlockSpan, FragmentLocation):
 
     def bodies(self) -> tuple[Widget, ...]:
         return (self.page,)
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        return position
+
+    def find_in(self, pages: Iterator[TranscriptPageView], position: FragmentPosition) -> FragmentLocation:
+        return self
 
     def laid_out(self, window: HistoryWindow) -> bool:
         return self.page.rows_measured and any(window.placements(self.bodies()))
@@ -327,8 +334,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         return (fragment for fragment in self.prepared.fragments_in_range
                 if fragment.matches_position(position, part))
 
+    def occurrence_of(self, fragment: TranscriptFragment) -> int:
+        """The exact fragment's ordinal among matching source positions on this page."""
+        return next(index for index, candidate in enumerate(self.fragment_matches(
+            fragment.arrival_position, fragment.part_position.index)) if candidate is fragment)
+
     def fragment_row(self, position: int | str, part: int, block: int,
-                     occurrence: int = 0) -> FragmentLocation:
+                     occurrence: int) -> FragmentLocation:
         """A source child's first measured row, height and whether the page draws it.
 
         A hidden fragment lands on the next drawn fragment, otherwise the
@@ -656,14 +668,15 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         Activation is the reader's own choice of place; the layout keeps the
         row's top on screen across the rows the toggle adds or removes.
         """
-        from toad.widgets.history_anchor import FragmentPosition
-
         position = fragment.arrival_position
         part = fragment.part_position.index
         for page in self.pages:
-            for placed in page.fragment_row(position, part, 0).locations():
-                if placed.drawn:
-                    self.window.reader_position = FragmentPosition(position, 0, placed.height, part=part, block=0)
+            if any(candidate is fragment for candidate in page.prepared.fragments_in_range):
+                occurrence = page.occurrence_of(fragment)
+                for placed in page.fragment_row(position, part, 0, occurrence).locations():
+                    if placed.drawn:
+                        self.window.reader_position = FragmentPosition(
+                            position, 0, placed.height, part=part, block=0, occurrence=occurrence)
                 return
 
     def can_expand(self) -> bool | None:

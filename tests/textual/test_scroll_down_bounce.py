@@ -12,6 +12,7 @@ from textual.pilot import _get_mouse_message_arguments
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.threads import Thread
 from toad.app import ToadApp
+from toad.line_blocks import ToggleDetails
 from toad.preferences import SETTINGS
 from toad.screens.main import MainScreen
 from toad.screens.workspace import WorkspaceScreen
@@ -127,3 +128,41 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace):
         assert not backwards, f"Downward inputs published backwards reader movement: {backwards}"
         assert history.pages[0].prepared.fragments_in_range[0].arrival_position > oldest, (
             "No older fragments were evicted during downward travel")
+
+        # Activate an actual disclosure link on a second occurrence, not a
+        # reconstructed source identity. The first occurrence must not steal it.
+        candidates = []
+        for _ in range(8192):
+            await wheel(ui, window, events.MouseScrollUp)
+            for page in history.pages:
+                for fragment in page.prepared.fragments_in_range:
+                    occurrence = page.occurrence_of(fragment)
+                    if occurrence > 0 and fragment.has_details:
+                        for span in page.fragment_row(fragment.arrival_position,
+                                fragment.part_position.index, 0, occurrence).locations():
+                            if span.drawn:
+                                candidates.append((page, fragment, span, occurrence))
+            if candidates:
+                break
+        assert candidates, "No second occurrence with a disclosure link was loaded"
+        page, fragment, span, occurrence = candidates[0]
+        destination = window.row_of(page) + span.first
+        window.scroll_to(y=destination, animate=False, immediate=True)
+        await ui.step()
+        links = []
+        for row in page.fragment_rows(fragment):
+            x = 0
+            for segment in page.render_line(row):
+                if segment.style is not None and segment.style.meta.get("@click") == ToggleDetails().click:
+                    links.append((x, row))
+                x += segment.cell_length
+        assert links, "The second occurrence has no rendered disclosure link"
+        before = fragment.shown.details_open
+        _app, pilot = ui.textual
+        await pilot.click(page, offset=links[0])
+        await ui.until(lambda: fragment.shown.details_open != before,
+                       why="the clicked second occurrence's disclosure to toggle")
+        await ui.step()
+        assert window.scroll_y == destination, (destination, window.scroll_y)
+        assert page.occurrence_of(fragment) == occurrence
+        print(f"second-occurrence click lands on {window.scroll_y}; occurrence={occurrence}")

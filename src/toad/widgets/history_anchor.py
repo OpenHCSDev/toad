@@ -29,11 +29,33 @@ if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
-    from toad.widgets.transcript_history import FragmentSpan
+    from toad.widgets.transcript_history import FragmentSpan, TranscriptPageView
 
 
-class FragmentLocation:
+class FragmentLocation(ABC):
     """A source fragment's drawn location, or the declared not-loaded result."""
+
+    @abstractmethod
+    def locations(self) -> tuple[FragmentSpan, ...]: ...
+
+    @abstractmethod
+    def bodies(self) -> tuple[Widget, ...]: ...
+
+    @abstractmethod
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition: ...
+
+    @abstractmethod
+    def laid_out(self, window: HistoryWindow) -> bool: ...
+
+    @abstractmethod
+    def destination(self, window: HistoryWindow, fraction: float) -> float: ...
+
+    @abstractmethod
+    def find_in(self, pages: Iterator[TranscriptPageView], position: FragmentPosition) -> FragmentLocation: ...
+
+
+class UnloadedFragment(FragmentLocation):
+    """No loaded page draws a destination for this fragment occurrence."""
 
     def locations(self) -> tuple[FragmentSpan, ...]:
         return ()
@@ -42,7 +64,7 @@ class FragmentLocation:
         return ()
 
     def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
-        return position
+        return position.without_holder(window)
 
     def laid_out(self, window: HistoryWindow) -> bool:
         return False
@@ -51,11 +73,11 @@ class FragmentLocation:
         raise LookupError("The reader's source fragment has no drawn destination yet")
 
 
-class UnloadedFragment(FragmentLocation):
-    """No loaded page draws a destination for this fragment occurrence."""
-
-    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
-        return position.without_holder(window)
+    def find_in(self, pages: Iterator[TranscriptPageView], position: FragmentPosition) -> FragmentLocation:
+        for page in pages:
+            return page.fragment_row(position.position, position.part, position.block,
+                                     position.occurrence).find_in(pages, position)
+        return self
 
 
 class ReaderPosition(ABC):
@@ -82,9 +104,7 @@ class ReaderPosition(ABC):
             first, page = reading
             span = page.fragment_at(max(0, int(y - first)))
             fragment = span.fragment
-            occurrence = next(index for index, candidate in enumerate(
-                page.fragment_matches(fragment.arrival_position, fragment.part_position.index))
-                if candidate is fragment)
+            occurrence = page.occurrence_of(fragment)
             return FragmentPosition(fragment.arrival_position, (y - first - span.first) / span.height,
                                     span.height, part=fragment.part_position.index, block=span.index,
                                     occurrence=occurrence)
@@ -233,14 +253,11 @@ class FragmentPosition(OffsetPosition):
     height: int
     part: int = field(kw_only=True)
     block: int = field(kw_only=True)
-    occurrence: int = field(default=0, kw_only=True)
+    occurrence: int = field(kw_only=True)
 
     def page(self, window: "HistoryWindow") -> FragmentLocation:
         """The drawn location of this occurrence, or its not-loaded state."""
-        return next((location for page in window.drawn_pages()
-                     for location in page.fragment_row(
-                         self.position, self.part, self.block, self.occurrence).locations()),
-                    UnloadedFragment())
+        return UnloadedFragment().find_in(iter(window.drawn_pages()), self)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
         return self.page(window).bodies()
@@ -292,10 +309,12 @@ class BlockPosition(OffsetPosition):
         return min(placed, key=lambda position: position.row, default=RowPosition(window.scroll_y))
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
-        return (self.block,) if self.block.is_attached and window.displays(self.block) else ()
+        return (self.block,)
 
     def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
-        return position if self.bodies(window) else position.without_holder(window)
+        if self.block.is_attached and window.displays(self.block):
+            return position
+        return position.without_holder(window)
 
     def laid_out(self, window: HistoryWindow) -> bool:
         return any(window.placements(self.bodies(window)))
