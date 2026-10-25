@@ -16,11 +16,15 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.comms import wire
 from agent_comms.coordinator import Coordination
+from agent_comms.field_codec import TurnId
 from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.pi_payloads import (
     McpLiveAcknowledgement, McpServerReceipt, ReadyMcpServerState, ConfirmMcpCallPolicy,
 )
 from toad.widgets.note import Note
+
+RETIRED = TurnId("0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a")
+OBSERVED = TurnId("9f8e7d6c5b4a39281706f5e4d3c2b1a0")
 
 AGENT_DATA = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
               "run_command": {"*": "true"}, "protocol": "acp"}
@@ -90,24 +94,23 @@ async def exercise_boundaries(agent, view, pilot):
         async with AsyncExitStack() as custody:
             retired_owner = await Coordination.run_worker(partial(
                 producer.turns.acquire_turn, custody, session_id, name,
-                "retired", "Authored MCP boundary; no input",
+                RETIRED, "Authored MCP boundary; no input",
             ))
         retired = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
-        await send(McpClientAcknowledgementUpdate(retired.state.finished_turn_id, receipt))
+        await send(McpClientAcknowledgementUpdate(RETIRED, receipt))
         assert not notes(view)
         async with AsyncExitStack() as custody:
             await Coordination.run_worker(partial(
                 producer.turns.acquire_turn, custody, session_id, name,
-                "observed", "Authored MCP boundary; no input",
+                OBSERVED, "Authored MCP boundary; no input",
             ))
             active = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
-            turn_id = active.state.managed_id
             await send(TurnChangedUpdate(active.state))
-            assert agent.current_turn.managed_id == view.turns.managed_id == turn_id
-            await send(McpClientAcknowledgementUpdate(turn_id, receipt), session="foreign")
-            await send(McpClientAcknowledgementUpdate(retired.state.finished_turn_id, receipt))
+            assert agent.current_turn.managed_id == view.turns.managed_id == OBSERVED
+            await send(McpClientAcknowledgementUpdate(OBSERVED, receipt), session="foreign")
+            await send(McpClientAcknowledgementUpdate(RETIRED, receipt))
             assert not notes(view)
-            malformed = packet(McpClientAcknowledgementUpdate(turn_id, receipt))
+            malformed = packet(McpClientAcknowledgementUpdate(OBSERVED, receipt))
             malformed["_meta"]["agentComms"]["updates"][0]["receipt"]["version"] = True
             result = await agent.server.call({
                 "jsonrpc": "2.0", "method": "session/update", "params": {
@@ -117,19 +120,19 @@ async def exercise_boundaries(agent, view, pilot):
             assert result is None, result
             await pilot.pause()
             assert not notes(view)
-            await send(McpClientAcknowledgementUpdate(turn_id, receipt))
+            await send(McpClientAcknowledgementUpdate(OBSERVED, receipt))
             rendered = notes(view)
             assert len(rendered) == 1 and "not a grant" in rendered[0]
-            await send(McpClientAcknowledgementUpdate(turn_id, receipt))
+            await send(McpClientAcknowledgementUpdate(OBSERVED, receipt))
             assert notes(view) == rendered
             assert await Coordination.run_worker(partial(
                 producer._comms.agents.finish_turn, retired_owner.turn_lease,
             )) is None
             await send(TurnChangedUpdate(retired.state))
-            assert agent.current_turn.managed_id == view.turns.managed_id == turn_id
+            assert agent.current_turn.managed_id == view.turns.managed_id == OBSERVED
         terminal = await Coordination.run_worker(partial(producer.turns.current_turn_update, session_id))
         await send(TurnChangedUpdate(terminal.state))
         assert agent.current_turn.managed_id is view.turns.managed_id is None
         assert not notes(view)
-        await send(McpClientAcknowledgementUpdate(turn_id, receipt))
+        await send(McpClientAcknowledgementUpdate(OBSERVED, receipt))
         assert not notes(view)
