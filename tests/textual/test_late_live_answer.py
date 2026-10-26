@@ -205,7 +205,8 @@ async def test_an_advancing_commit_retires_the_outgoing_body_and_its_tool_report
         assert previous | {publication.reference} <= history.outgoing_coverage
 
 
-async def test_returning_to_busy_tab_loads_the_saved_gap(workspace):
+@pytest.mark.parametrize('hidden_count', (1, 45), ids=('single-page', 'multi-page'))
+async def test_returning_to_busy_tab_loads_the_saved_gap(workspace, hidden_count):
     import json
 
     journal = write_journal(workspace.project / "background.jsonl",
@@ -230,18 +231,30 @@ async def test_returning_to_busy_tab_loads_the_saved_gap(workspace):
         await deliver(agent, carrying(NativeRoundCommittedUpdate(committed)))
         await ui.new_session()
         with journal.open("a") as output:
-            output.write(json.dumps(assistant_entry("WHILE_TAB_HIDDEN", id="hidden", parent="before")) + "\n")
+            for index in range(hidden_count):
+                text = 'WHILE_TAB_HIDDEN' if index == hidden_count - 1 else f'HIDDEN_HISTORY_{index}'
+                output.write(json.dumps(assistant_entry(text, id=f'hidden-{index}',
+                    parent=f'hidden-{index - 1}' if index else 'before')) + '\n')
         hidden = latest_assistant_commit(workspace.comms, "background", journal)
+        pending_page = workspace.comms.transcripts.capture_page_read(
+            'background', after=view.transcript.binding.history.page_source.through).read()
+        assert pending_page.has_newer == (hidden_count > 20)
+        if pending_page.has_newer:
+            assert pending_page.after.offset < hidden.page_bound.offset
         await deliver(agent, carrying(NativeOutputCommittedUpdate(hidden, AssistantOutput())))
         await deliver(agent, carrying(NativeRoundCommittedUpdate(hidden)))
         await ui.select_tab(tab)
         assert ui.conversation is view
         assert view.turns.owner.busy
         await ui.until_shows("WHILE_TAB_HIDDEN")
+        await ui.until(lambda: view.transcript.binding.history.page_source.through.offset
+                       == hidden.page_bound.offset,
+                       why='the kept busy tab to reach the committed multi-page source')
         # Disk can be ahead of ACP ingress. A busy read must stop at the
         # applied round fence, even when all mounted blocks are already sealed.
         with journal.open("a") as output:
-            output.write(json.dumps(assistant_entry("AFTER_TAB_RETURN", id="after", parent="hidden")) + "\n")
+            output.write(json.dumps(assistant_entry("AFTER_TAB_RETURN", id="after",
+                parent=f'hidden-{hidden_count - 1}')) + "\n")
         view.transcript.dirty = view.transcript.commit_required = True
         await view.transcript.publish(CommitPublication)
         assert "AFTER_TAB_RETURN" not in ui.painted(view.window)

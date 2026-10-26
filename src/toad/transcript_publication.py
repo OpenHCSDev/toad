@@ -151,7 +151,10 @@ class TranscriptPublication(BoundFrame, ABC):
         )
         source = self.native_frontier
         certified = source.prefixes(self.identity, cursor)
-        return cursor.over_native(retained + certified)
+        committed = cursor.over_native(retained + certified)
+        # A committed round may cover several bounded pages. Its proof allows
+        # this whole page; it cannot enlarge the page we are publishing.
+        return cursor if cursor.within(committed) else committed
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
         return self.current() and self.source_bound(cursor) == cursor
