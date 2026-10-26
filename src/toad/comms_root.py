@@ -40,7 +40,6 @@ from agent_comms.ui_model.observation import (
     ObservationProcess,
     Observed,
     ObserveNotifications,
-    ObserverDied,
     ObserveSidebar,
     ObserveThreads,
     ObserveViews,
@@ -267,7 +266,7 @@ class Observing(Observation):
         if self.is_current():
             self.access.dispatch_sync(result, self)
 
-    def receive_failed(self, error: ObserverDied):
+    def receive_failed(self, error: Exception):
         if self.is_current():
             self.failed(error, self.selection)
             self.access.app._handle_exception(error)
