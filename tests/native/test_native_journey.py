@@ -5,6 +5,7 @@ The model is the controlled loopback provider; everything else is the real path.
 
 from agent_comms.session_file import RegistrySessionLocation
 import asyncio
+import base64
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -20,7 +21,7 @@ from agent_comms.input_attempt import StartedInput
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.threads import Thread
 
-from support.native import native_session
+from support.native import ControlledProvider, native_session
 from support.native_steps import channel_message_feedback, direct_reply_feedback
 from support.textual_steps import request_target_command
 from toad.agent import AgentBase
@@ -179,7 +180,29 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
 
 
 async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(workspace, native_package):
-    async with native_session(workspace) as native:
+    from toad.clipboard_image import save_clipboard_png
+
+    image = save_clipboard_png(base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aDqkAAAAASUVORK5CYII="
+    ))
+
+    def reply(request, number):
+        if number == 2:
+            assert str(image) in json.dumps(request, ensure_ascii=False)
+            return {"role": "assistant", "tool_calls": [{
+                "index": 0, "id": "read-message-image", "type": "function",
+                "function": {"name": "read", "arguments": json.dumps({"path": str(image)})},
+            }]}, "tool_calls"
+        if number == 3:
+            images = [block for message in request["messages"]
+                      if isinstance(message.get("content"), list)
+                      for block in message["content"] if block["type"] == "image_url"]
+            assert images and images[-1]["image_url"]["url"].startswith("data:image/png;base64,")
+            return {"role": "assistant", "content": "NATIVE_RESPONSE_2"}, "stop"
+        assert number == 1
+        return {"role": "assistant", "content": "NATIVE_RESPONSE_1"}, "stop"
+
+    async with native_session(workspace, provider=ControlledProvider(reply=reply, request_budget=3)) as native:
         ui, comms = native.ui, native.comms
         app, _pilot = ui.textual
         parent_tab = ui.selected_tab
@@ -208,12 +231,12 @@ async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(works
         await ui.resize(155, 40)
         await ui.resize(155, 18)
         await direct_reply_feedback(child, child_tab,
-                                    body="FIRST_DIRECT_MESSAGE_TO_FORK")
+                                    body=f'FIRST_DIRECT_MESSAGE_TO_FORK @"{image}"')
         await ui.select_tab(child_tab)
         assert ui.conversation is view and view.agent_binding is child.agent
         await ui.until(lambda: "NATIVE_RESPONSE_2" in ui.painted(view.window), seconds=20,
                        why="the fork's first reply on tab return")
-        assert len(native.provider.requests) == 2
+        assert len(native.provider.requests) == 3
         assert source.read_bytes() == original
 
 
