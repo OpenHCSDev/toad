@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from pathlib import Path
+from agent_comms.repo import Checkout
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
 from agent_comms.child_process import ProcessIdentity
@@ -15,7 +17,7 @@ def coordination_fact(thread, wire_root, *, owner=ProcessIdentity(1, 1), model="
                       context_usage: ContextReading = UnmeasuredContext()) -> CoordinationChangedUpdate:
     # Core declares model a str and context usage a ContextReading (7c5fdc279, 3e7aabe09).
     return CoordinationChangedUpdate(
-        RecordedThreadIncarnation(thread, 1.0), str(wire_root), owner, str(worktree or wire_root),
+        RecordedThreadIncarnation(thread, 1.0), str(wire_root), owner, Checkout(Path(worktree or wire_root)),
         model, thinking_level, title or thread, context_usage)
 
 

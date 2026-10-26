@@ -219,7 +219,7 @@ async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(works
         source = Path(parent.runtime.path)
         original = source.read_bytes()
         result = await asyncio.to_thread(ForkCliCommand(
-            name="fork", parent=parent.name, project=str(native.project),
+            name="fork", parent=parent.name, project=Checkout(native.project),
             model=parent.model, thinking_level=parent.thinking_level,
         ).apply, comms)
         assert result.created == "fork"
