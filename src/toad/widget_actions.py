@@ -154,7 +154,11 @@ class DeclaredWidgetActions:
             await command.apply(self)
 
 
-class VisibleAction(Action):
+class WidgetAction(Action, affix="Action"):
+    """Keyboard operations on the focused widget, distinct from configured commands."""
+
+
+class VisibleAction(WidgetAction):
     show = True
 
 
@@ -205,7 +209,7 @@ class LaunchAction(VisibleAction):
         await invoke(context.launch)
 
 
-class ActivateAction(Action):
+class ActivateAction(WidgetAction):
     keys = ("enter,space",)
 
     async def apply(self, context):
@@ -220,8 +224,11 @@ class ToggleIrcAction(VisibleAction):
         await context.toggle_irc()
 
 
+SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
+
+
 class SessionNavigationAction(VisibleAction, affix="Action"):
-    group = Binding.Group(description="Sessions")
+    group = SESSION_NAVIGATION_GROUP
     direction: ClassVar[int]
 
     async def apply(self, context):
