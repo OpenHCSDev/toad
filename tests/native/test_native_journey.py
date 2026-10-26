@@ -41,10 +41,10 @@ async def send_first_input_and_hold_its_reply(native):
     await ui.until(provider.entered.is_set, seconds=30, why="the first input at the provider")
 
 
-async def queue_behind_the_held_turn(native):
+async def queue_behind_the_held_turn(native, text="QUEUED_NATIVE_INPUT"):
     ui, agent = native.ui, native.agent
     await asyncio.wait_for(agent.send_prompt(
-        "QUEUED_NATIVE_INPUT", request=QueuePromptRequest("QUEUED_NATIVE_INPUT", True)), 10)
+        text, request=QueuePromptRequest(text, True)), 10)
     view = ui.conversation
     await ui.until(lambda: bool(view.submissions.queue_projection.items), seconds=20, why="the queued input")
     queued = [row.input_id for row in view.submissions.queue_projection.items]
@@ -104,7 +104,10 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         view = ui.conversation
         await send_first_input_and_hold_its_reply(native)
         await ui.write_draft("unsent local draft")
-        queued = await queue_behind_the_held_turn(native)
+        queued_text = "QUEUED_NATIVE_INPUT\n" + "日本語 message \n" * 900
+        queued = await queue_behind_the_held_turn(native, queued_text)
+        assert view.submissions.queue_projection.status == "available"
+        assert len(view.submissions.queue_projection.items[0].preview) <= 100
         await finish_both_turns(native)
         assert ui.draft() == "unsent local draft"
 
@@ -124,7 +127,9 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         native_rows = [json.loads(line) for line in
                        Path(comms.registry.require("beta").runtime.path).read_text().splitlines()]
         disposition = InputDispositions(comms.root / InputDispositions.filename).read().rows["acp:" + queued]
-        assert any(row.get("message", {}).get("inputId") == disposition.native_id for row in native_rows)
+        original = next(row["message"] for row in native_rows
+                        if row.get("message", {}).get("inputId") == disposition.native_id)
+        assert any(queued_text in block.get("text", "") for block in original["content"])
         assert not disposition.unresolved
 
         # A second ACP attachment to the same owner shows the same history and asks the model nothing.
@@ -151,7 +156,7 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
         await ui.new_session()
         assert agent.process.process is process and process.returncode is None
         await asyncio.wait_for(agent.send_prompt(
-            "QUEUED_NATIVE_INPUT", request=QueuePromptRequest("QUEUED_NATIVE_INPUT", True)), 10)
+            text, request=QueuePromptRequest(text, True)), 10)
         await ui.until(lambda: bool(agent.queue_attachment.projection.items), seconds=20, why="the queued input")
         await ui.select_tab(owner_tab)
         view = ui.conversation

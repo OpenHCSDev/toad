@@ -6,6 +6,8 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
 
+from agent_comms.acp_extension import QueueItem
+
 from rich.cells import cell_len
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
@@ -773,10 +775,10 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
     def _update_queue_summary(self) -> None:
         submissions = self.operational_submissions
         projection = submissions.queue_projection
-        queued = [row.text for row in submissions.queued_inputs]
-        restored = [row.text for row in projection.restored]
+        queued = [row.preview for row in submissions.queued_inputs]
+        restored = [row.preview for row in projection.restored]
         feedback = projection.feedback(self.agent_binding.presentation.queue_supported)
-        delivering = submissions.delivering
+        delivering = [QueueItem.summarize(text) for text in submissions.delivering]
         self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
         parts: list[str] = []
         if feedback:
@@ -789,7 +791,7 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
             if texts:
                 parts.append(
                     f"{label} ({len(texts)}{detail}): "
-                    + " · ".join(" ".join(text.split())[:100] for text in texts[:3])
+                    + " · ".join(texts[:3])
                 )
         summary = self.query_one(".queue-summary", Label)
         summary.tooltip = "Submitting is an outstanding local request, not acceptance. Queued is the producer's accepted input, not consumption or completion. Restored rows are not local drafts."
