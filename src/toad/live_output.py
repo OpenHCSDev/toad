@@ -66,13 +66,12 @@ class OutputStream(DeclaredFamily, affix="Stream"):
 @dataclass
 class ResponseStream(OutputStream):
     delivery: ResponseDelivery = field(default_factory=UnroutedResponse)
-    turn_id: str | None = field(default=None, kw_only=True)
 
     async def before_append(self, output: LiveOutput) -> None:
         await output.finish(ThoughtStream)
 
     def matches(self, incoming: ResponseStream) -> bool:
-        return (self.delivery == incoming.delivery and self.turn_id == incoming.turn_id
+        return (self.delivery == incoming.delivery
                 and self.source_claim is incoming.source_claim)
 
     def create(self, fragment: str) -> AgentResponse:
@@ -81,7 +80,12 @@ class ResponseStream(OutputStream):
 
 
 class CompleteResponseStream(ResponseStream):
-    """An owner notice is complete at ingress rather than awaiting a turn end."""
+    """A declared standalone notice closes the preceding reply and its own block."""
+
+    async def before_append(self, output: LiveOutput) -> None:
+        await super().before_append(output)
+        await output.finish(ResponseStream)
+
     async def append(self, view, fragment):
         block = await super().append(view, fragment)
         await self.finish()

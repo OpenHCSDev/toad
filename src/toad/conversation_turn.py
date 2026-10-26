@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 
     from toad.acp.agent import Agent
     from toad.core_event_carrier import CoreEventMessage
-    from toad.response_delivery import ResponseDelivery
     from toad.widgets.conversation import Conversation
 
 
@@ -73,11 +72,6 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def with_activity(self, activity: str) -> "TurnOwner":
         return ActivityTurn(activity) if activity else self
 
-    def response_stream(self, delivery: ResponseDelivery):
-        from toad.live_output import CompleteResponseStream
-
-        return CompleteResponseStream(delivery)
-
 
 @dataclass(frozen=True)
 class NoTurn(TurnOwner):
@@ -111,11 +105,6 @@ class AgentTurn(TurnOwner):
 
     def with_activity(self, activity: str) -> TurnOwner:
         return replace(self, activity=activity or "Thinking…")
-
-    def response_stream(self, delivery: ResponseDelivery):
-        from toad.live_output import ResponseStream
-
-        return ResponseStream(delivery, turn_id=self.managed_id)
 
 
 @dataclass(frozen=True)
@@ -166,13 +155,6 @@ class ManagedTurn(TurnOwner):
     def with_activity(self, activity: str):
         # Text, tool and heartbeat rendering cannot change backend phase.
         return self
-
-    def response_stream(self, delivery: ResponseDelivery):
-        if self.busy:
-            from toad.live_output import ResponseStream
-
-            return ResponseStream(delivery, turn_id=self.managed_id)
-        return super().response_stream(delivery)
 
 
 class TurnBinding(DeclaredFamily, affix="TurnBinding"):
