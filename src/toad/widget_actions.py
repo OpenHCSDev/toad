@@ -124,14 +124,14 @@ class VimHintsAction(VimApplicationAction):
 class DeclaredWidgetActions(DOMNode):
     """One family supplies both native dispatch and dynamic availability."""
 
-    own_actions: ClassVar[dict[type, tuple[type[Action], ...]]] = {}
+    own_actions: ClassVar[tuple[type[Action], ...]] = ()
 
     @classmethod
     def declared_actions(cls) -> tuple[type[Action], ...]:
         """Capabilities and the widget's own family compose through its MRO."""
         return tuple(dict.fromkeys(
             member for base in cls.__mro__
-            for family in DeclaredWidgetActions.own_actions.get(base, ())
+            for family in base.__dict__.get("own_actions", ())
             for member in family.members_with(family)
         ))
 
@@ -140,7 +140,7 @@ class DeclaredWidgetActions(DOMNode):
         return declaration.bindings()
 
     def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
-        DeclaredWidgetActions.own_actions[cls] = actions
+        cls.own_actions = actions
         declarations = cls.declared_actions()
         cls.BINDINGS = [*cls.__dict__.get("BINDINGS", ()),
                         *(binding for declaration in declarations
@@ -345,24 +345,24 @@ def hide(current: bool, selected: bool) -> bool:
 
 
 class ActionPresentation(DeclaredWidgetActions):
-    binding_styles: ClassVar[dict[type, tuple[BindingStyle, ...]]] = {}
-    scopes: ClassVar[dict[type, PresentationScopes]] = {}
+    binding_styles: ClassVar[tuple[BindingStyle, ...]] = ()
+    scopes: ClassVar[PresentationScopes] = MappingProxyType({})
 
     def __init_subclass__(
         cls, fields: tuple[FieldPlan, ...] = (), combine: Combiner = or_,
         scopes: PresentationScopes = MappingProxyType({}),
         actions: tuple[type[Action], ...] = (), **kwargs: object,
     ) -> None:
-        ActionPresentation.binding_styles[cls] = tuple(BindingStyle(field, combine) for field in fields)
-        ActionPresentation.scopes[cls] = scopes
+        cls.binding_styles = tuple(BindingStyle(field, combine) for field in fields)
+        cls.scopes = scopes
         super().__init_subclass__(actions=actions, **kwargs)
 
     @classmethod
     def present_binding(cls, declaration: type[Action], binding: Binding) -> Binding:
         scopes = {family: members for base in reversed(cls.__mro__)
-                  for family, members in ActionPresentation.scopes.get(base, {}).items()}
+                  for family, members in base.__dict__.get("scopes", {}).items()}
         for base in reversed(cls.__mro__):
-            for style in ActionPresentation.binding_styles.get(base, ()):
+            for style in base.__dict__.get("binding_styles", ()):
                 selected = any(root in declaration.__mro__ for root in scopes.get(base, (Action,)))
                 binding = replace(binding, **{
                     style.field.name: style.combine(bool(style.field.current(binding)), selected)

@@ -1,10 +1,9 @@
 """Nominal widget families compose the registry and native widget lifetimes here."""
 from agent_comms.declared_family import DeclaredFamily, FamilyMeta
-from textual.message_pump import _MessagePumpMeta
 from textual.widget import Widget
 
 
-class DeclaredWidgetMeta(FamilyMeta, _MessagePumpMeta):
+class DeclaredWidgetMeta(FamilyMeta, type(Widget)):
     """The shared public metaclass at the family/native-widget boundary."""
 
 
