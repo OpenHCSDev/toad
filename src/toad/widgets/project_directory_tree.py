@@ -5,6 +5,7 @@ import asyncio
 
 from textual import work
 from textual.binding import Binding
+from toad.widget_actions import DismissAction
 from textual.message import Message
 from textual.widgets import DirectoryTree
 from textual.widgets.directory_tree import DirEntry
@@ -34,7 +35,7 @@ This shows the files in your project directory.
     BINDINGS = [
         Binding(
             "ctrl+c",
-            "dismiss",
+            DismissAction.binding_name(),
             "Interrupt",
             tooltip="Interrupt running command",
             show=False,

@@ -5,12 +5,13 @@ from textual.app import ComposeResult
 
 from textual import work
 from textual.content import Content
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
 from textual import containers
 from textual import widgets
 from toad.widgets.footer import ToadFooter
 
-from textual.binding import Binding
+from toad import widget_actions
+from toad.widget_actions import HiddenActions, PriorityActions, Launches
 from toad.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction, LaunchAction
 from toad.core.session_requests import LaunchAgent
@@ -25,13 +26,13 @@ class DescriptionContainer(containers.VerticalScroll):
         return self.show_vertical_scrollbar
 
 
-class AgentModal(ModalScreen[LaunchAgent | None]):
+class AgentModal(
+    PriorityActions, HiddenActions, Launches, DismissibleScreen[LaunchAgent | None],
+    scopes={PriorityActions: (widget_actions.LaunchAction,),
+            HiddenActions: (widget_actions.DismissAction,)},
+):
     AUTO_FOCUS = "Select#action-select"
 
-    BINDINGS = [
-        Binding("escape", "dismiss(None)", "Dismiss", show=False),
-        Binding("space", "launch", "Launch agent", priority=True),
-    ]
 
     app = getters.app(ToadApp)
     action_select = getters.query_one("#action-select", widgets.Select)
@@ -101,7 +102,7 @@ class AgentModal(ModalScreen[LaunchAgent | None]):
         if action is not widgets.Select.NULL and action.available(self):
             await action.apply(self)
 
-    async def action_launch(self) -> None:
+    async def launch(self) -> None:
         await LaunchAction(self.agent).apply(self)
 
     def add_to_launcher(self) -> None:

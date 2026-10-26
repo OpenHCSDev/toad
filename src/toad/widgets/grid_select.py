@@ -7,18 +7,15 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.layouts.grid import GridLayout
 from textual.widget import Widget
+from toad.widget_actions import MovesCursor, Selects
 
 
-class GridSelect(containers.ItemGrid, can_focus=True):
+class GridSelect(MovesCursor, Selects, containers.ItemGrid, can_focus=True):
     FOCUS_ON_CLICK = False
     CURSOR_GROUP = Binding.Group("Select")
-    FOCUS_GROUP = Binding.Group("Focus")
     BINDINGS = [
-        Binding("up", "cursor_up", "Cursor Up", group=CURSOR_GROUP),
-        Binding("down", "cursor_down", "Cursor Down", group=CURSOR_GROUP),
         Binding("left", "cursor_left", "Cursor Left", group=CURSOR_GROUP),
         Binding("right", "cursor_right", "Cursor Right", group=CURSOR_GROUP),
-        Binding("enter", "select", "Select"),
     ]
 
     highlighted: reactive[int | None] = reactive(None)
@@ -131,7 +128,7 @@ class GridSelect(containers.ItemGrid, can_focus=True):
             return len(self.children) - 1
         return highlighted
 
-    def action_cursor_up(self):
+    def cursor_up(self):
         if (grid_size := self.grid_size) is None:
             self.post_message(self.LeaveUp(self))
             return
@@ -144,7 +141,7 @@ class GridSelect(containers.ItemGrid, can_focus=True):
             else:
                 self.post_message(self.LeaveUp(self))
 
-    def action_cursor_down(self):
+    def cursor_down(self):
         if (grid_size := self.grid_size) is None:
             self.post_message(self.LeaveDown(self))
             return
@@ -183,13 +180,13 @@ class GridSelect(containers.ItemGrid, can_focus=True):
         for widget in event.widget.ancestors_with_self:
             if widget in self.children:
                 if highlighted_widget is not None and highlighted_widget is widget:
-                    self.action_select()
+                    self.select()
                 else:
                     self.highlighted = self.children.index(widget)
                 break
         self.focus()
 
-    def action_select(self):
+    def select(self):
         if self.highlighted is not None:
             try:
                 highlighted_widget = self.children[self.highlighted]

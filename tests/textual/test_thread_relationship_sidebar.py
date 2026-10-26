@@ -123,7 +123,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         assert channel_tree._snapshot.owner == "owner", "Channel became the relationship owner"
         await ui.select_tab(owner_tab)
         assert ui.draft() == draft
-        tree.groups[OutboundRelationshipGroup].rows["#team"].action_open_selected()
+        tree.groups[OutboundRelationshipGroup].rows["#team"].open_selected()
         await ui.until(lambda: ui.selected_tab == channel_tab, why="the channel to open again")
         await ui.select_tab(owner_tab)
         row.scroll_visible(animate=False)
@@ -146,7 +146,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         await ui.until(lambda: "Unavailable" in ui.painted(row),
                        why="the unavailable row to be drawn")
         assert "Review the sidebar" in str(row.tooltip)
-        row.action_open_selected()
+        row.open_selected()
         await ui.step()
         assert ui.selected_tab == owner_tab
         with patch.object(app, "copy_to_clipboard") as copy:

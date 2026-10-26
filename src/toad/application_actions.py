@@ -258,7 +258,7 @@ class VimNextTabAction(VimNavigationAction):
     keys = ("J",)
 
     async def apply(self, app):
-        app.selected_session.action_session_next()
+        app.selected_session.navigate_session(+1)
 
 
 class VimPreviousTabAction(VimNavigationAction):
@@ -267,7 +267,7 @@ class VimPreviousTabAction(VimNavigationAction):
     keys = ("K",)
 
     async def apply(self, app):
-        app.selected_session.action_session_previous()
+        app.selected_session.navigate_session(-1)
 
 
 class QuitAction(ApplicationAction):

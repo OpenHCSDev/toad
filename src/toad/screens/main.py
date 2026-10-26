@@ -3,6 +3,7 @@ from abc import abstractmethod
 from collections.abc import Iterable
 from functools import partial
 from pathlib import Path
+from typing import Literal
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination_errors import DMScopeChanged, Refused
@@ -12,6 +13,7 @@ from agent_comms.route_selection import RouteSelection
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
+from toad.widget_actions import TogglesIrc, CyclesSessions, HiddenActions, SessionNavigationAction
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
 from textual.reactive import var
 from textual.widget import Widget
@@ -196,7 +198,8 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
+class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
+                 scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
@@ -205,25 +208,9 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
 
     COMMANDS = {ModeProvider, MCPInventoryProvider}
 
-    SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
-        Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+h", "go_home", "Home", show=False),
         Binding("f2", "commander_page", "Commander"),
-        Binding(
-            "ctrl+left_square_bracket",
-            "session_previous",
-            "Previous session",
-            group=SESSION_NAVIGATION_GROUP,
-            show=False,
-        ),
-        Binding(
-            "ctrl+right_square_bracket",
-            "session_next",
-            "Next session",
-            group=SESSION_NAVIGATION_GROUP,
-            show=False,
-        ),
     ]
 
     BINDING_GROUP_TITLE = "Screen"
@@ -484,7 +471,7 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
             )
         )
 
-    async def action_toggle_irc(self) -> None:
+    async def toggle_irc(self) -> None:
         """Open the IRC feed as a native Toad session."""
         if self.id is not None:
             await self.open_sidebar_target(FeedTarget())
@@ -506,16 +493,10 @@ class MainScreen(ViewSessionOrigin, SessionView, can_focus=False):
         """Open channels and DMs through Toad's native session modes."""
         await self.open_sidebar_target(event.target)
 
-    def action_session_previous(self) -> None:
+    def navigate_session(self, direction: Literal[-1, 1]) -> None:
         if self.id is not None:
             self.app.session_navigation.events.publish(
-                session_requests.SessionNavigate(self.id, -1)
-            )
-
-    def action_session_next(self) -> None:
-        if self.id is not None:
-            self.app.session_navigation.events.publish(
-                session_requests.SessionNavigate(self.id, +1)
+                session_requests.SessionNavigate(self.id, direction)
             )
 
     @handles(input_events.ProjectDirectoryUpdated)

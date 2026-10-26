@@ -791,8 +791,8 @@ class Conversation(
     ConversationCommsHandlers,
     DeclaredWidgetActions,
     ConversationSessionBinding,
+    actions=(ConversationAction,),
 ):
-    ACTIONS = ConversationAction
     """Holds the agent conversation (input, output, and various controls / information)."""
 
     BLANK = True

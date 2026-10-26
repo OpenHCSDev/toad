@@ -1,14 +1,21 @@
 """The Action family and its Textual dispatch projection."""
+from __future__ import annotations
+
 import inspect
 from abc import abstractmethod
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator, Mapping
 from functools import partialmethod
-from typing import ClassVar, Generic, Self, TypeVar
+from operator import or_
+from types import MappingProxyType
+from typing import ClassVar, Generic, Literal, Self, TypeVar
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec
+from agent_comms.field_codec import FieldCodec, FieldPlan
 from textual.binding import Binding
+from textual.dom import DOMNode
+from copy import replace
+from dataclasses import dataclass
 
 Context = TypeVar("Context")
 
@@ -114,29 +121,284 @@ class VimHintsAction(VimApplicationAction):
         await app.screen.action_show_hints()
 
 
-class DeclaredWidgetActions:
+class DeclaredWidgetActions(DOMNode):
     """One family supplies both native dispatch and dynamic availability."""
 
-    def __init_subclass__(cls, **kwargs):
-        if "ACTIONS" not in cls.__dict__:
-            super().__init_subclass__(**kwargs)
-            return
-        actions = cls.ACTIONS
+    own_actions: ClassVar[tuple[type[Action], ...]] = ()
+
+    @classmethod
+    def declared_actions(cls) -> tuple[type[Action], ...]:
+        """Capabilities and the widget's own family compose through its MRO."""
+        return tuple(dict.fromkeys(
+            member for base in cls.__mro__
+            for family in base.__dict__.get("own_actions", ())
+            for member in family.members_with(family)
+        ))
+
+    @classmethod
+    def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
+        return declaration.bindings()
+
+    def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
+        cls.own_actions = actions
+        declarations = cls.declared_actions()
         cls.BINDINGS = [*cls.__dict__.get("BINDINGS", ()),
-                        *(binding for declaration in actions.members_with(actions)
-                          for binding in declaration.bindings())]
-        for declaration in actions.members_with(actions):
+                        *(binding for declaration in declarations
+                          for binding in cls.action_bindings(declaration))]
+        for declaration in declarations:
             setattr(cls, f"action_{declaration.declared_name}",
                     partialmethod(cls._run_declared_action, declaration))
         super().__init_subclass__(**kwargs)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        actions = self.ACTIONS
-        if action not in actions.names():
-            return super().check_action(action, parameters)
-        return actions.member_named(action).parse(parameters).available(self)
+        for declaration in self.declared_actions():
+            if action == declaration.declared_name:
+                return declaration.parse(parameters).available(self)
+        return super().check_action(action, parameters)
 
     async def _run_declared_action(self, declaration, *parameters) -> None:
         command = declaration.parse(parameters)
         if command.available(self):
             await command.apply(self)
+
+
+class WidgetAction(Action, affix="Action"):
+    """Keyboard operations on the focused widget, distinct from configured commands."""
+
+
+class VisibleAction(WidgetAction):
+    show = True
+
+
+class DismissAction(VisibleAction):
+    """Close the current control."""
+    keys = ("escape",)
+
+    async def apply(self, context: DismissibleControl) -> None:
+        context.dismiss_control()
+
+
+class CursorAction(VisibleAction, affix="Action"):
+    group = Binding.Group("Select")
+
+
+class CursorUpAction(CursorAction):
+    keys = ("up",)
+
+    async def apply(self, context: MovesCursor) -> None:
+        context.cursor_up()
+
+
+class CursorDownAction(CursorAction):
+    keys = ("down",)
+
+    async def apply(self, context: MovesCursor) -> None:
+        context.cursor_down()
+
+
+class SubmitAction(VisibleAction):
+    keys = ("enter",)
+
+    async def apply(self, context: Submits) -> None:
+        context.submit()
+
+
+class SelectAction(VisibleAction):
+    keys = ("enter",)
+
+    async def apply(self, context: Selects) -> None:
+        context.select()
+
+
+class OpenSelectedAction(VisibleAction):
+    title = "Open"
+    keys = ("enter",)
+
+    async def apply(self, context: OpensSelected) -> None:
+        context.open_selected()
+
+
+class LaunchAction(VisibleAction):
+    keys = ("space",)
+
+    async def apply(self, context: Launches) -> None:
+        await context.launch()
+
+
+class ActivateAction(WidgetAction):
+    keys = ("enter,space",)
+
+    async def apply(self, context: Activates) -> None:
+        context.activate()
+
+
+class ToggleIrcAction(VisibleAction):
+    title = "IRC view"
+    keys = ("ctrl+g",)
+
+    async def apply(self, context: TogglesIrc) -> None:
+        await context.toggle_irc()
+
+
+SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
+
+
+class SessionNavigationAction(VisibleAction, affix="Action"):
+    group = SESSION_NAVIGATION_GROUP
+    direction: ClassVar[Literal[-1, 1]]
+
+    async def apply(self, context: CyclesSessions) -> None:
+        context.navigate_session(self.direction)
+
+
+class SessionPreviousAction(SessionNavigationAction):
+    keys = ("ctrl+left_square_bracket",)
+    direction = -1
+
+
+class SessionNextAction(SessionNavigationAction):
+    keys = ("ctrl+right_square_bracket",)
+    direction = +1
+
+
+class FocusAction(VisibleAction, affix="Action"):
+    group = Binding.Group("Focus")
+
+
+class FocusNextAction(FocusAction):
+    keys = ("tab",)
+
+    async def apply(self, context: CyclesFocus) -> None:
+        context.app.action_focus_next()
+
+
+class FocusPreviousAction(FocusAction):
+    keys = ("shift+tab",)
+
+    async def apply(self, context: CyclesFocus) -> None:
+        context.app.action_focus_previous()
+
+
+class Dismisses(DeclaredWidgetActions, actions=(DismissAction,)):
+    """The shared Escape binding."""
+
+
+class DismissibleControl(Dismisses):
+    @abstractmethod
+    def dismiss_control(self) -> None:
+        """Close this control without imposing a native screen result contract."""
+
+
+class MovesCursor(DeclaredWidgetActions, actions=(CursorAction,)):
+
+    @abstractmethod
+    def cursor_up(self) -> None: ...
+
+    @abstractmethod
+    def cursor_down(self) -> None: ...
+
+
+class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):
+
+    @abstractmethod
+    def submit(self) -> None: ...
+
+
+class Selects(DeclaredWidgetActions, actions=(SelectAction,)):
+
+    @abstractmethod
+    def select(self) -> None: ...
+
+
+class OpensSelected(DeclaredWidgetActions, actions=(OpenSelectedAction,)):
+
+    @abstractmethod
+    def open_selected(self) -> None: ...
+
+
+class Launches(DeclaredWidgetActions, actions=(LaunchAction,)):
+
+    @abstractmethod
+    async def launch(self) -> None: ...
+
+
+class Activates(DeclaredWidgetActions, actions=(ActivateAction,)):
+
+    @abstractmethod
+    def activate(self) -> None: ...
+
+
+class TogglesIrc(DeclaredWidgetActions, actions=(ToggleIrcAction,)):
+
+    @abstractmethod
+    async def toggle_irc(self) -> None: ...
+
+
+class CyclesSessions(DeclaredWidgetActions, actions=(SessionNavigationAction,)):
+
+    @abstractmethod
+    def navigate_session(self, direction: Literal[-1, 1]) -> None: ...
+
+
+class CyclesFocus(DeclaredWidgetActions, actions=(FocusAction,)):
+    """Use the native DOM focus owner."""
+
+
+Combiner = Callable[[bool, bool], bool]
+PresentationScopes = Mapping[type, tuple[type[Action], ...]]
+
+
+@dataclass(frozen=True)
+class BindingStyle:
+    field: FieldPlan
+    combine: Combiner
+
+
+def hide(current: bool, selected: bool) -> bool:
+    return current and not selected
+
+
+class ActionPresentation(DeclaredWidgetActions):
+    binding_styles: ClassVar[tuple[BindingStyle, ...]] = ()
+    scopes: ClassVar[PresentationScopes] = MappingProxyType({})
+
+    def __init_subclass__(
+        cls, fields: tuple[FieldPlan, ...] = (), combine: Combiner = or_,
+        scopes: PresentationScopes = MappingProxyType({}),
+        actions: tuple[type[Action], ...] = (), **kwargs: object,
+    ) -> None:
+        cls.binding_styles = tuple(BindingStyle(field, combine) for field in fields)
+        cls.scopes = scopes
+        super().__init_subclass__(actions=actions, **kwargs)
+
+    @classmethod
+    def present_binding(cls, declaration: type[Action], binding: Binding) -> Binding:
+        scopes = {family: members for base in reversed(cls.__mro__)
+                  for family, members in base.__dict__.get("scopes", {}).items()}
+        for base in reversed(cls.__mro__):
+            for style in base.__dict__.get("binding_styles", ()):
+                selected = any(root in declaration.__mro__ for root in scopes.get(base, (Action,)))
+                binding = replace(binding, **{
+                    style.field.name: style.combine(bool(style.field.current(binding)), selected)
+                })
+        return binding
+
+    @classmethod
+    def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
+        return tuple(cls.present_binding(declaration, binding)
+                     for binding in super().action_bindings(declaration))
+
+
+class PriorityActions(ActionPresentation,
+                      fields=(FieldCodec.field_plan(Binding, "priority"),), combine=or_):
+    """The selected actions take precedence over focused controls."""
+
+
+class HiddenActions(ActionPresentation,
+                    fields=(FieldCodec.field_plan(Binding, "show"),), combine=hide):
+    """The selected actions stay out of the footer."""
+
+
+class VisibleActions(ActionPresentation,
+                     fields=(FieldCodec.field_plan(Binding, "show"),), combine=or_):
+    """The selected actions are offered in the footer."""

@@ -40,7 +40,7 @@ def test_leaves_cannot_restore_retired_lifetime_or_path_helpers():
                 "PathSearch", "SlashComplete", "ModelSwitcher"
             }:
                 assert not {node.name for node in declaration.body if isinstance(node, ast.FunctionDef)} & {
-                    "focus", "action_dismiss", "on_descendant_blur", "close_if_unfocused"
+                    "focus", "dismiss_control", "on_descendant_blur", "close_if_unfocused"
                 }, filename
         if filename == "path_search.py":
             for node in ast.walk(tree):

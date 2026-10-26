@@ -2,7 +2,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core import events as core_events
 from textual.content import Content
-from toad.widget_actions import ApplicationAction
+from toad.widget_actions import ApplicationAction, Activates, DismissibleControl
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
@@ -243,12 +243,9 @@ class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
             self.action_pointer_toggle()
 
 
-class HeaderButton(HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
+class HeaderButton(Activates, HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
     """One compact, keyboard-accessible control in the top bar, on the bar's own tone."""
 
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("enter,space", "activate", "Activate", show=False)
-    ]
     DEFAULT_CSS = """
     HeaderButton {
         width: 7;
@@ -264,7 +261,7 @@ class HeaderButton(HoverSelection, PrimaryActivation, widgets.Static, can_focus=
     }
     """
 
-    def action_activate(self) -> None:
+    def activate(self) -> None:
         self.primary_activation()
 
     def on_click(self, event: Click) -> None:
@@ -501,12 +498,9 @@ class SidebarSlider(CapturedDrag, ColourSelection, widgets.Static, can_focus=Tru
         self.drag_to(event.screen_x)
 
 
-class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
+class SidebarAction(Activates, HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
     """One spatial arrow or float/push action."""
 
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("enter,space", "activate", "Sidebar layout", show=False)
-    ]
     DEFAULT_CSS = """
     SidebarAction { height: 1; width: auto; padding: 0 1; color: $text-muted; pointer: pointer; }
     SidebarAction.-direction { width: 7; content-align: center middle; text-style: bold; }
@@ -523,15 +517,15 @@ class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus
 
     @property
     def primary_activation(self):
-        return self.action_activate
+        return self.activate
 
-    def action_activate(self) -> None:
+    def activate(self) -> None:
         self.post_message(self.Pressed(self.action))
 
     def on_click(self, event: Click) -> None:
         if event.button == 1:
             event.stop()
-            self.action_activate()
+            self.activate()
 
 
 class SidebarResizeHandle(
@@ -587,10 +581,9 @@ class SidebarSearch(widgets.Input):
         self.value = ""
 
 
-class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical):
+class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
-    BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
     DEFAULT_CSS = """
     SideBar {
         layers: sidebar-content sidebar-toggle;
@@ -986,7 +979,7 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
     def reveal(self) -> None:
         self.store_collapsed(False)
 
-    def action_dismiss(self) -> None:
+    def dismiss_control(self) -> None:
         if SETTINGS.sidebar.hide.bind(self.app.saved_settings.state).value:
             self.collapsed = True
         self.post_message(self.Dismiss())

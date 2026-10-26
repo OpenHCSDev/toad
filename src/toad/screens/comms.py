@@ -6,10 +6,12 @@ from toad.screens.session_view import SessionView
 import asyncio
 from functools import partial
 from pathlib import Path
+from typing import Literal
 
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
+from toad.widget_actions import TogglesIrc, CyclesSessions
 from textual.events import ScreenResume
 from textual.worker import WorkerCancelled
 from textual.widgets import Static
@@ -29,29 +31,15 @@ from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
-class CommsScreen(SessionView, can_focus=False):
+class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
     CSS_PATH = ["main.tcss", "comms.tcss"]
-    SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
         Binding("escape", "back_to_agent", "Agent session"),
         Binding("f8", "historical_sessions", "Saved sessions", priority=True),
-        Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+t", "message_style", "IRC / Markdown"),
-        Binding(
-            "ctrl+left_square_bracket",
-            "session_previous",
-            "Previous session",
-            group=SESSION_NAVIGATION_GROUP,
-        ),
-        Binding(
-            "ctrl+right_square_bracket",
-            "session_next",
-            "Next session",
-            group=SESSION_NAVIGATION_GROUP,
-        ),
     ]
 
     def __init__(
@@ -283,20 +271,15 @@ class CommsScreen(SessionView, can_focus=False):
     async def action_back_to_agent(self) -> None:
         await self.app.session_navigation.return_from(self.id)
 
-    async def action_toggle_irc(self) -> None:
+    async def toggle_irc(self) -> None:
         await self.conversation.toggle_irc(self)
 
     async def open_direct_messages(self) -> None:
         await self.conversation.toggle_dm(self)
 
-    def action_session_previous(self) -> None:
+    def navigate_session(self, direction: Literal[-1, 1]) -> None:
         self.app.session_navigation.events.publish(
-            session_requests.SessionNavigate(self.owner_mode, -1)
-        )
-
-    def action_session_next(self) -> None:
-        self.app.session_navigation.events.publish(
-            session_requests.SessionNavigate(self.owner_mode, +1)
+            session_requests.SessionNavigate(self.owner_mode, direction)
         )
 
     async def action_close_session(self) -> None:

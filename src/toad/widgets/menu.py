@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from textual import on
 from textual.app import ComposeResult
-from textual.binding import Binding
+from toad.widget_actions import DismissibleControl
 from textual.message import Message
 from textual.widgets import ListView, Label
 from textual import events
@@ -36,8 +36,7 @@ class MenuOption(SelectionListItem):
         yield NonSelectableLabel(self._description, id="description")
 
 
-class Menu(UntintedTonePaint, ListView, can_focus=True):
-    BINDINGS = [Binding("escape", "dismiss", "Dismiss")]
+class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
 
     DEFAULT_CSS = """
     Menu {
@@ -98,9 +97,9 @@ class Menu(UntintedTonePaint, ListView, can_focus=True):
     async def activate_index(self, index: int) -> None:
         action = self._options[index].action
         self.post_message(self.OptionSelected(self, self._owner, action))
-        self.action_dismiss()
+        self.dismiss_control()
 
-    def action_dismiss(self) -> None:
+    def dismiss_control(self) -> None:
         if self.is_leaving:
             return
         if self.has_focus:
@@ -109,7 +108,7 @@ class Menu(UntintedTonePaint, ListView, can_focus=True):
         self.remove()
 
     def on_blur(self) -> None:
-        self.action_dismiss()
+        self.dismiss_control()
 
     @on(events.Key)
     async def on_key(self, event: events.Key) -> None:
