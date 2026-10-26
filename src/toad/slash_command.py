@@ -115,6 +115,26 @@ class NoArgumentsCommand(SlashCommand, LocalCommand):
         return cls()
 
 
+@dataclass(frozen=True)
+class CommanderCommand(SlashCommand, LocalCommand):
+    help = "Open the live commander HUD"
+    hint = "[commander-thread]"
+    commander: str = ""
+
+    @classmethod
+    def parse(cls, arguments: str) -> Self:
+        names = shlex.split(arguments)
+        if len(names) > 1:
+            raise ValueError("Use /commander [commander-thread].")
+        return cls(*names)
+
+    async def apply(self, conversation: Conversation) -> bool:
+        from toad.screens.commander import CommanderPage
+
+        conversation.app.push_screen(CommanderPage(self.commander))
+        return True
+
+
 class LoginCommand(NoArgumentsCommand):
     help = "Connect a provider using the agent's native login UI"
 
