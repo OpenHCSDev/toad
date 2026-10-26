@@ -40,6 +40,7 @@ from agent_comms.relationships import (
     ThreadCommsSnapshot,
 )
 from toad.widgets.thread_comms_source import RelationshipSource
+from toad.widget_actions import OpensSelected
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
@@ -145,7 +146,7 @@ class RelationshipRow(ThreadStatusRow):
     def action_copy_identity(self) -> None:
         self.app.copy_to_clipboard(self.target_name)
 
-    def action_open_selected(self) -> None:
+    def open_selected(self) -> None:
         tree = self.query_ancestor(ThreadCommsSidebar)
         tree.remember_row(self)
         if not self.available:
@@ -232,6 +233,7 @@ class ThreadCommsSidebar(
     SidebarVisibilityObserver,
     SearchFollower,
     TargetTree,
+    OpensSelected,
 ):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
@@ -239,7 +241,6 @@ class ThreadCommsSidebar(
     ThreadCommsSidebar .relationship-empty { height: 1; color: $text-muted; }
     ThreadCommsSidebar > Checkbox { height: 1; border: none; padding: 0; margin: 0; background: transparent; }
     """
-    BINDINGS = [("enter", "open_selected", "Open")]
 
     def __init__(
         self,

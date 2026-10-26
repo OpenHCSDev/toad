@@ -33,7 +33,7 @@ from textual._activation import PrimaryActivation
 from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.binding import Binding
-from toad.widget_actions import HiddenActions, MovesCursor
+from toad.widget_actions import CursorAction, HiddenActions, MovesCursor
 from textual.containers import Vertical, VerticalGroup
 from textual.geometry import Offset, Size
 from textual.layouts.vertical import VerticalLayout
@@ -741,7 +741,8 @@ class SearchFollower:
                 group.sync_members(frozenset(group.member_keys))
 
 
-class TargetTree(HiddenActions, MovesCursor, Vertical):
+class TargetTree(HiddenActions, MovesCursor, Vertical,
+                 scopes={HiddenActions: (CursorAction,)}):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
     navigation_groups: Iterable[SidebarGroup]
@@ -937,6 +938,6 @@ class TargetTree(HiddenActions, MovesCursor, Vertical):
         row.scroll_visible(animate=False, immediate=True)
         self.screen.set_focus(row, scroll_visible=False)
 
-    def action_open_selected(self) -> None:
+    def open_selected(self) -> None:
         if (row := self.app.focused) in self.rows:
-            row.action_open_selected()
+            row.open_selected()

@@ -41,6 +41,7 @@ from toad.navigation_target import channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
+from toad.widget_actions import CursorAction, HiddenActions, OpenSelectedAction, OpensSelected
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
@@ -64,7 +65,7 @@ class ChannelUnread(PrimaryActivation, ChangingText):
 
     @property
     def primary_activation(self):
-        return self.query_ancestor(ChannelGroup).row.action_open_selected
+        return self.query_ancestor(ChannelGroup).row.open_selected
 
 
 class ChannelGroup(SidebarGroup["ThreadRow"]):
@@ -144,7 +145,10 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
             self.show_member(name, view)
 
 
-class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel):
+class CommsRow(
+    TargetTreeMember, OpensSelected, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel,
+    scopes={HiddenActions: (CursorAction, OpenSelectedAction)},
+):
     """One interactive row: a channel or a thread."""
 
     text_fades = (NEW_MESSAGE,)
@@ -165,10 +169,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSele
         sidebar.show_row_menu(self, offset)
 
 
-
-    BINDINGS = [
-        Binding("enter", "open_selected", "Open", show=False),
-    ]
 
     can_focus = True
 
@@ -204,9 +204,9 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSele
 
     @property
     def primary_activation(self):
-        return self.action_open_selected
+        return self.open_selected
 
-    def action_open_selected(self) -> None:
+    def open_selected(self) -> None:
         self.navigation_tree.remember_row(self)
         self.app.run_worker(
             partial(self.app.selected_session.open_sidebar_target, self.target),
@@ -222,7 +222,7 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSele
             event.stop()
             self.navigation_tree.pointer_select(self, control=event.ctrl, shift=event.shift)
             return
-        self.action_open_selected()
+        self.open_selected()
 
 
 class ThreadStatusRow(CommsRow):
@@ -282,9 +282,9 @@ class ThreadRow(ThreadStatusRow):
     def mode_name(self) -> str | None:
         return self.navigation_tree.open_views.get(self.target_name)
 
-    def action_open_selected(self) -> None:
+    def open_selected(self) -> None:
         if self.mode_name is None or cast("ToadApp", self.app).session_navigation.session_details(self.mode_name) is None:
-            super().action_open_selected()
+            super().open_selected()
         else:
             self.navigation_tree.remember_row(self)
             self.app.select_session(self.mode_name)
@@ -354,7 +354,7 @@ class CoordinationStatus(ShowsThreadIdentity, SidebarPanelWidget, Static):
 
 
 
-class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, TargetTree):
+class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, TargetTree, OpensSelected):
     """The view of the observed service's sidebar model: channel groups and their threads.
 
     It mounts or removes groups and rows only for added and removed keys,
@@ -367,7 +367,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
     CommsSidebar .row-name { color: $text; }
     CommsSidebar .row-detail { color: $text-muted; }
     """
-    BINDINGS = [("enter", "open_selected", "Open")]
     GROUP_MOUNT = "sidebar-groups"
     selected: reactive[str] = reactive("", init=False)
     def __init__(self, *, observe: bool = True, **kwargs):

@@ -210,6 +210,14 @@ class SelectAction(VisibleAction):
         context.select()
 
 
+class OpenSelectedAction(VisibleAction):
+    title = "Open"
+    keys = ("enter",)
+
+    async def apply(self, context: OpensSelected) -> None:
+        context.open_selected()
+
+
 class LaunchAction(VisibleAction):
     keys = ("space",)
 
@@ -300,6 +308,12 @@ class Selects(DeclaredWidgetActions, actions=(SelectAction,)):
 
     @abstractmethod
     def select(self) -> None: ...
+
+
+class OpensSelected(DeclaredWidgetActions, actions=(OpenSelectedAction,)):
+
+    @abstractmethod
+    def open_selected(self) -> None: ...
 
 
 class Launches(DeclaredWidgetActions, actions=(LaunchAction,)):

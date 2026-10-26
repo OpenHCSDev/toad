@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import update_abstractmethods
 from inspect import isabstract
-from typing import ClassVar, Self, cast
+from typing import ClassVar, Self
 
 
 class DeclaredWidget:
@@ -23,6 +23,6 @@ class DeclaredWidget:
     @classmethod
     def members(cls) -> tuple[type[Self], ...]:
         return tuple(
-            cast(type[Self], member) for member in DeclaredWidget._members
-            if cls in member.__mro__
+            member for member in DeclaredWidget._members
+            if issubclass(member, cls)
         )
