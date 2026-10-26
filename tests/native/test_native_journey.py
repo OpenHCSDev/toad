@@ -114,12 +114,11 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
 
         # The live answer becomes saved history read from the native session file.
         await ui.until(lambda: view.turns.managed_id is None, seconds=20, why="the turn to end")
-        await ui.until(lambda: all(history.checkpoint_available
-                                   for history in view.contents.query(TranscriptHistory)), seconds=20,
-                       why="saved history to be available")
-        view.window.anchor()
-        view.transcript.require_checkpoint()
-        await ui.until(lambda: not view.transcript.dirty, seconds=20, why="the saved history to replace live blocks")
+        page = await view.transcript.get_transcript_page()
+        await ui.until(lambda: not view.window.history_lock.locked() and any(
+            history.page_source.through == page.after for history in view.window.histories
+            if history.is_attached and history.state.reports_coverage), seconds=20,
+            why="saved history through the original completed queue turn")
         await ui.until(lambda: answered(native, "NATIVE_RESPONSE_2"), seconds=20, why="the answer from saved history")
         assert view.contents.query(TranscriptHistory)
         assert not any(isinstance(child, AgentResponse) for child in view.contents.children)
