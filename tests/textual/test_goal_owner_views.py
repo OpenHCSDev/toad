@@ -5,7 +5,9 @@ from dataclasses import replace
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.field_codec import TurnId
 from agent_comms.goal_failure_observation import FailedTurnEvidence
-from agent_comms.goal_history import RecordedGoalRevision
+from agent_comms.goal_history import (
+    RecordedGoalRevision, BaselineRevision, TransitionRevision, ObservedGapRevision,
+)
 from agent_comms.goal_presentation import (
     GoalWaitTarget, IdleGoalExecution, PausedExecution, RunnableExecution, StandbyExecution,
 )
@@ -30,11 +32,15 @@ def goal_owner(workspace, app):
     goal = bound_mentions(published_goal("Coordinate with @peer", "stable-goal", progress="Keep evidence", revision=4),
                           workspace.thread("goal-owner"), workspace.comms.registry.snapshot())
     execution = StandbyExecution(goal.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),), ())
+    baseline = replace(goal, text="HISTORICAL_OBJECTIVE", revision=1)
+    transitioned = replace(goal, revision=2)
     history = GoalHistoryReply((
-        RecordedGoalRevision(sequence=1, kind="baseline", observed_at=1000.0, before=NoGoal(),
-                             after=replace(goal, text="HISTORICAL_OBJECTIVE", revision=4)),
-        RecordedGoalRevision(sequence=2, kind="transition", observed_at=1001.0,
-                             before=replace(goal, revision=4), after=goal),
+        RecordedGoalRevision(sequence=1, kind=BaselineRevision, observed_at=1000.0, before=NoGoal(),
+                             after=baseline),
+        RecordedGoalRevision(sequence=2, kind=TransitionRevision, observed_at=1001.0,
+                             before=baseline, after=transitioned),
+        RecordedGoalRevision(sequence=3, kind=ObservedGapRevision, observed_at=1002.0,
+                             before=transitioned, after=goal),
     ), (FailedTurnEvidence(
         attempt_id="attempt-1", goal_id=goal.id, generation=3, owner="goal-owner", owner_created_at=1.0,
         worktree="/work", claim_generation=1, turn_generation=1, goal_revision=4, turn_id=TurnId.mint(),
@@ -145,7 +151,8 @@ async def test_goal_history_lists_earlier_revisions(workspace):
         await ui.until_shows("History")
         await pilot.click("#goal-history")
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the goal details screen")
-        for text in ("HISTORICAL_OBJECTIVE", "baseline", "observed", "Attempt 3 · revision 4 · native child signaled"):
+        for text in ("HISTORICAL_OBJECTIVE", "baseline", "transition", "observed gap",
+                     "Attempt 3 · revision 4 · native child signaled"):
             await ui.until_shows(text)
         await ui.press("escape")
         assert view.prompt.text == "Composer draft stays"

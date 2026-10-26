@@ -72,7 +72,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
                             .astimezone()
                             .strftime("%Y-%m-%d %H:%M:%S")
                         )
-                        kind = entry.kind.replace("_", " ")
+                        kind = entry.kind.declared_name.replace("_", " ")
                         yield Static(
                             f"Revision {revision_goal.revision} · {kind} · observed {when}",
                             markup=False,
