@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 from agent_comms.channel_targets import ThreadTarget
 from agent_comms.cli_verbs.channels import ChannelsCliCommand
-from agent_comms.cli_commands import (
+from agent_comms.cli_command import (
     TargetBatchResult,
     TargetCompleted,
     TargetFailed,

@@ -5,7 +5,7 @@ import asyncio
 from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated
 
-from agent_comms.cli_commands import TargetAction
+from agent_comms.cli_command import TargetAction
 from agent_comms.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.field_codec import compile_decoder

@@ -16,8 +16,7 @@ from agent_comms.comms import Comms
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
 from agent_comms.route_selection import root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
-from agent_comms.cli_command import CliCommand
-from agent_comms.cli_commands import TargetAction
+from agent_comms.cli_command import CliCommand, TargetAction
 from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
