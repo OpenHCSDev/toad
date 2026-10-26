@@ -14,6 +14,7 @@ from toad.tone_paint import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope
+from toad.sidebar_layout import Side
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -34,10 +35,26 @@ class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
 
 class WorkspaceChrome(VerticalLayout):
     def __init__(self, app: "ToadApp") -> None:
+        self.app = app
         self.navigation = WorkspaceHeader(id="tab-navigation-header")
         self.channels = ChannelsSidebar()
         self.footer = ToadFooter(id="workspace-footer")
         self.native = NativeSessionSurface(app)
+
+    def presented_sidebars(self):
+        source = self.app.workspace_sessions.source
+        layout = self.app.sidebar_layout
+        return tuple(bar for bar in (self.channels, *source.sidebars())
+                     if bar.presentation_visible and bar.id in layout.placements)
+
+    def toggle_sidebar(self, side: Side) -> None:
+        layout = self.app.sidebar_layout
+        bars = tuple(bar for bar in self.presented_sidebars()
+                     if layout.get(bar.id).side == side)
+        collapsed = any(not bar.collapsed for bar in bars)
+        for bar in bars:
+            if bar.collapsed != collapsed:
+                bar.toggle(focus=False)
 
     async def prepare_navigation(self, screen) -> bool:
         """Restore the single shared Channels surface independently of tab-local panels."""
@@ -50,7 +67,7 @@ class WorkspaceChrome(VerticalLayout):
 
     def refresh_layout(self) -> None:
         """Placement changes retire both native parent arrangements."""
-        source = self.channels.app.workspace_sessions.source
+        source = self.app.workspace_sessions.source
         for parent in {
             bar.parent for bar in (self.channels, *source.sidebars()) if bar.is_mounted
         }:
@@ -60,14 +77,10 @@ class WorkspaceChrome(VerticalLayout):
         self, parent: Widget, children: list[Widget], size: Size, greedy: bool = True
     ) -> ArrangeResult:
         """Place chrome and conversation directly in the native layout pass."""
-        source = parent.app.workspace_sessions.source
-        layout = parent.app.sidebar_layout
+        source = self.app.workspace_sessions.source
+        layout = self.app.sidebar_layout
         own = tuple(source.sidebars())
-        bars = tuple(
-            bar
-            for bar in (self.channels, *own)
-            if bar.presentation_visible and bar.id in layout.placements
-        )
+        bars = self.presented_sidebars()
         resolved = layout.resolve(size.width, {bar.id: bar.collapsed for bar in bars})
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.

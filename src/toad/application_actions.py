@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from agent_comms.field_codec import FieldCodec
 from toad.preferences import SETTINGS
@@ -16,6 +16,8 @@ from toad.widget_actions import (
 from toad.widgets.comms_transfer import TransferRequest
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
+from toad.core.session_requests import SessionNavigate
+from toad.sidebar_layout import Side
 from agent_comms.errors import RelationViolationError
 from agent_comms.cli_verbs.new import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
@@ -252,22 +254,84 @@ class VimFocusPromptAction(VimNavigationAction):
         self.conversation(app).prompt.enter_insert()
 
 
-class VimNextTabAction(VimNavigationAction):
+class VimCycleTabAction(VimApplicationAction, declared_name=None):
+    direction: Literal[-1, 1]
+
+    async def apply(self, app: ToadApp) -> None:
+        await SessionNavigate(app.selected_mode, self.direction).apply(app.session_navigation)
+
+
+class VimNextTabAction(VimCycleTabAction):
     """Select the next tab."""
 
-    keys = ("J",)
-
-    async def apply(self, app):
-        app.selected_session.navigate_session(+1)
+    keys = ("K",)
+    direction = +1
 
 
-class VimPreviousTabAction(VimNavigationAction):
+class VimPreviousTabAction(VimCycleTabAction):
     """Select the previous tab."""
 
-    keys = ("K",)
+    keys = ("J",)
+    direction = -1
 
-    async def apply(self, app):
-        app.selected_session.navigate_session(-1)
+
+class VimHistoryAction(VimApplicationAction, declared_name=None):
+    direction: Literal[-1, 1]
+
+    async def apply(self, app: ToadApp) -> None:
+        app.tab_order.navigate(self.direction)
+
+
+class VimHistoryBackAction(VimHistoryAction):
+    """Return to the previously visited tab."""
+    keys = ("H",)
+    direction = -1
+
+
+class VimHistoryForwardAction(VimHistoryAction):
+    """Go forward through visited tabs."""
+    keys = ("L",)
+    direction = +1
+
+
+class VimSidebarAction(VimApplicationAction, declared_name=None):
+    side: Side
+
+    async def apply(self, app: ToadApp) -> None:
+        app.workspace_chrome.toggle_sidebar(self.side)
+
+
+class VimLeftSidebarAction(VimSidebarAction):
+    """Toggle the sidebars on the left edge."""
+    keys = ("ctrl+shift+h",)
+    side = "left"
+
+
+class VimRightSidebarAction(VimSidebarAction):
+    """Toggle the sidebars on the right edge."""
+    keys = ("ctrl+shift+l",)
+    side = "right"
+
+
+class VimMoveTabAction(VimApplicationAction, declared_name=None):
+    direction: Literal[-1, 1]
+
+    async def apply(self, app: ToadApp) -> None:
+        if entry := app.session_navigation.get(app.selected_mode):
+            await app.tab_order.move(entry.identity, self.direction)
+            app.session_navigation.publish()
+
+
+class VimMoveTabLeftAction(VimMoveTabAction):
+    """Move the selected tab left without selecting another tab."""
+    keys = ("ctrl+shift+j",)
+    direction = -1
+
+
+class VimMoveTabRightAction(VimMoveTabAction):
+    """Move the selected tab right without selecting another tab."""
+    keys = ("ctrl+shift+k",)
+    direction = +1
 
 
 class QuitAction(ApplicationAction):
