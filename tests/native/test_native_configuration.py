@@ -27,12 +27,11 @@ async def test_thinking_level_changes_during_a_turn_and_survives_reattaching(wor
         await ui.press("down", "enter")
         await ui.until(lambda: isinstance(app.screen, ContextMenu), why="the thinking menu")
 
-        def high():
-            return next((item for item in app.screen.query("ContextMenuItem") if item.action == "high"), None)
-
-        await ui.until(lambda: high() is not None and high() in app.screen._compositor.visible_widgets
-                       and high().region.width > 0, why="the 'high' menu item")
-        assert await pilot.click(high(), offset=(1, 0))
+        await ui.until_shows("High")
+        options = app.screen.options
+        high = next(index for index in range(options.option_count)
+                    if options.get_option_at_index(index).action == "high")
+        await ui.press("home", *("down",) * high, "enter")
         await ui.until(lambda: comms.registry.require("beta").thinking_level is HighThinkingLevel,
                        seconds=15, why="the thinking level on the owner")
         await ui.until(lambda: agent.configuration.thinking.current == "high", seconds=15,
