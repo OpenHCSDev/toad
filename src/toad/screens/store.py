@@ -20,7 +20,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.css.query import NoMatches
-from textual.reactive import Required, reactive
+from textual.reactive import reactive
 from textual import containers
 from textual import widgets
 from toad.widgets.footer import ToadFooter
@@ -68,19 +68,16 @@ class DirectoryDisplay(DismissibleControl, CoreEventReceiver, containers.Horizon
     }
     """
 
-    project_dir = reactive[Checkout](Required())
     path = reactive("")
     edit = reactive(False, toggle_class="-edit")
 
     directory_input = getters.query_one(DirectoryInput)
     condensed_path = getters.query_one(CondensedPath)
 
-    def __init__(self, project_dir: Checkout) -> None:
-        super().__init__()
-        self.set_reactive(DirectoryDisplay.project_dir, project_dir)
-        self.path = format_path(project_dir.path, directory=True)
+    def on_mount(self) -> None:
+        self.watch(self.app, ToadApp.project_dir.name, self.project_changed)
 
-    def watch_project_dir(self, project: Checkout) -> None:
+    def project_changed(self, project: Checkout) -> None:
         self.path = format_path(project.path, directory=True)
 
     def focus(self, scroll_visible=True) -> Self:
@@ -344,9 +341,7 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
             with containers.Grid(id="title-grid"):
                 yield Mandelbrot()
                 yield widgets.Label(self.get_info(), id="info")
-        yield DirectoryDisplay(self.app.project_dir).data_bind(
-            project_dir=ToadApp.project_dir
-        )
+        yield DirectoryDisplay()
         yield Container(id="container", can_focus=False)
         yield ToadFooter()
 
