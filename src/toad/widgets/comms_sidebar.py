@@ -121,6 +121,10 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         channel = self.channel
         view.show(sidebar.model_state.shown.threads.rows[name], pinned=name in channel.pinned_members)
 
+    def accepts_members(self) -> bool:
+        """Attached groups may outlive the model while their sidebar is hidden."""
+        return super().accepts_members() and self.sidebar.model_state.shows_model()
+
     @property
     def member_keys(self):
         return self.sidebar.model_state.shown.channels.rows[self.row.target_name].members

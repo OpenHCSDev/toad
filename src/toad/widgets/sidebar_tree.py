@@ -416,6 +416,8 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
             refreshed = asyncio.Event()
             self.call_after_refresh(refreshed.set)
             await refreshed.wait()
+            if not self.accepts_members() or not self.members_visible:
+                return
             # No model change: only the rows created now are painted.
             self.sync_members(frozenset())
 
