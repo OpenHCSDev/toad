@@ -633,11 +633,11 @@ class RowAcquisition(ABC):
     @abstractmethod
     def retains(self, lines: BlockLines, theme: LineTheme) -> bool: ...
 
-    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> AcquiredRows:
+    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> MeasuredRows:
         lines = PlainLines(width, renderer, blocks)
         return PlainRows(lines.preparation, lines)
 
-    def retained_blocks(self, source: LinePreparation) -> dict[int, LineBlock]:
+    def retained_blocks(self, source: LinePreparation, context: LinkContext) -> dict[int, LineBlock]:
         """Already styled children of this source revision, indexed in the new source."""
         return {}
 
@@ -657,7 +657,7 @@ class NoRows(RowAcquisition):
 
 
 @dataclass
-class AcquiredRows(RowAcquisition):
+class MeasuredRows(RowAcquisition):
     source: LinePreparation
     lines: BlockLines
 
@@ -674,8 +674,19 @@ class AcquiredRows(RowAcquisition):
     def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
         return self.source.theme is theme and self.lines.preparation is lines.preparation
 
-    def retained_blocks(self, source: LinePreparation) -> dict[int, LineBlock]:
-        if self.source.theme is not source.theme:
+    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
+        if self.source.theme is renderer.theme:
+            self.lines = self.lines.rewrap(width)
+            return self
+        return super().plain(width, renderer, blocks)
+
+
+@dataclass
+class AcquiredRows(MeasuredRows):
+    context: LinkContext
+
+    def retained_blocks(self, source: LinePreparation, context: LinkContext) -> dict[int, LineBlock]:
+        if self.source.theme is not source.theme or self.context != context:
             return {}
         previous = tuple(zip(self.source.blocks, self.lines.preparation.blocks, strict=True))
         retained = {}
@@ -691,17 +702,8 @@ class AcquiredRows(RowAcquisition):
             retained[len(source.blocks) - distance] = prepared
         return retained
 
-    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
-        if self.source.theme is renderer.theme:
-            self.lines = self.lines.rewrap(width)
-            return self
-        return super().plain(width, renderer, blocks)
 
-
-class PlainRows(AcquiredRows):
-    def retained_blocks(self, source: LinePreparation) -> dict[int, LineBlock]:
-        return {}
-
+class PlainRows(MeasuredRows):
     def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
         return self.source.theme is theme and self.lines.preparation.blocks is lines.preparation.blocks
 
@@ -816,9 +818,9 @@ class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, .
         if not preparations:
             return ()
         previous = tuple(previous) or (NoRows(),) * len(preparations)
-        retained = tuple(acquired.retained_blocks(source)
-                         for acquired, source in zip(previous, preparations, strict=True))
         context = await LinkContext.acquire(view)
+        retained = tuple(acquired.retained_blocks(source, context)
+                         for acquired, source in zip(previous, preparations, strict=True))
         items = tuple(TranscriptLinesRenderTask(preparation, context) for preparation in preparations)
         pending = tuple(replace(item, preparation=replace(item.preparation, blocks=tuple(
             block for index, block in enumerate(item.blocks) if index not in held
