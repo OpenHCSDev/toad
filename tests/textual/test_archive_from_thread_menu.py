@@ -5,7 +5,8 @@ and saved session."""
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.read_basis import NamedViewer
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.cli_commands import ArchiveCliCommand, CliCommand
+from agent_comms.cli_command import CliCommand
+from agent_comms.cli_verbs.archive import ArchiveCliCommand
 from agent_comms.goal_actions import SetGoalAction
 from agent_comms.thread_status import ArchivedThreadStatus, StoppedThreadStatus
 from agent_comms.threads import Thread

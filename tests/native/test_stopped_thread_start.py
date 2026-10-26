@@ -3,7 +3,7 @@ import asyncio
 from dataclasses import replace
 
 from agent_comms.channel_targets import CommandTarget
-from agent_comms.cli_commands import StartCliCommand
+from agent_comms.cli_verbs.start import StartCliCommand
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.session_file import RegistrySessionLocation
 from support.journals import assistant_entry, write_journal

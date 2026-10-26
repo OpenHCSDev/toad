@@ -43,7 +43,7 @@ class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
     @classmethod
     def summary(cls) -> str:
         """The nearest docstring a member declares; the family roots document code, not keys."""
-        root = cls.family_root()
+        root = cls.family_root
         return next((inspect.cleandoc(base.__doc__) for base in cls.__mro__
                      if issubclass(base, root) and base is not root and base.__doc__), "")
 
