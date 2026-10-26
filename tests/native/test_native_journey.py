@@ -15,6 +15,8 @@ from agent_comms.cli_verbs.queue_restart import QueueRestartCliCommand
 from agent_comms.cli_verbs.fork import ForkCliCommand
 from agent_comms.cli_verbs.start import StartCliCommand
 from agent_comms.input_disposition import InputDispositions
+from agent_comms.input_key import AcpInputKey
+from agent_comms.input_attempt import StartedInput
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.threads import Thread
 
@@ -41,10 +43,10 @@ async def send_first_input_and_hold_its_reply(native):
     await ui.until(provider.entered.is_set, seconds=30, why="the first input at the provider")
 
 
-async def queue_behind_the_held_turn(native):
+async def queue_behind_the_held_turn(native, text="QUEUED_NATIVE_INPUT"):
     ui, agent = native.ui, native.agent
     await asyncio.wait_for(agent.send_prompt(
-        "QUEUED_NATIVE_INPUT", request=QueuePromptRequest("QUEUED_NATIVE_INPUT", True)), 10)
+        text, request=QueuePromptRequest(text, True)), 10)
     view = ui.conversation
     await ui.until(lambda: bool(view.submissions.queue_projection.items), seconds=20, why="the queued input")
     queued = [row.input_id for row in view.submissions.queue_projection.items]
@@ -104,18 +106,20 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         view = ui.conversation
         await send_first_input_and_hold_its_reply(native)
         await ui.write_draft("unsent local draft")
-        queued = await queue_behind_the_held_turn(native)
+        queued_text = "QUEUED_NATIVE_INPUT\n" + "日本語 message \n" * 900
+        queued = await queue_behind_the_held_turn(native, queued_text)
+        assert view.submissions.queue_projection.status == "available"
+        assert len(view.submissions.queue_projection.items[0].preview) <= 100
         await finish_both_turns(native)
         assert ui.draft() == "unsent local draft"
 
         # The live answer becomes saved history read from the native session file.
         await ui.until(lambda: view.turns.managed_id is None, seconds=20, why="the turn to end")
-        await ui.until(lambda: all(history.checkpoint_available
-                                   for history in view.contents.query(TranscriptHistory)), seconds=20,
-                       why="saved history to be available")
-        view.window.anchor()
-        view.transcript.require_checkpoint()
-        await ui.until(lambda: not view.transcript.dirty, seconds=20, why="the saved history to replace live blocks")
+        page = await view.transcript.get_transcript_page()
+        await ui.until(lambda: not view.window.history_lock.locked() and any(
+            history.page_source.through == page.after for history in view.window.histories
+            if history.is_attached and history.state.reports_coverage), seconds=20,
+            why="saved history through the original completed queue turn")
         await ui.until(lambda: answered(native, "NATIVE_RESPONSE_2"), seconds=20, why="the answer from saved history")
         assert view.contents.query(TranscriptHistory)
         assert not any(isinstance(child, AgentResponse) for child in view.contents.children)
@@ -123,9 +127,11 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
 
         native_rows = [json.loads(line) for line in
                        Path(comms.registry.require("beta").runtime.path).read_text().splitlines()]
-        disposition = InputDispositions(comms.root / InputDispositions.filename).read().rows["acp:" + queued]
-        assert any(row.get("message", {}).get("inputId") == disposition.native_id for row in native_rows)
-        assert not disposition.unresolved
+        disposition = InputDispositions(comms.root).lookup(AcpInputKey(queued))
+        assert isinstance(disposition, StartedInput)
+        original = next(row["message"] for row in native_rows
+                        if row.get("message", {}).get("inputId") == disposition.native_id)
+        assert any(queued_text in block.get("text", "") for block in original["content"])
 
         # A second ACP attachment to the same owner shows the same history and asks the model nothing.
         asked = len(native.provider.requests)

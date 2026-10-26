@@ -8,6 +8,7 @@ from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import (
     AvailableQueueProjection, QueueChangedUpdate, QueueItem, LiveQueueScope, encode_updates,
 )
+from agent_comms.field_codec import InputId
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
 
@@ -23,7 +24,7 @@ def response(session, next_owner=False):
         claimed_identity=ClaimedIdentity(RecordedThreadIncarnation(session, 1000.0), generation),
         owner=ProcessIdentity(1234, 1),
     )
-    items = (QueueItem("a" * 32, "same text"), QueueItem("b" * 32, "same text"))
+    items = (QueueItem(InputId("a" * 32), "same text"), QueueItem(InputId("b" * 32), "same text"))
     return NewSessionResponse(
         sessionId=session, _meta=encode_updates(QueueChangedUpdate(scope, generation, AvailableQueueProjection(items))))
 
