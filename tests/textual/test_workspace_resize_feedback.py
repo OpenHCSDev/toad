@@ -11,7 +11,7 @@ async def test_latest_terminal_resize_survives_workspace_layout_output(workspace
         resize = screen._screen_resized
         def record(size):
             requests.append((size, screen.outer_size, screen.virtual_size))
-            assert len(requests) < 100, repr(requests[-10:])
+            assert len(requests) <= 2, f'Layout output fed back as a viewport request: {requests}'
             resize(size)
         screen._screen_resized = record
         # App receives both terminal sizes before its screen processes them.
@@ -22,7 +22,6 @@ async def test_latest_terminal_resize_survives_workspace_layout_output(workspace
         await app._on_resize(Resize(Size(155, 18), Size(155, 18)))
         app._check_resize()
         await ui.step()
-        assert len(requests) <= 2, repr(requests[-10:])
         assert app.workspace_screen.outer_size == app.size == Size(155, 18)
         await ui.type('still responsive')
         assert ui.conversation.prompt.text == 'still responsive'
