@@ -55,6 +55,7 @@ from toad.transcript_preparation import PreparedPageSource
 from toad.widgets.committed_presentation import (
     CommitBarrier,
     CommitEvidence,
+    NativeCommitEvidence,
     CommitParticipant,
     commit_plan,
     protected_blocks,
@@ -122,7 +123,7 @@ class TranscriptPublication(BoundFrame, ABC):
         super().__init__(binding, owner, generation)
         self.thread_scope = binding.thread_scope
         self.destination = HeldReaderDestination.held(binding.window)
-        self.identity: TranscriptReadIdentity | None = None
+        self.identity: TranscriptReadIdentity
         self.capture_cohort()
 
     def capture_cohort(self) -> None:
@@ -149,11 +150,7 @@ class TranscriptPublication(BoundFrame, ABC):
             else ()
         )
         source = self.native_frontier
-        certified = (
-            (source.page_bound.with_frontier(cursor.wire),)
-            if source is not None and self.identity is not None
-            and source.contains_native_prefix(self.identity) else ()
-        )
+        certified = source.prefixes(self.identity, cursor)
         return cursor.over_native(retained + certified)
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
@@ -435,14 +432,13 @@ class CommitPublication(CanonicalSourcePublication):
         prepared = await plan.prepare(view, history, page, self.captured, is_current)
         if prepared is None or not is_current():
             return True
-        assert self.identity is not None
-        evidence = CommitEvidence(
+        evidence = NativeCommitEvidence(
             self.captured,
             prepared.sequences,
             prepared.history,
             TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
-            replace(self.identity, through=page.after),
+            identity=replace(self.identity, through=page.after),
         )
         retired = retirement_candidates(contents.children, evidence)
         if not plan.permits(view, retired):

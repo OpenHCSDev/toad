@@ -11,7 +11,7 @@ from agent_comms.declared_family import DeclaredFamily
 from typing import TYPE_CHECKING
 
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
-from toad.widgets.committed_presentation import CapturedClaim
+from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim
 
 if TYPE_CHECKING:
     from agent_comms.transcripts import TranscriptReadIdentity
@@ -25,10 +25,10 @@ if TYPE_CHECKING:
 class OutputStream(DeclaredFamily, affix="Stream"):
     """One declared live output case and the block receiving its fragments."""
 
-    source_claim: CapturedClaim | None = field(default=None, kw_only=True)
+    source_claim: CapturedClaim = field(default_factory=lambda: CAPTURED_CLAIM, kw_only=True)
 
     def __post_init__(self) -> None:
-        self.block: AgentResponse | AgentThought | None = None
+        self.block = None
 
     async def before_append(self, output: LiveOutput) -> None:
         pass
@@ -45,9 +45,10 @@ class OutputStream(DeclaredFamily, affix="Stream"):
     async def append(self, view: Conversation, fragment: str):
         if self.block is None:
             if self.accepts(fragment):
-                self.block = self.create(fragment)
-                self.block.source_claim = self.source_claim
-                await view.post(self.block, new_block=False)
+                block = self.create(fragment)
+                block.source_claim = self.source_claim
+                self.block = block
+                await view.post(block, new_block=False)
         else:
             await self.block.append_fragment(fragment)
         return self.block

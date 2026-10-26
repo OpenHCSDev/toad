@@ -234,7 +234,6 @@ async def test_returning_to_busy_tab_loads_the_saved_gap(workspace):
         hidden = latest_assistant_commit(workspace.comms, "background", journal)
         await deliver(agent, carrying(NativeOutputCommittedUpdate(hidden, AssistantOutput())))
         await deliver(agent, carrying(NativeRoundCommittedUpdate(hidden)))
-        assert agent.committed_native_output == hidden
         await ui.select_tab(tab)
         assert ui.conversation is view
         assert view.turns.owner.busy

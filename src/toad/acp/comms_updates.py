@@ -107,7 +107,6 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(NativeOutputCommittedUpdate)
     def native_output_committed(self, update: NativeOutputCommittedUpdate) -> None:
         self.dispatch_sync(update.output, update.identity)
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(AssistantOutput)
     def assistant_committed(self, output: AssistantOutput, source: NativeCommittedPrefix) -> None:

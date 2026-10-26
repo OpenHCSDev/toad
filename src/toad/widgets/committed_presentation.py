@@ -37,14 +37,57 @@ class CommitEvidence:
     retained_history: Widget | None = None
     native_inputs: frozenset[str] = frozenset()
     outgoing: frozenset[OutgoingMessageReference] = frozenset()
-    identity: TranscriptReadIdentity | None = None
+
+    def covers_native(self, source: NativeCommittedPrefix) -> bool:
+        return False
+
+
+@dataclass(frozen=True, kw_only=True)
+class NativeCommitEvidence(CommitEvidence):
+    identity: TranscriptReadIdentity
+
+    def covers_native(self, source: NativeCommittedPrefix) -> bool:
+        return source.contains_native_prefix(self.identity)
+
+
+class CommitSource:
+    """Uncommitted output needs settlement; a native append supplies exact coverage."""
+
+    def capture(self, settled: bool) -> bool:
+        return settled
+
+    def accepts(self, identity: TranscriptReadIdentity) -> bool:
+        return True
+
+    def covered(self, evidence: CommitEvidence) -> bool:
+        return True
+
+    def prefixes(self, identity: TranscriptReadIdentity, cursor: TranscriptCursor) -> tuple[TranscriptCursor, ...]:
+        return ()
+
+
+@dataclass(frozen=True)
+class NativeCommitSource(CommitSource):
+    original: NativeCommittedPrefix
+
+    def capture(self, settled: bool) -> bool:
+        return True
+
+    def accepts(self, identity: TranscriptReadIdentity) -> bool:
+        return self.original.contains_native_prefix(identity)
+
+    def covered(self, evidence: CommitEvidence) -> bool:
+        return evidence.covers_native(self.original)
+
+    def prefixes(self, identity: TranscriptReadIdentity, cursor: TranscriptCursor) -> tuple[TranscriptCursor, ...]:
+        return (self.original.page_bound.with_frontier(cursor.wire),) if self.accepts(identity) else ()
 
 class CommitClaim(ABC):
     def capture(self, settled: bool) -> bool:
         return True
 
     def accepts_native(self, widget: Widget, captured: frozenset[Widget],
-                       identity: TranscriptReadIdentity | None = None) -> bool:
+                       identity: TranscriptReadIdentity) -> bool:
         return True
 
     @property
@@ -70,19 +113,21 @@ class CommitClaim(ABC):
 class CapturedClaim(CommitClaim):
     """A captured block, sealed by its original append or a settled turn."""
 
-    source: NativeCommittedPrefix | None = None
+    source: CommitSource = CommitSource()
+
+    def seal(self, source: NativeCommittedPrefix) -> None:
+        self.source = NativeCommitSource(source)
 
     def capture(self, settled: bool) -> bool:
-        return settled or self.source is not None
+        return self.source.capture(settled)
 
     def accepts_native(self, widget: Widget, captured: frozenset[Widget],
-                       identity: TranscriptReadIdentity | None = None) -> bool:
-        return widget in captured and (self.source is None or identity is not None
-                                       and self.source.contains_native_prefix(identity))
+                       identity: TranscriptReadIdentity) -> bool:
+        return widget in captured and self.source.accepts(identity)
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return (self.accepts_native(widget, evidence.captured, evidence.identity)
-                and widget is not evidence.retained_history)
+        return (widget in evidence.captured and widget is not evidence.retained_history
+                and self.source.covered(evidence))
 
     def repeats_native(self, fragment: TranscriptFragment) -> bool:
         # The snapshot captured the native output its saved records hold.
@@ -107,7 +152,7 @@ class RetainedSourceClaim(CapturedClaim):
         return True
 
     def accepts_native(self, widget: Widget, captured: frozenset[Widget],
-                       identity: TranscriptReadIdentity | None = None) -> bool:
+                       identity: TranscriptReadIdentity) -> bool:
         return True
 
 @dataclass(frozen=True)
@@ -155,23 +200,23 @@ class CommitParticipant:
     def commit_claim(self) -> CommitClaim:
         raise NotImplementedError
 
-class SnapshotPresentation(CommitParticipant):
-    source_claim: CapturedClaim | None = None
-
-    @property
-    def committed_source(self) -> NativeCommittedPrefix | None:
-        return self.source_claim.source if self.source_claim is not None else None
-
-    @property
-    def commit_claim(self) -> CommitClaim:
-        return self.source_claim if self.source_claim is not None else CAPTURED_CLAIM
-
-class CommitBarrier:
-    """A local interactive session whose ordering cannot be replaced by a snapshot."""
-
 CAPTURED_CLAIM = CapturedClaim()
 RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
+
+class SnapshotPresentation(CommitParticipant):
+    source_claim: CapturedClaim = CAPTURED_CLAIM
+
+    @property
+    def committed_source(self) -> CommitSource:
+        return self.source_claim.source
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return self.source_claim
+
+class CommitBarrier:
+    """A local interactive session whose ordering cannot be replaced by a snapshot."""
 
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
     return [widget for widget in widgets

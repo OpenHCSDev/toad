@@ -3,6 +3,8 @@ from dataclasses import dataclass, field, replace
 
 from acp.schema import ToolCall, ToolCallStart, ToolCallUpdate
 from agent_comms.transcript_sources import AssignedSourceIdentity
+from agent_comms.native_tool_call import ToolCallId
+from agent_comms.transcripts import NativeCommittedPrefix
 from toad.core import events
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.status import ToolCallStatus
@@ -34,10 +36,9 @@ class SessionToolCalls:
     def reset(self):
         self.calls.clear()
 
-    def committed(self, tool_id, source):
-        current = self.calls.get(tool_id)
-        if current is not None:
-            current.source_claim.source = source
+    def committed(self, tool_id: ToolCallId, source: NativeCommittedPrefix) -> None:
+        if tool_id in self.calls:
+            self.calls[tool_id].source_claim.seal(source)
 
     @property
     def scope(self):

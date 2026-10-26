@@ -12,8 +12,6 @@ from agent_comms.acp_extension import (
     InputStartedUpdate,
     PromptCancelledUpdate,
     McpClientAcknowledgementUpdate,
-    NativeOutputCommittedUpdate,
-    NativeRoundCommittedUpdate,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
@@ -24,9 +22,16 @@ from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.widgets.note import Note
 from toad.widgets.markdown_note import MarkdownNote
+from typing import TYPE_CHECKING
+from agent_comms.acp_extension import NativeRoundCommittedUpdate
+
+if TYPE_CHECKING:
+    from toad.transcript_publication import TranscriptPresentation
 
 
 class ConversationCommsHandlers(CoreEventReceiver):
+    transcript: TranscriptPresentation
+
     def accepts(self, message: CoreEventMessage) -> bool:
         if not message.event.session_scoped:
             return True
@@ -151,9 +156,9 @@ class ConversationCommsHandlers(CoreEventReceiver):
     ) -> None:
         self.transcript.changed(update.cursor)
 
-    @handles(NativeOutputCommittedUpdate, NativeRoundCommittedUpdate)
+    @handles(NativeRoundCommittedUpdate)
     def on_native_round_committed(
-        self, update: NativeOutputCommittedUpdate | NativeRoundCommittedUpdate, message: CoreEventMessage
+        self, update: NativeRoundCommittedUpdate, message: CoreEventMessage
     ) -> None:
         self.transcript.require_commit()
 
