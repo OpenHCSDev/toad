@@ -122,13 +122,9 @@ class VimWorkspaceAction(VimApplicationAction, declared_name=None):
     priority = True
 
     def key_available(self, app):
-        from textual.widgets import TextArea
-
         if not super().available(app) or app.screen is not app.workspace_screen:
             return False
-        focused = app.focused
-        return (focused.editing_mode.allows_application_commands
-                if isinstance(focused, TextArea) else True)
+        return app.screen.allows_application_commands
 
 
 class VimHintsAction(YieldingKey, VimApplicationAction):

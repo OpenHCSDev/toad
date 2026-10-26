@@ -123,6 +123,18 @@ async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
         await ui.press('ctrl+shift+l')
         assert not channels.collapsed and not thread.collapsed
 
+        # The sidebar's native Input owns text and editor chords too; the
+        # workspace's priority shortcuts cannot hijack its focused input.
+        field = channels.query_one(Input)
+        field.focus()
+        selected, order = ui.selected_tab, app.tab_order.names
+        await ui.press('H', 'J', 'K', 'L', 'ctrl+shift+h', 'ctrl+shift+l',
+                       'ctrl+shift+j', 'ctrl+shift+k')
+        assert field.value == 'HJKL' and field.has_focus
+        assert ui.selected_tab == selected and app.tab_order.names == order
+        assert not channels.collapsed and not thread.collapsed
+        field.value = ''
+
         # Use the existing spatial control to move the right bar to the left.
         button = next(button for button in thread.query(SidebarAction)
                       if button.display and button.action.directional and button.action.direction == 'left')

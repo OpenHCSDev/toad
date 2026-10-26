@@ -370,6 +370,11 @@ Tap escape *twice* to exit.
             await self.write_process_stdin(self.state.key_escape())
         self._escaping = False
 
+    @property
+    def allows_application_commands(self) -> bool:
+        # Focused terminal input belongs to the child, not workspace shortcuts.
+        return False
+
     def check_consume_key(self, key: str, character: str | None = None) -> bool:
         # Escape belongs to the child process / double-tap blur, not to an
         # ancestor's priority jump, cancellation or unmaximize binding.
