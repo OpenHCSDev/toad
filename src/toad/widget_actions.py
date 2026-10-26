@@ -47,6 +47,10 @@ class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
         return cls.binding_prefix + FieldCodec.encode(cls)
 
     @classmethod
+    def declarations(cls) -> tuple[type[Self], ...]:
+        return cls.members_with(cls)
+
+    @classmethod
     def bindings(cls) -> tuple[Binding, ...]:
         return tuple(Binding(key, cls.binding_name(), cls.title, tooltip=cls.summary(),
                              show=cls.show, priority=cls.priority, system=cls.system,
@@ -122,11 +126,13 @@ class DeclaredWidgetActions:
     @classmethod
     def declared_actions(cls) -> tuple[type[Action], ...]:
         """Capabilities and the widget's own family compose through its MRO."""
-        return tuple(dict.fromkeys(
+        members = tuple(dict.fromkeys(
             member for base in cls.__mro__ if "ACTIONS" in base.__dict__
             for family in (base.__dict__["ACTIONS"],)
-            for member in family.members_with(family)
+            for member in family.declarations()
         ))
+        inherited = {base for member in members for base in member.__mro__[1:]}
+        return tuple(member for member in members if member not in inherited)
 
     @classmethod
     def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
@@ -162,12 +168,26 @@ class VisibleAction(WidgetAction):
     show = True
 
 
-class DismissAction(VisibleAction):
+class SingleAction:
+    """A capability selects this declaration, not every contextual specialization."""
+
+    @classmethod
+    def declarations(cls):
+        return (cls,)
+
+
+class DismissAction(SingleAction, VisibleAction):
     """Close the current control."""
     keys = ("escape",)
 
     async def apply(self, context):
-        await invoke(context.dismiss)
+        # Screen.dismiss schedules its removal; awaiting it from its own handler is illegal.
+        context.dismiss()
+
+
+class HiddenDismissAction(DismissAction):
+    show = False
+    title = DismissAction.title
 
 
 class CursorAction(VisibleAction, affix="Action"):
@@ -188,35 +208,51 @@ class CursorDownAction(CursorAction):
         context.cursor_down()
 
 
-class SubmitAction(VisibleAction):
+class SubmitAction(SingleAction, VisibleAction):
     keys = ("enter",)
 
     async def apply(self, context):
         await invoke(context.submit)
 
 
-class SelectAction(VisibleAction):
+class HiddenSubmitAction(SubmitAction):
+    show = False
+    title = SubmitAction.title
+
+
+class SelectAction(SingleAction, VisibleAction):
     keys = ("enter",)
 
     async def apply(self, context):
         context.select()
 
 
-class LaunchAction(VisibleAction):
+class LaunchAction(SingleAction, VisibleAction):
     keys = ("space",)
 
     async def apply(self, context):
         await invoke(context.launch)
 
 
-class ActivateAction(WidgetAction):
+class PriorityLaunchAction(LaunchAction):
+    """The modal's launch key wins over its focused controls; Escape still yields."""
+    priority = True
+    title = LaunchAction.title
+
+
+class ActivateAction(SingleAction, WidgetAction):
     keys = ("enter,space",)
 
     async def apply(self, context):
         context.activate()
 
 
-class ToggleIrcAction(VisibleAction):
+class VisibleActivateAction(ActivateAction):
+    show = True
+    title = ActivateAction.title
+
+
+class ToggleIrcAction(SingleAction, VisibleAction):
     title = "IRC view"
     keys = ("ctrl+g",)
 
@@ -267,12 +303,20 @@ class Dismisses(DeclaredWidgetActions):
     ACTIONS = DismissAction
 
 
+class HiddenDismisses(DeclaredWidgetActions):
+    ACTIONS = HiddenDismissAction
+
+
 class MovesCursor(DeclaredWidgetActions):
     ACTIONS = CursorAction
 
 
 class Submits(DeclaredWidgetActions):
     ACTIONS = SubmitAction
+
+
+class HiddenSubmits(DeclaredWidgetActions):
+    ACTIONS = HiddenSubmitAction
 
 
 class Selects(DeclaredWidgetActions):
@@ -283,8 +327,16 @@ class Launches(DeclaredWidgetActions):
     ACTIONS = LaunchAction
 
 
+class PriorityLaunches(DeclaredWidgetActions):
+    ACTIONS = PriorityLaunchAction
+
+
 class Activates(DeclaredWidgetActions):
     ACTIONS = ActivateAction
+
+
+class VisibleActivates(DeclaredWidgetActions):
+    ACTIONS = VisibleActivateAction
 
 
 class TogglesIrc(DeclaredWidgetActions):

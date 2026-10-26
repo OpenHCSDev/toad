@@ -19,11 +19,11 @@ from agent_comms.input_attempt import HistoricalInput
 from agent_comms.ui_model.delivery import DeliveryView
 from toad.project_link import AcpLogLink
 from toad.widgets.selection import ChangingText, InlineSelection
-from toad.widget_actions import Activates
+from toad.widget_actions import VisibleActivates
 from rich.style import Style as RichStyle
 
 
-class DetailAction(Activates, InlineSelection, PrimaryActivation, Static, can_focus=True):
+class DetailAction(VisibleActivates, InlineSelection, PrimaryActivation, Static, can_focus=True):
     """An inline detail action owns keyboard, pointer and activation behavior."""
 
     highlighted_text_style = RichStyle(bold=True, reverse=True)
