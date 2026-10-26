@@ -28,6 +28,7 @@ from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.core import events
+from toad.live_output import ThoughtStream
 from toad.plan import decode_plan
 from toad.project_link import AcpLogLink
 from toad.response_delivery import ResponseDelivery
@@ -118,7 +119,8 @@ class UserContentEffect(MessageContentEffect):
 
 class ThoughtContentEffect(MessageContentEffect):
     def publish(self, content: TextContentBlock):
-        self.agent.events.publish(events.Thinking(content.type, content.text))
+        self.agent.events.publish(events.Thinking(content.type, content.text,
+            ThoughtStream(source_claim=self.agent.controller.session.output.assistant)))
 
 
 class AgentContentEffect(MessageContentEffect):
@@ -127,6 +129,7 @@ class AgentContentEffect(MessageContentEffect):
         if text.startswith("[agent error]"):
             text += f"\n\n{AcpLogLink.markdown(self.agent.presentation.log_path)}"
         stream = self.agent.presentation.turns.owner.response_stream(self.delivery)
+        stream.source_claim = self.agent.controller.session.output.assistant
         self.agent.events.publish(events.Update(content.type, text, stream))
 
 

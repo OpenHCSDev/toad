@@ -19,7 +19,7 @@ from toad.acp.status import ToolCallStatus
 from toad.line_blocks import Body, ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem
 from agent_comms.ui_model.message_category import MessageCategory
-from toad.widgets.committed_presentation import SnapshotPresentation, ToolOutputClaim
+from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation, ToolOutputClaim
 
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
@@ -94,8 +94,10 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         output_parts: tuple[ToolOutputPart, ...] | None = None,
         binding=None,
         request=None,
+        source_claim: CapturedClaim = CAPTURED_CLAIM,
     ) -> None:
         self.set_reactive(ToolCall.tool_call, tool_call)
+        self.source_claim = source_claim
         self.binding = binding
         self.request = request
         super().__init__(id=id, classes=classes)
@@ -113,7 +115,8 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     @property
     def commit_claim(self):
         return ToolOutputClaim(frozenset(message.message.reference for part in self.output.parts
-                                        for message in part.standalone_messages))
+                                        for message in part.standalone_messages),
+                               source=self.committed_source)
 
     def update_tool_call(self, tool_call: ToolCallStatus, *, output_parts=None) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.

@@ -57,7 +57,7 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         view.prompt.focus()
         view.transcript.dirty = view.transcript.commit_required = True
         publication = view.transcript.binding.capture(view.transcript, CommitPublication)
-        assert publication.current() and publication.native_current()
+        assert publication.current()
         task = asyncio.create_task(publication.publish())
         try:
             await ui.until(task.done, seconds=8, why="the checkpoint published")

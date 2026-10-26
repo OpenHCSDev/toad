@@ -7,10 +7,11 @@ import os
 
 import pytest
 from agent_comms.acp_extension import (
-    TranscriptSnapshotUpdate, TurnChangedUpdate,
+    NativeOutputCommittedUpdate, NativeRoundCommittedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate,
 )
+from agent_comms.native_output import AssistantOutput, NativeOutputLocation
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.field_codec import TurnId
+from agent_comms.field_codec import FieldCodec, TurnId
 from agent_comms.turn_lease import ActiveTurn, FinishedTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 
@@ -23,6 +24,18 @@ from support.journals import assistant_entry, write_journal
 TOKEN = "LATE_LIVE_ANSWER"
 
 FIRST_TURN = TurnId("f1e2d3c4b5a697881726354453627180")
+
+
+def latest_assistant_commit(comms, name, journal):
+    import json
+
+    lines = journal.read_bytes().splitlines(keepends=True)
+    header, entry = json.loads(lines[0]), json.loads(lines[-1])
+    location = FieldCodec.decode(NativeOutputLocation, {
+        "sessionId": header["id"], "sessionFile": str(journal),
+        "sessionEntryId": entry["id"], "sessionEntryStart": sum(map(len, lines[:-1])),
+        "sessionEntryEnd": sum(map(len, lines)), "output": {"kind": "assistant"}})
+    return comms.transcripts.capture_native_output(name, location)
 
 
 @pytest.mark.parametrize("arrival", ["read-in-flight", "commit", "queued-snapshot"])
@@ -190,3 +203,54 @@ async def test_an_advancing_commit_retires_the_outgoing_body_and_its_tool_report
                        why="one saved outgoing body after the live report retires")
         assert view.transcript.binding.history is history
         assert previous | {publication.reference} <= history.outgoing_coverage
+
+
+async def test_returning_to_busy_tab_loads_the_saved_gap(workspace):
+    import json
+
+    journal = write_journal(workspace.project / "background.jsonl",
+                            assistant_entry("SAVED_PREFIX", id="prefix"))
+    thread = workspace.thread("background")
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
+    async with workspace.app(size=(140, 50), resume="background") as ui:
+        await ui.until_shows("SAVED_PREFIX")
+        view, tab = ui.conversation, ui.selected_tab
+        agent = ui.detached_agent("background-live")
+        view.bind_agent(agent)
+        turns = agent.presentation.managed_turns()
+        turns.receive(TurnState(ActiveTurn(FIRST_TURN, os.getpid(), phase=PublishingPhase())))
+        await deliver(agent, {"sessionUpdate": "agent_message_chunk",
+                              "content": {"type": "text", "text": "BEFORE_TAB_PARK"}})
+        await ui.until_shows("BEFORE_TAB_PARK")
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry("BEFORE_TAB_PARK", id="before", parent="prefix")) + "\n")
+        committed = latest_assistant_commit(workspace.comms, "background", journal)
+        await deliver(agent, carrying(NativeOutputCommittedUpdate(committed, AssistantOutput())))
+        await deliver(agent, carrying(NativeRoundCommittedUpdate(committed)))
+        await ui.new_session()
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry("WHILE_TAB_HIDDEN", id="hidden", parent="before")) + "\n")
+        hidden = latest_assistant_commit(workspace.comms, "background", journal)
+        await deliver(agent, carrying(NativeOutputCommittedUpdate(hidden, AssistantOutput())))
+        await deliver(agent, carrying(NativeRoundCommittedUpdate(hidden)))
+        await ui.select_tab(tab)
+        assert ui.conversation is view
+        assert view.turns.owner.busy
+        await ui.until_shows("WHILE_TAB_HIDDEN")
+        # Disk can be ahead of ACP ingress. A busy read must stop at the
+        # applied round fence, even when all mounted blocks are already sealed.
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry("AFTER_TAB_RETURN", id="after", parent="hidden")) + "\n")
+        view.transcript.dirty = view.transcript.commit_required = True
+        await view.transcript.publish(CommitPublication)
+        assert "AFTER_TAB_RETURN" not in ui.painted(view.window)
+        await deliver(agent, {"sessionUpdate": "agent_message_chunk",
+                              "content": {"type": "text", "text": "AFTER_TAB_RETURN"}})
+        await ui.until_shows("AFTER_TAB_RETURN")
+        after = latest_assistant_commit(workspace.comms, "background", journal)
+        await deliver(agent, carrying(NativeOutputCommittedUpdate(after, AssistantOutput())))
+        await deliver(agent, carrying(NativeRoundCommittedUpdate(after)))
+        await ui.until(lambda: ui.painted(view.window).count("AFTER_TAB_RETURN") == 1
+                       and view.transcript.binding.history.page_source.through.offset == after.page_bound.offset,
+                       why="the applied saved row to replace its live body once")

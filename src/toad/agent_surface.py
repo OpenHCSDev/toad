@@ -97,7 +97,8 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             if not self.owns_publication(message, target):
                 return
             if tool is None:
-                tool = ToolCall(status, id=event.tool_id, output_parts=parts, binding=self, request=request)
+                tool = ToolCall(status, id=event.tool_id, output_parts=parts, binding=self, request=request,
+                                source_claim=message.publisher.tools.presentation(event).source_claim)
                 if not await self._post_native(message, target, tool, retirement):
                     return
             else:

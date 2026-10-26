@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections import deque
 from collections.abc import Callable, Sequence
 from contextlib import AsyncExitStack, asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING, Self, TypeGuard
 
@@ -55,6 +55,7 @@ from toad.transcript_preparation import PreparedPageSource
 from toad.widgets.committed_presentation import (
     CommitBarrier,
     CommitEvidence,
+    NativeCommitEvidence,
     CommitParticipant,
     commit_plan,
     protected_blocks,
@@ -122,28 +123,35 @@ class TranscriptPublication(BoundFrame, ABC):
         super().__init__(binding, owner, generation)
         self.thread_scope = binding.thread_scope
         self.destination = HeldReaderDestination.held(binding.window)
-        self.captured = binding.view.turns.owner.captured_snapshot(
-            tuple(binding.contents.children)
-        )
+        self.identity: TranscriptReadIdentity
+        self.capture_cohort()
+
+    def capture_cohort(self) -> None:
+        view = self.binding.view
+        self.captured = view.turns.owner.captured_snapshot(tuple(self.binding.contents.children))
+        self.native_frontier = view.agent_binding.committed_native_output
 
     def native_current(self) -> bool:
-        """Anonymous native output must have settled before the source captured it."""
+        """Each captured presentation must belong to the acquired saved prefix."""
         return self.current() and all(
-            widget.commit_claim.accepts_native(widget, self.captured)
+            widget.commit_claim.accepts_native(widget, self.captured, self.identity)
             for widget in self.binding.contents.children
             if isinstance(widget, CommitParticipant)
         )
 
     def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
         """The mounted main history retains the native prefix the wire cursor lacks."""
-        if self.native_current():
+        if self.native_current() and not self.binding.view.turns.owner.busy:
             return cursor
         history = self.binding.history
-        return cursor.over_native(
+        retained = (
             (history.page_source.through,)
             if history in self.captured and history.state.reports_coverage
             else ()
         )
+        source = self.native_frontier
+        certified = source.prefixes(self.identity, cursor)
+        return cursor.over_native(retained + certified)
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
         return self.current() and self.source_bound(cursor) == cursor
@@ -188,9 +196,7 @@ class TranscriptPublication(BoundFrame, ABC):
         """Capture the original applied cohort once its source cut is known."""
         if not await self.application_current():
             return False
-        self.captured = self.binding.view.turns.owner.captured_snapshot(
-            tuple(self.binding.contents.children)
-        )
+        self.capture_cohort()
         return True
 
     async def application_current(self) -> bool:
@@ -265,6 +271,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
         page = snapshot.page
+        self.identity = snapshot.identity
         # The known native cut and its applied original resources meet here.
         # An expired application cannot publish this read; it is not a stale
         # backend revision and must not escape as a failed Textual worker.
@@ -425,12 +432,13 @@ class CommitPublication(CanonicalSourcePublication):
         prepared = await plan.prepare(view, history, page, self.captured, is_current)
         if prepared is None or not is_current():
             return True
-        evidence = CommitEvidence(
+        evidence = NativeCommitEvidence(
             self.captured,
             prepared.sequences,
             prepared.history,
             TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
+            identity=replace(self.identity, through=page.after),
         )
         retired = retirement_candidates(contents.children, evidence)
         if not plan.permits(view, retired):
@@ -923,7 +931,6 @@ class TranscriptPresentation:
         publication = self.binding.capture(self, CommitPublication)
         if (
             publication is not None
-            and publication.native_current()
             and publication.ready_to_commit()
         ):
             self.binding.request(self)

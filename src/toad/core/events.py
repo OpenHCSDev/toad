@@ -17,7 +17,7 @@ from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
-from toad.live_output import OutputStream
+from toad.live_output import OutputStream, ThoughtStream
 from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
@@ -202,6 +202,7 @@ class ExternalTranscriptChanged(CoalescingEvent):
 class Thinking(CoreEvent):
     type: str
     text: str
+    stream: ThoughtStream = field(default_factory=ThoughtStream)
 
 
 @dataclass(frozen=True)

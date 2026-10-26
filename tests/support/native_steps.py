@@ -86,8 +86,8 @@ async def direct_reply_feedback(native, owner_tab: str, *, body: str) -> None:
     await ui.close_tab(screen.id)
     await DirectTarget(target).open(navigation)
     reopened = app.selected_session
-    # A reopened view is fresh; its durable conversation identity stays the same.
-    assert reopened is not screen
+# A reopened view is fresh; its durable conversation identity stays the same.
+    assert reopened is not screen and not screen.is_attached
     await reopened.wait_content_ready()
     fresh = reopened.query_one(CommsChatView)
     assert fresh.conversation == DmConversation(comms.registry.require(target).incarnation)

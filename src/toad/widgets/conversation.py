@@ -74,7 +74,7 @@ from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
 from toad.input_history import InputHistories
 from toad.layout import trim_trailing_margin
-from toad.live_output import LiveOutput, ThoughtStream
+from toad.live_output import LiveOutput
 from toad.menus import MenuItem
 from toad.preferences import SETTINGS
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
@@ -1405,7 +1405,7 @@ class Conversation(
     @handles(core_events.Thinking)
     async def on_acp_agent_thinking(self, event: core_events.Thinking) -> None:
         self.turns.describe("Thinking…")
-        await self.output.append(ThoughtStream(), event.text)
+        await self.output.append(event.stream, event.text)
 
     @handles(core_events.RequestPermission)
     async def on_acp_request_permission(self, event: core_events.RequestPermission, message: CoreEventMessage) -> None:
@@ -1723,7 +1723,7 @@ class Conversation(
 
         if widget.starts_agent_activity(self._agent_activity_boundary):
             await self.contents.mount(
-                AgentActivityDivider(widget.message_category), widget
+                AgentActivityDivider(widget.message_category, widget), widget
             )
         else:
             await self.contents.mount(widget)

@@ -2,7 +2,7 @@
 import asyncio
 from dataclasses import replace
 
-from agent_comms.channel_targets import CommandTarget
+from agent_comms.channel_targets import CommandTarget, ThreadTarget
 from agent_comms.cli_verbs.start import StartCliCommand
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.session_file import RegistrySessionLocation
@@ -17,8 +17,11 @@ from toad.thread_actions import ThreadAction
 async def test_start_attaches_stopped_saved_tab_and_receives_dm(workspace, native_package):
     comms = workspace.comms
     thread = workspace.thread('stopped')
-    journal = write_journal(workspace.project / 'saved.jsonl',
+    saved = workspace.roots.attempt / 'saved'
+    saved.mkdir(mode=0o700)
+    journal = write_journal(saved / 'saved.jsonl',
                             assistant_entry('SAVED_BEFORE_START', id='answer'))
+    journal.chmod(0o600)
     comms.registry.declare(replace(thread, model=MODEL, thinking_level=OffThinkingLevel,
         session_file=RegistrySessionLocation.from_path(journal, comms.root)))
     provider = ControlledProvider()
@@ -47,8 +50,8 @@ async def test_start_attaches_stopped_saved_tab_and_receives_dm(workspace, nativ
                 assert not result.launched
                 assert result.reconnect_targets() == ('stopped',)
                 assert comms.registry.require('stopped').process_identity == before
-                await asyncio.to_thread(comms.messaging.send, workspace.viewer, 'stopped',
-                                        'Reply with a short test answer.')
+                await asyncio.to_thread(comms.messaging.send_user_message, ThreadTarget('stopped'),
+                                        'Reply with a short test answer.', worktree=str(workspace.project))
                 await ui.until_shows('NATIVE_RESPONSE_1', seconds=45)
                 other = await ui.new_session()
                 assert other != tab

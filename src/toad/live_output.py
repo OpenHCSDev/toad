@@ -4,27 +4,32 @@ from __future__ import annotations
 
 import asyncio
 import weakref
-from collections.abc import Collection
 from abc import abstractmethod
+from collections.abc import Collection
 from dataclasses import dataclass, field
-from agent_comms.declared_family import DeclaredFamily
 from typing import TYPE_CHECKING
 
+from agent_comms.declared_family import DeclaredFamily
+
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
+from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim
 
 if TYPE_CHECKING:
+    from textual.widget import Widget
+
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.agent_thought import AgentThought
     from toad.widgets.conversation import Conversation
-    from textual.widget import Widget
 
 
 @dataclass
 class OutputStream(DeclaredFamily, affix="Stream"):
     """One declared live output case and the block receiving its fragments."""
 
+    source_claim: CapturedClaim = field(default_factory=lambda: CAPTURED_CLAIM, kw_only=True)
+
     def __post_init__(self) -> None:
-        self.block = None  # The bounded native rendering resource is not wire data.
+        self.block = None
 
     async def before_append(self, output: LiveOutput) -> None:
         pass
@@ -41,8 +46,10 @@ class OutputStream(DeclaredFamily, affix="Stream"):
     async def append(self, view: Conversation, fragment: str):
         if self.block is None:
             if self.accepts(fragment):
-                self.block = self.create(fragment)
-                await view.post(self.block, new_block=False)
+                block = self.create(fragment)
+                block.source_claim = self.source_claim
+                self.block = block
+                await view.post(block, new_block=False)
         else:
             await self.block.append_fragment(fragment)
         return self.block
@@ -65,7 +72,8 @@ class ResponseStream(OutputStream):
         await output.finish(ThoughtStream)
 
     def matches(self, incoming: ResponseStream) -> bool:
-        return self.delivery == incoming.delivery and self.turn_id == incoming.turn_id
+        return (self.delivery == incoming.delivery and self.turn_id == incoming.turn_id
+                and self.source_claim is incoming.source_claim)
 
     def create(self, fragment: str) -> AgentResponse:
         from toad.widgets.agent_response import AgentResponse
@@ -85,7 +93,7 @@ class ThoughtStream(OutputStream):
         return bool(fragment.strip())
 
     def matches(self, incoming: ThoughtStream) -> bool:
-        return True
+        return self.source_claim is incoming.source_claim
 
     def create(self, fragment: str) -> AgentThought:
         from toad.widgets.agent_thought import AgentThought

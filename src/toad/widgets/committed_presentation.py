@@ -5,16 +5,21 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import TranscriptCoverage
+from agent_comms.transcripts import (
+    NativeCommittedPrefix,
+    TranscriptCursor,
+    TranscriptPage,
+    TranscriptReadIdentity,
+)
 from textual.widget import Widget
 
-from toad.core.source_events import TranscriptCoverage
 from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
@@ -38,11 +43,56 @@ class CommitEvidence:
     native_inputs: frozenset[str] = frozenset()
     outgoing: frozenset[OutgoingMessageReference] = frozenset()
 
+    def covers_native(self, source: NativeCommittedPrefix) -> bool:
+        return False
+
+
+@dataclass(frozen=True, kw_only=True)
+class NativeCommitEvidence(CommitEvidence):
+    identity: TranscriptReadIdentity
+
+    def covers_native(self, source: NativeCommittedPrefix) -> bool:
+        return source.contains_native_prefix(self.identity)
+
+
+class CommitSource:
+    """Uncommitted output needs settlement; a native append supplies exact coverage."""
+
+    def capture(self, settled: bool) -> bool:
+        return settled
+
+    def accepts(self, identity: TranscriptReadIdentity) -> bool:
+        return True
+
+    def covered(self, evidence: CommitEvidence) -> bool:
+        return True
+
+    def prefixes(self, identity: TranscriptReadIdentity, cursor: TranscriptCursor) -> tuple[TranscriptCursor, ...]:
+        return ()
+
+
+@dataclass(frozen=True)
+class NativeCommitSource(CommitSource):
+    original: NativeCommittedPrefix
+
+    def capture(self, settled: bool) -> bool:
+        return True
+
+    def accepts(self, identity: TranscriptReadIdentity) -> bool:
+        return self.original.contains_native_prefix(identity)
+
+    def covered(self, evidence: CommitEvidence) -> bool:
+        return evidence.covers_native(self.original)
+
+    def prefixes(self, identity: TranscriptReadIdentity, cursor: TranscriptCursor) -> tuple[TranscriptCursor, ...]:
+        return (self.original.page_bound.with_frontier(cursor.wire),) if self.accepts(identity) else ()
+
 class CommitClaim(ABC):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+                       identity: TranscriptReadIdentity) -> bool:
         return True
 
     @property
@@ -64,23 +114,31 @@ class CommitClaim(ABC):
     def repeats_sent(self, fragment: SentMessageFragment) -> bool:
         return False
 
+@dataclass(kw_only=True)
 class CapturedClaim(CommitClaim):
-    """A settled source-owned block captured before the snapshot read."""
+    """A captured block, sealed by its original append or a settled turn."""
+
+    source: CommitSource = field(default_factory=CommitSource)
+
+    def seal(self, source: NativeCommittedPrefix) -> None:
+        self.source = NativeCommitSource(source)
 
     def capture(self, settled: bool) -> bool:
-        return settled
+        return self.source.capture(settled)
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
-        return widget in captured
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+                       identity: TranscriptReadIdentity) -> bool:
+        return widget in captured and self.source.accepts(identity)
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return widget in evidence.captured and widget is not evidence.retained_history
+        return (widget in evidence.captured and widget is not evidence.retained_history
+                and self.source.covered(evidence))
 
     def repeats_native(self, fragment: TranscriptFragment) -> bool:
         # The snapshot captured the native output its saved records hold.
         return True
 
-@dataclass(frozen=True)
+@dataclass
 class ToolOutputClaim(CapturedClaim):
     """A compact tool cannot retire before its separate bodies are supplied."""
 
@@ -98,8 +156,12 @@ class RetainedSourceClaim(CapturedClaim):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+                       identity: TranscriptReadIdentity) -> bool:
         return True
+
+    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+        return widget is not evidence.retained_history
 
 @dataclass(frozen=True)
 class SequenceClaim(CommitClaim):
@@ -146,17 +208,23 @@ class CommitParticipant:
     def commit_claim(self) -> CommitClaim:
         raise NotImplementedError
 
-class SnapshotPresentation(CommitParticipant):
-    @property
-    def commit_claim(self) -> CommitClaim:
-        return CAPTURED_CLAIM
-
-class CommitBarrier:
-    """A local interactive session whose ordering cannot be replaced by a snapshot."""
-
 CAPTURED_CLAIM = CapturedClaim()
 RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
+
+class SnapshotPresentation(CommitParticipant):
+    source_claim: CapturedClaim = CAPTURED_CLAIM
+
+    @property
+    def committed_source(self) -> CommitSource:
+        return self.source_claim.source
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return self.source_claim
+
+class CommitBarrier:
+    """A local interactive session whose ordering cannot be replaced by a snapshot."""
 
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
     return [widget for widget in widgets

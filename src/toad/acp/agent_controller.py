@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from functools import partial
 from typing import TYPE_CHECKING
 
@@ -33,6 +33,7 @@ from toad.plan import PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
 
 from .prompt import build as build_prompt
+from .session_output import SessionOutput
 from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
 
@@ -54,6 +55,7 @@ class SessionBinding:
     """Actual ACP binding identity, preserved only until session replacement."""
 
     session_id: str | None
+    output: SessionOutput = field(default_factory=SessionOutput, compare=False)
 
     @property
     def bound(self) -> bool:

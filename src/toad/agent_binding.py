@@ -14,6 +14,7 @@ from textual.content import Content
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import UnopenedSessionDisposition
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
+from toad.widgets.committed_presentation import CommitSource
 
 if TYPE_CHECKING:
     from agent_comms.goal_actions import GoalAction
@@ -35,6 +36,10 @@ if TYPE_CHECKING:
 class AgentConnection(ABC):
     configuration: AgentConfiguration
     presentation: AgentPresentation
+
+    @property
+    def committed_native_output(self) -> CommitSource:
+        return CommitSource()
 
     @abstractmethod
     async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None: ...
