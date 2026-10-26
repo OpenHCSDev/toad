@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from agent_comms.repo import Checkout
+from agent_comms.repo import Checkout, Repo
 from contextlib import asynccontextmanager
 from functools import cached_property
 import os
@@ -29,6 +29,7 @@ class Workspace:
         self.roots = roots
         self.project = roots.project
         self.project.mkdir(parents=True, exist_ok=True)
+        Repo.git(self.project, "init", "-q")
         LaunchRoot.from_path(roots.wire).install()
         self.comms = installed_wire(roots.wire)
 
