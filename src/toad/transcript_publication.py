@@ -98,20 +98,12 @@ class BoundFrame:
 
     def painted(self, cursor: TranscriptCursor) -> None:
         if self.current():
-            self.binding.view.retire_loading_splash()
-            self.record(cursor)
-
-    def observed(self, cursor: TranscriptCursor) -> None:
-        """A changed source cursor is not proof that its page has painted."""
-        if self.current():
-            self.record(cursor)
-
-    def record(self, cursor: TranscriptCursor) -> None:
-        self.owner.displayed_cursor = cursor
-        view = self.binding.view
-        view.app.history_displayed()
-        view.query_ancestor(SessionView).history_painted()
-        view.settle_user_message()
+            view = self.binding.view
+            view.retire_loading_splash()
+            self.owner.displayed_cursor = cursor
+            view.app.history_displayed()
+            view.query_ancestor(SessionView).history_painted()
+            view.settle_user_message()
 
 
 class TranscriptPublication(BoundFrame, ABC):
@@ -520,9 +512,6 @@ class ViewBinding:
     def painted(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
         pass
 
-    def observed(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
-        pass
-
     def request(self, owner: TranscriptPresentation) -> Worker[bool] | None:
         return None
 
@@ -712,10 +701,6 @@ class BoundView(ViewBinding):
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.painted, cursor))
 
-    def observed(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
-        frame = BoundFrame.capture(self, owner)
-        self.view.call_after_refresh(partial(frame.observed, cursor))
-
     def request(self, owner):
         view = self.view
         if not view.is_attached:
@@ -878,8 +863,6 @@ class TranscriptPresentation:
         self.dirty = True
         if cursor is None:
             self.commit_required = True
-        else:
-            self.binding.observed(self, cursor)
         self.binding.request(self)
 
     def require_commit(self) -> None:
