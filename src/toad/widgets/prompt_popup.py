@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
 
 
-class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup, affix="Popup"):
+class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
     """One mounted popup is the authority for its open state and interaction."""
 
     requires_completion: ClassVar[bool] = False
