@@ -6,8 +6,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from agent_comms.channel_targets import ThreadTarget
+from agent_comms.cli_verbs.channels import ChannelsCliCommand
 from agent_comms.cli_commands import (
-    ChannelsCliCommand,
     TargetBatchResult,
     TargetCompleted,
     TargetFailed,
