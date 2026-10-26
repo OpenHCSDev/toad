@@ -82,7 +82,8 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
         return await opening.navigator.mount(self, opening)
 
     def bind(self, screen) -> None:
-        """Only execution-specific navigation admits an operational source."""
+        """A saved conversation does not authorize starting its stopped owner."""
+        screen.use_mailbox()
 
     def launch_screen(self, app):
         """A named launch retains the same acquired identity as a sidebar open."""
@@ -102,7 +103,7 @@ class ExternalThreadNavigation(ThreadNavigation):
     def bind(self, screen) -> None:
         from toad.session_presentation import MailboxSessionSources
 
-        screen.use_mailbox()
+        super().bind(screen)
         screen.presentation.sources = MailboxSessionSources()
 
 
