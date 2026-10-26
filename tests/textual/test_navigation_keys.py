@@ -23,8 +23,11 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         await ui.press('escape')
         originals = app.tab_order.names
 
-        # The actual menu and palette must offer configured leaves, not bases
-        # whose shared implementation has no direction or side of its own.
+        # Commands stay available from Insert even though their keys belong to
+        # editing. Execute history-back through the actual menu in that state.
+        await ui.press('i')
+        assert ui.conversation.prompt.prompt_text_area.editing_mode.accepts_text
+        # The menu and palette offer configured leaves, not shared family bases.
         assert await pilot.click('#main-menu')
         await ui.until(lambda: isinstance(app.screen, ContextMenu), why='the application menu')
         options = app.screen.options
@@ -49,6 +52,8 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
                        why='the exact forward command search result')
         await ui.press('enter')
         await ui.until(lambda: ui.selected_tab == third, why='palette history-forward action')
+        assert ui.conversation.prompt.prompt_text_area.editing_mode.accepts_text
+        await ui.press('escape')
 
         async def navigate(key, expected):
             editor = ui.conversation.prompt.prompt_text_area
