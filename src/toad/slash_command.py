@@ -20,6 +20,7 @@ from agent_comms.goal_actions import (
     SetGoalAction,
 )
 from textual.content import Content
+from toad.screens.commander import CommanderPage
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
@@ -129,8 +130,6 @@ class CommanderCommand(SlashCommand, LocalCommand):
         return cls(*names)
 
     async def apply(self, conversation: Conversation) -> bool:
-        from toad.screens.commander import CommanderPage
-
         conversation.app.push_screen(CommanderPage(self.commander))
         return True
 

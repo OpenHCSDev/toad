@@ -125,7 +125,7 @@ class CommanderUnitCard(ToadNode, Collapsible):
             detail = await observed.process.read(request)
         except (
             DeferredRead, RelationViolationError, RouteChangedError,
-            ToolRefusedError, UnreadableHistory, WorkBranchError, OSError,
+            ToolRefusedError, UnreadableHistory, WorkBranchError,
         ) as error:
             if self.is_attached and self.card == card and not self.collapsed:
                 self.detail_status.update(f"Original details unavailable: {error}")
@@ -189,6 +189,11 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
 
     def on_mount(self) -> None:
         self.present(self.hud)
+        self.reconcile_units()
+
+    def reconcile_units(self) -> None:
+        keys = tuple(card.unit for card in self.hud.units)
+        self.reconcile_keys(keys, changed=frozenset(keys))
 
     def present(self, hud: CommanderHud) -> None:
         self.hud = hud
@@ -203,8 +208,7 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
         self.board_text.update("\n".join(BoardRow(entry).line() for entry in hud.board))
         self.board.display = bool(hud.board)
         if self.is_mounted:
-            keys = tuple(card.unit for card in hud.units)
-            self.reconcile_keys(keys, changed=frozenset(keys))
+            self.reconcile_units()
 
 
 class CommanderPage(
