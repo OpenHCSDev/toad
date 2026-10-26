@@ -1,6 +1,7 @@
 """Reconnecting to a native owner shows each saved answer exactly once, even when two answers have the same text."""
 
 from agent_comms.transcript_events import AssistantTranscript, UserTranscript
+import pytest
 
 from support.native import ControlledProvider, native_session
 
@@ -45,7 +46,8 @@ async def test_equal_answers_are_each_drawn_once_before_and_after_reconnect(work
             await shows_exactly(number)
 
 
-async def test_returning_during_a_turn_loads_messages_written_while_hidden(workspace, native_package):
+@pytest.mark.parametrize('hidden_rounds', (1, 25), ids=('single-page', 'multi-page'))
+async def test_returning_during_a_turn_loads_messages_written_while_hidden(workspace, native_package, hidden_rounds):
     import json
     import threading
 
@@ -56,17 +58,18 @@ async def test_returning_during_a_turn_loads_messages_written_while_hidden(works
         if number == 2:
             hidden_ready.set()
             assert release_hidden.wait(25), "test never hid the tab"
-        if number == 3:
+        if number == hidden_rounds + 2:
             return_ready.set()
             assert release_return.wait(25), "test never returned to the tab"
             return {"role": "assistant", "content": "AFTER_TAB_RETURN"}, "stop"
-        label = "BEFORE_TAB_PARK" if number == 1 else "WHILE_TAB_HIDDEN"
+        label = ("BEFORE_TAB_PARK" if number == 1 else
+                 "WHILE_TAB_HIDDEN" if number == hidden_rounds + 1 else f'HIDDEN_ROUND_{number - 1}')
         return {"role": "assistant", "content": label, "tool_calls": [{
             "id": f"call_{number}_{suffix}", "type": "function", "function": {
                 "name": "bash", "arguments": json.dumps({"command": f"printf '{label}_TOOL_{suffix}'"})}}
-            for suffix in ("A", "B")]}, "tool_calls"
+            for suffix in ('A', 'B')]}, "tool_calls"
 
-    provider = ControlledProvider(reply=reply, request_budget=3)
+    provider = ControlledProvider(reply=reply, request_budget=hidden_rounds + 2)
     try:
         async with native_session(workspace, provider=provider, size=(160, 55)) as native:
             ui = native.ui
@@ -76,9 +79,16 @@ async def test_returning_during_a_turn_loads_messages_written_while_hidden(works
             await ui.press("enter")
             await ui.until(hidden_ready.is_set, seconds=30, why="the first tool to finish")
             await ui.until_shows("BEFORE_TAB_PARK")
+            first_page = await view.transcript.get_transcript_page()
+            await ui.until(lambda: view.transcript.binding.history.page_source.through == first_page.after,
+                           why='the first native round to become the retained saved prefix')
             await ui.new_session()
             release_hidden.set()
-            await ui.until(return_ready.is_set, seconds=30, why="the hidden tool to finish")
+            await ui.until(return_ready.is_set, seconds=90, why="the hidden native rounds to finish")
+            if hidden_rounds > 1:
+                pending = await view.transcript.get_transcript_page(
+                    after=view.transcript.binding.history.page_source.through)
+                assert pending.has_newer, 'The native hidden gap must exceed one real source page'
             await ui.select_tab(tab)
             assert ui.conversation is view
             assert native.executing
