@@ -3,18 +3,20 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime, timezone
 from typing import ClassVar
 
 from agent_comms.commander_hud import (
     BoardRow, CommanderHud, CommanderUnit, HudRow, QuietUnits,
 )
 from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.ui_model.observation import ReadCommanderUnit
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from textual import on
+from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.content import Content
-from textual.widgets import Button, Collapsible, Static
+from textual.widgets import Button, Collapsible, Pretty, Static
 
 from toad.app_node import ToadNode
 from toad.core.events import CommanderHudChanged, CommanderHudFailed
@@ -38,7 +40,7 @@ class HudRowText(MroDispatch):
         return ()
 
 
-class CommanderUnitCard(Collapsible):
+class CommanderUnitCard(ToadNode, Collapsible):
     """Retain the unit's disclosure while Core replaces its current card."""
 
     DEFAULT_CSS = """
@@ -48,16 +50,30 @@ class CommanderUnitCard(Collapsible):
     }
     CommanderUnitCard > Contents { padding: 0 1; height: auto; }
     CommanderUnitCard Static { height: auto; }
+    CommanderUnitCard Button { dock: none; width: auto; margin: 0; }
+    CommanderUnitCard .detail-status { color: $text-muted; }
     CommanderUnitCard.-needs-hand > CollapsibleTitle { color: $warning; }
     """
 
-    def __init__(self, card: CommanderUnit) -> None:
+    def __init__(self, commander: ThreadIncarnation, card: CommanderUnit) -> None:
+        self.commander = commander
         self.card = card
         self.summary = Static("", markup=False)
-        super().__init__(self.summary, title="", collapsed=True)
+        self.detail_status = Static("Open to read original orders and activity.",
+                                    markup=False, classes="detail-status")
+        self.original_orders = Static("", markup=False)
+        self.activity = Pretty({})
+        self.activity_view = Collapsible(self.activity, title="Recent activity", collapsed=True)
+        self.activity_view.display = False
+        super().__init__(
+            self.summary, self.detail_status,
+            Button("Refresh original details", classes="refresh-unit"),
+            self.original_orders, self.activity_view, title="", collapsed=True,
+        )
         self.present(card)
 
     def present(self, card: CommanderUnit) -> None:
+        changed = card != self.card
         self.card = card
         self.title = Content(f"{card.unit.name} · {card.state.question}")
         self.set_class(card.needs_hand(), "-needs-hand")
@@ -74,6 +90,54 @@ class CommanderUnitCard(Collapsible):
         lines.extend(f"ready #{pr.number} at {pr.head[:9]}" for pr in card.ready_prs)
         lines.extend(f"draft #{pr.number} at {pr.head[:9]}" for pr in card.draft_prs)
         self.summary.update("\n".join(lines))
+        if changed and self.is_mounted and not self.collapsed:
+            self.read_detail()
+
+    def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
+        if event.collapsible is self:
+            event.stop()
+            self.read_detail()
+
+    def on_collapsible_collapsed(self, event: Collapsible.Collapsed) -> None:
+        if event.collapsible is self:
+            event.stop()
+            self.workers.cancel_group(self, "commander-detail")
+
+    @on(Button.Pressed, ".refresh-unit")
+    def refresh_detail(self, event: Button.Pressed) -> None:
+        event.stop()
+        self.read_detail()
+
+    @work(exclusive=True, group="commander-detail")
+    async def read_detail(self) -> None:
+        card = self.card
+        self.detail_status.update("Reading original orders and recent activity…")
+        access = self.app.coordination_access
+        try:
+            observed = await access.preparation.run_thread(access.observation.observed)
+            detail = await observed.process.read(ReadCommanderUnit(
+                str(observed.service.root), self.commander, card.unit,
+                tuple(dict.fromkeys(order.order for order in card.orders)),
+            ))
+        except (ValueError, OSError, RuntimeError) as error:
+            if self.is_attached and self.card == card and not self.collapsed:
+                self.detail_status.update(f"Original details unavailable: {error}")
+            return
+        if not self.is_attached or self.collapsed or self.card != card:
+            return
+        lines = []
+        for order in detail.orders:
+            lines.extend((f"Original order {order.card.order} · {order.card.problem}",
+                          *order.instructions, order.story.line))
+            lines.extend(
+                f"commit {commit.sha} · "
+                f"{datetime.fromtimestamp(commit.at, timezone.utc).isoformat()}"
+                for commit in order.commits
+            )
+        self.original_orders.update("\n\n".join(lines))
+        self.activity.update(detail.activity)
+        self.activity_view.display = True
+        self.detail_status.update("Original records read; activity uses Core's bounded view.")
 
 
 class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
@@ -104,7 +168,7 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
         return {card.unit: card for card in self.hud.units}
 
     def create_row(self, key: ThreadIncarnation) -> CommanderUnitCard:
-        return CommanderUnitCard(self.cards[key])
+        return CommanderUnitCard(self.hud.commander, self.cards[key])
 
     def update_row(self, key: ThreadIncarnation, row: CommanderUnitCard) -> None:
         row.present(self.cards[key])

@@ -58,6 +58,9 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         await pilot.press("enter")
         await ui.until(lambda: not card.collapsed, why="the unit card to expand by keyboard")
         await ui.until_shows(Detached.action)
+        # This published fixture has no registered unit. Its original-detail
+        # refusal must stay in the disclosure while observation keeps working.
+        await ui.until_shows("Original details unavailable:")
         assert str(view.heading.render()) == "Commander claude-code"
         assert str(view.status.render()).startswith(str(hud.load))
         assert hud.usage.line() in str(view.footer.render())
