@@ -275,7 +275,7 @@ class SessionNavigation:
         database = await self.app.get_db()
         return AcpTab(await database.session_new(
             title, agent.name, agent.identity, agent_session_id,
-            meta=SessionMeta(cwd=project.path, agent_data=agent),
+            meta=SessionMeta(cwd=project, agent_data=agent),
         ))
 
     async def launch(

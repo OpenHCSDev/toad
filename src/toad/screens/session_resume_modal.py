@@ -64,7 +64,7 @@ class SessionResumeModal(DismissibleScreen[Session]):
         db = DB()
         sessions = await db.session_get_recent()
         for session in sessions:
-            cwd = str(session.meta_json.cwd or "")
+            cwd = "".join(map(str, session.meta_json.cwd.present()))
 
             table.add_row(
                 session.agent,

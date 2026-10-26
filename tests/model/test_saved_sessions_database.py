@@ -8,6 +8,7 @@ import sqlite3
 from unittest.mock import patch
 
 import pytest
+from agent_comms.repo import Checkout
 from agent_comms.field_codec import RecordedTimestamp
 from agent_comms.errors import RelationViolationError
 
@@ -35,16 +36,16 @@ async def test_saved_row_reads_as_typed_session_and_updates_keep_its_agent(tmp_p
         assert isinstance(before, Session)
         assert before.created_at.text == written
         assert before.prompt_count == 0
-        assert before.meta_json.cwd == tmp_path
+        assert before.meta_json.cwd == Checkout(tmp_path)
         assert await store.session_update_project(1, tmp_path / "changed")
         after = await store.session_get(1)
         assert after.meta_json.agent_data == before.meta_json.agent_data
-        assert after.meta_json.cwd == tmp_path / "changed"
+        assert after.meta_json.cwd == Checkout(tmp_path / "changed")
         assert after.created_at == before.created_at
         await store.session_update_title(1, "Renamed")
         await store.session_update_last_used(1)
         assert (await store.session_get(1)).title == "Renamed"
-        metadata = SessionMeta(tmp_path, AgentDefinition.decode(SAVED_AGENT))
+        metadata = SessionMeta(Checkout(tmp_path), AgentDefinition.decode(SAVED_AGENT))
         pk = await store.session_new("New", "Agent", "id", "session2", meta=metadata)
         saved = await store.session_get(pk)
         assert saved.id == pk and saved.meta_json == metadata
@@ -62,8 +63,8 @@ async def test_fresh_schema_stores_metadata_and_a_busy_writer_does_not_block_the
     with patch("toad.db.paths.get_state", return_value=tmp_path):
         store = DB()
         await store.create()
-        pk = await store.session_new("New", "Agent", "id", "session", meta=SessionMeta(Path("/project")))
-        assert (await store.session_get(pk)).meta_json.cwd == Path("/project")
+        pk = await store.session_new("New", "Agent", "id", "session", meta=SessionMeta(Checkout(Path("/project"))))
+        assert (await store.session_get(pk)).meta_json.cwd == Checkout(Path("/project"))
         await store.record_model_usage("id", "model")
         assert await store.recent_models("id") == ["model"]
         # Busy persistence waits in its worker; the event loop keeps running

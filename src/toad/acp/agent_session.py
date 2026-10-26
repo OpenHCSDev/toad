@@ -1,6 +1,8 @@
 """ACP session handshake, durable metadata and reconnection."""
 from __future__ import annotations
 
+from agent_comms.repo import Checkout
+
 import asyncio
 import os
 from collections.abc import Callable
@@ -452,7 +454,7 @@ class AgentSession:
                 self.agent.session_id,
                 protocol="acp",
                 meta=SessionMeta(
-                    cwd=self.agent.project_root_path, agent_data=self.agent.definition
+                    cwd=Checkout(self.agent.project_root_path), agent_data=self.agent.definition
                 ),
             )
             authority.require()
@@ -483,7 +485,7 @@ class AgentSession:
             if not self.agent._private_cursor.is_current_request(cursor_token):
                 return
             if session is not None:
-                if session_cwd := session.meta_json.cwd:
+                for session_cwd in session.meta_json.cwd.present():
                     cwd = str(session_cwd)
                 if agent_data := session.meta_json.agent_data:
                     self.agent.definition = agent_data

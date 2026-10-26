@@ -22,13 +22,15 @@ class AcpTab(SessionTabIdentity):
         saved = await database.session_get(self.key)
         if saved is None:
             raise TabTargetGone(self, f"Saved ACP session {self.key} no longer exists")
-        if saved.meta_json.cwd is None:
-            raise TabTargetGone(self, f"Saved ACP session {self.key} has no recorded project")
+        try:
+            project = Checkout.checked(saved.meta_json.cwd.require_present().path)
+        except ValueError as error:
+            raise TabTargetGone(self, f"Saved ACP session {self.key}: {error}") from error
         await navigation.launch(
             saved.agent_identity,
             agent_session_id=saved.agent_session_id,
             session_pk=self.key,
-            project=Checkout.checked(saved.meta_json.cwd),
+            project=project,
         )
 
 

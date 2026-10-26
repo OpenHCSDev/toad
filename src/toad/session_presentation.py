@@ -139,7 +139,7 @@ class OperationalSessionSources:
     def prompt(self, conversation: Conversation):
         from toad.widgets.prompt import Prompt
 
-        return Prompt(turns=conversation.turns, submissions=conversation.submissions)
+        return Prompt(project=conversation.project_path, turns=conversation.turns, submissions=conversation.submissions)
 
     async def submit(self, owner, event):
         from toad.conversation_submission import InputSubmission

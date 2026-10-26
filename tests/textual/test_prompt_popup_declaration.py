@@ -41,7 +41,7 @@ async def test_a_declared_popup_paints_and_returns_focus_to_the_draft(workspace)
 async def test_the_simple_composer_has_no_declared_popup_and_takes_a_slash_as_text(workspace):
     async with workspace.app(size=(110, 38)) as ui:
         app, _pilot = ui.textual
-        simple = Prompt(simple_input=True)
+        simple = Prompt(project=app.project_dir, simple_input=True)
         await app.screen.mount(simple)
         await ui.step()
         assert not simple.query(ReviewPopup)

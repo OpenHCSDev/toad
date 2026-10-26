@@ -614,6 +614,7 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
     def __init__(
         self,
         *,
+        project: Checkout,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -622,7 +623,7 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
         submissions=None,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
-        self.set_reactive(Prompt.project_path, self.app.project_dir)
+        self.set_reactive(Prompt.project_path, project)
         self.ask_queue: list[Ask] = []
         self.turns = turns
         self.submissions = submissions
