@@ -4,11 +4,16 @@ import pytest
 
 from unittest.mock import patch
 
+from agent_comms.transcript_events import MarkdownTranscript
 from textual.containers import VerticalGroup
 from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
-from toad.widgets.history_anchor import BlockPosition, HistoryWindow, ReaderPosition, RowPosition, TailPosition
+from toad.widgets.transcript_fragments import TranscriptFragment
+from toad.widgets.history_anchor import (
+    BlockPosition, FragmentNotLoaded, FragmentPosition, HistoryWindow, ReaderPosition, RowPosition,
+    TailPosition, UnreachedPosition,
+)
 
 
 def records(count):
@@ -94,6 +99,23 @@ async def test_a_record_layout_has_not_placed_has_no_row(workspace):
             window.row_of(marker)
 
 
+async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspace):
+    async with workspace.app(size=(100, 35)) as ui:
+        window = await long_window(ui)
+        window.release_anchor()
+        fragment = TranscriptFragment((MarkdownTranscript("Unloaded", position=123, timestamp=0),))
+        position = FragmentPosition(fragment.key, 0, 1, block=0)
+        window.reader_position = UnreachedPosition(position)
+        with pytest.raises(FragmentNotLoaded):
+            position.page(window).location()
+        assert not position.laid_out(window)
+        assert not window.place_reader()
+        with pytest.raises(LookupError, match="no drawn destination yet"):
+            position.destination(window)
+        assert window.history_geometry_targets() == ()
+        assert window.reader_position == RowPosition(window.scroll_y)
+
+
 class LiveBlock(ConversationBlock, Static):
     pass
 
@@ -114,3 +136,6 @@ async def test_a_live_block_hidden_since_the_last_frame_does_not_hold_the_reader
         assert block in screen._compositor.published_widgets
         assert not tuple(window.placements((block,)))
         assert ReaderPosition.of(window) == RowPosition(window.scroll_y)
+        window.reader_position = UnreachedPosition(BlockPosition(block, 0, window.scroll_y))
+        assert not window.place_reader()
+        assert window.reader_for_layout() == RowPosition(window.scroll_y)
