@@ -205,7 +205,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         try:
             project = Checkout.checked(event.path)
         except (OSError, ValueError) as error:
-            self.show_error(str(error), "Change directory")
+            self.show_error(error, "Change directory")
             return
         self.project_dir = project
 
