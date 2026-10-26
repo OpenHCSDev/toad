@@ -21,6 +21,7 @@ async def test_start_attaches_stopped_saved_tab_and_receives_dm(workspace, nativ
     saved.mkdir(mode=0o700)
     journal = write_journal(saved / 'saved.jsonl',
                             assistant_entry('SAVED_BEFORE_START', id='answer'))
+    journal.chmod(0o600)
     comms.registry.declare(replace(thread, model=MODEL, thinking_level=OffThinkingLevel,
         session_file=RegistrySessionLocation.from_path(journal, comms.root)))
     provider = ControlledProvider()
