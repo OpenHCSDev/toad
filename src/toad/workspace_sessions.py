@@ -201,12 +201,12 @@ class WorkspaceSessions:
         # LoadingWorkspaceSource admits any destination preparation callbacks.
         self.app.workspace_screen.frame_presentation.begin()
         self.source = LoadingWorkspaceSource(destination)
-        await destination.prepare_presentation()
-        # Preparation joins the arriving tree's existing rows. The workspace
-        # alone swaps the two mounted trees, without a frame between them.
+        # The arriving tree must participate in layout before its saved rows
+        # can be prepared. Frames remain held by the navigation owner.
         departing.hide()
         destination.display = True
         await self.app.workspace_chrome.select(destination)
+        await destination.prepare_presentation()
         await after_input()
         destination.activate_session()
         if destination.AUTO_FOCUS:

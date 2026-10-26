@@ -227,7 +227,7 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
     ) -> None:
         """Supply a laid-out native target before its detached history prepares rows."""
         if not self.line_width:
-            await self.wait_for_refresh()
+            await self.screen.layout_in_steps()
         rows, _limit = window.latest_limits(history.budget)
         await history.prepare_rows(
             current,
