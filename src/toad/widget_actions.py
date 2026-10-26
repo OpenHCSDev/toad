@@ -131,7 +131,8 @@ class DeclaredWidgetActions(DOMNode):
         """Capabilities and the widget's own family compose through its MRO."""
         return tuple(dict.fromkeys(
             member for base in cls.__mro__
-            for member in DeclaredWidgetActions.own_actions.get(base, ())
+            for family in DeclaredWidgetActions.own_actions.get(base, ())
+            for member in family.members_with(family)
         ))
 
     @classmethod
@@ -139,8 +140,7 @@ class DeclaredWidgetActions(DOMNode):
         return declaration.bindings()
 
     def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
-        DeclaredWidgetActions.own_actions[cls] = tuple(
-            member for family in actions for member in family.members_with(family))
+        DeclaredWidgetActions.own_actions[cls] = actions
         declarations = cls.declared_actions()
         cls.BINDINGS = [*cls.__dict__.get("BINDINGS", ()),
                         *(binding for declaration in declarations
