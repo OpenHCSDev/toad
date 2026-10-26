@@ -932,7 +932,7 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
         )
 
     def compose_completions(self) -> ComposeResult:
-        for kind in CompletionPopup.members_with(CompletionPopup):
+        for kind in CompletionPopup.members():
             if (popup := kind.for_prompt(self)) is not None:
                 yield popup
 
@@ -943,7 +943,7 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
             yield SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
 
     def compose_info_popups(self) -> ComposeResult:
-        for kind in InfoPopup.members_with(InfoPopup):
+        for kind in InfoPopup.members():
             if (popup := kind.for_prompt(self)) is not None:
                 yield popup
 

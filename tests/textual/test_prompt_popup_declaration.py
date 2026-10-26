@@ -28,7 +28,7 @@ async def test_a_declared_popup_paints_and_returns_focus_to_the_draft(workspace)
         prompt = ui.conversation.prompt
         await ui.until(lambda: prompt.query(ReviewPopup), why="the declared popup in the prompt")
         popup = prompt.query_one(ReviewPopup)
-        assert ReviewPopup in CompletionPopup.members_with(CompletionPopup)
+        assert ReviewPopup in CompletionPopup.members()
         prompt.text = "Draft retained"
         popup.focus()
         await ui.until(lambda: (entry := popup.query_one_optional(Input)) is not None and entry.has_focus, why="focus in the popup")

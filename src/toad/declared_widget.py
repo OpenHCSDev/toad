@@ -21,8 +21,8 @@ class DeclaredWidget:
             DeclaredWidget._members.append(cls)
 
     @classmethod
-    def members_with(cls, capability: type) -> tuple[type[Self], ...]:
+    def members(cls) -> tuple[type[Self], ...]:
         return tuple(
             cast(type[Self], member) for member in DeclaredWidget._members
-            if issubclass(member, cls) and issubclass(member, capability)
+            if cls in member.__mro__
         )
