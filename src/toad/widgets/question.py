@@ -120,7 +120,7 @@ class Option(PrimaryActivation, containers.HorizontalGroup):
         self.post_message(self.Selected(self.index))
 
 
-class Question(DeclaredWidgetActions, containers.VerticalGroup, actions=QuestionAction, can_focus=True):
+class Question(DeclaredWidgetActions, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
     """A text question with a menu of responses."""
 
     BINDING_GROUP_TITLE = "Question"

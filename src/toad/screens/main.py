@@ -199,7 +199,7 @@ class FailedContent(ScreenContent):
 
 
 class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
-                 hidden_actions=(SessionNavigationAction,), can_focus=False):
+                 scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"

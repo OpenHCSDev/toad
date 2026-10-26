@@ -202,7 +202,7 @@ class PromptSubmission:
 
 class PromptTextArea(
     CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea,
-    actions=PromptAction,
+    actions=(PromptAction,),
 ):
     # Agent prompts and direct messages carry a pasted image as a file reference.
     ATTACHES_IMAGES: ClassVar[bool] = True

@@ -133,7 +133,7 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
 
 class PathSearch(
     PriorityActions, HiddenActions, MovesCursor, Submits, CompletionPopup,
-    hidden_actions=(DismissAction, SubmitAction),
+    scopes={HiddenActions: (DismissAction, SubmitAction)},
 ):
     requires_completion = True
 

@@ -28,8 +28,8 @@ class DescriptionContainer(containers.VerticalScroll):
 
 class AgentModal(
     PriorityActions, HiddenActions, Launches, DismissibleScreen[LaunchAgent | None],
-    priority_actions=(widget_actions.LaunchAction,),
-    hidden_actions=(widget_actions.DismissAction,),
+    scopes={PriorityActions: (widget_actions.LaunchAction,),
+            HiddenActions: (widget_actions.DismissAction,)},
 ):
     AUTO_FOCUS = "Select#action-select"
 

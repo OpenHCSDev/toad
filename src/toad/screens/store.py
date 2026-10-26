@@ -185,7 +185,7 @@ Your favorite agents.
         else:
             self.app.saved_settings.set(SETTINGS.launcher.agents, "\n".join(agents))
 
-    def launch(self) -> None:
+    async def launch(self) -> None:
         if self.highlighted is None:
             return
         child = self.children[self.highlighted]
@@ -247,8 +247,8 @@ class Launcher(containers.VerticalGroup):
         if not launcher_agents:
             yield widgets.Label("Choose your fighter below!", classes="no-agents")
 
-    def launch_highlighted(self) -> None:
-        self.grid_select.launch()
+    async def launch_highlighted(self) -> None:
+        await self.grid_select.launch()
 
 
 class LauncherItem(containers.VerticalGroup):
@@ -285,7 +285,7 @@ class AgentGridSelect(Launches, GridSelect):
 """
     BINDING_GROUP_TITLE = "Agent Select"
 
-    def launch(self) -> None:
+    async def launch(self) -> None:
         if self.highlighted is None:
             return
         child = self.children[self.highlighted]
@@ -517,7 +517,7 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
 
             self.call_later(focus_screen)
 
-    def on_key(self, event: events.Key) -> None:
+    async def on_key(self, event: events.Key) -> None:
         if event.character is None:
             return
         LAUNCHER_KEYS = "123456789abcdef"
@@ -536,7 +536,7 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
                 return
             self.launcher.focus()
             self.launcher.highlighted = launch_item_offset
-            self.launcher.launch_highlighted()
+            await self.launcher.launch_highlighted()
 
     def action_quick_launch(self) -> None:
         self.launcher.focus()
