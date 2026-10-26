@@ -7,6 +7,8 @@ from functools import cached_property, partial
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.message_reference import MessageReference
+from agent_comms.native_tool_call import ToolCallId
+from agent_comms.turn_item import NativeItemId
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import (
@@ -269,6 +271,22 @@ class InnerPart(PartPosition):
         return ()
 
 
+@dataclass(frozen=True)
+class EventSourceKey:
+    """One kind of transcript event at its recorded source position."""
+
+    event_type: type[TranscriptEvent]
+    position: int | NativeItemId
+
+
+@dataclass(frozen=True)
+class FragmentKey:
+    """A source occurrence and its text part, unchanged by page serialization."""
+
+    source: EventSourceKey | ToolCallId
+    part: int
+
+
 @dataclass
 class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
@@ -280,12 +298,17 @@ class TranscriptFragment:
     has_details: ClassVar[bool] = False
 
     @property
-    def arrival_position(self) -> int | str:
+    def source_identity(self) -> EventSourceKey | ToolCallId:
+        return EventSourceKey(type(self.events[0]), self.arrival_position)
+
+    @cached_property
+    def key(self) -> FragmentKey:
+        return FragmentKey(self.source_identity, self.part_position.index)
+
+    @property
+    def arrival_position(self) -> int | NativeItemId:
         """The first event owns the fragment's stable source position."""
         return self.events[0].position
-
-    def matches_position(self, position: int | str, part: int) -> bool:
-        return self.arrival_position == position and self.part_position.index == part
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
         """Whether the live block that claim retires already showed this saved row."""
@@ -409,8 +432,13 @@ class TranscriptFragment:
 class ToolTranscriptFragment(TranscriptFragment):
     """One tool call with everything it reported: a title line, and its output when opened."""
 
+    events: tuple[ToolTranscript, ...] = field(kw_only=False)
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
+
+    @property
+    def source_identity(self) -> ToolCallId:
+        return self.events[0].tool_call_id
 
     @property
     def has_details(self) -> bool:
