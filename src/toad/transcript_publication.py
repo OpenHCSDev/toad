@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections import deque
 from collections.abc import Callable, Sequence
 from contextlib import AsyncExitStack, asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING, Self, TypeGuard
 
@@ -122,28 +122,36 @@ class TranscriptPublication(BoundFrame, ABC):
         super().__init__(binding, owner, generation)
         self.thread_scope = binding.thread_scope
         self.destination = HeldReaderDestination.held(binding.window)
+        self.identity: TranscriptReadIdentity | None = None
         self.captured = binding.view.turns.owner.captured_snapshot(
             tuple(binding.contents.children)
         )
 
     def native_current(self) -> bool:
-        """Anonymous native output must have settled before the source captured it."""
+        """Each captured presentation must belong to the acquired saved prefix."""
         return self.current() and all(
-            widget.commit_claim.accepts_native(widget, self.captured)
+            widget.commit_claim.accepts_native(widget, self.captured, self.identity)
             for widget in self.binding.contents.children
             if isinstance(widget, CommitParticipant)
         )
 
     def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
         """The mounted main history retains the native prefix the wire cursor lacks."""
-        if self.native_current():
+        if self.native_current() and not self.binding.view.turns.owner.busy:
             return cursor
         history = self.binding.history
-        return cursor.over_native(
+        retained = (
             (history.page_source.through,)
             if history in self.captured and history.state.reports_coverage
             else ()
         )
+        source = self.owner.committed_source
+        certified = (
+            (source.page_bound.with_frontier(cursor.wire),)
+            if source is not None and self.identity is not None
+            and source.contains_native_prefix(self.identity) else ()
+        )
+        return cursor.over_native(retained + certified)
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
         return self.current() and self.source_bound(cursor) == cursor
@@ -265,6 +273,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
         page = snapshot.page
+        self.identity = snapshot.identity
         # The known native cut and its applied original resources meet here.
         # An expired application cannot publish this read; it is not a stale
         # backend revision and must not escape as a failed Textual worker.
@@ -425,12 +434,14 @@ class CommitPublication(CanonicalSourcePublication):
         prepared = await plan.prepare(view, history, page, self.captured, is_current)
         if prepared is None or not is_current():
             return True
+        assert self.identity is not None
         evidence = CommitEvidence(
             self.captured,
             prepared.sequences,
             prepared.history,
             TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
+            replace(self.identity, through=page.after),
         )
         retired = retirement_candidates(contents.children, evidence)
         if not plan.permits(view, retired):
@@ -781,6 +792,7 @@ class TranscriptPresentation:
         self.commit_required = False
         self.displayed_cursor: TranscriptCursor | None = None
         self.current_read: TranscriptPublicationState = NotPublished()
+        self.committed_source: TranscriptReadIdentity | None = None
         self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
         self._thread_observation = ResourceRelease()
@@ -923,10 +935,14 @@ class TranscriptPresentation:
         publication = self.binding.capture(self, CommitPublication)
         if (
             publication is not None
-            and publication.native_current()
             and publication.ready_to_commit()
         ):
             self.binding.request(self)
+
+    def native_committed(self, identity: TranscriptReadIdentity) -> None:
+        """The ordered native append, not a later file read, seals this frontier."""
+        self.committed_source = identity
+        self.require_commit()
 
     def source_work_finished(self, history) -> None:
         if self.binding.matches(history.conversation):
@@ -1016,6 +1032,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
             yield
         finally:
             if origin.transcript_scope() != previous:
+                self.committed_source = None
                 self._thread_observation.close()
                 self.source_requests.cancel()
                 self.invalidate_publications()

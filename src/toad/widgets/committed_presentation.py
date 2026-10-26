@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
 from textual.widget import Widget
 
 from toad.core.source_events import TranscriptCoverage
@@ -37,12 +37,14 @@ class CommitEvidence:
     retained_history: Widget | None = None
     native_inputs: frozenset[str] = frozenset()
     outgoing: frozenset[OutgoingMessageReference] = frozenset()
+    identity: TranscriptReadIdentity | None = None
 
 class CommitClaim(ABC):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+                       identity: TranscriptReadIdentity | None = None) -> bool:
         return True
 
     @property
@@ -64,23 +66,29 @@ class CommitClaim(ABC):
     def repeats_sent(self, fragment: SentMessageFragment) -> bool:
         return False
 
+@dataclass(kw_only=True)
 class CapturedClaim(CommitClaim):
-    """A settled source-owned block captured before the snapshot read."""
+    """A captured block, sealed by its original append or a settled turn."""
+
+    source: TranscriptReadIdentity | None = None
 
     def capture(self, settled: bool) -> bool:
-        return settled
+        return settled or self.source is not None
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
-        return widget in captured
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+                       identity: TranscriptReadIdentity | None = None) -> bool:
+        return widget in captured and (self.source is None or identity is not None
+                                       and self.source.contains_native_prefix(identity))
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return widget in evidence.captured and widget is not evidence.retained_history
+        return (self.accepts_native(widget, evidence.captured, evidence.identity)
+                and widget is not evidence.retained_history)
 
     def repeats_native(self, fragment: TranscriptFragment) -> bool:
         # The snapshot captured the native output its saved records hold.
         return True
 
-@dataclass(frozen=True)
+@dataclass
 class ToolOutputClaim(CapturedClaim):
     """A compact tool cannot retire before its separate bodies are supplied."""
 
@@ -98,7 +106,8 @@ class RetainedSourceClaim(CapturedClaim):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget],
+                       identity: TranscriptReadIdentity | None = None) -> bool:
         return True
 
 @dataclass(frozen=True)
@@ -147,9 +156,18 @@ class CommitParticipant:
         raise NotImplementedError
 
 class SnapshotPresentation(CommitParticipant):
+    source_claim: CapturedClaim | None = None
+
+    def native_committed(self, source: TranscriptReadIdentity) -> None:
+        self.source_claim = CapturedClaim(source=source)
+
+    @property
+    def committed_source(self) -> TranscriptReadIdentity | None:
+        return self.source_claim.source if self.source_claim is not None else None
+
     @property
     def commit_claim(self) -> CommitClaim:
-        return CAPTURED_CLAIM
+        return self.source_claim if self.source_claim is not None else CAPTURED_CLAIM
 
 class CommitBarrier:
     """A local interactive session whose ordering cannot be replaced by a snapshot."""

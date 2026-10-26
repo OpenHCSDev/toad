@@ -16,6 +16,8 @@ from agent_comms.acp_extension import (
     InputFailedUpdate,
     InputStartedUpdate,
     McpClientAcknowledgementUpdate,
+    NativeOutputCommittedUpdate,
+    NativeRoundCommittedUpdate,
     PromptCancelledUpdate,
     QueueChangedUpdate,
     RequestFailedUpdate,
@@ -98,6 +100,10 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(TranscriptChangedUpdate)
     def transcript_changed(self, update: TranscriptChangedUpdate) -> None:
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+
+    @handles(NativeOutputCommittedUpdate, NativeRoundCommittedUpdate)
+    def native_output_committed(self, update: NativeOutputCommittedUpdate | NativeRoundCommittedUpdate) -> None:
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(TurnChangedUpdate)

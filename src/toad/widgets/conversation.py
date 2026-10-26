@@ -1723,7 +1723,7 @@ class Conversation(
 
         if widget.starts_agent_activity(self._agent_activity_boundary):
             await self.contents.mount(
-                AgentActivityDivider(widget.message_category), widget
+                AgentActivityDivider(widget.message_category, widget), widget
             )
         else:
             await self.contents.mount(widget)

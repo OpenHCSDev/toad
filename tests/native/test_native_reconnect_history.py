@@ -62,8 +62,9 @@ async def test_returning_during_a_turn_loads_messages_written_while_hidden(works
             return {"role": "assistant", "content": "AFTER_TAB_RETURN"}, "stop"
         label = "BEFORE_TAB_PARK" if number == 1 else "WHILE_TAB_HIDDEN"
         return {"role": "assistant", "content": label, "tool_calls": [{
-            "id": f"call_{number}", "type": "function", "function": {
-                "name": "bash", "arguments": json.dumps({"command": f"printf '{label}_TOOL'"})}}]}, "tool_calls"
+            "id": f"call_{number}_{suffix}", "type": "function", "function": {
+                "name": "bash", "arguments": json.dumps({"command": f"printf '{label}_TOOL_{suffix}'"})}}
+            for suffix in ("A", "B")]}, "tool_calls"
 
     provider = ControlledProvider(reply=reply, request_budget=3)
     try:
@@ -82,6 +83,11 @@ async def test_returning_during_a_turn_loads_messages_written_while_hidden(works
             assert ui.conversation is view
             assert native.executing
             await ui.until_shows("WHILE_TAB_HIDDEN")
+            await ui.until_shows("WHILE_TAB_HIDDEN_TOOL_A")
+            await ui.until_shows("WHILE_TAB_HIDDEN_TOOL_B")
+            painted = ui.painted(view.window)
+            assert painted.count("WHILE_TAB_HIDDEN_TOOL_A") == 1
+            assert painted.count("WHILE_TAB_HIDDEN_TOOL_B") == 1
             release_return.set()
             await ui.until_shows("AFTER_TAB_RETURN", seconds=30)
             await ui.until(lambda: not native.executing, seconds=20, why="the turn to finish")

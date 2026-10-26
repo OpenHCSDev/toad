@@ -7,8 +7,9 @@ import os
 
 import pytest
 from agent_comms.acp_extension import (
-    TranscriptSnapshotUpdate, TurnChangedUpdate,
+    NativeOutputCommittedUpdate, NativeRoundCommittedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate,
 )
+from agent_comms.native_output import AssistantOutput
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.field_codec import TurnId
 from agent_comms.turn_lease import ActiveTurn, FinishedTurn, TurnState
@@ -212,9 +213,15 @@ async def test_returning_to_busy_tab_loads_the_saved_gap(workspace):
         await ui.until_shows("BEFORE_TAB_PARK")
         with journal.open("a") as output:
             output.write(json.dumps(assistant_entry("BEFORE_TAB_PARK", id="before", parent="prefix")) + "\n")
+        committed = TranscriptSnapshotUpdate.capture(workspace.comms.transcripts, "background")
+        await deliver(agent, carrying(NativeOutputCommittedUpdate(committed.identity, AssistantOutput())))
+        await deliver(agent, carrying(NativeRoundCommittedUpdate(committed.identity)))
         await ui.new_session()
         with journal.open("a") as output:
             output.write(json.dumps(assistant_entry("WHILE_TAB_HIDDEN", id="hidden", parent="before")) + "\n")
+        hidden = TranscriptSnapshotUpdate.capture(workspace.comms.transcripts, "background")
+        await deliver(agent, carrying(NativeOutputCommittedUpdate(hidden.identity, AssistantOutput())))
+        await deliver(agent, carrying(NativeRoundCommittedUpdate(hidden.identity)))
         await ui.select_tab(tab)
         assert ui.conversation is view
         assert view.turns.owner.busy

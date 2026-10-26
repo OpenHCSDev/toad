@@ -23,7 +23,7 @@ from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
 from toad.widgets.transcript_lines import LineTheme, PreparedLines, RichLineRenderer, link_place
 
 from agent_comms.ui_model.message_category import MessageCategory
-from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.widgets.committed_presentation import CommitParticipant
 
 
 class SingleLineBlock(LinkedRows, BlockContent, Widget):
@@ -109,16 +109,21 @@ class MessageRowDivider(MessageRowBlock, MessageDivider):
         self.message_row = row
 
 
-class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedBlock, SingleLineBlock):
+class AgentActivityDivider(ConversationBlock, CommitParticipant, CategorizedBlock, SingleLineBlock):
     """The shared activity-group row, filtered with the activity that follows it."""
 
     ALLOW_SELECT = False
 
-    def __init__(self, category: type[MessageCategory]) -> None:
+    def __init__(self, category: type[MessageCategory], source: CommitParticipant) -> None:
         from toad.widgets.agent_activity import AgentActivityPresentation
 
         super().__init__(AgentActivityPresentation.group[0])
         self._category = category
+        self.source = source
+
+    @property
+    def commit_claim(self):
+        return self.source.commit_claim
 
     @property
     def message_category(self) -> type[MessageCategory]:

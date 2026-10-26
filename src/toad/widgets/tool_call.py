@@ -113,7 +113,8 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     @property
     def commit_claim(self):
         return ToolOutputClaim(frozenset(message.message.reference for part in self.output.parts
-                                        for message in part.standalone_messages))
+                                        for message in part.standalone_messages),
+                               source=self.committed_source)
 
     def update_tool_call(self, tool_call: ToolCallStatus, *, output_parts=None) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.

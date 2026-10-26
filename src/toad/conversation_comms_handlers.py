@@ -12,6 +12,8 @@ from agent_comms.acp_extension import (
     InputStartedUpdate,
     PromptCancelledUpdate,
     McpClientAcknowledgementUpdate,
+    NativeOutputCommittedUpdate,
+    NativeRoundCommittedUpdate,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
@@ -22,6 +24,8 @@ from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.widgets.note import Note
 from toad.widgets.markdown_note import MarkdownNote
+from agent_comms.native_output import AssistantOutput, ToolOutput
+from agent_comms.transcripts import TranscriptReadIdentity
 
 
 class ConversationCommsHandlers(CoreEventReceiver):
@@ -148,6 +152,34 @@ class ConversationCommsHandlers(CoreEventReceiver):
         self, update: TranscriptChangedUpdate, message: CoreEventMessage
     ) -> None:
         self.transcript.changed(update.cursor)
+
+    @handles(NativeOutputCommittedUpdate)
+    async def on_native_output_committed(
+        self, update: NativeOutputCommittedUpdate, message: CoreEventMessage
+    ) -> None:
+        await self.dispatch(update.output, update.identity)
+
+    @handles(NativeRoundCommittedUpdate)
+    def on_native_round_committed(
+        self, update: NativeRoundCommittedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.native_committed(update.identity)
+
+    @handles(AssistantOutput)
+    async def on_assistant_output_committed(
+        self, output: AssistantOutput, identity: TranscriptReadIdentity
+    ) -> None:
+        await self.output.native_committed(identity)
+
+    @handles(ToolOutput)
+    async def on_tool_output_committed(
+        self, output: ToolOutput, identity: TranscriptReadIdentity
+    ) -> None:
+        from toad.widgets.tool_call import ToolCall
+
+        for block in self.contents.query(ToolCall):
+            if block.tool_call.call.tool_call_id == output.tool_call_id:
+                block.native_committed(identity)
 
     @handles(GoalChangedUpdate)
     def on_goal_changed(
