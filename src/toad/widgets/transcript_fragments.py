@@ -413,7 +413,7 @@ class TranscriptFragment:
     def hold_lines(self, request: TranscriptLinesRenderTask, lines: BlockLines) -> bool:
         """Report whether these rows were retained for the fragment's source."""
         if request.blocks is self.line_blocks:
-            self._lines = AcquiredRows(request.preparation, lines)
+            self._lines = AcquiredRows(request.preparation, lines, request.context)
             return True
         return False
 

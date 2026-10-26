@@ -633,9 +633,13 @@ class RowAcquisition(ABC):
     @abstractmethod
     def retains(self, lines: BlockLines, theme: LineTheme) -> bool: ...
 
-    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> AcquiredRows:
+    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> MeasuredRows:
         lines = PlainLines(width, renderer, blocks)
         return PlainRows(lines.preparation, lines)
+
+    def retained_blocks(self, source: LinePreparation, context: LinkContext) -> dict[int, LineBlock]:
+        """Already styled children of this source revision, indexed in the new source."""
+        return {}
 
 
 class NoRows(RowAcquisition):
@@ -653,7 +657,7 @@ class NoRows(RowAcquisition):
 
 
 @dataclass
-class AcquiredRows(RowAcquisition):
+class MeasuredRows(RowAcquisition):
     source: LinePreparation
     lines: BlockLines
 
@@ -677,7 +681,29 @@ class AcquiredRows(RowAcquisition):
         return super().plain(width, renderer, blocks)
 
 
-class PlainRows(AcquiredRows):
+@dataclass
+class AcquiredRows(MeasuredRows):
+    context: LinkContext
+
+    def retained_blocks(self, source: LinePreparation, context: LinkContext) -> dict[int, LineBlock]:
+        if self.source.theme is not source.theme or self.context != context:
+            return {}
+        previous = tuple(zip(self.source.blocks, self.lines.preparation.blocks, strict=True))
+        retained = {}
+        for index, ((original, prepared), block) in enumerate(zip(previous, source.blocks)):
+            if block != original:
+                break
+            retained[index] = prepared
+        remaining = min(len(previous), len(source.blocks)) - len(retained)
+        for distance in range(1, remaining + 1):
+            original, prepared = previous[-distance]
+            if source.blocks[-distance] != original:
+                break
+            retained[len(source.blocks) - distance] = prepared
+        return retained
+
+
+class PlainRows(MeasuredRows):
     def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
         return self.source.theme is theme and self.lines.preparation.blocks is lines.preparation.blocks
 
@@ -786,15 +812,30 @@ class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, .
     items: tuple[TranscriptLinesRenderTask, ...]
 
     @classmethod
-    async def render_for(cls, view, preparations):
+    async def render_for(cls, view, preparations, *, previous=()):
         """One captured reference source for a batch; requests own result publication."""
         preparations = tuple(preparations)
         if not preparations:
             return ()
+        previous = tuple(previous) or (NoRows(),) * len(preparations)
         context = await LinkContext.acquire(view)
+        retained = tuple(acquired.retained_blocks(source, context)
+                         for acquired, source in zip(previous, preparations, strict=True))
         items = tuple(TranscriptLinesRenderTask(preparation, context) for preparation in preparations)
-        lines = await view.app.render_processes.submit(cls(items))
-        return tuple(zip(items, lines, strict=True))
+        pending = tuple(replace(item, preparation=replace(item.preparation, blocks=tuple(
+            block for index, block in enumerate(item.blocks) if index not in held
+        ))) for item, held in zip(items, retained, strict=True))
+        work = tuple(item for item in pending if item.blocks)
+        rendered = iter(await view.app.render_processes.submit(cls(work)) if work else ())
+        result = []
+        for item, pending_item, held in zip(items, pending, retained, strict=True):
+            changed = iter(next(rendered).blocks if pending_item.blocks else ())
+            lines = replace(item.preparation, blocks=tuple(
+                held[index] if index in held else next(changed)
+                for index in range(len(item.blocks))
+            ))
+            result.append((item, lines))
+        return tuple(result)
 
     def execute(self) -> tuple[LinePreparation, ...]:
         return tuple(item.execute() for item in self.items)
