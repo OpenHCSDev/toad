@@ -13,6 +13,7 @@ from agent_comms.coordination_errors import DeferredRead
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
+from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on, work
 from textual.app import ComposeResult
@@ -124,7 +125,7 @@ class CommanderUnitCard(ToadNode, Collapsible):
             detail = await observed.process.read(request)
         except (
             DeferredRead, RelationViolationError, RouteChangedError,
-            ToolRefusedError, UnreadableHistory, OSError,
+            ToolRefusedError, UnreadableHistory, WorkBranchError, OSError,
         ) as error:
             if self.is_attached and self.card == card and not self.collapsed:
                 self.detail_status.update(f"Original details unavailable: {error}")
