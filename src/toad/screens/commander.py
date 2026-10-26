@@ -132,7 +132,7 @@ class CommanderUnitCard(ToadNode, Collapsible):
             return
         if not self.is_attached or self.collapsed or self.card != card:
             return
-        lines = []
+        lines: list[str] = []
         for order in detail.orders:
             lines.extend((f"Original order {order.card.order} · {order.card.problem}",
                           *order.instructions, order.story.line))
