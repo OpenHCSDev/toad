@@ -2,7 +2,11 @@
 
 from agent_comms.transcripts import NativeCommittedPrefix
 
-from toad.widgets.committed_presentation import CapturedClaim, CommitSource, NativeCommitSource
+from toad.widgets.committed_presentation import (
+    CapturedClaim,
+    CommitSource,
+    NativeCommitSource,
+)
 
 
 class SessionOutput:

@@ -30,9 +30,9 @@ from agent_comms.acp_extension import (
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.errors import RouteChangedError
 from agent_comms.native_output import AssistantOutput, ToolOutput
+from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.transcripts import NativeCommittedPrefix
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement

@@ -5,16 +5,21 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
-from agent_comms.transcripts import NativeCommittedPrefix, TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.transcript_events import TranscriptCoverage
+from agent_comms.transcripts import (
+    NativeCommittedPrefix,
+    TranscriptCursor,
+    TranscriptPage,
+    TranscriptReadIdentity,
+)
 from textual.widget import Widget
 
-from agent_comms.transcript_events import TranscriptCoverage
 from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
@@ -113,7 +118,7 @@ class CommitClaim(ABC):
 class CapturedClaim(CommitClaim):
     """A captured block, sealed by its original append or a settled turn."""
 
-    source: CommitSource = CommitSource()
+    source: CommitSource = field(default_factory=CommitSource)
 
     def seal(self, source: NativeCommittedPrefix) -> None:
         self.source = NativeCommitSource(source)

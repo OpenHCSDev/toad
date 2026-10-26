@@ -1,29 +1,33 @@
 """A full-width, timestamped separator owned by one displayed message."""
 
 from __future__ import annotations
-from toad.block_navigation import CategorizedBlock, ConversationBlock
-from toad.block_content import BlockContent
 
 from dataclasses import replace
-
-from rich.style import Style
-from textual.geometry import Size
-from textual.selection import Selection
-from textual._paint_state import PaintState
-from textual.strip import Strip
-from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
-from textual.widget import Widget
-
-from ui_theme.effects import NEW_MESSAGE, Mix
-
-from toad.line_blocks import Divider, LineBlock
-from toad.frame_presentation import Animated
-from toad.message_rows import MessageClock, LiveMessageClock, MessageRow
-from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
-from toad.widgets.transcript_lines import LineTheme, PreparedLines, RichLineRenderer, link_place
+from typing import cast
 
 from agent_comms.ui_model.message_category import MessageCategory
+from rich.style import Style
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+from textual._paint_state import PaintState
+from textual.geometry import Size
+from textual.selection import Selection
+from textual.strip import Strip
+from textual.widget import Widget
+from ui_theme.effects import NEW_MESSAGE, Mix
+
+from toad.block_content import BlockContent
+from toad.block_navigation import CategorizedBlock, ConversationBlock
+from toad.frame_presentation import Animated
+from toad.line_blocks import Divider, LineBlock
+from toad.message_rows import LiveMessageClock, MessageClock, MessageRow
 from toad.widgets.committed_presentation import CommitParticipant
+from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
+from toad.widgets.transcript_lines import (
+    LineTheme,
+    PreparedLines,
+    RichLineRenderer,
+    link_place,
+)
 
 
 class SingleLineBlock(LinkedRows, BlockContent, Widget):
@@ -114,12 +118,12 @@ class AgentActivityDivider(ConversationBlock, CommitParticipant, CategorizedBloc
 
     ALLOW_SELECT = False
 
-    def __init__(self, category: type[MessageCategory], source: CommitParticipant) -> None:
+    def __init__(self, category: type[MessageCategory], source: Widget) -> None:
         from toad.widgets.agent_activity import AgentActivityPresentation
 
         super().__init__(AgentActivityPresentation.group[0])
         self._category = category
-        self.source = source
+        self.source = cast(CommitParticipant, source)
 
     @property
     def commit_claim(self):

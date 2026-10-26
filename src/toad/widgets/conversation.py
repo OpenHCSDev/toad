@@ -8,7 +8,7 @@ from itertools import filterfalse
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time_ns
-from typing import TYPE_CHECKING, Callable, cast
+from typing import TYPE_CHECKING, Callable
 
 from acp import schema as acp_protocol
 from agent_comms.channel_targets import CommandTarget
@@ -1720,11 +1720,10 @@ class Conversation(
         if not self.contents.is_attached:
             return widget
         from toad.widgets.message_divider import AgentActivityDivider
-        from toad.widgets.committed_presentation import CommitParticipant
 
         if widget.starts_agent_activity(self._agent_activity_boundary):
             await self.contents.mount(
-                AgentActivityDivider(widget.message_category, cast(CommitParticipant, widget)), widget
+                AgentActivityDivider(widget.message_category, widget), widget
             )
         else:
             await self.contents.mount(widget)

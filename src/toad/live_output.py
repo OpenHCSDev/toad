@@ -4,21 +4,22 @@ from __future__ import annotations
 
 import asyncio
 import weakref
-from collections.abc import Collection
 from abc import abstractmethod
+from collections.abc import Collection
 from dataclasses import dataclass, field
-from agent_comms.declared_family import DeclaredFamily
 from typing import TYPE_CHECKING
+
+from agent_comms.declared_family import DeclaredFamily
 
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
 from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim
 
 if TYPE_CHECKING:
-    from agent_comms.transcripts import TranscriptReadIdentity
+    from textual.widget import Widget
+
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.agent_thought import AgentThought
     from toad.widgets.conversation import Conversation
-    from textual.widget import Widget
 
 
 @dataclass
