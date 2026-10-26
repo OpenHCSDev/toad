@@ -78,7 +78,7 @@ class CommanderUnitCard(ToadNode, Collapsible):
     def present(self, card: CommanderUnit) -> None:
         changed = card != self.card
         self.card = card
-        self.title = Content(f"{card.unit.name} · {card.state.question}")
+        self.title = Content(card.brief())
         self.set_class(card.needs_hand(), "-needs-hand")
         lines = [
             card.state.action,
@@ -183,9 +183,9 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
     def compose(self) -> ComposeResult:
         yield self.heading
         yield self.status
+        yield self.board
         yield self.units
         yield self.footer
-        yield self.board
 
     def on_mount(self) -> None:
         self.present(self.hud)
