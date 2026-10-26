@@ -523,7 +523,17 @@ class DirectionalPreparation:
         if not end.visible_more(history):
             return 0
         runway = self.runway(history)
-        return 0 if runway is None else self.demand.read_rows(self, history, end, runway)
+        if runway is None:
+            return 0
+        window = self.window
+        viewport = window.scrollable_size
+        occupied = window.arrange(viewport).flow_bounds
+        # Native virtual size includes the viewport's blank alignment space.
+        # Flowing placements retain the actual occupied extent, excluding
+        # overlays and docks. Fill a visible hole even without scroll input;
+        # only the demand predicts rows beyond that already-visible need.
+        missing = min(viewport.height - occupied.height, -end.rows_toward(runway))
+        return max(0, missing, self.demand.read_rows(self, history, end, runway))
 
     def runway(self, history: LineHistory) -> Runway | None:
         """Published rows above and below this viewport; None while the history is off screen."""
