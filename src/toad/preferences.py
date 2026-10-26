@@ -32,9 +32,11 @@ from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
     BlurNotification,
+    ColumnAlignment,
     Expansion,
     FailExpansion,
     LoadingStyle,
+    LeftColumnAlignment,
     NormalScrollbar,
     NotificationPolicy,
     PulseLoading,
@@ -116,6 +118,13 @@ class UiSettings(AnnotatedDataclassValidationMixin):
         WireName("column-width"),
     ] = 100
     """Width of the column if enabled. Minimum 40 characters."""
+
+    column_alignment: Annotated[
+        type[ColumnAlignment], FieldLabel("Column alignment"),
+        FamilyChoices(ColumnAlignment), effects.conversation_layout,
+        WireName("column-alignment"),
+    ] = LeftColumnAlignment
+    """Place the conversation column on the left, in the center, or on the right."""
 
     scrollbar: Annotated[
         type[Scrollbar],

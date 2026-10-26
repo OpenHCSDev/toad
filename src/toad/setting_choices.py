@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, cast
 from random import choice
 from threading import Lock
 from textual.content import Content
+from textual.css.types import AlignHorizontal
+from textual.widget import Widget
 from toad.widgets.future_text import FutureText
 
 from agent_comms.declared_family import DeclaredFamily
@@ -157,6 +159,29 @@ class ThinScrollbar(Scrollbar):
 
 
 class HiddenScrollbar(Scrollbar):
+    pass
+
+
+class ColumnAlignment(Choice, DeclaredFamily, affix="ColumnAlignment"):
+    """Place a width-constrained conversation using Textual's container layout."""
+
+    @classmethod
+    def apply(cls, conversation: Widget, enabled: bool, width: int) -> None:
+        container = conversation.parent
+        assert isinstance(container, Widget), "Column layout requires a mounted conversation"
+        conversation.styles.max_width = max(10, width) if enabled else None
+        container.styles.align_horizontal = cast(AlignHorizontal, cls.declared_name)
+
+
+class LeftColumnAlignment(ColumnAlignment):
+    pass
+
+
+class CenterColumnAlignment(ColumnAlignment):
+    pass
+
+
+class RightColumnAlignment(ColumnAlignment):
     pass
 
 
