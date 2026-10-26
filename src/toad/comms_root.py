@@ -70,7 +70,6 @@ from toad.core.events import (
     ThreadRowsChanged,
 )
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
-from toad.preferences import SETTINGS
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 
 if TYPE_CHECKING:
@@ -531,11 +530,11 @@ class CoordinationAccess(MroDispatch):
                 view.notifications_failed(result.error)
 
     def sidebar_request(self) -> ObserveSidebar:
-        state = self.app.saved_settings.state
+        sidebar = self.app.saved_settings.current.sidebar
         return ObserveSidebar(
-            str(self.app.project_dir),
-            SETTINGS.sidebar.show_stopped.bind(state).value,
-            SETTINGS.sidebar.show_archived.bind(state).value,
+            self.app.project_dir,
+            sidebar.show_stopped,
+            sidebar.show_archived,
         )
 
     def observe_thread_changes(

@@ -1,5 +1,7 @@
 """Textual-facing: the right-hand relationship panel (collapsible side bar, row widgets, menus) follows Core's relationships."""
+from pathlib import Path
 
+from agent_comms.repo import Checkout
 from unittest.mock import patch
 
 from agent_comms.activity import ActivityState
@@ -46,7 +48,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
     for name, parent in (("origin", NoParent()), ("owner", ForkedParent("origin")),
                          ("peer", NoParent()), ("child-one", ForkedParent("owner")),
                          ("child-two", ForkedParent("owner"))):
-        comms.registry.declare(Thread(name, frozenset({"team"}), project, parent=parent))
+        comms.registry.declare(Thread(name, frozenset({"team"}), Checkout(Path(project)), parent=parent))
     comms.messaging.send("peer", "owner", "Review request")
     comms.messaging.send("owner", "#team", "Published status")
     comms.relationships.edit("owner", AddRelationshipEdit, "peer", "Review the sidebar")
@@ -133,7 +135,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         old_peer = comms.registry.require("peer")
         comms.owners.stop("peer")
         comms.registry.remove("peer")
-        comms.registry.declare(Thread("peer", frozenset(), project,
+        comms.registry.declare(Thread("peer", frozenset(), Checkout(Path(project)),
                                       created_at=RecordedCreationTime(old_peer.created_at + 1)))
         options = app.screen.options
         open_index = next(index for index in range(options.option_count)

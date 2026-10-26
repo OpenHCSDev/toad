@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated
 
 from agent_comms.field_codec import PathText
+from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.conversation_kind import ConversationKind
@@ -21,11 +22,13 @@ class AcpTab(SessionTabIdentity):
         saved = await database.session_get(self.key)
         if saved is None:
             raise TabTargetGone(self, f"Saved ACP session {self.key} no longer exists")
+        if saved.meta_json.cwd is None:
+            raise TabTargetGone(self, f"Saved ACP session {self.key} has no recorded project")
         await navigation.launch(
             saved.agent_identity,
             agent_session_id=saved.agent_session_id,
             session_pk=self.key,
-            project_path=saved.meta_json.cwd,
+            project=Checkout.checked(saved.meta_json.cwd),
         )
 
 

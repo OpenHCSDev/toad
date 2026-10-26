@@ -2,6 +2,7 @@
 choosing Archive archives the thread on the wire while keeping its messages, goal history, session file
 and saved session."""
 
+from agent_comms.repo import Checkout
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.read_basis import NamedViewer
 from agent_comms.session_file import RegistrySessionLocation
@@ -27,8 +28,8 @@ async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_his
     project, comms = workspace.project, workspace.comms
     session_file = project / "peer.jsonl"
     session_file.write_text('{"type":"session","id":"retained"}\n')
-    comms.registry.register(Thread("owner", frozenset(), str(project)))
-    comms.registry.register(Thread("peer", frozenset(), str(project), session_file=RegistrySessionLocation.from_path(session_file, workspace.comms.root)),
+    comms.registry.register(Thread("owner", frozenset(), Checkout(project)))
+    comms.registry.register(Thread("peer", frozenset(), Checkout(project), session_file=RegistrySessionLocation.from_path(session_file, workspace.comms.root)),
                             StoppedThreadStatus())
     comms.messaging.send("peer", "owner", "Retain this archived conversation")
     comms.goals.update_goal("peer", SetGoalAction(text="Retain the goal revisions"))

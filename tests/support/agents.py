@@ -61,7 +61,7 @@ class AppAgents:
     def agent[A: Agent](self, kind: type[A], definition: AgentDefinition, session_id: str | None = None,
                         **fields: object) -> A:
         """An agent of ``kind`` built through the app's own Agent constructor; ``fields`` are the subclass's own."""
-        return kind(Path(self.app.project_dir), definition, session_id, app_events=self.app.events,
+        return kind(self.app.project_dir.path, definition, session_id, app_events=self.app.events,
                     transcripts=self.app.coordination_access.transcripts, **fields)
 
     def detached_agent(self, session_id: str | None = None, *, identity: str = "test-agent") -> Agent:

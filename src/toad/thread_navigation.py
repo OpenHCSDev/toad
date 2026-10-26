@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.errors import RelationViolationError
+from agent_comms.repo import Checkout
 from toad.tab_identity.kinds import MailboxTab
 from toad.navigation_preparation import (
     OpenThread,
@@ -51,7 +52,7 @@ class ThreadNavigator:
         self.app = app
         self.pending: dict[tuple[str, str, str], ThreadOpening] = {}
 
-    async def open(self, *, owner_mode: str, project_path: Path, target: str) -> str:
+    async def open(self, *, owner_mode: str, project_path: Checkout, target: str) -> str:
         app = self.app
         try:
             source = app.workspace_sessions.origin(owner_mode).require()

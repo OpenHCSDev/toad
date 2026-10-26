@@ -263,7 +263,7 @@ async def test_leaving_a_view_stops_its_sidebar_hydration(workspace):
             if worker.node is sidebar and worker.group == sidebar.PANEL_WORKER_GROUP
         )
         await asyncio.sleep(0)
-        await app.session_navigation.new(tab, lambda: MainScreen(workspace.project))
+        await app.session_navigation.new(tab, lambda: MainScreen(app.project_dir))
         await ui.step(0.02)
         assert not sidebar.panels and not sidebar._panels_loading
         assert all(worker.is_finished for worker in workers)

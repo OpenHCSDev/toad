@@ -268,7 +268,7 @@ class DmConversation(ConversationKind):
     def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.dm_display_page(
             self.retained_target(),
-            worktree=str(source.project),
+            worktree=source.project,
             bounds=bounds,
         )
 

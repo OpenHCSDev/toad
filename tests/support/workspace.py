@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agent_comms.repo import Checkout
 from contextlib import asynccontextmanager
 from functools import cached_property
 import os
@@ -34,7 +35,7 @@ class Workspace:
     @property
     def viewer(self) -> str:
         """The name the user of this project sends as."""
-        return self.comms.messaging.user_identity(str(self.project)).name
+        return self.comms.messaging.user_identity(Checkout(self.project)).name
 
     def thread(self, name: str, *tags: str, running: bool = False, title: str | None = None,
                root: Path | None = None):
@@ -45,7 +46,7 @@ class Workspace:
         comms = self.comms if root is None else installed_wire(root)
         identity = ProcessIdentity.capture(os.getpid()) if running else NoProcess()
         comms.registry.declare(Thread(
-            name, frozenset(tags), str(self.project), title=ThreadText.external(title), process_identity=identity))
+            name, frozenset(tags), Checkout(self.project), title=ThreadText.external(title), process_identity=identity))
         return comms.registry.require(name)
 
     async def bind(self, screen: MainScreen, name: str, *, root: Path | None = None) -> None:

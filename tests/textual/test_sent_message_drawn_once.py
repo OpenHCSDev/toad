@@ -1,6 +1,7 @@
 """Textual-facing: a sent message whose start notice reaches the conversation after the saved history
 already holds it is drawn once, by the saved history, with no second live block under it."""
 
+from agent_comms.repo import Checkout
 from functools import partial
 
 from agent_comms.acp_extension import (
@@ -26,7 +27,7 @@ async def test_a_start_notice_after_the_saved_history_draws_the_message_once(wor
         journals.assistant_entry("An earlier answer.", id="earlier"),
         journals.user_entry(TOKEN, id="sent", parent="earlier", input_id=INPUT))
     owner = workspace.comms.registry.declare(
-        Thread("source", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
+        Thread("source", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     async with workspace.app(size=(110, 35)) as ui:
         root = str(workspace.comms.root)
         await ui.app.session_navigation.new(

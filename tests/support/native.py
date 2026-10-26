@@ -6,6 +6,7 @@ tells it to. The wire, the Pi settings and the project are the test's private ro
 """
 
 from __future__ import annotations
+from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached
 
 import asyncio
@@ -266,7 +267,7 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
     with provider.serving() as base_url:
         comms = start_private_native_wire(workspace.roots.wire)
         configure_provider(base_url, settings=settings)
-        comms.registry.declare(Thread(NativeSession.thread, frozenset({"team"}), str(workspace.project),
+        comms.registry.declare(Thread(NativeSession.thread, frozenset({"team"}), Checkout(workspace.project),
                                       model=MODEL, thinking_level=OffThinkingLevel))
         try:
             if prepare is not None:

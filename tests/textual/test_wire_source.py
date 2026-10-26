@@ -1,5 +1,6 @@
 """Textual-facing: the presentation window; a wire source pages one conversation and notices when Core replaces its reading."""
 
+from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelTarget
 from support.roots import installed_wire
 from agent_comms.historical_views import ConversationObservation
@@ -14,7 +15,8 @@ from toad.wire_history import AfterSequence, GrowingWireObservation, MessageFrag
 
 
 def channel_source(comms, target, project):
-    viewer = comms.messaging.user_identity(str(project)).name
+    project = Checkout(project)
+    viewer = comms.messaging.user_identity(project).name
     return WireSource(comms, ChannelConversation(ChannelTarget(target)), project, viewer, IrcMessageStyle())
 
 
@@ -32,18 +34,18 @@ def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_pat
     from agent_comms.child_process import ProcessIdentity
 
     comms = installed_wire(tmp_path / "wire")
-    comms.registry.declare(Thread("peer", frozenset(), str(tmp_path), process_identity=ProcessIdentity.capture(os.getpid())))
-    viewer = comms.messaging.user_identity(str(tmp_path)).name
+    comms.registry.declare(Thread("peer", frozenset(), Checkout(tmp_path), process_identity=ProcessIdentity.capture(os.getpid())))
+    viewer = comms.messaging.user_identity(Checkout(tmp_path)).name
     comms.messaging.send("peer", viewer, "shown across turn claim")
-    before = comms.views.dm_display_page("peer", worktree=str(tmp_path))
+    before = comms.views.dm_display_page("peer", worktree=Checkout(tmp_path))
     comms.registry.lease_local_turn("peer", "new-turn")
-    after = comms.views.dm_display_page("peer", worktree=str(tmp_path))
+    after = comms.views.dm_display_page("peer", worktree=Checkout(tmp_path))
     assert DmConversation.history_view.same_display(after, before)
 
 
 def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
     comms = installed_wire(tmp_path / "wire")
-    comms.registry.declare(Thread("sender", frozenset({"one", "two"}), str(tmp_path)))
+    comms.registry.declare(Thread("sender", frozenset({"one", "two"}), Checkout(tmp_path)))
     for index in range(60):
         comms.messaging.send("sender", "#one", f"Message {index}")
         comms.messaging.send("sender", "#two", f"Elsewhere {index}")
@@ -81,9 +83,9 @@ def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
 
 def test_any_mode_expansion_replaces_the_reading_without_new_bus_rows(tmp_path):
     comms = installed_wire(tmp_path / "wire")
-    comms.registry.declare(Thread("alice", frozenset({"team"}), str(tmp_path)))
-    comms.registry.declare(Thread("carol", frozenset({"team"}), str(tmp_path)))
-    comms.registry.declare(Thread("dave", frozenset(), str(tmp_path)))
+    comms.registry.declare(Thread("alice", frozenset({"team"}), Checkout(tmp_path)))
+    comms.registry.declare(Thread("carol", frozenset({"team"}), Checkout(tmp_path)))
+    comms.registry.declare(Thread("dave", frozenset(), Checkout(tmp_path)))
     comms.messaging.send("carol", "dave", "older DM")
     comms.messaging.send("alice", "#team", "channel message")
     source = channel_source(comms, "#team", tmp_path)
@@ -101,7 +103,7 @@ def test_attaching_or_detaching_history_replaces_the_reading_without_new_live_me
     old = installed_wire(tmp_path / "old")
     comms = installed_wire(tmp_path / "live")
     for bus in (old, comms):
-        bus.registry.declare(Thread("alice", frozenset({"team"}), str(tmp_path)))
+        bus.registry.declare(Thread("alice", frozenset({"team"}), Checkout(tmp_path)))
         bus.messaging.send("alice", "#team", bus.root.name)
     source = channel_source(comms, "#team", tmp_path)
     first, _newest = observed(source)

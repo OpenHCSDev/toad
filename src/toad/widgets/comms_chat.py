@@ -13,6 +13,7 @@ import re
 from pathlib import Path
 
 from agent_comms.comms import Comms
+from agent_comms.repo import Checkout
 from agent_comms.field_codec import FieldCodec
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
 from metaclass_registry.mro_dispatch import handles
@@ -64,7 +65,7 @@ class CommsChatView(Conversation):
 
     def __init__(
         self,
-        project_path: Path,
+        project_path: Checkout,
         *,
         conversation: ConversationKind,
         me: str,
@@ -116,7 +117,7 @@ class CommsChatView(Conversation):
         comms = shared
         await self.app.coordination_access.current_sidebar()
         self.message_history.initialize_source(WireSource(
-            comms, self.conversation, Path(self.project_path), self._me,
+            comms, self.conversation, self.project_path, self._me,
             IrcMessageStyle(),
         ))
         self.refresh_identity(comms.root)

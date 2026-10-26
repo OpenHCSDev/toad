@@ -1,5 +1,6 @@
 """Context inspection observes the saved session and its owner proof on a real wire."""
 
+from agent_comms.repo import Checkout
 from dataclasses import replace
 
 from agent_comms.session_revision import SessionRevision
@@ -16,7 +17,7 @@ def declared_reader(workspace):
     identity = create_fresh_private_session(workspace.comms.root, worktree=workspace.project)
     registry = workspace.comms.registry
     registry.declare(Thread(
-        "context-reader", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(identity.session_file, workspace.comms.root)))
+        "context-reader", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(identity.session_file, workspace.comms.root)))
     thread = registry.require("context-reader")
     files = NativeSessionFiles.for_identity(
         identity, root=workspace.comms.root, owner=thread.incarnation.require_recorded())

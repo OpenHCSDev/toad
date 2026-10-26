@@ -1,6 +1,7 @@
 """Message journeys through a native session that more than one native test walks."""
 
 from __future__ import annotations
+from agent_comms.repo import Checkout
 
 import asyncio
 from contextlib import asynccontextmanager
@@ -39,8 +40,8 @@ async def direct_reply_feedback(native, owner_tab: str, *, body: str) -> None:
     ui, comms, provider = native.ui, native.comms, native.provider
     target = native.thread
     app, _pilot = ui.textual
-    user = comms.messaging.user_identity(str(native.project)).name
-    navigation = NavigationContext(app, owner_tab, native.project, user)
+    user = comms.messaging.user_identity(Checkout(native.project)).name
+    navigation = NavigationContext(app, owner_tab, app.project_dir, user)
     await DirectTarget(target).open(navigation)
     screen = app.selected_session
     await screen.wait_content_ready()
@@ -105,8 +106,8 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     idle afterwards, and the message is marked checked with no response."""
     ui, comms, provider = native.ui, native.comms, native.provider
     app, _pilot = ui.textual
-    user = comms.messaging.user_identity(str(native.project)).name
-    await channel_target("#team").open(NavigationContext(app, owner_tab, native.project, user))
+    user = comms.messaging.user_identity(Checkout(native.project)).name
+    await channel_target("#team").open(NavigationContext(app, owner_tab, app.project_dir, user))
     await app.selected_session.wait_content_ready()
     chat = app.selected_session.query_one(CommsChatView)
     assert chat.conversation == ChannelConversation(ChannelTarget("#team"))

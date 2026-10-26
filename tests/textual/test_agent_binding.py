@@ -2,6 +2,7 @@
 
 import click
 import pytest
+from agent_comms.repo import Checkout
 
 from support.agents import peer
 
@@ -32,7 +33,7 @@ async def test_startup_binding_is_decoded_once_and_retained_by_the_app(workspace
 
 
 async def test_no_agent_does_not_match_a_launch(workspace):
-    view = MainScreen(workspace.project)
+    view = MainScreen(Checkout(workspace.project))
     assert not view.matches_launch("not-bound", "not-bound")
     assert view.thread_identity == NoThreadIdentity()
 
@@ -50,7 +51,7 @@ async def test_attached_agent_matches_its_live_session_and_relaunch_reuses_the_v
         assert original.matches_launch(definition.identity, session_id)
         assert not original.matches_launch(definition.identity + "-other", session_id)
         await app.session_navigation.launch(
-            definition.identity, agent_session_id=session_id
+            definition.identity, project=app.project_dir, agent_session_id=session_id
         )
         assert ui.selected_tab == mode
         assert app.selected_session is original
@@ -63,7 +64,7 @@ async def test_agent_session_matches_its_saved_session_without_crossing_agent_id
     workspace,
 ):
     definition = peer("echo")
-    view = MainScreen(workspace.project, AgentSession(definition, "retained-session"))
+    view = MainScreen(Checkout(workspace.project), AgentSession(definition, "retained-session"))
     assert view.matches_launch(definition.identity, "retained-session")
     assert not view.matches_launch(definition.identity + "-other", "retained-session")
     assert view.thread_identity.thread_name() == "retained-session"

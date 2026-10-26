@@ -4,6 +4,7 @@ import asyncio
 import shlex
 from dataclasses import replace
 from pathlib import Path
+from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
 
 from rich.cells import cell_len
@@ -17,7 +18,7 @@ from textual.binding import Binding
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
 from textual.geometry import Size, Spacing
-from textual.reactive import Initialize, var
+from textual.reactive import Initialize, Required, var
 from textual.strip import Strip
 from textual.style import Style
 from textual.widgets import Label, OptionList, TextArea
@@ -247,7 +248,7 @@ See on-screen instructions for details.
     suggestions: var[list[str] | None] = var(None)
     suggestions_index: var[int] = var(0)
 
-    project_path = var(Path())
+    project_path = var[Checkout](Required())
     working_directory = var("")
 
     slash_commands: var[list[SlashCommand]] = var([])
@@ -257,6 +258,7 @@ See on-screen instructions for details.
         super().__init__()
         # The composer that built this editor owns its turns, popups and modes.
         self.prompt = prompt
+        self.set_reactive(PromptTextArea.project_path, prompt.project_path)
         self._submit_pending = False
         self._submit_immediate = False
 
@@ -293,7 +295,7 @@ See on-screen instructions for details.
         spans = tuple(
             Span(*atom.span, style)
             for atom in danger.analyze(
-                str(self.project_path), self.working_directory, content.plain
+                str(self.project_path.path), self.working_directory, content.plain
             )
             if (style := atom.level.highlight(styles))
         )
@@ -598,7 +600,7 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
 
     slash_commands: var[list[SlashCommand]] = var(list)
     shell_mode = var(False)
-    project_path = var(Path, init=False)
+    project_path = var[Checkout](Required(), init=False)
     working_directory = var("")
     display_directory = var("")
     agent_info = var(Content(""))
@@ -620,6 +622,7 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
         submissions=None,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.set_reactive(Prompt.project_path, self.app.project_dir)
         self.ask_queue: list[Ask] = []
         self.turns = turns
         self.submissions = submissions
@@ -826,13 +829,13 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
         self.watch_working_directory(self.working_directory)
 
     def compute_display_directory(self) -> str:
-        return self.working_directory if self.shell_mode else str(self.project_path)
+        return self.working_directory if self.shell_mode else str(self.project_path.path)
 
     def watch_working_directory(self, working_directory: str) -> None:
         if not working_directory:
             return
         out_of_bounds = self.shell_mode and not Path(working_directory).is_relative_to(
-            self.project_path
+            self.project_path.path
         )
         if out_of_bounds and not self.has_class("-working-directory-out-of-bounds"):
             self.post_message(

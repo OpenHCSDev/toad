@@ -1,5 +1,6 @@
 """Enter in the editor while a native turn runs queues the input; leaving and returning by tab click keeps the editor."""
 
+from agent_comms.repo import Checkout
 from agent_comms.pi_vocabulary import HighThinkingLevel
 
 from support.native import native_session
@@ -101,9 +102,9 @@ async def test_enter_queues_during_a_turn_and_a_tab_click_returns_to_the_same_ed
         )
         assert comms.registry.require("beta").thinking_level is HighThinkingLevel
 
-        user = comms.messaging.user_identity(str(native.project)).name
+        user = comms.messaging.user_identity(Checkout(native.project)).name
         await channel_target("#team").open(
-            NavigationContext(app, owner_tab, native.project, user)
+            NavigationContext(app, owner_tab, app.project_dir, user)
         )
         await app.selected_session.wait_content_ready()
         assert ui.selected_tab != owner_tab

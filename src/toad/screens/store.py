@@ -20,7 +20,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.css.query import NoMatches
-from textual.reactive import reactive
+from textual.reactive import Required, reactive
 from textual import containers
 from textual import widgets
 from toad.widgets.footer import ToadFooter
@@ -28,6 +28,7 @@ from toad.widgets.footer import ToadFooter
 import toad
 from toad.app import ToadApp
 from toad.format_path import format_path
+from agent_comms.repo import Checkout
 from toad.pill import pill
 from toad.widgets.directory_input import DirectoryInput
 from toad.widgets.mandelbrot import Mandelbrot
@@ -67,20 +68,20 @@ class DirectoryDisplay(DismissibleControl, CoreEventReceiver, containers.Horizon
     }
     """
 
-    project_dir: reactive[Path] = reactive(Path)
+    project_dir = reactive[Checkout](Required())
     path = reactive("")
     edit = reactive(False, toggle_class="-edit")
 
     directory_input = getters.query_one(DirectoryInput)
     condensed_path = getters.query_one(CondensedPath)
 
-    def __init__(self, project_dir: Path) -> None:
+    def __init__(self, project_dir: Checkout) -> None:
         super().__init__()
-        self.project_dir = project_dir
-        self.path = format_path(project_dir, directory=True)
+        self.set_reactive(DirectoryDisplay.project_dir, project_dir)
+        self.path = format_path(project_dir.path, directory=True)
 
-    def watch_project_dir(self, path: Path) -> None:
-        self.path = format_path(path, directory=True)
+    def watch_project_dir(self, project: Checkout) -> None:
+        self.path = format_path(project.path, directory=True)
 
     def focus(self, scroll_visible=True) -> Self:
         self.edit = True
@@ -326,8 +327,6 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
     launcher = getters.query_one("#launcher", Launcher)
     container = getters.query_one("#container", Container)
 
-    project_dir: reactive[Path] = reactive(Path)
-
     app = getters.app(ToadApp)
 
     def __init__(
@@ -335,7 +334,6 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
     ):
         self._agents: dict[str, AgentDefinition] = {}
         super().__init__(name=name, id=id, classes=classes)
-        self.project_dir = self.app.project_dir
 
     @property
     def agents(self) -> dict[str, AgentDefinition]:
@@ -346,8 +344,8 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
             with containers.Grid(id="title-grid"):
                 yield Mandelbrot()
                 yield widgets.Label(self.get_info(), id="info")
-        yield DirectoryDisplay(self.project_dir).data_bind(
-            project_dir=StoreScreen.project_dir
+        yield DirectoryDisplay(self.app.project_dir).data_bind(
+            project_dir=ToadApp.project_dir
         )
         yield Container(id="container", can_focus=False)
         yield ToadFooter()
@@ -488,11 +486,6 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
         await self.app.saved_settings.save()
         if modal_response is not None:
             self.app.session_navigation.events.publish(modal_response)
-
-    @handles(input_events.ChangeDirectory)
-    def on_change_directory(self, event: input_events.ChangeDirectory) -> None:
-        self.project_dir = Path(event.path)
-        self.app.project_dir = self.project_dir
 
     @work
     async def on_mount(self) -> None:

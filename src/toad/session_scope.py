@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Never
 
 from agent_comms.channel_targets import ThreadTarget
+from agent_comms.repo import Checkout
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
@@ -370,6 +371,8 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
 
 class ProjectSessionOrigin(SessionOrigin, SessionScope):
     """A project source may navigate and resolve threads without an ACP session."""
+
+    project_path: Checkout
 
     @abstractmethod
     def history_origin(self):

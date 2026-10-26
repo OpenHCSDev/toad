@@ -1,10 +1,11 @@
 """Textual-facing: the command dialog. Toad passes Core's declared channel context through real command discovery."""
 import pytest
 
-from agent_comms.channel_targets import CommandTarget, NoChannel, OneChannel, PerTargetChannels
+from agent_comms.channel_targets import NoChannel, OneChannel, PerTargetChannels
 from agent_comms.native_arguments import ConfiguredBinary
 from toad import about
-from toad.target_commands import TargetContext
+from toad.navigation_target import NavigationTarget
+from toad.widgets.comms_sidebar import CommsSidebar
 
 
 @pytest.mark.parametrize("selection", [
@@ -14,8 +15,8 @@ async def test_target_discovery_keeps_declared_channel_selection(workspace, sele
     workspace.thread("owner", "team", title="Command target")
     async with workspace.app() as ui:
         app, _pilot = ui.textual
-        context = TargetContext(app, workspace.comms, CommandTarget.named("owner"), workspace.viewer,
-                                workspace.project, app.selected_mode, selection)
+        context = NavigationTarget.named("owner").menu_context(
+            app.screen.query_one(CommsSidebar), channel=selection, mode_name=app.selected_mode)
         assert context.selected_targets == ("owner",)
         assert context.title == "owner"
         actions = await app.preparation.run_thread(context.available_actions)

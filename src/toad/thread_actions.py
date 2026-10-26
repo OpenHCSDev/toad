@@ -94,7 +94,7 @@ class ThreadAction:
 
     @property
     def resources(self):
-        return self.definition.targets or (self.context.project,)
+        return self.definition.targets or (self.context.project.path,)
 
     @property
     def threads(self) -> frozenset[str]:
@@ -126,7 +126,7 @@ class ThreadAction:
                 return TargetEdit(declaration=definition.declaration,
                     target=definition.declaration.selected_targets(ctx.selection),
                     arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),
-                    channel=definition.channels, project=str(ctx.project))
+                    channel=definition.channels, project=ctx.project)
             request = await ctx.app.preparation.run_thread(prepare)
             ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,
                                          source_root=ctx.comms.root)

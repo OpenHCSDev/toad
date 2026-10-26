@@ -58,7 +58,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         document, undo = editor.document, editor.history
         view._initial_prompt = "NEWEST_PENDING_LOCAL_UI_EVENT"
         owner.publication.clear()
-        await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(workspace.project))
+        await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(app.project_dir))
         await app.selected_session.wait_content_ready()
         await owner.presentation.evict()
         assert view._initial_prompt is None
@@ -82,7 +82,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         assert editor.text == "DRAFT"
 
         # The consumed value must stay absent on another eviction.
-        await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(workspace.project))
+        await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(app.project_dir))
         await app.selected_session.wait_content_ready()
         await owner.presentation.evict()
         assert owner.presentation.state.initial_prompt is None
