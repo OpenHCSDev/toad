@@ -246,8 +246,8 @@ class VimLatestAction(VimNavigationAction):
         self.conversation(app).jump_to_latest()
 
 
-class VimFocusPromptAction(VimNavigationAction):
-    """Focus the prompt, ready to type."""
+class VimFocusPromptAction(VimWorkspaceAction, VimNavigationAction):
+    """Show the latest prompt and enter Insert from idle workspace navigation."""
 
     keys = ("i",)
 
