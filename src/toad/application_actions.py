@@ -257,7 +257,7 @@ class VimFocusPromptAction(VimNavigationAction):
 class VimCycleTabAction(VimApplicationAction):
     direction: Literal[-1, 1]
 
-    async def apply(self, app):
+    async def apply(self, app: ToadApp) -> None:
         await SessionNavigate(app.selected_mode, self.direction).apply(app.session_navigation)
 
 
@@ -278,10 +278,7 @@ class VimPreviousTabAction(VimCycleTabAction):
 class VimHistoryAction(VimApplicationAction):
     direction: Literal[-1, 1]
 
-    def available(self, app):
-        return super().available(app) and app.tab_order.history_target(self.direction) is not None
-
-    async def apply(self, app):
+    async def apply(self, app: ToadApp) -> None:
         app.tab_order.navigate(self.direction)
 
 
@@ -300,7 +297,7 @@ class VimHistoryForwardAction(VimHistoryAction):
 class VimSidebarAction(VimApplicationAction):
     side: Side
 
-    async def apply(self, app):
+    async def apply(self, app: ToadApp) -> None:
         app.workspace_chrome.toggle_sidebar(self.side)
 
 
@@ -319,8 +316,10 @@ class VimRightSidebarAction(VimSidebarAction):
 class VimMoveTabAction(VimApplicationAction):
     direction: Literal[-1, 1]
 
-    async def apply(self, app):
-        await app.session_navigation.move(app.selected_mode, self.direction)
+    async def apply(self, app: ToadApp) -> None:
+        if entry := app.session_navigation.get(app.selected_mode):
+            await app.tab_order.move(entry.identity, self.direction)
+            app.session_navigation.publish()
 
 
 class VimMoveTabLeftAction(VimMoveTabAction):
