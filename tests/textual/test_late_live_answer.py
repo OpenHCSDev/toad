@@ -250,6 +250,20 @@ async def test_returning_to_busy_tab_loads_the_saved_gap(workspace, hidden_count
         await ui.until(lambda: view.transcript.binding.history.page_source.through.offset
                        == hidden.page_bound.offset,
                        why='the kept busy tab to reach the committed multi-page source')
+        if hidden_count > 20:
+            import re
+
+            expected = set(range(hidden_count - 1))
+            seen = set()
+            view.window.focus(scroll_visible=False)
+            for _ in range(30):
+                seen.update(int(value) for value in re.findall(r"HIDDEN_HISTORY_(\d+)", ui.painted(view.window)))
+                if seen == expected:
+                    break
+                await ui.press("pageup")
+            assert seen == expected, sorted(expected - seen)
+            view.jump_to_latest()
+            await ui.until_shows("WHILE_TAB_HIDDEN")
         # Disk can be ahead of ACP ingress. A busy read must stop at the
         # applied round fence, even when all mounted blocks are already sealed.
         with journal.open("a") as output:
