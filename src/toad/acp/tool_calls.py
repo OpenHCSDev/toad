@@ -2,8 +2,8 @@
 from dataclasses import dataclass, field, replace
 
 from acp.schema import ToolCall, ToolCallStart, ToolCallUpdate
+from agent_comms.field_codec import ToolCallId
 from agent_comms.transcript_sources import AssignedSourceIdentity
-from agent_comms.native_tool_call import ToolCallId
 from agent_comms.transcripts import NativeCommittedPrefix
 from toad.core import events
 from toad.acp.client_session import ClientSessionRequest
