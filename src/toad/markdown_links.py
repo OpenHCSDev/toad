@@ -20,6 +20,7 @@ from markdown_it.token import Token
 from toad.file_position import FilePosition
 from toad.line_blocks import LineLink, LinkHref, OpenReference
 from toad.project_link import ProjectLink
+from toad.prompt.extract import extract_paths_from_prompt
 
 if TYPE_CHECKING:
     from textual.widget import Widget
@@ -63,17 +64,25 @@ class LinkContext:
         return LinkContext(self.root, self.references.for_source(source))
 
     def matches(self, text: str):
-        found = []
+        candidates = []
+        # The composer and ACP builder own the @file grammar. Preserve the
+        # complete quoted spelling, including spaces, when linking it here.
+        for path, start, end in extract_paths_from_prompt(text):
+            link = ProjectLink.file_spelling(self.root, path, search=False)
+            if link is not None:
+                content = Token("text", "", 0, content=text[start:end])
+                candidates.append((start, end, link.inline_tokens(content)))
         for match in _PATH_PATTERN.finditer(text):
             link = ProjectLink.from_path(self.root, match.group())
             tokens = link.inline_tokens(Token("text", "", 0, content=match.group()))
-            if tokens:
-                found.append((match.start(), match.end(), tokens))
+            candidates.append((match.start(), match.end(), tokens))
         for match in self.references.find(text):
-            if any(start < match.end and match.start < end for start, end, _ in found):
-                continue
             content = Token("text", "", 0, content=text[match.start : match.end])
-            found.append((match.start, match.end, OpenReference(match.reference).inline_tokens(content)))
+            candidates.append((match.start, match.end, OpenReference(match.reference).inline_tokens(content)))
+        found = []
+        for start, end, tokens in candidates:
+            if tokens and not any(left < end and start < right for left, right, _ in found):
+                found.append((start, end, tokens))
         return sorted(found)
 
 

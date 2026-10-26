@@ -74,6 +74,7 @@ class ControlledProvider:
     reply: Callable[[dict, int], tuple[dict, str]] = numbered_reply
     usage: Callable[[dict, int], dict] = small_usage
     request_budget: int = 12
+    input_types: tuple[str, ...] = ("text",)
     chunk_characters: int | None = None
     after_chunk: Callable[[int, int], None] | None = None
     expected_disconnects: frozenset[int] = frozenset()
@@ -171,13 +172,14 @@ def start_private_native_wire(root: Path):
     return comms
 
 
-def configure_provider(base_url: str, *, settings: dict | None = None) -> None:
+def configure_provider(base_url: str, *, settings: dict | None = None,
+                       input_types: tuple[str, ...] = ("text",)) -> None:
     """Point the native agent at the controlled provider, in this test's Pi settings directory."""
     config = Path(os.environ["PI_CODING_AGENT_DIR"])
     config.mkdir(mode=0o700, parents=True, exist_ok=True)
     (config / "models.json").write_text(json.dumps({"providers": {PROVIDER: {
         "baseUrl": base_url, "api": "openai-completions",
-        "models": [{"id": "fixture", "name": "Offline fixture", "reasoning": True,
+        "models": [{"id": "fixture", "name": "Offline fixture", "reasoning": True, "input": list(input_types),
                     "contextWindow": 32768, "maxTokens": 2048}],
     }}}))
     (config / "auth.json").write_text(json.dumps({PROVIDER: {"type": "api_key", "key": KEY}}))
@@ -265,7 +267,7 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
     provider = provider or ControlledProvider()
     with provider.serving() as base_url:
         comms = start_private_native_wire(workspace.roots.wire)
-        configure_provider(base_url, settings=settings)
+        configure_provider(base_url, settings=settings, input_types=provider.input_types)
         comms.registry.declare(Thread(NativeSession.thread, frozenset({"team"}), str(workspace.project),
                                       model=MODEL, thinking_level=OffThinkingLevel))
         try:

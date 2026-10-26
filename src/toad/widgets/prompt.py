@@ -206,8 +206,6 @@ class PromptTextArea(
     CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea,
     actions=(PromptAction,),
 ):
-    # Agent prompts and direct messages carry a pasted image as a file reference.
-    ATTACHES_IMAGES: ClassVar[bool] = True
     HELP = """\
 ## Prompt
 
@@ -403,9 +401,9 @@ See on-screen instructions for details.
             if not self.is_attached:
                 return
             if image is not None:
-                if self.shell_mode or not self.ATTACHES_IMAGES:
+                if self.shell_mode:
                     self.notify(
-                        "Paste images into an agent thread, not the IRC or shell composer.",
+                        "Leave shell mode to attach an image to a message.",
                         title="Image attachment",
                         severity="warning",
                     )

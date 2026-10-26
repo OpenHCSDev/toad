@@ -1,6 +1,8 @@
 """Textual-facing: the block cursor, its menu keys, expansion and copy/paste-to-prompt work for each kind of conversation block, with the clipboard going through a private X11 display."""
 
 import os
+import base64
+from pathlib import Path
 import select
 import subprocess
 
@@ -15,6 +17,9 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.acp.status import ToolCallStatus
 from acp.schema import ToolCall as SDKToolCall
+from toad.prompt.extract import extract_paths_from_prompt
+from toad.widgets.project_panel import FilePreview
+from toad.project_link import DirectProjectFileLink
 
 
 class DeclaredExtraBlock(ConversationBlock, Static):
@@ -58,6 +63,62 @@ def private_display(private_display_programs, monkeypatch):
         os.close(read_fd)
         server.terminate()
         server.wait(timeout=3)
+
+
+async def test_clipboard_image_sends_to_channel_and_dm_and_opens_its_preview(
+    workspace, private_display, monkeypatch,
+):
+    """Real X selection -> composer -> wire/inboxes -> image preview -> tab return."""
+    png = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg=="
+    )
+    source = workspace.project / "clipboard source.png"
+    source.write_bytes(png)
+    monkeypatch.setenv("XDG_DATA_HOME", str(workspace.roots.attempt / "data with spaces"))
+    workspace.thread("alpha", "team")
+    workspace.thread("beta", "team")
+    subprocess.run(
+        [private_display, "-selection", "clipboard", "-t", "image/png", str(source)],
+        check=True, timeout=3,
+    )
+    comms = workspace.comms
+    async with workspace.app(size=(160, 42)) as ui:
+        app, _ = ui.textual
+
+        async def send_and_preview(tab, target):
+            await ui.write_draft("Look at this")
+            await ui.press("ctrl+v")
+            await ui.until(lambda: "clipboard-" in ui.draft(), why="the actual clipboard image attachment")
+            body = ui.draft()
+            path = Path(next(extract_paths_from_prompt(body))[0])
+            assert path.read_bytes() == png
+            assert path.stat().st_mode & 0o777 == 0o600
+            await ui.press("enter")
+            await ui.until(
+                lambda: any(message.target == target and message.body == body
+                            for message in comms.bus.inbox("beta").page.messages),
+                why="the original image reference delivered to the recipient",
+            )
+            await ui.until_shows("clipboard-")
+            expected = DirectProjectFileLink(path, original_root=workspace.project)
+            await ui.until(lambda: ui.link_at("clipboard-") == expected.click,
+                           why="the complete quoted attachment rendered as a file link")
+            await ui.click("clipboard-")
+            await ui.until(lambda: ui.selected_tab != tab, why="the image preview tab")
+            preview = app.selected_session.query_one(FilePreview)
+            await preview.wait_ready()
+            assert preview.path == path and not preview.loading_label.display
+            preview_tab = ui.selected_tab
+            await ui.select_tab(tab)
+            assert ui.draft() == ""
+            await ui.close_tab(preview_tab)
+            return body
+
+        channel = await ui.open_channel("#team", actor="alpha")
+        body = await send_and_preview(channel, "#team")
+        assert any(message.body == body for message in comms.bus.inbox("alpha").page.messages)
+        direct = await ui.open_direct("beta", actor="alpha")
+        await send_and_preview(direct, "beta")
 
 
 async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):

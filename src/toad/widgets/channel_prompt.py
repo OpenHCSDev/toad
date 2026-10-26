@@ -17,7 +17,6 @@ class MentionList(SelectionOptionList):
 
 
 class ChannelTextArea(MessageTextArea):
-    ATTACHES_IMAGES = False
     prompt: ChannelPrompt
 
     async def action_tab_complete(self) -> None:
