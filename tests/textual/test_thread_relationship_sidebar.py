@@ -34,10 +34,8 @@ async def reveal(ui, session):
 
 
 async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(workspace):
-    from textual.widgets import Select
 
     from toad.widgets.comms_menu import ContextMenu
-    from toad.widgets.session_sort import SortDialog
     from toad.widgets.side_bar import SideBar, SideBarCollapsible
     from toad.widgets.thread_comms import RelationshipSort
 
@@ -102,8 +100,10 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         sort.scroll_visible(animate=False)
         await ui.step()
         assert await pilot.click(sort)
-        await ui.until(lambda: isinstance(app.screen, SortDialog), why="the sort dialog")
-        app.screen.query_one(Select).value = LastActivityThreadSort
+        await ui.until(lambda: isinstance(app.screen, ContextMenu), why="the anchored sort menu")
+        menu = app.screen
+        menu.options.highlighted = 2
+        await pilot.press("enter")
         await ui.until(lambda: comms.relationships.snapshot("owner").groups_by_type[
             ChildrenRelationshipGroup].order is LastActivityThreadSort,
             why="the chosen order to be stored")
