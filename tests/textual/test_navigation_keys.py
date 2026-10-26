@@ -66,6 +66,10 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         assert editor.text == 'HJKL'
         assert ui.selected_tab == third
         assert app.tab_order.names == originals
+        await ui.press('ctrl+shift+k')
+        assert editor.text == ''
+        assert ui.selected_tab == third and app.tab_order.names == originals
+        await ui.press('H', 'J', 'K', 'L')
 
         ui.conversation.window.focus()
         await ui.press('ctrl+shift+j')
