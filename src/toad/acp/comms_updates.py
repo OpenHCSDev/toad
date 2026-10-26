@@ -29,6 +29,8 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.errors import RouteChangedError
+from agent_comms.native_output import AssistantOutput, ToolOutput
+from agent_comms.transcripts import NativeCommittedPrefix
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 
@@ -102,8 +104,22 @@ class CommsUpdateConsumer(MroDispatch):
     def transcript_changed(self, update: TranscriptChangedUpdate) -> None:
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
-    @handles(NativeOutputCommittedUpdate, NativeRoundCommittedUpdate)
-    def native_output_committed(self, update: NativeOutputCommittedUpdate | NativeRoundCommittedUpdate) -> None:
+    @handles(NativeOutputCommittedUpdate)
+    def native_output_committed(self, update: NativeOutputCommittedUpdate) -> None:
+        self.dispatch_sync(update.output, update.identity)
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+
+    @handles(AssistantOutput)
+    def assistant_committed(self, output: AssistantOutput, source: NativeCommittedPrefix) -> None:
+        self.agent.controller.session.output.assistant_committed(source)
+
+    @handles(ToolOutput)
+    def tool_committed(self, output: ToolOutput, source: NativeCommittedPrefix) -> None:
+        self.agent.tools.committed(output.tool_call_id, source)
+
+    @handles(NativeRoundCommittedUpdate)
+    def native_round_committed(self, update: NativeRoundCommittedUpdate) -> None:
+        self.agent.controller.session.output.round_committed(update.identity)
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(TurnChangedUpdate)

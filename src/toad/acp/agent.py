@@ -78,6 +78,10 @@ def generate_datetime_filename(
 class Agent(AgentBase):
     comms_consumer_class = CommsUpdateConsumer
 
+    @property
+    def committed_native_output(self):
+        return self.controller.session.output.committed_source
+
     """An agent that speaks the APC (https://agentclientprotocol.com/overview/introduction) protocol."""
 
     def __init__(

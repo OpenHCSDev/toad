@@ -94,8 +94,10 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         output_parts: tuple[ToolOutputPart, ...] | None = None,
         binding=None,
         request=None,
+        source_claim=None,
     ) -> None:
         self.set_reactive(ToolCall.tool_call, tool_call)
+        self.source_claim = source_claim
         self.binding = binding
         self.request = request
         super().__init__(id=id, classes=classes)

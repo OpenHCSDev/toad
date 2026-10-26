@@ -1,11 +1,12 @@
 """One session owns SDK tool-call assembly and the session that supplied it."""
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from acp.schema import ToolCall, ToolCallStart, ToolCallUpdate
 from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.core import events
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.status import ToolCallStatus
+from toad.widgets.committed_presentation import CapturedClaim
 
 
 @dataclass(frozen=True)
@@ -13,6 +14,7 @@ class SessionToolCall:
     call: ToolCall
     request: ClientSessionRequest
     scope: AssignedSourceIdentity | None
+    source_claim: CapturedClaim = field(default_factory=CapturedClaim, compare=False)
 
     def update(self, value: ToolCallUpdate):
         changes = {name: getattr(value, name) for name in value.model_fields_set
@@ -31,6 +33,11 @@ class SessionToolCalls:
 
     def reset(self):
         self.calls.clear()
+
+    def committed(self, tool_id, source):
+        current = self.calls.get(tool_id)
+        if current is not None:
+            current.source_claim.source = source
 
     @property
     def scope(self):

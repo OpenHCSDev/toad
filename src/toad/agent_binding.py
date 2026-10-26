@@ -36,6 +36,10 @@ class AgentConnection(ABC):
     configuration: AgentConfiguration
     presentation: AgentPresentation
 
+    @property
+    def committed_native_output(self):
+        return None
+
     @abstractmethod
     async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None: ...
 

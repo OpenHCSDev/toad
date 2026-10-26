@@ -11,9 +11,9 @@ from agent_comms.declared_family import DeclaredFamily
 from typing import TYPE_CHECKING
 
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
+from toad.widgets.committed_presentation import CapturedClaim
 
 if TYPE_CHECKING:
-    from toad.widgets.committed_presentation import CapturedClaim
     from agent_comms.transcripts import TranscriptReadIdentity
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.agent_thought import AgentThought
@@ -24,6 +24,8 @@ if TYPE_CHECKING:
 @dataclass
 class OutputStream(DeclaredFamily, affix="Stream"):
     """One declared live output case and the block receiving its fragments."""
+
+    source_claim: CapturedClaim | None = field(default=None, kw_only=True)
 
     def __post_init__(self) -> None:
         self.block: AgentResponse | AgentThought | None = None
@@ -40,11 +42,11 @@ class OutputStream(DeclaredFamily, affix="Stream"):
     @abstractmethod
     def create(self, fragment: str) -> AgentResponse | AgentThought: ...
 
-    async def append(self, view: Conversation, fragment: str, claim: CapturedClaim):
+    async def append(self, view: Conversation, fragment: str):
         if self.block is None:
             if self.accepts(fragment):
                 self.block = self.create(fragment)
-                self.block.source_claim = claim
+                self.block.source_claim = self.source_claim
                 await view.post(self.block, new_block=False)
         else:
             await self.block.append_fragment(fragment)
@@ -68,7 +70,8 @@ class ResponseStream(OutputStream):
         await output.finish(ThoughtStream)
 
     def matches(self, incoming: ResponseStream) -> bool:
-        return self.delivery == incoming.delivery and self.turn_id == incoming.turn_id
+        return (self.delivery == incoming.delivery and self.turn_id == incoming.turn_id
+                and self.source_claim is incoming.source_claim)
 
     def create(self, fragment: str) -> AgentResponse:
         from toad.widgets.agent_response import AgentResponse
@@ -77,8 +80,8 @@ class ResponseStream(OutputStream):
 
 class CompleteResponseStream(ResponseStream):
     """An owner notice is complete at ingress rather than awaiting a turn end."""
-    async def append(self, view, fragment, claim):
-        block = await super().append(view, fragment, claim)
+    async def append(self, view, fragment):
+        block = await super().append(view, fragment)
         await self.finish()
         return block
 
@@ -88,7 +91,7 @@ class ThoughtStream(OutputStream):
         return bool(fragment.strip())
 
     def matches(self, incoming: ThoughtStream) -> bool:
-        return True
+        return self.source_claim is incoming.source_claim
 
     def create(self, fragment: str) -> AgentThought:
         from toad.widgets.agent_thought import AgentThought
@@ -103,16 +106,10 @@ class LiveOutput:
     """Owns accepted streams, serialized posting and rich-view retirement."""
 
     def __init__(self, view: Conversation) -> None:
-        from toad.widgets.committed_presentation import CapturedClaim
-
         self._view = weakref.ref(view)
         self.streams: dict[type[OutputStream], OutputStream] = {}
         self.lock = asyncio.Lock()
         self.revision = 0
-        # One assistant message can produce several rendered blocks (thinking,
-        # text, permission boundaries). Their original source claim survives
-        # rendering boundaries; only the native append seals that message.
-        self.message_claim = CapturedClaim()
 
     async def append(self, incoming: OutputStream, fragment: str):
         async with self.lock:
@@ -129,7 +126,7 @@ class LiveOutput:
                 return None
             if stream is None:
                 stream = self.streams[type(incoming)] = incoming
-            return await stream.append(view, fragment, self.message_claim)
+            return await stream.append(view, fragment)
 
     async def finish(self, kind: type[OutputStream]) -> None:
         stream = self.streams.pop(kind, None)
@@ -139,16 +136,6 @@ class LiveOutput:
     async def settle(self) -> None:
         for stream in tuple(self.streams.values()):
             await stream.settle()
-
-    async def native_committed(self, source: TranscriptReadIdentity) -> None:
-        """Seal only this assistant message; later deltas get their own blocks."""
-        from toad.widgets.committed_presentation import CapturedClaim
-
-        async with self.lock:
-            self.message_claim.source = source
-            self.message_claim = CapturedClaim()
-            for kind in tuple(self.streams):
-                await self.finish(kind)
 
     async def retire_presentations(self, candidates: Collection[Widget]) -> None:
         """Transfer covered blocks to the source owner's native retirement.

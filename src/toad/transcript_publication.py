@@ -123,9 +123,12 @@ class TranscriptPublication(BoundFrame, ABC):
         self.thread_scope = binding.thread_scope
         self.destination = HeldReaderDestination.held(binding.window)
         self.identity: TranscriptReadIdentity | None = None
-        self.captured = binding.view.turns.owner.captured_snapshot(
-            tuple(binding.contents.children)
-        )
+        self.capture_cohort()
+
+    def capture_cohort(self) -> None:
+        view = self.binding.view
+        self.captured = view.turns.owner.captured_snapshot(tuple(self.binding.contents.children))
+        self.native_frontier = view.agent_binding.committed_native_output
 
     def native_current(self) -> bool:
         """Each captured presentation must belong to the acquired saved prefix."""
@@ -145,7 +148,7 @@ class TranscriptPublication(BoundFrame, ABC):
             if history in self.captured and history.state.reports_coverage
             else ()
         )
-        source = self.owner.committed_source
+        source = self.native_frontier
         certified = (
             (source.page_bound.with_frontier(cursor.wire),)
             if source is not None and self.identity is not None
@@ -196,9 +199,7 @@ class TranscriptPublication(BoundFrame, ABC):
         """Capture the original applied cohort once its source cut is known."""
         if not await self.application_current():
             return False
-        self.captured = self.binding.view.turns.owner.captured_snapshot(
-            tuple(self.binding.contents.children)
-        )
+        self.capture_cohort()
         return True
 
     async def application_current(self) -> bool:
@@ -792,7 +793,6 @@ class TranscriptPresentation:
         self.commit_required = False
         self.displayed_cursor: TranscriptCursor | None = None
         self.current_read: TranscriptPublicationState = NotPublished()
-        self.committed_source: TranscriptReadIdentity | None = None
         self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
         self._thread_observation = ResourceRelease()
@@ -939,11 +939,6 @@ class TranscriptPresentation:
         ):
             self.binding.request(self)
 
-    def native_committed(self, identity: TranscriptReadIdentity) -> None:
-        """The ordered native append, not a later file read, seals this frontier."""
-        self.committed_source = identity
-        self.require_commit()
-
     def source_work_finished(self, history) -> None:
         if self.binding.matches(history.conversation):
             self.retry()
@@ -1032,7 +1027,6 @@ class SessionTranscriptPresentation(TranscriptPresentation):
             yield
         finally:
             if origin.transcript_scope() != previous:
-                self.committed_source = None
                 self._thread_observation.close()
                 self.source_requests.cancel()
                 self.invalidate_publications()

@@ -11,10 +11,10 @@ from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.transcripts import NativeCommittedPrefix, TranscriptCursor, TranscriptPage, TranscriptReadIdentity
 from textual.widget import Widget
 
-from toad.core.source_events import TranscriptCoverage
+from agent_comms.transcript_events import TranscriptCoverage
 from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
@@ -70,7 +70,7 @@ class CommitClaim(ABC):
 class CapturedClaim(CommitClaim):
     """A captured block, sealed by its original append or a settled turn."""
 
-    source: TranscriptReadIdentity | None = None
+    source: NativeCommittedPrefix | None = None
 
     def capture(self, settled: bool) -> bool:
         return settled or self.source is not None
@@ -158,11 +158,8 @@ class CommitParticipant:
 class SnapshotPresentation(CommitParticipant):
     source_claim: CapturedClaim | None = None
 
-    def native_committed(self, source: TranscriptReadIdentity) -> None:
-        self.source_claim = CapturedClaim(source=source)
-
     @property
-    def committed_source(self) -> TranscriptReadIdentity | None:
+    def committed_source(self) -> NativeCommittedPrefix | None:
         return self.source_claim.source if self.source_claim is not None else None
 
     @property
