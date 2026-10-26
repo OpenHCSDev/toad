@@ -6,7 +6,6 @@ from metaclass_registry.mro_dispatch import handles
 from toad.preferences import SETTINGS
 from contextlib import suppress
 from itertools import zip_longest
-from pathlib import Path
 from random import shuffle
 from typing import Literal, Self
 
@@ -96,13 +95,8 @@ class DirectoryDisplay(DismissibleControl, CoreEventReceiver, containers.Horizon
 
     @on(widgets.Input.Submitted)
     def on_input_submitted(self, event: widgets.Input.Submitted) -> None:
-        path = Path(event.value).expanduser().resolve()
         self.edit = False
-        if not path.is_dir():
-            self.app.show_error(f"Unable to change directory to {str(path)!r}", "Change directory")
-            return
-        self.condensed_path.path = format_path(path, directory=True)
-        self.publish_core(input_events.ChangeDirectory(str(path)))
+        self.publish_core(input_events.ChangeDirectory(event.value))
 
     def dismiss_control(self) -> None:
         self.edit = False

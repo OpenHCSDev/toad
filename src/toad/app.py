@@ -202,7 +202,12 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
     @handles(input_events.ChangeDirectory)
     def on_change_directory(self, event: input_events.ChangeDirectory) -> None:
-        self.project_dir = Checkout.checked(event.path)
+        try:
+            project = Checkout.checked(event.path)
+        except (OSError, ValueError) as error:
+            self.show_error(str(error), "Change directory")
+            return
+        self.project_dir = project
 
     @property
     def return_value(self) -> TerminalOutcome:
