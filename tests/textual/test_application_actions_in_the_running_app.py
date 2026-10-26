@@ -35,9 +35,9 @@ def save_settings(workspace, **ui):
 
 
 @asynccontextmanager
-async def running_session(workspace):
+async def running_session(workspace, **settings):
     """The app on saved settings, its completion agent ready and one reply received."""
-    config, path = save_settings(workspace)
+    config, path = save_settings(workspace, **settings)
     async with workspace.app(size=(130, 44), binding=AgentAttached(peer("completion", name="Action peer", identity="action-peer"))) as ui:
         await ui.until_agent_ready()
         await ui.type('FIRST_REPLY')
@@ -162,3 +162,38 @@ async def test_quitting_from_a_focused_editor_saves_it_and_the_reopened_app_repl
         await reopened.press('ctrl+c')
         await reopened.until(lambda: app._exit, why="the confirmed quit")
     assert completion_prompts(workspace) == ['FIRST_REPLY', 'REOPEN_REPLY']
+
+
+async def test_column_alignment_moves_the_whole_conversation_and_is_saved(workspace):
+    async with running_session(workspace, column=True, **{"column-width": 60}) as (ui, app, config, path):
+        conversation = ui.conversation
+
+        def positioned(fraction):
+            available = conversation.parent.content_region
+            return (conversation.region.width == 60
+                    and conversation.region.x == available.x + int((available.width - 60) * fraction))
+
+        await ui.until(lambda: positioned(0), why="default left-aligned column")
+        for name, keys, fraction in (("center", ("home", "down"), .5),
+                                     ("right", ("end",), 1),
+                                     ("left", ("home",), 0)):
+            await ui.press('ctrl+comma')
+            await ui.until(lambda: isinstance(app.screen, SettingsScreen), why="settings")
+            assert await ui.textual[1].click(app.screen.search)
+            await ui.type('Column alignment')
+            await ui.until(lambda: app.screen.form.values["ui.column_alignment"].editor.is_mounted,
+                           why="alignment selector")
+            selector = app.screen.form.values["ui.column_alignment"].editor
+            selector.scroll_visible(animate=False, immediate=True)
+            await ui.step()
+            selector.focus()
+            await ui.press('enter', *keys, 'enter', 'escape')
+            await ui.until(lambda: app.screen is app.workspace_screen, why="return to conversation")
+            await ui.until(lambda: positioned(fraction), why=f"{name}-aligned actual column")
+            assert app.settings.ui.column_alignment.declared_name == name
+            await ui.until(lambda: json.loads(path.read_text())['ui']['column-alignment'] == name,
+                           why="alignment saved")
+            assert ui.conversation is conversation
+        await ui.type('ALIGNED_REPLY')
+        await ui.press('enter')
+        await ui.until_shows('COMPLETION_PEER_EXECUTED ALIGNED_REPLY')

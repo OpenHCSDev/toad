@@ -1576,6 +1576,7 @@ class Conversation(
 
         ui = self.app.settings.ui
         self.styles.max_width = max(10, ui.column_width) if ui.column else None
+        self.parent.styles.align_horizontal = ui.column_alignment.declared_name
         for choice in Scrollbar.members_with(Scrollbar):
             self.set_class(choice is ui.scrollbar, f"-scrollbar-{choice.declared_name}")
 

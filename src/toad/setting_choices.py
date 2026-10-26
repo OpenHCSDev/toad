@@ -160,6 +160,22 @@ class HiddenScrollbar(Scrollbar):
     pass
 
 
+class ColumnAlignment(Choice, DeclaredFamily, affix="ColumnAlignment"):
+    """The horizontal placement value consumed by Textual's container layout."""
+
+
+class LeftColumnAlignment(ColumnAlignment):
+    pass
+
+
+class CenterColumnAlignment(ColumnAlignment):
+    pass
+
+
+class RightColumnAlignment(ColumnAlignment):
+    pass
+
+
 class LoadingStyle(Choice, DeclaredFamily, affix="Loading"):
     @classmethod
     @abstractmethod
