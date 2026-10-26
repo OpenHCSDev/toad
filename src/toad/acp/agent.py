@@ -1,5 +1,4 @@
 import asyncio
-from contextlib import suppress
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -115,8 +114,6 @@ class Agent(AgentBase):
         log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")
         if (log_path := AgentLog.selected()) is not None:
             self.presentation.log_path = log_path
-            with suppress(OSError):
-                self.presentation.log_path.unlink(missing_ok=True)
         else:
             self.presentation.log_path = paths.get_log() / log_filename
         self.context_measurement = ContextMeasurement.saved(UnmeasuredContext())
