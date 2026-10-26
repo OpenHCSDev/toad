@@ -190,3 +190,35 @@ async def test_an_advancing_commit_retires_the_outgoing_body_and_its_tool_report
                        why="one saved outgoing body after the live report retires")
         assert view.transcript.binding.history is history
         assert previous | {publication.reference} <= history.outgoing_coverage
+
+
+async def test_returning_to_busy_tab_loads_the_saved_gap(workspace):
+    import json
+
+    journal = write_journal(workspace.project / "background.jsonl",
+                            assistant_entry("SAVED_PREFIX", id="prefix"))
+    thread = workspace.thread("background")
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
+    async with workspace.app(size=(140, 50), resume="background") as ui:
+        await ui.until_shows("SAVED_PREFIX")
+        view, tab = ui.conversation, ui.selected_tab
+        agent = ui.detached_agent("background-live")
+        view.bind_agent(agent)
+        turns = agent.presentation.managed_turns()
+        turns.receive(TurnState(ActiveTurn(FIRST_TURN, os.getpid(), phase=PublishingPhase())))
+        await deliver(agent, {"sessionUpdate": "agent_message_chunk",
+                              "content": {"type": "text", "text": "BEFORE_TAB_PARK"}})
+        await ui.until_shows("BEFORE_TAB_PARK")
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry("BEFORE_TAB_PARK", id="before", parent="prefix")) + "\n")
+        await ui.new_session()
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry("WHILE_TAB_HIDDEN", id="hidden", parent="before")) + "\n")
+        await ui.select_tab(tab)
+        assert ui.conversation is view
+        assert view.turns.owner.busy
+        await ui.until_shows("WHILE_TAB_HIDDEN")
+        await deliver(agent, {"sessionUpdate": "agent_message_chunk",
+                              "content": {"type": "text", "text": "AFTER_TAB_RETURN"}})
+        await ui.until_shows("AFTER_TAB_RETURN")
