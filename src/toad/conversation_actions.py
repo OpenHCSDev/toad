@@ -60,10 +60,10 @@ class VimCancelAction(CancelAction):
     vim_profile = True
 
 
-class QuarterPageUpAction(ConversationAction):
-    """Scroll the conversation up a quarter page."""
+class PageFractionAction(ConversationAction):
+    """Scroll the conversation by a fraction of its visible height."""
 
-    keys = ("shift+pageup",)
+    priority = True
     direction = -1
     page_divisor = 4
 
@@ -71,14 +71,20 @@ class QuarterPageUpAction(ConversationAction):
         conversation.window.scroll_page_fraction(self.direction, self.page_divisor)
 
 
+class QuarterPageUpAction(PageFractionAction):
+    """Scroll the conversation up a quarter page."""
+
+    keys = ("pageup", "shift+pageup")
+
+
 class QuarterPageDownAction(QuarterPageUpAction):
     """Scroll the conversation down a quarter page."""
 
-    keys = ("shift+pagedown",)
+    keys = ("pagedown", "shift+pagedown")
     direction = 1
 
 
-class EighthPageUpAction(QuarterPageUpAction):
+class EighthPageUpAction(PageFractionAction):
     """Scroll the conversation up an eighth of a page."""
 
     keys = ("ctrl+pageup",)

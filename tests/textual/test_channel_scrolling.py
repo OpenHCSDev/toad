@@ -24,6 +24,30 @@ def scroll_messages(workspace, count=260):
         workspace.comms.messaging.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 12)
 
 
+async def test_plain_page_keys_scroll_a_quarter_page(workspace):
+    scroll_messages(workspace, 40)
+    async with workspace.app(size=(110, 35)) as ui:
+        chat, history, window = await long_channel(workspace, ui)
+        await ui.until(lambda: window.max_scroll_y > window.scrollable_content_region.height * 2,
+                       why="scrollable conversation history")
+        window.scroll_to(y=window.max_scroll_y / 2, animate=False, immediate=True)
+        editor = chat.prompt.prompt_text_area
+        editor.insert("Retained draft\nwith the cursor on its second line")
+        editor.focus(scroll_visible=False)
+        await ui.step()
+        cursor, text = editor.cursor_location, editor.text
+        before = window.scroll_y
+        distance = max(1, window.scrollable_content_region.height // 4)
+        await ui.press("pageup")
+        await ui.until(lambda: window.scroll_y == before - distance,
+                       why="PageUp to move a quarter page")
+        assert editor.has_focus and editor.cursor_location == cursor and editor.text == text
+        await ui.press("pagedown")
+        await ui.until(lambda: window.scroll_y == before,
+                       why="PageDown to move back a quarter page")
+        assert editor.has_focus and editor.cursor_location == cursor and editor.text == text
+
+
 def record_blank_frames(app, window):
     """Record, for every published frame, whether the message area drew any text."""
     frames = []
