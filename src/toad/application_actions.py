@@ -11,6 +11,7 @@ from toad.widget_actions import (
     ApplicationAction,
     System,
     VimApplicationAction,
+    VimWorkspaceAction,
     YieldingKey,
 )
 from toad.widgets.comms_transfer import TransferRequest
@@ -182,7 +183,7 @@ class DirectMessagesAction(ApplicationAction):
         app.session_navigation.direct_messages()
 
 
-class VimNavigationAction(VimApplicationAction):
+class VimNavigationAction(YieldingKey, VimApplicationAction):
     """Move through the selected conversation without moving focus or redirecting input."""
 
     @staticmethod
@@ -254,7 +255,7 @@ class VimFocusPromptAction(VimNavigationAction):
         self.conversation(app).prompt.enter_insert()
 
 
-class VimCycleTabAction(VimApplicationAction, declared_name=None):
+class VimCycleTabAction(VimWorkspaceAction, declared_name=None):
     direction: Literal[-1, 1]
 
     async def apply(self, app: ToadApp) -> None:
@@ -275,7 +276,7 @@ class VimPreviousTabAction(VimCycleTabAction):
     direction = -1
 
 
-class VimHistoryAction(VimApplicationAction, declared_name=None):
+class VimHistoryAction(VimWorkspaceAction, declared_name=None):
     direction: Literal[-1, 1]
 
     async def apply(self, app: ToadApp) -> None:
@@ -294,7 +295,7 @@ class VimHistoryForwardAction(VimHistoryAction):
     direction = +1
 
 
-class VimSidebarAction(VimApplicationAction, declared_name=None):
+class VimSidebarAction(VimWorkspaceAction, declared_name=None):
     side: Side
 
     async def apply(self, app: ToadApp) -> None:
@@ -313,7 +314,7 @@ class VimRightSidebarAction(VimSidebarAction):
     side = "right"
 
 
-class VimMoveTabAction(VimApplicationAction, declared_name=None):
+class VimMoveTabAction(VimWorkspaceAction, declared_name=None):
     direction: Literal[-1, 1]
 
     async def apply(self, app: ToadApp) -> None:
