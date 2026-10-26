@@ -41,7 +41,9 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
             return [options.get_option_at_index(index).hit.text for index in range(options.option_count)]
         await ui.until(lambda: VimHistoryForwardAction.title in palette_labels(), why='Vim palette commands')
         assert not {'Vim cycle tab', 'Vim history', 'Vim sidebar', 'Vim move tab'}.intersection(palette_labels())
-        options.highlighted = palette_labels().index(VimHistoryForwardAction.title)
+        app.screen.query_one(Input).value = VimHistoryForwardAction.title
+        await ui.until(lambda: palette_labels() == [VimHistoryForwardAction.title],
+                       why='the exact forward command search result')
         await ui.press('enter')
         await ui.until(lambda: ui.selected_tab == third, why='palette history-forward action')
 
