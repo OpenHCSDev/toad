@@ -271,6 +271,8 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
         try:
             if prepare is not None:
                 await prepare(comms, workspace.project, provider)
+            if attached:
+                await asyncio.to_thread(comms.owners.start, NativeSession.thread)
             async with attached_app(workspace, comms, NativeSession.thread, size=size, application=application,
                                     attached=attached) as (ui, agent):
                 yield NativeSession(ui, agent, comms, provider, workspace.project)
