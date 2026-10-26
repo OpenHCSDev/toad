@@ -199,6 +199,8 @@ async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(works
         await ui.until(lambda: "NATIVE_RESPONSE_1" in ui.painted(view.window), seconds=20,
                        why="the inherited answer in the newly opened fork")
         child = replace(native, agent=view.agent_binding, thread="fork")
+        await ui.resize(155, 40)
+        await ui.resize(155, 18)
         await direct_reply_feedback(child, child_tab,
                                     body="FIRST_DIRECT_MESSAGE_TO_FORK")
         await ui.select_tab(child_tab)
