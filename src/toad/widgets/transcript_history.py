@@ -645,7 +645,8 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         in_range = {id(fragment) for fragment in self.fragments_in_range}
         drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
         rendered = await TranscriptLinesBatchRenderTask.render_for(self,
-            (LinePreparation(fragment.blocks(shown), theme) for fragment, shown in drawn))
+            (LinePreparation(fragment.blocks(shown), theme) for fragment, shown in drawn),
+            previous=(fragment._lines for fragment, _shown in drawn))
         if not self.state.can_draw:
             return
         ready = {id(fragment): result for (fragment, _shown), result in zip(drawn, rendered)}
