@@ -14,6 +14,7 @@ from agent_comms.channel_targets import NoChannel
 from agent_comms.ui_model.sidebar import SidebarModel
 from textual.app import ComposeResult
 from textual.binding import Binding
+from toad.widget_actions import TogglesIrc
 from textual.containers import VerticalScroll
 from textual.geometry import Offset
 from textual.widgets import Static
@@ -192,12 +193,11 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         self.present()
 
 
-class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
+class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=False):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
 
     BINDINGS = [
         Binding("n", "new_session", "New session"),
-        Binding("ctrl+g", "toggle_irc", "IRC view"),
     ]
 
     DEFAULT_CSS = """
@@ -268,5 +268,5 @@ class WelcomeScreen(ProjectSessionOrigin, SessionView, can_focus=False):
     async def action_new_session(self) -> None:
         await NewThreadAction().apply(self.app)
 
-    async def action_toggle_irc(self) -> None:
+    async def toggle_irc(self) -> None:
         await self.open_sidebar_target(FeedTarget())

@@ -1,12 +1,11 @@
 """Visible controls for the server-owned persistent thread goal."""
 
-from typing import ClassVar
 from weakref import ref
 
 from rich.cells import cell_len
 from textual import events
 from textual.app import ComposeResult
-from textual.binding import BindingType
+from toad.widget_actions import Activates
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.layouts.horizontal import HorizontalLayout
 from textual.layouts.grid import GridLayout
@@ -25,8 +24,7 @@ from toad.frame_presentation import Animated
 from toad.widgets.selection import ChangingText, InlineSelection
 
 
-class GoalControl(InlineSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
-    BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "activate", "Select")]
+class GoalControl(Activates, InlineSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
     DEFAULT_CSS = """
     GoalControl { width: auto; height: 1; margin-right: 2; color: $text-secondary; pointer: pointer; }
     """
@@ -37,15 +35,15 @@ class GoalControl(InlineSelection, PrimaryActivation, CoreEventReceiver, Static,
 
     @property
     def primary_activation(self):
-        return self.action_activate
+        return self.activate
 
-    def action_activate(self):
+    def activate(self):
         if not self.disabled:
             self.publish_core(GoalControlActivated(self.interaction))
 
     def on_click(self, event: events.Click):
         event.stop()
-        self.action_activate()
+        self.activate()
 
 
 class StandbyPulse(Animated[Mix], Static):

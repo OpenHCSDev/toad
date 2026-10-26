@@ -33,6 +33,7 @@ from textual._activation import PrimaryActivation
 from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.binding import Binding
+from toad.widget_actions import HiddenActions, MovesCursor
 from textual.containers import Vertical, VerticalGroup
 from textual.geometry import Offset, Size
 from textual.layouts.vertical import VerticalLayout
@@ -63,18 +64,18 @@ class UnpaintedChannel(ChannelRowModel):
         )
 
 
-class TargetTreeMember:
+class TargetTreeMember(HiddenActions, MovesCursor):
     """A navigation control belongs to one required native tree."""
 
     @property
     def navigation_tree(self) -> TargetTree:
         return self.query_ancestor(TargetTree)
 
-    def action_cursor_up(self) -> None:
-        self.navigation_tree.action_cursor_up()
+    def cursor_up(self) -> None:
+        self.navigation_tree.cursor_up()
 
-    def action_cursor_down(self) -> None:
-        self.navigation_tree.action_cursor_down()
+    def cursor_down(self) -> None:
+        self.navigation_tree.cursor_down()
 
 
 class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
@@ -740,7 +741,7 @@ class SearchFollower:
                 group.sync_members(frozenset(group.member_keys))
 
 
-class TargetTree(Vertical):
+class TargetTree(HiddenActions, MovesCursor, Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
     navigation_groups: Iterable[SidebarGroup]
@@ -914,10 +915,10 @@ class TargetTree(Vertical):
             row for group in self.navigation_groups for row in group.navigation_rows
         ]
 
-    def action_cursor_up(self) -> None:
+    def cursor_up(self) -> None:
         self.move_cursor(-1)
 
-    def action_cursor_down(self) -> None:
+    def cursor_down(self) -> None:
         self.move_cursor(1)
 
     def move_cursor(self, direction: int) -> None:

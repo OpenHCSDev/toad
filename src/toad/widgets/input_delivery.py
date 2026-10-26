@@ -19,10 +19,11 @@ from agent_comms.input_attempt import HistoricalInput
 from agent_comms.ui_model.delivery import DeliveryView
 from toad.project_link import AcpLogLink
 from toad.widgets.selection import ChangingText, InlineSelection
+from toad.widget_actions import Activates
 from rich.style import Style as RichStyle
 
 
-class DetailAction(InlineSelection, PrimaryActivation, Static, can_focus=True):
+class DetailAction(Activates, InlineSelection, PrimaryActivation, Static, can_focus=True):
     """An inline detail action owns keyboard, pointer and activation behavior."""
 
     highlighted_text_style = RichStyle(bold=True, reverse=True)
@@ -36,9 +37,6 @@ class DetailAction(InlineSelection, PrimaryActivation, Static, can_focus=True):
         def control(self) -> DetailAction:
             return self._control
 
-    BINDINGS: ClassVar[list[tuple[str, str, str]]] = [
-        ("enter,space", "activate", "Activate")
-    ]
     DEFAULT_CSS = """
     DetailAction {
         width: auto; height: 1; margin-left: 1;
@@ -48,15 +46,15 @@ class DetailAction(InlineSelection, PrimaryActivation, Static, can_focus=True):
 
     @property
     def primary_activation(self):
-        return self.action_activate
+        return self.activate
 
-    def action_activate(self) -> None:
+    def activate(self) -> None:
         if not self.disabled:
             self.post_message(self.Activated(self))
 
     def on_click(self, event: events.Click) -> None:
         event.stop()
-        self.action_activate()
+        self.activate()
 
 
 class InputDeliveryBar(HorizontalGroup):

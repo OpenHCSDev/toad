@@ -239,11 +239,7 @@ class ThreadCommsSidebar(
     ThreadCommsSidebar .relationship-empty { height: 1; color: $text-muted; }
     ThreadCommsSidebar > Checkbox { height: 1; border: none; padding: 0; margin: 0; background: transparent; }
     """
-    BINDINGS = [
-        ("up", "cursor_up", "Previous"),
-        ("down", "cursor_down", "Next"),
-        ("enter", "open_selected", "Open"),
-    ]
+    BINDINGS = [("enter", "open_selected", "Open")]
 
     def __init__(
         self,

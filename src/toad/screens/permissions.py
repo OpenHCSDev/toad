@@ -7,6 +7,7 @@ from textual import containers
 
 from textual import getters
 from textual.binding import Binding
+from toad.widget_actions import CyclesFocus, PriorityActions
 from textual.content import Content
 from textual.screen import Screen
 from textual.reactive import var, Initialize
@@ -37,32 +38,15 @@ class ToolScroll(containers.VerticalScroll):
     BINDING_GROUP_TITLE = "Changes window"
 
 
-class PermissionsScreen(Screen[Answer]):
+class PermissionsScreen(PriorityActions, CyclesFocus, Screen[Answer]):
     BINDING_GROUP_TITLE = "Permissions"
     AUTO_FOCUS = "Question"
     CSS_PATH = "permissions.tcss"
 
-    TAB_GROUP = Binding.Group("Focus")
     NAVIGATION_GROUP = Binding.Group("Navigation", compact=True)
     BINDINGS = [
         Binding("j", "next", "Next", group=NAVIGATION_GROUP),
         Binding("k", "previous", "Previous", group=NAVIGATION_GROUP),
-        Binding(
-            "tab",
-            "app.focus_next",
-            "Focus next",
-            group=TAB_GROUP,
-            show=True,
-            priority=True,
-        ),
-        Binding(
-            "shift+tab",
-            "app.focus_previous",
-            "Focus previous",
-            group=TAB_GROUP,
-            show=True,
-            priority=True,
-        ),
         *SelectKindAction.bindings(priority=True),
     ]
 

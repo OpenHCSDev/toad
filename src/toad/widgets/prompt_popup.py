@@ -12,6 +12,7 @@ from textual.containers import VerticalGroup
 from textual.reactive import var
 
 from toad.messages import Dismiss
+from toad.widget_actions import Dismisses
 
 if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
@@ -21,7 +22,7 @@ class _PopupMeta(type(DeclaredFamily), type(VerticalGroup)):
     """Compose the existing family and Textual message-pump metaclasses."""
 
 
-class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Popup"):
+class PromptPopup(Dismisses, DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Popup"):
     """One mounted popup is the authority for its open state and interaction."""
 
     requires_completion: ClassVar[bool] = False
@@ -104,7 +105,7 @@ class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Po
         self.is_open = True
         return True
 
-    def action_dismiss(self) -> None:
+    def dismiss(self) -> None:
         if self.is_open:
             self.is_open = False
             self.prompt.prompt_text_area.suggestion = ""
@@ -114,7 +115,7 @@ class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Po
     def dismiss_popup(self, event: Dismiss) -> None:
         if event.widget is self:
             event.stop()
-            self.action_dismiss()
+            self.dismiss()
 
     def on_descendant_blur(self, event: events.DescendantBlur) -> None:
         # A move between the popup's children is not a departure from the popup.

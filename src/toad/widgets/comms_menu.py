@@ -5,7 +5,7 @@ from collections.abc import Callable
 from typing import cast
 
 from textual import events, on
-from textual.binding import Binding
+from toad.widget_actions import Dismisses, HiddenActions
 from textual.color import TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.geometry import Offset
@@ -50,12 +50,11 @@ class ContextMenuOptions[Choice](WidgetView, OptionList):
         return self.app.colours.colour(ForegroundColour)
 
 
-class ContextMenu[Choice](WidgetView, ModalScreen[Choice]):
+class ContextMenu[Choice](HiddenActions, Dismisses, WidgetView, ModalScreen[Choice]):
     """Native dismissal owns Escape, selection, results and focus restoration."""
 
     width = height = FILL
     paint_background = TRANSPARENT
-    BINDINGS = [Binding("escape", "dismiss", show=False)]
 
     def __init__(self, menu_offset: Offset, title: str, items) -> None:
         super().__init__()

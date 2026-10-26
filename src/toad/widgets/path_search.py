@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Self, Sequence
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
+from toad.widget_actions import PriorityActions, HiddenActions, MovesCursor, Submits
 from textual import work
 from textual import getters
 from textual import containers
@@ -130,25 +131,12 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
         return super().render_line(y, paint)
 
 
-class PathSearch(CompletionPopup):
+class PathSearch(PriorityActions, HiddenActions, MovesCursor, Submits, CompletionPopup):
     requires_completion = True
 
     BINDING_GROUP_TITLE = "Path search"
 
-    CURSOR_BINDING_GROUP = Binding.Group(description="Move selection")
     BINDINGS = [
-        Binding(
-            "up", "cursor_up", "Cursor up", group=CURSOR_BINDING_GROUP, priority=True
-        ),
-        Binding(
-            "down",
-            "cursor_down",
-            "Cursor down",
-            group=CURSOR_BINDING_GROUP,
-            priority=True,
-        ),
-        Binding("enter", "submit", "Insert path", priority=True, show=False),
-        Binding("escape", "dismiss", "Dismiss", priority=True, show=False),
         Binding("tab", "switch_picker", "Switch picker", priority=True, show=False),
     ]
 
@@ -270,14 +258,14 @@ class PathSearch(CompletionPopup):
             self.option_list.highlighted = 0
         self.post_message(PromptSuggestion(""))
 
-    def action_cursor_down(self) -> None:
+    def cursor_down(self) -> None:
         if self.show_tree_picker:
             if tree := self.query_one_optional(ProjectDirectoryTree):
                 tree.action_cursor_down()
         else:
             self.option_list.action_cursor_down()
 
-    def action_cursor_up(self) -> None:
+    def cursor_up(self) -> None:
         if self.show_tree_picker:
             if tree := self.query_one_optional(ProjectDirectoryTree):
                 tree.action_cursor_up()
@@ -350,9 +338,9 @@ class PathSearch(CompletionPopup):
 
     @on(OptionList.OptionSelected)
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        self.action_submit()
+        self.submit()
 
-    def action_submit(self):
+    def submit(self):
         if self.show_tree_picker:
             raise SkipAction()
 

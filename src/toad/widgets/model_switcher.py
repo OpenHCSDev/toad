@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Self, Protocol
 from textual import events, getters, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding
+from toad.widget_actions import PriorityActions, MovesCursor, Submits, Dismisses
 from textual.content import Content
 from textual.containers import VerticalGroup
 from textual.reactive import var
@@ -75,14 +76,10 @@ class ModelChoice(Protocol):
     def description(self) -> str | None: ...
 
 
-class ModelSelection(CoreEventReceiver, VerticalGroup):
+class ModelSelection(PriorityActions, MovesCursor, Submits, Dismisses, CoreEventReceiver, VerticalGroup):
     """Search, recents and provider connection shared by prompt and creation views."""
     BINDING_GROUP_TITLE = "Model search"
     BINDINGS = [
-        Binding("up", "cursor_up", "Previous model", priority=True),
-        Binding("down", "cursor_down", "Next model", priority=True),
-        Binding("enter", "submit", "Select model", priority=True),
-        Binding("escape", "dismiss", "Close model search", priority=True),
         Binding("ctrl+u", "clear_search", "Clear search", priority=True, show=False),
     ]
     DEFAULT_CSS = """
@@ -248,15 +245,15 @@ class ModelSelection(CoreEventReceiver, VerticalGroup):
         if event.option_id is not None:
             self.select_model(event.option_id)
 
-    def action_cursor_up(self):
+    def cursor_up(self):
         self._selection_moved = True
         self.option_list.action_cursor_up()
 
-    def action_cursor_down(self):
+    def cursor_down(self):
         self._selection_moved = True
         self.option_list.action_cursor_down()
 
-    def action_submit(self):
+    def submit(self):
         connect = self.query_one(ConnectProvider)
         if connect.has_focus:
             connect.action_connect()
@@ -293,8 +290,8 @@ class ModelSwitcher(ModelSelection, InfoPopup):
 
     def select_model(self, model_id: str):
         self.publish_core(input_events.ChangeModel(model_id))
-        self.action_dismiss()
+        self.dismiss()
 
     def connect_provider(self):
-        self.action_dismiss()
+        self.dismiss()
         self.publish_core(input_events.ProviderLogin())

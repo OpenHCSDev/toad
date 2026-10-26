@@ -42,7 +42,7 @@ from toad.prompt_cursor import (
 )
 from toad.setting_widget import SettingVisibility
 from toad.slash_command import SlashCommand
-from toad.widget_actions import DeclaredWidgetActions
+from toad.widget_actions import DeclaredWidgetActions, Dismisses, HiddenActions
 from toad.widget_view import AUTO, WidgetView
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
+class ModeSwitcher(Dismisses, CoreEventReceiver, SelectionOptionList):
     def _get_option_render(
         self, option: Option, style: Style, paint: PaintState
     ) -> list[Strip]:
@@ -76,14 +76,13 @@ class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
         return super()._get_option_render(option, style, paint)
 
     BINDING_GROUP_TITLE = "Mode switcher"
-    BINDINGS = [Binding("escape", "dismiss", "Dismiss mode switcher")]
 
     @on(OptionList.OptionSelected)
     def on_option_selected(self, event: OptionList.OptionSelected):
         self.publish_core(input_events.ChangeMode(event.option_id))
         self.blur()
 
-    def action_dismiss(self):
+    def dismiss(self):
         self.blur()
 
 
@@ -589,7 +588,7 @@ class MessageTextArea(PromptTextArea):
         return False
 
 
-class Prompt(TonePaint, containers.VerticalGroup):
+class Prompt(HiddenActions, Dismisses, TonePaint, containers.VerticalGroup):
     tone = PromptToneColour
 
     DEFAULT_CSS = """
@@ -600,9 +599,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
     Prompt SendNow { color: $text-secondary; pointer: pointer; }
     """
 
-    BINDINGS = [
-        Binding("escape", "dismiss", "Dismiss", show=False),
-    ]
 
     TEXT_AREA_CLASS = PromptTextArea
 
@@ -997,7 +993,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         return True
 
-    def action_dismiss(self) -> None:
+    def dismiss(self) -> None:
         if self.prompt_text_area.suggestion:
             self.prompt_text_area.suggestion = ""
             return
@@ -1006,7 +1002,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
             return
         for popup in self.query(PromptPopup):
             if popup.is_open:
-                popup.action_dismiss()
+                popup.dismiss()
                 return
         raise SkipAction()
 

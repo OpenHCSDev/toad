@@ -11,6 +11,7 @@ from random import shuffle
 from typing import Literal, Self
 
 from textual.binding import Binding
+from toad.widget_actions import Dismisses, CyclesFocus, Launches
 from textual.screen import Screen
 from textual import events
 from textual import work
@@ -52,9 +53,8 @@ QR = """\
 ▀▀▀▀▀▀▀ ▀▀▀  ▀   ▀▀▀▀▀▀▀▀"""
 
 
-class DirectoryDisplay(CoreEventReceiver, containers.HorizontalGroup):
+class DirectoryDisplay(Dismisses, CoreEventReceiver, containers.HorizontalGroup):
 
-    BINDINGS = [("escape", "dismiss", "Dismiss")]
 
     DEFAULT_CSS = """
     DirectoryDisplay {
@@ -94,7 +94,7 @@ class DirectoryDisplay(CoreEventReceiver, containers.HorizontalGroup):
 
     @on(events.DescendantBlur)
     def on_blur(self):
-        self.action_dismiss()
+        self.dismiss()
 
     @on(widgets.Input.Submitted)
     def on_input_submitted(self, event: widgets.Input.Submitted) -> None:
@@ -106,7 +106,7 @@ class DirectoryDisplay(CoreEventReceiver, containers.HorizontalGroup):
         self.condensed_path.path = format_path(path, directory=True)
         self.publish_core(input_events.ChangeDirectory(str(path)))
 
-    def action_dismiss(self) -> None:
+    def dismiss(self) -> None:
         self.edit = False
         self.directory_input.value = self.path
 
@@ -150,7 +150,7 @@ class AgentItem(containers.VerticalGroup):
         yield widgets.Static(agent.description, id="description")
 
 
-class LauncherGridSelect(CoreEventReceiver, GridSelect):
+class LauncherGridSelect(Launches, CoreEventReceiver, GridSelect):
 
     HELP = """\
 ## Launcher
@@ -166,20 +166,6 @@ Your favorite agents.
     BINDING_GROUP_TITLE = "Launcher"
 
     app = getters.app(ToadApp)
-    BINDINGS = [
-        Binding(
-            "enter",
-            "select",
-            "Details",
-            tooltip="Open agent details",
-        ),
-        Binding(
-            "space",
-            "launch",
-            "Launch",
-            tooltip="Launch highlighted agent",
-        ),
-    ]
 
     def action_details(self) -> None:
         if self.highlighted is None:
@@ -199,7 +185,7 @@ Your favorite agents.
         else:
             self.app.saved_settings.set(SETTINGS.launcher.agents, "\n".join(agents))
 
-    def action_launch(self) -> None:
+    def launch(self) -> None:
         if self.highlighted is None:
             return
         child = self.children[self.highlighted]
@@ -262,7 +248,7 @@ class Launcher(containers.VerticalGroup):
             yield widgets.Label("Choose your fighter below!", classes="no-agents")
 
     def launch_highlighted(self) -> None:
-        self.grid_select.action_launch()
+        self.grid_select.launch()
 
 
 class LauncherItem(containers.VerticalGroup):
@@ -288,7 +274,7 @@ class LauncherItem(containers.VerticalGroup):
                 yield widgets.Static(agent.description, id="description")
 
 
-class AgentGridSelect(GridSelect):
+class AgentGridSelect(Launches, GridSelect):
     HELP = """\
 ## Agent select
 
@@ -297,13 +283,9 @@ class AgentGridSelect(GridSelect):
 - **enter** Open agent details
 - **space** Launch the agent (if installed)
 """
-    BINDINGS = [
-        Binding("enter", "select", "Details", tooltip="Open agent details"),
-        Binding("space", "launch", "Launch", tooltip="Launch highlighted agent"),
-    ]
     BINDING_GROUP_TITLE = "Agent Select"
 
-    def action_launch(self) -> None:
+    def launch(self) -> None:
         if self.highlighted is None:
             return
         child = self.children[self.highlighted]
@@ -321,23 +303,10 @@ class Container(containers.VerticalScroll):
         return super().allow_focus() and self.show_vertical_scrollbar
 
 
-class StoreScreen(CoreEventReceiver, Screen):
+class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
     BINDING_GROUP_TITLE = "Screen"
     CSS_PATH = "store.tcss"
-    FOCUS_GROUP = Binding.Group("Focus")
     BINDINGS = [
-        Binding(
-            "tab",
-            "app.focus_next",
-            "Focus Next",
-            group=FOCUS_GROUP,
-        ),
-        Binding(
-            "shift+tab",
-            "app.focus_previous",
-            "Focus Previous",
-            group=FOCUS_GROUP,
-        ),
         Binding(
             "null",
             "quick_launch",

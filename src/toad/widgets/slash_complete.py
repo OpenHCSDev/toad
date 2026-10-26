@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Iterable, Self
 
 from textual import on
 from textual.app import ComposeResult
-from textual.binding import Binding
+from toad.widget_actions import PriorityActions, MovesCursor, Submits
 
 from textual import getters
 from textual.message import Message
@@ -35,30 +35,11 @@ Search for slash commands by typing a few characters from the command.
 """
 
 
-class SlashComplete(CompletionPopup):
+class SlashComplete(PriorityActions, MovesCursor, Submits, CompletionPopup):
     """A widget to auto-complete slash commands."""
 
     requires_completion = True
 
-    CURSOR_BINDING_GROUP = Binding.Group(description="Select")
-    BINDINGS = [
-        Binding(
-            "up",
-            "cursor_up",
-            "Cursor up",
-            group=CURSOR_BINDING_GROUP,
-            priority=True,
-        ),
-        Binding(
-            "down",
-            "cursor_down",
-            "Cursor down",
-            group=CURSOR_BINDING_GROUP,
-            priority=True,
-        ),
-        Binding("enter", "submit", "Insert /command", priority=True),
-        Binding("escape", "dismiss", "Dismiss", priority=True),
-    ]
 
     DEFAULT_CSS = """
     SlashComplete {
@@ -105,7 +86,7 @@ class SlashComplete(CompletionPopup):
         area = self.prompt.prompt_text_area
         area.clear()
         area.insert(f"{event.command} ")
-        self.action_dismiss()
+        self.dismiss()
 
     def compose_content(self) -> ComposeResult:
         yield SlashCompleteInput(compact=True, placeholder="fuzzy search")
@@ -147,13 +128,13 @@ class SlashComplete(CompletionPopup):
             with self.option_list.prevent(widgets.OptionList.OptionHighlighted):
                 self.option_list.highlighted = 0
 
-    def action_cursor_down(self) -> None:
+    def cursor_down(self) -> None:
         self.option_list.action_cursor_down()
 
-    def action_cursor_up(self) -> None:
+    def cursor_up(self) -> None:
         self.option_list.action_cursor_up()
 
-    def action_submit(self) -> None:
+    def submit(self) -> None:
         option_list = self.option_list
         if (option := option_list.highlighted_option) is not None:
             with self.input.prevent(widgets.Input.Changed):

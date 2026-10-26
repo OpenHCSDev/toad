@@ -167,8 +167,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSele
 
 
     BINDINGS = [
-        Binding("down", "cursor_down", "Next", show=False),
-        Binding("up", "cursor_up", "Previous", show=False),
         Binding("enter", "open_selected", "Open", show=False),
     ]
 
@@ -308,8 +306,6 @@ class NewSessionButton(HoverSelection, TargetTreeMember, Static):
     can_focus = True
     BINDINGS = [
         Binding("enter", "create", show=False),
-        Binding("down", "cursor_down", show=False),
-        Binding("up", "cursor_up", show=False),
     ]
 
     def __init__(self) -> None:
@@ -371,8 +367,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
     CommsSidebar .row-name { color: $text; }
     CommsSidebar .row-detail { color: $text-muted; }
     """
-    BINDINGS = [("up", "cursor_up", "Previous"), ("down", "cursor_down", "Next"),
-                ("enter", "open_selected", "Open")]
+    BINDINGS = [("enter", "open_selected", "Open")]
     GROUP_MOUNT = "sidebar-groups"
     selected: reactive[str] = reactive("", init=False)
     def __init__(self, *, observe: bool = True, **kwargs):

@@ -9,6 +9,8 @@ from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from textual.binding import Binding
+from textual._callback import invoke
+from dataclasses import replace
 
 Context = TypeVar("Context")
 
@@ -117,26 +119,192 @@ class VimHintsAction(VimApplicationAction):
 class DeclaredWidgetActions:
     """One family supplies both native dispatch and dynamic availability."""
 
+    @classmethod
+    def declared_actions(cls) -> tuple[type[Action], ...]:
+        """Capabilities and the widget's own family compose through its MRO."""
+        return tuple(dict.fromkeys(
+            member for base in cls.__mro__ if "ACTIONS" in base.__dict__
+            for family in (base.__dict__["ACTIONS"],)
+            for member in family.members_with(family)
+        ))
+
+    @classmethod
+    def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
+        return declaration.bindings()
+
     def __init_subclass__(cls, **kwargs):
-        if "ACTIONS" not in cls.__dict__:
-            super().__init_subclass__(**kwargs)
-            return
-        actions = cls.ACTIONS
+        declarations = cls.declared_actions()
         cls.BINDINGS = [*cls.__dict__.get("BINDINGS", ()),
-                        *(binding for declaration in actions.members_with(actions)
-                          for binding in declaration.bindings())]
-        for declaration in actions.members_with(actions):
+                        *(binding for declaration in declarations
+                          for binding in cls.action_bindings(declaration))]
+        for declaration in declarations:
             setattr(cls, f"action_{declaration.declared_name}",
                     partialmethod(cls._run_declared_action, declaration))
         super().__init_subclass__(**kwargs)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        actions = self.ACTIONS
-        if action not in actions.names():
-            return super().check_action(action, parameters)
-        return actions.member_named(action).parse(parameters).available(self)
+        for declaration in self.declared_actions():
+            if action == declaration.declared_name:
+                return declaration.parse(parameters).available(self)
+        return super().check_action(action, parameters)
 
     async def _run_declared_action(self, declaration, *parameters) -> None:
         command = declaration.parse(parameters)
         if command.available(self):
             await command.apply(self)
+
+
+class VisibleAction(Action):
+    show = True
+
+
+class DismissAction(VisibleAction):
+    """Close the current control."""
+    keys = ("escape",)
+
+    async def apply(self, context):
+        await invoke(context.dismiss)
+
+
+class CursorAction(VisibleAction, affix="Action"):
+    group = Binding.Group("Select")
+
+
+class CursorUpAction(CursorAction):
+    keys = ("up",)
+
+    async def apply(self, context):
+        context.cursor_up()
+
+
+class CursorDownAction(CursorAction):
+    keys = ("down",)
+
+    async def apply(self, context):
+        context.cursor_down()
+
+
+class SubmitAction(VisibleAction):
+    keys = ("enter",)
+
+    async def apply(self, context):
+        await invoke(context.submit)
+
+
+class SelectAction(VisibleAction):
+    keys = ("enter",)
+
+    async def apply(self, context):
+        context.select()
+
+
+class LaunchAction(VisibleAction):
+    keys = ("space",)
+
+    async def apply(self, context):
+        await invoke(context.launch)
+
+
+class ActivateAction(Action):
+    keys = ("enter,space",)
+
+    async def apply(self, context):
+        context.activate()
+
+
+class ToggleIrcAction(VisibleAction):
+    title = "IRC view"
+    keys = ("ctrl+g",)
+
+    async def apply(self, context):
+        await context.toggle_irc()
+
+
+class SessionNavigationAction(VisibleAction, affix="Action"):
+    group = Binding.Group(description="Sessions")
+    direction: ClassVar[int]
+
+    async def apply(self, context):
+        context.navigate_session(self.direction)
+
+
+class SessionPreviousAction(SessionNavigationAction):
+    keys = ("ctrl+left_square_bracket",)
+    direction = -1
+
+
+class SessionNextAction(SessionNavigationAction):
+    keys = ("ctrl+right_square_bracket",)
+    direction = +1
+
+
+class FocusAction(VisibleAction, affix="Action"):
+    group = Binding.Group("Focus")
+
+
+class FocusNextAction(FocusAction):
+    keys = ("tab",)
+
+    async def apply(self, context):
+        context.app.action_focus_next()
+
+
+class FocusPreviousAction(FocusAction):
+    keys = ("shift+tab",)
+
+    async def apply(self, context):
+        context.app.action_focus_previous()
+
+
+class Dismisses(DeclaredWidgetActions):
+    ACTIONS = DismissAction
+
+
+class MovesCursor(DeclaredWidgetActions):
+    ACTIONS = CursorAction
+
+
+class Submits(DeclaredWidgetActions):
+    ACTIONS = SubmitAction
+
+
+class Selects(DeclaredWidgetActions):
+    ACTIONS = SelectAction
+
+
+class Launches(DeclaredWidgetActions):
+    ACTIONS = LaunchAction
+
+
+class Activates(DeclaredWidgetActions):
+    ACTIONS = ActivateAction
+
+
+class TogglesIrc(DeclaredWidgetActions):
+    ACTIONS = ToggleIrcAction
+
+
+class CyclesSessions(DeclaredWidgetActions):
+    ACTIONS = SessionNavigationAction
+
+
+class CyclesFocus(DeclaredWidgetActions):
+    ACTIONS = FocusAction
+
+
+class PriorityActions(DeclaredWidgetActions):
+    """A popup's declared keys take precedence over the editor underneath it."""
+
+    @classmethod
+    def action_bindings(cls, declaration):
+        return tuple(replace(binding, priority=True)
+                     for binding in super().action_bindings(declaration))
+
+
+class HiddenActions(DeclaredWidgetActions):
+    """A compact control keeps its actions out of the footer."""
+
+    @classmethod
+    def action_bindings(cls, declaration):
+        return tuple(replace(binding, show=False)
+                     for binding in super().action_bindings(declaration))
