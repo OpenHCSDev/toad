@@ -16,8 +16,11 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         app, pilot = ui.textual
         app.saved_settings.set(SETTINGS.ui.vim_keys, True)
         first = ui.selected_tab
+        await ui.press('escape')
         second = await ui.new_session()
+        await ui.press('escape')
         third = await ui.new_session()
+        await ui.press('escape')
         originals = app.tab_order.names
 
         # The actual menu and palette must offer configured leaves, not bases
@@ -48,9 +51,13 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         await ui.until(lambda: ui.selected_tab == third, why='palette history-forward action')
 
         async def navigate(key, expected):
-            ui.conversation.window.focus()
+            editor = ui.conversation.prompt.prompt_text_area
+            assert editor.has_focus and editor.editing_mode.allows_application_commands
             await ui.press(key)
             await ui.until(lambda: ui.selected_tab == expected, why=f'{key} selects its original tab')
+            await ui.until(lambda: ui.conversation.prompt.prompt_text_area.has_focus,
+                           why='the destination editor retains focus')
+            assert ui.conversation.prompt.prompt_text_area.editing_mode.allows_application_commands
 
         await navigate('H', second)
         await navigate('H', first)
@@ -71,7 +78,8 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         assert ui.selected_tab == third and app.tab_order.names == originals
         await ui.press('H', 'J', 'K', 'L')
 
-        ui.conversation.window.focus()
+        await ui.press('escape')
+        assert editor.has_focus
         await ui.press('ctrl+shift+j')
         moved = (originals[0], originals[2], originals[1])
         await ui.until(lambda: app.tab_order.names == moved, why='the selected tab moves left')
@@ -97,7 +105,11 @@ async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
         thread = app.selected_session.query_one('#thread-sidebar', SideBar)
         channels.reveal()
         thread.reveal()
-        ui.conversation.window.focus()
+        ui.conversation.prompt.focus()
+        await ui.press('escape')
+        assert ui.conversation.prompt.prompt_text_area.has_focus
+        assert ui.conversation.prompt.prompt_text_area.editing_mode.allows_application_commands
+        assert app.screen is app.workspace_screen
         await ui.step()
         await ui.press('ctrl+shift+h')
         assert channels.collapsed and not thread.collapsed
@@ -112,7 +124,8 @@ async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
         assert await pilot.click(button)
         await ui.step()
         assert not thread.right and not channels.right
-        ui.conversation.window.focus()
+        ui.conversation.prompt.focus()
+        assert ui.conversation.prompt.prompt_text_area.editing_mode.allows_application_commands
         await ui.press('ctrl+shift+l')
         assert not channels.collapsed and not thread.collapsed
         await ui.press('ctrl+shift+h')
@@ -126,3 +139,23 @@ async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
         assert channels.collapsed and thread.collapsed
         await ui.press('ctrl+shift+h')
         assert not channels.collapsed and not thread.collapsed
+
+
+async def test_workspace_keys_do_not_interrupt_editor_sequences(workspace):
+    async with workspace.app(size=(120, 40)) as ui:
+        app, _pilot = ui.textual
+        app.saved_settings.set(SETTINGS.ui.vim_keys, True)
+        await ui.new_session()
+        selected = ui.selected_tab
+        editor = ui.conversation.prompt.prompt_text_area
+        await ui.press(*'abcHdef')
+        await ui.press('escape', '0', 'f', 'H')
+        assert editor.cursor_location == (0, 3)
+        assert ui.selected_tab == selected and editor.has_focus
+        await ui.press('2', 'H')
+        assert ui.selected_tab == selected and editor.has_focus
+        await ui.press('v', 'H')
+        assert ui.selected_tab == selected and editor.has_focus
+        await ui.press('escape', 'd', 'H')
+        assert ui.selected_tab == selected and editor.has_focus
+        assert editor.text == 'abcHdef'

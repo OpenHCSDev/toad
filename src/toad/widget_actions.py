@@ -78,6 +78,10 @@ class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
     def available(self, context: Context) -> bool | None:
         return True
 
+    def key_available(self, context: Context) -> bool | None:
+        """Keyboard scope may be narrower than menu/palette command availability."""
+        return self.available(context)
+
     @abstractmethod
     async def apply(self, context: Context) -> None: ...
 
@@ -107,12 +111,27 @@ class ApplicationAction(Action, affix="Action"):
                      for member in cls.members_with(cls) for command in member.offered(app))
 
 
-class VimApplicationAction(YieldingKey, ApplicationAction):
+class VimApplicationAction(ApplicationAction):
     def available(self, app):
         return app.settings.ui.vim_keys and app.current_mode == "workspace"
 
 
-class VimHintsAction(VimApplicationAction):
+class VimWorkspaceAction(VimApplicationAction, declared_name=None):
+    """Workspace commands precede editor bindings only in idle modal command entry."""
+
+    priority = True
+
+    def key_available(self, app):
+        from textual.widgets import TextArea
+
+        if not super().available(app) or app.screen is not app.workspace_screen:
+            return False
+        focused = app.focused
+        return (focused.editing_mode.allows_application_commands
+                if isinstance(focused, TextArea) else True)
+
+
+class VimHintsAction(YieldingKey, VimApplicationAction):
     """Label every clickable widget with a key to reach it."""
 
     keys = ("f", "ctrl+f")
@@ -153,7 +172,7 @@ class DeclaredWidgetActions(DOMNode):
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         for declaration in self.declared_actions():
             if action == declaration.declared_name:
-                return declaration.parse(parameters).available(self)
+                return declaration.parse(parameters).key_available(self)
         return super().check_action(action, parameters)
 
     async def _run_declared_action(self, declaration, *parameters) -> None:
