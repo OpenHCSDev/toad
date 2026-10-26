@@ -22,7 +22,6 @@ from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
-from agent_comms.coordination_errors import StaleRevision
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_runtime import LaunchRuntime
@@ -39,8 +38,8 @@ from agent_comms.ui_model.observation import (
     NotificationsObserved,
     NotificationsUnreadable,
     ObservationProcess,
+    Observed,
     ObserveNotifications,
-    ObserverDied,
     ObserveSidebar,
     ObserveThreads,
     ObserveViews,
@@ -219,7 +218,6 @@ class Observing(Observation):
     service: Comms = field()
     sidebar: SidebarModel = field()
     process: ObservationProcess = field(compare=False)
-    loop: asyncio.AbstractEventLoop
 
     def observes(self, root: str | Path) -> bool:
         return self.service.root == Path(root).resolve()
@@ -244,7 +242,7 @@ class Observing(Observation):
         return self if self.selection == selected else access.open_selected(selected)
 
     def activate(self, access: CoordinationAccess):
-        self.loop.add_reader(self.process.fileno(), self.receive, access)
+        self.process.start_receiving(self.receive, self.receive_failed)
         access.update_sidebar_interest()
         access.update_commander_interest()
         self.thread_interest(access)
@@ -252,35 +250,26 @@ class Observing(Observation):
         self.subscriptions.enter_context(self.updates)
         self.views_changed()
 
-    def answer_reads(self):
-        self.process.request(StopObserving())
-        self.loop.remove_reader(self.process.fileno())
-        self.loop.add_reader(self.process.fileno(), self.process.results)
-
     def stop_updates(self) -> AnsweringReads:
         super().stop_updates()
-        self.answer_reads()
+        self.process.request(StopObserving())
         return AnsweringReads(
-            self.selection, self.service, self.sidebar, self.process, self.loop,
+            self.selection, self.service, self.sidebar, self.process,
             access=self.access, subscriptions=self.subscriptions, updates=self.updates)
 
     def retire(self, access: CoordinationAccess):
-        self.loop.remove_reader(self.process.fileno())
-        self.process.abandon_reads(StaleRevision("The Comms service was replaced before the read was answered"))
-        task = asyncio.ensure_future(asyncio.to_thread(self.process.close))
+        task = asyncio.create_task(self.process.close())
         access.retiring.add(task)
         task.add_done_callback(access.retiring.discard)
 
-    def receive(self, access: CoordinationAccess):
-        if not self.is_current():
-            return
-        try:
-            for result in self.process.results():
-                access.dispatch_sync(result, self)
-        except ObserverDied as error:
-            self.loop.remove_reader(self.process.fileno())
+    def receive(self, result: Observed):
+        if self.is_current():
+            self.access.dispatch_sync(result, self)
+
+    def receive_failed(self, error: Exception):
+        if self.is_current():
             self.failed(error, self.selection)
-            access.app._handle_exception(error)
+            self.access.app._handle_exception(error)
 
     def views_changed(self, event=None, subscription=None):
         access, root = self.access, str(self.service.root)
@@ -402,10 +391,10 @@ class CoordinationAccess(MroDispatch):
             self.confirm(selected)
             observed = Observing(
                 selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
-                self.app.running_loop, access=self)
+                access=self)
             observed.subscriptions.callback(observed.retire, self)
             self.observation = observed
-            observed.loop.call_soon_threadsafe(observed.attach, self, previous)
+            self.app.running_loop.call_soon_threadsafe(observed.attach, self, previous)
             return observed
 
         return RootRuntime.attachment(selected.root, LaunchRuntime.running()).proceed(
