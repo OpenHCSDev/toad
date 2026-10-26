@@ -184,7 +184,7 @@ class RecordedTurnNode(ContextNode):
     @property
     def label(self) -> str:
         turn = self.manifest.turn.require_recorded()
-        return f"Request {turn.occurrence.generation} · {turn.identity.value[:12]}"
+        return f"Request {turn.occurrence.generation} · {turn.identity:.12}"
 
     def children(self):
         return tuple(RecordedSegmentNode(f"{self.key}/{i}", self.manifest,
@@ -198,7 +198,7 @@ class RecordedTurnNode(ContextNode):
         return self.label
 
     def detail(self) -> str:
-        return (f"Recorded turn · {self.manifest.turn.require_recorded().identity.value}\n"
+        return (f"Recorded turn · {self.manifest.turn.require_recorded().identity}\n"
                 f"Counter: {self.manifest.counter}\n\n"
                 "Historical request observation, not an additional active context section. "
                 "Segment counts are estimates, not provider measurements.")
@@ -255,7 +255,7 @@ class RecordedSegmentNode(RecordedTurnNode):
             yield self
 
     def search_description(self) -> str:
-        return f"{super().search_description()} · {self.manifest.turn.require_recorded().identity.value[:12]}"
+        return f"{super().search_description()} · {self.manifest.turn.require_recorded().identity:.12}"
 
     def original_segments(self):
         yield self
@@ -556,7 +556,7 @@ class ContextInspection:
 
     def recorded(self):
         # Later observations of the same original turn supersede only its view.
-        turns = {resource.value.turn.require_recorded().identity.value: resource.value
+        turns = {resource.value.turn.require_recorded().identity: resource.value
                  for resource in self.page.resources}
         return tuple(RecordedTurnNode(f"turn/{identity}", manifest, self)
                      for identity, manifest in reversed(turns.items()))
