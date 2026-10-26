@@ -51,6 +51,10 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         assert not notice.display
         last_good = tuple(rows.children)
         view = rows.query_one(CommanderFrameView)
+        await ui.until(
+            lambda: bool(view.query(CommanderUnitCard)),
+            why="the published unit card to mount inside its commander frame",
+        )
         card = view.query_one(CommanderUnitCard)
         assert card.collapsed
         title = card.query_one(CollapsibleTitle)
