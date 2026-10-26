@@ -9,8 +9,10 @@ from typing import ClassVar
 from agent_comms.commander_hud import (
     BoardRow, CommanderHud, CommanderUnit, HudRow, QuietUnits,
 )
+from agent_comms.coordination_errors import DeferredRead
+from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.observation import ReadCommanderUnit
+from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on, work
 from textual.app import ComposeResult
@@ -115,11 +117,15 @@ class CommanderUnitCard(ToadNode, Collapsible):
         access = self.app.coordination_access
         try:
             observed = await access.preparation.run_thread(access.observation.observed)
-            detail = await observed.process.read(ReadCommanderUnit(
+            request = ReadCommanderUnit(
                 str(observed.service.root), self.commander, card.unit,
                 tuple(dict.fromkeys(order.order for order in card.orders)),
-            ))
-        except (ValueError, OSError, RuntimeError) as error:
+            )
+            detail = await observed.process.read(request)
+        except (
+            DeferredRead, RelationViolationError, RouteChangedError,
+            ToolRefusedError, UnreadableHistory, OSError,
+        ) as error:
             if self.is_attached and self.card == card and not self.collapsed:
                 self.detail_status.update(f"Original details unavailable: {error}")
             return
