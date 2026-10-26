@@ -215,6 +215,12 @@ class SessionNavigation:
         self.app.events.publish(core_events.OpenTabsChanged())
         self.app.update_show_sessions()
 
+    async def move(self, mode: str, direction: int) -> None:
+        """Reorder the original logical tab and refresh its native strip."""
+        if entry := self.get(mode):
+            await self.app.tab_order.move(entry.identity, direction)
+            self.publish()
+
     def views_retired(self, root, retired) -> None:
         """Close the open views on ``root`` whose sources the observation service found retired."""
         root = str(root)

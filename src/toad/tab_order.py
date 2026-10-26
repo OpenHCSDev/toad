@@ -60,6 +60,16 @@ class TabOrder:
     def project[T](self, values: Mapping[TabIdentity, T]) -> tuple[T, ...]:
         return tuple(values[mode] for mode in self.names if mode in values)
 
+    async def move(self, identity: TabIdentity, direction: int) -> None:
+        """Move the original tab one position without changing visit history."""
+        async with self.editing():
+            if identity not in self:
+                return
+            index = self._open.index(identity)
+            destination = index + direction
+            if 0 <= destination < len(self._open):
+                self._open.insert(destination, self._open.pop(index))
+
     def previous(
         self, current: TabIdentity, *, eligible: Collection[TabIdentity] | None = None
     ) -> TabIdentity | None:

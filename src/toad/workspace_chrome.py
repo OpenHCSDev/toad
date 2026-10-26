@@ -14,6 +14,7 @@ from toad.tone_paint import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope
+from toad.sidebar_layout import Side
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -39,6 +40,18 @@ class WorkspaceChrome(VerticalLayout):
         self.footer = ToadFooter(id="workspace-footer")
         self.native = NativeSessionSurface(app)
 
+    def presented_sidebars(self):
+        source = self.channels.app.workspace_sessions.source
+        layout = self.channels.app.sidebar_layout
+        return tuple(bar for bar in (self.channels, *source.sidebars())
+                     if bar.presentation_visible and bar.id in layout.placements)
+
+    def toggle_sidebar(self, side: Side) -> None:
+        layout = self.channels.app.sidebar_layout
+        for bar in self.presented_sidebars():
+            if layout.get(bar.id).side == side:
+                bar.toggle(focus=False)
+
     async def prepare_navigation(self, screen) -> bool:
         """Restore the single shared Channels surface independently of tab-local panels."""
         changed = self.channels.restore_navigation()
@@ -63,11 +76,7 @@ class WorkspaceChrome(VerticalLayout):
         source = parent.app.workspace_sessions.source
         layout = parent.app.sidebar_layout
         own = tuple(source.sidebars())
-        bars = tuple(
-            bar
-            for bar in (self.channels, *own)
-            if bar.presentation_visible and bar.id in layout.placements
-        )
+        bars = self.presented_sidebars()
         resolved = layout.resolve(size.width, {bar.id: bar.collapsed for bar in bars})
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.
