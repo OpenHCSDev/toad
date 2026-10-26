@@ -220,12 +220,6 @@ See on-screen instructions for details.
     BINDING_GROUP_TITLE = "Prompt"
 
     BINDINGS = [
-        Binding(
-            "pageup", "history_page_up", "Previous messages", priority=True, show=False
-        ),
-        Binding(
-            "pagedown", "history_page_down", "Next messages", priority=True, show=False
-        ),
         Binding("ctrl+v", "paste_clipboard", "Paste", priority=True, show=False),
         Binding("ctrl+j", "newline", "New line", priority=True, show=False),
         Binding(
@@ -388,16 +382,6 @@ See on-screen instructions for details.
 
     def action_newline(self) -> None:
         self._replace_via_keyboard("\n", *self.selection)
-
-    def action_history_page_up(self) -> None:
-        from toad.widgets.conversation import Conversation
-
-        self.query_ancestor(Conversation).window.action_page_up()
-
-    def action_history_page_down(self) -> None:
-        from toad.widgets.conversation import Conversation
-
-        self.query_ancestor(Conversation).window.action_page_down()
 
     def _paste_clipboard_text(self, text: str) -> None:
         # A fresh Paste event posted directly here would bubble to App and be
