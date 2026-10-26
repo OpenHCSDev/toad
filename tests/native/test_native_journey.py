@@ -75,7 +75,7 @@ async def test_owner_is_attached_and_navigable(workspace, native_package):
         owner = native.comms.registry.require("beta")
         assert owner.process_identity is not None and owner.process_alive
         navigation = await asyncio.to_thread(
-            ThreadNavigationRequest(native.comms, "beta", app.project_dir, ()).read)
+            ThreadNavigationRequest(native.comms, "beta", ui.app.project_dir, ()).read)
         assert navigation.attachable and navigation.thread.process_alive
 
 
@@ -224,7 +224,7 @@ async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(works
         ).apply, comms)
         assert result.created == "fork"
         child_tab = await app.thread_navigation.open(
-            owner_mode=parent_tab, project_path=native.project, target="fork")
+            owner_mode=parent_tab, project_path=app.project_dir, target="fork")
         assert child_tab != parent_tab and ui.selected_tab == child_tab
         await ui.until_agent_ready()
         view = ui.conversation
@@ -331,7 +331,7 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
         app, _pilot = ui.textual
         owner_tab = ui.selected_tab
         await ui.until_agent_ready()
-        opened = await app.thread_navigation.open(owner_mode=owner_tab, project_path=native.project, target="gamma")
+        opened = await app.thread_navigation.open(owner_mode=owner_tab, project_path=app.project_dir, target="gamma")
         assert opened != owner_tab and ui.selected_tab == opened
         assert [tab.identity for tab in ui.tabs()] == [owner_tab, opened]
         view = ui.conversation

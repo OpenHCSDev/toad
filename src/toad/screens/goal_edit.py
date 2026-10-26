@@ -5,6 +5,7 @@ from collections.abc import Awaitable, Callable
 from agent_comms.coordination_errors import Refused
 from agent_comms.goals import Goal
 from agent_comms.mentions import MentionCandidate
+from agent_comms.repo import Checkout
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical
@@ -35,13 +36,14 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
         goal: Goal,
         candidates: tuple[MentionCandidate, ...] = (),
         *,
+        project: Checkout,
         on_save: Callable[[str], Awaitable[None]],
     ):
         super().__init__()
         self.goal = goal
         self.on_save = on_save
         self.saving = False
-        self.editor = ChannelPrompt()
+        self.editor = ChannelPrompt(project=project)
         self.editor.set_mention_candidates(candidates)
 
     def compose(self) -> ComposeResult:

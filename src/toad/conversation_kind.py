@@ -25,6 +25,7 @@ from agent_comms.historical_views import (
     DMDisplayHistory,
 )
 from agent_comms.message_page import MessagePage, PageBounds
+from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
 
@@ -130,7 +131,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def compose_activity(cls, view: CommsChatView) -> ComposeResult: ...
 
     @abstractmethod
-    def prompt(self): ...
+    def prompt(self, project: Checkout): ...
 
     @classmethod
     def seen_page(cls, history: WireHistory, seen):
@@ -203,10 +204,10 @@ class ChannelConversation(ConversationKind):
     def initial_placeholder(self) -> str:
         return f"Message {self.target.name}"
 
-    def prompt(self):
+    def prompt(self, project: Checkout):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        return ChannelPrompt(placeholder=self.initial_placeholder)
+        return ChannelPrompt(project=project, placeholder=self.initial_placeholder)
 
     def read_only(self, comms: Comms) -> bool:
         return comms.bus.require_channel(self.target.name).read_only
@@ -290,10 +291,10 @@ class DmConversation(ConversationKind):
         view.thread_activity = ConversationSessionDetails(view.conversation.peer)
         yield view.thread_activity
 
-    def prompt(self):
+    def prompt(self, project: Checkout):
         from toad.widgets.prompt import MessagePrompt
 
-        return MessagePrompt()
+        return MessagePrompt(project=project)
 
     async def status_text(self, comms: Comms, *, read_only: bool) -> str:
         def read():

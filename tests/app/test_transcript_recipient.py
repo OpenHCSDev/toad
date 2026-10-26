@@ -34,11 +34,11 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
 
     async with workspace.app(size=(110, 38)) as ui:
         alpha_tab = await ui.app.thread_navigation.open(
-            owner_mode=ui.selected_tab, project_path=workspace.project, target="alpha")
+            owner_mode=ui.selected_tab, project_path=ui.app.project_dir, target="alpha")
         await ui.until(lambda: ui.shows("Alpha-only history"), why="alpha's saved history")
 
         await ui.app.thread_navigation.open(
-            owner_mode=alpha_tab, project_path=workspace.project, target="beta")
+            owner_mode=alpha_tab, project_path=ui.app.project_dir, target="beta")
         await ui.step()
         beta = ui.detached_agent(None)
         ui.attach_agent(beta)

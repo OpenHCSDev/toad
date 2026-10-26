@@ -97,7 +97,7 @@ class CommsChatView(Conversation):
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation.compose_activity(self)
             yield self.throbber_above
-            yield self.conversation.prompt().data_bind(
+            yield self.conversation.prompt(self.project_path).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,

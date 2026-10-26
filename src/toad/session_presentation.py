@@ -245,7 +245,7 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        return MailboxPrompt()
+        return MailboxPrompt(project=conversation.project_path)
 
     def thread_presented(self, conversation: Conversation) -> None:
         conversation.run_worker(

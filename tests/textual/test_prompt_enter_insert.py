@@ -1,5 +1,6 @@
 """Textual-facing: vim `i` asks the prompt for insert mode; the prompt owns whether its editor exists."""
 
+from agent_comms.repo import Checkout
 from textual.widgets.text_area import VimInsert
 
 from support.agents import peer
@@ -7,8 +8,8 @@ from toad.session_scope import AgentAttached
 from toad.widgets.prompt import MessagePrompt, Prompt
 
 
-def test_enter_insert_before_compose_has_no_editor_to_touch():
-    MessagePrompt().enter_insert()
+def test_enter_insert_before_compose_has_no_editor_to_touch(tmp_path):
+    MessagePrompt(project=Checkout(tmp_path)).enter_insert()
 
 
 async def test_enter_insert_sets_insert_mode_and_focuses_the_editor(workspace):
