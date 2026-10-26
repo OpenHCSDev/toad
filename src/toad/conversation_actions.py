@@ -64,6 +64,7 @@ class QuarterPageUpAction(ConversationAction):
     """Scroll the conversation up a quarter page."""
 
     keys = ("pageup", "shift+pageup")
+    priority = True
     direction = -1
     page_divisor = 4
 
