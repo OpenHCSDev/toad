@@ -13,7 +13,6 @@ from toad.widget_actions import MovesCursor, Selects
 class GridSelect(MovesCursor, Selects, containers.ItemGrid, can_focus=True):
     FOCUS_ON_CLICK = False
     CURSOR_GROUP = Binding.Group("Select")
-    FOCUS_GROUP = Binding.Group("Focus")
     BINDINGS = [
         Binding("left", "cursor_left", "Cursor Left", group=CURSOR_GROUP),
         Binding("right", "cursor_right", "Cursor Right", group=CURSOR_GROUP),
