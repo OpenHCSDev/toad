@@ -16,6 +16,7 @@ from agent_comms.cli_verbs.fork import ForkCliCommand
 from agent_comms.cli_verbs.start import StartCliCommand
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.input_key import AcpInputKey
+from agent_comms.input_attempt import StartedInput
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.threads import Thread
 
@@ -130,7 +131,7 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         original = next(row["message"] for row in native_rows
                         if row.get("message", {}).get("inputId") == disposition.native_id)
         assert any(queued_text in block.get("text", "") for block in original["content"])
-        assert not disposition.unresolved
+        assert isinstance(disposition, StartedInput)
 
         # A second ACP attachment to the same owner shows the same history and asks the model nothing.
         asked = len(native.provider.requests)
