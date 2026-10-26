@@ -22,6 +22,7 @@ from agent_comms.acp_extension import (
     QueueChangedUpdate,
     RequestFailedUpdate,
     SelectedWriteAcceptedUpdate,
+    TextNoticeUpdate,
     TextRouteUpdate,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
@@ -37,6 +38,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
 from toad.core import events as core_events
+from toad.live_output import CompleteResponseStream, ResponseStream
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
 
 if TYPE_CHECKING:
@@ -70,6 +72,7 @@ class CommsUpdateConsumer(MroDispatch):
         self.agent = agent
         self.session_id = session_id
         self.delivery: ResponseDelivery = UnroutedResponse()
+        self.response_type: type[ResponseStream] = ResponseStream
         self.compaction: CompactionReply = CompactionReply()
         self.cursor_token = cursor_token
         self.queue_token = queue_token
@@ -91,6 +94,17 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(TextRouteUpdate)
     def text_route(self, update: TextRouteUpdate) -> None:
         self.delivery = ResponseDelivery.from_route(update.route)
+
+    @handles(TextNoticeUpdate)
+    def text_notice(self, update: TextNoticeUpdate) -> None:
+        self.response_type = CompleteResponseStream
+
+    def response_stream(self) -> ResponseStream:
+        """Ingress text kind and its original append claim determine the stream."""
+        return self.response_type(
+            self.delivery,
+            source_claim=self.agent.controller.session.output.assistant,
+        )
 
     @handles(InputFailedUpdate)
     def input_failed(self, update: InputFailedUpdate) -> None:

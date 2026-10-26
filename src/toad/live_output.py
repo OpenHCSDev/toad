@@ -81,7 +81,12 @@ class ResponseStream(OutputStream):
 
 
 class CompleteResponseStream(ResponseStream):
-    """An owner notice is complete at ingress rather than awaiting a turn end."""
+    """A declared standalone notice closes the preceding reply and its own block."""
+
+    async def before_append(self, output: LiveOutput) -> None:
+        await super().before_append(output)
+        await output.finish(ResponseStream)
+
     async def append(self, view, fragment):
         block = await super().append(view, fragment)
         await self.finish()

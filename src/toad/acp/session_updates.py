@@ -28,10 +28,9 @@ from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.core import events
-from toad.live_output import ThoughtStream
+from toad.live_output import ResponseStream, ThoughtStream
 from toad.plan import decode_plan
 from toad.project_link import AcpLogLink
-from toad.response_delivery import ResponseDelivery
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
@@ -44,25 +43,21 @@ class SessionUpdateEffect(MroDispatch):
     def __init__(self, agent: Agent, consumer: CommsUpdateConsumer):
         self.agent, self.consumer = agent, consumer
 
-    @property
-    def delivery(self) -> ResponseDelivery:
-        return self.consumer.delivery
-
     def require_supported(self, notification: SessionNotification):
         if not any(self.handlers_for(notification.update)):
             raise ValueError(f"ACP update capability is not supported: {type(notification.update).__name__}")
 
     @handles(UserMessageChunk)
     def user(self, update: UserMessageChunk):
-        UserContentEffect(self.agent, self.delivery).dispatch_sync(update.content)
+        UserContentEffect(self.agent).dispatch_sync(update.content)
 
     @handles(AgentMessageChunk)
     def message(self, update: AgentMessageChunk):
-        AgentContentEffect(self.agent, self.delivery).dispatch_sync(update.content)
+        AgentContentEffect(self.agent, self.consumer.response_stream()).dispatch_sync(update.content)
 
     @handles(AgentThoughtChunk)
     def thought(self, update: AgentThoughtChunk):
-        ThoughtContentEffect(self.agent, self.delivery).dispatch_sync(update.content)
+        ThoughtContentEffect(self.agent).dispatch_sync(update.content)
 
     @handles(ToolCallStart)
     def tool_start(self, update: ToolCallStart):
@@ -100,8 +95,8 @@ class SessionUpdateEffect(MroDispatch):
 
 
 class MessageContentEffect(MroDispatch):
-    def __init__(self, agent: Agent, delivery: ResponseDelivery):
-        self.agent, self.delivery = agent, delivery
+    def __init__(self, agent: Agent):
+        self.agent = agent
 
     @handles(TextContentBlock)
     def text(self, content: TextContentBlock):
@@ -124,13 +119,15 @@ class ThoughtContentEffect(MessageContentEffect):
 
 
 class AgentContentEffect(MessageContentEffect):
+    def __init__(self, agent: Agent, stream: ResponseStream):
+        super().__init__(agent)
+        self.stream = stream
+
     def publish(self, content: TextContentBlock):
         text = content.text
         if text.startswith("[agent error]"):
             text += f"\n\n{AcpLogLink.markdown(self.agent.presentation.log_path)}"
-        stream = self.agent.presentation.turns.owner.response_stream(self.delivery)
-        stream.source_claim = self.agent.controller.session.output.assistant
-        self.agent.events.publish(events.Update(content.type, text, stream))
+        self.agent.events.publish(events.Update(content.type, text, self.stream))
 
 
 class SessionNotificationOwner(ClientRequestOwner):
