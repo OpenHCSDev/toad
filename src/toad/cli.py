@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 
 import click
 
+from agent_comms.field_codec import FieldCodec
+from agent_comms.repo import LaunchCheckout
 from toad.session_scope import AgentAttached, AgentBinding, NoAgent
 
 if TYPE_CHECKING:
@@ -38,19 +40,6 @@ def run_terminal(app: ToadApp) -> None:
     if app._exception is not None:
         raise SystemExit(app.return_code or 1)
     app.return_value.finish()
-
-
-def check_directory(path: str) -> None:
-    """Check a path is directory, or exit the app.
-
-    Args:
-        path: Path to check.
-    """
-    from pathlib import Path
-
-    if not Path(path).resolve().is_dir():
-        print(f"Not a directory: {path}")
-        sys.exit(-1)
 
 
 async def get_agent_binding(launch_agent: str) -> AgentBinding:
@@ -132,12 +121,12 @@ def main(ctx, version):
 # @click.group(invoke_without_command=True)
 # @click.pass_context
 @main.command("run")
-@click.argument("project_dir", metavar="PATH", required=False, default=".")
+@click.argument("project_dir", metavar="PATH", required=True)
 @click.option("-a", "--agent", metavar="AGENT", default="")
-def run(project_dir: str = ".", agent: str = "1"):
+def run(project_dir: str, agent: str = "1"):
     """Run an installed agent."""
 
-    check_directory(project_dir)
+    project = FieldCodec.decode(LaunchCheckout, project_dir)
 
     import asyncio
 
@@ -147,7 +136,7 @@ def run(project_dir: str = ".", agent: str = "1"):
     app = ToadApp(
         mode=binding.startup_mode,
         agent_binding=binding,
-        project_dir=project_dir,
+        project_dir=project,
     )
     run_terminal(app)
 
@@ -205,7 +194,7 @@ def acp(
 
     app = ToadApp(
         agent_binding=AgentAttached(agent_data),
-        project_dir=project_dir,
+        project_dir=FieldCodec.decode(LaunchCheckout, project_dir),
         agent_session_id=session_id,
     )
     run_terminal(app)
@@ -284,11 +273,8 @@ def about() -> None:
     """Show about information."""
 
     from toad import about
-    from toad.app import ToadApp
 
-    app = ToadApp(agent_binding=NoAgent())
-
-    print(about.render(app))
+    print(about.render())
 
 
 if __name__ == "__main__":

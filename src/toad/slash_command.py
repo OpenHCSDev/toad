@@ -237,7 +237,7 @@ class AboutCommand(NoArgumentsCommand, declared_name="toad:about"):
         from toad import about
         from toad.widgets.markdown_note import MarkdownNote
 
-        markdown = about.render(conversation.app)
+        markdown = about.render()
         await conversation.post(MarkdownNote(markdown, classes="about"))
         conversation.app.copy_to_clipboard(markdown)
         conversation.notify(

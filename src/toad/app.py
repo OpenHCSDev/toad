@@ -151,7 +151,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def __init__(
         self,
         agent_binding: AgentBinding,
-        project_dir: str | None = None,
+        project_dir: Checkout,
         mode: str | None = None,
         agent_session_id: str | None = None,
     ) -> None:
@@ -198,7 +198,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         super().__init__()
         self._return_value: TerminalOutcome = Ended(self.application.version)
         self.session_navigation.bind_events()
-        self.set_reactive(ToadApp.project_dir, Checkout.checked(project_dir or "."))
+        self.set_reactive(ToadApp.project_dir, project_dir)
 
     @handles(input_events.ChangeDirectory)
     def on_change_directory(self, event: input_events.ChangeDirectory) -> None:

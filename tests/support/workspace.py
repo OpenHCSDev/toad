@@ -102,7 +102,7 @@ class Workspace:
         from toad.app import ToadApp
 
         launch = {} if resume is None else {"agent_session_id": resume}
-        app = (application or ToadApp)(agent_binding=binding, project_dir=str(self.project), **launch)
+        app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project), **launch)
         async with app.run_test(size=size) as pilot:
             await app.application.start_worker.wait()
             ui = TextualUi(app, pilot)

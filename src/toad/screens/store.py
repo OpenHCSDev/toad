@@ -546,13 +546,3 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
     async def action_directory(self) -> None:
         if (directory_display := self.query_one_optional(DirectoryDisplay)) is not None:
             directory_display.focus()
-
-
-if __name__ == "__main__":
-    from toad.app import ToadApp
-
-    from toad.session_scope import NoAgent
-
-    app = ToadApp(agent_binding=NoAgent(), mode="store")
-
-    app.run()

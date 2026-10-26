@@ -229,7 +229,7 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
     agent = None
     started = partial(application or ToadApp, agent_session_id=thread)
     if project is not None:
-        started = partial(started, project_dir=str(project))
+        started = partial(started, project_dir=Checkout(project))
     try:
         async with workspace.app(size=size, binding=AgentAttached(comms_agent()), application=_first_wins(started)) as ui:
             await ui.until(lambda: isinstance(ui.conversation.agent_binding, AgentBase), seconds=20,
