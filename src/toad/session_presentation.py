@@ -350,10 +350,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation = self.widget
         if conversation is None:
             return
-        if (
-            event.worktree is not None
-            and (project := screen.project_path) != conversation.project_path
-        ):
+        if (project := screen.project_path) != conversation.project_path:
             await conversation.sync_project_path(project)
         conversation.input_histories.bind_scope(f"thread:{event.thread.name}")
 

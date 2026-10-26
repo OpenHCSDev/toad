@@ -434,8 +434,7 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
                 self._identity = ThreadIdentity(event.thread, event.wire_root)
                 if previous_root != self.coordination_root:
                     self.link_context_changed()
-                if event.worktree is not None:
-                    self.bind_project(event.worktree)
+                self.bind_project(event.worktree)
                 if self.id is not None:
                     self.app.session_navigation.sync_owner_root(
                         self.id, self.coordination_root
