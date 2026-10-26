@@ -14,13 +14,13 @@ from typing import Annotated, ClassVar
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
-from python_introspect import FieldLabel, declared_annotation_choices
+from python_introspect import FieldLabel
 from textual import events
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
 from textual.geometry import Offset
 
-from toad.forms.field_path import FieldPath, declared_annotation
+from toad.forms.field_path import FieldPath
 from toad.widgets.comms_menu import ContextMenu
 from toad.forms.kinds import Placeholder
 from toad.preferences import SETTINGS
@@ -29,17 +29,19 @@ from toad.setting_declarations import FamilyChoices
 
 @dataclass(frozen=True)
 class ThreadSortForm:
+    choices: ClassVar[FamilyChoices] = FamilyChoices(ThreadSort)
     placeholder: ClassVar[Placeholder] = Placeholder("Mixed orders")
     order: Annotated[
-        type[ThreadSort] | None, FamilyChoices(ThreadSort), FieldLabel("Member order"), placeholder
+        type[ThreadSort] | None, choices, FieldLabel("Member order"), placeholder
     ]
 
 
 @dataclass(frozen=True)
 class ChannelSortForm:
+    choices: ClassVar[FamilyChoices] = FamilyChoices(ChannelSort)
     placeholder: ClassVar[Placeholder] = Placeholder("Choose order")
     order: Annotated[
-        type[ChannelSort] | None, FamilyChoices(ChannelSort), FieldLabel("Channel order"), placeholder
+        type[ChannelSort] | None, choices, FieldLabel("Channel order"), placeholder
     ]
 
 
@@ -101,8 +103,7 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
             return
         write = await self.order_writer()
 
-        choices = declared_annotation_choices(declared_annotation(FieldPath(type(form)).order))
-        assert choices is not None
+        choices = form.choices
         orders = tuple(choices.choices())
         items = [(partial(self._choose_order, order, write), choices.label(order))
                  for order in orders]
@@ -112,15 +113,16 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
                           f"{'✓' if field.value else '○'} {field.label}"))
 
         def choose(action):
-            if action is not None:
+            if action:
                 action()
 
         menu = ContextMenu.show(
             self.screen, Offset(self.region.x, self.region.bottom), "Sort", items,
             callback=choose,
         )
-        if self.order is not None:
-            menu.options.highlighted = orders.index(self.order)
+        for index, order in enumerate(orders):
+            if order is self.order:
+                menu.options.highlighted = index
 
     def _choose_order(self, order: type[Order], write: Callable[[type[Order]], Awaitable[object]]) -> None:
         if order is not self.order:
