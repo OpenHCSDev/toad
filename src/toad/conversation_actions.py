@@ -63,7 +63,7 @@ class VimCancelAction(CancelAction):
 class QuarterPageUpAction(ConversationAction):
     """Scroll the conversation up a quarter page."""
 
-    keys = ("shift+pageup",)
+    keys = ("pageup", "shift+pageup")
     direction = -1
     page_divisor = 4
 
@@ -74,7 +74,7 @@ class QuarterPageUpAction(ConversationAction):
 class QuarterPageDownAction(QuarterPageUpAction):
     """Scroll the conversation down a quarter page."""
 
-    keys = ("shift+pagedown",)
+    keys = ("pagedown", "shift+pagedown")
     direction = 1
 
 
