@@ -160,6 +160,9 @@ class RetainedSourceClaim(CapturedClaim):
                        identity: TranscriptReadIdentity) -> bool:
         return True
 
+    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+        return widget is not evidence.retained_history
+
 @dataclass(frozen=True)
 class SequenceClaim(CommitClaim):
     """A wire notice needs its exact persisted counterpart, not a save signal."""

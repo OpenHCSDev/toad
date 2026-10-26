@@ -17,7 +17,9 @@ from toad.thread_actions import ThreadAction
 async def test_start_attaches_stopped_saved_tab_and_receives_dm(workspace, native_package):
     comms = workspace.comms
     thread = workspace.thread('stopped')
-    journal = write_journal(workspace.project / 'saved.jsonl',
+    saved = workspace.roots.attempt / 'saved'
+    saved.mkdir(mode=0o700)
+    journal = write_journal(saved / 'saved.jsonl',
                             assistant_entry('SAVED_BEFORE_START', id='answer'))
     comms.registry.declare(replace(thread, model=MODEL, thinking_level=OffThinkingLevel,
         session_file=RegistrySessionLocation.from_path(journal, comms.root)))
