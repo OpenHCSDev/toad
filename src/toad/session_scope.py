@@ -498,6 +498,10 @@ class AgentAttached(AgentBinding):
 class AgentSession(AgentAttached):
     session_id: str
 
+    def attach_to(self, origin: ViewSessionOrigin, conversation: Conversation) -> None:
+        conversation._agent_session_id = self.session_id
+        super().attach_to(origin, conversation)
+
     def make_conversation(self, constructor: partial[Conversation]) -> Conversation:
         return super().make_conversation(
             partial(constructor, agent_session_id=self.session_id)
@@ -521,7 +525,9 @@ class ViewSessionOrigin(ProjectSessionOrigin):
         return self._agent_binding.attached(default)
 
     def attach_agent_definition(self) -> AgentBinding:
-        self._agent_binding = self._agent_binding.attached(self.app.agent_binding)
+        self._agent_binding = self._agent_binding.attached(
+            self.app.agent_binding
+        ).for_session(self.thread_identity.thread_name())
         return self._agent_binding
 
     def use_mailbox(self) -> None:
