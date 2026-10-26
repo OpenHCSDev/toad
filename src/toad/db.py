@@ -9,7 +9,8 @@ from pathlib import Path
 from time import time_ns
 from typing import Annotated, Self
 
-from agent_comms.field_codec import PathText, RecordedTimestamp, TimestampText
+from agent_comms.field_codec import NullMember, RecordedTimestamp, TimestampText
+from agent_comms.repo import Checkout
 from agent_comms.store_files import DEFAULT_ISOLATION
 from agent_comms.typed_table import (
     Column, DurableTables, SharedFileTables, TableSchema, TextStorage, TypedTable,
@@ -45,8 +46,13 @@ class ToadDatabase(WriterOwnedStore):
 
 
 @dataclass(frozen=True)
+class NoSavedProject(NullMember):
+    """Saved metadata has no project; it cannot supply a launch directory."""
+
+
+@dataclass(frozen=True)
 class SessionMeta:
-    cwd: Annotated[Path | None, PathText] = None
+    cwd: Checkout | NoSavedProject = NoSavedProject()
     # Saved external agent definition, also used when its catalog entry is gone.
     agent_data: AgentDefinition | None = None
 
@@ -190,7 +196,7 @@ class DB:
                 db,
                 where="id = ?",
                 parameters=(id,),
-                meta_json=replace(row.meta_json, cwd=cwd),
+                meta_json=replace(row.meta_json, cwd=Checkout(cwd)),
             )
             return True
 

@@ -1,6 +1,7 @@
 """Attaching to a saved native thread shows its recorded context use before any model is asked."""
 
 
+from agent_comms.repo import Checkout
 from support.coordination import coordination_fact
 from support.native import attached_app, start_private_native_wire, without_provider
 from agent_comms.threads import Thread
@@ -9,7 +10,7 @@ from agent_comms.threads import Thread
 async def test_saved_context_use_is_shown_on_attach_and_replaced_by_live_reports(workspace, native_package):
     without_provider()
     comms = start_private_native_wire(workspace.roots.wire)
-    comms.registry.declare(Thread("saved", frozenset({"acp"}), str(workspace.project)))
+    comms.registry.declare(Thread("saved", frozenset({"acp"}), Checkout(workspace.project)))
     comms.agents.set_agent_info("saved", model="test/model", context_used=38723, context_size=272000)
     async with attached_app(workspace, comms, "saved", size=(120, 40)) as (ui, agent):
         await ui.until_agent_ready()

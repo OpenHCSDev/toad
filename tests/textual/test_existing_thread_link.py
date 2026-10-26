@@ -50,7 +50,7 @@ async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(worksp
             # Repeated and self links reuse the very same mounted tab too.
             for _ in range(2):
                 assert await app.thread_navigation.open(
-                    owner_mode=existing, project_path=workspace.project, target="peer") == existing
+                    owner_mode=existing, project_path=ui.app.project_dir, target="peer") == existing
             assert reads.call_count == 0
             assert order() == opened
 

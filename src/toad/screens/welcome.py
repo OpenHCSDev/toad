@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, cast
 
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.channel_targets import NoChannel
+from agent_comms.repo import Checkout
 from agent_comms.ui_model.sidebar import SidebarModel
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -225,7 +226,7 @@ class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=Fal
         with VerticalScroll(can_focus=False):
             yield WelcomeTitle()
             yield Static(
-                f"{agent}{format_path(self.project_path)}",
+                f"{agent}{format_path(self.project_path.path)}",
                 classes="subtitle",
                 markup=False,
             )
@@ -239,7 +240,7 @@ class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=Fal
             self.app, self.id, self.project_path, self.thread_identity.thread_name()
         )
 
-    def read_history_identity(self, project: str) -> ThreadIdentity:
+    def read_history_identity(self, project: Checkout) -> ThreadIdentity:
         service = self.app.coordination_access.observation.observed().service
         return ThreadIdentity(
             service.messaging.user_identity(project).incarnation, str(service.root)
@@ -247,7 +248,7 @@ class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=Fal
 
     async def prepare_history_origin(self) -> None:
         app = cast("ToadApp", self.app)
-        project = str(self.project_path)
+        project = self.project_path
         with self.changing_identity():
             self._identity = await app.preparation.run_thread(self.read_history_identity, project)
 

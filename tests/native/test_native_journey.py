@@ -3,6 +3,7 @@
 The model is the controlled loopback provider; everything else is the real path.
 """
 
+from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 import base64
@@ -74,7 +75,7 @@ async def test_owner_is_attached_and_navigable(workspace, native_package):
         owner = native.comms.registry.require("beta")
         assert owner.process_identity is not None and owner.process_alive
         navigation = await asyncio.to_thread(
-            ThreadNavigationRequest(native.comms, "beta", native.project, ()).read)
+            ThreadNavigationRequest(native.comms, "beta", ui.app.project_dir, ()).read)
         assert navigation.attachable and navigation.thread.process_alive
 
 
@@ -218,12 +219,12 @@ async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(works
         source = Path(parent.runtime.path)
         original = source.read_bytes()
         result = await asyncio.to_thread(ForkCliCommand(
-            name="fork", parent=parent.name, project=str(native.project),
+            name="fork", parent=parent.name, project=Checkout(native.project),
             model=parent.model, thinking_level=parent.thinking_level,
         ).apply, comms)
         assert result.created == "fork"
         child_tab = await app.thread_navigation.open(
-            owner_mode=parent_tab, project_path=native.project, target="fork")
+            owner_mode=parent_tab, project_path=app.project_dir, target="fork")
         assert child_tab != parent_tab and ui.selected_tab == child_tab
         await ui.until_agent_ready()
         view = ui.conversation
@@ -267,8 +268,9 @@ async def test_stopped_owner_restarts_without_replaying_and_then_idles(workspace
         await asyncio.to_thread(comms.owners.stop, "beta")
         assert not comms.registry.require("beta").process_alive
         request_target_command(app, StartCliCommand, "beta")
+        await ui.until(lambda: comms.registry.require("beta").process_alive,
+                       seconds=30, why="the menu's Start to launch the owner")
         await ui.until(lambda: "beta" not in app.thread_actions.pending, seconds=30, why="Start to finish")
-        assert comms.registry.require("beta").process_alive, "Start did not launch the owner"
 
         asked = len(provider.requests)
         await ui.select_tab(owner_tab)
@@ -322,14 +324,14 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
     from support.native import MODEL
 
     async def declare_second(comms, project, _provider):
-        comms.registry.declare(Thread("gamma", frozenset({"team"}), str(project), model=MODEL, thinking_level=OffThinkingLevel))
+        comms.registry.declare(Thread("gamma", frozenset({"team"}), Checkout(project), model=MODEL, thinking_level=OffThinkingLevel))
 
     async with native_session(workspace, prepare=declare_second) as native:
         ui, provider = native.ui, native.provider
         app, _pilot = ui.textual
         owner_tab = ui.selected_tab
         await ui.until_agent_ready()
-        opened = await app.thread_navigation.open(owner_mode=owner_tab, project_path=native.project, target="gamma")
+        opened = await app.thread_navigation.open(owner_mode=owner_tab, project_path=app.project_dir, target="gamma")
         assert opened != owner_tab and ui.selected_tab == opened
         assert [tab.identity for tab in ui.tabs()] == [owner_tab, opened]
         view = ui.conversation

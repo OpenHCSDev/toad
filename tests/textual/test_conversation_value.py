@@ -23,7 +23,7 @@ async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and
     async with workspace.app(size=(110, 35)) as ui:
         app, _ = ui.textual
         owner = ui.selected_tab
-        context = NavigationContext(app, owner, workspace.project, viewer)
+        context = NavigationContext(app, owner, app.project_dir, viewer)
         for target, expected, body, status_name, destination in (
             (
                 channel_target("#team"),
@@ -120,7 +120,7 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
     async with workspace.app(size=(110, 35)) as ui:
         app, _ = ui.textual
         owner = ui.selected_tab
-        context = NavigationContext(app, owner, workspace.project, viewer)
+        context = NavigationContext(app, owner, app.project_dir, viewer)
         mode = await DirectTarget("peer").open(context)
         screen = app.selected_session
         await screen.wait_content_ready()
@@ -179,7 +179,7 @@ async def test_recreated_dm_peer_retires_the_old_view_and_opens_a_new_incarnatio
     async with workspace.app(size=(110, 35)) as ui:
         app, _ = ui.textual
         owner = ui.selected_tab
-        context = NavigationContext(app, owner, workspace.project, viewer)
+        context = NavigationContext(app, owner, app.project_dir, viewer)
         old_mode = await DirectTarget("peer").open(context)
         old_screen = app.selected_session
         await old_screen.wait_content_ready()

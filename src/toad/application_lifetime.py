@@ -77,7 +77,7 @@ class UsageReports:
             "api_key": "phc_mJWPV7GP3ar1i9vxBg2U8aiKsjNgVwum6F6ZggaD4ri",
             "event": event_name,
             "distinct_id": app.settings.anon_id,
-            "properties": {"toad_version": get_version(), "term_program": app.terminal_attention.program,
+            "properties": {"toad_version": get_version(), "term_program": app.terminal_attention.program(),
                            "term_width": width, "term_height": height} | properties,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "os": platform.system(),

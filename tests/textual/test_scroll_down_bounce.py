@@ -87,7 +87,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
     journal = workspace.project / "laptop-history.jsonl"
     journal.write_bytes(gzip.decompress(fixture.read_bytes()))
     owner = workspace.comms.registry.declare(Thread(
-        "scroll-reader", frozenset(), str(workspace.project),
+        "scroll-reader", frozenset(), Checkout(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     root = str(workspace.comms.root)
     async with workspace.app(size=(100, 32), session=False, application=recorded_app) as ui:

@@ -1,5 +1,6 @@
 """A queue attachment captures human input only from the scope it is currently bound to."""
 
+from agent_comms.repo import Checkout
 import os
 
 import pytest
@@ -18,7 +19,7 @@ from toad.acp.queue_attachment import QueueAttachment
 def declared_scope(tmp_path):
     comms = installed_wire(tmp_path / "wire")
     owner = ProcessIdentity.capture(os.getpid())
-    comms.registry.declare(Thread("source", frozenset(), str(tmp_path),
+    comms.registry.declare(Thread("source", frozenset(), Checkout(tmp_path),
                                   process_identity=owner))
     return comms, LiveQueueScope(
         session_id="source", claimed_identity=comms.registry.snapshot().claimed_identity("source"), owner=owner,

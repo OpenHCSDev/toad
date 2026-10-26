@@ -5,10 +5,10 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import partial
-from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from agent_comms.command import Command
+from agent_comms.repo import Checkout
 from toad.core.events import CoreEvent
 
 if TYPE_CHECKING:
@@ -51,7 +51,7 @@ class SessionNew(WorkspaceSessionRequest):
 
     async def apply(self, navigation: SessionNavigation) -> None:
         navigation.app.run_worker(partial(navigation.launch, self.agent,
-            project_path=Path(self.path), initial_prompt=self.prompt))
+            project=Checkout.checked(self.path), initial_prompt=self.prompt))
 
 
 @dataclass(frozen=True)
@@ -84,4 +84,4 @@ class LaunchAgent(WorkspaceSessionRequest):
 
     async def apply(self, navigation: SessionNavigation) -> None:
         navigation.app.run_worker(partial(navigation.launch, self.identity,
-            agent_session_id=self.session_id, session_pk=self.pk, initial_prompt=self.prompt))
+            project=navigation.app.project_dir, agent_session_id=self.session_id, session_pk=self.pk, initial_prompt=self.prompt))

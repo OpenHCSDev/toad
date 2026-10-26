@@ -1,5 +1,6 @@
 """Textual-facing: a mounted any-mode channel's message rows (widgets of the chat view) follow its scope."""
 
+from agent_comms.repo import Checkout
 from support.textual_steps import refresh_chat
 from toad.widgets.presentation_window import OLDER_END
 
@@ -14,7 +15,7 @@ async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(work
     comms.messaging.send("carol", "dave", "older newly visible DM")
     comms.messaging.send("alice", "#team", "current channel message")
     comms.channels.set_channel_any_mode("#team", True)
-    assert [m.body for m in comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(project)).messages] == [
+    assert [m.body for m in comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(Checkout(project))).messages] == [
         "current channel message"]
 
     async with workspace.app(size=(100, 30)) as ui:
@@ -29,9 +30,9 @@ async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(work
         await ui.app.coordination_access.stop_observing()
         history = chat.message_history
         source, snapshot = history.page_source, history.source_snapshot()
-        marked = comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(project))
+        marked = comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(Checkout(project)))
         comms.channels.update_tags("carol", add=frozenset({"team"}))
-        expanded = comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(project))
+        expanded = comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(Checkout(project)))
         assert [m.body for m in expanded.messages][:2] == ["older newly visible DM", "current channel message"]
         await history._mark_page(marked, (), snapshot)
         await ui.until(lambda: history.page_source is not source,

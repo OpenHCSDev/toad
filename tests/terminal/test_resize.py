@@ -1,5 +1,6 @@
 """Toad repaints its transcript, sidebar and composer across large terminal size changes."""
 
+from agent_comms.repo import Checkout
 import sys
 
 from agent_comms.session_file import RegistrySessionLocation
@@ -19,7 +20,7 @@ async def test_every_terminal_resize_repaints_transcript_sidebar_and_composer(
         "AGENT_COMMS_AGENT_BIN": "pi", "AGENT_COMMS_AGENT_MODELS": "test/model",
         "AGENT_COMMS_AGENT_ARGS": "--model test/model"}
     workspace.comms.registry.declare(Thread(
-        "resize", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+        "resize", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     command = toad_command("acp", f"{sys.executable} -m agent_comms.acp", "--session", "resize")
     async with terminal_running(workspace, terminal_emulator, command, environment=environment) as terminal:
         await terminal.until(lambda: terminal.shows("A paragraph") or terminal.shows("REPLAY_MARKER_39"),

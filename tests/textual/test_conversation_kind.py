@@ -1,5 +1,6 @@
 """Textual-facing: stable conversation identities resolve current names through Core references."""
 
+from agent_comms.repo import Checkout
 from dataclasses import FrozenInstanceError
 from functools import partial
 
@@ -27,9 +28,9 @@ from toad.wire_history import WireSource
 def copied_conversations(tmp_path):
     original = installed_wire(tmp_path / "original")
     original.registry.declare(
-        Thread("peer", frozenset({"team"}), str(tmp_path))
+        Thread("peer", frozenset({"team"}), Checkout(tmp_path))
     )
-    viewer = original.messaging.user_identity(str(tmp_path)).name
+    viewer = original.messaging.user_identity(Checkout(tmp_path)).name
     original.messaging.send("peer", "#team", "channel body")
     original.messaging.send("peer", viewer, "direct body")
     StoreBackup.copy_tree(original.root, tmp_path / "copied")
@@ -47,12 +48,12 @@ def test_conversation_family_resolves_copied_pages_and_current_labels(
     comms, viewer = copied_conversations
     resolved = route.prepare(comms, viewer)
     conversation = resolved.conversation
-    references = comms.views.viewer_snapshot(str(tmp_path)).references
+    references = comms.views.viewer_snapshot(Checkout(tmp_path)).references
     assert resolved.viewer == viewer
     assert conversation.label(references) == label
     assert HistoryTarget.for_conversation(conversation, references) == route
     page = conversation.page(
-        WireSource(comms, conversation, tmp_path, viewer, IrcMessageStyle()),
+        WireSource(comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle()),
         PageBounds(limit=8),
     )
     assert body in [message.body for message in page.messages]
@@ -67,7 +68,7 @@ def test_new_channel_kind_inherits_destination_resolution(copied_conversations):
 
     comms, viewer = copied_conversations
     conversation = TeamConversation.resolve(comms, viewer, "#team").conversation
-    references = comms.views.viewer_snapshot(str(comms.root.parent)).references
+    references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert ConversationKind.member_named("team") is TeamConversation
     assert conversation == TeamConversation(ChannelTarget("#team"))
     assert conversation.label(references) == "#team"
@@ -82,7 +83,7 @@ def test_routes_reject_duplicate_declarations_and_unregistered_kinds(copied_conv
         pass
 
     comms, _ = copied_conversations
-    references = comms.views.viewer_snapshot(str(comms.root.parent)).references
+    references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     with pytest.raises(KeyError):
         HistoryTarget.for_conversation(UnroutedConversation(ChannelTarget("#team")), references)
 
@@ -113,7 +114,7 @@ def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copie
     scope = direct.input_scope
     comms.registry.rename("peer", "renamed")
     reopened = DirectTarget("renamed").prepare(comms, viewer).conversation
-    references = comms.views.viewer_snapshot(str(comms.root.parent)).references
+    references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert direct == reopened
     assert key == CommsViewKey(str(comms.root), "owner", reopened)
     assert direct.input_scope == reopened.input_scope == scope
@@ -127,9 +128,9 @@ def test_recreated_name_cannot_resolve_the_retired_dm(copied_conversations):
     direct = DirectTarget("peer").prepare(comms, viewer).conversation
     comms.registry.unregister("peer")
     comms.threads.delete("peer")
-    comms.registry.declare(Thread("peer", frozenset(), str(comms.root.parent)))
+    comms.registry.declare(Thread("peer", frozenset(), Checkout(comms.root.parent)))
     recreated = DirectTarget("peer").prepare(comms, viewer).conversation
-    references = comms.views.viewer_snapshot(str(comms.root.parent)).references
+    references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert recreated != direct
     assert CommsViewKey(str(comms.root), "owner", recreated) != CommsViewKey(str(comms.root), "owner", direct)
     assert recreated.label(references) == "@peer"
@@ -141,7 +142,7 @@ def test_history_picker_and_channel_status_use_the_same_declared_value(copied_co
     from toad.screens.historical_sessions import HistoricalSessions
 
     comms, viewer = copied_conversations
-    references = comms.views.viewer_snapshot(str(comms.root.parent)).references
+    references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     create_view = partial(HistoricalSessions, comms, ())
     channel = ChannelConversation(ChannelTarget("#team"))
     direct = DirectTarget("peer").prepare(comms, viewer).conversation

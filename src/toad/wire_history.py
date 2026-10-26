@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
+from agent_comms.repo import Checkout
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
     ConversationHistoryView,
@@ -290,7 +291,7 @@ class WireSource:
 
     comms: Comms
     conversation: ConversationKind
-    project: Path
+    project: Checkout
     me: str
     style: WireMessageStyle
     tail_limit: int = 8
@@ -298,7 +299,7 @@ class WireSource:
 
     @property
     def viewer(self) -> NamedViewer:
-        return self.comms.views.display_viewer(str(self.project))
+        return self.comms.views.display_viewer(self.project)
 
     def references(self) -> CurrentDisplayReferences:
         """Resolve stable destinations through this read's registry cut."""
@@ -307,7 +308,7 @@ class WireSource:
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
         revision = self.conversation.history_view.revision(
-            self.comms.views, self.conversation.retained_target(), seen, worktree=str(self.project)
+            self.comms.views, self.conversation.retained_target(), seen, worktree=self.project
         )
         if revision == seen:
             return Unchanged()
@@ -483,7 +484,7 @@ class WirePageBuffer(SavedHistory):
     async def mark_page(self, page: MessagePage) -> None:
         comms = self.loader.comms
         await asyncio.to_thread(
-            comms.views.mark_page_read, page, worktree=str(self.loader.project))
+            comms.views.mark_page_read, page, worktree=self.loader.project)
 
     async def read_only(self) -> bool:
         return await self.runtime.run_thread(self.loader.conversation.read_only, self.loader.comms)

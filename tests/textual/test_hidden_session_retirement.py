@@ -1,5 +1,6 @@
 """Textual-facing: hidden native sessions cost no repeated Core reads or completion-list rebuilds while idle, and retire only when their own thread is gone."""
 
+from agent_comms.repo import Checkout
 from collections import Counter
 from pathlib import Path
 import sys
@@ -24,7 +25,7 @@ def declare_owners(workspace):
         path = workspace.project if number == 0 else workspace.project / f"agent-{number}"
         path.mkdir(exist_ok=True)
         owners.append(workspace.comms.registry.declare(Thread(
-            "project" if number == 0 else f"agent-{number}", frozenset({"team"}), str(path))))
+            "project" if number == 0 else f"agent-{number}", frozenset({"team"}), Checkout(path))))
     return owners
 
 

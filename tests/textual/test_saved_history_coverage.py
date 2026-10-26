@@ -4,6 +4,7 @@ Not carried over from the old script: the wait for a nested rendering pager insi
 (agent text is line-drawn now, so a live message has no pager of its own).
 """
 
+from agent_comms.repo import Checkout
 from functools import partial
 
 from agent_comms.session_file import RegistrySessionLocation
@@ -23,7 +24,7 @@ async def saved_history(workspace, ui):
                                  id=f"a{number}", parent=f"a{number - 1}" if number else None)
         for number in range(8)))
     owner = workspace.comms.registry.declare(Thread(
-        "saved", frozenset(), str(workspace.project),
+        "saved", frozenset(), Checkout(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root),
     ))
     root = str(workspace.comms.root)

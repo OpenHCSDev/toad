@@ -107,7 +107,8 @@ class EditInteraction(GoalInteraction):
             await session.write(agent, agent.edit_goal(goal, text))
 
         observed = await view.app.preparation.run_thread(view.app.coordination_access.observation.observed)
-        session.present(GoalEdit(goal, goal_mention_candidates(observed), on_save=save))
+        session.present(GoalEdit(
+            goal, goal_mention_candidates(observed), project=view.project_path, on_save=save))
 
 
 class ClearInteraction(GoalInteraction):

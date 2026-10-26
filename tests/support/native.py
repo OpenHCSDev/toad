@@ -6,6 +6,7 @@ tells it to. The wire, the Pi settings and the project are the test's private ro
 """
 
 from __future__ import annotations
+from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached
 
 import asyncio
@@ -230,7 +231,7 @@ async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] =
     agent = None
     started = partial(application or ToadApp, agent_session_id=thread)
     if project is not None:
-        started = partial(started, project_dir=str(project))
+        started = partial(started, project_dir=Checkout(project))
     try:
         async with workspace.app(size=size, binding=AgentAttached(comms_agent()), application=_first_wins(started)) as ui:
             await ui.until(lambda: isinstance(ui.conversation.agent_binding, AgentBase), seconds=20,
@@ -268,7 +269,7 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
     with provider.serving() as base_url:
         comms = start_private_native_wire(workspace.roots.wire)
         configure_provider(base_url, settings=settings, input_types=provider.input_types)
-        comms.registry.declare(Thread(NativeSession.thread, frozenset({"team"}), str(workspace.project),
+        comms.registry.declare(Thread(NativeSession.thread, frozenset({"team"}), Checkout(workspace.project),
                                       model=MODEL, thinking_level=OffThinkingLevel))
         try:
             if prepare is not None:

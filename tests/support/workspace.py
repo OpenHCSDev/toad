@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agent_comms.repo import Checkout, Repo
 from contextlib import asynccontextmanager
 from functools import cached_property
 import os
@@ -28,13 +29,14 @@ class Workspace:
         self.roots = roots
         self.project = roots.project
         self.project.mkdir(parents=True, exist_ok=True)
+        Repo.git(self.project, "init", "-q")
         LaunchRoot.from_path(roots.wire).install()
         self.comms = installed_wire(roots.wire)
 
     @property
     def viewer(self) -> str:
         """The name the user of this project sends as."""
-        return self.comms.messaging.user_identity(str(self.project)).name
+        return self.comms.messaging.user_identity(Checkout(self.project)).name
 
     def thread(self, name: str, *tags: str, running: bool = False, title: str | None = None,
                root: Path | None = None):
@@ -45,7 +47,7 @@ class Workspace:
         comms = self.comms if root is None else installed_wire(root)
         identity = ProcessIdentity.capture(os.getpid()) if running else NoProcess()
         comms.registry.declare(Thread(
-            name, frozenset(tags), str(self.project), title=ThreadText.external(title), process_identity=identity))
+            name, frozenset(tags), Checkout(self.project), title=ThreadText.external(title), process_identity=identity))
         return comms.registry.require(name)
 
     async def bind(self, screen: MainScreen, name: str, *, root: Path | None = None) -> None:
@@ -101,7 +103,7 @@ class Workspace:
         from toad.app import ToadApp
 
         launch = {} if resume is None else {"agent_session_id": resume}
-        app = (application or ToadApp)(agent_binding=binding, project_dir=str(self.project), **launch)
+        app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project), **launch)
         async with app.run_test(size=size) as pilot:
             await app.application.start_worker.wait()
             ui = TextualUi(app, pilot)

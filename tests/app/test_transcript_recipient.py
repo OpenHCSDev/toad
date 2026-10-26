@@ -1,5 +1,6 @@
 """A replay belongs to its requested tab, not whichever tab is still opening."""
 
+from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 from dataclasses import replace
 
@@ -18,7 +19,7 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
         entries = (assistant_entry("Alpha-only history", id="alpha-message"),) if name == "alpha" else ()
         journal = write_journal(workspace.project / f"{name}.jsonl", *entries)
         workspace.comms.registry.declare(Thread(
-            name, frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
+            name, frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
         read = workspace.comms.transcripts.capture_page_read(name)
         updates[name] = TranscriptSnapshotUpdate(read.read(), read.identity)
 
@@ -33,11 +34,11 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
 
     async with workspace.app(size=(110, 38)) as ui:
         alpha_tab = await ui.app.thread_navigation.open(
-            owner_mode=ui.selected_tab, project_path=workspace.project, target="alpha")
+            owner_mode=ui.selected_tab, project_path=ui.app.project_dir, target="alpha")
         await ui.until(lambda: ui.shows("Alpha-only history"), why="alpha's saved history")
 
         await ui.app.thread_navigation.open(
-            owner_mode=alpha_tab, project_path=workspace.project, target="beta")
+            owner_mode=alpha_tab, project_path=ui.app.project_dir, target="beta")
         await ui.step()
         beta = ui.detached_agent(None)
         ui.attach_agent(beta)

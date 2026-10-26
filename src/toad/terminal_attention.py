@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from functools import cached_property, partial
+from functools import partial
 import os
 from typing import TYPE_CHECKING
 
@@ -158,9 +158,9 @@ class TerminalAttention:
                    if notification.markup else notification.message)
         self.notify(message, title=notification.title)
 
-    @cached_property
-    def program(self) -> str:
-        """Decode the terminal's external environment once."""
+    @staticmethod
+    def program() -> str:
+        """Read terminal identity without constructing an application."""
         if program := os.environ.get("TERM_PROGRAM"):
             return program
         if "WT_SESSION" in os.environ:

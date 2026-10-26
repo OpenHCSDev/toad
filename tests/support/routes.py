@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agent_comms.repo import Checkout
 import json
 import os
 from pathlib import Path
@@ -15,9 +16,9 @@ def private_root(path: Path, project: Path, message: str) -> Path:
 
     path.mkdir(mode=0o700)
     comms = installed_wire(path)
-    comms.registry.declare(Thread("user", frozenset(), str(project), role=UserThreadRole))
-    comms.registry.declare(Thread("owner", frozenset({"team"}), str(project / "owner-project")))
-    comms.registry.declare(Thread("peer", frozenset({"team"}), str(project / "peer-project")))
+    comms.registry.declare(Thread("user", frozenset(), Checkout(project), role=UserThreadRole))
+    comms.registry.declare(Thread("owner", frozenset({"team"}), Checkout(project / "owner-project")))
+    comms.registry.declare(Thread("peer", frozenset({"team"}), Checkout(project / "peer-project")))
     comms.messaging.send("peer", "#team", message)
     return path
 

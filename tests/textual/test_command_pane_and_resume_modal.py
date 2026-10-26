@@ -1,3 +1,4 @@
+from agent_comms.repo import Checkout
 """Textual-facing: the command pane (a widget running a terminal execution) gives its child the terminal environment, and the resume modal (a Textual screen) lists saved sessions and returns the chosen one typed."""
 
 import asyncio
@@ -46,7 +47,7 @@ async def test_the_resume_modal_lists_a_saved_session_and_returns_it_typed(tmp_p
         await db.create()
         saved = AgentDefinition.decode({"identity": "saved-agent", "name": "Agent", "run_command": {"*": "agent"}})
         pk = await db.session_new("Saved session", "Agent", "saved-agent", "saved-session",
-                                  meta=SessionMeta(tmp_path, saved))
+                                  meta=SessionMeta(Checkout(tmp_path), saved))
         app = MountedApp(Command.for_script("true"))
         async with app.run_test(size=(100, 30)) as pilot:
             resumed = []

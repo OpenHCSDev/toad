@@ -8,11 +8,11 @@ from toad.core import session_requests
 from abc import ABC, abstractmethod
 from asyncio import CancelledError
 from dataclasses import dataclass, field
-from pathlib import Path
 from functools import partial
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.comms import Comms
+from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
 from agent_comms.route_selection import root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
@@ -34,7 +34,7 @@ class TargetContext:
     comms: Comms
     subject: CommandTarget
     actor: str
-    project: Path
+    project: Checkout
     mode: str | None = None
     channel: ChannelSelection = field(default_factory=NoChannel)
     targets: tuple[CommandTarget, ...] = ()
@@ -63,7 +63,7 @@ class TargetContext:
         self.current()
         actions = CliCommand.target_catalog(self.comms,
             CliCommand.selected_targets(self.selection),
-            self.channel, project=str(self.project))
+            self.channel, project=self.project)
         if RouteSelection.capture(self.comms.root) != selected:
             raise ValueError('Comms route changed during command discovery')
         return actions

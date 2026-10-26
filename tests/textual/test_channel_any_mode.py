@@ -1,5 +1,6 @@
 """Textual-facing: the channel row's context menu (a modal screen opened by a right click) toggles member activity."""
 
+from agent_comms.repo import Checkout
 from agent_comms.ui_model.unread import ExactUnread
 from support.textual_steps import channel_roster
 
@@ -41,7 +42,7 @@ async def test_channel_menu_toggles_member_activity_and_keeps_unpainted_traffic_
         await ui.step()
         assert comms.bus.require_channel("#team").any_mode
         assert bodies(comms) == ["exact route", "outbound from member", "inbound to member"]
-        assert comms.views.viewer_snapshot(str(workspace.project)).channel_unread["#team"] == ExactUnread(count=3)
+        assert comms.views.viewer_snapshot(Checkout(workspace.project)).channel_unread["#team"] == ExactUnread(count=3)
 
         await ui.open_channel("#team", actor="alice")
         await ui.until_shows("inbound to member")

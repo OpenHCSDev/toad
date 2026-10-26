@@ -85,7 +85,7 @@ class ProjectSessionPanel(SessionPanel[ProjectPanel]):
         self.intent: ProjectTreeIntent | None = None
 
     def make_widget(self, screen: "MainScreen") -> ProjectPanel:
-        screen._project_panel = RestorableProjectPanel(screen.project_path, intent=self.intent)
+        screen._project_panel = RestorableProjectPanel(screen.project_path.path, intent=self.intent)
         return screen._project_panel
 
     def capture(self, widget: ProjectPanel) -> None:

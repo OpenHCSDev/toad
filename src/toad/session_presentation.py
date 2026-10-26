@@ -139,7 +139,7 @@ class OperationalSessionSources:
     def prompt(self, conversation: Conversation):
         from toad.widgets.prompt import Prompt
 
-        return Prompt(turns=conversation.turns, submissions=conversation.submissions)
+        return Prompt(project=conversation.project_path, turns=conversation.turns, submissions=conversation.submissions)
 
     async def submit(self, owner, event):
         from toad.conversation_submission import InputSubmission
@@ -186,7 +186,7 @@ class OperationalSessionSources:
 
         assert conversation._agent_data is not None
         agent = Agent(
-            conversation.project_path,
+            conversation.project_path.path,
             conversation._agent_data,
             conversation._agent_session_id,
             conversation._session_pk,
@@ -245,7 +245,7 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        return MailboxPrompt()
+        return MailboxPrompt(project=conversation.project_path)
 
     def thread_presented(self, conversation: Conversation) -> None:
         conversation.run_worker(
@@ -350,10 +350,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation = self.widget
         if conversation is None:
             return
-        if (
-            event.worktree is not None
-            and (project := Path(event.worktree)) != conversation.project_path
-        ):
+        if (project := screen.project_path) != conversation.project_path:
             await conversation.sync_project_path(project)
         conversation.input_histories.bind_scope(f"thread:{event.thread.name}")
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agent_comms.repo import Checkout
 from agent_comms.active_route import resolve_comms_route
 
 from dataclasses import dataclass, replace
@@ -38,7 +39,7 @@ class OverlappingAnnotations:
 def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
     """A short and a long annotation over one segment, as an inspection shows them, and the same after correcting the short one."""
     owner = Thread(
-        "authored-navigation", frozenset(), str(directory), created_at=1.0)
+        "authored-navigation", frozenset(), Checkout(directory), created_at=1.0)
     segment = UserInputSegment(content="Keep the original instruction.",
                                provenance=(UnattributedProvenance(),))
     observed = segment.manifest(0)

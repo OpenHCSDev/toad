@@ -38,7 +38,7 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
 
     @property
     def project_root(self) -> Path:
-        return Path(self.project_path)
+        return self.project_path.path
 
     @property
     def is_current(self) -> bool:

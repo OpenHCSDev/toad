@@ -44,7 +44,7 @@ async def test_a_second_tab_reuses_the_first_tabs_agent_process_and_closing_it_k
             owner_tab = ui.selected_tab
             details = await app.session_navigation.new(
                 await saved_tab(app),
-                lambda: MainScreen(project, AgentSession(definition, "beta"))
+                lambda: MainScreen(app.project_dir, AgentSession(definition, "beta"))
             )
             second_source = app.workspace_sessions.require(details.mode_name)
             await ui.until(

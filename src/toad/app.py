@@ -19,6 +19,8 @@ from time import monotonic
 from typing import TYPE_CHECKING, Callable, Never, TypeVar, cast
 
 from agent_comms.acp_extension import TranscriptChangedUpdate
+from agent_comms.repo import Checkout
+from toad.core import input_events
 from rich.console import RenderableType
 from textual._time import after_input
 from textual import events, on, work
@@ -27,7 +29,7 @@ from textual.await_complete import AwaitComplete
 from textual.content import Content
 from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
-from textual.reactive import var
+from textual.reactive import Required, var
 from textual.screen import Screen
 
 from toad import messages
@@ -137,7 +139,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     BINDING_GROUP_TITLE = "System"
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
-    project_dir = var(Path)
+    project_dir = var[Checkout](Required())
     show_sessions = var(False)
 
     HORIZONTAL_BREAKPOINTS: list[tuple[int, str]] = [
@@ -149,7 +151,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def __init__(
         self,
         agent_binding: AgentBinding,
-        project_dir: str | None = None,
+        project_dir: Checkout,
         mode: str | None = None,
         agent_session_id: str | None = None,
     ) -> None:
@@ -196,7 +198,11 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         super().__init__()
         self._return_value: TerminalOutcome = Ended(self.application.version)
         self.session_navigation.bind_events()
-        self.project_dir = Path(project_dir or "./").expanduser().resolve()
+        self.set_reactive(ToadApp.project_dir, project_dir)
+
+    @handles(input_events.ChangeDirectory)
+    def on_change_directory(self, event: input_events.ChangeDirectory) -> None:
+        self.project_dir = Checkout.checked(event.path)
 
     @property
     def return_value(self) -> TerminalOutcome:

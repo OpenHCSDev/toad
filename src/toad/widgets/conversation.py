@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Callable
 
 from acp import schema as acp_protocol
 from agent_comms.channel_targets import CommandTarget
+from agent_comms.repo import Checkout
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -30,7 +31,7 @@ from textual.css.query import NoMatches
 from textual.geometry import Offset, Region
 from textual.layout import WidgetPlacement
 from textual.layouts.grid import GridLayout
-from textual.reactive import var
+from textual.reactive import Required, var
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
@@ -501,7 +502,7 @@ class ConversationSessionBinding(
         lambda: all_categories(), init=False
     )
 
-    project_path = var(Path)
+    project_path = var[Checkout](Required())
 
     working_directory: var[str] = var("")
 
@@ -531,7 +532,7 @@ class ConversationSessionBinding(
 
     def __init__(
         self,
-        project_path: Path,
+        project_path: Checkout,
         agent: AgentDefinition | None = None,
         agent_session_id: str | None = None,
         session_pk: int | None = None,
@@ -556,7 +557,7 @@ class ConversationSessionBinding(
 
     def _initialize_session(
         self,
-        project_path: Path,
+        project_path: Checkout,
         agent: AgentDefinition | None = None,
         agent_session_id: str | None = None,
         session_pk: int | None = None,
@@ -564,8 +565,6 @@ class ConversationSessionBinding(
         initial_prompt: str | None = None,
         transcript: TranscriptPresentation | None = None,
     ) -> None:
-        project_path = project_path.resolve().absolute()
-
         self.set_reactive(ConversationSessionBinding.project_path, project_path)
         self.set_reactive(
             ConversationSessionBinding.working_directory, str(project_path)
@@ -878,11 +877,11 @@ class Conversation(
         return self.query_ancestor(SessionScope).display_name
 
     def insert_path_into_prompt(self, path: Path) -> None:
-        if not path.is_relative_to(self.project_path):
+        if not path.is_relative_to(self.project_path.path):
             # Paths outside the project have no prompt reference.
             self.app.bell()
             return
-        insert_path_text = str(path.relative_to(self.project_path))
+        insert_path_text = str(path.relative_to(self.project_path.path))
 
         insert_text = (
             f'@"{insert_path_text}"'
@@ -892,10 +891,10 @@ class Conversation(
         self.prompt.prompt_text_area.insert(insert_text)
         self.prompt.prompt_text_area.insert(" ")
 
-    def watch_project_path(self, path: Path) -> None:
+    def watch_project_path(self, path: Checkout) -> None:
         self.publish_core(core_events.SessionPathChanged(str(path)))
 
-    async def sync_project_path(self, path: Path) -> None:
+    async def sync_project_path(self, path: Checkout) -> None:
         """Apply the owner's project to every cwd-bound part of this view."""
         self.project_path = path
         self.working_directory = str(path)
@@ -905,7 +904,7 @@ class Conversation(
             with suppress(TimeoutError):
                 async with asyncio.timeout(2):
                     await self._shell.change_directory(str(path))
-        await self.agent_binding.project_changed(path)
+        await self.agent_binding.project_changed(path.path)
 
     def history_loading(self) -> bool:
         """Whether this view's history is reading its first page; only wire histories page in."""
