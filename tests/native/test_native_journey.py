@@ -183,7 +183,7 @@ async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(works
     from toad.clipboard_image import save_clipboard_png
 
     image = save_clipboard_png(base64.b64decode(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aDqkAAAAASUVORK5CYII="
+        "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg=="
     ))
 
     def reply(request, number):
@@ -202,7 +202,9 @@ async def test_fork_opens_saved_history_and_answers_a_fresh_direct_message(works
         assert number == 1
         return {"role": "assistant", "content": "NATIVE_RESPONSE_1"}, "stop"
 
-    async with native_session(workspace, provider=ControlledProvider(reply=reply, request_budget=3)) as native:
+    async with native_session(workspace, provider=ControlledProvider(
+        reply=reply, request_budget=3, input_types=("text", "image"),
+    )) as native:
         ui, comms = native.ui, native.comms
         app, _pilot = ui.textual
         parent_tab = ui.selected_tab

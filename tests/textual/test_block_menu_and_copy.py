@@ -70,7 +70,7 @@ async def test_clipboard_image_sends_to_channel_and_dm_and_opens_its_preview(
 ):
     """Real X selection -> composer -> wire/inboxes -> image preview -> tab return."""
     png = base64.b64decode(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aDqkAAAAASUVORK5CYII="
+        "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg=="
     )
     source = workspace.project / "clipboard source.png"
     source.write_bytes(png)
