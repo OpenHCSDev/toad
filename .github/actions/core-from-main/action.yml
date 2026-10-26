@@ -1,7 +1,7 @@
 name: Core from main
 description: >-
-  Toad tracks Core's main branch. This refreshes the lock's agent-comms pin to Core main's
-  head, syncs the environment from that lock, and checks Core out at the commit the lock
+  Toad tracks sibling branches declared in pyproject.toml. This refreshes those sources,
+  syncs the environment from that lock, and checks Core out at the commit the lock
   resolved, so one run has one answer to which Core it runs.
 inputs:
   path:
@@ -13,13 +13,16 @@ runs:
     - shell: bash
       run: |
         python -m pip install uv==0.12.0
-        uv lock --upgrade-package agent-comms
-        uv sync --locked --all-extras --no-editable
     - id: core
       shell: bash
       run: |
         python - <<'PY'
-        import os, pathlib, tomllib
+        import os, pathlib, subprocess, tomllib
+        sources = tomllib.loads(pathlib.Path('pyproject.toml').read_text())['tool']['uv']['sources']
+        updates = [argument for name, source in sources.items() if 'branch' in source
+                   for argument in ('--upgrade-package', name)]
+        subprocess.run(['uv', 'lock', *updates], check=True)
+        subprocess.run(['uv', 'sync', '--locked', '--all-extras', '--no-editable'], check=True)
         package, = (p for p in tomllib.loads(pathlib.Path('uv.lock').read_text())['package']
                     if p['name'] == 'agent-comms')
         url, commit = package['source']['git'].split('#')
