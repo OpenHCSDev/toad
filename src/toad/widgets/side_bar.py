@@ -979,7 +979,7 @@ class SideBar(Dismisses, WorkspaceHosted, TonePaint, CoreEventReceiver, containe
     def reveal(self) -> None:
         self.store_collapsed(False)
 
-    def dismiss(self) -> None:
+    def dismiss_control(self) -> None:
         if SETTINGS.sidebar.hide.bind(self.app.saved_settings.state).value:
             self.collapsed = True
         self.post_message(self.Dismiss())

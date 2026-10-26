@@ -5,11 +5,12 @@ import asyncio
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Self
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.declared_family import DeclaredFamily, FamilyMeta
 from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from textual.reactive import var
+from textual.message_pump import _MessagePumpMeta
 
 from toad.messages import Dismiss
 from toad.widget_actions import Dismisses
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
 
 
-class _PopupMeta(type(DeclaredFamily), type(VerticalGroup)):
+class _PopupMeta(FamilyMeta, _MessagePumpMeta):
     """Compose the existing family and Textual message-pump metaclasses."""
 
 
@@ -105,7 +106,7 @@ class PromptPopup(Dismisses, DeclaredFamily, VerticalGroup, metaclass=_PopupMeta
         self.is_open = True
         return True
 
-    def dismiss(self) -> None:
+    def dismiss_control(self) -> None:
         if self.is_open:
             self.is_open = False
             self.prompt.prompt_text_area.suggestion = ""
@@ -115,7 +116,7 @@ class PromptPopup(Dismisses, DeclaredFamily, VerticalGroup, metaclass=_PopupMeta
     def dismiss_popup(self, event: Dismiss) -> None:
         if event.widget is self:
             event.stop()
-            self.dismiss()
+            self.dismiss_control()
 
     def on_descendant_blur(self, event: events.DescendantBlur) -> None:
         # A move between the popup's children is not a departure from the popup.

@@ -3,6 +3,7 @@ from abc import abstractmethod
 from collections.abc import Iterable
 from functools import partial
 from pathlib import Path
+from typing import Literal
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination_errors import DMScopeChanged, Refused
@@ -491,7 +492,7 @@ class MainScreen(TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView, can
         """Open channels and DMs through Toad's native session modes."""
         await self.open_sidebar_target(event.target)
 
-    def navigate_session(self, direction: int) -> None:
+    def navigate_session(self, direction: Literal[-1, 1]) -> None:
         if self.id is not None:
             self.app.session_navigation.events.publish(
                 session_requests.SessionNavigate(self.id, direction)

@@ -82,7 +82,7 @@ class ModeSwitcher(Dismisses, CoreEventReceiver, SelectionOptionList):
         self.publish_core(input_events.ChangeMode(event.option_id))
         self.blur()
 
-    def dismiss(self):
+    def dismiss_control(self) -> None:
         self.blur()
 
 
@@ -993,7 +993,7 @@ class Prompt(HiddenActions, Dismisses, TonePaint, containers.VerticalGroup):
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         return True
 
-    def dismiss(self) -> None:
+    def dismiss_control(self) -> None:
         if self.prompt_text_area.suggestion:
             self.prompt_text_area.suggestion = ""
             return
@@ -1002,7 +1002,7 @@ class Prompt(HiddenActions, Dismisses, TonePaint, containers.VerticalGroup):
             return
         for popup in self.query(PromptPopup):
             if popup.is_open:
-                popup.dismiss()
+                popup.dismiss_control()
                 return
         raise SkipAction()
 

@@ -5,14 +5,14 @@ from collections.abc import Callable
 from typing import cast
 
 from textual import events, on
-from toad.widget_actions import Dismisses, HiddenActions
+from toad.widget_actions import HiddenActions
 from textual.color import TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.geometry import Offset
 from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
 from toad.widget_view import AUTO, FILL, WidgetView
 
 
@@ -50,7 +50,7 @@ class ContextMenuOptions[Choice](WidgetView, OptionList):
         return self.app.colours.colour(ForegroundColour)
 
 
-class ContextMenu[Choice](HiddenActions, Dismisses, WidgetView, ModalScreen[Choice]):
+class ContextMenu[Choice](HiddenActions, WidgetView, DismissibleScreen[Choice]):
     """Native dismissal owns Escape, selection, results and focus restoration."""
 
     width = height = FILL

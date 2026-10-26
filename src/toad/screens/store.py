@@ -94,7 +94,7 @@ class DirectoryDisplay(Dismisses, CoreEventReceiver, containers.HorizontalGroup)
 
     @on(events.DescendantBlur)
     def on_blur(self):
-        self.dismiss()
+        self.dismiss_control()
 
     @on(widgets.Input.Submitted)
     def on_input_submitted(self, event: widgets.Input.Submitted) -> None:
@@ -106,7 +106,7 @@ class DirectoryDisplay(Dismisses, CoreEventReceiver, containers.HorizontalGroup)
         self.condensed_path.path = format_path(path, directory=True)
         self.publish_core(input_events.ChangeDirectory(str(path)))
 
-    def dismiss(self) -> None:
+    def dismiss_control(self) -> None:
         self.edit = False
         self.directory_input.value = self.path
 

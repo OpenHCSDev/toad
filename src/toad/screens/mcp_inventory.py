@@ -8,8 +8,7 @@ from typing import cast
 
 from textual import containers, on
 from textual.app import ComposeResult
-from toad.screens.modal import ModalScreen
-from toad.widget_actions import Dismisses
+from toad.screens.modal import DismissibleScreen
 from textual.widgets import Button, OptionList, Static
 from textual.widgets.option_list import Option
 
@@ -27,7 +26,7 @@ class MCPDecisionButton(Button):
         self.command = command
 
 
-class MCPInventoryScreen(Dismisses, ModalScreen[None]):
+class MCPInventoryScreen(DismissibleScreen[None]):
     """The Pi package owns the inventory; this screen never owns decisions."""
 
     DEFAULT_CSS = """

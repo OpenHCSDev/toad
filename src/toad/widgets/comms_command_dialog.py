@@ -87,7 +87,7 @@ class CatalogFieldSelection(ModelSelection):
     def select_model(self, model_id: str):
         self.screen.dismiss(model_id)
 
-    def dismiss(self):
+    def dismiss_control(self) -> None:
         self.screen.dismiss(None)
 
     @work(exclusive=True)

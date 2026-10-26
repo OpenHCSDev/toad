@@ -86,7 +86,7 @@ class SlashComplete(PriorityActions, MovesCursor, Submits, CompletionPopup):
         area = self.prompt.prompt_text_area
         area.clear()
         area.insert(f"{event.command} ")
-        self.dismiss()
+        self.dismiss_control()
 
     def compose_content(self) -> ComposeResult:
         yield SlashCompleteInput(compact=True, placeholder="fuzzy search")

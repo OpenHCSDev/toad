@@ -113,9 +113,9 @@ class ChannelPrompt(MessagePrompt):
         event.stop()
         self.accept_mention()
 
-    def dismiss(self) -> None:
+    def dismiss_control(self) -> None:
         if self.mention_list.display:
             self._dismissed_text = self.text
             self.mention_list.display = False
         else:
-            super().dismiss()
+            super().dismiss_control()

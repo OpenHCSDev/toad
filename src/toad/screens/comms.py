@@ -6,6 +6,7 @@ from toad.screens.session_view import SessionView
 import asyncio
 from functools import partial
 from pathlib import Path
+from typing import Literal
 
 from textual import containers, getters, on
 from textual.app import ComposeResult
@@ -276,7 +277,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
     async def open_direct_messages(self) -> None:
         await self.conversation.toggle_dm(self)
 
-    def navigate_session(self, direction: int) -> None:
+    def navigate_session(self, direction: Literal[-1, 1]) -> None:
         self.app.session_navigation.events.publish(
             session_requests.SessionNavigate(self.owner_mode, direction)
         )

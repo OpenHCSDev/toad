@@ -1,14 +1,13 @@
 from textual import on
 from textual.app import ComposeResult
-from toad.screens.modal import ModalScreen
-from toad.widget_actions import Dismisses
+from toad.screens.modal import DismissibleScreen
 from textual import widgets
 from toad.widgets.footer import ToadFooter
 from textual import containers
 from textual import getters
 
 
-class CommandEditModal(Dismisses, ModalScreen[str | None]):
+class CommandEditModal(DismissibleScreen[str | None]):
     BINDINGS = [
         ("ctrl+c", "copy", "Copy to clipboard"),
     ]

@@ -290,8 +290,8 @@ class ModelSwitcher(ModelSelection, InfoPopup):
 
     def select_model(self, model_id: str):
         self.publish_core(input_events.ChangeModel(model_id))
-        self.dismiss()
+        self.dismiss_control()
 
     def connect_provider(self):
-        self.dismiss()
+        self.dismiss_control()
         self.publish_core(input_events.ProviderLogin())

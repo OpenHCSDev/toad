@@ -97,9 +97,9 @@ class Menu(Dismisses, UntintedTonePaint, ListView, can_focus=True):
     async def activate_index(self, index: int) -> None:
         action = self._options[index].action
         self.post_message(self.OptionSelected(self, self._owner, action))
-        self.dismiss()
+        self.dismiss_control()
 
-    def dismiss(self) -> None:
+    def dismiss_control(self) -> None:
         if self.is_leaving:
             return
         if self.has_focus:
@@ -108,7 +108,7 @@ class Menu(Dismisses, UntintedTonePaint, ListView, can_focus=True):
         self.remove()
 
     def on_blur(self) -> None:
-        self.dismiss()
+        self.dismiss_control()
 
     @on(events.Key)
     async def on_key(self, event: events.Key) -> None:

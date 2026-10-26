@@ -1,14 +1,17 @@
 """The Action family and its Textual dispatch projection."""
+from __future__ import annotations
+
 import inspect
 from abc import abstractmethod
-from collections.abc import Iterator
+from collections.abc import Awaitable, Iterator
 from functools import partialmethod
-from typing import ClassVar, Generic, Self, TypeVar
+from typing import ClassVar, Generic, Literal, Self, TypeVar
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from textual.binding import Binding
+from textual.dom import DOMNode
 from textual._callback import invoke
 from dataclasses import replace
 
@@ -123,13 +126,15 @@ class VimHintsAction(VimApplicationAction):
 class DeclaredWidgetActions:
     """One family supplies both native dispatch and dynamic availability."""
 
+    ACTIONS: ClassVar[type[Action]]
+
     @classmethod
     def declared_actions(cls) -> tuple[type[Action], ...]:
         """Capabilities and the widget's own family compose through its MRO."""
         members = tuple(dict.fromkeys(
-            member for base in cls.__mro__ if "ACTIONS" in base.__dict__
-            for family in (base.__dict__["ACTIONS"],)
-            for member in family.declarations()
+            member for base in cls.__mro__
+            if issubclass(base, DeclaredWidgetActions) and "ACTIONS" in vars(base)
+            for member in base.ACTIONS.declarations()
         ))
         inherited = {base for member in members for base in member.__mro__[1:]}
         return tuple(member for member in members if member not in inherited)
@@ -172,17 +177,23 @@ class SingleAction:
     """A capability selects this declaration, not every contextual specialization."""
 
     @classmethod
-    def declarations(cls):
+    def declarations(cls) -> tuple[type[Self], ...]:
         return (cls,)
+
+
+class ActionGroup(Generic[Context]):
+    """A family root groups executable members; it has no operation of its own."""
+
+    async def apply(self, context: Context) -> None:
+        pass
 
 
 class DismissAction(SingleAction, VisibleAction):
     """Close the current control."""
     keys = ("escape",)
 
-    async def apply(self, context):
-        # Screen.dismiss schedules its removal; awaiting it from its own handler is illegal.
-        context.dismiss()
+    async def apply(self, context: Dismisses) -> None:
+        context.dismiss_control()
 
 
 class HiddenDismissAction(DismissAction):
@@ -190,28 +201,28 @@ class HiddenDismissAction(DismissAction):
     title = DismissAction.title
 
 
-class CursorAction(VisibleAction, affix="Action"):
+class CursorAction(ActionGroup["MovesCursor"], VisibleAction, affix="Action"):
     group = Binding.Group("Select")
 
 
 class CursorUpAction(CursorAction):
     keys = ("up",)
 
-    async def apply(self, context):
+    async def apply(self, context: MovesCursor) -> None:
         context.cursor_up()
 
 
 class CursorDownAction(CursorAction):
     keys = ("down",)
 
-    async def apply(self, context):
+    async def apply(self, context: MovesCursor) -> None:
         context.cursor_down()
 
 
 class SubmitAction(SingleAction, VisibleAction):
     keys = ("enter",)
 
-    async def apply(self, context):
+    async def apply(self, context: Submits) -> None:
         await invoke(context.submit)
 
 
@@ -223,14 +234,14 @@ class HiddenSubmitAction(SubmitAction):
 class SelectAction(SingleAction, VisibleAction):
     keys = ("enter",)
 
-    async def apply(self, context):
+    async def apply(self, context: Selects) -> None:
         context.select()
 
 
 class LaunchAction(SingleAction, VisibleAction):
     keys = ("space",)
 
-    async def apply(self, context):
+    async def apply(self, context: Launches) -> None:
         await invoke(context.launch)
 
 
@@ -243,7 +254,7 @@ class PriorityLaunchAction(LaunchAction):
 class ActivateAction(SingleAction, WidgetAction):
     keys = ("enter,space",)
 
-    async def apply(self, context):
+    async def apply(self, context: Activates) -> None:
         context.activate()
 
 
@@ -256,7 +267,7 @@ class ToggleIrcAction(SingleAction, VisibleAction):
     title = "IRC view"
     keys = ("ctrl+g",)
 
-    async def apply(self, context):
+    async def apply(self, context: TogglesIrc) -> None:
         await context.toggle_irc()
 
 
@@ -265,9 +276,9 @@ SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
 
 class SessionNavigationAction(VisibleAction, affix="Action"):
     group = SESSION_NAVIGATION_GROUP
-    direction: ClassVar[int]
+    direction: ClassVar[Literal[-1, 1]]
 
-    async def apply(self, context):
+    async def apply(self, context: CyclesSessions) -> None:
         context.navigate_session(self.direction)
 
 
@@ -281,81 +292,109 @@ class SessionNextAction(SessionNavigationAction):
     direction = +1
 
 
-class FocusAction(VisibleAction, affix="Action"):
+class FocusAction(ActionGroup["CyclesFocus"], VisibleAction, affix="Action"):
     group = Binding.Group("Focus")
 
 
 class FocusNextAction(FocusAction):
     keys = ("tab",)
 
-    async def apply(self, context):
+    async def apply(self, context: CyclesFocus) -> None:
         context.app.action_focus_next()
 
 
 class FocusPreviousAction(FocusAction):
     keys = ("shift+tab",)
 
-    async def apply(self, context):
+    async def apply(self, context: CyclesFocus) -> None:
         context.app.action_focus_previous()
 
 
 class Dismisses(DeclaredWidgetActions):
-    ACTIONS = DismissAction
+    ACTIONS: ClassVar[type[Action]] = DismissAction
+
+    @abstractmethod
+    def dismiss_control(self) -> None:
+        """Close this control without imposing a native screen result contract."""
 
 
-class HiddenDismisses(DeclaredWidgetActions):
-    ACTIONS = HiddenDismissAction
+class HiddenDismisses(Dismisses):
+    ACTIONS: ClassVar[type[Action]] = HiddenDismissAction
 
 
 class MovesCursor(DeclaredWidgetActions):
-    ACTIONS = CursorAction
+    ACTIONS: ClassVar[type[Action]] = CursorAction
+
+    @abstractmethod
+    def cursor_up(self) -> None: ...
+
+    @abstractmethod
+    def cursor_down(self) -> None: ...
 
 
 class Submits(DeclaredWidgetActions):
-    ACTIONS = SubmitAction
+    ACTIONS: ClassVar[type[Action]] = SubmitAction
+
+    @abstractmethod
+    def submit(self) -> None: ...
 
 
-class HiddenSubmits(DeclaredWidgetActions):
-    ACTIONS = HiddenSubmitAction
+class HiddenSubmits(Submits):
+    ACTIONS: ClassVar[type[Action]] = HiddenSubmitAction
 
 
 class Selects(DeclaredWidgetActions):
-    ACTIONS = SelectAction
+    ACTIONS: ClassVar[type[Action]] = SelectAction
+
+    @abstractmethod
+    def select(self) -> None: ...
 
 
 class Launches(DeclaredWidgetActions):
-    ACTIONS = LaunchAction
+    ACTIONS: ClassVar[type[Action]] = LaunchAction
+
+    @abstractmethod
+    def launch(self) -> Awaitable[None] | None: ...
 
 
-class PriorityLaunches(DeclaredWidgetActions):
-    ACTIONS = PriorityLaunchAction
+class PriorityLaunches(Launches):
+    ACTIONS: ClassVar[type[Action]] = PriorityLaunchAction
 
 
 class Activates(DeclaredWidgetActions):
-    ACTIONS = ActivateAction
+    ACTIONS: ClassVar[type[Action]] = ActivateAction
+
+    @abstractmethod
+    def activate(self) -> None: ...
 
 
-class VisibleActivates(DeclaredWidgetActions):
-    ACTIONS = VisibleActivateAction
+class VisibleActivates(Activates):
+    ACTIONS: ClassVar[type[Action]] = VisibleActivateAction
 
 
 class TogglesIrc(DeclaredWidgetActions):
-    ACTIONS = ToggleIrcAction
+    ACTIONS: ClassVar[type[Action]] = ToggleIrcAction
+
+    @abstractmethod
+    async def toggle_irc(self) -> None: ...
 
 
 class CyclesSessions(DeclaredWidgetActions):
-    ACTIONS = SessionNavigationAction
+    ACTIONS: ClassVar[type[Action]] = SessionNavigationAction
+
+    @abstractmethod
+    def navigate_session(self, direction: Literal[-1, 1]) -> None: ...
 
 
-class CyclesFocus(DeclaredWidgetActions):
-    ACTIONS = FocusAction
+class CyclesFocus(DeclaredWidgetActions, DOMNode):
+    ACTIONS: ClassVar[type[Action]] = FocusAction
 
 
 class PriorityActions(DeclaredWidgetActions):
     """A popup's declared keys take precedence over the editor underneath it."""
 
     @classmethod
-    def action_bindings(cls, declaration):
+    def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
         return tuple(replace(binding, priority=True)
                      for binding in super().action_bindings(declaration))
 
@@ -364,6 +403,6 @@ class HiddenActions(DeclaredWidgetActions):
     """A compact control keeps its actions out of the footer."""
 
     @classmethod
-    def action_bindings(cls, declaration):
+    def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
         return tuple(replace(binding, show=False)
                      for binding in super().action_bindings(declaration))

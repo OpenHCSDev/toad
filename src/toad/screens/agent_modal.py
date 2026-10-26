@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 
 from textual import work
 from textual.content import Content
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
 from textual import containers
 from textual import widgets
 from toad.widgets.footer import ToadFooter
@@ -25,7 +25,7 @@ class DescriptionContainer(containers.VerticalScroll):
         return self.show_vertical_scrollbar
 
 
-class AgentModal(HiddenDismisses, PriorityLaunches, ModalScreen[LaunchAgent | None]):
+class AgentModal(HiddenDismisses, PriorityLaunches, DismissibleScreen[LaunchAgent | None]):
     AUTO_FOCUS = "Select#action-select"
 
 

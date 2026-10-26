@@ -3,8 +3,7 @@ from agent_comms.field_codec import RecordedTimestamp
 
 from textual import containers, getters, on, widgets
 from textual.app import ComposeResult
-from toad.screens.modal import ModalScreen
-from toad.widget_actions import Dismisses
+from toad.screens.modal import DismissibleScreen
 
 from toad.db import DB, Session
 
@@ -15,7 +14,7 @@ Pick a session to resume.
 """
 
 
-class SessionResumeModal(Dismisses, ModalScreen[Session]):
+class SessionResumeModal(DismissibleScreen[Session]):
     """Dialog to select a session to resume."""
 
     CSS_PATH = "session_resume_modal.tcss"
