@@ -1,4 +1,4 @@
-"""Forms edit typed Core ordering choices; the sidebar only displays their result."""
+"""Anchored menus edit Core ordering choices; observed rows own their result."""
 
 from __future__ import annotations
 
@@ -14,20 +14,14 @@ from typing import Annotated, ClassVar
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
-from objectstate import ObjectState
 from python_introspect import FieldLabel
 from textual import events
-from textual.containers import VerticalScroll
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
-from textual.css.scalar import Scalar, Unit
-from textual.geometry import Spacing
+from textual.geometry import Offset
 
 from toad.forms.field_path import FieldPath
-from toad.forms.form_view import InlineFormView
-from toad.forms.presentation import FormModal
-from toad.screens.modal import ModalScreen
-from toad.widget_view import WidgetView
+from toad.widgets.comms_menu import ContextMenu
 from toad.forms.kinds import Placeholder
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
@@ -35,61 +29,20 @@ from toad.setting_declarations import FamilyChoices
 
 @dataclass(frozen=True)
 class ThreadSortForm:
+    choices: ClassVar[FamilyChoices] = FamilyChoices(ThreadSort)
     placeholder: ClassVar[Placeholder] = Placeholder("Mixed orders")
     order: Annotated[
-        type[ThreadSort] | None, FamilyChoices(ThreadSort), FieldLabel("Member order"), placeholder
+        type[ThreadSort] | None, choices, FieldLabel("Member order"), placeholder
     ]
 
 
 @dataclass(frozen=True)
 class ChannelSortForm:
+    choices: ClassVar[FamilyChoices] = FamilyChoices(ChannelSort)
     placeholder: ClassVar[Placeholder] = Placeholder("Choose order")
     order: Annotated[
-        type[ChannelSort] | None, FamilyChoices(ChannelSort), FieldLabel("Channel order"), placeholder
+        type[ChannelSort] | None, choices, FieldLabel("Channel order"), placeholder
     ]
-
-
-class SortPanel(WidgetView, VerticalScroll):
-    width = Scalar.from_number(52)
-    max_width = Scalar(90, Unit.PERCENT, Unit.WIDTH)
-    max_height = Scalar(90, Unit.VIEW_HEIGHT, Unit.VIEW_HEIGHT)
-    padding = Spacing(1, 2, 1, 2)
-    overflow_y = "auto"
-
-
-class SortDialog(FormModal[type[DisplayOrder] | None], ModalScreen[type[DisplayOrder] | None]):
-    """A short-lived edit form, not a second source of persisted ordering."""
-
-    def __init__(self, control: SortControl, form: ThreadSortForm | ChannelSortForm):
-        super().__init__()
-        self.control = control
-        self.state = ObjectState(form)
-        self.order_field = FieldPath(type(form)).order.bind(self.state)
-        self.form = InlineFormView(self.state, focus=self.order_field.path)
-        paths = control.visibility_fields()
-        self.visibility_form = (InlineFormView(self.app.saved_settings.state, paths=paths)
-                                if paths else None)
-
-    def compose(self):
-        with SortPanel():
-            yield Static(f"Sort {self.control.scope}")
-            yield self.form
-            if self.visibility_form is not None:
-                yield self.visibility_form
-
-    def on_mount(self):
-        self.state.on_resolved_changed(self.order_changed)
-
-    def order_changed(self, paths: set[str]):
-        if self.order_field.path.value in paths:
-            order = self.order_field.value
-            if order is not None and order is not self.control.order:
-                self.dismiss(order)
-
-    def on_unmount(self):
-        self.state.off_resolved_changed(self.order_changed)
-        if self.visibility_form is not None:
-            self.app.run_worker(self.app.saved_settings.save(), group="channel-visibility")
 
 
 class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Static, can_focus=True):
@@ -150,18 +103,39 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
             return
         write = await self.order_writer()
 
-        def choose(order):
-            if order is not None:
-                self.run_worker(self._save_order(order, write), group="sort-order")
+        choices = form.choices
+        orders = tuple(choices.choices())
+        items = [(partial(self._choose_order, order, write), choices.label(order))
+                 for order in orders]
+        for path in self.visibility_fields():
+            field = path.bind(self.app.saved_settings.state)
+            items.append((partial(self._toggle_visibility, path),
+                          f"{'✓' if field.value else '○'} {field.label}"))
 
-        self.app.push_screen(SortDialog(self, form), choose)
+        def choose(action):
+            if action:
+                action()
+
+        menu = ContextMenu.show(
+            self.screen, Offset(self.region.x, self.region.bottom), "Sort", items,
+            callback=choose,
+        )
+        for index, order in enumerate(orders):
+            if order is self.order:
+                menu.options.highlighted = index
+
+    def _choose_order(self, order: type[Order], write: Callable[[type[Order]], Awaitable[object]]) -> None:
+        if order is not self.order:
+            # Only the backend observation updates the displayed order.
+            self.run_worker(write(order), group="sort-order")
+
+    def _toggle_visibility(self, path: FieldPath) -> None:
+        settings = self.app.saved_settings
+        settings.toggle(path)
+        self.run_worker(settings.save(), group="channel-visibility")
 
     def visibility_fields(self) -> tuple[FieldPath, ...]:
         return ()
-
-    async def _save_order(self, order: type[Order], write: Callable[[type[Order]], Awaitable[object]]) -> None:
-        await write(order)
-        # Only the backend observation updates the displayed order.
 
     @abstractmethod
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...

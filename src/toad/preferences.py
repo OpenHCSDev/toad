@@ -178,11 +178,11 @@ class SidebarSettings(AnnotatedDataclassValidationMixin):
     hide: Annotated[bool, FieldLabel("Hide the sidebar when not in use?")] = False
 
     show_stopped: Annotated[
-        bool, FieldLabel("Show stopped threads in Channels?"), effects.sidebar_filters
+        bool, FieldLabel("Show stopped"), effects.sidebar_filters
     ] = True
 
     show_archived: Annotated[
-        bool, FieldLabel("Show archived channels and threads?"), effects.sidebar_filters
+        bool, FieldLabel("Show archived"), effects.sidebar_filters
     ] = False
 
 
