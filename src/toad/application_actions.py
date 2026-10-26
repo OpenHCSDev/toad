@@ -254,7 +254,7 @@ class VimFocusPromptAction(VimNavigationAction):
         self.conversation(app).prompt.enter_insert()
 
 
-class VimCycleTabAction(VimApplicationAction):
+class VimCycleTabAction(VimApplicationAction, declared_name=None):
     direction: Literal[-1, 1]
 
     async def apply(self, app: ToadApp) -> None:
@@ -275,7 +275,7 @@ class VimPreviousTabAction(VimCycleTabAction):
     direction = -1
 
 
-class VimHistoryAction(VimApplicationAction):
+class VimHistoryAction(VimApplicationAction, declared_name=None):
     direction: Literal[-1, 1]
 
     async def apply(self, app: ToadApp) -> None:
@@ -294,7 +294,7 @@ class VimHistoryForwardAction(VimHistoryAction):
     direction = +1
 
 
-class VimSidebarAction(VimApplicationAction):
+class VimSidebarAction(VimApplicationAction, declared_name=None):
     side: Side
 
     async def apply(self, app: ToadApp) -> None:
@@ -313,7 +313,7 @@ class VimRightSidebarAction(VimSidebarAction):
     side = "right"
 
 
-class VimMoveTabAction(VimApplicationAction):
+class VimMoveTabAction(VimApplicationAction, declared_name=None):
     direction: Literal[-1, 1]
 
     async def apply(self, app: ToadApp) -> None:

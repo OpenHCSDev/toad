@@ -1,6 +1,13 @@
 """Workspace navigation keys operate original tabs; editors retain typed capitals."""
 
 from toad.preferences import SETTINGS
+from textual.command import CommandPalette
+from textual.widgets import Input, OptionList
+from toad.widgets.comms_menu import ContextMenu
+from toad.application_actions import (
+    VimCycleTabAction, VimHistoryAction, VimSidebarAction, VimMoveTabAction,
+    VimHistoryBackAction, VimHistoryForwardAction,
+)
 from toad.widgets.side_bar import SideBar, SidebarAction
 
 
@@ -12,6 +19,31 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         second = await ui.new_session()
         third = await ui.new_session()
         originals = app.tab_order.names
+
+        # The actual menu and palette must offer configured leaves, not bases
+        # whose shared implementation has no direction or side of its own.
+        assert await pilot.click('#main-menu')
+        await ui.until(lambda: isinstance(app.screen, ContextMenu), why='the application menu')
+        options = app.screen.options
+        actions = [options.get_option_at_index(index).action for index in range(options.option_count)]
+        bases = {VimCycleTabAction, VimHistoryAction, VimSidebarAction, VimMoveTabAction}
+        assert not bases.intersection(type(action) for action in actions)
+        options.highlighted = next(index for index, action in enumerate(actions)
+                                   if type(action) is VimHistoryBackAction)
+        await ui.press('enter')
+        await ui.until(lambda: ui.selected_tab == second, why='menu history-back action')
+
+        await ui.press('ctrl+p')
+        await ui.until(lambda: isinstance(app.screen, CommandPalette), why='the command palette')
+        app.screen.query_one(Input).value = 'Vim'
+        options = app.screen.query_one(OptionList)
+        def palette_labels():
+            return [options.get_option_at_index(index).hit.text for index in range(options.option_count)]
+        await ui.until(lambda: VimHistoryForwardAction.title in palette_labels(), why='Vim palette commands')
+        assert not {'Vim cycle tab', 'Vim history', 'Vim sidebar', 'Vim move tab'}.intersection(palette_labels())
+        options.highlighted = palette_labels().index(VimHistoryForwardAction.title)
+        await ui.press('enter')
+        await ui.until(lambda: ui.selected_tab == third, why='palette history-forward action')
 
         async def navigate(key, expected):
             ui.conversation.window.focus()
@@ -77,6 +109,13 @@ async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
         ui.conversation.window.focus()
         await ui.press('ctrl+shift+l')
         assert not channels.collapsed and not thread.collapsed
+        await ui.press('ctrl+shift+h')
+        assert channels.collapsed and thread.collapsed
+        await ui.press('ctrl+shift+h')
+        assert not channels.collapsed and not thread.collapsed
+        channels.toggle(focus=False)
+        await ui.step()
+        assert channels.collapsed and not thread.collapsed
         await ui.press('ctrl+shift+h')
         assert channels.collapsed and thread.collapsed
         await ui.press('ctrl+shift+h')

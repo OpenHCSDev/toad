@@ -49,8 +49,11 @@ class WorkspaceChrome(VerticalLayout):
 
     def toggle_sidebar(self, side: Side) -> None:
         layout = self.app.sidebar_layout
-        for bar in self.presented_sidebars():
-            if layout.get(bar.id).side == side:
+        bars = tuple(bar for bar in self.presented_sidebars()
+                     if layout.get(bar.id).side == side)
+        collapsed = any(not bar.collapsed for bar in bars)
+        for bar in bars:
+            if bar.collapsed != collapsed:
                 bar.toggle(focus=False)
 
     async def prepare_navigation(self, screen) -> bool:
