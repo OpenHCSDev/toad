@@ -218,7 +218,7 @@ class CommanderPage(
     CommanderPage Static { height: auto; }
     CommanderPage .hud-commander { text-style: bold reverse; }
     CommanderPage .hud-load { text-style: bold; margin-bottom: 1; }
-    CommanderPage Button { dock: bottom; margin-top: 1; }
+    CommanderPage #commander-close { dock: bottom; margin-top: 1; }
     """
 
     def __init__(self, commander: str = "") -> None:
