@@ -190,7 +190,7 @@ class CommsUpdateConsumer(MroDispatch):
         if Path(update.wire_root).resolve() != root.resolve():
             raise RouteChangedError("ACP owner reported a different coordination root")
         agent.coordination = update
-        agent.project_root_path = Path(update.worktree)
+        agent.project_root_path = update.worktree.path
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)
         agent.update_status_line()
         agent.events.publish(

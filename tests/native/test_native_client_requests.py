@@ -1,6 +1,7 @@
 """Requests the agent makes of its client (files, permission, terminal) on a real native session,
 and what happens to them when the tab is left, the session is replaced or the agent is stopped."""
 
+from agent_comms.repo import Checkout
 import asyncio
 from acp import schema
 
@@ -62,8 +63,8 @@ async def test_client_requests_follow_the_session_they_belong_to(workspace, nati
         await ui.write_draft("CLIENT_SESSION_UNSENT_DRAFT")
         document = view.prompt.prompt_text_area.document
         undo = view.prompt.prompt_text_area.history
-        user = comms.messaging.user_identity(str(project)).name
-        await channel_target("#team").open(NavigationContext(app, owner_tab, project, user))
+        user = comms.messaging.user_identity(Checkout(project)).name
+        await channel_target("#team").open(NavigationContext(app, owner_tab, app.project_dir, user))
         await ui.select_tab(owner_tab)
         returned = ui.conversation
         assert returned.agent_binding is agent and agent.controller.terminals.require(terminal_id) is execution

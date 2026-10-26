@@ -35,7 +35,7 @@ async def saved_tab(app: ToadApp) -> AcpTab:
     binding = app.agent_binding
     agent = (binding.agent if isinstance(binding, AgentAttached)
              else command("true", name="Test session", identity="test-session"))
-    return await app.session_navigation.saved(agent, Path(app.project_dir))
+    return await app.session_navigation.saved(agent, app.project_dir)
 
 
 class NotShown(AssertionError):

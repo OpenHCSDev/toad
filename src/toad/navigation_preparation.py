@@ -16,6 +16,7 @@ from agent_comms.session_load import ExistingSessionLoadPlan
 from agent_comms.thread_execution import ConversationPreparation
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.threads import Thread
+from agent_comms.repo import Checkout
 
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.session_tracker import CommsViewKey
@@ -76,7 +77,7 @@ class OpenThread:
 class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
     root: str
     thread: Thread
-    project: Path
+    project: Checkout
 
     async def open(self, opening: ThreadOpening) -> str:
         return await opening.navigator.mount(self, opening)
@@ -137,7 +138,7 @@ class ExistingThreadNavigation(ThreadNavigation):
 class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
     comms: Comms
     target: str
-    project: Path
+    project: Checkout
     open_threads: tuple[OpenThread, ...]
 
     @property
@@ -147,9 +148,7 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
     def read(self) -> ThreadNavigation:
         snapshot = self.comms.registry.snapshot()
         thread = snapshot.require(self.target)
-        project = Path(thread.worktree)
-        if not project.is_dir():
-            project = self.project
+        project = thread.worktree
         existing = next(
             (
                 view
@@ -170,7 +169,7 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
 class ThreadConversationPreparation(ConversationPreparation):
     root: str
     thread: Thread
-    project: Path
+    project: Checkout
     snapshot: RegistrySnapshot
 
     def external(self) -> ThreadNavigation:

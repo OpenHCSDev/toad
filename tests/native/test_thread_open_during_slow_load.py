@@ -1,5 +1,6 @@
 """Opening a thread whose session loads slowly: one tab from the first click, the loading state,
 then the saved history; the session left behind keeps its editor."""
+from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached
 
 import asyncio
@@ -36,7 +37,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
     project = workspace.project
     comms = start_private_native_wire(workspace.roots.wire)
     for name in ("owner", "fresh-peer"):
-        comms.registry.declare(Thread(name, frozenset({"journey"}), str(project),
+        comms.registry.declare(Thread(name, frozenset({"journey"}), Checkout(project),
                                       process_identity=ProcessIdentity.capture(os.getpid())))
     comms.channels.create_tag("journey")
     comms.messaging.send("owner", "#journey", "SAVED_CHANNEL_JOURNEY")

@@ -66,7 +66,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
     @property
     def project_root(self) -> Path:
         index = self.query_one("#saved-identity", Select).value
-        return Path(self.threads[index].thread.worktree)
+        return self.threads[index].thread.worktree.path
 
     def compose(self) -> ComposeResult:
         with Vertical():

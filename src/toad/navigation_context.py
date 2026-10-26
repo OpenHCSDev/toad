@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
+from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class NavigationContext:
     app: ToadApp
     owner_mode: str
-    project_path: Path
+    project_path: Checkout
     actor: str
 
 

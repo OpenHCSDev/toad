@@ -186,7 +186,7 @@ class OperationalSessionSources:
 
         assert conversation._agent_data is not None
         agent = Agent(
-            conversation.project_path,
+            conversation.project_path.path,
             conversation._agent_data,
             conversation._agent_session_id,
             conversation._session_pk,
@@ -352,7 +352,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             return
         if (
             event.worktree is not None
-            and (project := Path(event.worktree)) != conversation.project_path
+            and (project := screen.project_path) != conversation.project_path
         ):
             await conversation.sync_project_path(project)
         conversation.input_histories.bind_scope(f"thread:{event.thread.name}")

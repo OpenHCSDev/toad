@@ -1,4 +1,5 @@
 """Toad starts with no tab open and shows the welcome view until one is opened."""
+from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached
 
 from support.agents import peer
@@ -57,7 +58,7 @@ async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user
         Thread(
             "scribe",
             frozenset({"team"}),
-            str(workspace.project),
+            Checkout(workspace.project),
             execution=ExternalThreadExecution,
         )
     )
@@ -122,7 +123,7 @@ async def test_a_thread_row_tooltip_names_its_model_by_text(workspace):
     from agent_comms.thread_model import DeclaredModel
     from toad.widgets.comms_sidebar import ThreadStatusRow
 
-    thread = Thread("alpha", frozenset({"team"}), str(workspace.project))
+    thread = Thread("alpha", frozenset({"team"}), Checkout(workspace.project))
     workspace.comms.registry.declare(replace(thread, model=DeclaredModel("openai-codex/gpt-6.1-sol")))
     async with workspace.app(session=False) as ui:
         await ui.until_shows(THREADS)

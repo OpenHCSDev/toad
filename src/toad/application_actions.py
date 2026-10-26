@@ -22,6 +22,7 @@ from toad.sidebar_layout import Side
 from agent_comms.errors import RelationViolationError
 from agent_comms.cli_verbs.new import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
+from agent_comms.repo import Checkout
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -34,7 +35,7 @@ class NewThreadAction(ApplicationAction):
     async def apply(self, app: ToadApp) -> None:
         mode = app.selected_mode
         try:
-            project = app.workspace_sessions.origin(mode).require().project_root
+            project = app.workspace_sessions.origin(mode).require().project_path
         except RelationViolationError:
             project = app.project_dir
         app.run_worker(
@@ -43,12 +44,12 @@ class NewThreadAction(ApplicationAction):
             exclusive=True,
         )
 
-    async def collect(self, app, mode, project):
+    async def collect(self, app: ToadApp, mode: str, project: Checkout):
         def prepare():
             ctx = TargetContext(
                 app,
                 app.coordination_access.observation.observed().service,
-                ProjectTarget(str(project)),
+                ProjectTarget(project),
                 "",
                 project,
                 mode,

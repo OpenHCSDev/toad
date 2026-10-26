@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.errors import (
@@ -171,7 +172,7 @@ class SessionNavigation:
         entry = HistorySessionEntry(
             identity,
             CommsViewKey(identity.root, identity.owner.mode_name, identity.key),
-            source.project_root, source.coordination_root,
+            source.project_path, source.coordination_root,
             await self.app.preparation.run_thread(participants), source,
         )
         if self.get(entry.mode) is None:
@@ -201,7 +202,7 @@ class SessionNavigation:
         *,
         original: tuple[str, ThreadIncarnation],
         name: str,
-        project: Path,
+        project: Checkout,
     ) -> None:
         """Bind the accepted source facts before preparing its native resources."""
         entry = cast(NativeSessionEntry, self.get(view.id))
@@ -267,14 +268,14 @@ class SessionNavigation:
         return details
 
     async def saved(
-        self, agent: AgentDefinition, project: Path, *,
+        self, agent: AgentDefinition, project: Checkout, *,
         title: str = "New Session", agent_session_id: str | None = None,
     ) -> AcpTab:
         """A native session is saved before it opens; its row is the tab's identity."""
         database = await self.app.get_db()
         return AcpTab(await database.session_new(
             title, agent.name, agent.identity, agent_session_id,
-            meta=SessionMeta(cwd=project, agent_data=agent),
+            meta=SessionMeta(cwd=project.path, agent_data=agent),
         ))
 
     async def launch(
@@ -283,7 +284,7 @@ class SessionNavigation:
         *,
         agent_session_id: str | None = None,
         session_pk: int | None = None,
-        project_path: Path | None = None,
+        project: Checkout,
         initial_prompt: str | None = None,
     ) -> None:
         from toad.agents import read_agents
@@ -317,7 +318,6 @@ class SessionNavigation:
             except KeyError:
                 app.show_error("Agent not found", "Launch agent")
                 return
-        project = project_path if project_path is not None else app.project_dir
         tab = (
             AcpTab(session_pk) if session_pk is not None
             else await self.saved(agent, project, title=title or "New Session",
@@ -338,7 +338,7 @@ class SessionNavigation:
         self,
         *,
         owner_mode: str,
-        project_path: Path,
+        project_path: Checkout,
         me: str,
         route: HistoryRouted,
     ) -> str:
@@ -429,7 +429,7 @@ class SessionNavigation:
         for entry in self.entries.get(owner, {}).values():
             entry.sync_owner_root(self, owner, root)
 
-    def sync_project(self, owner: str, project: Path) -> None:
+    def sync_project(self, owner: str, project: Checkout) -> None:
         for entry in self.entries.get(owner, {}).values():
             entry.sync_project(self, owner, project)
 

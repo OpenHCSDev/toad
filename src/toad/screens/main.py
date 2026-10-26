@@ -10,12 +10,13 @@ from agent_comms.coordination_errors import DMScopeChanged, Refused
 from agent_comms.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
+from agent_comms.repo import Checkout
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from toad.widget_actions import TogglesIrc, CyclesSessions, HiddenActions, SessionNavigationAction
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
-from textual.reactive import var
+from textual.reactive import Required, var
 from textual.widget import Widget
 from textual.widgets import (
     DirectoryTree,
@@ -222,13 +223,13 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
     def side_bar(self):
         return self.screen.query_one(ChannelsSidebar)
 
-    project_path: var[Path] = var(Path("./").expanduser().absolute())
+    project_path = var[Checkout](Required())
 
     app = getters.app(ToadApp)
 
     def __init__(
         self,
-        project_path: Path,
+        project_path: Checkout,
         binding: AgentBinding = NoAgent(),
         session_pk: int | None = None,
         initial_prompt: str | None = None,
@@ -257,7 +258,7 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
         identity = self.thread_identity
         project = self.project_path
         source_root = identity.wire_root()
-        worktree = str(app.project_dir)
+        worktree = app.project_dir
 
         def acknowledge(cursor) -> None:
             selected = RouteSelection.capture(source_root)
@@ -285,7 +286,7 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
 
     @classmethod
     def from_thread(
-        cls, project: Path, root: str, target, binding: AgentBinding = NoAgent()
+        cls, project: Checkout, root: str, target, binding: AgentBinding = NoAgent()
     ) -> "MainScreen":
         screen = cls(project, binding.for_session(target.name))
         screen.bind_thread(target, root)
@@ -393,7 +394,7 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
 
     def update_title(self) -> None:
         """The screen's title names the session and the project it presents."""
-        self.title = f"{self.display_name} {format_path(self.project_path)}"
+        self.title = f"{self.display_name} {format_path(self.project_path.path)}"
 
     async def wait_content_ready(self) -> None:
         if self._closing or self._closed:
@@ -414,12 +415,12 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
         if self.is_current:
             self.presentation.external_transcript_changed()
 
-    def bind_project(self, project: Path) -> None:
+    def bind_project(self, project: Checkout) -> None:
         """The accepted source and later coordination updates use one project owner."""
         if project != self.project_path:
             self.project_path = project
             if self._project_panel is not None:
-                self._project_panel.path = project
+                self._project_panel.path = project.path
             if self.id is not None:
                 self.app.session_navigation.sync_project(self.id, project)
             self.update_title()
@@ -434,7 +435,7 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
                 if previous_root != self.coordination_root:
                     self.link_context_changed()
                 if event.worktree is not None:
-                    self.bind_project(Path(event.worktree))
+                    self.bind_project(event.worktree)
                 if self.id is not None:
                     self.app.session_navigation.sync_owner_root(
                         self.id, self.coordination_root
@@ -467,7 +468,7 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
         """Open an inert package-owned snapshot; never locate a source checkout."""
         self.app.push_screen(
             MCPInventoryScreen(
-                self.project_path,
+                self.project_path.path,
             )
         )
 

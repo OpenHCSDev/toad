@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 import json
 import os
 from pathlib import Path
+from agent_comms.repo import Checkout
 from typing import Any, AsyncIterator
 
 from mcp_turn_boundaries import AGENT_DATA, exercise_boundaries, notes
@@ -154,7 +155,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
     previous = {key: os.environ.get(key) for key in env}
     os.environ.update(env)
     try:
-        app = ToadApp(agent_binding=NoAgent(), project_dir=str(root / "project"))
+        app = ToadApp(agent_binding=NoAgent(), project_dir=Checkout(root / "project"))
         async with app.run_test(size=(120, 40)) as pilot:
             # Toad starts with no tab open; the observed session is opened here.
             definition = AgentDefinition.decode(AGENT_DATA)

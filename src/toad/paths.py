@@ -1,6 +1,7 @@
 import os
 from contextlib import suppress
 from pathlib import Path
+from agent_comms.repo import Checkout
 from typing import Final
 
 from xdg_base_dirs import xdg_config_home, xdg_data_home, xdg_state_home
@@ -46,14 +47,14 @@ def get_state() -> Path:
     return path
 
 
-def get_project_data(project_path: Path) -> Path:
+def get_project_data(project_path: Checkout) -> Path:
     """Get a directory for per-project data.
 
     Args:
         project_path: Path of project.
 
     """
-    project_data_path = get_data() / path_to_name(project_path)
+    project_data_path = get_data() / path_to_name(project_path.path)
     with suppress(OSError):
         project_data_path.mkdir(0o700, exist_ok=True, parents=True)
     return project_data_path

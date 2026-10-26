@@ -37,7 +37,8 @@ async def test_agent_actions_run_edit_fail_cancel_and_take_input(workspace):
         "anon_id": "00000000-0000-0000-0000-000000000001", "statistics": {"allow_collect": False}}))
 
     with private_catalog_entry():
-        app = ToadApp(agent_binding=NoAgent(), mode="store", project_dir=str(workspace.project))  # starts on the Store: no session to wait for
+        from agent_comms.repo import Checkout
+        app = ToadApp(agent_binding=NoAgent(), mode="store", project_dir=Checkout(workspace.project))  # starts on the Store: no session to wait for
         async with app.run_test(size=(140, 48)) as pilot:
             ui = TextualUi(app, pilot)
             await ui.until(lambda: isinstance(app.screen, StoreScreen), why="the Store")

@@ -6,7 +6,9 @@ from importlib.metadata import version
 import platform
 from string import Template
 
-from toad.app import ToadApp
+from agent_comms.launch_root import LaunchRoot
+from toad.preferences import SavedSettings
+from toad.terminal_attention import TerminalAttention
 from toad import paths
 from toad import get_version
 
@@ -76,7 +78,7 @@ uses its own stdio ACP process and reconnects to its saved wire thread.
 )
 
 
-def render(app: ToadApp) -> str:
+def render() -> str:
     """Render about markdown.
 
     Returns:
@@ -84,17 +86,16 @@ def render(app: ToadApp) -> str:
     """
 
     try:
-        config: str | None = app.saved_settings.file_path().read_text()
+        config: str | None = SavedSettings.file_path().read_text()
     except FileNotFoundError:
         # Settings are written on first change; until then there is no file.
         config = None
 
-    service = app.coordination_access.observation.observed().service
     template_data = {
         "COLORTERM": os.environ.get("COLORTERM", ""),
         "COMMS_AGENT_ARGS": shlex.join(InheritedArguments().configured().argv),
         "COMMS_AGENT_BIN": ConfiguredBinary().configured(),
-        "COMMS_ROOT": str(service.root),
+        "COMMS_ROOT": str(LaunchRoot.current().path),
         "CONFIG": config,
         "DATA_PATH": paths.get_data(),
         "LOG_PATH": paths.get_log(),
@@ -102,13 +103,13 @@ def render(app: ToadApp) -> str:
         "PLATFORM": platform.platform(),
         "PYTHON": f"{platform.python_implementation()} {platform.python_version()}",
         "RICH_VERSION": version("rich"),
-        "SETTINGS_PATH": str(app.saved_settings.file_path()),
+        "SETTINGS_PATH": str(SavedSettings.file_path()),
         "SHELL": os.environ.get("SHELL", ""),
         "TERM_PROGRAM_VERSION": os.environ.get("TERM_PROGRAM_VERSION", ""),
         "TERM_PROGRAM": os.environ.get("TERM_PROGRAM", ""),
         "TERM": os.environ.get("TERM", ""),
         "TEXTUAL_VERSION": version("textual"),
         "TOAD_VERSION": get_version(),
-        "TERMINAL": app.terminal_attention.program,
+        "TERMINAL": TerminalAttention.program(),
     }
     return ABOUT_TEMPLATE.safe_substitute(template_data)

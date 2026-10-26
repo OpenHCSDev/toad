@@ -1,5 +1,6 @@
 """A recorded transcript keeps its selected source through snapshot, refresh and presentation, with no live owner."""
 
+from agent_comms.repo import Checkout
 import json
 from dataclasses import replace
 
@@ -21,9 +22,9 @@ def recorded(tmp_path, workspace):
 
     old, live = installed_wire(tmp_path / "old"), workspace.comms
     native = write_journal(tmp_path / "authored.jsonl", assistant_entry("recorded answer", id="answer-1"))
-    old.registry.declare(Thread("reader", frozenset(), str(old.root),
+    old.registry.declare(Thread("reader", frozenset(), Checkout(old.root),
                                 created_at=10.0, session_file=RegistrySessionLocation.from_path(str(native), old.root)))
-    live.registry.declare(Thread("reader", frozenset(), str(live.root), created_at=20.0))
+    live.registry.declare(Thread("reader", frozenset(), Checkout(live.root), created_at=20.0))
     source = live.views.attach_history(old.root)
     return live, source, native
 

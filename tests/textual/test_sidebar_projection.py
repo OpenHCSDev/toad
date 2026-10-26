@@ -1,5 +1,6 @@
 """Textual-facing: a hidden view's thread sidebar keeps its styles and layout while the shared channels sidebar changes, and the first frame of an activated view already shows the sidebar as the user left it."""
 
+from agent_comms.repo import Checkout
 from agent_comms.channel_targets import CommandTarget
 from support.stylesheets import INSTALLED
 
@@ -31,7 +32,7 @@ async def test_hidden_sidebars_keep_geometry_and_activated_views_first_frame_mat
     viewer = workspace.viewer
     workspace.comms.channels.create_tag("projection")
     workspace.comms.messaging.send_user_message(
-        CommandTarget.named("#projection"), "Channel history", worktree=str(workspace.project)
+        CommandTarget.named("#projection"), "Channel history", worktree=Checkout(workspace.project)
     )
     async with workspace.app(size=(120, 40), application=FrameApp) as ui:
         app, _ = ui.textual

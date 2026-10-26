@@ -151,7 +151,7 @@ class DeliveryFailureView(ToadNode, Widget):
 
     async def commit_user_message(self, comms, target, body):
         task = asyncio.create_task(asyncio.to_thread(
-            comms.messaging.send_user_message, target, body, worktree=str(self.project_path)))
+            comms.messaging.send_user_message, target, body, worktree=self.project_path))
         try:
             sent = await asyncio.shield(task)
         except asyncio.CancelledError:

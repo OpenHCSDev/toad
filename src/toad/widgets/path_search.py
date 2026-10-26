@@ -31,7 +31,12 @@ from textual.visual import RenderOptions
 from textual.widgets import OptionList, Input, DirectoryTree
 from textual.widgets.option_list import Option
 
+from metaclass_registry.mro_dispatch import handles
+
 from toad import directory
+from toad.core.events import LinkContextChanged
+from toad.core_event_carrier import CoreEventReceiver
+from toad.project_path_owner import ProjectPathOwner
 from toad.path_search_ranking import PathSearchRanking
 from toad.messages import Dismiss, InsertPath, PromptSuggestion
 from toad.path_filter import PathFilter
@@ -132,7 +137,7 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
 
 
 class PathSearch(
-    PriorityActions, HiddenActions, MovesCursor, Submits, CompletionPopup,
+    CoreEventReceiver, PriorityActions, HiddenActions, MovesCursor, Submits, CompletionPopup,
     scopes={HiddenActions: (DismissAction, SubmitAction)},
 ):
     requires_completion = True
@@ -143,7 +148,6 @@ class PathSearch(
         Binding("tab", "switch_picker", "Switch picker", priority=True, show=False),
     ]
 
-    root: var[Path] = var(Path("./"))
     paths: var[list[Path]] = var(list, init=False)
     display_paths: var[list[str]] = var(list)
     show_tree_picker: var[bool] = var(False, init=False)
@@ -152,20 +156,27 @@ class PathSearch(
     tree_view = getters.query_one(ProjectDirectoryTree)
     input = getters.query_one(Input)
 
-    def __init__(self, root: Path) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.set_reactive(PathSearch.root, root)
-        self.root = root
         self.ranking = PathSearchRanking()
         self._paths_dirty = True
         self._tree_mount_lock = asyncio.Lock()
 
     @classmethod
     def for_prompt(cls, prompt: Prompt) -> Self | None:
-        from toad.widgets.prompt import Prompt
-        return cls(prompt.project_path).data_bind(root=Prompt.project_path)
+        return cls()
 
-    def watch_root(self) -> None:
+    @property
+    def root(self) -> Path:
+        return ProjectPathOwner.containing(self).project_root
+
+    def on_mount(self) -> None:
+        self.observe_core(ProjectPathOwner.containing(self).link_context_events)
+
+    @handles(LinkContextChanged)
+    def project_changed(self, event: LinkContextChanged) -> None:
+        for tree in self.query(ProjectDirectoryTree):
+            tree.path = self.root
         self.invalidate_paths()
 
     @on(PromptSuggestion)
@@ -211,7 +222,7 @@ class PathSearch(
         if show_tree_picker:
             async with self._tree_mount_lock:
                 if self.query_one_optional(ProjectDirectoryTree) is None:
-                    tree = ProjectDirectoryTree(self.root).data_bind(path=PathSearch.root)
+                    tree = ProjectDirectoryTree(self.root)
                     tree.guide_depth = 2
                     tree.center_scroll = True
                     await self.query_one("#path-search-tree").mount(tree)

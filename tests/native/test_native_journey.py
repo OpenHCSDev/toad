@@ -3,6 +3,7 @@
 The model is the controlled loopback provider; everything else is the real path.
 """
 
+from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 import base64
@@ -74,7 +75,7 @@ async def test_owner_is_attached_and_navigable(workspace, native_package):
         owner = native.comms.registry.require("beta")
         assert owner.process_identity is not None and owner.process_alive
         navigation = await asyncio.to_thread(
-            ThreadNavigationRequest(native.comms, "beta", native.project, ()).read)
+            ThreadNavigationRequest(native.comms, "beta", app.project_dir, ()).read)
         assert navigation.attachable and navigation.thread.process_alive
 
 
@@ -267,8 +268,9 @@ async def test_stopped_owner_restarts_without_replaying_and_then_idles(workspace
         await asyncio.to_thread(comms.owners.stop, "beta")
         assert not comms.registry.require("beta").process_alive
         request_target_command(app, StartCliCommand, "beta")
+        await ui.until(lambda: comms.registry.require("beta").process_alive,
+                       seconds=30, why="the menu's Start to launch the owner")
         await ui.until(lambda: "beta" not in app.thread_actions.pending, seconds=30, why="Start to finish")
-        assert comms.registry.require("beta").process_alive, "Start did not launch the owner"
 
         asked = len(provider.requests)
         await ui.select_tab(owner_tab)
@@ -322,7 +324,7 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
     from support.native import MODEL
 
     async def declare_second(comms, project, _provider):
-        comms.registry.declare(Thread("gamma", frozenset({"team"}), str(project), model=MODEL, thinking_level=OffThinkingLevel))
+        comms.registry.declare(Thread("gamma", frozenset({"team"}), Checkout(project), model=MODEL, thinking_level=OffThinkingLevel))
 
     async with native_session(workspace, prepare=declare_second) as native:
         ui, provider = native.ui, native.provider

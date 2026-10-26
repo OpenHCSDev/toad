@@ -9,6 +9,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Callable
 from pathlib import Path
+from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
@@ -106,7 +107,7 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
         pass
 
     def sync_project(
-        self, sessions: SessionNavigation, owner: str, project: Path
+        self, sessions: SessionNavigation, owner: str, project: Checkout
     ) -> None:
         pass
 
@@ -230,7 +231,7 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
         self,
         identity: TabIdentity,
         key: CommsViewKey,
-        project: Path,
+        project: Checkout,
         owner_root: str | None,
         participants: tuple[ThreadIncarnation, ...],
         owner,
@@ -318,7 +319,7 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
             view.rebind_owner_root(self.owner_root)
 
     def sync_project(
-        self, sessions: SessionNavigation, owner: str, project: Path
+        self, sessions: SessionNavigation, owner: str, project: Checkout
     ) -> None:
         self.project = project
         if view := sessions.app.workspace_sessions.views.get(self.mode):

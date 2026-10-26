@@ -1,5 +1,6 @@
 """Textual-facing: whether a channel message counts as read depends on which rows Textual painted, and a divider painted without its text is not enough."""
 
+from agent_comms.repo import Checkout
 from unittest.mock import patch
 
 from support.textual_steps import text_rows_of
@@ -13,7 +14,7 @@ async def test_divider_without_body_leaves_the_message_unread(workspace):
     project = str(workspace.project)
     for index in range(7):
         comms.messaging.send("peer", "#team", f"earlier {index} " + "body " * 20)
-    comms.views.mark_user_view_read("#team", worktree=project)
+    comms.views.mark_user_view_read("#team", worktree=Checkout(project))
     last = comms.messaging.send_message("peer", "#team", "LAST " + "body " * 250)
 
     # Hold read marks while arranging the divider-only viewport; the first
@@ -50,4 +51,4 @@ async def test_divider_without_body_leaves_the_message_unread(workspace):
             mark_visible(history)
             await ui.until(lambda: not history.marking, why="marking to settle")
             await ui.step(.2)
-            assert comms.views.viewer_snapshot(project).channel_unread["#team"] == 1
+            assert comms.views.viewer_snapshot(Checkout(project)).channel_unread["#team"] == 1

@@ -1,5 +1,6 @@
 """Textual-facing: transcript presentations queue behind Textual's callback pump and paint into the conversation window."""
 
+from agent_comms.repo import Checkout
 import asyncio
 from contextlib import asynccontextmanager
 import pytest
@@ -134,7 +135,7 @@ async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
 
 async def test_a_certified_read_that_expired_acquires_no_application(workspace):
     journal = write_journal(workspace.project / "source.jsonl", assistant_entry("Certified source", id="source"))
-    workspace.comms.registry.declare(Thread("journal-source", frozenset(), str(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    workspace.comms.registry.declare(Thread("journal-source", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     async with workspace.app(resume="journal-source") as ui:
         view = ui.conversation
         await ui.until_shows("Certified source")

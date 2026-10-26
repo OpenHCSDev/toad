@@ -1,4 +1,5 @@
 """A displayed channel page clears its own unread rows after every navigation."""
+from agent_comms.repo import Checkout
 
 
 def unread_badge_gone(ui, identity):
@@ -11,7 +12,7 @@ async def test_channel_unread_clears_on_opening_and_on_return_to_the_open_tab(wo
     comms.messaging.send("sender", "#all", "first-pending")
 
     def unread() -> int:
-        return comms.views.viewer_snapshot(str(workspace.project)).channel_unread["#all"]
+        return comms.views.viewer_snapshot(Checkout(workspace.project)).channel_unread["#all"]
 
     assert unread() == 1
     async with workspace.app(size=(110, 36)) as ui:
@@ -35,7 +36,7 @@ async def test_direct_message_unread_clears_on_opening(workspace):
     comms = workspace.comms
 
     def unread() -> int:
-        return comms.views.viewer_snapshot(str(workspace.project)).unread.get("sender", 0)
+        return comms.views.viewer_snapshot(Checkout(workspace.project)).unread.get("sender", 0)
 
     async with workspace.app(size=(110, 36)) as ui:
         owner = ui.selected_tab
@@ -52,7 +53,7 @@ async def test_aggregate_feed_unread_clears_on_opening(workspace):
     comms = workspace.comms
 
     def unread() -> int:
-        return comms.views.viewer_snapshot(str(workspace.project)).channel_unread.get("#any", 0)
+        return comms.views.viewer_snapshot(Checkout(workspace.project)).channel_unread.get("#any", 0)
 
     async with workspace.app(size=(110, 36)) as ui:
         owner = ui.selected_tab

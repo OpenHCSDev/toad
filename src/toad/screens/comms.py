@@ -7,6 +7,7 @@ import asyncio
 from functools import partial
 from pathlib import Path
 from typing import Literal
+from agent_comms.repo import Checkout
 
 from textual import containers, getters, on
 from textual.app import ComposeResult
@@ -45,7 +46,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
     def __init__(
         self,
         *,
-        project_path: Path,
+        project_path: Checkout,
         owner_mode: str,
         me: str,
         conversation: ConversationKind,
@@ -93,7 +94,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
         with self.changing_identity():
             self._identity = self.thread_identity.with_root(root)
 
-    def rebind_project(self, project: Path) -> None:
+    def rebind_project(self, project: Checkout) -> None:
         changed = project != self.project_path
         self.project_path = project
         if changed:
