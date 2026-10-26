@@ -157,7 +157,7 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
         await ui.new_session()
         assert agent.process.process is process and process.returncode is None
         await asyncio.wait_for(agent.send_prompt(
-            text, request=QueuePromptRequest(text, True)), 10)
+            "QUEUED_NATIVE_INPUT", request=QueuePromptRequest("QUEUED_NATIVE_INPUT", True)), 10)
         await ui.until(lambda: bool(agent.queue_attachment.projection.items), seconds=20, why="the queued input")
         await ui.select_tab(owner_tab)
         view = ui.conversation
