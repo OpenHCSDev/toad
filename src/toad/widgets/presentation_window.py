@@ -527,7 +527,7 @@ class DirectionalPreparation:
             return 0
         window = self.window
         viewport = window.scrollable_size
-        occupied = window.arrange(viewport).placed_region
+        occupied = window.arrange(viewport).flow_bounds
         # Native virtual size includes the viewport's blank alignment space.
         # Flowing placements retain the actual occupied extent, excluding
         # overlays and docks. Fill a visible hole even without scroll input;
