@@ -17,7 +17,7 @@ from toad.widgets.comms_transfer import TransferRequest
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 from agent_comms.errors import RelationViolationError
-from agent_comms.cli_commands import NewThreadCliCommand
+from agent_comms.cli_verbs.new import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
 
 if TYPE_CHECKING:

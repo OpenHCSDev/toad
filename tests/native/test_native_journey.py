@@ -11,7 +11,9 @@ from pathlib import Path
 
 import psutil
 from agent_comms.acp_extension import QueuePromptRequest
-from agent_comms.cli_commands import ForkCliCommand, QueueRestartCliCommand, StartCliCommand
+from agent_comms.cli_commands import QueueRestartCliCommand
+from agent_comms.cli_verbs.fork import ForkCliCommand
+from agent_comms.cli_verbs.start import StartCliCommand
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.threads import Thread
