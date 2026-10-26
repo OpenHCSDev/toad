@@ -1575,7 +1575,7 @@ class Conversation(
         from toad.setting_choices import Scrollbar
 
         ui = self.app.settings.ui
-        ui.column_alignment.apply(self, ui.column_width if ui.column else None)
+        ui.column_alignment.apply(self, ui.column, ui.column_width)
         for choice in Scrollbar.members_with(Scrollbar):
             self.set_class(choice is ui.scrollbar, f"-scrollbar-{choice.declared_name}")
 
