@@ -355,11 +355,11 @@ See on-screen instructions for details.
         ))
 
     def apply_keyboard_profile(self) -> None:
-        from textual.widgets.text_area import EditingMode, VimInsert
+        from textual.widgets.text_area import EditingMode, VimNormal
 
         enabled = self.app.settings.ui.vim_keys
         if self.editing_mode.modal != enabled:
-            self.editing_mode = VimInsert() if enabled else EditingMode()
+            self.editing_mode = VimNormal() if enabled else EditingMode()
 
     @property
     def submission_allowed(self) -> bool:
@@ -875,7 +875,7 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
         self.prompt_label.refresh()
 
     def enter_insert(self) -> None:
-        """Vim `i`: the editor takes insert mode and focus.
+        """Vim `i`: show the latest prompt, ready for text entry.
 
         Textual composes the editor before it marks the prompt mounted, so a key
         pressed while a tab is still opening has no editor to act on yet.
@@ -883,9 +883,10 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
         if not self.is_mounted:
             return
         from textual.widgets.text_area import VimInsert
+        from toad.widgets.conversation import Conversation
 
         self.prompt_text_area.editing_mode = VimInsert()
-        self.focus()
+        self.query_ancestor(Conversation).focus_prompt()
 
     def focus(self, scroll_visible: bool = True) -> Self:
         if self._ask is not None:
