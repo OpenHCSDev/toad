@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Self, Protocol
 from textual import events, getters, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding
-from toad.widget_actions import PriorityActions, MovesCursor, Submits, Dismisses
+from toad.widget_actions import PriorityActions, MovesCursor, Submits, DismissibleControl
 from textual.content import Content
 from textual.containers import VerticalGroup
 from textual.reactive import var
@@ -76,7 +76,7 @@ class ModelChoice(Protocol):
     def description(self) -> str | None: ...
 
 
-class ModelSelection(PriorityActions, MovesCursor, Submits, Dismisses, CoreEventReceiver, VerticalGroup):
+class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, CoreEventReceiver, VerticalGroup):
     """Search, recents and provider connection shared by prompt and creation views."""
     BINDING_GROUP_TITLE = "Model search"
     BINDINGS = [

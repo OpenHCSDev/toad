@@ -2,7 +2,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core import events as core_events
 from textual.content import Content
-from toad.widget_actions import ApplicationAction, Activates, Dismisses
+from toad.widget_actions import ApplicationAction, Activates, DismissibleControl
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
@@ -581,7 +581,7 @@ class SidebarSearch(widgets.Input):
         self.value = ""
 
 
-class SideBar(Dismisses, WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical):
+class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
     DEFAULT_CSS = """

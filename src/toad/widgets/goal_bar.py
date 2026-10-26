@@ -5,7 +5,7 @@ from weakref import ref
 from rich.cells import cell_len
 from textual import events
 from textual.app import ComposeResult
-from toad.widget_actions import VisibleActivates
+from toad.widget_actions import VisibleActions, Activates
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.layouts.horizontal import HorizontalLayout
 from textual.layouts.grid import GridLayout
@@ -24,7 +24,7 @@ from toad.frame_presentation import Animated
 from toad.widgets.selection import ChangingText, InlineSelection
 
 
-class GoalControl(VisibleActivates, InlineSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
+class GoalControl(VisibleActions, Activates, InlineSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
     DEFAULT_CSS = """
     GoalControl { width: auto; height: 1; margin-right: 2; color: $text-secondary; pointer: pointer; }
     """

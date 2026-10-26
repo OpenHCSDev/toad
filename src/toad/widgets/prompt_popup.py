@@ -13,7 +13,7 @@ from textual.reactive import var
 from textual.message_pump import _MessagePumpMeta
 
 from toad.messages import Dismiss
-from toad.widget_actions import Dismisses
+from toad.widget_actions import DismissibleControl
 
 if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
@@ -23,7 +23,7 @@ class _PopupMeta(FamilyMeta, _MessagePumpMeta):
     """Compose the existing family and Textual message-pump metaclasses."""
 
 
-class PromptPopup(Dismisses, DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Popup"):
+class PromptPopup(DismissibleControl, DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Popup"):
     """One mounted popup is the authority for its open state and interaction."""
 
     requires_completion: ClassVar[bool] = False

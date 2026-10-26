@@ -11,7 +11,7 @@ from random import shuffle
 from typing import Literal, Self
 
 from textual.binding import Binding
-from toad.widget_actions import Dismisses, CyclesFocus, Launches
+from toad.widget_actions import DismissibleControl, CyclesFocus, Launches
 from textual.screen import Screen
 from textual import events
 from textual import work
@@ -53,7 +53,7 @@ QR = """\
 ▀▀▀▀▀▀▀ ▀▀▀  ▀   ▀▀▀▀▀▀▀▀"""
 
 
-class DirectoryDisplay(Dismisses, CoreEventReceiver, containers.HorizontalGroup):
+class DirectoryDisplay(DismissibleControl, CoreEventReceiver, containers.HorizontalGroup):
 
 
     DEFAULT_CSS = """

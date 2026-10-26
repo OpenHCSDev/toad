@@ -10,7 +10,8 @@ from textual import containers
 from textual import widgets
 from toad.widgets.footer import ToadFooter
 
-from toad.widget_actions import HiddenDismisses, PriorityLaunches
+from toad import widget_actions
+from toad.widget_actions import HiddenActions, PriorityActions, Launches
 from toad.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction, LaunchAction
 from toad.core.session_requests import LaunchAgent
@@ -25,7 +26,11 @@ class DescriptionContainer(containers.VerticalScroll):
         return self.show_vertical_scrollbar
 
 
-class AgentModal(HiddenDismisses, PriorityLaunches, DismissibleScreen[LaunchAgent | None]):
+class AgentModal(
+    PriorityActions, HiddenActions, Launches, DismissibleScreen[LaunchAgent | None],
+    priority_actions=(widget_actions.LaunchAction,),
+    hidden_actions=(widget_actions.DismissAction,),
+):
     AUTO_FOCUS = "Select#action-select"
 
 

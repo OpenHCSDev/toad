@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Self, Sequence
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from toad.widget_actions import PriorityActions, HiddenDismisses, MovesCursor, HiddenSubmits
+from toad.widget_actions import PriorityActions, HiddenActions, MovesCursor, Submits, DismissAction, SubmitAction
 from textual import work
 from textual import getters
 from textual import containers
@@ -131,7 +131,10 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
         return super().render_line(y, paint)
 
 
-class PathSearch(PriorityActions, HiddenDismisses, MovesCursor, HiddenSubmits, CompletionPopup):
+class PathSearch(
+    PriorityActions, HiddenActions, MovesCursor, Submits, CompletionPopup,
+    hidden_actions=(DismissAction, SubmitAction),
+):
     requires_completion = True
 
     BINDING_GROUP_TITLE = "Path search"

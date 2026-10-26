@@ -42,7 +42,7 @@ from toad.prompt_cursor import (
 )
 from toad.setting_widget import SettingVisibility
 from toad.slash_command import SlashCommand
-from toad.widget_actions import DeclaredWidgetActions, Dismisses, HiddenActions
+from toad.widget_actions import DeclaredWidgetActions, DismissibleControl, HiddenActions
 from toad.widget_view import AUTO, WidgetView
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ModeSwitcher(Dismisses, CoreEventReceiver, SelectionOptionList):
+class ModeSwitcher(DismissibleControl, CoreEventReceiver, SelectionOptionList):
     def _get_option_render(
         self, option: Option, style: Style, paint: PaintState
     ) -> list[Strip]:
@@ -201,9 +201,9 @@ class PromptSubmission:
 
 
 class PromptTextArea(
-    CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea
+    CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea,
+    actions=PromptAction,
 ):
-    ACTIONS = PromptAction
     # Agent prompts and direct messages carry a pasted image as a file reference.
     ATTACHES_IMAGES: ClassVar[bool] = True
     HELP = """\
@@ -572,7 +572,7 @@ class MessageTextArea(PromptTextArea):
         return False
 
 
-class Prompt(HiddenActions, Dismisses, TonePaint, containers.VerticalGroup):
+class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGroup):
     tone = PromptToneColour
 
     DEFAULT_CSS = """

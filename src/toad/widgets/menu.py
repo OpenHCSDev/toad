@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from textual import on
 from textual.app import ComposeResult
-from toad.widget_actions import Dismisses
+from toad.widget_actions import DismissibleControl
 from textual.message import Message
 from textual.widgets import ListView, Label
 from textual import events
@@ -36,7 +36,7 @@ class MenuOption(SelectionListItem):
         yield NonSelectableLabel(self._description, id="description")
 
 
-class Menu(Dismisses, UntintedTonePaint, ListView, can_focus=True):
+class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
 
     DEFAULT_CSS = """
     Menu {

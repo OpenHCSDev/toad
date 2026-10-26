@@ -13,7 +13,7 @@ from agent_comms.route_selection import RouteSelection
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from toad.widget_actions import TogglesIrc, CyclesSessions
+from toad.widget_actions import TogglesIrc, CyclesSessions, HiddenActions, SessionNavigationAction
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
 from textual.reactive import var
 from textual.widget import Widget
@@ -198,7 +198,8 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView, can_focus=False):
+class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
+                 hidden_actions=(SessionNavigationAction,), can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"

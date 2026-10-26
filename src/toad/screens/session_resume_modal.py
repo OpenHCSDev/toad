@@ -19,7 +19,6 @@ class SessionResumeModal(DismissibleScreen[Session]):
 
     CSS_PATH = "session_resume_modal.tcss"
 
-
     session_table = getters.query_one("#sessions", widgets.DataTable)
 
     def compose(self) -> ComposeResult:

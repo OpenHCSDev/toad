@@ -50,10 +50,6 @@ class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
         return cls.binding_prefix + FieldCodec.encode(cls)
 
     @classmethod
-    def declarations(cls) -> tuple[type[Self], ...]:
-        return cls.members_with(cls)
-
-    @classmethod
     def bindings(cls) -> tuple[Binding, ...]:
         return tuple(Binding(key, cls.binding_name(), cls.title, tooltip=cls.summary(),
                              show=cls.show, priority=cls.priority, system=cls.system,
@@ -123,27 +119,26 @@ class VimHintsAction(VimApplicationAction):
         await app.screen.action_show_hints()
 
 
-class DeclaredWidgetActions:
+class DeclaredWidgetActions(DOMNode):
     """One family supplies both native dispatch and dynamic availability."""
 
-    ACTIONS: ClassVar[type[Action]]
+    own_actions: ClassVar[tuple[type[Action], ...]] = ()
 
     @classmethod
     def declared_actions(cls) -> tuple[type[Action], ...]:
         """Capabilities and the widget's own family compose through its MRO."""
-        members = tuple(dict.fromkeys(
+        return tuple(dict.fromkeys(
             member for base in cls.__mro__
-            if issubclass(base, DeclaredWidgetActions) and "ACTIONS" in vars(base)
-            for member in base.ACTIONS.declarations()
+            if issubclass(base, DeclaredWidgetActions)
+            for member in base.own_actions
         ))
-        inherited = {base for member in members for base in member.__mro__[1:]}
-        return tuple(member for member in members if member not in inherited)
 
     @classmethod
     def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
         return declaration.bindings()
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, actions: type[Action] | None = None, **kwargs):
+        cls.own_actions = () if actions is None else actions.members_with(actions)
         declarations = cls.declared_actions()
         cls.BINDINGS = [*cls.__dict__.get("BINDINGS", ()),
                         *(binding for declaration in declarations
@@ -173,14 +168,6 @@ class VisibleAction(WidgetAction):
     show = True
 
 
-class SingleAction:
-    """A capability selects this declaration, not every contextual specialization."""
-
-    @classmethod
-    def declarations(cls) -> tuple[type[Self], ...]:
-        return (cls,)
-
-
 class ActionGroup(Generic[Context]):
     """A family root groups executable members; it has no operation of its own."""
 
@@ -188,17 +175,12 @@ class ActionGroup(Generic[Context]):
         pass
 
 
-class DismissAction(SingleAction, VisibleAction):
+class DismissAction(VisibleAction):
     """Close the current control."""
     keys = ("escape",)
 
-    async def apply(self, context: Dismisses) -> None:
+    async def apply(self, context: DismissibleControl) -> None:
         context.dismiss_control()
-
-
-class HiddenDismissAction(DismissAction):
-    show = False
-    title = DismissAction.title
 
 
 class CursorAction(ActionGroup["MovesCursor"], VisibleAction, affix="Action"):
@@ -219,51 +201,35 @@ class CursorDownAction(CursorAction):
         context.cursor_down()
 
 
-class SubmitAction(SingleAction, VisibleAction):
+class SubmitAction(VisibleAction):
     keys = ("enter",)
 
     async def apply(self, context: Submits) -> None:
         await invoke(context.submit)
 
 
-class HiddenSubmitAction(SubmitAction):
-    show = False
-    title = SubmitAction.title
-
-
-class SelectAction(SingleAction, VisibleAction):
+class SelectAction(VisibleAction):
     keys = ("enter",)
 
     async def apply(self, context: Selects) -> None:
         context.select()
 
 
-class LaunchAction(SingleAction, VisibleAction):
+class LaunchAction(VisibleAction):
     keys = ("space",)
 
     async def apply(self, context: Launches) -> None:
         await invoke(context.launch)
 
 
-class PriorityLaunchAction(LaunchAction):
-    """The modal's launch key wins over its focused controls; Escape still yields."""
-    priority = True
-    title = LaunchAction.title
-
-
-class ActivateAction(SingleAction, WidgetAction):
+class ActivateAction(WidgetAction):
     keys = ("enter,space",)
 
     async def apply(self, context: Activates) -> None:
         context.activate()
 
 
-class VisibleActivateAction(ActivateAction):
-    show = True
-    title = ActivateAction.title
-
-
-class ToggleIrcAction(SingleAction, VisibleAction):
+class ToggleIrcAction(VisibleAction):
     title = "IRC view"
     keys = ("ctrl+g",)
 
@@ -310,20 +276,17 @@ class FocusPreviousAction(FocusAction):
         context.app.action_focus_previous()
 
 
-class Dismisses(DeclaredWidgetActions):
-    ACTIONS: ClassVar[type[Action]] = DismissAction
+class Dismisses(DeclaredWidgetActions, actions=DismissAction):
+    """The shared Escape binding."""
 
+
+class DismissibleControl(Dismisses):
     @abstractmethod
     def dismiss_control(self) -> None:
         """Close this control without imposing a native screen result contract."""
 
 
-class HiddenDismisses(Dismisses):
-    ACTIONS: ClassVar[type[Action]] = HiddenDismissAction
-
-
-class MovesCursor(DeclaredWidgetActions):
-    ACTIONS: ClassVar[type[Action]] = CursorAction
+class MovesCursor(DeclaredWidgetActions, actions=CursorAction):
 
     @abstractmethod
     def cursor_up(self) -> None: ...
@@ -332,77 +295,100 @@ class MovesCursor(DeclaredWidgetActions):
     def cursor_down(self) -> None: ...
 
 
-class Submits(DeclaredWidgetActions):
-    ACTIONS: ClassVar[type[Action]] = SubmitAction
+class Submits(DeclaredWidgetActions, actions=SubmitAction):
 
     @abstractmethod
     def submit(self) -> None: ...
 
 
-class HiddenSubmits(Submits):
-    ACTIONS: ClassVar[type[Action]] = HiddenSubmitAction
-
-
-class Selects(DeclaredWidgetActions):
-    ACTIONS: ClassVar[type[Action]] = SelectAction
+class Selects(DeclaredWidgetActions, actions=SelectAction):
 
     @abstractmethod
     def select(self) -> None: ...
 
 
-class Launches(DeclaredWidgetActions):
-    ACTIONS: ClassVar[type[Action]] = LaunchAction
+class Launches(DeclaredWidgetActions, actions=LaunchAction):
 
     @abstractmethod
     def launch(self) -> Awaitable[None] | None: ...
 
 
-class PriorityLaunches(Launches):
-    ACTIONS: ClassVar[type[Action]] = PriorityLaunchAction
-
-
-class Activates(DeclaredWidgetActions):
-    ACTIONS: ClassVar[type[Action]] = ActivateAction
+class Activates(DeclaredWidgetActions, actions=ActivateAction):
 
     @abstractmethod
     def activate(self) -> None: ...
 
 
-class VisibleActivates(Activates):
-    ACTIONS: ClassVar[type[Action]] = VisibleActivateAction
-
-
-class TogglesIrc(DeclaredWidgetActions):
-    ACTIONS: ClassVar[type[Action]] = ToggleIrcAction
+class TogglesIrc(DeclaredWidgetActions, actions=ToggleIrcAction):
 
     @abstractmethod
     async def toggle_irc(self) -> None: ...
 
 
-class CyclesSessions(DeclaredWidgetActions):
-    ACTIONS: ClassVar[type[Action]] = SessionNavigationAction
+class CyclesSessions(DeclaredWidgetActions, actions=SessionNavigationAction):
 
     @abstractmethod
     def navigate_session(self, direction: Literal[-1, 1]) -> None: ...
 
 
-class CyclesFocus(DeclaredWidgetActions, DOMNode):
-    ACTIONS: ClassVar[type[Action]] = FocusAction
+class CyclesFocus(DeclaredWidgetActions, actions=FocusAction):
+    """Use the native DOM focus owner."""
 
 
-class PriorityActions(DeclaredWidgetActions):
-    """A popup's declared keys take precedence over the editor underneath it."""
+class ActionPresentation(DeclaredWidgetActions):
+    @classmethod
+    def present_binding(cls, declaration: type[Action], binding: Binding) -> Binding:
+        return binding
 
     @classmethod
     def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
-        return tuple(replace(binding, priority=True)
+        return tuple(cls.present_binding(declaration, binding)
                      for binding in super().action_bindings(declaration))
 
 
-class HiddenActions(DeclaredWidgetActions):
-    """A compact control keeps its actions out of the footer."""
+class PriorityActions(ActionPresentation):
+    """The selected actions take precedence over focused controls."""
+    priority_actions: ClassVar[tuple[type[Action], ...]] = (Action,)
+
+    def __init_subclass__(cls, priority_actions: tuple[type[Action], ...] | None = None, **kwargs):
+        if priority_actions is not None:
+            cls.priority_actions = priority_actions
+        super().__init_subclass__(**kwargs)
 
     @classmethod
-    def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
-        return tuple(replace(binding, show=False)
-                     for binding in super().action_bindings(declaration))
+    def present_binding(cls, declaration: type[Action], binding: Binding) -> Binding:
+        binding = super().present_binding(declaration, binding)
+        return replace(binding, priority=binding.priority or any(
+            scope in declaration.__mro__ for scope in cls.priority_actions))
+
+
+class HiddenActions(ActionPresentation):
+    """The selected actions stay out of the footer."""
+    hidden_actions: ClassVar[tuple[type[Action], ...]] = (Action,)
+
+    def __init_subclass__(cls, hidden_actions: tuple[type[Action], ...] | None = None, **kwargs):
+        if hidden_actions is not None:
+            cls.hidden_actions = hidden_actions
+        super().__init_subclass__(**kwargs)
+
+    @classmethod
+    def present_binding(cls, declaration: type[Action], binding: Binding) -> Binding:
+        binding = super().present_binding(declaration, binding)
+        return replace(binding, show=binding.show and not any(
+            scope in declaration.__mro__ for scope in cls.hidden_actions))
+
+
+class VisibleActions(ActionPresentation):
+    """The selected actions are offered in the footer."""
+    visible_actions: ClassVar[tuple[type[Action], ...]] = (Action,)
+
+    def __init_subclass__(cls, visible_actions: tuple[type[Action], ...] | None = None, **kwargs):
+        if visible_actions is not None:
+            cls.visible_actions = visible_actions
+        super().__init_subclass__(**kwargs)
+
+    @classmethod
+    def present_binding(cls, declaration: type[Action], binding: Binding) -> Binding:
+        binding = super().present_binding(declaration, binding)
+        return replace(binding, show=binding.show or any(
+            scope in declaration.__mro__ for scope in cls.visible_actions))
