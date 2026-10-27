@@ -13,6 +13,7 @@ from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, FieldPlan
 from textual.binding import Binding, ModeBinding
+from textual.keys import KeyDeclaration
 from textual.widgets.text_area import EditingMode, VimMode
 from textual.dom import DOMNode
 from copy import replace
@@ -21,25 +22,34 @@ from dataclasses import dataclass
 Context = TypeVar("Context")
 
 
-class DeclaredTitle:
-    """A member's title is its declared name in words until a class on its MRO declares one."""
-
-    def __get__(self, instance, owner) -> str:
-        return owner.declared_name.replace("_", " ").capitalize()
-
-
-class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
+class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="Action"):
     """Only the Textual boundary decodes an external action name. A member declares its
     keys, and its title and docstring are the only text any view shows for it."""
 
     keys: ClassVar[Mapping[type[EditingMode], tuple[str, ...]]] = MappingProxyType({})
-    title: ClassVar[str] = DeclaredTitle()
     show: ClassVar[bool] = False
     priority: ClassVar[bool] = False
     system: ClassVar[bool] = False
     group: ClassVar[Binding.Group | None] = None
     key_display: ClassVar[str | None] = None
     binding_prefix: ClassVar[str] = ""
+
+    @classmethod
+    def default_title(cls) -> str:
+        return cls.declared_name.replace("_", " ").capitalize()
+
+    @classmethod
+    def declarations(cls):
+        """Each nested family retains its own declaration registry."""
+        pending = [cls]
+        families = set()
+        while pending:
+            declaration = pending.pop()
+            pending.extend(declaration.__subclasses__())
+            family = declaration.family_root
+            if family not in families:
+                families.add(family)
+                yield from family.members_with(cls)
 
     @classmethod
     def summary(cls) -> str:
@@ -64,7 +74,7 @@ class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
             key, command.apply, cls.title, available=command.key_available, mode=mode,
             tooltip=cls.summary(), show=cls.show, priority=cls.priority,
             system=cls.system, group=cls.group, key_display=cls.key_display,
-            id=f"{cls.declared_name}:{mode.__module__}.{mode.__qualname__}",
+            id=cls.binding_id(mode),
         )
 
     @classmethod
