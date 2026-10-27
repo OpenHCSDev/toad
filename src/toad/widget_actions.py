@@ -12,7 +12,7 @@ from typing import ClassVar, Generic, Literal, Self, TypeVar
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, FieldPlan
-from textual.binding import Binding, ModeBinding
+from textual.binding import Binding, BindingsMap, ModeBinding
 from textual.keys import KeyDeclaration
 from textual.widgets.text_area import EditingMode, VimMode
 from textual.dom import DOMNode
@@ -71,12 +71,27 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
     @classmethod
     def mode_binding(cls, mode: type[EditingMode], key: str) -> ModeBinding:
         command = cls.command_for_key(mode, key)
+        return cls.command_binding(mode, key, command, mode)
+
+    @classmethod
+    def command_binding(cls, capability: type[EditingMode], key: str, command: Self,
+                        mode: type[EditingMode]) -> ModeBinding:
         return ModeBinding(
-            key, command.apply, cls.title, available=command.key_available, mode=mode,
+            key, command.apply, cls.title, available=command.key_available, mode=capability,
             tooltip=cls.summary(), show=cls.show, priority=cls.priority,
             system=cls.system, group=cls.group, key_display=cls.key_display,
             id=command.binding_identity(mode),
         )
+
+    @classmethod
+    def bindings_for(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
+        """The nearest declared capability supplies defaults; identity follows active mode."""
+        for capability in mode.__mro__:
+            if capability in cls.keys:
+                return tuple(cls.command_binding(capability, key,
+                                                 cls.command_for_key(capability, key), mode)
+                             for key in cls.keys[capability])
+        return ()
 
     @classmethod
     def command_for_key(cls, mode: type[EditingMode], key: str) -> Self:
@@ -87,8 +102,10 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
 
     @classmethod
     def active_bindings(cls, context: Context) -> tuple[Binding, ...]:
-        return tuple(binding for binding in cls.bindings()
-                     if binding.state(context.app, context))
+        identities = {binding.id for binding in cls.bindings_for(context.screen.active_binding_mode)}
+        return tuple(binding for node, bindings in context.screen._binding_chain if node is context
+                     for _, binding in bindings if binding.id in identities
+                     and binding.state(context.app, context))
 
     @classmethod
     def parse(cls, parameters: tuple[object, ...]):
@@ -168,23 +185,26 @@ class DeclaredWidgetActions(DOMNode):
         ))
 
     @classmethod
-    def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
-        return declaration.bindings()
+    def action_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
+        return declaration.bindings_for(mode)
 
     @classmethod
-    def native_bindings(cls) -> tuple[ModeBinding, ...]:
+    def native_bindings(cls, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
         return ()
 
     @classmethod
-    def declared_bindings(cls) -> tuple[Binding, ...]:
-        return (*cls.native_bindings(),
+    def declared_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
+        return (*cls.native_bindings(mode),
                 *(binding for declaration in cls.declared_actions()
-                  for binding in cls.action_bindings(declaration)))
+                  for binding in cls.action_bindings(declaration, mode)))
+
+    def binding_map(self, mode: type[EditingMode]) -> BindingsMap:
+        return BindingsMap.merge((super().binding_map(mode),
+                                  BindingsMap(self.declared_bindings(mode))))
 
     def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
         cls.own_actions = actions
         declarations = cls.declared_actions()
-        cls.BINDINGS = [*cls.__dict__.get("BINDINGS", ()), *cls.declared_bindings()]
         for declaration in declarations:
             setattr(cls, f"action_{declaration.declared_name}",
                     partialmethod(cls._run_declared_action, declaration))
@@ -206,9 +226,10 @@ class NativeMethodKeys(DeclaredWidgetActions, ToadNode):
     """Project native callable declarations without another action implementation."""
 
     @classmethod
-    def native_bindings(cls) -> tuple[ModeBinding, ...]:
-        return tuple(binding for base in cls.__mro__
-                     for binding in base.__dict__.get("MODE_BINDINGS", ()))
+    def native_bindings(cls, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
+        return tuple(projected for base in cls.__mro__
+                     for binding in base.__dict__.get("MODE_BINDINGS", ())
+                     for projected in binding.for_mode(mode))
 
 
 class ProfileKeys(NativeMethodKeys):
@@ -441,9 +462,9 @@ class ActionPresentation(DeclaredWidgetActions):
         return binding
 
     @classmethod
-    def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
+    def action_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
         return tuple(cls.present_binding(declaration, binding)
-                     for binding in super().action_bindings(declaration))
+                     for binding in super().action_bindings(declaration, mode))
 
 
 class PriorityActions(ActionPresentation,

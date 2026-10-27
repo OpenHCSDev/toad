@@ -112,7 +112,7 @@ class WorkspaceScreen(ProfileKeys, WidgetView, Screen):
 
     def binding_scopes(self):
         return tuple(
-            (node, BindingsMap(scoped for binding in node.declared_bindings()
+            (node, BindingsMap(scoped for binding in node.declared_bindings(self.active_binding_mode)
                                for scoped in binding.fallback_bindings()))
             for node in self.app.selected_session.keyboard_scopes()
         )

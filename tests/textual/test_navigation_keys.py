@@ -1,6 +1,7 @@
 """Workspace navigation keys operate original tabs; editors retain typed capitals."""
 
 from toad.preferences import SETTINGS
+from toad.key_modes import VimInsert
 from textual.command import CommandPalette
 from textual.widgets import Input, OptionList
 from toad.widgets.comms_menu import ContextMenu
@@ -14,7 +15,7 @@ from toad.widgets.side_bar import SideBar, SidebarAction
 async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(workspace):
     async with workspace.app(size=(130, 42)) as ui:
         app, pilot = ui.textual
-        app.saved_settings.set(SETTINGS.ui.vim_keys, True)
+        app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
         first = ui.selected_tab
         await ui.press('escape')
         second = await ui.new_session()
@@ -105,7 +106,7 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
 async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
     async with workspace.app(size=(130, 42)) as ui:
         app, pilot = ui.textual
-        app.saved_settings.set(SETTINGS.ui.vim_keys, True)
+        app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
         channels = app.screen.query_one('#channels-sidebar', SideBar)
         thread = app.selected_session.query_one('#thread-sidebar', SideBar)
         channels.reveal()
@@ -161,7 +162,7 @@ async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
 async def test_workspace_keys_do_not_interrupt_editor_sequences(workspace):
     async with workspace.app(size=(120, 40)) as ui:
         app, _pilot = ui.textual
-        app.saved_settings.set(SETTINGS.ui.vim_keys, True)
+        app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
         await ui.new_session()
         selected = ui.selected_tab
         editor = ui.conversation.prompt.prompt_text_area

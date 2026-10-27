@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from textual.widgets.text_area import EditingMode, VimMode
-from toad.key_modes import Standard
 from toad.widget_actions import Action
 from typing import TYPE_CHECKING
 
@@ -43,7 +42,7 @@ class ModeSwitcherAction(ConversationAction):
 class CancelAction(ConversationAction):
     """Cancel the agent's turn."""
 
-    keys = {Standard: ("escape",), VimMode: ("alt+ctrl+x",)}
+    keys = {EditingMode: ("escape",), VimMode: ("alt+ctrl+x",)}
     show = True
 
     def available(self, conversation):
