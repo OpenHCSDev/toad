@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from functools import partial
 from pathlib import Path
-from typing import ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
@@ -16,7 +15,7 @@ from agent_comms.historical_views import HistoricalThread
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
 from textual.widgets import Select, Static
 
 from toad.screens.workspace import WorkspaceScreen
@@ -34,8 +33,7 @@ class RecordedContents(Contents):
         super().__init__(**kwargs)
 
 
-class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, ModalScreen):
-    BINDINGS: ClassVar = [("escape", "close", "Back to chats")]
+class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, DismissibleScreen):
     DEFAULT_CSS = """
     HistoricalSessions { align: center middle; background: $background 60%; }
     HistoricalSessions > Vertical { width: 95%; height: 95%; background: $surface; border: solid $primary; }
@@ -163,6 +161,3 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
 
     def action_focus_prompt(self) -> None:
         self.query_one(HistoryWindow).jump_to_latest()
-
-    def action_close(self) -> None:
-        self.dismiss()

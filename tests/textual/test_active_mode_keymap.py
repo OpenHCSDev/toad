@@ -8,6 +8,7 @@ from toad.key_modes import VimNormal as NormalProfile
 from toad.preferences import SETTINGS
 from toad.screens.commander import CommanderPage
 from toad.widgets.side_bar import SideBar
+from toad.widget_actions import DismissAction
 
 
 async def test_commander_remaps_follow_editor_transitions_and_sidebar_focus(workspace):
@@ -15,11 +16,12 @@ async def test_commander_remaps_follow_editor_transitions_and_sidebar_focus(work
         app, _pilot = ui.textual
         app.saved_settings.set(SETTINGS.ui.key_mode, NormalProfile)
         editor = ui.conversation.prompt.prompt_text_area
-        app.set_keymap({
+        remaps = {
             CommanderAction.binding_id(VimNormal): "f3",
             CommanderAction.binding_id(VimInsert): "f4",
             CommanderAction.binding_id(VimVisual): "f5",
-        })
+        }
+        app.set_keymap(remaps)
         for mode, key, other in ((VimNormal(), "f3", "f4"),
                                  (VimInsert(), "f4", "f3"),
                                  (VimVisual(), "f5", "f3")):
@@ -40,3 +42,15 @@ async def test_commander_remaps_follow_editor_transitions_and_sidebar_focus(work
         await ui.press("f3")
         await ui.until(lambda: isinstance(app.screen, CommanderPage),
                        why="the application binding from shared sidebar focus")
+        app.set_keymap({**remaps, DismissAction.binding_id(VimNormal): "f6"})
+        await ui.press("escape")
+        assert isinstance(app.screen, CommanderPage)
+        await ui.press("f6")
+        await ui.until(lambda: app.screen is app.workspace_screen,
+                       why="the remapped modal dismissal")
+        await ui.press("f3")
+        await ui.until(lambda: isinstance(app.screen, CommanderPage),
+                       why="the commander page reopened under the remap")
+        await ui.pilot.click("#commander-close")
+        await ui.until(lambda: app.screen is app.workspace_screen,
+                       why="the Close button uses the same dismissal action")

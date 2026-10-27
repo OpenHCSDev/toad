@@ -11,7 +11,7 @@ from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical, VerticalScroll
 from textual.message import Message
 from textual.reactive import var
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
 from textual.widgets import Button, Static
 from textual._activation import PrimaryActivation
 
@@ -19,7 +19,7 @@ from agent_comms.input_attempt import HistoricalInput
 from agent_comms.ui_model.delivery import DeliveryView
 from toad.project_link import AcpLogLink
 from toad.widgets.selection import ChangingText, InlineSelection
-from toad.widget_actions import VisibleActions, Activates
+from toad.widget_actions import VisibleActions, Activates, DismissAction
 from rich.style import Style as RichStyle
 
 
@@ -111,8 +111,7 @@ class ShownHistory(HistoryView):
     load_offered: ClassVar[bool] = False
 
 
-class InputDeliveryDetails(ModalScreen[None]):
-    BINDINGS: ClassVar[list[tuple[str, str, str]]] = [("escape", "close", "Close")]
+class InputDeliveryDetails(DismissibleScreen[None]):
     DEFAULT_CSS = """
     InputDeliveryDetails { align: center middle; background: $background 40%; }
     InputDeliveryDetails > Vertical {
@@ -181,7 +180,7 @@ class InputDeliveryDetails(ModalScreen[None]):
             with HorizontalGroup():
                 if self.log_path is not None:
                     yield Button(AcpLogLink.label, id="delivery-log")
-                yield Button("Close (Esc)", id="delivery-close")
+                yield Button("Close", id="delivery-close", action=f"screen.{DismissAction.binding_name()}")
 
     def watch_delivery(self, old: DeliveryView, new: DeliveryView) -> None:
         if new.history_changed(old):
@@ -257,10 +256,6 @@ class InputDeliveryDetails(ModalScreen[None]):
         finally:
             self._busy = False
             self._refresh_records()
-
-    @on(Button.Pressed, "#delivery-close")
-    def action_close(self) -> None:
-        self.dismiss(None)
 
     @on(Button.Pressed, "#delivery-log")
     async def open_log(self) -> None:

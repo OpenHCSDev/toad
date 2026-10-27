@@ -1,5 +1,6 @@
 """Textual-facing: goal bar standby row, goal edit screen and goal details screen as Textual widgets over a scripted goal owner."""
 
+import asyncio
 from dataclasses import replace
 
 from agent_comms.acp_extension import GoalChangedUpdate
@@ -13,6 +14,7 @@ from agent_comms.goal_presentation import (
 )
 from agent_comms.goal_states import PausedGoal
 from agent_comms.goals import NoGoal
+from agent_comms.repo import Checkout
 from agent_comms.runtime_requests import GoalHistoryReply
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.turn_failure import NativeChildSignaled
@@ -142,6 +144,30 @@ async def test_rejected_goal_edit_keeps_the_draft_and_the_retry_is_accepted(work
         assert view.goal_display.snapshot.id == "stable-goal"
         assert owner.requests == [("edit", ("stable-goal", 4, "Ask @peer"))] * 2
         assert view.prompt.text == "Composer draft stays"
+
+
+async def test_goal_editor_cannot_close_while_its_save_is_in_flight(workspace):
+    started, release = asyncio.Event(), asyncio.Event()
+
+    async def save(text):
+        started.set()
+        await release.wait()
+
+    async with workspace.app(size=(100, 35)) as ui:
+        editor = GoalEdit(published_goal("Keep objective", "saving-goal"),
+                          project=Checkout(workspace.project), on_save=save)
+        await ui.app.push_screen(editor)
+        worker = ui.app.run_worker(editor.save("Updated objective"))
+        await started.wait()
+        await ui.press("escape")
+        assert ui.app.screen is editor and editor.saving
+        await ui.pilot.click("#goal-cancel")
+        await ui.step()
+        assert ui.app.screen is editor and editor.saving
+        release.set()
+        await worker.wait()
+        await ui.until(lambda: ui.app.screen is not editor,
+                       why="the accepted save closes its editor")
 
 
 async def test_goal_history_lists_earlier_revisions(workspace):

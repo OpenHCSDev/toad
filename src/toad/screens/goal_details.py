@@ -5,10 +5,10 @@ from metaclass_registry.mro_dispatch import handles
 from datetime import datetime
 
 from agent_comms.runtime_requests import GoalHistoryReply
-from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import DismissAction
 from textual.widgets import Button, Static
 
 from toad.core.input_events import SelectTarget
@@ -17,8 +17,7 @@ from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.goal_text import GoalText
 
 
-class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
-    BINDINGS = [("escape", "close", "Close")]
+class GoalDetails(CoreEventReceiver, ProjectPathOwner, DismissibleScreen[None]):
     AUTO_FOCUS = "#goal-document"
     DEFAULT_CSS = """
     GoalDetails { align: center middle; background: $background 40%; }
@@ -88,7 +87,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
                             f"Attempt {evidence.generation} · revision {evidence.goal_revision} · {failure}",
                             markup=False,
                         )
-            yield Button("Close (Esc)", id="goal-details-close")
+            yield Button("Close", id="goal-details-close", action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         self.watch(self.source.view, "goal_display", self._update_current)
@@ -110,10 +109,6 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         progress = self.query_one("#goal-current-progress", GoalText)
         progress.update_goal_text(f"Progress: {goal.progress}")
         progress.display = goal.shows_progress
-
-    @on(Button.Pressed, "#goal-details-close")
-    def action_close(self) -> None:
-        self.dismiss(None)
 
     @handles(SelectTarget)
     def open_target(self, event: SelectTarget, message: CoreEventMessage) -> None:

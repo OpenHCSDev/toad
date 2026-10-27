@@ -1,7 +1,6 @@
 """Native form geometry and paint, supplied directly to Textual's owners."""
 from __future__ import annotations
 
-from textual.binding import Binding
 from textual.color import Color, TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar
@@ -78,8 +77,6 @@ class FormModal[Result](WidgetView, ModalScreen[Result]):
     The form package knows no app key bindings: an app's own modal mixes in beside it.
     """
 
-    BINDINGS = [Binding("escape", "cancel", "Cancel", priority=True)]
-
     height = None
     align_horizontal = "center"
     align_vertical = "middle"
@@ -94,6 +91,3 @@ class FormModal[Result](WidgetView, ModalScreen[Result]):
     def theme_changed(self, theme) -> None:
         # A theme changes the entire visible modal, not each offscreen field.
         self.refresh()
-
-    def action_cancel(self) -> None:
-        self.dismiss(None)

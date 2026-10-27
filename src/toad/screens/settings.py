@@ -16,7 +16,8 @@ from toad.app import ScreenWidth, ToadApp
 from toad.forms.editors import SelectEditor
 from toad.forms.form_view import FormView
 from toad.forms.presentation import FormInput, FormModal
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import PriorityActions
 from toad.widget_view import WidgetView
 from toad.setting_choices import SchemeName
 
@@ -50,7 +51,7 @@ class SettingsSearch(WidgetView, containers.VerticalGroup):
     padding = Spacing(1, 0, 1, 0)
 
 
-class SettingsScreen(FormModal[None], ModalScreen[None]):
+class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None]):
     align_horizontal = "right"
     align_vertical = "top"
     app = getters.app(ToadApp)
@@ -80,10 +81,10 @@ class SettingsScreen(FormModal[None], ModalScreen[None]):
         message.stop()
         self.form.filter(message.value)
 
-    def action_cancel(self) -> None:
+    def dismiss_control(self) -> None:
         """Leave with every edit sent; the settings are saved once the screen is gone."""
         self.form.finish()
-        super().action_cancel()
+        super().dismiss_control()
 
     def focus_search(self) -> None:
         self.search.focus()

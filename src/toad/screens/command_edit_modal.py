@@ -1,6 +1,7 @@
 from textual import on
 from textual.app import ComposeResult
 from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import DismissAction
 from textual import widgets
 from toad.widgets.footer import ToadFooter
 from textual import containers
@@ -44,16 +45,12 @@ class CommandEditModal(DismissibleScreen[str | None]):
             )
             with containers.HorizontalGroup(id="button-container"):
                 yield widgets.Button("OK", variant="primary", id="ok")
-                yield widgets.Button("Cancel", id="cancel")
+                yield widgets.Button("Cancel", id="cancel", action=f"screen.{DismissAction.binding_name()}")
         yield ToadFooter()
 
     @on(widgets.Button.Pressed, "#ok")
     def on_ok_pressed(self, event: widgets.Button.Pressed) -> None:
         self.dismiss(self.text_area.text)
-
-    @on(widgets.Button.Pressed, "#cancel")
-    def on_cancel_pressed(self, event: widgets.Button.Pressed) -> None:
-        self.dismiss(None)
 
     def action_copy(self) -> None:
         self.app.copy_to_clipboard(self.text_area.text)

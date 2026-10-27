@@ -12,14 +12,15 @@ from agent_comms.field_codec import compile_decoder
 from agent_comms.login import run_login
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel
-from textual import work
+from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Checkbox, Static
 from toad.forms.editors import ValueEditor
 from toad.forms.form_view import InlineFormView
 from toad.forms.kinds import Multiline
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import ModalScreen, DismissibleScreen
+from toad.widget_actions import DismissAction
 from toad.widgets.model_switcher import ModelSelection
 
 
@@ -116,7 +117,7 @@ class CatalogChoiceDialog(ModalScreen[str]):
         yield CatalogFieldSelection(self.editor)
 
 
-class CommandDialog(ModalScreen[dict[str, str | None]]):
+class CommandDialog(DismissibleScreen[dict[str, str | None]]):
     DEFAULT_CSS = """
     CommandDialog { align: center middle; background: $background 40%; }
     CommandDialog #command-box { width: 68; max-width: 95%; height: 90%;
@@ -128,7 +129,7 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
     CommandDialog #command-title { max-height: 3; text-overflow: ellipsis; }
     CommandDialog TextArea { height: 5; }
     """
-    BINDINGS = [('escape', 'cancel', 'Cancel'), ('ctrl+enter', 'submit', 'Apply')]
+    BINDINGS = [('ctrl+enter', 'submit', 'Apply')]
 
     def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...]):
         super().__init__()
@@ -156,7 +157,7 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
             yield Checkbox('I confirm this operation', id='command-confirmed')
             with Horizontal(id='command-buttons'):
                 yield Button('Apply', id='command-apply', variant='primary')
-                yield Button('Cancel', id='command-cancel')
+                yield Button('Cancel', id='command-cancel', action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self):
         self.state.on_resolved_changed(self.draft_changed)
@@ -171,12 +172,10 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
             self.run_worker(self.refresh_catalogs(self.arguments()),
                             group='command-catalogs', exclusive=True)
 
-    async def on_button_pressed(self, event: Button.Pressed):
+    @on(Button.Pressed, '#command-apply')
+    async def apply_clicked(self, event: Button.Pressed):
         event.stop()
-        if event.button.id == 'command-apply':
-            await self.action_submit()
-        else:
-            self.action_cancel()
+        await self.action_submit()
 
     async def action_submit(self):
         self.form.finish()
@@ -226,6 +225,3 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
                 arguments[name] != choices.parameter.editor_default
                 for name, choices in self.choices.items())
         self.run_worker(prepare, group='command-confirmation', exclusive=True)
-
-    def action_cancel(self):
-        self.dismiss(None)

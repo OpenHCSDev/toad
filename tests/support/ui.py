@@ -187,6 +187,8 @@ class Ui(ABC):
         try:
             async with asyncio.timeout(seconds):
                 while True:
+                    if failure := self.failure():
+                        raise failure
                     result = condition()
                     if inspect.isawaitable(result):
                         result = await result
