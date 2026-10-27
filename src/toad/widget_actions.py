@@ -145,7 +145,7 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
         return self.available(context)
 
     @abstractmethod
-    async def apply(self, context: Context) -> None: ...
+    def apply(self, context: Context) -> None | Awaitable[None]: ...
 
 
 class ExclusiveBackground(Generic[Context]):
@@ -252,8 +252,9 @@ class DeclaredWidgetActions(DOMNode):
         cls.own_actions = actions
         declarations = cls.declared_actions()
         for declaration in declarations:
-            setattr(cls, f"action_{declaration.declared_name}",
-                    partialmethod(cls._run_declared_action, declaration))
+            dispatch = (cls._run_declared_async_action if inspect.iscoroutinefunction(declaration.apply)
+                        else cls._run_declared_action)
+            setattr(cls, f"action_{declaration.declared_name}", partialmethod(dispatch, declaration))
         super().__init_subclass__(**kwargs)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
@@ -262,10 +263,14 @@ class DeclaredWidgetActions(DOMNode):
                 return declaration.parse(parameters).key_available(self)
         return super().check_action(action, parameters)
 
-    async def _run_declared_action(self, declaration, *parameters) -> None:
+    def _run_declared_action(self, declaration, *parameters) -> None | Awaitable[None]:
         command = declaration.parse(parameters)
         if command.available(self):
-            await command.apply(self)
+            return command.apply(self)
+        return None
+
+    async def _run_declared_async_action(self, declaration, *parameters) -> None:
+        await invoke(self._run_declared_action, declaration, *parameters)
 
 
 class NativeMethodKeys(DeclaredWidgetActions, ToadNode):

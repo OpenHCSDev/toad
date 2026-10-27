@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from toad.screens.workspace import WorkspaceScreen
+    from toad.screens.workspace import WorkspaceFrame
 
 from textual import events
 from textual._paint_state import PaintLayer
@@ -23,10 +23,10 @@ class WorkspaceHosted:
     """A widget whose native screen supplies the workspace frame and histories."""
 
     @property
-    def screen(self) -> WorkspaceScreen:
-        from toad.screens.workspace import WorkspaceScreen
+    def screen(self) -> WorkspaceFrame:
+        from toad.screens.workspace import WorkspaceFrame
 
-        return WorkspaceScreen.require(super().screen)
+        return WorkspaceFrame.require(super().screen)
 
 
 class WidgetView(BoxGeometry, PaintLayer, FramePaint):

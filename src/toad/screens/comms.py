@@ -11,8 +11,9 @@ from agent_comms.repo import Checkout
 
 from textual import containers, getters, on
 from textual.app import ComposeResult
-from textual.binding import Binding
-from toad.widget_actions import TogglesIrc, CyclesSessions
+from textual.document._editing import EditingMode
+from toad.session_actions import ReturnToViewAction, CloseViewAction
+from toad.widget_actions import WidgetAction, TogglesIrc, CyclesSessions
 from textual.events import ScreenResume
 from textual.worker import WorkerCancelled
 from textual.widgets import Static
@@ -32,17 +33,57 @@ from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
-class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
+class ViewAction(WidgetAction, affix="Action"):
+    pass
+
+
+class SavedSessionsAction(ViewAction):
+    title = 'Saved sessions'
+    keys = {EditingMode: ('f8',)}
+    priority = True
+    show = True
+
+    async def apply(self, context):
+        from toad.screens.historical_sessions import HistoricalSessions
+
+        comms = context.app.coordination_access.observation.observed().service
+        threads = await asyncio.to_thread(comms.views.historical_threads)
+        if not threads:
+            context.notify("No preserved history sources are attached yet.")
+            return
+        context.app.push_screen(
+            context.conversation.historical_sessions(
+                partial(HistoricalSessions, comms, threads),
+                context.app.coordination_access.observation.observed()
+                .sidebar.observation.require_snapshot().references,
+            )
+        )
+
+
+class MessageStyleAction(ViewAction):
+    title = 'IRC / Markdown'
+    keys = {EditingMode: ('ctrl+t',)}
+    show = True
+
+    def apply(self, context):
+        if chat := context.query_one_optional(CommsChatView):
+            history = chat.message_history
+            history.run_worker(history.toggle_style, group="message-style")
+
+
+class FocusPromptAction(ViewAction):
+
+    def apply(self, context):
+        if chat := context.query_one_optional(CommsChatView):
+            chat.prepare_prompt()
+
+
+class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False,
+                  actions=(ViewAction, ReturnToViewAction, CloseViewAction)):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
     CSS_PATH = ["main.tcss", "comms.tcss"]
-    BINDINGS = [
-        Binding("escape", "back_to_agent", "Agent session"),
-        Binding("f8", "historical_sessions", "Saved sessions", priority=True),
-        Binding("ctrl+t", "message_style", "IRC / Markdown"),
-    ]
-
     def __init__(
         self,
         *,
@@ -160,21 +201,6 @@ class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
             )
         )
 
-    async def action_historical_sessions(self) -> None:
-        from toad.screens.historical_sessions import HistoricalSessions
-
-        comms = self.app.coordination_access.observation.observed().service
-        threads = await asyncio.to_thread(comms.views.historical_threads)
-        if not threads:
-            self.notify("No preserved history sources are attached yet.")
-            return
-        self.app.push_screen(
-            self.conversation.historical_sessions(
-                partial(HistoricalSessions, comms, threads),
-                self.app.coordination_access.observation.observed()
-                .sidebar.observation.require_snapshot().references,
-            )
-        )
 
     def on_mount(self) -> None:
         if not self._content_loaded:
@@ -236,14 +262,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
         if chat := self.query_one_optional(CommsChatView):
             self.call_after_refresh(chat.prepare_prompt)
 
-    def action_message_style(self) -> None:
-        if chat := self.query_one_optional(CommsChatView):
-            history = chat.message_history
-            history.run_worker(history.toggle_style, group="message-style")
 
-    def action_focus_prompt(self) -> None:
-        if chat := self.query_one_optional(CommsChatView):
-            chat.prepare_prompt()
 
     def focus_sidebar_return(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
@@ -269,8 +288,6 @@ class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
     async def on_select_target(self, event: SelectTarget) -> None:
         await self.open_sidebar_target(event.target)
 
-    async def action_back_to_agent(self) -> None:
-        await self.app.session_navigation.return_from(self.id)
 
     async def toggle_irc(self) -> None:
         await self.conversation.toggle_irc(self)
@@ -282,7 +299,3 @@ class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False):
         self.app.session_navigation.events.publish(
             session_requests.SessionNavigate(self.owner_mode, direction)
         )
-
-    async def action_close_session(self) -> None:
-        if self.id is not None:
-            await self.app.session_navigation.close(self.id)

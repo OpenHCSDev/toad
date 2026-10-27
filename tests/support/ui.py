@@ -7,6 +7,8 @@ internals asks for ``ui.textual`` instead and lives under ``tests/textual``.
 
 from __future__ import annotations
 
+from toad.session_actions import ReturnToViewAction
+
 import asyncio
 import inspect
 from abc import ABC, abstractmethod
@@ -381,7 +383,7 @@ class TextualUi(AppAgents, Ui):
         return identity
 
     async def return_to_owner(self) -> None:
-        await self.app.selected_session.action_back_to_agent()
+        await ReturnToViewAction().apply(self.app.selected_session)
         await self.step()
 
     async def go_back(self) -> None:

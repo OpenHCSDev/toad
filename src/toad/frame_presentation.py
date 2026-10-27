@@ -22,7 +22,7 @@ from ui_theme.scheme import BackgroundColour
 from toad.tone_paint import TonePaint
 
 if TYPE_CHECKING:
-    from toad.screens.workspace import WorkspaceScreen
+    from toad.screens.workspace import WorkspaceFrame
     from toad.widgets.transcript_history import TranscriptPageView
 
 
@@ -120,14 +120,14 @@ class ClosedFrame(FrameState):
 
 
 class FramePresentation:
-    def __init__(self, screen: WorkspaceScreen):
+    def __init__(self, screen: WorkspaceFrame):
         self._screen = ref(screen)
         self.state: FrameState = PendingFrame()
         self.callbacks: dict[tuple[Widget, Callable[[], object]], None] = {}
         self.presented = asyncio.Event()
 
     @property
-    def screen(self) -> WorkspaceScreen:
+    def screen(self) -> WorkspaceFrame:
         screen = self._screen()
         if screen is None:
             raise ReferenceError("Frame screen has retired")

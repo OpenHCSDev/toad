@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from textual._callback import invoke
+
 from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core import events as core_events
@@ -337,7 +339,7 @@ class MainMenuButton(HeaderButton):
 
     async def chosen(self, action: ApplicationAction | None) -> None:
         if action is not None:
-            await action.apply(self.app)
+            await invoke(action.apply, self.app)
 
 
 class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):

@@ -36,7 +36,9 @@ async def test_historical_notification_keeps_selected_source_and_lifetime(worksp
         outcomes = access.notification_outcomes[request]
         assert outcomes[message.seq, message.message_id]
 
-        await screen.dismiss()
+        await ui.press("escape")
+        await ui.until(lambda: ui.app.screen is ui.app.workspace_screen,
+                       why="Escape dismissed saved history")
         await ui.until(lambda: content not in access.notification_views,
                        why="the closed historical body's subscription to retire")
         assert ui.failure() is None

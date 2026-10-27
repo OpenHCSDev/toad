@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from toad.session_actions import ReturnToViewAction
+
 import asyncio
 from abc import abstractmethod
 from dataclasses import dataclass
@@ -99,7 +101,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     async def toggle_dm(cls, screen: CommsScreen) -> None:
-        await screen.action_back_to_agent()
+        await ReturnToViewAction().apply(screen)
         screen.app.session_navigation.direct_messages()
 
     def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
@@ -258,7 +260,7 @@ class DmConversation(ConversationKind):
 
     @classmethod
     async def toggle_dm(cls, screen: CommsScreen) -> None:
-        await screen.action_back_to_agent()
+        await ReturnToViewAction().apply(screen)
 
     def threads_needed(self, snapshot: RegistrySnapshot, me: str):
         return snapshot.require(me).incarnation, self.peer
@@ -307,7 +309,7 @@ class DmConversation(ConversationKind):
 class IrcConversation(ChannelConversation):
     @classmethod
     async def toggle_irc(cls, screen: CommsScreen) -> None:
-        await screen.action_back_to_agent()
+        await ReturnToViewAction().apply(screen)
 
     def label(self, references: CurrentDisplayReferences) -> str:
         return f"{self.target.name} · all comms"

@@ -1,3 +1,4 @@
+from textual._callback import invoke
 
 from textual import on
 from textual import getters
@@ -100,7 +101,7 @@ class AgentModal(
     async def on_run_action(self) -> None:
         action = self.action_select.value
         if action is not widgets.Select.NULL and action.available(self):
-            await action.apply(self)
+            await invoke(action.apply, self)
 
     async def launch(self) -> None:
         await LaunchAction(self.agent).apply(self)

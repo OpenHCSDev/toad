@@ -18,7 +18,7 @@ from textual.containers import Vertical
 from toad.screens.modal import DismissibleScreen
 from textual.widgets import Select, Static
 
-from toad.screens.workspace import WorkspaceScreen
+from toad.screens.workspace import WorkspaceFrame
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
@@ -33,7 +33,7 @@ class RecordedContents(Contents):
         super().__init__(**kwargs)
 
 
-class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, DismissibleScreen):
+class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):
     DEFAULT_CSS = """
     HistoricalSessions { align: center middle; background: $background 60%; }
     HistoricalSessions > Vertical { width: 95%; height: 95%; background: $surface; border: solid $primary; }
