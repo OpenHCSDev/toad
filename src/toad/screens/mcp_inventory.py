@@ -9,6 +9,7 @@ from typing import cast
 from textual import containers, on
 from textual.app import ComposeResult
 from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import DismissAction
 from textual.widgets import Button, OptionList, Static
 from textual.widgets.option_list import Option
 
@@ -63,7 +64,7 @@ class MCPInventoryScreen(DismissibleScreen[None]):
                     yield MCPDecisionButton(member())
             with containers.Horizontal(id="mcp-inventory-controls"):
                 yield Button("Refresh", id="refresh")
-                yield Button("Close", id="close")
+                yield Button("Close", id="close", action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         self.action_refresh()
@@ -131,10 +132,6 @@ class MCPInventoryScreen(DismissibleScreen[None]):
             else None
         )
         self._update_actions()
-
-    @on(Button.Pressed, "#close")
-    def close_inventory(self, event: Button.Pressed) -> None:
-        self.dismiss()
 
     @on(Button.Pressed, "MCPDecisionButton")
     def open_decision(self, event: Button.Pressed) -> None:

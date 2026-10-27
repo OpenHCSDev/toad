@@ -58,7 +58,7 @@ def installed_mcp_command() -> tuple[str, str]:
     node = shutil.which("node")
     if node is None:
         raise FileNotFoundError("Node is unavailable")
-    cli = package / "agent-comms-extensions/pi-mcp-client/bin/pi-mcp.mjs"
+    cli = package.path / "agent-comms-extensions/pi-mcp-client/bin/pi-mcp.mjs"
     if not cli.is_file():
         raise FileNotFoundError("The pinned native package has no MCP CLI")
     return str(Path(node).resolve(strict=True)), str(cli)

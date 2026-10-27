@@ -484,6 +484,13 @@ Tap escape *twice* to exit.
             await self._write_to_stdin(input)
 
 
+class ControlledTerminal(Terminal):
+    """A parent controller owns priority keys; every remaining key goes to the child."""
+
+    def check_consume_key(self, key: str, character: str | None = None) -> bool:
+        return False
+
+
 if __name__ == "__main__":
     from textual.app import App, ComposeResult
 
