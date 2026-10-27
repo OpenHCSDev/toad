@@ -33,6 +33,7 @@ async def test_opening_a_file_adds_a_tab_named_for_it_and_opening_it_again_selec
         mode, widget = await preview(ui, path)
         assert [tab.identity for tab in ui.tabs()][:2] == [owner, mode]
         assert widget.path == path.resolve()
+        assert app.selected_session.project_root == path.parent
         assert str(path.resolve()) in widget.query_one(".file-preview-path").render().plain
         assert "Previewed plan" in widget.query_one(LineMarkdown).text
         assert next(tab.title for tab in ui.tabs() if tab.identity == mode) == path.name

@@ -2,7 +2,6 @@
 
 from textual.containers import Vertical
 from textual.reactive import reactive
-from pathlib import Path
 from contextlib import contextmanager
 from metaclass_registry.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
@@ -54,10 +53,6 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
         return self.app.coordination_access.observation.tab(
             sessions.get(self.id), sessions
         ).title
-
-    @property
-    def project_root(self) -> Path:
-        return self.project_path.path
 
     @property
     def is_current(self) -> bool:

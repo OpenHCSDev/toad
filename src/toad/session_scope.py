@@ -26,7 +26,7 @@ from toad.constants import WELCOME
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.navigation_context import NavigationOwner
-from toad.project_path_owner import ProjectPathOwner
+from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 
@@ -373,10 +373,8 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
     def remove(self) -> Awaitable[None]: ...
 
 
-class ProjectSessionOrigin(SessionOrigin, SessionScope):
+class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
     """A project source may navigate and resolve threads without an ACP session."""
-
-    project_path: Checkout
 
     @abstractmethod
     def history_origin(self):

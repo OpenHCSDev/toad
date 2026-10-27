@@ -3,6 +3,7 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.core import events as core_events
 from toad.core import session_requests
 from toad.screens.session_view import SessionView
+from toad.project_path_owner import CheckoutRoot
 import asyncio
 from functools import partial
 from pathlib import Path
@@ -78,7 +79,7 @@ class FocusPromptAction(ViewAction):
             chat.prepare_prompt()
 
 
-class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False,
+class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SessionView, can_focus=False,
                   actions=(ViewAction, ReturnToViewAction, CloseViewAction)):
     """A channel or DM represented as a native concurrent Toad session."""
 
