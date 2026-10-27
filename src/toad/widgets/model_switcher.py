@@ -77,7 +77,7 @@ class ClearModelSearchAction(WidgetAction):
     keys = {EditingMode: ("ctrl+u",)}
     priority = True
 
-    async def apply(self, context):
+    async def apply(self, context: "ModelSelection") -> None:
         context.search_input.clear()
 
 

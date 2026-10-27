@@ -31,9 +31,21 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
 
     def close_core_events(self) -> None:
         """Retire this logical source's descendants before its tab entry disappears."""
-        for receiver in self.query(CoreEventReceiver):
+        for receiver in self.query().results(CoreEventReceiver):
             receiver.close_core_events()
         super().close_core_events()
+
+    @property
+    def has_mode_name(self) -> bool:
+        return self.id is not None
+
+    @property
+    def mode_name(self) -> str:
+        """Navigation requires the native identity assigned when this view was bound."""
+        identity = self.id
+        if identity is None:
+            raise ValueError("The session view has not been bound to a mode")
+        return identity
 
     @property
     def display_name(self) -> str:

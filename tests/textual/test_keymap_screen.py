@@ -31,6 +31,11 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace):
         document = app.saved_settings.document()
         assert SavedSettings(document).current.ui.keymap == app.settings.ui.keymap
         assert not app.saved_settings.unsaved
+        app.screen.query_one("#keymap-search", Input).value = "Commander"
+        await ui.step()
+        app.screen.query_one("#keymap-keys", Input).value = "f6"
+        await ui.pilot.click("#keymap-apply")
+        assert app.saved_settings.document() == document, "Filtering must discard the previous cell selection"
         await ui.press("escape")
         await ui.until(lambda: app.screen is app.workspace_screen, why="the keymap menu closed")
         await ui.press("f1")

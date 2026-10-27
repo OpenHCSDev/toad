@@ -141,7 +141,7 @@ class SwitchPathPickerAction(WidgetAction):
     keys = {EditingMode: ("tab",)}
     priority = True
 
-    async def apply(self, context):
+    async def apply(self, context: "PathSearch") -> None:
         context.show_tree_picker = not context.show_tree_picker
 
 

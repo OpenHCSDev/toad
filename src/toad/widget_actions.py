@@ -175,6 +175,10 @@ class YieldingKey:
     """An application key that any binding closer to the focus replaces: it answers only
     where nothing local claims the key, so the claim is no conflict."""
 
+    @classmethod
+    def exclusive_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
+        return ()
+
 
 class ExclusiveKeys:
     """One declared family of mutually exclusive actions may share its default keys."""
@@ -187,6 +191,10 @@ class ExclusiveKeys:
 
 class ApplicationAction(Action, affix="Action"):
     binding_prefix = "app."
+
+    @classmethod
+    def exclusive_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
+        return cls.bindings_for(mode)
 
     @classmethod
     def menu(cls, app):
@@ -205,7 +213,7 @@ class VimWorkspaceAction(ApplicationAction, declared_name=None):
                 and app.screen.allows_application_commands)
 
 
-class DeclaredWidgetActions(DOMNode):
+class DeclaredWidgetActions(ToadNode):
     """One family supplies both native dispatch and dynamic availability."""
 
     own_actions: ClassVar[tuple[type[Action], ...]] = ()
@@ -273,7 +281,7 @@ class DeclaredWidgetActions(DOMNode):
         await invoke(self._run_declared_action, declaration, *parameters)
 
 
-class NativeMethodKeys(DeclaredWidgetActions, ToadNode):
+class NativeMethodKeys(DeclaredWidgetActions):
     """Project native callable declarations without another action implementation."""
 
     @classmethod

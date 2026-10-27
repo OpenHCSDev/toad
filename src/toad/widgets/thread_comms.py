@@ -103,7 +103,7 @@ class CopyIdentityAction(ViewAction):
     title = 'Copy name'
     keys = {EditingMode: ('ctrl+c',)}
 
-    def apply(self, context):
+    def apply(self, context: "RelationshipRow") -> None:
         context.app.copy_to_clipboard(context.target_name)
 
 

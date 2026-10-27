@@ -15,6 +15,7 @@ from toad.messages import Dismiss
 from toad.widget_actions import DismissibleControl
 
 if TYPE_CHECKING:
+    from toad.prompt_cursor import CursorMovement
     from toad.widgets.prompt import Prompt
 
 
@@ -130,11 +131,11 @@ class CompletionPopup(PromptPopup):
     """Completion widgets appear above the editor; membership is derived."""
 
     @classmethod
-    def cursor_changed_in(cls, prompt: Prompt, movement) -> None:
+    def cursor_changed_in(cls, prompt: Prompt, movement: CursorMovement) -> None:
         for popup in prompt.query(cls):
             popup.cursor_changed(movement)
 
-    def cursor_changed(self, movement) -> None:
+    def cursor_changed(self, movement: CursorMovement) -> None:
         """Cases without cursor-triggered entry retain their existing control."""
 
 

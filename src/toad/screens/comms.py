@@ -43,7 +43,7 @@ class SavedSessionsAction(ViewAction):
     priority = True
     show = True
 
-    async def apply(self, context):
+    async def apply(self, context: "CommsScreen") -> None:
         from toad.screens.historical_sessions import HistoricalSessions
 
         comms = context.app.coordination_access.observation.observed().service
@@ -65,7 +65,7 @@ class MessageStyleAction(ViewAction):
     keys = {EditingMode: ('ctrl+t',)}
     show = True
 
-    def apply(self, context):
+    def apply(self, context: "CommsScreen") -> None:
         if chat := context.query_one_optional(CommsChatView):
             history = chat.message_history
             history.run_worker(history.toggle_style, group="message-style")
@@ -73,7 +73,7 @@ class MessageStyleAction(ViewAction):
 
 class FocusPromptAction(ViewAction):
 
-    def apply(self, context):
+    def apply(self, context: "CommsScreen") -> None:
         if chat := context.query_one_optional(CommsChatView):
             chat.prepare_prompt()
 
@@ -273,7 +273,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, SessionView, can_focus=False,
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, event: SideBar.Dismiss) -> None:
         event.stop()
-        self.action_focus_prompt()
+        FocusPromptAction().apply(self)
 
     @property
     def navigation_context(self) -> NavigationContext:

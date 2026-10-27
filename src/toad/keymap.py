@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 from functools import cache
 from importlib import import_module
 from pkgutil import walk_packages
-from typing import Annotated
+from typing import Annotated, TYPE_CHECKING
 
 import toad
 
@@ -19,7 +19,12 @@ from textual.widgets import TextArea
 
 from toad.key_modes import KeyMode
 from toad.setting_declarations import Effect, FamilyChoices
-from toad.widget_actions import ApplicationAction, DeclaredWidgetActions, YieldingKey
+from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
+
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
+    from toad.forms.declared_views import DeclaredField
 
 
 @cache
@@ -29,6 +34,10 @@ def discover() -> None:
     for module in walk_packages(toad.__path__, toad.__name__ + "."):
         if module.ispkg:
             DeclaredFamily.discover_package(import_module(module.name))
+
+
+class KeymapRefused(ValueError):
+    """An invalid keyboard preference the editor may report to its user."""
 
 
 class KeyDeclarationName(TextRepresentation[type[KeyDeclaration]]):
@@ -81,7 +90,7 @@ class KeyConflict:
 
 
 @Effect
-def apply_keymap(app, field) -> None:
+def apply_keymap(app: ToadApp, field: DeclaredField) -> None:
     app.set_keymap(app.settings.ui.keymap.native())
 
 
@@ -92,14 +101,14 @@ class Keymap:
     def __post_init__(self) -> None:
         identities = tuple(remap.binding_id for remap in self.bindings)
         if len(set(identities)) != len(identities):
-            raise ValueError("A keyboard declaration may have only one override per mode.")
+            raise KeymapRefused("A keyboard declaration may have only one override per mode.")
 
     def native(self) -> dict[str, str]:
         return {remap.binding_id: ",".join(remap.keys) for remap in self.bindings}
 
     def changed(self, row: KeymapRow, keys: tuple[str, ...]) -> Keymap:
         if not keys:
-            raise ValueError("Enter a key, or use Reset to restore the defaults.")
+            raise KeymapRefused("Enter a key, or use Reset to restore the defaults.")
         bindings = tuple(remap for remap in self.bindings if remap.binding_id != row.binding_id)
         candidate = replace(self, bindings=(*bindings, KeyRemap(row.declaration, row.mode, keys)))
         return self.checked(candidate, row.mode)
@@ -109,7 +118,7 @@ class Keymap:
         introduced = tuple(conflict for conflict in candidate.conflicts(mode)
                            if conflict not in existing)
         if introduced:
-            raise ValueError("Key conflict: " + "; ".join(map(str, introduced)))
+            raise KeymapRefused("Key conflict: " + "; ".join(map(str, introduced)))
         return candidate
 
     def reset(self, row: KeymapRow) -> Keymap:
@@ -123,8 +132,7 @@ class Keymap:
         rows = {row.binding_id: row for declaration in KeyDeclaration.declarations()
                 for row in (KeymapRow(declaration, mode),)}
         application = tuple(binding for declaration in ApplicationAction.declarations()
-                            if not issubclass(declaration, YieldingKey)
-                            for binding in declaration.bindings_for(native_mode))
+                            for binding in declaration.exclusive_bindings(native_mode))
         conflicts: set[KeyConflict] = set()
         for owner in DeclaredWidgetActions.contexts():
             defaults = owner.declared_bindings(native_mode)

@@ -89,32 +89,26 @@ class Option(PrimaryActivation, containers.HorizontalGroup):
 
         index: int
 
-    key: reactive[str | None] = reactive(None)
+    keys: reactive[tuple[str, ...]] = reactive(())
 
     selected: reactive[bool] = reactive(False, toggle_class="-selected")
 
     def __init__(
-        self, index: int, content: Content, key: str | None, classes: str = ""
+        self, index: int, content: Content, keys: tuple[str, ...], classes: str = ""
     ) -> None:
         super().__init__(classes=classes)
         self.index = index
         self.content = content
-        self.key = key
+        self.keys = keys
 
     def compose(self) -> ComposeResult:
-        key = self.key
         yield OptionMarker("❯", id="caret")
-        if key:
-            yield OptionMarker(Content.styled(f"{key}", "b"), id="index")
-        else:
-            yield OptionMarker(Content(" "), id="index")
-
+        yield OptionMarker(Content.styled(", ".join(self.keys) or " ", "b"), id="index")
         yield NonSelectableLabel(self.content, id="label")
 
-    def watch_key(self, key: str | None) -> None:
-        marker = self.query_one_optional("#index", OptionMarker)
-        if marker is not None:
-            marker.update(Content.styled(key or " ", "b"))
+    def watch_keys(self, keys: tuple[str, ...]) -> None:
+        for marker in self.query("#index").results(OptionMarker):
+            marker.update(Content.styled(", ".join(keys) or " ", "b"))
 
     def on_click(self, event: events.Click) -> None:
         event.stop()
@@ -232,27 +226,27 @@ class Question(QuestionContext, DeclaredWidgetActions, containers.VerticalGroup,
 
         self._option_view = containers.VerticalGroup(id="option-container")
         with self._option_view:
-            for index, (answer, key) in enumerate(zip(self.options, self.option_keys())):
+            for index, (answer, keys) in enumerate(zip(self.options, self.option_keys())):
                 yield Option(
-                    index, Content(answer.text), key,
+                    index, Content(answer.text), keys,
                     classes="-active" if index == self.selection else "",
                 ).data_bind(Question.selected)
 
-    def option_keys(self) -> tuple[str | None, ...]:
-        keys = {declaration.kind: binding.key
-                for declaration in SelectKindAction.members_with(SelectKindAction)
-                for binding in declaration.configured_bindings(self)}
+    def option_keys(self) -> tuple[tuple[str, ...], ...]:
+        candidates = tuple((declaration.kind, binding.key)
+                           for declaration in SelectKindAction.members_with(SelectKindAction)
+                           for binding in declaration.configured_bindings(self))
         seen: set[str] = set()
         result = []
         for answer in self.options:
-            result.append(keys.get(answer.kind) if answer.kind is not None and answer.kind not in seen else None)
-            if answer.kind is not None:
-                seen.add(answer.kind)
+            result.append(tuple(key for kind, key in candidates
+                                if kind == answer.kind and kind not in seen))
+            seen.update(kind for kind, _key in candidates if kind == answer.kind)
         return tuple(result)
 
     def refresh_option_keys(self, _screen: Screen) -> None:
-        for option, key in zip(self.query(Option), self.option_keys()):
-            option.key = key
+        for option, keys in zip(self.query(Option), self.option_keys()):
+            option.keys = keys
 
     @property
     def question(self) -> Question:

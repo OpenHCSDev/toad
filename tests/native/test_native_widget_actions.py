@@ -55,7 +55,7 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
         question = view.prompt.query_one(Question)
         await ui.until(lambda: len(question.query(Option)) == 2 and ui.shows("DECLARED_QUESTION"), why="the question")
         question.focus()
-        assert question.query(Option)[0].key == "f9"
+        assert question.query(Option)[0].keys == ("f9",)
         await ui.press("a")
         assert not selected
         await ui.press("down")

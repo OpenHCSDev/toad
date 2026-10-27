@@ -180,7 +180,7 @@ class ToggleSidebarAction(WidgetAction):
     """Toggle the sidebar and focus its contents."""
     keys = {EditingMode: ("enter", "space")}
 
-    def apply(self, context):
+    def apply(self, context: "SideBarToggle") -> None:
         context.post_message(context.Pressed())
 
 
@@ -558,7 +558,7 @@ class ClearSidebarSearchAction(WidgetAction):
     """Clear the sidebar search text."""
     keys = {EditingMode: ("escape",)}
 
-    def apply(self, context):
+    def apply(self, context: "SidebarSearch") -> None:
         context.value = ""
 
 

@@ -127,7 +127,7 @@ class ApplyCommandAction(ViewAction):
     keys = {EditingMode: ('ctrl+enter',)}
     show = True
 
-    async def apply(self, context):
+    async def apply(self, context: "CommandDialog") -> None:
         context.form.finish()
         if context.query_one('#command-apply', Button).disabled:
             return

@@ -1,11 +1,17 @@
 """Navigation effects shared by every tab that has an existing session identity."""
+from __future__ import annotations
+
 from textual.document._editing import EditingMode
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from toad.screens.session_view import SessionView
 from toad.widget_actions import WidgetAction
 
 
 class SessionViewAction(WidgetAction, affix="Action"):
-    def available(self, context):
-        return context.id is not None
+    def available(self, context: "SessionView") -> bool:
+        return context.has_mode_name
 
 
 class ReturnToViewAction(SessionViewAction):
@@ -14,8 +20,8 @@ class ReturnToViewAction(SessionViewAction):
     keys = {EditingMode: ("escape",)}
     show = True
 
-    async def apply(self, context):
-        await context.app.session_navigation.return_from(context.id)
+    async def apply(self, context: "SessionView") -> None:
+        await context.app.session_navigation.return_from(context.mode_name)
 
 
 class CloseViewAction(SessionViewAction):
@@ -24,5 +30,5 @@ class CloseViewAction(SessionViewAction):
     keys = {EditingMode: ("ctrl+w",)}
     priority = True
 
-    async def apply(self, context):
-        await context.app.session_navigation.close(context.id)
+    async def apply(self, context: "SessionView") -> None:
+        await context.app.session_navigation.close(context.mode_name)

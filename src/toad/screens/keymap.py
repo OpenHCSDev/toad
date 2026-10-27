@@ -13,7 +13,7 @@ from textual.widgets import Button, Checkbox, DataTable, Input, Static
 from textual.document._editing import EditingMode
 
 from toad.key_modes import KeyMode
-from toad.keymap import Keymap, KeymapRow, discover
+from toad.keymap import Keymap, KeymapRefused, KeymapRow, discover
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
 from toad.screens.modal import DismissibleScreen
@@ -46,7 +46,6 @@ class KeymapScreen(DismissibleScreen[None]):
         self.mode_choices = cast(FamilyChoices[KeyMode], mode_choices)
         self.modes = self.mode_choices.choices()
         self.visible_declarations = self.declarations
-        self.selected: KeymapRow | None = None
 
     def compose(self) -> ComposeResult:
         with Vertical():
@@ -92,42 +91,42 @@ class KeymapScreen(DismissibleScreen[None]):
     def focus_filter_changed(self) -> None:
         self.populate(self.query_one("#keymap-search", Input).value)
 
+    def selected_rows(self) -> tuple[KeymapRow, ...]:
+        """The table cursor owns selection; no second selected row survives a filter change."""
+        row, column = self.query_one(DataTable).cursor_coordinate
+        if column and row < len(self.visible_declarations):
+            selected = KeymapRow(self.visible_declarations[row], self.modes[column - 1])
+            return (selected,) if selected.defaults else ()
+        return ()
+
     @on(DataTable.CellSelected)
     def picked(self, message: DataTable.CellSelected) -> None:
-        row, column = message.coordinate
-        if not column:
-            return
-        self.selected = KeymapRow(self.visible_declarations[row], self.modes[column - 1])
-        if not self.selected.defaults:
-            self.selected = None
-            self.query_one("#keymap-status", Static).update("This command has no key in that mode.")
-            return
-        self.query_one("#keymap-keys", Input).value = ", ".join(
-            self.selected.effective(self.app.settings.ui.keymap))
-        self.query_one("#keymap-summary", Static).update(self.selected.declaration.summary())
-        conflicts = tuple(conflict for conflict in self.app.settings.ui.keymap.conflicts(self.selected.mode)
-                          if self.selected in (conflict.first, conflict.second))
-        self.query_one("#keymap-status", Static).update("; ".join(map(str, conflicts)))
-        self.query_one("#keymap-keys", Input).focus()
+        for row in self.selected_rows():
+            self.query_one("#keymap-keys", Input).value = ", ".join(
+                row.effective(self.app.settings.ui.keymap))
+            self.query_one("#keymap-summary", Static).update(row.declaration.summary())
+            conflicts = tuple(conflict for conflict in self.app.settings.ui.keymap.conflicts(row.mode)
+                              if row in (conflict.first, conflict.second))
+            self.query_one("#keymap-status", Static).update("; ".join(map(str, conflicts)))
+            self.query_one("#keymap-keys", Input).focus()
 
     @on(Button.Pressed, "#keymap-apply")
     async def apply_keys(self) -> None:
-        if self.selected is None:
-            return
         keys = self.query_one("#keymap-keys", Input).value
-        normalized = self.app._normalize_keymap({self.selected.binding_id: keys})
-        await self.save(partial(Keymap.changed, row=self.selected,
-                                keys=tuple(key for key in normalized[self.selected.binding_id].split(",") if key)))
+        for row in self.selected_rows():
+            normalized, = self.app._normalize_keymap({row.binding_id: keys}).values()
+            await self.save(partial(Keymap.changed, row=row,
+                                    keys=tuple(key for key in normalized.split(",") if key)))
 
     @on(Button.Pressed, "#keymap-reset")
     async def reset_keys(self) -> None:
-        if self.selected is not None:
-            await self.save(partial(Keymap.reset, row=self.selected))
+        for row in self.selected_rows():
+            await self.save(partial(Keymap.reset, row=row))
 
     async def save(self, edit: Callable[[Keymap], Keymap]) -> None:
         try:
             keymap = edit(self.app.settings.ui.keymap)
-        except ValueError as error:
+        except KeymapRefused as error:
             self.query_one("#keymap-status", Static).update(str(error))
             return
         self.app.saved_settings.set(SETTINGS.ui.keymap.bindings, keymap.bindings)
