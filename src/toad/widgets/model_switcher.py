@@ -8,7 +8,7 @@ from abc import abstractmethod
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Self, Protocol
 
-from textual import events, getters, on, work
+from textual import getters, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding
 from toad.widget_actions import PriorityActions, MovesCursor, Submits, DismissibleControl
@@ -16,7 +16,7 @@ from textual.content import Content
 from textual.containers import VerticalGroup
 from textual.reactive import var
 from textual.widgets import Input, OptionList, Static
-from textual._activation import PrimaryActivation
+from toad.widget_actions import Activates
 from textual.widgets.option_list import Option
 
 from toad import messages
@@ -28,23 +28,19 @@ if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
 
 
-class ConnectProvider(InlineSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
-    BINDINGS = [("enter,space", "connect", "Connect provider")]
+class ConnectProvider(
+    InlineSelection,
+    Activates,
+    CoreEventReceiver,
+    Static,
+    can_focus=True,
+):
 
     def __init__(self):
         super().__init__("Connect a provider…", markup=False)
 
-    @property
-    def primary_activation(self):
-        return self.action_connect
-
-    def action_connect(self):
+    def activate(self):
         self.query_ancestor(ModelSelection).connect_provider()
-
-    def on_click(self, event: events.Click):
-        event.stop()
-        self.action_connect()
-
 
 def match_score(query: str, candidate: str) -> float:
     """Linear subsequence matching, with exact/prefix/substring preference."""
@@ -256,7 +252,7 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
     def submit(self):
         connect = self.query_one(ConnectProvider)
         if connect.has_focus:
-            connect.action_connect()
+            connect.activate()
             return
         if (option := self.option_list.highlighted_option) is not None:
             if option.id is not None:

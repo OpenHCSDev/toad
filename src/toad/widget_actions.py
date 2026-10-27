@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import inspect
 from abc import abstractmethod
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Awaitable, Callable, Iterator, Mapping
 from functools import partialmethod
 from operator import or_
 from types import MappingProxyType
@@ -13,6 +13,9 @@ from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, FieldPlan
 from textual.binding import Binding, BindingsMap, ModeBinding
+from textual import events
+from textual._activation import PrimaryActivation
+from textual._callback import invoke
 from textual.keys import KeyDeclaration
 from textual.widgets.text_area import EditingMode, VimMode
 from textual.dom import DOMNode
@@ -324,10 +327,10 @@ class LaunchAction(VisibleAction):
 
 
 class ActivateAction(WidgetAction):
-    keys = {EditingMode: ("enter,space",)}
+    keys = {EditingMode: ("enter", "space")}
 
-    async def apply(self, context: Activates) -> None:
-        context.activate()
+    async def apply(self, context: ActivationKeys) -> None:
+        await invoke(context.primary_activation)
 
 
 class ToggleIrcAction(VisibleAction):
@@ -420,10 +423,24 @@ class Launches(DeclaredWidgetActions, actions=(LaunchAction,)):
     async def launch(self) -> None: ...
 
 
-class Activates(DeclaredWidgetActions, actions=(ActivateAction,)):
+class ActivationKeys(PrimaryActivation, DeclaredWidgetActions, actions=(ActivateAction,)):
+    """Keys and primary clicks use the native activation callback, including async effects."""
+
+    async def on_click(self, event: events.Click) -> None:
+        if event.button == 1:
+            event.stop()
+            await invoke(self.primary_activation)
+
+
+class Activates(ActivationKeys):
+    """A control whose primary effect is its own activate method."""
+
+    @property
+    def primary_activation(self):
+        return self.activate
 
     @abstractmethod
-    def activate(self) -> None: ...
+    def activate(self) -> None | Awaitable[None]: ...
 
 
 class TogglesIrc(DeclaredWidgetActions, actions=(ToggleIrcAction,)):

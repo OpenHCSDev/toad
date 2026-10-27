@@ -7,16 +7,16 @@ import re
 
 from rich.text import Text
 from typing import Annotated
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.declared_choice import DeclaredChoice
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
-from toad.setting_declarations import Choice, Effect, FamilyChoices
+from toad.setting_declarations import Effect, FamilyChoices
 
 from toad.line_blocks import LineBlock, LineRole, TextRole, AddedCodeRole, RemovedCodeRole
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
-class DiffMode(Choice, DeclaredFamily, affix="Diff"):
+class DiffMode(DeclaredChoice, affix="Diff"):
     split = False
     auto_split = False
 
@@ -42,7 +42,7 @@ class AutoDiff(DiffMode):
         return width >= required
 
 
-class WrapMode(Choice, DeclaredFamily, affix="Mode"):
+class WrapMode(DeclaredChoice, affix="Mode"):
     enabled = False
 
     @classmethod

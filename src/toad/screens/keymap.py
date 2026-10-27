@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import partial
+from typing import cast
 from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
@@ -14,6 +15,7 @@ from textual.document._editing import EditingMode
 from toad.key_modes import KeyMode
 from toad.keymap import Keymap, KeymapRow, discover
 from toad.preferences import SETTINGS
+from toad.setting_declarations import FamilyChoices
 from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction, System
 
@@ -38,7 +40,11 @@ class KeymapScreen(DismissibleScreen[None]):
         self.declarations = tuple(declaration for declaration in dict.fromkeys(KeyDeclaration.declarations())
                                   if not issubclass(declaration, System))
         self.focus_mode, self.focused_ids = focus_mode, focused
-        self.modes = KeyMode.members_with(KeyMode)
+        mode_choices = SETTINGS.ui.key_mode.bind(self.app.saved_settings.state).metadata(FamilyChoices)
+        if mode_choices is None:
+            raise TypeError("The keyboard mode preference must declare its choices.")
+        self.mode_choices = cast(FamilyChoices[KeyMode], mode_choices)
+        self.modes = self.mode_choices.choices()
         self.visible_declarations = self.declarations
         self.selected: KeymapRow | None = None
 
@@ -58,7 +64,7 @@ class KeymapScreen(DismissibleScreen[None]):
 
     def on_mount(self) -> None:
         table = self.query_one(DataTable)
-        table.add_columns("Action", *(mode.choice_label() for mode in self.modes))
+        table.add_columns("Action", *(self.mode_choices.label(mode) for mode in self.modes))
         self.populate("")
 
     def populate(self, term: str) -> None:

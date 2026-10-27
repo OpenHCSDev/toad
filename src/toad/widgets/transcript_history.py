@@ -24,7 +24,7 @@ from agent_comms.ui_model.message_category import (
 )
 from rich.style import Style as RichStyle
 from textual import on
-from textual._activation import PrimaryActivation
+from toad.widget_actions import Activates
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
 from textual.app import ComposeResult
@@ -112,28 +112,17 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Contents, Conversation
 
 
-class HistoryEdge(PrimaryActivation, Static, can_focus=True):
+class HistoryEdge(Activates, Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
-    BINDINGS = [("enter,space", "requested", "Earlier history")]
 
     class Requested(Message):
         pass
 
-    @property
-    def primary_activation(self):
-        return self.action_requested
-
-    def action_requested(self) -> None:
+    def activate(self) -> None:
         self.post_message(self.Requested())
-
-    def on_click(self, event) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_requested()
 
 class JumpToLatest(HoverSelection, HistoryEdge):
     highlighted_text_style = RichStyle(bold=True)
-    BINDINGS = [("enter,space", "requested", "Jump to latest")]
     DEFAULT_CSS = "JumpToLatest { color: $text-secondary; }"
 
     class Requested(Message):

@@ -6,14 +6,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
 
-from textual import events, on
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical, VerticalScroll
 from textual.message import Message
 from textual.reactive import var
 from toad.screens.modal import DismissibleScreen
 from textual.widgets import Button, Static
-from textual._activation import PrimaryActivation
 
 from agent_comms.input_attempt import HistoricalInput
 from agent_comms.ui_model.delivery import DeliveryView
@@ -23,7 +22,7 @@ from toad.widget_actions import VisibleActions, Activates, DismissAction
 from rich.style import Style as RichStyle
 
 
-class DetailAction(VisibleActions, Activates, InlineSelection, PrimaryActivation, Static, can_focus=True):
+class DetailAction(VisibleActions, Activates, InlineSelection, Static, can_focus=True):
     """An inline detail action owns keyboard, pointer and activation behavior."""
 
     highlighted_text_style = RichStyle(bold=True, reverse=True)
@@ -44,18 +43,9 @@ class DetailAction(VisibleActions, Activates, InlineSelection, PrimaryActivation
     }
     """
 
-    @property
-    def primary_activation(self):
-        return self.activate
-
     def activate(self) -> None:
         if not self.disabled:
             self.post_message(self.Activated(self))
-
-    def on_click(self, event: events.Click) -> None:
-        event.stop()
-        self.activate()
-
 
 class InputDeliveryBar(HorizontalGroup):
     DEFAULT_CSS = """

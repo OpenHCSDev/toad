@@ -14,7 +14,6 @@ from textual._paint_state import PaintState
 from textual.strip import Strip
 from ui_theme.effects import STANDBY_PULSE, Mix
 from textual.widgets import Static
-from textual._activation import PrimaryActivation
 
 from toad.goal_interaction import GoalInteraction
 from toad.core.input_events import GoalControlActivated
@@ -24,7 +23,14 @@ from toad.frame_presentation import Animated
 from toad.widgets.selection import ChangingText, InlineSelection
 
 
-class GoalControl(VisibleActions, Activates, InlineSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
+class GoalControl(
+    VisibleActions,
+    Activates,
+    InlineSelection,
+    CoreEventReceiver,
+    Static,
+    can_focus=True,
+):
     DEFAULT_CSS = """
     GoalControl { width: auto; height: 1; margin-right: 2; color: $text-secondary; pointer: pointer; }
     """
@@ -33,18 +39,9 @@ class GoalControl(VisibleActions, Activates, InlineSelection, PrimaryActivation,
         super().__init__(interaction.label, id=interaction.control_id())
         self.interaction = interaction
 
-    @property
-    def primary_activation(self):
-        return self.activate
-
     def activate(self):
         if not self.disabled:
             self.publish_core(GoalControlActivated(self.interaction))
-
-    def on_click(self, event: events.Click):
-        event.stop()
-        self.activate()
-
 
 class StandbyPulse(Animated[Mix], Static):
     """A goal's standby marker; its existing clock owns time and visibility."""

@@ -18,7 +18,7 @@ from textual.screen import ModalScreen
 from textual.widgets import TextArea
 
 from toad.key_modes import KeyMode
-from toad.setting_declarations import Effect
+from toad.setting_declarations import Effect, FamilyChoices
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions, YieldingKey
 
 
@@ -56,8 +56,8 @@ class KeymapRow:
 
     @property
     def defaults(self) -> tuple[str, ...]:
-        return tuple(binding.key for binding in
-                     self.declaration.bindings_for(self.mode().binding_mode))
+        return tuple(binding.key for _key, binding in
+                     BindingsMap(self.declaration.bindings_for(self.mode().binding_mode)))
 
     def effective(self, keymap: Keymap) -> tuple[str, ...]:
         return next((remap.keys for remap in keymap.bindings
@@ -77,7 +77,7 @@ class KeyConflict:
 
     def __str__(self) -> str:
         return (f"{self.key}: {self.first.declaration.title} and "
-                f"{self.second.declaration.title} ({self.first.mode.choice_label()})")
+                f"{self.second.declaration.title} ({FamilyChoices(KeyMode).label(self.first.mode)})")
 
 
 @Effect

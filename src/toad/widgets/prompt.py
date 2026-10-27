@@ -13,6 +13,7 @@ from rich.cells import cell_len
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
 from textual._activation import PrimaryActivation
+from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
@@ -113,20 +114,10 @@ class AgentInfo(
         return self.query_ancestor(Prompt).on_agent_info_click
 
 
-class SendNow(InlineSelection, PrimaryActivation, Label, can_focus=True):
-    BINDINGS = [("enter,space", "send_now", "Send now")]
+class SendNow(InlineSelection, Activates, Label, can_focus=True):
 
-    @property
-    def primary_activation(self):
-        return self.action_send_now
-
-    def action_send_now(self):
+    def activate(self):
         self.post_message(messages.SendPromptNow())
-
-    def on_click(self, event: events.Click):
-        event.stop()
-        self.action_send_now()
-
 
 class ModeInfo(PrimaryActivation, Label):
     @property
@@ -143,25 +134,14 @@ class StatusLine(SettingVisibility, ChangingText, Label, setting="ui.status_line
         self.tooltip = status
 
 
-class QueueSummary(PrimaryActivation, ChangingText, Label, can_focus=True):
+class QueueSummary(Activates, ChangingText, Label, can_focus=True):
     """Shows the remote queue; activation reports available control support."""
 
-    BINDINGS = [("enter,space", "edit_queue", "Queue controls")]
 
-    @property
-    def primary_activation(self):
-        return self.action_edit_queue
-
-    def action_edit_queue(self) -> None:
+    def activate(self) -> None:
         from toad.widgets.conversation import Conversation
 
         self.query_ancestor(Conversation).open_queue_menu()
-
-    def on_click(self, event: events.Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_edit_queue()
-
 
 class InfoBar(
     SettingVisibility, WidgetView, containers.HorizontalGroup, setting="ui.info_bar"

@@ -4,7 +4,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core import events as core_events
 from textual.content import Content
-from toad.widget_actions import ApplicationAction, Activates, DismissibleControl, WidgetAction
+from toad.widget_actions import ApplicationAction, ActivationKeys, Activates, DismissibleControl, WidgetAction
 from textual.document._editing import EditingMode
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
@@ -246,7 +246,7 @@ class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
             self.action_pointer_toggle()
 
 
-class HeaderButton(Activates, HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
+class HeaderButton(ActivationKeys, HoverSelection, widgets.Static, can_focus=True):
     """One compact, keyboard-accessible control in the top bar, on the bar's own tone."""
 
     DEFAULT_CSS = """
@@ -263,15 +263,6 @@ class HeaderButton(Activates, HoverSelection, PrimaryActivation, widgets.Static,
         pointer: default;
     }
     """
-
-    def activate(self) -> None:
-        self.primary_activation()
-
-    def on_click(self, event: Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.primary_activation()
-
 
 class TabHistoryButton(HeaderButton):
     """Back or forward through visited tabs."""
@@ -501,7 +492,7 @@ class SidebarSlider(CapturedDrag, ColourSelection, widgets.Static, can_focus=Tru
         self.drag_to(event.screen_x)
 
 
-class SidebarAction(Activates, HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
+class SidebarAction(Activates, HoverSelection, widgets.Static, can_focus=True):
     """One spatial arrow or float/push action."""
 
     DEFAULT_CSS = """
@@ -518,18 +509,8 @@ class SidebarAction(Activates, HoverSelection, PrimaryActivation, widgets.Static
         self.action = action
         self.set_class(action.directional, "-direction")
 
-    @property
-    def primary_activation(self):
-        return self.activate
-
     def activate(self) -> None:
         self.post_message(self.Pressed(self.action))
-
-    def on_click(self, event: Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.activate()
-
 
 class SidebarResizeHandle(
     CapturedDrag, ColourSelection, widgets.Static, can_focus=True

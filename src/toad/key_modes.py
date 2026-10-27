@@ -1,7 +1,7 @@
 """Keyboard profiles compose the native editor modes; no second editor state."""
 from __future__ import annotations
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.declared_choice import DeclaredChoice
 from textual.document._editing import (
     EditingMode,
     VimInsert as InsertEditing,
@@ -10,10 +10,7 @@ from textual.document._editing import (
     VimVisual as VisualEditing,
 )
 
-from toad.setting_declarations import Choice
-
-
-class KeyMode(EditingMode, DeclaredFamily, Choice):
+class KeyMode(EditingMode, DeclaredChoice, affix=""):
     """A preference selects the initial native mode, whose own transitions keep editing."""
 
 class Standard(KeyMode):
