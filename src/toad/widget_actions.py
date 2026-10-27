@@ -104,6 +104,16 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
         return type(self).binding_id(mode)
 
     @classmethod
+    def configured_bindings(cls, context: Context) -> tuple[Binding, ...]:
+        """Declared keys after remapping, also when this control is not focused."""
+        mode = context.screen.active_binding_mode
+        identities = {binding.id for binding in cls.bindings_for(mode)}
+        bindings = context.binding_map(mode)
+        bindings.apply_keymap(context.app._keymap)
+        return tuple(binding for _, binding in bindings if binding.id in identities
+                     and binding.state(context.app, context))
+
+    @classmethod
     def active_bindings(cls, context: Context) -> tuple[Binding, ...]:
         identities = {binding.id for binding in cls.bindings_for(context.screen.active_binding_mode)}
         return tuple(binding for node, bindings in context.screen._binding_chain if node is context
@@ -297,6 +307,23 @@ class CursorDownAction(CursorAction):
         context.cursor_down()
 
 
+class HorizontalCursorAction(CursorAction, declared_name=None):
+    direction: ClassVar[Literal[-1, 1]]
+
+    async def apply(self, context: MovesHorizontalCursor) -> None:
+        context.cursor_horizontal(self.direction)
+
+
+class CursorLeftAction(HorizontalCursorAction):
+    keys = {EditingMode: ("left",)}
+    direction = -1
+
+
+class CursorRightAction(HorizontalCursorAction):
+    keys = {EditingMode: ("right",)}
+    direction = +1
+
+
 class SubmitAction(VisibleAction):
     keys = {EditingMode: ("enter",)}
 
@@ -397,6 +424,11 @@ class MovesCursor(DeclaredWidgetActions, actions=(CursorAction,)):
 
     @abstractmethod
     def cursor_down(self) -> None: ...
+
+
+class MovesHorizontalCursor(DeclaredWidgetActions, actions=(HorizontalCursorAction,)):
+    @abstractmethod
+    def cursor_horizontal(self, direction: Literal[-1, 1]) -> None: ...
 
 
 class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):

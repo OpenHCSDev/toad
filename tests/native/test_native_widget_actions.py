@@ -8,7 +8,8 @@ from acp import schema
 
 from support.native import ControlledProvider, native_session
 from toad.answer import Answer
-from toad.question_actions import QuestionAction
+from toad.question_actions import QuestionAction, AllowOnceAction
+from textual.document._editing import EditingMode
 from toad.screens.permissions import PermissionsScreen
 from toad.widgets.flash import Flash
 from toad.widgets.question import Option, Question
@@ -46,6 +47,7 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
         await ui.press("escape")
         assert not native.executing
 
+        app.set_keymap({AllowOnceAction.binding_id(EditingMode): "f9"})
         selected = []
         view.ask([Answer("Allow native choice", "first-allow", kind="allow_once"),
                   Answer("Reject native choice", "first-reject", kind="reject_once")],
@@ -53,11 +55,14 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
         question = view.prompt.query_one(Question)
         await ui.until(lambda: len(question.query(Option)) == 2 and ui.shows("DECLARED_QUESTION"), why="the question")
         question.focus()
+        assert question.query(Option)[0].key == "f9"
+        await ui.press("a")
+        assert not selected
         await ui.press("down")
         assert question.selection == 1
         assert await pilot.click(question.query(Option)[0].query_one("#label"), offset=(1, 0))
         assert question.selection == 0
-        assert question.check_action("select_kind", ("allow_always",)) is False
+        assert question.check_action("allow_always", ()) is False
         await ui.press("A")
         assert not selected
         await ui.press("enter", "enter")
@@ -78,11 +83,13 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
             await ui.until(lambda: isinstance(app.screen, PermissionsScreen), why="the permission dialog")
             screen = app.screen
             await ui.until_shows("Allow actual preview")
-            assert screen.check_action("select_kind", ("reject_once",)) is False
+            assert screen.check_action("reject_once", ()) is False
             await ui.press("r")
             assert not result.done()
             assert await pilot.click(screen.navigator, offset=(1, 0))
             await ui.press("a")
+            assert not result.done()
+            await ui.press("f9")
             answer = await asyncio.wait_for(result, 8)
             assert answer.outcome.option_id == "modal-allow"
             await ui.until(lambda: not isinstance(app.screen, PermissionsScreen), why="the dialog to close")
@@ -93,7 +100,7 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
 
         # A newly declared question action gets its key, availability and effect with no other edit.
         class ReviewAction(QuestionAction):
-            keys = ("f8",)
+            keys = {EditingMode: ("f8",)}
 
             def available(self, question):
                 return question.accepts_selection
@@ -102,7 +109,7 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
                 question.title = "DECLARATION_ONLY_REVIEW"
 
         class ReviewQuestion(Question):
-            ACTIONS = QuestionAction
+            pass
 
         probe = ReviewQuestion("New case", options=[Answer("New option", "new-id")])
         await view.mount(probe)

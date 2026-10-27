@@ -1,23 +1,17 @@
 from dataclasses import dataclass
 
 from textual import containers
-from textual.binding import Binding
 from textual import events
 from textual.message import Message
 from textual.reactive import reactive
 from textual.layouts.grid import GridLayout
 from textual.widget import Widget
-from toad.widget_actions import MovesCursor, Selects
+from toad.widget_actions import MovesCursor, MovesHorizontalCursor, Selects
+from typing import Literal
 
 
-class GridSelect(MovesCursor, Selects, containers.ItemGrid, can_focus=True):
+class GridSelect(MovesHorizontalCursor, MovesCursor, Selects, containers.ItemGrid, can_focus=True):
     FOCUS_ON_CLICK = False
-    CURSOR_GROUP = Binding.Group("Select")
-    BINDINGS = [
-        Binding("left", "cursor_left", "Cursor Left", group=CURSOR_GROUP),
-        Binding("right", "cursor_right", "Cursor Right", group=CURSOR_GROUP),
-    ]
-
     highlighted: reactive[int | None] = reactive(None)
 
     @dataclass
@@ -155,17 +149,8 @@ class GridSelect(MovesCursor, Selects, containers.ItemGrid, can_focus=True):
             else:
                 self.post_message(self.LeaveDown(self))
 
-    def action_cursor_left(self):
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            self.highlighted -= 1
-
-    def action_cursor_right(self):
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            self.highlighted += 1
+    def cursor_horizontal(self, direction: Literal[-1, 1]) -> None:
+        self.highlighted = 0 if self.highlighted is None else self.highlighted + direction
 
     def on_click(self, event: events.Click) -> None:
         if event.widget is None:
