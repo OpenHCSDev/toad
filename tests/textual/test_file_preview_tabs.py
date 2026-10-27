@@ -1,6 +1,8 @@
 """Textual-facing: a file preview is a closeable tab whose FilePreview widget is retained, highlighted and bounded in size."""
 
 from toad.widgets.line_markdown import LineMarkdown
+from toad.screens.file_preview import PreviousPreviewAction
+from textual.document._editing import EditingMode
 from toad.widgets.project_panel import FilePreview
 from toad.widgets.session_tabs import SessionTabClose
 
@@ -76,13 +78,16 @@ async def test_back_returns_to_the_previous_tab_without_closing_the_preview(work
         first, first_widget = await preview(ui, path)
         second, _ = await preview(ui, other)
         assert [tab.identity for tab in ui.tabs()][:3] == [owner, first, second]
-        await app.selected_session.action_back()
+        app.set_keymap({PreviousPreviewAction.binding_id(EditingMode): "f10"})
+        await ui.press("escape")
+        assert ui.selected_tab == second
+        await ui.press("f10")
         await ui.step()
         assert ui.selected_tab == first
         assert app.selected_session.query_one(FilePreview) is first_widget
         assert second in {tab.identity for tab in ui.tabs()}
         await ui.select_tab(second)
-        await app.session_navigation.close(second)
+        await ui.press("ctrl+w")
         await ui.step()
         assert ui.selected_tab == first
         await app.session_navigation.close(first)

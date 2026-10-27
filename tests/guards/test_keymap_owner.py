@@ -45,7 +45,7 @@ class KeymapMeasure:
 
 class RawBindings(KeymapMeasure):
     """`BINDINGS =` written by hand on a class."""
-    ceiling = 26
+    ceiling = 22
 
     @classmethod
     def lines(cls, tree):
@@ -61,7 +61,7 @@ class RawBindings(KeymapMeasure):
 
 class HandBindings(KeymapMeasure):
     """`Binding(key, "action_name")` written by hand: a key tied to an action by its name."""
-    ceiling = 34
+    ceiling = 30
 
     @classmethod
     def lines(cls, tree):
@@ -73,7 +73,7 @@ class HandBindings(KeymapMeasure):
 
 class ActionMethods(KeymapMeasure):
     """`def action_*`: behaviour Textual finds by string name."""
-    ceiling = 77
+    ceiling = 72
 
     @classmethod
     def lines(cls, tree):

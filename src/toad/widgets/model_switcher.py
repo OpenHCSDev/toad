@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, Self, Protocol
 
 from textual import getters, on, work
 from textual.app import ComposeResult
-from textual.binding import Binding
-from toad.widget_actions import PriorityActions, MovesCursor, Submits, DismissibleControl
+from textual.document._editing import EditingMode
+from toad.widget_actions import WidgetAction, PriorityActions, MovesCursor, Submits, DismissibleControl
 from textual.content import Content
 from textual.containers import VerticalGroup
 from textual.reactive import var
@@ -72,12 +72,18 @@ class ModelChoice(Protocol):
     def description(self) -> str | None: ...
 
 
-class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, CoreEventReceiver, VerticalGroup):
+class ClearModelSearchAction(WidgetAction):
+    """Clear the model search query."""
+    keys = {EditingMode: ("ctrl+u",)}
+    priority = True
+
+    async def apply(self, context):
+        context.search_input.clear()
+
+
+class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, CoreEventReceiver, VerticalGroup, actions=(ClearModelSearchAction,)):
     """Search, recents and provider connection shared by prompt and creation views."""
     BINDING_GROUP_TITLE = "Model search"
-    BINDINGS = [
-        Binding("ctrl+u", "clear_search", "Clear search", priority=True, show=False),
-    ]
     DEFAULT_CSS = """
     ModelSelection {
         constrain: inside inflect;
@@ -257,10 +263,6 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
         if (option := self.option_list.highlighted_option) is not None:
             if option.id is not None:
                 self.select_model(option.id)
-
-    def action_clear_search(self):
-        self.search_input.clear()
-
 
 class ModelSwitcher(ModelSelection, InfoPopup):
     DEFAULT_CSS = """

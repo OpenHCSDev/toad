@@ -1,17 +1,26 @@
 from textual import on
 from textual.app import ComposeResult
 from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import DismissAction
+from toad.widget_actions import DismissAction, WidgetAction
+from textual.document._editing import EditingMode
 from textual import widgets
 from toad.widgets.footer import ToadFooter
 from textual import containers
 from textual import getters
 
 
-class CommandEditModal(DismissibleScreen[str | None]):
-    BINDINGS = [
-        ("ctrl+c", "copy", "Copy to clipboard"),
-    ]
+class CopyCommandAction(WidgetAction):
+    """Copy the complete edited command to the clipboard."""
+    title = "Copy command"
+    keys = {EditingMode: ("ctrl+c",)}
+    show = True
+
+    async def apply(self, context):
+        context.app.copy_to_clipboard(context.text_area.text)
+        context.notify("Command copied to clipboard", title=self.title)
+
+
+class CommandEditModal(DismissibleScreen[str | None], actions=(CopyCommandAction,)):
     AUTO_FOCUS = "Button"
 
     text_area = getters.query_one(widgets.TextArea)
@@ -51,7 +60,3 @@ class CommandEditModal(DismissibleScreen[str | None]):
     @on(widgets.Button.Pressed, "#ok")
     def on_ok_pressed(self, event: widgets.Button.Pressed) -> None:
         self.dismiss(self.text_area.text)
-
-    def action_copy(self) -> None:
-        self.app.copy_to_clipboard(self.text_area.text)
-        self.notify("Command copied to clipboard", title="Copy")
