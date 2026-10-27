@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from toad.core import session_requests, input_events
 from agent_comms.field_codec import FieldCodec
 from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
 from toad.preferences import SETTINGS
+from collections.abc import Iterator
 from contextlib import suppress
 from itertools import zip_longest
 from random import shuffle
@@ -301,21 +304,21 @@ class LaunchSlotAction(WidgetAction):
 
     keys = {EditingMode: tuple("123456789abcdef")}
 
-    def __init__(self, slot: int):
+    def __init__(self, slot: int) -> None:
         self.slot = slot
 
     @classmethod
-    def command_for_key(cls, mode, key):
+    def command_for_key(cls, mode: type[EditingMode], key: str) -> Self:
         return cls(cls.keys[mode].index(key))
 
-    def binding_identity(self, mode):
+    def binding_identity(self, mode: type[EditingMode]) -> str:
         return f"{super().binding_identity(mode)}:{self.slot}"
 
     @classmethod
-    def offered(cls, store):
+    def offered(cls, store: StoreScreen) -> Iterator[Self]:
         return (cls(slot) for slot in range(len(cls.keys[EditingMode])))
 
-    async def apply(self, store):
+    async def apply(self, store: StoreScreen) -> None:
         launcher = store.launcher
         if self.slot >= len(launcher.grid_select.children):
             store.notify(f"No agent in launch slot {self.slot + 1}",

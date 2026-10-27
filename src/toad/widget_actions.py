@@ -16,10 +16,11 @@ from textual.binding import Binding, ModeBinding
 from textual.keys import KeyDeclaration
 from textual.widgets.text_area import EditingMode, VimMode
 from textual.dom import DOMNode
+from toad.app_node import ToadNode
 from copy import replace
 from dataclasses import dataclass
 
-Context = TypeVar("Context")
+Context = TypeVar("Context", bound=DOMNode)
 
 
 class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="Action"):
@@ -60,7 +61,7 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
 
     @classmethod
     def binding_name(cls) -> str:
-        return cls.binding_prefix + FieldCodec.encode(cls)
+        return cls.binding_prefix + cls.declared_name
 
     @classmethod
     def bindings(cls) -> tuple[Binding, ...]:
@@ -201,7 +202,7 @@ class DeclaredWidgetActions(DOMNode):
             await command.apply(self)
 
 
-class NativeMethodKeys(DeclaredWidgetActions):
+class NativeMethodKeys(DeclaredWidgetActions, ToadNode):
     """Project native callable declarations without another action implementation."""
 
     @classmethod

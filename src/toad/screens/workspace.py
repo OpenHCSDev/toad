@@ -14,7 +14,6 @@ from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
 
-from toad.app_node import ToadNode
 from toad.widget_view import WidgetView
 from toad.widget_actions import ProfileKeys
 
@@ -74,7 +73,7 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         )
 
 
-class WorkspaceScreen(ProfileKeys, WidgetView, ToadNode, Screen):
+class WorkspaceScreen(ProfileKeys, WidgetView, Screen):
     layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
 
     BINDINGS = [

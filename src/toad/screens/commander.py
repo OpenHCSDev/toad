@@ -21,10 +21,10 @@ from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.content import Content
 from textual.widgets import Button, Collapsible, Pretty, Static
 
-from toad.app_node import ToadNode
 from toad.core.events import CommanderHudChanged, CommanderHudFailed
 from toad.core_event_carrier import CoreEventReceiver
 from toad.screens.modal import ModalScreen
+from toad.app_node import ToadNode
 from toad.widgets.sidebar_tree import KeyedRows
 
 
@@ -212,7 +212,7 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
 
 
 class CommanderPage(
-    KeyedRows[ThreadIncarnation], CoreEventReceiver, ToadNode, ModalScreen[None],
+    KeyedRows[ThreadIncarnation], CoreEventReceiver, ModalScreen[None],
 ):
     """Current Core frames preserve disclosures, focus and the underlying conversation."""
 

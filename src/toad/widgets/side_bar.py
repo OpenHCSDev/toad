@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core import events as core_events
@@ -587,10 +589,10 @@ class SearchSidebarAction(WidgetAction):
 
     keys = {EditingMode: ("slash",)}
 
-    def available(self, sidebar):
+    def available(self, sidebar: SideBar) -> bool:
         return sidebar.app.focused is not sidebar.search_input
 
-    async def apply(self, sidebar):
+    async def apply(self, sidebar: SideBar) -> None:
         sidebar.search_input.focus()
 
 
