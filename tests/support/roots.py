@@ -22,7 +22,7 @@ def installed_wire(root: Path) -> Comms:
     from agent_comms.active_route import resolve_comms_route
 
     comms = Comms(resolve_comms_route(root))
-    comms.registry.prepare_native_root()
+    comms.registry.store.prepare_native_root()
     Bus.install(Bus.path_in(root))
     return comms
 
