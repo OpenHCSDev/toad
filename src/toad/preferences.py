@@ -29,6 +29,7 @@ from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
 from toad.key_modes import KeyMode, Standard
+from toad.keymap import Keymap
 from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
@@ -77,6 +78,9 @@ class UiSettings(AnnotatedDataclassValidationMixin):
         effects.key_mode, WireName("key-mode"),
     ] = Standard
     """Opt in to modal prompts. Escape leaves Insert; Normal Enter never sends. Ctrl+Alt+X cancels a turn."""
+
+    keymap: Keymap = field(default_factory=Keymap, metadata={"ui_hidden": True})
+    """Keyboard overrides, edited in the keybinding menu."""
 
     prompt_message: Annotated[str, FieldLabel("Prompt message")] = "How can I help you today?"
     """Text shown as placeholder in prompt text area"""
@@ -368,10 +372,9 @@ class SavedSettings:
     def changed(self, changed: builtins.set[str]) -> None:
         from toad.core.preference_events import PreferenceChanged
 
-        for name in changed:
-            if (name in self.state.parameter_structure.declarations
-                    and not self.state.has_parameter_descendants(name)):
-                setting = DeclaredField(self.state, self.state.parameter_structure.path(name))
+        for path in self.state.parameter_structure.leaf_paths():
+            if any(path.contains_path(name) for name in changed):
+                setting = DeclaredField(self.state, path)
                 self.user_set.add(setting.path)
                 self.applied(setting)
                 self.events.publish(PreferenceChanged(setting))

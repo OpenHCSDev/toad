@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Literal
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from agent_comms.field_codec import FieldCodec
 from toad.preferences import SETTINGS
+from toad.screens.keymap import KeymapScreen
 from toad.widget_actions import (
     ApplicationAction,
     System,
@@ -161,20 +162,17 @@ class HelpQuitAction(System, YieldingKey, ApplicationAction):
         app.application.confirm_quit()
 
 
-class ToggleHelpPanelAction(ApplicationAction):
-    """Toggle help for the focused widget and available keys."""
+class KeymapAction(ApplicationAction):
+    """Browse keyboard shortcuts and change their keys for each editing mode."""
 
     keys = {EditingMode: ("f1",)}
     priority = True
 
-    def label(self, app: ToadApp) -> str:
-        return "Hide keys help" if app.screen.query("HelpPanel") else "Show keys help"
-
     async def apply(self, app: ToadApp) -> None:
-        if app.screen.query("HelpPanel"):
-            app.action_hide_help_panel()
-        else:
-            app.action_show_help_panel()
+        focused = frozenset(binding.id for node, bindings in app.screen._binding_chain
+                            for _key, binding in bindings
+                            if binding.id and binding.state(app, node))
+        app.push_screen(KeymapScreen(app.screen.active_binding_mode, focused))
 
 
 class ChannelsAction(ApplicationAction):

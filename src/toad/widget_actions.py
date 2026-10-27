@@ -150,6 +150,15 @@ class YieldingKey:
     where nothing local claims the key, so the claim is no conflict."""
 
 
+class ExclusiveKeys:
+    """One declared family of mutually exclusive actions may share its default keys."""
+
+    @classmethod
+    def permits_key_overlap(cls, other: type[KeyDeclaration]) -> bool:
+        family = next(base for base in cls.__mro__ if ExclusiveKeys in base.__bases__)
+        return issubclass(other, family)
+
+
 class ApplicationAction(Action, affix="Action"):
     binding_prefix = "app."
 
@@ -174,6 +183,17 @@ class DeclaredWidgetActions(DOMNode):
     """One family supplies both native dispatch and dynamic availability."""
 
     own_actions: ClassVar[tuple[type[Action], ...]] = ()
+
+    @classmethod
+    def contexts(cls) -> tuple[type[DeclaredWidgetActions], ...]:
+        pending = [cls]
+        found = set()
+        while pending:
+            owner = pending.pop()
+            if owner not in found:
+                found.add(owner)
+                pending.extend(owner.__subclasses__())
+        return tuple(found)
 
     @classmethod
     def declared_actions(cls) -> tuple[type[Action], ...]:

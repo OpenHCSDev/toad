@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from textual.widgets.text_area import EditingMode, VimMode
-from toad.widget_actions import Action
+from toad.widget_actions import Action, ExclusiveKeys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -90,12 +90,15 @@ class EighthPageDownAction(EighthPageUpAction):
     direction = 1
 
 
-class ExpandBlockAction(ConversationAction):
-    """Expand the block under the cursor."""
-
+class BlockExpansionAction(ExclusiveKeys, ConversationAction, declared_name=None):
+    """Expansion and collapse are alternatives selected by the cursor block's state."""
     keys = {EditingMode: ("space",)}
     key_display = "␣"
     show = True
+
+
+class ExpandBlockAction(BlockExpansionAction):
+    """Expand the block under the cursor."""
 
     def available(self, conversation):
         block = conversation.cursor_block
@@ -107,12 +110,8 @@ class ExpandBlockAction(ConversationAction):
         conversation.call_after_refresh(conversation.cursor.refresh)
 
 
-class CollapseBlockAction(ConversationAction):
+class CollapseBlockAction(BlockExpansionAction):
     """Collapse the block under the cursor."""
-
-    keys = {EditingMode: ("space",)}
-    key_display = "␣"
-    show = True
 
     def available(self, conversation):
         block = conversation.cursor_block
