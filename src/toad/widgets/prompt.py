@@ -5,7 +5,7 @@ import shlex
 from dataclasses import replace
 from pathlib import Path
 from agent_comms.repo import Checkout
-from typing import TYPE_CHECKING, ClassVar, Literal, Self
+from typing import TYPE_CHECKING, ClassVar, Self
 
 from agent_comms.acp_extension import QueueItem
 
@@ -17,7 +17,7 @@ from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
-from textual.binding import Binding, ModeBinding
+from textual.binding import ModeBinding
 from textual.widgets.text_area import VimMode
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
@@ -203,26 +203,6 @@ See on-screen instructions for details.
 
     BINDING_GROUP_TITLE = "Prompt"
 
-    BINDINGS = [
-        Binding("ctrl+v", "paste_clipboard", "Paste", priority=True, show=False),
-        Binding("ctrl+j", "newline", "New line", priority=True, show=False),
-        Binding(
-            "shift+enter",
-            "newline",
-            "Line",
-            key_display="⇧+⏎",
-            tooltip="Insert a new line character",
-        ),
-        Binding(
-            "tab",
-            "tab_complete",
-            "Complete",
-            tooltip="Complete path (if possible)",
-            priority=True,
-            show=False,
-        ),
-    ]
-
     app: ToadApp
 
     auto_completes: var[list[Option]] = var(list)
@@ -354,15 +334,9 @@ See on-screen instructions for details.
 
         self.query_ancestor(Conversation).window.focus(scroll_visible=False)
 
-    def on_key(self, event: events.Key) -> None:
-        if self.shell_mode and event.key == "tab":
-            event.prevent_default()
-        elif event.key != "escape":
-            self.suggestions = None
-            self.suggestion = ""
-
-    def action_newline(self) -> None:
-        self._replace_via_keyboard("\n", *self.selection)
+    def clear_suggestions(self) -> None:
+        self.suggestions = None
+        self.suggestion = ""
 
     def _paste_clipboard_text(self, text: str) -> None:
         # A fresh Paste event posted directly here would bubble to App and be
@@ -370,46 +344,6 @@ See on-screen instructions for details.
         self.editing_mode = self.editing_mode.pasted()
         if result := self._replace_via_keyboard(text, *self.selection):
             self.move_cursor(result.end_location)
-
-    @work(group="clipboard-paste", exclusive=True)
-    async def action_paste_clipboard(self) -> None:
-        from toad.clipboard_image import read_clipboard_png, save_clipboard_png
-
-        if self.read_only:
-            return
-        try:
-            image = await read_clipboard_png()
-            if not self.is_attached:
-                return
-            if image is not None:
-                if self.shell_mode:
-                    self.notify(
-                        "Leave shell mode to attach an image to a message.",
-                        title="Image attachment",
-                        severity="warning",
-                    )
-                    return
-                path = await asyncio.to_thread(save_clipboard_png, image)
-                reference = (
-                    f'@"{path}"'
-                    if any(char.isspace() for char in str(path))
-                    else f"@{path}"
-                )
-                self._paste_clipboard_text(" " + reference + " ")
-                self.notify(
-                    f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
-                    title="Image attachment",
-                )
-                return
-            text = (await self.app.clipboard_transport.paste(self.app)).text
-            if text:
-                self._paste_clipboard_text(text)
-            else:
-                self.notify(
-                    "No text or supported image in the clipboard", title="Paste"
-                )
-        except (OSError, ValueError, TimeoutError) as error:
-            self.app.show_error(error, "Paste failed")
 
     def _submit(self) -> None:
         self._submit_pending = False
@@ -480,65 +414,6 @@ See on-screen instructions for details.
             self.query_ancestor(Conversation).jump_to_latest()
         else:
             self.move_cursor(location, select=select)
-
-    async def action_tab_complete(self) -> None:
-        if not self.editing_mode.accepts_text or not self.shell_mode:
-            return
-
-        import shlex
-
-        prompt = self.prompt
-
-        if not self.cursor_at_end_of_text:
-            return
-
-        _cursor_row, cursor_column = prompt.prompt_text_area.selection.end
-        pre_complete = self.text[:cursor_column]
-        post_complete = self.text[cursor_column:]
-        shlex_tokens = shlex.split(pre_complete)
-        if not shlex_tokens:
-            return
-
-        command = shlex_tokens[0]
-
-        exclude_node_type: Literal["file"] | Literal["dir"] | None = None
-        if command in self.app.settings.shell.directory_commands.splitlines():
-            exclude_node_type = "file"
-        elif command in self.app.settings.shell.file_commands.splitlines():
-            exclude_node_type = "dir"
-
-        tab_complete, suggestions = await self.path_complete(
-            Path(prompt.working_directory),
-            shlex_tokens[-1],
-            exclude_type=exclude_node_type,
-        )
-
-        if tab_complete is not None:
-            shlex_tokens = shlex_tokens[:-1] + [shlex_tokens[-1] + tab_complete]
-            path_component = Path(prompt.working_directory) / shlex_tokens[-1]
-            if path_component.is_file():
-                spaces = " "
-            else:
-                spaces = ""
-
-            self.clear()
-            self.insert(
-                " ".join(token.replace(" ", "\\ ") for token in shlex_tokens)
-                + post_complete
-                + spaces
-            )
-            self.suggestions = None
-        else:
-            if suggestions != self.suggestions:
-                self.suggestions = suggestions or None
-                self.suggestions_index = 0
-                if suggestions:
-                    self.suggestion = suggestions[0]
-            elif self.suggestions:
-                self.suggestions_index = (self.suggestions_index + 1) % len(
-                    self.suggestions
-                )
-                self.suggestion = self.suggestions[self.suggestions_index]
 
     def watch_selection(
         self, previous_selection: Selection, selection: Selection

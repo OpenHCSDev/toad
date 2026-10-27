@@ -45,7 +45,7 @@ class KeymapMeasure:
 
 class RawBindings(KeymapMeasure):
     """`BINDINGS =` written by hand on a class."""
-    ceiling = 22
+    ceiling = 21
 
     @classmethod
     def lines(cls, tree):
@@ -61,7 +61,7 @@ class RawBindings(KeymapMeasure):
 
 class HandBindings(KeymapMeasure):
     """`Binding(key, "action_name")` written by hand: a key tied to an action by its name."""
-    ceiling = 30
+    ceiling = 26
 
     @classmethod
     def lines(cls, tree):
@@ -73,7 +73,7 @@ class HandBindings(KeymapMeasure):
 
 class ActionMethods(KeymapMeasure):
     """`def action_*`: behaviour Textual finds by string name."""
-    ceiling = 72
+    ceiling = 69
 
     @classmethod
     def lines(cls, tree):
@@ -85,7 +85,7 @@ class ActionMethods(KeymapMeasure):
 
 class KeyHandlers(KeymapMeasure):
     """An `on_key` handler deciding by the pressed key: bindings no menu can show."""
-    ceiling = 2
+    ceiling = 1
     exempt = frozenset({OWNER, *CONTRACT_HANDLERS})
 
     @classmethod
@@ -126,7 +126,7 @@ class MenuOrders(KeymapMeasure):
 class KeyLiterals(KeymapMeasure):
     """A key spelled outside an action's default and the preference store: compared with
     an event's key, given as a `key_display`, or kept in a `*_KEYS` constant."""
-    ceiling = 3
+    ceiling = 0
     exempt = frozenset({OWNER, PREFERENCES, *CONTRACT_HANDLERS})
 
     @staticmethod

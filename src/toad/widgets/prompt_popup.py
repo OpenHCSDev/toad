@@ -129,6 +129,11 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
 class CompletionPopup(PromptPopup):
     """Completion widgets appear above the editor; membership is derived."""
 
+    @classmethod
+    def cursor_changed_in(cls, prompt: Prompt, movement) -> None:
+        for popup in prompt.query(cls):
+            popup.cursor_changed(movement)
+
     def cursor_changed(self, movement) -> None:
         """Cases without cursor-triggered entry retain their existing control."""
 

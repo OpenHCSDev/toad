@@ -120,13 +120,16 @@ class PromptCursor:
         from toad.widgets.prompt_popup import CompletionPopup
 
         editor = self._editor()
-        if editor is None or not editor.editing_mode.accepts_text:
+        if editor is None:
+            return
+        if previous != current:
+            editor.clear_suggestions()
+        if not editor.editing_mode.accepts_text:
             return
         movement = CursorMovement(previous, current)
         prompt = editor.prompt
         if prompt.supports_completion and movement.moved_cursor:
-            for popup in prompt.query(CompletionPopup):
-                popup.cursor_changed(movement)
+            CompletionPopup.cursor_changed_in(prompt, movement)
             if current.end[0] == 0:
                 line = editor.document.get_line(0)
                 CommandText.decode_input(line, editor.slash_commands).retreat(editor, movement)

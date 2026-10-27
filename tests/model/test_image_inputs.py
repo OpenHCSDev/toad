@@ -1,32 +1,16 @@
 """Image references in a prompt become image blocks; the clipboard image is read within a bound."""
 
-import asyncio
 import base64
 from unittest.mock import patch
 
 import pytest
 
+from support.clipboard import ClipboardProcess
 from toad import clipboard_image
 from toad.acp.prompt import build
 from toad.prompt.extract import extract_paths_from_prompt
 
 PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aDqkAAAAASUVORK5CYII=")
-
-
-class Process:
-    def __init__(self, data):
-        self.stdout = asyncio.StreamReader()
-        self.stdout.feed_data(data)
-        self.stdout.feed_eof()
-        self.returncode = None
-        self.killed = False
-
-    async def wait(self):
-        self.returncode = -9 if self.killed else 0
-        return self.returncode
-
-    def kill(self):
-        self.killed = True
 
 
 @pytest.fixture
@@ -62,7 +46,7 @@ def test_a_missing_or_out_of_scope_image_is_refused(project, reference):
 
 async def test_clipboard_image_read_returns_the_bytes_and_stops_at_the_size_bound(monkeypatch):
     data = PNG + b"x" * 100000
-    process = Process(data)
+    process = ClipboardProcess(data)
 
     async def spawn(*command, **kwargs):
         assert command == ("xclip", "-selection", "clipboard", "-t", "image/png", "-o")
@@ -74,7 +58,7 @@ async def test_clipboard_image_read_returns_the_bytes_and_stops_at_the_size_boun
             "toad.clipboard_image.asyncio.create_subprocess_exec", spawn):
         assert await clipboard_image.read_clipboard_png() == data
         assert not process.killed
-        process = Process(data)
+        process = ClipboardProcess(data)
         with patch("toad.clipboard_image.MAX_IMAGE_BYTES", 128):
             with pytest.raises(ValueError):
                 await clipboard_image.read_clipboard_png()

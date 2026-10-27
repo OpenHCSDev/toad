@@ -148,6 +148,19 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
     async def apply(self, context: Context) -> None: ...
 
 
+class ExclusiveBackground(Generic[Context]):
+    """An action runs in its widget's worker and replaces its own earlier invocation."""
+
+    # The paired declared Action parent supplies the actual identity implementation.
+    identity: ClassVar[Callable[[], str]]
+
+    async def apply(self, context: Context) -> None:
+        context.run_worker(self.perform(context), group=type(self).identity(), exclusive=True)
+
+    @abstractmethod
+    async def perform(self, context: Context) -> None: ...
+
+
 class System:
     """Only its key reaches the action: no menu, palette or key panel shows it."""
 
