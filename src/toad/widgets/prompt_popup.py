@@ -43,7 +43,11 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
     def check_consume_key(self, key: str, character: str | None = None) -> bool:
         # The popup's actual declarations outrank ancestor shortcuts, even
         # before a priority Key event reaches its focused control.
-        return (self.is_open and key in self._bindings.key_to_bindings) or super().check_consume_key(key, character)
+        if not self.is_open:
+            return super().check_consume_key(key, character)
+        bindings = self.binding_map(self.screen.active_binding_mode)
+        bindings.apply_keymap(self.app._keymap)
+        return key in bindings.key_to_bindings or super().check_consume_key(key, character)
 
     def can_open(self) -> bool:
         return not self.requires_completion or self.prompt.supports_completion
