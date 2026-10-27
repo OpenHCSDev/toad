@@ -11,6 +11,8 @@ from textual.widgets import Static
 
 from toad.block_content import BlockContent
 from toad.block_navigation import ConversationBlock
+from toad.conversation_actions import FocusPromptAction, SelectBlockAction
+from textual.document._editing import EditingMode
 from toad.menus import MenuItem
 from toad.widgets.menu import Menu
 from toad.widgets.tool_call import ToolCall
@@ -126,6 +128,8 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
     async with workspace.app(size=(110, 38)) as ui:
         app, _ = ui.textual
         view = ui.conversation
+        app.set_keymap({SelectBlockAction.binding_id(EditingMode): "f9",
+                        FocusPromptAction.binding_id(EditingMode): "f8"})
         history = view.transcript.binding.history
         await view.contents.remove_children(
             tuple(child for child in view.contents.children if child is not history)
@@ -164,6 +168,8 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
             assert view.navigation.accepts_menu_owner(widget)
             view.refresh_block_cursor(lambda cursor: cursor.show_moved_to(view.window))
             await ui.press("enter")
+            assert not view.query(Menu), "The remapped menu must not keep its default Enter key"
+            await ui.press("f9")
             await ui.until(lambda: bool(view.query(Menu)), why="the block menu")
             assert "opy to clipboard" in ui.visible_text(), ui.visible_text()
             await ui.press(key)
@@ -210,3 +216,13 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
         assert ui.shows("DECLARED_ACTION_PAINT")
         assert view.check_action("expand_block", ()) is None
         assert view.check_action("collapse_block", ()) is False
+        view.navigation.clear()
+        view.refresh_block_cursor(lambda cursor: cursor.show_moved_to(view.window))
+        await ui.step()
+        assert view.navigation.cursor.selected_widgets == ()
+        assert view.prompt.has_focus_within
+        view.window.focus()
+        await ui.press("end")
+        assert not view.prompt.has_focus_within
+        await ui.press("f8")
+        assert view.prompt.has_focus_within

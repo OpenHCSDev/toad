@@ -10,7 +10,7 @@ from toad.widget_actions import WidgetAction
 
 
 class SessionViewAction(WidgetAction, affix="Action"):
-    def available(self, context: "SessionView") -> bool:
+    def available(self, context: SessionView) -> bool:
         return context.has_mode_name
 
 
@@ -20,7 +20,7 @@ class ReturnToViewAction(SessionViewAction):
     keys = {EditingMode: ("escape",)}
     show = True
 
-    async def apply(self, context: "SessionView") -> None:
+    async def apply(self, context: SessionView) -> None:
         await context.app.session_navigation.return_from(context.mode_name)
 
 
@@ -30,5 +30,5 @@ class CloseViewAction(SessionViewAction):
     keys = {EditingMode: ("ctrl+w",)}
     priority = True
 
-    async def apply(self, context: "SessionView") -> None:
+    async def apply(self, context: SessionView) -> None:
         await context.app.session_navigation.close(context.mode_name)

@@ -61,7 +61,7 @@ class BarPresentation:
         collapsed: bool,
         directions: dict[Side, SidebarShift],
         width: int,
-    ) -> "BarPresentation":
+    ) -> BarPresentation:
         return cls(
             placement.side,
             placement.order,
@@ -180,7 +180,7 @@ class ToggleSidebarAction(WidgetAction):
     """Toggle the sidebar and focus its contents."""
     keys = {EditingMode: ("enter", "space")}
 
-    def apply(self, context: "SideBarToggle") -> None:
+    def apply(self, context: SideBarToggle) -> None:
         context.post_message(context.Pressed())
 
 
@@ -502,9 +502,9 @@ class SidebarAction(Activates, HoverSelection, widgets.Static, can_focus=True):
 
     @dataclass
     class Pressed(Message):
-        action: "SidebarPlacementAction"
+        action: SidebarPlacementAction
 
-    def __init__(self, action: "SidebarPlacementAction") -> None:
+    def __init__(self, action: SidebarPlacementAction) -> None:
         super().__init__(action.label, id=f"sidebar-{action.declared_name}")
         self.action = action
         self.set_class(action.directional, "-direction")
@@ -558,7 +558,7 @@ class ClearSidebarSearchAction(WidgetAction):
     """Clear the sidebar search text."""
     keys = {EditingMode: ("escape",)}
 
-    def apply(self, context: "SidebarSearch") -> None:
+    def apply(self, context: SidebarSearch) -> None:
         context.value = ""
 
 

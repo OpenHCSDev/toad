@@ -15,7 +15,7 @@ class CopyCommandAction(WidgetAction):
     keys = {EditingMode: ("ctrl+c",)}
     show = True
 
-    async def apply(self, context: "CommandEditModal") -> None:
+    async def apply(self, context: CommandEditModal) -> None:
         context.app.copy_to_clipboard(context.text_area.text)
         context.notify("Command copied to clipboard", title=self.title)
 

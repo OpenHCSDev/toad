@@ -23,9 +23,7 @@ from agent_comms.ui_model.message_category import MessageCategory, all_categorie
 from rich.segment import Segment
 from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
-from textual.actions import SkipAction
 from textual.app import ComposeResult
-from textual.binding import Binding
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.geometry import Offset, Region
@@ -44,6 +42,7 @@ from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
+from toad.conversation_actions import ConversationAction, WindowAction
 from toad.app import ToadApp
 from toad.block_navigation import (
     BlockCursor,
@@ -301,7 +300,7 @@ class CursorContainer(Animated[Mix], Static):
         # its current position, including nested and lazily replaced bodies.
         visible = self.screen._compositor.visible_widgets
         cursor = self.query_ancestor(Conversation).navigation.cursor
-        if cursor is not None and (region := cursor.visible_region) is not None:
+        if (region := cursor.visible_region) is not None:
             origin = visible[self][0].y + crop.y
             style = self.get_component_rich_style("cursor--selected")
             selected_strip = Strip([Segment("▌", style)], cell_length=1)
@@ -316,7 +315,7 @@ class CursorContainer(Animated[Mix], Static):
         return strips
 
 
-class Window(CoreEventReceiver, HistoryWindow):
+class Window(CoreEventReceiver, HistoryWindow, actions=(WindowAction,)):
     HELP = """\
 ## Conversation
 
@@ -327,7 +326,6 @@ This is a view of your conversation with the agent.
 - **start typing** Focus the prompt
 """
     BINDING_GROUP_TITLE = "View"
-    BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -370,8 +368,6 @@ This is a view of your conversation with the agent.
         event.stop()
         self.query_ancestor(Conversation).jump_to_latest()
 
-    def action_focus_prompt(self) -> None:
-        self.query_ancestor(Conversation).focus_prompt()
 
 
 class AgentWindow(Window):
@@ -782,7 +778,6 @@ class ConversationSessionBinding(
             self.update_slash_commands()
 
 
-from toad.conversation_actions import ConversationAction
 from toad.widget_actions import DeclaredWidgetActions
 
 
@@ -801,36 +796,6 @@ class Conversation(
     BLANK = True
     MAX_LIVE_BLOCKS = 32
     BINDING_GROUP_TITLE = "Conversation"
-    CURSOR_BINDING_GROUP = Binding.Group(description="Cursor")
-    BINDINGS = [
-        Binding(
-            "alt+up",
-            "cursor_up",
-            "Block cursor up",
-            priority=True,
-            group=CURSOR_BINDING_GROUP,
-            show=False,
-        ),
-        Binding(
-            "alt+down",
-            "cursor_down",
-            "Block cursor down",
-            group=CURSOR_BINDING_GROUP,
-            show=False,
-        ),
-        Binding(
-            "enter",
-            "select_block",
-            "Select",
-            tooltip="Select this block",
-        ),
-        Binding(
-            "ctrl+c",
-            "interrupt",
-            "Interrupt",
-            tooltip="Interrupt running command",
-        ),
-    ]
 
     contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
@@ -1439,14 +1404,10 @@ class Conversation(
     ) -> None:
         self.update_slash_commands()
 
-    async def action_interrupt(self) -> None:
+    @property
+    def can_interrupt_command(self) -> bool:
         terminal = self._terminal
-        if terminal is not None and not terminal.is_finalized:
-            await self.shell.interrupt()
-            # self._shell = None
-            self.feedback.flash("Command interrupted", style="success")
-        else:
-            raise SkipAction()
+        return terminal is not None and not terminal.is_finalized
 
     def action_focus_block(self, block_id: str) -> None:
         with suppress(NoMatches):
@@ -1877,11 +1838,7 @@ class Conversation(
         self.navigation.move(direction)
         self.refresh_block_cursor(lambda cursor: cursor.show_moved_to(self.window))
 
-    def action_cursor_up(self) -> None:
-        self.move_cursor(UpCursor())
 
-    def action_cursor_down(self) -> None:
-        self.move_cursor(DownCursor())
 
     @work
     async def cancel_turn(self, shortcut: str) -> None:
@@ -1910,51 +1867,28 @@ class Conversation(
         self.window.jump_to_latest()
         self.transcript.binding.request(self.transcript)
 
-    async def action_select_block(self) -> None:
-        cursor = self.navigation.cursor
-        if cursor is None or (block := cursor.selected) is None:
-            return
-
-        menu_options = [
-            MenuItem("[u]C[/]opy to clipboard", "copy_to_clipboard", "c"),
-            MenuItem("Co[u]p[/u]y to prompt", "copy_to_prompt", "p"),
-            MenuItem("Open as S[u]V[/]G", "export_to_svg", "v"),
-        ]
-
-        if cursor.allow_maximize:
-            menu_options.append(MenuItem("[u]M[/u]aximize", "maximize_block", "m"))
-
-        menu_options.extend(cursor.get_block_menu())
-        menu = Menu(block, menu_options, focus_owner=self.window)
-
-        region = cursor.region
-        menu.offset = Offset(
-            1, region.y if region is not None else self.window.region.y
-        )
-        await self.mount(menu)
-        menu.focus()
 
     def action_copy_to_clipboard(self) -> None:
         cursor = self.navigation.cursor
-        if cursor is not None and (text := cursor.get_clipboard_text()):
+        if text := cursor.get_clipboard_text():
             self.app.copy_to_clipboard(text)
             self.feedback.flash("Copied to clipboard")
 
     def action_copy_to_prompt(self) -> None:
         cursor = self.navigation.cursor
-        if cursor is not None and (text := cursor.get_prompt_text()):
+        if text := cursor.get_prompt_text():
             self.prompt.append(text)
             self.feedback.flash("Copied to prompt")
             self.focus_prompt()
 
     def action_maximize_block(self) -> None:
         cursor = self.navigation.cursor
-        if cursor is not None and cursor.allow_maximize:
+        if cursor.allow_maximize:
             cursor.maximize(self.screen)
 
     def action_export_to_svg(self) -> None:
         cursor = self.navigation.cursor
-        if cursor is None or (export := cursor.export_render()) is None:
+        if (export := cursor.export_render()) is None:
             return
         import platformdirs
         from textual._files import generate_datetime_filename
@@ -1989,13 +1923,7 @@ class Conversation(
     def refresh_block_cursor(self, show: Callable[[BlockCursor], None]) -> None:
         """Paint the cursor's new block; `show` scrolls for how the cursor got there."""
         self.cursor.refresh()
-        if (cursor := self.navigation.cursor) is not None:
-            # Resolve this navigation event before a later tab/editor event.
-            self.screen.set_focus(self.window)
-            self.call_after_refresh(self._present_block_cursor, cursor, show)
-        else:
-            self.window.anchor()
-            self.prompt.focus()
+        self.navigation.cursor.present(self, show)
         self.refresh_bindings()
 
     def _present_block_cursor(

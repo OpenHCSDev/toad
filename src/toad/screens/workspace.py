@@ -83,11 +83,11 @@ class BackToBottomAction(ViewAction):
     keys = {EditingMode: ('escape',)}
     priority = True
 
-    def available(self, context: "WorkspaceFrame") -> bool:
+    def available(self, context: WorkspaceFrame) -> bool:
         return (not (context.focused is not None and context.focused.uses_screen_coordinates)
                 and context.back_to_bottom_window is not None)
 
-    def apply(self, context: "WorkspaceFrame") -> None:
+    def apply(self, context: WorkspaceFrame) -> None:
         if (window := context.back_to_bottom_window) is not None:
             window.jump_to_latest()
 
@@ -97,11 +97,11 @@ class ShowSidebarAction(ViewAction):
     keys = {EditingMode: ('ctrl+b', 'f20')}
     show = True
 
-    def available(self, context: "WorkspaceFrame") -> bool:
+    def available(self, context: WorkspaceFrame) -> bool:
         sidebar = context.app.workspace_chrome.channels
         return sidebar.display and not sidebar.has_focus_within
 
-    def apply(self, context: "WorkspaceFrame") -> None:
+    def apply(self, context: WorkspaceFrame) -> None:
         sidebar = context.app.workspace_chrome.channels
         sidebar.reveal()
         if title := sidebar.query_one_optional("SideBarCollapsible CollapsibleTitle"):
@@ -113,7 +113,7 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
     layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
 
     @classmethod
-    def require(cls, screen: Screen) -> "WorkspaceFrame":
+    def require(cls, screen: Screen) -> WorkspaceFrame:
         """Resolve the native widget screen at the workspace boundary."""
         if not isinstance(screen, cls):
             raise TypeError(f"{type(screen).__name__} is not a {cls.__name__}")
