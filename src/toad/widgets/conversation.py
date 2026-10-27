@@ -794,6 +794,10 @@ class Conversation(
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
 
+    def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
+        """The conversation owns its persistent reader and composer key targets."""
+        return (self, self.window, self.prompt)
+
     BLANK = True
     MAX_LIVE_BLOCKS = 32
     BINDING_GROUP_TITLE = "Conversation"

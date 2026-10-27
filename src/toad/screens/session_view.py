@@ -11,6 +11,7 @@ from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.navigation_target import NavigationTarget, NoTarget
+from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.message_notifications import (
     NothingToRead,
     PaintedRead,
@@ -18,7 +19,7 @@ from toad.widgets.message_notifications import (
 )
 
 
-class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
+class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
     title = reactive("")
     sub_title = reactive("")
 
@@ -87,6 +88,10 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
     def sidebars(self):
         """Supply this view's native sidebar resources through its declaration."""
         return ()
+
+    def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
+        """A source adds its loaded reader/composer through its own lifecycle."""
+        return (self,)
 
     @property
     def thread_identity(self) -> SessionIdentity:

@@ -1,6 +1,8 @@
 """Availability and effects use the conversation's existing resource owners."""
 from __future__ import annotations
 
+from textual.widgets.text_area import EditingMode, VimMode
+from toad.key_modes import Standard
 from toad.widget_actions import Action
 from typing import TYPE_CHECKING
 
@@ -15,7 +17,7 @@ class ConversationAction(Action, affix="Action"):
 class FocusTerminalAction(ConversationAction):
     """Focus the active terminal."""
 
-    keys = ("ctrl+f",)
+    keys = {EditingMode: ("ctrl+f",)}
     priority = True
 
     def available(self, conversation):
@@ -28,7 +30,7 @@ class FocusTerminalAction(ConversationAction):
 class ModeSwitcherAction(ConversationAction):
     """Open the mode switcher."""
 
-    keys = ("ctrl+o",)
+    keys = {EditingMode: ("ctrl+o",)}
     show = True
 
     def available(self, conversation):
@@ -41,23 +43,14 @@ class ModeSwitcherAction(ConversationAction):
 class CancelAction(ConversationAction):
     """Cancel the agent's turn."""
 
-    keys = ("escape",)
+    keys = {Standard: ("escape",), VimMode: ("alt+ctrl+x",)}
     show = True
-    vim_profile = False
 
     def available(self, conversation):
-        if conversation.app.settings.ui.vim_keys != self.vim_profile:
-            return False
         return True if conversation.agent_binding.cancel_allowed(conversation.turns.owner) else None
 
     async def apply(self, conversation):
-        conversation.cancel_turn(conversation.app.get_key_display(*self.bindings()))
-
-
-class VimCancelAction(CancelAction):
-    keys = ("alt+ctrl+x",)
-    key_display = "Ctrl+Alt+X"
-    vim_profile = True
+        conversation.cancel_turn(conversation.app.get_key_display(*self.active_bindings(conversation)))
 
 
 class PageFractionAction(ConversationAction):
@@ -74,34 +67,34 @@ class PageFractionAction(ConversationAction):
 class QuarterPageUpAction(PageFractionAction):
     """Scroll the conversation up a quarter page."""
 
-    keys = ("pageup", "shift+pageup")
+    keys = {EditingMode: ("pageup", "shift+pageup")}
 
 
 class QuarterPageDownAction(QuarterPageUpAction):
     """Scroll the conversation down a quarter page."""
 
-    keys = ("pagedown", "shift+pagedown")
+    keys = {EditingMode: ("pagedown", "shift+pagedown")}
     direction = 1
 
 
 class EighthPageUpAction(PageFractionAction):
     """Scroll the conversation up an eighth of a page."""
 
-    keys = ("ctrl+pageup",)
+    keys = {EditingMode: ("ctrl+pageup",)}
     page_divisor = 8
 
 
 class EighthPageDownAction(EighthPageUpAction):
     """Scroll the conversation down an eighth of a page."""
 
-    keys = ("ctrl+pagedown",)
+    keys = {EditingMode: ("ctrl+pagedown",)}
     direction = 1
 
 
 class ExpandBlockAction(ConversationAction):
     """Expand the block under the cursor."""
 
-    keys = ("space",)
+    keys = {EditingMode: ("space",)}
     key_display = "␣"
     show = True
 
@@ -118,7 +111,7 @@ class ExpandBlockAction(ConversationAction):
 class CollapseBlockAction(ConversationAction):
     """Collapse the block under the cursor."""
 
-    keys = ("space",)
+    keys = {EditingMode: ("space",)}
     key_display = "␣"
     show = True
 

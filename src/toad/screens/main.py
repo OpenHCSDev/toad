@@ -125,6 +125,9 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     def close(self, screen: "MainScreen") -> None:
         """Terminal content has no unfinished waiters to release."""
 
+    def keyboard_scopes(self, screen: "MainScreen"):
+        return (screen,)
+
     async def attached(self, screen: "MainScreen") -> None:
         """Repaint the current content state when its session becomes ready."""
         self.render(screen)
@@ -166,6 +169,9 @@ class NavigatedOpeningContent(OpeningContent):
 
 
 class ReadyContent(ScreenContent):
+    def keyboard_scopes(self, screen: "MainScreen"):
+        return (screen, *screen.conversation.keyboard_scopes())
+
     async def prepare(self, screen: "MainScreen") -> None:
         await screen._prepare_content()
 
@@ -217,6 +223,9 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
     BINDING_GROUP_TITLE = "Screen"
     busy_count = var(0)
     conversation = getters.query_one(Conversation)
+
+    def keyboard_scopes(self):
+        return self.content.keyboard_scopes(self)
     thread_sidebar = getters.query_one(SessionThreadSidebar)
 
     @property

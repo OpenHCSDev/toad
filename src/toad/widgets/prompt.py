@@ -16,7 +16,8 @@ from textual._activation import PrimaryActivation
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
-from textual.binding import Binding
+from textual.binding import Binding, ModeBinding
+from textual.widgets.text_area import VimMode
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
 from textual.geometry import Size, Spacing
@@ -45,7 +46,9 @@ from toad.prompt_cursor import (
 )
 from toad.setting_widget import SettingVisibility
 from toad.slash_command import SlashCommand
-from toad.widget_actions import DeclaredWidgetActions, DismissibleControl, HiddenActions
+from toad.widget_actions import (
+    DeclaredWidgetActions, DismissibleControl, HiddenActions, NativeMethodKeys,
+)
 from toad.widget_view import AUTO, WidgetView
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
@@ -357,11 +360,7 @@ See on-screen instructions for details.
         ))
 
     def apply_keyboard_profile(self) -> None:
-        from textual.widgets.text_area import EditingMode, VimNormal
-
-        enabled = self.app.settings.ui.vim_keys
-        if self.editing_mode.modal != enabled:
-            self.editing_mode = VimNormal() if enabled else EditingMode()
+        self.editing_mode = self.screen.key_mode()
 
     @property
     def submission_allowed(self) -> bool:
@@ -574,7 +573,7 @@ class MessageTextArea(PromptTextArea):
         return False
 
 
-class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGroup):
+class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, containers.VerticalGroup):
     tone = PromptToneColour
 
     DEFAULT_CSS = """
@@ -886,11 +885,15 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
         """
         if not self.is_mounted:
             return
-        from textual.widgets.text_area import VimInsert
+        from toad.key_modes import VimInsert
         from toad.widgets.conversation import Conversation
 
         self.prompt_text_area.editing_mode = VimInsert()
         self.query_ancestor(Conversation).focus_prompt()
+
+    MODE_BINDINGS = (
+        ModeBinding("i", enter_insert, "Focus prompt", mode=VimMode, show=False),
+    )
 
     def focus(self, scroll_visible: bool = True) -> Self:
         if self._ask is not None:

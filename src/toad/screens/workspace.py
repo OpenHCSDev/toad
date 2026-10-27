@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 
 from agent_comms.declared_family import DeclaredFamily
-from textual.binding import Binding
+from textual.binding import Binding, BindingsMap
 from textual.box_model import DEFAULT_LAYER
 from textual.events import ScreenResume
 from textual.geometry import Size
@@ -16,6 +16,7 @@ from textual.widget import Widget
 
 from toad.app_node import ToadNode
 from toad.widget_view import WidgetView
+from toad.widget_actions import ProfileKeys
 
 
 @dataclass(frozen=True)
@@ -73,7 +74,7 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         )
 
 
-class WorkspaceScreen(WidgetView, ToadNode, Screen):
+class WorkspaceScreen(ProfileKeys, WidgetView, ToadNode, Screen):
     layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
 
     BINDINGS = [
@@ -109,6 +110,13 @@ class WorkspaceScreen(WidgetView, ToadNode, Screen):
             yield chrome.channels
             yield Container(id="workspace-session-host")
         yield chrome.footer
+
+    def binding_scopes(self):
+        return tuple(
+            (node, BindingsMap(scoped for binding in node.declared_bindings()
+                               for scoped in binding.fallback_bindings()))
+            for node in self.app.selected_session.keyboard_scopes()
+        )
 
     def belongs_to_wire(self, root) -> bool:
         """Shared workspace chrome follows the observed wire, not a retained tab."""

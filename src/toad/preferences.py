@@ -28,6 +28,7 @@ from toad import setting_effects as effects
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
+from toad.key_modes import KeyMode, Standard
 from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
@@ -71,7 +72,10 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     theme: Annotated[str, SchemeName(), effects.theme] = "wal"
     """wal follows pywal's palette in true colour. ANSI themes inherit your terminal palette."""
 
-    vim_keys: Annotated[bool, FieldLabel("Vim editing and navigation"), effects.vim_keys, WireName("vim-keys"),] = False
+    key_mode: Annotated[
+        type[KeyMode], FieldLabel("Keyboard mode"), FamilyChoices(KeyMode),
+        effects.key_mode, WireName("key-mode"),
+    ] = Standard
     """Opt in to modal prompts. Escape leaves Insert; Normal Enter never sends. Ctrl+Alt+X cancels a turn."""
 
     prompt_message: Annotated[str, FieldLabel("Prompt message")] = "How can I help you today?"

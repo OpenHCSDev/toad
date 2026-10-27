@@ -12,7 +12,8 @@ from typing import ClassVar, Generic, Literal, Self, TypeVar
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, FieldPlan
-from textual.binding import Binding
+from textual.binding import Binding, ModeBinding
+from textual.widgets.text_area import EditingMode, VimMode
 from textual.dom import DOMNode
 from copy import replace
 from dataclasses import dataclass
@@ -31,7 +32,7 @@ class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
     """Only the Textual boundary decodes an external action name. A member declares its
     keys, and its title and docstring are the only text any view shows for it."""
 
-    keys: ClassVar[tuple[str, ...]] = ()
+    keys: ClassVar[Mapping[type[EditingMode], tuple[str, ...]]] = MappingProxyType({})
     title: ClassVar[str] = DeclaredTitle()
     show: ClassVar[bool] = False
     priority: ClassVar[bool] = False
@@ -53,10 +54,23 @@ class Action(Command, DeclaredFamily, Generic[Context], affix="Action"):
 
     @classmethod
     def bindings(cls) -> tuple[Binding, ...]:
-        return tuple(Binding(key, cls.binding_name(), cls.title, tooltip=cls.summary(),
-                             show=cls.show, priority=cls.priority, system=cls.system,
-                             group=cls.group, key_display=cls.key_display, id=cls.declared_name)
-                     for key in cls.keys)
+        return tuple(cls.mode_binding(mode, key)
+                     for mode, keys in cls.keys.items() for key in keys)
+
+    @classmethod
+    def mode_binding(cls, mode: type[EditingMode], key: str) -> ModeBinding:
+        command = cls()
+        return ModeBinding(
+            key, command.apply, cls.title, available=command.key_available, mode=mode,
+            tooltip=cls.summary(), show=cls.show, priority=cls.priority,
+            system=cls.system, group=cls.group, key_display=cls.key_display,
+            id=f"{cls.declared_name}:{mode.__module__}.{mode.__qualname__}",
+        )
+
+    @classmethod
+    def active_bindings(cls, context: Context) -> tuple[Binding, ...]:
+        return tuple(binding for binding in cls.bindings()
+                     if binding.state(context.app, context))
 
     @classmethod
     def parse(cls, parameters: tuple[object, ...]):
@@ -111,29 +125,14 @@ class ApplicationAction(Action, affix="Action"):
                      for member in cls.members_with(cls) for command in member.offered(app))
 
 
-class VimApplicationAction(ApplicationAction):
-    def available(self, app):
-        return app.settings.ui.vim_keys and app.current_mode == "workspace"
-
-
-class VimWorkspaceAction(VimApplicationAction, declared_name=None):
+class VimWorkspaceAction(ApplicationAction, declared_name=None):
     """Workspace commands precede editor bindings only in idle modal command entry."""
 
     priority = True
 
     def key_available(self, app):
-        if not super().available(app) or app.screen is not app.workspace_screen:
-            return False
-        return app.screen.allows_application_commands
-
-
-class VimHintsAction(YieldingKey, VimApplicationAction):
-    """Label every clickable widget with a key to reach it."""
-
-    keys = ("f", "ctrl+f")
-
-    async def apply(self, app):
-        await app.screen.action_show_hints()
+        return (app.screen is app.workspace_screen
+                and app.screen.allows_application_commands)
 
 
 class DeclaredWidgetActions(DOMNode):
@@ -154,12 +153,20 @@ class DeclaredWidgetActions(DOMNode):
     def action_bindings(cls, declaration: type[Action]) -> tuple[Binding, ...]:
         return declaration.bindings()
 
+    @classmethod
+    def native_bindings(cls) -> tuple[ModeBinding, ...]:
+        return ()
+
+    @classmethod
+    def declared_bindings(cls) -> tuple[Binding, ...]:
+        return (*cls.native_bindings(),
+                *(binding for declaration in cls.declared_actions()
+                  for binding in cls.action_bindings(declaration)))
+
     def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
         cls.own_actions = actions
         declarations = cls.declared_actions()
-        cls.BINDINGS = [*cls.__dict__.get("BINDINGS", ()),
-                        *(binding for declaration in declarations
-                          for binding in cls.action_bindings(declaration))]
+        cls.BINDINGS = [*cls.__dict__.get("BINDINGS", ()), *cls.declared_bindings()]
         for declaration in declarations:
             setattr(cls, f"action_{declaration.declared_name}",
                     partialmethod(cls._run_declared_action, declaration))
@@ -177,6 +184,23 @@ class DeclaredWidgetActions(DOMNode):
             await command.apply(self)
 
 
+class NativeMethodKeys(DeclaredWidgetActions):
+    """Project native callable declarations without another action implementation."""
+
+    @classmethod
+    def native_bindings(cls) -> tuple[ModeBinding, ...]:
+        return tuple(binding for base in cls.__mro__
+                     for binding in base.__dict__.get("MODE_BINDINGS", ()))
+
+
+class ProfileKeys(NativeMethodKeys):
+    """Workspace and modal scopes borrow the canonical preference, never mirror it."""
+
+    @property
+    def key_mode(self) -> type[EditingMode]:
+        return self.app.settings.ui.key_mode
+
+
 class WidgetAction(Action, affix="Action"):
     """Keyboard operations on the focused widget, distinct from configured commands."""
 
@@ -187,7 +211,7 @@ class VisibleAction(WidgetAction):
 
 class DismissAction(VisibleAction):
     """Close the current control."""
-    keys = ("escape",)
+    keys = {EditingMode: ("escape",)}
 
     async def apply(self, context: DismissibleControl) -> None:
         context.dismiss_control()
@@ -198,28 +222,28 @@ class CursorAction(VisibleAction, affix="Action"):
 
 
 class CursorUpAction(CursorAction):
-    keys = ("up",)
+    keys = {EditingMode: ("up",)}
 
     async def apply(self, context: MovesCursor) -> None:
         context.cursor_up()
 
 
 class CursorDownAction(CursorAction):
-    keys = ("down",)
+    keys = {EditingMode: ("down",)}
 
     async def apply(self, context: MovesCursor) -> None:
         context.cursor_down()
 
 
 class SubmitAction(VisibleAction):
-    keys = ("enter",)
+    keys = {EditingMode: ("enter",)}
 
     async def apply(self, context: Submits) -> None:
         context.submit()
 
 
 class SelectAction(VisibleAction):
-    keys = ("enter",)
+    keys = {EditingMode: ("enter",)}
 
     async def apply(self, context: Selects) -> None:
         context.select()
@@ -227,21 +251,21 @@ class SelectAction(VisibleAction):
 
 class OpenSelectedAction(VisibleAction):
     title = "Open"
-    keys = ("enter",)
+    keys = {EditingMode: ("enter",)}
 
     async def apply(self, context: OpensSelected) -> None:
         context.open_selected()
 
 
 class LaunchAction(VisibleAction):
-    keys = ("space",)
+    keys = {EditingMode: ("space",)}
 
     async def apply(self, context: Launches) -> None:
         await context.launch()
 
 
 class ActivateAction(WidgetAction):
-    keys = ("enter,space",)
+    keys = {EditingMode: ("enter,space",)}
 
     async def apply(self, context: Activates) -> None:
         context.activate()
@@ -249,7 +273,7 @@ class ActivateAction(WidgetAction):
 
 class ToggleIrcAction(VisibleAction):
     title = "IRC view"
-    keys = ("ctrl+g",)
+    keys = {EditingMode: ("ctrl+g",)}
 
     async def apply(self, context: TogglesIrc) -> None:
         await context.toggle_irc()
@@ -267,12 +291,12 @@ class SessionNavigationAction(VisibleAction, affix="Action"):
 
 
 class SessionPreviousAction(SessionNavigationAction):
-    keys = ("ctrl+left_square_bracket",)
+    keys = {EditingMode: ("ctrl+left_square_bracket",)}
     direction = -1
 
 
 class SessionNextAction(SessionNavigationAction):
-    keys = ("ctrl+right_square_bracket",)
+    keys = {EditingMode: ("ctrl+right_square_bracket",)}
     direction = +1
 
 
@@ -281,14 +305,14 @@ class FocusAction(VisibleAction, affix="Action"):
 
 
 class FocusNextAction(FocusAction):
-    keys = ("tab",)
+    keys = {EditingMode: ("tab",)}
 
     async def apply(self, context: CyclesFocus) -> None:
         context.app.action_focus_next()
 
 
 class FocusPreviousAction(FocusAction):
-    keys = ("shift+tab",)
+    keys = {EditingMode: ("shift+tab",)}
 
     async def apply(self, context: CyclesFocus) -> None:
         context.app.action_focus_previous()
