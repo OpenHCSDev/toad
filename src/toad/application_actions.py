@@ -82,6 +82,17 @@ class SettingsAction(ApplicationAction):
         await app.saved_settings.save()
 
 
+class CommanderAction(ApplicationAction):
+    """Open the live commander board, including unit orders and original evidence."""
+
+    keys = {EditingMode: ("f2",)}
+
+    async def apply(self, app: ToadApp) -> None:
+        from toad.screens.commander import CommanderPage
+
+        app.push_screen(CommanderPage())
+
+
 class TransferMenuAction(ApplicationAction):
     """Export wire history or import a thread through Core."""
 

@@ -69,13 +69,20 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
 
     @classmethod
     def mode_binding(cls, mode: type[EditingMode], key: str) -> ModeBinding:
-        command = cls()
+        command = cls.command_for_key(mode, key)
         return ModeBinding(
             key, command.apply, cls.title, available=command.key_available, mode=mode,
             tooltip=cls.summary(), show=cls.show, priority=cls.priority,
             system=cls.system, group=cls.group, key_display=cls.key_display,
-            id=cls.binding_id(mode),
+            id=command.binding_identity(mode),
         )
+
+    @classmethod
+    def command_for_key(cls, mode: type[EditingMode], key: str) -> Self:
+        return cls()
+
+    def binding_identity(self, mode: type[EditingMode]) -> str:
+        return type(self).binding_id(mode)
 
     @classmethod
     def active_bindings(cls, context: Context) -> tuple[Binding, ...]:

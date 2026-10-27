@@ -10,7 +10,8 @@ from random import shuffle
 from typing import Literal, Self
 
 from textual.binding import Binding
-from toad.widget_actions import DismissibleControl, CyclesFocus, Launches
+from toad.widget_actions import DismissibleControl, CyclesFocus, Launches, WidgetAction
+from textual.document._editing import EditingMode
 from textual.screen import Screen
 from textual import events
 from textual import work
@@ -295,16 +296,41 @@ class Container(containers.VerticalScroll):
         return super().allow_focus() and self.show_vertical_scrollbar
 
 
-class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
+class LaunchSlotAction(WidgetAction):
+    """Launch the agent occupying this numbered slot in the store."""
+
+    keys = {EditingMode: tuple("123456789abcdef")}
+
+    def __init__(self, slot: int):
+        self.slot = slot
+
+    @classmethod
+    def command_for_key(cls, mode, key):
+        return cls(cls.keys[mode].index(key))
+
+    def binding_identity(self, mode):
+        return f"{super().binding_identity(mode)}:{self.slot}"
+
+    @classmethod
+    def offered(cls, store):
+        return (cls(slot) for slot in range(len(cls.keys[EditingMode])))
+
+    async def apply(self, store):
+        launcher = store.launcher
+        if self.slot >= len(launcher.grid_select.children):
+            store.notify(f"No agent in launch slot {self.slot + 1}",
+                         title="Quick launch", severity="error")
+            store.app.bell()
+            return
+        launcher.focus()
+        launcher.highlighted = self.slot
+        await launcher.launch_highlighted()
+
+
+class StoreScreen(CyclesFocus, CoreEventReceiver, Screen, actions=(LaunchSlotAction,)):
     BINDING_GROUP_TITLE = "Screen"
     CSS_PATH = "store.tcss"
     BINDINGS = [
-        Binding(
-            "null",
-            "quick_launch",
-            "Quick launch",
-            key_display="1-9 a-f",
-        ),
         Binding("ctrl+r", "resume", "Resume", tooltip="Resume a previous session"),
         Binding(
             "ctrl+d",
@@ -498,30 +524,6 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
                 self.screen.query(GridSelect).focus()
 
             self.call_later(focus_screen)
-
-    async def on_key(self, event: events.Key) -> None:
-        if event.character is None:
-            return
-        LAUNCHER_KEYS = "123456789abcdef"
-
-        if event.character in LAUNCHER_KEYS:
-            launch_item_offset = LAUNCHER_KEYS.find(event.character)
-            try:
-                self.launcher.grid_select.children[launch_item_offset]
-            except IndexError:
-                self.notify(
-                    f"No agent on key [b]{LAUNCHER_KEYS[launch_item_offset]}",
-                    title="Quick launch",
-                    severity="error",
-                )
-                self.app.bell()
-                return
-            self.launcher.focus()
-            self.launcher.highlighted = launch_item_offset
-            await self.launcher.launch_highlighted()
-
-    def action_quick_launch(self) -> None:
-        self.launcher.focus()
 
     @work
     async def action_resume(self) -> None:

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from agent_comms.declared_family import DeclaredFamily
-from textual.widgets.text_area import (
+from textual.document._editing import (
     EditingMode,
     VimInsert as InsertEditing,
     VimMode as ModalEditing,

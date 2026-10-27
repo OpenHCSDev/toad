@@ -44,9 +44,7 @@ class CommandEditModal(DismissibleScreen[str | None]):
             )
             with containers.HorizontalGroup(id="button-container"):
                 yield widgets.Button("OK", variant="primary", id="ok")
-                yield widgets.Button(
-                    "Cancel", id="cancel", action="screen.dismiss(None)"
-                )
+                yield widgets.Button("Cancel", id="cancel")
         yield ToadFooter()
 
     @on(widgets.Button.Pressed, "#ok")

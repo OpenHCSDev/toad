@@ -39,7 +39,6 @@ from toad.navigation_target import (
     NavigationTarget,
     ThreadTarget,
 )
-from toad.screens.commander import CommanderPage
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionView
 from toad.session_presentation import OperationalSessionPresentation
@@ -217,7 +216,6 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
 
     BINDINGS = [
         Binding("ctrl+h", "go_home", "Home", show=False),
-        Binding("f2", "commander_page", "Commander"),
     ]
 
     BINDING_GROUP_TITLE = "Screen"
@@ -596,10 +594,6 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
             target = conversation.prompt.prompt_text_area
             if target.focusable:
                 self.screen.set_focus(target, scroll_visible=False)
-
-    def action_commander_page(self) -> None:
-        """Every unit's state, orders and PRs, as the commander heartbeat published them."""
-        self.app.push_screen(CommanderPage())
 
     async def action_go_home(self) -> None:
         await self.app.select_session("store")

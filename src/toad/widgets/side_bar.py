@@ -2,7 +2,8 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core import events as core_events
 from textual.content import Content
-from toad.widget_actions import ApplicationAction, Activates, DismissibleControl
+from toad.widget_actions import ApplicationAction, Activates, DismissibleControl, WidgetAction
+from textual.document._editing import EditingMode
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
@@ -581,7 +582,20 @@ class SidebarSearch(widgets.Input):
         self.value = ""
 
 
-class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical):
+class SearchSidebarAction(WidgetAction):
+    """Focus search in the sidebar containing the current selection."""
+
+    keys = {EditingMode: ("slash",)}
+
+    def available(self, sidebar):
+        return sidebar.app.focused is not sidebar.search_input
+
+    async def apply(self, sidebar):
+        sidebar.search_input.focus()
+
+
+class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
+              containers.Vertical, actions=(SearchSidebarAction,)):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
     DEFAULT_CSS = """
@@ -762,12 +776,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         if event.input is self.search_input:
             event.stop()
             self.search = event.value
-
-    def on_key(self, event: events.Key) -> None:
-        if event.character == "/" and self.app.focused is not self.search_input:
-            event.stop()
-            event.prevent_default()
-            self.search_input.focus()
 
     def _compose_panels(self) -> ComposeResult:
         navigation = self.navigation
