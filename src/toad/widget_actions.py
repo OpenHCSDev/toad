@@ -33,7 +33,6 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
     keys: ClassVar[Mapping[type[EditingMode], tuple[str, ...]]] = MappingProxyType({})
     show: ClassVar[bool] = False
     priority: ClassVar[bool] = False
-    system: ClassVar[bool] = False
     group: ClassVar[Binding.Group | None] = None
     key_display: ClassVar[str | None] = None
     binding_prefix: ClassVar[str] = ""

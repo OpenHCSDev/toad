@@ -17,7 +17,7 @@ from toad.keymap import Keymap, KeymapRefused, KeymapRow, discover
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
 from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import DismissAction, System
+from toad.widget_actions import DismissAction
 
 
 class KeymapScreen(DismissibleScreen[None]):
@@ -38,7 +38,7 @@ class KeymapScreen(DismissibleScreen[None]):
         super().__init__()
         discover()
         self.declarations = tuple(declaration for declaration in dict.fromkeys(KeyDeclaration.declarations())
-                                  if not issubclass(declaration, System))
+                                  if not declaration.system)
         self.focus_mode, self.focused_ids = focus_mode, focused
         mode_choices = SETTINGS.ui.key_mode.bind(self.app.saved_settings.state).metadata(FamilyChoices)
         if mode_choices is None:
