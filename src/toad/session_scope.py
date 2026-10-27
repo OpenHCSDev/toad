@@ -31,6 +31,7 @@ from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 
 if TYPE_CHECKING:
+    from toad.widget_actions import DeclaredWidgetActions
     from agent_comms.messages import Message
     from agent_comms.transcripts import TranscriptCursor
     from textual.command import Provider
@@ -346,6 +347,9 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
 
     @abstractmethod
     def sidebars(self) -> tuple[DOMNode, ...]: ...
+
+    @abstractmethod
+    def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]: ...
 
     def focus_sidebar_return(self) -> None:
         """A view without a sidebar return target has nothing to focus."""

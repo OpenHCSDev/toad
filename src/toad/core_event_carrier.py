@@ -3,6 +3,7 @@
 from metaclass_registry.mro_dispatch import MroDispatch
 from textual._callback import invoke
 from textual.message import Message
+from textual.dom import DOMNode
 from functools import cached_property, partial
 from dataclasses import InitVar, dataclass, field
 
@@ -58,7 +59,7 @@ class ThreadCallbackSubscription(ThreadChangeSubscription, CallbackSubscription)
     """Compose thread indexing with callback delivery in the native pump."""
 
 
-class CoreEventReceiver(MroDispatch):
+class CoreEventReceiver(MroDispatch, DOMNode):
     """Consume declared events inside the native message-pump lifetime."""
 
     def __init__(self, *args, **kwargs) -> None:

@@ -29,6 +29,12 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
         self._identity: SessionIdentity = NoThreadIdentity()
         super().__init__(*args, **kwargs)
 
+    def close_core_events(self) -> None:
+        """Retire this logical source's descendants before its tab entry disappears."""
+        for receiver in self.query(CoreEventReceiver):
+            receiver.close_core_events()
+        super().close_core_events()
+
     @property
     def display_name(self) -> str:
         """Borrow this view's current label from the same projection as its tab."""

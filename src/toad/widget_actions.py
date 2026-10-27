@@ -476,8 +476,10 @@ class Launches(DeclaredWidgetActions, actions=(LaunchAction,)):
 class ActivationKeys(PrimaryActivation, DeclaredWidgetActions, actions=(ActivateAction,)):
     """Keys and primary clicks use the native activation callback, including async effects."""
 
+    activation_buttons: ClassVar[tuple[int, ...]] = (1,)
+
     async def on_click(self, event: events.Click) -> None:
-        if event.button == 1:
+        if event.button in self.activation_buttons:
             event.stop()
             await invoke(self.primary_activation)
 

@@ -2,7 +2,10 @@
 
 import pytest
 
-from toad.core import events as core_events
+from toad.key_modes import Standard
+from toad.keymap import KeymapRow
+from toad.preferences import SETTINGS
+from toad.widget_actions import CursorRightAction
 from toad.widgets.side_bar import (
     SideBar, SideBarToggle, SidebarAction, SidebarResizeHandle, SidebarSlider, TabHistoryControls,
 )
@@ -15,9 +18,9 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         bar = app.screen.query_one("#channels-sidebar", SideBar)
         app.sidebar_layout.move("channels-sidebar", side)
         app.sidebar_layout.width("channels-sidebar", 30)
-        app.events.publish(core_events.SidebarLayoutChanged())
+        app.workspace_chrome.refresh_layout()
         await ui.step()
-        slider = bar.query_one("#sidebar-width-slider", SidebarSlider)
+        slider = bar.width_slider
         handle = bar.query_one(SidebarResizeHandle)
         toggle = bar.query_one(SideBarToggle)
         assert (toggle.region.right == handle.region.x if side == "left"
@@ -29,16 +32,16 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
             ui.conversation.prompt.focus()
             await pilot.hover(app.screen.query_one(TabHistoryControls))
             await ui.step()
-            normal = handle.styles.color
+            normal = handle._paint_state.foreground
             assert await pilot.hover(handle, offset=(0, 3))
             await ui.step()
-            assert handle.styles.color != normal and "hover" in handle.pseudo_classes
+            assert handle._paint_state.foreground != normal and "hover" in handle.pseudo_classes
             for selector in (f"#sidebar-{'right' if side == 'left' else 'left'}", "#sidebar-float"):
                 button = bar.query_one(selector, SidebarAction)
-                normal = button.styles.background
+                normal = button._paint_state.background
                 assert await pilot.hover(button)
                 await ui.step()
-                assert button.styles.background != normal
+                assert button._paint_state.background != normal
                 await pilot.hover(handle, offset=(0, 3))
         start = handle.region.x
         y = handle.region.y + 3
@@ -59,6 +62,16 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         assert slider.value == 41
         await ui.press("left" if side == "left" else "right")
         assert slider.value == 40
+        remap = app.settings.ui.keymap.changed(KeymapRow(CursorRightAction, Standard), ("f6",))
+        app.saved_settings.set(SETTINGS.ui.keymap.bindings, remap.bindings)
+        for control in (slider, handle):
+            control.focus()
+            await ui.press("right")
+            assert slider.value == 40
+            await ui.press("f6")
+            assert slider.value == 40 + direction
+            await ui.press("left")
+            assert slider.value == 40
         inward = slider.size.width - 1 if side == "left" else 0
         assert await pilot.mouse_down(slider, offset=(inward, 0))
         assert not app.screen._selecting, "Width slider started a text selection"

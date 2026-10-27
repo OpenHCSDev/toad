@@ -143,7 +143,7 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         return tuple(
             (node, BindingsMap(scoped for binding in node.declared_bindings(self.active_binding_mode)
                                for scoped in binding.fallback_bindings()))
-            for node in self.app.selected_session.keyboard_scopes()
+            for node in self.app.workspace_sessions.source.keyboard_scopes()
         )
 
     def belongs_to_wire(self, root) -> bool:
