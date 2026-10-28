@@ -11,7 +11,8 @@ from agent_comms.commander_hud import (
 from agent_comms.coordination_errors import DeferredRead
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
+from agent_comms.order_tools import CommanderUnitRead
+from agent_comms.ui_model.observation import ReadOperation, UnreadableHistory
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on, work
@@ -118,10 +119,10 @@ class CommanderUnitCard(ToadNode, Collapsible):
         access = self.app.coordination_access
         try:
             observed = await access.preparation.run_thread(access.observation.observed)
-            request = ReadCommanderUnit(
-                str(observed.service.root), self.commander, card.unit,
-                tuple(dict.fromkeys(order.order for order in card.orders)),
-            )
+            request = ReadOperation(str(observed.service.root), CommanderUnitRead(
+                commander=self.commander, unit=card.unit,
+                orders=tuple(dict.fromkeys(order.order for order in card.orders)),
+            ))
             detail = await observed.process.read(request)
         except (
             DeferredRead, RelationViolationError, RouteChangedError,
