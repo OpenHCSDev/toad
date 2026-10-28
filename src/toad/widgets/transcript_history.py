@@ -9,6 +9,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
+from math import inf
 from itertools import accumulate, chain, islice
 from typing import TYPE_CHECKING, Final
 from weakref import ref
@@ -34,7 +35,7 @@ from textual.message import Message
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
-from ui_theme.effects import NEW_TEXT
+from ui_theme.effects import NEW_TEXT, Amount, Transition
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
@@ -111,6 +112,11 @@ if TYPE_CHECKING:
     from agent_comms.messages import Message as BusMessage
 
     from toad.widgets.conversation import Contents, Conversation
+
+
+# An arriving message is uncovered from its first row down, alongside NEW_TEXT's fade.
+ARRIVAL_REVEAL = Transition(Amount, 0.0, 1.0, duration=NEW_TEXT.duration,
+                            frames_per_second=NEW_TEXT.frames_per_second)
 
 
 class HistoryEdge(Activates, Static, can_focus=True):
@@ -321,6 +327,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         strip = lines.strips_at(fragment.link_place)[row]
         if id(fragment) in self.arrivals:
             history = self.history
+            if row >= history.revealed_rows:
+                return selection_painted(self, self.blank_row(width, paint), y)
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
@@ -356,6 +364,11 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
         """The fragments this page draws rows for, oldest first."""
         return tuple(fragment for fragment, _first, _lines in self._layout)
+
+    def drawn_height(self, fragment: TranscriptFragment) -> int:
+        """The rows this page draws for a fragment it draws."""
+        _fragment, _first, lines = self._layout[self._fragment_slots[id(fragment)]]
+        return lines.height
 
     def fragment_rows(self, fragment: TranscriptFragment) -> range | None:
         """The rows of this page that draw a fragment."""
@@ -964,6 +977,36 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
     def drawn_tail_followed(self) -> bool:
         return not self.drawn_end_more and self.follows_source_tail
 
+    # The window's height when the current burst of arrivals began.
+    reveal_rows = 0
+
+    @property
+    def revealed_rows(self) -> float:
+        """How many rows of each arriving fragment are uncovered: all of them once the sweep ends."""
+        amount = self.effect_frame(ARRIVAL_REVEAL).value
+        return amount * self.reveal_rows if amount < 1.0 else inf
+
+    def arrivals_began(self) -> None:
+        """A burst of arrivals uncovers each message from its first row down, one window height in one sweep."""
+        if not self.is_on_screen:
+            return  # A burst nobody sees has nothing to uncover.
+        self.reveal_rows = self.window.scrollable_content_region.height
+        # The fade starts with the reveal: covered rows never paint it, and
+        # the burst is decided by the fade's phase.
+        self.run_effect(NEW_TEXT)
+        self.run_effect(ARRIVAL_REVEAL)
+
+    def hold_arrival(self, arrivals: tuple[TranscriptFragment, ...]) -> None:
+        """The first shown arriving message places a following reader: from its head when it is taller than the window."""
+        window = self.window
+        if not window.shown:
+            return
+        for head in arrivals:
+            page = self.page_holding(head.key)
+            if head.shown_in(page.visible_categories):
+                window.reader_position = window.reader_position.arrived(page, head.key)
+                return
+
     def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
         phase = self.effect_phase(NEW_TEXT)
         if fragments:
@@ -972,8 +1015,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         for page in self.pages:
             previous = bool(page.arrivals)
             page.arrivals.intersection_update(phase.keeps_arrivals(page.arrivals))
-            page.arrivals.update(id(fragment) for fragment in page.prepared.fragments_in_range
-                                 if fragment.arrival_position in positions)
+            if positions:
+                page.arrivals.update(id(fragment) for fragment in page.prepared.fragments_in_range
+                                     if fragment.arrival_position in positions)
             if previous or page.arrivals:
                 page.refresh()
 
@@ -1039,6 +1083,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
                     arrivals = self._source_state.arriving(staged, followed_end)
                     await self._extend_and_trim(edge, end, local, protected, staged, current=current)
                     self._require_can_draw()
+                    self.hold_arrival(arrivals)
                     self.repaint(arrivals)
                     self.rows_published()
                     if not local:

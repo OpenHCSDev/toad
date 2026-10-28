@@ -7,7 +7,6 @@ entry or a new session opens the first tab, which replaces it.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
 
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.channel_targets import NoChannel
@@ -30,7 +29,7 @@ from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
 from toad.tab_identity.history_origin import WelcomeHistoryOrigin
 from toad.thread_identity import ThreadIdentity
-from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
+from toad.widgets.comms_sidebar import ChannelRow, CommsRow, ListedRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import (
     RowReconciliation,
@@ -40,10 +39,7 @@ from toad.widgets.sidebar_tree import (
     TargetTree,
 )
 from toad.widgets.splash_text import SplashText
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-
+from toad.app_node import ToadNode
 
 class WelcomeTitle(SplashText):
     """The app's name, swept into the theme's colours each time the view shows."""
@@ -78,7 +74,7 @@ class WelcomeTitle(SplashText):
             self.refresh()
 
 
-class WelcomeSection(SidebarGroup[CommsRow]):
+class WelcomeSection(SidebarGroup[ListedRow]):
     """Some of the sidebar model's rows under a title."""
 
     TITLE = ""
@@ -118,7 +114,7 @@ class WelcomeChannels(WelcomeSection):
         return tuple(model.channels.rows)
 
     def new_row(self, key):
-        return CommsRow(channel_target(key), key)
+        return ChannelRow(channel_target(key), key)
 
     def show_member(self, key, row):
         channel = self.query_ancestor(WelcomeEntries).model_state.shown.channels.rows[
@@ -194,7 +190,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         self.present()
 
 
-class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=False):
+class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, ToadNode, can_focus=False):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
 
     BINDINGS = [
@@ -218,7 +214,7 @@ class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=Fal
 
     def __init__(self) -> None:
         super().__init__()
-        app = cast("ToadApp", self.app)
+        app = self.app
         self.project_path = app.project_dir
 
     def compose(self) -> ComposeResult:
@@ -247,7 +243,7 @@ class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=Fal
         )
 
     async def prepare_history_origin(self) -> None:
-        app = cast("ToadApp", self.app)
+        app = self.app
         project = self.project_path
         with self.changing_identity():
             self._identity = await app.preparation.run_thread(self.read_history_identity, project)

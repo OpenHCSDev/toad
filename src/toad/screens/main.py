@@ -32,7 +32,6 @@ from textual.widgets import (
 )
 
 from toad.acp.agent_session import SessionDisposition
-from toad.app import ToadApp
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent
@@ -60,6 +59,7 @@ from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBar
 from toad.widgets.splash_text import ThreadLoading
+from toad.app_node import ToadNode
 
 
 class SessionCommands(Provider):
@@ -210,7 +210,7 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
+class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView, ToadNode,
                  scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 
@@ -234,7 +234,6 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
     project_path = var[Checkout](Required())
 
-    app = getters.app(ToadApp)
 
     def __init__(
         self,

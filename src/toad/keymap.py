@@ -75,13 +75,6 @@ class KeymapRow:
     def binding_id(self) -> str:
         return KeyInvocation.in_mode(self.declaration, self.mode().binding_mode)
 
-    @property
-    def defaults(self) -> tuple[str, ...]:
-        return KeymapCatalog.capture((self.mode,)).defaults(self)
-
-    def effective(self, keymap: Keymap) -> tuple[str, ...]:
-        return keymap.keys_for(self, self.defaults)
-
 
 @dataclass(frozen=True)
 class KeyRemap(KeymapRow):
