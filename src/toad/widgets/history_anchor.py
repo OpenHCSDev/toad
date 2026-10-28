@@ -372,17 +372,10 @@ class ArrivalPosition(OffsetPosition):
             return super().place(window)
         return TailPosition().place(window)
 
-    def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
-        """The rest of the change keeps the head (as a fragment position) or the tail it was placed on.
-
-        The reader leaving the tail (left_tail) replaces it like any kept position.
-        """
-        if self.tall(window):
-            span = self.location().location()
-            return FragmentPosition(span.fragment.key, 0.0, span.height, block=span.index).placed(window, reached)
-        return TailPosition().placed(window, reached)
-
     def shifted(self, rows: float) -> ReaderPosition:
+        # Kept through its change, so every layout of the change places it
+        # from its own page; afterwards the window reads where the reader is.
+        # The reader leaving the tail replaces it through left_tail.
         return self
 
 

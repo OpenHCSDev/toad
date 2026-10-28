@@ -988,6 +988,8 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
 
     def arrivals_began(self) -> None:
         """A burst of arrivals uncovers each message from its first row down, one window height in one sweep."""
+        if not self.is_on_screen:
+            return  # A burst nobody sees has nothing to uncover.
         self.reveal_rows = self.window.scrollable_content_region.height
         # The fade starts with the reveal: covered rows never paint it, and
         # the burst is decided by the fade's phase.
