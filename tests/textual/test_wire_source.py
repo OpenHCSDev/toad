@@ -1,7 +1,11 @@
 """Textual-facing: the presentation window; a wire source pages one conversation and notices when Core replaces its reading."""
 
+import os
+
 from agent_comms.repo import Checkout
-from agent_comms.channel_targets import ChannelTarget
+from agent_comms.channel_targets import ChannelTarget, ThreadTarget
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.field_codec import TurnId
 from support.roots import installed_wire
 from agent_comms.historical_views import ConversationObservation
 from agent_comms.page_traversal import LiveCursor
@@ -29,17 +33,13 @@ def observed(source):
 
 
 def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_path):
-    import os
-
-    from agent_comms.child_process import ProcessIdentity
-
     comms = installed_wire(tmp_path / "wire")
     comms.registry.declare(Thread("peer", frozenset(), Checkout(tmp_path), process_identity=ProcessIdentity.capture(os.getpid())))
     viewer = comms.messaging.user_identity(Checkout(tmp_path)).name
     comms.messaging.send("peer", viewer, "shown across turn claim")
-    before = comms.views.dm_display_page("peer", worktree=Checkout(tmp_path))
-    comms.registry.lease_local_turn("peer", "new-turn")
-    after = comms.views.dm_display_page("peer", worktree=Checkout(tmp_path))
+    before = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
+    comms.registry.lease_local_turn("peer", TurnId.mint())
+    after = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
     assert DmConversation.history_view.same_display(after, before)
 
 

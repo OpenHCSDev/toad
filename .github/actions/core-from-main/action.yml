@@ -17,12 +17,13 @@ runs:
       shell: bash
       run: |
         python - <<'PY'
-        import os, pathlib, subprocess, tomllib
+        import os, pathlib, subprocess, sys, tomllib
         sources = tomllib.loads(pathlib.Path('pyproject.toml').read_text())['tool']['uv']['sources']
         updates = [argument for name, source in sources.items() if 'branch' in source
                    for argument in ('--upgrade-package', name)]
-        subprocess.run(['uv', 'lock', *updates], check=True)
-        subprocess.run(['uv', 'sync', '--locked', '--all-extras', '--no-editable'], check=True)
+        subprocess.run(['uv', 'lock', '--python', sys.executable, *updates], check=True)
+        subprocess.run(['uv', 'sync', '--python', sys.executable,
+                        '--locked', '--all-extras', '--no-editable'], check=True)
         package, = (p for p in tomllib.loads(pathlib.Path('uv.lock').read_text())['package']
                     if p['name'] == 'agent-comms')
         url, commit = package['source']['git'].split('#')
