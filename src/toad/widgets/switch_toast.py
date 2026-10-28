@@ -93,9 +93,13 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
 
     @handles(core_events.SessionSelected)
     def session_selected(self, event: core_events.SessionSelected) -> None:
+        """A selection without a native reader (store, welcome) retires the name before any title is looked up."""
+        if (area := self.viewport()) is None:
+            self.retire()
+            return
         titles = {tab.mode_name: tab.title for tab in self.app.open_tabs}
         if event.mode_name in titles:
-            self.show(titles[event.mode_name])
+            self.show(titles[event.mode_name], area)
 
     @property
     def box(self) -> tuple[int, int]:
@@ -116,11 +120,8 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         region = conversation.window.scrollable_content_region
         return region if region.area else None
 
-    def show(self, title: str) -> None:
+    def show(self, title: str, area: Region) -> None:
         self.title = title
-        if (area := self.viewport()) is None:
-            self.retire()
-            return
         self.fit(area)
         self.display = True
         self.run_effect(TAB_TOAST)
