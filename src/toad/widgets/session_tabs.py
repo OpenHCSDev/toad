@@ -144,7 +144,7 @@ class Underline(WidgetView, Animated[Amount]):
     _drawn: tuple[float, float] = (0.0, 0.0)
     _origin: tuple[float, float] = (0.0, 0.0)
 
-    def follow(self) -> None:
+    def mark_selected(self) -> None:
         """The selected cells may have moved; slide to them from what is drawn."""
         start, end = self._drawn
         if start < end and self._drawn != self.selected_cells:
@@ -284,7 +284,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
         """
         if not self.is_mounted or not self.is_attached:
             return
-        self.query_one(Underline).follow()
+        self.query_one(Underline).mark_selected()
         selected = self.app.selected_mode
         if selected and (label := self.query_one_optional(f"#{selected}", SessionLabel)):
             if label.virtual_region:
