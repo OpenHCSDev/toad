@@ -8,7 +8,7 @@ from weakref import ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
 from agent_comms.goal_presentation import ControlledExecution, GoalExecution
-from agent_comms.runtime_requests import GoalHistoryReply
+from agent_comms.goal_history import RecordedGoalHistory
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
@@ -46,7 +46,7 @@ class HistoryInteraction(GoalInteraction):
         from toad.screens.goal_details import GoalDetails
         view = session.view
         goal, agent = view.goal_display.snapshot.require(), view.agent_binding
-        history: GoalHistoryReply = await agent.get_goal_history(goal.id)
+        history: RecordedGoalHistory = await agent.get_goal_history(goal.id)
         if not session.owns(agent):
             return
         details = GoalDetails(session, history=history)

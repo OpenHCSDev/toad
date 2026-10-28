@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.thread_presentation import ThreadPresentation
-from agent_comms.runtime_requests import GoalHistoryReply
+from agent_comms.goal_history import RecordedGoalHistory
 from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
@@ -170,8 +170,8 @@ class NoAgentConnection(AgentConnection):
     def send_now(self, owner: ConversationSubmissions) -> None:
         """No remote queue is bound."""
 
-    async def get_goal_history(self, goal_id: str) -> GoalHistoryReply:
-        return GoalHistoryReply.empty()
+    async def get_goal_history(self, goal_id: str) -> RecordedGoalHistory:
+        return RecordedGoalHistory.empty()
 
     async def update_goal(self, action: type[GoalAction], text: str):
         raise ValueError("Persistent goals require an agent-comms session")
