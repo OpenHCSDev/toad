@@ -13,7 +13,7 @@ from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
 from dataclasses import dataclass
 import asyncio
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar
 
 from textual import containers, events, on, widgets
 from textual.app import ComposeResult
@@ -38,9 +38,9 @@ from toad.sidebar_layout import (
     SidebarShift,
 )
 from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
+from toad.app_node import ToadNode
 
 if TYPE_CHECKING:
-    from toad.app import ToadApp
     from toad.tab_order import TabOrder
 
 
@@ -268,7 +268,7 @@ class HeaderButton(ActivationKeys, HoverSelection, widgets.Static, can_focus=Tru
     }
     """
 
-class TabHistoryButton(HeaderButton):
+class TabHistoryButton(HeaderButton, ToadNode):
     """Back or forward through visited tabs."""
 
     direction: ClassVar[int]
@@ -293,7 +293,7 @@ class TabHistoryButton(HeaderButton):
         return self.navigate
 
     def navigate(self) -> None:
-        cast("ToadApp", self.app).tab_order.navigate(self.direction)
+        self.app.tab_order.navigate(self.direction)
 
 
 class BackTabButton(TabHistoryButton):
@@ -344,7 +344,7 @@ class MainMenuButton(HeaderButton):
             await invoke(action.apply, self.app)
 
 
-class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
+class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup, ToadNode):
     """Left-sidebar controls shared by native thread and channel screens."""
 
     DEFAULT_CSS = """
@@ -361,7 +361,7 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
         yield ForwardTabButton()
 
     def on_mount(self) -> None:
-        app = cast("ToadApp", self.app)
+        app = self.app
         self.observe_core(app.tab_order.events)
         self.observe_core(app.events)
         self._sync()
@@ -371,7 +371,7 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
         self._sync()
 
     def _sync(self) -> None:
-        app = cast("ToadApp", self.app)
+        app = self.app
         for button in self.query(TabHistoryButton):
             button.sync(app.tab_order)
 
@@ -513,7 +513,7 @@ class SidebarAction(Activates, HoverSelection, widgets.Static, can_focus=True):
         self.post_message(self.Pressed(self.action))
 
 class SidebarResizeHandle(
-    MovesHorizontalCursor, CapturedDrag, ColourSelection, widgets.Static, can_focus=True
+    MovesHorizontalCursor, CapturedDrag, ColourSelection, widgets.Static, ToadNode, can_focus=True
 ):
     """Drag the conversation-facing edge; the placement model owns the width."""
 
@@ -538,7 +538,7 @@ class SidebarResizeHandle(
         bar = self.query_ancestor(SideBar)
         if bar.id is None or bar.parent is None:
             return
-        app = cast("ToadApp", self.app)
+        app = self.app
         direction = -1 if app.sidebar_layout.get(bar.id).side == "right" else 1
         width = self._start_width + direction * (screen_x - self._start_x)
         percent = round(100 * width / max(1, bar.screen.size.width))
@@ -579,7 +579,7 @@ class SearchSidebarAction(WidgetAction):
 
 
 class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
-              containers.Vertical, actions=(SearchSidebarAction,)):
+              containers.Vertical, ToadNode, actions=(SearchSidebarAction,)):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
     DEFAULT_CSS = """
@@ -670,15 +670,15 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
 
     @property
     def navigation(self) -> SidebarState:
-        return cast("ToadApp", self.app).sidebar_state
+        return self.app.sidebar_state
 
     def mount_collapse(self) -> None:
-        app = cast("ToadApp", self.app)
+        app = self.app
         self.observe_core(app.saved_settings.events)
         self.collapsed = SETTINGS.sidebar.hide.bind(app.saved_settings.state).value
 
     def store_collapsed(self, value: bool) -> None:
-        app = cast("ToadApp", self.app)
+        app = self.app
         app.saved_settings.set(SETTINGS.sidebar.hide, value)
         self.collapsed = SETTINGS.sidebar.hide.bind(app.saved_settings.state).value
 
@@ -790,7 +790,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         self._present_controls()
 
     def _present_controls(self) -> bool:
-        app = cast("ToadApp", self.app)
+        app = self.app
         if not self.is_mounted:
             return False
         placement = app.sidebar_layout.get(self.id)
@@ -868,7 +868,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
     def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
         event.stop()
         if self.id is not None:
-            app = cast("ToadApp", self.app)
+            app = self.app
             if app.sidebar_layout.width(self.id, event.value):
                 self._present_controls()
                 app.workspace_chrome.refresh_layout()
@@ -878,7 +878,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         event.stop()
         if self.id is None:
             return
-        app = cast("ToadApp", self.app)
+        app = self.app
         event.action.apply(app.sidebar_layout, self.id)
         for bar in (
             app.workspace_chrome.channels,
@@ -893,7 +893,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
             self.watch_collapsed(self.collapsed)
         else:
             self._present_controls()
-            cast("ToadApp", self.app).workspace_chrome.refresh_layout()
+            self.app.workspace_chrome.refresh_layout()
         navigation = self.navigation
         for panel in self.query(SideBarCollapsible):
             if str(panel.title) in navigation.panels_collapsed:
@@ -924,7 +924,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         self._presented_layout = None
         if self.is_mounted:
             self._present_controls()
-            cast("ToadApp", self.app).workspace_chrome.refresh_layout()
+            self.app.workspace_chrome.refresh_layout()
 
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""
