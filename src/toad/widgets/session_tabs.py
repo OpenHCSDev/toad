@@ -9,14 +9,14 @@ from textual.app import ComposeResult, RenderResult
 from toad.widget_actions import ActivationKeys
 from textual.color import TRANSPARENT
 from textual.content import Content
-from textual.css.scalar import Scalar, ScalarOffset
+from textual.css.scalar import Scalar, ScalarOffset, Unit
 from textual.geometry import Offset, Region, Spacing
 from textual.layouts.vertical import VerticalLayout
 from textual.message import Message
 from textual.renderables.bar import Bar
 from textual.style import Style
 from textual.widget import Widget
-from ui_theme.effects import NEW_TEXT, Mix
+from ui_theme.effects import NEW_TEXT, Amount, Transition
 from ui_theme.scheme import (
     AccentColour,
     ErrorColour,
@@ -125,13 +125,32 @@ class SessionTabClose(WidgetView, ActivationKeys, widgets.Static, can_focus=True
     def close_tab(self) -> None:
         self.app.session_navigation.events.publish(session_requests.SessionArchive(self.mode_name))
 
-class Underline(WidgetView, Animated[Mix]):
-    """The chosen tab's underline uses the shared content-change fade."""
+# The selected tab's underline travels from the cells it marked to the new ones.
+TAB_SLIDE = Transition(Amount, 0.0, 1.0, duration=0.18, frames_per_second=60)
 
-    text_fades = (NEW_TEXT,)
+
+class Underline(WidgetView, Animated[Amount]):
+    """The track under the tab cells, marking the selected tab's cells.
+
+    It is laid out under the cells themselves (TabCells), so it spans every
+    cell however far the strip scrolls. When the marked cells move (another tab
+    chosen, tabs reordered, closed, opened or renamed) it slides from what it
+    drew to them, on the app clock; it repaints one row per frame.
+    """
+
     width = FILL
     height = Scalar.from_number(1)
-    placement_offset = ScalarOffset.from_offset((0, 1))
+    # The cells it drew last: where the next slide starts.
+    _drawn: tuple[float, float] = (0.0, 0.0)
+    _origin: tuple[float, float] = (0.0, 0.0)
+
+    def follow(self) -> None:
+        """The selected cells may have moved; slide to them from what is drawn."""
+        start, end = self._drawn
+        if start < end and self._drawn != self.selected_cells:
+            self._origin = self._drawn
+            self.run_effect(TAB_SLIDE)
+        self.refresh()
 
     class Clicked(Message):
         """Inform ancestors the underline was clicked."""
@@ -144,16 +163,21 @@ class Underline(WidgetView, Animated[Mix]):
             super().__init__()
 
     @property
-    def _highlight_range(self) -> tuple[int, int]:
+    def selected_cells(self) -> tuple[float, float]:
         """The selected tab's cells, read from its label when the bar is drawn."""
-        return self.query_ancestor(SessionsTabs).selected_span
+        start, end = self.query_ancestor(SessionsTabs).selected_span
+        return float(start), float(end)
 
     def render(self) -> RenderResult:
         """Render the bar."""
         colours = self.app.colours
         background = colours.colour(HeaderToneColour) + colours.colour(ForegroundColour).multiply_alpha(0.1)
+        amount = self.effect_frame(TAB_SLIDE).value
+        (from_start, from_end), (to_start, to_end) = self._origin, self.selected_cells
+        self._drawn = (from_start + (to_start - from_start) * amount,
+                       from_end + (to_end - from_end) * amount)
         return Bar(
-            highlight_range=self._highlight_range,
+            highlight_range=self._drawn,
             highlight_style=RichStyle.from_color(colours.colour(AccentColour).rich_color),
             background_style=RichStyle.from_color(background.rich_color),
         )
@@ -165,8 +189,22 @@ class Underline(WidgetView, Animated[Mix]):
 
 
 class SessionTitles(WidgetView, containers.HorizontalGroup):
+    """The tab cells: each tab's label and close button."""
+
     width = AUTO
     height = Scalar.from_number(1)
+
+
+class TabCells(WidgetView, containers.VerticalGroup):
+    """The tab cells over their underline, as wide as the cells or the strip, whichever is wider.
+
+    The underline's columns are the cells' columns by layout, so the selected
+    tab's span needs no translation and is never past the underline's end.
+    """
+
+    width = AUTO
+    min_width = Scalar(100, Unit.PERCENT, Unit.WIDTH)
+    height = Scalar.from_number(2)
     placement_offset = ScalarOffset.from_offset((0, 1))
 
 
@@ -227,14 +265,17 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
                     label.paint_current()
             self.call_later(self._sync_tabs)
             self.call_after_refresh(self.show_selected_tab)
-            self.query_one(Underline).run_effect(NEW_TEXT)
 
     @property
     def selected_span(self) -> tuple[int, int]:
-        """The cells under the selected tab's label; empty until that label is laid out."""
+        """The selected tab's cells, label and close button; empty until they are laid out."""
         selected = self.app.selected_mode
-        label = self.query_one_optional(f"#{selected}", SessionLabel) if selected else None
-        return (0, 0) if label is None else label.virtual_region.shrink((0, 1, 0, 1)).column_span
+        if not selected:
+            return 0, 0
+        cells = [cell.virtual_region for cell in (
+            self.query_one_optional(f"#{selected}", SessionLabel),
+            self.query_one_optional(f"#close-{selected}", SessionTabClose)) if cell is not None]
+        return Region.from_union(cells).column_span if cells else (0, 0)
 
     def show_selected_tab(self) -> None:
         """Redraw the underline and bring the selected tab into the strip.
@@ -244,7 +285,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
         """
         if not self.is_mounted or not self.is_attached:
             return
-        self.query_one(Underline).refresh()
+        self.query_one(Underline).follow()
         selected = self.app.selected_mode
         if selected and (label := self.query_one_optional(f"#{selected}", SessionLabel)):
             if label.virtual_region:
@@ -253,11 +294,12 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
     def compose(self) -> ComposeResult:
         tabs = self.app.open_tabs
         self._last_tabs = {tab.mode_name: tab for tab in tabs}
-        with SessionTitles(id="title-container"):
-            for session in tabs:
-                yield SessionLabel(session, id=session.mode_name)
-                yield SessionTabClose(session.mode_name)
-        yield Underline()
+        with TabCells():
+            with SessionTitles(id="title-container"):
+                for session in tabs:
+                    yield SessionLabel(session, id=session.mode_name)
+                    yield SessionTabClose(session.mode_name)
+            yield Underline()
 
     @handles(SessionChangedEvent)
     async def handle_session_update(self, event: SessionChangedEvent) -> None:
@@ -344,6 +386,12 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
             if [widget.id for widget in self.title_container.children] != list(order):
                 self.title_container.sort_children(key=lambda widget: order[widget.id])
                 geometry_changed = True
+            # A tab that opened or moved among the others rises into its new cells.
+            before = list(previous_tabs)
+            for index, tab in enumerate(tabs):
+                if before[index:index + 1] != [tab.mode_name] and (
+                        label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel)):
+                    label.run_effect(NEW_TEXT)
             self._last_tabs = {tab.mode_name: tab for tab in tabs}
             if geometry_changed:
                 self.call_after_refresh(self.show_selected_tab)
