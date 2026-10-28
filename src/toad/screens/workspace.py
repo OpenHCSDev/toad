@@ -124,6 +124,7 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
             yield chrome.channels
             yield Container(id="workspace-session-host")
         yield chrome.footer
+        yield chrome.switch_toast
 
     def binding_scopes(self):
         return tuple(

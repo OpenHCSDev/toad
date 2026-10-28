@@ -201,6 +201,11 @@ class FramePresentation:
 
 
 class EffectPhase:
+    """A running effect; its subclasses are the effect not yet started and finished."""
+
+    # Whether the effect is moving now.
+    in_motion: ClassVar[bool] = True
+
     def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
         return owner.paint_effects(strip, owner.effect_frame(effect))
 
@@ -212,12 +217,16 @@ class EffectPhase:
 
 
 class EffectUnstarted(EffectPhase):
+    in_motion = False
+
     def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
         owner.run_effect(effect)
         return super().paint(owner, effect, strip)
 
 
 class EffectFinished(EffectPhase):
+    in_motion = False
+
     def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
         return ()
 
