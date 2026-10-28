@@ -38,14 +38,14 @@ async def test_changed_details_and_errors_keep_the_title_layout_but_changed_summ
         await ui.until(lambda: "waiting-peer: Queued" in " ".join(ui.painted(feedback).split()), why="the changed detail")
         assert str(feedback.title) == MessageNotification.summary((responding, queued))
         assert str(feedback.title) == MessageNotification.summary((responding, waiting))
-        assert str(feedback.title).endswith("Delivered 2/2 · Consumed 1/2 · Read 0/2 · Answering 1")
+        assert str(feedback.title) == "Answering 1 · Delivered 2/2 · Consumed 1/2 · Read 0/2"
         assert feedback.has_class("-working")
         completed = replace(responding, state=CompletedProgress(ShownToModelProgress(1)))
         feedback.show(CheckedNotifications((completed, queued)))
         await ui.step()
         assert str(feedback.title) == MessageNotification.summary((completed, queued))
         assert str(feedback.title) != MessageNotification.summary((responding, queued))
-        assert str(feedback.title).endswith("Delivered 2/2 · Consumed 1/2 · Read 0/2")
+        assert str(feedback.title) == "Answered · Delivered 2/2 · Consumed 1/2 · Read 0/2"
         assert not feedback.has_class("-working")
         feedback.show(UnavailableNotifications("First read error"))
         await ui.step()
