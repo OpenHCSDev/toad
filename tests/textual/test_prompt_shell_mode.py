@@ -58,7 +58,7 @@ async def test_the_remapped_interrupt_stops_the_running_shell_without_quitting(w
         program = "import time; print(chr(10) + 'SHELL_INTERRUPT_READY', flush=True); time.sleep(30)"
         await ui.type(f"{shlex.quote(sys.executable)} -c {shlex.quote(program)}")
         await ui.press("enter")
-        await ui.until(lambda: view.can_interrupt_command, why="the live shell to accept interruption")
+        await ui.until(lambda: bool(view.terminal_action_state), why="the live shell to accept interruption")
         terminal = view._terminal
         assert terminal is not None
         await ui.until(lambda: any(line.content.plain.strip() == "SHELL_INTERRUPT_READY"

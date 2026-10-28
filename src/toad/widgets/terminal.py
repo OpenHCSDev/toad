@@ -3,7 +3,7 @@ from toad.widgets.terminal_projection import TerminalStateProjection
 from dataclasses import dataclass
 
 from time import monotonic
-from typing import Awaitable, Callable, Iterable
+from typing import Awaitable, Callable
 
 from textual.cache import LRUCache
 from textual.content import Content
@@ -23,7 +23,6 @@ from textual.strip import Strip
 from textual.timer import Timer
 
 from toad import ansi
-from toad.menus import MenuItem
 
 
 # Time required to double tab escape
@@ -375,7 +374,7 @@ Tap escape *twice* to exit.
         # Focused terminal input belongs to the child, not workspace shortcuts.
         return False
 
-    def check_consume_key(self, key: str, character: object = None) -> bool:
+    def check_consume_key(self, key: str, character: str | None = None) -> bool:
         # Escape belongs to the child process / double-tap blur, not to an
         # ancestor's priority jump, cancellation or unmaximize binding.
         return key == "escape" or super().check_consume_key(key, character)
@@ -487,7 +486,7 @@ Tap escape *twice* to exit.
 class ControlledTerminal(Terminal):
     """A parent controller owns priority keys; every remaining key goes to the child."""
 
-    def check_consume_key(self, key: str, character: str | None = None) -> bool:
+    def check_consume_key(self, key: str, character: object = None) -> bool:
         return False
 
 

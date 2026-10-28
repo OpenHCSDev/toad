@@ -43,7 +43,7 @@ class InterruptAction(ConversationAction):
     show = True
 
     def available(self, conversation: Conversation) -> bool:
-        return conversation.can_interrupt_command
+        return bool(conversation.terminal_action_state)
 
     async def apply(self, conversation: Conversation) -> None:
         await conversation.shell.interrupt()

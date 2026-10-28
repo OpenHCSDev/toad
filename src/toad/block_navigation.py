@@ -62,9 +62,10 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
         return self if self.selected_widgets else NoBlockCursor()
 
     @property
+    @abstractmethod
     def selected_widgets(self) -> tuple[Widget, ...]:
-        selected = self.selected
-        return () if selected is None else (selected,)
+        """Each cursor derives its widget selection from its own source membership."""
+        ...
 
     def present(self, conversation: Conversation, show: Callable[[BlockCursor], None]) -> None:
         """A selected block receives keyboard focus before its deferred paint."""
@@ -131,6 +132,8 @@ class NoBlockCursor(BlockCursor):
     def selected(self) -> None:
         return None
 
+    selected_widgets = ()
+
     @property
     def active(self) -> BlockCursor:
         return self
@@ -150,6 +153,10 @@ class NoBlockCursor(BlockCursor):
 
 
 class AtomicBlockCursor(BlockCursor):
+    @property
+    def selected_widgets(self) -> tuple[Widget, ...]:
+        return (self.block,)
+
     @property
     def selected(self):
         return self.block
@@ -225,6 +232,10 @@ class FragmentBlockCursor(BlockCursor):
     def current(self):
         """The optional scalar view used by block navigation."""
         return next(iter(self.selected_fragments), None)
+
+    @property
+    def selected_widgets(self) -> tuple[Widget, ...]:
+        return tuple(self.block for _ in self.selected_fragments)
 
     @property
     def selected(self):
@@ -318,6 +329,10 @@ class ChildBlockCursor(BlockCursor):
     @property
     def selected(self):
         return self.active.selected
+
+    @property
+    def selected_widgets(self) -> tuple[Widget, ...]:
+        return self.active.selected_widgets
 
     def _enter_from(self, index: int, direction: CursorDirection):
         children = self.block.displayed_children

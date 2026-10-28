@@ -325,15 +325,7 @@ def no_effect(field: DeclaredField) -> None:
     """Settings held outside an app change nothing but themselves."""
 
 
-class ToadPreferences(ExternalStore):
-    """The settings file is retained and restored with the rest of an installation."""
-
-    @classmethod
-    def path(cls) -> Path:
-        return paths.get_config() / "toad.json"
-
-
-class SavedSettings:
+class SavedSettings(ExternalStore):
     """The settings in use, the file they are saved in, and what a change does.
 
     One ObjectState holds the values. `current` is the typed tree to read from,
@@ -395,9 +387,9 @@ class SavedSettings:
 
     # The file.
 
-    @staticmethod
-    def file_path() -> Path:
-        return ToadPreferences.path()
+    @classmethod
+    def path(cls) -> Path:
+        return paths.get_config() / "toad.json"
 
     def saved_key(self, path: DottedFieldPath) -> str:
         owner = DeclaredField(self.state, path).owner_type
@@ -443,7 +435,7 @@ class SavedSettings:
 
     def write(self, text: str) -> bool:
         try:
-            atomic.write(str(self.file_path()), text)
+            atomic.write(str(self.path()), text)
         except atomic.AtomicWriteError as error:
             self.report_error(error)
             return False
@@ -480,7 +472,7 @@ class SavedSettings:
 
     @classmethod
     def open(cls, app: ToadApp) -> SavedSettings:
-        path = cls.file_path()
+        path = cls.path()
         raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
 
         def applied(field: DeclaredField) -> None:
@@ -498,7 +490,7 @@ class SavedSettings:
             self.applied(DeclaredField(self.state, path))
 
     def ensure_file(self, app: ToadApp) -> None:
-        path = self.file_path()
+        path = self.path()
         if not path.exists():
             self.save_sync(force=True)
             if path.is_file():

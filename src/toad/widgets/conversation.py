@@ -1416,11 +1416,6 @@ class Conversation(
     ) -> None:
         self.update_slash_commands()
 
-    @property
-    def can_interrupt_command(self) -> bool:
-        terminal = self._terminal
-        return terminal is not None and not terminal.is_finalized
-
     def action_focus_block(self, block_id: str) -> None:
         with suppress(NoMatches):
             self.query_one(f"#{block_id}").focus()
