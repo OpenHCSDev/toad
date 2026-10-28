@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Annotated
 from uuid import uuid4
 
 from agent_comms.field_codec import FieldCodec, WireName
+from agent_comms.locked_store import FilesRequest
 from agent_comms.typed_table import ExternalStore
 from annotated_types import Ge
 from objectstate import DottedFieldPath, ObjectState, set_base_config_type
@@ -390,6 +391,18 @@ class SavedSettings(ExternalStore):
     @classmethod
     def path(cls) -> Path:
         return paths.get_config() / "toad.json"
+
+    @classmethod
+    def practice_opening(cls, files: FilesRequest, directory: Path) -> None:
+        """An install must leave settings that this runtime can open.
+
+        Planned reconciliation skips a file its carry will rewrite; the same
+        opening check runs against the carried copy before live cutover.
+        """
+        resource, = cls.resources(files)
+        path = files.location(resource)
+        if path.exists():
+            FieldCodec.decode(ToadSettings, FieldCodec.parse(path.read_text("utf-8")))
 
     def saved_key(self, path: DottedFieldPath) -> str:
         owner = DeclaredField(self.state, path).owner_type

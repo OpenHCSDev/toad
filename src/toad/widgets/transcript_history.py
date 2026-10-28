@@ -10,7 +10,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import accumulate, chain, islice
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 from weakref import ref
 
 from agent_comms.acp_extension import InputStartedUpdate
@@ -176,7 +176,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def __init__(self, prepared: PreparedTranscriptPage, *,
                  batch_size: int = PresentationBudget.batch_items) -> None:
         self.arrivals: set[int] = set()
-        self.prepared = prepared
+        self.prepared: Final[PreparedTranscriptPage] = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size)
         # Fragments drawn as plain text until their styled lines arrive, by identity.
@@ -764,7 +764,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         revision, width = window.scroll_revision, self.line_width
         current = lambda: (snapshot.current(self) and selected()
                            and window.scroll_revision == revision and self.line_width == width
-                           and page in self.pages and page.prepared is original)
+                           and page in self.pages)
         staged = original.for_view()
         staged.set_fragment_range(slice(first, first))
         height = window.scrollable_content_region.height
