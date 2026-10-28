@@ -326,6 +326,47 @@ class BlockPosition(OffsetPosition):
 
 
 @dataclass(frozen=True)
+class ArrivalPosition(OffsetPosition):
+    """A message that just arrived at the followed end, on the page that draws it.
+
+    One that fits in the window follows the tail as before. One taller than
+    the window is placed with its first row at the window's top instead of
+    its last, so the reader sees it arrive from its head; following stops
+    there, as when the reader scrolls up to read. The page is a geometry
+    target, so the layout that adds the message also places it.
+    """
+
+    page: TranscriptPageView
+    key: FragmentKey
+
+    def location(self) -> FragmentLocation:
+        return self.page.fragment_row(self.key, 0)
+
+    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+        return (self.page,)
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        if self.page.is_attached and window.displays(self.page):
+            return position
+        return position.without_holder(window)
+
+    def laid_out(self, window: HistoryWindow) -> bool:
+        return self.location().laid_out(window)
+
+    def destination(self, window: "HistoryWindow") -> float:
+        return self.location().destination(window, 0.0)
+
+    def place(self, window: "HistoryWindow") -> bool:
+        if window.message_head_hidden(self.page.drawn_height(self.location().location().fragment), None):
+            return super().place(window)
+        return TailPosition().place(window)
+
+    def shifted(self, rows: float) -> ReaderPosition:
+        # The reader moved while it arrived: their movement decides, not the arrival.
+        return TailPosition()
+
+
+@dataclass(frozen=True)
 class UnreachedPosition(ReaderPosition):
     """A position no layout has reached yet: the history is still too short, or is not drawn.
 

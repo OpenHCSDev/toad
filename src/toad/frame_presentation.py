@@ -23,7 +23,7 @@ from toad.tone_paint import TonePaint
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceFrame
-    from toad.widgets.transcript_history import TranscriptPageView
+    from toad.widgets.transcript_history import LineHistory, TranscriptPageView
 
 
 class FrameState(DeclaredFamily, affix="Frame"):
@@ -212,8 +212,8 @@ class EffectPhase:
     def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
         return arrivals
 
-    def on_new_arrival(self, owner: AnimationEffects[Mix], effect: Effect[Mix], pages: deque[TranscriptPageView]):
-        pass
+    def on_new_arrival(self, owner: LineHistory, effect: Effect[Mix], pages: deque[TranscriptPageView]):
+        """Arrivals during a running burst join its fade and reveal."""
 
 
 class EffectUnstarted(EffectPhase):
@@ -223,6 +223,9 @@ class EffectUnstarted(EffectPhase):
         owner.run_effect(effect)
         return super().paint(owner, effect, strip)
 
+    def on_new_arrival(self, owner: LineHistory, effect: Effect[Mix], pages: deque[TranscriptPageView]):
+        owner.arrivals_began()
+
 
 class EffectFinished(EffectPhase):
     in_motion = False
@@ -230,10 +233,11 @@ class EffectFinished(EffectPhase):
     def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
         return ()
 
-    def on_new_arrival(self, owner: AnimationEffects[Mix], effect: Effect[Mix], pages: deque[TranscriptPageView]):
+    def on_new_arrival(self, owner: LineHistory, effect: Effect[Mix], pages: deque[TranscriptPageView]):
         for page in pages:
             page.arrivals.clear()
         owner.stop_effect(effect)
+        owner.arrivals_began()
 
 
 EFFECT_UNSTARTED, EFFECT_RUNNING, EFFECT_FINISHED = EffectUnstarted(), EffectPhase(), EffectFinished()
