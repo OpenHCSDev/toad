@@ -22,7 +22,7 @@ from metaclass_registry.mro_dispatch import handles
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 
-class ActionModal(CoreEventReceiver, DismissibleScreen[int | None]):
+class ActionModal(CoreEventReceiver, DismissibleScreen[int]):
     """Executes an action command."""
 
     CSS_PATH = "store.tcss"

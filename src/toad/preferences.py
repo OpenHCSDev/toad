@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Annotated
 from uuid import uuid4
 
 from agent_comms.field_codec import FieldCodec, WireName
+from agent_comms.typed_table import ExternalStore
 from annotated_types import Ge
 from objectstate import DottedFieldPath, ObjectState, set_base_config_type
 from pydantic import JsonValue
@@ -79,7 +80,7 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     ] = Standard
     """Opt in to modal prompts. Escape leaves Insert; Normal Enter never sends. Ctrl+Alt+X cancels a turn."""
 
-    keymap: Keymap = field(default_factory=Keymap, metadata={"ui_hidden": True})
+    keymap: Keymap = field(default_factory=Keymap)
     """Keyboard overrides, edited in the keybinding menu."""
 
     prompt_message: Annotated[str, FieldLabel("Prompt message")] = "How can I help you today?"
@@ -324,6 +325,14 @@ def no_effect(field: DeclaredField) -> None:
     """Settings held outside an app change nothing but themselves."""
 
 
+class ToadPreferences(ExternalStore):
+    """The settings file is retained and restored with the rest of an installation."""
+
+    @classmethod
+    def path(cls) -> Path:
+        return paths.get_config() / "toad.json"
+
+
 class SavedSettings:
     """The settings in use, the file they are saved in, and what a change does.
 
@@ -388,7 +397,7 @@ class SavedSettings:
 
     @staticmethod
     def file_path() -> Path:
-        return paths.get_config() / "toad.json"
+        return ToadPreferences.path()
 
     def saved_key(self, path: DottedFieldPath) -> str:
         owner = DeclaredField(self.state, path).owner_type

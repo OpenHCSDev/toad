@@ -11,7 +11,8 @@ from textual.widgets import Static
 
 from toad.block_content import BlockContent
 from toad.block_navigation import ConversationBlock
-from toad.conversation_actions import FocusPromptAction, SelectBlockAction
+from toad.conversation_actions import SelectBlockAction
+from toad.widgets.conversation import FocusPromptAction
 from textual.document._editing import EditingMode
 from toad.menus import MenuItem
 from toad.widgets.menu import Menu

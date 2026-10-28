@@ -33,6 +33,7 @@ from textual.reactive import Required, var
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
+from textual.document._editing import EditingMode
 from ui_theme.effects import CURSOR_BLINK, Mix
 
 from toad import messages, paths
@@ -313,6 +314,16 @@ class CursorContainer(Animated[Mix], Static):
             ):
                 strips[row] = selected_strip
         return strips
+
+
+class FocusPromptAction(WindowAction):
+    """Go to the latest content and focus its prompt."""
+
+    keys = {EditingMode: ("end",)}
+    show = True
+
+    def apply(self, window: Window) -> None:
+        window.query_ancestor(Conversation).focus_prompt()
 
 
 class Window(CoreEventReceiver, HistoryWindow, actions=(WindowAction,)):

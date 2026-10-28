@@ -11,6 +11,7 @@ from types import MappingProxyType
 from typing import Annotated, TYPE_CHECKING
 
 import toad
+from objectstate import mark_ui_hidden_config
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import NominalSpelling, NominalText
@@ -79,7 +80,7 @@ class KeymapRow:
         return KeymapCatalog.capture((self.mode,)).defaults(self)
 
     def effective(self, keymap: Keymap) -> tuple[str, ...]:
-        return keymap.keys_for(self.binding_id, self.defaults)
+        return keymap.keys_for(self, self.defaults)
 
 
 @dataclass(frozen=True)
@@ -151,7 +152,7 @@ class KeymapCatalog:
         return self.default_keys[row.declaration, row.mode]
 
     def effective(self, row: KeymapRow, keymap: Keymap) -> tuple[str, ...]:
-        return keymap.keys_for(row.binding_id, self.defaults(row))
+        return keymap.keys_for(row, self.defaults(row))
 
 
 @Effect
@@ -159,6 +160,7 @@ def apply_keymap(app: ToadApp, field: DeclaredField) -> None:
     app.set_keymap(app.settings.ui.keymap.native())
 
 
+@mark_ui_hidden_config
 @dataclass(frozen=True)
 class Keymap:
     bindings: Annotated[tuple[KeyRemap, ...], apply_keymap] = ()
@@ -171,9 +173,9 @@ class Keymap:
     def native(self) -> dict[str, str]:
         return {remap.binding_id: ",".join(remap.keys) for remap in self.bindings}
 
-    def keys_for(self, binding_id: str, defaults: tuple[str, ...]) -> tuple[str, ...]:
+    def keys_for(self, row: KeymapRow, defaults: tuple[str, ...]) -> tuple[str, ...]:
         """The preference alone selects an override; its caller owns the default scope."""
-        return next((remap.keys for remap in self.bindings if remap.binding_id == binding_id), defaults)
+        return next((remap.keys for remap in self.bindings if remap.binding_id == row.binding_id), defaults)
 
     def changed(self, row: KeymapRow, keys: tuple[str, ...]) -> Keymap:
         if not keys:
@@ -205,7 +207,7 @@ class Keymap:
             claims: dict[str, set[str]] = {}
             for default_key, binding in BindingsMap(defaults):
                 if binding.id in rows:
-                    keys = self.keys_for(binding.id, (default_key,))
+                    keys = self.keys_for(rows[binding.id], (default_key,))
                     for key in keys:
                         claims.setdefault(key, set()).add(binding.id)
             for key, identities in claims.items():

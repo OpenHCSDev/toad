@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import partial
-from typing import cast
 from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
@@ -38,10 +37,7 @@ class KeymapScreen(DismissibleScreen[None]):
         super().__init__()
         discover()
         self.focus_mode, self.focused_ids = focus_mode, focused
-        mode_choices = SETTINGS.ui.key_mode.bind(self.app.saved_settings.state).metadata(FamilyChoices)
-        if mode_choices is None:
-            raise TypeError("The keyboard mode preference must declare its choices.")
-        self.mode_choices = cast(FamilyChoices[KeyMode], mode_choices)
+        self.mode_choices = FamilyChoices(KeyMode)
         self.modes = self.mode_choices.choices()
         self.declarations = tuple(reference for reference, invocation
                                   in KeymapCatalog.capture(self.modes).invocations.items()

@@ -116,7 +116,7 @@ class Transfers:
         try:
             result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
         except (OSError, ValueError) as error:
-            self.app.notify(str(error), title=request.failure_title, severity="error")
+            self.app.show_error(error, request.failure_title)
             return
         request.completed(self.app, result)
 

@@ -53,6 +53,7 @@ toad = "toad.cli:main"
 
 [project.entry-points."agent_comms.writer_owned_stores"]
 toad = "toad.db"
+preferences = "toad.preferences"
 
 [build-system]
 requires = ["hatchling==1.28.0"]

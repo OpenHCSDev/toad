@@ -375,7 +375,7 @@ Tap escape *twice* to exit.
         # Focused terminal input belongs to the child, not workspace shortcuts.
         return False
 
-    def check_consume_key(self, key: str, character: str | None = None) -> bool:
+    def check_consume_key(self, key: str, character: object = None) -> bool:
         # Escape belongs to the child process / double-tap blur, not to an
         # ancestor's priority jump, cancellation or unmaximize binding.
         return key == "escape" or super().check_consume_key(key, character)

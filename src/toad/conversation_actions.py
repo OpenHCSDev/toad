@@ -81,18 +81,6 @@ class WindowAction(Action, affix="Action"):
     """Reader-window actions retain their own native keyboard scope."""
 
 
-class FocusPromptAction(WindowAction):
-    """Go to the latest content and focus its prompt."""
-
-    keys = {EditingMode: ("end",)}
-    show = True
-
-    def apply(self, window: Window) -> None:
-        from toad.widgets.conversation import Conversation
-
-        window.query_ancestor(Conversation).focus_prompt()
-
-
 class FocusTerminalAction(ConversationAction):
     """Focus the active terminal."""
 

@@ -13,7 +13,7 @@ from typing import Literal, Self
 
 from textual.binding import ModeBinding
 from toad.widget_actions import DismissibleControl, CyclesFocus, Launches, WidgetAction, ProfileKeys
-from textual.document._editing import EditingMode
+from textual.document._editing import EditingMode, VimMode
 from textual.screen import Screen
 from textual import events
 from textual import work
@@ -301,7 +301,7 @@ class Container(containers.VerticalScroll):
 class LaunchSlotAction(WidgetAction):
     """Launch the agent occupying this numbered slot in the store."""
 
-    keys = {EditingMode: tuple("123456789abcdef")}
+    keys = {EditingMode: tuple("123456789abcdef"), VimMode: tuple("123456789abcdeF")}
 
     def __init__(self, slot: int) -> None:
         self.slot = slot
