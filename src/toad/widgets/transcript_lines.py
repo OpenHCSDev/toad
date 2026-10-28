@@ -732,14 +732,14 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
         )
 
     @staticmethod
-    def show(view, fragment: TranscriptFragment, shown: Shown, rendered) -> None:
-        """Apply the requested state, retaining rows only through their render request."""
-        fragment.show(shown)
+    def show(view, fragment: TranscriptFragment, shown: Shown, rendered) -> bool:
+        """Publish only the still-requested state, retaining rows through its request."""
+        if fragment.shown is not shown:
+            return False
         if rendered is not None:
             request, lines = rendered
-            if request.current_for(view):
-                fragment.line_blocks = request.blocks
-                fragment.hold_lines(request, lines.wrap(view.line_width, view.app.colours.line_renderer))
+            return request.hold(view, fragment, lines)
+        return True
 
     def execute(self) -> LinePreparation:
         return LinePreparation(

@@ -8,7 +8,7 @@ from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.message_reference import MessageReference
 from agent_comms.presentation import MessageNotification
-from toad.line_blocks import LineBlock, MutedRole, NameRole, NoticeRole, OpenTarget, Span, SpanColumns, WorkingRole
+from toad.line_blocks import LineBlock, LineLink, MutedRole, NameRole, NoticeRole, OpenTarget, Span, SpanColumns, WorkingRole
 
 if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import Shown
@@ -46,10 +46,10 @@ class NotificationStatus:
     def disclosure(self) -> SpanColumns:
         return SpanColumns(self.details, indent=2)
 
-    def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
+    def blocks(self, shown: Shown, link: LineLink) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
         role = NoticeRole if self.unavailable else WorkingRole if self.working else MutedRole
-        summary = shown.summary(self.title, role)
+        summary = shown.summary(self.title, role, link)
         return ((summary, self.disclosure)
                 if shown.details_open else (summary,))
 

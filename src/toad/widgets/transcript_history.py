@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from bisect import bisect_right
 from collections import deque
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
@@ -38,7 +38,6 @@ from ui_theme.effects import NEW_TEXT
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
-from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageClock, MessageRow
 from toad.session_scope import SessionScope
 from toad.transcript_filter import FilterState
@@ -93,6 +92,7 @@ from toad.widgets.presentation_window import (
 )
 from toad.widgets.selection import HoverSelection
 from toad.widgets.transcript_fragments import (
+    FragmentDetails,
     FragmentKey,
     Shown,
     TranscriptFragment,
@@ -102,6 +102,7 @@ from toad.widgets.transcript_lines import (
     BlockSpan,
     LinePreparation,
     Lines,
+    RowAcquisition,
     TranscriptLinesBatchRenderTask,
     TranscriptLinesRenderTask,
 )
@@ -200,11 +201,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def line_sets(self) -> tuple[Lines, ...]:
         return tuple(lines for _, _, lines in self._layout)
 
-    @handles(ToggleDetails)
-    def toggle_details(self, link: ToggleDetails) -> None:
-        """Show or hide the details of the fragment whose line was clicked."""
-        history = self.history
-        history.run_worker(history.toggle_details(self.fragment_under_mouse()), group="message-details")
+    @handles(FragmentDetails)
+    def toggle_details(self, link: FragmentDetails) -> None:
+        """The painted action already names its occurrence in this page."""
+        for fragment in self.prepared.fragments_in_range:
+            if fragment.key == link.key:
+                self.history.show_details(self, fragment, fragment.shown.toggled())
+                return
 
     @property
     def line_width(self) -> int:
@@ -624,24 +627,33 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
 
     # What a fragment shows
 
-    async def _show(self, changes: list[tuple[TranscriptFragment, Shown]]) -> None:
-        """Change what fragments draw: render the new lines first, then swap them in one frame."""
-        changes = [(fragment, shown) for fragment, shown in changes if shown != fragment.shown]
+    def _show(self, changes: list[tuple[TranscriptFragment, Shown]]) -> Awaitable[None]:
+        """Record requested state before scheduling; keep the old measured rows painted."""
+        captured = [(fragment, shown, fragment._lines) for fragment, shown in changes]
+        return self._draw_changes([(fragment, shown, previous) for fragment, shown, previous in captured
+                                   if fragment.request_show(shown)])
+
+    async def _draw_changes(self, changes: list[tuple[TranscriptFragment, Shown, RowAcquisition]]) -> None:
+        """Prepare captured states, then publish only those still requested."""
+        changes = [(fragment, shown, previous) for fragment, shown, previous in changes
+                   if fragment.shown is shown]
         if not changes:
             return
-        changed = {id(fragment) for fragment, _shown in changes}
         width, theme = self.line_width, self.app.colours.line_theme
         in_range = {id(fragment) for fragment in self.fragments_in_range}
-        drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
+        drawn = [(fragment, shown, previous) for fragment, shown, previous in changes
+                 if id(fragment) in in_range and width > 0]
         rendered = await TranscriptLinesBatchRenderTask.render_for(self,
-            (LinePreparation(fragment.blocks(shown), theme) for fragment, shown in drawn),
-            previous=(fragment._lines for fragment, _shown in drawn))
+            (LinePreparation(fragment.line_blocks, theme) for fragment, _shown, _previous in drawn),
+            previous=(previous for _fragment, _shown, previous in drawn))
         if not self.state.can_draw:
             return
-        ready = {id(fragment): result for (fragment, _shown), result in zip(drawn, rendered)}
+        ready = {id(fragment): result for (fragment, _shown, _previous), result in zip(drawn, rendered)}
         async with self.window.preserve_history(root=self):
-            for fragment, shown in changes:
-                TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(id(fragment)))
+            if not self.state.can_draw:
+                return
+            changed = {id(fragment) for fragment, shown, _previous in changes
+                       if TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(id(fragment)))}
             for page in [page for page in self.pages if not changed.isdisjoint(map(id, page.prepared.fragments_in_range))]:
                 page.range_changed()  # A page holding a changed fragment measures again.
         self.window.check_follow()
@@ -653,10 +665,10 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
                 return page
         raise FragmentNotLoaded("No loaded page holds the requested fragment")
 
-    async def toggle_details(self, fragment: TranscriptFragment) -> None:
-        """Show a fragment's details, or hide them when they are shown."""
-        self.page_holding(fragment.key).hold_fragment_top(self.window, fragment.key)
-        await self._show([(fragment, fragment.shown.toggled())])
+    def show_details(self, page: TranscriptPageView, fragment: TranscriptFragment, shown: Shown) -> None:
+        """Prepare this occurrence's disclosure; retirement never selects a replacement."""
+        page.hold_fragment_top(self.window, fragment.key)
+        page.run_worker(self._show([(fragment, shown)]), group="message-details")
 
     def can_expand(self) -> bool | None:
         fragment = self.block_cursor.current
@@ -665,11 +677,16 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
     def is_block_expanded(self) -> bool:
         return self.can_expand() is False
 
+    def _set_selected_details(self, details_open: bool) -> None:
+        for fragment in self.block_cursor.selected_fragments:
+            self.show_details(self.page_holding(fragment.key), fragment,
+                              replace(fragment.shown, details_open=details_open))
+
     def expand_block(self) -> None:
-        self.run_worker(self.toggle_details(self.block_cursor.current), group="message-details")
+        self._set_selected_details(True)
 
     def collapse_block(self) -> None:
-        self.run_worker(self.toggle_details(self.block_cursor.current), group="message-details")
+        self._set_selected_details(False)
 
     # The message cursor
 
