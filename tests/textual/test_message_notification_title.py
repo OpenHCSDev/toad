@@ -45,7 +45,7 @@ async def test_changed_details_and_errors_keep_the_title_layout_but_changed_summ
         await ui.step()
         assert str(feedback.title) == MessageNotification.summary((completed, queued))
         assert str(feedback.title) != MessageNotification.summary((responding, queued))
-        assert str(feedback.title) == "Answered · Delivered 2/2 · Consumed 1/2 · Read 0/2"
+        assert str(feedback.title) == queued.label + " · Delivered 2/2 · Consumed 1/2 · Read 0/2"
         assert not feedback.has_class("-working")
         feedback.show(UnavailableNotifications("First read error"))
         await ui.step()
