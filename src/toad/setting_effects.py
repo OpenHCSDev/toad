@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
-from toad.forms.declared_views import DeclaredField
+from formbridge.forms.declared_fields import DeclaredField
 from toad.setting_widget import SettingVisibility
 from toad.widgets.history_anchor import HistoryWindow
 
@@ -69,3 +69,20 @@ def sessions_bar(app: ToadApp, field: DeclaredField) -> None:
 @Effect
 def blink_title(app: ToadApp, field: DeclaredField) -> None:
     app.terminal_attention.update()
+
+
+@Effect
+def prompt_layout(app: ToadApp, field: DeclaredField) -> None:
+    """Prompt parts read their room from the input box setting when laid out."""
+    from toad.widgets.prompt import Prompt
+    for prompt in Effect.open_widgets(app, Prompt):
+        for part in prompt.walk_children():
+            part.refresh(layout=True)
+        prompt.refresh(layout=True)
+
+
+@Effect
+def prompt_text(app: ToadApp, field: DeclaredField) -> None:
+    from toad.widgets.prompt import Prompt
+    for prompt in Effect.open_widgets(app, Prompt):
+        prompt.update_prompt()

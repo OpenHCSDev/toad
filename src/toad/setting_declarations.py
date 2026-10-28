@@ -11,7 +11,7 @@ from python_introspect import AnnotationChoices
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.forms.declared_views import DeclaredField
+    from formbridge.forms.declared_fields import DeclaredField
 
 
 @dataclass(frozen=True)

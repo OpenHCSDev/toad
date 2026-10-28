@@ -31,9 +31,9 @@ async def test_quit_that_cannot_save_stays_open_and_a_retry_saves_the_edit_and_e
         await ui.until(lambda: isinstance(app.screen, SettingsScreen), why="the settings screen")
         assert await pilot.click(app.screen.search)
         await ui.type('Width of the column')
-        await ui.until(lambda: app.screen.form.values["ui.column_width"].editor.is_mounted,
+        await ui.until(lambda: app.screen.values["ui.column_width"].editor.is_mounted,
                        why="the column width editor")
-        editor = app.screen.form.values["ui.column_width"].editor
+        editor = app.screen.values["ui.column_width"].editor
         editor.scroll_visible(animate=False, immediate=True)
         await ui.step()
         assert await pilot.click(editor)

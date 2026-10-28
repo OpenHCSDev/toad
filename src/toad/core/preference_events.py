@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from toad.forms.declared_views import DeclaredField
+from formbridge.forms.declared_fields import DeclaredField
 from .events import CoreEvent
 
 

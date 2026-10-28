@@ -23,8 +23,8 @@ from textual.widget import Widget
 from textual.widgets import Checkbox, Input, Select, TextArea
 from textual.widgets._input import InputType
 
-from toad.forms.declared_views import DeclaredField, DeclaredViews, declarations
-from toad.forms.kinds import Multiline
+from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, declarations
+from formbridge.forms.declared_fields import Multiline
 from toad.forms.presentation import FormCheckbox, FormInput, FormSelectCurrent, FramedControl
 from toad.widget_view import WidgetView
 from toad.tone_paint import UntintedTonePaint
@@ -42,9 +42,6 @@ class ValueEditor(DeclaredViews, EditorWidget):
     keeps nothing else. The editor capability binds the field before the native
     control is initialized: `class BoolEditor(ValueEditor, Checkbox)`.
     """
-
-    states_default: ClassVar[bool] = True
-    """Whether the field's help should end with its default value."""
 
     field: DeclaredField
 
@@ -75,6 +72,10 @@ class ValueEditor(DeclaredViews, EditorWidget):
     def value_text(self, value: object) -> str:
         """How a value of this field reads."""
         return self.field.placeholder if value is None else str(value)
+
+    def default_note(self) -> str:
+        """The line ending the field's help that names its default value."""
+        return f"\ndefault: {self.value_text(self.field.default)}" if self.field.has_default else ""
 
     def send(self, value: object) -> None:
         try:
@@ -171,7 +172,9 @@ class MultilineEditor(ValueEditor, UntintedTonePaint, FramedControl, TextArea):
     height = Scalar.from_number(10)
     padding = Spacing(0, 1, 0, 1)
 
-    states_default = False
+    def default_note(self) -> str:
+        """A text block's default is too long to restate under its help."""
+        return ""
 
     def control_arguments(self) -> dict[str, object]:
         return {"text": str(self.field.value or "")}

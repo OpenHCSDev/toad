@@ -20,16 +20,14 @@ from uuid import uuid4
 from agent_comms.field_codec import FieldCodec, WireName
 from agent_comms.locked_store import FilesRequest
 from agent_comms.typed_table import ExternalStore
-from annotated_types import Ge
+from annotated_types import Ge, MinLen
 from objectstate import DottedFieldPath, ObjectState, set_base_config_type
 from pydantic import JsonValue
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 
 from toad import atomic, paths
 from toad import setting_effects as effects
-from toad.forms.declared_views import DeclaredField
-from toad.forms.field_path import FieldPath
-from toad.forms.kinds import Multiline
+from formbridge.forms.declared_fields import DeclaredField, FieldPath, FormPage, Multiline
 from toad.key_modes import KeyMode, Standard
 from toad.keymap import Keymap
 from toad.patch import DiffSettings
@@ -37,7 +35,9 @@ from toad.setting_choices import (
     AlwaysSessionBar,
     BlurNotification,
     ColumnAlignment,
+    CompactInputBox,
     Expansion,
+    InputBox,
     FailExpansion,
     LoadingStyle,
     LeftColumnAlignment,
@@ -53,6 +53,34 @@ from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
+
+
+@dataclass(frozen=True)
+class InputSettings(AnnotatedDataclassValidationMixin):
+    box: Annotated[
+        type[InputBox], FieldLabel("Layout"), FamilyChoices(InputBox), effects.prompt_layout,
+    ] = CompactInputBox
+    """Normal draws a padded border around the prompt. Compact keeps it flush with the conversation. Flush also removes the spacing around the label and the info bar."""
+
+    placeholder: Annotated[str, FieldLabel("Placeholder"), effects.prompt_text] = (
+        "How can I help you today?"
+    )
+    """Text shown in the empty prompt of an agent session."""
+
+    agent_symbol: Annotated[
+        str, FieldLabel("Message symbol"), MinLen(1), effects.prompt_text,
+    ] = "❯"
+    """Shown before a one-line message to the agent."""
+
+    multiline_symbol: Annotated[
+        str, FieldLabel("Multi-line message symbol"), MinLen(1), effects.prompt_text,
+    ] = "☰"
+    """Shown before a message of several lines or one holding a code fence."""
+
+    shell_symbol: Annotated[
+        str, FieldLabel("Shell command symbol"), MinLen(1), effects.prompt_text,
+    ] = "$"
+    """Shown before a shell command."""
 
 
 @dataclass(frozen=True)
@@ -84,14 +112,10 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     keymap: Keymap = field(default_factory=Keymap)
     """Keyboard overrides, edited in the keybinding menu."""
 
-    prompt_message: Annotated[str, FieldLabel("Prompt message")] = "How can I help you today?"
-    """Text shown as placeholder in prompt text area"""
-
-    compact_input: Annotated[
-        bool, FieldLabel("Compact text input?"), effects.visibility,
-        WireName("compact-input"),
-    ] = False
-    """Remove border and margin around the text area for additional space"""
+    input: Annotated[InputSettings, FieldLabel("Input box")] = field(
+        default_factory=InputSettings
+    )
+    """The prompt you type messages and shell commands into."""
 
     sessions_bar: Annotated[
         type[SessionBar],
@@ -259,52 +283,59 @@ class StatisticsSettings(AnnotatedDataclassValidationMixin):
             await operation()
 
 
+INTERFACE = FormPage("Interface")
+"""How Toad looks and responds: layout, input box, sidebar, notifications and diffs."""
+
+SESSIONS = FormPage("Agents and shell")
+"""What Toad does in a session: agent output, tool calls, the shell, the launcher and usage data."""
+
+
 @dataclass(frozen=True)
 class ToadSettings(AnnotatedDataclassValidationMixin):
     anon_id: str = field(default="", metadata={"ui_hidden": True})
     """Anonymous installation ID"""
 
-    ui: Annotated[UiSettings, FieldLabel("User interface settings")] = field(
+    ui: Annotated[UiSettings, FieldLabel("User interface settings"), INTERFACE] = field(
         default_factory=UiSettings
     )
     """The following settings allow you to customize the look and feel of the User Interface."""
 
     notifications: Annotated[
-        NotificationsSettings, FieldLabel("Notification (toasts) settings")
+        NotificationsSettings, FieldLabel("Notification (toasts) settings"), INTERFACE
     ] = field(default_factory=NotificationsSettings)
     """Customize how Toad displays notifications"""
 
-    sidebar: Annotated[SidebarSettings, FieldLabel("Sidebar settings")] = field(
+    sidebar: Annotated[SidebarSettings, FieldLabel("Sidebar settings"), INTERFACE] = field(
         default_factory=SidebarSettings
     )
     """Customize how the sidebar is displayed."""
 
-    agent: Annotated[AgentSettings, FieldLabel("Agent settings")] = field(
+    agent: Annotated[AgentSettings, FieldLabel("Agent settings"), SESSIONS] = field(
         default_factory=AgentSettings
     )
     """Customize how you interact with agents"""
 
-    tools: Annotated[ToolsSettings, FieldLabel("Tool call settings")] = field(
+    tools: Annotated[ToolsSettings, FieldLabel("Tool call settings"), SESSIONS] = field(
         default_factory=ToolsSettings
     )
     """Customize how Toad displays agent tool calls"""
 
-    shell: Annotated[ShellSettings, FieldLabel("Shell settings")] = field(
+    shell: Annotated[ShellSettings, FieldLabel("Shell settings"), SESSIONS] = field(
         default_factory=ShellSettings
     )
     """Customize shell interactions."""
 
-    diff: Annotated[DiffSettings, FieldLabel("Diff view settings")] = field(
+    diff: Annotated[DiffSettings, FieldLabel("Diff view settings"), INTERFACE] = field(
         default_factory=DiffSettings
     )
     """Customize how diffs are displayed."""
 
-    launcher: Annotated[LauncherSettings, FieldLabel("Launcher settings")] = field(
+    launcher: Annotated[LauncherSettings, FieldLabel("Launcher settings"), SESSIONS] = field(
         default_factory=LauncherSettings, metadata={"ui_hidden": True}
     )
     """Customize the launcher"""
 
-    statistics: Annotated[StatisticsSettings, FieldLabel("Data collection")] = field(
+    statistics: Annotated[StatisticsSettings, FieldLabel("Data collection"), SESSIONS] = field(
         default_factory=StatisticsSettings
     )
     """Preferences regarding data collection."""

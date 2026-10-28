@@ -15,9 +15,9 @@ from textual.widgets import Checkbox, Select
 
 import toad.preferences  # noqa: F401  names the process-wide root ObjectState asks for (ObjectState issue #44)
 from toad.forms import editors
-from toad.forms.field_path import FieldPath
+from formbridge.forms.declared_fields import FieldPath
 from toad.forms.form_view import FormView, GroupView, ValueView
-from toad.forms.kinds import Multiline
+from formbridge.forms.declared_fields import Multiline
 from toad.textual_colours import ThemedApp
 
 
@@ -60,7 +60,7 @@ class FormApp(ThemedApp, App[None]):
         self.state = ObjectState(Everything())
 
     def compose(self) -> ComposeResult:
-        self.form = FormView(self.state)
+        self.form = FormView.whole(self.state)
         yield self.form
 
 

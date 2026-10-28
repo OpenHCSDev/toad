@@ -19,9 +19,9 @@ from textual.widgets import Static
 from toad.widget_actions import Activates
 from textual.geometry import Offset
 
-from toad.forms.field_path import FieldPath
+from formbridge.forms.declared_fields import FieldPath
 from toad.widgets.comms_menu import ContextMenu
-from toad.forms.kinds import Placeholder
+from formbridge.forms.declared_fields import Placeholder
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
 

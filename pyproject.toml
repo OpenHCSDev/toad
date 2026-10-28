@@ -31,7 +31,7 @@ dependencies = [
     "metaclass-registry",
     "agent-client-protocol==0.12.1",
     "ui-theme",
-    "formbridge==0.2.0",
+    "formbridge",
     "objectstate==5.0.0",
 ]
 
@@ -43,7 +43,7 @@ ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", branch = "main"
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", branch = "main" }
 metaclass-registry = { git = "https://github.com/OpenHCSDev/metaclass-registry", branch = "main" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", branch = "main" }
-formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "ebe2fa9173428e2bd7154a0de23698757677c3c2" }
+formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", branch = "main" }
 objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "b5dd9f78b9293df145d7629f21deb89b042b9400" }
 textual-image = { git = "https://github.com/OpenHCSDev/textual-image.git", rev = "1f1d8b8ea3c30b39da3b14ea0ac0786ce9c49a80" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "95db444b536cba27081dd2c1496f71e25670a446" }

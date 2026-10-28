@@ -14,7 +14,7 @@ from acp.schema import ToolCall
 from agent_comms.field_codec import FieldCodec
 from python_introspect import AnnotatedDataclassValidationMixin
 from toad.acp.status import ToolCallStatus
-from toad.forms.kinds import Multiline
+from formbridge.forms.declared_fields import Multiline
 from toad.preferences import SETTINGS, SavedSettings
 from toad.setting_choices import BothExpansion, Expansion, FailExpansion
 from toad.setting_declarations import FamilyChoices

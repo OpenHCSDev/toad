@@ -28,7 +28,7 @@ from textual.style import Style
 from textual.widgets import Label, OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
-from ui_theme.scheme import PrimaryColour, PromptToneColour
+from ui_theme.scheme import MutedColour, PrimaryColour, PromptToneColour
 
 from toad import messages
 from toad.clipboard_image import read_clipboard_png, save_clipboard_png
@@ -51,7 +51,7 @@ from toad.slash_command import SlashCommand
 from toad.widget_actions import (
     DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
 )
-from toad.widget_view import AUTO, WidgetView
+from toad.widget_view import AUTO, FocusWithinView, WidgetView
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
 from toad.widgets.model_switcher import ModelSwitcher
@@ -104,11 +104,7 @@ class AgentInfo(
 
     @property
     def padding(self):
-        return (
-            super().padding
-            if self.app.settings.ui.compact_input
-            else Spacing(0, 1, 0, 1)
-        )
+        return self.app.settings.ui.input.box.agent_info_padding
 
     @property
     def primary_activation(self):
@@ -152,25 +148,34 @@ class InfoBar(
     @property
     def margin(self):
         ui = self.app.settings.ui
-        space = 0 if ui.compact_input else int(ui.footer)
-        return Spacing(0, space, 0, space)
+        return ui.input.box.info_bar_margin(ui.footer)
 
 
 class PromptLabel(WidgetView, Label):
     width = AUTO
-    AI = Content.styled("❯", "$text-secondary")
-    SHELL = Content.styled("$", "$text-primary")
-    MULTILINE = Content.styled("☰", "$text-secondary")
 
     @property
     def padding(self):
-        return Spacing(0, 1, 0, 0 if self.app.settings.ui.compact_input else 1)
+        return self.app.settings.ui.input.box.label_padding
 
     def render(self):
         return self.query_ancestor(Prompt).label_glyph()
 
 
-class PromptContainer(WidgetView, containers.HorizontalGroup):
+class PromptContainer(FocusWithinView, containers.HorizontalGroup):
+    @property
+    def margin(self):
+        return self.app.settings.ui.input.box.frame_margin
+
+    @property
+    def padding(self):
+        return self.app.settings.ui.input.box.frame_padding
+
+    @property
+    def border(self):
+        colour = self.app.colours.colour(PrimaryColour if self.has_focus_within else MutedColour)
+        return self.app.settings.ui.input.box.frame_border(colour)
+
     def on_mouse_down(self, event: events.MouseUp) -> None:
         self.query_ancestor(Prompt).focus()
 
@@ -801,7 +806,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
                 "Enter shell command\t[r]▌esc▐[/r] prompt mode"
             ).expand_tabs(8)
             if shell
-            else ""
+            else self.app.settings.ui.input.placeholder
         )
         editor.highlight_language = "shell" if shell else "markdown"
         self.prompt_label.refresh()
@@ -860,12 +865,14 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
     def label_glyph(self) -> Content:
+        symbols = self.app.settings.ui.input
         if self.shell_mode:
-            return PromptLabel.SHELL
-        return (
-            PromptLabel.MULTILINE
+            return Content.styled(symbols.shell_symbol, "$text-primary")
+        return Content.styled(
+            symbols.multiline_symbol
             if "\n" in self.text or "```" in self.text
-            else PromptLabel.AI
+            else symbols.agent_symbol,
+            "$text-secondary",
         )
 
     def compose_completions(self) -> ComposeResult:
@@ -968,7 +975,7 @@ class MessagePrompt(Prompt):
         self.prompt_label.refresh()
 
     def label_glyph(self) -> Content:
-        return PromptLabel.AI
+        return Content.styled(self.app.settings.ui.input.agent_symbol, "$text-secondary")
 
     def compose_delivery_controls(self) -> ComposeResult:
         return ()

@@ -13,10 +13,10 @@ from ui_theme.colour import Rgb
 from ui_theme.scheme import PrimaryColour
 
 from toad.forms import editors
-from toad.forms.declared_views import DeclaredField
-from toad.forms.field_path import FieldPath
+from formbridge.forms.declared_fields import DeclaredField
+from formbridge.forms.declared_fields import FieldPath
 from toad.forms.form_view import ValueView
-from toad.preferences import SETTINGS, SavedSettings, ToadSettings
+from toad.preferences import INTERFACE, SETTINGS, SavedSettings, ToadSettings
 from toad.screens.settings import SchemeEditor, SettingsScreen
 from toad.setting_effects import Effect
 from toad.widgets.footer import ToadFooter
@@ -49,14 +49,14 @@ class ExperimentSettings(AnnotatedDataclassValidationMixin):
 
 @dataclass(frozen=True)
 class ExtendedSettings(ToadSettings):
-    experiment: Annotated[ExperimentSettings, FieldLabel("Experiment")] = field(default_factory=ExperimentSettings)
+    experiment: Annotated[ExperimentSettings, FieldLabel("Experiment"), INTERFACE] = field(default_factory=ExperimentSettings)
 
 
 EXTENDED = FieldPath(ExtendedSettings)
 
 
 async def form_shown(ui, app):
-    await ui.until(lambda: all(view.is_mounted for view in app.screen.form.values.values()),
+    await ui.until(lambda: all(view.is_mounted for view in app.screen.values.values()),
                    seconds=5, why="an editor per setting")
 
 
@@ -79,11 +79,11 @@ async def settings_screen(workspace):
 
 
 def editor(app, path):
-    return app.screen.form.values[str(path)].editor
+    return app.screen.values[str(path)].editor
 
 
 def marked(app, path):
-    return ValueView.CHANGED_MARK in str(app.screen.form.values[str(path)].title.render())
+    return ValueView.CHANGED_MARK in str(app.screen.values[str(path)].title.render())
 
 
 async def edit_text(ui, widget, value):
@@ -101,7 +101,7 @@ async def test_opening_the_editors_changes_no_preference(workspace):
 
 async def test_every_setting_the_user_may_edit_has_an_editor(workspace):
     async with settings_screen(workspace) as (ui, app, _file):
-        shown = app.screen.form.values
+        shown = app.screen.values
         structure = app.saved_settings.state.parameter_structure
         hidden = set()
         for name in structure.declarations:

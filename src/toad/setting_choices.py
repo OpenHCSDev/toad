@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import ClassVar, cast
 from random import choice
 from threading import Lock
+from textual.color import Color, TRANSPARENT
 from textual.content import Content
+from textual.css._style_properties import Edges
 from textual.css.types import AlignHorizontal
+from textual.geometry import Spacing
 from textual.widget import Widget
 from toad.widgets.future_text import FutureText
 
-from agent_comms.declared_choice import DeclaredChoice
+from agent_comms.declared_choice import DeclaredChoice, TitledChoice
 from toad.platform import DesktopService, host
 
 
@@ -26,15 +30,20 @@ class SchemeName:
 
 
 class Expansion(DeclaredChoice, affix="Expansion"):
-    patch_preview = True
-
     @classmethod
     @abstractmethod
     def should_expand(cls, status) -> bool: ...
 
+    @classmethod
+    def expands_preview(cls, status, preview_fits: Callable[[], bool]) -> bool:
+        """A completed call opens to show its patch preview when the preview fits."""
+        return status.completed and preview_fits()
+
 
 class NeverExpansion(Expansion):
-    patch_preview = False
+    @classmethod
+    def expands_preview(cls, status, preview_fits: Callable[[], bool]) -> bool:
+        return False
 
     @classmethod
     def should_expand(cls, status) -> bool:
@@ -47,7 +56,7 @@ class AlwaysExpansion(Expansion):
         return True
 
 
-class SuccessExpansion(Expansion):
+class SuccessExpansion(TitledChoice, Expansion):
     title = "Success only"
 
     @classmethod
@@ -55,7 +64,7 @@ class SuccessExpansion(Expansion):
         return status.completed
 
 
-class FailExpansion(Expansion):
+class FailExpansion(TitledChoice, Expansion):
     title = "Fail only"
 
     @classmethod
@@ -85,7 +94,7 @@ class AlwaysSessionBar(SessionBar):
         return True
 
 
-class MultipleSessionBar(SessionBar):
+class MultipleSessionBar(TitledChoice, SessionBar):
     title = "When there are multiple sessions"
 
     @classmethod
@@ -131,7 +140,7 @@ class NeverNotification(NotificationPolicy):
         return False
 
 
-class BlurNotification(NotificationPolicy):
+class BlurNotification(TitledChoice, NotificationPolicy):
     title = "When app is not focused"
 
     @classmethod
@@ -159,6 +168,61 @@ class ThinScrollbar(Scrollbar):
 
 class HiddenScrollbar(Scrollbar):
     pass
+
+
+class InputBox(DeclaredChoice, affix="InputBox"):
+    """How much room the prompt takes around the text being typed.
+
+    The base is the compact prompt; a member overrides only the room it changes.
+    """
+
+    label_padding: ClassVar[Spacing] = Spacing(0, 1, 0, 1)
+    agent_info_padding: ClassVar[Spacing] = Spacing(0, 1, 0, 1)
+    frame_margin: ClassVar[Spacing] = Spacing(0, 0, 0, 0)
+    frame_padding: ClassVar[Spacing] = Spacing(0, 0, 0, 0)
+
+    @classmethod
+    def frame_border(cls, colour: Color) -> Edges:
+        """The edges drawn around the text and its label."""
+        return Edges(*(("", TRANSPARENT),) * 4)
+
+    @classmethod
+    def info_bar_margin(cls, footer: bool) -> Spacing:
+        """Room beside the info bar; it lines up with the footer's keys while one is shown."""
+        space = int(footer)
+        return Spacing(0, space, 0, space)
+
+
+class NormalInputBox(TitledChoice, InputBox):
+    """The classic prompt: a bordered, padded box above the info bar."""
+
+    title = "Normal (bordered and padded)"
+    frame_margin = Spacing(1, 1, 0, 1)
+    frame_padding = Spacing(0, 1, 0, 0)
+
+    @classmethod
+    def frame_border(cls, colour: Color) -> Edges:
+        return Edges(*(("round", colour),) * 4)
+
+    @classmethod
+    def info_bar_margin(cls, footer: bool) -> Spacing:
+        return Spacing(0, 2, 0, 2)
+
+
+class CompactInputBox(TitledChoice, InputBox):
+    title = "Compact (no border)"
+
+
+class FlushInputBox(TitledChoice, InputBox):
+    """No room at all: the label, the text and the info bar touch the screen edge."""
+
+    title = "Flush (no border or spacing)"
+    label_padding = Spacing(0, 1, 0, 0)
+    agent_info_padding = Spacing(0, 0, 0, 0)
+
+    @classmethod
+    def info_bar_margin(cls, footer: bool) -> Spacing:
+        return Spacing(0, 0, 0, 0)
 
 
 class ColumnAlignment(DeclaredChoice, affix="ColumnAlignment"):

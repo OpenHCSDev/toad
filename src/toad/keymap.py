@@ -28,7 +28,7 @@ from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.forms.declared_views import DeclaredField
+    from formbridge.forms.declared_fields import DeclaredField
 
 
 @cache

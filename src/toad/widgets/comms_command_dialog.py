@@ -18,7 +18,7 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Checkbox, Static
 from toad.forms.editors import ValueEditor
 from toad.forms.form_view import InlineFormView
-from toad.forms.kinds import Multiline
+from formbridge.forms.declared_fields import Multiline
 from toad.screens.modal import ModalScreen, DismissibleScreen
 from toad.widget_actions import DismissAction, WidgetAction
 from textual.document._editing import EditingMode
@@ -167,7 +167,7 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
             declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
                                  field(default=parameter.editor_default)))
         self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
-        self.form = InlineFormView(self.state)
+        self.form = InlineFormView.whole(self.state)
         self.form.id = 'command-fields'
 
     def compose(self) -> ComposeResult:

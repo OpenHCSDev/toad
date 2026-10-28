@@ -275,7 +275,7 @@ requires-dist = [
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
     { name = "format-currency", specifier = ">=0.0.10" },
-    { name = "formbridge", git = "https://github.com/OpenHCSDev/formbridge.git?rev=ebe2fa9173428e2bd7154a0de23698757677c3c2" },
+    { name = "formbridge", git = "https://github.com/OpenHCSDev/formbridge.git?branch=main" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "jeepney", marker = "sys_platform == 'linux'", specifier = "==0.9.0" },
     { name = "metaclass-registry", git = "https://github.com/OpenHCSDev/metaclass-registry?branch=main" },
@@ -417,7 +417,7 @@ wheels = [
 [[package]]
 name = "formbridge"
 version = "0.2.0"
-source = { git = "https://github.com/OpenHCSDev/formbridge.git?rev=ebe2fa9173428e2bd7154a0de23698757677c3c2#ebe2fa9173428e2bd7154a0de23698757677c3c2" }
+source = { git = "https://github.com/OpenHCSDev/formbridge.git?branch=main#ebe2fa9173428e2bd7154a0de23698757677c3c2" }
 dependencies = [
     { name = "docutils" },
     { name = "metaclass-registry" },
