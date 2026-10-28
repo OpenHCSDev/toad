@@ -7,7 +7,7 @@ from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.field_codec import TurnId
 from agent_comms.goal_failure_observation import FailedTurnEvidence
 from agent_comms.goal_history import (
-    RecordedGoalRevision, BaselineRevision, TransitionRevision, ObservedGapRevision,
+    RecordedGoalHistory, RecordedGoalRevision, BaselineRevision, TransitionRevision, ObservedGapRevision,
 )
 from agent_comms.goal_presentation import (
     GoalWaitTarget, IdleGoalExecution, PausedExecution, RunnableExecution, StandbyExecution,
@@ -15,7 +15,6 @@ from agent_comms.goal_presentation import (
 from agent_comms.goal_states import PausedGoal
 from agent_comms.goals import NoGoal
 from agent_comms.repo import Checkout
-from agent_comms.runtime_requests import GoalHistoryReply
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.turn_failure import NativeChildSignaled
 from textual.widgets import Button, Static
@@ -36,7 +35,7 @@ def goal_owner(workspace, app):
     execution = StandbyExecution(goal.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),), ())
     baseline = replace(goal, text="HISTORICAL_OBJECTIVE", revision=1)
     transitioned = replace(goal, revision=2)
-    history = GoalHistoryReply((
+    history = RecordedGoalHistory((
         RecordedGoalRevision(sequence=1, kind=BaselineRevision, observed_at=1000.0, before=NoGoal(),
                              after=baseline),
         RecordedGoalRevision(sequence=2, kind=TransitionRevision, observed_at=1001.0,

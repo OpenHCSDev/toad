@@ -4,7 +4,7 @@ from metaclass_registry.mro_dispatch import handles
 
 from datetime import datetime
 
-from agent_comms.runtime_requests import GoalHistoryReply
+from agent_comms.goal_history import RecordedGoalHistory
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
 from toad.screens.modal import DismissibleScreen
@@ -30,7 +30,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, DismissibleScreen[None]):
     GoalDetails Button { dock: bottom; margin-top: 1; }
     """
 
-    def __init__(self, source: GoalSession, *, history: GoalHistoryReply):
+    def __init__(self, source: GoalSession, *, history: RecordedGoalHistory):
         super().__init__()
         self.source = source
         self.history = history.history
