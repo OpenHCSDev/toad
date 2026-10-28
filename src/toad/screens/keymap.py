@@ -40,8 +40,9 @@ class KeymapScreen(DismissibleScreen[None]):
         self.focus_mode, self.focused_ids = focus_mode, focused
         self.mode_choices = FamilyChoices(KeyMode)
         self.modes = self.mode_choices.choices()
+        self.catalog = KeymapCatalog.capture(self.modes)
         self.declarations = tuple(reference for reference, invocation
-                                  in KeymapCatalog.capture(self.modes).invocations.items()
+                                  in self.catalog.invocations.items()
                                   if not invocation.key_system())
         self.visible_declarations = self.declarations
 
@@ -68,18 +69,17 @@ class KeymapScreen(DismissibleScreen[None]):
         table = self.query_one(DataTable)
         table.clear()
         focused_only = self.query_one("#keymap-focused", Checkbox).value
-        catalog = KeymapCatalog.capture(self.modes)
         self.visible_declarations = tuple(declaration for declaration in self.declarations
                              if (not focused_only or KeyInvocation.in_mode(declaration, self.focus_mode) in self.focused_ids)
-                             and term.casefold() in (catalog.require(declaration).key_title() + " "
-                                                    + catalog.require(declaration).key_summary()).casefold())
+                             and term.casefold() in (self.catalog.require(declaration).key_title() + " "
+                                                    + self.catalog.require(declaration).key_summary()).casefold())
         keymap = self.app.settings.ui.keymap
         conflicts = {row.binding_id for mode in self.modes for conflict in keymap.conflicts(mode)
                      for row in (conflict.first, conflict.second)}
         for declaration in self.visible_declarations:
-            title = Text(catalog.require(declaration).key_title(),
+            title = Text(self.catalog.require(declaration).key_title(),
                          style="" if KeyInvocation.in_mode(declaration, self.focus_mode) in self.focused_ids else "dim")
-            table.add_row(title, *(Text(", ".join(catalog.effective(row, keymap)) or "—",
+            table.add_row(title, *(Text(", ".join(self.catalog.effective(row, keymap)) or "—",
                                             style="bold red" if row.binding_id in conflicts else "")
                                    for mode in self.modes for row in (KeymapRow(declaration, mode),)))
 
@@ -96,16 +96,16 @@ class KeymapScreen(DismissibleScreen[None]):
         row, column = self.query_one(DataTable).cursor_coordinate
         if column and row < len(self.visible_declarations):
             selected = KeymapRow(self.visible_declarations[row], self.modes[column - 1])
-            return (selected,) if selected.defaults else ()
+            return (selected,) if self.catalog.defaults(selected) else ()
         return ()
 
     @on(DataTable.CellSelected)
     def picked(self, message: DataTable.CellSelected) -> None:
         for row in self.selected_rows():
             self.query_one("#keymap-keys", Input).value = ", ".join(
-                row.effective(self.app.settings.ui.keymap))
+                self.catalog.effective(row, self.app.settings.ui.keymap))
             self.query_one("#keymap-summary", Static).update(
-                KeymapCatalog.capture((row.mode,)).require(row.declaration).key_summary())
+                self.catalog.require(row.declaration).key_summary())
             conflicts = tuple(conflict for conflict in self.app.settings.ui.keymap.conflicts(row.mode)
                               if row in (conflict.first, conflict.second))
             self.query_one("#keymap-status", Static).update("; ".join(map(str, conflicts)))
