@@ -291,7 +291,7 @@ class LocalMethodKeys(NativeMethodKeys):
 
     @classmethod
     def method_key_owners(cls) -> tuple[type, ...]:
-        return tuple(base for base in cls.__mro__ if issubclass(base, LocalMethodKeys))
+        return cls.__mro__[:cls.__mro__.index(LocalMethodKeys)]
 
 
 class ProfileKeys(NativeMethodKeys):

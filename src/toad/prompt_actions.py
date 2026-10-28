@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from toad.widgets.prompt import PromptTextArea
 
 
-class PromptAction(Action["PromptTextArea"], affix="Action"):
+class PromptAction(Action, affix="Action"):
     pass
 
 
