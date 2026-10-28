@@ -70,7 +70,6 @@ from toad.widgets.committed_presentation import (
     SnapshotPresentation,
 )
 from toad.widgets.history_anchor import (
-    ArrivalPosition,
     FragmentLocation,
     FragmentNotLoaded,
     FragmentPosition,
@@ -116,7 +115,8 @@ if TYPE_CHECKING:
 
 
 # An arriving message is uncovered from its first row down, alongside NEW_TEXT's fade.
-ARRIVAL_REVEAL = Transition(Amount, 0.0, 1.0, duration=NEW_TEXT.duration, frames_per_second=60)
+ARRIVAL_REVEAL = Transition(Amount, 0.0, 1.0, duration=NEW_TEXT.duration,
+                            frames_per_second=NEW_TEXT.frames_per_second)
 
 
 class HistoryEdge(Activates, Static, can_focus=True):
@@ -989,13 +989,21 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
     def arrivals_began(self) -> None:
         """A burst of arrivals uncovers each message from its first row down, one window height in one sweep."""
         self.reveal_rows = self.window.scrollable_content_region.height
+        # The fade starts with the reveal: covered rows never paint it, and
+        # the burst is decided by the fade's phase.
+        self.run_effect(NEW_TEXT)
         self.run_effect(ARRIVAL_REVEAL)
 
     def hold_arrival(self, arrivals: tuple[TranscriptFragment, ...]) -> None:
-        """The window places the first arriving message: from its head when it is taller than the window."""
-        if arrivals:
-            head = arrivals[0]
-            self.window.reader_position = ArrivalPosition(self.page_holding(head.key), head.key)
+        """The first shown arriving message places a following reader: from its head when it is taller than the window."""
+        window = self.window
+        if not window.shown:
+            return
+        for head in arrivals:
+            page = self.page_holding(head.key)
+            if head.shown_in(page.visible_categories):
+                window.reader_position = window.reader_position.arrived(page, head.key)
+                return
 
     def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
         phase = self.effect_phase(NEW_TEXT)
@@ -1005,8 +1013,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         for page in self.pages:
             previous = bool(page.arrivals)
             page.arrivals.intersection_update(phase.keeps_arrivals(page.arrivals))
-            page.arrivals.update(id(fragment) for fragment in page.prepared.fragments_in_range
-                                 if fragment.arrival_position in positions)
+            if positions:
+                page.arrivals.update(id(fragment) for fragment in page.prepared.fragments_in_range
+                                     if fragment.arrival_position in positions)
             if previous or page.arrivals:
                 page.refresh()
 

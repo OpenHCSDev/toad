@@ -152,6 +152,10 @@ class ReaderPosition(ABC):
         """The position after the reader chose to follow the latest message."""
         return TailPosition()
 
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> "ReaderPosition":
+        """The position after a message arrived at the followed end: only following hands it the reader."""
+        return self
+
     def placed(self, window: "HistoryWindow", reached: bool) -> "ReaderPosition":
         """What the window keeps after a layout placed this: itself while the history is still changing.
 
@@ -213,6 +217,9 @@ class TailPosition(ReaderPosition):
 
     def joined_tail(self) -> ReaderPosition:
         return self
+
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
+        return ArrivalPosition(page, key)
 
 
 class OffsetPosition(ReaderPosition):
@@ -356,14 +363,27 @@ class ArrivalPosition(OffsetPosition):
     def destination(self, window: "HistoryWindow") -> float:
         return self.location().destination(window, 0.0)
 
+    def tall(self, window: "HistoryWindow") -> bool:
+        """Whether the message is taller than the window, in the layout just made."""
+        return window.message_head_hidden(self.page.drawn_height(self.location().location().fragment), None)
+
     def place(self, window: "HistoryWindow") -> bool:
-        if window.message_head_hidden(self.page.drawn_height(self.location().location().fragment), None):
+        if self.tall(window):
             return super().place(window)
         return TailPosition().place(window)
 
+    def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
+        """The rest of the change keeps the head (as a fragment position) or the tail it was placed on.
+
+        The reader leaving the tail (left_tail) replaces it like any kept position.
+        """
+        if self.tall(window):
+            span = self.location().location()
+            return FragmentPosition(span.fragment.key, 0.0, span.height, block=span.index).placed(window, reached)
+        return TailPosition().placed(window, reached)
+
     def shifted(self, rows: float) -> ReaderPosition:
-        # The reader moved while it arrived: their movement decides, not the arrival.
-        return TailPosition()
+        return self
 
 
 @dataclass(frozen=True)
@@ -509,6 +529,10 @@ class LatestPosition(HeldReaderDestination, TailPosition):
         if window.reader_position is self:
             window.reader_position = self.released()
             window.place_reader()
+
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
+        # End was pressed: the newest row stays the destination until its source settles.
+        return self
 
     def released(self) -> ReaderPosition:
         return TailPosition()
