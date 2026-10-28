@@ -27,7 +27,7 @@ from textual.geometry import Offset
 from textual.reactive import reactive
 from ui_theme.effects import NEW_MESSAGE
 from textual.widgets import Static
-from textual._activation import PrimaryActivation
+from textual._activation import ContextActivation, PrimaryActivation
 from ui_theme.scheme import AlternateRowToneColour
 
 
@@ -150,7 +150,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
 
 
 class CommsRow(
-    TargetTreeMember, OpensSelected, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel,
+    TargetTreeMember, OpensSelected, PrimaryActivation, ContextActivation, CoreEventReceiver, HoverSelection, ViewLabel,
     scopes={HiddenActions: (CursorAction, OpenSelectedAction)},
 ):
     """One interactive row: a channel or a thread."""
@@ -172,6 +172,8 @@ class CommsRow(
     def show_menu(self, sidebar: TargetTree, offset: Offset) -> None:
         sidebar.show_row_menu(self, offset)
 
+    def context_activation(self, offset: Offset) -> None:
+        self.show_menu(self.navigation_tree, offset)
 
 
     can_focus = True
@@ -220,7 +222,7 @@ class CommsRow(
     def on_click(self, event) -> None:
         if event.button == 3:
             event.stop()
-            self.show_menu(self.navigation_tree, event.screen_offset)
+            self.context_activation(event.screen_offset)
             return
         if event.ctrl or event.shift:
             event.stop()
