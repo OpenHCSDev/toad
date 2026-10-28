@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import InputStartedUpdate
+from agent_comms.coordination_errors import TranscriptChanged
 from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.transcripts import (
@@ -256,9 +257,10 @@ class PreparedCommit:
 
 
 @dataclass(frozen=True)
-class PreparedSourceCommit(PreparedCommit, ABC):
-    """Every saved-row mutation shares the live-block handoff operation."""
+class PreparedPageCommit(PreparedCommit):
+    """Publish the acquired destination page through the live-block handoff."""
 
+    history: TranscriptHistory
     page: PreparedTranscriptPage
 
     @classmethod
@@ -279,28 +281,21 @@ class PreparedSourceCommit(PreparedCommit, ABC):
             if not history.source_ready or not is_current():
                 return False
             operation = history.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
-        return await operation.execute(history, partial(self.publish, cursor, is_current))
-
-    @abstractmethod
-    async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool: ...
-
-
-class PreparedAdvanceCommit(PreparedSourceCommit):
-    async def publish(self, cursor, is_current: Callable[[], bool]):
-        return await self.history.advance_committed(cursor, is_current)
-
-
-@dataclass(frozen=True)
-class PreparedPageCommit(PreparedSourceCommit):
-    history: TranscriptHistory
-
-    async def publish(self, cursor, is_current: Callable[[], bool]):
-        return await self.history.show_newest(PreparedReplacementViewportRequest(
-            LatestPosition.hold(self.history.window), self.page), publication_current=is_current)
+        return await operation.execute(history, partial(
+            history.show_newest,
+            PreparedReplacementViewportRequest(LatestPosition.hold(history.window), self.page),
+            publication_current=is_current,
+        ))
 
 
 class CommitPlan(ABC):
-    """A viewport-owned policy; the coordinator does not branch on block types."""
+    """The captured viewport intent owns source acquisition and publication."""
+
+    @abstractmethod
+    async def read_snapshot[Snapshot](
+        self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
+    ) -> Snapshot:
+        """Acquire the saved destination this plan will publish."""
 
     @abstractmethod
     def current(self, window: HistoryWindow) -> bool:
@@ -313,17 +308,21 @@ class CommitPlan(ABC):
         return history.source_ready
 
     async def prepare(self, view: Conversation, history: CommittedHistory,
-                      page: TranscriptPage, captured: frozenset[Widget],
-                      is_current: Callable[[], bool]) -> PreparedCommit | None:
-        """Grow a history that accepts the page; otherwise the page replaces it."""
+                      page: TranscriptPage, captured: frozenset[Widget]) -> PreparedCommit:
+        """Share exact wire coverage; each destination owns its render action."""
+        sequences = TranscriptCoverage(page.events).sequences
         if history.accepts_commit(page.after):
-            return await self.extend(view, history, page, captured, is_current)
-        return await PreparedPageCommit.capture(view, history, page, TranscriptCoverage(page.events).sequences)
+            required = required_sequences(captured)
+            sequences |= history.covered_sequences(required) | frozenset(
+                sequence for sequence in required if page.after.covers_incoming(sequence)
+            )
+            return await self.extend(view, history, page, sequences)
+        return await PreparedPageCommit.capture(view, history, page, sequences)
 
     @abstractmethod
     async def extend(self, view: Conversation, history: CommittedHistory, page: TranscriptPage,
-                     captured: frozenset[Widget], is_current: Callable[[], bool]) -> PreparedCommit | None:
-        """Commit the page's records onto the history that already ends where it starts."""
+                     sequences: frozenset[int]) -> PreparedCommit:
+        """Prepare publication within the history's existing source."""
 
     def commit(self, prepared: PreparedCommit, cursor: TranscriptCursor) -> None:
         """Apply source metadata only after the final retirement checks."""
@@ -340,12 +339,17 @@ class FollowTailCommit(CommitPlan):
     def __init__(self, window: HistoryWindow) -> None:
         self.revision = window.scroll_revision
 
+    async def read_snapshot[Snapshot](
+        self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
+    ) -> Snapshot:
+        # No after cursor: Core reads newest-first at its captured saved cut.
+        return await read()
+
     def current(self, window: HistoryWindow) -> bool:
         return window.follows_tail and window.scroll_revision == self.revision
 
-    async def extend(self, view, history, page, captured, is_current: Callable[[], bool]):
-        return await PreparedAdvanceCommit.capture(view, history, page, TranscriptCoverage(page.events).sequences
-                                                   | history.covered_sequences(required_sequences(captured)))
+    async def extend(self, view, history, page, sequences):
+        return await PreparedPageCommit.capture(view, history, page, sequences)
 
     def finish(self, view, cursor) -> None:
         view.transcript.binding.painted(view.transcript, cursor)
@@ -358,6 +362,15 @@ class FollowTailCommit(CommitPlan):
             window.anchor()
 
 class RetainViewportCommit(CommitPlan):
+    async def read_snapshot[Snapshot](
+        self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
+    ) -> Snapshot:
+        try:
+            return await read(after=history.page_source.through)
+        except TranscriptChanged:
+            # A replaced source cannot extend the old reader's source range.
+            return await read()
+
     def current(self, window: HistoryWindow) -> bool:
         # Extending the source leaves the loaded rows and reader position intact.
         # Retirement checks the current viewport again when applying the change.
@@ -378,12 +391,8 @@ class RetainViewportCommit(CommitPlan):
         return not any(widget in visible and visible[widget][0].overlaps(viewport)
                        for widget in candidates)
 
-    async def extend(self, view, history, page, captured, is_current: Callable[[], bool]):
-        required = required_sequences(captured)
-        known = TranscriptCoverage(page.events).sequences | history.covered_sequences(required)
-        covered = frozenset(sequence for sequence in required
-                            if page.after.covers_incoming(sequence))
-        return PreparedCommit(history, known | covered)
+    async def extend(self, view, history, page, sequences):
+        return PreparedCommit(history, sequences)
 
     def commit(self, prepared, cursor) -> None:
         prepared.history.retain_committed(cursor)
