@@ -16,6 +16,18 @@ import time
 
 STATUS_LIMIT = 65536
 REGISTRY = '_toad_history_captures'
+METER_SOURCE_LIMIT = 256 << 10
+
+
+def read_meter_source(path, digest):
+    """The approved source buffer, with one bounded read and one identity check."""
+    with path.open('rb') as source:
+        raw = source.read(METER_SOURCE_LIMIT + 1)
+    if len(raw) > METER_SOURCE_LIMIT:
+        raise ValueError('Oversize meter source')
+    if hashlib.sha256(raw).hexdigest() != digest:
+        raise ValueError('Approved meter hash mismatch')
+    return raw
 
 
 def process_identity(pid=None):
@@ -119,8 +131,7 @@ def start(request, directory):
     loop = asyncio.get_running_loop()  # never set up in a synchronous child
     checked = require_modules(runtime)
     meter_path = Path(request['meter']).resolve(strict=True)
-    if hashlib.sha256(meter_path.read_bytes()).hexdigest() != request['meter_sha256']:
-        raise RuntimeError('Approved meter changed')
+    source = read_meter_source(meter_path, request['meter_sha256'])
     module_name = '_toad_history_meter_' + request['token']
     registry = getattr(sys, REGISTRY, None)
     if registry is None:
@@ -135,11 +146,14 @@ def start(request, directory):
     registry[request['token']] = entry
     handles = entry.handles
     try:
-        spec.loader.exec_module(meter)
+        # Execute precisely the hash-verified bytes. Never reopen this mutable
+        # path through the loader or accept its cached bytecode instead.
+        exec(compile(source, str(meter_path), 'exec', dont_inherit=True), vars(meter))
         if meter.BoundedCapture.CONTRACT != request['contract']:
             raise RuntimeError('UNSUPPORTED_BOUNDED_TRACE')
         # Validate ALL actual methods/metadata adapters before either collector patches.
         targets = tuple(meter.CallMetadata.targets)
+        meter._metadata_boundary()  # resolve all nominal metadata declarations before patching
         for target in targets:
             meter.MethodTarget(target)
         checked = require_modules(runtime)  # include any modules target resolution loaded

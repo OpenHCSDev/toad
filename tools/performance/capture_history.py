@@ -14,7 +14,6 @@ A blocked target cannot promise remote restoration; retain cleanup.py and report
 
 import argparse
 import ast
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -24,17 +23,15 @@ import sys
 import time
 import uuid
 
-from history_capture_remote import process_identity as identity, publish
+from history_capture_remote import process_identity as identity, publish, read_meter_source
 
 
-# The remote entry script is not imported by the controller: its definitions are
-# needed only in the target. Local metadata uses the same bounded JSON publisher.
+# Ordinary helper import performs no attachment. Controller and target share
+# the bounded source reader and metadata publisher; only a copied request executes.
 
 
 def validate_meter(path, digest):
-    raw = path.read_bytes()
-    if len(raw) > 256 << 10 or hashlib.sha256(raw).hexdigest() != digest:
-        raise ValueError('Approved meter hash mismatch')
+    raw = read_meter_source(path, digest)
     tree = ast.parse(raw)
     declarations = {node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)}
     for name in ('install', 'trace_calls'):

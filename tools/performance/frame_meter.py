@@ -17,22 +17,23 @@ import threading
 import time
 from contextlib import contextmanager
 
-# Intervals (monotonic ns) in which a snapshot ran inside the app: the meter
-# leaves frames and lags overlapping them out, since the measurement caused them.
-PAUSES: list[tuple[int, int]] = []
-
-
 class CaptureProcessMismatch(RuntimeError):
     """Remote capture entered a process other than the requested application."""
 
 
 @contextmanager
 def measuring_pause():
+    """Snapshots borrow the active capture's bounded exclusion lifetime."""
     begin = time.monotonic_ns()
+    with BoundedCapture.active_lock:
+        captures = tuple(BoundedCapture.active)
+    intervals = tuple((capture, capture.begin_pause(begin)) for capture in captures)
     try:
         yield
     finally:
-        PAUSES.append((begin, time.monotonic_ns()))
+        end = time.monotonic_ns()
+        for capture, interval in intervals:
+            capture.end_pause(interval, end)
 
 
 def _running_app(expected_pid):
@@ -54,9 +55,11 @@ class BoundedCapture:
 
     FINAL_RESERVE = 8192
     CONTRACT = 1
+    active = set()
+    active_lock = threading.RLock()
 
     def __init__(self, *, expected_pid, seconds, output, max_records, max_bytes,
-                 metadata_only, streams, fields=None, array_output=False):
+                 metadata_only, streams, fields=None, array_output=False, values=None):
         import asyncio
         import math
         from pathlib import Path
@@ -76,6 +79,7 @@ class BoundedCapture:
             raise FileExistsError("Capture output must be fresh")
         self.max_records, self.max_bytes = max_records, max_bytes
         self.metadata_only = metadata_only
+        self.values = values
         self.array_output = array_output
         self.seconds = seconds
         self.started = time.monotonic_ns()
@@ -89,6 +93,9 @@ class BoundedCapture:
         self.hooks, self.timers = [], []
         self.probe_timer = None
         self.pending_inputs = {}
+        self.open_pauses = {}
+        self.next_pause = self.censored_pauses = 0
+        self.censored_pause_start = None
         self.identities = {}
         self.next_label = self.next_span = 0
         self.buffers = {name: bytearray() for name in streams}
@@ -175,13 +182,59 @@ class BoundedCapture:
                                        at_ns=time.monotonic_ns()))
             return label
 
+    def begin_pause(self, begin):
+        with self.lock:
+            if not self.accepting:
+                return None
+            self.next_pause += 1
+            interval = self.next_pause
+            if self.record('events', dict(event='pause-start', pause=interval, at_ns=begin)):
+                self.open_pauses[interval] = begin
+                return interval
+            self.censored_pauses += 1
+            self.censored_pause_start = (begin if self.censored_pause_start is None
+                                         else min(begin, self.censored_pause_start))
+            return None
+
+    def end_pause(self, interval, end):
+        with self.lock:
+            if self.finished or interval is None:
+                return
+            begin = self.open_pauses.pop(interval)
+            if not self.record('pauses', (begin, end)):
+                self.censored_pauses += 1
+                self.censored_pause_start = (begin if self.censored_pause_start is None
+                                             else min(begin, self.censored_pause_start))
+
+    def complete_span(self, span, result, outcome):
+        """Publish terminal record AND retire its open count in one transaction."""
+        with self.lock:
+            if self.finished or not span.identity:
+                return
+            recorded = False
+            try:
+                if self.accepting:
+                    recorded = span.metadata.closed(span, result, outcome)
+            except Exception as error:
+                self.error = type(error).__name__[:96]
+                self.stop('metadata-error')
+            finally:
+                self.open_spans -= 1
+                if not recorded:
+                    self.censored += 1
+
     def patch(self, target, wrapper):
         """Targets have all been resolved and validated before the first patch."""
         target.install(self, wrapper)
 
     def arm(self):
-        self.timers.append(self.loop.call_later(self.seconds, self.finish, 'duration'))
-        return self.finish
+        with self.lock:
+            if not self.finished:
+                if 'pauses' in self.buffers:
+                    with self.active_lock:
+                        self.active.add(self)
+                self.timers.append(self.loop.call_later(self.seconds, self.finish, 'duration'))
+            return self.finish
 
     def finish(self, reason='explicit'):
         import inspect
@@ -192,6 +245,8 @@ class BoundedCapture:
             if self.stopped_ns is None:
                 self.stopped_ns = time.monotonic_ns()
             self.accepting, self.finished = False, True
+            with self.active_lock:
+                self.active.discard(self)
             reason = reason[:96] if type(reason) is str else 'invalid-reason'
             self.reason = reason
             if (probe_timer := self.probe_timer) is not None:
@@ -215,8 +270,15 @@ class BoundedCapture:
                     failed += 1
             self.hooks.clear()
             self.identities.clear()
+            self.values = None
             pending_inputs = sum(not entry[2] for entry in self.pending_inputs.values())
             self.pending_inputs.clear()
+            pause_starts = tuple(self.open_pauses.values())
+            if self.censored_pause_start is not None:
+                pause_starts += (self.censored_pause_start,)
+            earliest_pause = min(pause_starts, default=None)
+            censored_pauses = self.censored_pauses + len(self.open_pauses)
+            self.open_pauses.clear()
             self.status = dict(contract=self.CONTRACT, reason=reason,
                                started_ns=self.started, ended_ns=self.stopped_ns,
                                elapsed_ns=self.stopped_ns - self.started,
@@ -224,6 +286,8 @@ class BoundedCapture:
                                measured_records=self.count, dropped_records=self.dropped,
                                censored_spans=self.open_spans + self.censored,
                                censored_inputs=pending_inputs,
+                               censored_pauses=censored_pauses,
+                               open_pause_start_ns=earliest_pause,
                                cap_exhausted=self.cap_exhausted, error=self.error,
                                hooks_restored=restored, hooks_superseded=skipped,
                                hooks_failed=failed, cleanup=('failed' if failed else
@@ -312,23 +376,81 @@ def _type_name(value):
     return (type(value).__module__ + '.' + type(value).__qualname__)[:160]
 
 
-def _cursor_metadata(cursor):
-    # TranscriptCursor declares these defaults on the base; no family redispatch.
-    if cursor is None:
-        return None
-    return dict(type=_type_name(cursor), session_file=(cursor.session_file or '')[:384],
-                offset=cursor.offset, wire_sequence=cursor.wire.sequence)
+def _metadata_boundary():
+    """Build the nominal observation decoder before patching, not per record.
 
+    Lazy imports keep basic capture/control imports independent of the product.
+    MroProjection selects one declared handler; unknown values are evidence of
+    unsupported metadata, not permission to guess fields or kill the capture.
+    """
+    from metaclass_registry.mro_dispatch import handles
+    from agent_comms.message_page import MessagePage
+    from agent_comms.page_traversal import PageCursor
+    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+    from toad.core.projection import MroProjection
+    from toad.transcript_preparation import PreparedTranscriptPage
+    from toad.wire_history import WireCut, WirePage
 
-def _page_metadata(capture, prepared):
-    page = prepared.page
-    witness = page.snapshot
-    return dict(prepared=capture.label(prepared), before=_cursor_metadata(page.before),
-                after=_cursor_metadata(page.after), fragments=len(prepared.fragments),
-                root=witness.root[:384], thread=witness.requested_name[:160],
-                through=_cursor_metadata(witness.through),
-                thread_birth=witness.thread.incarnation.wire_birth,
-                snapshot=capture.label(witness), no_match=not prepared.fragments)
+    class ValueMetadata(MroProjection[dict]):
+        @handles(object)
+        def unsupported(self, value, capture):
+            return dict(metadata_supported=False, unsupported_type=_type_name(value))
+
+        @handles(type(None))
+        def absent(self, value, capture):
+            return dict(metadata_supported=True, type=_type_name(value), absent=True)
+
+        @handles(TranscriptCursor)
+        def native_cursor(self, cursor, capture):
+            source = cursor.session_file
+            return dict(metadata_supported=True, type=_type_name(cursor),
+                        session_file=None if source is None else source[:384],
+                        offset=cursor.offset, wire_sequence=cursor.wire.sequence)
+
+        @handles(PageCursor)
+        def message_cursor(self, cursor, capture):
+            source = cursor.history_source
+            return dict(metadata_supported=True, type=_type_name(cursor),
+                        lower=cursor.lower, upper=cursor.upper, historical=cursor.historical,
+                        history_source=None if source is None else source[:384])
+
+        @handles(WireCut)
+        def wire_cut(self, cut, capture):
+            return dict(metadata_supported=True, type=_type_name(cut), bounded=cut.bounded,
+                        kept=cut.kept, cursor=self.project_value(cut.cursor, capture))
+
+        @handles(TranscriptPage)
+        def native_page(self, page, capture):
+            witness = page.snapshot
+            return dict(metadata_supported=True, type=_type_name(page),
+                        before=self.project_value(page.before, capture),
+                        after=self.project_value(page.after, capture), root=witness.root[:384],
+                        thread=witness.requested_name[:160],
+                        through=self.project_value(witness.through, capture),
+                        thread_birth=witness.thread.incarnation.wire_birth,
+                        snapshot=capture.label(witness))
+
+        @handles(MessagePage)
+        def message_page(self, page, capture):
+            return dict(metadata_supported=True, type=_type_name(page),
+                        evidence=capture.label(page), selection_type=_type_name(page.selection),
+                        has_evidence=page.selection.has_evidence, messages=len(page.messages),
+                        before=self.project_value(page.oldest_cursor, capture),
+                        after=self.project_value(page.newest_cursor, capture))
+
+        @handles(WirePage)
+        def wire_page(self, page, capture):
+            return dict(metadata_supported=True, type=_type_name(page),
+                        before=self.project_value(page.before, capture),
+                        after=self.project_value(page.after, capture),
+                        source=self.project_value(page.source, capture))
+
+        @handles(PreparedTranscriptPage)
+        def prepared_page(self, prepared, capture):
+            return dict(**self.project_value(prepared.page, capture),
+                        prepared=capture.label(prepared), fragments=len(prepared.fragments))
+
+    return ValueMetadata()
 
 
 class CallMetadata:
@@ -366,10 +488,11 @@ class SourceGetMetadata(CallMetadata):
     def enter(self, capture, arguments):
         source, request = arguments['self'], arguments['request']
         return dict(source=capture.label(source), scope=capture.label(source.scope),
-                    direction=_type_name(request.end), cursor=_cursor_metadata(request.cursor))
+                    direction=_type_name(request.end),
+                    cursor=capture.values.project_value(request.cursor, capture))
 
     def result(self, capture, result):
-        return _page_metadata(capture, result)
+        return capture.values.project_value(result, capture)
 
 
 class RowsMetadata(CallMetadata):
@@ -377,7 +500,7 @@ class RowsMetadata(CallMetadata):
 
     def enter(self, capture, arguments):
         view, prepared = arguments['view'], arguments['self']
-        return dict(**_page_metadata(capture, prepared), history=capture.label(view),
+        return dict(**capture.values.project_value(prepared, capture), history=capture.label(view),
                     width=arguments['target'].line_width, direction=_type_name(arguments['end']),
                     filter=capture.label(arguments['selected']), rows_needed=arguments['rows_needed'])
 
@@ -402,7 +525,8 @@ class ExtendMetadata(CallMetadata):
     path = 'toad.widgets.transcript_history:LineHistory._extend_and_trim'
 
     def enter(self, capture, arguments):
-        return dict(**_page_metadata(capture, arguments['prepared']), history=capture.label(arguments['self']),
+        return dict(**capture.values.project_value(arguments['prepared'], capture),
+                    history=capture.label(arguments['self']),
                     direction=_type_name(arguments['end']), local=arguments['local'])
 
 
@@ -469,7 +593,7 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
     targets.append(display_target)
     capture = BoundedCapture(expected_pid=expected_pid, seconds=seconds, output=output,
                              max_records=max_records, max_bytes=max_bytes, metadata_only=metadata_only,
-                             streams=('frames', 'inputs', 'lags', 'events', 'switch_steps', 'stepped_layouts',
+                             streams=('frames', 'inputs', 'lags', 'events', 'pauses', 'stepped_layouts',
                                       'slow_frames', 'timed_callbacks', 'slow_handlers', 'layout_invalidations'))
     run, post, dispatch, refresh, request_layout, refresh_bindings, refresh_layout, layout_step, write, display = (
         target.original for target in targets)
@@ -1183,32 +1307,26 @@ class CallSpan:
         self.capture, self.target, self.metadata, self.parent = capture, target, metadata, parent
         self.start, self.cpu = time.monotonic_ns(), time.thread_time_ns()
         with capture.lock:
-            capture.next_span += 1
-            self.identity = capture.next_span
-            capture.open_spans += 1
-        self.parent_id = parent.get()
-        self.token = parent.set(self.identity)
-        self.fields = {}
-        try:
-            arguments = target.signature.bind(*args, **kwargs).arguments
-            self.fields = metadata.enter(capture, arguments)
-            metadata.opened(self, self.fields)
-        except Exception as error:
-            capture.error = type(error).__name__[:96]
-            capture.stop('metadata-error')
+            self.identity = 0
+            if capture.accepting:
+                capture.next_span += 1
+                self.identity = capture.next_span
+                capture.open_spans += 1
+            self.parent_id = parent.get()
+            self.token = parent.set(self.identity or self.parent_id)
+            self.fields = {}
+            if self.identity:
+                try:
+                    arguments = target.signature.bind(*args, **kwargs).arguments
+                    self.fields = metadata.enter(capture, arguments)
+                    metadata.opened(self, self.fields)
+                except Exception as error:
+                    capture.error = type(error).__name__[:96]
+                    capture.stop('metadata-error')
 
     def close(self, result, outcome):
-        capture = self.capture
         try:
-            if capture.accepting:
-                recorded = self.metadata.closed(self, result, outcome)
-                with capture.lock:
-                    capture.open_spans -= 1
-                    if not recorded:
-                        capture.censored += 1
-        except Exception as error:
-            capture.error = type(error).__name__[:96]
-            capture.stop('metadata-error')
+            self.capture.complete_span(self, result, outcome)
         finally:
             self.parent.reset(self.token)
 
@@ -1251,7 +1369,9 @@ def trace_calls(*, expected_pid, output, targets, seconds=60, max_records=20000,
     adapters = [CallMetadata.targets[path] if metadata_only else LegacyCallMetadata() for path in targets]
     capture = BoundedCapture(expected_pid=expected_pid, seconds=seconds, output=output,
                              max_records=max_records, max_bytes=max_bytes, metadata_only=metadata_only,
-                             streams=('calls', 'events'), array_output=not metadata_only)
+                             streams=(('calls', 'events', 'pauses') if metadata_only else ('calls', 'events')),
+                             array_output=not metadata_only,
+                             values=_metadata_boundary() if metadata_only else None)
     parent = ContextVar('bounded-call-parent', default=0)
 
     def instrument(target, metadata):
@@ -1760,13 +1880,20 @@ def summarize(path):
     data = json.load(open(path))
     # Leave out what the scenario's own snapshots caused: a frame whose
     # interval, or a lag whose wait, overlaps a snapshot (5 ms either side).
-    pauses = [(begin - 5_000_000, end + 5_000_000) for begin, end in data.get("pauses", [])]
+    capture = data.get('capture')
+    intervals = list(data.get('pauses', ()))
+    if capture is not None and (begin := capture.get('open_pause_start_ns')) is not None:
+        # All open/censored exclusions overlap the admission end. The earliest
+        # start therefore represents their union without an unbounded footer.
+        intervals.append((begin, capture['ended_ns']))
+    pauses = [(begin - 5_000_000, end + 5_000_000) for begin, end in intervals]
+    capture_start = None if capture is None else capture['started_ns']
 
     def measured(begin, end):
         return not any(begin < pause_end and pause_begin < end for pause_begin, pause_end in pauses)
 
     frames = [frame for previous, frame in zip([None, *data["frames"]], data["frames"])
-              if measured(previous[0] if previous else frame[0], frame[0])]
+              if measured(previous[0] if previous else capture_start or frame[0], frame[0])]
     data["lags"] = [(at, lag) for at, lag in data.get("lags", []) if measured(at - lag * 1e6, at)]
     input_ends = {}
     for entry in data['inputs']:
@@ -1782,8 +1909,12 @@ def summarize(path):
     latencies = []
     for arrived, handled, *_ in data["inputs"]:
         if handled is not None and (position := bisect.bisect_left(ends, handled)) < len(ends):
-            latencies.append((ends[position] - arrived) / 1e6)
+            if measured(arrived, ends[position]):
+                latencies.append((ends[position] - arrived) / 1e6)
+    switch_steps = data.get('switch_steps')
     return {
+        'capture': 'unobserved' if capture is None else capture,
+        'pause_exclusions': 'observed' if 'pauses' in data else 'unobserved',
         "snapshot_pauses": len(pauses), "frames_left_out": len(data["frames"]) - len(frames),
         "frames": len(work), "inputs": len(data["inputs"]), "painted_inputs": len(latencies),
         "frame_median_ms": round(statistics.median(work), 1) if work else None,
@@ -1798,9 +1929,10 @@ def summarize(path):
         "stall_worst_ms": round(max(stalls), 1) if stalls else None,
         "stalls_over_16_33_50": [sum(value > limit for value in stalls) for limit in (16, 33, 50)],
         **lag_summary(data.get("lags", [])),
-        # Tab switches' loop turns over 20 us: how many and the longest.
-        "switch_turns": [len(data.get("switch_steps", [])),
-                         round(max((spent for _begin, spent in data.get("switch_steps", [])), default=0), 2)],
+        # Historical captures may have observed loop-turn samples. Current
+        # captures expose method spans instead; absence is NOT zero turns.
+        "switch_turns": ('unobserved' if switch_steps is None else
+                         [len(switch_steps), round(max((spent for _begin, spent in switch_steps), default=0), 2)]),
         # Per layout run in steps (or with a step over 4 ms): steps and the longest step.
         "stepped_layouts": [[len(steps), round(max(steps), 2)]
                             for _begin, _step_ns, steps in data.get("stepped_layouts", []) if steps],
