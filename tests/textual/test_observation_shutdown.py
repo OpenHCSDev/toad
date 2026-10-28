@@ -4,6 +4,7 @@ import asyncio
 import sys
 import pytest
 
+from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ObservationProcess, ObserverDied, ObserveNotifications, ReadNotifications
 from toad.comms_root import AnsweringReads
 
@@ -45,7 +46,7 @@ async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(works
         process = observing.process
         loop = asyncio.get_running_loop()
         acquired = asyncio.Event()
-        request = ReadNotifications(str(workspace.roots.wire), (message.reference,))
+        request = ReadNotifications(str(workspace.roots.wire), LiveNotificationRead((message.reference,)))
 
         async def read_notifications():
             acquired.set()
