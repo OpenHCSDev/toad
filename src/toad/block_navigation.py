@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory
+    from toad.widgets.transcript_fragments import TranscriptFragment
 
 
 class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
@@ -184,6 +185,12 @@ class FragmentBlockCursor(BlockCursor):
     @property
     def selected(self):
         return self.block if self.current is not None else None
+
+    @property
+    def selected_fragments(self) -> tuple[TranscriptFragment, ...]:
+        """Capture the cursor's source occurrence before deferred work starts."""
+        fragment = self.current
+        return () if fragment is None else (fragment,)
 
     def enter(self, direction: CursorDirection):
         # The cursor arrives at the reader's side of the screen, not at an

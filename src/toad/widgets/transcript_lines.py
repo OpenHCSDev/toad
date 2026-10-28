@@ -633,6 +633,10 @@ class RowAcquisition(ABC):
     @abstractmethod
     def retains(self, lines: BlockLines, theme: LineTheme) -> bool: ...
 
+    def shows(self, blocks: tuple[LineBlock, ...], theme: LineTheme) -> bool:
+        """Whether these painted rows already represent the requested source."""
+        return False
+
     def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> MeasuredRows:
         lines = PlainLines(width, renderer, blocks)
         return PlainRows(lines.preparation, lines)
@@ -664,6 +668,9 @@ class MeasuredRows(RowAcquisition):
     @property
     def preparation(self) -> LinePreparation:
         return self.lines.preparation
+
+    def shows(self, blocks: tuple[LineBlock, ...], theme: LineTheme) -> bool:
+        return self.source.theme is theme and self.source.blocks == blocks
 
     def for_view(self, width: int, theme: LineTheme):
         if self.source.theme is not theme:
@@ -732,14 +739,16 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
         )
 
     @staticmethod
-    def show(view, fragment: TranscriptFragment, shown: Shown, rendered) -> None:
-        """Apply the requested state, retaining rows only through their render request."""
-        fragment.show(shown)
+    def show(view, fragment: TranscriptFragment, shown: Shown, rendered) -> bool:
+        """Publish only the still-requested state, retaining rows through its request."""
+        if not fragment.finish_show(shown):
+            return False
         if rendered is not None:
             request, lines = rendered
             if request.current_for(view):
                 fragment.line_blocks = request.blocks
                 fragment.hold_lines(request, lines.wrap(view.line_width, view.app.colours.line_renderer))
+        return True
 
     def execute(self) -> LinePreparation:
         return LinePreparation(

@@ -34,6 +34,7 @@ from toad.line_blocks import (
     Divider,
     Gap,
     LineBlock,
+    LineLink,
     LineRole,
     MarkdownBody,
     MutedRole,
@@ -208,9 +209,9 @@ class Shown:
 
     details_open: bool = False
 
-    def summary(self, title: str, role: type[LineRole] = MutedRole) -> Summary:
-        """The line that names a fragment's details; clicking it shows or hides them."""
-        return Summary.titled(("▼ " if self.details_open else "▶ ") + title, role, ToggleDetails())
+    def summary(self, title: str, role: type[LineRole], link: LineLink) -> Summary:
+        """The disclosure retains the source occurrence supplied by its fragment."""
+        return Summary.titled(("▼ " if self.details_open else "▶ ") + title, role, link)
 
     def toggled(self) -> "Shown":
         return replace(self, details_open=not self.details_open)
@@ -237,7 +238,7 @@ class PartPosition(ABC):
     def notification_references(self, event: TranscriptEvent) -> tuple[MessageReference, ...]: ...
 
     @abstractmethod
-    def status_blocks(self, shown: MessageShown) -> tuple[LineBlock, ...]: ...
+    def status_blocks(self, shown: MessageShown, link: LineLink) -> tuple[LineBlock, ...]: ...
 
     @abstractmethod
     def outgoing_sources(self, publication: PublishedSentMessage): ...
@@ -250,8 +251,8 @@ class LastPart(PartPosition):
     def notification_references(self, event):
         return (event.source,)
 
-    def status_blocks(self, shown: MessageShown):
-        return shown.status.blocks(shown)
+    def status_blocks(self, shown: MessageShown, link: LineLink):
+        return shown.status.blocks(shown, link)
 
     def outgoing_sources(self, publication: PublishedSentMessage):
         return (publication.reference,)
@@ -264,7 +265,7 @@ class InnerPart(PartPosition):
     def notification_references(self, event: TranscriptEvent):
         return ()
 
-    def status_blocks(self, shown: MessageShown):
+    def status_blocks(self, shown: MessageShown, link: LineLink):
         return ()
 
     def outgoing_sources(self, publication: PublishedSentMessage):
@@ -287,6 +288,13 @@ class FragmentKey:
     part: int
 
 
+@dataclass(frozen=True)
+class FragmentDetails(ToggleDetails):
+    """A disclosure names its original source occurrence, never a pointer position."""
+
+    key: FragmentKey
+
+
 @dataclass
 class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
@@ -304,6 +312,10 @@ class TranscriptFragment:
     @cached_property
     def key(self) -> FragmentKey:
         return FragmentKey(self.source_identity, self.part_position.index)
+
+    @property
+    def details_link(self) -> FragmentDetails:
+        return FragmentDetails(self.key)
 
     @property
     def arrival_position(self) -> int | NativeItemId:
@@ -358,12 +370,20 @@ class TranscriptFragment:
     def line_blocks(self) -> tuple[LineBlock, ...]:
         return self.blocks(self.shown)
 
-    def show(self, shown: Shown) -> None:
-        """Change the displayed state; its render request supplies any prepared lines."""
-        self.shown = shown
-        self.__dict__.pop("line_blocks", None)
+    def request_show(self, shown: Shown) -> Shown:
+        """Record intent now; measured rows remain painted until its render is ready."""
+        if shown != self.shown:
+            self.shown = shown
+            self.__dict__.pop("line_blocks", None)
+        return self.shown
+
+    def finish_show(self, shown: Shown) -> bool:
+        """An older render cannot replace a newer disclosure or notification request."""
+        if self.shown is not shown:
+            return False
         self.invalidate_lines()
         self._plain = NoRows()
+        return True
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -453,6 +473,7 @@ class ToolTranscriptFragment(TranscriptFragment):
             has_details=self.has_details,
             details_open=shown.details_open,
             details=(block for part in self.output_parts for block in part.line_blocks),
+            details_link=self.details_link,
         )
 
 
@@ -507,7 +528,7 @@ class BusMessageFragment(TranscriptFragment):
         return shown.style.body(self.row, self.body_text)
 
     def trailing(self, shown):
-        return self.part_position.status_blocks(shown) if self.notification_references else ()
+        return self.part_position.status_blocks(shown, self.details_link) if self.notification_references else ()
 
     def blocks(self, shown):
         return (*self.leading, *self.text(shown), *self.trailing(shown))
@@ -531,7 +552,7 @@ class ContextTranscriptFragment(TranscriptFragment):
     has_details = True
 
     def blocks(self, shown):
-        summary = shown.summary("Agent coordination context")
+        summary = shown.summary("Agent coordination context", MutedRole, self.details_link)
         if not shown.details_open:
             return (summary,)
         return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole) for event in self.events))
