@@ -49,6 +49,7 @@ from toad.setting_choices import (
     SessionBar,
 )
 from toad.setting_declarations import Effect, FamilyChoices
+from toad.setting_widget import PromptSettingEffects
 from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
@@ -58,27 +59,28 @@ if TYPE_CHECKING:
 @dataclass(frozen=True)
 class InputSettings(AnnotatedDataclassValidationMixin):
     box: Annotated[
-        type[InputBox], FieldLabel("Layout"), FamilyChoices(InputBox), effects.prompt_layout,
+        type[InputBox], FieldLabel("Layout"), FamilyChoices(InputBox),
+        PromptSettingEffects.apply_input_layout,
     ] = CompactInputBox
     """Normal draws a padded border around the prompt. Compact keeps it flush with the conversation. Flush also removes the spacing around the label and the info bar."""
 
-    placeholder: Annotated[str, FieldLabel("Placeholder"), effects.prompt_text] = (
+    placeholder: Annotated[str, FieldLabel("Placeholder"), PromptSettingEffects.apply_input_text] = (
         "How can I help you today?"
     )
     """Text shown in the empty prompt of an agent session."""
 
     agent_symbol: Annotated[
-        str, FieldLabel("Message symbol"), MinLen(1), effects.prompt_text,
+        str, FieldLabel("Message symbol"), MinLen(1), PromptSettingEffects.apply_input_text,
     ] = "❯"
     """Shown before a one-line message to the agent."""
 
     multiline_symbol: Annotated[
-        str, FieldLabel("Multi-line message symbol"), MinLen(1), effects.prompt_text,
+        str, FieldLabel("Multi-line message symbol"), MinLen(1), PromptSettingEffects.apply_input_text,
     ] = "☰"
     """Shown before a message of several lines or one holding a code fence."""
 
     shell_symbol: Annotated[
-        str, FieldLabel("Shell command symbol"), MinLen(1), effects.prompt_text,
+        str, FieldLabel("Shell command symbol"), MinLen(1), PromptSettingEffects.apply_input_text,
     ] = "$"
     """Shown before a shell command."""
 

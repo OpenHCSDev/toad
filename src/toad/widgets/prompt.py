@@ -46,7 +46,7 @@ from toad.prompt_cursor import (
     PreviousHistoryCursor,
     PromptCursor,
 )
-from toad.setting_widget import SettingVisibility
+from toad.setting_widget import PromptSettingEffects, SettingVisibility
 from toad.slash_command import SlashCommand
 from toad.widget_actions import (
     DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
@@ -507,7 +507,8 @@ class MessageTextArea(PromptTextArea):
         return False
 
 
-class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, containers.VerticalGroup):
+class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingEffects, TonePaint,
+             containers.VerticalGroup):
     tone = PromptToneColour
 
     DEFAULT_CSS = """

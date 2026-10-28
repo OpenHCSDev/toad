@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 from random import choice
 from threading import Lock
 from textual.color import Color, TRANSPARENT
@@ -18,6 +18,9 @@ from toad.widgets.future_text import FutureText
 
 from agent_comms.declared_choice import DeclaredChoice, TitledChoice
 from toad.platform import DesktopService, host
+
+if TYPE_CHECKING:
+    from toad.acp.status import ToolCallStatus
 
 
 @dataclass(frozen=True)
@@ -35,14 +38,14 @@ class Expansion(DeclaredChoice, affix="Expansion"):
     def should_expand(cls, status) -> bool: ...
 
     @classmethod
-    def expands_preview(cls, status, preview_fits: Callable[[], bool]) -> bool:
+    def expands_preview(cls, status: ToolCallStatus, preview_fits: Callable[[], bool]) -> bool:
         """A completed call opens to show its patch preview when the preview fits."""
         return status.completed and preview_fits()
 
 
 class NeverExpansion(Expansion):
     @classmethod
-    def expands_preview(cls, status, preview_fits: Callable[[], bool]) -> bool:
+    def expands_preview(cls, status: ToolCallStatus, preview_fits: Callable[[], bool]) -> bool:
         return False
 
     @classmethod
