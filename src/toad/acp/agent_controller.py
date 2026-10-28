@@ -22,8 +22,9 @@ from agent_comms.acp_extension import (
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.coordination_errors import Refused
 from agent_comms.transcripts import TranscriptReadIdentity
-from agent_comms.ui_model.delivery import DeliveryView
-from agent_comms.ui_model.observation import ReadDeliveryOverview
+from agent_comms.order_tools import InputDeliveryRead
+from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
+from agent_comms.ui_model.observation import ReadOwnerOperation
 
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.status import StopReason
@@ -430,11 +431,11 @@ class AgentController(OperationalTerminalOwner):
         if coordination is None:
             return DeliveryView()
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        delivery = await self.transcripts.read(
-            ReadDeliveryOverview(coordination.wire_root, coordination.thread, include_history=include_history)
-        )
+        overview = await self.transcripts.read(ReadOwnerOperation(
+            coordination.wire_root, coordination.thread, InputDeliveryRead(include_history=include_history),
+        ))
         self.require_owner(coordination, authority)
-        return delivery
+        return ReadDeliveryView(overview)
 
     async def dismiss_historical_inputs(self):
         return await self.request_owner("dismiss_historical_inputs")
