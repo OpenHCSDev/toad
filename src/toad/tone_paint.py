@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from textual._paint_state import PaintLayer
 from textual.color import TRANSPARENT, Color
-from ui_theme.scheme import BackgroundColour, ThemeColour
+from ui_theme.scheme import AlternateRowToneColour, BackgroundColour, ThemeColour
 
 if TYPE_CHECKING:
     from textual.css.styles import StylesBase
@@ -68,3 +68,25 @@ class UntintedTonePaint(TonePaint):
     """Keep the parent's area tone without an additional focus tint."""
 
     background_tint = TRANSPARENT
+
+
+class AlternatingTone(TonePaint):
+    """A list row on one of two tones by its position: rows separate without separator lines.
+
+    A row family declares its own pair; the list that orders rows places them.
+    """
+
+    row_tones: ClassVar[tuple[type[ThemeColour] | None, type[ThemeColour] | None]] = (
+        None, AlternateRowToneColour)
+    _alternate = False
+
+    @property
+    def tone(self) -> type[ThemeColour] | None:
+        return self.row_tones[self._alternate]
+
+    def place(self, index: int) -> None:
+        """The row is now at `index` of its list."""
+        alternate = bool(index % 2)
+        if alternate != self._alternate:
+            self._alternate = alternate
+            self.refresh_paint()

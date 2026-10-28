@@ -28,7 +28,6 @@ from textual.reactive import reactive
 from ui_theme.effects import NEW_MESSAGE
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
-from ui_theme.scheme import AlternateRowToneColour
 
 
 from metaclass_registry.mro_dispatch import handles
@@ -44,6 +43,9 @@ from toad.application_actions import NewThreadAction
 from toad.widget_actions import CursorAction, HiddenActions, OpenSelectedAction, OpensSelected
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
+from toad.tone_paint import AlternatingTone
+from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
+from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -68,9 +70,20 @@ class ChannelUnread(PrimaryActivation, ChangingText):
         return self.query_ancestor(ChannelGroup).row.open_selected
 
 
+class ChannelHeader(AlternatingTone, SidebarHeader):
+    """A channel's header row, across its disclosure, name and controls.
+
+    Channels alternate on their own hue-stepped pair, so the channel list and
+    the thread rows under it read as two families.
+    """
+
+    row_tones = (ChannelRowToneColour, ChannelAlternateRowToneColour)
+
+
 class ChannelGroup(SidebarGroup["ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
+    header_type = ChannelHeader
     def __init__(self, row: CommsRow, *, expanded: bool):
         self.channel: ChannelRowModel = UnpaintedChannel(row.target_name)
         self.sort_control = SessionSort(channel=row.target_name)
@@ -150,20 +163,12 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
 
 
 class CommsRow(
-    TargetTreeMember, OpensSelected, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel,
+    TargetTreeMember, OpensSelected, PrimaryActivation, CoreEventReceiver, AlternatingTone, HoverSelection, ViewLabel,
     scopes={HiddenActions: (CursorAction, OpenSelectedAction)},
 ):
     """One interactive row: a channel or a thread."""
 
     text_fades = (NEW_MESSAGE,)
-    alternate: reactive[bool] = reactive(False, repaint=False)
-
-    def watch_alternate(self) -> None:
-        self.refresh_paint()
-
-    @property
-    def tone(self):
-        return AlternateRowToneColour if self.alternate else None
 
     @property
     def target_name(self) -> str:
@@ -481,7 +486,10 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
 
     def order_groups(self) -> None:
         """Order the groups admitted by sync; removed channels retire before member work."""
-        ordered = (self.new_session, *(self.groups[key] for key in self.model_state.shown.channels.rows if key in self.groups))
+        groups = tuple(self.groups[key] for key in self.model_state.shown.channels.rows if key in self.groups)
+        for index, group in enumerate(groups):
+            group.header.place(index)
+        ordered = (self.new_session, *groups)
         live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:
             positions = {widget: index for index, widget in enumerate(ordered)}
