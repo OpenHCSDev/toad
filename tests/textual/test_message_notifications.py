@@ -12,6 +12,7 @@ from agent_comms.notification_progress import (
 from agent_comms.presentation import MessageNotification
 from agent_comms.ui_model.observation import NotificationsObserved, NotificationsUnreadable, UnreadableHistory
 from toad.notification_status import CheckedNotifications
+from toad.widgets.side_bar import SideBar, SideBarToggle
 
 PEERS = 44
 
@@ -57,6 +58,14 @@ def newest_status(chat):
 
 
 async def settled(ui, chat):
+    # The channels sidebar takes 40% of the terminal and ellipsizes the summary's totals;
+    # collapse it through its real toggle so the conversation gets the width.
+    app, pilot = ui.textual
+    bar = app.screen.query_one("#channels-sidebar", SideBar)
+    assert not bar.collapsed
+    assert await pilot.click(bar.query_one(SideBarToggle))
+    await ui.until(lambda: bar.collapsed, why="the channels sidebar collapsed")
+    await ui.step()
     history = chat.message_history
     await ui.until(lambda: not history.undrawn and history.state.accepts_source_work,
                    why="the channel's history read")

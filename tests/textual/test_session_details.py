@@ -53,7 +53,10 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         composer = app.screen.query_one(Input)
         assert details.collapsed and details.size.height == 1
         frame = ui.visible_text()
-        assert "Session details" in frame and "30 recent" in frame and "5 notices" in frame
+        # SessionDetails.summary_title owns the live caption; there is no fixed one.
+        title = details.title.plain
+        assert title and title in frame
+        assert "30 recent" in frame and "5 notices" in frame
         assert "Notice 0" not in frame and "Bus history:" not in frame
         assert composer.region.y == details.region.bottom
 
