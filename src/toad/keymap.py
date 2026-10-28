@@ -2,18 +2,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from collections.abc import Mapping
 from functools import cache
 from importlib import import_module
 from pkgutil import walk_packages
+import re
+from types import MappingProxyType
 from typing import Annotated, TYPE_CHECKING
 
 import toad
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import TextRepresentation
-from textual.binding import BindingsMap
+from agent_comms.field_codec import NominalSpelling, NominalText
+from textual.binding import Binding, BindingsMap
 from textual.document._editing import EditorCommand
-from textual.keys import KeyDeclaration
+from textual.keys import KeyInvocation
 from textual.screen import ModalScreen
 from textual.widgets import TextArea
 
@@ -40,37 +43,43 @@ class KeymapRefused(ValueError):
     """An invalid keyboard preference the editor may report to its user."""
 
 
-class KeyDeclarationName(TextRepresentation[type[KeyDeclaration]]):
-    @classmethod
-    def from_text(cls, value: str) -> type[KeyDeclaration]:
-        discover()
-        for declaration in KeyDeclaration.declarations():
-            if declaration.identity() == value:
-                return declaration
-        raise ValueError(f"Unknown keyboard declaration {value!r}")
+class KeyInvocationId(NominalText):
+    """A saved reference to one concrete command, including its parameters."""
+
+
+class KeyInvocationSpelling(NominalSpelling[KeyInvocationId]):
+    spelling = re.compile(r".+")
 
     @classmethod
-    def encode(cls, value: type[KeyDeclaration]) -> str:
-        return value.identity()
+    def from_text(cls, value: str) -> KeyInvocationId:
+        reference = KeyInvocationId(value)
+        KeymapCatalog.capture(tuple(KeyMode.members_with(KeyMode))).require(reference)
+        return reference
+
+    @classmethod
+    def encode(cls, value: object) -> str:
+        return str(value)
 
 
 @dataclass(frozen=True)
 class KeymapRow:
-    declaration: Annotated[type[KeyDeclaration], KeyDeclarationName]
+    declaration: KeyInvocationId
     mode: type[KeyMode]
+
+    @classmethod
+    def of(cls, invocation: KeyInvocation, mode: type[KeyMode]) -> KeymapRow:
+        return cls(KeyInvocationId(invocation.key_identity()), mode)
 
     @property
     def binding_id(self) -> str:
-        return self.declaration.binding_id(self.mode().binding_mode)
+        return KeyInvocation.in_mode(self.declaration, self.mode().binding_mode)
 
     @property
     def defaults(self) -> tuple[str, ...]:
-        return tuple(binding.key for _key, binding in
-                     BindingsMap(self.declaration.bindings_for(self.mode().binding_mode)))
+        return KeymapCatalog.capture((self.mode,)).defaults(self)
 
     def effective(self, keymap: Keymap) -> tuple[str, ...]:
-        return next((remap.keys for remap in keymap.bindings
-                     if remap.binding_id == self.binding_id), self.defaults)
+        return keymap.keys_for(self.binding_id, self.defaults)
 
 
 @dataclass(frozen=True)
@@ -85,8 +94,64 @@ class KeyConflict:
     key: str
 
     def __str__(self) -> str:
-        return (f"{self.key}: {self.first.declaration.title} and "
-                f"{self.second.declaration.title} ({FamilyChoices(KeyMode).label(self.first.mode)})")
+        catalog = KeymapCatalog.capture((self.first.mode,))
+        return (f"{self.key}: {catalog.require(self.first.declaration).key_title()} and "
+                f"{catalog.require(self.second.declaration).key_title()} "
+                f"({FamilyChoices(KeyMode).label(self.first.mode)})")
+
+
+@dataclass(frozen=True)
+class KeymapCatalog:
+    """A detached view of the same concrete bindings the native scopes dispatch."""
+
+    invocations: Mapping[KeyInvocationId, KeyInvocation]
+    scopes: Mapping[type[KeyMode], tuple[tuple[Binding, ...], ...]]
+    default_keys: Mapping[tuple[KeyInvocationId, type[KeyMode]], tuple[str, ...]]
+
+    @classmethod
+    def capture(cls, modes: tuple[type[KeyMode], ...]) -> KeymapCatalog:
+        discover()
+        invocations: dict[KeyInvocationId, KeyInvocation] = {}
+        scopes: dict[type[KeyMode], tuple[tuple[Binding, ...], ...]] = {}
+        keys: dict[tuple[KeyInvocationId, type[KeyMode]], dict[str, None]] = {}
+        for mode in modes:
+            native_mode = mode().binding_mode
+            application = tuple(binding for declaration in ApplicationAction.declarations()
+                                for binding in declaration.exclusive_bindings(native_mode))
+            editor = tuple(binding for declaration in EditorCommand.declarations()
+                           for binding in declaration.bindings_for(native_mode))
+            owned = [application, editor]
+            for owner in DeclaredWidgetActions.contexts():
+                defaults = owner.declared_bindings(native_mode)
+                if issubclass(owner, TextArea):
+                    defaults = (*defaults, *(binding for binding in editor
+                                             if binding.id not in {item.id for item in defaults}))
+                if not issubclass(owner, ModalScreen):
+                    defaults = (*defaults, *application)
+                owned.append(defaults)
+            scopes[mode] = tuple(owned)
+            for defaults in owned:
+                for key, binding in BindingsMap(defaults):
+                    for invocation in binding.invocations():
+                        reference = KeyInvocationId(invocation.key_identity())
+                        invocations.setdefault(reference, invocation)
+                        keys.setdefault((reference, mode), {})[key] = None
+        return cls(MappingProxyType(invocations), MappingProxyType(scopes), MappingProxyType({
+            (reference, mode): tuple(keys.get((reference, mode), ()))
+            for reference in invocations for mode in modes
+        }))
+
+    def require(self, reference: KeyInvocationId) -> KeyInvocation:
+        try:
+            return self.invocations[reference]
+        except KeyError:
+            raise KeymapRefused(f"Unknown keyboard invocation {reference!r}") from None
+
+    def defaults(self, row: KeymapRow) -> tuple[str, ...]:
+        return self.default_keys[row.declaration, row.mode]
+
+    def effective(self, row: KeymapRow, keymap: Keymap) -> tuple[str, ...]:
+        return keymap.keys_for(row.binding_id, self.defaults(row))
 
 
 @Effect
@@ -105,6 +170,10 @@ class Keymap:
 
     def native(self) -> dict[str, str]:
         return {remap.binding_id: ",".join(remap.keys) for remap in self.bindings}
+
+    def keys_for(self, binding_id: str, defaults: tuple[str, ...]) -> tuple[str, ...]:
+        """The preference alone selects an override; its caller owns the default scope."""
+        return next((remap.keys for remap in self.bindings if remap.binding_id == binding_id), defaults)
 
     def changed(self, row: KeymapRow, keys: tuple[str, ...]) -> Keymap:
         if not keys:
@@ -126,36 +195,28 @@ class Keymap:
                                                         if remap.binding_id != row.binding_id)), row.mode)
 
     def conflicts(self, mode: type[KeyMode]) -> tuple[KeyConflict, ...]:
-        """Collisions derive from the same class scopes that produce dispatch bindings."""
-        discover()
-        native_mode = mode().binding_mode
-        rows = {row.binding_id: row for declaration in KeyDeclaration.declarations()
-                for row in (KeymapRow(declaration, mode),)}
-        application = tuple(binding for declaration in ApplicationAction.declarations()
-                            for binding in declaration.exclusive_bindings(native_mode))
+        """Collisions derive from concrete invocations in the native dispatch scopes."""
+        catalog = KeymapCatalog.capture((mode,))
+        rows = {row.binding_id: row for invocation in catalog.invocations.values()
+                for row in (KeymapRow.of(invocation, mode),)}
         conflicts: set[KeyConflict] = set()
-        for owner in DeclaredWidgetActions.contexts():
-            defaults = owner.declared_bindings(native_mode)
-            if issubclass(owner, TextArea):
-                defaults = (*defaults, *(binding for declaration in EditorCommand.declarations()
-                                         for binding in declaration.bindings_for(native_mode)
-                                         if binding.id not in {item.id for item in defaults}))
-            if not issubclass(owner, ModalScreen):
-                defaults = (*defaults, *application)
+        for defaults in catalog.scopes[mode]:
             # Inspect before Textual resolves clashes by replacing a conflicting binding.
             claims: dict[str, set[str]] = {}
-            for _key, binding in BindingsMap(defaults):
+            for default_key, binding in BindingsMap(defaults):
                 if binding.id in rows:
-                    row = rows[binding.id]
-                    for key in row.effective(self):
+                    keys = self.keys_for(binding.id, (default_key,))
+                    for key in keys:
                         claims.setdefault(key, set()).add(binding.id)
             for key, identities in claims.items():
                 claimed = tuple(sorted(identities))
                 for index, first in enumerate(claimed):
                     for second in claimed[index + 1:]:
                         pair = sorted((rows[first], rows[second]), key=lambda row: row.binding_id)
-                        if (pair[0].declaration.permits_key_overlap(pair[1].declaration)
-                                or pair[1].declaration.permits_key_overlap(pair[0].declaration)):
+                        first_invocation = catalog.require(pair[0].declaration)
+                        second_invocation = catalog.require(pair[1].declaration)
+                        if (first_invocation.permits_invocation_overlap(second_invocation)
+                                or second_invocation.permits_invocation_overlap(first_invocation)):
                             continue
                         conflicts.add(KeyConflict(pair[0], pair[1], key))
         return tuple(sorted(conflicts, key=str))

@@ -1,0 +1,1 @@
+"""Application screen declarations."""

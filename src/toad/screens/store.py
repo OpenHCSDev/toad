@@ -136,7 +136,7 @@ class AgentItem(containers.VerticalGroup):
         with containers.Grid():
             yield widgets.Label(agent.name, id="name")
             tag = pill(
-                FieldCodec.encode(agent.kind),
+                agent.kind.heading,
                 "$primary-muted 50%",
                 "$text-primary",
                 filled=not self.app.native_ansi_color,
@@ -311,8 +311,11 @@ class LaunchSlotAction(WidgetAction):
     def command_for_key(cls, mode: type[EditingMode], key: str) -> Self:
         return cls(cls.keys[mode].index(key))
 
-    def binding_identity(self, mode: type[EditingMode]) -> str:
-        return f"{super().binding_identity(mode)}:{self.slot}"
+    def key_identity(self) -> str:
+        return f"{super().key_identity()}:{self.slot}"
+
+    def key_title(self) -> str:
+        return f"{self.title} {self.slot + 1}"
 
     @classmethod
     def offered(cls, store: StoreScreen) -> Iterator[Self]:

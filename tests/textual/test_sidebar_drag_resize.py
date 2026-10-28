@@ -62,7 +62,7 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         assert slider.value == 41
         await ui.press("left" if side == "left" else "right")
         assert slider.value == 40
-        remap = app.settings.ui.keymap.changed(KeymapRow(CursorRightAction, Standard), ("f6",))
+        remap = app.settings.ui.keymap.changed(KeymapRow.of(CursorRightAction(), Standard), ("f6",))
         app.saved_settings.set(SETTINGS.ui.keymap.bindings, remap.bindings)
         for control in (slider, handle):
             control.focus()

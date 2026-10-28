@@ -24,7 +24,6 @@ from toad.core import input_events
 from rich.console import RenderableType
 from textual._time import after_input
 from textual import events, on, work
-from textual.app import App
 from textual.await_complete import AwaitComplete
 from textual.content import Content
 from textual.css.scalar import Scalar, Unit
@@ -130,7 +129,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App[TerminalOutcome], actions=(ApplicationAction,), inherit_bindings=False):
+class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp[TerminalOutcome], actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -232,6 +231,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         # View release can fail. The application still owns its observation
         # pipe and process pools; an Unmount event may never follow that error.
         async with AsyncResourceRelease() as release:
+            release.push_async_callback(self.close_background_render_tasks)
             release.callback(self.terminal_attention.close)
             release.callback(self.colours.stop)
             release.push_async_callback(self.coordination_access.close)
@@ -243,6 +243,9 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
             release.push_async_callback(self.coordination_access.stop_observing)
             release.push_async_callback(self.thread_actions.close)
             release.push_async_callback(self.thread_navigation.close)
+
+    async def close_background_render_tasks(self) -> None:
+        """Join accepted render work even when an earlier release failed."""
         if self._background_render_tasks:
             await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
 

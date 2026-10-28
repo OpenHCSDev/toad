@@ -25,21 +25,22 @@ from pydantic import JsonValue
 from toad.acp.agent_session import AgentSession
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
+from toad.resource_release import AsyncResourceRelease
 
 
 class AgentProcess(Client):
     def __init__(self, agent) -> None:
         self.agent = agent
-        self.env = None
-        self.cwd = None
-        self.route_selection = None
-        self.process = None
+        self.env: dict[str, str] | None = None
+        self.cwd: str | None = None
+        self.route_selection: RouteSelection | None = None
+        self.process: AttachedChild | None = None
         self.connection: ClientSideConnection | None = None
-        self.runner = None
-        self.retirement = None
-        self.sessions = set()
-        self.initialization = None
-        self.command = None
+        self.runner: asyncio.Task[None] | None = None
+        self.retirement: asyncio.Task[None] | None = None
+        self.sessions: set[AgentSession] = set()
+        self.initialization: schema.InitializeResponse | None = None
+        self.command: str | None = None
         self.attachment_lock = asyncio.Lock()
         self._incoming: ContextVar[dict] = ContextVar('acp_incoming')
 
@@ -231,14 +232,21 @@ class AgentProcess(Client):
 
     async def _retire(self) -> None:
         try:
-            if self.connection is not None:
-                await self.connection.close()
-                self.connection = None
-            await asyncio.gather(*(session.retire() for session in tuple(self.sessions)),
-                                 return_exceptions=True)
+            async with AsyncResourceRelease() as release:
+                if self.process is not None:
+                    release.push_async_callback(self.process.stop)
+                for session in tuple(self.sessions):
+                    release.push_async_callback(session.retire)
+                if self.connection is not None:
+                    try:
+                        await self.connection.close()
+                    except (BrokenPipeError, ConnectionResetError) as error:
+                        # The SDK joins its sender here; an already closed peer can
+                        # leave that sender failed. All sessions are retiring.
+                        self.agent.log(f'[ACP transport closed during retirement] {error}')
+                    finally:
+                        self.connection = None
         finally:
-            if self.process is not None:
-                await self.process.stop()
             self.process = None
             self.sessions.clear()
 
@@ -285,6 +293,7 @@ class AgentProcess(Client):
         if (command := self.command) is None:
             agent.session.startup_failed('No run command for this OS')
             return
+        assert self.route_selection is not None
         try:
             accepts_root = agent.definition.accepts_comms_root
             launch = LaunchRoot.from_path(self.route_selection.root)

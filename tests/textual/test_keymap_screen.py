@@ -1,19 +1,38 @@
 """The menu edits saved mode-specific bindings, including its own opening key."""
 from textual.widgets import DataTable, Input, Static
+from textual.binding import ModeBinding
 
 from toad.application_actions import CommanderAction, KeymapAction
 from toad.key_modes import Standard, VimInsert
 from toad.preferences import SETTINGS, SavedSettings
 from textual.document._editing import Escape, VimInsert as InsertEditing, VimNormal
 from toad.screens.keymap import KeymapScreen
+from toad.keymap import KeymapRow
+from toad.widget_actions import ProfileKeys
 
 
-async def choose(ui, declaration, mode=Standard):
+class CallCounter(ProfileKeys, Static, can_focus=True):
+    """One native callable with two default aliases, discovered without a view edit."""
+
+    count = 0
+
+    def increment(self) -> None:
+        self.count += 1
+        self.update(str(self.count))
+
+    MODE_BINDINGS = (
+        ModeBinding("f8", increment, "Increment", mode=Standard().binding_mode),
+        ModeBinding("f9", increment, "Increment", mode=Standard().binding_mode),
+    )
+
+
+async def choose(ui, invocation, mode=Standard):
     screen = ui.app.screen
-    screen.query_one("#keymap-search", Input).value = declaration.title
+    screen.query_one("#keymap-search", Input).value = invocation.key_title()
     await ui.step()
     table = screen.query_one(DataTable)
-    table.move_cursor(row=screen.visible_declarations.index(declaration), column=screen.modes.index(mode) + 1)
+    table.move_cursor(row=screen.visible_declarations.index(KeymapRow.of(invocation, mode).declaration),
+                      column=screen.modes.index(mode) + 1)
     table.focus()
     await ui.press("enter")
 
@@ -23,7 +42,7 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace):
         app = ui.app
         await ui.press("f1")
         await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the keymap menu")
-        await choose(ui, KeymapAction)
+        await choose(ui, KeymapAction())
         app.screen.query_one("#keymap-keys", Input).value = "f7"
         await ui.pilot.click("#keymap-apply")
         await ui.until(lambda: KeymapAction.binding_id(Standard().binding_mode) in app._keymap,
@@ -42,7 +61,7 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace):
         assert app.screen is app.workspace_screen
         await ui.press("f7")
         await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the remapped menu key")
-        await choose(ui, CommanderAction)
+        await choose(ui, CommanderAction())
         app.screen.query_one("#keymap-keys", Input).value = "f7"
         await ui.pilot.click("#keymap-apply")
         await ui.until(lambda: "Key conflict" in str(app.screen.query_one("#keymap-status", Static).render()),
@@ -66,7 +85,7 @@ async def test_the_menu_remaps_the_native_insert_escape_without_changing_normal(
         editor.focus()
         await ui.press("f1")
         await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the native command menu")
-        await choose(ui, Escape, VimInsert)
+        await choose(ui, Escape(), VimInsert)
         app.screen.query_one("#keymap-keys", Input).value = "f6"
         await ui.pilot.click("#keymap-apply")
         await ui.until(lambda: Escape.binding_id(InsertEditing) in app._keymap,
@@ -78,3 +97,29 @@ async def test_the_menu_remaps_the_native_insert_escape_without_changing_normal(
         assert isinstance(editor.editing_mode, InsertEditing)
         await ui.press("f6")
         assert type(editor.editing_mode) is VimNormal
+
+
+async def test_the_menu_discovers_and_remaps_a_native_callable_with_both_aliases(workspace):
+    async with workspace.app(size=(140, 45)) as ui:
+        counter = CallCounter("0")
+        await ui.app.screen.mount(counter)
+        counter.focus()
+        invocation = counter.MODE_BINDINGS[0].invocation
+        row = KeymapRow.of(invocation, Standard)
+        assert row.defaults == ("f8", "f9")
+        await ui.press("f1")
+        await ui.until(lambda: isinstance(ui.app.screen, KeymapScreen), why="the native callable in the menu")
+        assert len(ui.app.screen.modes) == 4
+        await choose(ui, invocation)
+        ui.app.screen.query_one("#keymap-keys", Input).value = "f6"
+        await ui.pilot.click("#keymap-apply")
+        await ui.until(lambda: row.effective(ui.app.settings.ui.keymap) == ("f6",),
+                       why="the saved callable remap")
+        loaded = SavedSettings(ui.app.saved_settings.document()).current.ui.keymap
+        assert row.effective(loaded) == ("f6",)
+        await ui.press("escape")
+        counter.focus()
+        await ui.press("f8", "f9")
+        assert counter.count == 0
+        await ui.press("f6")
+        assert counter.count == 1

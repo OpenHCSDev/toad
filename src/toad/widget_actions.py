@@ -12,7 +12,7 @@ from typing import ClassVar, Generic, Literal, Self, TypeVar
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, FieldPlan
-from textual.binding import Binding, BindingsMap, ModeBinding
+from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
@@ -26,7 +26,7 @@ from dataclasses import dataclass
 Context = TypeVar("Context", bound=DOMNode)
 
 
-class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="Action"):
+class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context], affix="Action"):
     """Only the Textual boundary decodes an external action name. A member declares its
     keys, and its title and docstring are the only text any view shows for it."""
 
@@ -78,8 +78,9 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
     @classmethod
     def command_binding(cls, capability: type[EditingMode], key: str, command: Self,
                         mode: type[EditingMode]) -> ModeBinding:
-        return ModeBinding(
-            key, command.apply, cls.title, available=command.key_available, mode=capability,
+        return CommandBinding(
+            key=key, action=command, description=cls.title,
+            available=command.key_available, mode=capability,
             tooltip=cls.summary(), show=cls.show, priority=cls.priority,
             system=cls.system, group=cls.group, key_display=cls.key_display,
             id=command.binding_identity(mode),
@@ -99,8 +100,8 @@ class Action(KeyDeclaration, Command, DeclaredFamily, Generic[Context], affix="A
     def command_for_key(cls, mode: type[EditingMode], key: str) -> Self:
         return cls()
 
-    def binding_identity(self, mode: type[EditingMode]) -> str:
-        return type(self).binding_id(mode)
+    def __call__(self, context: Context) -> None | Awaitable[None]:
+        return self.apply(context)
 
     @classmethod
     def configured_bindings(cls, context: Context) -> tuple[Binding, ...]:
@@ -220,12 +221,12 @@ class DeclaredWidgetActions(ToadNode):
     @classmethod
     def contexts(cls) -> tuple[type[DeclaredWidgetActions], ...]:
         pending = [cls]
-        found = set()
+        found: dict[type[DeclaredWidgetActions], None] = {}
         while pending:
             owner = pending.pop()
             if owner not in found:
-                found.add(owner)
-                pending.extend(owner.__subclasses__())
+                found[owner] = None
+                pending.extend(reversed(owner.__subclasses__()))
         return tuple(found)
 
     @classmethod

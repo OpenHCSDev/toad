@@ -8,12 +8,12 @@ from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.keys import KeyDeclaration
+from textual.keys import KeyInvocation
 from textual.widgets import Button, Checkbox, DataTable, Input, Static
 from textual.document._editing import EditingMode
 
 from toad.key_modes import KeyMode
-from toad.keymap import Keymap, KeymapRefused, KeymapRow, discover
+from toad.keymap import Keymap, KeymapCatalog, KeymapRefused, KeymapRow, discover
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
 from toad.screens.modal import DismissibleScreen
@@ -37,14 +37,15 @@ class KeymapScreen(DismissibleScreen[None]):
     def __init__(self, focus_mode: type[EditingMode], focused: frozenset[str]) -> None:
         super().__init__()
         discover()
-        self.declarations = tuple(declaration for declaration in dict.fromkeys(KeyDeclaration.declarations())
-                                  if not declaration.system)
         self.focus_mode, self.focused_ids = focus_mode, focused
         mode_choices = SETTINGS.ui.key_mode.bind(self.app.saved_settings.state).metadata(FamilyChoices)
         if mode_choices is None:
             raise TypeError("The keyboard mode preference must declare its choices.")
         self.mode_choices = cast(FamilyChoices[KeyMode], mode_choices)
         self.modes = self.mode_choices.choices()
+        self.declarations = tuple(reference for reference, invocation
+                                  in KeymapCatalog.capture(self.modes).invocations.items()
+                                  if not invocation.key_system())
         self.visible_declarations = self.declarations
 
     def compose(self) -> ComposeResult:
@@ -70,16 +71,18 @@ class KeymapScreen(DismissibleScreen[None]):
         table = self.query_one(DataTable)
         table.clear()
         focused_only = self.query_one("#keymap-focused", Checkbox).value
+        catalog = KeymapCatalog.capture(self.modes)
         self.visible_declarations = tuple(declaration for declaration in self.declarations
-                             if (not focused_only or declaration.binding_id(self.focus_mode) in self.focused_ids)
-                             and term.casefold() in (declaration.title + " " + declaration.summary()).casefold())
+                             if (not focused_only or KeyInvocation.in_mode(declaration, self.focus_mode) in self.focused_ids)
+                             and term.casefold() in (catalog.require(declaration).key_title() + " "
+                                                    + catalog.require(declaration).key_summary()).casefold())
         keymap = self.app.settings.ui.keymap
         conflicts = {row.binding_id for mode in self.modes for conflict in keymap.conflicts(mode)
                      for row in (conflict.first, conflict.second)}
         for declaration in self.visible_declarations:
-            title = Text(declaration.title,
-                         style="" if declaration.binding_id(self.focus_mode) in self.focused_ids else "dim")
-            table.add_row(title, *(Text(", ".join(row.effective(keymap)) or "—",
+            title = Text(catalog.require(declaration).key_title(),
+                         style="" if KeyInvocation.in_mode(declaration, self.focus_mode) in self.focused_ids else "dim")
+            table.add_row(title, *(Text(", ".join(catalog.effective(row, keymap)) or "—",
                                             style="bold red" if row.binding_id in conflicts else "")
                                    for mode in self.modes for row in (KeymapRow(declaration, mode),)))
 
@@ -104,7 +107,8 @@ class KeymapScreen(DismissibleScreen[None]):
         for row in self.selected_rows():
             self.query_one("#keymap-keys", Input).value = ", ".join(
                 row.effective(self.app.settings.ui.keymap))
-            self.query_one("#keymap-summary", Static).update(row.declaration.summary())
+            self.query_one("#keymap-summary", Static).update(
+                KeymapCatalog.capture((row.mode,)).require(row.declaration).key_summary())
             conflicts = tuple(conflict for conflict in self.app.settings.ui.keymap.conflicts(row.mode)
                               if row in (conflict.first, conflict.second))
             self.query_one("#keymap-status", Static).update("; ".join(map(str, conflicts)))
