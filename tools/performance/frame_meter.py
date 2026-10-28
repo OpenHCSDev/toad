@@ -44,245 +44,461 @@ def _running_app(expected_pid):
     return App.running_app()
 
 
-def install(*, expected_pid, seconds, output):
+class BoundedCapture:
+    """Own admitted JSON bytes, weak identities, timers and reversible hooks.
+
+    The final status has an 8192-byte reservation, including its key/separators.
+    Records are encoded ONCE before admission; product objects never enter buffers.
+    Hooks are restored before output, even when setup or encoding fails.
+    """
+
+    FINAL_RESERVE = 8192
+    CONTRACT = 1
+
+    def __init__(self, *, expected_pid, seconds, output, max_records, max_bytes,
+                 metadata_only, streams, fields=None):
+        import asyncio
+        import math
+        from pathlib import Path
+
+        if os.getpid() != expected_pid:
+            raise CaptureProcessMismatch("Unexpected capture process")
+        self.loop = asyncio.get_running_loop()  # MUST precede patches
+        if not math.isfinite(seconds) or not 0 < seconds <= 3600:
+            raise ValueError("Capture duration must be in (0, 3600]")
+        if type(max_records) is not int or not 1 <= max_records <= 1_000_000:
+            raise ValueError("Invalid record bound")
+        if type(max_bytes) is not int or not self.FINAL_RESERVE + 4096 <= max_bytes <= 128 << 20:
+            raise ValueError("Invalid byte bound")
+        self.output = Path(output)
+        self.partial = self.output.with_name(self.output.name + '.partial')
+        if self.output.exists() or self.partial.exists():
+            raise FileExistsError("Capture output must be fresh")
+        self.max_records, self.max_bytes = max_records, max_bytes
+        self.metadata_only = metadata_only
+        self.seconds = seconds
+        self.started = time.monotonic_ns()
+        self.lock = threading.RLock()
+        self.accepting, self.finished = True, False
+        self.count = self.dropped = self.censored = self.open_spans = 0
+        self.cap_exhausted = False
+        self.error = None
+        self.reason = "explicit"
+        self.hooks, self.timers = [], []
+        self.probe_timer = None
+        self.pending_inputs = {}
+        self.identities = {}
+        self.next_label = self.next_span = 0
+        self.buffers = {name: bytearray() for name in streams}
+        self.header = self.encode(dict(pid=expected_pid, seconds=seconds,
+                                       metadata_only=metadata_only, **(fields or {})))[:-1]
+        self.used = len(self.header) + 1  # final closing brace
+        self.used += sum(len(self.encode(name)) + 4 for name in self.buffers)  # ,key:[]
+        if self.used + self.FINAL_RESERVE > max_bytes:
+            raise ValueError("Envelope exceeds capture bound")
+
+    @staticmethod
+    def encode(value):
+        return json.dumps(value, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8')
+
+    def record(self, stream, value):
+        with self.lock:
+            if not self.accepting:
+                return False
+            try:
+                data = self.encode(value)
+                buffer = self.buffers[stream]
+                size = len(data) + bool(buffer)
+                if self.count >= self.max_records or self.used + size + self.FINAL_RESERVE > self.max_bytes:
+                    self.dropped += 1
+                    self.cap_exhausted = True
+                    self.stop('cap')
+                    return False
+                if buffer:
+                    buffer.extend(b',')
+                buffer.extend(data)
+                self.used += size
+                self.count += 1
+                if self.count == self.max_records:
+                    self.cap_exhausted = True
+                    self.stop('cap')
+                return True
+            except Exception as error:
+                self.error = type(error).__name__[:96]
+                self.stop('recording-error')
+                return False
+
+    def stop(self, reason):
+        """Stop admission immediately; restoration runs on the owning loop."""
+        self.accepting = False
+        self.reason = reason
+        self.loop.call_soon_threadsafe(self.finish, reason)
+
+    def label(self, value):
+        """Never retain or hash a product object, and never confuse reused ids."""
+        import weakref
+
+        if value is None:
+            return None
+        with self.lock:
+            if not self.accepting:
+                return None
+            key = id(value)
+            previous = self.identities.get(key)
+            if previous is not None and previous[0]() is value:
+                return previous[1]
+            if len(self.identities) >= self.max_records:
+                self.cap_exhausted = True
+                self.stop('identity-cap')
+                return None
+            self.next_label += 1
+            label = self.next_label
+
+            def retired(reference):
+                with self.lock:
+                    found = self.identities.get(key)
+                    if found is not None and found[0] is reference:
+                        del self.identities[key]
+                        self.record('events', dict(event='retired', label=label, at_ns=time.monotonic_ns()))
+            try:
+                reference = weakref.ref(value, retired)
+            except TypeError:
+                return None  # explicitly unsupported lifetime, never bare id()
+            self.identities[key] = reference, label
+            self.record('events', dict(event='identity', label=label, type=_type_name(value),
+                                       at_ns=time.monotonic_ns()))
+            return label
+
+    def patch(self, target, wrapper):
+        """Targets have all been resolved and validated before the first patch."""
+        target.install(self, wrapper)
+
+    def arm(self):
+        self.timers.append(self.loop.call_later(self.seconds, self.finish, 'duration'))
+        return self.finish
+
+    def finish(self, reason='explicit'):
+        import inspect
+
+        with self.lock:
+            if self.finished:
+                return self.status
+            self.accepting, self.finished = False, True
+            self.reason = reason
+            if (probe_timer := self.probe_timer) is not None:
+                probe_timer.cancel()
+                self.probe_timer = None
+            for timer in self.timers:
+                timer.cancel()
+            self.timers.clear()
+            restored = skipped = failed = 0
+            for owner, name, original, installed, inherited in reversed(self.hooks):
+                try:
+                    if inspect.getattr_static(owner, name) is installed:
+                        if inherited:
+                            delattr(owner, name)
+                        else:
+                            setattr(owner, name, original)
+                        restored += 1
+                    else:
+                        skipped += 1
+                except Exception:
+                    failed += 1
+            self.hooks.clear()
+            self.identities.clear()
+            pending_inputs = len(self.pending_inputs)
+            self.pending_inputs.clear()
+            self.status = dict(contract=self.CONTRACT, reason=reason,
+                               started_ns=self.started, ended_ns=time.monotonic_ns(),
+                               measured_records=self.count, dropped_records=self.dropped,
+                               censored_spans=self.open_spans + self.censored,
+                               censored_inputs=pending_inputs,
+                               cap_exhausted=self.cap_exhausted, error=self.error,
+                               hooks_restored=restored, hooks_superseded=skipped,
+                               hooks_failed=failed, cleanup=('failed' if failed else
+                                                            'superseded' if skipped else 'restored'),
+                               max_records=self.max_records, max_bytes=self.max_bytes,
+                               output_bytes=0, pixels_observed=False)
+            # The count includes its own decimal spelling: settle to a fixed point.
+            footer = b',"capture":' + self.encode(self.status)
+            for _ in range(8):
+                self.status['output_bytes'] = self.used + len(footer)
+                updated = b',"capture":' + self.encode(self.status)
+                if updated == footer:
+                    break
+                footer = updated
+            if len(footer) > self.FINAL_RESERVE:
+                raise RuntimeError('Final status exceeded reserved envelope')
+            try:
+                fd = os.open(self.partial, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                with os.fdopen(fd, 'wb') as file:
+                    file.write(self.header)
+                    for name, buffer in self.buffers.items():
+                        file.write(b',' + self.encode(name) + b':[')
+                        file.write(buffer)
+                        file.write(b']')
+                    file.write(footer + b'}')
+                os.rename(self.partial, self.output)
+            finally:
+                self.buffers.clear()
+            return self.status
+
+
+class MethodTarget:
+    """The exact descriptor declaration and binding needed for one hook."""
+
+    def __init__(self, path):
+        import importlib
+        import inspect
+
+        module, separator, attribute = path.partition(':')
+        if not separator or len(path) > 240:
+            raise ValueError('Invalid capture target')
+        owner = importlib.import_module(module)
+        *parents, self.name = attribute.split('.')
+        for parent in parents:
+            owner = getattr(owner, parent)
+        self.owner, self.path = owner, path
+        self.declared = inspect.getattr_static(owner, self.name)
+        self.inherited = self.name not in vars(owner)
+        self.bind = type(self.declared) if isinstance(self.declared, (classmethod, staticmethod)) else lambda value: value
+        self.original = self.declared.__func__ if isinstance(self.declared, (classmethod, staticmethod)) else self.declared
+        if not inspect.isfunction(self.original):
+            raise TypeError('Capture target must be a Python function descriptor')
+        if getattr(self.original, '_bounded_capture', False):
+            raise RuntimeError('Target already belongs to a capture')
+        self.asynchronous = inspect.iscoroutinefunction(self.original)
+        self.signature = inspect.signature(self.original)
+
+    def install(self, capture, wrapper):
+        wrapper._bounded_capture = True
+        installed = self.bind(wrapper)
+        # Record before assignment so even a raising descriptor setup is reversible.
+        capture.hooks.append((self.owner, self.name, self.declared, installed, self.inherited))
+        setattr(self.owner, self.name, installed)
+
+
+def _type_name(value):
+    return (type(value).__module__ + '.' + type(value).__qualname__)[:160]
+
+
+def _cursor_metadata(cursor):
+    # TranscriptCursor declares these defaults on the base; no family redispatch.
+    if cursor is None:
+        return None
+    return dict(type=_type_name(cursor), session_file=(cursor.session_file or '')[:384],
+                offset=cursor.offset, wire_sequence=cursor.wire.sequence)
+
+
+def _page_metadata(capture, prepared):
+    page = prepared.page
+    witness = page.snapshot
+    return dict(prepared=capture.label(prepared), before=_cursor_metadata(page.before),
+                after=_cursor_metadata(page.after), fragments=len(prepared.fragments),
+                root=witness.root[:384], thread=witness.requested_name[:160],
+                through=_cursor_metadata(witness.through),
+                thread_birth=witness.thread.incarnation.wire_birth,
+                snapshot=capture.label(witness), no_match=not prepared.fragments)
+
+
+class CallMetadata:
+    """Typed observation adapters; product algorithms and keys remain untouched."""
+
+    targets = {}
+    path = None
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if cls.path is not None:
+            cls.targets[cls.path] = cls()
+
+    def enter(self, capture, arguments):
+        return {}
+
+    def result(self, capture, result):
+        return dict(result_type=_type_name(result))
+
+
+class SourceGetMetadata(CallMetadata):
+    path = 'toad.transcript_preparation:PreparedPageSource.get'
+
+    def enter(self, capture, arguments):
+        source, request = arguments['self'], arguments['request']
+        return dict(source=capture.label(source), scope=capture.label(source.scope),
+                    direction=_type_name(request.end), cursor=_cursor_metadata(request.cursor))
+
+    def result(self, capture, result):
+        return _page_metadata(capture, result)
+
+
+class RowsMetadata(CallMetadata):
+    path = 'toad.transcript_preparation:PreparedTranscriptPage.prepare_rows'
+
+    def enter(self, capture, arguments):
+        view, prepared = arguments['view'], arguments['self']
+        return dict(**_page_metadata(capture, prepared), history=capture.label(view),
+                    width=arguments['target'].line_width, direction=_type_name(arguments['end']),
+                    filter=capture.label(arguments['selected']), rows_needed=arguments['rows_needed'])
+
+
+class LoadMetadata(CallMetadata):
+    path = 'toad.widgets.transcript_history:LineHistory._load_page'
+
+    def enter(self, capture, arguments):
+        history = arguments['self']
+        return dict(history=capture.label(history), source=capture.label(history.page_source),
+                    scope=capture.label(history.page_source.scope), width=history.line_width,
+                    filter=capture.label(history.filter), direction=_type_name(arguments['end']))
+
+
+class ExtendMetadata(CallMetadata):
+    path = 'toad.widgets.transcript_history:LineHistory._extend_and_trim'
+
+    def enter(self, capture, arguments):
+        return dict(**_page_metadata(capture, arguments['prepared']), history=capture.label(arguments['self']),
+                    direction=_type_name(arguments['end']), local=arguments['local'])
+
+
+class PublishedMetadata(CallMetadata):
+    path = 'toad.transcript_source_preparation:TranscriptSourcePreparation.rows_published'
+
+    def enter(self, capture, arguments):
+        return dict(history=capture.label(arguments['self']),
+                    meaning='rows-admitted-not-layout-or-pixels')
+
+
+class SelectedMetadata(CallMetadata):
+    path = 'toad.app:ToadApp.select_session'
+
+    def enter(self, capture, arguments):
+        return dict(mode=arguments['mode'][:160])
+
+
+class SwitchingMetadata(SelectedMetadata):
+    path = 'toad.app:ToadApp._switch_mode_ready'
+
+
+class ToastMetadata(CallMetadata):
+    path = 'toad.widgets.switch_toast:SwitchToast.show'
+
+
+class WriterMetadata(CallMetadata):
+    path = 'textual.drivers._writer_thread:_FlushSignal.deliver'
+
+    def enter(self, capture, arguments):
+        return dict(signal=capture.label(arguments['self']), meaning='writer-flushed-not-pixels')
+
+
+class WrittenMetadata(CallMetadata):
+    path = 'toad.frame_presentation:FramePresentation.written'
+
+    def enter(self, capture, arguments):
+        return dict(frame=capture.label(arguments['self']), scene=capture.label(arguments['writing']),
+                    meaning='writer-acknowledgement-on-ui-loop-not-pixels')
+
+
+def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 20,
+            metadata_only=False):
+    """Bound total loop work and actual display handoffs, without a heap sampler.
+
+    frames/inputs/lags retain the shapes consumed by summarize(). Diagnostic
+    events are flat records, not growing callback/stack dictionaries.
+    """
     import asyncio
-    import gc
-    from asyncio import events as loop_events
     from textual import events
-    from textual.message_pump import MessagePump
-    from textual.widget import Widget
 
     app = _running_app(expected_pid)
-
-    # Divider drags are input too; the mouse family includes wheel events.
+    paths = ('asyncio.events:Handle._run',
+             'textual.message_pump:MessagePump.post_message',
+             'textual.message_pump:MessagePump._dispatch_message',
+             'textual.widget:Widget.refresh', 'textual.widget:Widget._request_layout',
+             'textual.screen:Screen.refresh_bindings', 'textual.screen:Screen._refresh_layout',
+             'textual.screen:Screen._layout_step')
+    targets = [MethodTarget(path) for path in paths]
+    display_target = MethodTarget('toad.app:ToadApp._display')
+    targets.append(display_target)
+    capture = BoundedCapture(expected_pid=expected_pid, seconds=seconds, output=output,
+                             max_records=max_records, max_bytes=max_bytes, metadata_only=metadata_only,
+                             streams=('frames', 'inputs', 'lags', 'events', 'switch_steps', 'stepped_layouts',
+                                      'slow_frames', 'timed_callbacks', 'slow_handlers', 'layout_invalidations'))
+    run, post, dispatch, refresh, request_layout, refresh_bindings, refresh_layout, layout_step, display = (
+        target.original for target in targets)
     inputs_types = (events.Key, events.MouseEvent)
     clock = time.monotonic_ns
-    state = {"busy": 0, "current": None, "parts": {}, "cpu": time.thread_time_ns(), "shown": clock()}
-    frames, inputs, slow, slow_frames, gc_pauses = [], [], [], [], []
-    switch_steps = []
-    # Each layout that ran in more than one step or had a step over 4 ms
-    # (Screen._layout_step): its start, step budget and every step's length.
-    stepped_layouts = []
-    run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
-    refresh = Widget.refresh
-    layout_invalidations = []
-    request_layout = Widget._request_layout
-    repaints = {}
+    state = dict(busy=0, current=None, cpu=time.thread_time_ns(), shown=clock(),
+                 stretch_begin=clock(), stretch_end=clock(), stall=0, layout=0, layouts=0)
 
     def counted_layout(self, required=True):
         if required:
-            caller, stack = sys._getframe(1), []
-            while caller is not None and len(stack) < 24:
-                code = caller.f_code
-                if code.co_filename != __file__:
-                    stack.append(dict(file=code.co_filename, line=caller.f_lineno,
-                                      function=code.co_qualname))
-                caller = caller.f_back
-            layout_invalidations.append(dict(at_ns=clock(), widget=type(self).__name__,
-                                             stack=stack))
+            capture.record('layout_invalidations', dict(at_ns=clock(), widget=_type_name(self)))
         return request_layout(self, required)
 
     def counted_refresh(self, *regions, repaint=True, layout=False, recompose=False):
-        name = type(self).__name__
-        if repaint and not layout:
-            # Repaints are cheaper than layouts but each repainted widget
-            # renders its lines again; count who asks.
-            caller = sys._getframe(1)
-            while caller is not None and caller.f_code.co_name in ("refresh", "_refresh"):
-                caller = caller.f_back
-            key = f"{name} <- {caller.f_code.co_qualname if caller else '?'}"
-            repaints[key] = repaints.get(key, 0) + 1
+        capture.record('events', dict(event='refresh', at_ns=clock(), widget=_type_name(self),
+                                      repaint=repaint, layout=layout, recompose=recompose))
         return refresh(self, *regions, repaint=repaint, layout=layout, recompose=recompose)
 
-    from textual.screen import Screen
-    refresh_bindings = Screen.refresh_bindings
-    refresh_layout = Screen._refresh_layout
-
-    # Builds before the screen's own layouts ran in steps have no steps to time.
-    layout_step = getattr(Screen, "_layout_step", None)
-    # The layout each running step generator belongs to, until its last step.
-    running_layouts = {}
-
     def traced_layout_step(self, steps, deadline, step_ns):
-        begin, last = clock(), True
+        begin = clock()
         try:
-            last = layout_step(self, steps, deadline, step_ns)
-            return last
+            return layout_step(self, steps, deadline, step_ns)
         finally:
-            record = running_layouts.setdefault(id(steps), (begin, step_ns, []))
-            record[2].append((clock() - begin) / 1e6)
-            if last:
-                del running_layouts[id(steps)]
-                if len(record[2]) > 1 or record[2][0] > 4:
-                    stepped_layouts.append(record)
+            capture.record('stepped_layouts', (begin, step_ns, [(clock() - begin) / 1e6]))
 
     def timed_layout(self, *args, **kwargs):
-        # Whole-screen layout inside a frame: how much of a slow frame it is.
         begin = clock()
         try:
             return refresh_layout(self, *args, **kwargs)
         finally:
-            state["layout"] = state.get("layout", 0) + (clock() - begin) / 1e6
-            state["layouts"] = state.get("layouts", 0) + 1
-    binding_refreshes = {}
+            elapsed = clock() - begin
+            state['layout'] += elapsed / 1e6
+            state['layouts'] += 1
+            capture.record('events', dict(event='layout', start_ns=begin, end_ns=clock(),
+                                          screen=capture.label(self)))
 
     def counted_bindings(self):
-        # Every binding refresh rebuilds the footer's binding state; count callers.
-        caller = sys._getframe(1)
-        if caller.f_code.co_name == "refresh_bindings":
-            caller = caller.f_back
-        name = f"{caller.f_code.co_qualname} {caller.f_code.co_filename.rsplit('/', 2)[-1]}"
-        binding_refreshes[name] = binding_refreshes.get(name, 0) + 1
+        capture.record('events', dict(event='bindings', at_ns=clock()))
         return refresh_bindings(self)
-    app_type = type(app)
-    display = app_type._display
-
-    stalls = {}
-    long_callbacks = {}
-    # Per long callback: the other threads' innermost frames in the same
-    # samples. When the UI thread waited for the GIL, the holder's frame
-    # still points at the call that held it when this watcher gets the GIL.
-    stall_threads = {}
-    timed_callbacks = []
-    # Every callback since the lag probe last ran, and, per wait over 12 ms,
-    # the callbacks that made it up: a wait is often one loop turn of many
-    # short callbacks, none long enough to be recorded on its own.
-    since_probe, long_waits = [], []
-    main_thread = threading.get_ident()
-
-    def watch_stalls():
-        # A sampled profile misses a rare long callback; sample the UI
-        # thread's stack while one callback has run past 8 ms.
-        while not state.get("finished"):
-            time.sleep(0.004)
-            begin = state["current"]
-            if begin is None or clock() - begin < 8_000_000:
-                continue
-            frames_now = sys._current_frames()
-            frame = frames_now.get(main_thread)
-            if frame is None:
-                continue
-            others = {}
-            for ident, other in frames_now.items():
-                if ident in (main_thread, threading.get_ident()):
-                    continue
-                if other.f_code.co_name in ("wait", "_worker", "select", "get", "_wait_for_tstate_lock"):
-                    continue  # idle
-                chain = []
-                while other is not None and len(chain) < 8:
-                    chain.append(f"{other.f_code.co_name} {other.f_code.co_filename.rsplit('/', 2)[-1]}:{other.f_lineno}")
-                    other = other.f_back
-                others[threading._active.get(ident).name if ident in threading._active else str(ident)] = " < ".join(chain)
-            if others:
-                stall_threads.setdefault(begin, []).append(others)
-            # Walk frames directly: extract_stack reads source lines (file
-            # I/O under the GIL), lengthening the very stall being sampled.
-            stack = []
-            while frame is not None:
-                code = frame.f_code
-                if "/src/" in code.co_filename or "site-packages" in code.co_filename:
-                    path = code.co_filename.split('/src/')[-1].split('site-packages/')[-1]
-                    stack.append(f"{code.co_name} {path}:{frame.f_lineno}")
-                frame = frame.f_back
-            stack.reverse()
-            # Innermost frames show the work; the outermost Toad frames show
-            # what started it.
-            full = stack
-            stack = stack[:8] + ["..."] + stack[-8:] if len(stack) > 16 else stack
-            key = " < ".join(reversed(stack))
-            stalls[key] = stalls.get(key, 0) + 1
-            # Keep each long callback's own samples, by its start, to read one
-            # stall in full rather than only the run's aggregate.
-            long_callbacks.setdefault(begin, []).append(" < ".join(reversed(full)))
 
     def timed_run(handle):
-        state["current"] = begin = clock()
+        if not capture.accepting:
+            return run(handle)
+        state['current'] = begin = clock()
         cpu_begin = time.thread_time_ns()
-        # A stall is a stretch the loop could not paint in: callbacks closer
-        # than 1 ms together form one stretch.
-        if begin - state.get("stretch_end", 0) > 1_000_000:
-            state["stretch_begin"] = begin
+        if begin - state['stretch_end'] > 1_000_000:
+            state['stretch_begin'] = begin
         try:
             return run(handle)
         finally:
             end = clock()
-            state["stretch_end"] = end
-            stretch = (end - state["stretch_begin"]) / 1e6
-            if stretch > state.get("stall", 0):
-                state["stall"] = stretch
-            spent = end - begin
-            state["busy"] += spent
-            state["current"] = None
-            if spent > 20_000:
-                callback = handle._callback
-                owner = getattr(callback, "__self__", None)
-                if isinstance(owner, asyncio.Task):
-                    coroutine = owner.get_coro()
-                    callback = getattr(coroutine, "__qualname__", None) or repr(coroutine)[:80]
-                    frame = getattr(coroutine, "cr_frame", None)
-                    target = frame.f_locals.get("self") if frame is not None else None
-                    if target is not None:
-                        work = getattr(target, "_work", None)
-                        work = getattr(work, "func", work)
-                        label = (getattr(work, "__qualname__", None) or getattr(target, "_name", None)
-                                 or getattr(target, "name", None))
-                        callback += f" [{type(target).__name__}{':' + str(label)[:40] if label else ''}]"
-                else:
-                    callback = getattr(callback, "__qualname__", None) or repr(callback)[:80]
-                if callback.startswith("ToadApp._switch_mode_ready"):
-                    # Every loop turn of a tab switch, whatever its length.
-                    switch_steps.append((begin, spent / 1e6))
-                if spent > 8_000_000:
-                    # Each long callback's exact duration, owner and UI-thread
-                    # CPU (far below the duration: the thread was waiting for
-                    # the GIL or a CPU); its stall samples (same start) show
-                    # where the time went.
-                    timed_callbacks.append((begin, spent / 1e6, callback, (time.thread_time_ns() - cpu_begin) / 1e6))
-                # Callbacks are totalled per owner within a frame: a slow
-                # frame is usually many small callbacks, not one long one.
-                since_probe.append((begin, spent / 1e6, callback))
-                parts = state["parts"]
-                parts[callback] = parts.get(callback, 0) + spent / 1e6
-                counts = state.setdefault("counts", {})
-                counts[callback] = counts.get(callback, 0) + 1
-
-    def collected(phase, info):
-        # Collector pauses land inside whichever callback allocated; record
-        # them separately so they are not blamed on that owner.
-        if phase == "start":
-            state["gc"] = clock()
-            # Objects allocated since the last collection that did any work:
-            # a collection that waited long has that many young objects to scan.
-            state["gc_young"] = gc.get_count()[0]
-        elif (began := state.pop("gc", None)) is not None:
-            parts = state["parts"]
-            label = f"gc generation {info['generation']}"
-            spent = (clock() - began) / 1e6
-            parts[label] = parts.get(label, 0) + spent
-            gc_pauses.append((began, spent, info["generation"], info["collected"], info["uncollectable"],
-                              state.pop("gc_young", 0)))
+            state['stretch_end'] = end
+            state['stall'] = max(state['stall'], (end - state['stretch_begin']) / 1e6)
+            state['busy'] += end - begin
+            state['current'] = None
+            if end - begin > 8_000_000:
+                capture.record('timed_callbacks', (begin, (end - begin) / 1e6,
+                                                   _type_name(handle._callback),
+                                                   (time.thread_time_ns() - cpu_begin) / 1e6))
 
     def timed_display(self, screen, renderable):
         result = display(self, screen, renderable)
-        if renderable is not None and self is app:
+        if capture.accepting and renderable is not None and self is app:
             now = clock()
             running = 0 if state["current"] is None else now - state["current"]
             work = (state["busy"] + running) / 1e6
             cpu = time.thread_time_ns()
-            frames.append((now, work, state.get("stall", 0)))
+            capture.record('frames', (now, work, state['stall']))
+            capture.record('events', dict(event='display-handoff', at_ns=now,
+                                          screen=capture.label(screen), pixels_observed=False))
             # A paint ends the stretch: the next one starts after it.
             state["stall"] = 0
             state["stretch_begin"] = state["stretch_end"] = now
             if work > 16:
                 # UI-thread CPU over the same interval: far below the work
                 # means the loop was waiting for the GIL, not computing.
-                counts = state.get("counts", {})
-                parts = [(label, ms, counts.get(label, 0))
-                         for label, ms in sorted(state["parts"].items(), key=lambda part: -part[1])]
-                slow_frames.append((now, work, parts, (cpu - state["cpu"]) / 1e6, (now - state["shown"]) / 1e6,
-                                    state.get("layout", 0), state.get("layouts", 0)))
-            state["parts"] = {}
-            state["counts"] = {}
+                capture.record('slow_frames', (now, work, [], (cpu - state['cpu']) / 1e6,
+                                                (now - state['shown']) / 1e6,
+                                                state['layout'], state['layouts']))
             state["cpu"], state["shown"] = cpu, now
             state["layout"] = state["layouts"] = 0
             # The running callback adds its full duration when it returns;
@@ -290,11 +506,14 @@ def install(*, expected_pid, seconds, output):
             state["busy"] = -running
         return result
 
+    # Weak labels plus scalar start times, never retained messages or nested handler lists.
+    posted = capture.pending_inputs
+
     def timed_post(self, message):
-        # The record travels with the message: ids are reused once objects die.
-        if self is app and isinstance(message, inputs_types) and "_frame_meter" not in vars(message):
-            message._frame_meter = entry = [clock(), None, type(message).__name__, []]
-            inputs.append(entry)
+        if capture.accepting and self is app and isinstance(message, inputs_types):
+            label = capture.label(message)
+            if label is not None:
+                posted.setdefault(label, (clock(), type(message).__name__[:160]))
         return post(self, message)
 
     async def timed_dispatch(self, message):
@@ -302,93 +521,39 @@ def install(*, expected_pid, seconds, output):
         try:
             return await dispatch(self, message)
         finally:
-            end = clock()
-            if (entry := vars(message).get("_frame_meter")) is not None:
-                entry[1] = end
-                entry[3].append((type(self).__name__, begin, end))
-            if end - begin > 200_000:
-                # Inside its pump's callback: which message the time went to.
-                since_probe.append((begin, (end - begin) / 1e6,
-                                    f"  message {type(message).__name__} to {type(self).__name__}"))
-            if end - begin > 50_000_000:
-                slow.append((begin, (end - begin) / 1e6, type(self).__name__, type(message).__qualname__,
-                             type(getattr(message, "event", None)).__qualname__))
+            if capture.accepting and self is app and isinstance(message, inputs_types):
+                label = capture.label(message)
+                if (entry := posted.pop(label, None)) is not None:
+                    capture.record('inputs', (entry[0], clock(), entry[1], []))
+                if clock() - begin > 50_000_000:
+                    capture.record('slow_handlers', (begin, (clock() - begin) / 1e6,
+                                                     _type_name(self), _type_name(message)))
 
-    def finish():
-        state["finished"] = True
-        Widget.refresh = refresh
-        Widget._request_layout = request_layout
-        Screen.refresh_bindings = refresh_bindings
-        Screen._refresh_layout = refresh_layout
-        if layout_step is not None:
-            Screen._layout_step = layout_step
-        # Layouts replaced before their last step.
-        stepped_layouts.extend(running_layouts.values())
-        gc.callbacks.remove(collected)
-        loop_events.Handle._run = run
-        MessagePump.post_message = post
-        MessagePump._dispatch_message = dispatch
-        app_type._display = display
-        # Readers wait for the file to appear: publish it complete, by rename.
-        partial = output + ".partial"
-        fd = os.open(partial, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(fd, "w") as file:
-            json.dump({"pid": expected_pid, "seconds": seconds,
-                       "frames": frames, "inputs": inputs, "lags": lags, "pauses": PAUSES,
-                       "long_callbacks": sorted(long_callbacks.items()),
-                       "stall_threads": sorted(stall_threads.items()),
-                       # Kernel thread id to Python thread name, to name the
-                       # per-thread CPU sampler's rows (a thread the kernel
-                       # still calls by the process name is one of these).
-                       "threads": sorted((thread.native_id, thread.name) for thread in threading.enumerate()),
-                       "timed_callbacks": timed_callbacks, "long_waits": long_waits, "switch_steps": switch_steps,
-                       "stepped_layouts": stepped_layouts,
-                       "slow_handlers": slow, "slow_frames": slow_frames,
-                       "layout_invalidations": layout_invalidations,
-                       "layout_requests": collections.Counter(
-                           f"{item['widget']} <- {item['stack'][0]['function']}"
-                           for item in layout_invalidations),
-                       "repaint_requests": repaints,
-                       "binding_refreshes": binding_refreshes,
-                       "stalls": sorted(stalls.items(), key=lambda item: -item[1])[:40],
-                       "gc": {"tracked": len(gc.get_objects()), "frozen": gc.get_freeze_count(),
-                              # What the collector still scans (frozen objects excluded), by type.
-                              "tracked_types": collections.Counter(
-                                  f"{type(item).__module__}.{type(item).__qualname__}"
-                                  for item in gc.get_objects()).most_common(40),
-                              "stats": gc.get_stats(), "threshold": gc.get_threshold(),
-                              "pauses": gc_pauses}}, file)
-        os.rename(partial, output)
-
-    # Event-loop lag: how late a callback due every 4 ms actually ran is how
-    # long an input or a paint arriving then would have waited.
-    loop = asyncio.get_running_loop()
-    lags = []
+    loop = capture.loop
+    probe_timer = None
 
     def probe(due):
+        nonlocal probe_timer
+        if not capture.accepting:
+            return
         now = loop.time()
-        lags.append((clock(), round((now - due) * 1000, 2)))
-        if now - due > 0.012:
-            # From 12 ms, so the turns just under the 16 ms target are seen too.
-            long_waits.append((clock(), round((now - due) * 1000, 2), list(since_probe)))
-        since_probe.clear()
-        if not state.get("finished"):
-            loop.call_at(now + 0.004, probe, now + 0.004)
+        capture.record('lags', (clock(), round((now - due) * 1000, 2)))
+        if capture.accepting:
+            probe_timer = loop.call_at(now + 0.004, probe, now + 0.004)
+            # Only the current probe is retained; no growing timer roster.
+            capture.probe_timer = probe_timer
 
-    loop.call_at(loop.time() + 0.004, probe, loop.time() + 0.004)
-    gc.callbacks.append(collected)
-    threading.Thread(target=watch_stalls, name="frame-meter-stalls", daemon=True).start()
-    Widget.refresh = counted_refresh
-    Widget._request_layout = counted_layout
-    Screen.refresh_bindings = counted_bindings
-    Screen._refresh_layout = timed_layout
-    if layout_step is not None:
-        Screen._layout_step = traced_layout_step
-    loop_events.Handle._run = timed_run
-    MessagePump.post_message = timed_post
-    MessagePump._dispatch_message = timed_dispatch
-    app_type._display = timed_display
-    asyncio.get_running_loop().call_later(seconds, finish)
+    try:
+        wrappers = (timed_run, timed_post, timed_dispatch, counted_refresh, counted_layout,
+                    counted_bindings, timed_layout, traced_layout_step, timed_display)
+        for target, wrapper in zip(targets, wrappers, strict=True):
+            capture.patch(target, wrapper)
+        probe_timer = loop.call_at(loop.time() + 0.004, probe, loop.time() + 0.004)
+        capture.probe_timer = probe_timer
+        return capture.arm()
+    except BaseException:
+        capture.finish('setup-error')
+        raise
 
 
 def targets(*, expected_pid, output):
@@ -936,68 +1101,117 @@ def _field(value) -> str:
     return f"{value!r:.40}"
 
 
-def trace_calls(*, expected_pid, output, targets, seconds=60):
-    """Time each call of the named methods ("module:Class.method", sync or async).
+class CallSpan:
+    """One scalar-only span. Context carries ids, never a task, page or widget."""
 
-    Each record: target, milliseconds, subject and callers, result, start (monotonic ns),
-    and the calling thread's CPU milliseconds (below the duration when it waited).
+    def __init__(self, capture, target, metadata, parent, args, kwargs):
+        self.capture, self.target, self.metadata, self.parent = capture, target, metadata, parent
+        self.start, self.cpu = time.monotonic_ns(), time.thread_time_ns()
+        with capture.lock:
+            capture.next_span += 1
+            self.identity = capture.next_span
+            capture.open_spans += 1
+        self.token = parent.set(self.identity)
+        try:
+            arguments = target.signature.bind(*args, **kwargs).arguments
+            fields = metadata.enter(capture, arguments)
+            capture.record('calls', dict(event='enter', span=self.identity, parent=self.token.old_value
+                                         if type(self.token.old_value) is int else 0,
+                                         target=target.path, at_ns=self.start,
+                                         thread=threading.get_native_id(), **fields))
+        except Exception as error:
+            capture.error = type(error).__name__[:96]
+            capture.stop('metadata-error')
+
+    def close(self, result, outcome):
+        capture = self.capture
+        try:
+            if capture.accepting:
+                fields = self.metadata.result(capture, result) if outcome == 'return' else {}
+                capture.record('calls', dict(event=outcome, span=self.identity, target=self.target.path,
+                                             at_ns=time.monotonic_ns(),
+                                             elapsed_ns=time.monotonic_ns() - self.start,
+                                             thread_cpu_ns=time.thread_time_ns() - self.cpu, **fields))
+                with capture.lock:
+                    capture.open_spans -= 1
+        except Exception as error:
+            capture.error = type(error).__name__[:96]
+            capture.stop('metadata-error')
+        finally:
+            self.parent.reset(self.token)
+
+
+class LegacyCallMetadata(CallMetadata):
+    """Explicit old diagnostic path; NEVER entered by metadata-only captures."""
+
+    def enter(self, capture, arguments):
+        return dict(subject=_subject(tuple(arguments.values())))
+
+    def result(self, capture, result):
+        return dict(result=_result(result))
+
+
+def trace_calls(*, expected_pid, output, targets, seconds=60, max_records=20000,
+                max_bytes=12 << 20, metadata_only=False):
+    """Bounded entry/return/cancel spans; returned callable finishes idempotently.
+
+    metadata_only permits only declaration-owned adapters above. No arbitrary
+    arguments, repr, product-key parsing or child/lock/cache instrumentation.
     """
     import asyncio
     import functools
-    import importlib
-    import inspect
+    from contextvars import ContextVar
 
-    if os.getpid() != expected_pid:
-        raise RuntimeError("Unexpected capture process")
-    calls, restore = [], []
-    for target in targets:
-        module_name, _, path = target.partition(":")
-        owner = importlib.import_module(module_name)
-        *parents, name = path.split(".")
-        for parent in parents:
-            owner = getattr(owner, parent)
-        declared = inspect.getattr_static(owner, name)
-        descriptor = isinstance(declared, (classmethod, staticmethod))
-        original = declared.__func__ if descriptor else getattr(owner, name)
-        if inspect.iscoroutinefunction(original):
+    if not 0 < len(targets) <= 64 or len(set(targets)) != len(targets):
+        raise ValueError('Expected 1..64 distinct targets')
+    # Complete validation precedes ALL patching, including descriptor checks.
+    resolved = [MethodTarget(path) for path in targets]
+    adapters = [CallMetadata.targets[path] if metadata_only else LegacyCallMetadata() for path in targets]
+    capture = BoundedCapture(expected_pid=expected_pid, seconds=seconds, output=output,
+                             max_records=max_records, max_bytes=max_bytes, metadata_only=metadata_only,
+                             streams=('calls', 'events'))
+    parent = ContextVar('bounded-call-parent', default=0)
+
+    def instrument(target, metadata):
+        original = target.original
+        if target.asynchronous:
             @functools.wraps(original)
-            async def timed(*args, __original=original, __target=target, **kwargs):
-                begin, cpu = time.monotonic_ns(), time.thread_time_ns()
-                result = None
+            async def timed(*args, **kwargs):
+                if not capture.accepting:
+                    return await original(*args, **kwargs)
+                span = CallSpan(capture, target, metadata, parent, args, kwargs)
+                result, outcome = None, 'error'
                 try:
-                    result = await __original(*args, **kwargs)
+                    result = await original(*args, **kwargs)
+                    outcome = 'return'
                     return result
+                except asyncio.CancelledError:
+                    outcome = 'cancel'
+                    raise
                 finally:
-                    # Publication decisions matter; do not recursively repr a page.
-                    outcome = (repr(result) if result is None or isinstance(result, (bool, int, float))
-                               else type(result).__name__)
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), outcome, begin,
-                                  (time.thread_time_ns() - cpu) / 1e6))
+                    span.close(result, outcome)
         else:
             @functools.wraps(original)
-            def timed(*args, __original=original, __target=target, **kwargs):
-                begin, cpu = time.monotonic_ns(), time.thread_time_ns()
-                result = None
+            def timed(*args, **kwargs):
+                if not capture.accepting:
+                    return original(*args, **kwargs)
+                span = CallSpan(capture, target, metadata, parent, args, kwargs)
+                result, outcome = None, 'error'
                 try:
-                    result = __original(*args, **kwargs)
+                    result = original(*args, **kwargs)
+                    outcome = 'return'
                     return result
                 finally:
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), _result(result), begin,
-                                  (time.thread_time_ns() - cpu) / 1e6))
-        # Descriptor binding and sync/async execution are independent facts.
-        # All methods share the timing algorithm; restore the declaration itself.
-        setattr(owner, name, type(declared)(timed) if descriptor else timed)
-        restore.append((owner, name, declared))
+                    span.close(result, outcome)
+        return timed
 
-    def finish():
-        for owner, name, original in restore:
-            setattr(owner, name, original)
-        partial = output + ".partial"
-        with open(partial, "w") as file:
-            json.dump(calls, file)
-        os.rename(partial, output)
-
-    asyncio.get_running_loop().call_later(seconds, finish)
+    try:
+        for target, metadata in zip(resolved, adapters, strict=True):
+            capture.patch(target, instrument(target, metadata))
+        return capture.arm()
+    except BaseException:
+        capture.finish('setup-error')
+        raise
 
 
 def trace_reflows(*, expected_pid, output, seconds=60):
