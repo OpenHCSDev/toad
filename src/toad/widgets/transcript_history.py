@@ -730,6 +730,53 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         window.release_anchor()
         window.scroll_to(y=destination, animate=False, immediate=True)
 
+    async def reveal_message_head(
+        self, fragment: TranscriptFragment, selected: Callable[[], bool],
+    ) -> TranscriptFragment | None:
+        """Prepare one viewport at the original message's head, not its clicked render part."""
+        page = self.page_holding(fragment.key)
+        original = page.prepared
+        first = next(index for index, part in enumerate(original.fragments)
+                     if part.source_identity == fragment.source_identity)
+        head = original.fragments[first]
+        window = self.window
+        region = self.fragment_region(head)
+        if region is not None and region.y >= window.scrollable_content_region.y:
+            return None
+        snapshot = self.source_snapshot()
+        revision, width = window.scroll_revision, self.line_width
+        current = lambda: (snapshot.current(self) and selected()
+                           and window.scroll_revision == revision and self.line_width == width
+                           and page in self.pages and page.prepared is original)
+        staged = original.for_view()
+        staged.set_fragment_range(slice(first, first))
+        height = window.scrollable_content_region.height
+        await staged.prepare_rows(
+            self, current, target=self, selected=self.selected_categories, end=NEWER_END,
+            boundary=first, rows_needed=height + 1, limit=max(self.fragment_limit, height + 1),
+        )
+        if not current():
+            return None
+        theme = self.app.colours.line_theme
+        message_height = sum(lines.height for part in staged.fragments_in_range
+                             if part.source_identity == fragment.source_identity
+                             and (lines := part.lines_for(width, theme)) is not None)
+        if not window.message_head_hidden(message_height, None if region is None else region.y):
+            return None
+        lines = head.lines_for(width, theme)
+        if lines is None or (span := lines.block_span(lambda span: span.drawn)) is None:
+            return None
+        async with window.history_lock:
+            if not current():
+                return None
+            async with window.preserve_history(root=self):
+                if not original.replace_range(page, slice(staged.start, staged.stop), current):
+                    return None
+                window.release_anchor()
+                window.reader_position = FragmentPosition(head.key, 0, span.height, block=span.index)
+                self._update_edges()
+        return head
+
     @property
     def source_identity(self):
         return self.page_source.reload_key(), self.page_source.through, self.selected_categories
