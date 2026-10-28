@@ -10,6 +10,7 @@ from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.notification_reads import RecordedNotificationRead
+from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.ui_model.observation import ReadTranscript
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms.historical_views import HistoricalThread
@@ -122,8 +123,8 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
         access, root = self.app.coordination_access, str(self.comms.root)
 
         async def load(**kwargs):
-            snapshot = await access.transcripts.read(ReadTranscript(
-                root, item.thread.name, historical_source=item.source.key, **kwargs))
+            snapshot = await access.transcripts.read(ReadTranscript(root, TranscriptPageRead(
+                thread=item.thread.name, historical_source=item.source.key, **kwargs)))
             return snapshot.page
 
         try:

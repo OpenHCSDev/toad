@@ -15,6 +15,7 @@ from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRe
 from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.ui_model.observation import (
     ReadTranscript,
     ReadTranscriptUpdate,
@@ -158,14 +159,13 @@ class KnownTranscript(TranscriptScope):
         through: TranscriptCursor | None = None,
         historical_source: str | None = None,
     ) -> ReadTranscript:
-        return ReadTranscript(
-            self.root,
-            self.name,
+        return ReadTranscript(self.root, TranscriptPageRead(
+            thread=self.name,
             before=before,
             after=after,
             through=through,
             historical_source=historical_source,
-        )
+        ))
 
     def update_request(
         self,
@@ -173,7 +173,9 @@ class KnownTranscript(TranscriptScope):
         *,
         after: TranscriptCursor | None = None,
     ) -> ReadTranscriptUpdate:
-        return ReadTranscriptUpdate(self.root, self.name, previous=previous, after=after)
+        return ReadTranscriptUpdate(
+            self.root, TranscriptPageRead(thread=self.name, after=after), previous=previous
+        )
 
     def mailbox_target(self) -> ThreadTarget:
         return ThreadTarget(self.name)
