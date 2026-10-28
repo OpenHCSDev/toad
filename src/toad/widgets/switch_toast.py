@@ -101,24 +101,36 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         if event.mode_name in titles:
             self.show(titles[event.mode_name], area)
 
+    @classmethod
+    def framed(cls, name_width: int, name_rows: int) -> tuple[int, int]:
+        """The toast's size around a name of that many cells and rows: its margin, then its frame."""
+        rows, columns = cls.MARGIN
+        return name_width + 2 * columns + 2, name_rows + 2 * rows + 2
+
+    @staticmethod
+    def room(area: Region) -> int:
+        """The widest the toast may be in a viewport: the viewport less a margin each side."""
+        return max(0, area.width - 4)
+
+    @classmethod
+    def holds(cls, area: Region, name_width: int, name_rows: int) -> bool:
+        """Whether that viewport contains the framed name whole."""
+        width, height = cls.framed(name_width, name_rows)
+        return width <= cls.room(area) and height <= area.height
+
     @property
     def box(self) -> tuple[int, int]:
-        rows, columns = self.MARGIN
-        width = min(max(map(cell_len, self.lines)) + 2 * columns + 2, self.room)
-        return width, len(self.lines) + 2 * rows + 2
-
-    @property
-    def room(self) -> int:
-        """The widest the toast may be: the message viewport less a margin each side."""
-        return max(0, self.area.width - 4)
+        width, height = self.framed(max(map(cell_len, self.lines)), len(self.lines))
+        return min(width, self.room(self.area)), height
 
     def viewport(self) -> Region | None:
-        """The shown session's scrolling message viewport in screen cells; none without a native reader."""
+        """The shown session's scrolling message viewport in screen cells; none without a native
+        reader, or when it cannot contain even a one-cell, one-row framed name."""
         conversation = self.app.workspace_chrome.native.widget
         if conversation is None or not conversation.is_mounted:
             return None
         region = conversation.window.scrollable_content_region
-        return region if region.area else None
+        return region if self.holds(region, 1, 1) else None
 
     def show(self, title: str, area: Region) -> None:
         self.title = title
@@ -128,7 +140,7 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         self.refresh(layout=True)
 
     def retire(self) -> None:
-        """No native reader is shown: no name stays over another view."""
+        """No native reader, or one too small for the framed name: no name stays over another view."""
         self.stop_effect(TAB_TOAST)
         self.display = False
 
@@ -136,9 +148,7 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         """Fit and centre the name in the message viewport; whether its place or size changed."""
         self.area = area
         large = LargeText.rows(self.title)
-        rows, columns = self.MARGIN
-        fits = (LargeText.width(self.title) + 2 * columns + 2 <= self.room
-                and len(large) + 2 * rows + 2 <= area.height)
+        fits = self.holds(area, LargeText.width(self.title), len(large))
         self.lines = large if fits else (self.title,)
         width, height = self.box
         placed = Region(area.x + (area.width - width) // 2,
