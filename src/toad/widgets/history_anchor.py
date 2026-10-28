@@ -152,6 +152,10 @@ class ReaderPosition(ABC):
         """The position after the reader chose to follow the latest message."""
         return TailPosition()
 
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
+        """The position after a message arrived at the followed end: only following hands it the reader."""
+        return self
+
     def placed(self, window: "HistoryWindow", reached: bool) -> "ReaderPosition":
         """What the window keeps after a layout placed this: itself while the history is still changing.
 
@@ -213,6 +217,9 @@ class TailPosition(ReaderPosition):
 
     def joined_tail(self) -> ReaderPosition:
         return self
+
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
+        return ArrivalPosition(page, key)
 
 
 class OffsetPosition(ReaderPosition):
@@ -323,6 +330,53 @@ class BlockPosition(OffsetPosition):
 
     def destination(self, window: "HistoryWindow") -> float:
         return window.row_of(self.block) + self.y - self.row
+
+
+@dataclass(frozen=True)
+class ArrivalPosition(OffsetPosition):
+    """A message that just arrived at the followed end, on the page that draws it.
+
+    One that fits in the window follows the tail as before. One taller than
+    the window is placed with its first row at the window's top instead of
+    its last, so the reader sees it arrive from its head; following stops
+    there, as when the reader scrolls up to read. The page is a geometry
+    target, so the layout that adds the message also places it.
+    """
+
+    page: TranscriptPageView
+    key: FragmentKey
+
+    def location(self) -> FragmentLocation:
+        return self.page.fragment_row(self.key, 0)
+
+    def bodies(self, window: HistoryWindow) -> tuple[Widget, ...]:
+        return (self.page,)
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        if self.page.is_attached and window.displays(self.page):
+            return position
+        return position.without_holder(window)
+
+    def laid_out(self, window: HistoryWindow) -> bool:
+        return self.location().laid_out(window)
+
+    def destination(self, window: HistoryWindow) -> float:
+        return self.location().destination(window, 0.0)
+
+    def tall(self, window: HistoryWindow) -> bool:
+        """Whether the message is taller than the window, in the layout just made."""
+        return window.message_head_hidden(self.page.drawn_height(self.location().location().fragment), None)
+
+    def place(self, window: HistoryWindow) -> bool:
+        if self.tall(window):
+            return super().place(window)
+        return TailPosition().place(window)
+
+    def shifted(self, rows: float) -> ReaderPosition:
+        # Kept through its change, so every layout of the change places it
+        # from its own page; afterwards the window reads where the reader is.
+        # The reader leaving the tail replaces it through left_tail.
+        return self
 
 
 @dataclass(frozen=True)
@@ -468,6 +522,10 @@ class LatestPosition(HeldReaderDestination, TailPosition):
         if window.reader_position is self:
             window.reader_position = self.released()
             window.place_reader()
+
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
+        # End was pressed: the newest row stays the destination until its source settles.
+        return self
 
     def released(self) -> ReaderPosition:
         return TailPosition()

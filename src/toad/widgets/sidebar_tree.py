@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from toad.comms_root import FailedObservation, Observing
     from toad.navigation_target import NavigationTarget
     from toad.widgets.channel_activity import ChannelActivity
-    from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
+    from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, ListedRow
     from toad.widgets.thread_comms import RelationshipRows
 
 from agent_comms.display_order import ThreadSort
@@ -220,10 +220,11 @@ class KeyedRows[KeyT]:
         return ordered
 
 
-class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
+class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False
+    header_type: type[SidebarHeader] = SidebarHeader
 
     DEFAULT_CSS = """
     SidebarGroup { height: auto; }
@@ -255,12 +256,13 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
         self.row.add_class("group-title")
         self.disclosure = disclosure_type()
         self.controls = controls
+        self.header = self.header_type(classes="group-header")
         self.member_container = VerticalGroup(classes="group-members channel-members")
         self.member_container.styles.layout = SidebarReaderLayout()
         self.expanded = expanded
 
     def compose(self) -> ComposeResult:
-        with SidebarHeader(classes="group-header"):
+        with self.header:
             yield self.disclosure
             yield self.row
             yield from self.controls
@@ -349,9 +351,7 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
         self.show_member(key, row)
 
     def place_row(self, row: RowT, index: int) -> None:
-        alternate = bool(index % 2)
-        if row.alternate != alternate:
-            row.alternate = alternate
+        row.place(index)
 
     @property
     def member_keys(self):
