@@ -639,10 +639,8 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
 
     def _show(self, changes: list[tuple[TranscriptFragment, Shown]]) -> Awaitable[None]:
         """Record requested state before scheduling; keep the old measured rows painted."""
-        requested = [(fragment, fragment.request_show(shown)) for fragment, shown in changes]
-        theme = self.app.colours.line_theme
-        return self._draw_changes([(fragment, shown) for fragment, shown in requested
-                                   if not fragment._lines.shows(fragment.line_blocks, theme)])
+        requested = [(fragment, shown) for fragment, shown in changes if fragment.request_show(shown)]
+        return self._draw_changes(requested)
 
     async def _draw_changes(self, changes: list[tuple[TranscriptFragment, Shown]]) -> None:
         """Prepare captured states, then publish only those still requested."""
@@ -653,7 +651,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         in_range = {id(fragment) for fragment in self.fragments_in_range}
         drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
         rendered = await TranscriptLinesBatchRenderTask.render_for(self,
-            (LinePreparation(fragment.blocks(shown), theme) for fragment, shown in drawn),
+            (LinePreparation(fragment.line_blocks, theme) for fragment, _shown in drawn),
             previous=(fragment._lines for fragment, _shown in drawn))
         if not self.state.can_draw:
             return

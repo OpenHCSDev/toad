@@ -370,17 +370,12 @@ class TranscriptFragment:
     def line_blocks(self) -> tuple[LineBlock, ...]:
         return self.blocks(self.shown)
 
-    def request_show(self, shown: Shown) -> Shown:
-        """Record intent now; measured rows remain painted until its render is ready."""
-        if shown != self.shown:
-            self.shown = shown
-            self.__dict__.pop("line_blocks", None)
-        return self.shown
-
-    def finish_show(self, shown: Shown) -> bool:
-        """An older render cannot replace a newer disclosure or notification request."""
-        if self.shown is not shown:
+    def request_show(self, shown: Shown) -> bool:
+        """Record intent and retire old acquisitions; the page retains its painted layout."""
+        if shown == self.shown:
             return False
+        self.shown = shown
+        self.__dict__.pop("line_blocks", None)
         self.invalidate_lines()
         self._plain = NoRows()
         return True
