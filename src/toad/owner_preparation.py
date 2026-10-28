@@ -68,5 +68,6 @@ class OwnerRequestContext:
 
 
 def read_thread_presentation(comms: Comms, name: str) -> ThreadPresentation:
-    """Read the existing core presentation on a worker, without UI dependencies."""
-    return comms.views.thread_presentations((name,)).read(name)
+    """Read the existing core presentation on a worker, without UI dependencies; only its
+    published projection leaves the worker, never the acquired delivery evidence."""
+    return comms.views.thread_presentations((name,)).read(name).published()
