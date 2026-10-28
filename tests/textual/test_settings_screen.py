@@ -13,8 +13,7 @@ from ui_theme.colour import Rgb
 from ui_theme.scheme import PrimaryColour
 
 from toad.forms import editors
-from formbridge.forms.declared_fields import DeclaredField
-from formbridge.forms.declared_fields import FieldPath
+from formbridge.forms.declared_fields import DeclaredField, FieldPath
 from toad.forms.form_view import ValueView
 from toad.preferences import INTERFACE, SETTINGS, SavedSettings, ToadSettings
 from toad.screens.settings import SchemeEditor, SettingsScreen

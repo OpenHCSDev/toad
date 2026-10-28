@@ -10,7 +10,6 @@ from textual import getters
 from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
-from textual.widget import Widget
 
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart

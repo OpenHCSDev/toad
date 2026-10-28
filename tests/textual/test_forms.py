@@ -11,11 +11,9 @@ from annotated_types import Ge
 from objectstate import ObjectState
 from python_introspect import AnnotatedDataclassValidationMixin, AnnotationChoices, FieldLabel
 from textual.app import App, ComposeResult
-from textual.widgets import Checkbox, Select
 
 import toad.preferences  # noqa: F401  names the process-wide root ObjectState asks for (ObjectState issue #44)
 from toad.forms import editors
-from formbridge.forms.declared_fields import FieldPath
 from toad.forms.form_view import FormView, GroupView, ValueView
 from formbridge.forms.declared_fields import Multiline
 from toad.textual_colours import ThemedApp
