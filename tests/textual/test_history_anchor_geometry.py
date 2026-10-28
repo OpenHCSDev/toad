@@ -4,7 +4,7 @@ import pytest
 
 from unittest.mock import patch
 
-from agent_comms.transcript_events import MarkdownTranscript
+from agent_comms.transcript_events import AssistantTranscript
 from textual.containers import VerticalGroup
 from textual.widgets import Static
 
@@ -103,7 +103,7 @@ async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspac
     async with workspace.app(size=(100, 35)) as ui:
         window = await long_window(ui)
         window.release_anchor()
-        fragment = TranscriptFragment((MarkdownTranscript("Unloaded", position=123, timestamp=0),))
+        fragment = TranscriptFragment((AssistantTranscript("Unloaded", position=123, timestamp=0),))
         position = FragmentPosition(fragment.key, 0, 1, block=0)
         window.reader_position = UnreachedPosition(position)
         with pytest.raises(FragmentNotLoaded):
