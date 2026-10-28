@@ -97,6 +97,13 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
 
     def show_clicked(self, window: HistoryWindow) -> None:
         """Scroll for a click, which lands on a block that is already in view."""
+        region = self.region
+        if region is not None and window.message_head_hidden(region.height, region.y):
+            window.release_anchor()
+            window.scroll_relative(
+                y=region.y - window.scrollable_content_region.y,
+                animate=False, immediate=True,
+            )
 
     def export_render(self):
         return None
@@ -144,13 +151,6 @@ class AtomicBlockCursor(BlockCursor):
 
     def show_moved_to(self, window: HistoryWindow):
         window.scroll_to_center(self.block, immediate=True)
-
-    def show_clicked(self, window: HistoryWindow):
-        # The clicked block stays where it is. Only a block taller than the
-        # viewport whose top is scrolled off moves, so that its top shows.
-        block, viewport = self.block.region, window.content_region
-        if block.height > viewport.height and block.y < viewport.y:
-            window.scroll_to_widget(self.block, top=True, immediate=True)
 
     def export_render(self):
         from textual._compositor import Compositor
@@ -241,6 +241,20 @@ class FragmentBlockCursor(BlockCursor):
     def show_moved_to(self, window: HistoryWindow):
         if (fragment := self.current) is not None:
             self.block.show_fragment(fragment)
+
+    def show_clicked(self, window: HistoryWindow):
+        if (fragment := self.current) is not None:
+            self.block.run_worker(
+                self._show_clicked(fragment, window), group="message-heading", exclusive=True,
+            )
+
+    async def _show_clicked(self, fragment, window: HistoryWindow) -> None:
+        head = await self.block.reveal_message_head(
+            fragment, lambda: self.fragment is fragment,
+        )
+        if head is not None and self.fragment is fragment:
+            self.fragment = head
+            window.refresh(layout=True)
 
 
 class ChildBlockCursor(BlockCursor):
