@@ -299,7 +299,13 @@ class MethodTarget:
         installed = self.bind(wrapper)
         # Record before assignment so even a raising descriptor setup is reversible.
         capture.hooks.append((self.owner, self.name, self.declared, installed, self.inherited))
-        setattr(self.owner, self.name, installed)
+        try:
+            setattr(self.owner, self.name, installed)
+        except BaseException:
+            import inspect
+            if inspect.getattr_static(self.owner, self.name) is self.declared:
+                capture.hooks.pop()  # assignment never happened; nothing to restore
+            raise
 
 
 def _type_name(value):
@@ -349,7 +355,7 @@ class CallMetadata:
 
     def closed(self, span, result, outcome):
         fields = self.result(span.capture, result) if outcome == 'return' else {}
-        span.capture.record('calls', dict(event=outcome, span=span.identity, target=span.target.path,
+        return span.capture.record('calls', dict(event=outcome, span=span.identity, target=span.target.path,
                                          at_ns=time.monotonic_ns(), elapsed_ns=time.monotonic_ns() - span.start,
                                          thread_cpu_ns=time.thread_time_ns() - span.cpu, **fields))
 
@@ -447,8 +453,10 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
     """
     import asyncio
     from textual import events
+    from weakref import ref
 
     app = _running_app(expected_pid)
+    app_reference = ref(app)
     paths = ('asyncio.events:Handle._run',
              'textual.message_pump:MessagePump.post_message',
              'textual.message_pump:MessagePump._dispatch_message',
@@ -470,7 +478,7 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
     clock = time.monotonic_ns
     state = dict(busy=0, current=None, cpu=time.thread_time_ns(), shown=clock(),
                  stretch_begin=clock(), stretch_end=clock(), stall=0, layout=0, layouts=0,
-                 writes=0)
+                 writes=0, refreshes=0, layout_refreshes=0, recomposes=0)
 
     def counted_layout(self, required=True):
         if required:
@@ -478,8 +486,13 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
         return request_layout(self, required)
 
     def counted_refresh(self, *regions, repaint=True, layout=False, recompose=False):
-        capture.record('events', dict(event='refresh', at_ns=clock(), widget=_type_name(self),
-                                      repaint=repaint, layout=layout, recompose=recompose))
+        if not capture.accepting:
+            return refresh(self, *regions, repaint=repaint, layout=layout, recompose=recompose)
+        # Count requests within a real frame; do not serialize one event per
+        # repainted widget and let the observer become the scrolling workload.
+        state['refreshes'] += 1
+        state['layout_refreshes'] += bool(layout)
+        state['recomposes'] += bool(recompose)
         return refresh(self, *regions, repaint=repaint, layout=layout, recompose=recompose)
 
     def traced_layout_step(self, steps, deadline, step_ns):
@@ -490,6 +503,8 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
             capture.record('stepped_layouts', (begin, step_ns, [(clock() - begin) / 1e6]))
 
     def timed_layout(self, *args, **kwargs):
+        if not capture.accepting:
+            return refresh_layout(self, *args, **kwargs)
         begin = clock()
         try:
             return refresh_layout(self, *args, **kwargs)
@@ -535,14 +550,18 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
     def timed_display(self, screen, renderable):
         writes_before = state['writes']
         result = display(self, screen, renderable)
-        if capture.accepting and state['writes'] > writes_before and self is app:
+        if capture.accepting and state['writes'] > writes_before and self is app_reference():
             now = clock()
             running = 0 if state["current"] is None else now - state["current"]
             work = (state["busy"] + running) / 1e6
             cpu = time.thread_time_ns()
             capture.record('frames', (now, work, state['stall']))
             capture.record('events', dict(event='display-handoff', at_ns=now,
-                                          screen=capture.label(screen), pixels_observed=False))
+                                          screen=capture.label(screen), pixels_observed=False,
+                                          refresh_requests=state['refreshes'],
+                                          layout_refreshes=state['layout_refreshes'],
+                                          recompose_requests=state['recomposes']))
+            state['refreshes'] = state['layout_refreshes'] = state['recomposes'] = 0
             # A paint ends the stretch: the next one starts after it.
             state["stall"] = 0
             state["stretch_begin"] = state["stretch_end"] = now
@@ -563,7 +582,7 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
     posted = capture.pending_inputs
 
     def timed_post(self, message):
-        if capture.accepting and self is app and isinstance(message, inputs_types):
+        if capture.accepting and self is app_reference() and isinstance(message, inputs_types):
             label = capture.label(message)
             if label is not None:
                 posted.setdefault(label, (clock(), type(message).__name__[:160], False))
@@ -1182,9 +1201,11 @@ class CallSpan:
         capture = self.capture
         try:
             if capture.accepting:
-                self.metadata.closed(self, result, outcome)
+                recorded = self.metadata.closed(self, result, outcome)
                 with capture.lock:
                     capture.open_spans -= 1
+                    if not recorded:
+                        capture.censored += 1
         except Exception as error:
             capture.error = type(error).__name__[:96]
             capture.stop('metadata-error')
@@ -1202,9 +1223,13 @@ class LegacyCallMetadata(CallMetadata):
         pass
 
     def closed(self, span, result, outcome):
-        span.capture.record('calls', (span.target.path, (time.monotonic_ns() - span.start) / 1e6,
-                                      span.fields['subject'],
-                                      (type(result).__name__ if span.target.asynchronous else _result(result)), span.start,
+        if span.target.asynchronous:
+            outcome = (repr(result) if result is None or isinstance(result, (bool, int, float))
+                       else type(result).__name__)
+        else:
+            outcome = _result(result)
+        return span.capture.record('calls', (span.target.path, (time.monotonic_ns() - span.start) / 1e6,
+                                      span.fields['subject'], outcome, span.start,
                                       (time.thread_time_ns() - span.cpu) / 1e6))
 
 

@@ -92,6 +92,7 @@ class RemoteCaptureRun:
                 and not result.get('cap_exhausted') for result in results)
             self.status = dict(status='FINISHED' if successful else 'INCONCLUSIVE',
                                reason=reason, token=self.token, captures=results,
+                               attribution='INCONCLUSIVE_UNTIL_PAGE_CORRELATION',
                                pixels_observed=False)
         publish(status_path, self.status)
 
@@ -141,6 +142,7 @@ def start(request, directory):
         targets = tuple(meter.CallMetadata.targets)
         for target in targets:
             meter.MethodTarget(target)
+        checked = require_modules(runtime)  # include any modules target resolution loaded
         handles.append(meter.install(expected_pid=request['identity']['pid'], seconds=25,
                                      output=str(directory / 'frames.json'), max_records=20000,
                                      max_bytes=3 << 20, metadata_only=True))
