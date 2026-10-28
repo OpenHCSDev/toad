@@ -12,6 +12,9 @@ from typing import TYPE_CHECKING
 from weakref import WeakSet
 
 from textual import events
+from textual.binding import ModeBinding
+from textual.widgets.text_area import VimMode
+from toad.widget_actions import NativeMethodKeys
 from textual.containers import VerticalScroll
 from textual.geometry import Size
 from textual.widget import Widget
@@ -506,7 +509,7 @@ class HistoryChange:
         await self.layout_ready.wait()
 
 
-class HistoryWindow(WorkspaceHosted, VerticalScroll):
+class HistoryWindow(NativeMethodKeys, WorkspaceHosted, VerticalScroll):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
@@ -574,6 +577,14 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         for history in tuple(self.histories):
             if NEWER_END.visible_more(history):
                 history.request_latest(latest)
+
+    MODE_BINDINGS = (
+        ModeBinding("j", action_scroll_down, "Scroll down", mode=VimMode, show=False),
+        ModeBinding("k", action_scroll_up, "Scroll up", mode=VimMode, show=False),
+        ModeBinding("ctrl+d", action_page_down, "Page down", mode=VimMode, show=False),
+        ModeBinding("ctrl+u", action_page_up, "Page up", mode=VimMode, show=False),
+        ModeBinding("G", jump_to_latest, "Latest", mode=VimMode, show=False),
+    )
 
     def tail_follow_changed(self) -> None:
         """Project the canonical tail-follow state in a specialized window."""

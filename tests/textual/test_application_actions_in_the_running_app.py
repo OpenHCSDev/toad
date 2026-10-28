@@ -101,26 +101,41 @@ async def test_the_palette_runs_a_newly_declared_action_and_a_footer_toggle_is_s
         await ui.until(lambda: json.loads(path.read_text())['ui']['footer'] is False, why="the footer setting saved")
 
 
-async def test_new_session_button_and_tab_close_return_to_the_first_session_with_its_draft(workspace):
+async def test_new_session_button_opens_creation_and_tab_close_keeps_the_original_draft(workspace):
+    from toad.widgets.comms_command_dialog import CommandDialog
+
     async with running_session(workspace) as (ui, app, config, path):
         source = app.selected_session
         prompt = ui.conversation.prompt
+        await ui.write_draft("retained action draft")
         document = prompt.prompt_text_area.document
-        prompt.focus()
-        await ui.type('retained action draft')
         draft = ui.draft()
-        await ui.press('ctrl+s')
-        await ui.until(lambda: app.screen.query_one(CommsSidebar).has_focus or app.screen.focused is not None,
-                       why="the channels sidebar")
+        app.workspace_chrome.channels.reveal()
+        await ui.step()
         new = app.screen.query_one(CommsSidebar).query_one(NewSessionButton)
         new.scroll_visible(animate=False, immediate=True)
-        await ui.step()
-        assert await ui.textual[1].click(new)
-        await ui.until(lambda: app.selected_session is not source, why="the new session")
-        second = app.selected_session
-        await ui.until_agent_ready()
-        assert await ui.textual[1].click(app.screen.query_one(f'#close-{second.id}', SessionTabClose))
-        await ui.until(lambda: app.selected_session is source, why="the first session to return")
+        await ui.until(lambda: new.region.width > 3 and new.region.height > 0,
+                       why="the new-session control to be laid out")
+        hit, _ = app.screen.get_widget_at(new.region.x + 3, new.region.y)
+        assert hit is new, (new.region, hit, hit.region)
+        assert await ui.textual[1].click(new, offset=(3, 0))
+        await ui.until(lambda: isinstance(app.screen, CommandDialog),
+                       why="the declared new-thread creation form")
+        assert app.selected_session is source
+        await ui.press("escape")
+        await ui.until(lambda: app.screen is app.workspace_screen, why="creation cancelled")
+        new.focus()
+        await ui.press("enter")
+        await ui.until(lambda: isinstance(app.screen, CommandDialog),
+                       why="keyboard activation of the same creation form")
+        await ui.press("escape")
+        await ui.until(lambda: app.screen is app.workspace_screen, why="creation cancelled")
+        assert ui.draft() == draft and prompt.prompt_text_area.document is document
+        preview = workspace.project / "tab-close.txt"
+        preview.write_text("A saved file to preview")
+        mode = await app.session_navigation.preview(preview)
+        assert await ui.textual[1].click(app.screen.query_one(f"#close-{mode}", SessionTabClose), button=2)
+        await ui.until(lambda: app.selected_session is source, why="middle-click closed the preview")
         assert ui.draft() == draft and prompt.prompt_text_area.document is document
 
 

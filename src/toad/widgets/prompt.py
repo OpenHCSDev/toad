@@ -5,7 +5,7 @@ import shlex
 from dataclasses import replace
 from pathlib import Path
 from agent_comms.repo import Checkout
-from typing import TYPE_CHECKING, ClassVar, Literal, Self
+from typing import TYPE_CHECKING, Literal, Self
 
 from agent_comms.acp_extension import QueueItem
 
@@ -13,10 +13,12 @@ from rich.cells import cell_len
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
 from textual._activation import PrimaryActivation
+from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
-from textual.binding import Binding
+from textual.binding import ModeBinding
+from textual.widgets.text_area import EditingMode, VimMode
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
 from textual.geometry import Size, Spacing
@@ -29,6 +31,7 @@ from textual.widgets.text_area import Selection
 from ui_theme.scheme import PrimaryColour, PromptToneColour
 
 from toad import messages
+from toad.clipboard_image import read_clipboard_png, save_clipboard_png
 from toad.agent_binding import NoAgentConnection
 from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
@@ -45,7 +48,9 @@ from toad.prompt_cursor import (
 )
 from toad.setting_widget import SettingVisibility
 from toad.slash_command import SlashCommand
-from toad.widget_actions import DeclaredWidgetActions, DismissibleControl, HiddenActions
+from toad.widget_actions import (
+    DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
+)
 from toad.widget_view import AUTO, WidgetView
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
@@ -110,20 +115,10 @@ class AgentInfo(
         return self.query_ancestor(Prompt).on_agent_info_click
 
 
-class SendNow(InlineSelection, PrimaryActivation, Label, can_focus=True):
-    BINDINGS = [("enter,space", "send_now", "Send now")]
+class SendNow(InlineSelection, Activates, Label, can_focus=True):
 
-    @property
-    def primary_activation(self):
-        return self.action_send_now
-
-    def action_send_now(self):
+    def activate(self):
         self.post_message(messages.SendPromptNow())
-
-    def on_click(self, event: events.Click):
-        event.stop()
-        self.action_send_now()
-
 
 class ModeInfo(PrimaryActivation, Label):
     @property
@@ -140,25 +135,14 @@ class StatusLine(SettingVisibility, ChangingText, Label, setting="ui.status_line
         self.tooltip = status
 
 
-class QueueSummary(PrimaryActivation, ChangingText, Label, can_focus=True):
+class QueueSummary(Activates, ChangingText, Label, can_focus=True):
     """Shows the remote queue; activation reports available control support."""
 
-    BINDINGS = [("enter,space", "edit_queue", "Queue controls")]
 
-    @property
-    def primary_activation(self):
-        return self.action_edit_queue
-
-    def action_edit_queue(self) -> None:
+    def activate(self) -> None:
         from toad.widgets.conversation import Conversation
 
         self.query_ancestor(Conversation).open_queue_menu()
-
-    def on_click(self, event: events.Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_edit_queue()
-
 
 class InfoBar(
     SettingVisibility, WidgetView, containers.HorizontalGroup, setting="ui.info_bar"
@@ -203,8 +187,11 @@ class PromptSubmission:
             self.call_later(self._submit)
 
 
+
+
+
 class PromptTextArea(
-    CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea,
+    CoreEventReceiver, LocalMethodKeys, PromptSubmission, HighlightedTextArea,
     actions=(PromptAction,),
 ):
     HELP = """\
@@ -219,26 +206,6 @@ See on-screen instructions for details.
 """
 
     BINDING_GROUP_TITLE = "Prompt"
-
-    BINDINGS = [
-        Binding("ctrl+v", "paste_clipboard", "Paste", priority=True, show=False),
-        Binding("ctrl+j", "newline", "New line", priority=True, show=False),
-        Binding(
-            "shift+enter",
-            "newline",
-            "Line",
-            key_display="⇧+⏎",
-            tooltip="Insert a new line character",
-        ),
-        Binding(
-            "tab",
-            "tab_complete",
-            "Complete",
-            tooltip="Complete path (if possible)",
-            priority=True,
-            show=False,
-        ),
-    ]
 
     app: ToadApp
 
@@ -357,11 +324,7 @@ See on-screen instructions for details.
         ))
 
     def apply_keyboard_profile(self) -> None:
-        from textual.widgets.text_area import EditingMode, VimNormal
-
-        enabled = self.app.settings.ui.vim_keys
-        if self.editing_mode.modal != enabled:
-            self.editing_mode = VimNormal() if enabled else EditingMode()
+        self.editing_mode = self.screen.key_mode()
 
     @property
     def submission_allowed(self) -> bool:
@@ -375,15 +338,9 @@ See on-screen instructions for details.
 
         self.query_ancestor(Conversation).window.focus(scroll_visible=False)
 
-    def on_key(self, event: events.Key) -> None:
-        if self.shell_mode and event.key == "tab":
-            event.prevent_default()
-        elif event.key != "escape":
-            self.suggestions = None
-            self.suggestion = ""
-
-    def action_newline(self) -> None:
-        self._replace_via_keyboard("\n", *self.selection)
+    def clear_suggestions(self) -> None:
+        self.suggestions = None
+        self.suggestion = ""
 
     def _paste_clipboard_text(self, text: str) -> None:
         # A fresh Paste event posted directly here would bubble to App and be
@@ -392,10 +349,8 @@ See on-screen instructions for details.
         if result := self._replace_via_keyboard(text, *self.selection):
             self.move_cursor(result.end_location)
 
-    @work(group="clipboard-paste", exclusive=True)
+    @work(group='clipboard-paste', exclusive=True)
     async def action_paste_clipboard(self) -> None:
-        from toad.clipboard_image import read_clipboard_png, save_clipboard_png
-
         if self.read_only:
             return
         try:
@@ -404,33 +359,65 @@ See on-screen instructions for details.
                 return
             if image is not None:
                 if self.shell_mode:
-                    self.notify(
-                        "Leave shell mode to attach an image to a message.",
-                        title="Image attachment",
-                        severity="warning",
-                    )
+                    self.notify('Leave shell mode to attach an image to a message.', title='Image attachment', severity='warning')
                     return
                 path = await asyncio.to_thread(save_clipboard_png, image)
-                reference = (
-                    f'@"{path}"'
-                    if any(char.isspace() for char in str(path))
-                    else f"@{path}"
-                )
-                self._paste_clipboard_text(" " + reference + " ")
-                self.notify(
-                    f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
-                    title="Image attachment",
-                )
+                reference = f'@"{path}"' if any((char.isspace() for char in str(path))) else f'@{path}'
+                self._paste_clipboard_text(' ' + reference + ' ')
+                self.notify(f'PNG attached ({len(image):,} bytes). Enter sends it with your prompt.', title='Image attachment')
                 return
             text = (await self.app.clipboard_transport.paste(self.app)).text
             if text:
                 self._paste_clipboard_text(text)
             else:
-                self.notify(
-                    "No text or supported image in the clipboard", title="Paste"
-                )
+                self.notify('No text or supported image in the clipboard', title='Paste')
         except (OSError, ValueError, TimeoutError) as error:
-            self.app.show_error(error, "Paste failed")
+            self.app.show_error(error, 'Paste failed')
+
+    async def action_tab_complete(self) -> None:
+        if not self.editing_mode.accepts_text or not self.shell_mode:
+            return
+        prompt = self.prompt
+        if not self.cursor_at_end_of_text:
+            return
+        _cursor_row, cursor_column = prompt.prompt_text_area.selection.end
+        pre_complete = self.text[:cursor_column]
+        post_complete = self.text[cursor_column:]
+        shlex_tokens = shlex.split(pre_complete)
+        if not shlex_tokens:
+            return
+        command = shlex_tokens[0]
+        exclude_node_type: Literal['file'] | Literal['dir'] | None = None
+        if command in self.app.settings.shell.directory_commands.splitlines():
+            exclude_node_type = 'file'
+        elif command in self.app.settings.shell.file_commands.splitlines():
+            exclude_node_type = 'dir'
+        tab_complete, suggestions = await self.path_complete(Path(prompt.working_directory), shlex_tokens[-1], exclude_type=exclude_node_type)
+        if tab_complete is not None:
+            shlex_tokens = shlex_tokens[:-1] + [shlex_tokens[-1] + tab_complete]
+            path_component = Path(prompt.working_directory) / shlex_tokens[-1]
+            if path_component.is_file():
+                spaces = ' '
+            else:
+                spaces = ''
+            self.clear()
+            self.insert(' '.join((token.replace(' ', '\\ ') for token in shlex_tokens)) + post_complete + spaces)
+            self.suggestions = None
+        elif suggestions != self.suggestions:
+            self.suggestions = suggestions or None
+            self.suggestions_index = 0
+            if suggestions:
+                self.suggestion = suggestions[0]
+        elif self.suggestions:
+            self.suggestions_index = (self.suggestions_index + 1) % len(self.suggestions)
+            self.suggestion = self.suggestions[self.suggestions_index]
+
+    MODE_BINDINGS = (
+        ModeBinding("ctrl+v", action_paste_clipboard, "Paste clipboard", mode=EditingMode,
+                    priority=True),
+        ModeBinding("tab", action_tab_complete, "Complete shell path", mode=EditingMode,
+                    priority=True),
+    )
 
     def _submit(self) -> None:
         self._submit_pending = False
@@ -502,65 +489,6 @@ See on-screen instructions for details.
         else:
             self.move_cursor(location, select=select)
 
-    async def action_tab_complete(self) -> None:
-        if not self.editing_mode.accepts_text or not self.shell_mode:
-            return
-
-        import shlex
-
-        prompt = self.prompt
-
-        if not self.cursor_at_end_of_text:
-            return
-
-        _cursor_row, cursor_column = prompt.prompt_text_area.selection.end
-        pre_complete = self.text[:cursor_column]
-        post_complete = self.text[cursor_column:]
-        shlex_tokens = shlex.split(pre_complete)
-        if not shlex_tokens:
-            return
-
-        command = shlex_tokens[0]
-
-        exclude_node_type: Literal["file"] | Literal["dir"] | None = None
-        if command in self.app.settings.shell.directory_commands.splitlines():
-            exclude_node_type = "file"
-        elif command in self.app.settings.shell.file_commands.splitlines():
-            exclude_node_type = "dir"
-
-        tab_complete, suggestions = await self.path_complete(
-            Path(prompt.working_directory),
-            shlex_tokens[-1],
-            exclude_type=exclude_node_type,
-        )
-
-        if tab_complete is not None:
-            shlex_tokens = shlex_tokens[:-1] + [shlex_tokens[-1] + tab_complete]
-            path_component = Path(prompt.working_directory) / shlex_tokens[-1]
-            if path_component.is_file():
-                spaces = " "
-            else:
-                spaces = ""
-
-            self.clear()
-            self.insert(
-                " ".join(token.replace(" ", "\\ ") for token in shlex_tokens)
-                + post_complete
-                + spaces
-            )
-            self.suggestions = None
-        else:
-            if suggestions != self.suggestions:
-                self.suggestions = suggestions or None
-                self.suggestions_index = 0
-                if suggestions:
-                    self.suggestion = suggestions[0]
-            elif self.suggestions:
-                self.suggestions_index = (self.suggestions_index + 1) % len(
-                    self.suggestions
-                )
-                self.suggestion = self.suggestions[self.suggestions_index]
-
     def watch_selection(
         self, previous_selection: Selection, selection: Selection
     ) -> None:
@@ -574,7 +502,7 @@ class MessageTextArea(PromptTextArea):
         return False
 
 
-class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGroup):
+class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, containers.VerticalGroup):
     tone = PromptToneColour
 
     DEFAULT_CSS = """
@@ -886,11 +814,15 @@ class Prompt(HiddenActions, DismissibleControl, TonePaint, containers.VerticalGr
         """
         if not self.is_mounted:
             return
-        from textual.widgets.text_area import VimInsert
+        from toad.key_modes import VimInsert
         from toad.widgets.conversation import Conversation
 
         self.prompt_text_area.editing_mode = VimInsert()
         self.query_ancestor(Conversation).focus_prompt()
+
+    MODE_BINDINGS = (
+        ModeBinding("i", enter_insert, "Focus prompt", mode=VimMode, show=False),
+    )
 
     def focus(self, scroll_visible: bool = True) -> Self:
         if self._ask is not None:

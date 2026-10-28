@@ -7,15 +7,16 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 
 from agent_comms.declared_family import DeclaredFamily
-from textual.binding import Binding
+from textual.binding import Binding, BindingsMap
+from textual.document._editing import EditingMode
 from textual.box_model import DEFAULT_LAYER
 from textual.events import ScreenResume
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
 
-from toad.app_node import ToadNode
 from toad.widget_view import WidgetView
+from toad.widget_actions import WidgetAction, ProfileKeys
 
 
 @dataclass(frozen=True)
@@ -73,18 +74,32 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         )
 
 
-class WorkspaceScreen(WidgetView, ToadNode, Screen):
+class ViewAction(WidgetAction, affix="Action"):
+    pass
+
+
+class ShowSidebarAction(ViewAction):
+    title = 'Sidebar'
+    keys = {EditingMode: ('ctrl+b', 'f20')}
+    show = True
+
+    def available(self, context: WorkspaceFrame) -> bool:
+        sidebar = context.app.workspace_chrome.channels
+        return sidebar.display and not sidebar.has_focus_within
+
+    def apply(self, context: WorkspaceFrame) -> None:
+        sidebar = context.app.workspace_chrome.channels
+        sidebar.reveal()
+        if title := sidebar.query_one_optional("SideBarCollapsible CollapsibleTitle"):
+            title.focus()
+
+
+class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
+    """Native frame and history layout shared by the workspace and saved-history modal."""
     layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
 
-    BINDINGS = [
-        Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
-        Binding(
-            "escape", "back_to_bottom", "Back to bottom", priority=True, show=False
-        ),
-    ]
-
     @classmethod
-    def require(cls, screen: Screen) -> "WorkspaceScreen":
+    def require(cls, screen: Screen) -> WorkspaceFrame:
         """Resolve the native widget screen at the workspace boundary."""
         if not isinstance(screen, cls):
             raise TypeError(f"{type(screen).__name__} is not a {cls.__name__}")
@@ -110,6 +125,13 @@ class WorkspaceScreen(WidgetView, ToadNode, Screen):
             yield Container(id="workspace-session-host")
         yield chrome.footer
 
+    def binding_scopes(self):
+        return tuple(
+            (node, BindingsMap(scoped for binding in node.declared_bindings(self.active_binding_mode)
+                               for scoped in binding.fallback_bindings()))
+            for node in self.app.workspace_sessions.source.keyboard_scopes()
+        )
+
     def belongs_to_wire(self, root) -> bool:
         """Shared workspace chrome follows the observed wire, not a retained tab."""
         return True
@@ -119,17 +141,6 @@ class WorkspaceScreen(WidgetView, ToadNode, Screen):
 
     def focus_sidebar_return(self) -> None:
         self.app.workspace_sessions.source.focus_sidebar_return()
-
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "show_sidebar":
-            sidebar = self.app.workspace_chrome.channels
-            return sidebar.display and not sidebar.has_focus_within
-        if action == "back_to_bottom":
-            return (
-                not (self.focused is not None and self.focused.uses_screen_coordinates)
-                and self.back_to_bottom_window is not None
-            )
-        return super().check_action(action, parameters)
 
     @property
     def back_to_bottom_window(self):
@@ -143,15 +154,7 @@ class WorkspaceScreen(WidgetView, ToadNode, Screen):
             None,
         )
 
-    def action_back_to_bottom(self) -> None:
-        if (window := self.back_to_bottom_window) is not None:
-            window.jump_to_latest()
 
-    def action_show_sidebar(self) -> None:
-        sidebar = self.app.workspace_chrome.channels
-        sidebar.reveal()
-        if title := sidebar.query_one_optional("SideBarCollapsible CollapsibleTitle"):
-            title.focus()
 
     # Keep measured geometry for fast revisits, but do not retain every inactive
     # tab's rendered line/segment graph in the cyclic collector's live heap.
@@ -309,3 +312,23 @@ class WorkspaceScreen(WidgetView, ToadNode, Screen):
     def _on_screen_resume(self, event: ScreenResume) -> None:
         self.frame_presentation.resume()
         # Native Screen resume updates changed stylesheet sources.
+
+
+class WorkspaceScreen(WorkspaceFrame, actions=(ViewAction,)):
+    """The shared live workspace, with its own navigation controls."""
+
+    BINDINGS = [
+        Binding("escape", "back_to_bottom", "Back to bottom", priority=True, show=False),
+    ]
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "back_to_bottom":
+            return (
+                not (self.focused is not None and self.focused.uses_screen_coordinates)
+                and self.back_to_bottom_window is not None
+            )
+        return super().check_action(action, parameters)
+
+    def action_back_to_bottom(self) -> None:
+        if (window := self.back_to_bottom_window) is not None:
+            window.jump_to_latest()

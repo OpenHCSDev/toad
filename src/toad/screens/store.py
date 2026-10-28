@@ -1,16 +1,19 @@
+from __future__ import annotations
+
 from toad.core import session_requests, input_events
-from agent_comms.field_codec import FieldCodec
 from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
 from toad.preferences import SETTINGS
+from collections.abc import Iterator
 from contextlib import suppress
 from itertools import zip_longest
 from random import shuffle
 from typing import Literal, Self
 
-from textual.binding import Binding
-from toad.widget_actions import DismissibleControl, CyclesFocus, Launches
+from textual.binding import ModeBinding
+from toad.widget_actions import DismissibleControl, CyclesFocus, Launches, WidgetAction, ProfileKeys
+from textual.document._editing import EditingMode, VimMode
 from textual.screen import Screen
 from textual import events
 from textual import work
@@ -132,7 +135,7 @@ class AgentItem(containers.VerticalGroup):
         with containers.Grid():
             yield widgets.Label(agent.name, id="name")
             tag = pill(
-                FieldCodec.encode(agent.kind),
+                agent.kind.heading,
                 "$primary-muted 50%",
                 "$text-primary",
                 filled=not self.app.native_ansi_color,
@@ -295,24 +298,43 @@ class Container(containers.VerticalScroll):
         return super().allow_focus() and self.show_vertical_scrollbar
 
 
-class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
+class LaunchSlotAction(WidgetAction):
+    """Launch the agent occupying this numbered slot in the store."""
+
+    keys = {EditingMode: tuple("123456789abcdef"), VimMode: tuple("123456789abcdeF")}
+
+    def __init__(self, slot: int) -> None:
+        self.slot = slot
+
+    @classmethod
+    def command_for_key(cls, mode: type[EditingMode], key: str) -> Self:
+        return cls(cls.keys[mode].index(key))
+
+    def key_identity(self) -> str:
+        return f"{super().key_identity()}:{self.slot}"
+
+    def key_title(self) -> str:
+        return f"{self.title} {self.slot + 1}"
+
+    @classmethod
+    def offered(cls, store: StoreScreen) -> Iterator[Self]:
+        return (cls(slot) for slot in range(len(cls.keys[EditingMode])))
+
+    async def apply(self, store: StoreScreen) -> None:
+        launcher = store.launcher
+        if self.slot >= len(launcher.grid_select.children):
+            store.notify(f"No agent in launch slot {self.slot + 1}",
+                         title="Quick launch", severity="error")
+            store.app.bell()
+            return
+        launcher.focus()
+        launcher.highlighted = self.slot
+        await launcher.launch_highlighted()
+
+
+class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, actions=(LaunchSlotAction,)):
     BINDING_GROUP_TITLE = "Screen"
     CSS_PATH = "store.tcss"
-    BINDINGS = [
-        Binding(
-            "null",
-            "quick_launch",
-            "Quick launch",
-            key_display="1-9 a-f",
-        ),
-        Binding("ctrl+r", "resume", "Resume", tooltip="Resume a previous session"),
-        Binding(
-            "ctrl+d",
-            "directory",
-            "Directory",
-            tooltip="Change project directory",
-        ),
-    ]
 
     agents_view = getters.query_one("#agents-view", AgentGridSelect)
     launcher = getters.query_one("#launcher", Launcher)
@@ -499,32 +521,8 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
 
             self.call_later(focus_screen)
 
-    async def on_key(self, event: events.Key) -> None:
-        if event.character is None:
-            return
-        LAUNCHER_KEYS = "123456789abcdef"
-
-        if event.character in LAUNCHER_KEYS:
-            launch_item_offset = LAUNCHER_KEYS.find(event.character)
-            try:
-                self.launcher.grid_select.children[launch_item_offset]
-            except IndexError:
-                self.notify(
-                    f"No agent on key [b]{LAUNCHER_KEYS[launch_item_offset]}",
-                    title="Quick launch",
-                    severity="error",
-                )
-                self.app.bell()
-                return
-            self.launcher.focus()
-            self.launcher.highlighted = launch_item_offset
-            await self.launcher.launch_highlighted()
-
-    def action_quick_launch(self) -> None:
-        self.launcher.focus()
-
     @work
-    async def action_resume(self) -> None:
+    async def resume(self) -> None:
         from toad.screens.session_resume_modal import SessionResumeModal
 
         session = await self.app.push_screen_wait(SessionResumeModal())
@@ -537,6 +535,13 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen):
                 )
             )
 
-    async def action_directory(self) -> None:
+    async def focus_directory(self) -> None:
         if (directory_display := self.query_one_optional(DirectoryDisplay)) is not None:
             directory_display.focus()
+
+    MODE_BINDINGS = (
+        ModeBinding("ctrl+r", resume, "Resume", mode=EditingMode,
+                    tooltip="Resume a previous session"),
+        ModeBinding("ctrl+d", focus_directory, "Directory", mode=EditingMode,
+                    tooltip="Change project directory"),
+    )

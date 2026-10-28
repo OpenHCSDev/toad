@@ -5,7 +5,8 @@ from textual import on, work
 from textual import containers
 from textual import getters
 from textual.content import Content
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import DismissAction
 from textual import widgets
 from textual.widget import Widget
 
@@ -21,7 +22,7 @@ from metaclass_registry.mro_dispatch import handles
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 
-class ActionModal(CoreEventReceiver, ModalScreen):
+class ActionModal(CoreEventReceiver, DismissibleScreen[int]):
     """Executes an action command."""
 
     CSS_PATH = "store.tcss"
@@ -30,8 +31,6 @@ class ActionModal(CoreEventReceiver, ModalScreen):
     ok_button = getters.query_one("#ok", widgets.Button)
 
     app = getters.app(ToadApp)
-
-    BINDINGS = [("escape", "dismiss_modal", "Dismiss")]
 
     def __init__(
         self,
@@ -60,7 +59,7 @@ class ActionModal(CoreEventReceiver, ModalScreen):
             ))
             with containers.HorizontalGroup(id="action-buttons"):
                 yield widgets.Button("Cancel", id="cancel")
-                yield widgets.Button("OK", id="ok", disabled=True)
+                yield widgets.Button("OK", id="ok", disabled=True, action=f"screen.{DismissAction.binding_name()}")
 
     def enable_button(self) -> None:
         self.ok_button.loading = False
@@ -105,6 +104,5 @@ class ActionModal(CoreEventReceiver, ModalScreen):
         await self.command_pane.cancel_command()
         self.dismiss(None)
 
-    @on(widgets.Button.Pressed, "#ok")
-    def action_dismiss_modal(self) -> None:
+    def dismiss_control(self) -> None:
         self.dismiss(self.command_pane.return_code)

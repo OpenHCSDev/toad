@@ -18,6 +18,8 @@ from typing import TYPE_CHECKING, Annotated
 from uuid import uuid4
 
 from agent_comms.field_codec import FieldCodec, WireName
+from agent_comms.locked_store import FilesRequest
+from agent_comms.typed_table import ExternalStore
 from annotated_types import Ge
 from objectstate import DottedFieldPath, ObjectState, set_base_config_type
 from pydantic import JsonValue
@@ -28,6 +30,8 @@ from toad import setting_effects as effects
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
+from toad.key_modes import KeyMode, Standard
+from toad.keymap import Keymap
 from toad.patch import DiffSettings
 from toad.setting_choices import (
     AlwaysSessionBar,
@@ -71,8 +75,14 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     theme: Annotated[str, SchemeName(), effects.theme] = "wal"
     """wal follows pywal's palette in true colour. ANSI themes inherit your terminal palette."""
 
-    vim_keys: Annotated[bool, FieldLabel("Vim editing and navigation"), effects.vim_keys, WireName("vim-keys"),] = False
+    key_mode: Annotated[
+        type[KeyMode], FieldLabel("Keyboard mode"), FamilyChoices(KeyMode),
+        effects.key_mode, WireName("key-mode"),
+    ] = Standard
     """Opt in to modal prompts. Escape leaves Insert; Normal Enter never sends. Ctrl+Alt+X cancels a turn."""
+
+    keymap: Keymap = field(default_factory=Keymap)
+    """Keyboard overrides, edited in the keybinding menu."""
 
     prompt_message: Annotated[str, FieldLabel("Prompt message")] = "How can I help you today?"
     """Text shown as placeholder in prompt text area"""
@@ -316,7 +326,7 @@ def no_effect(field: DeclaredField) -> None:
     """Settings held outside an app change nothing but themselves."""
 
 
-class SavedSettings:
+class SavedSettings(ExternalStore):
     """The settings in use, the file they are saved in, and what a change does.
 
     One ObjectState holds the values. `current` is the typed tree to read from,
@@ -364,10 +374,9 @@ class SavedSettings:
     def changed(self, changed: builtins.set[str]) -> None:
         from toad.core.preference_events import PreferenceChanged
 
-        for name in changed:
-            if (name in self.state.parameter_structure.declarations
-                    and not self.state.has_parameter_descendants(name)):
-                setting = DeclaredField(self.state, self.state.parameter_structure.path(name))
+        for path in self.state.parameter_structure.leaf_paths():
+            if any(path.contains_path(name) for name in changed):
+                setting = DeclaredField(self.state, path)
                 self.user_set.add(setting.path)
                 self.applied(setting)
                 self.events.publish(PreferenceChanged(setting))
@@ -379,9 +388,21 @@ class SavedSettings:
 
     # The file.
 
-    @staticmethod
-    def file_path() -> Path:
+    @classmethod
+    def path(cls) -> Path:
         return paths.get_config() / "toad.json"
+
+    @classmethod
+    def practice_opening(cls, files: FilesRequest, directory: Path) -> None:
+        """An install must leave settings that this runtime can open.
+
+        Planned reconciliation skips a file its carry will rewrite; the same
+        opening check runs against the carried copy before live cutover.
+        """
+        resource, = cls.resources(files)
+        path = files.location(resource)
+        if path.exists():
+            FieldCodec.decode(ToadSettings, FieldCodec.parse(path.read_text("utf-8")))
 
     def saved_key(self, path: DottedFieldPath) -> str:
         owner = DeclaredField(self.state, path).owner_type
@@ -427,7 +448,7 @@ class SavedSettings:
 
     def write(self, text: str) -> bool:
         try:
-            atomic.write(str(self.file_path()), text)
+            atomic.write(str(self.path()), text)
         except atomic.AtomicWriteError as error:
             self.report_error(error)
             return False
@@ -464,7 +485,7 @@ class SavedSettings:
 
     @classmethod
     def open(cls, app: ToadApp) -> SavedSettings:
-        path = cls.file_path()
+        path = cls.path()
         raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
 
         def applied(field: DeclaredField) -> None:
@@ -482,7 +503,7 @@ class SavedSettings:
             self.applied(DeclaredField(self.state, path))
 
     def ensure_file(self, app: ToadApp) -> None:
-        path = self.file_path()
+        path = self.path()
         if not path.exists():
             self.save_sync(force=True)
             if path.is_file():

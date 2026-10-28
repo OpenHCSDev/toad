@@ -7,16 +7,16 @@ import re
 
 from rich.text import Text
 from typing import Annotated
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.declared_choice import DeclaredChoice, TitledChoice
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
-from toad.setting_declarations import Choice, Effect, FamilyChoices
+from toad.setting_declarations import Effect, FamilyChoices
 
 from toad.line_blocks import LineBlock, LineRole, TextRole, AddedCodeRole, RemovedCodeRole
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
-class DiffMode(Choice, DeclaredFamily, affix="Diff"):
+class DiffMode(DeclaredChoice, affix="Diff"):
     split = False
     auto_split = False
 
@@ -33,7 +33,7 @@ class SplitDiff(DiffMode):
     split = True
 
 
-class AutoDiff(DiffMode):
+class AutoDiff(TitledChoice, DiffMode):
     title = "Best fit"
     auto_split = True
 
@@ -42,7 +42,7 @@ class AutoDiff(DiffMode):
         return width >= required
 
 
-class WrapMode(Choice, DeclaredFamily, affix="Mode"):
+class WrapMode(DeclaredChoice, affix="Mode"):
     enabled = False
 
     @classmethod
@@ -50,11 +50,11 @@ class WrapMode(Choice, DeclaredFamily, affix="Mode"):
         return max(available, content)
 
 
-class NoWrapMode(WrapMode, declared_name="no-wrap"):
+class NoWrapMode(TitledChoice, WrapMode, declared_name="no-wrap"):
     title = "Don't wrap"
 
 
-class WrapModeEnabled(WrapMode, declared_name="wrap"):
+class WrapModeEnabled(TitledChoice, WrapMode, declared_name="wrap"):
     title = "Wrap long lines"
     enabled = True
 

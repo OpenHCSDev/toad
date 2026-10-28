@@ -2,7 +2,6 @@
 
 from textual.containers import Vertical
 from textual.reactive import reactive
-from pathlib import Path
 from contextlib import contextmanager
 from metaclass_registry.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
@@ -11,6 +10,7 @@ from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.navigation_target import NavigationTarget, NoTarget
+from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.message_notifications import (
     NothingToRead,
     PaintedRead,
@@ -18,7 +18,7 @@ from toad.widgets.message_notifications import (
 )
 
 
-class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
+class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
     title = reactive("")
     sub_title = reactive("")
 
@@ -28,6 +28,12 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
         self._identity: SessionIdentity = NoThreadIdentity()
         super().__init__(*args, **kwargs)
 
+    def close_core_events(self) -> None:
+        """Retire this logical source's descendants before its tab entry disappears."""
+        for receiver in self.query().results(CoreEventReceiver):
+            receiver.close_core_events()
+        super().close_core_events()
+
     @property
     def display_name(self) -> str:
         """Borrow this view's current label from the same projection as its tab."""
@@ -35,10 +41,6 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
         return self.app.coordination_access.observation.tab(
             sessions.get(self.id), sessions
         ).title
-
-    @property
-    def project_root(self) -> Path:
-        return self.project_path.path
 
     @property
     def is_current(self) -> bool:
@@ -87,6 +89,10 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope)
     def sidebars(self):
         """Supply this view's native sidebar resources through its declaration."""
         return ()
+
+    def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
+        """A source adds its loaded reader/composer through its own lifecycle."""
+        return (self,)
 
     @property
     def thread_identity(self) -> SessionIdentity:

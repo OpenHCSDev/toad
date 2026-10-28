@@ -26,11 +26,12 @@ from toad.constants import WELCOME
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.navigation_context import NavigationOwner
-from toad.project_path_owner import ProjectPathOwner
+from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 
 if TYPE_CHECKING:
+    from toad.widget_actions import DeclaredWidgetActions
     from agent_comms.messages import Message
     from agent_comms.transcripts import TranscriptCursor
     from textual.command import Provider
@@ -347,6 +348,9 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
     @abstractmethod
     def sidebars(self) -> tuple[DOMNode, ...]: ...
 
+    @abstractmethod
+    def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]: ...
+
     def focus_sidebar_return(self) -> None:
         """A view without a sidebar return target has nothing to focus."""
 
@@ -369,10 +373,8 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
     def remove(self) -> Awaitable[None]: ...
 
 
-class ProjectSessionOrigin(SessionOrigin, SessionScope):
+class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
     """A project source may navigate and resolve threads without an ACP session."""
-
-    project_path: Checkout
 
     @abstractmethod
     def history_origin(self):

@@ -3,7 +3,7 @@ from toad.widgets.terminal_projection import TerminalStateProjection
 from dataclasses import dataclass
 
 from time import monotonic
-from typing import Awaitable, Callable, Iterable
+from typing import Awaitable, Callable
 
 from textual.cache import LRUCache
 from textual.content import Content
@@ -23,7 +23,6 @@ from textual.strip import Strip
 from textual.timer import Timer
 
 from toad import ansi
-from toad.menus import MenuItem
 
 
 # Time required to double tab escape
@@ -482,6 +481,13 @@ Tap escape *twice* to exit.
     async def write_process_stdin(self, input: str) -> None:
         if self._write_to_stdin is not None:
             await self._write_to_stdin(input)
+
+
+class ControlledTerminal(Terminal):
+    """A parent controller owns priority keys; every remaining key goes to the child."""
+
+    def check_consume_key(self, key: str, character: object = None) -> bool:
+        return False
 
 
 if __name__ == "__main__":

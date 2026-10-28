@@ -4,8 +4,9 @@ from typing import Iterable
 import asyncio
 
 from textual import work
-from textual.binding import Binding
-from toad.widget_actions import DismissAction
+from textual.binding import Binding, ModeBinding
+from textual.document._editing import EditingMode
+from toad.widget_actions import DismissAction, NativeMethodKeys
 from textual.message import Message
 from textual.widgets import DirectoryTree
 from textual.widgets.directory_tree import DirEntry
@@ -14,7 +15,7 @@ from toad.path_filter import PathFilter
 from toad.tone_paint import UntintedTonePaint
 
 
-class ProjectDirectoryTree(UntintedTonePaint, DirectoryTree):
+class ProjectDirectoryTree(NativeMethodKeys, UntintedTonePaint, DirectoryTree):
     BINDING_GROUP_TITLE = "Tree view"
     HELP = """\
 ## Project files
@@ -38,14 +39,6 @@ This shows the files in your project directory.
             DismissAction.binding_name(),
             "Interrupt",
             tooltip="Interrupt running command",
-            show=False,
-        ),
-        Binding("ctrl+r", "refresh", "Refresh", tooltip="Refresh file view", show=True),
-        Binding(
-            "shift+enter",
-            "insert_selected",
-            "Insert path",
-            tooltip="Insert selected path in prompt",
             show=False,
         ),
     ]
@@ -153,12 +146,19 @@ This shows the files in your project directory.
             yield from paths
 
     @work
-    async def action_refresh(self) -> None:
+    async def refresh_directory(self) -> None:
         await self.reload()
         self.notify("Project directory has been refreshed", title="Directory Tree")
 
-    def action_insert_selected(self) -> None:
+    def insert_selected(self) -> None:
         if self.cursor_node is not None and self.cursor_node.data is not None:
             path = self.cursor_node.data.path
             if path.is_file():
                 self.post_message(self.InsertSelected(path))
+
+    MODE_BINDINGS = (
+        ModeBinding("ctrl+r", refresh_directory, "Refresh", mode=EditingMode,
+                    tooltip="Refresh file view", show=True),
+        ModeBinding("shift+enter", insert_selected, "Insert path", mode=EditingMode,
+                    tooltip="Insert selected path in prompt", show=False),
+    )

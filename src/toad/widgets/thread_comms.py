@@ -17,7 +17,7 @@ from agent_comms.route_selection import RouteSelection
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from agent_comms.ui_model.unread import UnobservedUnread
 from textual import on
-from textual.binding import Binding
+from textual.document._editing import EditingMode
 from textual.content import Content
 from textual.geometry import Offset
 from textual.widgets import Checkbox, Static
@@ -40,7 +40,7 @@ from agent_comms.relationships import (
     ThreadCommsSnapshot,
 )
 from toad.widgets.thread_comms_source import RelationshipSource
-from toad.widget_actions import OpensSelected
+from toad.widget_actions import WidgetAction, OpensSelected
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
@@ -95,8 +95,19 @@ class RelationshipSort(SortControl[ThreadSort]):
         return write
 
 
-class RelationshipRow(ThreadStatusRow):
-    BINDINGS = [Binding("ctrl+c", "copy_identity", "Copy name", show=False)]
+class ViewAction(WidgetAction, affix="Action"):
+    pass
+
+
+class CopyIdentityAction(ViewAction):
+    title = 'Copy name'
+    keys = {EditingMode: ('ctrl+c',)}
+
+    def apply(self, context: RelationshipRow) -> None:
+        context.app.copy_to_clipboard(context.target_name)
+
+
+class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
     available = True
     entry: RelationshipEntry | None = None
 
@@ -143,8 +154,6 @@ class RelationshipRow(ThreadStatusRow):
         if self.entry == entry:
             self._show_person(entry, model)
 
-    def action_copy_identity(self) -> None:
-        self.app.copy_to_clipboard(self.target_name)
 
     def open_selected(self) -> None:
         tree = self.query_ancestor(ThreadCommsSidebar)

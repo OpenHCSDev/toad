@@ -29,10 +29,9 @@ from metaclass_registry.mro_dispatch import handles
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from agent_comms.ui_model.unread import UnreadPresentation
-from textual._activation import PrimaryActivation
+from toad.widget_actions import Activates
 from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
-from textual.binding import Binding
 from toad.widget_actions import CursorAction, HiddenActions, MovesCursor
 from textual.containers import Vertical, VerticalGroup
 from textual.geometry import Offset, Size
@@ -78,25 +77,14 @@ class TargetTreeMember(HiddenActions, MovesCursor):
         self.navigation_tree.cursor_down()
 
 
-class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
-    BINDINGS = [Binding("enter,space", "toggle", "Expand group", show=False)]
+class SidebarDisclosure(Activates, Static, can_focus=True):
     DEFAULT_CSS = "SidebarDisclosure { width: 2; height: 1; pointer: pointer; }"
 
     def render(self):
         return "▾" if self.query_ancestor(SidebarGroup).expanded else "▸"
 
-    @property
-    def primary_activation(self):
-        return self.action_toggle
-
-    def action_toggle(self) -> None:
+    def activate(self) -> None:
         self.query_ancestor(SidebarGroup).toggle_members()
-
-    def on_click(self, event: Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_toggle()
-
 
 class SidebarReaderLayout(VerticalLayout):
     """Native flow, preserving the viewport's reader before placements change."""

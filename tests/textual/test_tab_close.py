@@ -1,13 +1,11 @@
 """Textual-facing: tab closing. A tab's logical lifetime ends without removing its saved thread."""
 from dataclasses import dataclass
-from functools import partial
 
 from agent_comms.launch_root import LaunchRoot
 from toad.comms_root import FailedObservation, UnselectedRoute
 from toad.core.events import ObservedServiceChanged
 from support.applications import record_notifications
 from toad.preferences import SETTINGS
-from toad.screens.main import MainScreen
 from toad.widgets.session_tabs import SessionTabClose
 from toad.tab_identity.kinds import MailboxTab
 
@@ -58,11 +56,9 @@ async def test_closing_a_tab_keeps_its_thread_and_reports_no_error(workspace):
             modes = []
             for thread in threads:
                 owner = thread.incarnation
-                details = await app.session_navigation.new(
-                    MailboxTab(owner, root),
-                    partial(MainScreen.from_thread, workspace.project, root, owner),
-                    title=thread.name, original=(root, owner))
-                modes.append(details.mode_name)
+                identity = MailboxTab(owner, root)
+                await app.session_navigation.restore_mailbox(identity)
+                modes.append(identity.mode_name)
                 await app.selected_session.wait_content_ready()
             first, second = modes
             await ui.until(lambda: "second" in app.coordination_access.observation.sidebar.threads.rows,
@@ -70,7 +66,8 @@ async def test_closing_a_tab_keeps_its_thread_and_reports_no_error(workspace):
 
             async def close_selected(mode):
                 closing_view = app.workspace_sessions.views[mode]
-                assert await pilot.click(app.screen.query_one(f"#close-{mode}", SessionTabClose))
+                app.screen.query_one(f"#close-{mode}", SessionTabClose).focus()
+                await ui.press("enter")
                 await ui.until(lambda: not closing_view.is_attached,
                                why="the closed tab's view to finish removal")
                 await ui.step()
@@ -78,8 +75,9 @@ async def test_closing_a_tab_keeps_its_thread_and_reports_no_error(workspace):
                 assert [entry.mode for entry in app.session_navigation.members] == [first]
                 assert workspace.comms.registry.require("second").incarnation == threads[1].incarnation
                 assert "second" in app.coordination_access.observation.sidebar.threads.rows
-                assert not [notification for notification in app._notifications
-                            if notification.severity == "error"]
+                errors = [str(notification.message) for notification in app._notifications
+                          if notification.severity == "error"]
+                assert not errors, "\n".join(errors)
 
             await close_selected(second)
             history = await ui.open_direct("second", actor="first", owner=first)

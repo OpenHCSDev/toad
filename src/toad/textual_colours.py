@@ -26,7 +26,7 @@ from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
 from textual.ansi_palette import AnsiPalette, MappedAnsiPalette, NativeAnsiPalette
-from textual.app import App
+from textual.app import App, ReturnType
 from textual.color import Color
 from textual.content import Content
 from textual.design import ColorSystem
@@ -474,7 +474,7 @@ class _ThemedAppMeta(_MessagePumpMeta, ABCMeta):
     """Compose Textual message dispatch with the result display capability."""
 
 
-class ThemedApp(App[None], ResultShower, metaclass=_ThemedAppMeta):
+class ThemedApp(App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
     """A Textual app drawn through ui_theme: mix in before `App`.
 
     Holds the colours owner and answers Textual's three questions from it: the

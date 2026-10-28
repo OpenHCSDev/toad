@@ -1,6 +1,8 @@
 """Textual-facing: a file preview is a closeable tab whose FilePreview widget is retained, highlighted and bounded in size."""
 
 from toad.widgets.line_markdown import LineMarkdown
+from toad.session_actions import ReturnToViewAction
+from textual.document._editing import EditingMode
 from toad.widgets.project_panel import FilePreview
 from toad.widgets.session_tabs import SessionTabClose
 
@@ -31,6 +33,7 @@ async def test_opening_a_file_adds_a_tab_named_for_it_and_opening_it_again_selec
         mode, widget = await preview(ui, path)
         assert [tab.identity for tab in ui.tabs()][:2] == [owner, mode]
         assert widget.path == path.resolve()
+        assert app.selected_session.project_root == path.parent
         assert str(path.resolve()) in widget.query_one(".file-preview-path").render().plain
         assert "Previewed plan" in widget.query_one(LineMarkdown).text
         assert next(tab.title for tab in ui.tabs() if tab.identity == mode) == path.name
@@ -76,13 +79,16 @@ async def test_back_returns_to_the_previous_tab_without_closing_the_preview(work
         first, first_widget = await preview(ui, path)
         second, _ = await preview(ui, other)
         assert [tab.identity for tab in ui.tabs()][:3] == [owner, first, second]
-        await app.selected_session.action_back()
+        app.set_keymap({ReturnToViewAction.binding_id(EditingMode): "f10"})
+        await ui.press("escape")
+        assert ui.selected_tab == second
+        await ui.press("f10")
         await ui.step()
         assert ui.selected_tab == first
         assert app.selected_session.query_one(FilePreview) is first_widget
         assert second in {tab.identity for tab in ui.tabs()}
         await ui.select_tab(second)
-        await app.session_navigation.close(second)
+        await ui.press("ctrl+w")
         await ui.step()
         assert ui.selected_tab == first
         await app.session_navigation.close(first)

@@ -25,6 +25,6 @@ async def test_target_discovery_keeps_declared_channel_selection(workspace, sele
         channel_actions = [action for action in actions if action.declaration.channel_fields()]
         offered = {channel for action in channel_actions
                    for channel in action.channels.channels_for("owner")}
-        assert offered == set(selection.channels_for("owner")) - {None}
+        assert offered == set(selection.channels_for("owner")) - {NoChannel()}
         assert all(action.channels == selection for action in channel_actions)
         assert ConfiguredBinary().configured() in about.render()

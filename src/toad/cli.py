@@ -209,7 +209,7 @@ def acp(
 def settings() -> None:
     """Settings information."""
     from toad.preferences import SavedSettings
-    print(f"{SavedSettings.file_path()}")
+    print(f"{SavedSettings.path()}")
 
 
 @main.command("replay")

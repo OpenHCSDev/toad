@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, Self, Sequence
 
 from textual import on
 from textual.app import ComposeResult
-from textual.binding import Binding
-from toad.widget_actions import PriorityActions, HiddenActions, MovesCursor, Submits, DismissAction, SubmitAction
+from textual.document._editing import EditingMode
+from toad.widget_actions import WidgetAction, PriorityActions, HiddenActions, MovesCursor, Submits, DismissAction, SubmitAction
 from textual import work
 from textual import getters
 from textual import containers
@@ -136,17 +136,23 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
         return super().render_line(y, paint)
 
 
+class SwitchPathPickerAction(WidgetAction):
+    """Switch between path search and the project tree."""
+    keys = {EditingMode: ("tab",)}
+    priority = True
+
+    async def apply(self, context: PathSearch) -> None:
+        context.show_tree_picker = not context.show_tree_picker
+
+
 class PathSearch(
     CoreEventReceiver, PriorityActions, HiddenActions, MovesCursor, Submits, CompletionPopup,
     scopes={HiddenActions: (DismissAction, SubmitAction)},
+    actions=(SwitchPathPickerAction,),
 ):
     requires_completion = True
 
     BINDING_GROUP_TITLE = "Path search"
-
-    BINDINGS = [
-        Binding("tab", "switch_picker", "Switch picker", priority=True, show=False),
-    ]
 
     paths: var[list[Path]] = var(list, init=False)
     display_paths: var[list[str]] = var(list)
@@ -231,9 +237,6 @@ class PathSearch(
 
         else:
             self.input.focus()
-
-    def action_switch_picker(self) -> None:
-        self.show_tree_picker = not self.show_tree_picker
 
     async def search(self, search: str) -> None:
         if not search:

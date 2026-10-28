@@ -10,7 +10,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import accumulate, chain, islice
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 from weakref import ref
 
 from agent_comms.acp_extension import InputStartedUpdate
@@ -24,7 +24,7 @@ from agent_comms.ui_model.message_category import (
 )
 from rich.style import Style as RichStyle
 from textual import on
-from textual._activation import PrimaryActivation
+from toad.widget_actions import Activates
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
 from textual.app import ComposeResult
@@ -113,28 +113,17 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Contents, Conversation
 
 
-class HistoryEdge(PrimaryActivation, Static, can_focus=True):
+class HistoryEdge(Activates, Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
-    BINDINGS = [("enter,space", "requested", "Earlier history")]
 
     class Requested(Message):
         pass
 
-    @property
-    def primary_activation(self):
-        return self.action_requested
-
-    def action_requested(self) -> None:
+    def activate(self) -> None:
         self.post_message(self.Requested())
-
-    def on_click(self, event) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_requested()
 
 class JumpToLatest(HoverSelection, HistoryEdge):
     highlighted_text_style = RichStyle(bold=True)
-    BINDINGS = [("enter,space", "requested", "Jump to latest")]
     DEFAULT_CSS = "JumpToLatest { color: $text-secondary; }"
 
     class Requested(Message):
@@ -187,7 +176,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def __init__(self, prepared: PreparedTranscriptPage, *,
                  batch_size: int = PresentationBudget.batch_items) -> None:
         self.arrivals: set[int] = set()
-        self.prepared = prepared
+        self.prepared: Final[PreparedTranscriptPage] = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size)
         # Fragments drawn as plain text until their styled lines arrive, by identity.
@@ -775,7 +764,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
         revision, width = window.scroll_revision, self.line_width
         current = lambda: (snapshot.current(self) and selected()
                            and window.scroll_revision == revision and self.line_width == width
-                           and page in self.pages and page.prepared is original)
+                           and page in self.pages)
         staged = original.for_view()
         staged.set_fragment_range(slice(first, first))
         height = window.scrollable_content_region.height

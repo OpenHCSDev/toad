@@ -25,6 +25,7 @@ from pydantic import JsonValue
 from toad.acp.agent_session import AgentSession
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
+from toad.resource_release import AsyncResourceRelease
 
 
 class AgentProcess(Client):
@@ -231,14 +232,21 @@ class AgentProcess(Client):
 
     async def _retire(self) -> None:
         try:
-            if self.connection is not None:
-                await self.connection.close()
-                self.connection = None
-            await asyncio.gather(*(session.retire() for session in tuple(self.sessions)),
-                                 return_exceptions=True)
+            async with AsyncResourceRelease() as release:
+                if self.process is not None:
+                    release.push_async_callback(self.process.stop)
+                for session in tuple(self.sessions):
+                    release.push_async_callback(session.retire)
+                if self.connection is not None:
+                    try:
+                        await self.connection.close()
+                    except (BrokenPipeError, ConnectionResetError) as error:
+                        # The SDK joins its sender here; an already closed peer can
+                        # leave that sender failed. All sessions are retiring.
+                        self.agent.log(f'[ACP transport closed during retirement] {error}')
+                    finally:
+                        self.connection = None
         finally:
-            if self.process is not None:
-                await self.process.stop()
             self.process = None
             self.sessions.clear()
 

@@ -13,6 +13,8 @@ from agent_comms.coordinator import Coordination
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
 from textual import on, work
+from textual.binding import ModeBinding
+from textual.document._editing import EditingMode
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Input, Static, Tree
 from textual.widgets._tree import TreeNode
@@ -26,6 +28,7 @@ from toad.core.context_inspection import (
 )
 from toad.core.events import CoordinationObserved, SessionSelected
 from toad.session_scope import SessionScope
+from toad.widget_actions import NativeMethodKeys
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.process_text_area import ProcessTextArea
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
@@ -226,7 +229,7 @@ class ContextTree(Tree[ContextNode]):
         return self.owns_node(node) and node.data is model and self.intent.selected is model
 
 
-class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
+class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     DEFAULT_CSS = """
     ContextExplorer { height: auto; }
     ContextExplorer > .context-status { height: auto; color: $text-muted; }
@@ -237,7 +240,6 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     ContextExplorer > Input { height: 3; }
     ContextExplorer > TextArea.-maximized { height: 1fr; width: 1fr; }
     """
-    BINDINGS = [("r", "refresh", "Refresh context")]
 
     def __init__(self, *, intents: dict[SessionIdentity, ContextTreeIntent]) -> None:
         super().__init__()
@@ -281,7 +283,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     def on_mount(self) -> None:
         self.observe_core(self.app.coordination_access.events)
         self.observe_core(self.app.events)
-        self.call_after_refresh(self.action_refresh)
+        self.call_after_refresh(self.refresh_context)
 
     @handles(CoordinationObserved, SessionSelected)
     def context_changed(self, event: CoordinationObserved | SessionSelected) -> None:
@@ -326,11 +328,15 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         self.query_one(ContextTree).clear()
         self.query_one(".context-status", Static).update(f"Context · {identity.display_thread()}")
         self._show_placeholder("No context selected.")
-        self.action_refresh()
+        self.refresh_context()
 
-    def action_refresh(self) -> None:
+    def refresh_context(self) -> None:
         if self.presentation_visible():
             self._read(force=True)
+
+    MODE_BINDINGS = (
+        ModeBinding("r", refresh_context, "Refresh context", mode=EditingMode),
+    )
 
     def _reading(self, identity: SessionIdentity):
         return (

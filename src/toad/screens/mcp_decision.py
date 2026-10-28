@@ -4,18 +4,18 @@ from __future__ import annotations
 
 import asyncio
 
-from textual import containers, events, on
+from textual import containers, events
 from textual.app import ComposeResult
-from textual.binding import Binding
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import DismissAction, PriorityActions
 from textual.widgets import Button, Static
 
 from toad.mcp_decision import LocalDecisionPTY
 from toad.mcp_commands import MCPDecision, MCPSelection
-from toad.widgets.terminal import Terminal
+from toad.widgets.terminal import ControlledTerminal, Terminal
 
 
-class MCPDecisionScreen(ModalScreen[None]):
+class MCPDecisionScreen(PriorityActions, DismissibleScreen[None]):
     DEFAULT_CSS = """
     MCPDecisionScreen { align: center middle; }
     MCPDecisionScreen #mcp-decision-panel {
@@ -25,7 +25,6 @@ class MCPDecisionScreen(ModalScreen[None]):
     MCPDecisionScreen #mcp-decision-terminal { height: 1fr; border: round $accent; }
     MCPDecisionScreen #mcp-decision-controls { height: auto; }
     """
-    BINDINGS = [Binding("escape", "close_decision", "Cancel local action", priority=True)]
 
     def __init__(
         self,
@@ -52,9 +51,9 @@ class MCPDecisionScreen(ModalScreen[None]):
                 id="mcp-decision-status",
                 markup=False,
             )
-            yield Terminal(id="mcp-decision-terminal")
+            yield ControlledTerminal(id="mcp-decision-terminal")
             with containers.Horizontal(id="mcp-decision-controls"):
-                yield Button("Cancel / close", id="cancel")
+                yield Button("Cancel / close", id="cancel", action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         self._running = True
@@ -109,10 +108,6 @@ class MCPDecisionScreen(ModalScreen[None]):
     def _controller_visible(self) -> bool:
         return self._running and self.is_attached and self.app.screen is self
 
-    def action_close_decision(self) -> None:
+    def dismiss_control(self) -> None:
         self._stop()
-        self.dismiss()
-
-    @on(Button.Pressed, "#cancel")
-    def on_cancel(self) -> None:
-        self.action_close_decision()
+        super().dismiss_control()
