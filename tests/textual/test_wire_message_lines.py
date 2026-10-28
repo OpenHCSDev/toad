@@ -4,7 +4,7 @@ from agent_comms.display_references import ProjectReferences
 from agent_comms.messages import InfoKind, Message
 from textual.app import App
 
-from toad.line_blocks import OpenTarget, ToggleDetails
+from toad.line_blocks import OpenTarget
 from toad.markdown_links import LinkContext
 from toad.notification_status import CheckedNotifications
 from toad.textual_colours import ThemedApp
@@ -55,7 +55,7 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_drawn_names_clickable_at_ever
             if width >= 80:
                 assert all(name in drawn for name in names), (width, text)
             expected = {OpenTarget(name).click for name in names if name in drawn}
-            actual = clicks(rows) - {ToggleDetails().click}
+            actual = clicks(rows) - {shown.details_link.click}
             assert actual == expected, (width, text, actual, expected)
 
 
@@ -63,10 +63,10 @@ def test_opening_notification_details_draws_more_rows_than_the_collapsed_message
     status = CheckedNotifications(())
     for style in (IrcMessageStyle(), MarkdownMessageStyle()):
         shown = fragment("#all", style)
-        shown.show(MessageShown(style=style, status=status))
+        shown.request_show(MessageShown(style=style, status=status))
         for width in (36, 80):
             lines = PlainLines(width, RichLineRenderer(theme()), shown.line_blocks)
             opened = fragment("#all", style)
-            opened.show(MessageShown(style=style, status=status, details_open=True))
+            opened.request_show(MessageShown(style=style, status=status, details_open=True))
             taller = PlainLines(width, RichLineRenderer(theme()), opened.line_blocks)
             assert taller.height > lines.height
