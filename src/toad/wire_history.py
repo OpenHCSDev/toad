@@ -303,7 +303,7 @@ class WireSource:
 
     def references(self) -> CurrentDisplayReferences:
         """Resolve stable destinations through this read's registry cut."""
-        return CurrentDisplayReferences(str(self.comms.root), registry=self.comms.registry.snapshot())
+        return CurrentDisplayReferences.from_registry(str(self.comms.root), self.comms.registry.snapshot())
 
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
