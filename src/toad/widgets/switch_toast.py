@@ -18,6 +18,7 @@ from ui_theme.scheme import AccentColour, BackgroundColour, ForegroundColour, He
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated
+from toad.large_text import LargeText
 from toad.widget_view import WidgetView
 
 if TYPE_CHECKING:
@@ -68,7 +69,8 @@ class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
 
     def __init__(self) -> None:
         super().__init__()
-        self.title = ""
+        # The name as drawn: three rows tall when that fits the screen, else one.
+        self.lines: tuple[str, ...] = ()
         self.display = False
 
     def on_mount(self) -> None:
@@ -83,11 +85,18 @@ class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
     @property
     def box(self) -> tuple[int, int]:
         rows, columns = self.MARGIN
-        width = min(cell_len(self.title) + 2 * columns + 2, max(0, self.screen.size.width - 4))
-        return width, 2 * rows + 3
+        width = min(max(map(cell_len, self.lines)) + 2 * columns + 2, self.room)
+        return width, len(self.lines) + 2 * rows + 2
+
+    @property
+    def room(self) -> int:
+        """The widest the toast may be: the screen less a margin each side."""
+        return max(0, self.screen.size.width - 4)
 
     def show(self, title: str) -> None:
-        self.title = title
+        large = LargeText.rows(title)
+        fits = LargeText.width(title) + 2 * self.MARGIN[1] + 2 <= self.room
+        self.lines = large if fits else (title,)
         width, height = self.box
         self.width, self.height = Scalar.from_number(width), Scalar.from_number(height)
         screen = self.screen.size
@@ -117,7 +126,8 @@ class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
         if y == 0 or y == height - 1:
             left, right = ("╭", "╮") if y == 0 else ("╰", "╯")
             return Strip([Segment(left + "─" * inner + right, frame)], width)
-        text = self.title if y == height // 2 else ""
+        line = y - 1 - self.MARGIN[0]
+        text = self.lines[line] if 0 <= line < len(self.lines) else ""
         if cell_len(text) > inner:
             text = set_cell_size(text, max(0, inner - 1)) + "…"
         padding = inner - cell_len(text)
