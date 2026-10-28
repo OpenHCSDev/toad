@@ -24,11 +24,12 @@ class KeymapScreen(DismissibleScreen[None]):
     KeymapScreen { align: center middle; background: $background 40%; }
     KeymapScreen > Vertical {
         width: 95%; height: 95%; padding: 1;
-        background: $surface; border: solid $primary;
+        background: $surface; border: solid $primary; overflow-y: auto;
     }
-    KeymapScreen DataTable { height: 1fr; }
-    KeymapScreen #keymap-summary { height: 3; }
-    KeymapScreen #keymap-status { height: 3; }
+    KeymapScreen DataTable { height: 1fr; min-height: 3; }
+    KeymapScreen #keymap-summary, KeymapScreen #keymap-status {
+        height: auto; max-height: 3;
+    }
     KeymapScreen Horizontal { height: auto; }
     KeymapScreen #keymap-keys { width: 1fr; }
     """
