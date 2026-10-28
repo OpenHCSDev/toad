@@ -19,6 +19,7 @@ from toad.session_scope import (
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
+    from toad.widget_actions import DeclaredWidgetActions
 
 
 def welcome_view() -> "SessionScope":
@@ -38,6 +39,10 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
 
     def shown(self, view: "SessionScope") -> bool:
         return False
+
+    def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
+        """A detached source contributes no session keyboard controls."""
+        return ()
 
     @abstractmethod
     async def retire(self) -> "WorkspaceSource": ...
@@ -134,6 +139,9 @@ class BoundWorkspaceSource(WorkspaceSource):
 
     def sidebars(self):
         return self.view.sidebars()
+
+    def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
+        return self.view.keyboard_scopes()
 
 
 class LoadingWorkspaceSource(BoundWorkspaceSource):

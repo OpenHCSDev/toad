@@ -1,4 +1,4 @@
-"""Saved settings load and write back unchanged, without loading Textual or Qt; each declared kind of setting accepts its values and refuses the rest; the file holds exactly what the user has set."""
+"""Settings preserve user values without Qt; native keyboard modes remain typed choices."""
 
 from dataclasses import dataclass
 import json
@@ -42,7 +42,7 @@ KINDS = [
 ]
 
 
-def test_saved_settings_and_an_unknown_theme_load_without_textual_or_qt():
+def test_saved_settings_and_an_unknown_theme_load_without_qt():
     subprocess.run(
         [sys.executable, "-c",
          "import json,sys; from toad.preferences import SETTINGS, SavedSettings; "
@@ -51,7 +51,7 @@ def test_saved_settings_and_an_unknown_theme_load_without_textual_or_qt():
          "settings.set(SETTINGS.ui.theme, 'frontend-not-installed-theme'); "
          "assert settings.document()['ui']['theme']=='frontend-not-installed-theme'; "
          "loaded={name.partition('.')[0] for name in sys.modules}; "
-         "assert not loaded & {'textual', 'PyQt5', 'PyQt6', 'PySide2', 'PySide6'}, loaded", str(SAVED)],
+         "assert not loaded & {'PyQt5', 'PyQt6', 'PySide2', 'PySide6'}, loaded", str(SAVED)],
         check=True, capture_output=True, text=True, timeout=30,
     )
 

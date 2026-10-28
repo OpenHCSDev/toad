@@ -24,12 +24,14 @@ from agent_comms.exporting import (
     WireExportLimit,
     WireExportScope,
 )
-from agent_comms.cli_bridges.history import OfflineHistory
+from agent_comms.cli_bridges.history import ExpectedSession, OfflineHistory
 from agent_comms.harness_install import Harness
+from agent_comms.thread_management import ImportDirectory
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import DismissAction
 from textual.widgets import Button, Input, Select, Static
 
 
@@ -76,8 +78,8 @@ class ThreadImportRequest(TransferRequest):
     source: Path
     harness: type[Harness]
     name: str
-    session_id: str | None
-    worktree: str | None
+    session: ExpectedSession
+    worktree: ImportDirectory
 
     failure_title = "Thread import failed"
     title = "Thread Import…"
@@ -87,7 +89,7 @@ class ThreadImportRequest(TransferRequest):
         return ThreadImportDialog()
 
     def apply(self, comms):
-        return comms.threads.import_thread(OfflineHistory.of(self.harness, self.source, self.session_id),
+        return comms.threads.import_thread(OfflineHistory.stored(self.harness, self.source, self.session),
                                           name=self.name, worktree=self.worktree)
 
     def completed(self, app, result) -> None:
@@ -111,11 +113,15 @@ class Transfers:
 
     async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
         comms = self.app.coordination_access.require(selected).service
-        result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
+        try:
+            result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
+        except (OSError, ValueError) as error:
+            self.app.show_error(error, request.failure_title)
+            return
         request.completed(self.app, result)
 
 
-class TransferDialog(ModalScreen):
+class TransferDialog(DismissibleScreen):
     DEFAULT_CSS = """
     TransferDialog { align: center middle; background: $background 40%; }
     TransferDialog #transfer-box {
@@ -126,15 +132,6 @@ class TransferDialog(ModalScreen):
     TransferDialog .transfer-actions { height: auto; width: 1fr; }
     TransferDialog #transfer-error { color: $error; height: auto; }
     """
-    BINDINGS: ClassVar[list[tuple[str, str, str]]] = [("escape", "cancel", "Cancel")]
-
-    def action_cancel(self) -> None:
-        self.dismiss(None)
-
-    @on(Button.Pressed, "#cancel-transfer")
-    def on_cancel(self) -> None:
-        self.dismiss(None)
-
     def _error(self, error: str) -> None:
         self.query_one("#transfer-error", Static).update(error)
 
@@ -163,7 +160,7 @@ class WireExportDialog(TransferDialog):
             yield Input("5242880", id="export-limit", placeholder="Max bytes; empty = full")
             yield Static("", id="transfer-error")
             yield Button("Export", id="submit-transfer")
-            yield Button("Cancel", id="cancel-transfer")
+            yield Button("Cancel", id="cancel-transfer", action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         self.query_one("#export-path", Input).focus()
@@ -224,7 +221,7 @@ class ThreadImportDialog(TransferDialog):
             yield Input(id="import-worktree", placeholder="Project directory override (optional)")
             yield Static("", id="transfer-error")
             yield Button("Import stopped thread", id="submit-transfer")
-            yield Button("Cancel", id="cancel-transfer")
+            yield Button("Cancel", id="cancel-transfer", action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         self.query_one("#import-source", Input).focus()
@@ -240,6 +237,6 @@ class ThreadImportDialog(TransferDialog):
             Path(source).expanduser(),
             self.query_one("#import-harness", Select).value,
             name,
-            self.query_one("#import-session-id", Input).value.strip() or None,
-            self.query_one("#import-worktree", Input).value.strip() or None,
+            FieldCodec.decode(ExpectedSession, self.query_one("#import-session-id", Input).value.strip() or None),
+            FieldCodec.decode(ImportDirectory, self.query_one("#import-worktree", Input).value.strip() or None),
         ))

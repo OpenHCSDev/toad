@@ -6,12 +6,11 @@ from pathlib import Path
 from textual import events, work
 from textual.reactive import reactive
 from textual.app import ComposeResult
-from textual.binding import Binding
+from toad.widget_actions import ActivationKeys
 from toad.widgets.side_bar import SidebarPanelWidget
 from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Static
-from textual._activation import PrimaryActivation
 
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_tree_intent import ProjectTreeIntent
@@ -21,7 +20,7 @@ from rich.style import Style as RichStyle
 from ui_theme.scheme import ForegroundColour, SurfaceHoverColour
 
 
-class ProjectSearchButton(HoverSelection, PrimaryActivation, Static, can_focus=True):
+class ProjectSearchButton(HoverSelection, ActivationKeys, Static, can_focus=True):
     highlight_foreground = ForegroundColour
     highlight_background = SurfaceHoverColour
     highlighted_text_style = RichStyle(bold=True)
@@ -33,7 +32,6 @@ class ProjectSearchButton(HoverSelection, PrimaryActivation, Static, can_focus=T
         pointer: pointer;
     }
     """
-    BINDINGS = [Binding("enter", "search", "Search files", show=False)]
 
     class Requested(Message):
         pass
@@ -43,16 +41,10 @@ class ProjectSearchButton(HoverSelection, PrimaryActivation, Static, can_focus=T
 
     @property
     def primary_activation(self):
-        return self.action_search
+        return self.request_search
 
-    def action_search(self) -> None:
+    def request_search(self) -> None:
         self.post_message(self.Requested())
-
-    def on_click(self, event: events.Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_search()
-
 
 class ProjectPanel(SidebarPanelWidget, Vertical):
     path: reactive[Path] = reactive(Path, init=False)

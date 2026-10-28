@@ -1,13 +1,12 @@
 import asyncio
 from collections.abc import Iterable
-from typing import ClassVar
 
 from metaclass_registry.mro_dispatch import handles
 from rich.style import Style as RichStyle
 from textual import containers, events, getters, widgets
 from textual._activation import PrimaryActivation
 from textual.app import ComposeResult, RenderResult
-from textual.binding import BindingType
+from toad.widget_actions import ActivationKeys
 from textual.color import TRANSPARENT
 from textual.content import Content
 from textual.css.scalar import Scalar, ScalarOffset
@@ -26,7 +25,6 @@ from ui_theme.scheme import (
     MutedColour,
 )
 
-from toad import messages
 from toad.app import ToadApp
 from toad.core import events as core_events
 from toad.core import session_requests
@@ -98,12 +96,12 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
                 self.action_select_session()
 
 
-class SessionTabClose(WidgetView, PrimaryActivation, widgets.Static, can_focus=True):
+class SessionTabClose(WidgetView, ActivationKeys, widgets.Static, can_focus=True):
     """Close a tab without selecting it or deleting its saved thread."""
 
     ALLOW_SELECT = False
     FOCUS_ON_CLICK = False
-    BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "close_tab", "Close tab")]
+    activation_buttons = (1, 2)
     width = Scalar.from_number(2)
     height = Scalar.from_number(1)
 
@@ -122,16 +120,10 @@ class SessionTabClose(WidgetView, PrimaryActivation, widgets.Static, can_focus=T
 
     @property
     def primary_activation(self):
-        return self.action_close_tab
+        return self.close_tab
 
-    def action_close_tab(self) -> None:
+    def close_tab(self) -> None:
         self.app.session_navigation.events.publish(session_requests.SessionArchive(self.mode_name))
-
-    def on_click(self, event: events.Click) -> None:
-        if event.button in {1, 2}:
-            event.stop()
-            self.action_close_tab()
-
 
 class Underline(WidgetView, Animated[Mix]):
     """The chosen tab's underline uses the shared content-change fade."""
@@ -282,10 +274,12 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
             sessions = self.app.session_navigation
             observation = self.app.coordination_access.observation
             geometry_changed = False
-            for mode, previous in self._last_tabs.items():
+            members = {entry.mode: entry for entry in sessions.members}
+            for mode in self._last_tabs.keys() & members.keys():
+                previous = self._last_tabs[mode]
                 if previous.affected_by(event.names):
                     if (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
-                        tab = observation.tab(sessions.get(mode), sessions)
+                        tab = observation.tab(members[mode], sessions)
                         geometry_changed |= label.present(tab)
                         self._last_tabs[mode] = tab
             if geometry_changed:

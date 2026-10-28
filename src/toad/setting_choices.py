@@ -12,8 +12,7 @@ from textual.css.types import AlignHorizontal
 from textual.widget import Widget
 from toad.widgets.future_text import FutureText
 
-from agent_comms.declared_family import DeclaredFamily
-from toad.setting_declarations import Choice
+from agent_comms.declared_choice import DeclaredChoice
 from toad.platform import DesktopService, host
 
 
@@ -26,7 +25,7 @@ class SchemeName:
     """
 
 
-class Expansion(Choice, DeclaredFamily, affix="Expansion"):
+class Expansion(DeclaredChoice, affix="Expansion"):
     patch_preview = True
 
     @classmethod
@@ -74,7 +73,7 @@ class BothExpansion(SuccessExpansion, FailExpansion):
         )
 
 
-class SessionBar(Choice, DeclaredFamily, affix="SessionBar"):
+class SessionBar(DeclaredChoice, affix="SessionBar"):
     @classmethod
     @abstractmethod
     def shown(cls, count: int) -> bool: ...
@@ -100,7 +99,7 @@ class NeverSessionBar(SessionBar):
         return False
 
 
-class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
+class NotificationPolicy(DeclaredChoice, affix="Notification"):
     desktop: ClassVar[DesktopService] = host.desktop()
     sending: ClassVar[Lock] = Lock()
 
@@ -146,7 +145,7 @@ class AlwaysNotification(NotificationPolicy):
         return True
 
 
-class Scrollbar(Choice, DeclaredFamily, affix="Scrollbar"):
+class Scrollbar(DeclaredChoice, affix="Scrollbar"):
     """Spelling is the Textual reactive/CSS value, declared once by each member."""
 
 
@@ -162,7 +161,7 @@ class HiddenScrollbar(Scrollbar):
     pass
 
 
-class ColumnAlignment(Choice, DeclaredFamily, affix="ColumnAlignment"):
+class ColumnAlignment(DeclaredChoice, affix="ColumnAlignment"):
     """Place a width-constrained conversation using Textual's container layout."""
 
     @classmethod
@@ -185,7 +184,7 @@ class RightColumnAlignment(ColumnAlignment):
     pass
 
 
-class LoadingStyle(Choice, DeclaredFamily, affix="Loading"):
+class LoadingStyle(DeclaredChoice, affix="Loading"):
     @classmethod
     @abstractmethod
     def widget(cls, screen): ...

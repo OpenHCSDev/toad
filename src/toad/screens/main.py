@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from abc import abstractmethod
 from collections.abc import Iterable
@@ -13,8 +15,12 @@ from agent_comms.route_selection import RouteSelection
 from agent_comms.repo import Checkout
 from textual import containers, getters, on
 from textual.app import ComposeResult
-from textual.binding import Binding
-from toad.widget_actions import TogglesIrc, CyclesSessions, HiddenActions, SessionNavigationAction
+from textual.binding import ModeBinding
+from textual.document._editing import EditingMode
+from toad.widget_actions import (
+    TogglesIrc, CyclesSessions, HiddenActions, SessionNavigationAction, DeclaredWidgetActions,
+    NativeMethodKeys,
+)
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
 from textual.reactive import Required, var
 from textual.widget import Widget
@@ -39,7 +45,6 @@ from toad.navigation_target import (
     NavigationTarget,
     ThreadTarget,
 )
-from toad.screens.commander import CommanderPage
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.screens.session_view import SessionView
 from toad.session_presentation import OperationalSessionPresentation
@@ -125,6 +130,9 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     def close(self, screen: "MainScreen") -> None:
         """Terminal content has no unfinished waiters to release."""
 
+    def keyboard_scopes(self, screen: MainScreen) -> tuple[DeclaredWidgetActions, ...]:
+        return (screen,)
+
     async def attached(self, screen: "MainScreen") -> None:
         """Repaint the current content state when its session becomes ready."""
         self.render(screen)
@@ -166,6 +174,9 @@ class NavigatedOpeningContent(OpeningContent):
 
 
 class ReadyContent(ScreenContent):
+    def keyboard_scopes(self, screen: MainScreen) -> tuple[DeclaredWidgetActions, ...]:
+        return (screen, *screen.conversation.keyboard_scopes())
+
     async def prepare(self, screen: "MainScreen") -> None:
         await screen._prepare_content()
 
@@ -199,7 +210,7 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
+class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
                  scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 
@@ -209,14 +220,12 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
 
     COMMANDS = {ModeProvider, MCPInventoryProvider}
 
-    BINDINGS = [
-        Binding("ctrl+h", "go_home", "Home", show=False),
-        Binding("f2", "commander_page", "Commander"),
-    ]
-
     BINDING_GROUP_TITLE = "Screen"
     busy_count = var(0)
     conversation = getters.query_one(Conversation)
+
+    def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
+        return self.content.keyboard_scopes(self)
     thread_sidebar = getters.query_one(SessionThreadSidebar)
 
     @property
@@ -588,12 +597,12 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
             if target.focusable:
                 self.screen.set_focus(target, scroll_visible=False)
 
-    def action_commander_page(self) -> None:
-        """Every unit's state, orders and PRs, as the commander heartbeat published them."""
-        self.app.push_screen(CommanderPage())
-
-    async def action_go_home(self) -> None:
+    async def go_home(self) -> None:
         await self.app.select_session("store")
+
+    MODE_BINDINGS = (
+        ModeBinding("ctrl+h", go_home, "Home", mode=EditingMode, show=False),
+    )
 
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, message: SideBar.Dismiss):

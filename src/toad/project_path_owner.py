@@ -6,6 +6,8 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from agent_comms.repo import Checkout
+
 if TYPE_CHECKING:
     from textual.widget import Widget
 
@@ -51,3 +53,13 @@ class ProjectPathOwner:
     @property
     @abstractmethod
     def project_root(self) -> Path: ...
+
+
+class CheckoutRoot(ProjectPathOwner):
+    """A checkout-backed source exposes its checkout's filesystem root."""
+
+    project_path: Checkout
+
+    @property
+    def project_root(self) -> Path:
+        return self.project_path.path

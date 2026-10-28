@@ -6,7 +6,6 @@ from textual.app import ComposeResult
 from textual import containers
 
 from textual import getters
-from textual.binding import Binding
 from toad.widget_actions import CyclesFocus, PriorityActions
 from textual.content import Content
 from textual.screen import Screen
@@ -18,7 +17,7 @@ from textual.widgets.option_list import Option
 
 from toad.answer import Answer
 from toad.widgets.question import Question
-from toad.question_actions import SelectKindAction
+from toad.question_actions import SelectKindAction, QuestionContext, PermissionNavigationAction
 
 from toad.app import ToadApp
 
@@ -38,17 +37,12 @@ class ToolScroll(containers.VerticalScroll):
     BINDING_GROUP_TITLE = "Changes window"
 
 
-class PermissionsScreen(PriorityActions, CyclesFocus, Screen[Answer]):
+class PermissionsScreen(QuestionContext, PriorityActions, CyclesFocus, Screen[Answer],
+                        actions=(SelectKindAction, PermissionNavigationAction),
+                        scopes={PriorityActions: (SelectKindAction,)}):
     BINDING_GROUP_TITLE = "Permissions"
     AUTO_FOCUS = "Question"
     CSS_PATH = "permissions.tcss"
-
-    NAVIGATION_GROUP = Binding.Group("Navigation", compact=True)
-    BINDINGS = [
-        Binding("j", "next", "Next", group=NAVIGATION_GROUP),
-        Binding("k", "previous", "Previous", group=NAVIGATION_GROUP),
-        *SelectKindAction.bindings(priority=True),
-    ]
 
     tool_container = getters.query_one("#tool-container", containers.VerticalScroll)
     navigator = getters.query_one("#navigator", OptionList)
@@ -74,9 +68,13 @@ class PermissionsScreen(PriorityActions, CyclesFocus, Screen[Answer]):
             classe: Textual classes.
         """
         super().__init__(name=name, id=id, classes=classes)
-        self.question = PermissionsQuestion("", options=options)
+        self._question = PermissionsQuestion("", options=options)
         self.diffs = diffs
         self.agent_name = agent_name
+
+    @property
+    def question(self) -> Question:
+        return self._question
 
     def get_diff_type(self) -> type[DiffMode]:
         app = self.app
@@ -90,7 +88,7 @@ class PermissionsScreen(PriorityActions, CyclesFocus, Screen[Answer]):
     def compose(self) -> ComposeResult:
         with containers.Grid(classes="top"):
             yield DiffViewSelect(
-                [(member.label(), member) for member in DiffMode.members_with(DiffMode)],
+                [(member.choice_label(), member) for member in DiffMode.members_with(DiffMode)],
                 value=self.diff_type,
                 allow_blank=False,
                 id="diff-select",
@@ -108,14 +106,6 @@ class PermissionsScreen(PriorityActions, CyclesFocus, Screen[Answer]):
             yield ToolScroll(id="tool-container")
 
         yield ToadFooter()
-
-    async def action_select_kind(self, kind: str | tuple[str, ...]) -> None:
-        command = SelectKindAction.parse((kind,))
-        if command.available(self.question):
-            await command.apply(self.question)
-
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        return self.question.check_action(action, parameters)
 
     async def on_mount(self):
         app = self.app
@@ -184,11 +174,6 @@ class PermissionsScreen(PriorityActions, CyclesFocus, Screen[Answer]):
             diff_view.auto_split = diff_type.auto_split
             diff_view.split = diff_type.split
 
-    def action_next(self) -> None:
-        self.navigator.action_cursor_down()
-
-    def action_previous(self) -> None:
-        self.navigator.action_cursor_up()
 
 
 class PermissionReview(PermissionsScreen):

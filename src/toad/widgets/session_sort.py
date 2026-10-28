@@ -15,9 +15,8 @@ from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
 from python_introspect import FieldLabel
-from textual import events
 from textual.widgets import Static
-from textual._activation import PrimaryActivation
+from toad.widget_actions import Activates
 from textual.geometry import Offset
 
 from toad.forms.field_path import FieldPath
@@ -45,10 +44,14 @@ class ChannelSortForm:
     ]
 
 
-class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Static, can_focus=True):
+class SortControl[Order: DisplayOrder](
+    InlineSelection,
+    Activates,
+    Static,
+    can_focus=True,
+):
     highlight_foreground = ForegroundColour
 
-    BINDINGS = [("enter,space", "choose_sort", "Sort")]
     DEFAULT_CSS = """
     SortControl {
         width: auto;
@@ -92,11 +95,7 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
         if self.tooltip != tooltip:
             self.tooltip = tooltip
 
-    @property
-    def primary_activation(self):
-        return self.action_choose_sort
-
-    async def action_choose_sort(self):
+    async def activate(self):
         form = self.form
         if form is None:
             self.notify("Ordering is not available yet", title="Sort", severity="warning")
@@ -139,12 +138,6 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
 
     @abstractmethod
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...
-
-    async def on_click(self, event: events.Click):
-        event.stop()
-        if event.button == 1:
-            await self.action_choose_sort()
-
 
 class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
     """Both channel controls write through the route that supplies their observed rows."""

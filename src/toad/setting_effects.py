@@ -54,7 +54,7 @@ def theme(app: ToadApp, field: DeclaredField) -> None:
 
 
 @Effect
-def vim_keys(app: ToadApp, field: DeclaredField) -> None:
+def key_mode(app: ToadApp, field: DeclaredField) -> None:
     from toad.widgets.prompt import PromptTextArea
     for editor in Effect.open_widgets(app, PromptTextArea):
         editor.apply_keyboard_profile()

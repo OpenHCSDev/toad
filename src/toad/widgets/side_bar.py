@@ -1,8 +1,13 @@
+from __future__ import annotations
+
+from textual._callback import invoke
+
 from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core import events as core_events
 from textual.content import Content
-from toad.widget_actions import ApplicationAction, Activates, DismissibleControl
+from toad.widget_actions import ApplicationAction, ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, MovesHorizontalCursor
+from textual.document._editing import EditingMode
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
@@ -12,7 +17,6 @@ from typing import TYPE_CHECKING, ClassVar, cast
 
 from textual import containers, events, on, widgets
 from textual.app import ComposeResult
-from textual.binding import Binding, BindingType
 from textual.events import Click
 from textual.geometry import Offset
 from textual.message import Message
@@ -57,7 +61,7 @@ class BarPresentation:
         collapsed: bool,
         directions: dict[Side, SidebarShift],
         width: int,
-    ) -> "BarPresentation":
+    ) -> BarPresentation:
         return cls(
             placement.side,
             placement.order,
@@ -172,7 +176,16 @@ The Sidebar contains additonal information associated with the conversation.
                 yield from self._contents_list
 
 
-class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
+class ToggleSidebarAction(WidgetAction):
+    """Toggle the sidebar and focus its contents."""
+    keys = {EditingMode: ("enter", "space")}
+
+    def apply(self, context: SideBarToggle) -> None:
+        context.post_message(context.Pressed())
+
+
+class SideBarToggle(HoverSelection, DeclaredWidgetActions, PrimaryActivation, widgets.Static,
+                    actions=(ToggleSidebarAction,)):
     """Full-height collapse target beside the conversation-facing resize edge."""
 
     @property
@@ -195,9 +208,6 @@ class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
     """
 
     can_focus = True
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("enter,space", "sidebar_toggle", "Toggle sidebar", show=False)
-    ]
 
     class Pressed(Message):
         def __init__(self, *, focus: bool = True) -> None:
@@ -223,13 +233,10 @@ class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
 
     @property
     def primary_activation(self):
-        return self.action_pointer_toggle
+        return self.pointer_toggle
 
-    def action_pointer_toggle(self) -> None:
+    def pointer_toggle(self) -> None:
         self.query_ancestor(SideBar).toggle(focus=False)
-
-    def action_sidebar_toggle(self) -> None:
-        self.post_message(self.Pressed())
 
     def focus_on_click(self) -> bool:
         # Pointer activation is a visibility change. Focusing this handle first
@@ -240,10 +247,10 @@ class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
     def on_click(self, event: Click) -> None:
         if event.button == 1:
             event.stop()
-            self.action_pointer_toggle()
+            self.pointer_toggle()
 
 
-class HeaderButton(Activates, HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
+class HeaderButton(ActivationKeys, HoverSelection, widgets.Static, can_focus=True):
     """One compact, keyboard-accessible control in the top bar, on the bar's own tone."""
 
     DEFAULT_CSS = """
@@ -260,15 +267,6 @@ class HeaderButton(Activates, HoverSelection, PrimaryActivation, widgets.Static,
         pointer: default;
     }
     """
-
-    def activate(self) -> None:
-        self.primary_activation()
-
-    def on_click(self, event: Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.primary_activation()
-
 
 class TabHistoryButton(HeaderButton):
     """Back or forward through visited tabs."""
@@ -343,7 +341,7 @@ class MainMenuButton(HeaderButton):
 
     async def chosen(self, action: ApplicationAction | None) -> None:
         if action is not None:
-            await action.apply(self.app)
+            await invoke(action.apply, self.app)
 
 
 class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
@@ -423,15 +421,11 @@ class CapturedDrag:
         self._dragging = False
 
 
-class SidebarSlider(CapturedDrag, ColourSelection, widgets.Static, can_focus=True):
+class SidebarSlider(MovesHorizontalCursor, CapturedDrag, ColourSelection, widgets.Static, can_focus=True):
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
 
     highlight_foreground = AccentColour
 
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("left", "step(-1)", "Decrease", show=False),
-        Binding("right", "step(1)", "Increase", show=False),
-    ]
     DEFAULT_CSS = """
     SidebarSlider { height: 1; width: 1fr; color: $text-muted; pointer: pointer; }
     """
@@ -481,7 +475,7 @@ class SidebarSlider(CapturedDrag, ColourSelection, widgets.Static, can_focus=Tru
             self.refresh()
             self.post_message(self.Changed(self, value))
 
-    def action_step(self, direction: int) -> None:
+    def cursor_horizontal(self, direction: int) -> None:
         if self.reversed:
             direction = -direction
         value = max(self.minimum, min(self.maximum, self.value + direction))
@@ -498,7 +492,7 @@ class SidebarSlider(CapturedDrag, ColourSelection, widgets.Static, can_focus=Tru
         self.drag_to(event.screen_x)
 
 
-class SidebarAction(Activates, HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
+class SidebarAction(Activates, HoverSelection, widgets.Static, can_focus=True):
     """One spatial arrow or float/push action."""
 
     DEFAULT_CSS = """
@@ -508,28 +502,18 @@ class SidebarAction(Activates, HoverSelection, PrimaryActivation, widgets.Static
 
     @dataclass
     class Pressed(Message):
-        action: "SidebarPlacementAction"
+        action: SidebarPlacementAction
 
-    def __init__(self, action: "SidebarPlacementAction") -> None:
+    def __init__(self, action: SidebarPlacementAction) -> None:
         super().__init__(action.label, id=f"sidebar-{action.declared_name}")
         self.action = action
         self.set_class(action.directional, "-direction")
 
-    @property
-    def primary_activation(self):
-        return self.activate
-
     def activate(self) -> None:
         self.post_message(self.Pressed(self.action))
 
-    def on_click(self, event: Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.activate()
-
-
 class SidebarResizeHandle(
-    CapturedDrag, ColourSelection, widgets.Static, can_focus=True
+    MovesHorizontalCursor, CapturedDrag, ColourSelection, widgets.Static, can_focus=True
 ):
     """Drag the conversation-facing edge; the placement model owns the width."""
 
@@ -542,10 +526,6 @@ class SidebarResizeHandle(
     }
     SidebarResizeHandle:ansi { color: ansi_green; }
     """
-    BINDINGS = [
-        Binding("left", "resize(-1)", "Resize left", show=False),
-        Binding("right", "resize(1)", "Resize right", show=False),
-    ]
 
     def __init__(self) -> None:
         super().__init__(id="sidebar-resize-handle")
@@ -565,23 +545,41 @@ class SidebarResizeHandle(
         if app.sidebar_layout.width(bar.id, percent):
             app.workspace_chrome.refresh_layout()
 
-    def action_resize(self, direction: int) -> None:
+    def cursor_horizontal(self, direction: int) -> None:
         bar = self.query_ancestor(SideBar)
-        bar.width_slider.action_step(direction)
+        bar.width_slider.cursor_horizontal(direction)
 
     def drag_start(self, event: events.MouseDown) -> None:
         self._start_x = event.screen_x
         self._start_width = self.query_ancestor(SideBar).size.width
 
 
-class SidebarSearch(widgets.Input):
-    BINDINGS = [Binding("escape", "clear", "Clear search", show=False)]
+class ClearSidebarSearchAction(WidgetAction):
+    """Clear the sidebar search text."""
+    keys = {EditingMode: ("escape",)}
 
-    def action_clear(self) -> None:
-        self.value = ""
+    def apply(self, context: SidebarSearch) -> None:
+        context.value = ""
 
 
-class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical):
+class SidebarSearch(DeclaredWidgetActions, widgets.Input, actions=(ClearSidebarSearchAction,)):
+    """Sidebar text filter with a declared clear action."""
+
+
+class SearchSidebarAction(WidgetAction):
+    """Focus search in the sidebar containing the current selection."""
+
+    keys = {EditingMode: ("slash",)}
+
+    def available(self, sidebar: SideBar) -> bool:
+        return sidebar.app.focused is not sidebar.search_input
+
+    async def apply(self, sidebar: SideBar) -> None:
+        sidebar.search_input.focus()
+
+
+class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
+              containers.Vertical, actions=(SearchSidebarAction,)):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
     DEFAULT_CSS = """
@@ -762,12 +760,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         if event.input is self.search_input:
             event.stop()
             self.search = event.value
-
-    def on_key(self, event: events.Key) -> None:
-        if event.character == "/" and self.app.focused is not self.search_input:
-            event.stop()
-            event.prevent_default()
-            self.search_input.focus()
 
     def _compose_panels(self) -> ComposeResult:
         navigation = self.navigation

@@ -1,7 +1,7 @@
 """Textual-facing: the settings screen shows one editor per declared setting, applies edits at once, refuses bad input on blur, marks what differs from the file, and saves to the file Toad reads back."""
 
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
 import hashlib
 import json
 from pathlib import Path
@@ -13,6 +13,7 @@ from ui_theme.colour import Rgb
 from ui_theme.scheme import PrimaryColour
 
 from toad.forms import editors
+from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.form_view import ValueView
 from toad.preferences import SETTINGS, SavedSettings, ToadSettings
@@ -102,9 +103,14 @@ async def test_every_setting_the_user_may_edit_has_an_editor(workspace):
     async with settings_screen(workspace) as (ui, app, _file):
         shown = app.screen.form.values
         structure = app.saved_settings.state.parameter_structure
-        hidden = {"anon_id"} | {
-            path.value for path in structure.leaf_paths(SETTINGS.launcher.bind(app.saved_settings.state).path.value)
-        }
+        hidden = set()
+        for name in structure.declarations:
+            declared = DeclaredField(app.saved_settings.state, structure.path(name))
+            definition = next(item for item in fields(declared.owner_type)
+                              if item.name == declared.path.field_name)
+            if definition.metadata.get("ui_hidden", False):
+                hidden.add(name)
+                hidden.update(path.value for path in structure.leaf_paths(name))
         assert set(shown) == {path.value for path in structure.leaf_paths()} - hidden
         assert isinstance(editor(app, SETTINGS.ui.footer), editors.BoolEditor)
         assert isinstance(editor(app, SETTINGS.ui.column_width), editors.IntEditor)

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import click
 
 from agent_comms.field_codec import FieldCodec
-from agent_comms.repo import LaunchCheckout
+from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached, AgentBinding, NoAgent
 
 if TYPE_CHECKING:
@@ -126,7 +126,7 @@ def main(ctx, version):
 def run(project_dir: str, agent: str = "1"):
     """Run an installed agent."""
 
-    project = FieldCodec.decode(LaunchCheckout, project_dir)
+    project = FieldCodec.decode(Checkout, project_dir).resolved(strict=True)
 
     import asyncio
 
@@ -194,7 +194,7 @@ def acp(
 
     app = ToadApp(
         agent_binding=AgentAttached(agent_data),
-        project_dir=FieldCodec.decode(LaunchCheckout, project_dir),
+        project_dir=FieldCodec.decode(Checkout, project_dir).resolved(strict=True),
         agent_session_id=session_id,
     )
     run_terminal(app)
@@ -209,7 +209,7 @@ def acp(
 def settings() -> None:
     """Settings information."""
     from toad.preferences import SavedSettings
-    print(f"{SavedSettings.file_path()}")
+    print(f"{SavedSettings.path()}")
 
 
 @main.command("replay")

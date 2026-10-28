@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory
+    from toad.widgets.conversation import Conversation
     from toad.widgets.transcript_fragments import TranscriptFragment
 
 
@@ -57,8 +58,19 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def select(self, widget: Widget) -> bool: ...
 
     @property
-    def active(self) -> BlockCursor | None:
-        return self if self.selected is not None else None
+    def active(self) -> BlockCursor:
+        return self if self.selected_widgets else NoBlockCursor()
+
+    @property
+    @abstractmethod
+    def selected_widgets(self) -> tuple[Widget, ...]:
+        """Each cursor derives its widget selection from its own source membership."""
+        ...
+
+    def present(self, conversation: Conversation, show: Callable[[BlockCursor], None]) -> None:
+        """A selected block receives keyboard focus before its deferred paint."""
+        conversation.screen.set_focus(conversation.window)
+        conversation.call_after_refresh(conversation._present_block_cursor, self, show)
 
     def accepts(self, owner: Widget) -> bool:
         return owner is self.selected
@@ -110,7 +122,41 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
         return None
 
 
+class NoBlockCursor(BlockCursor):
+    """An empty selection keeps the reader anchored and returns focus to its prompt."""
+
+    def __init__(self) -> None:
+        pass
+
+    @property
+    def selected(self) -> None:
+        return None
+
+    selected_widgets = ()
+
+    @property
+    def active(self) -> BlockCursor:
+        return self
+
+    def enter(self, direction: CursorDirection) -> bool:
+        return False
+
+    def move(self, direction: CursorDirection) -> bool:
+        return False
+
+    def select(self, widget: Widget) -> bool:
+        return False
+
+    def present(self, conversation: Conversation, show: Callable[[BlockCursor], None]) -> None:
+        conversation.window.anchor()
+        conversation.prompt.focus()
+
+
 class AtomicBlockCursor(BlockCursor):
+    @property
+    def selected_widgets(self) -> tuple[Widget, ...]:
+        return (self.block,)
+
     @property
     def selected(self):
         return self.block
@@ -186,6 +232,10 @@ class FragmentBlockCursor(BlockCursor):
     def current(self):
         """The optional scalar view used by block navigation."""
         return next(iter(self.selected_fragments), None)
+
+    @property
+    def selected_widgets(self) -> tuple[Widget, ...]:
+        return tuple(self.block for _ in self.selected_fragments)
 
     @property
     def selected(self):
@@ -274,12 +324,15 @@ class ChildBlockCursor(BlockCursor):
 
     @property
     def active(self):
-        return self.current.block_cursor.active if self.current is not None else None
+        return self.current.block_cursor.active if self.current is not None else NoBlockCursor()
 
     @property
     def selected(self):
-        cursor = self.active
-        return None if cursor is None else cursor.selected
+        return self.active.selected
+
+    @property
+    def selected_widgets(self) -> tuple[Widget, ...]:
+        return self.active.selected_widgets
 
     def _enter_from(self, index: int, direction: CursorDirection):
         children = self.block.displayed_children
@@ -397,8 +450,8 @@ class ContentNavigation:
         self._current = None
 
     @property
-    def cursor(self) -> BlockCursor | None:
-        return self.current.block_cursor.active if self.current is not None else None
+    def cursor(self) -> BlockCursor:
+        return self.current.block_cursor.active if self.current is not None else NoBlockCursor()
 
     def move(self, direction: CursorDirection) -> None:
         blocks = self.blocks

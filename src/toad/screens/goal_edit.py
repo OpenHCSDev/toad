@@ -9,7 +9,8 @@ from agent_comms.repo import Checkout
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import DismissAction
 from textual.widgets import Button, Static
 
 from toad.core.input_events import UserInputSubmitted
@@ -18,8 +19,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.widgets.channel_prompt import ChannelPrompt
 
 
-class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
-    BINDINGS = [("escape", "cancel", "Cancel")]
+class GoalEdit(CoreEventReceiver, DismissibleScreen[str | None]):
     AUTO_FOCUS = "ChannelTextArea"
     DEFAULT_CSS = """
     GoalEdit { align: center middle; background: $background 40%; }
@@ -62,7 +62,7 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
             yield Static("", markup=False, id="goal-edit-error")
             with HorizontalGroup():
                 yield Button("Save", id="goal-save", variant="primary")
-                yield Button("Cancel", id="goal-cancel")
+                yield Button("Cancel", id="goal-cancel", action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         self.editor.text = self.goal.text
@@ -92,7 +92,6 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
     async def save_clicked(self) -> None:
         await self.save(self.editor.text)
 
-    @on(Button.Pressed, "#goal-cancel")
-    def action_cancel(self) -> None:
+    def dismiss_control(self) -> None:
         if not self.saving:
-            self.dismiss(None)
+            super().dismiss_control()

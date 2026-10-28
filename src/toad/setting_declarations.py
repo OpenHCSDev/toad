@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from abc import ABC
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, cast
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.declared_choice import DeclaredChoice
 from python_introspect import AnnotationChoices
 
 if TYPE_CHECKING:
@@ -15,23 +14,17 @@ if TYPE_CHECKING:
     from toad.forms.declared_views import DeclaredField
 
 
-class Choice(ABC):
-    title: ClassVar[str | None] = None
-
-    @classmethod
-    def label(cls) -> str:
-        return cls.title or cls.declared_name.replace("-", " ").replace("_", " ").title()
-
-
 @dataclass(frozen=True)
-class FamilyChoices(AnnotationChoices):
-    family: type[DeclaredFamily]
+class FamilyChoices[ChoiceT: DeclaredChoice](AnnotationChoices):
+    family: type[ChoiceT]
 
-    def choices(self) -> tuple[object, ...]:
+    def choices(self) -> tuple[type[ChoiceT], ...]:
         return tuple(self.family.members_with(self.family))
 
     def label(self, choice: object) -> str:
-        return choice.label()
+        # AnnotationChoices erases the type at its UI boundary; choices() supplies
+        # members of this declared nominal family.
+        return cast(type[ChoiceT], choice).choice_label()
 
 
 @dataclass(frozen=True)

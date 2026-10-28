@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.ui_model.sidebar import ChannelRowModel
-from textual.binding import Binding
+from toad.widget_actions import ActivationKeys
 from textual._cells import cell_len
 from textual.content import Content
 from textual.geometry import Offset
@@ -294,7 +294,7 @@ class ThreadRow(ThreadStatusRow):
             self.app.select_session(self.mode_name)
 
 
-class NewSessionButton(HoverSelection, TargetTreeMember, Static):
+class NewSessionButton(HoverSelection, ActivationKeys, TargetTreeMember, Static):
     """Create another agent session for the current project."""
 
     DEFAULT_CSS = """
@@ -308,20 +308,16 @@ class NewSessionButton(HoverSelection, TargetTreeMember, Static):
     """
 
     can_focus = True
-    BINDINGS = [
-        Binding("enter", "create", show=False),
-    ]
 
     def __init__(self) -> None:
         super().__init__("+ New Session")
 
-    async def action_create(self) -> None:
+    @property
+    def primary_activation(self):
+        return self.create
+
+    async def create(self) -> None:
         await NewThreadAction().apply(self.app)
-
-    async def on_mouse_up(self, event) -> None:
-        if event.button == 1:
-            await self.action_create()
-
 
 class CoordinationStatus(ShowsThreadIdentity, SidebarPanelWidget, Static):
     """Compact diagnostics for the persistent coordination wire."""

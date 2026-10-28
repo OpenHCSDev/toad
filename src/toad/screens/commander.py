@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import time
 from datetime import datetime, timezone
-from typing import ClassVar
 
 from agent_comms.commander_hud import (
     BoardRow, CommanderHud, CommanderUnit, HudRow, QuietUnits,
@@ -21,10 +20,11 @@ from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.content import Content
 from textual.widgets import Button, Collapsible, Pretty, Static
 
-from toad.app_node import ToadNode
 from toad.core.events import CommanderHudChanged, CommanderHudFailed
 from toad.core_event_carrier import CoreEventReceiver
-from toad.screens.modal import ModalScreen
+from toad.screens.modal import DismissibleScreen
+from toad.widget_actions import DismissAction
+from toad.app_node import ToadNode
 from toad.widgets.sidebar_tree import KeyedRows
 
 
@@ -212,11 +212,10 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
 
 
 class CommanderPage(
-    KeyedRows[ThreadIncarnation], CoreEventReceiver, ToadNode, ModalScreen[None],
+    KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None],
 ):
     """Current Core frames preserve disclosures, focus and the underlying conversation."""
 
-    BINDINGS: ClassVar = [("escape", "close", "Close")]
     DEFAULT_CSS = """
     CommanderPage { align: center middle; background: $background 40%; }
     CommanderPage > Vertical {
@@ -263,7 +262,7 @@ class CommanderPage(
             yield Static("", id="hud-error", markup=False)
             with VerticalScroll(id="hud-rows"):
                 yield Static("Waiting for the commander heartbeat.", id="hud-empty", markup=False)
-            yield Button("Close (Esc)", id="commander-close")
+            yield Button("Close", id="commander-close", action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         access = self.app.coordination_access
@@ -292,7 +291,3 @@ class CommanderPage(
         notice = self.query_one("#hud-error", Static)
         notice.update(f"Commander rows unavailable: {' '.join(str(event.error).splitlines())}")
         notice.display = True
-
-    @on(Button.Pressed, "#commander-close")
-    def action_close(self) -> None:
-        self.dismiss(None)

@@ -86,7 +86,7 @@ def render() -> str:
     """
 
     try:
-        config: str | None = SavedSettings.file_path().read_text()
+        config: str | None = SavedSettings.path().read_text()
     except FileNotFoundError:
         # Settings are written on first change; until then there is no file.
         config = None
@@ -103,7 +103,7 @@ def render() -> str:
         "PLATFORM": platform.platform(),
         "PYTHON": f"{platform.python_implementation()} {platform.python_version()}",
         "RICH_VERSION": version("rich"),
-        "SETTINGS_PATH": str(SavedSettings.file_path()),
+        "SETTINGS_PATH": str(SavedSettings.path()),
         "SHELL": os.environ.get("SHELL", ""),
         "TERM_PROGRAM_VERSION": os.environ.get("TERM_PROGRAM_VERSION", ""),
         "TERM_PROGRAM": os.environ.get("TERM_PROGRAM", ""),

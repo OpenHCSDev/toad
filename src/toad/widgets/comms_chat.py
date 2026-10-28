@@ -61,7 +61,6 @@ class HistoryLoading(ConversationBlock, Static):
 class CommsChatView(Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
-    BINDINGS = Conversation.BINDINGS[:5]
 
     def __init__(
         self,

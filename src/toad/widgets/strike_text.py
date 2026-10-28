@@ -48,30 +48,3 @@ class StrikeText(Widget):
             if position > len(content):
                 self.auto_refresh = None
         return content
-
-
-if __name__ == "__main__":
-    from textual.app import App, ComposeResult
-    from textual.widgets import Static
-
-    class StrikeApp(App):
-        CSS = """
-        Screen {
-            overflow: auto;
-        }
-
-        """
-        BINDINGS = [("space", "strike", "Strike")]
-
-        def compose(self) -> ComposeResult:
-            for n in range(20):
-                yield Static("HELLO")
-            yield StrikeText(Content("Where there is a Will, there is a way"))
-            for n in range(200):
-                yield Static("World")
-
-        def action_strike(self):
-            self.query_one(StrikeText).strike()
-
-    app = StrikeApp()
-    app.run()

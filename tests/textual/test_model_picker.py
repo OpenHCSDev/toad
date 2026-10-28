@@ -12,6 +12,8 @@ from toad.acp.agent import Agent
 from toad.command_catalog import CommandCatalog
 from toad.db import DB
 from toad.widgets.prompt import AgentInfo
+from toad.widgets.model_switcher import ClearModelSearchAction
+from textual.document._editing import EditingMode
 
 GLM = "openrouter/z-ai/glm-5.3-flash"
 SONNET = "openrouter/anthropic/claude-sonnet-4.6"
@@ -142,14 +144,15 @@ async def test_hover_and_arrow_keys_move_the_highlight_without_taking_focus_from
 async def test_typing_filters_models_fuzzily_and_escape_closes_without_a_change(workspace):
     async with picker_session(workspace) as picker:
         widget, ui = picker.widget, picker.ui
+        ui.textual[0].set_keymap({ClearModelSearchAction.binding_id(EditingMode): "f9"})
         before = await open_by_clicking_the_model(picker)
         await ui.press(*"SONNET anthr")
         assert picker.ids() == [SONNET]
         assert picker.prompt.text == "Keep this unfinished draft"
         assert not picker.prompt.prompt_text_area.suggestion
-        await ui.press("ctrl+u", *"cldsnt")
+        await ui.press("f9", *"cldsnt")
         assert picker.ids() == [SONNET]
-        await ui.press("ctrl+u", *"zzzzzzzzz", "down", "up", "enter")
+        await ui.press("f9", *"zzzzzzzzz", "down", "up", "enter")
         assert not picker.ids() and widget.is_open and not picker.agent.calls
         await ui.press("escape")
         assert not widget.is_open and picker.prompt.prompt_text_area.has_focus

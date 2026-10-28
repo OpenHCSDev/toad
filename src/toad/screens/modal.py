@@ -1,10 +1,10 @@
 """Toad modal screens declare their hints key before native binding collection."""
 from textual.screen import ModalScreen as NativeModalScreen
-from toad.widget_actions import DismissibleControl, VimHintsAction
+from toad.widget_actions import DismissibleControl, ProfileKeys
 
 
-class ModalScreen[Result](NativeModalScreen[Result]):
-    BINDINGS = list(VimHintsAction.bindings())
+class ModalScreen[Result](ProfileKeys, NativeModalScreen[Result]):
+    """Modal keyboard scope uses the same native declarations as the workspace."""
 
 
 class DismissibleScreen[Result](DismissibleControl, ModalScreen[Result]):
