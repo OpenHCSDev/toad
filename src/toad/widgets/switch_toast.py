@@ -1,4 +1,4 @@
-"""The name of the tab just chosen, large and centred over the workspace, fading in and out."""
+"""The name of the tab just chosen, large and centred over its messages, fading in and out."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from metaclass_registry.mro_dispatch import handles
 from rich.cells import cell_len, set_cell_size
 from rich.segment import Segment
 from rich.style import Style
-from textual.geometry import Offset
+from textual.geometry import Region
 from textual.strip import Strip
 from ui_theme.effects import Amount, Effect
 from ui_theme.scheme import (
@@ -27,6 +27,7 @@ from toad.app_node import ToadNode
 
 if TYPE_CHECKING:
     from textual._paint_state import PaintState
+    from textual.screen import Screen
 
 
 @dataclass(frozen=True)
@@ -60,8 +61,11 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
 
     It never takes focus or pointer input: clicks pass to what is under it.
     A new choice while it shows replaces its name and restarts its swell.
-    It is laid out only when it appears and when it ends; every frame between
-    repaints its own few rows.
+    It is centred over the scrolling message viewport of the shown session,
+    not the terminal: sidebars, header, footer and prompt are outside it.
+    It is laid out only when it appears, when a layout moves that viewport
+    while it shows, and when it ends; every frame between repaints its own
+    few rows.
     """
 
     DEFAULT_CSS = "SwitchToast { position: absolute; overlay: screen; }"
@@ -72,12 +76,20 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
 
     def __init__(self) -> None:
         super().__init__()
-        # The name as drawn: three rows tall when that fits the screen, else one.
+        self.title = ""
+        # The name as drawn: three rows tall when that fits the viewport, else one.
         self.lines: tuple[str, ...] = ()
+        # The message viewport it was last fitted to, and where it sits in it, in screen cells.
+        self.area = self.placed = Region()
         self.display = False
 
     def on_mount(self) -> None:
         self.observe_core(self.app.events)
+        self._layout_screen = self.screen
+        self._layout_screen.screen_layout_refresh_signal.subscribe(self, self.refit)
+
+    def on_unmount(self) -> None:
+        self._layout_screen.screen_layout_refresh_signal.unsubscribe(self)
 
     @handles(core_events.SessionSelected)
     def session_selected(self, event: core_events.SessionSelected) -> None:
@@ -93,22 +105,56 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
 
     @property
     def room(self) -> int:
-        """The widest the toast may be: the screen less a margin each side."""
-        return max(0, self.screen.size.width - 4)
+        """The widest the toast may be: the message viewport less a margin each side."""
+        return max(0, self.area.width - 4)
+
+    def viewport(self) -> Region | None:
+        """The shown session's scrolling message viewport in screen cells; none without a native reader."""
+        conversation = self.app.workspace_chrome.native.widget
+        if conversation is None or not conversation.is_mounted:
+            return None
+        region = conversation.window.scrollable_content_region
+        return region if region.area else None
 
     def show(self, title: str) -> None:
-        large = LargeText.rows(title)
-        fits = LargeText.width(title) + 2 * self.MARGIN[1] + 2 <= self.room
-        self.lines = large if fits else (title,)
-        width, height = self.box
-        self.styles.width, self.styles.height = width, height
-        screen = self.screen.size
-        self.absolute_offset = Offset(
-            (screen.width - width) // 2, (screen.height - height) // 2
-        )
+        self.title = title
+        if (area := self.viewport()) is None:
+            self.retire()
+            return
+        self.fit(area)
         self.display = True
         self.run_effect(TAB_TOAST)
         self.refresh(layout=True)
+
+    def retire(self) -> None:
+        """No native reader is shown: no name stays over another view."""
+        self.stop_effect(TAB_TOAST)
+        self.display = False
+
+    def fit(self, area: Region) -> bool:
+        """Fit and centre the name in the message viewport; whether its place or size changed."""
+        self.area = area
+        large = LargeText.rows(self.title)
+        rows, columns = self.MARGIN
+        fits = (LargeText.width(self.title) + 2 * columns + 2 <= self.room
+                and len(large) + 2 * rows + 2 <= area.height)
+        self.lines = large if fits else (self.title,)
+        width, height = self.box
+        placed = Region(area.x + (area.width - width) // 2,
+                        area.y + (area.height - height) // 2, width, height)
+        moved, self.placed = placed != self.placed, placed
+        self.styles.width, self.styles.height = width, height
+        self.absolute_offset = placed.offset
+        return moved
+
+    def refit(self, _screen: Screen) -> None:
+        """A layout that moves the viewport while the name shows refits it, without restarting its swell."""
+        if not self.display:
+            return
+        if (area := self.viewport()) is None:
+            self.retire()
+        elif self.fit(area):
+            self.refresh(layout=True)
 
     def on_show(self) -> None:
         super().on_show()
