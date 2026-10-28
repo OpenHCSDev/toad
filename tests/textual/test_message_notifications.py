@@ -110,10 +110,11 @@ async def test_the_line_follows_typed_state_and_read_errors_without_new_messages
         await settled(ui, chat)
         notifications.state = ConsumingProgress(0)
         await notifications.publish(ui, chat)
-        await ui.until_shows("Delivered 45/45 · Consumed 1/45 · Read 0/45")
+        await ui.until_shows("Delivered 45/45 · Consumed 1/45 · Read 0/45 · Answering 1")
         assert newest_status(chat).working
         notifications.state = IgnoredProgress(ShownToModelProgress(0))
         await notifications.publish(ui, chat)
+        await ui.until_shows("Delivered 45/45 · Consumed 1/45 · Read 0/45 · Seen, not answering 1")
         assert not newest_status(chat).working
         access = ui.app.coordination_access
         request = access.notification_views[chat.message_history.notification_view]
