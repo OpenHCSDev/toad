@@ -115,17 +115,18 @@ async def test_the_menu_discovers_and_remaps_a_native_callable_with_both_aliases
         counter.focus()
         invocation = counter.MODE_BINDINGS[0].invocation
         row = KeymapRow.of(invocation, Standard)
-        assert row.defaults == ("f8", "f9")
         await ui.press("f1")
         await ui.until(lambda: isinstance(ui.app.screen, KeymapScreen), why="the native callable in the menu")
+        catalog = ui.app.screen.catalog
+        assert catalog.defaults(row) == ("f8", "f9")
         assert len(ui.app.screen.modes) == 4
         await choose(ui, invocation)
         ui.app.screen.query_one("#keymap-keys", Input).value = "f6"
         await ui.pilot.click("#keymap-apply")
-        await ui.until(lambda: row.effective(ui.app.settings.ui.keymap) == ("f6",),
+        await ui.until(lambda: catalog.effective(row, ui.app.settings.ui.keymap) == ("f6",),
                        why="the saved callable remap")
         loaded = SavedSettings(ui.app.saved_settings.document()).current.ui.keymap
-        assert row.effective(loaded) == ("f6",)
+        assert catalog.effective(row, loaded) == ("f6",)
         await ui.press("escape")
         counter.focus()
         await ui.press("f8", "f9")
