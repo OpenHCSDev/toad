@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory
+    from toad.widgets.transcript_fragments import TranscriptFragment
 
 
 class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
@@ -172,14 +173,19 @@ class FragmentBlockCursor(BlockCursor):
         self.fragment = None
 
     @property
-    def current(self):
-        """The message the cursor rests on, while the history still draws it."""
+    def selected_fragments(self) -> tuple[TranscriptFragment, ...]:
+        """The source occurrence the cursor owns while this history draws it."""
         fragment = self.fragment
         return (
-            fragment
+            (fragment,)
             if fragment is not None and self.block.draws_fragment(fragment)
-            else None
+            else ()
         )
+
+    @property
+    def current(self):
+        """The optional scalar view used by block navigation."""
+        return next(iter(self.selected_fragments), None)
 
     @property
     def selected(self):
