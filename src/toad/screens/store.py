@@ -38,7 +38,7 @@ from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.grid_select import GridSelect
 from toad.agent_schema import AgentDefinition
 from toad.agents import AgentReadError, read_agents
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 
 QR = """\
@@ -146,7 +146,7 @@ class AgentItem(containers.VerticalGroup):
         yield widgets.Static(agent.description, id="description")
 
 
-class LauncherGridSelect(ToadHosted, Launches, CoreEventReceiver, GridSelect):
+class LauncherGridSelect(Launches, CoreEventReceiver, GridSelect, ToadNode):
 
     HELP = """\
 ## Launcher
@@ -188,7 +188,7 @@ Your favorite agents.
         self.app.session_navigation.events.publish(session_requests.LaunchAgent(child.agent.identity))
 
 
-class Launcher(ToadHosted, containers.VerticalGroup):
+class Launcher(containers.VerticalGroup, ToadNode):
     grid_select = getters.query_one("#launcher-grid-select", LauncherGridSelect)
     DIGITS = "123456789ABCDEF"
 
@@ -331,7 +331,7 @@ class LaunchSlotAction(WidgetAction):
         await launcher.launch_highlighted()
 
 
-class StoreScreen(ToadHosted, ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, actions=(LaunchSlotAction,)):
+class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode, actions=(LaunchSlotAction,)):
     BINDING_GROUP_TITLE = "Screen"
     CSS_PATH = "store.tcss"
 

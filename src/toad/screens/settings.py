@@ -21,10 +21,10 @@ from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import PriorityActions
 from toad.widget_view import WidgetView
 from toad.setting_choices import SchemeName
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 
-class SchemeEditor(ToadHosted, SelectEditor):
+class SchemeEditor(SelectEditor, ToadNode):
     """A colour scheme's name, picked from the schemes the running app has."""
 
     shows = (SchemeName,)
@@ -52,7 +52,7 @@ class SettingsSearch(WidgetView, containers.VerticalGroup):
     padding = Spacing(1, 0, 1, 0)
 
 
-class SettingsScreen(ToadHosted, PriorityActions, FormModal[None], DismissibleScreen[None]):
+class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None], ToadNode):
     align_horizontal = "right"
     align_vertical = "top"
 

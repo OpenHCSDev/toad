@@ -152,7 +152,7 @@ class ReaderPosition(ABC):
         """The position after the reader chose to follow the latest message."""
         return TailPosition()
 
-    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> "ReaderPosition":
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
         """The position after a message arrived at the followed end: only following hands it the reader."""
         return self
 
@@ -349,7 +349,7 @@ class ArrivalPosition(OffsetPosition):
     def location(self) -> FragmentLocation:
         return self.page.fragment_row(self.key, 0)
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+    def bodies(self, window: HistoryWindow) -> tuple[Widget, ...]:
         return (self.page,)
 
     def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
@@ -360,14 +360,14 @@ class ArrivalPosition(OffsetPosition):
     def laid_out(self, window: HistoryWindow) -> bool:
         return self.location().laid_out(window)
 
-    def destination(self, window: "HistoryWindow") -> float:
+    def destination(self, window: HistoryWindow) -> float:
         return self.location().destination(window, 0.0)
 
-    def tall(self, window: "HistoryWindow") -> bool:
+    def tall(self, window: HistoryWindow) -> bool:
         """Whether the message is taller than the window, in the layout just made."""
         return window.message_head_hidden(self.page.drawn_height(self.location().location().fragment), None)
 
-    def place(self, window: "HistoryWindow") -> bool:
+    def place(self, window: HistoryWindow) -> bool:
         if self.tall(window):
             return super().place(window)
         return TailPosition().place(window)

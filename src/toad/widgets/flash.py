@@ -6,10 +6,10 @@ from textual.widgets import Static
 from textual.timer import Timer
 
 
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 
-class Flash(ToadHosted, Static):
+class Flash(Static, ToadNode):
     DEFAULT_CSS = """
     Flash {
         height: 1;

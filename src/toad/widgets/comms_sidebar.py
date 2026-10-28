@@ -48,7 +48,7 @@ from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneCo
 from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
@@ -84,6 +84,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
     header_type = ChannelHeader
+    header: ChannelHeader
     def __init__(self, row: CommsRow, *, expanded: bool):
         self.channel: ChannelRowModel = UnpaintedChannel(row.target_name)
         self.sort_control = SessionSort(channel=row.target_name)
@@ -163,7 +164,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
 
 
 class CommsRow(
-    TargetTreeMember, OpensSelected, PrimaryActivation, CoreEventReceiver, AlternatingTone, HoverSelection, ViewLabel,
+    TargetTreeMember, OpensSelected, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel,
     scopes={HiddenActions: (CursorAction, OpenSelectedAction)},
 ):
     """One interactive row: a channel or a thread."""
@@ -234,7 +235,17 @@ class CommsRow(
         self.open_selected()
 
 
-class ThreadStatusRow(ToadHosted, CommsRow):
+class ListedRow(CommsRow, AlternatingTone):
+    """A row its list orders: it alternates on its family's tone pair."""
+
+
+class ChannelRow(ListedRow):
+    """A channel listed as a row (not a group header): channels alternate on their hue pair."""
+
+    row_tones = (ChannelRowToneColour, ChannelAlternateRowToneColour)
+
+
+class ThreadStatusRow(ListedRow, ToadNode):
     """Thread rows show activity through their glyph and summary, not held ink."""
 
     DEFAULT_CSS = "ThreadStatusRow { color: $text-muted; }"
@@ -287,16 +298,16 @@ class ThreadStatusRow(ToadHosted, CommsRow):
 class ThreadRow(ThreadStatusRow):
     """A retained wire thread row, with an optional currently open native view."""
 
-    @property
-    def mode_name(self) -> str | None:
-        return self.navigation_tree.open_views.get(self.target_name)
-
     def open_selected(self) -> None:
-        if self.mode_name is None or self.app.session_navigation.session_details(self.mode_name) is None:
-            super().open_selected()
-        else:
+        """Select the tab that already shows this thread; open the thread when none does."""
+        app = self.app
+        entries = {entry.mode: entry for entry in app.session_navigation.members}
+        mode = self.navigation_tree.open_views.get(self.target_name, "")
+        if mode in entries and entries[mode].identity in app.session_tracker.sessions:
             self.navigation_tree.remember_row(self)
-            self.app.select_session(self.mode_name)
+            app.select_session(mode)
+        else:
+            super().open_selected()
 
 
 class NewSessionButton(HoverSelection, ActivationKeys, TargetTreeMember, Static):

@@ -18,7 +18,7 @@ from toad.catalog_actions import CatalogCommandAction, LaunchAction
 from toad.core.session_requests import LaunchAgent
 from toad.preferences import SETTINGS
 from toad.platform import host
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 
 class DescriptionContainer(containers.VerticalScroll):
@@ -28,8 +28,8 @@ class DescriptionContainer(containers.VerticalScroll):
 
 
 class AgentModal(
-    ToadHosted,
     PriorityActions, HiddenActions, Launches, DismissibleScreen[LaunchAgent | None],
+    ToadNode,
     scopes={PriorityActions: (widget_actions.LaunchAction,),
             HiddenActions: (widget_actions.DismissAction,)},
 ):

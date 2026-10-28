@@ -29,7 +29,7 @@ from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
 from toad.tab_identity.history_origin import WelcomeHistoryOrigin
 from toad.thread_identity import ThreadIdentity
-from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
+from toad.widgets.comms_sidebar import ChannelRow, CommsRow, ListedRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import (
     RowReconciliation,
@@ -39,7 +39,7 @@ from toad.widgets.sidebar_tree import (
     TargetTree,
 )
 from toad.widgets.splash_text import SplashText
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 class WelcomeTitle(SplashText):
     """The app's name, swept into the theme's colours each time the view shows."""
@@ -74,7 +74,7 @@ class WelcomeTitle(SplashText):
             self.refresh()
 
 
-class WelcomeSection(SidebarGroup[CommsRow]):
+class WelcomeSection(SidebarGroup[ListedRow]):
     """Some of the sidebar model's rows under a title."""
 
     TITLE = ""
@@ -114,7 +114,7 @@ class WelcomeChannels(WelcomeSection):
         return tuple(model.channels.rows)
 
     def new_row(self, key):
-        return CommsRow(channel_target(key), key)
+        return ChannelRow(channel_target(key), key)
 
     def show_member(self, key, row):
         channel = self.query_ancestor(WelcomeEntries).model_state.shown.channels.rows[
@@ -190,7 +190,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         self.present()
 
 
-class WelcomeScreen(ToadHosted, TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=False):
+class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, ToadNode, can_focus=False):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
 
     BINDINGS = [

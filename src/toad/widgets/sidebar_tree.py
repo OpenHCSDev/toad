@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from toad.comms_root import FailedObservation, Observing
     from toad.navigation_target import NavigationTarget
     from toad.widgets.channel_activity import ChannelActivity
-    from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
+    from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, ListedRow
     from toad.widgets.thread_comms import RelationshipRows
 
 from agent_comms.display_order import ThreadSort
@@ -220,7 +220,7 @@ class KeyedRows[KeyT]:
         return ordered
 
 
-class SidebarGroup[RowT: "CommsRow"](KeyedRows[str], VerticalGroup):
+class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False

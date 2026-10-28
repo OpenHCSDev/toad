@@ -59,7 +59,7 @@ from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBar
 from toad.widgets.splash_text import ThreadLoading
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 
 class SessionCommands(Provider):
@@ -210,7 +210,7 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(ToadHosted, NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
+class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView, ToadNode,
                  scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 

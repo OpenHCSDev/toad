@@ -23,7 +23,7 @@ from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import SingleLineBlock
 from toad.widgets.tool_content import ToolContent
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 
 
@@ -48,7 +48,7 @@ class ToolCallHeader(SingleLineBlock):
             self.app.bell()
 
 
-class ToolCall(ToadHosted, ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup, ToadNode):
     DEFAULT_CSS = """
     ToolCall {
         margin: 0 !important;

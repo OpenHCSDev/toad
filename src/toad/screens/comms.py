@@ -31,7 +31,7 @@ from toad.navigation_target import HistoryTarget, NavigationTarget
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 
 class ViewAction(WidgetAction, affix="Action"):
@@ -79,7 +79,7 @@ class FocusPromptAction(ViewAction):
             chat.prepare_prompt()
 
 
-class CommsScreen(ToadHosted, TogglesIrc, CyclesSessions, CheckoutRoot, SessionView, can_focus=False,
+class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SessionView, ToadNode, can_focus=False,
                   actions=(ViewAction, ReturnToViewAction, CloseViewAction)):
     """A channel or DM represented as a native concurrent Toad session."""
 

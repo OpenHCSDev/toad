@@ -17,12 +17,12 @@ from toad.catalog_actions import CatalogCommandAction
 from toad.core.source_events import CommandComplete
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 
-class ActionModal(ToadHosted, CoreEventReceiver, DismissibleScreen[int]):
+class ActionModal(CoreEventReceiver, DismissibleScreen[int], ToadNode):
     """Executes an action command."""
 
     CSS_PATH = "store.tcss"

@@ -31,7 +31,8 @@ from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated
 from toad.session_tracker import OpenTab
-from toad.widget_view import AUTO, FILL, ToadHosted, WidgetView
+from toad.app_node import ToadNode
+from toad.widget_view import AUTO, FILL, WidgetView
 from toad.widgets.selection import ChangingText, ViewLabel
 
 
@@ -201,13 +202,15 @@ class TabCells(WidgetView, containers.VerticalGroup):
     tab's span needs no translation and is never past the underline's end.
     """
 
-    width = AUTO
-    min_width = Scalar(100, Unit.PERCENT, Unit.WIDTH)
+    # WidgetView declares its geometry inputs as None, so mypy reads every
+    # Scalar override as a new type (the other views here hit the same error).
+    width = AUTO  # type: ignore[assignment]
+    min_width = Scalar(100, Unit.PERCENT, Unit.WIDTH)  # type: ignore[assignment]
     height = Scalar.from_number(2)
     placement_offset = ScalarOffset.from_offset((0, 1))
 
 
-class SessionsTabs(ToadHosted, WidgetView, CoreEventReceiver, Widget):
+class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
     DEFAULT_LAYOUT = VerticalLayout
     width = FILL
     height = Scalar.from_number(3)
@@ -270,9 +273,7 @@ class SessionsTabs(ToadHosted, WidgetView, CoreEventReceiver, Widget):
         selected = self.app.selected_mode
         if not selected:
             return 0, 0
-        cells = [cell.virtual_region for cell in (
-            self.query_one_optional(f"#{selected}", SessionLabel),
-            self.query_one_optional(f"#close-{selected}", SessionTabClose)) if cell is not None]
+        cells = [cell.virtual_region for cell in self.title_container.query_children(f"#{selected}, #close-{selected}")]
         return Region.from_union(cells).column_span if cells else (0, 0)
 
     def show_selected_tab(self) -> None:

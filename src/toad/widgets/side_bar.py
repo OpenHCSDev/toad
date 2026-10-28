@@ -38,7 +38,7 @@ from toad.sidebar_layout import (
     SidebarShift,
 )
 from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
-from toad.widget_view import ToadHosted
+from toad.app_node import ToadNode
 
 if TYPE_CHECKING:
     from toad.tab_order import TabOrder
@@ -268,7 +268,7 @@ class HeaderButton(ActivationKeys, HoverSelection, widgets.Static, can_focus=Tru
     }
     """
 
-class TabHistoryButton(ToadHosted, HeaderButton):
+class TabHistoryButton(HeaderButton, ToadNode):
     """Back or forward through visited tabs."""
 
     direction: ClassVar[int]
@@ -344,7 +344,7 @@ class MainMenuButton(HeaderButton):
             await invoke(action.apply, self.app)
 
 
-class TabHistoryControls(ToadHosted, CoreEventReceiver, containers.HorizontalGroup):
+class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup, ToadNode):
     """Left-sidebar controls shared by native thread and channel screens."""
 
     DEFAULT_CSS = """
@@ -513,8 +513,7 @@ class SidebarAction(Activates, HoverSelection, widgets.Static, can_focus=True):
         self.post_message(self.Pressed(self.action))
 
 class SidebarResizeHandle(
-    ToadHosted,
-    MovesHorizontalCursor, CapturedDrag, ColourSelection, widgets.Static, can_focus=True
+    MovesHorizontalCursor, CapturedDrag, ColourSelection, widgets.Static, ToadNode, can_focus=True
 ):
     """Drag the conversation-facing edge; the placement model owns the width."""
 
@@ -579,8 +578,8 @@ class SearchSidebarAction(WidgetAction):
         sidebar.search_input.focus()
 
 
-class SideBar(ToadHosted, DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
-              containers.Vertical, actions=(SearchSidebarAction,)):
+class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
+              containers.Vertical, ToadNode, actions=(SearchSidebarAction,)):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
     DEFAULT_CSS = """

@@ -19,7 +19,7 @@ Glyph = tuple[str, str, str]
 def _textual_glyphs() -> dict[str, Glyph]:
     """Textual's glyphs, each padded to its three-cell width."""
     return {
-        character: tuple(row.ljust(3) for row in DIGITS3X3[index * 3:index * 3 + 3])  # type: ignore[misc]
+        character: tuple(row.ljust(3) for row in DIGITS3X3[index * 3 : index * 3 + 3])  # type: ignore[misc]
         for index, character in enumerate(DIGITS)
     }
 
@@ -59,12 +59,17 @@ class LargeText:
 
     @classmethod
     def glyph(cls, character: str) -> Glyph:
-        return cls.GLYPHS.get(character.upper(), (" " * cell_len(character), character, " " * cell_len(character)))
+        return cls.GLYPHS.get(
+            character.upper(),
+            (" " * cell_len(character), character, " " * cell_len(character)),
+        )
 
     @classmethod
     def rows(cls, text: str) -> tuple[str, ...]:
         glyphs = [cls.glyph(character) for character in text]
-        return tuple(" ".join(glyph[row] for glyph in glyphs) for row in range(cls.HEIGHT))
+        return tuple(
+            " ".join(glyph[row] for glyph in glyphs) for row in range(cls.HEIGHT)
+        )
 
     @classmethod
     def width(cls, text: str) -> int:

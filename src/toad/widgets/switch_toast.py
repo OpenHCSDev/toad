@@ -11,15 +11,19 @@ from rich.segment import Segment
 from rich.style import Style
 from textual.geometry import Offset
 from textual.strip import Strip
-from textual.css.scalar import Scalar
 from ui_theme.effects import Amount, Effect
-from ui_theme.scheme import AccentColour, BackgroundColour, ForegroundColour, HeaderToneColour
+from ui_theme.scheme import (
+    AccentColour,
+    BackgroundColour,
+    ForegroundColour,
+    HeaderToneColour,
+)
 
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated
 from toad.large_text import LargeText
-from toad.widget_view import WidgetView
+from toad.app_node import ToadNode
 
 if TYPE_CHECKING:
     from textual._paint_state import PaintState
@@ -51,7 +55,7 @@ class Swell(Effect[Amount]):
 TAB_TOAST = Swell(rise=0.12, hold=0.5, fall=0.35, frames_per_second=30)
 
 
-class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
+class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
     """The chosen tab's name, so the reader sees where they landed without finding the tab.
 
     It never takes focus or pointer input: clicks pass to what is under it.
@@ -60,10 +64,9 @@ class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
     repaints its own few rows.
     """
 
+    DEFAULT_CSS = "SwitchToast { position: absolute; overlay: screen; }"
     can_focus = False
     hit_test_transparent = True
-    position = "absolute"
-    overlay = "screen"
     # Cells around the name, inside the frame.
     MARGIN = (1, 6)
 
@@ -78,9 +81,9 @@ class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
 
     @handles(core_events.SessionSelected)
     def session_selected(self, event: core_events.SessionSelected) -> None:
-        tabs = {tab.mode_name: tab for tab in self.app.open_tabs}
-        if (tab := tabs.get(event.mode_name)) is not None:
-            self.show(tab.title)
+        titles = {tab.mode_name: tab.title for tab in self.app.open_tabs}
+        if event.mode_name in titles:
+            self.show(titles[event.mode_name])
 
     @property
     def box(self) -> tuple[int, int]:
@@ -98,9 +101,11 @@ class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
         fits = LargeText.width(title) + 2 * self.MARGIN[1] + 2 <= self.room
         self.lines = large if fits else (title,)
         width, height = self.box
-        self.width, self.height = Scalar.from_number(width), Scalar.from_number(height)
+        self.styles.width, self.styles.height = width, height
         screen = self.screen.size
-        self.absolute_offset = Offset((screen.width - width) // 2, (screen.height - height) // 2)
+        self.absolute_offset = Offset(
+            (screen.width - width) // 2, (screen.height - height) // 2
+        )
         self.display = True
         self.run_effect(TAB_TOAST)
         self.refresh(layout=True)
@@ -117,10 +122,18 @@ class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
     def render_line(self, y: int, paint: PaintState) -> Strip:
         colours = self.app.colours
         amount = self.effect_frame(TAB_TOAST).value
-        background = colours.mixed(BackgroundColour, HeaderToneColour, amount).rich_color
-        frame = Style(color=colours.mixed(BackgroundColour, AccentColour, amount).rich_color, bgcolor=background)
-        name = Style(color=colours.mixed(BackgroundColour, ForegroundColour, amount).rich_color,
-                     bgcolor=background, bold=True)
+        background = colours.mixed(
+            BackgroundColour, HeaderToneColour, amount
+        ).rich_color
+        frame = Style(
+            color=colours.mixed(BackgroundColour, AccentColour, amount).rich_color,
+            bgcolor=background,
+        )
+        name = Style(
+            color=colours.mixed(BackgroundColour, ForegroundColour, amount).rich_color,
+            bgcolor=background,
+            bold=True,
+        )
         width, height = self.box
         inner = max(0, width - 2)
         if y == 0 or y == height - 1:
@@ -131,6 +144,13 @@ class SwitchToast(CoreEventReceiver, WidgetView, Animated[Amount]):
         if cell_len(text) > inner:
             text = set_cell_size(text, max(0, inner - 1)) + "…"
         padding = inner - cell_len(text)
-        return Strip([Segment("│", frame),
-                      Segment(" " * (padding // 2) + text + " " * (padding - padding // 2), name),
-                      Segment("│", frame)], width)
+        return Strip(
+            [
+                Segment("│", frame),
+                Segment(
+                    " " * (padding // 2) + text + " " * (padding - padding // 2), name
+                ),
+                Segment("│", frame),
+            ],
+            width,
+        )

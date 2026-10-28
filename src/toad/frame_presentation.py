@@ -277,7 +277,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
             if animation := self.effects.pop(effect, None):
                 animation.stop()
 
-    def effect_frame(self, effect: Effect[FrameT]) -> FrameT:
+    def effect_frame[Shown: Frame](self, effect: Effect[Shown]) -> Shown:
         animation = self.effects.get(effect)
         return effect.final if animation is None else animation.frame()
 

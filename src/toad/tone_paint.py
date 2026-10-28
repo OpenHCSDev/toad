@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, ClassVar
 
 from textual._paint_state import PaintLayer
 from textual.color import TRANSPARENT, Color
-from ui_theme.scheme import AlternateRowToneColour, BackgroundColour, ThemeColour
+from textual.widget import Widget
+from ui_theme.scheme import AlternateRowToneColour, BackgroundColour, SidebarToneColour, ThemeColour
 
 if TYPE_CHECKING:
     from textual.css.styles import StylesBase
@@ -70,18 +71,19 @@ class UntintedTonePaint(TonePaint):
     background_tint = TRANSPARENT
 
 
-class AlternatingTone(TonePaint):
+class AlternatingTone(TonePaint, Widget):
     """A list row on one of two tones by its position: rows separate without separator lines.
 
     A row family declares its own pair; the list that orders rows places them.
     """
 
-    row_tones: ClassVar[tuple[type[ThemeColour] | None, type[ThemeColour] | None]] = (
-        None, AlternateRowToneColour)
+    row_tones: ClassVar[tuple[type[ThemeColour], type[ThemeColour]]] = (
+        SidebarToneColour, AlternateRowToneColour)
     _alternate = False
 
+    # TonePaint declares a class tone; a listed row computes its own from its place.
     @property
-    def tone(self) -> type[ThemeColour] | None:
+    def tone(self) -> type[ThemeColour]:  # type: ignore[override]
         return self.row_tones[self._alternate]
 
     def place(self, index: int) -> None:
