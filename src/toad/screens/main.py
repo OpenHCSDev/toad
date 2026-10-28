@@ -15,9 +15,11 @@ from agent_comms.route_selection import RouteSelection
 from agent_comms.repo import Checkout
 from textual import containers, getters, on
 from textual.app import ComposeResult
-from textual.binding import Binding
+from textual.binding import ModeBinding
+from textual.document._editing import EditingMode
 from toad.widget_actions import (
     TogglesIrc, CyclesSessions, HiddenActions, SessionNavigationAction, DeclaredWidgetActions,
+    NativeMethodKeys,
 )
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
 from textual.reactive import Required, var
@@ -208,7 +210,7 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
+class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView,
                  scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 
@@ -217,10 +219,6 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
     CSS_PATH = "main.tcss"
 
     COMMANDS = {ModeProvider, MCPInventoryProvider}
-
-    BINDINGS = [
-        Binding("ctrl+h", "go_home", "Home", show=False),
-    ]
 
     BINDING_GROUP_TITLE = "Screen"
     busy_count = var(0)
@@ -599,8 +597,12 @@ class MainScreen(HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, S
             if target.focusable:
                 self.screen.set_focus(target, scroll_visible=False)
 
-    async def action_go_home(self) -> None:
+    async def go_home(self) -> None:
         await self.app.select_session("store")
+
+    MODE_BINDINGS = (
+        ModeBinding("ctrl+h", go_home, "Home", mode=EditingMode, show=False),
+    )
 
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, message: SideBar.Dismiss):

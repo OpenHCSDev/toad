@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from toad.core import session_requests, input_events
-from agent_comms.field_codec import FieldCodec
 from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
@@ -12,8 +11,8 @@ from itertools import zip_longest
 from random import shuffle
 from typing import Literal, Self
 
-from textual.binding import Binding
-from toad.widget_actions import DismissibleControl, CyclesFocus, Launches, WidgetAction
+from textual.binding import ModeBinding
+from toad.widget_actions import DismissibleControl, CyclesFocus, Launches, WidgetAction, ProfileKeys
 from textual.document._editing import EditingMode
 from textual.screen import Screen
 from textual import events
@@ -333,18 +332,9 @@ class LaunchSlotAction(WidgetAction):
         await launcher.launch_highlighted()
 
 
-class StoreScreen(CyclesFocus, CoreEventReceiver, Screen, actions=(LaunchSlotAction,)):
+class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, actions=(LaunchSlotAction,)):
     BINDING_GROUP_TITLE = "Screen"
     CSS_PATH = "store.tcss"
-    BINDINGS = [
-        Binding("ctrl+r", "resume", "Resume", tooltip="Resume a previous session"),
-        Binding(
-            "ctrl+d",
-            "directory",
-            "Directory",
-            tooltip="Change project directory",
-        ),
-    ]
 
     agents_view = getters.query_one("#agents-view", AgentGridSelect)
     launcher = getters.query_one("#launcher", Launcher)
@@ -532,7 +522,7 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen, actions=(LaunchSlotAct
             self.call_later(focus_screen)
 
     @work
-    async def action_resume(self) -> None:
+    async def resume(self) -> None:
         from toad.screens.session_resume_modal import SessionResumeModal
 
         session = await self.app.push_screen_wait(SessionResumeModal())
@@ -545,6 +535,13 @@ class StoreScreen(CyclesFocus, CoreEventReceiver, Screen, actions=(LaunchSlotAct
                 )
             )
 
-    async def action_directory(self) -> None:
+    async def focus_directory(self) -> None:
         if (directory_display := self.query_one_optional(DirectoryDisplay)) is not None:
             directory_display.focus()
+
+    MODE_BINDINGS = (
+        ModeBinding("ctrl+r", resume, "Resume", mode=EditingMode,
+                    tooltip="Resume a previous session"),
+        ModeBinding("ctrl+d", focus_directory, "Directory", mode=EditingMode,
+                    tooltip="Change project directory"),
+    )

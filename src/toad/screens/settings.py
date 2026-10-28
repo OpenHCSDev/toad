@@ -6,7 +6,8 @@ from collections.abc import Iterable
 
 from textual import containers, events, getters
 from textual.app import ComposeResult
-from textual.binding import CallBinding
+from textual.binding import ModeBinding
+from textual.document._editing import EditingMode
 from textual.widgets import Input
 from toad.widgets.footer import ToadFooter
 from textual.geometry import Spacing
@@ -95,7 +96,7 @@ class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None]):
     def discard(self) -> None:
         self.app.saved_settings.discard()
 
-    BINDINGS = [
-        CallBinding("ctrl+s", focus_search, "Focus search", available=search_wanted),
-        CallBinding("ctrl+r", discard, "Discard changes"),
-    ]
+    MODE_BINDINGS = (
+        ModeBinding("ctrl+s", focus_search, "Focus search", mode=EditingMode, available=search_wanted),
+        ModeBinding("ctrl+r", discard, "Discard changes", mode=EditingMode),
+    )
