@@ -56,7 +56,7 @@ class BoundedCapture:
     CONTRACT = 1
 
     def __init__(self, *, expected_pid, seconds, output, max_records, max_bytes,
-                 metadata_only, streams, fields=None):
+                 metadata_only, streams, fields=None, array_output=False):
         import asyncio
         import math
         from pathlib import Path
@@ -76,10 +76,12 @@ class BoundedCapture:
             raise FileExistsError("Capture output must be fresh")
         self.max_records, self.max_bytes = max_records, max_bytes
         self.metadata_only = metadata_only
+        self.array_output = array_output
         self.seconds = seconds
         self.started = time.monotonic_ns()
         self.lock = threading.RLock()
         self.accepting, self.finished = True, False
+        self.stopped_ns = None
         self.count = self.dropped = self.censored = self.open_spans = 0
         self.cap_exhausted = False
         self.error = None
@@ -92,8 +94,9 @@ class BoundedCapture:
         self.buffers = {name: bytearray() for name in streams}
         self.header = self.encode(dict(pid=expected_pid, seconds=seconds,
                                        metadata_only=metadata_only, **(fields or {})))[:-1]
-        self.used = len(self.header) + 1  # final closing brace
-        self.used += sum(len(self.encode(name)) + 4 for name in self.buffers)  # ,key:[]
+        self.used = (2 if array_output else len(self.header) + 1)  # delimiters
+        if not array_output:
+            self.used += sum(len(self.encode(name)) + 4 for name in self.buffers)  # ,key:[]
         if self.used + self.FINAL_RESERVE > max_bytes:
             raise ValueError("Envelope exceeds capture bound")
 
@@ -125,11 +128,14 @@ class BoundedCapture:
                 return True
             except Exception as error:
                 self.error = type(error).__name__[:96]
+                self.dropped += 1
                 self.stop('recording-error')
                 return False
 
     def stop(self, reason):
         """Stop admission immediately; restoration runs on the owning loop."""
+        if self.accepting:
+            self.stopped_ns = time.monotonic_ns()
         self.accepting = False
         self.reason = reason
         self.loop.call_soon_threadsafe(self.finish, reason)
@@ -183,7 +189,10 @@ class BoundedCapture:
         with self.lock:
             if self.finished:
                 return self.status
+            if self.stopped_ns is None:
+                self.stopped_ns = time.monotonic_ns()
             self.accepting, self.finished = False, True
+            reason = reason[:96] if type(reason) is str else 'invalid-reason'
             self.reason = reason
             if (probe_timer := self.probe_timer) is not None:
                 probe_timer.cancel()
@@ -206,10 +215,12 @@ class BoundedCapture:
                     failed += 1
             self.hooks.clear()
             self.identities.clear()
-            pending_inputs = len(self.pending_inputs)
+            pending_inputs = sum(not entry[2] for entry in self.pending_inputs.values())
             self.pending_inputs.clear()
             self.status = dict(contract=self.CONTRACT, reason=reason,
-                               started_ns=self.started, ended_ns=time.monotonic_ns(),
+                               started_ns=self.started, ended_ns=self.stopped_ns,
+                               elapsed_ns=self.stopped_ns - self.started,
+                               cleanup_ns=time.monotonic_ns(),
                                measured_records=self.count, dropped_records=self.dropped,
                                censored_spans=self.open_spans + self.censored,
                                censored_inputs=pending_inputs,
@@ -218,7 +229,8 @@ class BoundedCapture:
                                hooks_failed=failed, cleanup=('failed' if failed else
                                                             'superseded' if skipped else 'restored'),
                                max_records=self.max_records, max_bytes=self.max_bytes,
-                               output_bytes=0, pixels_observed=False)
+                               output_bytes=0, pixels_observed=False,
+                               unobserved_after_close=True)
             # The count includes its own decimal spelling: settle to a fixed point.
             footer = b',"capture":' + self.encode(self.status)
             for _ in range(8):
@@ -232,13 +244,25 @@ class BoundedCapture:
             try:
                 fd = os.open(self.partial, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
                 with os.fdopen(fd, 'wb') as file:
-                    file.write(self.header)
-                    for name, buffer in self.buffers.items():
-                        file.write(b',' + self.encode(name) + b':[')
-                        file.write(buffer)
+                    if self.array_output:
+                        # Existing trace_calls readers consume six-column rows.
+                        # Status remains available through the returned handle.
+                        self.status['output_bytes'] = self.used
+                        file.write(b'[')
+                        file.write(self.buffers['calls'])
                         file.write(b']')
-                    file.write(footer + b'}')
+                    else:
+                        file.write(self.header)
+                        for name, buffer in self.buffers.items():
+                            file.write(b',' + self.encode(name) + b':[')
+                            file.write(buffer)
+                            file.write(b']')
+                        file.write(footer + b'}')
                 os.rename(self.partial, self.output)
+            except OSError as error:
+                # Hooks are already restored. Keep the publication failure in
+                # the returned status so the group receipt cannot claim success.
+                self.status['error'] = type(error).__name__[:96]
             finally:
                 self.buffers.clear()
             return self.status
@@ -318,6 +342,17 @@ class CallMetadata:
     def result(self, capture, result):
         return dict(result_type=_type_name(result))
 
+    def opened(self, span, fields):
+        span.capture.record('calls', dict(event='enter', span=span.identity, parent=span.parent_id,
+                                         target=span.target.path, at_ns=span.start,
+                                         thread=threading.get_native_id(), **fields))
+
+    def closed(self, span, result, outcome):
+        fields = self.result(span.capture, result) if outcome == 'return' else {}
+        span.capture.record('calls', dict(event=outcome, span=span.identity, target=span.target.path,
+                                         at_ns=time.monotonic_ns(), elapsed_ns=time.monotonic_ns() - span.start,
+                                         thread_cpu_ns=time.thread_time_ns() - span.cpu, **fields))
+
 
 class SourceGetMetadata(CallMetadata):
     path = 'toad.transcript_preparation:PreparedPageSource.get'
@@ -340,6 +375,9 @@ class RowsMetadata(CallMetadata):
                     width=arguments['target'].line_width, direction=_type_name(arguments['end']),
                     filter=capture.label(arguments['selected']), rows_needed=arguments['rows_needed'])
 
+    def result(self, capture, result):
+        return dict(rows=result, no_rows=result == 0)
+
 
 class LoadMetadata(CallMetadata):
     path = 'toad.widgets.transcript_history:LineHistory._load_page'
@@ -349,6 +387,9 @@ class LoadMetadata(CallMetadata):
         return dict(history=capture.label(history), source=capture.label(history.page_source),
                     scope=capture.label(history.page_source.scope), width=history.line_width,
                     filter=capture.label(history.filter), direction=_type_name(arguments['end']))
+
+    def result(self, capture, result):
+        return dict(needs_more=result)
 
 
 class ExtendMetadata(CallMetadata):
@@ -413,7 +454,8 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
              'textual.message_pump:MessagePump._dispatch_message',
              'textual.widget:Widget.refresh', 'textual.widget:Widget._request_layout',
              'textual.screen:Screen.refresh_bindings', 'textual.screen:Screen._refresh_layout',
-             'textual.screen:Screen._layout_step')
+             'textual.screen:Screen._layout_step',
+             'textual.drivers.linux_driver:LinuxDriver.write')
     targets = [MethodTarget(path) for path in paths]
     display_target = MethodTarget('toad.app:ToadApp._display')
     targets.append(display_target)
@@ -421,12 +463,14 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
                              max_records=max_records, max_bytes=max_bytes, metadata_only=metadata_only,
                              streams=('frames', 'inputs', 'lags', 'events', 'switch_steps', 'stepped_layouts',
                                       'slow_frames', 'timed_callbacks', 'slow_handlers', 'layout_invalidations'))
-    run, post, dispatch, refresh, request_layout, refresh_bindings, refresh_layout, layout_step, display = (
+    run, post, dispatch, refresh, request_layout, refresh_bindings, refresh_layout, layout_step, write, display = (
         target.original for target in targets)
+    display_code = MethodTarget('textual.app:App._display').original.__code__
     inputs_types = (events.Key, events.MouseEvent)
     clock = time.monotonic_ns
     state = dict(busy=0, current=None, cpu=time.thread_time_ns(), shown=clock(),
-                 stretch_begin=clock(), stretch_end=clock(), stall=0, layout=0, layouts=0)
+                 stretch_begin=clock(), stretch_end=clock(), stall=0, layout=0, layouts=0,
+                 writes=0)
 
     def counted_layout(self, required=True):
         if required:
@@ -480,9 +524,18 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
                                                    _type_name(handle._callback),
                                                    (time.thread_time_ns() - cpu_begin) / 1e6))
 
+    def timed_write(self, data):
+        result = write(self, data)
+        # Observe the actual payload handoff from App._display, not its gates.
+        # _begin_update/_end_update control writes have different caller code.
+        if capture.accepting and sys._getframe(1).f_code is display_code:
+            state['writes'] += 1
+        return result
+
     def timed_display(self, screen, renderable):
+        writes_before = state['writes']
         result = display(self, screen, renderable)
-        if capture.accepting and renderable is not None and self is app:
+        if capture.accepting and state['writes'] > writes_before and self is app:
             now = clock()
             running = 0 if state["current"] is None else now - state["current"]
             work = (state["busy"] + running) / 1e6
@@ -513,7 +566,7 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
         if capture.accepting and self is app and isinstance(message, inputs_types):
             label = capture.label(message)
             if label is not None:
-                posted.setdefault(label, (clock(), type(message).__name__[:160]))
+                posted.setdefault(label, (clock(), type(message).__name__[:160], False))
         return post(self, message)
 
     async def timed_dispatch(self, message):
@@ -521,9 +574,12 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
         try:
             return await dispatch(self, message)
         finally:
-            if capture.accepting and self is app and isinstance(message, inputs_types):
+            if capture.accepting and isinstance(message, inputs_types):
                 label = capture.label(message)
-                if (entry := posted.pop(label, None)) is not None:
+                if (entry := posted.get(label)) is not None:
+                    # One immutable completion per handler. summarize coalesces
+                    # by original arrival, using the LAST observed handler end.
+                    posted[label] = entry[0], entry[1], True
                     capture.record('inputs', (entry[0], clock(), entry[1], []))
                 if clock() - begin > 50_000_000:
                     capture.record('slow_handlers', (begin, (clock() - begin) / 1e6,
@@ -545,7 +601,7 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
 
     try:
         wrappers = (timed_run, timed_post, timed_dispatch, counted_refresh, counted_layout,
-                    counted_bindings, timed_layout, traced_layout_step, timed_display)
+                    counted_bindings, timed_layout, traced_layout_step, timed_write, timed_display)
         for target, wrapper in zip(targets, wrappers, strict=True):
             capture.patch(target, wrapper)
         probe_timer = loop.call_at(loop.time() + 0.004, probe, loop.time() + 0.004)
@@ -1111,14 +1167,13 @@ class CallSpan:
             capture.next_span += 1
             self.identity = capture.next_span
             capture.open_spans += 1
+        self.parent_id = parent.get()
         self.token = parent.set(self.identity)
+        self.fields = {}
         try:
             arguments = target.signature.bind(*args, **kwargs).arguments
-            fields = metadata.enter(capture, arguments)
-            capture.record('calls', dict(event='enter', span=self.identity, parent=self.token.old_value
-                                         if type(self.token.old_value) is int else 0,
-                                         target=target.path, at_ns=self.start,
-                                         thread=threading.get_native_id(), **fields))
+            self.fields = metadata.enter(capture, arguments)
+            metadata.opened(self, self.fields)
         except Exception as error:
             capture.error = type(error).__name__[:96]
             capture.stop('metadata-error')
@@ -1127,11 +1182,7 @@ class CallSpan:
         capture = self.capture
         try:
             if capture.accepting:
-                fields = self.metadata.result(capture, result) if outcome == 'return' else {}
-                capture.record('calls', dict(event=outcome, span=self.identity, target=self.target.path,
-                                             at_ns=time.monotonic_ns(),
-                                             elapsed_ns=time.monotonic_ns() - self.start,
-                                             thread_cpu_ns=time.thread_time_ns() - self.cpu, **fields))
+                self.metadata.closed(self, result, outcome)
                 with capture.lock:
                     capture.open_spans -= 1
         except Exception as error:
@@ -1147,8 +1198,14 @@ class LegacyCallMetadata(CallMetadata):
     def enter(self, capture, arguments):
         return dict(subject=_subject(tuple(arguments.values())))
 
-    def result(self, capture, result):
-        return dict(result=_result(result))
+    def opened(self, span, fields):
+        pass
+
+    def closed(self, span, result, outcome):
+        span.capture.record('calls', (span.target.path, (time.monotonic_ns() - span.start) / 1e6,
+                                      span.fields['subject'],
+                                      (type(result).__name__ if span.target.asynchronous else _result(result)), span.start,
+                                      (time.thread_time_ns() - span.cpu) / 1e6))
 
 
 def trace_calls(*, expected_pid, output, targets, seconds=60, max_records=20000,
@@ -1169,7 +1226,7 @@ def trace_calls(*, expected_pid, output, targets, seconds=60, max_records=20000,
     adapters = [CallMetadata.targets[path] if metadata_only else LegacyCallMetadata() for path in targets]
     capture = BoundedCapture(expected_pid=expected_pid, seconds=seconds, output=output,
                              max_records=max_records, max_bytes=max_bytes, metadata_only=metadata_only,
-                             streams=('calls', 'events'))
+                             streams=('calls', 'events'), array_output=not metadata_only)
     parent = ContextVar('bounded-call-parent', default=0)
 
     def instrument(target, metadata):
@@ -1686,7 +1743,12 @@ def summarize(path):
     frames = [frame for previous, frame in zip([None, *data["frames"]], data["frames"])
               if measured(previous[0] if previous else frame[0], frame[0])]
     data["lags"] = [(at, lag) for at, lag in data.get("lags", []) if measured(at - lag * 1e6, at)]
-    data["inputs"] = [entry for entry in data["inputs"] if measured(entry[0], entry[1] or entry[0])]
+    input_ends = {}
+    for entry in data['inputs']:
+        previous = input_ends.get(entry[0])
+        if previous is None or (entry[1] or 0) > (previous[1] or 0):
+            input_ends[entry[0]] = entry
+    data["inputs"] = [entry for entry in input_ends.values() if measured(entry[0], entry[1] or entry[0])]
     work = [frame[1] for frame in frames]
     # The longest stretch per frame the loop could not paint in (older
     # captures lack it: their frame work is the only measure).
