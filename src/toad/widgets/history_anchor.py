@@ -817,6 +817,11 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         # which can silently rejoin at a mounted page edge.
         self.anchor(False)
 
+    def message_head_hidden(self, height: int, head_y: int | None) -> bool:
+        """A tall clicked message needs its head; short and already-headed ones stay put."""
+        viewport = self.scrollable_content_region
+        return height > viewport.height and (head_y is None or head_y < viewport.y)
+
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
         # Animation ticks and direct native scrolling change reader intent
