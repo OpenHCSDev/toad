@@ -7,7 +7,7 @@ import asyncio
 from contextlib import asynccontextmanager
 
 from agent_comms.channel_targets import ChannelTarget
-from agent_comms.notification_progress import AnsweredProgress, IgnoredProgress
+from agent_comms.notification_progress import AnsweredProgress, ConsumedDelivery, IgnoredProgress
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
 from toad.navigation_target import DirectTarget, channel_target
@@ -126,12 +126,12 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     provider.release()
     await ui.until(lambda: not comms.registry.require("beta").executing, seconds=20, why="the decision to finish")
     await refresh_chat(chat)
-    await ui.until(lambda: IgnoredProgress.label in feedback_of(chat, sent).title, seconds=10,
-                   why="read feedback after declining the channel message")
+    await ui.until(lambda: ConsumedDelivery.ignored_label in feedback_of(chat, sent).title, seconds=10,
+                   why="seen, not answering feedback after declining the channel message")
     feedback = feedback_of(chat, sent)
     assert isinstance(feedback, CheckedNotifications)
     assert any(item.recipient == native.thread and isinstance(item.state, IgnoredProgress)
-               and item.answer is None for item in feedback.notifications)
+               and item.state.seen_not_answering and item.answer is None for item in feedback.notifications)
 
 
 @asynccontextmanager

@@ -7,7 +7,7 @@ from textual.widgets import Input
 
 from agent_comms.audience_manifest import FrozenRecipient
 from agent_comms.messages import InfoKind, Message
-from agent_comms.notification_progress import InboxReadProgress
+from agent_comms.notification_progress import HarnessConsumedProgress
 from agent_comms.presentation import MessageNotification
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.delivery import ReadDeliveryView
@@ -24,7 +24,7 @@ from toad.widgets.session_details import SessionDetails
 @pytest.mark.parametrize("ansi", [False, True], ids=["rgb", "ansi"])
 async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi):
     notifications = tuple(MessageNotification(
-        FrozenRecipient("owner", "owner"), "peer", InboxReadProgress(), message=Message("peer", "#comms", f"Notice {index}: " + "body " * 30,
+        FrozenRecipient("owner", "owner"), "peer", HarnessConsumedProgress(), message=Message("peer", "#comms", f"Notice {index}: " + "body " * 30,
                                                  InfoKind, seq=index + 1),
     ) for index in range(30))
     state = ThreadPresentation("owner", "●", "Ready", notifications=notifications)
@@ -53,7 +53,10 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         composer = app.screen.query_one(Input)
         assert details.collapsed and details.size.height == 1
         frame = ui.visible_text()
-        assert "Session details" in frame and "30 recent" in frame and "5 notices" in frame
+        # SessionDetails.summary_title owns the live caption; there is no fixed one.
+        title = details.title.plain
+        assert title and title in frame
+        assert "30 recent" in frame and "5 notices" in frame
         assert "Notice 0" not in frame and "Bus history:" not in frame
         assert composer.region.y == details.region.bottom
 

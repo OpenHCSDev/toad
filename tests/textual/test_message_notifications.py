@@ -6,12 +6,13 @@ The live subscription/return journey is exercised in test_channel_updates_and_re
 
 from agent_comms.audience_manifest import FrozenRecipient
 from agent_comms.notification_progress import (
-    CompletedProgress, IgnoredProgress, ReadingProgress, SendingProgress,
+    CompletedProgress, ConsumingProgress, IgnoredProgress, SendingProgress,
     ShownToModelProgress, UnrecordedProgress,
 )
 from agent_comms.presentation import MessageNotification
 from agent_comms.ui_model.observation import NotificationsObserved, NotificationsUnreadable, UnreadableHistory
 from toad.notification_status import CheckedNotifications
+from toad.widgets.side_bar import SideBar, SideBarToggle
 
 PEERS = 44
 
@@ -57,6 +58,14 @@ def newest_status(chat):
 
 
 async def settled(ui, chat):
+    # The channels sidebar takes 40% of the terminal and ellipsizes the summary's totals;
+    # collapse it through its real toggle so the conversation gets the width.
+    app, pilot = ui.textual
+    bar = app.screen.query_one("#channels-sidebar", SideBar)
+    assert not bar.collapsed
+    assert await pilot.click(bar.query_one(SideBarToggle))
+    await ui.until(lambda: bar.collapsed, why="the channels sidebar collapsed")
+    await ui.step()
     history = chat.message_history
     await ui.until(lambda: not history.undrawn and history.state.accepts_source_work,
                    why="the channel's history read")
@@ -82,7 +91,7 @@ async def test_visible_references_are_bounded_and_typed_outcomes_paint_their_det
         assert 0 < len(request.references) <= len(on_screen) < 30
         assert set(request.references) <= on_screen
         await notifications.publish(ui, chat)
-        await ui.until_shows("Delivered 0/45 · Read 0/45")
+        await ui.until_shows("Delivered 45/45 · Consumed 0/45 · Read 0/45")
         assert newest_status(chat).working
         await ui.click("▶ Sent", occurrence=len(on_screen) - 1)
         await ui.until_shows("waiting-9: Sent")
@@ -99,12 +108,13 @@ async def test_the_line_follows_typed_state_and_read_errors_without_new_messages
         await ui.open_channel("#comms", actor="peer")
         chat = ui.app.screen.query_one(CommsChatView)
         await settled(ui, chat)
-        notifications.state = ReadingProgress(0)
+        notifications.state = ConsumingProgress(0)
         await notifications.publish(ui, chat)
-        await ui.until_shows("Delivered 1/45 · Read 1/45")
+        await ui.until_shows("Answering 1 · Delivered 45/45 · Consumed 1/45 · Read 0/45")
         assert newest_status(chat).working
         notifications.state = IgnoredProgress(ShownToModelProgress(0))
         await notifications.publish(ui, chat)
+        await ui.until_shows("Seen, not answering 1 · Delivered 45/45 · Consumed 1/45 · Read 0/45")
         assert not newest_status(chat).working
         access = ui.app.coordination_access
         request = access.notification_views[chat.message_history.notification_view]
@@ -114,7 +124,7 @@ async def test_the_line_follows_typed_state_and_read_errors_without_new_messages
         assert "fixture busy database" in newest_status(chat).error
         notifications.state = CompletedProgress(ShownToModelProgress(0))
         await notifications.publish(ui, chat)
-        await ui.until_shows("▶ Answered · Delivered 1/45 · Read 1/45")
+        await ui.until_shows("▶ Answered · Delivered 45/45 · Consumed 1/45 · Read 0/45")
 
 
 async def test_a_hidden_view_unsubscribes_and_discards_a_late_reply(workspace):
@@ -152,7 +162,7 @@ async def test_markdown_uses_the_same_typed_line_and_an_empty_recorded_result(wo
         await chat.message_history.toggle_style()
         await ui.step()
         await notifications.publish(ui, chat)
-        await ui.until_shows("▶ Answered · Delivered 1/45 · Read 1/45")
+        await ui.until_shows("▶ Answered · Delivered 45/45 · Consumed 1/45 · Read 0/45")
         notifications.recorded = False
         await notifications.publish(ui, chat)
         await ui.until_shows("▶ No recorded notification result")

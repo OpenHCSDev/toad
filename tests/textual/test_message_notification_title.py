@@ -3,9 +3,10 @@
 from dataclasses import replace
 
 from agent_comms.audience_manifest import FrozenRecipient
-from agent_comms.notification_progress import CompletedProgress, ReadingProgress, ShownToModelProgress
+from agent_comms.notification_progress import (
+    CompletedProgress, ConsumingProgress, QueuedProgress, SentProgress, ShownToModelProgress,
+)
 from agent_comms.presentation import MessageNotification
-from agent_comms.thread_identity import RecordedThreadIncarnation
 
 from toad.notification_status import CheckedNotifications, UnavailableNotifications
 from toad.widgets.message_notifications import MessageNotifications
@@ -18,27 +19,33 @@ async def test_changed_details_and_errors_keep_the_title_layout_but_changed_summ
         app, pilot = ui.textual
         # Sent-message feedback lives inside a conversation, which owns its project path.
         await ui.conversation.mount(feedback)
-        # The state Core shows while the recipient is producing its response.
-        responding = MessageNotification(FrozenRecipient("peer", "peer"), "owner", ReadingProgress(1))
-        feedback.show(CheckedNotifications((responding,)))
+        # Two agents: one works on the message its context took in, the other has it sent.
+        responding = MessageNotification(FrozenRecipient("peer", "peer"), "owner", ConsumingProgress(1))
+        waiting = MessageNotification(FrozenRecipient("waiting-peer", "waiting-peer"), "owner", SentProgress(1))
+        feedback.show(CheckedNotifications((responding, waiting)))
         await ui.step()
         title = feedback.query_one("CollapsibleTitle")
         assert await pilot.click(title)
         await ui.step()
         assert not feedback.collapsed
+        await ui.until(lambda: "waiting-peer: Sent" in " ".join(ui.painted(feedback).split()), why="the sent detail")
         before = title._layout_updates
-        read_by = replace(responding, displayed_to=(RecordedThreadIncarnation("reader", 1.0),))
-        feedback.show(CheckedNotifications((read_by,)))
+        # Only the second agent's detail changes: the first row still leads, the counts hold.
+        queued = replace(waiting, state=QueuedProgress(1))
+        feedback.show(CheckedNotifications((responding, queued)))
         await ui.step()
         assert title._layout_updates == before
-        await ui.until(lambda: "Read by reader" in " ".join(ui.painted(feedback).split()), why="the changed details")
-        assert str(feedback.title) == MessageNotification.summary((read_by,))
+        await ui.until(lambda: "waiting-peer: Queued" in " ".join(ui.painted(feedback).split()), why="the changed detail")
+        assert str(feedback.title) == MessageNotification.summary((responding, queued))
+        assert str(feedback.title) == MessageNotification.summary((responding, waiting))
+        assert str(feedback.title) == "Answering 1 · Delivered 2/2 · Consumed 1/2 · Read 0/2"
         assert feedback.has_class("-working")
-        completed = replace(read_by, state=CompletedProgress(ShownToModelProgress(1)))
-        feedback.show(CheckedNotifications((completed,)))
+        completed = replace(responding, state=CompletedProgress(ShownToModelProgress(1)))
+        feedback.show(CheckedNotifications((completed, queued)))
         await ui.step()
-        assert str(feedback.title) == MessageNotification.summary((completed,))
-        assert str(feedback.title) != MessageNotification.summary((read_by,))
+        assert str(feedback.title) == MessageNotification.summary((completed, queued))
+        assert str(feedback.title) != MessageNotification.summary((responding, queued))
+        assert str(feedback.title) == queued.label + " · Delivered 2/2 · Consumed 1/2 · Read 0/2"
         assert not feedback.has_class("-working")
         feedback.show(UnavailableNotifications("First read error"))
         await ui.step()
