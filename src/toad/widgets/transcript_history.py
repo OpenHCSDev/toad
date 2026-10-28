@@ -102,6 +102,7 @@ from toad.widgets.transcript_lines import (
     BlockSpan,
     LinePreparation,
     Lines,
+    RowAcquisition,
     TranscriptLinesBatchRenderTask,
     TranscriptLinesRenderTask,
 )
@@ -639,27 +640,30 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
 
     def _show(self, changes: list[tuple[TranscriptFragment, Shown]]) -> Awaitable[None]:
         """Record requested state before scheduling; keep the old measured rows painted."""
-        requested = [(fragment, shown) for fragment, shown in changes if fragment.request_show(shown)]
-        return self._draw_changes(requested)
+        captured = [(fragment, shown, fragment._lines) for fragment, shown in changes]
+        return self._draw_changes([(fragment, shown, previous) for fragment, shown, previous in captured
+                                   if fragment.request_show(shown)])
 
-    async def _draw_changes(self, changes: list[tuple[TranscriptFragment, Shown]]) -> None:
+    async def _draw_changes(self, changes: list[tuple[TranscriptFragment, Shown, RowAcquisition]]) -> None:
         """Prepare captured states, then publish only those still requested."""
-        changes = [(fragment, shown) for fragment, shown in changes if fragment.shown is shown]
+        changes = [(fragment, shown, previous) for fragment, shown, previous in changes
+                   if fragment.shown is shown]
         if not changes:
             return
         width, theme = self.line_width, self.app.colours.line_theme
         in_range = {id(fragment) for fragment in self.fragments_in_range}
-        drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
+        drawn = [(fragment, shown, previous) for fragment, shown, previous in changes
+                 if id(fragment) in in_range and width > 0]
         rendered = await TranscriptLinesBatchRenderTask.render_for(self,
-            (LinePreparation(fragment.line_blocks, theme) for fragment, _shown in drawn),
-            previous=(fragment._lines for fragment, _shown in drawn))
+            (LinePreparation(fragment.line_blocks, theme) for fragment, _shown, _previous in drawn),
+            previous=(previous for _fragment, _shown, previous in drawn))
         if not self.state.can_draw:
             return
-        ready = {id(fragment): result for (fragment, _shown), result in zip(drawn, rendered)}
+        ready = {id(fragment): result for (fragment, _shown, _previous), result in zip(drawn, rendered)}
         async with self.window.preserve_history(root=self):
             if not self.state.can_draw:
                 return
-            changed = {id(fragment) for fragment, shown in changes
+            changed = {id(fragment) for fragment, shown, _previous in changes
                        if TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(id(fragment)))}
             for page in [page for page in self.pages if not changed.isdisjoint(map(id, page.prepared.fragments_in_range))]:
                 page.range_changed()  # A page holding a changed fragment measures again.

@@ -173,24 +173,23 @@ class FragmentBlockCursor(BlockCursor):
         self.fragment = None
 
     @property
-    def current(self):
-        """The message the cursor rests on, while the history still draws it."""
+    def selected_fragments(self) -> tuple[TranscriptFragment, ...]:
+        """The source occurrence the cursor owns while this history draws it."""
         fragment = self.fragment
         return (
-            fragment
+            (fragment,)
             if fragment is not None and self.block.draws_fragment(fragment)
-            else None
+            else ()
         )
+
+    @property
+    def current(self):
+        """The optional scalar view used by block navigation."""
+        return next(iter(self.selected_fragments), None)
 
     @property
     def selected(self):
         return self.block if self.current is not None else None
-
-    @property
-    def selected_fragments(self) -> tuple[TranscriptFragment, ...]:
-        """Capture the cursor's source occurrence before deferred work starts."""
-        fragment = self.current
-        return () if fragment is None else (fragment,)
 
     def enter(self, direction: CursorDirection):
         # The cursor arrives at the reader's side of the screen, not at an
