@@ -10,7 +10,6 @@ from toad.widget_actions import DismissAction
 from textual import widgets
 from textual.widget import Widget
 
-from toad.app import ToadApp
 from toad.widgets.command_pane import CommandPane
 from toad.terminal_execution import Command, TerminalExecution
 from toad.agent_schema import AgentDefinition
@@ -18,11 +17,12 @@ from toad.catalog_actions import CatalogCommandAction
 from toad.core.source_events import CommandComplete
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
+from toad.widget_view import ToadHosted
 
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 
-class ActionModal(CoreEventReceiver, DismissibleScreen[int]):
+class ActionModal(ToadHosted, CoreEventReceiver, DismissibleScreen[int]):
     """Executes an action command."""
 
     CSS_PATH = "store.tcss"
@@ -30,7 +30,6 @@ class ActionModal(CoreEventReceiver, DismissibleScreen[int]):
     command_pane = getters.query_one(CommandPane)
     ok_button = getters.query_one("#ok", widgets.Button)
 
-    app = getters.app(ToadApp)
 
     def __init__(
         self,

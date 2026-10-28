@@ -45,7 +45,6 @@ from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
-from toad.app import ToadApp
 from toad.block_navigation import (
     BlockCursor,
     ContentNavigation,
@@ -88,7 +87,7 @@ from toad.session_scope import SessionScope, TranscriptScope
 from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
-from toad.widget_view import WorkspaceHosted
+from toad.widget_view import ToadHosted, WorkspaceHosted
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.flash import Flash
@@ -794,6 +793,7 @@ from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 
 
 class Conversation(
+    ToadHosted,
     ConversationCommsHandlers,
     NativeMethodKeys,
     ConversationSessionBinding,
@@ -812,7 +812,6 @@ class Conversation(
     contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
-    app = getters.app(ToadApp)
 
     @property
     def visible_read_cursor(self):

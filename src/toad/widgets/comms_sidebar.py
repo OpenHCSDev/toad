@@ -17,7 +17,7 @@ import shlex
 from agent_comms.native_arguments import ConfiguredBinary, InheritedArguments
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from agent_comms.ui_model.sidebar import ChannelRowModel
 from toad.widget_actions import ActivationKeys
@@ -48,10 +48,10 @@ from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneCo
 from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
+from toad.widget_view import ToadHosted
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
-    from toad.app import ToadApp
 
 
 
@@ -234,7 +234,7 @@ class CommsRow(
         self.open_selected()
 
 
-class ThreadStatusRow(CommsRow):
+class ThreadStatusRow(ToadHosted, CommsRow):
     """Thread rows show activity through their glyph and summary, not held ink."""
 
     DEFAULT_CSS = "ThreadStatusRow { color: $text-muted; }"
@@ -256,7 +256,7 @@ class ThreadStatusRow(CommsRow):
 
     def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
         """Render the model with this app's pin and pending action."""
-        app = cast("ToadApp", self.app)
+        app = self.app
         row = app.session_navigation.thread_row(row)
         action_status = app.thread_actions.pending.get(row.name)
         if (row, pinned, action_status) == (self.thread_row, self.pinned, self.action_status):
@@ -292,7 +292,7 @@ class ThreadRow(ThreadStatusRow):
         return self.navigation_tree.open_views.get(self.target_name)
 
     def open_selected(self) -> None:
-        if self.mode_name is None or cast("ToadApp", self.app).session_navigation.session_details(self.mode_name) is None:
+        if self.mode_name is None or self.app.session_navigation.session_details(self.mode_name) is None:
             super().open_selected()
         else:
             self.navigation_tree.remember_row(self)

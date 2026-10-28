@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from textual import containers, events, getters
+from textual import containers, events
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
@@ -13,7 +13,7 @@ from toad.widgets.footer import ToadFooter
 from textual.geometry import Spacing
 from textual.color import Color
 
-from toad.app import ScreenWidth, ToadApp
+from toad.app import ScreenWidth
 from toad.forms.editors import SelectEditor
 from toad.forms.form_view import FormView
 from toad.forms.presentation import FormInput, FormModal
@@ -21,13 +21,13 @@ from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import PriorityActions
 from toad.widget_view import WidgetView
 from toad.setting_choices import SchemeName
+from toad.widget_view import ToadHosted
 
 
-class SchemeEditor(SelectEditor):
+class SchemeEditor(ToadHosted, SelectEditor):
     """A colour scheme's name, picked from the schemes the running app has."""
 
     shows = (SchemeName,)
-    app = getters.app(ToadApp)
 
     def options(self) -> Iterable[tuple[str, object]]:
         return ((name, name) for name in self.app.colours.schemes)
@@ -52,10 +52,9 @@ class SettingsSearch(WidgetView, containers.VerticalGroup):
     padding = Spacing(1, 0, 1, 0)
 
 
-class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None]):
+class SettingsScreen(ToadHosted, PriorityActions, FormModal[None], DismissibleScreen[None]):
     align_horizontal = "right"
     align_vertical = "top"
-    app = getters.app(ToadApp)
 
     def __init__(self) -> None:
         super().__init__()

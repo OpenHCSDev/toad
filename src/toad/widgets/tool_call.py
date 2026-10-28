@@ -5,14 +5,12 @@ from typing import Iterable
 
 from textual.app import ComposeResult
 from textual.await_complete import AwaitComplete
-from textual import getters
 
 from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
 from textual.widget import Widget
 
-from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart
 from metaclass_registry.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
@@ -25,6 +23,7 @@ from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import SingleLineBlock
 from toad.widgets.tool_content import ToolContent
+from toad.widget_view import ToadHosted
 
 
 
@@ -49,7 +48,7 @@ class ToolCallHeader(SingleLineBlock):
             self.app.bell()
 
 
-class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+class ToolCall(ToadHosted, ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     DEFAULT_CSS = """
     ToolCall {
         margin: 0 !important;
@@ -80,7 +79,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def message_category(self) -> type[MessageCategory]:
         return ToolCategory
 
-    app = getters.app(ToadApp)
     has_content: var[bool] = var(False, toggle_class="-has-content")
     expanded: var[bool] = var(False, toggle_class="-expanded")
     tool_call: var[ToolCallStatus | None] = var(None)

@@ -4,13 +4,12 @@ from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Static
 from textual.timer import Timer
-from textual import getters
 
 
-from toad.app import ToadApp
+from toad.widget_view import ToadHosted
 
 
-class Flash(Static):
+class Flash(ToadHosted, Static):
     DEFAULT_CSS = """
     Flash {
         height: 1;
@@ -47,7 +46,6 @@ class Flash(Static):
         }
     }
     """
-    app = getters.app(ToadApp)
     flash_timer: var[Timer | None] = var(None)
 
     def __init__(self, *args, **kwargs) -> None:

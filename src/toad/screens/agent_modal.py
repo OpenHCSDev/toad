@@ -16,9 +16,9 @@ from toad.widget_actions import HiddenActions, PriorityActions, Launches
 from toad.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction, LaunchAction
 from toad.core.session_requests import LaunchAgent
-from toad.app import ToadApp
 from toad.preferences import SETTINGS
 from toad.platform import host
+from toad.widget_view import ToadHosted
 
 
 class DescriptionContainer(containers.VerticalScroll):
@@ -28,6 +28,7 @@ class DescriptionContainer(containers.VerticalScroll):
 
 
 class AgentModal(
+    ToadHosted,
     PriorityActions, HiddenActions, Launches, DismissibleScreen[LaunchAgent | None],
     scopes={PriorityActions: (widget_actions.LaunchAction,),
             HiddenActions: (widget_actions.DismissAction,)},
@@ -35,7 +36,6 @@ class AgentModal(
     AUTO_FOCUS = "Select#action-select"
 
 
-    app = getters.app(ToadApp)
     action_select = getters.query_one("#action-select", widgets.Select)
     launcher_checkbox = getters.query_one("#launcher-checkbox", widgets.Checkbox)
 

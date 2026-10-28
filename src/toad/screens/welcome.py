@@ -7,7 +7,6 @@ entry or a new session opens the first tab, which replaces it.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
 
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.channel_targets import NoChannel
@@ -40,10 +39,7 @@ from toad.widgets.sidebar_tree import (
     TargetTree,
 )
 from toad.widgets.splash_text import SplashText
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-
+from toad.widget_view import ToadHosted
 
 class WelcomeTitle(SplashText):
     """The app's name, swept into the theme's colours each time the view shows."""
@@ -194,7 +190,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         self.present()
 
 
-class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=False):
+class WelcomeScreen(ToadHosted, TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=False):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
 
     BINDINGS = [
@@ -218,7 +214,7 @@ class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=Fal
 
     def __init__(self) -> None:
         super().__init__()
-        app = cast("ToadApp", self.app)
+        app = self.app
         self.project_path = app.project_dir
 
     def compose(self) -> ComposeResult:
@@ -247,7 +243,7 @@ class WelcomeScreen(TogglesIrc, ProjectSessionOrigin, SessionView, can_focus=Fal
         )
 
     async def prepare_history_origin(self) -> None:
-        app = cast("ToadApp", self.app)
+        app = self.app
         project = self.project_path
         with self.changing_identity():
             self._identity = await app.preparation.run_thread(self.read_history_identity, project)

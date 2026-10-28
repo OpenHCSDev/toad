@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from toad.app import ToadApp
     from toad.screens.workspace import WorkspaceFrame
 
 from textual import events
@@ -17,6 +18,18 @@ from textual.geometry import Spacing
 
 AUTO = Scalar(1.0, Unit.AUTO, Unit.AUTO)
 FILL = Scalar(1.0, Unit.FRACTION, Unit.WIDTH)
+
+
+class ToadHosted:
+    """A node that lives in Toad's application: its `app` is a ToadApp.
+
+    The declaration is for readers and type checkers; at run time `app` is the
+    node's own, so nothing is asserted or wrapped.
+    """
+
+    if TYPE_CHECKING:
+        @property
+        def app(self) -> ToadApp: ...
 
 
 class WorkspaceHosted:

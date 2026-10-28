@@ -25,14 +25,13 @@ from ui_theme.scheme import (
     MutedColour,
 )
 
-from toad.app import ToadApp
 from toad.core import events as core_events
 from toad.core import session_requests
 from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated
 from toad.session_tracker import OpenTab
-from toad.widget_view import AUTO, FILL, WidgetView
+from toad.widget_view import AUTO, FILL, ToadHosted, WidgetView
 from toad.widgets.selection import ChangingText, ViewLabel
 
 
@@ -208,7 +207,7 @@ class TabCells(WidgetView, containers.VerticalGroup):
     placement_offset = ScalarOffset.from_offset((0, 1))
 
 
-class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
+class SessionsTabs(ToadHosted, WidgetView, CoreEventReceiver, Widget):
     DEFAULT_LAYOUT = VerticalLayout
     width = FILL
     height = Scalar.from_number(3)
@@ -217,7 +216,6 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
     vertical_scrollbar_size = 0
 
     ALLOW_SELECT = False
-    app: getters.app[ToadApp] = getters.app(ToadApp)
 
     title_container = getters.query_one("#title-container", Widget)
 
