@@ -31,16 +31,16 @@ from toad.resource_release import AsyncResourceRelease
 class AgentProcess(Client):
     def __init__(self, agent) -> None:
         self.agent = agent
-        self.env: dict[str, str] | None = None
-        self.cwd: str | None = None
-        self.route_selection: RouteSelection | None = None
-        self.process: AttachedChild | None = None
+        self.env = None
+        self.cwd = None
+        self.route_selection = None
+        self.process = None
         self.connection: ClientSideConnection | None = None
-        self.runner: asyncio.Task[None] | None = None
-        self.retirement: asyncio.Task[None] | None = None
-        self.sessions: set[AgentSession] = set()
-        self.initialization: schema.InitializeResponse | None = None
-        self.command: str | None = None
+        self.runner = None
+        self.retirement = None
+        self.sessions = set()
+        self.initialization = None
+        self.command = None
         self.attachment_lock = asyncio.Lock()
         self._incoming: ContextVar[dict] = ContextVar('acp_incoming')
 
@@ -293,7 +293,6 @@ class AgentProcess(Client):
         if (command := self.command) is None:
             agent.session.startup_failed('No run command for this OS')
             return
-        assert self.route_selection is not None
         try:
             accepts_root = agent.definition.accepts_comms_root
             launch = LaunchRoot.from_path(self.route_selection.root)

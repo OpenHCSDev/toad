@@ -5,7 +5,7 @@ import shlex
 from dataclasses import replace
 from pathlib import Path
 from agent_comms.repo import Checkout
-from typing import TYPE_CHECKING, ClassVar, Self
+from typing import TYPE_CHECKING, Literal, Self
 
 from agent_comms.acp_extension import QueueItem
 
@@ -18,7 +18,7 @@ from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
-from textual.widgets.text_area import VimMode
+from textual.widgets.text_area import EditingMode, VimMode
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
 from textual.geometry import Size, Spacing
@@ -31,6 +31,7 @@ from textual.widgets.text_area import Selection
 from ui_theme.scheme import PrimaryColour, PromptToneColour
 
 from toad import messages
+from toad.clipboard_image import read_clipboard_png, save_clipboard_png
 from toad.agent_binding import NoAgentConnection
 from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
@@ -48,7 +49,7 @@ from toad.prompt_cursor import (
 from toad.setting_widget import SettingVisibility
 from toad.slash_command import SlashCommand
 from toad.widget_actions import (
-    DeclaredWidgetActions, DismissibleControl, HiddenActions, NativeMethodKeys,
+    DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
 )
 from toad.widget_view import AUTO, WidgetView
 from toad.widgets.condensed_path import CondensedPath
@@ -186,8 +187,11 @@ class PromptSubmission:
             self.call_later(self._submit)
 
 
+
+
+
 class PromptTextArea(
-    CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea,
+    CoreEventReceiver, LocalMethodKeys, PromptSubmission, HighlightedTextArea,
     actions=(PromptAction,),
 ):
     HELP = """\
@@ -344,6 +348,76 @@ See on-screen instructions for details.
         self.editing_mode = self.editing_mode.pasted()
         if result := self._replace_via_keyboard(text, *self.selection):
             self.move_cursor(result.end_location)
+
+    @work(group='clipboard-paste', exclusive=True)
+    async def action_paste_clipboard(self) -> None:
+        if self.read_only:
+            return
+        try:
+            image = await read_clipboard_png()
+            if not self.is_attached:
+                return
+            if image is not None:
+                if self.shell_mode:
+                    self.notify('Leave shell mode to attach an image to a message.', title='Image attachment', severity='warning')
+                    return
+                path = await asyncio.to_thread(save_clipboard_png, image)
+                reference = f'@"{path}"' if any((char.isspace() for char in str(path))) else f'@{path}'
+                self._paste_clipboard_text(' ' + reference + ' ')
+                self.notify(f'PNG attached ({len(image):,} bytes). Enter sends it with your prompt.', title='Image attachment')
+                return
+            text = (await self.app.clipboard_transport.paste(self.app)).text
+            if text:
+                self._paste_clipboard_text(text)
+            else:
+                self.notify('No text or supported image in the clipboard', title='Paste')
+        except (OSError, ValueError, TimeoutError) as error:
+            self.app.show_error(error, 'Paste failed')
+
+    async def action_tab_complete(self) -> None:
+        if not self.editing_mode.accepts_text or not self.shell_mode:
+            return
+        prompt = self.prompt
+        if not self.cursor_at_end_of_text:
+            return
+        _cursor_row, cursor_column = prompt.prompt_text_area.selection.end
+        pre_complete = self.text[:cursor_column]
+        post_complete = self.text[cursor_column:]
+        shlex_tokens = shlex.split(pre_complete)
+        if not shlex_tokens:
+            return
+        command = shlex_tokens[0]
+        exclude_node_type: Literal['file'] | Literal['dir'] | None = None
+        if command in self.app.settings.shell.directory_commands.splitlines():
+            exclude_node_type = 'file'
+        elif command in self.app.settings.shell.file_commands.splitlines():
+            exclude_node_type = 'dir'
+        tab_complete, suggestions = await self.path_complete(Path(prompt.working_directory), shlex_tokens[-1], exclude_type=exclude_node_type)
+        if tab_complete is not None:
+            shlex_tokens = shlex_tokens[:-1] + [shlex_tokens[-1] + tab_complete]
+            path_component = Path(prompt.working_directory) / shlex_tokens[-1]
+            if path_component.is_file():
+                spaces = ' '
+            else:
+                spaces = ''
+            self.clear()
+            self.insert(' '.join((token.replace(' ', '\\ ') for token in shlex_tokens)) + post_complete + spaces)
+            self.suggestions = None
+        elif suggestions != self.suggestions:
+            self.suggestions = suggestions or None
+            self.suggestions_index = 0
+            if suggestions:
+                self.suggestion = suggestions[0]
+        elif self.suggestions:
+            self.suggestions_index = (self.suggestions_index + 1) % len(self.suggestions)
+            self.suggestion = self.suggestions[self.suggestions_index]
+
+    MODE_BINDINGS = (
+        ModeBinding("ctrl+v", action_paste_clipboard, "Paste clipboard", mode=EditingMode,
+                    priority=True),
+        ModeBinding("tab", action_tab_complete, "Complete shell path", mode=EditingMode,
+                    priority=True),
+    )
 
     def _submit(self) -> None:
         self._submit_pending = False

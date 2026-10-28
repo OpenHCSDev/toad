@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 
 from agent_comms.declared_family import DeclaredFamily
-from textual.binding import BindingsMap
+from textual.binding import Binding, BindingsMap
 from textual.document._editing import EditingMode
 from textual.box_model import DEFAULT_LAYER
 from textual.events import ScreenResume
@@ -76,20 +76,6 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
 
 class ViewAction(WidgetAction, affix="Action"):
     pass
-
-
-class BackToBottomAction(ViewAction):
-    title = 'Back to bottom'
-    keys = {EditingMode: ('escape',)}
-    priority = True
-
-    def available(self, context: WorkspaceFrame) -> bool:
-        return (not (context.focused is not None and context.focused.uses_screen_coordinates)
-                and context.back_to_bottom_window is not None)
-
-    def apply(self, context: WorkspaceFrame) -> None:
-        if (window := context.back_to_bottom_window) is not None:
-            window.jump_to_latest()
 
 
 class ShowSidebarAction(ViewAction):
@@ -330,3 +316,19 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
 
 class WorkspaceScreen(WorkspaceFrame, actions=(ViewAction,)):
     """The shared live workspace, with its own navigation controls."""
+
+    BINDINGS = [
+        Binding("escape", "back_to_bottom", "Back to bottom", priority=True, show=False),
+    ]
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "back_to_bottom":
+            return (
+                not (self.focused is not None and self.focused.uses_screen_coordinates)
+                and self.back_to_bottom_window is not None
+            )
+        return super().check_action(action, parameters)
+
+    def action_back_to_bottom(self) -> None:
+        if (window := self.back_to_bottom_window) is not None:
+            window.jump_to_latest()

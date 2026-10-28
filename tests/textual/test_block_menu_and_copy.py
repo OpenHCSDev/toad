@@ -11,8 +11,8 @@ from textual.widgets import Static
 
 from toad.block_content import BlockContent
 from toad.block_navigation import ConversationBlock
-from toad.conversation_actions import SelectBlockAction
-from toad.widgets.conversation import FocusPromptAction
+from toad.widgets.conversation import Conversation, FocusPromptAction
+from textual.keys import KeyDeclaration
 from textual.document._editing import EditingMode
 from toad.menus import MenuItem
 from toad.widgets.menu import Menu
@@ -129,7 +129,7 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
     async with workspace.app(size=(110, 38)) as ui:
         app, _ = ui.textual
         view = ui.conversation
-        app.set_keymap({SelectBlockAction.binding_id(EditingMode): "f9",
+        app.set_keymap({KeyDeclaration.binding_id_for(Conversation.action_select_block, EditingMode): "f9",
                         FocusPromptAction.binding_id(EditingMode): "f8"})
         history = view.transcript.binding.history
         await view.contents.remove_children(

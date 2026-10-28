@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import inspect
 from abc import abstractmethod
-from collections.abc import Awaitable, Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from functools import partialmethod
 from operator import or_
 from types import MappingProxyType
@@ -17,7 +17,7 @@ from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.keys import KeyDeclaration
-from textual.widgets.text_area import EditingMode, VimMode
+from textual.widgets.text_area import EditingMode
 from textual.dom import DOMNode
 from toad.app_node import ToadNode
 from copy import replace
@@ -100,7 +100,7 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
     def command_for_key(cls, mode: type[EditingMode], key: str) -> Self:
         return cls()
 
-    def __call__(self, context: Context) -> None | Awaitable[None]:
+    def __call__(self, context: Context) -> object:
         return self.apply(context)
 
     @classmethod
@@ -145,20 +145,7 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
         return self.available(context)
 
     @abstractmethod
-    def apply(self, context: Context) -> None | Awaitable[None]: ...
-
-
-class ExclusiveBackground(Generic[Context]):
-    """An action runs in its widget's worker and replaces its own earlier invocation."""
-
-    # The paired declared Action parent supplies the actual identity implementation.
-    identity: ClassVar[Callable[[], str]]
-
-    async def apply(self, context: Context) -> None:
-        context.run_worker(self.perform(context), group=type(self).identity(), exclusive=True)
-
-    @abstractmethod
-    async def perform(self, context: Context) -> None: ...
+    def apply(self, context: Context) -> object: ...
 
 
 class System:
@@ -271,7 +258,7 @@ class DeclaredWidgetActions(ToadNode):
                 return declaration.parse(parameters).key_available(self)
         return super().check_action(action, parameters)
 
-    def _run_declared_action(self, declaration, *parameters) -> None | Awaitable[None]:
+    def _run_declared_action(self, declaration, *parameters) -> object:
         command = declaration.parse(parameters)
         if command.available(self):
             return command.apply(self)
@@ -285,10 +272,26 @@ class NativeMethodKeys(DeclaredWidgetActions):
     """Project native callable declarations without another action implementation."""
 
     @classmethod
+    def method_key_owners(cls) -> tuple[type, ...]:
+        return cls.__mro__
+
+    @classmethod
     def native_bindings(cls, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
-        return tuple(projected for base in cls.__mro__
+        return tuple(projected for base in cls.method_key_owners()
                      for binding in base.__dict__.get("MODE_BINDINGS", ())
                      for projected in binding.for_mode(mode))
+
+
+class LocalMethodKeys(NativeMethodKeys):
+    """Local editor effects exclude scrolling keys from foreign widget bases.
+
+    Subclasses retain their local parents' declarations. The native editor owns
+    its editing commands; generic Widget scrolling is a different key scope.
+    """
+
+    @classmethod
+    def method_key_owners(cls) -> tuple[type, ...]:
+        return tuple(base for base in cls.__mro__ if issubclass(base, LocalMethodKeys))
 
 
 class ProfileKeys(NativeMethodKeys):
@@ -500,7 +503,7 @@ class Activates(ActivationKeys):
         return self.activate
 
     @abstractmethod
-    def activate(self) -> None | Awaitable[None]: ...
+    def activate(self) -> object: ...
 
 
 class TogglesIrc(DeclaredWidgetActions, actions=(ToggleIrcAction,)):

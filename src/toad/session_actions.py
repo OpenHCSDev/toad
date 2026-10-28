@@ -11,7 +11,7 @@ from toad.widget_actions import WidgetAction
 
 class SessionViewAction(WidgetAction, affix="Action"):
     def available(self, context: SessionView) -> bool:
-        return context.has_mode_name
+        return context.is_current
 
 
 class ReturnToViewAction(SessionViewAction):
@@ -21,7 +21,7 @@ class ReturnToViewAction(SessionViewAction):
     show = True
 
     async def apply(self, context: SessionView) -> None:
-        await context.app.session_navigation.return_from(context.mode_name)
+        await context.app.session_navigation.return_from(context.app.workspace_sessions.source.identity)
 
 
 class CloseViewAction(SessionViewAction):
@@ -31,4 +31,4 @@ class CloseViewAction(SessionViewAction):
     priority = True
 
     async def apply(self, context: SessionView) -> None:
-        await context.app.session_navigation.close(context.mode_name)
+        await context.app.session_navigation.close(context.app.workspace_sessions.source.identity)

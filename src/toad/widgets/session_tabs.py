@@ -25,7 +25,6 @@ from ui_theme.scheme import (
     MutedColour,
 )
 
-from toad import messages
 from toad.app import ToadApp
 from toad.core import events as core_events
 from toad.core import session_requests
@@ -275,11 +274,12 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
             sessions = self.app.session_navigation
             observation = self.app.coordination_access.observation
             geometry_changed = False
-            for entry in sessions.members:
-                mode = entry.mode
-                if (previous := self._last_tabs.get(mode)) is not None and previous.affected_by(event.names):
+            members = {entry.mode: entry for entry in sessions.members}
+            for mode in self._last_tabs.keys() & members.keys():
+                previous = self._last_tabs[mode]
+                if previous.affected_by(event.names):
                     if (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
-                        tab = observation.tab(entry, sessions)
+                        tab = observation.tab(members[mode], sessions)
                         geometry_changed |= label.present(tab)
                         self._last_tabs[mode] = tab
             if geometry_changed:

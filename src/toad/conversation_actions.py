@@ -3,15 +3,12 @@ from __future__ import annotations
 
 from textual.widgets.text_area import EditingMode, VimMode
 from textual.binding import Binding
-from textual.geometry import Offset
 from toad.widget_actions import Action, ExclusiveKeys
 from toad.block_navigation import CursorDirection, DownCursor, UpCursor
-from toad.menus import MenuItem
-from toad.widgets.menu import Menu
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation, Window
+    from toad.widgets.conversation import Conversation
 
 
 class ConversationAction(Action, affix="Action"):
@@ -53,28 +50,6 @@ class InterruptAction(ConversationAction):
         conversation.feedback.flash("Command interrupted", style="success")
 
 
-class SelectBlockAction(ConversationAction):
-    """Select this block and open its available operations."""
-
-    keys = {EditingMode: ("enter",)}
-    show = True
-
-    async def apply(self, conversation: Conversation) -> None:
-        cursor = conversation.navigation.cursor
-        for block in cursor.selected_widgets:
-            menu_options = [
-                MenuItem("[u]C[/]opy to clipboard", "copy_to_clipboard", "c"),
-                MenuItem("Co[u]p[/u]y to prompt", "copy_to_prompt", "p"),
-                MenuItem("Open as S[u]V[/]G", "export_to_svg", "v"),
-            ]
-            if cursor.allow_maximize:
-                menu_options.append(MenuItem("[u]M[/u]aximize", "maximize_block", "m"))
-            menu_options.extend(cursor.get_block_menu())
-            menu = Menu(block, menu_options, focus_owner=conversation.window)
-            region = cursor.region
-            menu.offset = Offset(1, region.y if region is not None else conversation.window.region.y)
-            await conversation.mount(menu)
-            menu.focus()
 
 
 class WindowAction(Action, affix="Action"):

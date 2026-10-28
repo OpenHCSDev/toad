@@ -35,18 +35,6 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
         super().close_core_events()
 
     @property
-    def has_mode_name(self) -> bool:
-        return self.id is not None
-
-    @property
-    def mode_name(self) -> str:
-        """Navigation requires the native identity assigned when this view was bound."""
-        identity = self.id
-        if identity is None:
-            raise ValueError("The session view has not been bound to a mode")
-        return identity
-
-    @property
     def display_name(self) -> str:
         """Borrow this view's current label from the same projection as its tab."""
         sessions = self.app.session_navigation

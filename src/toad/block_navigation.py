@@ -59,7 +59,7 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
 
     @property
     def active(self) -> BlockCursor:
-        return self if self.selected is not None else NoBlockCursor()
+        return self if self.selected_widgets else NoBlockCursor()
 
     @property
     def selected_widgets(self) -> tuple[Widget, ...]:

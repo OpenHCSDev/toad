@@ -24,6 +24,7 @@ from rich.segment import Segment
 from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
+from textual.binding import ModeBinding
 from textual.content import Content
 from textual.css.query import NoMatches
 from textual.geometry import Offset, Region
@@ -51,8 +52,6 @@ from toad.block_navigation import (
     ConversationBlock,
     ConversationEntry,
     CursorDirection,
-    DownCursor,
-    UpCursor,
     require_blocks,
 )
 from toad.command_catalog import CommandCatalog
@@ -314,6 +313,8 @@ class CursorContainer(Animated[Mix], Static):
             ):
                 strips[row] = selected_strip
         return strips
+
+
 
 
 class FocusPromptAction(WindowAction):
@@ -789,12 +790,12 @@ class ConversationSessionBinding(
             self.update_slash_commands()
 
 
-from toad.widget_actions import DeclaredWidgetActions
+from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 
 
 class Conversation(
     ConversationCommsHandlers,
-    DeclaredWidgetActions,
+    NativeMethodKeys,
     ConversationSessionBinding,
     actions=(ConversationAction,),
 ):
@@ -1878,6 +1879,23 @@ class Conversation(
         self.window.jump_to_latest()
         self.transcript.binding.request(self.transcript)
 
+
+    async def action_select_block(self) -> None:
+        cursor = self.navigation.cursor
+        for block in cursor.selected_widgets:
+            menu_options = [MenuItem('[u]C[/]opy to clipboard', 'copy_to_clipboard', 'c'), MenuItem('Co[u]p[/u]y to prompt', 'copy_to_prompt', 'p'), MenuItem('Open as S[u]V[/]G', 'export_to_svg', 'v')]
+            if cursor.allow_maximize:
+                menu_options.append(MenuItem('[u]M[/u]aximize', 'maximize_block', 'm'))
+            menu_options.extend(cursor.get_block_menu())
+            menu = Menu(block, menu_options, focus_owner=self.window)
+            region = cursor.region
+            menu.offset = Offset(1, region.y if region is not None else self.window.region.y)
+            await self.mount(menu)
+            menu.focus()
+
+    MODE_BINDINGS = (
+        ModeBinding("enter", action_select_block, "Select block", mode=EditingMode, show=True),
+    )
 
     def action_copy_to_clipboard(self) -> None:
         cursor = self.navigation.cursor
