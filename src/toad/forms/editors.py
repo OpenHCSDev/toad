@@ -15,6 +15,7 @@ from python_introspect import (
 from python_introspect.validation import validate_annotation_value
 from textual import containers
 from textual.app import ComposeResult
+from textual.message import Message
 from textual.validation import Function
 from textual.geometry import Spacing
 from textual.css.scalar import Scalar
@@ -47,6 +48,13 @@ class ValueEditor(DeclaredViews, EditorWidget):
     """Whether the field's help should end with its default value."""
 
     field: DeclaredField
+
+    class Feedback(Message):
+        """Transient validation text for the field's own view, never a crash log."""
+
+        def __init__(self, text: str) -> None:
+            super().__init__()
+            self.text = text
 
     def __init__(self, field: DeclaredField) -> None:
         self.field = field
@@ -81,9 +89,11 @@ class ValueEditor(DeclaredViews, EditorWidget):
             self.field.edit(value)
         except (TypeError, ValueError) as error:
             self.refuse(error)
+        else:
+            self.post_message(self.Feedback(""))
 
     def refuse(self, error: Exception) -> None:
-        self.app.show_error(error, self.field.label)
+        self.post_message(self.Feedback(str(error)))
         self.paint()
 
 

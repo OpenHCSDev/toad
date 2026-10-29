@@ -52,20 +52,20 @@ class SessionThreadSidebar(ThreadSidebar):
             except WorkerCancelled:
                 pass
 
-    async def retire_presentation(self) -> None:
+    async def retire_presentation(self, screen: "MainScreen") -> None:
         if not self.panels_loaded:
             # A partial mount is discarded rather than parked as a complete view.
-            await self.evict()
+            await self.evict(screen)
             return
         await self._cancel_panel_workers()
         for panel in self.panels:
             panel.widget.sidebar_visibility_changed()
 
-    async def evict(self) -> None:
+    async def evict(self, screen: "MainScreen") -> None:
         """Release panels on eviction or close, preserving their reader position."""
         await self._cancel_panel_workers()
         self.navigation.panel_scroll_y = self.panels_viewport.scroll_y
-        self.capture_panels()
+        self.capture_panels(screen)
         await self.panels_viewport.remove_children()
         if controls := self.query_one_optional("#sidebar-controls"):
             await controls.remove_children()
@@ -86,12 +86,10 @@ class SessionThreadSidebar(ThreadSidebar):
         """Absent panels consume the latest source value, never a replay buffer."""
         self.plan.update(self, entries)
 
-    def capture_panels(self) -> None:
+    def capture_panels(self, screen: "MainScreen") -> None:
         for owner, panel in zip(self._panel_owners, self.panels):
             owner.capture(panel.widget)
-        screen = self._owner()
-        if screen is not None:
-            screen._project_panel = None
+        screen._project_panel = None
 
     def _compose_panels(self) -> ComposeResult:
         if not self.panels:

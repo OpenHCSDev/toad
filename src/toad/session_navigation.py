@@ -316,7 +316,7 @@ class SessionNavigation:
             try:
                 agent = agents[agent_identity]
             except KeyError:
-                app.show_error("Agent not found", "Launch agent")
+                app.notify("Agent not found", title="Launch agent", severity="warning", markup=False)
                 return
         tab = (
             AcpTab(session_pk) if session_pk is not None

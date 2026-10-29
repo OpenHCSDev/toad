@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from collections.abc import Iterable
+from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 from typing import Literal
@@ -124,8 +125,14 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     async def prepare(self, screen: "MainScreen") -> None: ...
 
     def finish(self, screen: "MainScreen", content: "ScreenContent") -> None:
+        if screen.content is not self:
+            return
         screen.content = content
         content.render(screen)
+        self.finished()
+
+    def finished(self) -> None:
+        """Only opening content has completion waiters to release."""
 
     def close(self, screen: "MainScreen") -> None:
         self.finish(screen, ClosedContent())
@@ -138,6 +145,12 @@ class ScreenContent(DeclaredFamily, affix="Content"):
 
     def read_visible(self, screen: MainScreen) -> PaintedRead:
         return NothingToRead()
+
+    def focus_prompt(self, screen: MainScreen, *, scroll_end: bool = True) -> None:
+        """Content without a mounted composer has no focus target."""
+
+    def focus_sidebar_return(self, screen: MainScreen) -> None:
+        """Content without a mounted composer has no return target."""
 
     async def attached(self, screen: "MainScreen") -> None:
         """Repaint the current content state when its session becomes ready."""
@@ -152,9 +165,11 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         return label
 
 
+@dataclass(eq=False)
 class OpeningContent(ScreenContent):
-    def __init__(self) -> None:
-        self.completion = asyncio.get_running_loop().create_future()
+    completion: asyncio.Future[None] = field(
+        default_factory=lambda: asyncio.get_running_loop().create_future()
+    )
 
     def line(self) -> str:
         return ThreadLoading.LABEL
@@ -166,9 +181,13 @@ class OpeningContent(ScreenContent):
     async def prepare(self, screen: "MainScreen") -> None:
         await screen._prepare_content()
 
-    def finish(self, screen: "MainScreen", content: ScreenContent) -> None:
-        super().finish(screen, content)
+    def finished(self) -> None:
         self.completion.set_result(None)
+
+    def detaching(self, screen: "MainScreen") -> None:
+        replacement = OpeningContent(self.completion)
+        screen.content = replacement
+        replacement.render(screen)
 
 
 class ClosedContent(ScreenContent):
@@ -196,6 +215,14 @@ class ReadyContent(ScreenContent):
 
     def detaching(self, screen: "MainScreen") -> None:
         self.finish(screen, OpeningContent())
+
+    def focus_prompt(self, screen: MainScreen, *, scroll_end: bool = True) -> None:
+        screen.conversation.focus_prompt(scroll_end=scroll_end)
+
+    def focus_sidebar_return(self, screen: MainScreen) -> None:
+        target = screen.conversation.prompt.prompt_text_area
+        if target.focusable:
+            screen.screen.set_focus(target, scroll_visible=False)
 
     def read_visible(self, screen: MainScreen) -> PaintedRead:
         """Only mounted content can supply a painted reader cursor."""
@@ -345,26 +372,24 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         await self.content.prepare(self)
 
     async def _prepare_content(self) -> None:
+        content = self.content
         try:
             await self.presentation.prepare(self)
             await super().prepare_presentation()
             await self.thread_sidebar.prepare_presentation()
         except asyncio.CancelledError as error:
-            self.opening_failed(error)
+            content.finish(self, FailedContent(error))
             raise
         except Refused as error:
-            self.opening_failed(error)
+            content.finish(self, FailedContent(error))
         else:
-            self.content.finish(self, ReadyContent())
-
-    def opening_failed(self, error: BaseException) -> None:
-        self.content.finish(self, FailedContent(error))
+            content.finish(self, ReadyContent())
 
     async def retire_presentation(self) -> None:
         # The departing scene is still committed here. Awaiting source/sidebar
         # retirement can publish a new layout which no longer contains it.
         await super().retire_presentation()
-        await self.thread_sidebar.retire_presentation()
+        await self.thread_sidebar.retire_presentation(self)
         await self.presentation.retire(self)
 
     def retained_native_presentations(self):
@@ -432,7 +457,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
     async def close_presentation(self) -> None:
         self.content.close(self)
-        await self.thread_sidebar.evict()
+        await self.thread_sidebar.evict(self)
         await self.presentation.close(self)
 
     @handles(core_events.CommsUpdated)
@@ -608,14 +633,10 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
             self.conversation.prompt.suggest(event.option.id)
 
     def action_focus_prompt(self) -> None:
-        if conversation := self.query_one_optional(Conversation):
-            conversation.focus_prompt()
+        self.content.focus_prompt(self)
 
     def focus_sidebar_return(self) -> None:
-        if conversation := self.query_one_optional(Conversation):
-            target = conversation.prompt.prompt_text_area
-            if target.focusable:
-                self.screen.set_focus(target, scroll_visible=False)
+        self.content.focus_sidebar_return(self)
 
     async def go_home(self) -> None:
         await self.app.select_session("store")
@@ -627,5 +648,4 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, message: SideBar.Dismiss):
         message.stop()
-        if conversation := self.query_one_optional(Conversation):
-            conversation.focus_prompt(scroll_end=False)
+        self.content.focus_prompt(self, scroll_end=False)

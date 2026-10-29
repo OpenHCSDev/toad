@@ -396,24 +396,21 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             release.push_async_callback(self.transcript.close)
             await screen.app.workspace_chrome.native.dispose(screen)
 
-    async def evict(self) -> None:
+    async def evict(self, screen: MainScreen) -> None:
         """Release the owned native tree while retaining its actual editor resource."""
         if (conversation := self.widget) is None:
             return
         self.state = SessionViewState.capture(conversation)
-        await self.remove_native_tree()
+        await self.remove_native_tree(screen)
 
     def external_transcript_changed(self) -> None:
         """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
         if self.widget is not None:
             self.sources.external_transcript_changed(self.widget)
 
-    async def remove_native_tree(self) -> None:
-        from toad.screens.main import MainScreen
-
+    async def remove_native_tree(self, screen: MainScreen) -> None:
         if (conversation := self.widget) is None:
             return
-        screen = conversation.query_ancestor(MainScreen)
         screen.content.detaching(screen)
         self.widget = None
         async with AsyncResourceRelease() as release:
@@ -479,8 +476,9 @@ class NativeSessionSurface:
         """
         app = self._app()
         budget = selected.window.presentation_budget
+        screens = {owner: screen for screen, owner in self._presentations()}
         candidates = {}
-        for screen, owner in self._presentations():
+        for owner, screen in screens.items():
             candidates.setdefault(screen.id, []).append(owner)
         required = (
             self.view.presentation,
@@ -508,14 +506,14 @@ class NativeSessionSurface:
         )
         for owner in ordered:
             if owner not in kept:
-                await owner.evict()
+                await owner.evict(screens[owner])
 
     async def dispose(self, screen: MainScreen) -> None:
         """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
             owner = screen.presentation
             async with AsyncResourceRelease() as release:
-                release.push_async_callback(owner.remove_native_tree)
+                release.push_async_callback(owner.remove_native_tree, screen)
                 if self.view is screen:
                     self.view = None
                     await owner.release_binding(owner.widget, screen)

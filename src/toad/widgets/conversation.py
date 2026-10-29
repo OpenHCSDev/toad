@@ -1108,7 +1108,7 @@ class Conversation(
         self.prompt.sync_session()
         if (details := self.query_one_optional(SessionDetails)) is not None:
             details.sync_turn()
-        self.app.show_error(event.message, "Agent failure")
+        self.app.notify(event.message, title="Agent failure", severity="error", markup=False)
 
         if self._agent_data is not None:
             self.app.application.usage.publish(
