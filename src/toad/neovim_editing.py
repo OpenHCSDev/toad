@@ -1040,7 +1040,7 @@ class NeovimEditing(VimMode, MroDispatch):
             raise NeovimWireFailure("Unexpected Neovim RPC response") from error
         reply.resolve(request, value)
         del self._pending[identity]
-        # SafeState can arrive before the final RPC admission response. Its
+        # SafeState can arrive before the final RPC response. Its
         # publication and that response must invalidate the same view owner.
         if self.completed:
             self.request_paint()
