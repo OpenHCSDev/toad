@@ -5,7 +5,7 @@ from dataclasses import replace
 
 from agent_comms.commander.vibe_check import OverloadDegradation
 from agent_comms.commander_hud import (
-    CommanderFrame, CommanderHud, CommanderUnit, CodexUsage, UnreadableUsage,
+    CommanderFrame, CommanderHud, CommanderUnit, CodexUsage, HudRecord, UnreadableUsage,
 )
 from agent_comms.recorded_time import RecordedEventTime
 from agent_comms.standing_rules import ServicePassFailing
@@ -23,7 +23,16 @@ from toad.screens.commander import CommanderAlarm, CommanderFrameView, Commander
 from toad.widgets.declared_disclosure import (
     DeclaredDisclosure, DisclosureEntry, DisclosedValue, RootKey,
 )
-from toad.widgets.declared_table import EmptyTableSelection
+from toad.widgets.declared_table import EmptyTableSelection, SelectedTableRecord
+
+
+def selected(record: HudRecord) -> SelectedTableRecord[HudRecord]:
+    return SelectedTableRecord(DisclosedValue.of(record).sequence_key(), record)
+
+
+def row_maps_cohere(table: CommanderTable) -> bool:
+    return (set(table.records) == set(table.entity_keys.values()) == {row.key for row in table.ordered_rows}
+            and all(table.records[native].key == entity for entity, native in table.entity_keys.items()))
 
 
 def published_hud() -> CommanderHud:
@@ -66,7 +75,7 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace:
         view = rows.query_one(CommanderFrameView)
         await ui.until(lambda: bool(view.query(CommanderTable)), why="the grouped native table to mount")
         table = view.query_one(CommanderTable)
-        await ui.until(lambda: table.selected.records == (unit,), why="the actual unit to acquire a native row")
+        await ui.until(lambda: table.selected == selected(unit), why="the actual unit to acquire a native row")
         table.focus()
         await pilot.press("enter")
         await ui.until_shows(Detached.action)
@@ -77,7 +86,7 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace:
         strip = str(view.status.render())
         assert "Load: 0" in strip and "Forks: 1" in strip
         assert hud.usage.line() in strip
-        assert view.selected.records == view.details.selection.records == (unit,)
+        assert view.selected == view.details.selection == selected(unit)
 
         # Observe the native worker lifecycle, not a patched read method or fake reply.
         events: list[Worker.StateChanged] = []
@@ -98,7 +107,7 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace:
             forks=(RecordedThreadIncarnation("recovered", 3.0),),
         )
         CommanderFrame.replace_all(workspace.comms.root, (repaired,))
-        await ui.until(lambda: view.details.selection.records == repaired.units,
+        await ui.until(lambda: view.details.selection == selected(repaired.units[0]),
                        why="changed strikes to invalidate the real selected card")
         await ui.until(lambda: len([event for event in events if event.state is WorkerState.PENDING]) == 1,
                        why="one new original-detail worker for the changed card")
@@ -106,7 +115,7 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace:
         assert not notice.display
         assert rows.query_one(CommanderFrameView) is view
         assert view.query_one(CommanderTable) is table and table.has_focus
-        assert table.selected.records == repaired.units
+        assert table.selected == selected(repaired.units[0])
         assert len(view.hud.forks) == 1 and view.hud.forks[0].name == "recovered"
         assert "Forks: 1" in str(view.status.render())
         # Explicit refresh is unconditional, even for an otherwise identical card.
@@ -155,16 +164,16 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         await ui.until(lambda: table.row_count == 2, why="both original records to acquire native rows")
         table.focus()
         table.move_cursor(row=1, animate=False)
-        await ui.until(lambda: view.selected.records == (second,), why="the highlighted second record")
+        await ui.until(lambda: view.selected == selected(second), why="the highlighted second record")
         semantic = view.selected.key
         before_keys = tuple(table.entity_keys.values())
-        assert set(table.records) == set(before_keys) == {row.key for row in table.ordered_rows}
+        assert set(table.records) == set(before_keys) and row_maps_cohere(table)
 
         await ui.resize(60, 40)
         await ui.until(lambda: not table.show_header, why="the narrow stacked layout")
         assert table.selected.key == semantic
-        assert table.selected.records == (second,)
-        assert set(table.records) == set(table.entity_keys.values()) == {row.key for row in table.ordered_rows}
+        assert table.selected == selected(second)
+        assert row_maps_cohere(table)
         assert tuple(table.entity_keys.values()) != before_keys  # Anonymous keys came back from add_row.
         await ui.resize(160, 40)
         await ui.until(lambda: table.show_header, why="the wide table layout")
@@ -174,31 +183,31 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         await ui.until(lambda: view.selected == EmptyTableSelection(), why="filter-all empty selection")
         await ui.until(lambda: not view.details.original.display, why="old details to hide")
         assert view.details.selection == EmptyTableSelection()
+        assert str(view.details.status.render()) == "No records match the filter."
         await ui.until(lambda: all(native.row_count == 0 for native in view.query(CommanderTable)),
                        why="the native rows to clear too")
         assert all(not native.records and not native.entity_keys for native in view.query(CommanderTable))
         view.filter.value = ""
-        await ui.until(lambda: view.selected.records == (first,), why="clear-and-refill to choose the first visible record")
+        await ui.until(lambda: view.selected == selected(first), why="clear-and-refill to choose the first visible record")
         await ui.until(lambda: table.row_count == 2, why="the public native rows to refill")
         table.focus()
         table.move_cursor(row=1, animate=False)
-        await ui.until(lambda: view.selected.records == (second,), why="the second semantic identity to be selected again")
+        await ui.until(lambda: view.selected == selected(second), why="the second semantic identity to be selected again")
         moved = replace(second, state=Moving)
         CommanderFrame.replace_all(workspace.comms.root, (replace(hud, units=(first, moved)),))
-        await ui.until(lambda: view.selected.records == (moved,), why="the original selection to move between groups")
-        await ui.until(lambda: any(native.selected.records == (moved,) for native in view.query(CommanderTable)),
+        await ui.until(lambda: view.selected == selected(moved), why="the original selection to move between groups")
+        await ui.until(lambda: any(native.selected == selected(moved) for native in view.query(CommanderTable)),
                        why="the target group to resolve the same semantic key")
         assert view.selected.key == semantic
-        await ui.until(lambda: any(native.has_focus and native.selected.records == (moved,)
+        await ui.until(lambda: any(native.has_focus and native.selected == selected(moved)
                                    for native in view.query(CommanderTable)),
                        why="native focus to follow its selected semantic record")
-        assert view.details.selection.records == (moved,)
-        assert all(set(native.records) == set(native.entity_keys.values()) == {row.key for row in native.ordered_rows}
-                   for native in view.query(CommanderTable))
+        assert view.details.selection == selected(moved)
+        assert all(row_maps_cohere(native) for native in view.query(CommanderTable))
         CommanderFrame.replace_all(workspace.comms.root, (replace(hud, units=()),))
         await ui.until(lambda: view.selected == EmptyTableSelection(), why="an actually empty frame")
         CommanderFrame.replace_all(workspace.comms.root, (hud,))
-        await ui.until(lambda: view.selected.records == (first,), why="a later frame to refill the original records")
+        await ui.until(lambda: view.selected == selected(first), why="a later frame to refill the original records")
 
 
 async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace: Workspace) -> None:
@@ -212,7 +221,7 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
             disclosure.collapsed = False
             await ui.until(lambda: disclosure.body.display, why="the scalar/class/family body to expand")
             assert str(disclosure.body.render()) == disclosed.source.summary()
-            assert disclosed.source.summary(20) in str(disclosure.title)
+            assert disclosed.source.summary() in str(disclosure.title)
         assert DisclosedValue.of(Detached).source.summary() == Detached.declared_name
         assert not str(disclosure.body.render()).startswith("<class ")
 

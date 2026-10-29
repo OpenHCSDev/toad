@@ -11,7 +11,6 @@ from agent_comms.disclosure_text import (
     DisclosureText, IdentifiedRecordText,
     MappingText, RecordText, SequenceText,
 )
-from agent_comms.field_codec import FieldCodec
 from textual import events
 from textual.containers import VerticalGroup
 from textual.content import Content
@@ -111,7 +110,10 @@ class StructuredValue(DisclosedValue, ABC):
         view.reconcile_entries(entries)
 
 
+@dataclass(frozen=True)
 class RecordValue(StructuredValue):
+    source: RecordText
+
     def children(self) -> tuple[DisclosureEntry, ...]:
         return tuple(
             DisclosureEntry(
@@ -119,7 +121,7 @@ class RecordValue(StructuredValue):
                 plan.label,
                 DisclosedValue.of(plan.current(self.source.value)),
             )
-            for plan in FieldCodec.field_plans(type(self.source.value)) if plan.records
+            for plan in self.source.fields()
         )
 
 
@@ -212,7 +214,7 @@ class DeclaredDisclosure(KeyedRows[DisclosureKey], Collapsible):
 
     def fit_title(self) -> None:
         width = max(1, self.size.width - 2)
-        title = Content(f"{self.entry.label[:width]}: {self.entry.value.source.summary(width)}")
+        title = Content(f"{self.entry.label}: {self.entry.value.source.summary()}".partition("\n")[0])
         self.title = title.truncate(width, ellipsis=True)
 
     def on_resize(self, event: events.Resize) -> None:

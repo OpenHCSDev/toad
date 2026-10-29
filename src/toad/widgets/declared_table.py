@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from types import MappingProxyType
 
 from agent_comms.disclosure_text import ViewTable
 from textual.content import Content
@@ -17,60 +18,79 @@ from toad.widget_actions import MovesCursor, OpensSelected
 from toad.widgets.declared_disclosure import AnonymousKey, DisclosureKey, DisclosedValue
 
 
+class SelectionView[R]:
+    """A native selection consumer implements both states without another wrapper."""
+
+    @abstractmethod
+    def clear_selection(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def show_selection(self, key: DisclosureKey, record: R) -> None:
+        raise NotImplementedError
+
+
 @dataclass(frozen=True)
 class TableSelection[R](ABC):
-    """Absent or present original record, never a native row key or a reader request."""
-
-    @property
-    @abstractmethod
-    def records(self) -> tuple[R, ...]: ...
+    """Own empty/selected presentation dispatch, never transport or reader work."""
 
     @property
     def key(self) -> DisclosureKey:
         return AnonymousKey()
 
+    @abstractmethod
+    def present_to(self, view: SelectionView[R]) -> None: ...
+
+    def place_cursor(self, table: DeclaredTable[R]) -> None:
+        """An empty selection has no native cursor to place."""
+
     @classmethod
-    def from_records(cls, records: Iterable[R], *preferred: DisclosureKey) -> TableSelection[R]:
-        """Resolve semantic preferences against actual records, otherwise take the first."""
-        choices = tuple(SelectedTableRecord(record) for record in records)
-        empty: TableSelection[R] = EmptyTableSelection()
-        return next((choice for key in preferred for choice in choices if choice.key == key),
-                    next(iter(choices), empty))
+    def from_records(cls, records: Mapping[DisclosureKey, R],
+                     *preferred: DisclosureKey) -> TableSelection[R]:
+        """Use already derived identities, otherwise choose the first actual record."""
+        for key in preferred:
+            if key in records:
+                return SelectedTableRecord(key, records[key])
+        for key, record in records.items():
+            return SelectedTableRecord(key, record)
+        return EmptyTableSelection()
 
 
 @dataclass(frozen=True)
 class EmptyTableSelection[R](TableSelection[R]):
-    @property
-    def records(self) -> tuple[R, ...]:
-        return ()
+    def present_to(self, view: SelectionView[R]) -> None:
+        view.clear_selection()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class SelectedTableRecord[R](TableSelection[R]):
+    key: DisclosureKey = field()
     record: R
 
-    @property
-    def records(self) -> tuple[R, ...]:
-        return (self.record,)
+    def present_to(self, view: SelectionView[R]) -> None:
+        view.show_selection(self.key, self.record)
 
-    @property
-    def key(self) -> DisclosureKey:
-        return DisclosedValue.of(self.record).sequence_key()
+    def place_cursor(self, table: DeclaredTable[R]) -> None:
+        native = table.entity_keys[self.key]
+        table.move_cursor(row=table.get_row_index(native), animate=False, scroll=False)
 
 
 class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
     """Core owns columns and measurement; DataTable owns rows, geometry and repaint."""
 
-    def __init__(self, source: ViewTable[R], **kwargs) -> None:
-        super().__init__(cursor_type="row", show_row_labels=False, **kwargs)
-        self.source = source
-        self.records: dict[RowKey, R] = {}
+    def __init__(self, source: ViewTable[R]) -> None:
+        super().__init__(cursor_type="row", show_row_labels=False)
+        self.records: dict[RowKey, SelectedTableRecord[R]] = {}
         self.entity_keys: dict[DisclosureKey, RowKey] = {}
-        self.call_after_refresh(self.reconcile_source)
+        self.present(source)
 
     def present(self, source: ViewTable[R]) -> None:
         self.source = source
-        # The native message pump admits this after mount/layout, including updates
+        self.entities = MappingProxyType({DisclosedValue.of(record).sequence_key(): record
+                                         for record in source.records})
+        if len(self.entities) != len(source.records):
+            raise ValueError("A declared table requires unique record identities")
+        # The native message pump runs this after mount/layout, including updates
         # supplied by a parent's Mount before its child's Mount has run.
         self.call_after_refresh(self.reconcile_source)
 
@@ -93,17 +113,14 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         if not self.row_count:
             return EmptyTableSelection()
         key = self.coordinate_to_cell_key(self.cursor_coordinate).row_key
-        return SelectedTableRecord(self.records[key])
+        return self.records[key]
 
     def reconcile_source(self) -> None:
         previous = self.selected
         offset = self.scroll_offset
-        entities = {DisclosedValue.of(record).sequence_key(): record
-                    for record in self.source.records}
-        if len(entities) != len(self.source.records):
-            raise ValueError("A declared table requires unique record identities")
+        entities = self.entities
         selected = TableSelection[R].from_records(
-            entities.values(), self.preferred_selection().key, previous.key,
+            entities, self.preferred_selection().key, previous.key,
         )
         available = self.size.width - self.scrollbar_size_vertical
         layout = self.source.layout(available - self.cell_padding * 2 * len(self.source.columns))
@@ -123,27 +140,23 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         with self.prevent(DataTable.RowHighlighted):
             if same_rows and not columns_changed:
                 # The actual record can change while every painted cell stays equal.
-                self.records = {self.entity_keys[entity]: record for entity, record in entities.items()}
+                self.records = {self.entity_keys[entity]: SelectedTableRecord(entity, record)
+                                for entity, record in entities.items()}
             else:
-                # Anonymous keys are allocated by add_row, never invented beside it.
-                # Rebuild both maps from the returned keys, retaining semantic identity.
+                # Fresh anonymous keys come from add_row; entity_keys retains the
+                # semantic identity that restores selection after the native rebuild.
                 self.clear(columns=columns_changed)
                 if columns_changed:
                     for column, width in zip(layout.columns, widths):
                         self.add_column(column.label, key=column.name, width=width)
-                records: dict[RowKey, R] = {}
+                records: dict[RowKey, SelectedTableRecord[R]] = {}
                 keys: dict[DisclosureKey, RowKey] = {}
                 for (entity, record), cells in zip(entities.items(), rows):
-                    native = self.add_row(
-                        *cells, height=None,
-                        key=self.entity_keys[entity].value if entity in self.entity_keys else None,
-                    )
-                    records[native], keys[entity] = record, native
+                    native = self.add_row(*cells, height=None)
+                    records[native], keys[entity] = SelectedTableRecord(entity, record), native
                 self.records, self.entity_keys = records, keys
                 self.scroll_to(x=offset.x, y=offset.y, animate=False, force=True)
-            for record in selected.records:
-                key = self.entity_keys[DisclosedValue.of(record).sequence_key()]
-                self.move_cursor(row=self.get_row_index(key), animate=False, scroll=False)
+            selected.place_cursor(self)
         if self.selected != previous:
             self.selection_changed()
 

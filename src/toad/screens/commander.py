@@ -8,7 +8,7 @@ from dataclasses import replace
 from agent_comms.commander_hud import CommanderHud, CommanderUnit, HudRecord, HudSection
 from agent_comms.coordination_errors import DeferredRead
 from agent_comms.disclosure_text import (
-    AccentTone, ErrorTone, HudTone, SuccessTone, ViewTable, WarningTone,
+    AccentTone, ErrorTone, HudTone, MutedTone, SuccessTone, ViewTable, WarningTone,
 )
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.task_attachments.commander_pings import AlarmGroup, AlarmSection
@@ -34,9 +34,11 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction
 from toad.widgets.declared_disclosure import (
-    DeclaredDisclosure, DisclosureEntry, DisclosedValue, RootKey,
+    DeclaredDisclosure, DisclosureEntry, DisclosureKey, DisclosedValue, RootKey,
 )
-from toad.widgets.declared_table import DeclaredTable, EmptyTableSelection, TableSelection
+from toad.widgets.declared_table import (
+    DeclaredTable, EmptyTableSelection, SelectedTableRecord, SelectionView, TableSelection,
+)
 from toad.widgets.sidebar_tree import KeyedRows
 
 
@@ -47,9 +49,9 @@ class UnitTone(MroDispatch):
     def of(cls, tone: type[HudTone]) -> type[ThemeColour]:
         return cls.handler_for(tone)(tone)
 
-    @handles(HudTone)
+    @handles(MutedTone)
     @staticmethod
-    def ordinary(tone: type[HudTone]) -> type[ThemeColour]:
+    def ordinary(tone: type[MutedTone]) -> type[ThemeColour]:
         return ForegroundMutedColour
 
     @handles(WarningTone)
@@ -125,7 +127,9 @@ class CommanderGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
         return CommanderTable(self.sources[key])
 
     def update_row(self, key: type[HudRecord], row: CommanderTable) -> None:
-        row.present(self.sources[key])
+        source = self.sources[key]
+        if row.source is not source:
+            row.present(source)
 
     def present(self, section: HudSection) -> None:
         self.section = section
@@ -160,13 +164,13 @@ class CommanderAlarm(ToadNode, Collapsible):
         self.display = True
 
 
-class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
+class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup):
     """The selected native record owns its one bounded original-details read."""
 
     def __init__(self, commander: ThreadIncarnation) -> None:
         self.commander = commander
         self.selection: TableSelection[HudRecord] = EmptyTableSelection()
-        self.status = Static("No records match the filter.", markup=False)
+        self.status = Static("", markup=False)
         self.original = VerticalGroup()
         self.original.display = False
         super().__init__(classes="hud-detail")
@@ -180,12 +184,23 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
         if self.selection == selection:
             return
         self.selection = selection
-        self.read_detail(selection)
+        selection.present_to(self)
+
+    def on_mount(self) -> None:
+        self.selection.present_to(self)
+
+    def clear_selection(self) -> None:
+        self.workers.cancel_group(self, "commander-detail")
+        self.original.display = False
+        self.status.update("No records match the filter.")
+
+    def show_selection(self, key: DisclosureKey, record: HudRecord) -> None:
+        self.read_detail(SelectedTableRecord(key, record))
 
     @on(Button.Pressed, ".refresh-unit")
     def refresh_detail(self, event: Button.Pressed) -> None:
         event.stop()
-        self.read_detail(self.selection)
+        self.selection.present_to(self)
 
     @handles(HudRecord)
     async def record_detail(self, card: HudRecord) -> object:
@@ -200,29 +215,28 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
         ))
 
     @work(exclusive=True, group="commander-detail")
-    async def read_detail(self, selection: TableSelection[HudRecord]) -> None:
+    async def read_detail(self, selection: SelectedTableRecord[HudRecord]) -> None:
         self.original.display = False
-        self.status.update("No records match the filter.")
-        for card in selection.records:
-            label = DisclosedValue.of(card).source.summary()
-            self.status.update(f"Reading original records for {label}…")
-            try:
-                detail = await type(self).handler_for(type(card))(self, card)
-            except (DeferredRead, RelationViolationError, RouteChangedError, ToolRefusedError,
-                    UnreadableHistory, WorkBranchError) as error:
-                if self.is_attached and self.selection == selection:
-                    self.status.update(f"Original details unavailable: {error}")
-                return
-            if not self.is_attached or self.selection != selection:
-                return
-            entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosedValue.of(detail))
-            for view in self.original.query_children(DeclaredDisclosure):
-                view.present(entry)
-                break
-            else:
-                self.original.mount(DeclaredDisclosure(entry))
-            self.original.display = True
-            self.status.update("Original records; unit activity is bounded by Core.")
+        card = selection.record
+        label = DisclosedValue.of(card).source.summary()
+        self.status.update(f"Reading original records for {label}…")
+        try:
+            detail = await type(self).handler_for(type(card))(self, card)
+        except (DeferredRead, RelationViolationError, RouteChangedError, ToolRefusedError,
+                UnreadableHistory, WorkBranchError) as error:
+            if self.is_attached and self.selection == selection:
+                self.status.update(f"Original details unavailable: {error}")
+            return
+        if not self.is_attached or self.selection != selection:
+            return
+        entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosedValue.of(detail))
+        for view in self.original.query_children(DeclaredDisclosure):
+            view.present(entry)
+            break
+        else:
+            self.original.mount(DeclaredDisclosure(entry))
+        self.original.display = True
+        self.status.update("Original records; unit activity is bounded by Core.")
 
     def on_unmount(self) -> None:
         self.workers.cancel_group(self, "commander-detail")
@@ -244,9 +258,8 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
 
     def __init__(self, hud: CommanderHud) -> None:
         self.hud = hud
-        self.selected = TableSelection[HudRecord].from_records(
-            record for section in hud.groups() for record in section.records
-        )
+        self.selected: TableSelection[HudRecord] = EmptyTableSelection()
+        self.shown: dict[type[HudGroup], HudSection] = {}
         self.heading = Static("", markup=False, classes="hud-commander")
         self.status = Static("", markup=False, classes="hud-load")
         self.groups = VerticalGroup()
@@ -267,15 +280,18 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         yield from self.alarms.values()
         yield self.details
 
-    @property
-    def sections(self) -> dict[type[HudGroup], HudSection]:
+    def filtered_sections(self) -> dict[type[HudGroup], HudSection]:
         text = self.filter.value.casefold()
-        return {section.group: HudSection(section.group, tuple(
-            replace(table, records=tuple(record for record, cells in zip(table.records, table.texts)
-                                         if (not self.needs_hand.value or record.needs_hand())
-                                         and text in "\n".join(cells).casefold()))
-            for table in section.tables
-        )) for section in self.hud.groups()}
+        shown: dict[type[HudGroup], HudSection] = {}
+        for section in self.hud.groups():
+            tables: list[ViewTable[HudRecord]] = []
+            for table in section.tables:
+                records = tuple(record for record, cells in zip(table.records, table.texts)
+                                if (not self.needs_hand.value or record.needs_hand())
+                                and text in "\n".join(cells).casefold())
+                tables.append(table if records == table.records else replace(table, records=records))
+            shown[section.group] = HudSection(section.group, tuple(tables))
+        return shown
 
     @property
     def member_container(self) -> VerticalGroup:
@@ -286,10 +302,10 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         return {view.section.group: view for view in self.groups.query_children(CommanderGroup)}
 
     def create_row(self, key: type[HudGroup]) -> CommanderGroup:
-        return CommanderGroup(self.sections[key])
+        return CommanderGroup(self.shown[key])
 
     def update_row(self, key: type[HudGroup], row: CommanderGroup) -> None:
-        row.present(self.sections[key])
+        row.present(self.shown[key])
 
     @on(Input.Changed)
     @on(Checkbox.Changed)
@@ -299,10 +315,7 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     @on(CommanderTable.Selected)
     def highlight_record(self, event: CommanderTable.Selected) -> None:
         event.stop()
-        self.selected = TableSelection[HudRecord].from_records(
-            (record for section in self.sections.values() for record in section.records),
-            event.selection.key,
-        )
+        self.selected = event.selection
         self.details.present(self.selected)
 
     def present(self, hud: CommanderHud) -> None:
@@ -311,8 +324,8 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
 
     def focus_selection(self) -> None:
         for table in self.query(CommanderTable):
-            if any(DisclosedValue.of(record).sequence_key() == self.selected.key
-                   for record in table.source.records):
+            # Focus needs the prepared semantic record, not allocated native row keys.
+            if self.selected.key in table.entities:
                 table.focus(scroll_visible=False)
                 break
 
@@ -325,13 +338,12 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
             view.display = False
         for section in self.hud.alarms:
             self.alarms[section.group].present(section, now)
-        sections = self.sections
-        self.selected = TableSelection[HudRecord].from_records(
-            (record for section in sections.values() for record in section.records),
-            self.selected.key,
-        )
+        self.shown = self.filtered_sections()
+        records = {DisclosedValue.of(record).sequence_key(): record
+                   for section in self.shown.values() for record in section.records}
+        self.selected = TableSelection[HudRecord].from_records(records, self.selected.key)
         self.details.present(self.selected)
-        keys = tuple(sections)
+        keys = tuple(self.shown)
         self.reconcile_keys(keys, changed=frozenset(keys))
         if focused:
             self.call_after_refresh(self.focus_selection)
