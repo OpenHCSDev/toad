@@ -18,7 +18,7 @@ from agent_comms.declared_family import DeclaredFamily, UnknownFamilyMember
 from agent_comms.field_codec import FieldCodec, MalformedRecord, NullMember, SingleFieldValue, SubclassUnion, boundary_decoder
 from textual.binding import Binding
 from textual.cursor_shape import BlinkingBar, CursorShape, SteadyBlock
-from textual.document._document import Location, Selection
+from textual.document._document import DocumentBase, Location, RangedEditResult, Selection
 from textual.document._editing import EditingFailure, EditingMode, VimMode
 from textual.document._edit import Edit, InsertionPoint
 from textual.events import Key
@@ -288,6 +288,13 @@ class BlockVisualState(VisualState):
 class DetachedReceiver:
     """An engine may outlive its widget; detachment is not child failure."""
 
+    def attach(self, editor: TextArea) -> AttachedReceiver:
+        self.prepare_editor(editor)
+        return AttachedReceiver(editor)
+
+    def prepare_editor(self, editor: TextArea) -> None:
+        pass
+
     def require(self) -> TextArea:
         raise EditingFailure("Neovim requires an attached editor")
 
@@ -300,10 +307,48 @@ class DetachedReceiver:
     def boundary(self, binding: Binding) -> bool:
         return False
 
+    def project(self, changes: Sequence[NeovimChange]) -> None:
+        raise EditingFailure("Neovim has no document to project into")
 
-class AttachedReceiver(DetachedReceiver):
+    def finish_projection(self) -> None:
+        pass
+
+
+class RetainedReceiver(DetachedReceiver):
+    """A captured document remains the projection without retaining its widget."""
+
+    def __init__(self, document: DocumentBase) -> None:
+        self._document = document
+
+    @property
+    def document(self) -> DocumentBase:
+        return self._document
+
+    def prepare_editor(self, editor: TextArea) -> None:
+        if editor.document is not self.document:
+            editor.set_document(self.document)
+
+    def project(self, changes: Sequence[NeovimChange]) -> None:
+        for change in changes:
+            self.project_edit(change.apply(self.document))
+
+    def project_edit(self, result: RangedEditResult) -> None:
+        pass
+
+
+class AttachedReceiver(RetainedReceiver):
     def __init__(self, editor: TextArea) -> None:
         self._editor = editor
+
+    @property
+    def document(self) -> DocumentBase:
+        return self._editor.document
+
+    def project_edit(self, result: RangedEditResult) -> None:
+        self._editor.project_engine_edit(result)
+
+    def finish_projection(self) -> None:
+        self._editor.finish_engine_changes()
 
     def require(self) -> TextArea:
         return self._editor
@@ -407,7 +452,7 @@ class NeovimInput(NeovimFastRequest):
 
 class NeovimChange(ABC):
     @abstractmethod
-    def apply(self, editor: TextArea) -> None: ...
+    def apply(self, document: DocumentBase) -> RangedEditResult: ...
 
 
 @dataclass(frozen=True)
@@ -416,16 +461,16 @@ class NeovimLineChange(NeovimChange):
     last: int
     lines: tuple[str, ...]
 
-    def apply(self, editor: TextArea) -> None:
-        editor.apply_engine_lines(self.first, self.last, self.lines)
+    def apply(self, document: DocumentBase) -> RangedEditResult:
+        return document.replace_lines(self.first, self.last, self.lines)
 
 
 @dataclass(frozen=True)
 class NeovimBufferTransfer(NeovimChange):
     lines: tuple[str, ...]
 
-    def apply(self, editor: TextArea) -> None:
-        editor.apply_engine_text("\n".join(self.lines))
+    def apply(self, document: DocumentBase) -> RangedEditResult:
+        return document.replace_lines(0, document.line_count, self.lines)
 
 
 @dataclass(frozen=True)
@@ -438,6 +483,15 @@ class NeovimUpdated(Message):
     def __init__(self, owner: NeovimEditing) -> None:
         super().__init__()
         self.owner = owner
+
+    def paint(self, editor: TextArea) -> None:
+        owner = self.owner
+        if not owner._receiver.owns(editor):
+            return
+        owner._update_queued = False
+        # A later line batch may precede its display while this message waits.
+        if not owner._changes:
+            owner.render(editor)
 
 
 class NeovimMethod:
@@ -616,9 +670,12 @@ class NeovimEditing(VimMode):
 
     def attach(self, editor: TextArea) -> None:
         changed_receiver = not self._receiver.owns(editor)
-        self._receiver = AttachedReceiver(editor)
+        self._receiver = self._receiver.attach(editor)
+        if changed_receiver:
+            self._update_queued = False
+            editor.history.clear()
         started = self._started
-        if started.done() and not started.cancelled():
+        if started.done() and not started.cancelled() and not self._changes:
             self.render(editor, force=changed_receiver)
 
     def resume(self, editor: TextArea) -> None:
@@ -628,7 +685,7 @@ class NeovimEditing(VimMode):
         pass
 
     def capture(self, editor: TextArea) -> NeovimEditing:
-        self._receiver = DetachedReceiver()
+        self._receiver = RetainedReceiver(editor.document)
         return self
 
     async def unmount(self, editor: TextArea) -> None:
@@ -785,7 +842,7 @@ class NeovimEditing(VimMode):
         if not 0 <= boundary < len(self._boundaries):
             raise NeovimWireFailure("Unknown Neovim cursor boundary")
         # A mapping's in-command view cannot certify SafeState completion.
-        self._publish(NeovimSnapshot(self.snapshot.state.update(display)))
+        self.publish(NeovimSnapshot(self.snapshot.state.update(display)))
         self._receiver.visit(self.render)
         return self._receiver.boundary(self._boundaries[boundary])
 
@@ -800,27 +857,32 @@ class NeovimEditing(VimMode):
         self._publish(NeovimSnapshot(self.snapshot.state))
 
     def accept_display(self, display: NeovimDisplay) -> None:
-        self._publish(NeovimSnapshot(self.snapshot.state.update(display), display.completed))
+        self.publish(NeovimSnapshot(self.snapshot.state.update(display), display.completed))
+
+    def publish(self, snapshot: NeovimSnapshot) -> None:
+        """Project preceding lines before exposing the display that describes them."""
+        changes, self._changes = self._changes, []
+        if changes:
+            self._receiver.project(changes)
+        self._publish(snapshot)
+        if changes:
+            self._receiver.finish_projection()
 
     def _publish(self, snapshot: NeovimSnapshot) -> None:
         self.snapshot = snapshot
-        if not self._update_queued:
+        if not self._changes and not self._update_queued:
             def post(editor: TextArea) -> None:
                 self._update_queued = editor.post_message(NeovimUpdated(self))
             self._receiver.visit(post)
 
     def render(self, editor: TextArea, *, force: bool = False) -> None:
-        self._update_queued = False
         if editor.editing_mode is not self or not self._receiver.owns(editor):
             return
-        if self.snapshot is self._rendered and not force and not self._changes:
+        if self._changes:
+            raise RuntimeError("Cannot paint an unpublished Neovim line batch")
+        if self.snapshot is self._rendered and not force:
             return
         previous, current = self._rendered.state, self.snapshot.state
-        changes, self._changes = self._changes, []
-        for change in changes:
-            change.apply(editor)
-        if changes:
-            editor.finish_engine_changes()
         if force or previous.cursor != current.cursor:
             editor.apply_engine_selection(Selection.cursor(current.cursor))
             editor.record_cursor_width()
@@ -845,7 +907,7 @@ class NeovimEditing(VimMode):
         failed = previous.fail(error)
         if failed is previous:
             return
-        self._publish(NeovimSnapshot(failed))
+        self.publish(NeovimSnapshot(failed))
         def notify(editor: TextArea) -> None:
             editor.notify(f"{error}. The displayed draft is preserved. Input was not replayed.",
                           title="Neovim editing failed", severity="error", timeout=0)
@@ -857,15 +919,16 @@ class NeovimEditing(VimMode):
     async def flush(self, editor: TextArea) -> bool:
         """Never wait for deferred RPC in App dispatch. Missing completion refuses."""
         self.snapshot.state.raise_failure()
+        if not self.completed:
+            return False
         self.render(editor)
-        return self.completed and self.snapshot.state.transferable
+        return self.snapshot.state.transferable
 
     async def prepare_input(self, editor: TextArea) -> bool:
         # Only fence the widget queue, never the Neovim event loop. Escape must
         # remain admissible while a deferred operation is waiting for an operand.
         finished: asyncio.Future[bool] = asyncio.get_running_loop().create_future()
         def ready() -> None:
-            self.render(editor)
             finished.set_result(True)
         if not editor.call_later(ready):
             return False

@@ -291,7 +291,7 @@ See on-screen instructions for details.
 
     def on_neovim_updated(self, event: NeovimUpdated) -> None:
         event.stop()
-        event.owner.render(self)
+        event.paint(self)
 
     @property
     def submission_allowed(self) -> bool:
