@@ -136,6 +136,9 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     def keyboard_scopes(self, screen: MainScreen) -> tuple[DeclaredWidgetActions, ...]:
         return (screen,)
 
+    def read_visible(self, screen: MainScreen) -> PaintedRead:
+        return NothingToRead()
+
     async def attached(self, screen: "MainScreen") -> None:
         """Repaint the current content state when its session becomes ready."""
         self.render(screen)
@@ -193,6 +196,43 @@ class ReadyContent(ScreenContent):
 
     def detaching(self, screen: "MainScreen") -> None:
         self.finish(screen, OpeningContent())
+
+    def read_visible(self, screen: MainScreen) -> PaintedRead:
+        """Only mounted content can supply a painted reader cursor."""
+        conversation = screen.conversation
+        through = conversation.visible_read_cursor
+        if through is None:
+            return NothingToRead()
+        app = screen.app
+        access = app.coordination_access
+        identity = screen.thread_identity
+        project = screen.project_path
+        source_root = identity.wire_root()
+        worktree = app.project_dir
+
+        def acknowledge(cursor) -> None:
+            selected = RouteSelection.capture(source_root)
+            comms = access.require(selected).service
+
+            def mark() -> None:
+                resolved = identity.resolve_thread(comms.registry, project)
+                comms.views.mark_thread_view_read(
+                    resolved, worktree=worktree, through=cursor
+                )
+
+            access.write(selected, mark)
+
+        async def mark():
+            try:
+                await conversation.transcript.mark_read(
+                    through,
+                    acknowledge,
+                    lambda: app.selected_session is screen,
+                )
+            except DMScopeChanged as error:
+                app.show_error(error, "DM read not marked")
+
+        return ReadWork(mark())
 
     async def prepare(self, screen: "MainScreen") -> None:
         await screen._prepare_content()
@@ -271,43 +311,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         self.presentation = OperationalSessionPresentation()
 
     def read_visible(self) -> PaintedRead:
-        """Capture this session's painted cursor before its guarded backend write."""
-        conversation = self.query_one_optional(Conversation)
-        if conversation is None:
-            return NothingToRead()
-        through = conversation.visible_read_cursor
-        if through is None:
-            return NothingToRead()
-        app = self.app
-        access = app.coordination_access
-        identity = self.thread_identity
-        project = self.project_path
-        source_root = identity.wire_root()
-        worktree = app.project_dir
-
-        def acknowledge(cursor) -> None:
-            selected = RouteSelection.capture(source_root)
-            comms = access.require(selected).service
-
-            def mark() -> None:
-                resolved = identity.resolve_thread(comms.registry, project)
-                comms.views.mark_thread_view_read(
-                    resolved, worktree=worktree, through=cursor
-                )
-
-            access.write(selected, mark)
-
-        async def mark():
-            try:
-                await conversation.transcript.mark_read(
-                    through,
-                    acknowledge,
-                    lambda: app.selected_session is self,
-                )
-            except DMScopeChanged as error:
-                app.show_error(error, "DM read not marked")
-
-        return ReadWork(mark())
+        return self.content.read_visible(self)
 
     @classmethod
     def from_thread(
