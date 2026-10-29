@@ -1,7 +1,7 @@
 """Thread panels own construction and reader state at their declarations."""
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.widget import Widget
 from toad.widgets.comms_sidebar import CoordinationStatus
 from toad.plan import PlanItem

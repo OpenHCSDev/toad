@@ -12,7 +12,7 @@ import os
 import shutil
 from pathlib import Path
 
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.launch_runtime import LaunchRuntime
 from toad import mcp_declarations
 

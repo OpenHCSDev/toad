@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Annotated, ClassVar
-from agent_comms.field_codec import PathText
+from agent_comms.nominal.field_codec import PathText
 from urllib.parse import SplitResult, quote, unquote, urlsplit
 
 from markdown_it.token import Token

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from acp.schema import ToolCall
 from agent_comms.agent_event_updates import AcpToolAction
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
     ToolEndTranscript,

@@ -16,7 +16,7 @@ from agent_comms.acp_extension import (
     QueueScope,
     SteerPromptRequest,
 )
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 
 from toad import messages
 from toad.acp.client_session import ClientSessionRequest

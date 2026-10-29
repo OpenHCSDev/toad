@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 from agent_comms.repo import Checkout
-from agent_comms.field_codec import RecordedTimestamp
+from agent_comms.nominal.field_codec import RecordedTimestamp
 from agent_comms.errors import RelationViolationError
 
 from toad.agent_schema import AgentDefinition

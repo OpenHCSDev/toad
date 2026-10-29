@@ -11,7 +11,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.native_output import AssistantOutput, NativeOutputLocation
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.field_codec import FieldCodec, TurnId
+from agent_comms.nominal.field_codec import FieldCodec, TurnId
 from agent_comms.turn_lease import ActiveTurn, FinishedTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 

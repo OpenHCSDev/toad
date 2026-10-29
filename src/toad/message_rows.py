@@ -16,7 +16,7 @@ from typing import ClassVar
 
 from agent_comms.channel_targets import CommandTarget, ChannelTarget, ThreadTarget
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.messages import Message
 from agent_comms.routing import MessageRoute
 

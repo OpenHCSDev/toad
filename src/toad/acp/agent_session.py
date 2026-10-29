@@ -13,7 +13,7 @@ from acp.exceptions import RequestError
 from agent_comms.acp_extension import HistoryOnlyQueueProjection
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.child_process import join_retirement
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner

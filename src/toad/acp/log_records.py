@@ -15,7 +15,7 @@ from acp.schema import (
 )
 from pydantic import TypeAdapter, ValidationError
 from agent_comms.acp_failure import ACPFailure, RequestFailure
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 
 
 class LogSource(DeclaredFamily, affix="LogSource"):

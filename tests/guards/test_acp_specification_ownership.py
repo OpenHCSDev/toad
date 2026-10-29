@@ -6,7 +6,7 @@ from typing import get_args
 from acp import schema
 from toad.acp.status import StopReason, ToolCallStatus
 from toad.agent_schema import AgentDefinition
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 
 ROOT = Path(__file__).resolve().parents[2]
 

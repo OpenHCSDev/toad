@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import click
 
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached, AgentBinding, NoAgent
 

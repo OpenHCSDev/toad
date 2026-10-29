@@ -12,7 +12,7 @@ from acp.schema import (
     SessionConfigSelectOption,
 )
 from agent_comms.acp_failure import RequestFailure
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 

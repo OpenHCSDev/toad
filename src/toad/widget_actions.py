@@ -10,8 +10,8 @@ from types import MappingProxyType
 from typing import ClassVar, Generic, Literal, Self, TypeVar
 
 from agent_comms.command import Command
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec, FieldPlan
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import FieldCodec, FieldPlan
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual import events
 from textual._activation import PrimaryActivation

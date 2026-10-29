@@ -10,8 +10,8 @@ from typing import ClassVar
 import asyncio
 from functools import partial
 from abc import abstractmethod
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.route_selection import RouteSelection
 
 from agent_comms.exporting import (

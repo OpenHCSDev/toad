@@ -19,7 +19,7 @@ from agent_comms.channel_targets import (
 )
 from agent_comms.channels import AllChannel
 from agent_comms.comms import Comms
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
     ChannelDisplayHistory,

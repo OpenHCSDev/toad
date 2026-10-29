@@ -2,8 +2,8 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Annotated, Literal
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec, TextRepresentation, WireName
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import FieldCodec, TextRepresentation, WireName
 from toad.platform import Platform
 
 

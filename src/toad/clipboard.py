@@ -4,7 +4,7 @@ import asyncio
 from abc import abstractmethod
 from collections.abc import Callable
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from pyperclip import PyperclipException
 from textual.app import App
 from textual._clipboard import ClipboardContent

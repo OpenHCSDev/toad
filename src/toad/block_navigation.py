@@ -6,7 +6,7 @@ from abc import abstractmethod
 from functools import cached_property
 from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
 from textual.geometry import Region
 from textual.widget import Widget

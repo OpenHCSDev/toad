@@ -13,8 +13,8 @@ from typing import Annotated, TYPE_CHECKING
 import toad
 from objectstate import mark_ui_hidden_config
 
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import NominalSpelling, NominalText
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import NominalSpelling, NominalText
 from textual.binding import Binding, BindingsMap
 from textual.document._editing import EditorCommand
 from textual.keys import KeyInvocation

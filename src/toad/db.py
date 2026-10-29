@@ -9,7 +9,7 @@ from pathlib import Path
 from time import time_ns
 from typing import Annotated, Self
 
-from agent_comms.field_codec import NullMember, RecordedTimestamp, TimestampText
+from agent_comms.nominal.field_codec import NullMember, RecordedTimestamp, TimestampText
 from agent_comms.repo import Checkout
 from agent_comms.store_files import DEFAULT_ISOLATION
 from agent_comms.typed_table import (

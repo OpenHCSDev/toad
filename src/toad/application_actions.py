@@ -7,7 +7,7 @@ from textual.widgets.text_area import EditingMode, VimMode
 from functools import partial
 from typing import TYPE_CHECKING, Literal
 from textual.command import DiscoveryHit, Hit, Hits, Provider
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from toad.preferences import SETTINGS
 from toad.screens.keymap import KeymapScreen
 from toad.widget_actions import (

@@ -5,7 +5,7 @@ import os
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.field_codec import TurnId
+from agent_comms.nominal.field_codec import TurnId
 from support.roots import installed_wire
 from agent_comms.historical_views import ConversationObservation
 from agent_comms.page_traversal import LiveCursor

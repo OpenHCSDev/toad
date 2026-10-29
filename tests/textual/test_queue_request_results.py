@@ -8,7 +8,7 @@ from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import (
     AvailableQueueProjection, QueueChangedUpdate, QueueItem, LiveQueueScope, encode_updates,
 )
-from agent_comms.field_codec import InputId
+from agent_comms.nominal.field_codec import InputId
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
 

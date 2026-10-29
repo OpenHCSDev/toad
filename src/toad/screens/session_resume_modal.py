@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from agent_comms.field_codec import RecordedTimestamp
+from agent_comms.nominal.field_codec import RecordedTimestamp
 
 from textual import containers, getters, on, widgets
 from textual.app import ComposeResult

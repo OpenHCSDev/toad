@@ -1,6 +1,6 @@
 """Local process outcomes do not establish approval."""
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 
 
 class DecisionOutcome(DeclaredFamily, affix="Outcome"):

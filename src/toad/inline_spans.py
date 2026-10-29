@@ -2,8 +2,8 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
 
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import FieldCodec
 
 from toad.line_blocks import CodeRole, EmphasisRole, Span, StrongRole, TextRole, UrlRole
 from toad.markdown_links import MessageMarkdownParser
