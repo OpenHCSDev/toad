@@ -31,6 +31,10 @@ if TYPE_CHECKING:
     from toad.conversation_submission import ConversationSubmissions
 
 
+class QueueActionRefused(Exception):
+    """A deliberate queue refusal, not an unexpected programming failure."""
+
+
 class QueueEvidenceChanged(Message):
     """Local repaint after existing notification/viewport evidence changes."""
 
@@ -90,10 +94,10 @@ class ReadOnlyQueueSource(QueueSource):
         return False
 
     async def queue_send_now(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
-        raise ValueError("Send now unavailable: this source has no native queue authority")
+        raise QueueActionRefused("Send now unavailable: this source has no native queue authority")
 
     async def queue_clear(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
-        raise ValueError("Clear unavailable: BUS messages cannot be withdrawn through an ACP queue")
+        raise QueueActionRefused("Clear unavailable: BUS messages cannot be withdrawn through an ACP queue")
 
 
 class NativeQueueSource(QueueSource):
@@ -137,10 +141,12 @@ class NativeQueueSource(QueueSource):
     async def queue_send_now(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
         agent = self.require_queue_action(owner, scope)
         if not await agent.controller.send_now():
-            raise ValueError("The native owner did not accept send now")
+            raise QueueActionRefused("The native owner did not accept send now")
 
     async def queue_clear(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
-        await self.require_queue_action(owner, scope).controller.clear_queue()
+        agent = self.require_queue_action(owner, scope)
+        if not await agent.controller.clear_queue():
+            raise QueueActionRefused("The native owner did not accept clear queue")
 
 
 class BusQueueSource(ReadOnlyQueueSource):
@@ -197,11 +203,12 @@ class QueueInspection(DismissibleScreen[None]):
                 yield Button("Close", id="queue-close")
 
     async def apply_action(self, action: Callable[[ConversationSubmissions, QueueScope], Awaitable[None]]) -> None:
+        if self.submissions.queue_source is not self.source or self.submissions.view.agent_binding is not self.agent:
+            self.query_one("#queue-error", Static).update("The source changed; inspect its current queue again")
+            return
         try:
-            if self.submissions.queue_source is not self.source or self.submissions.view.agent_binding is not self.agent:
-                raise ValueError("The source changed; inspect its current queue again")
             await action(self.submissions, self.scope)
-        except (ValueError, RequestError) as error:
+        except (QueueActionRefused, RequestError) as error:
             self.query_one("#queue-error", Static).update(str(error))
             return
         self.submissions.publish_pending()

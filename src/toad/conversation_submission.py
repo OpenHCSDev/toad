@@ -21,6 +21,7 @@ from agent_comms.declared_family import DeclaredFamily
 from toad import messages
 from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
+from toad.submission_queue import QueueActionRefused
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.widgets.prompt import Prompt
@@ -372,11 +373,12 @@ class ConversationSubmissions:
         )
 
     async def _send_now(self, source: QueueSource, agent, scope: QueueScope) -> None:
+        if self.queue_source is not source or self.view.agent_binding is not agent:
+            self.view.feedback.flash("The source changed before send now", style="error")
+            return
         try:
-            if self.queue_source is not source or self.view.agent_binding is not agent:
-                raise ValueError("The source changed before send now")
             await source.queue_send_now(self, scope)
-        except (RequestError, ValueError) as error:
+        except (RequestError, QueueActionRefused) as error:
             if self.queue_source is source and self.view.agent_binding is agent:
                 self.view.feedback.flash(f"Send now failed: {error}", style="error")
         self.publish_pending()

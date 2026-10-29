@@ -60,7 +60,7 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_drawn_names_clickable_at_ever
 
 
 def test_opening_notification_details_draws_more_rows_than_the_collapsed_message():
-    status = CheckedNotifications(())
+    status = CheckedNotifications.from_notifications(())
     for style in (IrcMessageStyle(), MarkdownMessageStyle()):
         shown = fragment("#all", style)
         shown.request_show(MessageShown(style=style, status=status))

@@ -32,6 +32,8 @@ from toad.core.events import LogAgentFail
 from toad.plan import PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
 
+from toad.submission_queue import QueueActionRefused
+
 from .prompt import build as build_prompt
 from .session_output import SessionOutput
 from .terminal_owner import OperationalTerminalOwner
@@ -284,7 +286,7 @@ class AgentController(OperationalTerminalOwner):
         def require():
             authority.require()
             if not agent.queue_attachment.accepts_request(queue_scope):
-                raise ValueError("The queued input owner changed before submission; inspect the current queue.")
+                raise QueueActionRefused("The queued input owner changed before submission; inspect the current queue.")
 
         try:
             result = await agent.process.prompt(
@@ -334,8 +336,8 @@ class AgentController(OperationalTerminalOwner):
         if not published:
             report(LogAgentFail(failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
-    async def clear_queue(self) -> None:
-        await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest())
+    async def clear_queue(self) -> bool:
+        return await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest()) is not None
 
     async def send_now(self) -> bool:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)

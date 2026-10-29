@@ -13,7 +13,8 @@ from agent_comms.recorded_bus import RecordedBusIdentity
 from support.ui import Ui
 from support.workspace import Workspace
 from agent_comms.acp_extension import NoQueueScope
-from toad.notification_status import CheckedNotifications
+from toad.notification_status import CheckedNotifications, EmptyCheckedNotifications
+from toad.submission_queue import QueueActionRefused
 from toad.session_presentation import MailboxSessionSources
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.prompt import QueueSummary
@@ -57,9 +58,9 @@ async def test_bus_queue_borrows_original_proofs_and_preserves_draft(
         assert not view.message_history.undrawn
         assert view.query_one(QueueSummary) in ui.app.screen._compositor.visible_widgets
         assert not owner.queue_source.queue_actions_available(owner)
-        with pytest.raises(ValueError):
+        with pytest.raises(QueueActionRefused):
             await owner.queue_source.queue_clear(owner, NoQueueScope())
-        with pytest.raises(ValueError):
+        with pytest.raises(QueueActionRefused):
             await owner.queue_source.queue_send_now(owner, NoQueueScope())
 
         previous_screen = ui.app.screen
@@ -88,9 +89,9 @@ async def test_mailbox_factory_supplies_same_owner_and_readonly_capability_wins_
         prompt = source.prompt(view)
         assert prompt.operational_submissions is view.submissions
         assert not source.queue_actions_available(view.submissions)
-        with pytest.raises(ValueError):
+        with pytest.raises(QueueActionRefused):
             await source.queue_send_now(view.submissions, source.queue_scope(view.submissions))
-        with pytest.raises(ValueError):
+        with pytest.raises(QueueActionRefused):
             await source.queue_clear(view.submissions, source.queue_scope(view.submissions))
         await source.close()
 
@@ -108,7 +109,9 @@ def test_matched_empty_feedback_is_not_a_missing_original(workspace: Workspace) 
         page.selection.notification_identity.outcome_viewer(), (first.reference,),
     )
     checked, = CheckedNotifications.for_references((first.reference,), window.outcomes)
+    assert isinstance(checked, EmptyCheckedNotifications)
     assert checked.notifications == ()
+    assert checked.queue_title == "No recipient feedback"
     assert not checked.unavailable and not checked.working
     assert checked.title == MessageNotification.summary(checked.notifications)
     assert tuple(CheckedNotifications.for_references((missing.reference,), window.outcomes)) == ()

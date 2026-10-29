@@ -21,6 +21,7 @@ from agent_comms.transcripts import (
 from agent_comms.ui_model.message_category import MessageCategory
 
 from toad.render_backend import ReusableRenderTask
+from toad.submission_queue import QueueSource, ReadOnlyQueueSource
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
@@ -295,14 +296,12 @@ class NoProjection(HeldProjection):
         pass
 
 
-class PreparedPageSource(ABC):
-    @property
-    def queue_source(self):
-        from toad.submission_queue import ReadOnlyQueueSource
-
-        return ReadOnlyQueueSource()
-
+class PreparedPageSource(ReadOnlyQueueSource):
     """One lifetime-owned source of prepared pages, independent of widget paging."""
+
+    @property
+    def queue_source(self) -> QueueSource:
+        return self
 
     runtime: PreparationRuntime
     scope: PreparationScope
