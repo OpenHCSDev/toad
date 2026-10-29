@@ -90,20 +90,24 @@ def start(args):
     if not hasattr(sys, 'remote_exec'):
         raise RuntimeError('UNSUPPORTED_BOUNDED_TRACE')
     remote = Path(__file__).with_name('history_capture_remote.py').read_bytes()
-    # All fixed source/request/receipt files plus six 64KiB receipts fit 1MiB.
-    if 2 * len(remote) + 2 * 8192 + 6 * 65536 > 1 << 20:
-        raise ValueError('Launcher metadata exceeds 1MiB reservation')
+    # Charge both source copies, their actual path prefixes and bounded receipts.
+    metadata_size = 2 * len(remote) + 2 * 8192 + 6 * 65536
     directory.mkdir(mode=0o700)
     request = dict(identity=expected, runtime=str(runtime), meter=str(meter),
                    meter_sha256=args.sha256, contract=1, token=uuid.uuid4().hex)
     for operation in ('start', 'cleanup'):
+        script = directory / (operation + '.py')
+        # sys.remote_exec supplies no __file__; each copy owns its adjacent request.
+        prefix = f'__file__ = {str(script)!r}\n'.encode('utf-8')
+        metadata_size += len(prefix)
+        if metadata_size > 1 << 20:
+            raise ValueError('Launcher metadata exceeds 1MiB reservation')
         request_path = directory / (operation + '.json')
         value = dict(request, operation=operation)
         if len(json.dumps(value).encode('utf-8')) > 8192:
             raise ValueError('Request exceeds reserved remote envelope')
         publish(request_path, value)
-        script = directory / (operation + '.py')
-        script.write_bytes(remote)
+        script.write_bytes(prefix + remote)
         script.chmod(0o600)
     publish(directory / 'manifest.json', dict(identity=expected, runtime=str(runtime),
                                              meter_sha256=args.sha256, seconds=25,
