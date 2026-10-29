@@ -16,6 +16,7 @@ import toad
 from agent_comms.child_process import AttachedChild, join_retirement
 from agent_comms.declared_family import DeclaredFamily, UnknownFamilyMember
 from agent_comms.field_codec import FieldCodec, MalformedRecord, NullMember, SingleFieldValue, SubclassUnion, boundary_decoder
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual.binding import Binding
 from textual.cursor_shape import BlinkingBar, CursorShape, SteadyBlock
 from textual.document._document import DocumentBase, Location, RangedEditResult, Selection
@@ -87,9 +88,24 @@ class NeovimApiType:
 
 
 @dataclass(frozen=True)
+class NeovimApiMetadata:
+    types: dict[str, NeovimApiType]
+
+    @classmethod
+    @boundary_decoder
+    def from_response(cls, metadata: object) -> Self:
+        if not isinstance(metadata, dict):
+            raise NeovimWireFailure("Invalid Neovim API metadata")
+        # Decode the declared field through its existing binding. Unused native
+        # metadata stays opaque; no second record decoder or copied field key.
+        binding, = FieldCodec.argument_fields(cls)
+        return FieldCodec.construct(cls, binding.decoded_bound(metadata, {}))
+
+
+@dataclass(frozen=True)
 class NeovimApiInfo:
     channel: int
-    types: dict[str, NeovimApiType]
+    metadata: NeovimApiMetadata
 
     @classmethod
     @boundary_decoder
@@ -97,14 +113,7 @@ class NeovimApiInfo:
         if not isinstance(response, list) or len(response) != 2:
             raise NeovimWireFailure("Invalid Neovim API information response")
         channel, metadata = response
-        if not isinstance(metadata, dict):
-            raise NeovimWireFailure("Invalid Neovim API metadata")
-        try:
-            definitions = metadata["types"]
-        except KeyError as error:
-            raise NeovimWireFailure("Neovim API metadata has no extension types") from error
-        return cls(FieldCodec.decode(int, channel),
-                   FieldCodec.decode(dict[str, NeovimApiType], definitions))
+        return cls(FieldCodec.decode(int, channel), NeovimApiMetadata.from_response(metadata))
 
 
 @dataclass(frozen=True)
@@ -686,7 +695,7 @@ class RequestFrame(IdentifiedFrame, MethodFrame):
         await owner.answer_request(self.identity, reply)
 
 
-class NeovimEditing(VimMode):
+class NeovimEditing(VimMode, MroDispatch):
     """One engine, one input queue, completed snapshots only from SafeState."""
 
     initial_keys = ""
@@ -838,7 +847,7 @@ class NeovimEditing(VimMode):
 
     def accept_api_info(self, response: object) -> NeovimApiInfo:
         api = NeovimApiInfo.from_response(response)
-        self._api_types = api.types
+        self._api_types = api.metadata.types
         return api
 
     @boundary_decoder
@@ -853,8 +862,14 @@ class NeovimEditing(VimMode):
 
     @boundary_decoder
     def _encode_handle(self, value: object) -> msgpack.ExtType:
-        if not isinstance(value, NeovimHandle):
-            raise NeovimWireFailure("Unsupported Neovim MessagePack value")
+        try:
+            encoder: Callable[[NeovimEditing, object], msgpack.ExtType] = self.handler_for(type(value))
+        except StopIteration as error:
+            raise NeovimWireFailure("Unsupported Neovim MessagePack value") from error
+        return encoder(self, value)
+
+    @handles(NeovimHandle)
+    def _native_handle(self, value: NeovimHandle) -> msgpack.ExtType:
         try:
             return value.extension(self._api_types)
         except KeyError as error:

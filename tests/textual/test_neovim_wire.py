@@ -13,7 +13,6 @@ from toad.neovim_editing import (
 )
 
 
-@pytest.mark.asyncio
 async def test_native_redraw_and_response_keep_nominal_window() -> None:
     owner = NeovimEditing()
     owner.accept_api_info([1, {"types": {
