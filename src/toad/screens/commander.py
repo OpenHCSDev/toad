@@ -7,12 +7,14 @@ from dataclasses import replace
 
 from agent_comms.commander_hud import CommanderHud, CommanderUnit, HudRecord, HudSection
 from agent_comms.coordination_errors import DeferredRead
-from agent_comms.disclosure_text import ViewTable
+from agent_comms.disclosure_text import (
+    AccentTone, ErrorTone, HudTone, SuccessTone, ViewTable, WarningTone,
+)
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.task_attachments.commander_pings import AlarmGroup, AlarmSection
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
-from agent_comms.ui_model.unit_state import HudGroup, InProgressGroup, ReadyToTestGroup, UrgentGroup
+from agent_comms.ui_model.observation import UnreadableHistory
+from agent_comms.ui_model.unit_state import HudGroup
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on, work
@@ -22,7 +24,9 @@ from textual.content import Content
 from textual.message import Message
 from textual.style import Style
 from textual.widgets import Button, Checkbox, Collapsible, Input, Static
-from ui_theme.scheme import AccentColour, ForegroundMutedColour, SuccessColour, ThemeColour, WarningColour
+from ui_theme.scheme import (
+    AccentColour, ErrorColour, ForegroundMutedColour, SuccessColour, ThemeColour, WarningColour,
+)
 
 from toad.app_node import ToadNode
 from toad.core.events import CommanderHudChanged, CommanderHudFailed
@@ -37,31 +41,36 @@ from toad.widgets.sidebar_tree import KeyedRows
 
 
 class UnitTone(MroDispatch):
-    """Adapt Core's group declaration to the active native theme, never its state names."""
+    """Bind Core's shared tone tiers to native theme colours, not group semantics."""
 
     @classmethod
-    def of(cls, group: type[HudGroup]) -> type[ThemeColour]:
-        return cls.handler_for(group)(group)
+    def of(cls, tone: type[HudTone]) -> type[ThemeColour]:
+        return cls.handler_for(tone)(tone)
 
-    @handles(HudGroup)
+    @handles(HudTone)
     @staticmethod
-    def ordinary(group: type[HudGroup]) -> type[ThemeColour]:
+    def ordinary(tone: type[HudTone]) -> type[ThemeColour]:
         return ForegroundMutedColour
 
-    @handles(UrgentGroup)
+    @handles(WarningTone)
     @staticmethod
-    def attention(group: type[UrgentGroup]) -> type[ThemeColour]:
+    def attention(tone: type[WarningTone]) -> type[ThemeColour]:
         return WarningColour
 
-    @handles(ReadyToTestGroup)
+    @handles(AccentTone)
     @staticmethod
-    def application(group: type[ReadyToTestGroup]) -> type[ThemeColour]:
+    def accent(tone: type[AccentTone]) -> type[ThemeColour]:
         return AccentColour
 
-    @handles(InProgressGroup)
+    @handles(SuccessTone)
     @staticmethod
-    def moving(group: type[InProgressGroup]) -> type[ThemeColour]:
+    def success(tone: type[SuccessTone]) -> type[ThemeColour]:
         return SuccessColour
+
+    @handles(ErrorTone)
+    @staticmethod
+    def error(tone: type[ErrorTone]) -> type[ThemeColour]:
+        return ErrorColour
 
 
 class CommanderTable(DeclaredTable[HudRecord]):
@@ -71,7 +80,7 @@ class CommanderTable(DeclaredTable[HudRecord]):
             super().__init__()
 
     def row_tone(self, record: HudRecord) -> type[ThemeColour]:
-        return UnitTone.of(record.hud_group)
+        return UnitTone.of(record.hud_group.tone)
 
     def preferred_entity(self) -> DisclosureKey:
         return self.query_ancestor(CommanderFrameView).selection_key
@@ -121,7 +130,7 @@ class CommanderGroup(KeyedRows[type[HudRecord]], VerticalGroup):
         self.call_after_refresh(self.render_section)
 
     def render_section(self) -> None:
-        colour = self.app.colours.colour(UnitTone.of(self.section.group))
+        colour = self.app.colours.colour(UnitTone.of(self.section.group.tone))
         self.heading.update(Content(self.section.heading()).stylize(Style(foreground=colour)))
         self.display = bool(self.section.records)
         keys = tuple(self.sources)
@@ -138,7 +147,8 @@ class CommanderAlarm(Collapsible):
         self.display = False
 
     def present(self, section: AlarmSection, now: float) -> None:
-        self.title = Content(section.heading())
+        colour = self.app.colours.colour(UnitTone.of(section.group.tone))
+        self.title = Content(section.heading()).stylize(Style(foreground=colour))
         self.original.update("\n".join(CommanderHud.alarm_detail((section,), now)))
         self.display = True
 
@@ -158,11 +168,17 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
         yield Button("Refresh original details", classes="refresh-unit", compact=True)
         yield self.original
 
+    @property
+    def detail_key(self) -> object:
+        if self.card is None:
+            return None
+        return self.card.detail_key(self.app.coordination_access.launch_root.path, self.commander)
+
     def present(self, card: HudRecord | None) -> None:
-        if self.card == card:
-            return
+        previous = self.detail_key
         self.card = card
-        self.read_detail()
+        if self.detail_key != previous:
+            self.read_detail()
 
     @on(Button.Pressed, ".refresh-unit")
     def refresh_detail(self, event: Button.Pressed) -> None:
@@ -177,14 +193,11 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
     async def unit_detail(self, card: CommanderUnit) -> object:
         access = self.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
-        return await observed.process.read(ReadCommanderUnit(
-            str(observed.service.root), self.commander, card.unit,
-            tuple(dict.fromkeys(order.order for order in card.orders)),
-        ))
+        return await observed.process.read(card.detail_key(observed.service.root, self.commander))
 
     @work(exclusive=True, group="commander-detail")
     async def read_detail(self) -> None:
-        card = self.card
+        card, key = self.card, self.detail_key
         self.original.display = False
         if card is None:
             self.status.update("No records match the filter.")
@@ -195,10 +208,10 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
             detail = await type(self).handler_for(type(card))(self, card)
         except (DeferredRead, RelationViolationError, RouteChangedError, ToolRefusedError,
                 UnreadableHistory, WorkBranchError) as error:
-            if self.is_attached and self.card == card:
+            if self.is_attached and self.detail_key == key:
                 self.status.update(f"Original details unavailable: {error}")
             return
-        if not self.is_attached or self.card != card:
+        if not self.is_attached or self.detail_key != key:
             return
         entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosedValue.of(detail))
         for view in self.original.query_children(DeclaredDisclosure):

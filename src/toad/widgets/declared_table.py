@@ -60,16 +60,17 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         keys = {entity: self.entity_keys.get(entity, RowKey()) for entity in entities}
         selected = keys.get(self.preferred_entity(), selected)
         incoming = {keys[entity]: record for entity, record in entities.items()}
+        available = self.size.width - self.scrollbar_size_vertical
+        layout = self.source.layout(available - self.cell_padding * 2 * len(self.source.columns))
+        widths = layout.widths(max(1, available - self.cell_padding * 2 * len(layout.columns)))
+        self.show_header = layout.show_header
         rows = []
-        for record, texts in zip(incoming.values(), self.source.texts):
+        for record, texts in zip(incoming.values(), layout.texts):
             colour = self.app.colours.colour(self.row_tone(record))
             style = Style(background=colour, foreground=colour.get_contrast_text())
             rows.append(tuple(Content(text).stylize(style) for text in texts))
-        available = max(len(self.source.columns), self.size.width - self.scrollbar_size_vertical
-                        - self.cell_padding * 2 * len(self.source.columns))
-        widths = self.source.widths(available)
         columns_changed = tuple((column.key.value, column.width) for column in self.ordered_columns) != tuple(
-            (column.name, width) for column, width in zip(self.source.columns, widths)
+            (column.name, width) for column, width in zip(layout.columns, widths)
         )
         same_rows = (tuple(row.key for row in self.ordered_rows) == tuple(incoming)
                      and tuple(tuple(self.get_row(key)) for key in incoming) == tuple(rows))
@@ -81,7 +82,7 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         with self.prevent(DataTable.RowHighlighted):
             self.clear(columns=columns_changed)
             if columns_changed:
-                for column, width in zip(self.source.columns, widths):
+                for column, width in zip(layout.columns, widths):
                     self.add_column(column.label, key=column.name, width=width)
             for key, cells in zip(incoming, rows):
                 self.add_row(*cells, key=key, height=None)
