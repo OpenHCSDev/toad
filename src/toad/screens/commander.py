@@ -204,7 +204,7 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
     def present(self, hud: CommanderHud) -> None:
         self.hud = hud
         self.heading.update(f"Commander {hud.commander.name}")
-        self.status.update("\n".join(hud.header()))
+        self.status.update("\n".join(hud.header))
         self.footer.update("\n".join(
             line for row in hud.rows() for line in self.row_text.lines(row)
         ))

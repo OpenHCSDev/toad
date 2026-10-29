@@ -67,7 +67,7 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         # refusal must stay in the disclosure while observation keeps working.
         await ui.until_shows("Original details unavailable:")
         assert str(view.heading.render()) == "Commander claude-code"
-        assert str(view.status.render()) == '\n'.join(view.hud.header())
+        assert str(view.status.render()) == '\n'.join(view.hud.header)
         retained_frame = frame.read_bytes()
         services = ServicePassStore.at(workspace.comms.root)
         services.failed('CommanderHeartbeat', KeyError('retained-ui failure'))
