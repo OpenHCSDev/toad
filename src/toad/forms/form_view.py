@@ -17,7 +17,7 @@ from textual.layouts.stream import StreamLayout
 from rich.style import Style
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour
 
-from toad.forms.declared_views import DeclaredField, DeclaredViews
+from toad.forms.declared_views import DeclaredField, DeclaredViews, UnionMembers, declarations
 from toad.forms.editors import ValueEditor
 from toad.forms.field_path import FieldPath
 from toad.widget_view import AUTO, FocusWithinView, WidgetView
@@ -75,7 +75,9 @@ class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
         for path, parameter in ParameterFormService().parameters_for_state(state, parent):
             if included is None or path in included:
                 field = DeclaredField(state, path)
-                views.append(FieldView.showing(type(parameter).__mro__)(field, included))
+                views.append(FieldView.showing((
+                    *declarations(field.annotation), *type(parameter).__mro__,
+                ))(field, included))
         return views
 
     def values(self) -> Iterator[ValueView]:
@@ -90,7 +92,7 @@ class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
 class ValueView(FieldView):
     """A field with one value: its label, its help and the editor for its kind."""
 
-    shows = (ParameterInfo,)
+    shows = (ParameterInfo, UnionMembers)
 
     CHANGED_MARK = " ●"
 
