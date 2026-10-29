@@ -13,11 +13,12 @@ from toad.widgets.message_divider import MessageRowDivider
 from agent_comms.ui_model.message_category import OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.linked_rows import MessageRowBlock
+from toad.widgets.message_row_owner import MessageRowOwner
 from toad.notification_status import CheckedNotifications, NotificationStatus
 from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessageClaim
 
 
-class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
+class OutgoingMessage(MessageRowOwner, MessageRowBlock, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     def __init__(self, publication: PublishedSentMessage, *, row: MessageRow, binding, request, show_header: bool = True):
@@ -26,7 +27,7 @@ class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, Cat
         self.message_row = row
         self.binding = binding
         self.request = request
-        self.show_header = show_header
+        self.message_dividers = (MessageRowDivider(row, clock=LiveMessageClock()),) if show_header else ()
 
     @property
     def commit_claim(self):
@@ -37,7 +38,7 @@ class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, Cat
         return self.publication.message.source
 
     def notification_targets(self):
-        return (self,) if self.show_header and self.display else ()
+        return (self,) if self.message_dividers and self.display else ()
 
     @property
     def notification_references(self):
@@ -57,11 +58,10 @@ class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, Cat
 
     def compose(self) -> ComposeResult:
         message = self.publication.message
-        if self.show_header:
-            yield MessageRowDivider(self.message_row, clock=LiveMessageClock())
+        yield from self.message_dividers
         yield AgentResponse(message.text,
                             delivery=ResponseDelivery.from_route(self.message_row.route),
                             show_divider=False,
                             clock=LiveMessageClock())
-        if self.show_header:
+        if self.message_dividers:
             yield MessageNotifications()

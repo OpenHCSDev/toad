@@ -18,7 +18,7 @@ from ui_theme.effects import NEW_MESSAGE, Mix
 from toad.block_content import BlockContent
 from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.frame_presentation import Animated
-from toad.line_blocks import Divider, LineBlock
+from toad.line_blocks import Divider, Gap, LineBlock
 from toad.message_rows import LiveMessageClock, MessageClock, MessageRow
 from toad.widgets.committed_presentation import CommitParticipant
 from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
@@ -30,10 +30,10 @@ from toad.widgets.transcript_lines import (
 )
 
 
-class SingleLineBlock(LinkedRows, BlockContent, Widget):
+class LineBlockRow(LinkedRows, Widget):
     """One semantic line block, drawn exactly as transcript history draws it."""
 
-    DEFAULT_CSS = "SingleLineBlock { width: 1fr; height: 1; }"
+    DEFAULT_CSS = "LineBlockRow { width: 1fr; height: 1; }"
 
     def __init__(self, block: LineBlock) -> None:
         super().__init__()
@@ -62,12 +62,36 @@ class SingleLineBlock(LinkedRows, BlockContent, Widget):
             self._lines = theme, self._drawn(theme, width)
         return self.on_background(self._lines[1].strips_at(self._link_place)[0], paint, y)
 
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        return selection.extract(self.block.selection_text), "\n"
-
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         return 1
+
+
+class SingleLineBlock(BlockContent, LineBlockRow):
+    """A line block in the conversation: navigable and selectable like any block."""
+
+    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+        return selection.extract(self.block.selection_text), "\n"
+
+
+class StickyHeader(LineBlockRow):
+    """The header of the message under the window's top row, pinned there while its own row
+    is scrolled above, so the reader of a long message still sees who sent it to whom, and when.
+
+    It is the message's own header block drawn the same way; it keeps no copy of the message.
+    """
+
+    DEFAULT_CSS = "StickyHeader { display: none; overlay: screen; dock: top; layer: float; }"
+    ALLOW_SELECT = False
+
+    def __init__(self) -> None:
+        super().__init__(Gap())
+
+    def pin(self, headers: tuple[Divider, ...]) -> None:
+        """Draw the one header the window's top row needs, or none."""
+        for header in headers:
+            self.update_block(header)
+        self.display = bool(headers)
 
 
 class MessageDivider(Animated[Mix], SingleLineBlock):
@@ -75,6 +99,8 @@ class MessageDivider(Animated[Mix], SingleLineBlock):
 
     A message that has just arrived fades in from the accent colour.
     """
+
+    block: Divider
 
     DEFAULT_CSS = """
     MessageDivider {

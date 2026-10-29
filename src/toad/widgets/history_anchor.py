@@ -11,6 +11,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING
 from weakref import WeakSet
 
+from metaclass_registry.mro_dispatch import handles
 from textual import events
 from textual.binding import ModeBinding
 from textual.widgets.text_area import VimMode
@@ -19,8 +20,10 @@ from textual.containers import VerticalScroll
 from textual.geometry import Size
 from textual.widget import Widget
 
+from toad.core.projection import MroProjection
 from toad.transcript_state import LatestViewportRequest
 from toad.widget_view import WorkspaceHosted
+from toad.widgets.message_row_owner import MessageRowOwner
 from toad.widgets.presentation_window import (
     NEWER_END,
     OLDER_END,
@@ -29,6 +32,7 @@ from toad.widgets.presentation_window import (
 )
 
 if TYPE_CHECKING:
+    from toad.line_blocks import Divider
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
@@ -567,7 +571,7 @@ class HistoryChange:
         await self.layout_ready.wait()
 
 
-class HistoryWindow(NativeMethodKeys, WorkspaceHosted, VerticalScroll):
+class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]], VerticalScroll):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
@@ -682,6 +686,31 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, VerticalScroll):
             return row
         raise LookupError(f"{widget!r} is not placed in {self!r}'s layout; "
                           "a reader position's widgets must be visible or declared geometry targets")
+
+    @handles(Widget)
+    def native_message_rows(self, widget: Widget) -> tuple[MessageRowOwner, ...]:
+        """A native widget supplies no live message unless it declares that capability."""
+        return ()
+
+    @handles(MessageRowOwner)
+    def live_message_row(self, message: MessageRowOwner) -> tuple[MessageRowOwner, ...]:
+        return (message,)
+
+    def top_message_header(self) -> tuple[Divider, ...]:
+        """The header of the message drawn on the window's top row, when that header is scrolled above it."""
+        y = self.scroll_y
+        for page, first in self.placements(self.drawn_pages()):
+            # A row inside the page's measured lines always has its fragment (as in ReaderPosition.of).
+            if first <= y < first + page.line_count:
+                span = page.fragment_at(int(y - first))
+                return span.fragment.sticky_header(span.index)
+        messages = (message
+                    for widget in self.visible_history_items(self.screen._compositor.published_widgets)
+                    for message in self.project_value(widget))
+        for message, first in self.placements(messages):
+            if first <= y < first + message.outer_size.height:
+                return message.sticky_header(int(y - first))
+        return ()
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""

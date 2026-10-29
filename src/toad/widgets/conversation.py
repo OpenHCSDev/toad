@@ -100,6 +100,7 @@ from toad.widgets.input_delivery import (
     InputDeliveryDetails,
 )
 from toad.widgets.menu import Menu
+from toad.widgets.message_divider import StickyHeader
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.note import Note
@@ -345,9 +346,21 @@ This is a view of your conversation with the agent.
             JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
             id="back-to-bottom-bar",
         )
+        self.sticky_header = StickyHeader()
 
     def compose(self) -> ComposeResult:
+        yield self.sticky_header
         yield self.jump_bar
+
+    def watch_scroll_y(self, old_value: float, new_value: float) -> None:
+        super().watch_scroll_y(old_value, new_value)
+        self.sticky_header.pin(self.top_message_header())
+
+    def prepare_viewport(self) -> None:
+        """Committed geometry can change the top row's message at an unchanged offset
+        (a reflow, a filter, replaced pages, a restored tab); pin from that scene too."""
+        super().prepare_viewport()
+        self.sticky_header.pin(self.top_message_header())
 
     def on_mount(self) -> None:
         super().on_mount()
