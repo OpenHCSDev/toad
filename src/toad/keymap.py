@@ -16,14 +16,13 @@ from objectstate import mark_ui_hidden_config
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import NominalSpelling, NominalText
 from textual.binding import Binding, BindingsMap
-from textual.document._editing import EditorCommand
+from textual.dom import DOMNode
 from textual.keys import KeyInvocation
 from textual.screen import ModalScreen
-from textual.widgets import TextArea
 
 from toad.key_modes import KeyMode
 from toad.setting_declarations import Effect, FamilyChoices
-from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
+from toad.widget_actions import ApplicationAction
 
 
 if TYPE_CHECKING:
@@ -112,14 +111,10 @@ class KeymapCatalog:
             native_mode = mode().binding_mode
             application = tuple(binding for declaration in ApplicationAction.declarations()
                                 for binding in declaration.exclusive_bindings(native_mode))
-            editor = tuple(binding for declaration in EditorCommand.declarations()
-                           for binding in declaration.bindings_for(native_mode))
-            owned = [application, editor]
-            for owner in DeclaredWidgetActions.contexts():
-                defaults = owner.declared_bindings(native_mode)
-                if issubclass(owner, TextArea):
-                    defaults = (*defaults, *(binding for binding in editor
-                                             if binding.id not in {item.id for item in defaults}))
+            owned = [application]
+            for owner in DOMNode.contexts():
+                defaults = (*owner.declared_bindings(native_mode),
+                            *owner.editor_command_bindings(native_mode))
                 if not issubclass(owner, ModalScreen):
                     defaults = (*defaults, *application)
                 owned.append(defaults)

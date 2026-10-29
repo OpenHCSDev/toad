@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Literal, Self
 
 from agent_comms.acp_extension import QueueItem
 
-from rich.cells import cell_len
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
 from textual._activation import PrimaryActivation
@@ -19,9 +18,10 @@ from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.widgets.text_area import EditingMode, VimMode
+from textual.document._editing import LineMotion, VimNormal
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
-from textual.geometry import Size, Spacing
+from textual.geometry import Spacing
 from textual.reactive import Initialize, Required, var
 from textual.strip import Strip
 from textual.style import Style
@@ -42,6 +42,7 @@ from toad.path_complete import PathComplete
 from toad.prompt_actions import PromptAction, SubmitNowAction
 from toad.prompt_cursor import (
     CommandText,
+    HistoryCursor,
     NextHistoryCursor,
     PreviousHistoryCursor,
     PromptCursor,
@@ -275,53 +276,9 @@ See on-screen instructions for details.
         self.apply_keyboard_profile()
         self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
-    def show_editing_mode(self, mode) -> None:
-        # The mode label is painted on the last text row, so a new label can move it.
+    def show_editing_mode(self, mode: EditingMode) -> None:
         if self.is_mounted:
-            self._refresh_size()
-            self.refresh()
-
-    @property
-    def mode_label(self) -> Content:
-        label = self.editing_mode.label
-        styled = Content.styled(f" {label} ", "reverse") if label else Content()
-        # Never wider than the box: at width 0 the label is empty and nothing wraps.
-        return styled.truncate(self.content_size.width)
-
-    @property
-    def text_width(self) -> int:
-        """Columns left for text on the row the mode label shares."""
-        return self.content_size.width - self.mode_label.cell_length
-
-    @property
-    def mode_row_below(self) -> bool:
-        """The last text row reaches the label, so the label takes the next row."""
-        if not self.mode_label.cell_length:
-            return False
-        if not self.text and self.placeholder:
-            rows = Content.from_text(self.placeholder, markup=False).wrap(self.content_size.width)
-            last = rows[-1].cell_length if rows else 0
-        else:
-            sections = self.wrapped_document.get_sections(self.document.line_count - 1)
-            last = cell_len(sections[-1]) if sections else 0
-        # One cell stays free for the cursor resting after the text.
-        return last + 1 > self.text_width
-
-    def _refresh_size(self) -> None:
-        super()._refresh_size()
-        if self.mode_row_below:
-            width, height = self.virtual_size
-            self.virtual_size = Size(width, height + 1)
-
-    def render_line(self, y: int, paint: PaintState) -> Strip:
-        line = super().render_line(y, paint)
-        label = self.mode_label
-        if not label.cell_length or self.scroll_offset.y + y != self.virtual_size.height - 1:
-            return line
-        return Strip.join((
-            line.crop_extend(0, self.text_width, paint.visual_style.rich_style),
-            Strip(label.render_segments(paint.visual_style), label.cell_length),
-        ))
+            self.prompt.editing_mode_label.update(mode.label)
 
     def apply_keyboard_profile(self) -> None:
         self.editing_mode = self.screen.key_mode()
@@ -457,6 +414,10 @@ See on-screen instructions for details.
         if shell:
             self.prompt.shell_mode = False
 
+    def move_line_motion(self, motion: type[LineMotion], mode: VimNormal, count: int) -> None:
+        if not HistoryCursor.move_motion(self, mode, motion):
+            super().move_line_motion(motion, mode, count)
+
     def action_cursor_up(self, select: bool = False):
         PreviousHistoryCursor.move(self, select, super().action_cursor_up)
 
@@ -511,6 +472,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
     Prompt .delivery-controls { display: none; height: 1; padding-left: 1; }
     Prompt.-queue-mode .delivery-controls { display: block; }
     Prompt SendNow { color: $text-secondary; pointer: pointer; }
+    Prompt #editing-mode { dock: right; width: auto; height: 1; padding: 0 1; text-wrap: nowrap; text-style: reverse; }
     """
 
 
@@ -519,6 +481,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
     prompt_container = getters.query_one(PromptContainer)
     prompt_text_area = getters.query_one(PromptTextArea)
     prompt_label = getters.query_one(PromptLabel)
+    editing_mode_label = getters.query_one("#editing-mode", Label)
     current_directory = getters.query_one(CondensedPath)
     path_search = getters.query_one(PathSearch)
     slash_complete = getters.query_one(SlashComplete)
@@ -907,6 +870,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
                 )
         yield from self.compose_info_popups()
         with InfoBar(id="info-container"):
+            yield Label("", id="editing-mode", markup=False)
             yield from self.compose_agent_info()
             yield StatusLine(markup=False).data_bind(status=Prompt.status)
             yield from self.compose_mode_controls()
