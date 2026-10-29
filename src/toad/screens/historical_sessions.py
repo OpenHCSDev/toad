@@ -9,7 +9,9 @@ from pathlib import Path
 from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.ui_model.observation import ReadTranscript, ReadRecordedNotifications
+from agent_comms.notification_reads import RecordedNotificationRead
+from agent_comms.order_tools import TranscriptPageRead
+from agent_comms.ui_model.observation import ReadTranscript
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms.historical_views import HistoricalThread
 from textual import on, work
@@ -29,7 +31,7 @@ class RecordedContents(Contents):
     """The notification subscriber reads the same archive as its history."""
 
     def __init__(self, source: str, **kwargs):
-        self.notification_request = partial(ReadRecordedNotifications, source=source)
+        self.notification_operation = partial(RecordedNotificationRead, source=source)
         super().__init__(**kwargs)
 
 
@@ -121,8 +123,8 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
         access, root = self.app.coordination_access, str(self.comms.root)
 
         async def load(**kwargs):
-            snapshot = await access.transcripts.read(ReadTranscript(
-                root, item.thread.name, historical_source=item.source.key, **kwargs))
+            snapshot = await access.transcripts.read(ReadTranscript(root, TranscriptPageRead(
+                thread=item.thread.name, historical_source=item.source.key, **kwargs)))
             return snapshot.page
 
         try:

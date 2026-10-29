@@ -3,6 +3,8 @@
 import pytest
 from agent_comms.goal_actions import SetGoalAction
 from agent_comms.goal_history import RecordedGoalHistory
+from agent_comms.input_attempt import OwnerQueueInputDeliveryScope
+from agent_comms.ui_model.delivery import ReadDeliveryView
 from support.native import native_session
 
 
@@ -37,3 +39,18 @@ async def test_editing_a_goal_keeps_its_identity_and_refuses_a_stale_edit(worksp
                        for entry in history.history)
         snapshot = await agent.get_goal_snapshot()
         assert snapshot.goal == changed and snapshot.execution.goal_id == changed.id
+
+
+async def test_input_delivery_is_read_from_the_live_native_owner_queue(workspace, native_package):
+    """The owner_queue scope can only come from the live owner; the no-coordination
+    DeliveryView and the unobserved projection never carry it."""
+    async with native_session(workspace) as native:
+        await native.ui.until_agent_ready()
+        controller = native.agent.controller
+        for delivery in (await controller.input_delivery(),
+                         await controller.input_delivery(include_history=True)):
+            assert type(delivery) is ReadDeliveryView
+            overview = delivery.overview
+            assert overview.current_scope is OwnerQueueInputDeliveryScope
+            assert overview.inputs == () and overview.historical_inputs == ()
+            assert overview.historical_count == 0 and overview.dismissed_historical_count == 0

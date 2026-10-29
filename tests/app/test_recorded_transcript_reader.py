@@ -2,15 +2,17 @@
 
 from agent_comms.repo import Checkout
 import json
-from dataclasses import replace
+from dataclasses import fields, replace
 
 import pytest
 
 from agent_comms.acp_extension import TranscriptSnapshotUpdate, decode_updates, encode_updates
 from agent_comms.coordination_errors import HistoricalSourceChanged, StaleRevision
+from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.transcripts import RecordedTranscriptReadIdentity
 from agent_comms.threads import Thread
+from agent_comms.ui_model.observation import NotPublished
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
 from toad.acp.comms_updates import OwnerSnapshotConsumer
@@ -62,3 +64,19 @@ def test_recorded_presentation_does_not_acquire_live_owner(recorded):
     consumer.thread_presentation(replace(presentation, read_identity=identity))
     assert TranscriptSnapshotUpdate.capture(live.transcripts, "reader",
                                             historical_source=source.key).identity == identity
+
+
+def test_known_transcript_requests_carry_the_page_operation_and_keep_root_at_the_envelope(recorded):
+    live, source, _native = recorded
+    scope = KnownTranscript(str(live.root), "reader")
+    cursor = live.transcripts.capture_page_read("reader", historical_source=source.key).read().after
+    snapshot = scope.snapshot_request(before=cursor, historical_source=source.key)
+    assert snapshot.root == str(live.root)
+    assert snapshot.operation == TranscriptPageRead(
+        thread="reader", before=cursor, historical_source=source.key)
+    previous = NotPublished()
+    update = scope.update_request(previous, after=cursor)
+    assert update.root == str(live.root) and update.previous is previous
+    assert update.operation == TranscriptPageRead(thread="reader", after=cursor)
+    # The shared operation never carries the UI's root, request or publication witness.
+    assert not {"root", "request_id", "previous", "identity"} & {f.name for f in fields(TranscriptPageRead)}
