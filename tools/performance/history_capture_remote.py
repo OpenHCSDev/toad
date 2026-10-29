@@ -1,22 +1,103 @@
-"""Root's remote start/cleanup script; copied beside an immutable JSON request.
+"""Root's remote start/cleanup script; copied beside an immutable typed request.
 
 Executed by normal-user sys.remote_exec, never by an author or from a renderer.
 No UI input, provider traffic, snapshot, product repr or heap traversal.
 """
 
+from abc import abstractmethod
 import asyncio
+from dataclasses import dataclass, fields
 import hashlib
+import importlib.machinery
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import sys
 import time
+from typing import ClassVar
+
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldCodec
 
 
 STATUS_LIMIT = 65536
 REGISTRY = '_toad_history_captures'
 METER_SOURCE_LIMIT = 256 << 10
+
+
+@dataclass(frozen=True)
+class CaptureSpec:
+    """One immutable selection for both collectors and their enclosing lifetime.
+
+    Scalar shape/positivity is checked at construction. BoundedCapture remains
+    the owner of physical admission ceilings and exact encoded byte accounting.
+    """
+
+    seconds: float = 25.0
+    frames_max_records: int = 20000
+    calls_max_records: int = 20000
+    frames_max_bytes: int = 3 << 20
+    calls_max_bytes: int = 12 << 20
+
+    attach_timeout: ClassVar[float] = 5.0
+    completion_grace: ClassVar[float] = 3.0
+    cleanup_receipt_timeout: ClassVar[float] = 2.0
+    poll_interval: ClassVar[float] = .25
+    error_bytes: ClassVar[int] = 2048
+    metadata_max_bytes: ClassVar[int] = 1 << 20
+
+    def __post_init__(self):
+        # This is the foreign CLI/JSON scalar boundary, not product dispatch.
+        for item in fields(self):
+            value = getattr(self, item.name)
+            if type(value) is not item.type or not math.isfinite(value) or value <= 0:
+                raise ValueError(f'Invalid positive finite capture scalar: {item.name}')
+
+    @property
+    def observation_budget(self):
+        return self.attach_timeout + self.seconds + self.completion_grace
+
+    @property
+    def cleanup_budget(self):
+        return self.attach_timeout + self.cleanup_receipt_timeout
+
+    @property
+    def controller_budget(self):
+        return self.observation_budget + self.cleanup_budget
+
+
+@dataclass(frozen=True)
+class ProcessIdentity:
+    pid: int
+    boot: str
+    start_ticks: int
+
+
+class CaptureOperation(DeclaredFamily, affix='Capture'):
+    """Each copied request declares which operation its script may execute."""
+
+    @abstractmethod
+    def execute(self, request: 'CaptureRequest', directory: Path): ...
+
+
+@dataclass(frozen=True)
+class CaptureRequest:
+    identity: ProcessIdentity
+    runtime: Path
+    meter: Path
+    meter_sha256: str
+    contract: int
+    token: str
+    capture: CaptureSpec
+    operation: CaptureOperation
+
+
+def error_metadata(error):
+    """Bound exception diagnostics; never serialize a product object or traceback."""
+    detail = str(error).encode('utf-8', errors='replace')[:CaptureSpec.error_bytes]
+    return dict(error=type(error).__name__[:96], detail=detail.decode('utf-8', errors='ignore'))
 
 
 def read_meter_source(path, digest):
@@ -33,8 +114,8 @@ def read_meter_source(path, digest):
 def process_identity(pid=None):
     pid = os.getpid() if pid is None else pid
     stat = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()
-    return dict(pid=pid, boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
-                start_ticks=int(stat[19]))
+    return ProcessIdentity(pid=pid, boot=Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+                           start_ticks=int(stat[19]))
 
 
 def publish(path, value):
@@ -49,27 +130,35 @@ def publish(path, value):
 
 
 def require_identity(request):
-    if process_identity() != request['identity']:
+    if process_identity() != request.identity:
         raise RuntimeError('Capture process birth mismatch')
-    runtime = Path(request['runtime']).resolve(strict=True)
-    if runtime != Path(request['runtime']):
+    runtime = request.runtime.resolve(strict=True)
+    if runtime != request.runtime:
         raise ValueError('Runtime must be an explicit canonical directory')
     return runtime
 
 
 def require_modules(runtime):
-    """Check loaded package provenance, not heap objects or product values.
+    """Read the foreign ModuleSpec's origin or every namespace search location.
 
-    A module filename establishes location, NOT a hash of already-loaded code.
-    The manifest makes that limitation explicit. No product import is needed.
+    Locations establish provenance, NOT hashes of already-loaded code. No
+    package is imported or excused by its spelling at this boundary.
     """
     checked = 0
     for name, module in tuple(sys.modules.items()):
         if name.split('.', 1)[0] not in ('toad', 'textual', 'agent_comms'):
             continue
-        location = getattr(module, '__file__', None)  # foreign Python module boundary
-        if location is None or not Path(location).resolve(strict=True).is_relative_to(runtime):
-            raise RuntimeError('Loaded package is outside approved runtime')
+        spec = getattr(module, '__spec__', None)  # foreign Python module boundary
+        if not isinstance(spec, importlib.machinery.ModuleSpec):
+            raise RuntimeError(f'Loaded package has no ModuleSpec: {name[:160]}')
+        locations = ((spec.origin,) if spec.has_location else
+                     tuple(spec.submodule_search_locations or ()))
+        if not locations:
+            raise RuntimeError(f'Loaded package has no owned locations: {name[:160]}')
+        for location in locations:
+            resolved = Path(location).resolve(strict=True)
+            if not resolved.is_relative_to(runtime):
+                raise RuntimeError(f'Loaded package outside approved runtime: {name[:160]} {str(resolved)[:384]}')
         checked += 1
     if not checked or 'toad.app' not in sys.modules:
         raise RuntimeError('No loaded Toad runtime to observe')
@@ -85,7 +174,7 @@ class RemoteCaptureRun:
         self.timer = None
         self.status = None
 
-    def finish(self, reason, status_path):
+    def finish(self, reason, status_path, **diagnostic):
         if self.status is None:
             if self.timer is not None:
                 self.timer.cancel()
@@ -95,7 +184,7 @@ class RemoteCaptureRun:
                 try:
                     results.append(finish(reason))
                 except BaseException as error:
-                    results.append(dict(cleanup='failed', error=type(error).__name__[:96]))
+                    results.append(dict(cleanup='failed', **error_metadata(error)))
             self.handles.clear()
             self.registry.pop(self.token, None)
             sys.modules.pop(self.module, None)
@@ -105,93 +194,95 @@ class RemoteCaptureRun:
             self.status = dict(status='FINISHED' if successful else 'INCONCLUSIVE',
                                reason=reason, token=self.token, captures=results,
                                attribution='INCONCLUSIVE_UNTIL_PAGE_CORRELATION',
-                               pixels_observed=False)
+                               pixels_observed=False, **diagnostic)
         publish(status_path, self.status)
 
 
-def finish_token(request, status_path):
-    require_identity(request)
-    registry = getattr(sys, REGISTRY, {})
-    entry = registry.get(request['token'])
-    if entry is None:
-        completed = status_path.parent / 'complete.json'
-        if completed.exists():
-            result = json.loads(completed.read_text())
-            if result.get('token') == request['token']:
-                publish(status_path, result)
-                return
-        # Missing token is NOT evidence that an uncertain attach did nothing.
-        publish(status_path, dict(status='CLEANUP_UNCONFIRMED', reason='token-not-present'))
-        return
-    entry.finish('controller-cleanup', status_path)
+@dataclass(frozen=True)
+class CleanupCapture(CaptureOperation):
+    def execute(self, request, directory):
+        status_path = directory / 'cleanup-result.json'
+        require_identity(request)
+        registry = getattr(sys, REGISTRY, {})
+        entry = registry.get(request.token)
+        if entry is None:
+            completed = directory / 'complete.json'
+            if completed.exists():
+                result = json.loads(completed.read_text())
+                if result.get('token') == request.token:
+                    publish(status_path, result)
+                    return
+            # Missing token is NOT evidence that an uncertain attach did nothing.
+            publish(status_path, dict(status='CLEANUP_UNCONFIRMED', reason='token-not-present'))
+            return
+        entry.finish('controller-cleanup', status_path)
 
 
-def start(request, directory):
-    runtime = require_identity(request)
-    loop = asyncio.get_running_loop()  # never set up in a synchronous child
-    checked = require_modules(runtime)
-    meter_path = Path(request['meter']).resolve(strict=True)
-    source = read_meter_source(meter_path, request['meter_sha256'])
-    module_name = '_toad_history_meter_' + request['token']
-    registry = getattr(sys, REGISTRY, None)
-    if registry is None:
-        registry = {}
-        setattr(sys, REGISTRY, registry)
-    if registry:  # no parallel capture and no overwrite of uncertain retained handles
-        raise RuntimeError('An existing history capture still owns handles')
-    spec = importlib.util.spec_from_file_location(module_name, meter_path)
-    meter = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = meter
-    entry = RemoteCaptureRun(request['token'], module_name, registry)
-    registry[request['token']] = entry
-    handles = entry.handles
-    try:
-        # Execute precisely the hash-verified bytes. Never reopen this mutable
-        # path through the loader or accept its cached bytecode instead.
-        exec(compile(source, str(meter_path), 'exec', dont_inherit=True), vars(meter))
-        if meter.BoundedCapture.CONTRACT != request['contract']:
-            raise RuntimeError('UNSUPPORTED_BOUNDED_TRACE')
-        # Validate ALL actual methods/metadata adapters before either collector patches.
-        targets = tuple(meter.CallMetadata.targets)
-        meter._metadata_boundary()  # resolve all nominal metadata declarations before patching
-        for target in targets:
-            meter.MethodTarget(target)
-        checked = require_modules(runtime)  # include any modules target resolution loaded
-        handles.append(meter.install(expected_pid=request['identity']['pid'], seconds=25,
-                                     output=str(directory / 'frames.json'), max_records=20000,
-                                     max_bytes=3 << 20, metadata_only=True))
-        handles.append(meter.trace_calls(expected_pid=request['identity']['pid'], seconds=25,
-                                         output=str(directory / 'calls.json'), targets=targets,
-                                         max_records=20000, max_bytes=12 << 20, metadata_only=True))
+@dataclass(frozen=True)
+class StartCapture(CaptureOperation):
+    def execute(self, request, directory):
+        runtime = require_identity(request)
+        loop = asyncio.get_running_loop()  # never set up in a synchronous child
+        checked = require_modules(runtime)
+        meter_path = request.meter.resolve(strict=True)
+        source = read_meter_source(meter_path, request.meter_sha256)
+        module_name = '_toad_history_meter_' + request.token
+        registry = getattr(sys, REGISTRY, None)
+        if registry is None:
+            registry = {}
+            setattr(sys, REGISTRY, registry)
+        if registry:  # no parallel capture and no overwrite of uncertain retained handles
+            raise RuntimeError('An existing history capture still owns handles')
+        spec = importlib.util.spec_from_file_location(module_name, meter_path)
+        meter = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = meter
+        entry = RemoteCaptureRun(request.token, module_name, registry)
+        registry[request.token] = entry
+        handles = entry.handles
+        capture = request.capture
+        try:
+            # Execute precisely the hash-verified bytes. Never reopen this mutable
+            # path through the loader or accept its cached bytecode instead.
+            exec(compile(source, str(meter_path), 'exec', dont_inherit=True), vars(meter))
+            if meter.BoundedCapture.CONTRACT != request.contract:
+                raise RuntimeError('UNSUPPORTED_BOUNDED_TRACE')
+            # Validate ALL actual methods/metadata adapters before either collector patches.
+            targets = tuple(meter.CallMetadata.targets)
+            meter._metadata_boundary()  # resolve all nominal metadata declarations before patching
+            for target in targets:
+                meter.MethodTarget(target)
+            checked = require_modules(runtime)  # include any modules target resolution loaded
+            handles.append(meter.install(expected_pid=request.identity.pid, seconds=capture.seconds,
+                                         output=str(directory / 'frames.json'), max_records=capture.frames_max_records,
+                                         max_bytes=capture.frames_max_bytes, metadata_only=True))
+            handles.append(meter.trace_calls(expected_pid=request.identity.pid, seconds=capture.seconds,
+                                             output=str(directory / 'calls.json'), targets=targets,
+                                             max_records=capture.calls_max_records,
+                                             max_bytes=capture.calls_max_bytes, metadata_only=True))
 
-        entry.timer = loop.call_later(25, entry.finish, 'duration', directory / 'complete.json')
-        publish(directory / 'entered.json', dict(status='ENTERED', identity=process_identity(),
-                                                modules_checked=checked, runtime=str(runtime),
-                                                meter_sha256=request['meter_sha256'],
-                                                provenance='loaded module locations, not loaded-code hashes',
-                                                started_ns=time.monotonic_ns(), seconds=25,
-                                                source_match='not-required; infer only from observed page spans'))
-    except BaseException:
-        entry.finish('setup-error', directory / 'complete.json')
-        raise
+            entry.timer = loop.call_later(capture.seconds, entry.finish, 'duration', directory / 'complete.json')
+            publish(directory / 'entered.json', dict(status='ENTERED', identity=FieldCodec.encode(process_identity()),
+                                                    modules_checked=checked, runtime=str(runtime),
+                                                    meter_sha256=request.meter_sha256,
+                                                    provenance='loaded module locations, not loaded-code hashes',
+                                                    started_ns=time.monotonic_ns(), capture=FieldCodec.encode(capture),
+                                                    source_match='not-required; infer only from observed page spans'))
+        except BaseException as error:
+            entry.finish('setup-error', directory / 'complete.json', **error_metadata(error))
+            raise
 
 
 def execute():
     script = Path(__file__).resolve()
-    request_path = script.with_suffix('.json')
-    if request_path.stat().st_size > 8192:
-        raise ValueError('Oversize capture request')
-    request = json.loads(request_path.read_text())
     status = script.parent / (script.stem + '-result.json')
     try:
-        if request['operation'] == 'start':
-            start(request, script.parent)
-        elif request['operation'] == 'cleanup':
-            finish_token(request, status)
-        else:
-            raise ValueError('Unsupported remote operation')
+        request_path = script.with_suffix('.json')
+        if request_path.stat().st_size > 8192:
+            raise ValueError('Oversize capture request')
+        request = FieldCodec.decode(CaptureRequest, json.loads(request_path.read_text()))
+        request.operation.execute(request, script.parent)
     except BaseException as error:
-        publish(status, dict(status='FAILED_CLEANUP_UNCONFIRMED', error=type(error).__name__[:96]))
+        publish(status, dict(status='FAILED_CLEANUP_UNCONFIRMED', **error_metadata(error)))
 
 
 # Only the copied execution scripts have their explicit request beside them.
