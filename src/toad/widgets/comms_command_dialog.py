@@ -73,7 +73,7 @@ class PreparedUnion(UnionMembers, MemberDraftFactory[MemberDraft]):
         return self.selection(choice).draft(self, value)
 
     def unchosen(self, member: UnchosenMember) -> MemberDraft:
-        return UnchosenMemberDraft(member.declaration)
+        return UnchosenMemberDraft(member)
 
     def member(self, member: EditorMember, value: object) -> MemberDraft:
         return PreparedMemberDraft(member, value, self.selected(value) is member.declaration)
@@ -105,20 +105,17 @@ class DeclaredDraft:
 
 class PreparedMemberDraft(DeclaredDraft, MemberDraft):
     refusal = MalformedRecord
+    selection: EditorMember
 
     def __init__(self, member: EditorMember, value: object, supplied: bool) -> None:
-        self.member = member
+        self.selection = member
         self.prepare_draft(tuple(
             TargetField.of(entry, member.current(entry, value)) if supplied else TargetField.omitted(entry)
             for entry in member.fields
         ))
 
-    @property
-    def declaration(self) -> object:
-        return self.member.declaration
-
     def complete(self) -> object:
-        return self.member.complete(self.arguments())
+        return self.selection.complete(self.arguments())
 
 
 class CatalogField(ValueEditor, Button):

@@ -451,7 +451,7 @@ class UnionMemberDialog(ModalScreen[None]):
         from toad.forms.form_view import InlineFormView
 
         event.stop()
-        if event.value is self.draft.declaration:
+        if event.value is self.draft.selection.declaration:
             return
         self.apply_button.disabled = True
         self.draft.state.off_resolved_changed(self.changed)
