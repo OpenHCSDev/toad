@@ -168,13 +168,31 @@ def require_modules(runtime):
 class RemoteCaptureRun:
     """The one token's returned handles and group timer, never product objects."""
 
-    def __init__(self, token, module, registry):
+    def __init__(self, token, module, registry, directory):
         self.token, self.module, self.registry = token, module, registry
+        self.completion_path = self.completion_file(directory)
         self.handles = []
         self.timer = None
         self.status = None
 
-    def finish(self, reason, status_path, **diagnostic):
+    @staticmethod
+    def completion_file(directory):
+        return directory / 'complete.json'
+
+    @classmethod
+    def read_completion(cls, directory, token):
+        """Only this run's bounded canonical completion can prove it finished."""
+        path = cls.completion_file(directory)
+        if not path.exists():
+            return None
+        with path.open('rb') as source:
+            raw = source.read(STATUS_LIMIT + 1)
+        if len(raw) > STATUS_LIMIT:
+            raise ValueError('Oversize canonical completion')
+        result = json.loads(raw)
+        return result if result.get('token') == token else None
+
+    def finish(self, reason, **diagnostic):
         if self.status is None:
             if self.timer is not None:
                 self.timer.cancel()
@@ -186,8 +204,6 @@ class RemoteCaptureRun:
                 except BaseException as error:
                     results.append(dict(cleanup='failed', **error_metadata(error)))
             self.handles.clear()
-            self.registry.pop(self.token, None)
-            sys.modules.pop(self.module, None)
             successful = reason != 'setup-error' and all(
                 result.get('cleanup') == 'restored' and not result.get('error')
                 and not result.get('cap_exhausted') for result in results)
@@ -195,27 +211,26 @@ class RemoteCaptureRun:
                                reason=reason, token=self.token, captures=results,
                                attribution='INCONCLUSIVE_UNTIL_PAGE_CORRELATION',
                                pixels_observed=False, **diagnostic)
-        publish(status_path, self.status)
+        # Keep the completed owner reachable if publication fails. A later
+        # distinct cleanup may publish its original status without restoring twice.
+        publish(self.completion_path, self.status)
+        self.registry.pop(self.token, None)
+        sys.modules.pop(self.module, None)
+        return self.status
 
 
 @dataclass(frozen=True)
 class CleanupCapture(CaptureOperation):
     def execute(self, request, directory):
-        status_path = directory / 'cleanup-result.json'
         require_identity(request)
         registry = getattr(sys, REGISTRY, {})
         entry = registry.get(request.token)
-        if entry is None:
-            completed = directory / 'complete.json'
-            if completed.exists():
-                result = json.loads(completed.read_text())
-                if result.get('token') == request.token:
-                    publish(status_path, result)
-                    return
-            # Missing token is NOT evidence that an uncertain attach did nothing.
-            publish(status_path, dict(status='CLEANUP_UNCONFIRMED', reason='token-not-present'))
-            return
-        entry.finish('controller-cleanup', status_path)
+        if entry is not None:
+            return entry.finish('controller-cleanup')
+        if (result := RemoteCaptureRun.read_completion(directory, request.token)) is not None:
+            return result
+        # Missing token is NOT evidence that an uncertain attach did nothing.
+        return dict(status='CLEANUP_UNCONFIRMED', reason='token-not-present')
 
 
 @dataclass(frozen=True)
@@ -236,7 +251,7 @@ class StartCapture(CaptureOperation):
         spec = importlib.util.spec_from_file_location(module_name, meter_path)
         meter = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = meter
-        entry = RemoteCaptureRun(request.token, module_name, registry)
+        entry = RemoteCaptureRun(request.token, module_name, registry, directory)
         registry[request.token] = entry
         handles = entry.handles
         capture = request.capture
@@ -260,7 +275,7 @@ class StartCapture(CaptureOperation):
                                              max_records=capture.calls_max_records,
                                              max_bytes=capture.calls_max_bytes, metadata_only=True))
 
-            entry.timer = loop.call_later(capture.seconds, entry.finish, 'duration', directory / 'complete.json')
+            entry.timer = loop.call_later(capture.seconds, entry.finish, 'duration')
             publish(directory / 'entered.json', dict(status='ENTERED', identity=FieldCodec.encode(process_identity()),
                                                     modules_checked=checked, runtime=str(runtime),
                                                     meter_sha256=request.meter_sha256,
@@ -268,8 +283,7 @@ class StartCapture(CaptureOperation):
                                                     started_ns=time.monotonic_ns(), capture=FieldCodec.encode(capture),
                                                     source_match='not-required; infer only from observed page spans'))
         except BaseException as error:
-            entry.finish('setup-error', directory / 'complete.json', **error_metadata(error))
-            raise
+            return entry.finish('setup-error', **error_metadata(error))
 
 
 def execute():
@@ -280,9 +294,11 @@ def execute():
         if request_path.stat().st_size > 8192:
             raise ValueError('Oversize capture request')
         request = FieldCodec.decode(CaptureRequest, json.loads(request_path.read_text()))
-        request.operation.execute(request, script.parent)
+        result = request.operation.execute(request, script.parent)
     except BaseException as error:
-        publish(status, dict(status='FAILED_CLEANUP_UNCONFIRMED', **error_metadata(error)))
+        result = dict(status='FAILED_CLEANUP_UNCONFIRMED', **error_metadata(error))
+    if result is not None:
+        publish(status, result)
 
 
 # Only the copied execution scripts have their explicit request beside them.

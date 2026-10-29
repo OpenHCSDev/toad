@@ -1,10 +1,14 @@
 # Root-only history/frame observation
 
-This is an observation tool, not a history performance repair. Authors do not run it. Root reviews the exact head, selects the private-process controls below, and only then attaches to the current frontend. No synthetic app, UI input, screenshots, provider calls, saved-history decoding or service operations are involved.
+This is an observation tool, not a history performance repair. Authors do not run it. Root reviews the exact head, selects the private-process controls below, and only then attaches to its explicitly selected copied-bus frontend. No synthetic app, UI input, screenshots, provider calls, saved-history decoding or service operations are involved.
+
+**Xvfb isolates the display, not data.** Root's earlier frontend used the published bus and user XDG paths; merely painting marked human reads. Every future root frontend must use an existing copied bus through `--comms-root` AND separate `XDG_STATE_HOME`, `XDG_CONFIG_HOME` and `XDG_DATA_HOME`. Copy the real saved history, never operate on the original. Neither the observer nor an author may launch, attach or send input against the live root. Preserve original human read markers and XDG files; do not manually restore or rewrite them. An earlier successful collector run is not proof of data isolation.
 
 ## Owners and first split
 
 `frame_meter.BoundedCapture` owns admission, encoded record bytes, weak labels, timers, hook restoration and atomic publication. Both public entrypoints accept `max_records`, `max_bytes`, `metadata_only` and return its idempotent bound `finish` method. `MethodTarget` owns descriptor preservation and inherited-declaration restoration. Metadata adapters register their target at subclass declaration; there is no separate target roster in the launcher.
+
+`history_capture_remote.RemoteCaptureRun` owns completion. Its run directory fixes `complete.json` at construction. Duration, failed setup and explicit controller cleanup all call its one `finish`: restore handles once, preserve the first status, publish that same canonical completion, then retire the in-memory owner. A failed publication leaves the completed owner reachable without restoring hooks twice. `read_completion` owns the bounded file read and matching-token check; operation-specific replies are only views of this completion, never another completion decision.
 
 `history_capture_remote.CaptureSpec` is the one frozen, data-only selection for duration and the frame/call record and byte limits. Its dataclass fields derive the controller's CLI arguments and defaults. `CaptureRequest` carries that same value through FieldCodec into both immutable copied requests; manifest, entered receipt, collectors and group timer consume it rather than restating the limits. `ProcessIdentity` carries PID/boot/start ticks. The nominal `CaptureOperation` members own remote start and cleanup, and derive request-script names; there is no second operation roster or raw request-key reader.
 
@@ -36,7 +40,7 @@ Parent spans are inclusive. Awaited thread CPU includes other work on that threa
 
 ## Root launch and recovery
 
-Use the reviewed `tools/performance/capture_history.py` with the explicit current frontend PID, boot ID, `/proc/PID/stat` start ticks, canonical installed runtime directory and exact approved meter SHA256. The launcher checks the meter AST interface/hash and process birth/mapped runtime before any attach; unsupported contract fails before `sys.remote_exec`.
+Use the reviewed `tools/performance/capture_history.py` with the explicit copied-bus/private-XDG frontend PID, boot ID, `/proc/PID/stat` start ticks, canonical installed runtime directory and exact approved meter SHA256. Root must establish copied-bus and all three XDG paths before any launch or attach; the capture arguments below do not establish that isolation. The launcher checks the meter AST interface/hash and process birth/mapped runtime before any attach; unsupported contract fails before `sys.remote_exec`.
 
 ```
 python tools/performance/capture_history.py start --approved \
@@ -76,7 +80,13 @@ For a separate explicitly authorized recovery after inspection:
 python tools/performance/capture_history.py cleanup --approved --output SAME_RUN_DIRECTORY
 ```
 
-Do not retry a start or kill the frontend. A blocked/uninterruptible target may not execute either the duration timer or remote cleanup. `CLEANUP_UNCONFIRMED` is a real possible result; keeping a recovery script is not proof hooks were restored. A missing token does not prove an uncertain attach had no effect. Read each capture's `cleanup`, failed/superseded hook counts and cap/error fields, not just a group `FINISHED` label.
+The ordinary controller cleanup first reads the matching-token canonical completion, before any process-birth check or attach. If present, it returns that original result without another remote operation, even if the process has since exited. Otherwise it checks birth, makes ONE distinct cleanup attachment and waits only for canonical completion, never a pre-existing `cleanup-result.json`. Remote cleanup likewise returns the active owner's `finish` result, or derives it from matching-token `complete.json`; absent completion stays explicitly unconfirmed. The operation-specific reply uses that returned status and cannot overwrite canonical completion with a later failure.
+
+The actual race exposed by root's invalidated profile calibration was: first cleanup restored 20 hooks but wrote only `cleanup-result.json`; its owner retired without `complete.json`; a second controller cleanup returned the old positive reply before its own remote operation ran; that operation then wrote `token-not-present`. Binding the completion path to RemoteCaptureRun deletes the caller-selected publication path and the controller's stale reply reader. The calibration also had a 49Hz profiler overrun of 48.5s and no speedscope artifact: it is not performance evidence or a meter-algorithm defect.
+
+Do not retry a start or kill the frontend. A blocked/uninterruptible target may not execute either the duration timer or remote cleanup. `CLEANUP_UNCONFIRMED` is a real possible result; keeping a recovery script is not proof hooks were restored. A missing token does not prove an uncertain attach had no effect. Read each capture's `cleanup`, failed/superseded hook counts and cap/error fields in canonical completion, not just a group `FINISHED` label. Preserve every original failed-run directory, request and recovery script; new source is not permission to replace or replay an old recovery protocol.
+
+Root still owes this correction's actual copied-bus/private-XDG qualification: normal duration finish; explicit early cleanup then cleanup again; failed setup then cleanup; scalar/output-bound controls; every hook restored; original human read ledger and XDG files unchanged. No author test, attach or performance completion is claimed.
 
 ## Required private-process controls — UNRUN, root-owned
 
