@@ -15,6 +15,8 @@ from agent_comms.acp_failure import RequestFailure
 from agent_comms.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from toad.input_decision import InputAccepted, InputDecision, ModelSelectionRequired
+
 
 class SelectChoices(MroDispatch):
     """Flatten only the SDK's decoded external flat/group variants."""
@@ -85,6 +87,10 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
 
 class ModelConfigurationSetting(ConfigurationSetting):
     label = "model"
+
+    @property
+    def input_decision(self) -> InputDecision:
+        return ModelSelectionRequired() if self.requires_selection else InputAccepted()
 
     @property
     def requires_selection(self) -> bool:
