@@ -17,6 +17,11 @@ from toad.widgets.sidebar_tree import KeyedRows
 
 
 @dataclass(frozen=True)
+class RootKey:
+    owner: type
+
+
+@dataclass(frozen=True)
 class FieldKey:
     owner: type
     name: str
@@ -32,7 +37,7 @@ class MappingKey:
     key: Hashable
 
 
-type DisclosureKey = FieldKey | ItemKey | MappingKey
+type DisclosureKey = RootKey | FieldKey | ItemKey | MappingKey
 
 
 @dataclass(frozen=True)
@@ -43,7 +48,9 @@ class DisclosedValue:
 
     @classmethod
     def of(cls, value: object) -> DisclosedValue:
-        if is_dataclass(value) and not isinstance(value, type):
+        if isinstance(value, type):
+            return ClassValue(value)
+        if is_dataclass(value):
             return RecordValue(value)
         if isinstance(value, Mapping):
             return MappingValue(value)
@@ -51,14 +58,22 @@ class DisclosedValue:
             return SequenceValue(value)
         return cls(value)
 
-    @property
-    def summary(self) -> str:
-        return str(self.value).partition("\n")[0]
+    def summary(self, width: int) -> str:
+        # Preview work is bounded by the visible label, not the history body's size.
+        return str(self.value)[:width].partition("\n")[0]
 
     def show(self, view: DeclaredDisclosure) -> None:
         view.body.display = True
         view.members.display = False
         view.body.update(str(self.value))
+
+
+@dataclass(frozen=True)
+class ClassValue(DisclosedValue):
+    value: type
+
+    def summary(self, width: int) -> str:
+        return self.value.__name__
 
 
 class StructuredValue(DisclosedValue):
@@ -73,8 +88,7 @@ class StructuredValue(DisclosedValue):
 
 
 class RecordValue(StructuredValue):
-    @property
-    def summary(self) -> str:
+    def summary(self, width: int) -> str:
         return type(self.value).__name__
 
     def children(self) -> tuple[DisclosureEntry, ...]:
@@ -90,10 +104,9 @@ class RecordValue(StructuredValue):
 
 @dataclass(frozen=True)
 class SequenceValue(StructuredValue):
-    value: Sequence
+    value: Sequence[object]
 
-    @property
-    def summary(self) -> str:
+    def summary(self, width: int) -> str:
         return f"{len(self.value)} items"
 
     def children(self) -> tuple[DisclosureEntry, ...]:
@@ -105,10 +118,9 @@ class SequenceValue(StructuredValue):
 
 @dataclass(frozen=True)
 class MappingValue(StructuredValue):
-    value: Mapping
+    value: Mapping[Hashable, object]
 
-    @property
-    def summary(self) -> str:
+    def summary(self, width: int) -> str:
         return f"{len(self.value)} fields"
 
     def children(self) -> tuple[DisclosureEntry, ...]:
@@ -166,8 +178,9 @@ class DeclaredDisclosure(KeyedRows[DisclosureKey], Collapsible):
             del self.pending_entries
 
     def fit_title(self) -> None:
-        title = Content(f"{self.entry.label}: {self.entry.value.summary}")
-        self.title = title.truncate(max(1, self.size.width - 2), ellipsis=True)
+        width = max(1, self.size.width - 2)
+        title = Content(f"{self.entry.label[:width]}: {self.entry.value.summary(width)}")
+        self.title = title.truncate(width, ellipsis=True)
 
     def on_resize(self, event: events.Resize) -> None:
         self.fit_title()

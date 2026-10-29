@@ -27,7 +27,7 @@ from toad.widget_actions import DismissAction
 from toad.app_node import ToadNode
 from toad.widgets.sidebar_tree import KeyedRows
 from toad.widgets.declared_disclosure import (
-    DeclaredDisclosure, DisclosureEntry, DisclosedValue, FieldKey,
+    DeclaredDisclosure, DisclosureEntry, DisclosedValue, RootKey,
 )
 
 
@@ -63,7 +63,7 @@ class CommanderUnitCard(ToadNode, Collapsible):
         self.commander = commander
         self.card = card
         self.summary = DeclaredDisclosure(DisclosureEntry(
-            FieldKey(type(card), "unit"), "Current card", DisclosedValue.of(card),
+            RootKey(type(card)), "Current card", DisclosedValue.of(card),
         ))
         self.detail_status = Static("Open to read original orders and activity.",
                                     markup=False, classes="detail-status")
@@ -103,7 +103,7 @@ class CommanderUnitCard(ToadNode, Collapsible):
         self.fit_title()
         self.set_class(card.needs_hand(), "-needs-hand")
         self.summary.present(DisclosureEntry(
-            FieldKey(type(card), "unit"), "Current card", DisclosedValue.of(card),
+            RootKey(type(card)), "Current card", DisclosedValue.of(card),
         ))
         if changed and self.is_mounted and not self.collapsed:
             self.read_detail()
@@ -145,7 +145,7 @@ class CommanderUnitCard(ToadNode, Collapsible):
         if not self.is_attached or self.collapsed or self.card != card:
             return
         entry = DisclosureEntry(
-            FieldKey(type(detail), "unit"), "Original details", DisclosedValue.of(detail),
+            RootKey(type(detail)), "Original details", DisclosedValue.of(detail),
         )
         for view in self.original_details.query_children(DeclaredDisclosure):
             view.present(entry)
