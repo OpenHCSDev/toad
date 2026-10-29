@@ -62,20 +62,27 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         ]
 
         CommanderFrame.replace_all(workspace.comms.root, (hud,))
+        await ui.until(
+            lambda: bool(rows.query_children(CommanderFrameView))
+            or any(notification.severity == "error" for notification in app._notifications),
+            why="the actual frame mount, or its original application error",
+        )
+        errors = tuple(notification.message for notification in app._notifications
+                       if notification.severity == "error")
+        assert not errors, "\n".join(errors)
         await ui.until_shows("Commander claude-code")
         view = rows.query_one(CommanderFrameView)
         table = view.query_one(CommanderTable)
         await ui.until(lambda: table.row_count == len(units), why="the declared table to receive units")
         assert not notice.display
         last_good = tuple(rows.children)
-        names = tuple(plan.name for plan in FieldCodec.field_plans(CommanderUnit)
-                      if plan.records and not plan.excluded_in("hud"))
-        assert tuple(key.value for key in table.columns) == (
-            *names, *FieldCodec.projections(CommanderUnit, "hud"),
-        )
-        assert [column.label.plain for column in table.ordered_columns] == [
-            "Unit", "State", "Work", "Change", "Next",
-        ]
+        columns = FieldCodec.view_columns(CommanderUnit, "hud")
+        assert table.column_plans is columns
+        assert tuple(key.value for key in table.columns) == tuple(column.name for column in columns)
+        assert tuple(column.label.plain for column in table.ordered_columns) == tuple(
+            column.label for column in columns)
+        assert str(view.group_headings.render()) == "\n".join(
+            f"{section.group.heading()} · {len(section.units)}" for section in hud.groups())
         assert UnitTone.of(Blocked) is ErrorColour
         assert UnitTone.of(Unreadable) is ErrorColour
         assert UnitTone.of(Detached) is WarningColour
@@ -97,7 +104,8 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         assert table.selected_key == moving
         retained_row = table.rows[moving]
         assert str(view.heading.render()) == "Commander claude-code"
-        assert str(view.status.render()).startswith(str(hud.load))
+        assert str(view.status.render()).startswith(
+            f"LOAD {hud.load.total:.0f} · REVIEW UP {hud.load.timers_up} · UNJUDGED {hud.load.unjudged}")
         assert hud.usage.line() in str(view.footer.render())
         assert "forks: fork-hud" in str(view.footer.render())
         await pilot.resize_terminal(80, 40)
@@ -123,7 +131,7 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         assert table.rows[moving] is retained_row
         assert table.selected.strikes == 2
         assert tuple(card.unit for card in table.records.values()) == tuple(
-            card.unit for card in repaired.units
+            card.unit for section in repaired.groups() for card in section.units
         )
         view.filter.value = "hud-worker-moving"
         await ui.until(lambda: table.row_count == 1, why="the cell-text filter")

@@ -12,7 +12,8 @@ from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRe
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
 from agent_comms.ui_model.unit_state import (
-    AwaitingApplicationRun, Blocked, Idle, Moving, NeedsCommanderAttention, UnitState, Unreadable,
+    Blocked, HudGroup, IdleGroup, InProgressGroup, ReadyToTestGroup,
+    UnitState, Unreadable, UrgentGroup,
 )
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -20,6 +21,7 @@ from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical, VerticalGroup, VerticalScroll
 from textual.content import Content
+from textual.style import Style
 from textual.widgets import Button, Checkbox, Collapsible, DataTable, Input, Static
 from ui_theme.scheme import (
     AccentColour, ErrorColour, ForegroundMutedColour, SuccessColour, ThemeColour, WarningColour,
@@ -56,12 +58,17 @@ class UnitTone(MroDispatch):
     """Core's nominal state family supplies the row's tone through its MRO."""
 
     @classmethod
-    def of(cls, state: type[UnitState]) -> type[ThemeColour]:
+    def of(cls, state: type[UnitState | HudGroup]) -> type[ThemeColour]:
         return cls.handler_for(state)(state)
 
-    @handles(NeedsCommanderAttention)
+    @handles(UnitState)
     @staticmethod
-    def attention(state: type[NeedsCommanderAttention]) -> type[ThemeColour]:
+    def state(state: type[UnitState]) -> type[ThemeColour]:
+        return UnitTone.of(state.hud_group)
+
+    @handles(UrgentGroup)
+    @staticmethod
+    def attention(group: type[UrgentGroup]) -> type[ThemeColour]:
         return WarningColour
 
     @handles(Blocked, Unreadable)
@@ -69,19 +76,19 @@ class UnitTone(MroDispatch):
     def blocked(state: type[UnitState]) -> type[ThemeColour]:
         return ErrorColour
 
-    @handles(AwaitingApplicationRun)
+    @handles(ReadyToTestGroup)
     @staticmethod
-    def application(state: type[AwaitingApplicationRun]) -> type[ThemeColour]:
+    def application(group: type[ReadyToTestGroup]) -> type[ThemeColour]:
         return AccentColour
 
-    @handles(Moving)
+    @handles(InProgressGroup)
     @staticmethod
-    def moving(state: type[Moving]) -> type[ThemeColour]:
+    def moving(group: type[InProgressGroup]) -> type[ThemeColour]:
         return SuccessColour
 
-    @handles(Idle, UnitState)
+    @handles(IdleGroup)
     @staticmethod
-    def idle(state: type[UnitState]) -> type[ThemeColour]:
+    def idle(group: type[IdleGroup]) -> type[ThemeColour]:
         return ForegroundMutedColour
 
 
@@ -109,6 +116,7 @@ class CommanderFrameView(ToadNode, VerticalGroup):
         self.hud = hud
         self.heading = Static("", markup=False, classes="hud-commander")
         self.status = Static("", markup=False, classes="hud-load")
+        self.group_headings = Static("", markup=False, classes="hud-groups")
         self.table = CommanderTable()
         self.filter = Input(placeholder="Filter units, state, work or changes")
         self.needs_hand = Checkbox("Needs hand")
@@ -123,6 +131,7 @@ class CommanderFrameView(ToadNode, VerticalGroup):
     def compose(self) -> ComposeResult:
         yield self.heading
         yield self.status
+        yield self.group_headings
         yield self.board
         with HorizontalGroup(classes="hud-filter"):
             yield self.filter
@@ -147,7 +156,7 @@ class CommanderFrameView(ToadNode, VerticalGroup):
         text = self.filter.value.casefold()
         selected = self.table.selected
         self.table.present(
-            card for card in self.hud.units
+            card for section in self.hud.groups() for card in section.units
             if (not self.needs_hand.value or card.needs_hand())
             and text in "\n".join(cell.plain for cell in self.table.cells(card)).casefold()
         )
@@ -203,15 +212,20 @@ class CommanderFrameView(ToadNode, VerticalGroup):
     def present(self, hud: CommanderHud) -> None:
         self.hud = hud
         self.heading.update(f"Commander {hud.commander.name}")
-        self.status.update("\n".join((
-            str(hud.load), *hud.heartbeat.aged_line("heartbeat", time.time()),
-        )))
+        now = time.time()
+        self.status.update(hud.status_strip(now))
+        self.group_headings.update(Content("\n").join(
+            Content(f"{section.group.heading()} · {len(section.units)}").stylize(
+                Style(foreground=self.app.colours.colour(UnitTone.of(section.group))))
+            for section in hud.groups()
+        ))
         self.footer.update("\n".join(
             line for row in hud.rows() for line in self.row_text.lines(row)
         ))
-        self.board.title = Content(f"{len(hud.board)} standing requests and alerts")
-        self.board_text.update("\n".join(BoardRow(entry).line() for entry in hud.board))
-        self.board.display = bool(hud.board)
+        count = sum(len(packet.handled) for packet in hud.packets)
+        self.board.title = Content(f"{count} original alarms")
+        self.board_text.update("\n".join(hud.alarm_detail(hud.packets, now)))
+        self.board.display = bool(count)
         if self.is_mounted:
             self.filter_units()
 
@@ -232,7 +246,7 @@ class CommanderPage(
     CommanderPage CommanderFrameView { height: auto; }
     CommanderPage Static { height: auto; }
     CommanderPage .hud-commander { text-style: bold reverse; }
-    CommanderPage .hud-load { text-style: bold; }
+    CommanderPage .hud-load, CommanderPage .hud-groups { text-style: bold; }
     CommanderPage #commander-close { dock: bottom; margin: 0; }
     """
 

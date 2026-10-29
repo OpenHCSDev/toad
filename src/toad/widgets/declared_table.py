@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
-from typing import get_type_hints
+from collections.abc import Iterable
 
-from agent_comms.field_codec import FieldCodec
-from formbridge.forms.ui_utils import FieldDisplayText
-from python_introspect import declared_field_label
+from agent_comms.field_codec import FieldCodec, ViewColumn
 from rich.cells import cell_len
 from textual.style import Style
 from textual._two_way_dict import TwoWayDict
@@ -33,29 +30,20 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(cursor_type="row", show_row_labels=False, **kwargs)
-        plans = tuple(plan for plan in FieldCodec.field_plans(self.record)
-                      if plan.records and not plan.excluded_in(self.view))
-        projections = FieldCodec.projections(self.record, self.view)
-        self.readers: dict[str, Callable[[R], object]] = {
-            plan.name: plan.current for plan in plans
-        } | {name: member.fget for name, member in projections.items()}
-        self.annotations = {plan.name: plan.annotation for plan in plans} | {
-            name: get_type_hints(member.fget, include_extras=True)["return"]
-            for name, member in projections.items()
-        }
+        self.column_plans = FieldCodec.view_columns(self.record, self.view)
         self.records: dict[RowKey, R] = {}
         self.entity_keys: dict[DisclosureKey, RowKey] = {}
 
     def on_mount(self) -> None:
-        for name, annotation in self.annotations.items():
-            label = declared_field_label(annotation) or FieldDisplayText.from_field_name(name).display_name
-            self.add_column(label, key=name)
+        for column in self.column_plans:
+            self.add_column(column.label, key=column.name)
+        self.present(tuple(self.records.values()))
 
     def row_tone(self, record: R) -> type[ThemeColour]:
         return ForegroundColour
 
     def cells(self, record: R) -> tuple[Content, ...]:
-        return tuple(DisclosedValue.of(read(record)).cell() for read in self.readers.values())
+        return tuple(DisclosedValue.of(column.current(record)).cell() for column in self.column_plans)
 
     @property
     def selected_key(self) -> RowKey | None:
@@ -72,18 +60,23 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         entities = {DisclosedValue.of(record).sequence_key(): record for record in records}
         keys = {entity: self.entity_keys.get(entity, RowKey()) for entity in entities}
         incoming = {keys[entity]: record for entity, record in entities.items()}
+        # A parent's Mount can supply the frame before this table's Mount creates columns.
+        # Keep the supplied records; the table's own column owner admits their native rows.
+        if not self.columns:
+            self.records, self.entity_keys = incoming, keys
+            return
         for key in self.records.keys() - incoming.keys():
             self.remove_row(key)
         changed: set[RowKey] = set()
         for key, record in incoming.items():
-            if key in self.records and self.records[key] == record:
+            if key in self.rows and self.records[key] == record:
                 continue
             colour = self.app.colours.colour(self.row_tone(record))
             style = Style(background=colour, foreground=colour.get_contrast_text())
             cells = tuple(cell.stylize(style) for cell in self.cells(record))
             if key in self.rows:
-                for name, cell in zip(self.readers, cells):
-                    self.update_cell(key, name, cell)
+                for column, cell in zip(self.column_plans, cells):
+                    self.update_cell(key, column.name, cell)
             else:
                 self.add_row(*cells, key=key, height=None)
             changed.add(key)
@@ -113,15 +106,10 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
             weights.append(max(1, column.content_width))
         available = max(len(columns), self.size.width - self.scrollbar_size_vertical
                         - self.cell_padding * 2 * len(columns))
-        flexible = available - len(columns)
-        total = sum(weights)
-        used = 0
-        widths = []
-        for weight in weights:
-            end = used + weight
-            widths.append(1 + flexible * end // total - flexible * used // total)
-            used = end
-        if widths == [column.width for column in columns] and not any(
+        minimums = tuple(plan.minimum_width(cell.plain for cell in self.get_column(column.key))
+                         for plan, column in zip(self.column_plans, columns))
+        widths = ViewColumn.fit_widths(weights, available, minimums)
+        if widths == tuple(column.width for column in columns) and not any(
             column.auto_width for column in columns
         ):
             return
