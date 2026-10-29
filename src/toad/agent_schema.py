@@ -35,8 +35,6 @@ class CodingAgentKind(AgentKind):
 
 
 class AgentKindText(TextRepresentation):
-    schema_description = "toad.agent_schema.AgentKindText text"
-
     @classmethod
     def from_text(cls, value):
         return AgentKind.member_named(value)
