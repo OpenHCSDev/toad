@@ -23,6 +23,7 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
+from toad.input_decision import InputDecision, NoLiveAgent
 from toad.widgets.prompt import Prompt
 
 if TYPE_CHECKING:
@@ -114,7 +115,8 @@ class UnboundSubmissionStart(SubmissionStart):
 
     async def prepare(self):
         self.owner.view.delivery_refused(
-            "No connected owner; your input has not been submitted", self.submission.source_text
+            NoLiveAgent(self.owner.view.agent_binding.session_disposition).message,
+            self.submission.source_text,
         )
 
 
@@ -276,12 +278,8 @@ class ConversationSubmissions:
         return execution
 
     @property
-    def ready(self):
-        return self.view.operational_sources.input_ready(self.view)
-
-    @property
-    def unavailable_reason(self):
-        return self.view.operational_sources.unavailable_reason(self.view)
+    def input_decision(self) -> InputDecision:
+        return self.view.operational_sources.input_decision(self.view)
 
     async def submit(self, event: UserInputSubmitted):
         text = event.body.strip()

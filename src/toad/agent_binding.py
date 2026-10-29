@@ -14,6 +14,7 @@ from textual.content import Content
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import UnopenedSessionDisposition
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
+from toad.input_decision import InputDecision, NoLiveAgent
 from toad.widgets.committed_presentation import CommitSource
 
 if TYPE_CHECKING:
@@ -36,6 +37,10 @@ if TYPE_CHECKING:
 class AgentConnection(ABC):
     configuration: AgentConfiguration
     presentation: AgentPresentation
+
+    @property
+    @abstractmethod
+    def readiness_decision(self) -> InputDecision: ...
 
     @property
     def committed_native_output(self) -> CommitSource:
@@ -95,6 +100,10 @@ class NoAgentConnection(AgentConnection):
     available_modes = ()
     current_mode = None
     session_disposition = UnopenedSessionDisposition()
+
+    @property
+    def readiness_decision(self) -> NoLiveAgent:
+        return NoLiveAgent(self.session_disposition)
 
     @cached_property
     def presentation(self):

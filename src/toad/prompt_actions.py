@@ -51,7 +51,7 @@ class SubmitNowAction(SubmitInputAction):
     title = "Send now"
 
     def available(self, editor):
-        return (super().available(editor) and editor.agent_ready and editor.agent_busy
+        return (super().available(editor) and editor.prompt.agent_ready and editor.agent_busy
                 and editor.prompt.agent_binding.presentation.queue_supported)
 
     async def apply(self, editor: PromptTextArea) -> None:

@@ -87,7 +87,7 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
         if self.id is not None:
             if event.button == 2:
                 event.stop()
-                self.app.session_navigation.events.publish(session_requests.SessionArchive(self.id))
+                self.app.session_navigation.events.publish(session_requests.SessionClose(self.id))
             elif event.button == 1:
                 # A second message-pump hop lets the old screen's pending
                 # full-layout timer run ahead of the user's tab click. The
@@ -123,7 +123,7 @@ class SessionTabClose(WidgetView, ActivationKeys, widgets.Static, can_focus=True
         return self.close_tab
 
     def close_tab(self) -> None:
-        self.app.session_navigation.events.publish(session_requests.SessionArchive(self.mode_name))
+        self.app.session_navigation.events.publish(session_requests.SessionClose(self.mode_name))
 
 # The selected tab's underline travels from the cells it marked to the new ones.
 TAB_SLIDE = Transition(Amount, 0.0, 1.0, duration=0.18, frames_per_second=60)
