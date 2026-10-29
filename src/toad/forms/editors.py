@@ -14,7 +14,7 @@ from python_introspect import (
     resolve_annotated,
 )
 from python_introspect.validation import validate_annotation_value
-from textual import containers
+from textual import containers, on, work
 from textual.app import ComposeResult
 from textual.message import Message
 from textual.reactive import var
@@ -23,10 +23,11 @@ from textual.geometry import Spacing
 from textual.css.scalar import Scalar
 from textual.color import TRANSPARENT
 from textual.widget import Widget
-from textual.widgets import Checkbox, Input, Select, TextArea
+from textual.screen import ModalScreen
+from textual.widgets import Button, Checkbox, Input, Select, Static, TextArea
 from textual.widgets._input import InputType
 
-from toad.forms.declared_views import DeclaredField, DeclaredViews, declarations
+from toad.forms.declared_views import DeclaredField, DeclaredViews, UnionMembers, declarations
 from toad.forms.kinds import Multiline
 from toad.forms.presentation import FormCheckbox, FormInput, FormSelectCurrent, FramedControl
 from toad.widget_view import WidgetView
@@ -347,3 +348,138 @@ class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
             self.holds_value.value = held
         self.member.display = held
         self.member.paint()
+
+
+class UnionEditor(ValueEditor, Button):
+    """Choose and edit a declared member without changing the parent until Apply."""
+
+    shows = (UnionMembers,)
+
+    @property
+    def members(self) -> UnionMembers:
+        metadata = self.field.metadata(UnionMembers)
+        assert metadata is not None
+        return metadata
+
+    def bind_control(self) -> None:
+        self.paint()
+
+    def value_text(self, value: object) -> str:
+        selected = self.members.selected(value)
+        return 'Choose a member…' if selected is None else self.members.label(selected)
+
+    def paint(self) -> None:
+        self.label = self.value_text(self.field.value)
+
+    def commit(self) -> None:
+        self.send(self.field.value)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        event.stop()
+        self.choose()
+
+    @work(exclusive=True)
+    async def choose(self) -> None:
+        dialog = self.members.dialog(self.field)
+        try:
+            await self.app.push_screen_wait(dialog)
+        finally:
+            if dialog.is_attached:
+                dialog.dismiss()
+        if self.is_attached:
+            self.paint()
+
+
+class UnionMemberDialog(ModalScreen[None]):
+    """One pending member transaction; its ObjectState never holds a valid parent."""
+
+    DEFAULT_CSS = '''
+    UnionMemberDialog { align: center middle; background: $background 40%; }
+    UnionMemberDialog #union-box { width: 68; max-width: 95%; height: 90%;
+        background: $surface; border: solid $primary; padding: 1 2; }
+    UnionMemberDialog #union-body { height: 1fr; }
+    UnionMemberDialog #union-buttons { height: 3; }
+    '''
+
+    def __init__(self, field: DeclaredField, members: UnionMembers) -> None:
+        from toad.forms.form_view import InlineFormView
+
+        super().__init__()
+        self.field, self.members = field, members
+        choice = members.selected(field.value)
+        self.selector = Select(
+            [(members.label(member), member) for member in members.choices()],
+            value=Select.NULL if choice is None else choice,
+            allow_blank=choice is None, id='union-member',
+        )
+        self.draft = members.draft(choice, field.value)
+        self.form = InlineFormView(self.draft.state)
+        self.body = containers.VerticalScroll(self.form, id='union-body')
+        self.feedback = Static('', markup=False)
+        self.apply_button = Button('Apply', id='union-apply', variant='primary', disabled=True)
+
+    def compose(self) -> ComposeResult:
+        with containers.Vertical(id='union-box'):
+            yield Static(self.field.label, markup=False)
+            yield self.selector
+            yield self.body
+            yield self.feedback
+            with containers.Horizontal(id='union-buttons'):
+                yield self.apply_button
+                yield Button('Cancel', id='union-cancel')
+
+    def on_mount(self) -> None:
+        self.draft.state.on_resolved_changed(self.changed)
+        self.validate_draft()
+
+    def on_unmount(self) -> None:
+        self.draft.state.off_resolved_changed(self.changed)
+
+    def changed(self, paths: set[str]) -> None:
+        self.validate_draft()
+
+    def validate_draft(self) -> None:
+        try:
+            self.draft.complete()
+        except self.draft.refusal as error:
+            self.feedback.update(str(error))
+            self.apply_button.disabled = True
+        else:
+            self.feedback.update('')
+            self.apply_button.disabled = False
+
+    @on(Select.Changed, '#union-member')
+    async def select_member(self, event: Select.Changed) -> None:
+        from toad.forms.form_view import InlineFormView
+
+        event.stop()
+        if event.value is Select.NULL or event.value is self.draft.declaration:
+            return
+        self.apply_button.disabled = True
+        self.draft.state.off_resolved_changed(self.changed)
+        await self.form.remove()
+        if not self.is_attached:
+            return
+        self.draft = self.members.draft(event.value, self.field.value)
+        self.form = InlineFormView(self.draft.state)
+        await self.body.mount(self.form)
+        self.draft.state.on_resolved_changed(self.changed)
+        self.validate_draft()
+
+    @on(Button.Pressed, '#union-apply')
+    def apply_member(self, event: Button.Pressed) -> None:
+        event.stop()
+        self.form.finish()
+        try:
+            value = self.draft.complete()
+        except self.draft.refusal as error:
+            self.feedback.update(str(error))
+            self.apply_button.disabled = True
+            return
+        self.field.edit(value)
+        self.dismiss()
+
+    @on(Button.Pressed, '#union-cancel')
+    def cancel_member(self, event: Button.Pressed) -> None:
+        event.stop()
+        self.dismiss()

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, make_dataclass
 from inspect import cleandoc
 from typing import Annotated, ClassVar, Optional, Self, TypeVar, get_args, get_origin
 
@@ -17,10 +18,62 @@ from python_introspect import (
     resolve_optional,
 )
 from python_introspect.validation import validate_annotation_value
+from textual.screen import ModalScreen
 
 from toad.forms.kinds import Placeholder
 
 Metadata = TypeVar("Metadata")
+
+
+class MemberDraft(ABC):
+    """Uncommitted member inputs, never a second committed union value."""
+
+    state: ObjectState
+    refusal: ClassVar[type[Exception]]
+
+    @property
+    @abstractmethod
+    def declaration(self) -> object: ...
+
+    @abstractmethod
+    def complete(self) -> object: ...
+
+
+class MemberNotChosen(ValueError):
+    """The transaction has not selected an original declaration yet."""
+
+
+class UnchosenMemberDraft(MemberDraft):
+    refusal = MemberNotChosen
+
+    def __init__(self) -> None:
+        self.state = ObjectState(make_dataclass('UnchosenMember', [])())
+
+    @property
+    def declaration(self) -> object:
+        return None
+
+    def complete(self) -> object:
+        raise MemberNotChosen('Choose a member')
+
+
+class UnionMembers(ABC):
+    """Read-only declared choices; concrete integrations own input construction."""
+
+    @abstractmethod
+    def choices(self) -> tuple[object, ...]: ...
+
+    @abstractmethod
+    def label(self, choice: object) -> str: ...
+
+    @abstractmethod
+    def selected(self, value: object) -> object: ...
+
+    @abstractmethod
+    def draft(self, choice: object, value: object) -> MemberDraft: ...
+
+    @abstractmethod
+    def dialog(self, field: DeclaredField) -> ModalScreen[None]: ...
 
 
 class DeclaredViews:
