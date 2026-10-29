@@ -794,6 +794,7 @@ class NeovimEditing(VimMode):
             self._changes.append(NeovimBufferTransfer(change.lines))
         else:
             self._changes.append(change)
+        self._publish(NeovimSnapshot(self.snapshot.state))
 
     def accept_display(self, display: NeovimDisplay) -> None:
         self._publish(NeovimSnapshot(self.snapshot.state.update(display), display.completed))
@@ -809,7 +810,7 @@ class NeovimEditing(VimMode):
         self._update_queued = False
         if editor.editing_mode is not self or not self._receiver.owns(editor):
             return
-        if self.snapshot is self._rendered and not force:
+        if self.snapshot is self._rendered and not force and not self._changes:
             return
         previous, current = self._rendered.state, self.snapshot.state
         changes, self._changes = self._changes, []
