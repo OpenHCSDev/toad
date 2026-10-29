@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import singledispatchmethod
 from typing import Hashable
 
 from agent_comms.disclosure_text import (
-    ClassText, DisclosureText, FamilyText, IdentifiedRecordText,
+    ClassText, DisclosureText, IdentifiedRecordText,
     MappingText, RecordText, SequenceText,
 )
 from agent_comms.field_codec import FieldCodec
-from python_introspect import declared_field_label
 from textual import events
 from textual.containers import VerticalGroup
 from textual.content import Content
@@ -58,10 +58,6 @@ class DisclosedValue:
 
     source: DisclosureText
 
-    @property
-    def value(self) -> object:
-        return self.source.value
-
     @classmethod
     def of(cls, value: object) -> DisclosedValue:
         return cls.from_text(DisclosureText.of(value))
@@ -76,11 +72,6 @@ class DisclosedValue:
     @classmethod
     def _class(cls, source: ClassText) -> DisclosedValue:
         return ClassValue(source)
-
-    @from_text.register(FamilyText)
-    @classmethod
-    def _family_class(cls, source: FamilyText) -> DisclosedValue:
-        return FamilyClassValue(source)
 
     @from_text.register(RecordText)
     @classmethod
@@ -106,18 +97,18 @@ class DisclosedValue:
         return AnonymousKey()
 
     def identity_part(self) -> object:
-        return self.value
+        return self.source.value
 
     def summary(self, width: int | None = None) -> str:
         return self.source.summary(width)
 
     def cell(self) -> Content:
-        return Content(str(self.value))
+        return Content(str(self.source.value))
 
     def show(self, view: DeclaredDisclosure) -> None:
         view.body.display = True
         view.members.display = False
-        view.body.update(str(self.value))
+        view.body.update(str(self.source.value))
 
 
 @dataclass(frozen=True)
@@ -133,17 +124,12 @@ class ClassValue(DisclosedValue):
         view.body.update(self.summary())
 
 
-@dataclass(frozen=True)
-class FamilyClassValue(ClassValue):
-    source: FamilyText
-
-
-class StructuredValue(DisclosedValue):
+class StructuredValue(DisclosedValue, ABC):
     def cell(self) -> Content:
         return Content(self.summary())
 
-    def children(self) -> tuple[DisclosureEntry, ...]:
-        raise NotImplementedError
+    @abstractmethod
+    def children(self) -> tuple[DisclosureEntry, ...]: ...
 
     def show(self, view: DeclaredDisclosure) -> None:
         view.body.display = False
@@ -156,11 +142,11 @@ class RecordValue(StructuredValue):
     def children(self) -> tuple[DisclosureEntry, ...]:
         return tuple(
             DisclosureEntry(
-                FieldKey(type(self.value), plan.name),
-                declared_field_label(plan.annotation) or plan.key.replace("_", " ").capitalize(),
-                DisclosedValue.of(plan.current(self.value)),
+                FieldKey(type(self.source.value), plan.name),
+                plan.label,
+                DisclosedValue.of(plan.current(self.source.value)),
             )
-            for plan in FieldCodec.field_plans(type(self.value)) if plan.records
+            for plan in FieldCodec.field_plans(type(self.source.value)) if plan.records
         )
 
 
@@ -169,8 +155,8 @@ class IdentifiedRecordValue(RecordValue):
     source: IdentifiedRecordText
 
     def sequence_key(self) -> EntityKey:
-        return EntityKey(type(self.value), tuple(
-            DisclosedValue.of(plan.current(self.value)).identity_part()
+        return EntityKey(type(self.source.value), tuple(
+            DisclosedValue.of(plan.current(self.source.value)).identity_part()
             for plan in self.source.identity
         ))
 

@@ -1,49 +1,43 @@
-"""A keyed table whose columns and cells come from record declarations."""
+"""Native keyed rows over Core's declaration-owned table presentation."""
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-
-from agent_comms.field_codec import FieldCodec, ViewColumn
-from rich.cells import cell_len
-from textual.style import Style
-from textual._two_way_dict import TwoWayDict
+from agent_comms.disclosure_text import ViewTable
 from textual.content import Content
+from textual.style import Style
 from textual.widgets import DataTable
 from textual.widgets._data_table import RowKey
 from ui_theme.scheme import ForegroundColour, ThemeColour
 
 from toad.widget_actions import MovesCursor, OpensSelected
-from toad.widgets.declared_disclosure import DisclosureKey, DisclosedValue
+from toad.widgets.declared_disclosure import AnonymousKey, DisclosureKey, DisclosedValue
 
 
 class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
-    """Keep native rows and cursor identity while the source replaces its records."""
+    """Core owns columns and measurement; DataTable owns rows, geometry and repaint."""
 
-    record: type[R]
-    view: str
-
-    def __init_subclass__(cls, *, record: type[R], view: str, **kwargs) -> None:
-        cls.record = record
-        cls.view = view
-        super().__init_subclass__(**kwargs)
-
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, source: ViewTable[R], **kwargs) -> None:
         super().__init__(cursor_type="row", show_row_labels=False, **kwargs)
-        self.column_plans = FieldCodec.view_columns(self.record, self.view)
+        self.source = source
         self.records: dict[RowKey, R] = {}
         self.entity_keys: dict[DisclosureKey, RowKey] = {}
+        self.call_after_refresh(self.reconcile_source)
 
-    def on_mount(self) -> None:
-        for column in self.column_plans:
-            self.add_column(column.label, key=column.name)
-        self.present(tuple(self.records.values()))
+    def present(self, source: ViewTable[R]) -> None:
+        self.source = source
+        # The native message pump admits this after mount/layout, including updates
+        # supplied by a parent's Mount before its child's Mount has run.
+        self.call_after_refresh(self.reconcile_source)
 
     def row_tone(self, record: R) -> type[ThemeColour]:
         return ForegroundColour
 
-    def cells(self, record: R) -> tuple[Content, ...]:
-        return tuple(DisclosedValue.of(column.current(record)).cell() for column in self.column_plans)
+    def selection_changed(self) -> None:
+        """A table with a detail pane owns what highlighting a native row does."""
+
+    def preferred_entity(self) -> DisclosureKey:
+        """A shared reader may retain its selection when a record moves between tables."""
+        return AnonymousKey()
 
     @property
     def selected_key(self) -> RowKey | None:
@@ -53,84 +47,62 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
 
     @property
     def selected(self) -> R | None:
-        return self.records.get(self.selected_key)
+        key = self.selected_key
+        return None if key is None else self.records.get(key)
 
-    def present(self, records: Iterable[R]) -> None:
-        selected = self.selected_key
-        entities = {DisclosedValue.of(record).sequence_key(): record for record in records}
+    def reconcile_source(self) -> None:
+        selected, previous = self.selected_key, self.selected
+        offset = self.scroll_offset
+        entities = {DisclosedValue.of(record).sequence_key(): record
+                    for record in self.source.records}
+        if len(entities) != len(self.source.records):
+            raise ValueError("A declared table requires unique record identities")
         keys = {entity: self.entity_keys.get(entity, RowKey()) for entity in entities}
+        selected = keys.get(self.preferred_entity(), selected)
         incoming = {keys[entity]: record for entity, record in entities.items()}
-        # A parent's Mount can supply the frame before this table's Mount creates columns.
-        # Keep the supplied records; the table's own column owner admits their native rows.
-        if not self.columns:
-            self.records, self.entity_keys = incoming, keys
-            return
-        for key in self.records.keys() - incoming.keys():
-            self.remove_row(key)
-        changed: set[RowKey] = set()
-        for key, record in incoming.items():
-            if key in self.rows and self.records[key] == record:
-                continue
+        rows = []
+        for record, cells in zip(incoming.values(), self.source.cells):
             colour = self.app.colours.colour(self.row_tone(record))
             style = Style(background=colour, foreground=colour.get_contrast_text())
-            cells = tuple(cell.stylize(style) for cell in self.cells(record))
-            if key in self.rows:
-                for column, cell in zip(self.column_plans, cells):
-                    self.update_cell(key, column.name, cell)
-            else:
+            rows.append(tuple(DisclosedValue.from_text(cell).cell().stylize(style) for cell in cells))
+        available = max(len(self.source.columns), self.size.width - self.scrollbar_size_vertical
+                        - self.cell_padding * 2 * len(self.source.columns))
+        widths = self.source.widths(available)
+        columns_changed = tuple((column.key.value, column.width) for column in self.ordered_columns) != tuple(
+            (column.name, width) for column, width in zip(self.source.columns, widths)
+        )
+        same_rows = (tuple(row.key for row in self.ordered_rows) == tuple(incoming)
+                     and tuple(tuple(self.get_row(key)) for key in incoming) == tuple(rows))
+        self.records, self.entity_keys = incoming, keys
+        if same_rows and not columns_changed:
+            return
+        # Public clear/add owns auto-height remeasurement and native row ordering.
+        # Retain row keys, cursor and scroll rather than mutating Textual's caches.
+        with self.prevent(DataTable.RowHighlighted):
+            self.clear(columns=columns_changed)
+            if columns_changed:
+                for column, width in zip(self.source.columns, widths):
+                    self.add_column(column.label, key=column.name, width=width)
+            for key, cells in zip(incoming, rows):
                 self.add_row(*cells, key=key, height=None)
-            changed.add(key)
-        self.records = incoming
-        self.entity_keys = keys
-        # DataTable has no public keyed reorder. Its own sort() uses this same index;
-        # retain Core's supplied order without inventing another state sort in the UI.
-        self._row_locations = TwoWayDict({key: index for index, key in enumerate(incoming)})
-        self._update_count += 1
-        self.reflow_rows(changed)
-        self.fit_columns()
-        if selected in incoming:
-            self.move_cursor(row=self.get_row_index(selected), animate=False)
-        elif incoming:
-            self.move_cursor(row=min(self.cursor_row, len(incoming) - 1), animate=False)
-
-    def fit_columns(self) -> None:
-        columns = self.ordered_columns
-        if not columns:
-            return
-        weights = []
-        for column in columns:
-            weight = max((cell_len(line)
-                          for cell in self.get_column(column.key)
-                          for line in cell.plain.splitlines()), default=0)
-            column.content_width = max(cell_len(column.label.plain), weight)
-            weights.append(max(1, column.content_width))
-        available = max(len(columns), self.size.width - self.scrollbar_size_vertical
-                        - self.cell_padding * 2 * len(columns))
-        minimums = tuple(plan.minimum_width(cell.plain for cell in self.get_column(column.key))
-                         for plan, column in zip(self.column_plans, columns))
-        widths = ViewColumn.fit_widths(weights, available, minimums)
-        if widths == tuple(column.width for column in columns) and not any(
-            column.auto_width for column in columns
-        ):
-            return
-        for column, width in zip(columns, widths):
-            column.auto_width = False
-            column.width = width
-        self.reflow_rows(self.rows)
-
-    def reflow_rows(self, keys: Iterable[RowKey]) -> None:
-        # Re-measure native auto-height only after cell text or column widths change.
-        # A height-only Resize must not zero the rows again: that feeds its own layout.
-        for key in keys:
-            self.rows[key].height = 0
-            self._new_rows.add(key)
-        self._require_update_dimensions = True
-        self._update_count += 1
-        self._clear_caches()
-        self.refresh(layout=True)
+            if selected in incoming:
+                self.move_cursor(row=self.get_row_index(selected), animate=False, scroll=False)
+            elif incoming:
+                self.move_cursor(row=min(self.cursor_row, len(incoming) - 1), animate=False, scroll=False)
+            self.scroll_to(x=offset.x, y=offset.y, animate=False, force=True)
+        if not same_rows and self.selected != previous:
+            self.selection_changed()
 
     def on_resize(self) -> None:
-        self.fit_columns()
+        self.call_after_refresh(self.reconcile_source)
+
+    def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        event.stop()
+        self.selection_changed()
+
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        event.stop()
+        self.selection_changed()
 
     def cursor_up(self) -> None:
         DataTable.action_cursor_up(self)
