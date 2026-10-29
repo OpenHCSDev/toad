@@ -5,26 +5,75 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from contextlib import AsyncExitStack
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from importlib.resources import files
 from itertools import count
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 from weakref import ref
 
 import msgpack
 from agent_comms.child_process import AttachedChild, join_retirement
+from agent_comms.declared_family import DeclaredFamily, UnknownFamilyMember
+from agent_comms.field_codec import FieldCodec, MalformedRecord
 from textual.binding import Binding
 from textual.cursor_shape import BlinkingBar, CursorShape, SteadyBlock
 from textual.document._document import Location, Selection
 from textual.document._editing import EditingFailure, EditingMode, VimMode
+from textual.document._edit import Edit, InsertionPoint
+from textual.events import Key
 from textual.keys import key_to_character
 from textual.message import Message
+from textual.widgets import TextArea
 
-if TYPE_CHECKING:
-    from textual.document._edit import Edit
-    from textual.events import Key
-    from textual.widgets import TextArea
+
+class NeovimKey(DeclaredFamily, affix="Key"):
+    """Only vocabulary differences are declared; native Neovim key names pass through."""
+
+    notation: ClassVar[str]
+
+    @classmethod
+    def spelling(cls, name: str) -> str:
+        try:
+            return cls.member_named(name).notation
+        except UnknownFamilyMember:
+            return name
+
+
+class EnterKey(NeovimKey):
+    notation = "CR"
+
+
+class EscapeKey(NeovimKey):
+    notation = "Esc"
+
+
+class BackspaceKey(NeovimKey):
+    notation = "BS"
+
+
+class DeleteKey(NeovimKey):
+    notation = "Del"
+
+
+class CtrlKey(NeovimKey):
+    notation = "C"
+
+
+class ShiftKey(NeovimKey):
+    notation = "S"
+
+
+class AltKey(NeovimKey):
+    notation = "A"
+
+
+class MetaKey(NeovimKey):
+    notation = "M"
+
+
+class SuperKey(NeovimKey):
+    notation = "D"
 
 
 class NeovimWireFailure(EditingFailure):
@@ -32,21 +81,59 @@ class NeovimWireFailure(EditingFailure):
 
 
 @dataclass(frozen=True)
-class NeovimState:
-    """Mode and blocking come only from the actual fast nvim_get_mode response."""
+class NeovimMode:
+    """The actual nvim_get_mode answer, decoded once inside a display update."""
 
-    code: str
+    mode: str
     blocking: bool
-    cursor: tuple[int, int]
+
+
+@dataclass(frozen=True)
+class NeovimRegion:
+    start: Location
+    end: Location
+
+    def selection(self) -> Selection:
+        return Selection(self.start, self.end)
+
+
+@dataclass(frozen=True)
+class NeovimDisplay:
+    mode: NeovimMode
+    cursor: Location
     command_line: str
+    regions: tuple[NeovimRegion, ...]
+    selected: str
+    completed: int
+
+    def state(self) -> NeovimState:
+        member = next((member for member in NeovimState.members_with(NeovimState)
+                       if member.recognizes(self.mode.mode)), NeovimState)
+        return member(self.mode.blocking, self.cursor, self.command_line,
+                      tuple(region.selection() for region in self.regions), self.selected)
+
+
+@dataclass(frozen=True)
+class NeovimState(DeclaredFamily, affix="State"):
+    """Behaviour derives from a mode declaration, never from the last input key."""
+
+    blocking: bool = True
+    cursor: Location = (0, 0)
+    command_line: str = ""
     regions: tuple[Selection, ...] = ()
     region_text: str = ""
-    mode_name: ClassVar[str] = ""
+    mode_codes: ClassVar[tuple[str, ...]] = ()
+    mode_prefixes: ClassVar[tuple[str, ...]] = ()
+    mode_name: ClassVar[str] = "NEOVIM"
     cursor_shape: ClassVar[CursorShape] = SteadyBlock()
+
+    @classmethod
+    def recognizes(cls, code: str) -> bool:
+        return code in cls.mode_codes or any(code.startswith(prefix) for prefix in cls.mode_prefixes)
 
     @property
     def label(self) -> str:
-        return (self.mode_name or self.code.upper()) + (" (PENDING)" if self.blocking else "")
+        return self.mode_name + (" (PENDING)" if self.blocking else "")
 
     @property
     def accepts_text(self) -> bool:
@@ -60,67 +147,26 @@ class NeovimState:
     def allows_history_navigation(self) -> bool:
         return False
 
-    @classmethod
-    def decode(cls, value: object, lines: tuple[str, ...], previous: NeovimState) -> NeovimState:
-        if not isinstance(value, list) or len(value) != 4:
-            raise NeovimWireFailure("Invalid Neovim editor state")
-        cursor, command_line, regions, selected = value
-        if not isinstance(command_line, str):
-            raise NeovimWireFailure("Invalid Neovim command line")
+    @property
+    def transferable(self) -> bool:
+        return False
 
-        def location(position: object) -> tuple[int, int]:
-            if not (isinstance(position, list) and len(position) == 2
-                    and all(isinstance(n, int) for n in position)):
-                raise NeovimWireFailure("Invalid Neovim byte position")
-            row, column = position
-            row = max(0, min(row - 1, len(lines) - 1))
-            try:
-                return row, len(lines[row].encode("utf-8")[:max(0, column - 1)].decode("utf-8"))
-            except UnicodeDecodeError as error:
-                raise NeovimWireFailure("Neovim supplied a split UTF-8 position") from error
+    def update(self, display: NeovimDisplay) -> NeovimState:
+        return display.state()
 
-        if not isinstance(regions, list) or not isinstance(selected, str):
-            raise NeovimWireFailure("Invalid Neovim selected region")
-        selections: list[Selection] = []
-        for region in regions:
-            if not (isinstance(region, list) and len(region) == 2
-                    and all(isinstance(pos, list) and len(pos) == 4 for pos in region)):
-                raise NeovimWireFailure("Invalid Neovim region position")
-            start, end = region
-            first, final = location(start[1:3]), location(end[1:3])
-            selections.append(Selection(first, (final[0], final[1] + 1)))
-        return cls.from_fields(previous.code, previous.blocking, location(cursor), command_line,
-                               tuple(selections), selected)
+    def fail(self, error: EditingFailure) -> NeovimState:
+        return FailedState(cursor=self.cursor, command_line=self.command_line,
+                           regions=self.regions, region_text=self.region_text, error=error)
 
-    @classmethod
-    def fast_mode(cls, value: object, previous: NeovimState) -> NeovimState:
-        if not isinstance(value, dict) or not isinstance(value.get("mode"), str) or not isinstance(value.get("blocking"), bool):
-            raise NeovimWireFailure("Invalid Neovim fast mode response")
-        return cls.from_fields(value["mode"], value["blocking"], previous.cursor,
-                               previous.command_line, previous.regions, previous.region_text)
+    @property
+    def binding_answers(self) -> tuple[bool, bool, bool]:
+        return self.accepts_text, self.allows_application_commands, self.allows_history_navigation
 
-    @classmethod
-    def from_fields(cls, code: str, blocking: bool, cursor: tuple[int, int],
-                    command_line: str, regions: tuple[Selection, ...], selected: str) -> NeovimState:
-        args = code, blocking, cursor, command_line, regions, selected
-        # The external Neovim taxonomy is decoded here, never from input keys.
-        if code.startswith("i"):
-            return InsertState(*args)
-        if code == "n":
-            return NormalState(*args)
-        if code.startswith("no"):
-            return OperatorState(*args)
-        if code == "c":
-            return CommandLineState(*args)
-        if code in ("v", "s"):
-            return VisualState(*args)
-        if code in ("V", "S"):
-            return LineVisualState(*args)
-        if code in ("\x16", "\x13"):
-            return BlockVisualState(*args)
-        if code.startswith("R"):
-            return ReplaceState(*args)
-        return cls(*args)
+    def raise_failure(self) -> None:
+        pass
+
+    def close_error(self) -> EditingFailure:
+        return EditingFailure("Neovim editor closed; input was not replayed")
 
     def selection(self) -> Selection:
         return Selection.cursor(self.cursor)
@@ -132,7 +178,13 @@ class NeovimState:
         return ""
 
 
-class TextEntryState(NeovimState):
+class TransferableState(NeovimState, declared_name=None):
+    @property
+    def transferable(self) -> bool:
+        return not self.blocking
+
+
+class TextEntryState(TransferableState, declared_name=None):
     cursor_shape = BlinkingBar()
 
     @property
@@ -140,39 +192,74 @@ class TextEntryState(NeovimState):
         return not self.blocking
 
 
-class HistoryState(NeovimState):
+class HistoryState(NeovimState, declared_name=None):
     @property
     def allows_history_navigation(self) -> bool:
         return not self.blocking
 
 
-class ApplicationCommandState(NeovimState):
+class ApplicationCommandState(TransferableState, declared_name=None):
     @property
     def allows_application_commands(self) -> bool:
         return not self.blocking
 
 
+class StartingState(NeovimState):
+    mode_name = "NEOVIM STARTING"
+
+    @property
+    def label(self) -> str:
+        return self.mode_name
+
+
+@dataclass(frozen=True)
+class FailedState(NeovimState):
+    error: EditingFailure = field(kw_only=True)
+
+    def update(self, display: NeovimDisplay) -> NeovimState:
+        return self
+
+    def fail(self, error: EditingFailure) -> NeovimState:
+        return self
+
+    @property
+    def label(self) -> str:
+        return "NEOVIM FAILED — draft preserved"
+
+    def raise_failure(self) -> None:
+        raise self.error
+
+    def close_error(self) -> EditingFailure:
+        return self.error
+
+
 class InsertState(TextEntryState, HistoryState):
+    mode_prefixes = ("i",)
     mode_name = "INSERT"
 
 
 class NormalState(ApplicationCommandState, HistoryState):
+    mode_codes = ("n",)
     mode_name = "NORMAL"
 
 
 class ReplaceState(TextEntryState):
+    mode_prefixes = ("R",)
     mode_name = "REPLACE"
 
 
 class OperatorState(NeovimState):
+    mode_prefixes = ("no",)
     mode_name = "OPERATOR"
 
 
 class CommandLineState(NeovimState):
+    mode_codes = ("c",)
     mode_name = "COMMAND"
 
 
-class VisualState(NeovimState):
+class VisualState(TransferableState):
+    mode_codes = ("v", "s")
     mode_name = "VISUAL"
 
     def selection(self) -> Selection:
@@ -189,15 +276,49 @@ class VisualState(NeovimState):
 
 
 class LineVisualState(VisualState):
+    mode_codes = ("V", "S")
     mode_name = "VISUAL LINE"
 
 
 class BlockVisualState(VisualState):
+    mode_codes = ("\x16", "\x13")
     mode_name = "VISUAL BLOCK"
 
 
+class DetachedReceiver:
+    """An engine may outlive its widget; detachment is not child failure."""
+
+    def require(self) -> TextArea:
+        raise EditingFailure("Neovim requires an attached editor")
+
+    def owns(self, editor: TextArea) -> bool:
+        return False
+
+    def visit(self, action: Callable[[TextArea], object]) -> None:
+        pass
+
+
+class AttachedReceiver(DetachedReceiver):
+    def __init__(self, editor: TextArea) -> None:
+        self._editor = ref(editor)
+
+    def require(self) -> TextArea:
+        editor = self._editor()
+        if editor is None:
+            return super().require()
+        return editor
+
+    def owns(self, editor: TextArea) -> bool:
+        return self._editor() is editor
+
+    def visit(self, action: Callable[[TextArea], object]) -> None:
+        editor = self._editor()
+        if editor is not None and editor.is_attached:
+            action(editor)
+
+
 class NeovimRequest(ABC):
-    """One admitted wire request and its eventual reply; sending never waits for it."""
+    """One admitted request; the writer never waits for its eventual reply."""
 
     _identities = count(1)
 
@@ -215,8 +336,6 @@ class NeovimRequest(ABC):
     def arguments(self) -> Sequence[object]: ...
 
     async def send(self, child: AttachedChild) -> None:
-        # Dispatch starts before transport backpressure. A fast reply can arrive
-        # during drain(), and must not leave its waiter behind an unset receipt.
         self.dispatched.set_result(None)
         try:
             await child.write(msgpack.packb(
@@ -237,18 +356,11 @@ class NeovimRequest(ABC):
 
 class NeovimFastRequest(NeovimRequest):
     async def wait_reply(self) -> object:
-        # Only a fast API reply has a wire timeout. A deferred operation may
-        # legitimately await an operand; that is not a broken child.
         try:
             async with asyncio.timeout(5):
                 return await super().wait_reply()
         except TimeoutError as error:
             raise NeovimWireFailure(f"Neovim fast request {self.method} did not reply") from error
-
-
-class NeovimModeRequest(NeovimFastRequest):
-    method = "nvim_get_mode"
-    arguments = ()
 
 
 class NeovimCall(NeovimRequest):
@@ -265,21 +377,30 @@ class NeovimCall(NeovimRequest):
         return self._arguments
 
 
-class NeovimInput(NeovimFastRequest):
-    method = "nvim_input"
+class NeovimOperation(NeovimCall):
+    """Programmatic mutation executes on the same engine and invalidates its proof."""
 
-    def __init__(self, keys: str) -> None:
+    def __init__(self, generation: int, method: str, arguments: Sequence[object]) -> None:
+        super().__init__("nvim_exec_lua", ["return ToadEditor.call(...)",
+                                         [generation, method, list(arguments)]])
+
+
+class NeovimInput(NeovimFastRequest):
+    method = "nvim__exec_lua_fast"
+
+    def __init__(self, generation: int, keys: str) -> None:
         super().__init__()
-        self.keys = keys
+        self.generation, self.keys = generation, keys
 
     @property
     def arguments(self) -> Sequence[object]:
-        return (self.keys,)
+        return ("return ToadEditor.input(...)", [self.generation, self.keys])
 
     def resolve(self, value: object) -> None:
-        if not isinstance(value, int) or value != len(self.keys.encode("utf-8")):
+        accepted = FieldCodec.decode(int, value)
+        if accepted != len(self.keys.encode("utf-8")):
             raise NeovimWireFailure("Neovim did not accept the complete key; it was not replayed")
-        super().resolve(value)
+        super().resolve(accepted)
 
 
 class NeovimChange(ABC):
@@ -307,69 +428,94 @@ class NeovimBufferTransfer(NeovimChange):
 
 @dataclass(frozen=True)
 class NeovimSnapshot:
-    owner: NeovimEditing
-    lines: tuple[str, ...]
     state: NeovimState
-    changes: tuple[NeovimChange, ...] = ()
-
-    def apply(self, editor: TextArea) -> None:
-        if (editor.editing_mode is not self.owner or self.owner._receiver() is not editor
-                or not editor.is_attached or self is not self.owner.snapshot
-                or self is self.owner._rendered):
-            return
-        for change in self.changes:
-            change.apply(editor)
-        del self.owner._changes[:len(self.changes)]
-        self.owner._rendered = self
-        editor.apply_engine_selection(Selection.cursor(self.state.cursor))
-        editor._line_cache.clear()
-        editor.record_cursor_width()
-        editor.show_editing_mode(self.owner)
-        editor.refresh_bindings()
-        editor.refresh()
+    completed: int = -1
 
 
 class NeovimUpdated(Message):
-    def __init__(self, snapshot: NeovimSnapshot) -> None:
+    def __init__(self, owner: NeovimEditing) -> None:
         super().__init__()
-        self.snapshot = snapshot
+        self.owner = owner
+
+
+class NeovimNotification(DeclaredFamily, affix="Notification"):
+    method: ClassVar[str]
+
+    @classmethod
+    def selection_key(cls) -> str:
+        return cls.method
+
+    @classmethod
+    @abstractmethod
+    def receive(cls, owner: NeovimEditing, arguments: object) -> None: ...
+
+
+class DisplayNotification(NeovimNotification):
+    method = "toad_editor_state"
+
+    @classmethod
+    def receive(cls, owner: NeovimEditing, arguments: object) -> None:
+        display, = FieldCodec.decode(tuple[NeovimDisplay], arguments)
+        owner.accept_display(display)
+
+
+class LinesNotification(NeovimNotification):
+    method = "toad_editor_lines"
+
+    @classmethod
+    def receive(cls, owner: NeovimEditing, arguments: object) -> None:
+        change, = FieldCodec.decode(tuple[NeovimLineChange], arguments)
+        owner.accept_lines(change)
+
+
+class RedrawNotification(NeovimNotification):
+    """The attached UI drives Neovim, but TextArea paints buffer projections."""
+
+    method = "redraw"
+
+    @classmethod
+    def receive(cls, owner: NeovimEditing, arguments: object) -> None:
+        pass
 
 
 class NeovimEditing(VimMode):
-    """One editor resource, one admission queue; Neovim schedules actual execution."""
+    """One engine, one admission order, completed snapshots only from SafeState."""
 
     initial_keys = ""
 
     def __init__(self) -> None:
-        self._receiver: Callable[[], TextArea | None] = lambda: None
+        self._receiver: DetachedReceiver = DetachedReceiver()
         self._pending: dict[int, NeovimRequest] = {}
         self._outgoing: asyncio.Queue[NeovimRequest] = asyncio.Queue()
-        self._lines: tuple[str, ...] = ("",)
-        self.snapshot = NeovimSnapshot(self, self._lines,
-            NeovimState("NEOVIM STARTING", False, (0, 0), ""))
-        self._failure: EditingFailure | None = None
+        self._generation = 0
+        self.snapshot = NeovimSnapshot(StartingState())
         self._changes: list[NeovimChange] = []
-        self._rendered: NeovimSnapshot | None = None
+        self._rendered = self.snapshot
+        self._update_queued = False
         self._boundaries: list[Binding] = []
 
     @property
     def label(self) -> str:
-        if self._failure is not None:
-            return "NEOVIM FAILED — draft preserved"
         state = self.snapshot.state
         return f"{state.label} {state.command_line}".rstrip()
 
     @property
+    def completed(self) -> bool:
+        return self.snapshot.completed == self._generation and not self._pending
+
+    @property
     def accepts_text(self) -> bool:
-        return self._failure is None and self.snapshot.state.accepts_text
+        return self.completed and self.snapshot.state.accepts_text
 
     @property
     def allows_application_commands(self) -> bool:
-        return self._failure is None and self.snapshot.state.allows_application_commands
+        return self.completed and self.snapshot.state.allows_application_commands
 
     @property
     def allows_history_navigation(self) -> bool:
-        return self._failure is None and self.snapshot.state.allows_history_navigation
+        # The engine's expression mapping calls this boundary while an arrow is
+        # executing. That input cannot already have a SafeState completion.
+        return self.snapshot.state.allows_history_navigation
 
     @property
     def cursor_shape(self) -> CursorShape:
@@ -381,9 +527,7 @@ class NeovimEditing(VimMode):
 
     @cached_property
     def _started(self) -> asyncio.Task[None]:
-        editor = self._receiver()
-        if editor is None:
-            raise RuntimeError("Neovim requires an attached editor")
+        editor = self._receiver.require()
         self._initial_lines = tuple(editor.document.lines)
         self._initial_selection = editor.selection
         self._child_ready: asyncio.Future[AttachedChild] = asyncio.get_running_loop().create_future()
@@ -393,14 +537,11 @@ class NeovimEditing(VimMode):
         return task
 
     def attach(self, editor: TextArea) -> None:
-        previous = self._receiver()
-        self._receiver = ref(editor)
-        if previous is not editor:
-            self._rendered = None
-            self.snapshot = NeovimSnapshot(self, self._lines, self.snapshot.state, tuple(self._changes))
+        changed_receiver = not self._receiver.owns(editor)
+        self._receiver = AttachedReceiver(editor)
         started = self._started
         if started.done() and not started.cancelled() and started.exception() is None:
-            self.snapshot.apply(editor)
+            self.render(editor, force=changed_receiver)
 
     def resume(self, editor: TextArea) -> None:
         pass
@@ -409,16 +550,16 @@ class NeovimEditing(VimMode):
         pass
 
     def capture(self, editor: TextArea) -> NeovimEditing:
-        self._receiver = lambda: None
+        self._receiver = DetachedReceiver()
         return self
 
     async def unmount(self, editor: TextArea) -> None:
-        if self._receiver() is editor:
+        if self._receiver.owns(editor):
             await self.close()
 
     async def close(self) -> None:
         started = self._started
-        self._receiver = lambda: None
+        self._receiver = DetachedReceiver()
         started.cancel()
         self._lifetime.cancel()
         await join_retirement(asyncio.create_task(self._join()))
@@ -451,10 +592,11 @@ class NeovimEditing(VimMode):
                 async with asyncio.TaskGroup() as tasks:
                     tasks.create_task(self._write_admitted())
                     await self._read(child)
-        except* (EditingFailure, OSError, msgpack.UnpackException, UnicodeDecodeError) as errors:
+        except* (EditingFailure, OSError, msgpack.UnpackException,
+                 UnicodeDecodeError, MalformedRecord) as errors:
             self._fail(NeovimWireFailure("; ".join(str(error) for error in errors.exceptions)))
         finally:
-            error = self._failure or EditingFailure("Neovim editor closed; input was not replayed")
+            error = self.snapshot.state.close_error()
             if not self._child_ready.done():
                 self._child_ready.set_exception(error)
             for request in self._pending.values():
@@ -477,19 +619,15 @@ class NeovimEditing(VimMode):
         await self._started
         while True:
             request = await self._outgoing.get()
-            # A deferred edit can need a later operand key. Await only the write,
-            # never its response, before admitting the next request to Neovim.
             await request.send(self._child)
 
     def _register(self, request: NeovimRequest) -> None:
         request.reply.add_done_callback(self._observe_failure)
         request.dispatched.add_done_callback(self._observe_failure)
-        if self._failure is not None:
-            raise self._failure
+        self.snapshot.state.raise_failure()
         self._pending[request.identity] = request
 
     async def _bootstrap(self, request: NeovimRequest) -> object:
-        """Acquisition owns the child until its UI/buffer integration is installed."""
         self._register(request)
         await request.send(self._child)
         return await request.result()
@@ -506,116 +644,123 @@ class NeovimEditing(VimMode):
         result.add_done_callback(self._observe_failure)
         return result
 
+    def _next_generation(self) -> int:
+        self._generation += 1
+        return self._generation
+
     def _call(self, method: str, arguments: Sequence[object]) -> asyncio.Future[object]:
-        return self._admit(NeovimCall(method, arguments))
+        return self._admit(NeovimOperation(self._next_generation(), method, arguments))
 
     def _input(self, keys: str) -> asyncio.Future[object]:
-        return self._admit(NeovimInput(keys))
+        return self._admit(NeovimInput(self._next_generation(), keys))
 
     async def _start(self) -> None:
         await self._child_ready
-        editor = self._receiver()
-        width = max(1, editor.wrap_width) if editor is not None else 80
-        height = max(3, editor.content_size.height + 2) if editor is not None else 24
+        editor = self._receiver.require()
+        width, height = max(1, editor.wrap_width), max(3, editor.content_size.height + 2)
         await self._bootstrap(NeovimCall("nvim_ui_attach", [width, height,
             {"ext_linegrid": True, "ext_cmdline": True, "ext_messages": True}]))
-        self._lines = self._initial_lines
+        initial_lines = self._initial_lines
         undo_levels = await self._bootstrap(NeovimCall("nvim_get_option_value", ["undolevels", {"buf": 0}]))
         await self._bootstrap(NeovimCall("nvim_set_option_value", ["undolevels", -1, {"buf": 0}]))
-        await self._bootstrap(NeovimCall("nvim_buf_set_lines", [0, 0, -1, True, list(self._lines)]))
+        await self._bootstrap(NeovimCall("nvim_buf_set_lines", [0, 0, -1, True, list(initial_lines)]))
         await self._bootstrap(NeovimCall("nvim_set_option_value", ["undolevels", undo_levels, {"buf": 0}]))
         initial_cursor = self._initial_selection.end
         row, column = initial_cursor
         await self._bootstrap(NeovimCall("nvim_win_set_cursor", [0,
-            [row + 1, len(self._lines[row][:column].encode("utf-8"))]]))
+            [row + 1, len(initial_lines[row][:column].encode("utf-8"))]]))
         script = files("toad").joinpath("neovim_editing.lua").read_text()
         mappings: list[list[object]] = []
-        if editor is not None:
-            for key, binding in editor.binding_map(type(self)):
-                for spelling, native in binding.declared_key.input_bindings(key):
-                    index = len(self._boundaries)
-                    self._boundaries.append(binding)
-                    mappings.append([self.input_code(spelling), self.input_code(native), index])
+        for key, binding in editor.binding_map(type(self)):
+            for spelling, native in binding.declared_key.input_bindings(key):
+                index = len(self._boundaries)
+                self._boundaries.append(binding)
+                mappings.append([self.input_code(spelling), self.input_code(native), index])
         await self._bootstrap(NeovimCall("nvim_exec_lua", [script, [mappings]]))
-        if editor is not None:
-            await self._bootstrap(NeovimCall("nvim_set_option_value", ["tabstop", editor.indent_width, {}]))
+        await self._bootstrap(NeovimCall("nvim_set_option_value", ["tabstop", editor.indent_width, {}]))
         if self.initial_keys:
-            await self._bootstrap(NeovimInput(self.initial_keys))
+            await self._bootstrap(NeovimInput(self._next_generation(), self.initial_keys))
             await self._bootstrap(NeovimCall("nvim_exec_lua", ["return ToadEditor.cursor(...)", [initial_cursor]]))
-        raw = await self._bootstrap(NeovimCall("nvim_exec_lua", ["return ToadEditor.state()", []]))
-        self._accept_state(raw)
-        self._accept_mode(await self._bootstrap(NeovimModeRequest()))
 
     async def _receive(self, message: object) -> None:
-        """The only MessagePack-RPC decoder; these tests concern foreign wire data."""
-        if not isinstance(message, list) or not message or not isinstance(message[0], int):
-            raise NeovimWireFailure("Invalid Neovim RPC message")
-        if message[0] == 1 and len(message) == 4:
-            _, identity, error, result = message
-            if not isinstance(identity, int) or identity not in self._pending:
-                raise NeovimWireFailure("Unexpected Neovim RPC response")
-            request = self._pending[identity]
+        """Decode the foreign MessagePack-RPC envelope once at the child boundary."""
+        frame = FieldCodec.decode(tuple[object, ...], message)
+        if not frame:
+            raise NeovimWireFailure("Empty Neovim RPC message")
+        kind = FieldCodec.decode(int, frame[0])
+        if kind == 1:
+            _, identity, error, result = FieldCodec.decode(tuple[int, int, object, object], frame)
+            try:
+                request = self._pending[identity]
+            except KeyError as failure:
+                raise NeovimWireFailure("Unexpected Neovim RPC response") from failure
             if error is None:
                 request.resolve(result)
             else:
                 request.reply.set_exception(NeovimWireFailure(f"Neovim {request.method}: {error}"))
             del self._pending[identity]
-        elif message[0] == 2 and len(message) == 3:
-            _, method, arguments = message
-            if method == "nvim_buf_lines_event":
-                if not isinstance(arguments, list) or len(arguments) != 6:
-                    raise NeovimWireFailure("Invalid Neovim buffer notification")
-                _, tick, first, last, lines, _more = arguments
-                if not (isinstance(first, int) and isinstance(last, int) and isinstance(lines, list)
-                        and all(isinstance(line, str) for line in lines)):
-                    raise NeovimWireFailure("Invalid Neovim line update")
-                if tick is not None:
-                    if last == -1:
-                        self._lines = tuple(lines)
-                        self._changes.append(NeovimBufferTransfer(self._lines))
-                    else:
-                        self._lines = self._lines[:first] + tuple(lines) + self._lines[last:]
-                        self._changes.append(NeovimLineChange(first, last, tuple(lines)))
-            elif method == "toad_editor_state":
-                self._accept_state(arguments)
-                self._refresh_mode()
-        elif message[0] == 0 and len(message) == 4:
-            _, identity, method, arguments = message
-            if (method != "toad_cursor_boundary" or not isinstance(arguments, list)
-                    or len(arguments) != 1 or not isinstance(arguments[0], int)
-                    or not 0 <= arguments[0] < len(self._boundaries)):
+        elif kind == 2:
+            _, method, arguments = FieldCodec.decode(tuple[int, str, object], frame)
+            try:
+                notification = NeovimNotification.member_selected(method)
+            except UnknownFamilyMember as error:
+                raise NeovimWireFailure(str(error)) from error
+            notification.receive(self, arguments)
+        elif kind == 0:
+            _, identity, method, arguments = FieldCodec.decode(tuple[int, int, str, object], frame)
+            if method != "toad_cursor_boundary":
                 await self._child.write(msgpack.packb([1, identity, "Unsupported Neovim host request", None]))
                 return
-            editor = self._receiver()
-            handled = (editor is not None and editor.is_attached
-                       and self._boundaries[arguments[0]].engine_boundary(editor))
+            boundary, = FieldCodec.decode(tuple[int], arguments)
+            if not 0 <= boundary < len(self._boundaries):
+                raise NeovimWireFailure("Unknown Neovim cursor boundary")
+            handled = False
+            def offer(editor: TextArea) -> None:
+                nonlocal handled
+                handled = self._boundaries[boundary].engine_boundary(editor)
+            self._receiver.visit(offer)
             await self._child.write(msgpack.packb([1, identity, None, handled]))
         else:
             raise NeovimWireFailure("Invalid Neovim RPC envelope")
 
-    def _publish(self, state: NeovimState) -> None:
-        self.snapshot = NeovimSnapshot(self, self._lines, state, tuple(self._changes))
-        if (editor := self._receiver()) is not None and editor.is_attached:
-            editor.post_message(NeovimUpdated(self.snapshot))
+    def accept_lines(self, change: NeovimLineChange) -> None:
+        if change.last == -1:
+            self._changes.append(NeovimBufferTransfer(change.lines))
+        else:
+            self._changes.append(change)
 
-    def _accept_state(self, raw: object) -> None:
-        self._publish(NeovimState.decode(raw, self._lines, self.snapshot.state))
+    def accept_display(self, display: NeovimDisplay) -> None:
+        self._publish(NeovimSnapshot(self.snapshot.state.update(display), display.completed))
 
-    def _accept_mode(self, raw: object) -> None:
-        self._publish(NeovimState.fast_mode(raw, self.snapshot.state))
+    def _publish(self, snapshot: NeovimSnapshot) -> None:
+        self.snapshot = snapshot
+        if not self._update_queued:
+            def post(editor: TextArea) -> None:
+                self._update_queued = editor.post_message(NeovimUpdated(self))
+            self._receiver.visit(post)
 
-    def _mode_reply(self, reply: asyncio.Future[object]) -> None:
-        try:
-            self._accept_mode(reply.result())
-        except asyncio.CancelledError:
-            pass
-        except EditingFailure as error:
-            self._fail(error)
-
-    def _refresh_mode(self) -> asyncio.Future[object]:
-        reply = self._admit(NeovimModeRequest())
-        reply.add_done_callback(self._mode_reply)
-        return reply
+    def render(self, editor: TextArea, *, force: bool = False) -> None:
+        self._update_queued = False
+        if editor.editing_mode is not self or not self._receiver.owns(editor):
+            return
+        if self.snapshot is self._rendered and not force:
+            return
+        previous, current = self._rendered.state, self.snapshot.state
+        changes, self._changes = self._changes, []
+        for change in changes:
+            change.apply(editor)
+        if changes:
+            editor.finish_engine_changes()
+        if force or previous.cursor != current.cursor:
+            editor.apply_engine_selection(Selection.cursor(current.cursor))
+            editor.record_cursor_width()
+        if previous.regions != current.regions:
+            editor.invalidate_engine_regions((*previous.regions, *current.regions))
+        if force or previous.label != current.label or previous.command_line != current.command_line:
+            editor.show_editing_mode(self)
+        if force or previous.binding_answers != current.binding_answers:
+            editor.refresh_bindings()
+        self._rendered = self.snapshot
 
     def _observe_failure[Result](self, result: asyncio.Future[Result]) -> None:
         try:
@@ -626,70 +771,53 @@ class NeovimEditing(VimMode):
             self._fail(error)
 
     def _fail(self, error: EditingFailure) -> None:
-        if self._failure is None:
-            self._failure = error
-            if (editor := self._receiver()) is not None:
-                editor.notify(f"{error}. The displayed draft is preserved. Input was not replayed.",
-                              title="Neovim editing failed", severity="error", timeout=0)
-                editor.show_editing_mode(self)
+        previous = self.snapshot.state
+        failed = previous.fail(error)
+        if failed is previous:
+            return
+        self._publish(NeovimSnapshot(failed))
+        def notify(editor: TextArea) -> None:
+            editor.notify(f"{error}. The displayed draft is preserved. Input was not replayed.",
+                          title="Neovim editing failed", severity="error", timeout=0)
+        self._receiver.visit(notify)
 
     async def finish(self, editor: TextArea) -> bool:
-        """Explicit profile handoff asks Neovim itself to cancel pending input."""
-        await self._input("<Esc>")
         return await self.flush(editor)
 
     async def flush(self, editor: TextArea) -> bool:
-        """Refuse pending input before a deferred read; never time out a Vim prefix."""
-        await self.acknowledge(editor)
-        if self.snapshot.state.blocking:
-            return False
-        raw = await self._call("nvim_exec_lua", ["return ToadEditor.state()", []])
-        self._accept_state(raw)
-        self.snapshot.apply(editor)
-        return True
-
-    async def acknowledge(self, editor: TextArea) -> None:
-        await self._refresh_mode()
-        self.snapshot.apply(editor)
+        """Never wait for deferred RPC in App dispatch. Missing completion refuses."""
+        self.snapshot.state.raise_failure()
+        self.render(editor)
+        return self.completed and self.snapshot.state.transferable
 
     async def prepare_input(self, editor: TextArea) -> bool:
+        # Only fence the widget queue, never the Neovim event loop. Escape must
+        # remain admissible while a deferred operation is waiting for an operand.
         finished: asyncio.Future[bool] = asyncio.get_running_loop().create_future()
-
-        async def ready() -> None:
-            if editor.editing_mode is not self:
-                finished.set_result(True)
-                return
-            try:
-                await self.acknowledge(editor)
-            except EditingFailure:
-                finished.set_result(False)
-            else:
-                finished.set_result(True)
-
+        def ready() -> None:
+            self.render(editor)
+            finished.set_result(True)
         if not editor.call_later(ready):
             return False
         return await finished
 
     async def handle_key(self, editor: TextArea, event: Key) -> bool:
         try:
-            await self._input(self.input_code(event.key, event.character))
+            await self._input(self.input_code(event.key, event.character or ""))
         except EditingFailure:
-            pass  # A real child/wire failure has been reported; never replay input.
+            pass  # The child/wire failure was reported; never replay input.
         return True
 
     @staticmethod
-    def input_code(key: str, character: str | None = None) -> str:
+    def input_code(key: str, character: str = "") -> str:
         """Textual's foreign key vocabulary enters Neovim at this boundary."""
         *modifiers, name = key.split("+")
-        literal = character or key_to_character(name)
-        if not modifiers and literal is not None and literal.isprintable():
+        literal = character or key_to_character(name) or ""
+        if not modifiers and literal.isprintable():
             return literal.replace("<", "<LT>")
-        names = {"enter": "CR", "escape": "Esc", "backspace": "BS", "delete": "Del",
-                 "pageup": "PageUp", "pagedown": "PageDown", "space": "Space"}
-        prefixes = {"ctrl": "C", "shift": "S", "alt": "A", "meta": "M", "super": "D"}
-        base = literal if literal is not None and literal.isprintable() else names.get(name, name)
-        base = "LT" if base == "<" else base
-        return "<" + "-".join([*(prefixes[part] for part in modifiers), base]) + ">"
+        base = literal if literal.isprintable() else NeovimKey.spelling(name)
+        base = base.replace("<", "LT")
+        return "<" + "-".join([*(NeovimKey.member_named(part).notation for part in modifiers), base]) + ">"
 
     def resize(self, editor: TextArea) -> None:
         self._call("nvim_ui_try_resize", [max(1, editor.wrap_width), max(3, editor.content_size.height + 2)])
@@ -704,9 +832,9 @@ class NeovimEditing(VimMode):
         self._call("nvim_exec_lua", ["return ToadEditor.replace(...)",
             [edit.top, edit.bottom, edit.text.split("\n"), edit.maintain_selection_offset]])
 
-    def insert(self, editor: TextArea, text: str, location: Location | None, maintain_selection_offset: bool) -> None:
+    def insert(self, editor: TextArea, text: str, point: InsertionPoint, maintain_selection_offset: bool) -> None:
         self._call("nvim_exec_lua", ["return ToadEditor.insert(...)",
-            [text.split("\n"), location, maintain_selection_offset]])
+            [text.split("\n"), point.engine_location(), maintain_selection_offset]])
 
     def clear(self, editor: TextArea) -> None:
         self.load_text(editor, "")

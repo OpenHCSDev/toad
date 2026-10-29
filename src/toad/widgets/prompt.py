@@ -229,6 +229,7 @@ See on-screen instructions for details.
         super().__init__()
         # The composer that built this editor owns its turns, popups and modes.
         self.prompt = prompt
+        self.set_reactive(TextArea.editing_mode, prompt.initial_editing_mode)
         self.set_reactive(PromptTextArea.project_path, prompt.project_path)
         self._submit_pending = False
         self._submit_immediate = False
@@ -272,6 +273,7 @@ See on-screen instructions for details.
     def on_mount(self) -> None:
         self.highlight_cursor_line = False
         self.hide_suggestion_on_blur = False
+        self.editing_mode.attach(self)
         self.apply_keyboard_profile()
         self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
@@ -289,7 +291,7 @@ See on-screen instructions for details.
 
     def on_neovim_updated(self, event: NeovimUpdated) -> None:
         event.stop()
-        event.snapshot.apply(self)
+        event.owner.render(self)
 
     @property
     def submission_allowed(self) -> bool:
@@ -387,9 +389,6 @@ See on-screen instructions for details.
         self._submit_pending = False
         mode = self.editing_mode
         try:
-            await mode.acknowledge(self)
-            if not self.submission_allowed:
-                return
             if not await mode.flush(self):
                 return
         except EditingFailure:
@@ -526,6 +525,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.set_reactive(Prompt.project_path, project)
         self.ask_queue: list[Ask] = []
+        self.initial_editing_mode: EditingMode = EditingMode()
         self.turns = turns
         self.submissions = submissions
 

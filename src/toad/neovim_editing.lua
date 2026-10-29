@@ -13,6 +13,16 @@ vim.opt.shortmess:append('I')
 vim.bo.buftype = 'nofile'
 vim.bo.bufhidden = 'hide'
 
+-- Admission is not completion. Only SafeState, which excludes typeahead,
+-- mappings and unfinished commands, may certify a completed generation.
+local generation, completed = 0, -1
+local scheduled = false
+local function location(position)
+  local row = position[2] - 1
+  local line = api.nvim_buf_get_lines(0, row, row + 1, true)[1]
+  local byte = math.max(0, math.min(position[3] - 1, #line))
+  return {row, vim.str_utfindex(line, 'utf-32', byte, false)}
+end
 local function state()
   local cursor, anchor = vim.fn.getpos('.'), vim.fn.getpos('v')
   local code = vim.fn.mode(1)
@@ -20,44 +30,66 @@ local function state()
                  s = 'v', S = 'V', ['\019'] = '\022'})[code]
   local regions, selected = {}, ''
   if kind then
-    regions = vim.fn.getregionpos(anchor, cursor, {type = kind, eol = true})
+    for _, region in ipairs(vim.fn.getregionpos(anchor, cursor, {type = kind, eol = true})) do
+      local first, last = location(region[1]), location(region[2])
+      last[2] = last[2] + 1
+      regions[#regions + 1] = {start = first, ['end'] = last}
+    end
     selected = table.concat(vim.fn.getregion(anchor, cursor, {type = kind}), '\n')
     if kind == 'V' then selected = selected .. '\n' end
   end
-  -- Mode/blocking are read by the host through the fast nvim_get_mode API.
-  -- Running a Lua callback is not evidence that a pending operand has finished.
-  return {{cursor[2], cursor[3]},
-          vim.fn.getcmdtype() .. vim.fn.getcmdline(), regions, selected}
+  return {mode = api.nvim_get_mode(), cursor = location(cursor),
+          command_line = vim.fn.getcmdtype() .. vim.fn.getcmdline(),
+          regions = regions, selected = selected, completed = completed}
 end
 local function publish()
-  vim.rpcnotify(1, 'toad_editor_state', unpack(state()))
+  vim.rpcnotify(1, 'toad_editor_state', state())
+end
+local function schedule_publish()
+  if scheduled then return end
+  scheduled = true
+  vim.schedule(function() scheduled = false; publish() end)
 end
 -- Buffer subscriptions belong to this engine, including :edit/:buffer changes.
 -- Only its current buffer publishes rendering deltas; returning to a buffer is
 -- an ownership transfer, not another callback registration.
 local subscriptions = {}
 local function entered(buffer)
-  vim.rpcnotify(1, 'nvim_buf_lines_event', buffer,
-    api.nvim_buf_get_changedtick(buffer), 0, -1,
-    api.nvim_buf_get_lines(buffer, 0, -1, true), false)
+  vim.rpcnotify(1, 'toad_editor_lines', {first = 0, last = -1,
+    lines = api.nvim_buf_get_lines(buffer, 0, -1, true)})
   if subscriptions[buffer] then return end
   subscriptions[buffer] = true
   api.nvim_buf_attach(buffer, false, {
     on_lines = function(_, buf, tick, first, last, new_last)
       if api.nvim_get_current_buf() == buf then
-        vim.rpcnotify(1, 'nvim_buf_lines_event', buf, tick, first, last,
-                      api.nvim_buf_get_lines(buf, first, new_last, true), false)
+        completed = -1
+        vim.rpcnotify(1, 'toad_editor_lines', {first = first, last = last,
+                      lines = api.nvim_buf_get_lines(buf, first, new_last, true)})
+        schedule_publish()
       end
     end,
     on_detach = function(_, buf) subscriptions[buf] = nil end,
   })
 end
-api.nvim_create_autocmd('BufEnter', {callback = function(event) entered(event.buf); publish() end})
+api.nvim_create_autocmd('BufEnter', {callback = function(event)
+  completed = -1
+  entered(event.buf)
+  schedule_publish()
+end})
 entered(api.nvim_get_current_buf())
 api.nvim_create_autocmd({'ModeChanged', 'CursorMoved', 'CursorMovedI',
-                        'TextChanged', 'TextChangedI', 'CmdlineChanged', 'SafeState'},
-                       {callback = publish})
-vim.on_key(function() vim.schedule(publish) end, namespace)
+                        'TextChanged', 'TextChangedI', 'CmdlineChanged'},
+                       {callback = schedule_publish})
+api.nvim_create_autocmd('SafeState', {callback = function()
+  completed = generation
+  schedule_publish()
+end})
+vim.on_key(function()
+  -- lua.txt: on_key runs BEFORE further processing. This invalidates a proof;
+  -- it cannot create one, even if the host has already received the input reply.
+  completed = -1
+  schedule_publish()
+end, namespace)
 
 -- Install the actual native arrow declarations, including saved aliases, inside
 -- Neovim. Its mapping engine knows that the k in fk is an operand, not Up.
@@ -73,7 +105,19 @@ for _, mapping in ipairs(mappings) do
   end
 end
 
-ToadEditor = {state = state}
+ToadEditor = {}
+function ToadEditor.input(serial, keys)
+  generation = math.max(generation, serial)
+  completed = -1
+  return api.nvim_input(keys)
+end
+function ToadEditor.call(serial, method, arguments)
+  generation = math.max(generation, serial)
+  completed = -1
+  local result = api[method](unpack(arguments))
+  schedule_publish()
+  return result
+end
 function ToadEditor.load(text)
   api.nvim_buf_set_lines(0, 0, -1, true, vim.split(text, '\n', {plain = true}))
   api.nvim_win_set_cursor(0, {1, 0})

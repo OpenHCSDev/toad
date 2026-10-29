@@ -11,6 +11,7 @@ from weakref import ref
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
+from textual.document._editing import EditingMode
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
@@ -62,13 +63,11 @@ class SessionViewState:
         conversation.visible_categories = self.visible_categories
         conversation.window.reader_position = self.reader_position
 
-    async def restore(self, conversation: Conversation) -> bool:
+    async def restore(self, conversation: Conversation) -> None:
         editor = conversation.prompt.prompt_text_area
-        if not await editor.restore_editor_state(self.editor):
-            return False
+        await editor.restore_editor_state(self.editor)
         conversation.input_histories = self.input_histories
         editor.shell_mode = self.shell_mode
-        return True
 
 
 class SessionSurfaceLifetime(ABC):
@@ -77,6 +76,10 @@ class SessionSurfaceLifetime(ABC):
     @property
     def operational_binding(self):
         return NoAgentConnection()
+
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return EditingMode()
 
     @abstractmethod
     def compose_content(self, screen: MainScreen) -> Widget: ...
@@ -96,6 +99,12 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
 
     def __init__(self) -> None:
         self.state: SessionViewState | None = None
+
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        if self.state is not None:
+            return self.state.editor.editing_mode
+        return super().initial_editing_mode
 
     @abstractmethod
     async def release_binding(
@@ -360,8 +369,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.state.prepare_transcript(conversation)
         await self.transcript.bind(conversation).restore_documents(self.transcript)
         if self.state is not None:
-            if not await self.state.restore(conversation):
-                return
+            await self.state.restore(conversation)
             self.state = None
         await self.attach_binding(conversation)
         await self.transcript.bind(conversation).restore(self.transcript)
