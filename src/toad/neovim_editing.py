@@ -217,6 +217,9 @@ class NeovimState(DeclaredFamily, affix="State"):
     def update(self, display: NeovimDisplay) -> NeovimState:
         return display.state()
 
+    def completion(self, completion: NeovimCompletion) -> NeovimCompletion:
+        return completion
+
     def fail(self, error: EditingFailure) -> NeovimState:
         return FailedState(cursor=self.cursor, command_line=self.command_line,
                            regions=self.regions, region_text=self.region_text, error=error)
@@ -270,6 +273,9 @@ class ApplicationCommandState(TransferableState, declared_name=None):
 class StartingState(NeovimState):
     mode_name = "NEOVIM STARTING"
 
+    def snapshot(self) -> NeovimSnapshot:
+        return NeovimSnapshot(self, NotCompleted())
+
     @property
     def label(self) -> str:
         return self.mode_name
@@ -281,6 +287,9 @@ class FailedState(NeovimState):
 
     def update(self, display: NeovimDisplay) -> NeovimState:
         return self
+
+    def completion(self, completion: NeovimCompletion) -> NeovimCompletion:
+        return NotCompleted()
 
     def fail(self, error: EditingFailure) -> NeovimState:
         return self
@@ -486,9 +495,20 @@ class NeovimCall(NeovimRequest):
 class NeovimOperation(NeovimCall):
     """Programmatic mutation executes on the same engine and invalidates its proof."""
 
+    operation: ClassVar[str] = "vim.api[operation]"
+
     def __init__(self, generation: int, method: str, arguments: Sequence[object]) -> None:
-        super().__init__("nvim_exec_lua", ["return ToadEditor.call(...)",
-                                         [generation, method, list(arguments)]])
+        super().__init__("nvim_exec_lua", [
+            "local serial, operation, arguments = ...; "
+            f"return ToadEditor.call(serial, {self.operation}, arguments)",
+            [generation, method, list(arguments)],
+        ])
+
+
+class NeovimLuaOperation(NeovimOperation):
+    """Lua chunks are not API names: nvim_exec_lua itself is RPC-only."""
+
+    operation = "assert(loadstring(operation))"
 
 
 class NeovimInput(NeovimFastRequest):
@@ -532,10 +552,55 @@ class NeovimBufferTransfer(NeovimChange):
         return document.replace_lines(0, document.line_count, self.lines)
 
 
+class NeovimCompletion(ABC):
+    @classmethod
+    @boundary_decoder
+    def from_native(cls, generation: int) -> NeovimCompletion:
+        if generation == -1:
+            return NotCompleted()
+        if generation < 0:
+            raise NeovimWireFailure("Invalid Neovim completed generation")
+        return CompletedGeneration(generation)
+
+    @abstractmethod
+    def matches(self, generation: int) -> bool: ...
+
+
+@dataclass(frozen=True)
+class NotCompleted(NeovimCompletion):
+    def matches(self, generation: int) -> bool:
+        return False
+
+
+@dataclass(frozen=True)
+class CompletedGeneration(NeovimCompletion):
+    generation: int
+
+    def matches(self, generation: int) -> bool:
+        return self.generation == generation
+
+
 @dataclass(frozen=True)
 class NeovimSnapshot:
     state: NeovimState
-    completed: int = -1
+    completed: NeovimCompletion
+
+    def with_lines(self) -> NeovimSnapshot:
+        return NeovimSnapshot(self.state, self.completed)
+
+    def with_display(self, display: NeovimDisplay) -> NeovimSnapshot:
+        state = self.state.update(display)
+        return NeovimSnapshot(state, state.completion(NeovimCompletion.from_native(display.completed)))
+
+    def with_boundary(self, display: NeovimDisplay) -> NeovimSnapshot:
+        # A mapping's in-command display is not a SafeState certificate.
+        return NeovimSnapshot(self.state.update(display), NotCompleted())
+
+    def with_failure(self, error: EditingFailure) -> NeovimSnapshot:
+        return NeovimSnapshot(self.state.fail(error), NotCompleted())
+
+    def unpainted(self) -> UnpaintedSnapshot:
+        return UnpaintedSnapshot(self.state, self.completed)
 
     def matches[Answer](self, current: NeovimState,
                         answer: Callable[[NeovimState], Answer]) -> bool:
@@ -706,9 +771,9 @@ class NeovimEditing(VimMode, MroDispatch):
         self._pending: dict[int, NeovimRequest] = {}
         self._outgoing: asyncio.Queue[NeovimRequest] = asyncio.Queue()
         self._generation = 0
-        self.snapshot = NeovimSnapshot(StartingState())
+        self.snapshot = StartingState().snapshot()
         self._changes: list[NeovimChange] = []
-        self._rendered: NeovimSnapshot = UnpaintedSnapshot(self.snapshot.state)
+        self._rendered: NeovimSnapshot = self.snapshot.unpainted()
         self._update_queued = False
         self._boundaries: list[Binding] = []
         self._api_types: dict[str, NeovimApiType] = {}
@@ -720,7 +785,8 @@ class NeovimEditing(VimMode, MroDispatch):
 
     @property
     def completed(self) -> bool:
-        return self.snapshot.completed == self._generation and not self._pending
+        return (self.snapshot.completed.matches(self._generation)
+                and not self._pending and not self._changes)
 
     @property
     def accepts_text(self) -> bool:
@@ -762,7 +828,7 @@ class NeovimEditing(VimMode, MroDispatch):
             self._update_queued = False
             editor.history.clear()
         # Even the same receiver may have rebuilt its width-dependent view.
-        self._rendered = UnpaintedSnapshot(self._rendered.state)
+        self._rendered = self._rendered.unpainted()
         started = self._started
         if started.done() and not started.cancelled():
             self.paint(editor)
@@ -919,6 +985,9 @@ class NeovimEditing(VimMode, MroDispatch):
     def _call(self, method: str, arguments: Sequence[object]) -> asyncio.Future[object]:
         return self._enqueue(NeovimOperation(self._next_generation(), method, arguments))
 
+    def _lua(self, code: str, arguments: Sequence[object]) -> asyncio.Future[object]:
+        return self._enqueue(NeovimLuaOperation(self._next_generation(), code, arguments))
+
     def _input(self, keys: str) -> asyncio.Future[object]:
         return self._enqueue(NeovimInput(self._next_generation(), keys))
 
@@ -949,7 +1018,8 @@ class NeovimEditing(VimMode, MroDispatch):
         await self._bootstrap(NeovimCall("nvim_set_option_value", ["tabstop", editor.indent_width, {}]))
         if self.initial_keys:
             await self._bootstrap(NeovimInput(self._next_generation(), self.initial_keys))
-            await self._bootstrap(NeovimCall("nvim_exec_lua", ["return ToadEditor.cursor(...)", [initial_cursor]]))
+            await self._bootstrap(NeovimLuaOperation(self._next_generation(),
+                                                   "return ToadEditor.cursor(...)", [initial_cursor]))
 
     @boundary_decoder
     async def _receive(self, message: object) -> None:
@@ -978,8 +1048,7 @@ class NeovimEditing(VimMode, MroDispatch):
     def engine_boundary(self, boundary: int, display: NeovimDisplay) -> bool:
         if not 0 <= boundary < len(self._boundaries):
             raise NeovimWireFailure("Unknown Neovim cursor boundary")
-        # A mapping's in-command view cannot certify SafeState completion.
-        self.publish(NeovimSnapshot(self.snapshot.state.update(display)))
+        self.publish(self.snapshot.with_boundary(display))
         self._receiver.visit(self.render)
         return self._receiver.boundary(self._boundaries[boundary])
 
@@ -991,10 +1060,10 @@ class NeovimEditing(VimMode, MroDispatch):
             self._changes.append(NeovimBufferTransfer(change.lines))
         else:
             self._changes.append(change)
-        self.snapshot = NeovimSnapshot(self.snapshot.state)
+        self.snapshot = self.snapshot.with_lines()
 
     def accept_display(self, display: NeovimDisplay) -> None:
-        self.publish(NeovimSnapshot(self.snapshot.state.update(display), display.completed))
+        self.publish(self.snapshot.with_display(display))
 
     def publish(self, snapshot: NeovimSnapshot) -> None:
         """Project preceding lines before exposing the display that describes them."""
@@ -1049,12 +1118,11 @@ class NeovimEditing(VimMode, MroDispatch):
             self._fail(error)
 
     def _fail(self, error: EditingFailure) -> None:
-        previous = self.snapshot.state
-        failed = previous.fail(error)
-        if failed is previous:
+        failed = self.snapshot.with_failure(error)
+        if failed.state is self.snapshot.state:
             return
         log.error("Neovim editing failed:", error)
-        self.publish(NeovimSnapshot(failed))
+        self.publish(failed)
         def notify(editor: TextArea) -> None:
             editor.notify(f"{error}. The displayed draft is preserved. Input was not replayed.",
                           title="Neovim editing failed", severity="error", timeout=0)
@@ -1107,21 +1175,21 @@ class NeovimEditing(VimMode, MroDispatch):
         self._input("<Esc>i")
 
     def load_text(self, editor: TextArea, text: str) -> None:
-        self._call("nvim_exec_lua", ["return ToadEditor.load(...)", [text]])
+        self._lua("return ToadEditor.load(...)", [text])
 
     def edit(self, editor: TextArea, edit: Edit) -> None:
-        self._call("nvim_exec_lua", ["return ToadEditor.replace(...)",
-            [edit.top, edit.bottom, edit.text.split("\n"), edit.maintain_selection_offset]])
+        self._lua("return ToadEditor.replace(...)",
+            [edit.top, edit.bottom, edit.text.split("\n"), edit.maintain_selection_offset])
 
     def insert(self, editor: TextArea, text: str, point: InsertionPoint, maintain_selection_offset: bool) -> None:
-        self._call("nvim_exec_lua", ["return ToadEditor.insert(...)",
-            [text.split("\n"), point.engine_location(), maintain_selection_offset]])
+        self._lua("return ToadEditor.insert(...)",
+            [text.split("\n"), point.engine_location(), maintain_selection_offset])
 
     def clear(self, editor: TextArea) -> None:
         self.load_text(editor, "")
 
     def move_to_end(self, editor: TextArea) -> None:
-        self._call("nvim_exec_lua", ["return ToadEditor.cursor_end()", []])
+        self._lua("return ToadEditor.cursor_end()", [])
 
     def paste(self, editor: TextArea, text: str) -> None:
         self._call("nvim_paste", [text, True, -1])
@@ -1135,9 +1203,9 @@ class NeovimEditing(VimMode, MroDispatch):
     def request_selection(self, editor: TextArea, selection: Selection) -> Selection:
         if not selection.is_empty:
             self._input("<Esc>")
-            self._call("nvim_exec_lua", ["return ToadEditor.select(...)", sorted(selection)])
+            self._lua("return ToadEditor.select(...)", sorted(selection))
         elif selection.end != self.snapshot.state.cursor:
-            self._call("nvim_exec_lua", ["return ToadEditor.cursor(...)", [selection.end]])
+            self._lua("return ToadEditor.cursor(...)", [selection.end])
         return editor.selection
 
     def selection_range(self, editor: TextArea) -> Selection:

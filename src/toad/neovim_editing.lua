@@ -115,10 +115,10 @@ function ToadEditor.input(serial, keys)
   completed = -1
   return api.nvim_input(keys)
 end
-function ToadEditor.call(serial, method, arguments)
+function ToadEditor.call(serial, operation, arguments)
   generation = math.max(generation, serial)
   completed = -1
-  local result = api[method](unpack(arguments))
+  local result = operation(unpack(arguments))
   schedule_publish()
   return result
 end
