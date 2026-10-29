@@ -8,6 +8,7 @@ from agent_comms.commander_hud import (
     CommanderFrame, CommanderHud, CommanderUnit, CodexUsage, UnreadableUsage,
 )
 from agent_comms.thread_identity import RecordedThreadIncarnation
+from agent_comms.service_passes import ServicePassStore
 from agent_comms.ui_model.observation import ObserveCommanderHud
 from agent_comms.ui_model.unit_state import Detached, PendingClock
 from textual.widgets import Static
@@ -24,10 +25,10 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         PendingClock(1.0, 1.0), (), 1, (), (),
     )
     hud = CommanderHud(
-        RecordedThreadIncarnation("claude-code", 1.0), (unit,), (),
-        OverloadDegradation.from_orders((), 0, 0),
-        (RecordedThreadIncarnation("fork-hud", 2.0),),
-        CodexUsage(UnreadableUsage(reason="not requested")),
+        commander=RecordedThreadIncarnation("claude-code", 1.0), units=(unit,), phases=(),
+        load=OverloadDegradation.from_orders((), 0, 0),
+        forks=(RecordedThreadIncarnation("fork-hud", 2.0),),
+        usage=CodexUsage(UnreadableUsage(reason="not requested")),
     )
     CommanderFrame.replace_all(workspace.comms.root, (hud,))
     frame, = CommanderFrame.matching_in(workspace.comms.root)
@@ -66,7 +67,20 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         # refusal must stay in the disclosure while observation keeps working.
         await ui.until_shows("Original details unavailable:")
         assert str(view.heading.render()) == "Commander claude-code"
-        assert str(view.status.render()).startswith(str(hud.load))
+        assert str(view.status.render()) == '\n'.join(view.hud.header)
+        retained_frame = frame.read_bytes()
+        services = ServicePassStore.at(workspace.comms.root)
+        services.failed('CommanderHeartbeat', KeyError('retained-ui failure'))
+        await ui.until_shows('retained-ui failure')
+        assert 'retained-ui failure' in str(view.status.render()).splitlines()[0]
+        assert 'elapsed' in str(view.status.render()).splitlines()[0]
+        assert 'STALE retained' in str(view.status.render())
+        assert frame.read_bytes() == retained_frame
+        services.passed('CommanderHeartbeat')
+        await ui.until(lambda: 'retained-ui failure' not in str(view.status.render()),
+                       why='service-only recovery to update the open frame')
+        assert rows.query_one(CommanderFrameView) is view
+        assert not card.collapsed and title.has_focus
         assert hud.usage.line() in str(view.footer.render())
         assert "forks: fork-hud" in str(view.footer.render())
 

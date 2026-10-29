@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import time
-
 from agent_comms.commander_hud import (
     BoardRow, CommanderHud, CommanderUnit, HudRow, QuietUnits,
 )
@@ -206,9 +204,7 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
     def present(self, hud: CommanderHud) -> None:
         self.hud = hud
         self.heading.update(f"Commander {hud.commander.name}")
-        self.status.update("\n".join((
-            str(hud.load), *hud.heartbeat.aged_line("heartbeat", time.time()),
-        )))
+        self.status.update("\n".join(hud.header))
         self.footer.update("\n".join(
             line for row in hud.rows() for line in self.row_text.lines(row)
         ))
