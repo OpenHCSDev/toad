@@ -43,7 +43,7 @@ members = ["toad"]
 ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", branch = "main" }
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", branch = "main" }
 metaclass-registry = { git = "https://github.com/OpenHCSDev/metaclass-registry", branch = "main" }
-textual = { git = "https://github.com/OpenHCSDev/textual.git", branch = "main" }
+textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "7ba616bd55c6ee40f156def5cb86ba28b0c0e16b" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "ebe2fa9173428e2bd7154a0de23698757677c3c2" }
 objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "b5dd9f78b9293df145d7629f21deb89b042b9400" }
 textual-image = { git = "https://github.com/OpenHCSDev/textual-image.git", rev = "1f1d8b8ea3c30b39da3b14ea0ac0786ce9c49a80" }
