@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
 
 from agent_comms.commander_hud import (
     BoardRow, CommanderHud, CommanderUnit, HudRow, QuietUnits,
@@ -14,11 +13,12 @@ from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
+from rich.cells import cell_len
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.content import Content
-from textual.widgets import Button, Collapsible, Pretty, Static
+from textual.widgets import Button, Collapsible, Static
 
 from toad.core.events import CommanderHudChanged, CommanderHudFailed
 from toad.core_event_carrier import CoreEventReceiver
@@ -26,6 +26,9 @@ from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction
 from toad.app_node import ToadNode
 from toad.widgets.sidebar_tree import KeyedRows
+from toad.widgets.declared_disclosure import (
+    DeclaredDisclosure, DisclosureEntry, DisclosedValue, RootKey,
+)
 
 
 class HudRowText(MroDispatch):
@@ -47,10 +50,8 @@ class CommanderUnitCard(ToadNode, Collapsible):
     """Retain the unit's disclosure while Core replaces its current card."""
 
     DEFAULT_CSS = """
-    CommanderUnitCard { height: auto; border: none; padding: 0; margin: 0 0 1 0; }
-    CommanderUnitCard > CollapsibleTitle {
-        height: 1; padding: 0; text-wrap: nowrap; text-overflow: ellipsis;
-    }
+    CommanderUnitCard { height: auto; border: none; padding: 0; margin: 0; }
+    CommanderUnitCard > CollapsibleTitle { height: auto; padding: 0; }
     CommanderUnitCard > Contents { padding: 0 1; height: auto; }
     CommanderUnitCard Static { height: auto; }
     CommanderUnitCard Button { dock: none; width: auto; margin: 0; }
@@ -61,38 +62,49 @@ class CommanderUnitCard(ToadNode, Collapsible):
     def __init__(self, commander: ThreadIncarnation, card: CommanderUnit) -> None:
         self.commander = commander
         self.card = card
-        self.summary = Static("", markup=False)
+        self.summary = DeclaredDisclosure(DisclosureEntry(
+            RootKey(type(card)), "Current card", DisclosedValue.of(card),
+        ))
         self.detail_status = Static("Open to read original orders and activity.",
                                     markup=False, classes="detail-status")
-        self.original_orders = Static("", markup=False)
-        self.activity = Pretty({})
-        self.activity_view = Collapsible(self.activity, title="Recent activity", collapsed=True)
-        self.activity_view.display = False
+        self.original_details = VerticalGroup()
         super().__init__(
             self.summary, self.detail_status,
-            Button("Refresh original details", classes="refresh-unit"),
-            self.original_orders, self.activity_view, title="", collapsed=True,
+            Button("Refresh original details", classes="refresh-unit", compact=True),
+            self.original_details, title="", collapsed=True,
         )
         self.present(card)
+
+    # The title's disclosure symbol and its space; continued lines indent under the name.
+    TITLE_INDENT = "  "
+
+    def brief_lines(self, width: int) -> str:
+        """Pack coherent sections, then wrap oversized sections with hanging indentation."""
+        width = max(2, width)
+        lines: list[str] = []
+        for part in self.card.brief_parts():
+            joined = f"{lines[-1]} | {part}" if lines else part
+            if lines and cell_len(joined) <= width:
+                lines[-1] = joined
+            else:
+                lines.append(part)
+        wrapped = [line.plain for section in lines for line in Content(section).wrap(width)]
+        return f"\n{self.TITLE_INDENT}".join(wrapped)
+
+    def fit_title(self) -> None:
+        self.title = Content(self.brief_lines(self.size.width - len(self.TITLE_INDENT)))
+
+    def on_resize(self) -> None:
+        self.fit_title()
 
     def present(self, card: CommanderUnit) -> None:
         changed = card != self.card
         self.card = card
-        self.title = Content(card.brief())
+        self.fit_title()
         self.set_class(card.needs_hand(), "-needs-hand")
-        lines = [
-            card.state.action,
-            f"{card.clock.line(time.time())}; strikes {card.strikes}",
-        ]
-        for order in card.orders:
-            lines.extend((
-                f"{order.problem} ({order.order}) {order.state}: {order.text}",
-                f"  {order.progress.line}; timers up {len(order.review_timers_up)}; "
-                f"strikes {order.strikes}; unjudged edits {order.unjudged_edits}",
-            ))
-        lines.extend(f"ready #{pr.number} at {pr.head[:9]}" for pr in card.ready_prs)
-        lines.extend(f"draft #{pr.number} at {pr.head[:9]}" for pr in card.draft_prs)
-        self.summary.update("\n".join(lines))
+        self.summary.present(DisclosureEntry(
+            RootKey(type(card)), "Current card", DisclosedValue.of(card),
+        ))
         if changed and self.is_mounted and not self.collapsed:
             self.read_detail()
 
@@ -132,18 +144,14 @@ class CommanderUnitCard(ToadNode, Collapsible):
             return
         if not self.is_attached or self.collapsed or self.card != card:
             return
-        lines: list[str] = []
-        for order in detail.orders:
-            lines.extend((f"Original order {order.card.order} · {order.card.problem}",
-                          *order.instructions, order.story.line))
-            lines.extend(
-                f"commit {commit.sha} · "
-                f"{datetime.fromtimestamp(commit.at, timezone.utc).isoformat()}"
-                for commit in order.commits
-            )
-        self.original_orders.update("\n\n".join(lines))
-        self.activity.update(detail.activity)
-        self.activity_view.display = True
+        entry = DisclosureEntry(
+            RootKey(type(detail)), "Original details", DisclosedValue.of(detail),
+        )
+        for view in self.original_details.query_children(DeclaredDisclosure):
+            view.present(entry)
+            break
+        else:
+            self.original_details.mount(DeclaredDisclosure(entry))
         self.detail_status.update("Original records read; activity uses Core's bounded view.")
 
 
@@ -219,16 +227,16 @@ class CommanderPage(
     DEFAULT_CSS = """
     CommanderPage { align: center middle; background: $background 40%; }
     CommanderPage > Vertical {
-        width: 95%; height: 95%; padding: 1;
+        width: 95%; height: auto; max-height: 95%; padding: 0 1;
         border: solid $primary; background: $surface;
     }
     CommanderPage #hud-error { display: none; height: auto; color: $error; }
-    CommanderPage #hud-rows { height: 1fr; scrollbar-gutter: stable; }
-    CommanderPage CommanderFrameView { height: auto; margin-bottom: 1; }
+    CommanderPage #hud-rows { height: auto; max-height: 100%; scrollbar-gutter: stable; }
+    CommanderPage CommanderFrameView { height: auto; }
     CommanderPage Static { height: auto; }
     CommanderPage .hud-commander { text-style: bold reverse; }
-    CommanderPage .hud-load { text-style: bold; margin-bottom: 1; }
-    CommanderPage #commander-close { dock: bottom; margin-top: 1; }
+    CommanderPage .hud-load { text-style: bold; }
+    CommanderPage #commander-close { dock: bottom; margin: 0; }
     """
 
     def __init__(self, commander: str = "") -> None:
@@ -262,7 +270,8 @@ class CommanderPage(
             yield Static("", id="hud-error", markup=False)
             with VerticalScroll(id="hud-rows"):
                 yield Static("Waiting for the commander heartbeat.", id="hud-empty", markup=False)
-            yield Button("Close", id="commander-close", action=f"screen.{DismissAction.binding_name()}")
+            yield Button("Close", id="commander-close", compact=True,
+                         action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         access = self.app.coordination_access
