@@ -196,6 +196,8 @@ class VimWorkspaceAction(ApplicationAction, declared_name=None):
     priority = True
 
     def key_available(self, app):
+        if app.current_mode != "workspace":
+            return False
         return (app.screen is app.workspace_screen
                 and app.screen.allows_application_commands)
 
