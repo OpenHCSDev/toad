@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
 
 from agent_comms.commander_hud import (
     BoardRow, CommanderHud, CommanderUnit, HudRow, QuietUnits,
@@ -19,7 +18,7 @@ from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.content import Content
-from textual.widgets import Button, Collapsible, Pretty, Static
+from textual.widgets import Button, Collapsible, Static
 
 from toad.core.events import CommanderHudChanged, CommanderHudFailed
 from toad.core_event_carrier import CoreEventReceiver
@@ -27,6 +26,9 @@ from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction
 from toad.app_node import ToadNode
 from toad.widgets.sidebar_tree import KeyedRows
+from toad.widgets.declared_disclosure import (
+    DeclaredDisclosure, DisclosureEntry, DisclosedValue, FieldKey,
+)
 
 
 class HudRowText(MroDispatch):
@@ -60,17 +62,16 @@ class CommanderUnitCard(ToadNode, Collapsible):
     def __init__(self, commander: ThreadIncarnation, card: CommanderUnit) -> None:
         self.commander = commander
         self.card = card
-        self.summary = Static("", markup=False)
+        self.summary = DeclaredDisclosure(DisclosureEntry(
+            FieldKey(type(card), "unit"), "Current card", DisclosedValue.of(card),
+        ))
         self.detail_status = Static("Open to read original orders and activity.",
                                     markup=False, classes="detail-status")
-        self.original_orders = Static("", markup=False)
-        self.activity = Pretty({})
-        self.activity_view = Collapsible(self.activity, title="Recent activity", collapsed=True)
-        self.activity_view.display = False
+        self.original_details = VerticalGroup()
         super().__init__(
             self.summary, self.detail_status,
-            Button("Refresh original details", classes="refresh-unit"),
-            self.original_orders, self.activity_view, title="", collapsed=True,
+            Button("Refresh original details", classes="refresh-unit", compact=True),
+            self.original_details, title="", collapsed=True,
         )
         self.present(card)
 
@@ -78,8 +79,8 @@ class CommanderUnitCard(ToadNode, Collapsible):
     TITLE_INDENT = "  "
 
     def brief_lines(self, width: int) -> str:
-        """The unit's scan line broken between its pieces, never inside one, to fit the width;
-        a piece wider than the width alone wraps where the title wraps."""
+        """Pack coherent sections, then wrap oversized sections with hanging indentation."""
+        width = max(2, width)
         lines: list[str] = []
         for part in self.card.brief_parts():
             joined = f"{lines[-1]} | {part}" if lines else part
@@ -87,7 +88,8 @@ class CommanderUnitCard(ToadNode, Collapsible):
                 lines[-1] = joined
             else:
                 lines.append(part)
-        return f"\n{self.TITLE_INDENT}".join(lines)
+        wrapped = [line.plain for section in lines for line in Content(section).wrap(width)]
+        return f"\n{self.TITLE_INDENT}".join(wrapped)
 
     def fit_title(self) -> None:
         self.title = Content(self.brief_lines(self.size.width - len(self.TITLE_INDENT)))
@@ -100,19 +102,9 @@ class CommanderUnitCard(ToadNode, Collapsible):
         self.card = card
         self.fit_title()
         self.set_class(card.needs_hand(), "-needs-hand")
-        lines = [
-            card.state.action,
-            f"{card.clock.line(time.time())}; strikes {card.strikes}",
-        ]
-        for order in card.orders:
-            lines.extend((
-                f"{order.problem} ({order.order}) {order.state}: {order.text}",
-                f"  {order.progress.line}; timers up {len(order.review_timers_up)}; "
-                f"strikes {order.strikes}; unjudged edits {order.unjudged_edits}",
-            ))
-        lines.extend(f"ready #{pr.number} at {pr.head[:9]}" for pr in card.ready_prs)
-        lines.extend(f"draft #{pr.number} at {pr.head[:9]}" for pr in card.draft_prs)
-        self.summary.update("\n".join(lines))
+        self.summary.present(DisclosureEntry(
+            FieldKey(type(card), "unit"), "Current card", DisclosedValue.of(card),
+        ))
         if changed and self.is_mounted and not self.collapsed:
             self.read_detail()
 
@@ -152,18 +144,14 @@ class CommanderUnitCard(ToadNode, Collapsible):
             return
         if not self.is_attached or self.collapsed or self.card != card:
             return
-        lines: list[str] = []
-        for order in detail.orders:
-            lines.extend((f"Original order {order.card.order} · {order.card.problem}",
-                          *order.instructions, order.story.line))
-            lines.extend(
-                f"commit {commit.sha} · "
-                f"{datetime.fromtimestamp(commit.at, timezone.utc).isoformat()}"
-                for commit in order.commits
-            )
-        self.original_orders.update("\n\n".join(lines))
-        self.activity.update(detail.activity)
-        self.activity_view.display = True
+        entry = DisclosureEntry(
+            FieldKey(type(detail), "unit"), "Original details", DisclosedValue.of(detail),
+        )
+        for view in self.original_details.query_children(DeclaredDisclosure):
+            view.present(entry)
+            break
+        else:
+            self.original_details.mount(DeclaredDisclosure(entry))
         self.detail_status.update("Original records read; activity uses Core's bounded view.")
 
 
@@ -243,12 +231,12 @@ class CommanderPage(
         border: solid $primary; background: $surface;
     }
     CommanderPage #hud-error { display: none; height: auto; color: $error; }
-    CommanderPage #hud-rows { height: auto; max-height: 90vh; scrollbar-gutter: stable; }
+    CommanderPage #hud-rows { height: auto; max-height: 100%; scrollbar-gutter: stable; }
     CommanderPage CommanderFrameView { height: auto; }
     CommanderPage Static { height: auto; }
     CommanderPage .hud-commander { text-style: bold reverse; }
     CommanderPage .hud-load { text-style: bold; }
-    CommanderPage #commander-close { margin: 0; }
+    CommanderPage #commander-close { dock: bottom; margin: 0; }
     """
 
     def __init__(self, commander: str = "") -> None:
