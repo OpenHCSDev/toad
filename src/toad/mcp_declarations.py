@@ -8,8 +8,8 @@ from pathlib import Path
 import re
 from typing import Annotated, Literal
 
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import WireName
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import WireName
 
 
 class InventoryScope(DeclaredFamily, affix="Scope"):

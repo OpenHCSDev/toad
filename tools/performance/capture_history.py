@@ -25,7 +25,7 @@ import tempfile
 import time
 import uuid
 
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from history_capture_remote import (
     CaptureOperation, CaptureRequest, CaptureSpec, ProcessIdentity, RemoteCaptureRun, StartCapture,
     error_metadata, process_identity as identity, publish, read_meter_source,

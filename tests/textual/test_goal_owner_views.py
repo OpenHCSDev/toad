@@ -4,7 +4,7 @@ import asyncio
 from dataclasses import replace
 
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.field_codec import TurnId
+from agent_comms.nominal.field_codec import TurnId
 from agent_comms.goal_failure_observation import FailedTurnEvidence
 from agent_comms.goal_history import (
     RecordedGoalHistory, RecordedGoalRevision, BaselineRevision, TransitionRevision, ObservedGapRevision,

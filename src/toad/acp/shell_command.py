@@ -1,7 +1,7 @@
 """Shell syntax is decoded at the command boundary, not at retirement."""
 from abc import abstractmethod
 import os
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 
 
 class ShellCommand(DeclaredFamily, affix="ShellCommand"):
