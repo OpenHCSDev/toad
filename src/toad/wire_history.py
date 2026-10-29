@@ -411,7 +411,7 @@ class WirePageBuffer(SavedHistory):
         self.revision = revision
 
     @property
-    def queue_source(self):
+    def queue_source(self) -> WireSource:
         return self.loader
 
     def replacement(self, through) -> WirePageBuffer:

@@ -28,6 +28,8 @@ from agent_comms.notification_evidence import NotificationWindow
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
+    from toad.submission_queue import QueueSource, MessageQueueEntry
+    from agent_comms.ui_model.observation import ReadNotifications
     from toad.widgets.conversation import Conversation
 
 
@@ -294,7 +296,7 @@ class ConversationSubmissions:
         return self.view.agent_binding.accepts_failed_input(message)
 
     @property
-    def queue_source(self):
+    def queue_source(self) -> QueueSource:
         return self.view.queue_source
 
     @property
@@ -302,9 +304,9 @@ class ConversationSubmissions:
         return self.queue_source.queue_summary(self)
 
     @property
-    def message_queue_entries(self):
+    def message_queue_entries(self) -> tuple[MessageQueueEntry, ...]:
         """Borrow the existing visible fragment proofs; never retain another inbox."""
-        entries = {}
+        entries: dict[ReadNotifications, MessageQueueEntry] = {}
         for target in self.view.contents.notification_targets():
             for fragment in target.visible_fragments():
                 for entry in fragment.queue_entries(target.notification_view):
@@ -369,7 +371,7 @@ class ConversationSubmissions:
             group="send-queued-now", exclusive=True,
         )
 
-    async def _send_now(self, source, agent, scope: QueueScope):
+    async def _send_now(self, source: QueueSource, agent, scope: QueueScope) -> None:
         try:
             if self.queue_source is not source or self.view.agent_binding is not agent:
                 raise ValueError("The source changed before send now")

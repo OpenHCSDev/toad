@@ -6,8 +6,10 @@ ACP request identities.
 """
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import NoQueueScope, QueueItem
@@ -25,6 +27,7 @@ from toad.widgets.tool_content import ToolContent
 
 if TYPE_CHECKING:
     from agent_comms.acp_extension import QueueScope
+    from toad.acp.agent import Agent
     from toad.conversation_submission import ConversationSubmissions
 
 
@@ -53,10 +56,22 @@ class MessageQueueEntry:
         )
 
 
-class QueueSource:
+class QueueSource(ABC):
     """An absent source grants neither queue membership nor mutation authority."""
 
-    preview_limit = 3
+    preview_limit: ClassVar[int] = 3
+
+    @abstractmethod
+    def queue_scope(self, owner: ConversationSubmissions) -> QueueScope: ...
+
+    @abstractmethod
+    def queue_actions_available(self, owner: ConversationSubmissions) -> bool: ...
+
+    @abstractmethod
+    async def queue_send_now(self, owner: ConversationSubmissions, scope: QueueScope) -> None: ...
+
+    @abstractmethod
+    async def queue_clear(self, owner: ConversationSubmissions, scope: QueueScope) -> None: ...
 
     def queue_summary(self, owner: ConversationSubmissions) -> str:
         return "Queue unavailable"
@@ -116,7 +131,7 @@ class NativeQueueSource(QueueSource):
     def queue_actions_available(self, owner: ConversationSubmissions) -> bool:
         return owner.view.agent_binding.presentation.queue_actions_available
 
-    def require_queue_action(self, owner: ConversationSubmissions, scope: QueueScope):
+    def require_queue_action(self, owner: ConversationSubmissions, scope: QueueScope) -> Agent:
         return owner.view.agent_binding.presentation.require_queue_action(scope)
 
     async def queue_send_now(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
@@ -181,7 +196,7 @@ class QueueInspection(DismissibleScreen[None]):
                 yield Button("Clear queued inputs", id="queue-clear", disabled=not available)
                 yield Button("Close", id="queue-close")
 
-    async def apply_action(self, action):
+    async def apply_action(self, action: Callable[[ConversationSubmissions, QueueScope], Awaitable[None]]) -> None:
         try:
             if self.submissions.queue_source is not self.source or self.submissions.view.agent_binding is not self.agent:
                 raise ValueError("The source changed; inspect its current queue again")

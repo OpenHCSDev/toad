@@ -42,7 +42,7 @@ from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
-from toad.submission_queue import QueueEvidenceChanged
+from toad.submission_queue import QueueEvidenceChanged, QueueSource
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
@@ -1624,7 +1624,7 @@ class Conversation(
         self.feedback.flash("Context compacted", style="success")
 
     @property
-    def queue_source(self):
+    def queue_source(self) -> QueueSource:
         return self.operational_sources
 
     def queue_evidence_changed(self) -> None:

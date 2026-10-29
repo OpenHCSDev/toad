@@ -1,11 +1,18 @@
 """Agent-owned optional capabilities and derived attachment presentation."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.acp_extension import NoQueueScope, PendingQueueProjection, QueueProjection
+from agent_comms.acp_extension import NoQueueScope, PendingQueueProjection, QueueProjection, QueueScope
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
+
+
+if TYPE_CHECKING:
+    from toad.acp.agent import Agent
 
 
 @dataclass(frozen=True)
@@ -39,7 +46,7 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
         """The actual source owns its input queue projection."""
 
     @property
-    def queue_scope(self):
+    def queue_scope(self) -> QueueScope:
         return NoQueueScope()
 
     @property
@@ -50,7 +57,7 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
     def queue_actions_available(self) -> bool:
         return False
 
-    def require_queue_action(self, scope):
+    def require_queue_action(self, scope: QueueScope) -> Agent:
         raise ValueError("No live ACP queue authority is available")
 
     @property
@@ -103,7 +110,7 @@ class ACPAgentPresentation(AgentPresentation):
         return self.agent.coordination is not None
 
     @property
-    def queue_scope(self):
+    def queue_scope(self) -> QueueScope:
         return self.agent.queue_attachment.scope
 
     @property
@@ -120,7 +127,7 @@ class ACPAgentPresentation(AgentPresentation):
     def queue_actions_available(self) -> bool:
         return self.queue_supported and self.agent.queue_attachment.accepts_request(self.queue_scope)
 
-    def require_queue_action(self, scope):
+    def require_queue_action(self, scope: QueueScope) -> Agent:
         if not self.queue_supported or not self.agent.queue_attachment.accepts_request(scope):
             raise ValueError("Queue attachment changed or is unavailable; inspect the current queue again")
         return self.agent
