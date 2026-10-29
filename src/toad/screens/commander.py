@@ -14,6 +14,7 @@ from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
+from rich.cells import cell_len
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
@@ -47,10 +48,8 @@ class CommanderUnitCard(ToadNode, Collapsible):
     """Retain the unit's disclosure while Core replaces its current card."""
 
     DEFAULT_CSS = """
-    CommanderUnitCard { height: auto; border: none; padding: 0; margin: 0 0 1 0; }
-    CommanderUnitCard > CollapsibleTitle {
-        height: 1; padding: 0; text-wrap: nowrap; text-overflow: ellipsis;
-    }
+    CommanderUnitCard { height: auto; border: none; padding: 0; margin: 0; }
+    CommanderUnitCard > CollapsibleTitle { height: auto; padding: 0; }
     CommanderUnitCard > Contents { padding: 0 1; height: auto; }
     CommanderUnitCard Static { height: auto; }
     CommanderUnitCard Button { dock: none; width: auto; margin: 0; }
@@ -75,10 +74,31 @@ class CommanderUnitCard(ToadNode, Collapsible):
         )
         self.present(card)
 
+    # The title's disclosure symbol and its space; continued lines indent under the name.
+    TITLE_INDENT = "  "
+
+    def brief_lines(self, width: int) -> str:
+        """The unit's scan line broken between its pieces, never inside one, to fit the width;
+        a piece wider than the width alone wraps where the title wraps."""
+        lines: list[str] = []
+        for part in self.card.brief_parts():
+            joined = f"{lines[-1]} | {part}" if lines else part
+            if lines and cell_len(joined) <= width:
+                lines[-1] = joined
+            else:
+                lines.append(part)
+        return f"\n{self.TITLE_INDENT}".join(lines)
+
+    def fit_title(self) -> None:
+        self.title = Content(self.brief_lines(self.size.width - len(self.TITLE_INDENT)))
+
+    def on_resize(self) -> None:
+        self.fit_title()
+
     def present(self, card: CommanderUnit) -> None:
         changed = card != self.card
         self.card = card
-        self.title = Content(card.brief())
+        self.fit_title()
         self.set_class(card.needs_hand(), "-needs-hand")
         lines = [
             card.state.action,
@@ -219,16 +239,16 @@ class CommanderPage(
     DEFAULT_CSS = """
     CommanderPage { align: center middle; background: $background 40%; }
     CommanderPage > Vertical {
-        width: 95%; height: 95%; padding: 1;
+        width: 95%; height: auto; max-height: 95%; padding: 0 1;
         border: solid $primary; background: $surface;
     }
     CommanderPage #hud-error { display: none; height: auto; color: $error; }
-    CommanderPage #hud-rows { height: 1fr; scrollbar-gutter: stable; }
-    CommanderPage CommanderFrameView { height: auto; margin-bottom: 1; }
+    CommanderPage #hud-rows { height: auto; max-height: 90vh; scrollbar-gutter: stable; }
+    CommanderPage CommanderFrameView { height: auto; }
     CommanderPage Static { height: auto; }
     CommanderPage .hud-commander { text-style: bold reverse; }
-    CommanderPage .hud-load { text-style: bold; margin-bottom: 1; }
-    CommanderPage #commander-close { dock: bottom; margin-top: 1; }
+    CommanderPage .hud-load { text-style: bold; }
+    CommanderPage #commander-close { margin: 0; }
     """
 
     def __init__(self, commander: str = "") -> None:
@@ -262,7 +282,8 @@ class CommanderPage(
             yield Static("", id="hud-error", markup=False)
             with VerticalScroll(id="hud-rows"):
                 yield Static("Waiting for the commander heartbeat.", id="hud-empty", markup=False)
-            yield Button("Close", id="commander-close", action=f"screen.{DismissAction.binding_name()}")
+            yield Button("Close", id="commander-close", compact=True,
+                         action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         access = self.app.coordination_access
