@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass, is_dataclass
-from typing import Hashable
+from typing import ClassVar, Hashable
 
 from agent_comms.field_codec import DisclosureIdentity, FieldCodec, FieldPlan
 from python_introspect import declared_field_label
@@ -16,34 +16,36 @@ from textual.widgets import Collapsible, Static
 from toad.widgets.sidebar_tree import KeyedRows
 
 
-@dataclass(frozen=True)
-class RootKey:
-    owner: type
+class DisclosureKey:
+    """Nominal native-row identity; its members carry only their differing components."""
 
 
 @dataclass(frozen=True)
-class FieldKey:
+class RecordKey(DisclosureKey):
     owner: type
+
+
+class RootKey(RecordKey):
+    """The whole record, not one of its fields."""
+
+
+@dataclass(frozen=True)
+class FieldKey(RecordKey):
     name: str
 
 
 @dataclass(frozen=True)
-class EntityKey:
-    owner: type
+class EntityKey(RecordKey):
     parts: tuple[object, ...]
 
 
-@dataclass(frozen=True, eq=False)
-class AnonymousKey:
+class AnonymousKey(DisclosureKey):
     """A source without declared entity identity cannot inherit another item's view."""
 
 
 @dataclass(frozen=True)
-class MappingKey:
+class MappingKey(DisclosureKey):
     key: Hashable
-
-
-type DisclosureKey = RootKey | FieldKey | EntityKey | AnonymousKey | MappingKey
 
 
 @dataclass(frozen=True)
@@ -135,11 +137,17 @@ class IdentifiedRecordValue(RecordValue):
 
 
 @dataclass(frozen=True)
-class SequenceValue(StructuredValue):
-    value: Sequence[object]
+class CollectionValue(StructuredValue):
+    value: Collection[object]
+    noun: ClassVar[str] = "items"
 
     def summary(self, width: int) -> str:
-        return f"{len(self.value)} items"
+        return f"{len(self.value)} {self.noun}"
+
+
+@dataclass(frozen=True)
+class SequenceValue(CollectionValue):
+    value: Sequence[object]
 
     def children(self) -> tuple[DisclosureEntry, ...]:
         entries = []
@@ -150,11 +158,9 @@ class SequenceValue(StructuredValue):
 
 
 @dataclass(frozen=True)
-class MappingValue(StructuredValue):
+class MappingValue(CollectionValue):
     value: Mapping[Hashable, object]
-
-    def summary(self, width: int) -> str:
-        return f"{len(self.value)} fields"
+    noun = "fields"
 
     def children(self) -> tuple[DisclosureEntry, ...]:
         return tuple(
