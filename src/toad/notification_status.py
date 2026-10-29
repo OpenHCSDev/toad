@@ -39,8 +39,16 @@ class NotificationStatus:
         return ""
 
     @property
+    def queue_title(self) -> str:
+        return self.title
+
+    @property
     def details(self) -> DetailLines:
         return ()
+
+    @property
+    def queue_details(self) -> DetailLines:
+        return self.details
 
     @property
     def disclosure(self) -> SpanColumns:
@@ -80,6 +88,23 @@ class CheckedNotifications(NotificationStatus):
     @property
     def title(self) -> str:
         return MessageNotification.summary(self.notifications)
+
+    @property
+    def queue_title(self) -> str:
+        # Keep each recipient's actual proof label; do not turn routing into arrival.
+        return " · ".join(f"@{item.recipient} {item.label}" for item in self.notifications[:1]) or "Unobserved"
+
+    @property
+    def queue_details(self) -> DetailLines:
+        leading = CheckedNotifications(self.notifications[:1])
+        return (
+            (Span(f"{len(self.notifications)} observed recipients; leading result shown", MutedRole),),
+            *((Span(f"Recipient {item.recipient_identity.recipient_lookup}", MutedRole),)
+              for item in leading.notifications),
+            *leading.details,
+            *((Span(f"Answer {item.answer.seq}/{item.answer.message_id}", MutedRole),)
+              for item in leading.notifications if item.answer is not None),
+        )
 
     @property
     def details(self) -> DetailLines:

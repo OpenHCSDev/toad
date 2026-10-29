@@ -133,7 +133,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def compose_activity(cls, view: CommsChatView) -> ComposeResult: ...
 
     @abstractmethod
-    def prompt(self, project: Checkout): ...
+    def prompt(self, project: Checkout, *, submissions): ...
 
     @classmethod
     def seen_page(cls, history: WireHistory, seen):
@@ -206,10 +206,10 @@ class ChannelConversation(ConversationKind):
     def initial_placeholder(self) -> str:
         return f"Message {self.target.name}"
 
-    def prompt(self, project: Checkout):
+    def prompt(self, project: Checkout, *, submissions):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        return ChannelPrompt(project=project, placeholder=self.initial_placeholder)
+        return ChannelPrompt(project=project, placeholder=self.initial_placeholder, submissions=submissions)
 
     def read_only(self, comms: Comms) -> bool:
         return comms.bus.require_channel(self.target.name).read_only
@@ -293,10 +293,10 @@ class DmConversation(ConversationKind):
         view.thread_activity = ConversationSessionDetails(view.conversation.peer)
         yield view.thread_activity
 
-    def prompt(self, project: Checkout):
+    def prompt(self, project: Checkout, *, submissions):
         from toad.widgets.prompt import MessagePrompt
 
-        return MessagePrompt(project=project)
+        return MessagePrompt(project=project, submissions=submissions)
 
     async def status_text(self, comms: Comms, *, read_only: bool) -> str:
         def read():

@@ -3,7 +3,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.acp_extension import PendingQueueProjection, QueueProjection
+from agent_comms.acp_extension import NoQueueScope, PendingQueueProjection, QueueProjection
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
 
@@ -37,6 +37,21 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
     @abstractmethod
     def queue(self):
         """The actual source owns its input queue projection."""
+
+    @property
+    def queue_scope(self):
+        return NoQueueScope()
+
+    @property
+    def queue_identity(self) -> str:
+        return "No live ACP queue attachment"
+
+    @property
+    def queue_actions_available(self) -> bool:
+        return False
+
+    def require_queue_action(self, scope):
+        raise ValueError("No live ACP queue authority is available")
 
     @property
     def prompt_in_flight(self):
@@ -86,6 +101,29 @@ class ACPAgentPresentation(AgentPresentation):
     def queue_supported(self) -> bool:
         """Advertisement belongs to the original coordination declaration."""
         return self.agent.coordination is not None
+
+    @property
+    def queue_scope(self):
+        return self.agent.queue_attachment.scope
+
+    @property
+    def queue_identity(self) -> str:
+        attachment = self.agent.queue_attachment
+        return attachment.state.project(
+            attachment.current,
+            available=lambda current: f"Scope {current.scope!r} · revision {current.revision}",
+            pending="Checking queue attachment",
+            unavailable="Queue attachment unavailable",
+        )
+
+    @property
+    def queue_actions_available(self) -> bool:
+        return self.queue_supported and self.agent.queue_attachment.accepts_request(self.queue_scope)
+
+    def require_queue_action(self, scope):
+        if not self.queue_supported or not self.agent.queue_attachment.accepts_request(scope):
+            raise ValueError("Queue attachment changed or is unavailable; inspect the current queue again")
+        return self.agent
 
     @property
     def uses_managed_turns(self):

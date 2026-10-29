@@ -50,6 +50,7 @@ from toad.transcript_state import (
 )
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
+from toad.submission_queue import BusQueueSource
 from toad.widgets.transcript_fragments import (
     BusMessageFragment,
     MessageShown,
@@ -282,7 +283,7 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
 
 
 @dataclass(frozen=True, eq=False)
-class WireSource:
+class WireSource(BusQueueSource):
     """One conversation as one viewer reads it from Core, and how its messages are styled.
 
     A page read to the newest messages is short so that it is drawn at once;
@@ -408,6 +409,10 @@ class WirePageBuffer(SavedHistory):
     def __init__(self, *args, revision: ConversationObservation, **kwargs):
         super().__init__(*args, **kwargs)
         self.revision = revision
+
+    @property
+    def queue_source(self):
+        return self.loader
 
     def replacement(self, through) -> WirePageBuffer:
         return type(self)(self.loader, through, self.runtime, revision=self.revision)

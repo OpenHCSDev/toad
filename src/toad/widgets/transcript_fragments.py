@@ -46,6 +46,7 @@ from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuItem
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import NotificationStatus, UncheckedNotifications
+from toad.submission_queue import MessageQueueEntry
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
@@ -340,6 +341,9 @@ class TranscriptFragment:
     def notification_references(self) -> tuple[MessageReference, ...]:
         return ()
 
+    def queue_entries(self, notification_view):
+        return ()
+
     def draws(self, message: BusMessage) -> bool:
         """Whether this fragment draws that bus message; only bus-message fragments do."""
         return False
@@ -515,6 +519,10 @@ class BusMessageFragment(TranscriptFragment):
     @property
     def notification_references(self) -> tuple[MessageReference, ...]:
         return self.part_position.notification_references(self.events[0])
+
+    def queue_entries(self, notification_view):
+        return tuple(MessageQueueEntry(notification_view.notification_read((reference,)), self.shown.status)
+                     for reference in self.notification_references)
 
     def draws(self, message: BusMessage) -> bool:
         return self.events[0].source == message.reference

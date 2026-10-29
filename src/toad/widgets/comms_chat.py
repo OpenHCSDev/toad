@@ -81,6 +81,10 @@ class CommsChatView(Conversation):
         self.message_contents = Contents(id="contents")
         self.message_history = WireHistory.empty(view=self, notification_view=self.message_contents)
 
+    @property
+    def queue_source(self):
+        return self.message_history.page_source.queue_source
+
     def transcript_binding(self) -> ViewBinding:
         """A wire conversation has no native transcript to publish."""
         return NoView()
@@ -96,7 +100,7 @@ class CommsChatView(Conversation):
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation.compose_activity(self)
             yield self.throbber_above
-            yield self.conversation.prompt(self.project_path).data_bind(
+            yield self.conversation.prompt(self.project_path, submissions=self.submissions).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,

@@ -290,6 +290,12 @@ class NoProjection(HeldProjection):
 
 
 class PreparedPageSource(ABC):
+    @property
+    def queue_source(self):
+        from toad.submission_queue import ReadOnlyQueueSource
+
+        return ReadOnlyQueueSource()
+
     """One lifetime-owned source of prepared pages, independent of widget paging."""
 
     runtime: PreparationRuntime
