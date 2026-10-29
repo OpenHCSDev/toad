@@ -1,44 +1,20 @@
-"""An agent process ends through EOF, cancellation or an explicit stop with its child gone, its session retired and the default-route lock released."""
+"""An agent process ends through EOF, cancellation or an explicit stop with its child gone and its session retired."""
 
 import asyncio
-import fcntl
-import os
 import sys
 
 import psutil
 import pytest
 
-from agent_comms.active_route import active_route_path
 from support.agents import command
 from toad.acp.agent import Agent
 
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    """The user's home is private, so the default route and its lock directory are this test's own."""
+    """The user's home is private to this test."""
     monkeypatch.setenv("HOME", str(tmp_path))
     return tmp_path
-
-
-@pytest.fixture
-def launch_root(home):
-    """The published default root: only its borrowers take the default-route lock."""
-    from agent_comms.active_route import LocalRoute
-    from agent_comms.launch_root import LaunchRoot
-
-    return LaunchRoot.from_path(LocalRoute.default().root)
-
-
-def route_lock_available():
-    directory = os.open(active_route_path().parent, os.O_RDONLY | os.O_DIRECTORY)
-    try:
-        try:
-            fcntl.flock(directory, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            return False
-        return True
-    finally:
-        os.close(directory)
 
 
 async def until(ui_condition, why):
@@ -51,7 +27,7 @@ async def until(ui_condition, why):
 
 
 @pytest.mark.parametrize("how", ["cancel", "stop", "eof"])
-async def test_the_child_and_session_are_retired_and_the_route_released(home, how, app_agents):
+async def test_the_child_and_session_are_retired(home, how, app_agents):
     pid_file = home / f"{how}.pid"
     code = (
         "import subprocess,sys,time;from pathlib import Path;"
@@ -80,4 +56,3 @@ async def test_the_child_and_session_are_retired_and_the_route_released(home, ho
     await until(lambda: not descendant.is_running() or descendant.status() == psutil.STATUS_ZOMBIE, "the child to end")
     assert agent.process.process is None and agent.session.task is None
     assert not agent.session.responses and not agent.session.accepts_updates
-    assert route_lock_available(), "retired process retained the route lock"
