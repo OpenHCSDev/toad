@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from collections.abc import Iterable
 from enum import Enum
 from typing import TYPE_CHECKING, ClassVar, Optional
@@ -82,6 +83,7 @@ class ValueEditor(DeclaredViews, EditorWidget):
     def finish(self) -> None:
         """Send an edit the user has not finished yet. Most controls have none."""
 
+    @abstractmethod
     def commit(self) -> None:
         """Explicitly supply the displayed input, even when it is unchanged."""
 
@@ -329,6 +331,12 @@ class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
     def finish(self) -> None:
         if self.holds_value.value:
             self.member.finish()
+
+    def commit(self) -> None:
+        if self.holds_value.value:
+            self.member.commit()
+        else:
+            self.send(None)
 
     def value_text(self, value: object) -> str:
         return "not set" if value is None else self.member.value_text(value)
