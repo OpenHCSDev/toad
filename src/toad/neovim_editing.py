@@ -676,7 +676,8 @@ class NeovimEditing(VimMode):
             editor.history.clear()
         started = self._started
         if started.done() and not started.cancelled() and not self._changes:
-            self.render(editor, force=changed_receiver)
+            # Restore may have rebuilt view resources for this same receiver.
+            self.render(editor, force=True)
 
     def resume(self, editor: TextArea) -> None:
         pass
