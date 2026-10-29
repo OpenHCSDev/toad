@@ -8,7 +8,8 @@ from collections.abc import Awaitable, Callable
 import pytest
 from agent_comms.bus import Bus
 from agent_comms.channel_targets import ThreadTarget
-from agent_comms.presentation import DisplayOutcomes, MessageNotification
+from agent_comms.read_basis import DisplayOutcomes
+from agent_comms.presentation import MessageNotification
 from agent_comms.recorded_bus import RecordedBusIdentity
 from support.ui import Ui
 from support.workspace import Workspace
