@@ -26,7 +26,7 @@ class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, Cat
         self.message_row = row
         self.binding = binding
         self.request = request
-        self.show_header = show_header
+        self.message_dividers = (MessageRowDivider(row, clock=LiveMessageClock()),) if show_header else ()
 
     @property
     def commit_claim(self):
@@ -37,7 +37,7 @@ class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, Cat
         return self.publication.message.source
 
     def notification_targets(self):
-        return (self,) if self.show_header and self.display else ()
+        return (self,) if self.message_dividers and self.display else ()
 
     @property
     def notification_references(self):
@@ -57,11 +57,10 @@ class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, Cat
 
     def compose(self) -> ComposeResult:
         message = self.publication.message
-        if self.show_header:
-            yield MessageRowDivider(self.message_row, clock=LiveMessageClock())
+        yield from self.message_dividers
         yield AgentResponse(message.text,
                             delivery=ResponseDelivery.from_route(self.message_row.route),
                             show_divider=False,
                             clock=LiveMessageClock())
-        if self.show_header:
+        if self.message_dividers:
             yield MessageNotifications()

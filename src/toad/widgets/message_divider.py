@@ -100,6 +100,8 @@ class MessageDivider(Animated[Mix], SingleLineBlock):
     A message that has just arrived fades in from the accent colour.
     """
 
+    block: Divider
+
     DEFAULT_CSS = """
     MessageDivider {
         width: 1fr;

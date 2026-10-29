@@ -29,6 +29,7 @@ from toad.widgets.presentation_window import (
 )
 
 if TYPE_CHECKING:
+    from toad.widgets.linked_rows import MessageRowBlock
     from toad.line_blocks import Divider
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
@@ -692,7 +693,15 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, VerticalScroll):
             if first <= y < first + page.line_count:
                 span = page.fragment_at(int(y - first))
                 return span.fragment.sticky_header(span.index)
+        for message, first in self.placements(self.message_rows):
+            if first <= y < first + message.outer_size.height:
+                return message.sticky_header(int(y - first))
         return ()
+
+    @cached_property
+    def message_rows(self) -> WeakSet[MessageRowBlock]:
+        """Mounted live message rows, registered by their shared lifecycle."""
+        return WeakSet()
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""
