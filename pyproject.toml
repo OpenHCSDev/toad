@@ -84,3 +84,4 @@ markers = ["refactor_guard: permanent architecture deletion guards"]
 
 [tool.mypy]
 follow_untyped_imports = true
+mypy_path = ["src", "tools"]
