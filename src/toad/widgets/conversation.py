@@ -356,6 +356,12 @@ This is a view of your conversation with the agent.
         super().watch_scroll_y(old_value, new_value)
         self.sticky_header.pin(self.top_message_header())
 
+    def prepare_viewport(self) -> None:
+        """Committed geometry can change the top row's message at an unchanged offset
+        (a reflow, a filter, replaced pages, a restored tab); pin from that scene too."""
+        super().prepare_viewport()
+        self.sticky_header.pin(self.top_message_header())
+
     def on_mount(self) -> None:
         super().on_mount()
         self.tail_follow_changed()
