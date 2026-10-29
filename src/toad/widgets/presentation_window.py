@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Annotated, ClassVar, get_args
 
 from agent_comms.message_page import PageBounds
 from agent_comms.transcripts import TranscriptCursor
+from toad.work_preparation import WorkRevision
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -173,8 +174,8 @@ class PageEnd(ABC):
         return all((position - boundary) * self.step >= 0
                    for position in (window.scroll_y, window.scroll_target_y))
 
-    def work_cursor[Cursor](self, through: Cursor) -> Cursor | None:
-        return self.edge((None, through))
+    @abstractmethod
+    def work_revision[Cursor](self, request: "PageRequest[Cursor]", through: Cursor) -> WorkRevision: ...
     @abstractmethod
     async def load_page(self, loader, cursor: TranscriptCursor, through) -> TranscriptPage: ...
     def progressed(self, page: "TranscriptPage", cursor: TranscriptCursor) -> bool:
@@ -233,6 +234,9 @@ class PageEnd(ABC):
 
 
 class OlderEnd(PageEnd):
+    def work_revision[Cursor](self, request: "PageRequest[Cursor]", through: Cursor) -> WorkRevision:
+        return PageRevision(request)
+
     step = -1
     pop = staticmethod(deque.popleft)
     append = staticmethod(deque.appendleft)
@@ -265,6 +269,9 @@ class OlderEnd(PageEnd):
 
 
 class NewerEnd(PageEnd):
+    def work_revision[Cursor](self, request: "PageRequest[Cursor]", through: Cursor) -> WorkRevision:
+        return GrowingPageRevision(request, through)
+
     step = 1
     accepts_destination = False
     pop = staticmethod(deque.pop)
@@ -308,12 +315,27 @@ NEWER_END = NewerEnd()
 
 
 @dataclass(frozen=True)
-class PageRequest[Cursor = TranscriptCursor | None]:
+class PageRequest[Cursor = TranscriptCursor]:
     end: PageEnd
     cursor: Cursor
 
-    def progressed(self: PageRequest[TranscriptCursor | None], page: "TranscriptPage") -> bool:
-        return self.cursor is None or self.end.progressed(page, self.cursor)
+    def progressed(self: PageRequest[TranscriptCursor], page: "TranscriptPage") -> bool:
+        return self.end.progressed(page, self.cursor)
+
+
+@dataclass(frozen=True)
+class PageRevision[Cursor = TranscriptCursor](WorkRevision):
+    """An older request is bounded by its own cursor, independent of new arrivals."""
+
+    request: PageRequest[Cursor]
+    size: ClassVar[int] = 512
+
+
+@dataclass(frozen=True)
+class GrowingPageRevision[Cursor = TranscriptCursor](PageRevision[Cursor]):
+    """A newer request also depends on the frontier admitted for this read."""
+
+    through: Cursor
 
 
 class PreparationDemand(ABC):

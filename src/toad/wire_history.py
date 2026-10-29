@@ -22,7 +22,7 @@ from agent_comms.historical_views import (
     ConversationObservation,
     ConversationRevision,
 )
-from agent_comms.message_page import MessagePage
+from agent_comms.message_page import MessagePage, MessagePageRequest
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
 from agent_comms.page_traversal import (
@@ -104,9 +104,12 @@ class AfterMessage(WireCut):
     bounded = True
     kept = True
 
-    @property
-    def undrawn(self) -> bool:
-        return False
+    def accepts(self, current: MessagePage, incoming: MessagePage,
+                view: type[ConversationHistoryView]) -> bool:
+        return view.same_display(incoming, current)
+
+    def advanced_source(self, current: MessagePage, incoming: MessagePage) -> MessagePage:
+        return current
 
     def observed(self) -> AfterMessage:
         return self
@@ -136,9 +139,12 @@ class NothingRead(AfterSequence):
 
     cursor: LiveCursor = field(default_factory=lambda: LiveCursor(0))
 
-    @property
-    def undrawn(self) -> bool:
+    def accepts(self, current: MessagePage, incoming: MessagePage,
+                view: type[ConversationHistoryView]) -> bool:
         return True
+
+    def advanced_source(self, current: MessagePage, incoming: MessagePage) -> MessagePage:
+        return incoming
 
     def observed(self) -> AfterSequence:
         return AfterSequence(self.cursor)
@@ -158,16 +164,11 @@ class WirePage:
     @classmethod
     def unread(cls) -> WirePage:
         """The declared unread cursor carries an empty, unscoped placeholder."""
-        return cls((), None, NothingRead(), False, False,
-                   MessagePage((), False, False, NoDisplaySelection()))
-
-    @property
-    def undrawn(self) -> bool:
-        return self.after.undrawn
+        return cls((), None, NothingRead(), False, False, MessagePageRequest.empty)
 
     def accepts(self, page: MessagePage, view: type[ConversationHistoryView]) -> bool:
         """An initial placeholder accepts its first scope; Core compares actual pages."""
-        return self.undrawn or view.same_display(page, self.source)
+        return self.after.accepts(self.source, page, view)
 
     def advanced(self, interval: WirePage, *, older: bool) -> WirePage:
         """An empty interval advances its cut and establishes the first Core page.
@@ -175,7 +176,7 @@ class WirePage:
         Existing fragments retain their original page evidence; a placeholder
         must adopt the actual empty Core page rather than remain unobserved.
         """
-        source = interval.source if self.undrawn else self.source
+        source = self.after.advanced_source(self.source, interval.source)
         return (
             replace(self, before=interval.before, after=self.after.observed(),
                     has_older=interval.has_older, source=source)
@@ -429,10 +430,6 @@ class WirePageBuffer(SavedHistory):
     def __init__(self, *args, revision: ConversationObservation, **kwargs):
         super().__init__(*args, **kwargs)
         self.revision = revision
-
-    @property
-    def queue_source(self) -> WireSource:
-        return self.loader
 
     def replacement(self, through) -> WirePageBuffer:
         return type(self)(self.loader, through, self.runtime, revision=self.revision)

@@ -228,8 +228,6 @@ class ReadyContent(ScreenContent):
         """Only mounted content can supply a painted reader cursor."""
         conversation = screen.conversation
         through = conversation.visible_read_cursor
-        if through is None:
-            return NothingToRead()
         app = screen.app
         access = app.coordination_access
         identity = screen.thread_identity

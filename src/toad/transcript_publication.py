@@ -36,6 +36,7 @@ from agent_comms.transcripts import (
     TranscriptCursor,
     TranscriptPage,
     TranscriptReadIdentity,
+    UnreadTranscriptCursor,
 )
 from agent_comms.ui_model.observation import (
     NotPublished,
@@ -772,7 +773,7 @@ class TranscriptPresentation:
         self.generation = 0
         self.dirty = False
         self.commit_required = False
-        self.displayed_cursor: TranscriptCursor | None = None
+        self.displayed_cursor: TranscriptCursor = UnreadTranscriptCursor()
         self.current_read: TranscriptPublicationState = NotPublished()
         self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
@@ -899,7 +900,7 @@ class TranscriptPresentation:
             lambda: ready.set_result(self.displayed_cursor)
         )
         cursor = await ready
-        if cursor is None:
+        if cursor.requires_commit():
             raise TranscriptChanged()
         return cursor
 
@@ -928,7 +929,7 @@ class TranscriptPresentation:
                 await self.suspend()
         finally:
             self._unbind_view()
-            self.displayed_cursor = None
+            self.displayed_cursor = UnreadTranscriptCursor()
 
     def _close_documents(self) -> None:
         documents, self.documents = self.documents, ()
@@ -1009,7 +1010,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 self.current_read = NotPublished()
                 self._close_documents()
                 self.dirty = self.commit_required = False
-                self.displayed_cursor = None
+                self.displayed_cursor = UnreadTranscriptCursor()
                 worker, self.worker = self.worker, None
                 if worker is not None:
                     worker.cancel()
@@ -1043,4 +1044,4 @@ class SessionTranscriptPresentation(TranscriptPresentation):
         self._close_documents()
         self.documents = tuple(documents)
         self._unbind_view()
-        self.displayed_cursor = None
+        self.displayed_cursor = UnreadTranscriptCursor()

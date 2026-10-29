@@ -6,7 +6,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
@@ -21,19 +21,15 @@ from agent_comms.declared_family import DeclaredFamily
 from toad import messages
 from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
-from toad.submission_queue import QueueActionRefused
+from toad.acp.agent import Agent
+from toad.acp.queue_attachment import QueueActionRefused
+from toad.submission_queue import MessageQueueEntry, QueueInspection, QueueSource
+from agent_comms.message_reference import MessageReference
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.input_decision import InputDecision, InputRefused
 from toad.widgets.prompt import Prompt
 from agent_comms.notification_evidence import NotificationWindow
-
-if TYPE_CHECKING:
-    from toad.acp.agent import Agent
-    from toad.submission_queue import QueueSource, MessageQueueEntry
-    from agent_comms.ui_model.observation import ReadNotifications
-    from toad.widgets.conversation import Conversation
-
 
 @dataclass(frozen=True)
 class InputSubmission(DeclaredFamily, affix="InputSubmission"):
@@ -46,17 +42,17 @@ class InputSubmission(DeclaredFamily, affix="InputSubmission"):
 
     @classmethod
     @abstractmethod
-    def matches(cls, event: UserInputSubmitted, view: Conversation): ...
+    def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions): ...
 
     @abstractmethod
     async def execute(self, owner: ConversationSubmissions): ...
 
     @classmethod
-    def from_event(cls, event: UserInputSubmitted, view: Conversation):
+    def from_event(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         kind = next(
             kind
             for kind in sorted(cls.members_with(InputSubmission), key=lambda kind: kind.priority, reverse=True)
-            if kind.matches(event, view)
+            if kind.matches(event, owner)
         )
         return kind(event.body)
 
@@ -65,7 +61,7 @@ class NoInputSubmission(InputSubmission):
     priority = -1
 
     @classmethod
-    def matches(cls, event: UserInputSubmitted, view: Conversation):
+    def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         return True
 
     async def execute(self, owner: ConversationSubmissions):
@@ -76,10 +72,10 @@ class QueueNowInputSubmission(InputSubmission):
     priority = 100
 
     @classmethod
-    def matches(cls, event: UserInputSubmitted, view: Conversation):
+    def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         if event.shell or event.body.strip():
             return False
-        return event.immediate and view.agent_binding.presentation.queue_supported
+        return event.immediate and owner.view.agent_binding.presentation.queue_supported
 
     async def execute(self, owner: ConversationSubmissions):
         projection = owner.queue_projection
@@ -91,7 +87,7 @@ class ShellInputSubmission(InputSubmission):
     priority = 90
 
     @classmethod
-    def matches(cls, event: UserInputSubmitted, view: Conversation):
+    def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         return event.shell and bool(event.body.strip())
 
     async def execute(self, owner):
@@ -151,7 +147,7 @@ class AgentInputSubmission(InputSubmission):
 
 class OrdinaryInputSubmission(AgentInputSubmission):
     @classmethod
-    def matches(cls, event: UserInputSubmitted, view: Conversation):
+    def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         if event.shell:
             return False
         return bool(event.body.strip())
@@ -165,11 +161,12 @@ class DeferredInputSubmission(OrdinaryInputSubmission):
     priority = 70
 
     @classmethod
-    def matches(cls, event: UserInputSubmitted, view: Conversation):
-        if not super().matches(event, view):
+    def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
+        if not super().matches(event, owner):
             return False
         if event.immediate:
             return False
+        view = owner.view
         return view.turns.owner.busy and view.agent_binding.presentation.queue_supported
 
     @property
@@ -185,10 +182,10 @@ class ImmediateInputSubmission(OrdinaryInputSubmission):
     priority = 80
 
     @classmethod
-    def matches(cls, event: UserInputSubmitted, view: Conversation):
-        if not super().matches(event, view):
+    def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
+        if not super().matches(event, owner):
             return False
-        return event.immediate and view.agent_binding.presentation.queue_supported
+        return event.immediate and owner.view.agent_binding.presentation.queue_supported
 
     @property
     def request(self):
@@ -244,17 +241,7 @@ class SubmissionExecution(SubmissionStart):
                 reason = await self.agent.send_prompt(self.submission.text)
         except RequestError as error:
             if self.current:
-                from toad.widgets.conversation import INTERNAL_EROR
-                from toad.widgets.markdown_note import MarkdownNote
-
-                view.turns.finish_client()
-                view.prompt.restore_draft(self.submission.text)
-                await view.post(
-                    MarkdownNote(
-                        INTERNAL_EROR.replace("$ERROR", str(error) or "no details were provided"),
-                        classes="-stop-reason",
-                    )
-                )
+                await view.submission_request_failed(error, self.submission.text)
         finally:
             self.owner.finish(self)
         if self.current and local:
@@ -302,24 +289,27 @@ class ConversationSubmissions:
 
     @property
     def queue_summary(self) -> str:
-        return self.queue_source.queue_summary(self)
+        return self.queue_source.queue_summary(
+            self.view.agent_binding.presentation, self.delivering,
+            self.message_queue_entries, self.view.send_block_reason)
 
     @property
     def message_queue_entries(self) -> tuple[MessageQueueEntry, ...]:
         """Borrow the existing visible fragment proofs; never retain another inbox."""
-        entries: dict[ReadNotifications, MessageQueueEntry] = {}
+        entries: dict[MessageReference, MessageQueueEntry] = {}
         for target in self.view.contents.notification_targets():
             for fragment in target.visible_fragments():
-                for entry in fragment.queue_entries(target.notification_view):
-                    entries[entry.request] = entry
+                for entry in fragment.queue_entries():
+                    entries[entry.reference] = entry
                     if len(entries) >= NotificationWindow.window_limit:
                         return tuple(entries.values())
         return tuple(entries.values())
 
     def inspect_queue(self):
-        from toad.submission_queue import QueueInspection
-
-        inspection = QueueInspection(self)
+        presentation = self.view.agent_binding.presentation
+        details = self.queue_source.queue_details(
+            presentation, self.delivering, self.message_queue_entries, self.view.send_block_reason)
+        inspection = QueueInspection(self.queue_source, presentation, details, self.publish_pending)
         self.view.app.push_screen(inspection)
         return inspection
 
@@ -368,17 +358,14 @@ class ConversationSubmissions:
     def send_now(self):
         source = self.queue_source
         return self.view.run_worker(
-            partial(self._send_now, source, self.view.agent_binding, source.queue_scope(self)),
+            partial(self._send_now, source, self.view.agent_binding.presentation,
+                    source.queue_scope(self.view.agent_binding.presentation)),
             group="send-queued-now", exclusive=True,
         )
 
-    async def _send_now(self, source: QueueSource, agent, scope: QueueScope) -> None:
-        if self.queue_source is not source or self.view.agent_binding is not agent:
-            self.view.feedback.flash("The source changed before send now", style="error")
-            return
+    async def _send_now(self, source: QueueSource, presentation, scope: QueueScope) -> None:
         try:
-            await source.queue_send_now(self, scope)
+            await source.queue_send_now(presentation, scope)
         except (RequestError, QueueActionRefused) as error:
-            if self.queue_source is source and self.view.agent_binding is agent:
-                self.view.feedback.flash(f"Send now failed: {error}", style="error")
+            self.view.feedback.flash(f"Send now failed: {error}", style="error")
         self.publish_pending()

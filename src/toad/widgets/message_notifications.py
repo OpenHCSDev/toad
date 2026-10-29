@@ -13,7 +13,6 @@ from textual.widgets import Collapsible
 
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
-from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.message_reference import MessageReference
 from toad.submission_queue import QueueEvidenceChanged
@@ -185,9 +184,9 @@ class SourceNotifications:
 
     def notification_identity_for(self, references: frozenset[MessageReference]) -> DisplayIdentity | NoDisplaySelection:
         """Use retained prepared Core pages, even after the pending paint was retired."""
-        return next((page.prepared.notification_identity for page in reversed(self.pages)
-                     if any(references.intersection(fragment.notification_references)
-                            for fragment in page.prepared.fragments_in_range)), NoDisplaySelection())
+        return next((fragment.notification_identity
+                     for fragment in reversed(tuple(self.visible_fragments()))
+                     if references.intersection(fragment.notification_references)), NoDisplaySelection())
 
     def rows_published(self) -> None:
         super().rows_published()

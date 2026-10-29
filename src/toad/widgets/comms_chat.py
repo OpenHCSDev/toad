@@ -7,6 +7,7 @@ from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
 from toad.wire_history import WireSource
+from toad.submission_queue import QueueSource, ReadOnlyQueueSource
 from toad.transcript_publication import NoView, ViewBinding
 
 import re
@@ -73,6 +74,7 @@ class CommsChatView(Conversation):
     ) -> None:
         super().__init__(project_path, transcript=transcript)
         self.conversation = conversation
+        self._queue_source: QueueSource = ReadOnlyQueueSource()
         self._me = me
         # The observer's announcement the last refresh began from.
         self._refreshed_from = None
@@ -83,7 +85,7 @@ class CommsChatView(Conversation):
 
     @property
     def queue_source(self):
-        return self.message_history.page_source.queue_source
+        return self._queue_source
 
     def transcript_binding(self) -> ViewBinding:
         """A wire conversation has no native transcript to publish."""
@@ -119,10 +121,9 @@ class CommsChatView(Conversation):
             )
         comms = shared
         await self.app.coordination_access.current_sidebar()
-        self.message_history.initialize_source(WireSource(
-            comms, self.conversation, self.project_path, self._me,
-            IrcMessageStyle(),
-        ))
+        source = WireSource(comms, self.conversation, self.project_path, self._me, IrcMessageStyle())
+        self._queue_source = source
+        self.message_history.initialize_source(source)
         self.refresh_identity(comms.root)
         self.prepare_prompt()
         self.window.anchor()

@@ -1,7 +1,6 @@
 """Agent-owned optional capabilities and derived attachment presentation."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,11 +8,8 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.acp_extension import NoQueueScope, PendingQueueProjection, QueueProjection, QueueScope
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
-from toad.submission_queue import QueueActionRefused
-
-
-if TYPE_CHECKING:
-    from toad.acp.agent import Agent
+from toad.acp.queue_attachment import QueueActionRefused
+from toad.slash_command import AgentAdvertisedCommand
 
 
 @dataclass(frozen=True)
@@ -58,7 +54,7 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
     def queue_actions_available(self) -> bool:
         return False
 
-    def require_queue_action(self, scope: QueueScope) -> Agent:
+    def require_queue_action(self, scope: QueueScope) -> None:
         raise QueueActionRefused("No live ACP queue authority is available")
 
     @property
@@ -97,7 +93,6 @@ class ACPAgentPresentation(AgentPresentation):
 
     @property
     def commands(self):
-        from toad.slash_command import AgentAdvertisedCommand
         return tuple(AgentAdvertisedCommand.from_acp(record)
                      for record in self.agent.controller.commands)
 
@@ -128,10 +123,9 @@ class ACPAgentPresentation(AgentPresentation):
     def queue_actions_available(self) -> bool:
         return self.queue_supported and self.agent.queue_attachment.accepts_request(self.queue_scope)
 
-    def require_queue_action(self, scope: QueueScope) -> Agent:
+    def require_queue_action(self, scope: QueueScope) -> None:
         if not self.queue_supported or not self.agent.queue_attachment.accepts_request(scope):
             raise QueueActionRefused("Queue attachment changed or is unavailable; inspect the current queue again")
-        return self.agent
 
     @property
     def uses_managed_turns(self):

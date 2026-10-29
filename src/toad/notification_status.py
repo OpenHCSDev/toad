@@ -108,8 +108,8 @@ class CheckedNotifications(NotificationStatus):
             *((Span(f"Recipient {item.recipient_identity.recipient_lookup}", MutedRole),)
               for item in leading.notifications),
             *leading.details,
-            *((Span(f"Answer {item.answer.seq}/{item.answer.message_id}", MutedRole),)
-              for item in leading.notifications if item.answer is not None),
+            *((Span(text, MutedRole),)
+              for item in leading.notifications for text in item.answer.detail_texts()),
         )
 
     @property
@@ -121,8 +121,7 @@ class CheckedNotifications(NotificationStatus):
                 line += (Span(" · Read by ", MutedRole),
                          Span(reader.name, NameRole, OpenTarget(reader.name)))
             lines.append(line)
-        return (tuple(lines) if lines else (
-            (Span("No recipient feedback to display.", MutedRole),),))
+        return tuple(lines)
 
 
 @dataclass(frozen=True)
@@ -131,6 +130,10 @@ class EmptyCheckedNotifications(CheckedNotifications):
 
     notifications: tuple[()] = field(default=(), init=False)
     queue_title = "No recipient feedback"
+
+    @property
+    def details(self) -> DetailLines:
+        return ((Span("No recipient feedback to display.", MutedRole),),)
 
 
 @dataclass(frozen=True)

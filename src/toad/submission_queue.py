@@ -1,52 +1,37 @@
-"""Source-owned queue capabilities; the prompt is their one presentation consumer.
-
-These are read-only views of existing attachments, transport and notification
-proofs. They never reserve input, keep membership, or turn BUS references into
-ACP request identities.
-"""
+"""One queue screen over the source's actual attachment or captured BUS evidence."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from acp.exceptions import RequestError
-from agent_comms.acp_extension import NoQueueScope, QueueItem
+from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.message_reference import MessageReference
-from agent_comms.ui_model.observation import ReadNotifications
+from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from textual import on
 from textual.containers import HorizontalGroup, Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Button, Static
 
+from toad.acp.queue_attachment import QueueActionRefused
+from toad.agent_presentation import AgentPresentation
 from toad.line_blocks import MutedRole, Span, SpanColumns
 from toad.notification_status import DetailLines, NotificationStatus
 from toad.screens.modal import DismissibleScreen
 from toad.widgets.tool_content import ToolContent
 
-if TYPE_CHECKING:
-    from agent_comms.acp_extension import QueueScope
-    from toad.acp.agent import Agent
-    from toad.conversation_submission import ConversationSubmissions
-
-
-class QueueActionRefused(Exception):
-    """A deliberate queue refusal, not an unexpected programming failure."""
-
 
 class QueueEvidenceChanged(Message):
-    """Local repaint after existing notification/viewport evidence changes."""
+    """Repaint after existing notification, viewport or transport evidence changes."""
 
 
 @dataclass(frozen=True)
 class MessageQueueEntry:
-    request: ReadNotifications
+    reference: MessageReference
     status: NotificationStatus
-
-    @property
-    def reference(self) -> MessageReference:
-        return self.request.operation.references[0]
+    display: DisplayIdentity | NoDisplaySelection
 
     @property
     def summary(self) -> str:
@@ -55,60 +40,61 @@ class MessageQueueEntry:
     @property
     def details(self) -> DetailLines:
         return (
-            (Span(f"{self.request.root} · {self.reference.seq}/{self.reference.message_id}", MutedRole),),
+            (Span(f"Original {self.reference.seq}/{self.reference.message_id}", MutedRole),),
             *self.status.queue_details,
         )
 
 
 class QueueSource(ABC):
-    """An absent source grants neither queue membership nor mutation authority."""
+    """The source selects its capability; the actual presentation owns native facts."""
 
     preview_limit: ClassVar[int] = 3
 
     @abstractmethod
-    def queue_scope(self, owner: ConversationSubmissions) -> QueueScope: ...
+    def queue_scope(self, presentation: AgentPresentation) -> QueueScope: ...
 
     @abstractmethod
-    def queue_actions_available(self, owner: ConversationSubmissions) -> bool: ...
+    def queue_actions_available(self, presentation: AgentPresentation) -> bool: ...
 
     @abstractmethod
-    async def queue_send_now(self, owner: ConversationSubmissions, scope: QueueScope) -> None: ...
+    async def queue_send_now(self, presentation: AgentPresentation, scope: QueueScope) -> None: ...
 
     @abstractmethod
-    async def queue_clear(self, owner: ConversationSubmissions, scope: QueueScope) -> None: ...
+    async def queue_clear(self, presentation: AgentPresentation, scope: QueueScope) -> None: ...
 
-    def queue_summary(self, owner: ConversationSubmissions) -> str:
+    def queue_summary(self, presentation: AgentPresentation, delivering: tuple[str, ...],
+                      entries: tuple[MessageQueueEntry, ...], transport: str) -> str:
         return "Queue unavailable"
 
-    def queue_details(self, owner: ConversationSubmissions) -> DetailLines:
+    def queue_details(self, presentation: AgentPresentation, delivering: tuple[str, ...],
+                      entries: tuple[MessageQueueEntry, ...], transport: str) -> DetailLines:
         return ((Span("No queue observation is available for this source.", MutedRole),),)
 
 
 class ReadOnlyQueueSource(QueueSource):
-    """A source may expose delivery evidence without granting native actions."""
+    """Delivery evidence grants no native queue mutation authority."""
 
-    def queue_scope(self, owner: ConversationSubmissions) -> QueueScope:
+    def queue_scope(self, presentation: AgentPresentation) -> QueueScope:
         return NoQueueScope()
 
-    def queue_actions_available(self, owner: ConversationSubmissions) -> bool:
+    def queue_actions_available(self, presentation: AgentPresentation) -> bool:
         return False
 
-    async def queue_send_now(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
+    async def queue_send_now(self, presentation: AgentPresentation, scope: QueueScope) -> None:
         raise QueueActionRefused("Send now unavailable: this source has no native queue authority")
 
-    async def queue_clear(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
+    async def queue_clear(self, presentation: AgentPresentation, scope: QueueScope) -> None:
         raise QueueActionRefused("Clear unavailable: BUS messages cannot be withdrawn through an ACP queue")
 
 
 class NativeQueueSource(QueueSource):
-    """Native queue presentation and actions borrow the actual ACP attachment."""
-
-    def queue_summary(self, owner: ConversationSubmissions) -> str:
-        projection = owner.queue_projection
-        feedback = projection.feedback(owner.view.agent_binding.presentation.queue_supported)
+    def queue_summary(self, presentation: AgentPresentation, delivering: tuple[str, ...],
+                      entries: tuple[MessageQueueEntry, ...], transport: str) -> str:
+        projection = presentation.queue
+        feedback = projection.feedback(presentation.queue_supported)
         parts = [feedback] if feedback else []
         for label, texts, detail in (
-            ("Submitting", tuple(QueueItem.summarize(text) for text in owner.delivering), ""),
+            ("Submitting", tuple(QueueItem.summarize(text) for text in delivering), ""),
             ("Queued", tuple(row.preview for row in projection.items), ""),
             ("Restored", tuple(row.preview for row in projection.restored), ", read-only"),
         ):
@@ -116,61 +102,52 @@ class NativeQueueSource(QueueSource):
                 parts.append(f"{label} ({len(texts)}{detail}): " + " · ".join(texts[:self.preview_limit]))
         return " | ".join(parts)
 
-    def queue_details(self, owner: ConversationSubmissions) -> DetailLines:
-        agent = owner.view.agent_binding
-        projection = owner.queue_projection
+    def queue_details(self, presentation: AgentPresentation, delivering: tuple[str, ...],
+                      entries: tuple[MessageQueueEntry, ...], transport: str) -> DetailLines:
+        projection = presentation.queue
         lines = [(Span("Submitting is local intent; Queued is producer acceptance, not consumption.", MutedRole),)]
-        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),)
-                     for text in owner.delivering)
-        lines.extend((Span(f"Queued {row.input_id}: {row.preview}", MutedRole),)
-                     for row in projection.items)
+        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),) for text in delivering)
+        lines.extend((Span(f"Queued {row.input_id}: {row.preview}", MutedRole),) for row in projection.items)
         lines.extend((Span(f"Restored {row.input_id} (read-only): {row.preview}", MutedRole),)
                      for row in projection.restored)
-        lines.append((Span(agent.presentation.queue_identity, MutedRole),))
+        lines.append((Span(presentation.queue_identity, MutedRole),))
         return tuple(lines)
 
-    def queue_scope(self, owner: ConversationSubmissions) -> QueueScope:
-        return owner.view.agent_binding.presentation.queue_scope
+    def queue_scope(self, presentation: AgentPresentation) -> QueueScope:
+        return presentation.queue_scope
 
-    def queue_actions_available(self, owner: ConversationSubmissions) -> bool:
-        return owner.view.agent_binding.presentation.queue_actions_available
+    def queue_actions_available(self, presentation: AgentPresentation) -> bool:
+        return presentation.queue_actions_available
 
-    def require_queue_action(self, owner: ConversationSubmissions, scope: QueueScope) -> Agent:
-        return owner.view.agent_binding.presentation.require_queue_action(scope)
+    async def queue_send_now(self, presentation: AgentPresentation, scope: QueueScope) -> None:
+        presentation.require_queue_action(scope)
+        await presentation.agent.controller.send_now()
 
-    async def queue_send_now(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
-        agent = self.require_queue_action(owner, scope)
-        if not await agent.controller.send_now():
-            raise QueueActionRefused("Send now was not confirmed; inspect the current queue before another action")
-
-    async def queue_clear(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
-        agent = self.require_queue_action(owner, scope)
-        if not await agent.controller.clear_queue():
-            raise QueueActionRefused("Clear queue was not confirmed; inspect the current queue before another action")
+    async def queue_clear(self, presentation: AgentPresentation, scope: QueueScope) -> None:
+        presentation.require_queue_action(scope)
+        await presentation.agent.controller.clear_queue()
 
 
 class BusQueueSource(ReadOnlyQueueSource):
-    """BUS views borrow original-reference/per-recipient evidence, not ACP rows."""
-
-    def queue_summary(self, owner: ConversationSubmissions) -> str:
-        entries = owner.message_queue_entries
-        transport = owner.view.send_block_reason
+    def queue_summary(self, presentation: AgentPresentation, delivering: tuple[str, ...],
+                      entries: tuple[MessageQueueEntry, ...], transport: str) -> str:
         evidence = " · ".join(entry.summary for entry in entries[:self.preview_limit])
         coverage = f"Delivery ({len(entries)} visible messages)"
         return " | ".join(part for part in (transport, coverage + (f": {evidence}" if evidence else ": unobserved")) if part)
 
-    def queue_details(self, owner: ConversationSubmissions) -> DetailLines:
+    def queue_details(self, presentation: AgentPresentation, delivering: tuple[str, ...],
+                      entries: tuple[MessageQueueEntry, ...], transport: str) -> DetailLines:
         return (
             (Span("Visible original message references only; this is not an ACP queue or a complete inbox count.", MutedRole),),
-            (Span(owner.view.send_block_reason, MutedRole),),
+            (Span(transport, MutedRole),),
             (Span(f"Showing up to {self.preview_limit} visible messages and their leading observed recipient; not complete recipient coverage.", MutedRole),),
-            *(line for entry in owner.message_queue_entries[:self.preview_limit] for line in entry.details),
+            *(line for entry in entries[:self.preview_limit] for line in entry.details),
             (Span("Clear/send-now unavailable: this BUS source has no native queue authority.", MutedRole),),
         )
 
 
 class QueueInspection(DismissibleScreen[None]):
-    """One inspect/action surface for native, channel and bridge composers."""
+    """One screen captures the source, presentation and scope it actually displays."""
 
     DEFAULT_CSS = """
     QueueInspection { align: center middle; background: $background 40%; }
@@ -180,38 +157,35 @@ class QueueInspection(DismissibleScreen[None]):
     QueueInspection #queue-error { height: auto; color: $error; }
     """
 
-    def __init__(self, owner: ConversationSubmissions):
+    def __init__(self, source: QueueSource, presentation: AgentPresentation,
+                 details: DetailLines, changed: Callable[[], None]):
         super().__init__()
-        self.submissions = owner
-        self.source = owner.queue_source
-        self.agent = owner.view.agent_binding
-        self.scope = self.source.queue_scope(owner)
+        self.source, self.presentation = source, presentation
+        self.scope = source.queue_scope(presentation)
+        self.details, self.changed = details, changed
 
     def compose(self):
         with Vertical():
             yield Static("Queue and delivery")
             with VerticalScroll():
                 details = ToolContent()
-                details.update((SpanColumns(self.source.queue_details(self.submissions)),))
+                details.update((SpanColumns(self.details),))
                 yield details
             yield Static("Individual edit/delete/reorder requires ID-targeted, revision-checked backend support.")
             yield Static("", id="queue-error")
             with HorizontalGroup():
-                available = self.source.queue_actions_available(self.submissions)
+                available = self.source.queue_actions_available(self.presentation)
                 yield Button("Send now", id="queue-send-now", disabled=not available)
                 yield Button("Clear queued inputs", id="queue-clear", disabled=not available)
                 yield Button("Close", id="queue-close")
 
-    async def apply_action(self, action: Callable[[ConversationSubmissions, QueueScope], Awaitable[None]]) -> None:
-        if self.submissions.queue_source is not self.source or self.submissions.view.agent_binding is not self.agent:
-            self.query_one("#queue-error", Static).update("The source changed; inspect its current queue again")
-            return
+    async def apply_action(self, action: Callable[[AgentPresentation, QueueScope], Awaitable[None]]) -> None:
         try:
-            await action(self.submissions, self.scope)
+            await action(self.presentation, self.scope)
         except (QueueActionRefused, RequestError) as error:
             self.query_one("#queue-error", Static).update(str(error))
             return
-        self.submissions.publish_pending()
+        self.changed()
         self.dismiss()
 
     @on(Button.Pressed, "#queue-send-now")

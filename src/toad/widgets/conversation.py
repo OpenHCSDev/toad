@@ -11,8 +11,11 @@ from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Callable
 
 from acp import schema as acp_protocol
+from acp.exceptions import RequestError
+from toad.widgets.markdown_note import MarkdownNote
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
+from agent_comms.transcripts import UnreadTranscriptCursor
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -735,7 +738,6 @@ class ConversationSessionBinding(
         ):
             welcome = agent_data.welcome
             if welcome is not None:
-                from toad.widgets.markdown_note import MarkdownNote
 
                 await self.post(MarkdownNote(welcome))
                 if (
@@ -827,18 +829,25 @@ class Conversation(
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
 
+    async def submission_request_failed(self, error: RequestError, text: str) -> None:
+        self.turns.finish_client()
+        self.prompt.restore_draft(text)
+        await self.post(MarkdownNote(
+            INTERNAL_EROR.replace("$ERROR", str(error) or "no details were provided"),
+            classes="-stop-reason",
+        ))
+
     @property
     def visible_read_cursor(self):
         """Only a painted, unfiltered tail can acknowledge the full transcript."""
         if not self.is_mounted or self.visible_categories != all_categories():
-            return None
+            return UnreadTranscriptCursor()
         window = self.window
-        through = self.transcript.displayed_cursor
-        if through is None or not window.follows_tail:
-            return None
+        if not window.follows_tail:
+            return UnreadTranscriptCursor()
         if any(history.blocks_visible_read for history in window.histories):
-            return None
-        return through
+            return UnreadTranscriptCursor()
+        return self.transcript.displayed_cursor
 
     def watch_visible_categories(
         self,
@@ -1296,7 +1305,6 @@ class Conversation(
         self._turn_count += 1
 
         if stop_reason is not None and stop_reason.note:
-            from toad.widgets.markdown_note import MarkdownNote
 
             await self.post(
                 MarkdownNote(

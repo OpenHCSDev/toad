@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.field_codec import ToolCallId
 from agent_comms.message_reference import MessageReference
+from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.turn_item import NativeItemId
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.sent_message import PublishedSentMessage
@@ -341,7 +342,13 @@ class TranscriptFragment:
     def notification_references(self) -> tuple[MessageReference, ...]:
         return ()
 
-    def queue_entries(self, notification_view):
+    notification_identity: DisplayIdentity | NoDisplaySelection = field(
+        default=NoDisplaySelection(), kw_only=True, repr=False, compare=False)
+
+    def capture_notification_identity(self, display: DisplayIdentity | NoDisplaySelection) -> None:
+        self.notification_identity = display
+
+    def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
         return ()
 
     def draws(self, message: BusMessage) -> bool:
@@ -520,8 +527,8 @@ class BusMessageFragment(TranscriptFragment):
     def notification_references(self) -> tuple[MessageReference, ...]:
         return self.part_position.notification_references(self.events[0])
 
-    def queue_entries(self, notification_view):
-        return tuple(MessageQueueEntry(notification_view.notification_read((reference,)), self.shown.status)
+    def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
+        return tuple(MessageQueueEntry(reference, self.shown.status, self.notification_identity)
                      for reference in self.notification_references)
 
     def draws(self, message: BusMessage) -> bool:

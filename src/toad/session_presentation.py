@@ -145,7 +145,7 @@ class OperationalSessionSources(NativeQueueSource):
     async def submit(self, owner, event):
         from toad.conversation_submission import InputSubmission
 
-        return await InputSubmission.from_event(event, owner.view).execute(owner)
+        return await InputSubmission.from_event(event, owner).execute(owner)
 
     def input_decision(self, conversation: Conversation) -> InputDecision:
         agent = conversation.agent_binding

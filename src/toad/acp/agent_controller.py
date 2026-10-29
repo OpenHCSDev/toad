@@ -26,14 +26,14 @@ from agent_comms.order_tools import InputDeliveryRead
 from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
 from agent_comms.ui_model.observation import ReadOwnerOperation
 
-from toad.acp.client_session import ClientSessionRequest
+from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.status import StopReason
 from toad.core import events as core_events
 from toad.core.events import LogAgentFail
 from toad.plan import PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
 
-from toad.submission_queue import QueueActionRefused
+from toad.acp.queue_attachment import QueueActionRefused
 
 from .prompt import build as build_prompt
 from .session_output import SessionOutput
@@ -272,9 +272,9 @@ class AgentController(OperationalTerminalOwner):
             if submission is not None:
                 self._deferred_submissions.discard(submission)
 
-    async def submit_blocks(self, content: list[dict[str, str]], command: ClearQueueRequest | None = None):
+    async def submit_blocks(self, content: list[dict[str, str]], command: PromptRequest):
         agent = self.agent
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = QueueSessionRequest(agent, agent.session_id)
         return await self.operate(
             self._prompt_operation(
                 partial(self._prompt, content, command, authority, agent.queue_attachment.scope), authority
@@ -303,15 +303,15 @@ class AgentController(OperationalTerminalOwner):
             report = agent.session.record_failure
         else:
             if authority.retired:
-                return None
+                return authority.unconfirmed("the captured ACP session retired before its reply")
             return StopReason.member_named(result.stop_reason)
         if authority.retired:
-            return None
+            return authority.unconfirmed("the captured ACP session retired during the request")
         failure = request_failure.failure
         self._prompt_failed(
             command, authority, queue_scope, failure, report, published=request_failure.notification_published
         )
-        return None
+        return authority.unconfirmed(failure.feedback)
 
     def _prompt_failed(
         self,
@@ -337,22 +337,19 @@ class AgentController(OperationalTerminalOwner):
         if not published:
             report(LogAgentFail(failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
-    async def clear_queue(self) -> bool:
-        return await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest()) is not None
+    async def clear_queue(self) -> None:
+        await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest())
 
-    async def send_now(self) -> bool:
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+    async def send_now(self) -> None:
+        authority = QueueSessionRequest(self.agent, self.agent.session_id)
         queue_scope = self.agent.queue_attachment.scope
         if pending := tuple(self._deferred_submissions):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
-        return (
-            await self.operate(
-                self._prompt_operation(
-                    partial(self._prompt, [{"type": "text", "text": " "}], SendNowRequest(), authority, queue_scope),
-                    authority,
-                )
+        await self.operate(
+            self._prompt_operation(
+                partial(self._prompt, [{"type": "text", "text": " "}], SendNowRequest(), authority, queue_scope),
+                authority,
             )
-            is not None
         )
 
     async def compact_context(self, instructions=None):
