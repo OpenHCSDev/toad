@@ -192,7 +192,7 @@ class NeovimSnapshot:
             editor.apply_engine_lines(change.first, change.last, change.lines)
         del self.owner._changes[:len(self.changes)]
         self.owner._rendered = self
-        editor.selection = Selection.cursor(self.state.cursor)
+        editor.apply_engine_selection(Selection.cursor(self.state.cursor))
         editor._line_cache.clear()
         editor.record_cursor_width()
         editor.show_editing_mode(self.owner)
@@ -265,7 +265,11 @@ class NeovimEditing(VimMode):
         return asyncio.create_task(self._start())
 
     def attach(self, editor: TextArea) -> None:
+        previous = self._receiver()
         self._receiver = ref(editor)
+        if previous is not editor:
+            self._rendered = None
+            self.snapshot = NeovimSnapshot(self, self._lines, self.snapshot.state, tuple(self._changes))
         # Starting is lazy: Standard never starts a Neovim process.
         started = self._started
         started.add_done_callback(self._observe_failure)
@@ -379,6 +383,10 @@ class NeovimEditing(VimMode):
             await self._child.write(msgpack.packb([0, identity, method, arguments], use_bin_type=True))
             async with asyncio.timeout(5):
                 return await future
+        except Exception as error:
+            self._fail(error)
+            assert self._failure is not None
+            raise self._failure from error
         finally:
             self._pending.pop(identity, None)
 
@@ -463,7 +471,7 @@ class NeovimEditing(VimMode):
 
     async def finish(self, editor: TextArea) -> None:
         """An explicit profile handoff cancels pending input in the engine itself."""
-        await self._started
+        await self.acknowledge(editor)
         await self._input("<Esc>")
         await self.flush(editor)
 
@@ -481,6 +489,19 @@ class NeovimEditing(VimMode):
             assert self._failure is not None
             raise self._failure from error
 
+    async def acknowledge(self, editor: TextArea) -> None:
+        try:
+            await self._started
+            # Fast even when an operand, input() or command-line prompt is pending.
+            current = await self._rpc("nvim_get_mode", [])
+            state = NeovimState.fast_mode(current, self.snapshot.state)
+            self.snapshot = NeovimSnapshot(self, self._lines, state, tuple(self._changes))
+            self.snapshot.apply(editor)
+        except Exception as error:
+            self._fail(error)
+            assert self._failure is not None
+            raise self._failure from error
+
     async def prepare_input(self, editor: TextArea) -> bool:
         finished = asyncio.get_running_loop().create_future()
 
@@ -489,13 +510,7 @@ class NeovimEditing(VimMode):
                 finished.set_result(True)
                 return
             try:
-                await self._started
-                # This API is fast even while an operand or command-line input
-                # is pending. No deferred eval can hold the next key hostage.
-                current = await self._rpc("nvim_get_mode", [])
-                state = NeovimState.fast_mode(current, self.snapshot.state)
-                self.snapshot = NeovimSnapshot(self, self._lines, state, tuple(self._changes))
-                self.snapshot.apply(editor)
+                await self.acknowledge(editor)
             except Exception as error:
                 self._fail(error)
                 finished.set_result(False)
@@ -567,6 +582,9 @@ class NeovimEditing(VimMode):
     def clear(self, editor: TextArea) -> None:
         self.load_text(editor, "")
 
+    def move_to_end(self, editor: TextArea) -> None:
+        self._enqueue(lambda: self._rpc("nvim_exec_lua", ["return ToadEditor.cursor_end()", []]))
+
     def paste(self, editor: TextArea, text: str) -> None:
         self._enqueue(lambda: self._rpc("nvim_paste", [text, True, -1]))
 
@@ -576,9 +594,17 @@ class NeovimEditing(VimMode):
     def redo(self, editor: TextArea) -> None:
         self._enqueue(lambda: self._rpc("nvim_command", ["redo"]))
 
-    def selection_changed(self, editor: TextArea, selection: Selection) -> None:
-        if selection.end != self.snapshot.state.cursor:
+    def request_selection(self, editor: TextArea, selection: Selection) -> Selection:
+        if not selection.is_empty:
+            async def select() -> object:
+                await self._input("<Esc>")
+                first, last = sorted(selection)
+                return await self._rpc("nvim_exec_lua", ["return ToadEditor.select(...)",
+                    [self._byte_cursor(first), self._byte_cursor(last)]])
+            self._enqueue(select)
+        elif selection.end != self.snapshot.state.cursor:
             self._enqueue(lambda: self._rpc("nvim_win_set_cursor", [0, self._byte_cursor(selection.end)]))
+        return editor.selection
 
     def selection_range(self, editor: TextArea) -> Selection:
         return self.snapshot.state.selection(self.snapshot.lines)

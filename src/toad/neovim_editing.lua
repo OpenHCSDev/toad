@@ -74,8 +74,26 @@ end
 ToadEditor = {state = state}
 function ToadEditor.load(text)
   api.nvim_buf_set_lines(0, 0, -1, true, vim.split(text, '\n', {plain = true}))
-  local lines = api.nvim_buf_get_lines(0, 0, -1, true)
-  api.nvim_win_set_cursor(0, {#lines, #lines[#lines]})
+  api.nvim_win_set_cursor(0, {1, 0})
+end
+function ToadEditor.cursor_end()
+  local count = api.nvim_buf_line_count(0)
+  local line = api.nvim_buf_get_lines(0, count - 1, count, true)[1]
+  api.nvim_win_set_cursor(0, {count, #line})
+end
+function ToadEditor.select(first, last)
+  -- TextArea API ranges are end-exclusive; Neovim owns the actual Visual state.
+  local row, byte = last[1], last[2]
+  if byte == 0 and row > 1 then
+    row = row - 1
+    byte = #api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+  end
+  local line = api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+  local characters = vim.str_utfindex(line, 'utf-32', byte, false)
+  byte = vim.str_byteindex(line, 'utf-32', math.max(0, characters - 1), false)
+  api.nvim_win_set_cursor(0, first)
+  vim.cmd.normal({args = {'v'}, bang = true})
+  api.nvim_win_set_cursor(0, {row, byte})
 end
 function ToadEditor.insert(lines, position, maintain_offset)
   position = position or api.nvim_win_get_cursor(0)

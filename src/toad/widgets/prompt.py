@@ -388,6 +388,9 @@ See on-screen instructions for details.
         self._submit_pending = False
         mode = self.editing_mode
         try:
+            await mode.acknowledge(self)
+            if not self.submission_allowed:
+                return
             await mode.flush(self)
         except EditingFailure:
             return  # The engine already reported its failure; never submit stale text.
@@ -553,13 +556,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
 
     @text.setter
     def text(self, text: str) -> None:
-        self.prompt_text_area.text = text
-        self.prompt_text_area.call_later(self._finish_text_load)
-
-    async def _finish_text_load(self) -> None:
         editor = self.prompt_text_area
-        await editor.editing_mode.flush(editor)
-        editor.move_cursor(editor.document.end)
+        editor.text = text
+        editor.editing_mode.move_to_end(editor)
 
     @property
     def supports_completion(self) -> bool:
