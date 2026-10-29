@@ -29,6 +29,7 @@ from toad.widgets.presentation_window import (
 )
 
 if TYPE_CHECKING:
+    from toad.line_blocks import Divider
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
@@ -682,6 +683,14 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, VerticalScroll):
             return row
         raise LookupError(f"{widget!r} is not placed in {self!r}'s layout; "
                           "a reader position's widgets must be visible or declared geometry targets")
+
+    def top_message_header(self) -> tuple[Divider, ...]:
+        """The header of the message drawn on the window's top row, when that header is scrolled above it."""
+        y = self.scroll_y
+        for page, first in self.placements(self.drawn_pages()):
+            if first <= y < first + page.line_count and (span := page.fragment_at(int(y - first))) is not None:
+                return span.fragment.sticky_header(span.index)
+        return ()
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""

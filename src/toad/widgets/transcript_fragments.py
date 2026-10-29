@@ -353,6 +353,11 @@ class TranscriptFragment:
         """The fragment's content occupies its drawn rows unless it owns a header."""
         return range(lines.height)
 
+    def sticky_header(self, block: int) -> tuple[Divider, ...]:
+        """The header to pin over the window's top row when that row is in this block; a
+        fragment without a message header pins none."""
+        return ()
+
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """What this fragment draws in committed history when shown so, one block per visual part.
 
@@ -514,6 +519,11 @@ class BusMessageFragment(TranscriptFragment):
     @property
     def leading(self):
         return () if self.continuation else (Gap(), self.row.header)
+
+    def sticky_header(self, block: int) -> tuple[Divider, ...]:
+        """Every part of a message pins its header once the header's own row is above the top row;
+        a continuation part draws no header, so it always pins it."""
+        return () if block < len(self.leading) else (self.row.header,)
 
     @property
     def body_text(self):
