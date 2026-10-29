@@ -1,5 +1,5 @@
 -- Application integration, not a Vim interpreter. Neovim interprets every key.
-local mappings = ...
+local mappings, channel = ...
 local api = vim.api
 local namespace = api.nvim_create_namespace('toad-editor')
 vim.opt.swapfile = false
@@ -43,7 +43,7 @@ local function state()
           regions = regions, selected = selected, completed = completed}
 end
 local function publish()
-  vim.rpcnotify(1, 'toad_editor_state', state())
+  vim.rpcnotify(channel, 'toad_editor_state', state())
 end
 local function schedule_publish()
   if scheduled then return end
@@ -55,7 +55,7 @@ end
 -- an ownership transfer, not another callback registration.
 local subscriptions = {}
 local function entered(buffer)
-  vim.rpcnotify(1, 'toad_editor_lines', {first = 0, last = -1,
+  vim.rpcnotify(channel, 'toad_editor_lines', {first = 0, last = -1,
     lines = api.nvim_buf_get_lines(buffer, 0, -1, true)})
   if subscriptions[buffer] then return end
   subscriptions[buffer] = true
@@ -63,7 +63,7 @@ local function entered(buffer)
     on_lines = function(_, buf, tick, first, last, new_last)
       if api.nvim_get_current_buf() == buf then
         completed = -1
-        vim.rpcnotify(1, 'toad_editor_lines', {first = first, last = last,
+        vim.rpcnotify(channel, 'toad_editor_lines', {first = first, last = last,
                       lines = api.nvim_buf_get_lines(buf, first, new_last, true)})
         schedule_publish()
       end
@@ -98,7 +98,7 @@ for _, mapping in ipairs(mappings) do
   for _, mode in ipairs({'', 'i'}) do
     vim.keymap.set(mode, lhs, function()
       if vim.v.count == 0 and not vim.fn.mode(1):match('^no') then
-        if vim.rpcrequest(1, 'toad_cursor_boundary', boundary, state()) then return '' end
+        if vim.rpcrequest(channel, 'toad_cursor_boundary', boundary, state()) then return '' end
       end
       return api.nvim_replace_termcodes(rhs, true, false, true)
     end, {expr = true, noremap = true, silent = true})

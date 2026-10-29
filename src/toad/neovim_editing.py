@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from contextlib import AsyncExitStack
 from dataclasses import dataclass, field
 from functools import cached_property
 from importlib.resources import files
 from itertools import count
-from typing import ClassVar
+from typing import ClassVar, Self
 
 import msgpack
 import toad
@@ -78,6 +78,59 @@ class SuperKey(NeovimKey):
 
 class NeovimWireFailure(EditingFailure):
     """A child, transport or external Neovim protocol failure, not a Vim prefix."""
+
+
+@dataclass(frozen=True)
+class NeovimApiType:
+    id: int
+    prefix: str
+
+
+@dataclass(frozen=True)
+class NeovimApiInfo:
+    channel: int
+    types: dict[str, NeovimApiType]
+
+    @classmethod
+    @boundary_decoder
+    def from_response(cls, response: object) -> Self:
+        if not isinstance(response, list) or len(response) != 2:
+            raise NeovimWireFailure("Invalid Neovim API information response")
+        channel, metadata = response
+        if not isinstance(metadata, dict):
+            raise NeovimWireFailure("Invalid Neovim API metadata")
+        try:
+            definitions = metadata["types"]
+        except KeyError as error:
+            raise NeovimWireFailure("Neovim API metadata has no extension types") from error
+        return cls(FieldCodec.decode(int, channel),
+                   FieldCodec.decode(dict[str, NeovimApiType], definitions))
+
+
+@dataclass(frozen=True)
+class NeovimHandle(DeclaredFamily, affix="Handle"):
+    """Native extension identity; its code belongs to this child's API metadata."""
+
+    value: int
+
+    @classmethod
+    def api_name(cls) -> str:
+        return cls.declared_name.capitalize()
+
+    def extension(self, types: Mapping[str, NeovimApiType]) -> msgpack.ExtType:
+        return msgpack.ExtType(types[self.api_name()].id, msgpack.packb(self.value))
+
+
+class BufferHandle(NeovimHandle):
+    pass
+
+
+class WindowHandle(NeovimHandle):
+    pass
+
+
+class TabpageHandle(NeovimHandle):
+    pass
 
 
 @dataclass(frozen=True)
@@ -382,13 +435,9 @@ class NeovimRequest(ABC):
     @abstractmethod
     def arguments(self) -> Sequence[object]: ...
 
-    async def send(self, child: AttachedChild) -> None:
+    async def send(self, owner: NeovimEditing) -> None:
         self.dispatched.set_result(None)
-        try:
-            await child.write(msgpack.packb(
-                [0, self.identity, self.method, list(self.arguments)], use_bin_type=True))
-        except OSError as error:
-            raise NeovimWireFailure(str(error)) from error
+        await owner.write_frame([0, self.identity, self.method, list(self.arguments)])
 
     def resolve(self, value: object) -> None:
         self.reply.set_result(value)
@@ -580,37 +629,61 @@ class NeovimFrame(DeclaredFamily, affix="Frame"):
     def selection_key(cls) -> int:
         return cls.kind
 
-    @classmethod
     @abstractmethod
-    async def receive(cls, owner: NeovimEditing, payload: object) -> None: ...
+    def __init__(self, *payload: object) -> None:
+        if payload:
+            raise NeovimWireFailure("Unexpected Neovim RPC header fields")
+
+    @classmethod
+    @boundary_decoder
+    def from_payload(cls, payload: Sequence[object]) -> Self:
+        try:
+            return cls(*payload)
+        except TypeError as error:
+            raise NeovimWireFailure(f"Invalid {cls.__name__} header or arity") from error
+
+    @abstractmethod
+    async def receive(self, owner: NeovimEditing) -> None: ...
 
 
-class ResponseFrame(NeovimFrame):
+class IdentifiedFrame(NeovimFrame, declared_name=None):
+    def __init__(self, identity: object, *payload: object) -> None:
+        self.identity = FieldCodec.decode(int, identity)
+        super().__init__(*payload)
+
+
+class MethodFrame(NeovimFrame, declared_name=None):
+    def __init__(self, method: object, arguments: object) -> None:
+        self.method = FieldCodec.decode(str, method)
+        self.arguments = arguments
+        super().__init__()
+
+
+class ResponseFrame(IdentifiedFrame):
     kind = 1
 
-    @classmethod
-    async def receive(cls, owner: NeovimEditing, payload: object) -> None:
-        identity, reply, value = FieldCodec.decode(tuple[int, NeovimReply, object], payload)
-        owner.resolve_reply(identity, reply, value)
+    def __init__(self, identity: object, reply: object, value: object) -> None:
+        super().__init__(identity)
+        self.reply = FieldCodec.decode(NeovimReply, reply)
+        self.value = value
+
+    async def receive(self, owner: NeovimEditing) -> None:
+        owner.resolve_reply(self.identity, self.reply, self.value)
 
 
-class NotificationFrame(NeovimFrame):
+class NotificationFrame(MethodFrame):
     kind = 2
 
-    @classmethod
-    async def receive(cls, owner: NeovimEditing, payload: object) -> None:
-        method, arguments = FieldCodec.decode(tuple[str, object], payload)
-        NeovimNotification.member_selected(method).receive(owner, arguments)
+    async def receive(self, owner: NeovimEditing) -> None:
+        NeovimNotification.member_selected(self.method).receive(owner, self.arguments)
 
 
-class RequestFrame(NeovimFrame):
+class RequestFrame(IdentifiedFrame, MethodFrame):
     kind = 0
 
-    @classmethod
-    async def receive(cls, owner: NeovimEditing, payload: object) -> None:
-        identity, method, arguments = FieldCodec.decode(tuple[int, str, object], payload)
-        reply = NeovimHostRequest.member_selected(method).receive(owner, arguments)
-        await owner.answer_request(identity, reply)
+    async def receive(self, owner: NeovimEditing) -> None:
+        reply = NeovimHostRequest.member_selected(self.method).receive(owner, self.arguments)
+        await owner.answer_request(self.identity, reply)
 
 
 class NeovimEditing(VimMode):
@@ -628,6 +701,7 @@ class NeovimEditing(VimMode):
         self._rendered: NeovimSnapshot = UnpaintedSnapshot(self.snapshot.state)
         self._update_queued = False
         self._boundaries: list[Binding] = []
+        self._api_types: dict[str, NeovimApiType] = {}
 
     @property
     def label(self) -> str:
@@ -746,22 +820,58 @@ class NeovimEditing(VimMode):
                     request.reply.set_exception(error)
             self._pending.clear()
 
+    @cached_property
+    def _unpacker(self) -> msgpack.Unpacker:
+        return msgpack.Unpacker(raw=False, strict_map_key=False,
+                                max_buffer_size=16 * 1024 * 1024,
+                                ext_hook=self._decode_handle)
+
     @boundary_decoder
     async def _read(self, child: AttachedChild) -> None:
         stream = child.stdout
         assert stream is not None
-        unpacker = msgpack.Unpacker(raw=False, strict_map_key=False, max_buffer_size=16 * 1024 * 1024)
         while chunk := await stream.read(65536):
-            unpacker.feed(chunk)
-            for message in unpacker:
+            self._unpacker.feed(chunk)
+            for message in self._unpacker:
                 await self._receive(message)
         raise NeovimWireFailure(f"Neovim exited: {await child.stderr_tail()}")
+
+    def accept_api_info(self, response: object) -> NeovimApiInfo:
+        api = NeovimApiInfo.from_response(response)
+        self._api_types = api.types
+        return api
+
+    @boundary_decoder
+    def _decode_handle(self, code: int, data: bytes) -> NeovimHandle:
+        try:
+            name = next(name for name, definition in self._api_types.items()
+                        if definition.id == code)
+            member = NeovimHandle.member_named(name.casefold())
+        except (StopIteration, UnknownFamilyMember) as error:
+            raise NeovimWireFailure(f"Unknown Neovim extension code {code}") from error
+        return member(FieldCodec.decode(int, msgpack.unpackb(data, raw=False)))
+
+    @boundary_decoder
+    def _encode_handle(self, value: object) -> msgpack.ExtType:
+        if not isinstance(value, NeovimHandle):
+            raise NeovimWireFailure("Unsupported Neovim MessagePack value")
+        try:
+            return value.extension(self._api_types)
+        except KeyError as error:
+            raise NeovimWireFailure("Unknown Neovim extension type") from error
+
+    async def write_frame(self, frame: Sequence[object]) -> None:
+        try:
+            await self._child.write(msgpack.packb(
+                frame, use_bin_type=True, default=self._encode_handle))
+        except OSError as error:
+            raise NeovimWireFailure(str(error)) from error
 
     async def _write_queued(self) -> None:
         await self._started
         while True:
             request = await self._outgoing.get()
-            await request.send(self._child)
+            await request.send(self)
 
     def _register(self, request: NeovimRequest) -> None:
         request.reply.add_done_callback(self._observe_failure)
@@ -771,7 +881,7 @@ class NeovimEditing(VimMode):
 
     async def _bootstrap(self, request: NeovimRequest) -> object:
         self._register(request)
-        await request.send(self._child)
+        await request.send(self)
         return await request.result()
 
     def _enqueue(self, request: NeovimRequest) -> asyncio.Task[object]:
@@ -800,6 +910,7 @@ class NeovimEditing(VimMode):
         await self._child_ready
         editor = self._receiver.require()
         width, height = max(1, editor.wrap_width), max(3, editor.content_size.height + 2)
+        api = self.accept_api_info(await self._bootstrap(NeovimCall("nvim_get_api_info", [])))
         await self._bootstrap(NeovimCall("nvim_ui_attach", [width, height,
             {"ext_linegrid": True, "ext_cmdline": True, "ext_messages": True}]))
         initial_lines = self._initial_lines
@@ -818,7 +929,7 @@ class NeovimEditing(VimMode):
                 index = len(self._boundaries)
                 self._boundaries.append(binding)
                 mappings.append([self.input_code(spelling), self.input_code(native), index])
-        await self._bootstrap(NeovimCall("nvim_exec_lua", [script, [mappings]]))
+        await self._bootstrap(NeovimCall("nvim_exec_lua", [script, [mappings, api.channel]]))
         await self._bootstrap(NeovimCall("nvim_set_option_value", ["tabstop", editor.indent_width, {}]))
         if self.initial_keys:
             await self._bootstrap(NeovimInput(self._next_generation(), self.initial_keys))
@@ -831,7 +942,8 @@ class NeovimEditing(VimMode):
             raise NeovimWireFailure("Invalid Neovim RPC message")
         kind = FieldCodec.decode(int, message[0])
         try:
-            await NeovimFrame.member_selected(kind).receive(self, message[1:])
+            frame = NeovimFrame.member_selected(kind).from_payload(message[1:])
+            await frame.receive(self)
         except UnknownFamilyMember as error:
             raise NeovimWireFailure(str(error)) from error
 
@@ -852,7 +964,7 @@ class NeovimEditing(VimMode):
         return self._receiver.boundary(self._boundaries[boundary])
 
     async def answer_request(self, identity: int, reply: object) -> None:
-        await self._child.write(msgpack.packb([1, identity, None, reply]))
+        await self.write_frame([1, identity, None, reply])
 
     def accept_lines(self, change: NeovimLineChange) -> None:
         if change.last == -1:

@@ -1,8 +1,8 @@
 name: Core from main
 description: >-
-  Toad tracks sibling branches declared in pyproject.toml. This refreshes those sources,
-  syncs the environment from that lock, and checks Core out at the commit the lock
-  resolved, so one run has one answer to which Core it runs.
+  Refresh Core from its declared branch while preserving the candidate's locked
+  sibling dependencies. Sync that environment and check Core out at the resolved
+  commit, so verification does not silently replace a paired dependency candidate.
 inputs:
   path:
     description: Where to check Core out
@@ -18,14 +18,13 @@ runs:
       run: |
         python - <<'PY'
         import os, pathlib, subprocess, sys, tomllib
-        sources = tomllib.loads(pathlib.Path('pyproject.toml').read_text())['tool']['uv']['sources']
-        updates = [argument for name, source in sources.items() if 'branch' in source
-                   for argument in ('--upgrade-package', name)]
-        subprocess.run(['uv', 'lock', '--python', sys.executable, *updates], check=True)
+        package_name = 'agent-comms'
+        subprocess.run(['uv', 'lock', '--python', sys.executable,
+                        '--upgrade-package', package_name], check=True)
         subprocess.run(['uv', 'sync', '--python', sys.executable,
                         '--locked', '--all-extras', '--no-editable'], check=True)
         package, = (p for p in tomllib.loads(pathlib.Path('uv.lock').read_text())['package']
-                    if p['name'] == 'agent-comms')
+                    if p['name'] == package_name)
         url, commit = package['source']['git'].split('#')
         repository = url.split('?')[0].removeprefix('https://github.com/').removesuffix('.git')
         print(f'Core resolved from main: {repository}@{commit}')
