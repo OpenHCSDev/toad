@@ -13,7 +13,7 @@ from agent_comms.disclosure_text import (
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.task_attachments.commander_pings import AlarmGroup, AlarmSection
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.observation import UnreadableHistory
+from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
 from agent_comms.ui_model.unit_state import HudGroup
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -138,7 +138,11 @@ class CommanderGroup(KeyedRows[type[HudRecord]], VerticalGroup):
 
 
 class CommanderAlarm(Collapsible):
-    """The alarm family owns the title/count; this view retains expansion across beats."""
+    """Core's compact section stays visible; expansion reveals every original record."""
+
+    DEFAULT_CSS = """
+    CommanderAlarm > CollapsibleTitle { width: 1fr; }
+    """
 
     def __init__(self, group: type[AlarmGroup]) -> None:
         self.group = group
@@ -148,7 +152,8 @@ class CommanderAlarm(Collapsible):
 
     def present(self, section: AlarmSection, now: float) -> None:
         colour = self.app.colours.colour(UnitTone.of(section.group.tone))
-        self.title = Content(section.heading()).stylize(Style(foreground=colour))
+        self.title = Content("\n".join(CommanderHud.alarm_text((section,), now))).stylize(
+            Style(foreground=colour))
         self.original.update("\n".join(CommanderHud.alarm_detail((section,), now)))
         self.display = True
 
@@ -168,17 +173,11 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
         yield Button("Refresh original details", classes="refresh-unit", compact=True)
         yield self.original
 
-    @property
-    def detail_key(self) -> object:
-        if self.card is None:
-            return None
-        return self.card.detail_key(self.app.coordination_access.launch_root.path, self.commander)
-
     def present(self, card: HudRecord | None) -> None:
-        previous = self.detail_key
+        if self.card == card:
+            return
         self.card = card
-        if self.detail_key != previous:
-            self.read_detail()
+        self.read_detail()
 
     @on(Button.Pressed, ".refresh-unit")
     def refresh_detail(self, event: Button.Pressed) -> None:
@@ -193,11 +192,13 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
     async def unit_detail(self, card: CommanderUnit) -> object:
         access = self.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
-        return await observed.process.read(card.detail_key(observed.service.root, self.commander))
+        return await observed.process.read(ReadCommanderUnit(
+            str(observed.service.root), self.commander, card.unit, card.order_ids,
+        ))
 
     @work(exclusive=True, group="commander-detail")
     async def read_detail(self) -> None:
-        card, key = self.card, self.detail_key
+        card = self.card
         self.original.display = False
         if card is None:
             self.status.update("No records match the filter.")
@@ -208,10 +209,10 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
             detail = await type(self).handler_for(type(card))(self, card)
         except (DeferredRead, RelationViolationError, RouteChangedError, ToolRefusedError,
                 UnreadableHistory, WorkBranchError) as error:
-            if self.is_attached and self.detail_key == key:
+            if self.is_attached and self.card == card:
                 self.status.update(f"Original details unavailable: {error}")
             return
-        if not self.is_attached or self.detail_key != key:
+        if not self.is_attached or self.card != card:
             return
         entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosedValue.of(detail))
         for view in self.original.query_children(DeclaredDisclosure):
@@ -256,11 +257,11 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     def compose(self) -> ComposeResult:
         yield self.heading
         yield self.status
-        yield from self.alarms.values()
         with HorizontalGroup(classes="hud-filter"):
             yield self.filter
             yield self.needs_hand
         yield self.groups
+        yield from self.alarms.values()
         yield self.details
 
     @property
