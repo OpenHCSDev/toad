@@ -27,7 +27,7 @@ import uuid
 
 from agent_comms.field_codec import FieldCodec
 from history_capture_remote import (
-    CaptureOperation, CaptureRequest, CaptureSpec, ProcessIdentity, StartCapture,
+    CaptureOperation, CaptureRequest, CaptureSpec, ProcessIdentity, RemoteCaptureRun, StartCapture,
     error_metadata, process_identity as identity, publish, read_meter_source,
 )
 
@@ -75,17 +75,18 @@ def attach(pid, script, capture):
 
 def cleanup(directory):
     request = FieldCodec.decode(CaptureRequest, json.loads((directory / 'cleanup.json').read_text()))
+    if (result := RemoteCaptureRun.read_completion(directory, request.token)) is not None:
+        return result
     if identity(request.identity.pid) != request.identity:
         raise RuntimeError('Process birth changed: do not attach')
     capture = request.capture
     attach(request.identity.pid, directory / 'cleanup.py', capture)
     deadline = time.monotonic() + capture.cleanup_receipt_timeout
-    result_path = directory / 'cleanup-result.json'
     while time.monotonic() < deadline:
-        if result_path.exists():
-            return json.loads(result_path.read_text())
+        if (result := RemoteCaptureRun.read_completion(directory, request.token)) is not None:
+            return result
         time.sleep(capture.poll_interval)
-    return dict(status='CLEANUP_UNCONFIRMED', reason='target did not report restoration')
+    return dict(status='CLEANUP_UNCONFIRMED', reason='target did not publish matching canonical completion')
 
 
 def start(args):
@@ -140,14 +141,12 @@ def start(args):
         attach(args.pid, directory / 'start.py', capture)
         deadline = began + capture.observation_budget
         while time.monotonic() < deadline:
+            if (result := RemoteCaptureRun.read_completion(directory, request.token)) is not None:
+                publish(directory / 'controller-result.json', result)
+                return
             failure = directory / 'start-result.json'
             if failure.exists():
                 raise RuntimeError('Remote setup failed: ' + failure.read_text()[:capture.error_bytes])
-            complete = directory / 'complete.json'
-            if complete.exists():
-                result = json.loads(complete.read_text())
-                publish(directory / 'controller-result.json', result)
-                return
             time.sleep(capture.poll_interval)
         raise TimeoutError('Capture did not finish by controller deadline')
     except BaseException as error:
