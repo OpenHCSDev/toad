@@ -16,6 +16,8 @@ class KeyMode(EditingMode, DeclaredChoice, affix=""):
 class Standard(KeyMode):
     """Ordinary text entry and navigation."""
 
+    label = "STANDARD"
+
 
 class VimMode(KeyMode, ModalEditing):
     """The shared modal-key capability; the native key handler keeps this abstract."""
