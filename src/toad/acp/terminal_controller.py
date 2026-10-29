@@ -1,6 +1,6 @@
 """ACP terminal requests address operational executions, never mounted widgets."""
 from abc import abstractmethod
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.child_process import join_retirement
 import asyncio
 

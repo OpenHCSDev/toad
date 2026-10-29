@@ -6,7 +6,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, replace
 from functools import cached_property
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.binding import Binding, BindingsMap
 from textual.document._editing import EditingMode
 from textual.box_model import DEFAULT_LAYER

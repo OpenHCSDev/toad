@@ -56,7 +56,7 @@ Each finding is stated as: pattern, the fact, where it is restated (at), the mec
 3. **MEMB-2, exposure is a hand roster per surface.** Fact: which actions a user can discover.
    At: the footer reads `show` (49 hand flags). The palette reads the `PaletteAction` mixin (6 members, `application_actions.py:26`). The sidebar menu reads `MenuAction` (4 members, `widget_actions.py:33`). Textual's `HelpPanel` reads only the focused chain's `BINDINGS`. An action is invisible unless someone remembers each opt-in.
    Derive: every declared action is exposed. The surfaces are views over one registry. Hiding is the exception, declared once (`System`, for instance).
-   By: the family registry filled at `__init_subclass__` (`agent_comms.declared_family.DeclaredFamily`, already the root of `ApplicationAction`).
+   By: the family registry filled at `__init_subclass__` (`agent_comms.nominal.declared_family.DeclaredFamily`, already the root of `ApplicationAction`).
 4. **Hand-numbered ranks.** Fact: menu order.
    At: `menu_order = 0/10/20/100` (6 sites: `application_actions.py:34, 72, 131`; `comms_transfer.py:66, 89, 107`).
    Derive: declaration order in the registry.

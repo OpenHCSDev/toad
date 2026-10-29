@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.thread_presentation import ThreadPresentationStatus
 
 

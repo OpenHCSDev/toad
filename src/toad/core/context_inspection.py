@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING, Awaitable, Callable
 from agent_comms.coordination_errors import Refused
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.importing import ImportedSessionMetadata
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.native_turn_context import NativeContextData

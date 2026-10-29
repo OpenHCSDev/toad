@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 from uuid import uuid4
 
-from agent_comms.field_codec import FieldCodec, WireName
+from agent_comms.nominal.field_codec import FieldCodec, WireName
 from agent_comms.locked_store import FilesRequest
 from agent_comms.typed_table import ExternalStore
 from annotated_types import Ge

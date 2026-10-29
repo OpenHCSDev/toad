@@ -15,7 +15,7 @@ from pathlib import PurePath
 import re
 from weakref import ref
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
 from agent_comms.tool_results import ToolDiff, ToolText
 from agent_comms.sent_message import PublishedSentMessage
@@ -190,7 +190,7 @@ class SentMessageToolOutputPart(ToolOutputPart):
     def capture(cls, message, literal=None):
         if literal is None:
             import json
-            from agent_comms.field_codec import FieldCodec
+            from agent_comms.nominal.field_codec import FieldCodec
 
             literal = json.dumps(FieldCodec.encode(message))
         return cls(message, literal)
@@ -292,7 +292,7 @@ class ToolContentDecoder(MroDispatch):
 
         if item.mime_type == SENT_MESSAGE_MIME:
             import json
-            from agent_comms.field_codec import FieldCodec
+            from agent_comms.nominal.field_codec import FieldCodec
             try:
                 message = FieldCodec.decode(SentTranscript, json.loads(item.text))
             except (TypeError, ValueError):

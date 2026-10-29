@@ -11,7 +11,7 @@ from annotated_types import Ge, Le
 import pytest
 
 from acp.schema import ToolCall
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from python_introspect import AnnotatedDataclassValidationMixin
 from toad.acp.status import ToolCallStatus
 from toad.forms.kinds import Multiline

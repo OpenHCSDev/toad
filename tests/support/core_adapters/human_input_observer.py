@@ -16,7 +16,7 @@ from pathlib import Path
 import shlex
 import sys
 
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.native_entries import NativeEntry

@@ -14,7 +14,7 @@ from pathlib import Path
 
 from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
 from metaclass_registry.mro_dispatch import handles
 from toad.core import events as core_events

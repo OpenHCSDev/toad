@@ -7,7 +7,7 @@ from dataclasses import dataclass, is_dataclass
 from functools import singledispatchmethod
 from typing import ClassVar, Hashable
 
-from agent_comms.field_codec import DisclosureIdentity, FieldCodec, FieldPlan
+from agent_comms.nominal.field_codec import DisclosureIdentity, FieldCodec, FieldPlan
 from python_introspect import declared_field_label
 from textual import events
 from textual.containers import VerticalGroup
