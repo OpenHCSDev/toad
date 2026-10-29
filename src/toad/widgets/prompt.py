@@ -4,6 +4,7 @@ import asyncio
 import shlex
 from dataclasses import replace
 from pathlib import Path
+from types import FunctionType
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, Literal, Self
 
@@ -391,7 +392,8 @@ See on-screen instructions for details.
             await mode.acknowledge(self)
             if not self.submission_allowed:
                 return
-            await mode.flush(self)
+            if not await mode.flush(self):
+                return
         except EditingFailure:
             return  # The engine already reported its failure; never submit stale text.
         if mode is not self.editing_mode:
@@ -432,14 +434,14 @@ See on-screen instructions for details.
         if shell:
             self.prompt.shell_mode = False
 
-    def before_engine_input(self, key: str) -> bool:
-        return HistoryCursor.try_input(self, key)
+    def before_engine_input(self, action: FunctionType) -> bool:
+        return HistoryCursor.try_input(self, action)
 
     def action_cursor_up(self, select: bool = False):
-        PreviousHistoryCursor.move(self, select, super().action_cursor_up)
+        PreviousHistoryCursor.move(self, select)
 
     def action_cursor_down(self, select: bool = False):
-        NextHistoryCursor.move(self, select, super().action_cursor_down)
+        NextHistoryCursor.move(self, select)
 
     def action_delete_left(self) -> None:
         if not self.editing_mode.accepts_text:

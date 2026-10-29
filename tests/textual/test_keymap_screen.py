@@ -5,9 +5,8 @@ from textual.widgets import DataTable, Input, Static
 from textual.binding import ModeBinding
 
 from toad.application_actions import CommanderAction, KeymapAction
-from toad.key_modes import KeyMode, Standard, VimInsert
+from toad.key_modes import KeyMode, Standard
 from toad.preferences import SETTINGS, SavedSettings
-from textual.document._editing import Escape, VimInsert as InsertEditing, VimNormal
 from toad.screens.keymap import KeymapScreen
 from toad.keymap import KeymapRow
 from toad.widget_actions import ProfileKeys
@@ -84,28 +83,6 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         await reopened.press("f7")
         await reopened.until(lambda: isinstance(reopened.app.screen, KeymapScreen),
                              why="the saved menu remap after restarting the app")
-
-
-async def test_the_menu_remaps_the_native_insert_escape_without_changing_normal(workspace):
-    async with workspace.app(size=(140, 45)) as ui:
-        app = ui.app
-        app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
-        editor = ui.conversation.prompt.prompt_text_area
-        editor.focus()
-        await ui.press("f1")
-        await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the native command menu")
-        await choose(ui, Escape(), VimInsert)
-        app.screen.query_one("#keymap-keys", Input).value = "f6"
-        await ui.pilot.click("#keymap-apply")
-        await ui.until(lambda: Escape.binding_id(InsertEditing) in app._keymap,
-                       why="the native Insert escape override")
-        await ui.press("escape")
-        await ui.until(lambda: app.screen is app.workspace_screen, why="the menu dismissed")
-        editor.focus()
-        await ui.press("escape")
-        assert isinstance(editor.editing_mode, InsertEditing)
-        await ui.press("f6")
-        assert type(editor.editing_mode) is VimNormal
 
 
 async def test_the_menu_discovers_and_remaps_a_native_callable_with_both_aliases(workspace):

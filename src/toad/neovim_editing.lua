@@ -24,7 +24,9 @@ local function state()
     selected = table.concat(vim.fn.getregion(anchor, cursor, {type = kind}), '\n')
     if kind == 'V' then selected = selected .. '\n' end
   end
-  return {{cursor[2], cursor[3]}, code, vim.fn.state(), vim.v.count,
+  -- Mode/blocking are read by the host through the fast nvim_get_mode API.
+  -- Running a Lua callback is not evidence that a pending operand has finished.
+  return {{cursor[2], cursor[3]},
           vim.fn.getcmdtype() .. vim.fn.getcmdline(), regions, selected}
 end
 local function publish()
@@ -60,11 +62,11 @@ vim.on_key(function() vim.schedule(publish) end, namespace)
 -- Install the actual native arrow declarations, including saved aliases, inside
 -- Neovim. Its mapping engine knows that the k in fk is an operand, not Up.
 for _, mapping in ipairs(mappings) do
-  local lhs, rhs, native = unpack(mapping)
+  local lhs, rhs, boundary = unpack(mapping)
   for _, mode in ipairs({'', 'i'}) do
     vim.keymap.set(mode, lhs, function()
       if vim.v.count == 0 and not vim.fn.mode(1):match('^no') then
-        if vim.rpcrequest(1, 'toad_cursor_boundary', native) then return '' end
+        if vim.rpcrequest(1, 'toad_cursor_boundary', boundary) then return '' end
       end
       return api.nvim_replace_termcodes(rhs, true, false, true)
     end, {expr = true, noremap = true, silent = true})
@@ -81,8 +83,20 @@ function ToadEditor.cursor_end()
   local line = api.nvim_buf_get_lines(0, count - 1, count, true)[1]
   api.nvim_win_set_cursor(0, {count, #line})
 end
+local function byte_position(location)
+  -- Convert application codepoint coordinates against the actual buffer now,
+  -- not against a potentially older Python rendering when the edit was queued.
+  local row = math.max(0, math.min(location[1], api.nvim_buf_line_count(0) - 1))
+  local line = api.nvim_buf_get_lines(0, row, row + 1, true)[1]
+  local column = math.max(0, math.min(location[2], vim.str_utfindex(line, 'utf-32')))
+  return {row + 1, vim.str_byteindex(line, 'utf-32', column, false)}
+end
+function ToadEditor.cursor(location)
+  api.nvim_win_set_cursor(0, byte_position(location))
+end
 function ToadEditor.select(first, last)
   -- TextArea API ranges are end-exclusive; Neovim owns the actual Visual state.
+  first, last = byte_position(first), byte_position(last)
   local row, byte = last[1], last[2]
   if byte == 0 and row > 1 then
     row = row - 1
@@ -96,21 +110,28 @@ function ToadEditor.select(first, last)
   api.nvim_win_set_cursor(0, {row, byte})
 end
 function ToadEditor.insert(lines, position, maintain_offset)
-  position = position or api.nvim_win_get_cursor(0)
-  return ToadEditor.replace(position[1] - 1, position[2], position[1] - 1,
-                            position[2], lines, maintain_offset)
+  -- MessagePack nil in an argument array enters Lua as vim.NIL.
+  if position == vim.NIL then
+    local cursor = api.nvim_win_get_cursor(0)
+    local line = api.nvim_get_current_line()
+    position = {cursor[1] - 1, vim.str_utfindex(line, 'utf-32', cursor[2], false)}
+  end
+  return ToadEditor.replace(position, position, lines, maintain_offset)
 end
-function ToadEditor.replace(top, top_byte, bottom, bottom_byte, lines, maintain_offset)
+function ToadEditor.replace(first, last, lines, maintain_offset)
+  local top, bottom = byte_position(first), byte_position(last)
+  local top_row, top_byte = top[1] - 1, top[2]
+  local bottom_row, bottom_byte = bottom[1] - 1, bottom[2]
   local cursor = api.nvim_win_get_cursor(0)
   local mark = api.nvim_buf_set_extmark(0, namespace, cursor[1] - 1, cursor[2],
                                       {right_gravity = true})
-  api.nvim_buf_set_text(0, top, top_byte, bottom, bottom_byte, lines)
+  api.nvim_buf_set_text(0, top_row, top_byte, bottom_row, bottom_byte, lines)
   local retained = api.nvim_buf_get_extmark_by_id(0, namespace, mark, {})
   api.nvim_buf_del_extmark(0, namespace, mark)
   if maintain_offset then
     api.nvim_win_set_cursor(0, {retained[1] + 1, retained[2]})
   else
-    local row = top + #lines - 1
+    local row = top_row + #lines - 1
     local column = #lines[#lines] + (#lines == 1 and top_byte or 0)
     api.nvim_win_set_cursor(0, {row + 1, column})
   end
