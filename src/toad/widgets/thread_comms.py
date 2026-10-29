@@ -10,6 +10,7 @@ from toad.core import events as core_events
 from toad.navigation_target import NavigationTarget, ThreadTarget
 
 import asyncio
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 from agent_comms.display_order import ThreadSort
@@ -110,7 +111,9 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
     available = True
     entry: RelationshipEntry | None = None
 
-    def present(self, entry, model) -> None:
+    def present(
+        self, entry: RelationshipEntry, rows: Mapping[str, ThreadRowModel]
+    ) -> None:
         previous, self.entry = self.entry, entry
         self.available, self.target = entry.available, entry_target(entry)
         if not entry.available:
@@ -122,6 +125,7 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
             self._show_entry_detail(entry)
             return
         for person in entry.person.present():
+            model = rows.get(person.thread.name)
             if model is not None and model.incarnation == person.thread.incarnation:
                 self.workers.cancel_group(self, "relationship-row")
                 self._show_person(entry, model)
@@ -219,10 +223,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
     def show_member(self, key: str, row: RelationshipRow) -> None:
         entry = self.model.entries[key]
         threads = self.query_ancestor(ThreadCommsSidebar).model_state.shown.threads.rows
-        row.present(
-            entry,
-            next((threads.get(person.thread.name) for person in entry.person.present()), None),
-        )
+        row.present(entry, threads)
 
     def sync_members(self, changed: frozenset[str]) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
