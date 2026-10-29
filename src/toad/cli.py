@@ -250,8 +250,17 @@ def replay(path: str) -> None:
     default="127.0.0.1",
     help="Loopback address to listen on (127.0.0.1 or localhost).",
 )
+@click.option(
+    "--tailnet-port",
+    metavar="PORT",
+    type=int,
+    default=None,
+    help="Admit only this machine's tailnet owner, through `tailscale serve --https=PORT`.",
+)
 @click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
-def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
+def serve(
+    port: int, host: str, tailnet_port: int | None, toad_args: tuple[str, ...]
+) -> None:
     """Serve a Toad command line in a web browser.
 
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
@@ -260,10 +269,20 @@ def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
     import shlex
 
     from toad.application_lifetime import ApplicationLifetime
-    from toad.web_server import ToadWebServer
+    from toad.web_server import (
+        LocalBrowserAuthentication,
+        LocalBrowserEndpoint,
+        TailnetBrowserAuthentication,
+        ToadWebServer,
+    )
 
     command = shlex.join([sys.executable, "-m", "toad", *toad_args])
-    server = ToadWebServer(command, host=host, port=port, title="Toad")
+    authentication = (
+        LocalBrowserAuthentication(LocalBrowserEndpoint(host, port))
+        if tailnet_port is None
+        else TailnetBrowserAuthentication.from_status(host, port, tailnet_port)
+    )
+    server = ToadWebServer(command, authentication, title="Toad")
     ApplicationLifetime.set_process_title("toad serve")
     server.serve()
 
