@@ -98,7 +98,7 @@ for _, mapping in ipairs(mappings) do
   for _, mode in ipairs({'', 'i'}) do
     vim.keymap.set(mode, lhs, function()
       if vim.v.count == 0 and not vim.fn.mode(1):match('^no') then
-        if vim.rpcrequest(1, 'toad_cursor_boundary', boundary) then return '' end
+        if vim.rpcrequest(1, 'toad_cursor_boundary', boundary, state()) then return '' end
       end
       return api.nvim_replace_termcodes(rhs, true, false, true)
     end, {expr = true, noremap = true, silent = true})

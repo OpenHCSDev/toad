@@ -493,8 +493,8 @@ class CursorBoundaryRequest(NeovimHostRequest):
 
     @classmethod
     def receive(cls, owner: NeovimEditing, arguments: object) -> bool:
-        boundary, = FieldCodec.decode(tuple[int], arguments)
-        return owner.engine_boundary(boundary)
+        boundary, display = FieldCodec.decode(tuple[int, NeovimDisplay], arguments)
+        return owner.engine_boundary(boundary, display)
 
 
 class NeovimReply(SubclassUnion, affix="Reply"):
@@ -781,9 +781,11 @@ class NeovimEditing(VimMode):
         reply.resolve(request, value)
         del self._pending[identity]
 
-    def engine_boundary(self, boundary: int) -> bool:
+    def engine_boundary(self, boundary: int, display: NeovimDisplay) -> bool:
         if not 0 <= boundary < len(self._boundaries):
             raise NeovimWireFailure("Unknown Neovim cursor boundary")
+        self.accept_display(display)
+        self._receiver.visit(self.render)
         return self._receiver.boundary(self._boundaries[boundary])
 
     async def answer_request(self, identity: int, reply: object) -> None:
