@@ -1,4 +1,4 @@
-"""Root-only, normal-user 25-second history/frame observer. AUTHOR MUST NOT RUN.
+"""Root-only, normal-user bounded history/frame observer. AUTHOR MUST NOT RUN.
 
 Example (fill current identity, approved runtime and reviewed meter hash):
   python capture_history.py start --pid PID --boot BOOT --start-ticks TICKS \
@@ -14,20 +14,26 @@ A blocked target cannot promise remote restoration; retain cleanup.py and report
 
 import argparse
 import ast
+from dataclasses import fields, replace
 import json
 import os
 from pathlib import Path
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 
-from history_capture_remote import process_identity as identity, publish, read_meter_source
+from agent_comms.field_codec import FieldCodec
+from history_capture_remote import (
+    CaptureOperation, CaptureRequest, CaptureSpec, ProcessIdentity, RemoteCaptureRun, StartCapture,
+    error_metadata, process_identity as identity, publish, read_meter_source,
+)
 
 
 # Ordinary helper import performs no attachment. Controller and target share
-# the bounded source reader and metadata publisher; only a copied request executes.
+# the typed request, bounded source reader and publisher; only a copied request executes.
 
 
 def validate_meter(path, digest):
@@ -46,37 +52,49 @@ def validate_meter(path, digest):
     return raw
 
 
-def attach(pid, script):
+def attach(pid, script, capture):
     # A fresh helper bounds a stuck sys.remote_exec itself. Killing this helper
     # does NOT kill the frontend and does NOT prove its remote code did not run.
-    result = subprocess.run([sys.executable, str(Path(__file__).resolve()), 'attach',
-                             '--pid', str(pid), '--script', str(script)],
-                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL, timeout=5, check=False)
-    if result.returncode:
-        raise RuntimeError('ATTACH_OUTCOME_UNCERTAIN')
+    # The helper emits bounded exception metadata. A file avoids an unbounded
+    # parent-side PIPE buffer; only the bounded diagnostic enters our receipt.
+    with tempfile.TemporaryFile(dir=script.parent) as stderr:
+        try:
+            result = subprocess.run([sys.executable, str(Path(__file__).resolve()), 'attach',
+                                     '--pid', str(pid), '--script', str(script)],
+                                    stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                    stderr=stderr, timeout=capture.attach_timeout, check=False)
+        except (subprocess.TimeoutExpired, OSError) as error:
+            stderr.seek(0)
+            detail = stderr.read(capture.error_bytes).decode('utf-8', errors='replace')
+            raise RuntimeError(f'ATTACH_OUTCOME_UNCERTAIN: {detail} {type(error).__name__}: {str(error)[:capture.error_bytes]}') from error
+        if result.returncode:
+            stderr.seek(0)
+            detail = stderr.read(capture.error_bytes).decode('utf-8', errors='replace')
+            raise RuntimeError(f'ATTACH_OUTCOME_UNCERTAIN: helper exit {result.returncode}: {detail}')
 
 
 def cleanup(directory):
-    request = json.loads((directory / 'cleanup.json').read_text())
-    if identity(request['identity']['pid']) != request['identity']:
+    request = FieldCodec.decode(CaptureRequest, json.loads((directory / 'cleanup.json').read_text()))
+    if (result := RemoteCaptureRun.read_completion(directory, request.token)) is not None:
+        return result
+    if identity(request.identity.pid) != request.identity:
         raise RuntimeError('Process birth changed: do not attach')
-    attach(request['identity']['pid'], directory / 'cleanup.py')
-    deadline = time.monotonic() + 2
-    result_path = directory / 'cleanup-result.json'
+    capture = request.capture
+    attach(request.identity.pid, directory / 'cleanup.py', capture)
+    deadline = time.monotonic() + capture.cleanup_receipt_timeout
     while time.monotonic() < deadline:
-        if result_path.exists():
-            result = json.loads(result_path.read_text())
+        if (result := RemoteCaptureRun.read_completion(directory, request.token)) is not None:
             return result
-        time.sleep(.25)
-    return dict(status='CLEANUP_UNCONFIRMED', reason='target did not report restoration')
+        time.sleep(capture.poll_interval)
+    return dict(status='CLEANUP_UNCONFIRMED', reason='target did not publish matching canonical completion')
 
 
 def start(args):
+    capture = FieldCodec.decode(CaptureSpec, {item.name: vars(args)[item.name] for item in fields(CaptureSpec)})
     directory = args.output.resolve()
     if not directory.is_relative_to(Path('/home/ts/.cache/agent-scratch')) or directory.exists():
         raise ValueError('Use a fresh, persistent owned scratch run directory')
-    expected = dict(pid=args.pid, boot=args.boot, start_ticks=args.start_ticks)
+    expected = ProcessIdentity(pid=args.pid, boot=args.boot, start_ticks=args.start_ticks)
     if identity(args.pid) != expected:
         raise RuntimeError('Process birth mismatch')
     runtime = args.runtime.resolve(strict=True)
@@ -93,54 +111,51 @@ def start(args):
     # Charge both source copies, their actual path prefixes and bounded receipts.
     metadata_size = 2 * len(remote) + 2 * 8192 + 6 * 65536
     directory.mkdir(mode=0o700)
-    request = dict(identity=expected, runtime=str(runtime), meter=str(meter),
-                   meter_sha256=args.sha256, contract=1, token=uuid.uuid4().hex)
-    for operation in ('start', 'cleanup'):
-        script = directory / (operation + '.py')
+    request = CaptureRequest(identity=expected, runtime=runtime, meter=meter,
+                             meter_sha256=args.sha256, contract=1, token=uuid.uuid4().hex,
+                             capture=capture, operation=StartCapture())
+    for operation in CaptureOperation.members_with(CaptureOperation):
+        script = directory / (operation.declared_name + '.py')
         # sys.remote_exec supplies no __file__; each copy owns its adjacent request.
         prefix = f'__file__ = {str(script)!r}\n'.encode('utf-8')
         metadata_size += len(prefix)
-        if metadata_size > 1 << 20:
-            raise ValueError('Launcher metadata exceeds 1MiB reservation')
-        request_path = directory / (operation + '.json')
-        value = dict(request, operation=operation)
+        if metadata_size > capture.metadata_max_bytes:
+            raise ValueError('Launcher metadata exceeds reservation')
+        request_path = script.with_suffix('.json')
+        value = FieldCodec.encode(replace(request, operation=operation()))
         if len(json.dumps(value).encode('utf-8')) > 8192:
             raise ValueError('Request exceeds reserved remote envelope')
         publish(request_path, value)
         script.write_bytes(prefix + remote)
         script.chmod(0o600)
-    publish(directory / 'manifest.json', dict(identity=expected, runtime=str(runtime),
-                                             meter_sha256=args.sha256, seconds=25,
-                                             calls_max_bytes=12 << 20, frames_max_bytes=3 << 20,
-                                             metadata_max_bytes=1 << 20, max_records=20000,
+    publish(directory / 'manifest.json', dict(identity=FieldCodec.encode(expected), runtime=str(runtime),
+                                             meter_sha256=args.sha256, capture=FieldCodec.encode(capture),
+                                             metadata_max_bytes=capture.metadata_max_bytes,
+                                             controller_budget=capture.controller_budget,
                                              status='PREPARED_NOT_ATTACHED'))
     began = time.monotonic()
     try:
         # Recheck birth immediately before the only start attempt.
         if identity(args.pid) != expected:
             raise RuntimeError('Process birth changed')
-        attach(args.pid, directory / 'start.py')
-        # Leave seven seconds for the one cleanup attempt and its receipt.
-        deadline = began + 28
+        attach(args.pid, directory / 'start.py', capture)
+        deadline = began + capture.observation_budget
         while time.monotonic() < deadline:
-            complete = directory / 'complete.json'
-            if complete.exists():
-                result = json.loads(complete.read_text())
+            if (result := RemoteCaptureRun.read_completion(directory, request.token)) is not None:
                 publish(directory / 'controller-result.json', result)
                 return
             failure = directory / 'start-result.json'
             if failure.exists():
-                raise RuntimeError('Remote setup failed; inspect bounded start result')
-            time.sleep(.25)
+                raise RuntimeError('Remote setup failed: ' + failure.read_text()[:capture.error_bytes])
+            time.sleep(capture.poll_interval)
         raise TimeoutError('Capture did not finish by controller deadline')
     except BaseException as error:
         try:
             result = cleanup(directory)  # a stop, NOT replay of the start input
         except BaseException as stop_error:
-            result = dict(status='CLEANUP_UNCONFIRMED', error=type(stop_error).__name__[:96])
+            result = dict(status='CLEANUP_UNCONFIRMED', **error_metadata(stop_error))
         publish(directory / 'controller-result.json', dict(status='INCONCLUSIVE',
-                error=type(error).__name__[:96], cleanup=result,
-                recovery_script=str(directory / 'cleanup.py')))
+                **error_metadata(error), cleanup=result, recovery_script=str(directory / 'cleanup.py')))
         raise
 
 
@@ -150,7 +165,8 @@ def interrupted(_signal, _frame):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('start', 'cleanup', 'attach'))
+    parser.add_argument('operation', choices=(*(member.declared_name for member in
+                        CaptureOperation.members_with(CaptureOperation)), 'attach'))
     parser.add_argument('--approved', action='store_true', help='root reviewed this exact source')
     parser.add_argument('--pid', type=int)
     parser.add_argument('--boot')
@@ -160,11 +176,17 @@ def main():
     parser.add_argument('--sha256')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--script', type=Path)
+    for item in fields(CaptureSpec):
+        parser.add_argument('--' + item.name.replace('_', '-'), type=item.type, default=item.default)
     args = parser.parse_args()
     if os.geteuid() == 0:
         parser.error('Normal-user observation only; never sudo this launcher')
     if args.operation == 'attach':
-        sys.remote_exec(args.pid, str(args.script))
+        try:
+            sys.remote_exec(args.pid, str(args.script))
+        except BaseException as error:
+            sys.stderr.write(json.dumps(error_metadata(error), ensure_ascii=False))
+            raise SystemExit(1) from None
         return
     if not args.approved:
         parser.error('Root must review source and explicitly approve execution')
