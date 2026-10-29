@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING, Iterable, Self
 
 from textual import on
 from textual.app import ComposeResult
-from toad.widget_actions import PriorityActions, MovesCursor, Submits
+from textual.navigation import MovesCursor
+from toad.widget_actions import PriorityActions, Submits, VisibleActions
 
 from textual import getters
 from textual.message import Message
@@ -35,7 +36,7 @@ Search for slash commands by typing a few characters from the command.
 """
 
 
-class SlashComplete(PriorityActions, MovesCursor, Submits, CompletionPopup):
+class SlashComplete(PriorityActions, VisibleActions, MovesCursor, Submits, CompletionPopup):
     """A widget to auto-complete slash commands."""
 
     requires_completion = True
@@ -128,10 +129,10 @@ class SlashComplete(PriorityActions, MovesCursor, Submits, CompletionPopup):
             with self.option_list.prevent(widgets.OptionList.OptionHighlighted):
                 self.option_list.highlighted = 0
 
-    def cursor_down(self) -> None:
+    def action_cursor_down(self) -> None:
         self.option_list.action_cursor_down()
 
-    def cursor_up(self) -> None:
+    def action_cursor_up(self) -> None:
         self.option_list.action_cursor_up()
 
     def submit(self) -> None:

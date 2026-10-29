@@ -17,7 +17,7 @@ from textual.widgets.option_list import Option
 
 from toad.answer import Answer
 from toad.widgets.question import Question
-from toad.question_actions import SelectKindAction, QuestionContext, PermissionNavigationAction
+from toad.question_actions import SelectKindAction, QuestionContext
 
 from toad.app import ToadApp
 
@@ -38,7 +38,7 @@ class ToolScroll(containers.VerticalScroll):
 
 
 class PermissionsScreen(QuestionContext, PriorityActions, CyclesFocus, Screen[Answer],
-                        actions=(SelectKindAction, PermissionNavigationAction),
+                        actions=(SelectKindAction,),
                         scopes={PriorityActions: (SelectKindAction,)}):
     BINDING_GROUP_TITLE = "Permissions"
     AUTO_FOCUS = "Question"
