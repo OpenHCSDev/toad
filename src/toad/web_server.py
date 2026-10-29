@@ -14,6 +14,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from importlib.metadata import version
+from pathlib import Path
 from urllib.parse import quote, urlsplit
 
 from aiohttp import web
@@ -226,6 +227,8 @@ class ToadWebServer(Server):
         super().__init__(
             command, host=endpoint.host, port=endpoint.port, title=title,
             public_url=endpoint.url,
+            # The vendor page lacks a viewport, so phones laid it out at desktop width.
+            templates_path=Path(__file__).parent / "web_templates",
         )
         self.authentication = authentication
 
