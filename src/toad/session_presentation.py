@@ -62,11 +62,13 @@ class SessionViewState:
         conversation.visible_categories = self.visible_categories
         conversation.window.reader_position = self.reader_position
 
-    def restore(self, conversation: Conversation) -> None:
-        conversation.input_histories = self.input_histories
+    async def restore(self, conversation: Conversation) -> bool:
         editor = conversation.prompt.prompt_text_area
-        editor.restore_editor_state(self.editor)
+        if not await editor.restore_editor_state(self.editor):
+            return False
+        conversation.input_histories = self.input_histories
         editor.shell_mode = self.shell_mode
+        return True
 
 
 class SessionSurfaceLifetime(ABC):
@@ -358,7 +360,8 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.state.prepare_transcript(conversation)
         await self.transcript.bind(conversation).restore_documents(self.transcript)
         if self.state is not None:
-            self.state.restore(conversation)
+            if not await self.state.restore(conversation):
+                return
             self.state = None
         await self.attach_binding(conversation)
         await self.transcript.bind(conversation).restore(self.transcript)
@@ -367,6 +370,8 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation.prompt.focus()
 
     async def close(self, screen: MainScreen) -> None:
+        if self.state is not None:
+            await self.state.editor.editing_mode.close()
         self.state = None
         async with AsyncResourceRelease() as release:
             release.push_async_callback(self.sources.close)
@@ -377,6 +382,9 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         """Release the owned native tree while retaining its actual editor resource."""
         if (conversation := self.widget) is None:
             return
+        editor = conversation.prompt.prompt_text_area
+        if not await editor.editing_mode.flush(editor):
+            return  # Retain the actual view/engine while its modal input is pending.
         self.state = SessionViewState.capture(conversation)
         await self.remove_native_tree(screen)
 

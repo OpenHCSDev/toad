@@ -4,6 +4,7 @@ import asyncio
 import shlex
 from dataclasses import replace
 from pathlib import Path
+from types import FunctionType
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, Literal, Self
 
@@ -18,7 +19,8 @@ from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.widgets.text_area import EditingMode, VimMode
-from textual.document._editing import LineMotion, VimNormal
+from toad.neovim_editing import NeovimUpdated
+from textual.document._editing import EditingFailure
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
 from textual.geometry import Spacing
@@ -278,7 +280,16 @@ See on-screen instructions for details.
             self.prompt.editing_mode_label.update(mode.label)
 
     def apply_keyboard_profile(self) -> None:
-        self.editing_mode = self.screen.key_mode()
+        self.call_later(self._apply_keyboard_profile)
+
+    async def _apply_keyboard_profile(self) -> None:
+        mode = self.screen.key_mode
+        if type(self.editing_mode) is not mode:
+            await self.switch_editing_mode(mode())
+
+    def on_neovim_updated(self, event: NeovimUpdated) -> None:
+        event.stop()
+        event.snapshot.apply(self)
 
     @property
     def submission_allowed(self) -> bool:
@@ -299,9 +310,7 @@ See on-screen instructions for details.
     def _paste_clipboard_text(self, text: str) -> None:
         # A fresh Paste event posted directly here would bubble to App and be
         # forwarded back to the focused TextArea, inserting it a second time.
-        self.editing_mode = self.editing_mode.pasted()
-        if result := self._replace_via_keyboard(text, *self.selection):
-            self.move_cursor(result.end_location)
+        self.editing_mode.paste(self, text)
 
     @work(group='clipboard-paste', exclusive=True)
     async def action_paste_clipboard(self) -> None:
@@ -373,9 +382,20 @@ See on-screen instructions for details.
                     priority=True),
     )
 
-    def _submit(self) -> None:
+    async def _submit(self) -> None:
         """Silently cancel a submission superseded by focus, mode or popup changes."""
         self._submit_pending = False
+        mode = self.editing_mode
+        try:
+            await mode.acknowledge(self)
+            if not self.submission_allowed:
+                return
+            if not await mode.flush(self):
+                return
+        except EditingFailure:
+            return  # The engine already reported its failure; never submit stale text.
+        if mode is not self.editing_mode:
+            return
         immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus or not self.submission_allowed:
             return
@@ -405,15 +425,14 @@ See on-screen instructions for details.
         if shell:
             self.prompt.shell_mode = False
 
-    def move_line_motion(self, motion: type[LineMotion], mode: VimNormal, count: int) -> None:
-        if not HistoryCursor.move_motion(self, mode, motion):
-            super().move_line_motion(motion, mode, count)
+    def before_engine_input(self, action: FunctionType) -> bool:
+        return HistoryCursor.try_input(self, action)
 
     def action_cursor_up(self, select: bool = False):
-        PreviousHistoryCursor.move(self, select, super().action_cursor_up)
+        PreviousHistoryCursor.move(self, select)
 
     def action_cursor_down(self, select: bool = False):
-        NextHistoryCursor.move(self, select, super().action_cursor_down)
+        NextHistoryCursor.move(self, select)
 
     def action_delete_left(self) -> None:
         if not self.editing_mode.accepts_text:
@@ -534,10 +553,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
 
     @text.setter
     def text(self, text: str) -> None:
-        self.prompt_text_area.text = text
-        self.prompt_text_area.selection = Selection.cursor(
-            self.prompt_text_area.get_cursor_line_end_location()
-        )
+        editor = self.prompt_text_area
+        editor.text = text
+        editor.editing_mode.move_to_end(editor)
 
     @property
     def supports_completion(self) -> bool:
@@ -767,10 +785,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
         """
         if not self.is_mounted:
             return
-        from toad.key_modes import VimInsert
         from toad.widgets.conversation import Conversation
 
-        self.prompt_text_area.editing_mode = VimInsert()
+        self.prompt_text_area.editing_mode.enter_text(self.prompt_text_area)
         self.query_ancestor(Conversation).focus_prompt()
 
     MODE_BINDINGS = (

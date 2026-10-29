@@ -3,15 +3,17 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable
+from types import FunctionType
+from typing import TYPE_CHECKING, ClassVar
 from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from textual.content import Content
+from textual.widgets import TextArea
 from textual.widgets.text_area import Selection
 
 if TYPE_CHECKING:
-    from textual.document._editing import EditingMode, LineMotion, VimNormal
+    from textual.document._editing import EditingMode
     from toad.slash_command import SlashCommand
     from toad.widgets.prompt import PromptTextArea
 
@@ -81,6 +83,7 @@ class DeclaredCommandText(CommandText):
 
 class HistoryCursor(DeclaredFamily, affix="Cursor"):
     direction: int
+    native_action: ClassVar[FunctionType]
 
     @classmethod
     @abstractmethod
@@ -98,21 +101,19 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
         return False
 
     @classmethod
-    def move(cls, editor: PromptTextArea, select: bool, ordinary: Callable[[bool], object]) -> None:
+    def move(cls, editor: PromptTextArea, select: bool) -> None:
         if not cls.try_move(editor, select, editor.editing_mode):
-            ordinary(select)
+            cls.native_action(editor, select)
 
     @classmethod
-    def move_motion(cls, editor: PromptTextArea, mode: VimNormal, motion: type[LineMotion]) -> bool:
-        # Direction is the native vertical displacement, not a mode/key name.
-        # New counted vertical motions borrow the same two history boundaries.
-        cursor = next(cursor for cursor in cls.members_with(cls)
-                      if cursor.direction == motion.direction)
-        return cursor.try_move(editor, False, mode)
+    def try_input(cls, editor: PromptTextArea, action: FunctionType) -> bool:
+        return any(cursor.try_move(editor, False, editor.editing_mode)
+                   for cursor in cls.members_with(cls) if cursor.native_action is action)
 
 
 class PreviousHistoryCursor(HistoryCursor):
     direction = -1
+    native_action = TextArea.action_cursor_up
 
     @classmethod
     def at_edge(cls, editor):
@@ -121,6 +122,7 @@ class PreviousHistoryCursor(HistoryCursor):
 
 class NextHistoryCursor(HistoryCursor):
     direction = 1
+    native_action = TextArea.action_cursor_down
 
     @classmethod
     def at_edge(cls, editor):
