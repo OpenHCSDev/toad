@@ -31,6 +31,9 @@ from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
 
+from toad.conversation_submission import ConversationSubmissions
+from toad.widgets.channel_prompt import ChannelPrompt
+from toad.widgets.prompt import MessagePrompt
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.session_details import ConversationSessionDetails
@@ -133,7 +136,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def compose_activity(cls, view: CommsChatView) -> ComposeResult: ...
 
     @abstractmethod
-    def prompt(self, project: Checkout, *, submissions): ...
+    def prompt(self, project: Checkout, *, submissions: ConversationSubmissions): ...
 
     @classmethod
     def seen_page(cls, history: WireHistory, seen):
@@ -206,9 +209,7 @@ class ChannelConversation(ConversationKind):
     def initial_placeholder(self) -> str:
         return f"Message {self.target.name}"
 
-    def prompt(self, project: Checkout, *, submissions):
-        from toad.widgets.channel_prompt import ChannelPrompt
-
+    def prompt(self, project: Checkout, *, submissions: ConversationSubmissions):
         return ChannelPrompt(project=project, placeholder=self.initial_placeholder, submissions=submissions)
 
     def read_only(self, comms: Comms) -> bool:
@@ -216,8 +217,6 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     async def update_mentions(cls, view: CommsChatView, comms: Comms):
-        from toad.widgets.channel_prompt import ChannelPrompt
-
         history = view.message_history
         source = history.source_snapshot()
         conversation = view.conversation
@@ -293,9 +292,7 @@ class DmConversation(ConversationKind):
         view.thread_activity = ConversationSessionDetails(view.conversation.peer)
         yield view.thread_activity
 
-    def prompt(self, project: Checkout, *, submissions):
-        from toad.widgets.prompt import MessagePrompt
-
+    def prompt(self, project: Checkout, *, submissions: ConversationSubmissions):
         return MessagePrompt(project=project, submissions=submissions)
 
     async def status_text(self, comms: Comms, *, read_only: bool) -> str:

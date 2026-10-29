@@ -1,27 +1,21 @@
-"""One queue screen over the source's actual attachment or captured BUS evidence."""
+"""Source-owned queue capabilities and captured evidence, independent of screens."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
 from typing import ClassVar
 
-from acp.exceptions import RequestError
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.message_reference import MessageReference
 from agent_comms.notification_evidence import NotificationWindow
-from textual import on
-from textual.containers import HorizontalGroup, Vertical, VerticalScroll
-from textual.widgets import Button, Static
 
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent_presentation import AgentPresentation
-from toad.line_blocks import MutedRole, Span, SpanColumns
+from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines, MessageQueueEntry
-from toad.screens.modal import DismissibleScreen
 from toad.widgets.message_notifications import SourceNotifications
-from toad.widgets.tool_content import ToolContent
 
 
 @dataclass(frozen=True)
@@ -31,12 +25,12 @@ class QueueEvidence:
     presentation: AgentPresentation
     delivering: tuple[str, ...]
     transport: str
-    targets: tuple[SourceNotifications, ...]
+    read_targets: Callable[[], tuple[SourceNotifications, ...]]
 
     @cached_property
     def entries(self) -> tuple[MessageQueueEntry, ...]:
         entries: dict[MessageReference, MessageQueueEntry] = {}
-        for target in self.targets:
+        for target in self.read_targets():
             for entry in target.queue_entries():
                 entries[entry.reference] = entry
                 if len(entries) >= NotificationWindow.window_limit:
@@ -140,57 +134,3 @@ class BusQueueSource(ReadOnlyQueueSource):
             *(line for entry in evidence.entries[:self.preview_limit] for line in entry.details),
             (Span("Clear/send-now unavailable: this BUS source has no native queue authority.", MutedRole),),
         )
-
-
-class QueueInspection(DismissibleScreen[None]):
-    """One screen captures the source, presentation and scope it actually displays."""
-
-    DEFAULT_CSS = """
-    QueueInspection { align: center middle; background: $background 40%; }
-    QueueInspection > Vertical { width: 85%; max-width: 110; height: 75%; padding: 1 2; background: $surface; }
-    QueueInspection VerticalScroll { height: 1fr; }
-    QueueInspection HorizontalGroup { height: auto; }
-    QueueInspection #queue-error { height: auto; color: $error; }
-    """
-
-    def __init__(self, source: QueueSource, evidence: QueueEvidence, changed: Callable[[], None]):
-        super().__init__()
-        self.source, self.evidence = source, evidence
-        self.scope = source.queue_scope(evidence.presentation)
-        self.changed = changed
-
-    def compose(self):
-        with Vertical():
-            yield Static("Queue and delivery")
-            with VerticalScroll():
-                details = ToolContent()
-                details.update((SpanColumns(self.source.queue_details(self.evidence)),))
-                yield details
-            yield Static("Individual edit/delete/reorder requires ID-targeted, revision-checked backend support.")
-            yield Static("", id="queue-error")
-            with HorizontalGroup():
-                available = self.source.queue_actions_available(self.evidence.presentation)
-                yield Button("Send now", id="queue-send-now", disabled=not available)
-                yield Button("Clear queued inputs", id="queue-clear", disabled=not available)
-                yield Button("Close", id="queue-close")
-
-    async def apply_action(self, action: Callable[[AgentPresentation, QueueScope], Awaitable[None]]) -> None:
-        try:
-            await action(self.evidence.presentation, self.scope)
-        except (QueueActionRefused, RequestError) as error:
-            self.query_one("#queue-error", Static).update(str(error))
-            return
-        self.changed()
-        self.dismiss()
-
-    @on(Button.Pressed, "#queue-send-now")
-    async def send_now(self):
-        await self.apply_action(self.source.queue_send_now)
-
-    @on(Button.Pressed, "#queue-clear")
-    async def clear_queue(self):
-        await self.apply_action(self.source.queue_clear)
-
-    @on(Button.Pressed, "#queue-close")
-    def close_queue(self):
-        self.dismiss()

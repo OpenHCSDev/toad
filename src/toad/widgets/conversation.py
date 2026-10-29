@@ -47,6 +47,7 @@ from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.messages import QueueEvidenceChanged
 from toad.submission_queue import QueueSource
+from toad.screens.queue import QueueInspection
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
@@ -1644,7 +1645,8 @@ class Conversation(
         self.queue_evidence_changed()
 
     def open_queue_menu(self) -> None:
-        self.submissions.inspect_queue()
+        self.app.push_screen(QueueInspection(
+            self.queue_source, self.submissions.queue_evidence, self.submissions.publish_pending))
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, event: PreferenceChanged) -> None:

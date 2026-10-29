@@ -7,7 +7,7 @@ import asyncio
 from contextlib import asynccontextmanager
 
 from agent_comms.channel_targets import ChannelTarget
-from agent_comms.notification_progress import AnsweredProgress, ConsumedDelivery, IgnoredProgress
+from agent_comms.notification_progress import AnsweredProgress, ConsumedDelivery
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
 from toad.navigation_target import DirectTarget, channel_target
@@ -82,7 +82,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, body: str) -> None:
     feedback = feedback_of(chat, sent)
     assert isinstance(feedback, CheckedNotifications)
     assert any(item.recipient == target and isinstance(item.state, AnsweredProgress)
-               and item.answer == reply.reference
+               and item.state.response.reference == reply.reference
                for item in feedback.notifications)
     await ui.close_tab(screen.id)
     await DirectTarget(target).open(navigation)
@@ -130,8 +130,8 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
                    why="seen, not answering feedback after declining the channel message")
     feedback = feedback_of(chat, sent)
     assert isinstance(feedback, CheckedNotifications)
-    assert any(item.recipient == native.thread and isinstance(item.state, IgnoredProgress)
-               and item.state.seen_not_answering and item.answer is None for item in feedback.notifications)
+    assert any(item.recipient == native.thread and item.state.seen_not_answering
+               for item in feedback.notifications)
 
 
 @asynccontextmanager

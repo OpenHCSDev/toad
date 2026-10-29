@@ -23,7 +23,6 @@ from agent_comms.historical_views import (
     ConversationRevision,
 )
 from agent_comms.message_page import MessagePage, MessagePageRequest
-from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
 from agent_comms.page_traversal import (
     LiveCursor,
@@ -114,6 +113,9 @@ class AfterMessage(WireCut):
     def observed(self) -> AfterMessage:
         return self
 
+    def requires_read(self) -> bool:
+        return False
+
 
 @dataclass(frozen=True)
 class AfterSequence(AfterMessage):
@@ -148,6 +150,9 @@ class NothingRead(AfterSequence):
 
     def observed(self) -> AfterSequence:
         return AfterSequence(self.cursor)
+
+    def requires_read(self) -> bool:
+        return True
 
 
 @dataclass(frozen=True)
@@ -187,10 +192,6 @@ class WirePage:
 
 class PreparedWirePage(PreparedTranscriptPage):
     """Wire intervals preserve Core's original display page when advanced empty."""
-
-    @property
-    def notification_identity(self) -> DisplayIdentity | NoDisplaySelection:
-        return self.page.source.selection.notification_identity
 
     def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
         self.page = self.page.advanced(prepared.page, older=older)

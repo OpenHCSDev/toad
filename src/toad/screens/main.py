@@ -37,13 +37,13 @@ from toad.acp.agent_session import SessionDisposition
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent
-from toad.core.input_events import SelectTarget
 from toad.format_path import format_path
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
     DirectTarget,
     FeedTarget,
     NavigationTarget,
+    SelectTarget,
     ThreadTarget,
 )
 from toad.screens.mcp_inventory import MCPInventoryScreen

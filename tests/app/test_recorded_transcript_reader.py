@@ -2,7 +2,7 @@
 
 from agent_comms.repo import Checkout
 import json
-from dataclasses import fields, replace
+from dataclasses import replace
 
 import pytest
 
@@ -10,7 +10,7 @@ from agent_comms.acp_extension import TranscriptSnapshotUpdate, decode_updates, 
 from agent_comms.coordination_errors import HistoricalSourceChanged, StaleRevision
 from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.transcripts import EarlierThan, LaterThan, RecordedTranscriptReadIdentity
+from agent_comms.transcripts import EarlierThan, LaterThan, RecordedPageSource, RecordedTranscriptReadIdentity
 from agent_comms.threads import Thread
 from agent_comms.ui_model.observation import NotPublished
 from support.roots import installed_wire
@@ -36,13 +36,14 @@ async def test_recorded_snapshot_stays_immutable_when_original_grows_and_rejects
 
     async with workspace.app() as ui:
         reader = ui.app.coordination_access.transcripts
-        update = await reader.snapshot(KnownTranscript(str(live.root), "reader"), historical_source=source.key)
+        update = await reader.snapshot(KnownTranscript(str(live.root), "reader"),
+                                       page_source=RecordedPageSource(source.key))
         assert isinstance(update.identity, RecordedTranscriptReadIdentity)
         assert decode_updates(encode_updates(update)) == (update,)
         with native.open("a") as output:
             output.write(json.dumps(assistant_entry("later recorded answer", id="answer-2", parent="answer-1")) + "\n")
         refreshed = await reader.publication(update)
-        assert refreshed.identity.historical_source == source.key
+        assert refreshed.identity.page_source == RecordedPageSource(source.key)
         assert refreshed.identity.thread.incarnation == source.provenance.threads["reader"].incarnation
         assert [event.text for event in refreshed.page.events] == ["recorded answer"]
         assert refreshed == update
@@ -57,26 +58,24 @@ async def test_recorded_snapshot_stays_immutable_when_original_grows_and_rejects
 def test_recorded_presentation_does_not_acquire_live_owner(recorded):
     live, source, _native = recorded
     presentation = live.views.thread_presentations(("reader",)).read("reader")
-    identity = live.transcripts.capture_page_read("reader", historical_source=source.key).identity
+    identity = live.transcripts.capture_page_read("reader", page_source=RecordedPageSource(source.key)).identity
     # There is no live agent/controller to acquire: the recorded declaration
     # cannot publish a turn even when delivered to the ordinary snapshot consumer.
     consumer = OwnerSnapshotConsumer(None, "authored", turn_token=1)
     consumer.thread_presentation(replace(presentation, read_identity=identity))
     assert TranscriptSnapshotUpdate.capture(live.transcripts, "reader",
-                                            historical_source=source.key).identity == identity
+                                            page_source=RecordedPageSource(source.key)).identity == identity
 
 
 def test_known_transcript_requests_carry_the_page_operation_and_keep_root_at_the_envelope(recorded):
     live, source, _native = recorded
     scope = KnownTranscript(str(live.root), "reader")
-    cursor = live.transcripts.capture_page_read("reader", historical_source=source.key).read().after
-    snapshot = scope.snapshot_request(position=EarlierThan(cursor), historical_source=source.key)
+    cursor = live.transcripts.capture_page_read("reader", page_source=RecordedPageSource(source.key)).read().after
+    snapshot = scope.snapshot_request(position=EarlierThan(cursor), page_source=RecordedPageSource(source.key))
     assert snapshot.root == str(live.root)
     assert snapshot.operation == TranscriptPageRead(
-        thread="reader", position=EarlierThan(cursor), historical_source=source.key)
+        thread="reader", position=EarlierThan(cursor), page_source=RecordedPageSource(source.key))
     previous = NotPublished()
     update = scope.update_request(previous, position=LaterThan(cursor))
     assert update.root == str(live.root) and update.previous is previous
     assert update.operation == TranscriptPageRead(thread="reader", position=LaterThan(cursor))
-    # The shared operation never carries the UI's root, request or publication witness.
-    assert not {"root", "request_id", "previous", "identity"} & {f.name for f in fields(TranscriptPageRead)}

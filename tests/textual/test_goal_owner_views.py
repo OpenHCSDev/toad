@@ -23,7 +23,7 @@ from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
 from support.agents import RecordedEvents
 from support.textual_steps import channel_roster
 from toad.core.events import CommsUpdated
-from toad.core.input_events import SelectTarget
+from toad.navigation_target import SelectTarget
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar

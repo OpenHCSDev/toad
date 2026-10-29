@@ -7,7 +7,7 @@ from toad.thread_identity import ThreadIdentity, SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core import events as core_events
 
-from toad.navigation_target import NavigationTarget, ThreadTarget
+from toad.navigation_target import NavigationTarget, SelectTarget, ThreadTarget
 
 import asyncio
 from dataclasses import dataclass, field
@@ -22,7 +22,6 @@ from textual.content import Content
 from textual.geometry import Offset
 from textual.widgets import Checkbox, Static
 
-from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm

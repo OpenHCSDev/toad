@@ -23,7 +23,7 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
 from toad.acp.agent import Agent
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.submission_queue import QueueEvidence, QueueInspection, QueueSource
+from toad.submission_queue import QueueEvidence
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.input_decision import InputDecision, InputRefused
@@ -282,23 +282,14 @@ class ConversationSubmissions:
         return self.view.agent_binding.accepts_failed_input(message)
 
     @property
-    def queue_source(self) -> QueueSource:
-        return self.view.queue_source
-
-    @property
     def queue_evidence(self) -> QueueEvidence:
         return QueueEvidence(
             self.view.agent_binding.presentation, self.delivering,
-            self.view.send_block_reason, self.view.contents.notification_targets())
+            self.view.send_block_reason, self.view.contents.notification_targets)
 
     @property
     def queue_summary(self) -> str:
-        return self.queue_source.queue_summary(self.queue_evidence)
-
-    def inspect_queue(self):
-        inspection = QueueInspection(self.queue_source, self.queue_evidence, self.publish_pending)
-        self.view.app.push_screen(inspection)
-        return inspection
+        return self.view.queue_source.queue_summary(self.queue_evidence)
 
     @property
     def queue_projection(self):
