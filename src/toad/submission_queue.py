@@ -141,12 +141,12 @@ class NativeQueueSource(QueueSource):
     async def queue_send_now(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
         agent = self.require_queue_action(owner, scope)
         if not await agent.controller.send_now():
-            raise QueueActionRefused("The native owner did not accept send now")
+            raise QueueActionRefused("Send now was not confirmed; inspect the current queue before another action")
 
     async def queue_clear(self, owner: ConversationSubmissions, scope: QueueScope) -> None:
         agent = self.require_queue_action(owner, scope)
         if not await agent.controller.clear_queue():
-            raise QueueActionRefused("The native owner did not accept clear queue")
+            raise QueueActionRefused("Clear queue was not confirmed; inspect the current queue before another action")
 
 
 class BusQueueSource(ReadOnlyQueueSource):
