@@ -18,7 +18,7 @@ def persist_terminal_failure(error: Exception) -> None:
     from toad import paths
 
     try:
-        path = paths.save_traceback(error, "Terminal_crash")
+        path = paths.save_error(error, "Terminal_crash")
     except OSError as log_error:
         click.echo(f"Unable to save terminal traceback: {log_error}", err=True)
     else:

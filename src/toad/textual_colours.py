@@ -546,9 +546,12 @@ class ThemedApp(App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
         self.notify(text, title=title)
 
     def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
-        """Every error Toad shows: its text verbatim, never parsed as markup."""
-        text = str(error)
-        self.notify(text, title=title, severity=severity, markup=False)
+        """Save every shown error before its short, literal notification."""
+        from toad import paths
+
+        path = paths.save_error(error, title)
+        text = str(error).partition("\n")[0]
+        self.notify(f"{text}\nLog: {path}", title=title, severity=severity, markup=False)
 
     def get_color_system(self) -> str:
         return self.colours.depth.name

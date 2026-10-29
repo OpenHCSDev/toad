@@ -831,9 +831,9 @@ class Conversation(
         """Only a painted, unfiltered tail can acknowledge the full transcript."""
         if not self.is_mounted or self.visible_categories != all_categories():
             return None
-        window = self.query_one_optional(Window)
+        window = self.window
         through = self.transcript.displayed_cursor
-        if through is None or window is None or not window.follows_tail:
+        if through is None or not window.follows_tail:
             return None
         if any(history.blocks_visible_read for history in window.histories):
             return None

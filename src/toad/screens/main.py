@@ -128,7 +128,10 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         content.render(screen)
 
     def close(self, screen: "MainScreen") -> None:
-        """Terminal content has no unfinished waiters to release."""
+        self.finish(screen, ClosedContent())
+
+    def detaching(self, screen: "MainScreen") -> None:
+        """Only mounted content has reader keys to withdraw."""
 
     def keyboard_scopes(self, screen: MainScreen) -> tuple[DeclaredWidgetActions, ...]:
         return (screen,)
@@ -164,8 +167,19 @@ class OpeningContent(ScreenContent):
         super().finish(screen, content)
         self.completion.set_result(None)
 
-    def close(self, screen: "MainScreen") -> None:
-        self.finish(screen, ReadyContent())
+
+class ClosedContent(ScreenContent):
+    def line(self) -> str:
+        return ""
+
+    async def wait(self, screen: "MainScreen") -> None:
+        """Closing has released the content's waiters."""
+
+    async def prepare(self, screen: "MainScreen") -> None:
+        """A closed tab cannot mount content again."""
+
+    def finish(self, screen: "MainScreen", content: ScreenContent) -> None:
+        """In-flight preparation cannot revive a closed tab."""
 
 
 class NavigatedOpeningContent(OpeningContent):
@@ -176,6 +190,9 @@ class NavigatedOpeningContent(OpeningContent):
 class ReadyContent(ScreenContent):
     def keyboard_scopes(self, screen: MainScreen) -> tuple[DeclaredWidgetActions, ...]:
         return (screen, *screen.conversation.keyboard_scopes())
+
+    def detaching(self, screen: "MainScreen") -> None:
+        self.finish(screen, OpeningContent())
 
     async def prepare(self, screen: "MainScreen") -> None:
         await screen._prepare_content()
@@ -205,7 +222,7 @@ class FailedContent(ScreenContent):
             self.render(screen)
 
     async def attached(self, screen: "MainScreen") -> None:
-        self.finish(screen, ReadyContent())
+        self.finish(screen, OpeningContent())
         if screen.is_current:
             await screen.prepare_presentation()
 
@@ -410,8 +427,8 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         await self.content.wait(self)
 
     async def close_presentation(self) -> None:
-        await self.thread_sidebar.evict()
         self.content.close(self)
+        await self.thread_sidebar.evict()
         await self.presentation.close(self)
 
     @handles(core_events.CommsUpdated)

@@ -409,8 +409,12 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.sources.external_transcript_changed(self.widget)
 
     async def remove_native_tree(self) -> None:
+        from toad.screens.main import MainScreen
+
         if (conversation := self.widget) is None:
             return
+        screen = conversation.query_ancestor(MainScreen)
+        screen.content.detaching(screen)
         self.widget = None
         async with AsyncResourceRelease() as release:
             release.push_async_callback(conversation.remove)
