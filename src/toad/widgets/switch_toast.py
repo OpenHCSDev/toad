@@ -29,6 +29,8 @@ if TYPE_CHECKING:
     from textual._paint_state import PaintState
     from textual.screen import Screen
 
+    from toad.screens.session_view import SessionView
+
 
 @dataclass(frozen=True)
 class Swell(Effect[Amount]):
@@ -63,6 +65,8 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
     A new choice while it shows replaces its name and restarts its swell.
     It is centred over the scrolling message viewport of the shown session,
     not the terminal: sidebars, header, footer and prompt are outside it.
+    It waits for that session's messages to be ready, then shows only if the
+    session is still the one shown; nothing about a choice outlives it.
     It is laid out only when it appears, when a layout moves that viewport
     while it shows, and when it ends; every frame between repaints its own
     few rows.
@@ -81,6 +85,8 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         self.lines: tuple[str, ...] = ()
         # The message viewport it was last fitted to, and where it sits in it, in screen cells.
         self.area = self.placed = Region()
+        # The session whose messages it was last shown over; read only while it shows.
+        self.over: SessionView | None = None
         self.display = False
 
     def on_mount(self) -> None:
@@ -93,13 +99,23 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
 
     @handles(core_events.SessionSelected)
     def session_selected(self, event: core_events.SessionSelected) -> None:
-        """A selection without a native reader (store, welcome) retires the name before any title is looked up."""
-        if (area := self.viewport()) is None:
-            self.retire()
+        """Every choice retires the name over the departing view; a workspace session (DM or
+        channel) names itself once its messages are ready. The store has no session view."""
+        self.retire()
+        if (view := self.app.workspace_sessions.views.get(event.mode_name)) is not None:
+            # Exclusive: a later choice cancels this wait. A view whose content failed
+            # shows its own failure and gets no name over it.
+            self.run_worker(self.show_ready(view, event.mode_name), group="switch-toast",
+                            exclusive=True, exit_on_error=False)
+
+    async def show_ready(self, view: SessionView, mode_name: str) -> None:
+        await view.wait_content_ready()
+        if not self.app.workspace_sessions.source.shown(view):
             return
         titles = {tab.mode_name: tab.title for tab in self.app.open_tabs}
-        if event.mode_name in titles:
-            self.show(titles[event.mode_name], area)
+        if mode_name in titles and (area := self.viewport(view)) is not None:
+            self.over = view
+            self.show(titles[mode_name], area)
 
     @classmethod
     def framed(cls, name_width: int, name_rows: int) -> tuple[int, int]:
@@ -123,14 +139,11 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         width, height = self.framed(max(map(cell_len, self.lines)), len(self.lines))
         return min(width, self.room(self.area)), height
 
-    def viewport(self) -> Region | None:
-        """The shown session's scrolling message viewport in screen cells; none without a native
-        reader, or when it cannot contain even a one-cell, one-row framed name."""
-        conversation = self.app.workspace_chrome.native.widget
-        if conversation is None or not conversation.is_mounted:
-            return None
-        region = conversation.window.scrollable_content_region
-        return region if self.holds(region, 1, 1) else None
+    def viewport(self, view: SessionView) -> Region | None:
+        """The view's scrolling message viewport in screen cells; none without a conversation,
+        or when it cannot contain even a one-cell, one-row framed name."""
+        region = view.message_region()
+        return region if region is not None and self.holds(region, 1, 1) else None
 
     def show(self, title: str, area: Region) -> None:
         self.title = title
@@ -140,7 +153,7 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         self.refresh(layout=True)
 
     def retire(self) -> None:
-        """No native reader, or one too small for the framed name: no name stays over another view."""
+        """No conversation, or one too small for the framed name: no name stays over another view."""
         self.stop_effect(TAB_TOAST)
         self.display = False
 
@@ -162,7 +175,8 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         """A layout that moves the viewport while the name shows refits it, without restarting its swell."""
         if not self.display:
             return
-        if (area := self.viewport()) is None:
+        if not self.app.workspace_sessions.source.shown(self.over) or (
+                area := self.viewport(self.over)) is None:
             self.retire()
         elif self.fit(area):
             self.refresh(layout=True)
