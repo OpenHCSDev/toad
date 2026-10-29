@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 
 from agent_comms.declared_family import DeclaredFamily
-from textual.binding import Binding, BindingsMap
+from textual.binding import BindingsMap, ModeBinding
 from textual.document._editing import EditingMode
 from textual.box_model import DEFAULT_LAYER
 from textual.events import ScreenResume
@@ -318,18 +318,17 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
 class WorkspaceScreen(WorkspaceFrame, actions=(ViewAction,)):
     """The shared live workspace, with its own navigation controls."""
 
-    BINDINGS = [
-        Binding("escape", "back_to_bottom", "Back to bottom", priority=True, show=False),
-    ]
-
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "back_to_bottom":
-            return (
-                not (self.focused is not None and self.focused.uses_screen_coordinates)
-                and self.back_to_bottom_window is not None
-            )
-        return super().check_action(action, parameters)
+    def back_to_bottom_available(self) -> bool:
+        return (
+            not (self.focused is not None and self.focused.uses_screen_coordinates)
+            and self.back_to_bottom_window is not None
+        )
 
     def action_back_to_bottom(self) -> None:
         if (window := self.back_to_bottom_window) is not None:
             window.jump_to_latest()
+
+    MODE_BINDINGS = (
+        ModeBinding("escape", action_back_to_bottom, "Back to bottom", mode=EditingMode,
+                    available=back_to_bottom_available, priority=True, show=False),
+    )
