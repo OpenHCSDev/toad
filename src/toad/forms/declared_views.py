@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, make_dataclass
 from inspect import cleandoc
-from typing import Annotated, ClassVar, Optional, Self, TypeVar, get_args, get_origin
+from typing import TYPE_CHECKING, Annotated, ClassVar, Optional, Self, TypeVar, get_args, get_origin
 
 from formbridge.forms.ui_utils import FieldDisplayText
 from objectstate import DottedFieldPath, ObjectState
@@ -22,6 +22,9 @@ from textual.screen import ModalScreen
 
 from toad.forms.kinds import Placeholder
 
+if TYPE_CHECKING:
+    from agent_comms.field_codec import MemberSelection
+
 Metadata = TypeVar("Metadata")
 
 
@@ -29,11 +32,8 @@ class MemberDraft(ABC):
     """Uncommitted member inputs, never a second committed union value."""
 
     state: ObjectState
+    selection: MemberSelection
     refusal: ClassVar[type[Exception]]
-
-    @property
-    @abstractmethod
-    def declaration(self) -> object: ...
 
     @abstractmethod
     def complete(self) -> object: ...
@@ -46,13 +46,9 @@ class MemberNotChosen(ValueError):
 class UnchosenMemberDraft(MemberDraft):
     refusal = MemberNotChosen
 
-    def __init__(self, declaration: object) -> None:
-        self._declaration = declaration
+    def __init__(self, selection: MemberSelection) -> None:
+        self.selection = selection
         self.state = ObjectState(make_dataclass('UnchosenMember', [])())
-
-    @property
-    def declaration(self) -> object:
-        return self._declaration
 
     def complete(self) -> object:
         raise MemberNotChosen('Choose a member')
