@@ -98,7 +98,7 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
         return False
 
     @classmethod
-    def move(cls, editor: PromptTextArea, select: bool, ordinary: Callable[[bool], None]) -> None:
+    def move(cls, editor: PromptTextArea, select: bool, ordinary: Callable[[bool], object]) -> None:
         if not cls.try_move(editor, select, editor.editing_mode):
             ordinary(select)
 
