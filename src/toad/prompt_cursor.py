@@ -9,11 +9,13 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from textual.content import Content
+from textual.document._editing import EditingMode
 from textual.widgets import TextArea
 from textual.widgets.text_area import Selection
 
+from toad.core.input_events import HistoryMove
+
 if TYPE_CHECKING:
-    from textual.document._editing import EditingMode
     from toad.slash_command import SlashCommand
     from toad.widgets.prompt import PromptTextArea
 
@@ -91,8 +93,6 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
 
     @classmethod
     def try_move(cls, editor: PromptTextArea, select: bool, mode: EditingMode) -> bool:
-        from toad.core.input_events import HistoryMove
-
         if (mode.allows_history_navigation and editor.selection.is_empty
                 and not select):
             if cls.at_edge(editor):

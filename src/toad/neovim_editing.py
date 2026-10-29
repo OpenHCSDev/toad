@@ -12,6 +12,7 @@ from itertools import count
 from typing import ClassVar
 
 import msgpack
+import toad
 from agent_comms.child_process import AttachedChild, join_retirement
 from agent_comms.declared_family import DeclaredFamily, UnknownFamilyMember
 from agent_comms.field_codec import FieldCodec, MalformedRecord, NullMember, SingleFieldValue, SubclassUnion, boundary_decoder
@@ -748,7 +749,7 @@ class NeovimEditing(VimMode):
         row, column = initial_cursor
         await self._bootstrap(NeovimCall("nvim_win_set_cursor", [0,
             [row + 1, len(initial_lines[row][:column].encode("utf-8"))]]))
-        script = files("toad").joinpath("neovim_editing.lua").read_text()
+        script = files(toad).joinpath("neovim_editing.lua").read_text()
         mappings: list[list[object]] = []
         for key, binding in editor.binding_map(type(self)):
             for spelling, native in binding.declared_key.input_bindings(key):
