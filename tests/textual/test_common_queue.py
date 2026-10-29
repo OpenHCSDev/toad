@@ -36,6 +36,11 @@ async def test_bus_queue_borrows_original_proofs_and_preserves_draft(workspace, 
         entries = owner.message_queue_entries
         assert all(entry.reference in {message.reference for message in originals} for entry in entries)
         assert all(entry.request.root == str(workspace.comms.root) for entry in entries)
+        captured = {page.prepared.notification_identity for page in view.message_history.pages}
+        human = workspace.comms.registry.require(workspace.viewer).incarnation
+        assert all(entry.request.display in captured for entry in entries)
+        assert all(entry.request.display.viewer == human for entry in entries)
+        assert not view.message_history.undrawn
         assert view.query_one(QueueSummary) in ui.app.screen._compositor.visible_widgets
         assert not owner.queue_source.queue_actions_available(owner)
         with pytest.raises(ValueError):
@@ -57,6 +62,9 @@ async def test_bus_queue_borrows_original_proofs_and_preserves_draft(workspace, 
         previous = {entry.reference for entry in entries}
         await ui.until(lambda: bool({entry.reference for entry in owner.message_queue_entries} - previous),
                        why="source subscription to refresh the existing queue consumer")
+        captured = {page.prepared.notification_identity for page in view.message_history.pages}
+        assert all(entry.request.display in captured for entry in owner.message_queue_entries)
+        assert ui.draft() == "@peer kept draft"
 
 
 async def test_mailbox_factory_supplies_same_owner_and_readonly_capability_wins_mro(workspace):

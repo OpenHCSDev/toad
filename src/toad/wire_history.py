@@ -23,6 +23,7 @@ from agent_comms.historical_views import (
     ConversationRevision,
 )
 from agent_comms.message_page import MessagePage
+from agent_comms.read_basis import NoDisplaySelection
 from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
 from agent_comms.page_traversal import (
     LiveCursor,
@@ -103,6 +104,13 @@ class AfterMessage(WireCut):
     bounded = True
     kept = True
 
+    @property
+    def undrawn(self) -> bool:
+        return False
+
+    def observed(self) -> AfterMessage:
+        return self
+
 
 @dataclass(frozen=True)
 class AfterSequence(AfterMessage):
@@ -128,6 +136,13 @@ class NothingRead(AfterSequence):
 
     cursor: LiveCursor = field(default_factory=lambda: LiveCursor(0))
 
+    @property
+    def undrawn(self) -> bool:
+        return True
+
+    def observed(self) -> AfterSequence:
+        return AfterSequence(self.cursor)
+
 
 @dataclass(frozen=True)
 class WirePage:
@@ -138,21 +153,21 @@ class WirePage:
     after: AfterMessage
     has_older: bool
     has_newer: bool
-    source: MessagePage | None
+    source: MessagePage
 
     @classmethod
     def unread(cls) -> WirePage:
-        """What is drawn before the first read: nothing, ending before any answer."""
-        return cls((), None, NothingRead(), False, False, None)
+        """The declared unread cursor carries an empty, unscoped placeholder."""
+        return cls((), None, NothingRead(), False, False,
+                   MessagePage((), False, False, NoDisplaySelection()))
 
     @property
     def undrawn(self) -> bool:
-        return self.source is None
+        return self.after.undrawn
 
     def accepts(self, page: MessagePage, view: type[ConversationHistoryView]) -> bool:
         """An initial placeholder accepts its first scope; Core compares actual pages."""
-        source = self.source
-        return source is None or view.same_display(page, source)
+        return self.undrawn or view.same_display(page, self.source)
 
     def advanced(self, interval: WirePage, *, older: bool) -> WirePage:
         """An empty interval advances its cut and establishes the first Core page.
@@ -162,7 +177,8 @@ class WirePage:
         """
         source = interval.source if self.undrawn else self.source
         return (
-            replace(self, before=interval.before, has_older=interval.has_older, source=source)
+            replace(self, before=interval.before, after=self.after.observed(),
+                    has_older=interval.has_older, source=source)
             if older
             else replace(self, after=interval.after, has_newer=interval.has_newer, source=source)
         )
@@ -170,6 +186,10 @@ class WirePage:
 
 class PreparedWirePage(PreparedTranscriptPage):
     """Wire intervals preserve Core's original display page when advanced empty."""
+
+    @property
+    def notification_identity(self):
+        return self.page.source.selection.notification_identity
 
     def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
         self.page = self.page.advanced(prepared.page, older=older)
@@ -330,7 +350,7 @@ class WireSource(BusQueueSource):
         wire = WirePage(
             page.messages,
             BeforeMessage(page.messages[0].view_cursor) if page.messages else None,
-            AfterMessage(page.messages[-1].view_cursor) if page.has_newer and page.messages else through,
+            AfterMessage(page.messages[-1].view_cursor) if page.has_newer and page.messages else through.observed(),
             page.has_older and bool(page.messages),
             page.has_newer and bool(page.messages),
             page,

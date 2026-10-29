@@ -15,7 +15,10 @@ from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.transcript_preparation import PageRequest, Unchanged
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.message_rows import IrcMessageStyle
-from toad.wire_history import AfterSequence, GrowingWireObservation, MessageFragment, ReplacedWireObservation, WireSource
+from toad.wire_history import (
+    AfterSequence, GrowingWireObservation, MessageFragment, NothingRead,
+    PreparedWirePage, ReplacedWireObservation, WirePage, WireSource,
+)
 
 
 def channel_source(comms, target, project):
@@ -30,6 +33,23 @@ def observed(source):
     assert isinstance(first, ReplacedWireObservation)
     newest = source.read(PageRequest(OLDER_END, first.through), first.through)
     return first, newest
+
+
+def test_empty_first_read_keeps_its_real_identity_after_the_unread_placeholder(tmp_path):
+    comms = installed_wire(tmp_path / 'wire')
+    comms.registry.declare(Thread('peer', frozenset({'team'}), Checkout(tmp_path)))
+    source = channel_source(comms, '#team', tmp_path)
+    placeholder = PreparedWirePage.empty(WirePage.unread())
+    assert placeholder.page.undrawn and not placeholder.page.source.selection.has_evidence
+    initial = NothingRead()
+    prepared = source.read(PageRequest(OLDER_END, initial), initial)
+    assert not prepared.fragments and not prepared.page.undrawn
+    identity = prepared.page.source.selection.notification_identity
+    assert prepared.notification_identity == identity
+    assert identity.viewer == comms.registry.require(source.viewer.name).incarnation
+    assert placeholder.page.accepts(prepared.page.source, source.conversation.history_view)
+    placeholder.advance_empty(prepared, older=True)
+    assert not placeholder.page.undrawn and placeholder.notification_identity == identity
 
 
 def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_path):
