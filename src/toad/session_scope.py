@@ -26,7 +26,9 @@ from toad.app_node import ToadNode
 from toad.constants import WELCOME
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
+from toad.input_decision import InputAccepted, InputDecision
 from toad.navigation_context import NavigationOwner
+from toad.owner_preparation import ExistingOwnerPlan
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
@@ -35,6 +37,7 @@ if TYPE_CHECKING:
     from toad.widget_actions import DeclaredWidgetActions
     from agent_comms.messages import Message
     from agent_comms.transcripts import TranscriptCursor
+    from agent_comms.thread_presentation import ThreadPresentation
     from textual.command import Provider
     from textual.dom import DOMNode
 
@@ -54,6 +57,9 @@ class TranscriptScope(ABC):
     @property
     @abstractmethod
     def readable(self) -> bool: ...
+
+    @abstractmethod
+    def owner_decision(self, presentation: ThreadPresentation) -> InputDecision: ...
 
     @abstractmethod
     def original_threads(
@@ -115,6 +121,9 @@ class KnownTranscript(TranscriptScope):
     root: str
     name: str
     readable = True
+
+    def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
+        return ExistingOwnerPlan.from_binding(presentation.binding).decision
 
     def original_threads(
         self, identity: SessionIdentity
@@ -226,6 +235,9 @@ class KnownTranscript(TranscriptScope):
 @dataclass(frozen=True)
 class NoTranscript(TranscriptScope):
     readable = False
+
+    def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
+        return InputAccepted()
 
     def original_threads(
         self, identity: SessionIdentity

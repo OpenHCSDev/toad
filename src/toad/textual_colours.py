@@ -67,6 +67,7 @@ from watchdog.events import FileClosedEvent, FileSystemEvent, FileSystemEventHan
 from watchdog.observers import Observer
 from watchdog.observers.api import BaseObserver
 
+from toad import paths
 from toad.line_blocks import LineRole
 from toad.preferences import SavedSettings, ToadSettings
 from toad.render_tasks import TextEffectRenderTask
@@ -328,9 +329,10 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
     def choose(self, name: str) -> None:
         if name not in self.schemes:
             # `wal` exists once pywal has written its palette.
-            self.app.show_error(f"Theme {name!r} is not available"
-                                + (f": pywal has not written {self.wal_directory / WalFile.NAME}"
-                                   if name == WalFile.SCHEME else ""), "Theme")
+            self.app.notify(f"Theme {name!r} is not available"
+                            + (f": pywal has not written {self.wal_directory / WalFile.NAME}"
+                               if name == WalFile.SCHEME else ""),
+                            title="Theme", severity="warning", markup=False)
             return
         self.app.theme = name
 
@@ -546,9 +548,13 @@ class ThemedApp(App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
         self.notify(text, title=title)
 
     def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
-        """Every error Toad shows: its text verbatim, never parsed as markup."""
-        text = str(error)
-        self.notify(text, title=title, severity=severity, markup=False)
+        """Persist real exceptions; text from ResultShower is a transient refusal."""
+        if isinstance(error, str):
+            self.notify(error, title=title, severity=severity, markup=False)
+            return
+        path = paths.save_error(error, title)
+        text = str(error).partition("\n")[0]
+        self.notify(f"{text}\nLog: {path}", title=title, severity=severity, markup=False)
 
     def get_color_system(self) -> str:
         return self.colours.depth.name

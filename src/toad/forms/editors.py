@@ -15,6 +15,8 @@ from python_introspect import (
 from python_introspect.validation import validate_annotation_value
 from textual import containers
 from textual.app import ComposeResult
+from textual.message import Message
+from textual.reactive import var
 from textual.validation import Function
 from textual.geometry import Spacing
 from textual.css.scalar import Scalar
@@ -38,8 +40,8 @@ else:
 class ValueEditor(DeclaredViews, EditorWidget):
     """A control that shows one field's value and sends the user's edits to the state.
 
-    The value lives in the ObjectState: the control is painted from it and
-    keeps nothing else. The editor capability binds the field before the native
+    The value lives in the ObjectState: the control is painted from it. Only
+    transient validation feedback lives here. The editor binds the field before the native
     control is initialized: `class BoolEditor(ValueEditor, Checkbox)`.
     """
 
@@ -47,6 +49,14 @@ class ValueEditor(DeclaredViews, EditorWidget):
     """Whether the field's help should end with its default value."""
 
     field: DeclaredField
+    feedback: var[str] = var("", init=False)
+
+    class Feedback(Message):
+        """Transient validation text for the field's own view, never a crash log."""
+
+        def __init__(self, text: str) -> None:
+            super().__init__()
+            self.text = text
 
     def __init__(self, field: DeclaredField) -> None:
         self.field = field
@@ -81,10 +91,15 @@ class ValueEditor(DeclaredViews, EditorWidget):
             self.field.edit(value)
         except (TypeError, ValueError) as error:
             self.refuse(error)
+        else:
+            self.feedback = ""
 
     def refuse(self, error: Exception) -> None:
-        self.app.show_error(error, self.field.label)
+        self.feedback = str(error)
         self.paint()
+
+    def watch_feedback(self, text: str) -> None:
+        self.post_message(self.Feedback(text))
 
 
 class BoolEditor(ValueEditor, FormCheckbox):

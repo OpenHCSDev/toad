@@ -18,7 +18,7 @@ from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.conversation_kind import DmConversation
 from toad.input_history import InputHistories
-from toad.owner_preparation import ExistingOwnerPlan
+from toad.input_decision import InputDecision
 from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
@@ -147,34 +147,14 @@ class OperationalSessionSources(NativeQueueSource):
 
         return await InputSubmission.from_event(event, owner.view).execute(owner)
 
-    def input_ready(self, conversation: Conversation) -> bool:
+    def input_decision(self, conversation: Conversation) -> InputDecision:
         agent = conversation.agent_binding
-        if not agent.ready:
-            return False
-        if agent.configuration.model.requires_selection:
-            return False
-        if conversation.transcript.readable:
-            presentation = conversation.thread_presentation
-            return ExistingOwnerPlan.from_binding(presentation.binding).available
-        return True
-
-    def unavailable_reason(self, conversation: Conversation) -> str:
-        presentation = conversation.thread_presentation
-        agent = conversation.agent_binding
-        if (
-            conversation.transcript.readable
-            and not ExistingOwnerPlan.from_binding(presentation.binding).available
-        ):
-            line = self.activity_row(conversation).presentation.summary
-        elif agent.configuration.model.requires_selection:
-            line = (
-                "Choose a model or connect a provider (click here). Your draft is kept."
+        return agent.readiness_decision.then(
+            lambda: agent.configuration.model.input_decision
+        ).then(
+            lambda: conversation.transcript.binding.thread_scope.owner_decision(
+                conversation.thread_presentation
             )
-        else:
-            line = self.activity_row(conversation).presentation.summary
-        return self.activity_row(conversation).status.with_disconnection(
-            line,
-            lambda: agent.session_disposition.input_notice(line),
         )
 
     def start_agent(self, conversation: Conversation) -> None:
@@ -256,9 +236,6 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
             group="mailbox-status",
             exclusive=True,
         )
-
-    def input_ready(self, conversation: Conversation) -> bool:
-        return conversation.transcript.readable
 
     async def present(self, conversation: Conversation) -> None:
         await super().present(conversation)
@@ -397,21 +374,22 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             release.push_async_callback(self.transcript.close)
             await screen.app.workspace_chrome.native.dispose(screen)
 
-    async def evict(self) -> None:
+    async def evict(self, screen: MainScreen) -> None:
         """Release the owned native tree while retaining its actual editor resource."""
         if (conversation := self.widget) is None:
             return
         self.state = SessionViewState.capture(conversation)
-        await self.remove_native_tree()
+        await self.remove_native_tree(screen)
 
     def external_transcript_changed(self) -> None:
         """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
         if self.widget is not None:
             self.sources.external_transcript_changed(self.widget)
 
-    async def remove_native_tree(self) -> None:
+    async def remove_native_tree(self, screen: MainScreen) -> None:
         if (conversation := self.widget) is None:
             return
+        screen.content.detaching(screen)
         self.widget = None
         async with AsyncResourceRelease() as release:
             release.push_async_callback(conversation.remove)
@@ -476,8 +454,9 @@ class NativeSessionSurface:
         """
         app = self._app()
         budget = selected.window.presentation_budget
+        screens = {owner: screen for screen, owner in self._presentations()}
         candidates = {}
-        for screen, owner in self._presentations():
+        for owner, screen in screens.items():
             candidates.setdefault(screen.id, []).append(owner)
         required = (
             self.view.presentation,
@@ -505,14 +484,14 @@ class NativeSessionSurface:
         )
         for owner in ordered:
             if owner not in kept:
-                await owner.evict()
+                await owner.evict(screens[owner])
 
     async def dispose(self, screen: MainScreen) -> None:
         """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
             owner = screen.presentation
             async with AsyncResourceRelease() as release:
-                release.push_async_callback(owner.remove_native_tree)
+                release.push_async_callback(owner.remove_native_tree, screen)
                 if self.view is screen:
                     self.view = None
                     await owner.release_binding(owner.widget, screen)

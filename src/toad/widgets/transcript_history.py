@@ -1240,26 +1240,6 @@ class CommittedHistory(LineHistory, SnapshotPresentation):
             raise ValueError("Commit replaces or rewinds the retained source")
         self.extend_source(through)
 
-    async def advance_committed(
-        self, through: TranscriptCursor, is_current: Callable[[], bool],
-    ) -> bool:
-        """Extend a complete followed tail; read a bounded destination across a gap.
-
-        The prepared commit owns the shared live-block handoff operation;
-        this source changes only its followed saved range.
-        """
-        if not is_current() or not self.state.can_draw:
-            return False
-        if not self.accepts_commit(through):
-            raise ValueError("Commit replaces or rewinds the saved source")
-        if not NEWER_END.visible_more(self):
-            return await self.extend(through, is_current)
-        self.retain_committed(through)
-        request = LatestViewportRequest(LatestPosition.hold(self.window))
-        return await self.jump_latest(request, is_current)
-
-
-
 class ConversationHistory[ViewT: "Conversation"](LineHistory):
     """A conversation owns its source binding and initial history state."""
 

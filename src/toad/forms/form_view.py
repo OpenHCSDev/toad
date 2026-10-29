@@ -7,7 +7,7 @@ from collections.abc import Iterator
 from formbridge.forms.parameter_form_service import ParameterFormService
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
 from objectstate import DottedFieldPath, ObjectState
-from textual import containers, events, lazy
+from textual import containers, events, lazy, on
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Static
@@ -15,7 +15,7 @@ from textual.css._style_properties import Edges
 from textual.geometry import Spacing
 from textual.layouts.stream import StreamLayout
 from rich.style import Style
-from ui_theme.scheme import BackgroundColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour
+from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour
 
 from toad.forms.declared_views import DeclaredField, DeclaredViews
 from toad.forms.editors import ValueEditor
@@ -35,6 +35,12 @@ class FieldHelp(WidgetView, Static):
     @property
     def paint_foreground(self):
         return self.app.colours.colour(MutedColour)
+
+
+class FieldRefusal(FieldHelp):
+    @property
+    def paint_foreground(self):
+        return self.app.colours.colour(ErrorColour)
 
 
 class GroupTitle(WidgetView, Static):
@@ -93,6 +99,8 @@ class ValueView(FieldView):
         super().__init__(field, included)
         self.editor = ValueEditor.declared_for(field)
         self.title = FieldTitle(field.label)
+        self.refusal = FieldRefusal("", markup=False)
+        self.refusal.display = False
         self.search_text = " ".join(
             DeclaredField(field.state, step).label
             for step in field.state.parameter_structure.ancestors(field.path)
@@ -102,6 +110,13 @@ class ValueView(FieldView):
         yield self.title
         yield FieldHelp(self.description())
         yield self.editor
+        yield self.refusal
+
+    @on(ValueEditor.Feedback)
+    def show_feedback(self, message: ValueEditor.Feedback) -> None:
+        message.stop()
+        self.refusal.update(message.text)
+        self.refusal.display = bool(message.text)
 
     def description(self) -> Content:
         help = Content.from_markup(self.field.help)

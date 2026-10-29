@@ -23,6 +23,7 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
+from toad.input_decision import InputDecision, InputRefused
 from toad.widgets.prompt import Prompt
 from agent_comms.notification_evidence import NotificationWindow
 
@@ -112,12 +113,15 @@ class SubmissionStart(ABC):
 
 
 class UnboundSubmissionStart(SubmissionStart):
-    def __init__(self, owner: ConversationSubmissions, submission: AgentInputSubmission):
-        self.owner, self.submission = owner, submission
+    def __init__(
+        self, owner: ConversationSubmissions, submission: AgentInputSubmission, refusal: InputRefused
+    ):
+        self.owner, self.submission, self.refusal = owner, submission, refusal
 
     async def prepare(self):
         self.owner.view.delivery_refused(
-            "No connected owner; your input has not been submitted", self.submission.source_text
+            self.refusal.message,
+            self.submission.source_text,
         )
 
 
@@ -270,8 +274,8 @@ class ConversationSubmissions:
     def begin(self, submission: AgentInputSubmission):
         return self.view.agent_binding.begin_submission(self, submission)
 
-    def unbound(self, submission: AgentInputSubmission):
-        return UnboundSubmissionStart(self, submission)
+    def unbound(self, submission: AgentInputSubmission, refusal: InputRefused):
+        return UnboundSubmissionStart(self, submission, refusal)
 
     def start(self, submission: AgentInputSubmission, agent: Agent):
         execution = SubmissionExecution(self, submission, agent)
@@ -279,12 +283,8 @@ class ConversationSubmissions:
         return execution
 
     @property
-    def ready(self):
-        return self.view.operational_sources.input_ready(self.view)
-
-    @property
-    def unavailable_reason(self):
-        return self.view.operational_sources.unavailable_reason(self.view)
+    def input_decision(self) -> InputDecision:
+        return self.view.operational_sources.input_decision(self.view)
 
     async def submit(self, event: UserInputSubmitted):
         text = event.body.strip()

@@ -12,7 +12,7 @@ from typing import ClassVar, Generic, Literal, Self, TypeVar
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, FieldPlan
-from textual.binding import Binding, CommandBinding, ModeBinding
+from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
@@ -73,17 +73,15 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
     @classmethod
     def mode_binding(cls, mode: type[EditingMode], key: str) -> ModeBinding:
         command = cls.command_for_key(mode, key)
-        return cls.command_binding(mode, key, command, mode)
+        return cls.command_binding(mode, key, command)
 
     @classmethod
-    def command_binding(cls, capability: type[EditingMode], key: str, command: Self,
-                        mode: type[EditingMode]) -> ModeBinding:
+    def command_binding(cls, capability: type[EditingMode], key: str, command: Self) -> ModeBinding:
         return CommandBinding(
             key=key, action=command, description=cls.title,
             available=command.key_available, mode=capability,
             tooltip=cls.summary(), show=cls.show, priority=cls.priority,
             system=cls.system, group=cls.group, key_display=cls.key_display,
-            id=command.binding_identity(mode),
         )
 
     @classmethod
@@ -91,9 +89,11 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
         """The nearest declared capability supplies defaults; identity follows active mode."""
         for capability in mode.__mro__:
             if capability in cls.keys:
-                return tuple(cls.command_binding(capability, key,
-                                                 cls.command_for_key(capability, key), mode)
-                             for key in cls.keys[capability])
+                return tuple(binding for _, binding in BindingsMap(
+                    cls.command_binding(capability, key,
+                                        cls.command_for_key(capability, key))
+                    for key in cls.keys[capability]
+                ).project(mode))
         return ()
 
     @classmethod

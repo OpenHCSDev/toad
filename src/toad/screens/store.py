@@ -502,7 +502,7 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
         try:
             self._agents = await read_agents()
         except AgentReadError as error:
-            self.app.show_error(f"Failed to read agents data ({error})", "Agents data")
+            self.app.show_error(error, "Failed to read agents data")
         else:
             await self.container.mount_compose(self.compose_agents())
             with suppress(NoMatches):
