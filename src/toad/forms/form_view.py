@@ -38,6 +38,13 @@ class FieldHelp(WidgetView, Static):
 
 
 class FieldRefusal(FieldHelp):
+    def show_feedback(self, text: str) -> None:
+        """Keep unchanged validation feedback out of layout and paint."""
+        if self.content == text:
+            return
+        self.update(text)
+        self.display = bool(text)
+
     @property
     def paint_foreground(self):
         return self.app.colours.colour(ErrorColour)
@@ -115,8 +122,7 @@ class ValueView(FieldView):
     @on(ValueEditor.Feedback)
     def show_feedback(self, message: ValueEditor.Feedback) -> None:
         message.stop()
-        self.refusal.update(message.text)
-        self.refusal.display = bool(message.text)
+        self.refusal.show_feedback(message.text)
 
     def description(self) -> Content:
         help = Content.from_markup(self.field.help)
