@@ -9,7 +9,7 @@ from agent_comms.field_codec import FieldCodec
 from formbridge.forms.ui_utils import FieldDisplayText
 from python_introspect import declared_field_label
 from rich.cells import cell_len
-from rich.style import Style
+from textual.style import Style
 from textual._two_way_dict import TwoWayDict
 from textual.content import Content
 from textual.widgets import DataTable
@@ -39,15 +39,17 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         self.readers: dict[str, Callable[[R], object]] = {
             plan.name: plan.current for plan in plans
         } | {name: member.fget for name, member in projections.items()}
-        annotations = {plan.name: plan.annotation for plan in plans} | {
+        self.annotations = {plan.name: plan.annotation for plan in plans} | {
             name: get_type_hints(member.fget, include_extras=True)["return"]
             for name, member in projections.items()
         }
-        for name, annotation in annotations.items():
-            label = declared_field_label(annotation) or FieldDisplayText.from_field_name(name).display_name
-            self.add_column(label, key=name)
         self.records: dict[RowKey, R] = {}
         self.entity_keys: dict[DisclosureKey, RowKey] = {}
+
+    def on_mount(self) -> None:
+        for name, annotation in self.annotations.items():
+            label = declared_field_label(annotation) or FieldDisplayText.from_field_name(name).display_name
+            self.add_column(label, key=name)
 
     def row_tone(self, record: R) -> type[ThemeColour]:
         return ForegroundColour
@@ -76,7 +78,7 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
             if key in self.records and self.records[key] == record:
                 continue
             colour = self.app.colours.colour(self.row_tone(record))
-            style = Style(color=colour.rich_color)
+            style = Style(background=colour, foreground=colour.get_contrast_text())
             cells = tuple(cell.stylize(style) for cell in self.cells(record))
             if key in self.rows:
                 for name, cell in zip(self.readers, cells):

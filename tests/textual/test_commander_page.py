@@ -1,32 +1,47 @@
-"""Textual-facing: the commander page paints the HUD change Core's stream delivers."""
+"""Textual-facing: declared commander rows survive refresh and source failures."""
 
 import json
 from dataclasses import replace
 
 from agent_comms.commander.vibe_check import OverloadDegradation
 from agent_comms.commander_hud import (
-    CommanderFrame, CommanderHud, CommanderUnit, CodexUsage, UnreadableUsage,
+    CommanderFrame, CommanderHud, CommanderOrder, CommanderUnit, CodexUsage, UnreadableUsage,
 )
+from agent_comms.field_codec import FieldCodec, OrderId
 from agent_comms.thread_identity import RecordedThreadIncarnation
+from agent_comms.todos import NoCommitProgress
 from agent_comms.ui_model.observation import ObserveCommanderHud
-from agent_comms.ui_model.unit_state import Detached, PendingClock
+from agent_comms.ui_model.unit_state import (
+    AwaitingApplicationRun, Blocked, Detached, Idle, Moving, PendingClock, UnitState, Unreadable,
+)
 from textual.widgets import Static
-from textual.widgets._collapsible import CollapsibleTitle
+from ui_theme.scheme import (
+    AccentColour, ErrorColour, ForegroundMutedColour, SuccessColour, WarningColour,
+)
 
 from toad.comms_root import FailedObservation, UnselectedRoute
 from toad.core.events import CommanderHudChanged
-from toad.screens.commander import CommanderFrameView, CommanderPage, CommanderUnitCard
+from toad.screens.commander import CommanderFrameView, CommanderPage, CommanderTable, UnitTone
 
 
 async def test_commander_page_survives_unreadable_frames_and_recovers(workspace):
-    unit = CommanderUnit(
-        RecordedThreadIncarnation("hud-worker", 2.0), Detached,
-        PendingClock(1.0, 1.0), (), 1, (), (),
+    order = CommanderOrder(
+        "P927", "Make the commander readable", OrderId("123456789abc"),
+        "pending", NoCommitProgress(), (), 0, 0,
+    )
+    units = tuple(
+        CommanderUnit(
+            RecordedThreadIncarnation(f"hud-worker-{state.declared_name}", float(index + 2)),
+            state, PendingClock(1.0, 1.0),
+            (order, replace(order, problem="P928", order=OrderId("23456789abcd"))),
+            1, (), (),
+        )
+        for index, state in enumerate(UnitState.members_with(UnitState))
     )
     hud = CommanderHud(
-        RecordedThreadIncarnation("claude-code", 1.0), (unit,), (),
+        RecordedThreadIncarnation("claude-code", 1.0), units, (),
         OverloadDegradation.from_orders((), 0, 0),
-        (RecordedThreadIncarnation("fork-hud", 2.0),),
+        (RecordedThreadIncarnation("fork-hud", 200.0),),
         CodexUsage(UnreadableUsage(reason="not requested")),
     )
     CommanderFrame.replace_all(workspace.comms.root, (hud,))
@@ -48,27 +63,47 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
 
         CommanderFrame.replace_all(workspace.comms.root, (hud,))
         await ui.until_shows("Commander claude-code")
+        view = rows.query_one(CommanderFrameView)
+        table = view.query_one(CommanderTable)
+        await ui.until(lambda: table.row_count == len(units), why="the declared table to receive units")
         assert not notice.display
         last_good = tuple(rows.children)
-        view = rows.query_one(CommanderFrameView)
-        await ui.until(
-            lambda: bool(view.query(CommanderUnitCard)),
-            why="the published unit card to mount inside its commander frame",
+        names = tuple(plan.name for plan in FieldCodec.field_plans(CommanderUnit)
+                      if plan.records and not plan.excluded_in("hud"))
+        assert tuple(key.value for key in table.columns) == (
+            *names, *FieldCodec.projections(CommanderUnit, "hud"),
         )
-        card = view.query_one(CommanderUnitCard)
-        assert card.collapsed
-        title = card.query_one(CollapsibleTitle)
-        title.focus()
-        await pilot.press("enter")
-        await ui.until(lambda: not card.collapsed, why="the unit card to expand by keyboard")
-        await ui.until_shows(Detached.action)
-        # This published fixture has no registered unit. Its original-detail
-        # refusal must stay in the disclosure while observation keeps working.
+        assert [column.label.plain for column in table.ordered_columns] == [
+            "Unit", "State", "Work", "Change", "Next",
+        ]
+        assert UnitTone.of(Blocked) is ErrorColour
+        assert UnitTone.of(Unreadable) is ErrorColour
+        assert UnitTone.of(Detached) is WarningColour
+        assert UnitTone.of(AwaitingApplicationRun) is AccentColour
+        assert UnitTone.of(Moving) is SuccessColour
+        assert UnitTone.of(Idle) is ForegroundMutedColour
+        for key, card in table.records.items():
+            assert table.get_cell(key, "unit").plain == card.unit.name
+            state = table.get_cell(key, "state")
+            assert state.plain == card.state.declared_name
+            assert state.spans[-1].style.background == app.colours.colour(UnitTone.of(card.state))
+            assert table.get_cell(key, "work").plain == "P927 pending\nP928 pending"
+            assert table.rows[key].height > 1
+        moving = next(key for key, card in table.records.items() if card.state is Moving)
+        table.move_cursor(row=table.get_row_index(moving))
+        table.focus()
+        await ui.step()
         await ui.until_shows("Original details unavailable:")
+        assert table.selected_key == moving
+        retained_row = table.rows[moving]
         assert str(view.heading.render()) == "Commander claude-code"
         assert str(view.status.render()).startswith(str(hud.load))
         assert hud.usage.line() in str(view.footer.render())
         assert "forks: fork-hud" in str(view.footer.render())
+        await pilot.resize_terminal(80, 40)
+        await ui.step()
+        assert sum(column.get_render_width(table) for column in table.ordered_columns) <= table.size.width
+        assert table.selected_key == moving
 
         frame.write_text(unreadable)
         await ui.until(lambda: notice.display, why="the next unreadable frame to reach the page")
@@ -76,16 +111,28 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace)
         assert tuple(rows.children) == last_good
 
         repaired = replace(
-            hud, units=(replace(unit, strikes=2),),
-            forks=(RecordedThreadIncarnation("recovered", 3.0),),
+            hud, units=tuple(replace(unit, strikes=2) for unit in reversed(units)),
+            forks=(RecordedThreadIncarnation("recovered", 201.0),),
         )
         CommanderFrame.replace_all(workspace.comms.root, (repaired,))
         await ui.until_shows("forks: recovered")
         assert not notice.display
         assert rows.query_one(CommanderFrameView) is view
-        assert view.query_one(CommanderUnitCard) is card
-        assert not card.collapsed and title.has_focus
-        assert card.card.strikes == 2
+        assert view.query_one(CommanderTable) is table
+        assert table.selected_key == moving and table.has_focus
+        assert table.rows[moving] is retained_row
+        assert table.selected.strikes == 2
+        assert tuple(card.unit for card in table.records.values()) == tuple(
+            card.unit for card in repaired.units
+        )
+        view.filter.value = "hud-worker-moving"
+        await ui.until(lambda: table.row_count == 1, why="the cell-text filter")
+        assert table.selected_key == moving
+        view.needs_hand.value = True
+        await ui.until(lambda: table.row_count == 0, why="the needs-hand filter to exclude moving")
+        view.filter.value = ""
+        await ui.until(lambda: table.row_count == sum(card.needs_hand() for card in repaired.units),
+                       why="the needs-hand filter to use Core's answer")
         recovered_rows = tuple(rows.children)
         failed = FailedObservation(
             OSError("observer process exited"), UnselectedRoute(),

@@ -127,6 +127,11 @@ class ClassValue(DisclosedValue):
     def cell(self) -> Content:
         return Content(self.summary())
 
+    def show(self, view: DeclaredDisclosure) -> None:
+        view.body.display = True
+        view.members.display = False
+        view.body.update(self.summary())
+
 
 @dataclass(frozen=True)
 class FamilyClassValue(ClassValue):
