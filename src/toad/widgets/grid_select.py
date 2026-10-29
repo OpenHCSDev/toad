@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Literal
 
 from textual import containers
 from textual import events
@@ -123,7 +124,7 @@ class GridSelect(VisibleActions, MovesCursor, MovesHorizontalCursor, Selects, co
             return len(self.children) - 1
         return highlighted
 
-    def action_cursor_up(self):
+    def action_cursor_up(self) -> None:
         if (grid_size := self.grid_size) is None:
             self.post_message(self.LeaveUp(self))
             return
@@ -136,7 +137,7 @@ class GridSelect(VisibleActions, MovesCursor, MovesHorizontalCursor, Selects, co
             else:
                 self.post_message(self.LeaveUp(self))
 
-    def action_cursor_down(self):
+    def action_cursor_down(self) -> None:
         if (grid_size := self.grid_size) is None:
             self.post_message(self.LeaveDown(self))
             return
@@ -150,7 +151,7 @@ class GridSelect(VisibleActions, MovesCursor, MovesHorizontalCursor, Selects, co
             else:
                 self.post_message(self.LeaveDown(self))
 
-    def cursor_horizontal(self, direction):
+    def cursor_horizontal(self, direction: Literal[-1, 1]) -> None:
         if self.highlighted is None:
             self.highlighted = 0
         else:
