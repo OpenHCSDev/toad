@@ -224,11 +224,11 @@ class CommanderPage(
     DEFAULT_CSS = """
     CommanderPage { align: center middle; background: $background 40%; }
     CommanderPage > Vertical {
-        width: 95%; height: auto; max-height: 95%; padding: 0 1;
+        width: 95%; height: 95%; padding: 0 1;
         border: solid $primary; background: $surface;
     }
     CommanderPage #hud-error { display: none; height: auto; color: $error; }
-    CommanderPage #hud-rows { height: auto; max-height: 100%; scrollbar-gutter: stable; }
+    CommanderPage #hud-rows { height: 1fr; scrollbar-gutter: stable; }
     CommanderPage CommanderFrameView { height: auto; }
     CommanderPage Static { height: auto; }
     CommanderPage .hud-commander { text-style: bold reverse; }

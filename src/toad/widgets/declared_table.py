@@ -74,6 +74,7 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         incoming = {keys[entity]: record for entity, record in entities.items()}
         for key in self.records.keys() - incoming.keys():
             self.remove_row(key)
+        changed: set[RowKey] = set()
         for key, record in incoming.items():
             if key in self.records and self.records[key] == record:
                 continue
@@ -85,11 +86,14 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
                     self.update_cell(key, name, cell)
             else:
                 self.add_row(*cells, key=key, height=None)
+            changed.add(key)
         self.records = incoming
         self.entity_keys = keys
         # DataTable has no public keyed reorder. Its own sort() uses this same index;
         # retain Core's supplied order without inventing another state sort in the UI.
         self._row_locations = TwoWayDict({key: index for index, key in enumerate(incoming)})
+        self._update_count += 1
+        self.reflow_rows(changed)
         self.fit_columns()
         if selected in incoming:
             self.move_cursor(row=self.get_row_index(selected), animate=False)
@@ -112,16 +116,26 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         flexible = available - len(columns)
         total = sum(weights)
         used = 0
-        for column, weight in zip(columns, weights):
+        widths = []
+        for weight in weights:
             end = used + weight
-            column.auto_width = False
-            column.width = 1 + flexible * end // total - flexible * used // total
+            widths.append(1 + flexible * end // total - flexible * used // total)
             used = end
-        # Auto-height is native DataTable behavior, but it must be invalidated when
-        # column widths or current cell text change, not only when a row is first added.
-        for row in self.rows.values():
-            row.height = 0
-        self._new_rows.update(self.rows)
+        if widths == [column.width for column in columns] and not any(
+            column.auto_width for column in columns
+        ):
+            return
+        for column, width in zip(columns, widths):
+            column.auto_width = False
+            column.width = width
+        self.reflow_rows(self.rows)
+
+    def reflow_rows(self, keys: Iterable[RowKey]) -> None:
+        # Re-measure native auto-height only after cell text or column widths change.
+        # A height-only Resize must not zero the rows again: that feeds its own layout.
+        for key in keys:
+            self.rows[key].height = 0
+            self._new_rows.add(key)
         self._require_update_dimensions = True
         self._update_count += 1
         self._clear_caches()
