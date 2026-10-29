@@ -136,6 +136,7 @@ class CommanderFrameView(ToadNode, VerticalGroup):
 
     def on_mount(self) -> None:
         self.present(self.hud)
+        self.filter_units()
 
     @on(Input.Changed)
     @on(Checkbox.Changed)
