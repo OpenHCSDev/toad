@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass, is_dataclass
+from functools import singledispatchmethod
 from typing import ClassVar, Hashable
 
 from agent_comms.field_codec import DisclosureIdentity, FieldCodec, FieldPlan
@@ -54,10 +55,9 @@ class DisclosedValue:
 
     value: object
 
+    @singledispatchmethod
     @classmethod
     def of(cls, value: object) -> DisclosedValue:
-        if isinstance(value, type):
-            return ClassValue(value)
         if is_dataclass(value):
             identity = tuple(
                 plan for plan in FieldCodec.field_plans(type(value))
@@ -66,10 +66,27 @@ class DisclosedValue:
             if identity:
                 return IdentifiedRecordValue(value, identity)
             return RecordValue(value)
-        if isinstance(value, Mapping):
-            return MappingValue(value)
-        if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
-            return SequenceValue(value)
+        return cls(value)
+
+    @of.register(type)
+    @classmethod
+    def _class(cls, value: type) -> DisclosedValue:
+        return ClassValue(value)
+
+    @of.register(Mapping)
+    @classmethod
+    def _mapping(cls, value: Mapping[Hashable, object]) -> DisclosedValue:
+        return MappingValue(value)
+
+    @of.register(Sequence)
+    @classmethod
+    def _sequence(cls, value: Sequence[object]) -> DisclosedValue:
+        return SequenceValue(value)
+
+    @of.register(str)
+    @of.register(bytes)
+    @classmethod
+    def _scalar(cls, value: str | bytes) -> DisclosedValue:
         return cls(value)
 
     def sequence_key(self) -> DisclosureKey:
