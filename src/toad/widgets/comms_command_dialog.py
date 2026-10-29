@@ -6,10 +6,9 @@ from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated
 
 from agent_comms.cli_command import TargetAction
-from agent_comms.cli_failures import CLI_FAILURES
 from agent_comms.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption
-from agent_comms.field_codec import compile_decoder
+from agent_comms.field_codec import MalformedRecord
 from agent_comms.login import run_login
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel
@@ -53,6 +52,9 @@ class CatalogField(ValueEditor, Button):
     def paint(self):
         self.label = next((choice.name for choice in self.field.metadata(PreparedChoices).parameter.options
                            if choice.value == self.field.value), 'Choose / connect a provider…')
+
+    def commit(self) -> None:
+        self.send(self.field.value)
 
     def on_button_pressed(self, event: Button.Pressed):
         event.stop()
@@ -158,7 +160,7 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
     def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...]):
         super().__init__()
         self.definition, self.target = definition, target
-        self.choices = {}
+        self.choices: dict[str, PreparedChoices] = {}
         declarations = []
         for parameter in fields:
             hints = [FieldLabel(parameter.description)]
@@ -166,10 +168,7 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
                 lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:
                 hints.append(Multiline())
-            annotation = compile_decoder(parameter.annotation).editor_annotation
-            if parameter.required and not parameter.supplied:
-                annotation = annotation | type(None)
-            declarations.append((parameter.name, Annotated[annotation, *hints],
+            declarations.append((parameter.name, Annotated[parameter.editor_annotation, *hints],
                                  field(default=parameter.editor_default)))
         self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
         self.form = InlineFormView(self.state)
@@ -206,16 +205,15 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
 
 
     def arguments(self):
-        return {parameter.name: value for parameter in self.definition.editable_fields
-                if (value := self.state.get_resolved_value(parameter.name)) is not None
-                or not parameter.required}
+        return {key: value for parameter in self.definition.editable_fields
+                for key, value in parameter.argument(self.state.get_resolved_value(parameter.name)).items()}
 
     async def refresh_catalogs(self, arguments):
         self.query_one('#command-apply', Button).disabled = True
         try:
             fields = await self.app.preparation.run_thread(
                 lambda: asyncio.run(self.definition.prepare_fields(arguments)))
-        except CLI_FAILURES as error:
+        except (ValueError, MalformedRecord) as error:
             if self.is_attached and arguments == self.arguments():
                 self.query_one('#command-confirmation', Static).update(str(error))
             return
@@ -239,7 +237,7 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
                         return f'Choose {name.replace("_", " ")}', False
                 try:
                     return self.definition.edited(arguments).confirmation, True
-                except CLI_FAILURES as error:
+                except (ValueError, MalformedRecord) as error:
                     return str(error), False
             confirmation, valid = await self.app.preparation.run_thread(read)
             if not self.is_attached or arguments != self.arguments():
