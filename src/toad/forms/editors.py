@@ -79,8 +79,8 @@ class ValueEditor(DeclaredViews, EditorWidget):
         """Paint the control from the state."""
         raise NotImplementedError
 
-    def finish(self) -> None:
-        """Send an edit the user has not finished yet. Most controls have none."""
+    def finish(self, *, explicit: bool = False) -> None:
+        """Commit pending input; explicit also confirms an unchanged displayed value."""
 
     def value_text(self, value: object) -> str:
         """How a value of this field reads."""
@@ -114,6 +114,10 @@ class BoolEditor(ValueEditor, FormCheckbox):
     def changed(self, message: Checkbox.Changed) -> None:
         message.stop()
         self.send(message.value)
+
+    def finish(self, *, explicit: bool = False) -> None:
+        if explicit:
+            self.send(self.value)
 
     def paint(self) -> None:
         with self.prevent(Checkbox.Changed):
@@ -152,8 +156,8 @@ class LineEditor(ValueEditor, FormInput):
         message.stop()
         self.finish()
 
-    def finish(self) -> None:
-        if self.value == self.value_text(self.field.value):
+    def finish(self, *, explicit: bool = False) -> None:
+        if not explicit and self.value == self.value_text(self.field.value):
             return
         try:
             value = self.read(self.value)
@@ -197,6 +201,10 @@ class MultilineEditor(ValueEditor, UntintedTonePaint, FramedControl, TextArea):
     def changed(self, message: TextArea.Changed) -> None:
         message.stop()
         self.send(self.text)
+
+    def finish(self, *, explicit: bool = False) -> None:
+        if explicit:
+            self.send(self.text)
 
     def paint(self) -> None:
         value = str(self.field.value or "")
@@ -246,6 +254,10 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
         message.stop()
         if message.value is not Select.NULL:
             self.send(message.value)
+
+    def finish(self, *, explicit: bool = False) -> None:
+        if explicit and self.value is not Select.NULL:
+            self.send(self.value)
 
     def paint(self) -> None:
         value = self.field.value
@@ -304,12 +316,15 @@ class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
     def held_changed(self, message: Checkbox.Changed) -> None:
         message.stop()
         self.member.display = message.value
-        if not message.value:
+        if message.value:
+            self.member.finish(explicit=True)
+        else:
             self.member.set_reactive(ValueEditor.feedback, "")
             self.send(None)
 
-    def finish(self) -> None:
-        self.member.finish()
+    def finish(self, *, explicit: bool = False) -> None:
+        if self.holds_value.value:
+            self.member.finish(explicit=explicit)
 
     def value_text(self, value: object) -> str:
         return "not set" if value is None else self.member.value_text(value)

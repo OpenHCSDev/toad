@@ -6,6 +6,7 @@ from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated
 
 from agent_comms.cli_command import TargetAction
+from agent_comms.cli_failures import CLI_FAILURES
 from agent_comms.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.field_codec import compile_decoder
@@ -165,7 +166,10 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
                 lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:
                 hints.append(Multiline())
-            declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
+            annotation = compile_decoder(parameter.annotation).editor_annotation
+            if parameter.required and not parameter.supplied:
+                annotation = annotation | type(None)
+            declarations.append((parameter.name, Annotated[annotation, *hints],
                                  field(default=parameter.editor_default)))
         self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
         self.form = InlineFormView(self.state)
@@ -202,13 +206,19 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
 
 
     def arguments(self):
-        return {name: self.state.get_resolved_value(name) for name in self.form.values}
+        return {parameter.name: value for parameter in self.definition.editable_fields
+                if (value := self.state.get_resolved_value(parameter.name)) is not None
+                or not parameter.required}
 
     async def refresh_catalogs(self, arguments):
         self.query_one('#command-apply', Button).disabled = True
-        edited = self.definition.edited(arguments)
-        fields = await self.app.preparation.run_thread(
-            lambda: asyncio.run(edited.prepare_fields()))
+        try:
+            fields = await self.app.preparation.run_thread(
+                lambda: asyncio.run(self.definition.prepare_fields(arguments)))
+        except CLI_FAILURES as error:
+            if self.is_attached and arguments == self.arguments():
+                self.query_one('#command-confirmation', Static).update(str(error))
+            return
         if not self.is_attached or arguments != self.arguments():
             return
         for parameter in fields:
@@ -225,15 +235,18 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
         async def prepare():
             def read():
                 for name, choices in self.choices.items():
-                    if arguments[name] not in choices.choices():
+                    if name not in arguments or arguments[name] not in choices.choices():
                         return f'Choose {name.replace("_", " ")}', False
-                return self.definition.edited(arguments).confirmation, True
+                try:
+                    return self.definition.edited(arguments).confirmation, True
+                except CLI_FAILURES as error:
+                    return str(error), False
             confirmation, valid = await self.app.preparation.run_thread(read)
             if not self.is_attached or arguments != self.arguments():
                 return
             self.query_one('#command-confirmation', Static).update(confirmation)
             confirmed.display = valid and bool(confirmation)
             self.query_one('#command-apply', Button).disabled = not valid or any(
-                arguments[name] != choices.parameter.editor_default
+                name not in arguments or arguments[name] != choices.parameter.editor_default
                 for name, choices in self.choices.items())
         self.run_worker(prepare, group='command-confirmation', exclusive=True)
