@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable, Iterable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.coordination_errors import TranscriptChanged
@@ -264,7 +264,7 @@ class PreparedPageCommit(PreparedCommit):
     page: PreparedTranscriptPage
 
     @classmethod
-    async def capture(cls, view: Conversation, history: CommittedHistory, page: TranscriptPage, sequences: frozenset[int]):
+    async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage, sequences: frozenset[int]) -> Self:
         from toad.transcript_preparation import TranscriptPageRenderTask
         from toad.work_preparation import RenderPreparation
 
@@ -307,7 +307,7 @@ class CommitPlan(ABC):
     def ready(self, history: CommittedHistory) -> bool:
         return history.source_ready
 
-    async def prepare(self, view: Conversation, history: CommittedHistory,
+    async def prepare(self, view: Conversation, history: TranscriptHistory,
                       page: TranscriptPage, captured: frozenset[Widget]) -> PreparedCommit:
         """Share exact wire coverage; each destination owns its render action."""
         sequences = TranscriptCoverage(page.events).sequences
@@ -320,7 +320,7 @@ class CommitPlan(ABC):
         return await PreparedPageCommit.capture(view, history, page, sequences)
 
     @abstractmethod
-    async def extend(self, view: Conversation, history: CommittedHistory, page: TranscriptPage,
+    async def extend(self, view: Conversation, history: TranscriptHistory, page: TranscriptPage,
                      sequences: frozenset[int]) -> PreparedCommit:
         """Prepare publication within the history's existing source."""
 
@@ -348,7 +348,8 @@ class FollowTailCommit(CommitPlan):
     def current(self, window: HistoryWindow) -> bool:
         return window.follows_tail and window.scroll_revision == self.revision
 
-    async def extend(self, view, history, page, sequences):
+    async def extend(self, view: Conversation, history: TranscriptHistory, page: TranscriptPage,
+                     sequences: frozenset[int]) -> PreparedPageCommit:
         return await PreparedPageCommit.capture(view, history, page, sequences)
 
     def finish(self, view, cursor) -> None:
@@ -391,7 +392,8 @@ class RetainViewportCommit(CommitPlan):
         return not any(widget in visible and visible[widget][0].overlaps(viewport)
                        for widget in candidates)
 
-    async def extend(self, view, history, page, sequences):
+    async def extend(self, view: Conversation, history: TranscriptHistory, page: TranscriptPage,
+                     sequences: frozenset[int]) -> PreparedCommit:
         return PreparedCommit(history, sequences)
 
     def commit(self, prepared, cursor) -> None:
