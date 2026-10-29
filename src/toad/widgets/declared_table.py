@@ -61,10 +61,10 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         selected = keys.get(self.preferred_entity(), selected)
         incoming = {keys[entity]: record for entity, record in entities.items()}
         rows = []
-        for record, cells in zip(incoming.values(), self.source.cells):
+        for record, texts in zip(incoming.values(), self.source.texts):
             colour = self.app.colours.colour(self.row_tone(record))
             style = Style(background=colour, foreground=colour.get_contrast_text())
-            rows.append(tuple(DisclosedValue.from_text(cell).cell().stylize(style) for cell in cells))
+            rows.append(tuple(Content(text).stylize(style) for text in texts))
         available = max(len(self.source.columns), self.size.width - self.scrollbar_size_vertical
                         - self.cell_padding * 2 * len(self.source.columns))
         widths = self.source.widths(available)

@@ -102,9 +102,6 @@ class DisclosedValue:
     def summary(self, width: int | None = None) -> str:
         return self.source.summary(width)
 
-    def cell(self) -> Content:
-        return Content(str(self.source.value))
-
     def show(self, view: DeclaredDisclosure) -> None:
         view.body.display = True
         view.members.display = False
@@ -115,9 +112,6 @@ class DisclosedValue:
 class ClassValue(DisclosedValue):
     source: ClassText
 
-    def cell(self) -> Content:
-        return Content(self.summary())
-
     def show(self, view: DeclaredDisclosure) -> None:
         view.body.display = True
         view.members.display = False
@@ -125,9 +119,6 @@ class ClassValue(DisclosedValue):
 
 
 class StructuredValue(DisclosedValue, ABC):
-    def cell(self) -> Content:
-        return Content(self.summary())
-
     @abstractmethod
     def children(self) -> tuple[DisclosureEntry, ...]: ...
 
