@@ -4,9 +4,9 @@ from typing import Iterable
 import asyncio
 
 from textual import work
-from textual.binding import Binding, ModeBinding
+from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
-from toad.widget_actions import DismissAction, NativeMethodKeys
+from toad.widget_actions import NativeMethodKeys
 from textual.message import Message
 from textual.widgets import DirectoryTree
 from textual.widgets.directory_tree import DirEntry
@@ -32,16 +32,6 @@ This shows the files in your project directory.
         def __init__(self, path: Path) -> None:
             self.path = path
             super().__init__()
-
-    BINDINGS = [
-        Binding(
-            "ctrl+c",
-            DismissAction.binding_name(),
-            "Interrupt",
-            tooltip="Interrupt running command",
-            show=False,
-        ),
-    ]
 
     def __init__(
         self,

@@ -6,10 +6,11 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.layouts.grid import GridLayout
 from textual.widget import Widget
-from toad.widget_actions import MovesCursor, MovesHorizontalCursor, Selects
+from textual.navigation import MovesCursor
+from toad.widget_actions import MovesHorizontalCursor, Selects, VisibleActions
 
 
-class GridSelect(MovesCursor, MovesHorizontalCursor, Selects, containers.ItemGrid, can_focus=True):
+class GridSelect(VisibleActions, MovesCursor, MovesHorizontalCursor, Selects, containers.ItemGrid, can_focus=True):
     FOCUS_ON_CLICK = False
 
     highlighted: reactive[int | None] = reactive(None)
@@ -122,7 +123,7 @@ class GridSelect(MovesCursor, MovesHorizontalCursor, Selects, containers.ItemGri
             return len(self.children) - 1
         return highlighted
 
-    def cursor_up(self):
+    def action_cursor_up(self):
         if (grid_size := self.grid_size) is None:
             self.post_message(self.LeaveUp(self))
             return
@@ -135,7 +136,7 @@ class GridSelect(MovesCursor, MovesHorizontalCursor, Selects, containers.ItemGri
             else:
                 self.post_message(self.LeaveUp(self))
 
-    def cursor_down(self):
+    def action_cursor_down(self):
         if (grid_size := self.grid_size) is None:
             self.post_message(self.LeaveDown(self))
             return

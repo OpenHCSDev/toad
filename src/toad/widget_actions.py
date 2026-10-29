@@ -298,25 +298,8 @@ class DismissAction(VisibleAction):
         context.dismiss_control()
 
 
-class CursorAction(VisibleAction, affix="Action"):
+class HorizontalCursorAction(VisibleAction, declared_name=None):
     group = Binding.Group("Select")
-
-
-class CursorUpAction(CursorAction):
-    keys = {EditingMode: ("up",)}
-
-    async def apply(self, context: MovesCursor) -> None:
-        context.cursor_up()
-
-
-class CursorDownAction(CursorAction):
-    keys = {EditingMode: ("down",)}
-
-    async def apply(self, context: MovesCursor) -> None:
-        context.cursor_down()
-
-
-class HorizontalCursorAction(CursorAction, declared_name=None):
     direction: ClassVar[Literal[-1, 1]]
 
     async def apply(self, context: MovesHorizontalCursor) -> None:
@@ -426,15 +409,6 @@ class DismissibleControl(Dismisses):
         """Close this control without imposing a native screen result contract."""
 
 
-class MovesCursor(DeclaredWidgetActions, actions=(CursorAction,)):
-
-    @abstractmethod
-    def cursor_up(self) -> None: ...
-
-    @abstractmethod
-    def cursor_down(self) -> None: ...
-
-
 class MovesHorizontalCursor(DeclaredWidgetActions, actions=(HorizontalCursorAction,)):
     @abstractmethod
     def cursor_horizontal(self, direction: Literal[-1, 1]) -> None: ...
@@ -503,7 +477,7 @@ class CyclesFocus(DeclaredWidgetActions, actions=(FocusAction,)):
 
 
 Combiner = Callable[[bool, bool], bool]
-PresentationScopes = Mapping[type, tuple[type[Action], ...]]
+PresentationScopes = Mapping[type, tuple[type[KeyDeclaration], ...]]
 
 
 @dataclass(frozen=True)
@@ -530,16 +504,20 @@ class ActionPresentation(DeclaredWidgetActions):
         super().__init_subclass__(actions=actions, **kwargs)
 
     @classmethod
-    def present_binding(cls, declaration: type[Action], binding: Binding) -> Binding:
+    def present_binding(cls, declaration: type[KeyDeclaration], binding: Binding) -> Binding:
         scopes = {family: members for base in reversed(cls.__mro__)
                   for family, members in base.__dict__.get("scopes", {}).items()}
         for base in reversed(cls.__mro__):
             for style in base.__dict__.get("binding_styles", ()):
-                selected = any(root in declaration.__mro__ for root in scopes.get(base, (Action,)))
+                selected = any(root in declaration.__mro__ for root in scopes.get(base, (KeyDeclaration,)))
                 binding = replace(binding, **{
                     style.field.name: style.combine(bool(style.field.current(binding)), selected)
                 })
         return binding
+
+    @classmethod
+    def present_navigation_binding(cls, declaration, binding):
+        return cls.present_binding(declaration, super().present_navigation_binding(declaration, binding))
 
     @classmethod
     def action_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:

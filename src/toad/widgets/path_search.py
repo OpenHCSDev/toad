@@ -13,7 +13,8 @@ from typing import TYPE_CHECKING, Self, Sequence
 from textual import on
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
-from toad.widget_actions import WidgetAction, PriorityActions, HiddenActions, MovesCursor, Submits, DismissAction, SubmitAction
+from textual.navigation import MovesCursor
+from toad.widget_actions import WidgetAction, PriorityActions, HiddenActions, Submits, DismissAction, SubmitAction, VisibleActions
 from textual import work
 from textual import getters
 from textual import containers
@@ -146,7 +147,7 @@ class SwitchPathPickerAction(WidgetAction):
 
 
 class PathSearch(
-    CoreEventReceiver, PriorityActions, HiddenActions, MovesCursor, Submits, CompletionPopup,
+    CoreEventReceiver, PriorityActions, HiddenActions, VisibleActions, MovesCursor, Submits, CompletionPopup,
     scopes={HiddenActions: (DismissAction, SubmitAction)},
     actions=(SwitchPathPickerAction,),
 ):
@@ -275,14 +276,14 @@ class PathSearch(
             self.option_list.highlighted = 0
         self.post_message(PromptSuggestion(""))
 
-    def cursor_down(self) -> None:
+    def action_cursor_down(self) -> None:
         if self.show_tree_picker:
             if tree := self.query_one_optional(ProjectDirectoryTree):
                 tree.action_cursor_down()
         else:
             self.option_list.action_cursor_down()
 
-    def cursor_up(self) -> None:
+    def action_cursor_up(self) -> None:
         if self.show_tree_picker:
             if tree := self.query_one_optional(ProjectDirectoryTree):
                 tree.action_cursor_up()
