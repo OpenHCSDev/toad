@@ -204,7 +204,7 @@ class NeovimRequest(ABC):
     def __init__(self) -> None:
         self.identity = next(self._identities)
         self.reply: asyncio.Future[object] = asyncio.get_running_loop().create_future()
-        self.sent: asyncio.Future[None] = asyncio.get_running_loop().create_future()
+        self.dispatched: asyncio.Future[None] = asyncio.get_running_loop().create_future()
 
     @property
     @abstractmethod
@@ -215,10 +215,12 @@ class NeovimRequest(ABC):
     def arguments(self) -> Sequence[object]: ...
 
     async def send(self, child: AttachedChild) -> None:
+        # Dispatch starts before transport backpressure. A fast reply can arrive
+        # during drain(), and must not leave its waiter behind an unset receipt.
+        self.dispatched.set_result(None)
         try:
             await child.write(msgpack.packb(
                 [0, self.identity, self.method, list(self.arguments)], use_bin_type=True))
-            self.sent.set_result(None)
         except OSError as error:
             raise NeovimWireFailure(str(error)) from error
 
@@ -226,7 +228,7 @@ class NeovimRequest(ABC):
         self.reply.set_result(value)
 
     async def result(self) -> object:
-        await asyncio.shield(self.sent)
+        await asyncio.shield(self.dispatched)
         return await self.wait_reply()
 
     async def wait_reply(self) -> object:
@@ -449,16 +451,15 @@ class NeovimEditing(VimMode):
                 async with asyncio.TaskGroup() as tasks:
                     tasks.create_task(self._write_admitted())
                     await self._read(child)
-        except* (EditingFailure, OSError, msgpack.UnpackException, msgpack.FormatError,
-                 msgpack.StackError, msgpack.BufferFull, UnicodeDecodeError) as errors:
+        except* (EditingFailure, OSError, msgpack.UnpackException, UnicodeDecodeError) as errors:
             self._fail(NeovimWireFailure("; ".join(str(error) for error in errors.exceptions)))
         finally:
             error = self._failure or EditingFailure("Neovim editor closed; input was not replayed")
             if not self._child_ready.done():
                 self._child_ready.set_exception(error)
             for request in self._pending.values():
-                if not request.sent.done():
-                    request.sent.set_exception(error)
+                if not request.dispatched.done():
+                    request.dispatched.set_exception(error)
                 if not request.reply.done():
                     request.reply.set_exception(error)
             self._pending.clear()
@@ -482,7 +483,7 @@ class NeovimEditing(VimMode):
 
     def _register(self, request: NeovimRequest) -> None:
         request.reply.add_done_callback(self._observe_failure)
-        request.sent.add_done_callback(self._observe_failure)
+        request.dispatched.add_done_callback(self._observe_failure)
         if self._failure is not None:
             raise self._failure
         self._pending[request.identity] = request
@@ -497,7 +498,7 @@ class NeovimEditing(VimMode):
         try:
             self._register(request)
         except EditingFailure as error:
-            request.sent.set_exception(error)
+            request.dispatched.set_exception(error)
             request.reply.set_exception(error)
         else:
             self._outgoing.put_nowait(request)
