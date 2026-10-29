@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, is_dataclass
 from typing import Hashable
 
-from agent_comms.field_codec import FieldCodec
+from agent_comms.field_codec import DisclosureIdentity, FieldCodec, FieldPlan
 from python_introspect import declared_field_label
 from textual import events
 from textual.containers import VerticalGroup
@@ -28,8 +28,14 @@ class FieldKey:
 
 
 @dataclass(frozen=True)
-class ItemKey:
-    position: int
+class EntityKey:
+    owner: type
+    parts: tuple[object, ...]
+
+
+@dataclass(frozen=True, eq=False)
+class AnonymousKey:
+    """A source without declared entity identity cannot inherit another item's view."""
 
 
 @dataclass(frozen=True)
@@ -37,7 +43,7 @@ class MappingKey:
     key: Hashable
 
 
-type DisclosureKey = RootKey | FieldKey | ItemKey | MappingKey
+type DisclosureKey = RootKey | FieldKey | EntityKey | AnonymousKey | MappingKey
 
 
 @dataclass(frozen=True)
@@ -51,12 +57,24 @@ class DisclosedValue:
         if isinstance(value, type):
             return ClassValue(value)
         if is_dataclass(value):
+            identity = tuple(
+                plan for plan in FieldCodec.field_plans(type(value))
+                if DisclosureIdentity.read(plan.annotation, False)
+            )
+            if identity:
+                return IdentifiedRecordValue(value, identity)
             return RecordValue(value)
         if isinstance(value, Mapping):
             return MappingValue(value)
         if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
             return SequenceValue(value)
         return cls(value)
+
+    def sequence_key(self) -> DisclosureKey:
+        return AnonymousKey()
+
+    def identity_part(self) -> object:
+        return self.value
 
     def summary(self, width: int) -> str:
         # Preview work is bounded by the visible label, not the history body's size.
@@ -103,6 +121,20 @@ class RecordValue(StructuredValue):
 
 
 @dataclass(frozen=True)
+class IdentifiedRecordValue(RecordValue):
+    identity: tuple[FieldPlan, ...]
+
+    def sequence_key(self) -> EntityKey:
+        return EntityKey(type(self.value), tuple(
+            DisclosedValue.of(plan.current(self.value)).identity_part()
+            for plan in self.identity
+        ))
+
+    def identity_part(self) -> EntityKey:
+        return self.sequence_key()
+
+
+@dataclass(frozen=True)
 class SequenceValue(StructuredValue):
     value: Sequence[object]
 
@@ -110,10 +142,11 @@ class SequenceValue(StructuredValue):
         return f"{len(self.value)} items"
 
     def children(self) -> tuple[DisclosureEntry, ...]:
-        return tuple(
-            DisclosureEntry(ItemKey(index), str(index + 1), DisclosedValue.of(value))
-            for index, value in enumerate(self.value)
-        )
+        entries = []
+        for index, value in enumerate(self.value):
+            disclosed = DisclosedValue.of(value)
+            entries.append(DisclosureEntry(disclosed.sequence_key(), str(index + 1), disclosed))
+        return tuple(entries)
 
 
 @dataclass(frozen=True)
