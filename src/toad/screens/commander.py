@@ -1,4 +1,4 @@
-"""Expandable views of the commander's published heartbeat frames."""
+"""A declaration-driven table over the commander's published heartbeat frames."""
 
 from __future__ import annotations
 
@@ -11,28 +11,34 @@ from agent_comms.coordination_errors import DeferredRead
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
+from agent_comms.ui_model.unit_state import (
+    AwaitingApplicationRun, Blocked, Idle, Moving, NeedsCommanderAttention, UnitState, Unreadable,
+)
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from rich.cells import cell_len
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Vertical, VerticalGroup, VerticalScroll
+from textual.containers import HorizontalGroup, Vertical, VerticalGroup, VerticalScroll
 from textual.content import Content
-from textual.widgets import Button, Collapsible, Static
+from textual.widgets import Button, Checkbox, Collapsible, DataTable, Input, Static
+from ui_theme.scheme import (
+    AccentColour, ErrorColour, ForegroundMutedColour, SuccessColour, ThemeColour, WarningColour,
+)
 
+from toad.app_node import ToadNode
 from toad.core.events import CommanderHudChanged, CommanderHudFailed
 from toad.core_event_carrier import CoreEventReceiver
 from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction
-from toad.app_node import ToadNode
-from toad.widgets.sidebar_tree import KeyedRows
 from toad.widgets.declared_disclosure import (
     DeclaredDisclosure, DisclosureEntry, DisclosedValue, RootKey,
 )
+from toad.widgets.declared_table import DeclaredTable
+from toad.widgets.sidebar_tree import KeyedRows
 
 
 class HudRowText(MroDispatch):
-    """Core's ordinary rows; units and board entries have their own disclosures."""
+    """Core's ordinary rows; units and board entries have their own views."""
 
     def lines(self, row: HudRow) -> tuple[str, ...]:
         return type(self).handler_for(type(row))(self, row)
@@ -46,77 +52,111 @@ class HudRowText(MroDispatch):
         return ()
 
 
-class CommanderUnitCard(ToadNode, Collapsible):
-    """Retain the unit's disclosure while Core replaces its current card."""
+class UnitTone(MroDispatch):
+    """Core's nominal state family supplies the row's tone through its MRO."""
+
+    @classmethod
+    def of(cls, state: type[UnitState]) -> type[ThemeColour]:
+        return cls.handler_for(state)(state)
+
+    @handles(NeedsCommanderAttention)
+    @staticmethod
+    def attention(state: type[NeedsCommanderAttention]) -> type[ThemeColour]:
+        return WarningColour
+
+    @handles(Blocked, Unreadable)
+    @staticmethod
+    def blocked(state: type[UnitState]) -> type[ThemeColour]:
+        return ErrorColour
+
+    @handles(AwaitingApplicationRun)
+    @staticmethod
+    def application(state: type[AwaitingApplicationRun]) -> type[ThemeColour]:
+        return AccentColour
+
+    @handles(Moving)
+    @staticmethod
+    def moving(state: type[Moving]) -> type[ThemeColour]:
+        return SuccessColour
+
+    @handles(Idle, UnitState)
+    @staticmethod
+    def idle(state: type[UnitState]) -> type[ThemeColour]:
+        return ForegroundMutedColour
+
+
+class CommanderTable(DeclaredTable[CommanderUnit], record=CommanderUnit, view="hud"):
+    def row_tone(self, record: CommanderUnit) -> type[ThemeColour]:
+        return UnitTone.of(record.state)
+
+
+class CommanderFrameView(ToadNode, VerticalGroup):
+    """One current frame, one native table selection, one lazy original-detail pane."""
 
     DEFAULT_CSS = """
-    CommanderUnitCard { height: auto; border: none; padding: 0; margin: 0; }
-    CommanderUnitCard > CollapsibleTitle { height: auto; padding: 0; }
-    CommanderUnitCard > Contents { padding: 0 1; height: auto; }
-    CommanderUnitCard Static { height: auto; }
-    CommanderUnitCard Button { dock: none; width: auto; margin: 0; }
-    CommanderUnitCard .detail-status { color: $text-muted; }
-    CommanderUnitCard.-needs-hand > CollapsibleTitle { color: $warning; }
+    CommanderFrameView .hud-filter { height: auto; }
+    CommanderFrameView .hud-filter Input { width: 1fr; }
+    CommanderFrameView .hud-filter Checkbox { width: auto; }
+    CommanderTable { height: auto; max-height: 50vh; }
+    CommanderFrameView .hud-detail { height: auto; }
+    CommanderFrameView .detail-status { color: $text-muted; }
+    CommanderFrameView .refresh-unit { width: auto; margin: 0; }
     """
 
-    def __init__(self, commander: ThreadIncarnation, card: CommanderUnit) -> None:
-        self.commander = commander
-        self.card = card
-        self.summary = DeclaredDisclosure(DisclosureEntry(
-            RootKey(type(card)), "Current card", DisclosedValue.of(card),
-        ))
-        self.detail_status = Static("Open to read original orders and activity.",
+    row_text = HudRowText()
+
+    def __init__(self, hud: CommanderHud) -> None:
+        self.hud = hud
+        self.heading = Static("", markup=False, classes="hud-commander")
+        self.status = Static("", markup=False, classes="hud-load")
+        self.table = CommanderTable()
+        self.filter = Input(placeholder="Filter units, state, work or changes")
+        self.needs_hand = Checkbox("Needs hand")
+        self.detail_status = Static("Highlight a unit to read its original records.",
                                     markup=False, classes="detail-status")
         self.original_details = VerticalGroup()
-        super().__init__(
-            self.summary, self.detail_status,
-            Button("Refresh original details", classes="refresh-unit", compact=True),
-            self.original_details, title="", collapsed=True,
+        self.footer = Static("", markup=False)
+        self.board_text = Static("", markup=False)
+        self.board = Collapsible(self.board_text, title="", collapsed=True)
+        super().__init__()
+
+    def compose(self) -> ComposeResult:
+        yield self.heading
+        yield self.status
+        yield self.board
+        with HorizontalGroup(classes="hud-filter"):
+            yield self.filter
+            yield self.needs_hand
+        yield self.table
+        with VerticalGroup(classes="hud-detail"):
+            yield self.detail_status
+            yield Button("Refresh original details", classes="refresh-unit", compact=True)
+            yield self.original_details
+        yield self.footer
+
+    def on_mount(self) -> None:
+        self.present(self.hud)
+
+    @on(Input.Changed)
+    @on(Checkbox.Changed)
+    def filter_changed(self) -> None:
+        self.filter_units()
+
+    def filter_units(self) -> None:
+        text = self.filter.value.casefold()
+        selected = self.table.selected
+        self.table.present(
+            card for card in self.hud.units
+            if (not self.needs_hand.value or card.needs_hand())
+            and text in "\n".join(cell.plain for cell in self.table.cells(card)).casefold()
         )
-        self.present(card)
-
-    # The title's disclosure symbol and its space; continued lines indent under the name.
-    TITLE_INDENT = "  "
-
-    def brief_lines(self, width: int) -> str:
-        """Pack coherent sections, then wrap oversized sections with hanging indentation."""
-        width = max(2, width)
-        lines: list[str] = []
-        for part in self.card.brief_parts():
-            joined = f"{lines[-1]} | {part}" if lines else part
-            if lines and cell_len(joined) <= width:
-                lines[-1] = joined
-            else:
-                lines.append(part)
-        wrapped = [line.plain for section in lines for line in Content(section).wrap(width)]
-        return f"\n{self.TITLE_INDENT}".join(wrapped)
-
-    def fit_title(self) -> None:
-        self.title = Content(self.brief_lines(self.size.width - len(self.TITLE_INDENT)))
-
-    def on_resize(self) -> None:
-        self.fit_title()
-
-    def present(self, card: CommanderUnit) -> None:
-        changed = card != self.card
-        self.card = card
-        self.fit_title()
-        self.set_class(card.needs_hand(), "-needs-hand")
-        self.summary.present(DisclosureEntry(
-            RootKey(type(card)), "Current card", DisclosedValue.of(card),
-        ))
-        if changed and self.is_mounted and not self.collapsed:
+        if self.table.selected != selected:
             self.read_detail()
 
-    def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
-        if event.collapsible is self:
-            event.stop()
-            self.read_detail()
-
-    def on_collapsible_collapsed(self, event: Collapsible.Collapsed) -> None:
-        if event.collapsible is self:
-            event.stop()
-            self.workers.cancel_group(self, "commander-detail")
+    @on(DataTable.RowHighlighted)
+    @on(DataTable.RowSelected)
+    def highlight_unit(self) -> None:
+        self.read_detail()
 
     @on(Button.Pressed, ".refresh-unit")
     def refresh_detail(self, event: Button.Pressed) -> None:
@@ -125,13 +165,17 @@ class CommanderUnitCard(ToadNode, Collapsible):
 
     @work(exclusive=True, group="commander-detail")
     async def read_detail(self) -> None:
-        card = self.card
-        self.detail_status.update("Reading original orders and recent activity…")
+        card = self.table.selected
+        self.original_details.display = False
+        if card is None:
+            self.detail_status.update("No units match the filter.")
+            return
+        self.detail_status.update(f"Reading original orders and activity for {card.unit.name}…")
         access = self.app.coordination_access
         try:
             observed = await access.preparation.run_thread(access.observation.observed)
             request = ReadCommanderUnit(
-                str(observed.service.root), self.commander, card.unit,
+                str(observed.service.root), self.hud.commander, card.unit,
                 tuple(dict.fromkeys(order.order for order in card.orders)),
             )
             detail = await observed.process.read(request)
@@ -139,10 +183,10 @@ class CommanderUnitCard(ToadNode, Collapsible):
             DeferredRead, RelationViolationError, RouteChangedError,
             ToolRefusedError, UnreadableHistory, WorkBranchError,
         ) as error:
-            if self.is_attached and self.card == card and not self.collapsed:
+            if self.is_attached and self.table.selected == card:
                 self.detail_status.update(f"Original details unavailable: {error}")
             return
-        if not self.is_attached or self.collapsed or self.card != card:
+        if not self.is_attached or self.table.selected != card:
             return
         entry = DisclosureEntry(
             RootKey(type(detail)), "Original details", DisclosedValue.of(detail),
@@ -152,56 +196,8 @@ class CommanderUnitCard(ToadNode, Collapsible):
             break
         else:
             self.original_details.mount(DeclaredDisclosure(entry))
-        self.detail_status.update("Original records read; activity uses Core's bounded view.")
-
-
-class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
-    """The existing keyed-row capability owns unit retention and ordering."""
-
-    row_text = HudRowText()
-
-    def __init__(self, hud: CommanderHud) -> None:
-        self.hud = hud
-        self.heading = Static("", markup=False, classes="hud-commander")
-        self.status = Static("", markup=False, classes="hud-load")
-        self.units = VerticalGroup()
-        self.footer = Static("", markup=False)
-        self.board_text = Static("", markup=False)
-        self.board = Collapsible(self.board_text, title="", collapsed=True)
-        super().__init__()
-
-    @property
-    def member_container(self) -> VerticalGroup:
-        return self.units
-
-    @property
-    def rows(self) -> dict[ThreadIncarnation, CommanderUnitCard]:
-        return {row.card.unit: row for row in self.units.query_children(CommanderUnitCard)}
-
-    @property
-    def cards(self) -> dict[ThreadIncarnation, CommanderUnit]:
-        return {card.unit: card for card in self.hud.units}
-
-    def create_row(self, key: ThreadIncarnation) -> CommanderUnitCard:
-        return CommanderUnitCard(self.hud.commander, self.cards[key])
-
-    def update_row(self, key: ThreadIncarnation, row: CommanderUnitCard) -> None:
-        row.present(self.cards[key])
-
-    def compose(self) -> ComposeResult:
-        yield self.heading
-        yield self.status
-        yield self.board
-        yield self.units
-        yield self.footer
-
-    def on_mount(self) -> None:
-        self.present(self.hud)
-        self.reconcile_units()
-
-    def reconcile_units(self) -> None:
-        keys = tuple(card.unit for card in self.hud.units)
-        self.reconcile_keys(keys, changed=frozenset(keys))
+        self.original_details.display = True
+        self.detail_status.update(f"Original records for {card.unit.name}; activity is bounded by Core.")
 
     def present(self, hud: CommanderHud) -> None:
         self.hud = hud
@@ -216,13 +212,13 @@ class CommanderFrameView(KeyedRows[ThreadIncarnation], VerticalGroup):
         self.board_text.update("\n".join(BoardRow(entry).line() for entry in hud.board))
         self.board.display = bool(hud.board)
         if self.is_mounted:
-            self.reconcile_units()
+            self.filter_units()
 
 
 class CommanderPage(
     KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None],
 ):
-    """Current Core frames preserve disclosures, focus and the underlying conversation."""
+    """Current Core frames preserve table selection, focus and the conversation below."""
 
     DEFAULT_CSS = """
     CommanderPage { align: center middle; background: $background 40%; }

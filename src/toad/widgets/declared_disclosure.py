@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection, Mapping, Sequence
-from dataclasses import dataclass, is_dataclass
+from dataclasses import dataclass
 from functools import singledispatchmethod
-from typing import ClassVar, Hashable
+from typing import Hashable
 
-from agent_comms.field_codec import DisclosureIdentity, FieldCodec, FieldPlan
+from agent_comms.disclosure_text import (
+    ClassText, DisclosureText, FamilyText, IdentifiedRecordText,
+    MappingText, RecordText, SequenceText,
+)
+from agent_comms.field_codec import FieldCodec
 from python_introspect import declared_field_label
 from textual import events
 from textual.containers import VerticalGroup
@@ -53,41 +56,51 @@ class MappingKey(DisclosureKey):
 class DisclosedValue:
     """One borrowed value. Shape is recovered only at this structural boundary."""
 
-    value: object
+    source: DisclosureText
+
+    @property
+    def value(self) -> object:
+        return self.source.value
+
+    @classmethod
+    def of(cls, value: object) -> DisclosedValue:
+        return cls.from_text(DisclosureText.of(value))
 
     @singledispatchmethod
     @classmethod
-    def of(cls, value: object) -> DisclosedValue:
-        if is_dataclass(value):
-            identity = tuple(
-                plan for plan in FieldCodec.field_plans(type(value))
-                if DisclosureIdentity.read(plan.annotation, False)
-            )
-            if identity:
-                return IdentifiedRecordValue(value, identity)
-            return RecordValue(value)
-        return cls(value)
+    def from_text(cls, source: DisclosureText) -> DisclosedValue:
+        """Adapt Core's decoded shape; never rediscover the original value's shape."""
+        return cls(source)
 
-    @of.register(type)
+    @from_text.register(ClassText)
     @classmethod
-    def _class(cls, value: type) -> DisclosedValue:
-        return ClassValue(value)
+    def _class(cls, source: ClassText) -> DisclosedValue:
+        return ClassValue(source)
 
-    @of.register(Mapping)
+    @from_text.register(FamilyText)
     @classmethod
-    def _mapping(cls, value: Mapping[Hashable, object]) -> DisclosedValue:
-        return MappingValue(value)
+    def _family_class(cls, source: FamilyText) -> DisclosedValue:
+        return FamilyClassValue(source)
 
-    @of.register(Sequence)
+    @from_text.register(RecordText)
     @classmethod
-    def _sequence(cls, value: Sequence[object]) -> DisclosedValue:
-        return SequenceValue(value)
+    def _record(cls, source: RecordText) -> DisclosedValue:
+        return RecordValue(source)
 
-    @of.register(str)
-    @of.register(bytes)
+    @from_text.register(IdentifiedRecordText)
     @classmethod
-    def _scalar(cls, value: str | bytes) -> DisclosedValue:
-        return cls(value)
+    def _identified(cls, source: IdentifiedRecordText) -> DisclosedValue:
+        return IdentifiedRecordValue(source)
+
+    @from_text.register(MappingText)
+    @classmethod
+    def _mapping(cls, source: MappingText) -> DisclosedValue:
+        return MappingValue(source)
+
+    @from_text.register(SequenceText)
+    @classmethod
+    def _sequence(cls, source: SequenceText) -> DisclosedValue:
+        return SequenceValue(source)
 
     def sequence_key(self) -> DisclosureKey:
         return AnonymousKey()
@@ -95,9 +108,11 @@ class DisclosedValue:
     def identity_part(self) -> object:
         return self.value
 
-    def summary(self, width: int) -> str:
-        # Preview work is bounded by the visible label, not the history body's size.
-        return str(self.value)[:width].partition("\n")[0]
+    def summary(self, width: int | None = None) -> str:
+        return self.source.summary(width)
+
+    def cell(self) -> Content:
+        return Content(str(self.value))
 
     def show(self, view: DeclaredDisclosure) -> None:
         view.body.display = True
@@ -107,13 +122,21 @@ class DisclosedValue:
 
 @dataclass(frozen=True)
 class ClassValue(DisclosedValue):
-    value: type
+    source: ClassText
 
-    def summary(self, width: int) -> str:
-        return self.value.__name__
+    def cell(self) -> Content:
+        return Content(self.summary())
+
+
+@dataclass(frozen=True)
+class FamilyClassValue(ClassValue):
+    source: FamilyText
 
 
 class StructuredValue(DisclosedValue):
+    def cell(self) -> Content:
+        return Content(self.summary())
+
     def children(self) -> tuple[DisclosureEntry, ...]:
         raise NotImplementedError
 
@@ -125,9 +148,6 @@ class StructuredValue(DisclosedValue):
 
 
 class RecordValue(StructuredValue):
-    def summary(self, width: int) -> str:
-        return type(self.value).__name__
-
     def children(self) -> tuple[DisclosureEntry, ...]:
         return tuple(
             DisclosureEntry(
@@ -141,12 +161,12 @@ class RecordValue(StructuredValue):
 
 @dataclass(frozen=True)
 class IdentifiedRecordValue(RecordValue):
-    identity: tuple[FieldPlan, ...]
+    source: IdentifiedRecordText
 
     def sequence_key(self) -> EntityKey:
         return EntityKey(type(self.value), tuple(
             DisclosedValue.of(plan.current(self.value)).identity_part()
-            for plan in self.identity
+            for plan in self.source.identity
         ))
 
     def identity_part(self) -> EntityKey:
@@ -154,36 +174,25 @@ class IdentifiedRecordValue(RecordValue):
 
 
 @dataclass(frozen=True)
-class CollectionValue(StructuredValue):
-    value: Collection[object]
-    noun: ClassVar[str] = "item"
-
-    def summary(self, width: int) -> str:
-        count = len(self.value)
-        return f"{count} {self.noun}{'s' if count != 1 else ''}"
-
-
-@dataclass(frozen=True)
-class SequenceValue(CollectionValue):
-    value: Sequence[object]
+class SequenceValue(StructuredValue):
+    source: SequenceText
 
     def children(self) -> tuple[DisclosureEntry, ...]:
         entries = []
-        for index, value in enumerate(self.value):
+        for index, value in enumerate(self.source.value):
             disclosed = DisclosedValue.of(value)
             entries.append(DisclosureEntry(disclosed.sequence_key(), str(index + 1), disclosed))
         return tuple(entries)
 
 
 @dataclass(frozen=True)
-class MappingValue(CollectionValue):
-    value: Mapping[Hashable, object]
-    noun = "field"
+class MappingValue(StructuredValue):
+    source: MappingText
 
     def children(self) -> tuple[DisclosureEntry, ...]:
         return tuple(
             DisclosureEntry(MappingKey(key), str(key), DisclosedValue.of(value))
-            for key, value in self.value.items()
+            for key, value in self.source.value.items()
         )
 
 
