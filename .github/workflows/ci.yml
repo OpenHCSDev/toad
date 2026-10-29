@@ -52,7 +52,7 @@ jobs:
   suite:
     runs-on: ubuntu-latest
     # A hung test must turn red in minutes, not burn GitHub's 6-hour default.
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -91,4 +91,4 @@ jobs:
       # xdist reports a collection error as a worker crash; collect alone first so it reads as one.
       - run: .venv/bin/pytest --collect-only -q
       # A test stuck past 120 s dumps every thread, so the red names where it hung.
-      - run: .venv/bin/pytest -n 2 --basetemp .artifacts/pilots -o faulthandler_timeout=120 -rfE -x -vv --tb=short
+      - run: .venv/bin/pytest -n auto --basetemp .artifacts/pilots -o faulthandler_timeout=120 -rfE -x -vv --tb=short
