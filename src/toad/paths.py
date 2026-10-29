@@ -60,14 +60,14 @@ def get_project_data(project_path: Checkout) -> Path:
     return project_data_path
 
 
-def save_traceback(error: BaseException, prefix: str) -> Path:
-    """Write ``error``'s traceback to a new file in the log directory."""
+def save_error(error: BaseException, prefix: str) -> Path:
+    """Persist the exception's traceback and chained causes."""
     import traceback
     from toad.acp.agent import generate_datetime_filename
 
     path = get_log() / generate_datetime_filename(prefix, ".txt")
     descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(descriptor, "w") as stream:
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
         traceback.print_exception(error, file=stream)
     return path
 

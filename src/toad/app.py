@@ -7,7 +7,6 @@ from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
 import asyncio
 import signal
-import traceback
 import gc
 import sys
 import json
@@ -294,7 +293,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         """The mounted application owns escaped handler and worker errors."""
         if not self.screen_stack or not self.screen.is_mounted:
             return super()._handle_exception(error)
-        self.show_error("".join(traceback.format_exception(error)), type(error).__name__)
+        self.show_error(error, type(error).__name__)
         return True
 
     async def on_load(self) -> None:

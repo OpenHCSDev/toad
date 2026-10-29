@@ -316,7 +316,7 @@ class SessionNavigation:
             try:
                 agent = agents[agent_identity]
             except KeyError:
-                app.show_error("Agent not found", "Launch agent")
+                app.notify("Agent not found", title="Launch agent", severity="warning", markup=False)
                 return
         tab = (
             AcpTab(session_pk) if session_pk is not None
@@ -347,10 +347,8 @@ class SessionNavigation:
         app = self.app
         try:
             source = app.workspace_sessions.origin(owner_mode).require()
-        except RelationViolationError:
-            app.show_error(
-                "The owning agent tab was closed", "Comms target unavailable"
-            )
+        except RelationViolationError as error:
+            app.show_error(error, "The owning agent tab was closed")
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:

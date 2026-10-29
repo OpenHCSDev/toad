@@ -102,7 +102,8 @@ class CatalogFieldSelection(ModelSelection):
             await command.refresh_catalogs(command.arguments())
             self.configuration_changed()
         elif self.is_attached:
-            self.app.show_error(f'Provider login exited with status {result}', 'Provider login')
+            self.app.notify(f'Provider login exited with status {result}',
+                            title='Provider login', severity='warning', markup=False)
         if self.is_attached:
             self.search_input.focus()
 

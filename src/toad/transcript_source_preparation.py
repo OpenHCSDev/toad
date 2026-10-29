@@ -127,10 +127,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             return self.reserve_source_work().schedule(self, work)
 
     def source_failed(self, error) -> None:
-        from toad import paths
-
         self.retire_source()
-        paths.save_traceback(error, "History_failure")
         self.app.show_error(error, "History")
 
     def observe_source(self) -> None:
