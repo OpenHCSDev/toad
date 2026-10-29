@@ -176,7 +176,7 @@ class PageEnd(ABC):
     def work_cursor[Cursor](self, through: Cursor) -> Cursor | None:
         return self.edge((None, through))
     @abstractmethod
-    async def load_page(self, loader, cursor: TranscriptCursor | None, through) -> TranscriptPage: ...
+    async def load_page(self, loader, cursor: TranscriptCursor, through) -> TranscriptPage: ...
     def progressed(self, page: "TranscriptPage", cursor: TranscriptCursor) -> bool:
         edge = self.edge((page.before, page.after))
         start, stop = self.edge(((edge, cursor), (cursor, edge)))
@@ -238,7 +238,7 @@ class OlderEnd(PageEnd):
     append = staticmethod(deque.appendleft)
 
     async def load_page(self, loader, cursor, through) -> TranscriptPage:
-        return await through.read_page(loader, before=cursor)
+        return await through.read_page(loader, cursor.earlier_page())
 
     def wire_page(self, source: WireSource, cursor: WireCut, through: AfterSequence) -> MessagePage:
         return source.conversation.page(source, PageBounds(
@@ -274,7 +274,7 @@ class NewerEnd(PageEnd):
         return super().has_more(through, page) or page.after != through
 
     async def load_page(self, loader, cursor, through) -> TranscriptPage:
-        return await through.read_page(loader, after=cursor)
+        return await through.read_page(loader, cursor.later_page())
 
     def wire_page(self, source: WireSource, cursor: WireCut, through: AfterSequence) -> MessagePage:
         page = source.conversation.page(source, PageBounds(cursor.newer(), source.page_limit))

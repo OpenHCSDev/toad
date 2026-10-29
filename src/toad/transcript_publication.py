@@ -28,6 +28,11 @@ from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.transcripts import (
+    AtFrontier,
+    LatestPage,
+    PageLimit,
+    PagePosition,
+    Through,
     TranscriptCursor,
     TranscriptPage,
     TranscriptReadIdentity,
@@ -272,7 +277,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         if bound != page.after:
             self.owner.dirty = self.owner.commit_required = True
             page = await self.owner.get_transcript_page(
-                after=snapshot.identity.after, through=bound
+                position=snapshot.identity.position.later_only(), limit=Through(bound)
             )
             # Preserve this cut's original cohort across the bounded read.
             if not await self.application_current():
@@ -425,7 +430,7 @@ class CommitPublication(CanonicalSourcePublication):
             prepared.history,
             TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
-            identity=replace(self.identity, through=page.after),
+            identity=replace(self.identity, limit=Through(page.after)),
         )
         retired = retirement_candidates(contents.children, evidence)
         if not plan.permits(view, retired):
@@ -799,16 +804,13 @@ class TranscriptPresentation:
         return self.binding.thread_scope.readable
 
     async def get_transcript_page(
-        self, *, before=None, after=None,
-        through=None
+        self, *, position: PagePosition = LatestPage(), limit: PageLimit = AtFrontier(),
     ) -> TranscriptPage:
         frame = self.binding.capture(self, BoundFrame)
         scope = self.binding.thread_scope
         if frame is None:
             raise ValueError("Transcript paging requires a bound thread")
-        page = await frame.binding.reader.page(
-            scope, before=before, after=after, through=through
-        )
+        page = await frame.binding.reader.page(scope, position=position, limit=limit)
         if self.binding.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page
@@ -850,10 +852,10 @@ class TranscriptPresentation:
             return await publication.publish()
         return True
 
-    def changed(self, cursor: TranscriptCursor | None) -> None:
+    def changed(self, cursor: TranscriptCursor) -> None:
         self.invalidate_publications()
         self.dirty = True
-        if cursor is None:
+        if cursor.requires_commit():
             self.commit_required = True
         self.binding.request(self)
 
