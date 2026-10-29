@@ -213,7 +213,7 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
         try:
             fields = await self.app.preparation.run_thread(
                 lambda: asyncio.run(self.definition.prepare_fields(arguments)))
-        except (ValueError, MalformedRecord) as error:
+        except MalformedRecord as error:
             if self.is_attached and arguments == self.arguments():
                 self.query_one('#command-confirmation', Static).update(str(error))
             return
@@ -237,7 +237,7 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
                         return f'Choose {name.replace("_", " ")}', False
                 try:
                     return self.definition.edited(arguments).confirmation, True
-                except (ValueError, MalformedRecord) as error:
+                except MalformedRecord as error:
                     return str(error), False
             confirmation, valid = await self.app.preparation.run_thread(read)
             if not self.is_attached or arguments != self.arguments():
