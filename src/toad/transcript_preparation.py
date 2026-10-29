@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.historical_views import ConversationObservation
+from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.sent_message import OutgoingMessageReference
 from agent_comms.transcripts import (
     TranscriptCursor,
@@ -20,6 +21,7 @@ from agent_comms.transcripts import (
 from agent_comms.ui_model.message_category import MessageCategory
 
 from toad.render_backend import ReusableRenderTask
+from toad.submission_queue import QueueSource, ReadOnlyQueueSource
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
@@ -77,6 +79,11 @@ class PreparedTranscriptPage:
         prepared = cls(page, fragments, 0, outgoing_coverage=coverage, **view)
         prepared.measure_sources()
         return prepared
+
+    @property
+    def notification_identity(self) -> DisplayIdentity | NoDisplaySelection:
+        """Native transcript pages have no captured BUS display selection."""
+        return NoDisplaySelection()
 
     @property
     def source_payload_bytes(self) -> int:
@@ -289,14 +296,12 @@ class NoProjection(HeldProjection):
         pass
 
 
-class PreparedPageSource(ABC):
-    @property
-    def queue_source(self):
-        from toad.submission_queue import ReadOnlyQueueSource
-
-        return ReadOnlyQueueSource()
-
+class PreparedPageSource(ReadOnlyQueueSource):
     """One lifetime-owned source of prepared pages, independent of widget paging."""
+
+    @property
+    def queue_source(self) -> QueueSource:
+        return self
 
     runtime: PreparationRuntime
     scope: PreparationScope

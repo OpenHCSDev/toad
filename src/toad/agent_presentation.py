@@ -9,6 +9,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.acp_extension import NoQueueScope, PendingQueueProjection, QueueProjection, QueueScope
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
+from toad.submission_queue import QueueActionRefused
 
 
 if TYPE_CHECKING:
@@ -58,7 +59,7 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
         return False
 
     def require_queue_action(self, scope: QueueScope) -> Agent:
-        raise ValueError("No live ACP queue authority is available")
+        raise QueueActionRefused("No live ACP queue authority is available")
 
     @property
     def prompt_in_flight(self):
@@ -129,7 +130,7 @@ class ACPAgentPresentation(AgentPresentation):
 
     def require_queue_action(self, scope: QueueScope) -> Agent:
         if not self.queue_supported or not self.agent.queue_attachment.accepts_request(scope):
-            raise ValueError("Queue attachment changed or is unavailable; inspect the current queue again")
+            raise QueueActionRefused("Queue attachment changed or is unavailable; inspect the current queue again")
         return self.agent
 
     @property
