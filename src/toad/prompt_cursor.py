@@ -91,9 +91,10 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
         from toad.core.input_events import HistoryMove
 
         if (mode.allows_history_navigation and editor.selection.is_empty
-                and not select and cls.at_edge(editor)):
-            editor.publish_core(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
-            return True
+                and not select):
+            if cls.at_edge(editor):
+                editor.publish_core(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
+                return True
         return False
 
     @classmethod
