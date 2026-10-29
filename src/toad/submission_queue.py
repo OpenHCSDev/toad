@@ -42,7 +42,7 @@ class MessageQueueEntry:
 
     @property
     def reference(self) -> MessageReference:
-        return self.request.references[0]
+        return self.request.operation.references[0]
 
     @property
     def summary(self) -> str:

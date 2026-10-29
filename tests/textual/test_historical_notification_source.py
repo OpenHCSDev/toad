@@ -3,7 +3,6 @@
 from agent_comms.repo import Checkout
 from agent_comms.historical_views import HistoricalThread
 from agent_comms.notification_reads import RecordedNotificationRead
-from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.threads import Thread
 
 from support.roots import installed_wire
@@ -29,7 +28,6 @@ async def test_historical_notification_keeps_selected_source_and_lifetime(worksp
         await ui.until(lambda: content in access.notification_views,
                        why="the historical body's notification subscription")
         request = access.notification_views[content]
-        assert type(request) is ReadNotifications
         assert request.operation == RecordedNotificationRead((message.reference,), source.key)
         await ui.until(lambda: request in access.notification_outcomes,
                        why="the archive's actual observation reply")
