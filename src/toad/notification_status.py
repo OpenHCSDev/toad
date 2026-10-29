@@ -63,6 +63,21 @@ class NotificationStatus:
 
 
 @dataclass(frozen=True)
+class MessageQueueEntry:
+    reference: MessageReference
+    status: NotificationStatus
+
+    @property
+    def summary(self) -> str:
+        return f"{self.reference.seq}: {self.status.queue_title}"
+
+    @property
+    def details(self) -> DetailLines:
+        return ((Span(f"Original {self.reference.seq}/{self.reference.message_id}", MutedRole),),
+                *self.status.queue_details)
+
+
+@dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
     # The row is drawn before Core answers, so the answer changes its text
     # instead of inserting a row under the reader.

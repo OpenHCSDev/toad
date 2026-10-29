@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
     ClearQueueRequest,
+    CommsRequest,
     CompactRequest,
     CoordinationChangedUpdate,
     InputFailedUpdate,
@@ -272,7 +273,7 @@ class AgentController(OperationalTerminalOwner):
             if submission is not None:
                 self._deferred_submissions.discard(submission)
 
-    async def submit_blocks(self, content: list[dict[str, str]], command: PromptRequest):
+    async def submit_blocks(self, content: list[dict[str, str]], command: CommsRequest):
         agent = self.agent
         authority = QueueSessionRequest(agent, agent.session_id)
         return await self.operate(
@@ -291,7 +292,7 @@ class AgentController(OperationalTerminalOwner):
 
         try:
             result = await agent.process.prompt(
-                agent, content, encode_request(command) if command is not None else {}, require
+                agent, content, encode_request(command), require
             )
         except RequestError as error:
             # The agent answered: this request failed and its session stays open.
@@ -324,7 +325,7 @@ class AgentController(OperationalTerminalOwner):
         published: bool = False,
     ) -> None:
         agent = self.agent
-        user_text = command.draft_text if command is not None else None
+        user_text = command.draft_text
         if user_text:
             agent.events.publish(
                 core_events.CommsUpdated(

@@ -223,7 +223,7 @@ class WireFragment(TranscriptFragment):
         return cls._roles.dispatch(type(message.role))(message, reader=reader, **fields)
 
     @classmethod
-    def from_message(cls, message, *, reader, **fields):
+    def from_message(cls, message, *, reader, page: MessagePage, **fields):
         return cls((IncomingTranscript.of(message, reader=reader),), **fields)
 
     @property
@@ -276,11 +276,12 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
     """A sent message: its header, text and the state of its notifications."""
 
     @classmethod
-    def from_message(cls, message, *, reader, **fields):
+    def from_message(cls, message, *, reader, page: MessagePage, **fields):
         return cls(
             (IncomingTranscript.of(message, reader=reader),),
             text_part=message.body,
             row=MessageRow(message, reader),
+            notification_identity=page.selection.notification_identity,
             **fields,
         )
 
@@ -345,7 +346,7 @@ class WireSource(BusQueueSource):
         page = request.end.wire_page(self, request.cursor, through)
         shown = MessageShown(style=self.style)
         fragments = tuple(
-            WireFragment.of(message, shown=shown, evidence=page.evidence_for(message), reader=self.me)
+            WireFragment.of(message, shown=shown, evidence=page.evidence_for(message), reader=self.me, page=page)
             for message in page.messages
         )
         wire = WirePage(

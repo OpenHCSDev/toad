@@ -23,13 +23,11 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
 from toad.acp.agent import Agent
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.submission_queue import MessageQueueEntry, QueueInspection, QueueSource
-from agent_comms.message_reference import MessageReference
+from toad.submission_queue import QueueEvidence, QueueInspection, QueueSource
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.input_decision import InputDecision, InputRefused
 from toad.widgets.prompt import Prompt
-from agent_comms.notification_evidence import NotificationWindow
 
 @dataclass(frozen=True)
 class InputSubmission(DeclaredFamily, affix="InputSubmission"):
@@ -288,28 +286,17 @@ class ConversationSubmissions:
         return self.view.queue_source
 
     @property
-    def queue_summary(self) -> str:
-        return self.queue_source.queue_summary(
+    def queue_evidence(self) -> QueueEvidence:
+        return QueueEvidence(
             self.view.agent_binding.presentation, self.delivering,
-            self.message_queue_entries, self.view.send_block_reason)
+            self.view.send_block_reason, self.view.contents.notification_targets())
 
     @property
-    def message_queue_entries(self) -> tuple[MessageQueueEntry, ...]:
-        """Borrow the existing visible fragment proofs; never retain another inbox."""
-        entries: dict[MessageReference, MessageQueueEntry] = {}
-        for target in self.view.contents.notification_targets():
-            for fragment in target.visible_fragments():
-                for entry in fragment.queue_entries():
-                    entries[entry.reference] = entry
-                    if len(entries) >= NotificationWindow.window_limit:
-                        return tuple(entries.values())
-        return tuple(entries.values())
+    def queue_summary(self) -> str:
+        return self.queue_source.queue_summary(self.queue_evidence)
 
     def inspect_queue(self):
-        presentation = self.view.agent_binding.presentation
-        details = self.queue_source.queue_details(
-            presentation, self.delivering, self.message_queue_entries, self.view.send_block_reason)
-        inspection = QueueInspection(self.queue_source, presentation, details, self.publish_pending)
+        inspection = QueueInspection(self.queue_source, self.queue_evidence, self.publish_pending)
         self.view.app.push_screen(inspection)
         return inspection
 

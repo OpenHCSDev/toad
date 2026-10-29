@@ -333,7 +333,7 @@ class PageRevision[Cursor = TranscriptCursor](WorkRevision):
 
 @dataclass(frozen=True)
 class GrowingPageRevision[Cursor = TranscriptCursor](PageRevision[Cursor]):
-    """A newer request also depends on the frontier admitted for this read."""
+    """A newer request also depends on the frontier this read reached."""
 
     through: Cursor
 

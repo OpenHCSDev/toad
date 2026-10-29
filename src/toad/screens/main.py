@@ -225,9 +225,11 @@ class ReadyContent(ScreenContent):
             screen.screen.set_focus(target, scroll_visible=False)
 
     def read_visible(self, screen: MainScreen) -> PaintedRead:
-        """Only mounted content can supply a painted reader cursor."""
+        return screen.conversation.painted_read(partial(self.read_work, screen))
+
+    def read_work(self, screen: MainScreen, through) -> ReadWork:
+        """Only a painted cursor reaches route selection and the write worker."""
         conversation = screen.conversation
-        through = conversation.visible_read_cursor
         app = screen.app
         access = app.coordination_access
         identity = screen.thread_identity

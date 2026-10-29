@@ -17,7 +17,7 @@ from functools import partial
 
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.route_selection import RouteSelection
-from agent_comms.transcripts import AtFrontier, LatestPage, PageLimit, PagePosition
+from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.observation import (
     AwaitedRead,
@@ -72,13 +72,13 @@ class CoordinationTranscriptReader:
         *,
         position: PagePosition = LatestPage(),
         limit: PageLimit = AtFrontier(),
-        historical_source: str | None = None,
+        page_source: PageSource = LivePageSource(),
     ):
         snapshot = await self.snapshot(
             scope,
             position=position,
             limit=limit,
-            historical_source=historical_source,
+            page_source=page_source,
         )
         return snapshot.page
 
@@ -88,13 +88,13 @@ class CoordinationTranscriptReader:
         *,
         position: PagePosition = LatestPage(),
         limit: PageLimit = AtFrontier(),
-        historical_source: str | None = None,
+        page_source: PageSource = LivePageSource(),
     ) -> TranscriptSnapshotUpdate:
         return await self.read(
             scope.snapshot_request(
                 position=position,
                 limit=limit,
-                historical_source=historical_source,
+                page_source=page_source,
             )
         )
 

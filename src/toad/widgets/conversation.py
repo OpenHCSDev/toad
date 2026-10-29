@@ -15,7 +15,7 @@ from acp.exceptions import RequestError
 from toad.widgets.markdown_note import MarkdownNote
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
-from agent_comms.transcripts import UnreadTranscriptCursor
+from agent_comms.transcripts import TranscriptCursor
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -45,7 +45,8 @@ from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
-from toad.submission_queue import QueueEvidenceChanged, QueueSource
+from toad.messages import QueueEvidenceChanged
+from toad.submission_queue import QueueSource
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
@@ -105,7 +106,7 @@ from toad.widgets.input_delivery import (
 )
 from toad.widgets.menu import Menu
 from toad.widgets.message_divider import StickyHeader
-from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from toad.widgets.message_notifications import HistoryNotifications, NothingToRead, PaintedRead, SourceNotifications
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.note import Note
 from toad.widgets.observed_thread_activity import (
@@ -837,17 +838,16 @@ class Conversation(
             classes="-stop-reason",
         ))
 
-    @property
-    def visible_read_cursor(self):
-        """Only a painted, unfiltered tail can acknowledge the full transcript."""
+    def painted_read(self, acknowledge: Callable[[TranscriptCursor], PaintedRead]) -> PaintedRead:
+        """Decide before constructing a worker or opening a read/write context."""
         if not self.is_mounted or self.visible_categories != all_categories():
-            return UnreadTranscriptCursor()
+            return NothingToRead()
         window = self.window
         if not window.follows_tail:
-            return UnreadTranscriptCursor()
+            return NothingToRead()
         if any(history.blocks_visible_read for history in window.histories):
-            return UnreadTranscriptCursor()
-        return self.transcript.displayed_cursor
+            return NothingToRead()
+        return self.transcript.displayed_cursor.painted_read(acknowledge, NothingToRead())
 
     def watch_visible_categories(
         self,

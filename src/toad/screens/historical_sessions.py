@@ -13,7 +13,8 @@ from agent_comms.notification_reads import RecordedNotificationRead
 from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.ui_model.observation import ReadTranscript
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
-from agent_comms.historical_views import HistoricalThread
+from agent_comms.historical_views import HistoricalThread, HistorySourceKey
+from agent_comms.transcripts import RecordedPageSource
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -30,7 +31,7 @@ from toad.widgets.transcript_history import LineHistory
 class RecordedContents(Contents):
     """The notification subscriber reads the same archive as its history."""
 
-    def __init__(self, source: str, **kwargs):
+    def __init__(self, source: HistorySourceKey, **kwargs):
         self.notification_operation = partial(RecordedNotificationRead, source=source)
         super().__init__(**kwargs)
 
@@ -124,7 +125,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
 
         async def load(**kwargs):
             snapshot = await access.transcripts.read(ReadTranscript(root, TranscriptPageRead(
-                thread=item.thread.name, historical_source=item.source.key, **kwargs)))
+                thread=item.thread.name, page_source=RecordedPageSource(item.source.key), **kwargs)))
             return snapshot.page
 
         try:

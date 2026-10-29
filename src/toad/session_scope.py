@@ -16,7 +16,7 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.order_tools import TranscriptPageRead
-from agent_comms.transcripts import AtFrontier, LatestPage, PageLimit, PagePosition
+from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
 from agent_comms.ui_model.observation import (
     ReadTranscript,
     ReadTranscriptUpdate,
@@ -86,7 +86,7 @@ class TranscriptScope(ABC):
         *,
         position: PagePosition = LatestPage(),
         limit: PageLimit = AtFrontier(),
-        historical_source: str | None = None,
+        page_source: PageSource = LivePageSource(),
     ) -> ReadTranscript: ...
 
     @abstractmethod
@@ -164,13 +164,13 @@ class KnownTranscript(TranscriptScope):
         *,
         position: PagePosition = LatestPage(),
         limit: PageLimit = AtFrontier(),
-        historical_source: str | None = None,
+        page_source: PageSource = LivePageSource(),
     ) -> ReadTranscript:
         return ReadTranscript(self.root, TranscriptPageRead(
             thread=self.name,
             position=position,
             limit=limit,
-            historical_source=historical_source,
+            page_source=page_source,
         ))
 
     def update_request(
@@ -263,7 +263,7 @@ class NoTranscript(TranscriptScope):
         *,
         position: PagePosition = LatestPage(),
         limit: PageLimit = AtFrontier(),
-        historical_source: str | None = None,
+        page_source: PageSource = LivePageSource(),
     ) -> Never:
         self.unavailable()
 

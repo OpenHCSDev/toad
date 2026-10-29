@@ -62,6 +62,7 @@ class HistoryLoading(ConversationBlock, Static):
 class CommsChatView(Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
+    queue_source: QueueSource = ReadOnlyQueueSource()
 
     def __init__(
         self,
@@ -74,7 +75,6 @@ class CommsChatView(Conversation):
     ) -> None:
         super().__init__(project_path, transcript=transcript)
         self.conversation = conversation
-        self._queue_source: QueueSource = ReadOnlyQueueSource()
         self._me = me
         # The observer's announcement the last refresh began from.
         self._refreshed_from = None
@@ -82,10 +82,6 @@ class CommsChatView(Conversation):
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.input_scope}")
         self.message_contents = Contents(id="contents")
         self.message_history = WireHistory.empty(view=self, notification_view=self.message_contents)
-
-    @property
-    def queue_source(self):
-        return self._queue_source
 
     def transcript_binding(self) -> ViewBinding:
         """A wire conversation has no native transcript to publish."""
@@ -122,7 +118,7 @@ class CommsChatView(Conversation):
         comms = shared
         await self.app.coordination_access.current_sidebar()
         source = WireSource(comms, self.conversation, self.project_path, self._me, IrcMessageStyle())
-        self._queue_source = source
+        self.queue_source = source
         self.message_history.initialize_source(source)
         self.refresh_identity(comms.root)
         self.prepare_prompt()

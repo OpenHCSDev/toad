@@ -4,45 +4,44 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from functools import cached_property
 from typing import ClassVar
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.message_reference import MessageReference
-from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
+from agent_comms.notification_evidence import NotificationWindow
 from textual import on
 from textual.containers import HorizontalGroup, Vertical, VerticalScroll
-from textual.message import Message
 from textual.widgets import Button, Static
 
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent_presentation import AgentPresentation
 from toad.line_blocks import MutedRole, Span, SpanColumns
-from toad.notification_status import DetailLines, NotificationStatus
+from toad.notification_status import DetailLines, MessageQueueEntry
 from toad.screens.modal import DismissibleScreen
+from toad.widgets.message_notifications import SourceNotifications
 from toad.widgets.tool_content import ToolContent
 
 
-class QueueEvidenceChanged(Message):
-    """Repaint after existing notification, viewport or transport evidence changes."""
-
-
 @dataclass(frozen=True)
-class MessageQueueEntry:
-    reference: MessageReference
-    status: NotificationStatus
-    display: DisplayIdentity | NoDisplaySelection
+class QueueEvidence:
+    """One UI read; only a BUS source asks for its visible message entries."""
 
-    @property
-    def summary(self) -> str:
-        return f"{self.reference.seq}: {self.status.queue_title}"
+    presentation: AgentPresentation
+    delivering: tuple[str, ...]
+    transport: str
+    targets: tuple[SourceNotifications, ...]
 
-    @property
-    def details(self) -> DetailLines:
-        return (
-            (Span(f"Original {self.reference.seq}/{self.reference.message_id}", MutedRole),),
-            *self.status.queue_details,
-        )
+    @cached_property
+    def entries(self) -> tuple[MessageQueueEntry, ...]:
+        entries: dict[MessageReference, MessageQueueEntry] = {}
+        for target in self.targets:
+            for entry in target.queue_entries():
+                entries[entry.reference] = entry
+                if len(entries) >= NotificationWindow.window_limit:
+                    return tuple(entries.values())
+        return tuple(entries.values())
 
 
 class QueueSource(ABC):
@@ -62,12 +61,10 @@ class QueueSource(ABC):
     @abstractmethod
     async def queue_clear(self, presentation: AgentPresentation, scope: QueueScope) -> None: ...
 
-    def queue_summary(self, presentation: AgentPresentation, delivering: tuple[str, ...],
-                      entries: tuple[MessageQueueEntry, ...], transport: str) -> str:
+    def queue_summary(self, evidence: QueueEvidence) -> str:
         return "Queue unavailable"
 
-    def queue_details(self, presentation: AgentPresentation, delivering: tuple[str, ...],
-                      entries: tuple[MessageQueueEntry, ...], transport: str) -> DetailLines:
+    def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         return ((Span("No queue observation is available for this source.", MutedRole),),)
 
 
@@ -88,13 +85,13 @@ class ReadOnlyQueueSource(QueueSource):
 
 
 class NativeQueueSource(QueueSource):
-    def queue_summary(self, presentation: AgentPresentation, delivering: tuple[str, ...],
-                      entries: tuple[MessageQueueEntry, ...], transport: str) -> str:
+    def queue_summary(self, evidence: QueueEvidence) -> str:
+        presentation = evidence.presentation
         projection = presentation.queue
         feedback = projection.feedback(presentation.queue_supported)
         parts = [feedback] if feedback else []
         for label, texts, detail in (
-            ("Submitting", tuple(QueueItem.summarize(text) for text in delivering), ""),
+            ("Submitting", tuple(QueueItem.summarize(text) for text in evidence.delivering), ""),
             ("Queued", tuple(row.preview for row in projection.items), ""),
             ("Restored", tuple(row.preview for row in projection.restored), ", read-only"),
         ):
@@ -102,15 +99,14 @@ class NativeQueueSource(QueueSource):
                 parts.append(f"{label} ({len(texts)}{detail}): " + " · ".join(texts[:self.preview_limit]))
         return " | ".join(parts)
 
-    def queue_details(self, presentation: AgentPresentation, delivering: tuple[str, ...],
-                      entries: tuple[MessageQueueEntry, ...], transport: str) -> DetailLines:
-        projection = presentation.queue
+    def queue_details(self, evidence: QueueEvidence) -> DetailLines:
+        projection = evidence.presentation.queue
         lines = [(Span("Submitting is local intent; Queued is producer acceptance, not consumption.", MutedRole),)]
-        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),) for text in delivering)
+        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),) for text in evidence.delivering)
         lines.extend((Span(f"Queued {row.input_id}: {row.preview}", MutedRole),) for row in projection.items)
         lines.extend((Span(f"Restored {row.input_id} (read-only): {row.preview}", MutedRole),)
                      for row in projection.restored)
-        lines.append((Span(presentation.queue_identity, MutedRole),))
+        lines.append((Span(evidence.presentation.queue_identity, MutedRole),))
         return tuple(lines)
 
     def queue_scope(self, presentation: AgentPresentation) -> QueueScope:
@@ -129,19 +125,19 @@ class NativeQueueSource(QueueSource):
 
 
 class BusQueueSource(ReadOnlyQueueSource):
-    def queue_summary(self, presentation: AgentPresentation, delivering: tuple[str, ...],
-                      entries: tuple[MessageQueueEntry, ...], transport: str) -> str:
-        evidence = " · ".join(entry.summary for entry in entries[:self.preview_limit])
+    def queue_summary(self, evidence: QueueEvidence) -> str:
+        entries = evidence.entries
+        previews = " · ".join(entry.summary for entry in entries[:self.preview_limit])
         coverage = f"Delivery ({len(entries)} visible messages)"
-        return " | ".join(part for part in (transport, coverage + (f": {evidence}" if evidence else ": unobserved")) if part)
+        return " | ".join(part for part in (
+            evidence.transport, coverage + (f": {previews}" if previews else ": unobserved")) if part)
 
-    def queue_details(self, presentation: AgentPresentation, delivering: tuple[str, ...],
-                      entries: tuple[MessageQueueEntry, ...], transport: str) -> DetailLines:
+    def queue_details(self, evidence: QueueEvidence) -> DetailLines:
         return (
             (Span("Visible original message references only; this is not an ACP queue or a complete inbox count.", MutedRole),),
-            (Span(transport, MutedRole),),
+            (Span(evidence.transport, MutedRole),),
             (Span(f"Showing up to {self.preview_limit} visible messages and their leading observed recipient; not complete recipient coverage.", MutedRole),),
-            *(line for entry in entries[:self.preview_limit] for line in entry.details),
+            *(line for entry in evidence.entries[:self.preview_limit] for line in entry.details),
             (Span("Clear/send-now unavailable: this BUS source has no native queue authority.", MutedRole),),
         )
 
@@ -157,19 +153,19 @@ class QueueInspection(DismissibleScreen[None]):
     QueueInspection #queue-error { height: auto; color: $error; }
     """
 
-    def __init__(self, source: QueueSource, presentation: AgentPresentation,
-                 details: DetailLines, changed: Callable[[], None]):
+    def __init__(self, source: QueueSource, evidence: QueueEvidence, changed: Callable[[], None]):
         super().__init__()
-        self.source, self.presentation = source, presentation
-        self.scope = source.queue_scope(presentation)
-        self.details, self.changed = details, changed
+        self.source, self.evidence = source, evidence
+        self.presentation = evidence.presentation
+        self.scope = source.queue_scope(self.presentation)
+        self.changed = changed
 
     def compose(self):
         with Vertical():
             yield Static("Queue and delivery")
             with VerticalScroll():
                 details = ToolContent()
-                details.update((SpanColumns(self.details),))
+                details.update((SpanColumns(self.source.queue_details(self.evidence)),))
                 yield details
             yield Static("Individual edit/delete/reorder requires ID-targeted, revision-checked backend support.")
             yield Static("", id="queue-error")

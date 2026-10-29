@@ -15,10 +15,10 @@ from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.message_reference import MessageReference
-from toad.submission_queue import QueueEvidenceChanged
+from toad.messages import QueueEvidenceChanged
 
 from toad.notification_status import (
-    CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
+    CheckedNotifications, MessageQueueEntry, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
 if TYPE_CHECKING:
     from toad.widgets.tool_content import ToolContent
@@ -182,8 +182,12 @@ class HistoryNotifications:
 class SourceNotifications:
     notification_view: HistoryNotifications
 
+    def queue_entries(self) -> Iterable[MessageQueueEntry]:
+        for fragment in self.visible_fragments():
+            yield from fragment.queue_entries()
+
     def notification_identity_for(self, references: frozenset[MessageReference]) -> DisplayIdentity | NoDisplaySelection:
-        """Use retained prepared Core pages, even after the pending paint was retired."""
+        """Use the visible BUS fragments' construction-time display identity."""
         return next((fragment.notification_identity
                      for fragment in reversed(tuple(self.visible_fragments()))
                      if references.intersection(fragment.notification_references)), NoDisplaySelection())

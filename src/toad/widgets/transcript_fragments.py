@@ -46,8 +46,7 @@ from toad.line_blocks import (
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuItem
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
-from toad.notification_status import NotificationStatus, UncheckedNotifications
-from toad.submission_queue import MessageQueueEntry
+from toad.notification_status import MessageQueueEntry, NotificationStatus, UncheckedNotifications
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
@@ -342,11 +341,9 @@ class TranscriptFragment:
     def notification_references(self) -> tuple[MessageReference, ...]:
         return ()
 
-    notification_identity: DisplayIdentity | NoDisplaySelection = field(
-        default=NoDisplaySelection(), kw_only=True, repr=False, compare=False)
-
-    def capture_notification_identity(self, display: DisplayIdentity | NoDisplaySelection) -> None:
-        self.notification_identity = display
+    @property
+    def notification_identity(self) -> DisplayIdentity | NoDisplaySelection:
+        return NoDisplaySelection()
 
     def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
         return ()
@@ -509,6 +506,8 @@ class BusMessageFragment(TranscriptFragment):
     shown: MessageShown = field(default_factory=MessageShown)
     text_part: str
     row: MessageRow
+    notification_identity: DisplayIdentity | NoDisplaySelection = field(
+        default=NoDisplaySelection(), repr=False, compare=False)
 
     @classmethod
     def capture_part(cls, event: TextTranscript, text: str, **kwargs):
@@ -528,7 +527,7 @@ class BusMessageFragment(TranscriptFragment):
         return self.part_position.notification_references(self.events[0])
 
     def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
-        return tuple(MessageQueueEntry(reference, self.shown.status, self.notification_identity)
+        return tuple(MessageQueueEntry(reference, self.shown.status)
                      for reference in self.notification_references)
 
     def draws(self, message: BusMessage) -> bool:

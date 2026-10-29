@@ -76,8 +76,6 @@ class PreparedTranscriptPage:
         coverage = frozenset(reference for fragment in fragments
                              for reference in fragment.outgoing_sources)
         prepared = cls(page, fragments, 0, outgoing_coverage=coverage, **view)
-        for fragment in fragments:
-            fragment.capture_notification_identity(prepared.notification_identity)
         prepared.measure_sources()
         return prepared
 
