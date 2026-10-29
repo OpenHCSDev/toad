@@ -81,8 +81,12 @@ api.nvim_create_autocmd({'ModeChanged', 'CursorMoved', 'CursorMovedI',
                         'TextChanged', 'TextChangedI', 'CmdlineChanged'},
                        {callback = schedule_publish})
 api.nvim_create_autocmd('SafeState', {callback = function()
-  completed = generation
-  schedule_publish()
+  if completed ~= generation then
+    completed = generation
+    -- Do not queue work from the idle notification: running that work returns
+    -- to SafeState and would schedule the next idle notification forever.
+    publish()
+  end
 end})
 vim.on_key(function()
   -- lua.txt: on_key runs BEFORE further processing. This invalidates a proof;

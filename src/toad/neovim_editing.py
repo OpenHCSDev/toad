@@ -970,6 +970,10 @@ class NeovimEditing(VimMode, MroDispatch):
             raise NeovimWireFailure("Unexpected Neovim RPC response") from error
         reply.resolve(request, value)
         del self._pending[identity]
+        # SafeState can arrive before the final RPC admission response. Its
+        # publication and that response must invalidate the same view owner.
+        if self.completed:
+            self.request_paint()
 
     def engine_boundary(self, boundary: int, display: NeovimDisplay) -> bool:
         if not 0 <= boundary < len(self._boundaries):
@@ -1000,6 +1004,10 @@ class NeovimEditing(VimMode, MroDispatch):
         self.snapshot = snapshot
         if changes:
             self._receiver.finish_projection()
+        self.request_paint()
+
+    def request_paint(self) -> None:
+        """One coalesced paint slot for display and RPC completion changes."""
         if not self._update_queued:
             def post(editor: TextArea) -> None:
                 self._update_queued = editor.post_message(NeovimUpdated(self))
