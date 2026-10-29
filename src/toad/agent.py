@@ -10,6 +10,7 @@ from toad.agent_binding import AgentConnection
 from toad.agent_presentation import LocalAgentPresentation
 from toad.conversation_turn import NoTurn
 from toad.core.events import CoreEventStream
+from toad.input_decision import InputAccepted, InputDecision, NoLiveAgent
 from toad.surface_binding import SurfaceBinding
 
 if TYPE_CHECKING:
@@ -34,6 +35,10 @@ class AgentBase(AgentConnection):
         self.configuration = AgentConfiguration(self)
 
     ready = False
+
+    @property
+    def readiness_decision(self) -> InputDecision:
+        return InputAccepted() if self.ready else NoLiveAgent(self.session_disposition)
 
     def attach_view(self, view) -> None:
         from toad.agent_surface import AttachedSurfaceBinding

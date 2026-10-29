@@ -37,6 +37,7 @@ from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver
+from toad.input_decision import InputAccepted, InputDecision
 from toad.tone_paint import TonePaint
 from toad.path_complete import PathComplete
 from toad.prompt_actions import PromptAction, SubmitNowAction
@@ -235,10 +236,6 @@ See on-screen instructions for details.
         return self.prompt.agent_busy
 
     @property
-    def agent_ready(self) -> bool:
-        return self.shell_mode or self.prompt.agent_ready
-
-    @property
     def can_enter_shell(self) -> bool:
         return self.submission_allowed and not self.text and not self.shell_mode
 
@@ -377,23 +374,17 @@ See on-screen instructions for details.
     )
 
     def _submit(self) -> None:
+        """Silently cancel a submission superseded by focus, mode or popup changes."""
         self._submit_pending = False
         immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus or not self.submission_allowed:
             return
         input_text = CommandText.decode_input(self.text, self.slash_commands)
-        local_command = not input_text.requires_agent
-        if not self.agent_ready and not self.shell_mode and not local_command:
-            self.app.bell()
-            self.post_message(
-                messages.Flash(
-                    self.query_ancestor(
-                        Prompt
-                    ).operational_submissions.unavailable_reason,
-                    "error",
-                )
-            )
-            return
+        if input_text.requires_agent:
+            decision = self.prompt.input_decision
+            decision.announce(self)
+            if not decision.allows:
+                return
         if self.suggestion:
             if " " not in self.text:
                 self.insert(self.suggestion + " ")
@@ -530,8 +521,12 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
         return self.submissions
 
     @property
+    def input_decision(self) -> InputDecision:
+        return InputAccepted() if self.shell_mode else self.operational_submissions.input_decision
+
+    @property
     def agent_ready(self) -> bool:
-        return self.shell_mode or self.operational_submissions.ready
+        return self.input_decision.allows
 
     @property
     def text(self) -> str:
@@ -708,12 +703,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
     def watch_agent_info(self, agent_info: Content) -> None:
         if not self.is_mounted:
             return
-        if self.agent_ready:
-            self.query_one(AgentInfo).update(agent_info)
-        else:
-            self.query_one(AgentInfo).update(
-                self.operational_submissions.unavailable_reason
-            )
+        self.query_one(AgentInfo).update(self.input_decision.agent_info_text(agent_info))
 
     def watch_shell_mode(self) -> None:
         self.update_prompt()
@@ -900,8 +890,8 @@ class MessagePrompt(Prompt):
         super().__init__(**kwargs)
 
     @property
-    def agent_ready(self) -> bool:
-        return True
+    def input_decision(self) -> InputDecision:
+        return InputAccepted()
 
     @property
     def supports_completion(self) -> bool:

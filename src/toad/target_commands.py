@@ -193,7 +193,7 @@ class CloseViewCommand(ViewCommand, declared_name="close_view"):
         )
 
     def execute(self, ctx: TargetContext) -> None:
-        ctx.app.session_navigation.events.publish(session_requests.SessionArchive(ctx.mode))
+        ctx.app.session_navigation.events.publish(session_requests.SessionClose(ctx.mode))
 
 
 @dataclass(frozen=True)
