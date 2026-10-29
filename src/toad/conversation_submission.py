@@ -23,7 +23,7 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
-from toad.input_decision import InputDecision, NoLiveAgent
+from toad.input_decision import InputDecision, InputRefused
 from toad.widgets.prompt import Prompt
 
 if TYPE_CHECKING:
@@ -110,12 +110,14 @@ class SubmissionStart(ABC):
 
 
 class UnboundSubmissionStart(SubmissionStart):
-    def __init__(self, owner: ConversationSubmissions, submission: AgentInputSubmission):
-        self.owner, self.submission = owner, submission
+    def __init__(
+        self, owner: ConversationSubmissions, submission: AgentInputSubmission, refusal: InputRefused
+    ):
+        self.owner, self.submission, self.refusal = owner, submission, refusal
 
     async def prepare(self):
         self.owner.view.delivery_refused(
-            NoLiveAgent(self.owner.view.agent_binding.session_disposition).message,
+            self.refusal.message,
             self.submission.source_text,
         )
 
@@ -269,8 +271,8 @@ class ConversationSubmissions:
     def begin(self, submission: AgentInputSubmission):
         return self.view.agent_binding.begin_submission(self, submission)
 
-    def unbound(self, submission: AgentInputSubmission):
-        return UnboundSubmissionStart(self, submission)
+    def unbound(self, submission: AgentInputSubmission, refusal: InputRefused):
+        return UnboundSubmissionStart(self, submission, refusal)
 
     def start(self, submission: AgentInputSubmission, agent: Agent):
         execution = SubmissionExecution(self, submission, agent)
