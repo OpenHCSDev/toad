@@ -8,7 +8,7 @@ from typing import Annotated
 from agent_comms.cli_command import TargetAction
 from agent_comms.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption
-from agent_comms.field_codec import EditorMember, MalformedRecord
+from agent_comms.field_codec import EditorMember, MalformedRecord, MemberDraftFactory, MemberSelection, UnchosenMember
 from agent_comms.login import run_login
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel, optional_member_type
@@ -48,30 +48,35 @@ class CommandMemberDialog(UnionMemberDialog, DismissibleScreen[None]):
 
 
 @dataclass(frozen=True)
-class PreparedUnion(UnionMembers):
+class PreparedUnion(UnionMembers, MemberDraftFactory[MemberDraft]):
     """Decoder references are annotation metadata, never ObjectState values."""
 
     parameter: TargetField
 
     def choices(self) -> tuple[object, ...]:
-        return tuple(member.declaration for member in self.parameter.editor_members)
+        return tuple(member.declaration for member in self.parameter.editor_selections)
 
-    def label(self, choice: object) -> str:
-        return next(member.label for member in self.parameter.editor_members
+    def selection(self, choice: object) -> MemberSelection:
+        return next(member for member in self.parameter.editor_selections
                     if member.declaration is choice)
 
+    def label(self, choice: object) -> str:
+        return self.selection(choice).label
+
     def selected(self, value: object) -> object:
-        return self.parameter.editor_selection(value)
+        return self.parameter.editor_selection(value).declaration
 
     def dialog(self, field: DeclaredField) -> CommandMemberDialog:
         return CommandMemberDialog(field, self)
 
     def draft(self, choice: object, value: object) -> MemberDraft:
-        if choice is None:
-            return UnchosenMemberDraft()
-        member = next(member for member in self.parameter.editor_members
-                      if member.declaration is choice)
-        return PreparedMemberDraft(member, value, self.selected(value) is choice)
+        return self.selection(choice).draft(self, value)
+
+    def unchosen(self, member: UnchosenMember) -> MemberDraft:
+        return UnchosenMemberDraft(member.declaration)
+
+    def member(self, member: EditorMember, value: object) -> MemberDraft:
+        return PreparedMemberDraft(member, value, self.selected(value) is member.declaration)
 
 
 class DeclaredDraft:
