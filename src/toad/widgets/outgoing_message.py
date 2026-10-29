@@ -13,11 +13,12 @@ from toad.widgets.message_divider import MessageRowDivider
 from agent_comms.ui_model.message_category import OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.linked_rows import MessageRowBlock
+from toad.widgets.message_row_owner import MessageRowOwner
 from toad.notification_status import CheckedNotifications, NotificationStatus
 from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessageClaim
 
 
-class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
+class OutgoingMessage(MessageRowOwner, MessageRowBlock, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     def __init__(self, publication: PublishedSentMessage, *, row: MessageRow, binding, request, show_header: bool = True):

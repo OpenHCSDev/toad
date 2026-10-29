@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from functools import cached_property
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from agent_comms.display_references import ChannelDisplayReference, HistoricalDisplayReference, ThreadDisplayReference
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -22,18 +21,13 @@ from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import AnimationEffects
-from toad.line_blocks import Divider, LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
+from toad.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
 from toad.menus import MenuItem
 from toad.message_rows import MessageRow
 from toad.navigation_target import NavigationTarget
 from toad.project_link import ProjectLink
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.transcript_lines import Lines
-from toad.widgets.history_anchor import HistoryWindow
-
-if TYPE_CHECKING:
-    from toad.widgets.message_divider import MessageRowDivider
-
 
 class ReferenceRendering(CoreEventReceiver):
     """Borrow the source's observation for exactly this rendering lifetime."""
@@ -110,26 +104,8 @@ class OpensMessageNames(OpensLinks):
         self.action_open(self.message_row.destination)
 
 
-class MessageRowBlock(OpensMessageNames, Widget):
-    """A live bus message owns its displayed dividers and the message's menu."""
-
-    message_dividers: tuple[MessageRowDivider, ...] = ()
-
-    @cached_property
-    def message_window(self) -> HistoryWindow:
-        return self.query_ancestor(HistoryWindow)
-
-    def _on_mount(self) -> None:
-        self.message_window.message_rows.add(self)
-
-    def _on_unmount(self) -> None:
-        self.message_window.message_rows.discard(self)
-
-    def sticky_header(self, row: int) -> tuple[Divider, ...]:
-        """Pin the displayed block only after its divider has left the viewport."""
-        header_height = sum(divider.outer_size.height + divider.styles.margin.height
-                            for divider in self.message_dividers)
-        return tuple(divider.block for divider in self.message_dividers) if row >= header_height else ()
+class MessageRowBlock(OpensMessageNames):
+    """A widget that is one bus message under the cursor: it offers the message's menu."""
 
     def get_block_menu(self) -> tuple[MenuItem, ...]:
         return self.message_row.menu
