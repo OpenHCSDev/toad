@@ -24,9 +24,12 @@ from toad.command_catalog import CommandCatalog
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.widgets.prompt import Prompt
+from agent_comms.notification_evidence import NotificationWindow
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
+    from toad.submission_queue import QueueSource, MessageQueueEntry
+    from agent_comms.ui_model.observation import ReadNotifications
     from toad.widgets.conversation import Conversation
 
 
@@ -293,6 +296,33 @@ class ConversationSubmissions:
         return self.view.agent_binding.accepts_failed_input(message)
 
     @property
+    def queue_source(self) -> QueueSource:
+        return self.view.queue_source
+
+    @property
+    def queue_summary(self) -> str:
+        return self.queue_source.queue_summary(self)
+
+    @property
+    def message_queue_entries(self) -> tuple[MessageQueueEntry, ...]:
+        """Borrow the existing visible fragment proofs; never retain another inbox."""
+        entries: dict[ReadNotifications, MessageQueueEntry] = {}
+        for target in self.view.contents.notification_targets():
+            for fragment in target.visible_fragments():
+                for entry in fragment.queue_entries(target.notification_view):
+                    entries[entry.request] = entry
+                    if len(entries) >= NotificationWindow.window_limit:
+                        return tuple(entries.values())
+        return tuple(entries.values())
+
+    def inspect_queue(self):
+        from toad.submission_queue import QueueInspection
+
+        inspection = QueueInspection(self)
+        self.view.app.push_screen(inspection)
+        return inspection
+
+    @property
     def queue_projection(self):
         return self.view.agent_binding.presentation.queue
 
@@ -335,20 +365,18 @@ class ConversationSubmissions:
         self.publish_pending()
 
     def send_now(self):
-        return self.view.agent_binding.send_now(self)
-
-    def send_bound_now(self, agent: Agent):
-        session, scope = agent.session_id, agent.queue_attachment.scope
+        source = self.queue_source
         return self.view.run_worker(
-            partial(self._send_now, agent, session, scope), group="send-queued-now", exclusive=True
+            partial(self._send_now, source, self.view.agent_binding, source.queue_scope(self)),
+            group="send-queued-now", exclusive=True,
         )
 
-    async def _send_now(self, agent: Agent, session, scope: QueueScope):
+    async def _send_now(self, source: QueueSource, agent, scope: QueueScope) -> None:
         try:
-            if await agent.controller.send_now():
-                return
-        except RequestError as error:
-            if self.view.agent_binding is agent and agent.session_id == session:
+            if self.queue_source is not source or self.view.agent_binding is not agent:
+                raise ValueError("The source changed before send now")
+            await source.queue_send_now(self, scope)
+        except (RequestError, ValueError) as error:
+            if self.queue_source is source and self.view.agent_binding is agent:
                 self.view.feedback.flash(f"Send now failed: {error}", style="error")
-        if self.view.agent_binding is agent and agent.queue_attachment.accepts_request(scope):
-            self.publish_pending()
+        self.publish_pending()

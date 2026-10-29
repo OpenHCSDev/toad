@@ -23,6 +23,7 @@ from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.prompt import MailboxPrompt
+from toad.submission_queue import BusQueueSource, NativeQueueSource
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -104,7 +105,7 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     async def attach_binding(self, conversation: Conversation) -> None: ...
 
 
-class OperationalSessionSources:
+class OperationalSessionSources(NativeQueueSource):
     """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:
@@ -235,7 +236,7 @@ class OperationalSessionSources:
             release.push_async_callback(agent.stop)
 
 
-class MailboxSessionSources(OperationalSessionSources):
+class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
 
     def activity_row(self, conversation: Conversation):
@@ -245,7 +246,7 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        return MailboxPrompt(project=conversation.project_path)
+        return MailboxPrompt(project=conversation.project_path, submissions=conversation.submissions)
 
     def thread_presented(self, conversation: Conversation) -> None:
         conversation.run_worker(

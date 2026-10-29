@@ -91,9 +91,13 @@ class DeliveryFailureView(ToadNode, Widget):
         """Why this view's own send holds compose; empty when it does not."""
         return self._send_state.reason
 
+    def queue_evidence_changed(self) -> None:
+        """An unbound delivery surface has no queue consumer to repaint."""
+
     def _enter_send_state(self, state: SendState) -> None:
         """The one place a send changes state; compose and the status line follow it."""
         self._send_state = state
+        self.queue_evidence_changed()
         if self.is_attached:
             async def refresh() -> None:
                 read_only = await self.composer_read_only()

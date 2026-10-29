@@ -7,7 +7,6 @@ from pathlib import Path
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, Literal, Self
 
-from agent_comms.acp_extension import QueueItem
 
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
@@ -666,29 +665,11 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
         self.call_after_refresh(self.sync_queue)
 
     def _update_queue_summary(self) -> None:
-        submissions = self.operational_submissions
-        projection = submissions.queue_projection
-        queued = [row.preview for row in submissions.queued_inputs]
-        restored = [row.preview for row in projection.restored]
-        feedback = projection.feedback(self.agent_binding.presentation.queue_supported)
-        delivering = [QueueItem.summarize(text) for text in submissions.delivering]
-        self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
-        parts: list[str] = []
-        if feedback:
-            parts.append(feedback)
-        for label, texts, detail in (
-            ("Submitting", delivering, ""),
-            ("Queued", queued, ""),
-            ("Restored", restored, ", read-only"),
-        ):
-            if texts:
-                parts.append(
-                    f"{label} ({len(texts)}{detail}): "
-                    + " · ".join(texts[:3])
-                )
+        text = self.operational_submissions.queue_summary
+        self.set_class(bool(text), "-has-queue")
         summary = self.query_one(".queue-summary", Label)
-        summary.tooltip = "Submitting is an outstanding local request, not acceptance. Queued is the producer's accepted input, not consumption or completion. Restored rows are not local drafts."
-        summary.update(Content(" | ".join(parts)))
+        summary.tooltip = "Inspect this source's actual queue or visible message delivery evidence. Acceptance is not consumption; unsupported actions remain unavailable."
+        summary.update(Content(text))
 
     @on(messages.SendPromptNow)
     async def on_send_prompt_now(self, event):
@@ -914,9 +895,6 @@ class MessagePrompt(Prompt):
     def sync_configuration(self) -> None:
         pass
 
-    def _update_queue_summary(self) -> None:
-        pass
-
     def watch_agent_info(self, agent_info: Content) -> None:
         if self.is_mounted:
             self.update_prompt()
@@ -933,9 +911,6 @@ class MessagePrompt(Prompt):
 
     def label_glyph(self) -> Content:
         return PromptLabel.AI
-
-    def compose_delivery_controls(self) -> ComposeResult:
-        return ()
 
     def compose_info_popups(self) -> ComposeResult:
         return ()

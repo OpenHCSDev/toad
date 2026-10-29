@@ -78,9 +78,6 @@ class AgentBase(AgentConnection):
             else True
         )
 
-    def send_now(self, owner):
-        return owner.send_bound_now(self)
-
     def invalidate_observation(self, observation: SessionObservation) -> None:
         observation.schedule(self)
 

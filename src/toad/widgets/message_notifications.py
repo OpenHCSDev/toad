@@ -13,6 +13,7 @@ from textual.widgets import Collapsible
 
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
+from toad.submission_queue import QueueEvidenceChanged
 
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
@@ -120,6 +121,7 @@ class HistoryNotifications:
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
         self.subscribe_notifications(references)
+        self.post_message(QueueEvidenceChanged())
 
     def notification_read(self, references) -> ReadNotifications:
         from toad.project_path_owner import ProjectPathOwner
@@ -145,6 +147,7 @@ class HistoryNotifications:
     async def _show_notifications(self, results):
         for target in self.notification_targets():
             await target.show_notifications(results)
+        self.post_message(QueueEvidenceChanged())
 
     def notifications_failed(self, failure: Exception) -> None:
         if self.can_draw_on_screen:
@@ -154,6 +157,7 @@ class HistoryNotifications:
     async def _show_notification_error(self, status):
         for target in self.notification_targets():
             await target.show_notification_status(status)
+        self.post_message(QueueEvidenceChanged())
 
     def on_mount(self) -> None:
         self.call_after_refresh(self.check_notifications)

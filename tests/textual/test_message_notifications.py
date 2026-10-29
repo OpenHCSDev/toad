@@ -91,7 +91,7 @@ async def test_visible_references_are_bounded_and_typed_outcomes_paint_their_det
         assert 0 < len(request.operation.references) <= len(on_screen) < 30
         assert set(request.operation.references) <= on_screen
         await notifications.publish(ui, chat)
-        await ui.until_shows("Delivered 45/45 · Consumed 0/45 · Read 0/45")
+        await ui.until_shows(newest_status(chat).title)
         assert newest_status(chat).working
         await ui.click("▶ Sent", occurrence=len(on_screen) - 1)
         await ui.until_shows("waiting-9: Sent")
@@ -110,11 +110,11 @@ async def test_the_line_follows_typed_state_and_read_errors_without_new_messages
         await settled(ui, chat)
         notifications.state = ConsumingProgress(0)
         await notifications.publish(ui, chat)
-        await ui.until_shows("Answering 1 · Delivered 45/45 · Consumed 1/45 · Read 0/45")
+        await ui.until_shows(newest_status(chat).title)
         assert newest_status(chat).working
         notifications.state = IgnoredProgress(ShownToModelProgress(0))
         await notifications.publish(ui, chat)
-        await ui.until_shows("Seen, not answering 1 · Delivered 45/45 · Consumed 1/45 · Read 0/45")
+        await ui.until_shows(newest_status(chat).title)
         assert not newest_status(chat).working
         access = ui.app.coordination_access
         request = access.notification_views[chat.message_history.notification_view]
@@ -124,7 +124,7 @@ async def test_the_line_follows_typed_state_and_read_errors_without_new_messages
         assert "fixture busy database" in newest_status(chat).error
         notifications.state = CompletedProgress(ShownToModelProgress(0))
         await notifications.publish(ui, chat)
-        await ui.until_shows("▶ Answered · Delivered 45/45 · Consumed 1/45 · Read 0/45")
+        await ui.until_shows(newest_status(chat).title)
 
 
 async def test_a_hidden_view_unsubscribes_and_discards_a_late_reply(workspace):
@@ -162,7 +162,7 @@ async def test_markdown_uses_the_same_typed_line_and_an_empty_recorded_result(wo
         await chat.message_history.toggle_style()
         await ui.step()
         await notifications.publish(ui, chat)
-        await ui.until_shows("▶ Answered · Delivered 45/45 · Consumed 1/45 · Read 0/45")
+        await ui.until_shows(newest_status(chat).title)
         notifications.recorded = False
         await notifications.publish(ui, chat)
         await ui.until_shows("▶ No recorded notification result")

@@ -42,6 +42,7 @@ from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
+from toad.submission_queue import QueueEvidenceChanged, QueueSource
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
@@ -1622,22 +1623,20 @@ class Conversation(
         await self.agent_binding.compact_context(instructions)
         self.feedback.flash("Context compacted", style="success")
 
+    @property
+    def queue_source(self) -> QueueSource:
+        return self.operational_sources
+
+    def queue_evidence_changed(self) -> None:
+        self.submissions.publish_pending()
+
+    @on(QueueEvidenceChanged)
+    def queue_observation_changed(self, event: QueueEvidenceChanged) -> None:
+        event.stop()
+        self.queue_evidence_changed()
+
     def open_queue_menu(self) -> None:
-        """Remote edits require exact input IDs and backend revision-CAS support."""
-        if self.submissions.queue_projection.items:
-            self._queue_edit_unavailable()
-
-    def _queue_edit_unavailable(self) -> None:
-        self.feedback.flash(
-            "Remote queue editing unavailable: requires ID-targeted, revision-checked backend support",
-            style="error",
-        )
-
-    def _on_queue_choice(self, action: str | None) -> None:
-        # A stale menu callback must not edit the draft or mutate the remote
-        # queue. Text/index matching cannot identify a sent input safely.
-        if action:
-            self._queue_edit_unavailable()
+        self.submissions.inspect_queue()
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, event: PreferenceChanged) -> None:

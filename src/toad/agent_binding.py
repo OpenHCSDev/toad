@@ -167,9 +167,6 @@ class NoAgentConnection(AgentConnection):
     def accepts_failed_input(self, message: CoreEventMessage) -> bool:
         return False
 
-    def send_now(self, owner: ConversationSubmissions) -> None:
-        """No remote queue is bound."""
-
     async def get_goal_history(self, goal_id: str) -> RecordedGoalHistory:
         return RecordedGoalHistory.empty()
 
