@@ -128,7 +128,7 @@ class CommanderGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
 
     def update_row(self, key: type[HudRecord], row: CommanderTable) -> None:
         source = self.sources[key]
-        if row.source is not source:
+        if row.source != source:
             row.present(source)
 
     def present(self, section: HudSection) -> None:
@@ -283,7 +283,7 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     def filtered_sections(self) -> dict[type[HudGroup], HudSection]:
         text = self.filter.value.casefold()
         shown: dict[type[HudGroup], HudSection] = {}
-        for section in self.hud.groups():
+        for section in self.hud.groups:
             tables: list[ViewTable[HudRecord]] = []
             for table in section.tables:
                 records = tuple(record for record, cells in zip(table.records, table.texts)

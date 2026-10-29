@@ -19,7 +19,9 @@ from textual.widgets import Button, Static
 
 from toad.comms_root import FailedObservation, UnselectedRoute
 from toad.core.events import CommanderHudChanged
-from toad.screens.commander import CommanderAlarm, CommanderFrameView, CommanderPage, CommanderTable
+from toad.screens.commander import (
+    CommanderAlarm, CommanderFrameView, CommanderGroup, CommanderPage, CommanderTable,
+)
 from toad.widgets.declared_disclosure import (
     DeclaredDisclosure, DisclosureEntry, DisclosedValue, RootKey,
 )
@@ -91,9 +93,21 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace:
         # Observe the native worker lifecycle, not a patched read method or fake reply.
         events: list[Worker.StateChanged] = []
         view.details.listen(Worker.StateChanged, events.append)
+        original_source = table.source
+        original_keys = tuple(table.entity_keys.values())
         identical = replace(hud, units=(replace(unit, clock=PendingClock(1.0, 2.0)),))
         view.present(identical)
         await ui.step()
+        # A genuinely fresh but equal frozen table must not re-prepare native identities.
+        group = table.query_ancestor(CommanderGroup)
+        equivalent = replace(group.section, tables=tuple(replace(source) for source in group.section.tables))
+        assert equivalent.tables[0] == original_source and equivalent.tables[0] is not original_source
+        group.present(equivalent)
+        group.render_section()
+        await ui.step()
+        assert table.source is original_source
+        assert tuple(table.entity_keys.values()) == original_keys
+        assert table.selected == selected(unit) and row_maps_cohere(table)
         assert not [event for event in events if event.state is WorkerState.PENDING]
 
         frame.write_text(unreadable)
@@ -116,6 +130,8 @@ async def test_commander_page_survives_unreadable_frames_and_recovers(workspace:
         assert rows.query_one(CommanderFrameView) is view
         assert view.query_one(CommanderTable) is table and table.has_focus
         assert table.selected == selected(repaired.units[0])
+        assert table.source != original_source
+        assert tuple(table.entity_keys.values()) == original_keys and row_maps_cohere(table)
         assert len(view.hud.forks) == 1 and view.hud.forks[0].name == "recovered"
         assert "Forks: 1" in str(view.status.render())
         # Explicit refresh is unconditional, even for an otherwise identical card.
