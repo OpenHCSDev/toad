@@ -300,8 +300,11 @@ class DmConversation(ConversationKind):
 
     async def status_text(self, comms: Comms, *, read_only: bool) -> str:
         def read():
-            references = CurrentDisplayReferences.from_registry(str(comms.root), comms.registry.snapshot())
-            return comms.configuration.answer(self.destination(references).name)
+            peer = self.peer.require_recorded()
+            snapshot = comms.registry.snapshot()
+            if not peer.current(snapshot):
+                raise KeyError(peer.lookup)
+            return comms.configuration.answer(snapshot.canonical_name(peer.name))
 
         return (await asyncio.to_thread(read)).status_label
 
