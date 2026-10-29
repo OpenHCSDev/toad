@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterator, Mapping
 from functools import partialmethod
 from operator import or_
 from types import MappingProxyType
-from typing import ClassVar, Generic, Literal, Self, TypeVar
+from typing import TYPE_CHECKING, ClassVar, Generic, Literal, Self, TypeVar
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
@@ -22,6 +22,9 @@ from textual.dom import DOMNode
 from toad.app_node import ToadNode
 from copy import replace
 from dataclasses import dataclass
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
 
 Context = TypeVar("Context", bound=DOMNode)
 
@@ -154,7 +157,7 @@ class System:
     system: ClassVar[bool] = True
 
     @classmethod
-    def offered(cls, context) -> Iterator[Action]:
+    def offered(cls, context: DOMNode) -> Iterator[Self]:
         return iter(())
 
 
@@ -189,7 +192,7 @@ class ApplicationAction(Action, affix="Action"):
         return cls.bindings_for(mode)
 
     @classmethod
-    def menu(cls, app):
+    def menu(cls, app: ToadApp) -> tuple[tuple[ApplicationAction, str], ...]:
         """Every offered member under its label, in declaration order."""
         return tuple((command, command.label(app))
                      for member in cls.members_with(cls) for command in member.offered(app))
@@ -198,7 +201,7 @@ class ApplicationAction(Action, affix="Action"):
 class VimWorkspaceAction(ApplicationAction, declared_name=None):
     """Workspace commands precede editor bindings only in idle modal command entry."""
 
-    def key_available(self, app):
+    def key_available(self, app: ToadApp) -> bool:
         if app.current_mode != "workspace":
             return False
         return (app.screen is app.workspace_screen
@@ -229,7 +232,7 @@ class DeclaredWidgetActions(ToadNode):
                 *(binding for declaration in cls.declared_actions()
                   for binding in cls.action_bindings(declaration, mode)))
 
-    def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
+    def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs: object) -> None:
         cls.own_actions = actions
         declarations = cls.declared_actions()
         for declaration in declarations:
@@ -244,13 +247,13 @@ class DeclaredWidgetActions(ToadNode):
                 return declaration.parse(parameters).key_available(self)
         return super().check_action(action, parameters)
 
-    def _run_declared_action(self, declaration, *parameters) -> object:
+    def _run_declared_action(self, declaration: type[Action], *parameters: object) -> object:
         command = declaration.parse(parameters)
         if command.available(self):
             return command.apply(self)
         return None
 
-    async def _run_declared_async_action(self, declaration, *parameters) -> None:
+    async def _run_declared_async_action(self, declaration: type[Action], *parameters: object) -> None:
         await invoke(self._run_declared_action, declaration, *parameters)
 
 
@@ -516,7 +519,7 @@ class ActionPresentation(DeclaredWidgetActions):
         return binding
 
     @classmethod
-    def present_navigation_binding(cls, declaration, binding):
+    def present_navigation_binding(cls, declaration: type[KeyDeclaration], binding: Binding) -> Binding:
         return cls.present_binding(declaration, super().present_navigation_binding(declaration, binding))
 
     @classmethod
