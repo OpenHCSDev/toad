@@ -19,6 +19,7 @@ from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.widgets.text_area import EditingMode, VimMode
+from textual.document._editing import LineMotion, VimNormal
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
 from textual.geometry import Size, Spacing
@@ -42,6 +43,7 @@ from toad.path_complete import PathComplete
 from toad.prompt_actions import PromptAction, SubmitNowAction
 from toad.prompt_cursor import (
     CommandText,
+    HistoryCursor,
     NextHistoryCursor,
     PreviousHistoryCursor,
     PromptCursor,
@@ -456,6 +458,10 @@ See on-screen instructions for details.
         self.publish_core(UserInputSubmitted(text, shell, immediate=immediate))
         if shell:
             self.prompt.shell_mode = False
+
+    def move_line_motion(self, motion: type[LineMotion], mode: VimNormal, count: int) -> None:
+        if not HistoryCursor.move_motion(self, mode, motion):
+            super().move_line_motion(motion, mode, count)
 
     def action_cursor_up(self, select: bool = False):
         PreviousHistoryCursor.move(self, select, super().action_cursor_up)

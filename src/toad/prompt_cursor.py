@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
@@ -11,6 +11,7 @@ from textual.content import Content
 from textual.widgets.text_area import Selection
 
 if TYPE_CHECKING:
+    from textual.document._editing import EditingMode, LineMotion, VimNormal
     from toad.slash_command import SlashCommand
     from toad.widgets.prompt import PromptTextArea
 
@@ -86,14 +87,27 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
     def at_edge(cls, editor: PromptTextArea) -> bool: ...
 
     @classmethod
-    def move(cls, editor: PromptTextArea, select: bool, ordinary) -> None:
+    def try_move(cls, editor: PromptTextArea, select: bool, mode: EditingMode) -> bool:
         from toad.core.input_events import HistoryMove
 
-        if editor.editing_mode.accepts_text and editor.selection.is_empty and not select:
-            if cls.at_edge(editor):
-                editor.publish_core(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
-                return
-        ordinary(select)
+        if (mode.allows_history_navigation and editor.selection.is_empty
+                and not select and cls.at_edge(editor)):
+            editor.publish_core(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
+            return True
+        return False
+
+    @classmethod
+    def move(cls, editor: PromptTextArea, select: bool, ordinary: Callable[[bool], None]) -> None:
+        if not cls.try_move(editor, select, editor.editing_mode):
+            ordinary(select)
+
+    @classmethod
+    def move_motion(cls, editor: PromptTextArea, mode: VimNormal, motion: type[LineMotion]) -> bool:
+        # Direction is the native vertical displacement, not a mode/key name.
+        # New counted vertical motions borrow the same two history boundaries.
+        cursor = next(cursor for cursor in cls.members_with(cls)
+                      if cursor.direction == motion.direction)
+        return cursor.try_move(editor, False, mode)
 
 
 class PreviousHistoryCursor(HistoryCursor):

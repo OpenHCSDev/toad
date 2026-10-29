@@ -12,7 +12,7 @@ from typing import ClassVar, Generic, Literal, Self, TypeVar
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, FieldPlan
-from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
+from textual.binding import Binding, CommandBinding, ModeBinding
 from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
@@ -206,17 +206,6 @@ class DeclaredWidgetActions(ToadNode):
     own_actions: ClassVar[tuple[type[Action], ...]] = ()
 
     @classmethod
-    def contexts(cls) -> tuple[type[DeclaredWidgetActions], ...]:
-        pending = [cls]
-        found: dict[type[DeclaredWidgetActions], None] = {}
-        while pending:
-            owner = pending.pop()
-            if owner not in found:
-                found[owner] = None
-                pending.extend(reversed(owner.__subclasses__()))
-        return tuple(found)
-
-    @classmethod
     def declared_actions(cls) -> tuple[type[Action], ...]:
         """Capabilities and the widget's own family compose through its MRO."""
         return tuple(dict.fromkeys(
@@ -230,18 +219,10 @@ class DeclaredWidgetActions(ToadNode):
         return declaration.bindings_for(mode)
 
     @classmethod
-    def native_bindings(cls, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
-        return ()
-
-    @classmethod
     def declared_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
-        return (*cls.native_bindings(mode),
+        return (*super().declared_bindings(mode),
                 *(binding for declaration in cls.declared_actions()
                   for binding in cls.action_bindings(declaration, mode)))
-
-    def binding_map(self, mode: type[EditingMode]) -> BindingsMap:
-        return BindingsMap.merge((super().binding_map(mode),
-                                  BindingsMap(self.declared_bindings(mode))))
 
     def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
         cls.own_actions = actions
@@ -274,12 +255,6 @@ class NativeMethodKeys(DeclaredWidgetActions):
     @classmethod
     def method_key_owners(cls) -> tuple[type, ...]:
         return cls.__mro__
-
-    @classmethod
-    def native_bindings(cls, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
-        return tuple(projected for base in cls.method_key_owners()
-                     for binding in base.__dict__.get("MODE_BINDINGS", ())
-                     for projected in binding.for_mode(mode))
 
 
 class LocalMethodKeys(NativeMethodKeys):
