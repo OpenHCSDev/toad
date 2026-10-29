@@ -308,7 +308,7 @@ class DetachedReceiver:
         return False
 
     def project(self, changes: Sequence[NeovimChange]) -> None:
-        raise EditingFailure("Neovim has no document to project into")
+        pass
 
     def finish_projection(self) -> None:
         pass
@@ -478,20 +478,23 @@ class NeovimSnapshot:
     state: NeovimState
     completed: int = -1
 
+    def matches[Answer](self, current: NeovimState,
+                        answer: Callable[[NeovimState], Answer]) -> bool:
+        return answer(self.state) == answer(current)
+
+
+class UnpaintedSnapshot(NeovimSnapshot):
+    """A new view has presented none of the retained owner's answers yet."""
+
+    def matches[Answer](self, current: NeovimState,
+                        answer: Callable[[NeovimState], Answer]) -> bool:
+        return False
+
 
 class NeovimUpdated(Message):
     def __init__(self, owner: NeovimEditing) -> None:
         super().__init__()
         self.owner = owner
-
-    def paint(self, editor: TextArea) -> None:
-        owner = self.owner
-        if not owner._receiver.owns(editor):
-            return
-        owner._update_queued = False
-        # A later line batch may precede its display while this message waits.
-        if not owner._changes:
-            owner.render(editor)
 
 
 class NeovimMethod:
@@ -622,7 +625,7 @@ class NeovimEditing(VimMode):
         self._generation = 0
         self.snapshot = NeovimSnapshot(StartingState())
         self._changes: list[NeovimChange] = []
-        self._rendered = self.snapshot
+        self._rendered: NeovimSnapshot = UnpaintedSnapshot(self.snapshot.state)
         self._update_queued = False
         self._boundaries: list[Binding] = []
 
@@ -674,10 +677,11 @@ class NeovimEditing(VimMode):
         if changed_receiver:
             self._update_queued = False
             editor.history.clear()
+        # Even the same receiver may have rebuilt its width-dependent view.
+        self._rendered = UnpaintedSnapshot(self._rendered.state)
         started = self._started
-        if started.done() and not started.cancelled() and not self._changes:
-            # Restore may have rebuilt view resources for this same receiver.
-            self.render(editor, force=True)
+        if started.done() and not started.cancelled():
+            self.paint(editor)
 
     def resume(self, editor: TextArea) -> None:
         pass
@@ -855,7 +859,7 @@ class NeovimEditing(VimMode):
             self._changes.append(NeovimBufferTransfer(change.lines))
         else:
             self._changes.append(change)
-        self._publish(NeovimSnapshot(self.snapshot.state))
+        self.snapshot = NeovimSnapshot(self.snapshot.state)
 
     def accept_display(self, display: NeovimDisplay) -> None:
         self.publish(NeovimSnapshot(self.snapshot.state.update(display), display.completed))
@@ -865,33 +869,38 @@ class NeovimEditing(VimMode):
         changes, self._changes = self._changes, []
         if changes:
             self._receiver.project(changes)
-        self._publish(snapshot)
+        self.snapshot = snapshot
         if changes:
             self._receiver.finish_projection()
-
-    def _publish(self, snapshot: NeovimSnapshot) -> None:
-        self.snapshot = snapshot
-        if not self._changes and not self._update_queued:
+        if not self._update_queued:
             def post(editor: TextArea) -> None:
                 self._update_queued = editor.post_message(NeovimUpdated(self))
             self._receiver.visit(post)
 
-    def render(self, editor: TextArea, *, force: bool = False) -> None:
+    def paint(self, editor: TextArea) -> None:
+        if not self._receiver.owns(editor):
+            return
+        self._update_queued = False
+        # A later line batch may precede its display while a message waits.
+        if not self._changes:
+            self.render(editor)
+
+    def render(self, editor: TextArea) -> None:
         if editor.editing_mode is not self or not self._receiver.owns(editor):
             return
         if self._changes:
             raise RuntimeError("Cannot paint an unpublished Neovim line batch")
-        if self.snapshot is self._rendered and not force:
+        if self.snapshot is self._rendered:
             return
-        previous, current = self._rendered.state, self.snapshot.state
-        if force or previous.cursor != current.cursor:
-            editor.apply_engine_selection(Selection.cursor(current.cursor))
+        previous, current = self._rendered, self.snapshot.state
+        if not previous.matches(current, lambda state: state.cursor):
+            editor.paint_selection(Selection.cursor(current.cursor))
             editor.record_cursor_width()
-        if previous.regions != current.regions:
-            editor.invalidate_engine_regions((*previous.regions, *current.regions))
-        if force or previous.label != current.label or previous.command_line != current.command_line:
+        if not previous.matches(current, lambda state: state.regions):
+            editor.invalidate_engine_regions((*previous.state.regions, *current.regions))
+        if not previous.matches(current, lambda state: (state.label, state.command_line)):
             editor.show_editing_mode(self)
-        if force or previous.binding_answers != current.binding_answers:
+        if not previous.matches(current, lambda state: state.binding_answers):
             editor.refresh_bindings()
         self._rendered = self.snapshot
 
