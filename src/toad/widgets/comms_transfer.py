@@ -4,6 +4,9 @@ from __future__ import annotations
 from toad.core import events as core_events
 
 from dataclasses import dataclass
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, suppress
+from time import monotonic
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar
@@ -11,10 +14,18 @@ import asyncio
 from functools import partial
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.comms import Comms
+from agent_comms.cli_result import CliResult
+from agent_comms.importing import ThreadImported
 from agent_comms.field_codec import FieldCodec
 from agent_comms.route_selection import RouteSelection
 
 from agent_comms.exporting import (
+    CancellableWireExport,
+    WireExportCancelled,
+    WireExportObserver,
+    WireExportProgress,
+    WireExportProvenance,
     ChannelScope,
     DmScope,
     EverythingScope,
@@ -28,9 +39,12 @@ from agent_comms.cli_bridges.history import ExpectedSession, OfflineHistory
 from agent_comms.harness_install import Harness
 from agent_comms.thread_management import ImportDirectory
 from textual import on
-from textual.app import ComposeResult
+from textual.app import App, ComposeResult
+from textual.message import Message
 from textual.containers import Vertical
 from toad.screens.modal import DismissibleScreen
+from toad.comms_root import CoordinationAccess
+from toad.application_lifetime import TerminalOutcome
 from toad.widget_actions import DismissAction
 from textual.widgets import Button, Input, Select, Static
 
@@ -46,7 +60,16 @@ class TransferRequest(DeclaredFamily, affix="Request"):
     def dialog(cls, selected: RouteSelection): ...
 
     @abstractmethod
-    def apply(self, comms): ...
+    def apply(self, comms: Comms, observer: WireExportObserver) -> CliResult: ...
+
+    def execute(self, access: CoordinationAccess, selected: RouteSelection,
+                observer: WireExportObserver) -> CliResult:
+        comms = access.require(selected).service
+        return access.write(selected, self.apply, comms, observer)
+
+    @asynccontextmanager
+    async def progress(self, app: App[TerminalOutcome]) -> AsyncIterator[CancellableWireExport]:
+        yield CancellableWireExport()
 
     @abstractmethod
     def completed(self, app, result) -> None: ...
@@ -66,8 +89,23 @@ class WireExportRequest(TransferRequest):
     def dialog(cls, selected):
         return WireExportDialog(selected.root)
 
-    def apply(self, comms):
-        return comms.views.export_wire(self.destination, format=self.format, scope=self.scope, limit=self.limit)
+    def apply(self, comms: Comms, observer: WireExportObserver) -> WireExportProvenance:
+        return comms.views.export_wire(self.destination, format=self.format, scope=self.scope,
+                                       limit=self.limit, observer=observer)
+
+    def execute(self, access: CoordinationAccess, selected: RouteSelection,
+                observer: WireExportObserver) -> WireExportProvenance:
+        return self.apply(access.require(selected).service, observer)
+
+    @asynccontextmanager
+    async def progress(self, app: App[TerminalOutcome]) -> AsyncIterator[CancellableWireExport]:
+        progress = WireExportProgressView()
+        await app.mount(progress)
+        try:
+            yield progress
+        finally:
+            if progress.is_mounted:
+                await progress.remove()
 
     def completed(self, app, result) -> None:
         app.notify(f"Exported {result.exported_messages} messages to {result.destination}", title="Wire export")
@@ -88,7 +126,7 @@ class ThreadImportRequest(TransferRequest):
     def dialog(cls, selected):
         return ThreadImportDialog()
 
-    def apply(self, comms):
+    def apply(self, comms: Comms, observer: WireExportObserver) -> ThreadImported:
         return comms.threads.import_thread(OfflineHistory.stored(self.harness, self.source, self.session),
                                           name=self.name, worktree=self.worktree)
 
@@ -112,9 +150,20 @@ class Transfers:
                                 group=FieldCodec.encode(type(request)), exclusive=True)
 
     async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
-        comms = self.app.coordination_access.require(selected).service
         try:
-            result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
+            async with request.progress(self.app) as observer:
+                operation = asyncio.create_task(asyncio.to_thread(
+                    request.execute, self.app.coordination_access, selected, observer))
+                try:
+                    result = await asyncio.shield(operation)
+                except asyncio.CancelledError:
+                    observer.cancel()
+                    with suppress(WireExportCancelled):
+                        await asyncio.shield(operation)
+                    raise
+        except WireExportCancelled:
+            self.app.notify("Wire export cancelled", title="Wire export")
+            return
         except (OSError, ValueError) as error:
             self.app.show_error(error, request.failure_title)
             return
@@ -134,6 +183,52 @@ class TransferDialog(DismissibleScreen):
     """
     def _error(self, error: str) -> None:
         self.query_one("#transfer-error", Static).update(error)
+
+
+class WireExportProgressView(CancellableWireExport, Vertical):
+    """The export's cancellation capability and a view of its own byte/message counters."""
+
+    DEFAULT_CSS = """
+    WireExportProgressView {
+        position: absolute; overlay: screen; width: 64; max-width: 95%; height: auto;
+        padding: 1 2; border: solid $primary; background: $surface;
+    }
+    """
+
+    @dataclass
+    class Updated(Message):
+        progress: WireExportProgress
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.last_report = 0.0
+
+    def compose(self) -> ComposeResult:
+        yield Static("Exporting wire history")
+        yield Static("0 messages · 0 bytes written", id="export-progress")
+        yield Button("Cancel export", id="cancel-export")
+
+    def advanced(self, progress: WireExportProgress) -> None:
+        now = monotonic()
+        if now - self.last_report >= 0.1:
+            self.last_report = now
+            self.post_message(self.Updated(progress))
+
+    @on(Updated)
+    def update_progress(self, event: Updated) -> None:
+        progress = event.progress
+        self.query_one("#export-progress", Static).update(
+            f"{progress.messages_written:,} messages · {progress.bytes_written:,} bytes written")
+
+    @on(Button.Pressed, "#cancel-export")
+    def cancel_export(self) -> None:
+        self.cancel()
+        button = self.query_one("#cancel-export", Button)
+        button.label = "Cancelling…"
+        button.disabled = True
+
+    def on_unmount(self) -> None:
+        self.cancel()
 
 
 class WireExportDialog(TransferDialog):
