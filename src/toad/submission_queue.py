@@ -156,8 +156,7 @@ class QueueInspection(DismissibleScreen[None]):
     def __init__(self, source: QueueSource, evidence: QueueEvidence, changed: Callable[[], None]):
         super().__init__()
         self.source, self.evidence = source, evidence
-        self.presentation = evidence.presentation
-        self.scope = source.queue_scope(self.presentation)
+        self.scope = source.queue_scope(evidence.presentation)
         self.changed = changed
 
     def compose(self):
@@ -170,14 +169,14 @@ class QueueInspection(DismissibleScreen[None]):
             yield Static("Individual edit/delete/reorder requires ID-targeted, revision-checked backend support.")
             yield Static("", id="queue-error")
             with HorizontalGroup():
-                available = self.source.queue_actions_available(self.presentation)
+                available = self.source.queue_actions_available(self.evidence.presentation)
                 yield Button("Send now", id="queue-send-now", disabled=not available)
                 yield Button("Clear queued inputs", id="queue-clear", disabled=not available)
                 yield Button("Close", id="queue-close")
 
     async def apply_action(self, action: Callable[[AgentPresentation, QueueScope], Awaitable[None]]) -> None:
         try:
-            await action(self.presentation, self.scope)
+            await action(self.evidence.presentation, self.scope)
         except (QueueActionRefused, RequestError) as error:
             self.query_one("#queue-error", Static).update(str(error))
             return

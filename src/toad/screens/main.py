@@ -14,6 +14,7 @@ from agent_comms.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
 from agent_comms.repo import Checkout
+from agent_comms.transcripts import TranscriptCursor
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
@@ -227,7 +228,7 @@ class ReadyContent(ScreenContent):
     def read_visible(self, screen: MainScreen) -> PaintedRead:
         return screen.conversation.painted_read(partial(self.read_work, screen))
 
-    def read_work(self, screen: MainScreen, through) -> ReadWork:
+    def read_work(self, screen: MainScreen, through: TranscriptCursor) -> ReadWork:
         """Only a painted cursor reaches route selection and the write worker."""
         conversation = screen.conversation
         app = screen.app
