@@ -289,6 +289,7 @@ class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
     def bind_control(self) -> None:
         self.holds_value = FormCheckbox("Set", value=self.field.value is not None)
         self.member = ValueEditor.declared_for(self.field.member)
+        self.member.listen(ValueEditor.Feedback, self.member_feedback)
         self.member.display = self.field.value is not None
         self.holds_value.listen(Checkbox.Changed, self.held_changed)
 
@@ -296,10 +297,15 @@ class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
         yield self.holds_value
         yield self.member
 
+    def member_feedback(self, message: ValueEditor.Feedback) -> None:
+        message.stop()
+        self.feedback = message.text
+
     def held_changed(self, message: Checkbox.Changed) -> None:
         message.stop()
         self.member.display = message.value
         if not message.value:
+            self.member.set_reactive(ValueEditor.feedback, "")
             self.send(None)
 
     def finish(self) -> None:
