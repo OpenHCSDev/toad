@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.historical_views import ConversationObservation
+from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.sent_message import OutgoingMessageReference
 from agent_comms.transcripts import (
     TranscriptCursor,
@@ -77,6 +78,11 @@ class PreparedTranscriptPage:
         prepared = cls(page, fragments, 0, outgoing_coverage=coverage, **view)
         prepared.measure_sources()
         return prepared
+
+    @property
+    def notification_identity(self) -> DisplayIdentity | NoDisplaySelection:
+        """Native transcript pages have no captured BUS display selection."""
+        return NoDisplaySelection()
 
     @property
     def source_payload_bytes(self) -> int:

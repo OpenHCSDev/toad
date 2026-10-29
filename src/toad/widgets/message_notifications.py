@@ -12,6 +12,8 @@ from textual.content import Content
 from textual.widgets import Collapsible
 
 from agent_comms.ui_model.observation import ReadNotifications
+from agent_comms.notification_reads import LiveNotificationRead
+from agent_comms.read_basis import NoDisplaySelection
 from toad.submission_queue import QueueEvidenceChanged
 
 from toad.notification_status import (
@@ -111,7 +113,7 @@ class HistoryNotifications:
     """Visible history rows subscribe to Core; paging never decides when outcomes changed."""
 
     NOTIFICATION_GROUP = "message-notifications"
-    notification_request = ReadNotifications
+    notification_operation = LiveNotificationRead
 
     # Core feedback for every visible bus message, native or wire.
 
@@ -128,7 +130,12 @@ class HistoryNotifications:
         root = ProjectPathOwner.containing(self).coordination_root
         if root is None:
             raise ValueError("Notification observation requires a bound thread root")
-        return self.notification_request(root, references)
+        references = tuple(references)
+        wanted = frozenset(references)
+        display = next((target.notification_identity_for(wanted)
+                        for target in self.notification_targets()
+                        if wanted.intersection(target.notification_references)), NoDisplaySelection())
+        return ReadNotifications(root, self.notification_operation(references), display=display)
 
     def subscribe_notifications(self, references) -> None:
         access = self.app.coordination_access
@@ -173,6 +180,12 @@ class HistoryNotifications:
 
 class SourceNotifications:
     notification_view: HistoryNotifications
+
+    def notification_identity_for(self, references):
+        """Use retained prepared Core pages, even after the pending paint was retired."""
+        return next((page.prepared.notification_identity for page in reversed(self.pages)
+                     if any(references.intersection(fragment.notification_references)
+                            for fragment in page.prepared.fragments_in_range)), NoDisplaySelection())
 
     def rows_published(self) -> None:
         super().rows_published()

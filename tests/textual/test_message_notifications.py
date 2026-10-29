@@ -165,4 +165,5 @@ async def test_markdown_uses_the_same_typed_line_and_an_empty_recorded_result(wo
         await ui.until_shows(newest_status(chat).title)
         notifications.recorded = False
         await notifications.publish(ui, chat)
-        await ui.until_shows("▶ No recorded notification result")
+        await ui.until_shows(newest_status(chat).title)
+        assert newest_status(chat).notifications == ()

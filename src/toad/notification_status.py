@@ -98,7 +98,7 @@ class CheckedNotifications(NotificationStatus):
     def queue_details(self) -> DetailLines:
         leading = CheckedNotifications(self.notifications[:1])
         return (
-            (Span(f"{len(self.notifications)} observed recipients; leading result shown", MutedRole),),
+            (Span(self.title, MutedRole),),
             *((Span(f"Recipient {item.recipient_identity.recipient_lookup}", MutedRole),)
               for item in leading.notifications),
             *leading.details,
@@ -116,8 +116,7 @@ class CheckedNotifications(NotificationStatus):
                          Span(reader.name, NameRole, OpenTarget(reader.name)))
             lines.append(line)
         return (tuple(lines) if lines else (
-            (Span("No notification result is recorded for this message. "
-                  "This does not confirm the message was received.", MutedRole),),))
+            (Span("No recipient feedback to display.", MutedRole),),))
 
 
 @dataclass(frozen=True)
