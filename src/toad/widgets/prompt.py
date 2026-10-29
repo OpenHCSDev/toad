@@ -19,6 +19,7 @@ from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.widgets.text_area import EditingMode, VimMode
 from toad.neovim_editing import NeovimUpdated
+from textual.document._editing import EditingFailure
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
 from textual.geometry import Spacing
@@ -384,8 +385,14 @@ See on-screen instructions for details.
     )
 
     async def _submit(self) -> None:
-        await self.editing_mode.flush(self)
         self._submit_pending = False
+        mode = self.editing_mode
+        try:
+            await mode.flush(self)
+        except EditingFailure:
+            return  # The engine already reported its failure; never submit stale text.
+        if mode is not self.editing_mode:
+            return
         immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus or not self.submission_allowed:
             return

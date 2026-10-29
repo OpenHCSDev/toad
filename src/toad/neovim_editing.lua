@@ -9,20 +9,49 @@ vim.opt.backup = false
 vim.opt.modeline = false
 vim.opt.hidden = true
 vim.opt.clipboard = ''
-vim.opt.virtualedit = 'onemore'
 vim.opt.shortmess:append('I')
 vim.bo.buftype = 'nofile'
 vim.bo.bufhidden = 'hide'
 
 local function state()
-  local cursor = vim.fn.getpos('.')
-  local anchor = vim.fn.getpos('v')
-  return {{cursor[2], cursor[3]}, {anchor[2], anchor[3]},
-          vim.fn.mode(1), vim.fn.state(), vim.v.count, vim.fn.getcmdline()}
+  local cursor, anchor = vim.fn.getpos('.'), vim.fn.getpos('v')
+  local code = vim.fn.mode(1)
+  local kind = ({v = 'v', V = 'V', ['\022'] = '\022',
+                 s = 'v', S = 'V', ['\019'] = '\022'})[code]
+  local regions, selected = {}, ''
+  if kind then
+    regions = vim.fn.getregionpos(anchor, cursor, {type = kind, eol = true})
+    selected = table.concat(vim.fn.getregion(anchor, cursor, {type = kind}), '\n')
+    if kind == 'V' then selected = selected .. '\n' end
+  end
+  return {{cursor[2], cursor[3]}, code, vim.fn.state(), vim.v.count,
+          vim.fn.getcmdtype() .. vim.fn.getcmdline(), regions, selected}
 end
 local function publish()
   vim.rpcnotify(1, 'toad_editor_state', unpack(state()))
 end
+-- Buffer subscriptions belong to this engine, including :edit/:buffer changes.
+-- Only its current buffer publishes rendering deltas; returning to a buffer is
+-- an ownership transfer, not another callback registration.
+local subscriptions = {}
+local function entered(buffer)
+  vim.rpcnotify(1, 'nvim_buf_lines_event', buffer,
+    api.nvim_buf_get_changedtick(buffer), 0, -1,
+    api.nvim_buf_get_lines(buffer, 0, -1, true), false)
+  if subscriptions[buffer] then return end
+  subscriptions[buffer] = true
+  api.nvim_buf_attach(buffer, false, {
+    on_lines = function(_, buf, tick, first, last, new_last)
+      if api.nvim_get_current_buf() == buf then
+        vim.rpcnotify(1, 'nvim_buf_lines_event', buf, tick, first, last,
+                      api.nvim_buf_get_lines(buf, first, new_last, true), false)
+      end
+    end,
+    on_detach = function(_, buf) subscriptions[buf] = nil end,
+  })
+end
+api.nvim_create_autocmd('BufEnter', {callback = function(event) entered(event.buf); publish() end})
+entered(api.nvim_get_current_buf())
 api.nvim_create_autocmd({'ModeChanged', 'CursorMoved', 'CursorMovedI',
                         'TextChanged', 'TextChangedI', 'CmdlineChanged', 'SafeState'},
                        {callback = publish})
@@ -42,11 +71,16 @@ for _, mapping in ipairs(mappings) do
   end
 end
 
-ToadEditor = {}
+ToadEditor = {state = state}
 function ToadEditor.load(text)
   api.nvim_buf_set_lines(0, 0, -1, true, vim.split(text, '\n', {plain = true}))
   local lines = api.nvim_buf_get_lines(0, 0, -1, true)
   api.nvim_win_set_cursor(0, {#lines, #lines[#lines]})
+end
+function ToadEditor.insert(lines, position, maintain_offset)
+  position = position or api.nvim_win_get_cursor(0)
+  return ToadEditor.replace(position[1] - 1, position[2], position[1] - 1,
+                            position[2], lines, maintain_offset)
 end
 function ToadEditor.replace(top, top_byte, bottom, bottom_byte, lines, maintain_offset)
   local cursor = api.nvim_win_get_cursor(0)
