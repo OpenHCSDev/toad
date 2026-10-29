@@ -46,12 +46,13 @@ class MemberNotChosen(ValueError):
 class UnchosenMemberDraft(MemberDraft):
     refusal = MemberNotChosen
 
-    def __init__(self) -> None:
+    def __init__(self, declaration: object) -> None:
+        self._declaration = declaration
         self.state = ObjectState(make_dataclass('UnchosenMember', [])())
 
     @property
     def declaration(self) -> object:
-        return None
+        return self._declaration
 
     def complete(self) -> object:
         raise MemberNotChosen('Choose a member')

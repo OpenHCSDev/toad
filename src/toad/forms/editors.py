@@ -365,8 +365,7 @@ class UnionEditor(ValueEditor, Button):
         self.paint()
 
     def value_text(self, value: object) -> str:
-        selected = self.members.selected(value)
-        return 'Choose a member…' if selected is None else self.members.label(selected)
+        return self.members.label(self.members.selected(value))
 
     def paint(self) -> None:
         self.label = self.value_text(self.field.value)
@@ -409,8 +408,7 @@ class UnionMemberDialog(ModalScreen[None]):
         choice = members.selected(field.value)
         self.selector = Select(
             [(members.label(member), member) for member in members.choices()],
-            value=Select.NULL if choice is None else choice,
-            allow_blank=choice is None, id='union-member',
+            value=choice, allow_blank=False, id='union-member',
         )
         self.draft = members.draft(choice, field.value)
         self.form = InlineFormView(self.draft.state)
@@ -453,7 +451,7 @@ class UnionMemberDialog(ModalScreen[None]):
         from toad.forms.form_view import InlineFormView
 
         event.stop()
-        if event.value is Select.NULL or event.value is self.draft.declaration:
+        if event.value is self.draft.declaration:
             return
         self.apply_button.disabled = True
         self.draft.state.off_resolved_changed(self.changed)
