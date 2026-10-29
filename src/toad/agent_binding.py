@@ -12,9 +12,9 @@ from agent_comms.goal_history import RecordedGoalHistory
 from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
-from toad.acp.agent_session import UnopenedSessionDisposition
+from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
-from toad.input_decision import InputDecision, NoLiveAgent
+from toad.input_decision import InputAccepted, InputDecision, NoLiveAgent
 from toad.widgets.committed_presentation import CommitSource
 
 if TYPE_CHECKING:
@@ -37,10 +37,16 @@ if TYPE_CHECKING:
 class AgentConnection(ABC):
     configuration: AgentConfiguration
     presentation: AgentPresentation
+    ready: bool
+    session_disposition: SessionDisposition
 
     @property
-    @abstractmethod
-    def readiness_decision(self) -> InputDecision: ...
+    def readiness_refusal(self) -> NoLiveAgent:
+        return NoLiveAgent(self.session_disposition)
+
+    @property
+    def readiness_decision(self) -> InputDecision:
+        return InputAccepted() if self.ready else self.readiness_refusal
 
     @property
     def committed_native_output(self) -> CommitSource:
@@ -100,10 +106,6 @@ class NoAgentConnection(AgentConnection):
     available_modes = ()
     current_mode = None
     session_disposition = UnopenedSessionDisposition()
-
-    @property
-    def readiness_decision(self) -> NoLiveAgent:
-        return NoLiveAgent(self.session_disposition)
 
     @cached_property
     def presentation(self):
@@ -171,7 +173,7 @@ class NoAgentConnection(AgentConnection):
         """No native turn exists to cancel."""
 
     def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission):
-        return owner.unbound(submission)
+        return owner.unbound(submission, self.readiness_refusal)
 
     def accepts_failed_input(self, message: CoreEventMessage) -> bool:
         return False
