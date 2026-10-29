@@ -8,10 +8,11 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from textual.content import Content
+from textual.keys import Keys
 from textual.widgets.text_area import Selection
 
 if TYPE_CHECKING:
-    from textual.document._editing import EditingMode, LineMotion, VimNormal
+    from textual.document._editing import EditingMode
     from toad.slash_command import SlashCommand
     from toad.widgets.prompt import PromptTextArea
 
@@ -81,6 +82,7 @@ class DeclaredCommandText(CommandText):
 
 class HistoryCursor(DeclaredFamily, affix="Cursor"):
     direction: int
+    key: Keys
 
     @classmethod
     @abstractmethod
@@ -103,16 +105,14 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
             ordinary(select)
 
     @classmethod
-    def move_motion(cls, editor: PromptTextArea, mode: VimNormal, motion: type[LineMotion]) -> bool:
-        # Direction is the native vertical displacement, not a mode/key name.
-        # New counted vertical motions borrow the same two history boundaries.
-        cursor = next(cursor for cursor in cls.members_with(cls)
-                      if cursor.direction == motion.direction)
-        return cursor.try_move(editor, False, mode)
+    def try_input(cls, editor: PromptTextArea, key: str) -> bool:
+        return any(cursor.try_move(editor, False, editor.editing_mode)
+                   for cursor in cls.members_with(cls) if cursor.key.value == key)
 
 
 class PreviousHistoryCursor(HistoryCursor):
     direction = -1
+    key = Keys.Up
 
     @classmethod
     def at_edge(cls, editor):
@@ -121,6 +121,7 @@ class PreviousHistoryCursor(HistoryCursor):
 
 class NextHistoryCursor(HistoryCursor):
     direction = 1
+    key = Keys.Down
 
     @classmethod
     def at_edge(cls, editor):

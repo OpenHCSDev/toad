@@ -62,10 +62,10 @@ class SessionViewState:
         conversation.visible_categories = self.visible_categories
         conversation.window.reader_position = self.reader_position
 
-    def restore(self, conversation: Conversation) -> None:
+    async def restore(self, conversation: Conversation) -> None:
         conversation.input_histories = self.input_histories
         editor = conversation.prompt.prompt_text_area
-        editor.restore_editor_state(self.editor)
+        await editor.restore_editor_state(self.editor)
         editor.shell_mode = self.shell_mode
 
 
@@ -381,7 +381,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.state.prepare_transcript(conversation)
         await self.transcript.bind(conversation).restore_documents(self.transcript)
         if self.state is not None:
-            self.state.restore(conversation)
+            await self.state.restore(conversation)
             self.state = None
         await self.attach_binding(conversation)
         await self.transcript.bind(conversation).restore(self.transcript)
@@ -390,6 +390,8 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation.prompt.focus()
 
     async def close(self, screen: MainScreen) -> None:
+        if self.state is not None:
+            await self.state.editor.editing_mode.close()
         self.state = None
         async with AsyncResourceRelease() as release:
             release.push_async_callback(self.sources.close)
@@ -400,6 +402,8 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         """Release the owned native tree while retaining its actual editor resource."""
         if (conversation := self.widget) is None:
             return
+        editor = conversation.prompt.prompt_text_area
+        await editor.editing_mode.flush(editor)
         self.state = SessionViewState.capture(conversation)
         await self.remove_native_tree()
 

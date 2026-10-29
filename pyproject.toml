@@ -33,6 +33,7 @@ dependencies = [
     "ui-theme",
     "formbridge==0.2.0",
     "objectstate==5.0.0",
+    "msgpack==1.2.2",
 ]
 
 [tool.uv.workspace]
