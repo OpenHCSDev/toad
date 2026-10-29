@@ -25,6 +25,17 @@ def test_saved_remaps_keep_modes_independent_and_reset_to_the_declaration():
         loaded.changed(KeymapRow.of(CommanderAction(), VimNormal), ("f7",))
 
 
+def test_an_empty_override_unbinds_and_survives_saving_until_reset():
+    catalog = KeymapCatalog.capture(KeyMode.members_with(KeyMode))
+    menu = KeymapRow.of(KeymapAction(), Standard)
+    settings = SavedSettings()
+    settings.set(SETTINGS.ui.keymap.bindings, Keymap().changed(menu, ()).bindings)
+    loaded = SavedSettings(settings.document()).current.ui.keymap
+    assert catalog.effective(menu, loaded) == ()
+    assert loaded.native() == {menu.binding_id: ""}
+    assert catalog.effective(menu, loaded.reset(menu)) == catalog.defaults(menu)
+
+
 def test_defaults_allow_the_declared_alternatives_in_every_mode():
     for mode in KeyMode.members_with(KeyMode):
         assert not Keymap().conflicts(mode)

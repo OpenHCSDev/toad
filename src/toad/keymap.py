@@ -171,8 +171,7 @@ class Keymap:
         return next((remap.keys for remap in self.bindings if remap.binding_id == row.binding_id), defaults)
 
     def changed(self, row: KeymapRow, keys: tuple[str, ...]) -> Keymap:
-        if not keys:
-            raise KeymapRefused("Enter a key, or use Reset to restore the defaults.")
+        """No keys is an explicit unbinding, kept as its own override; Reset restores the defaults."""
         bindings = tuple(remap for remap in self.bindings if remap.binding_id != row.binding_id)
         candidate = replace(self, bindings=(*bindings, KeyRemap(row.declaration, row.mode, keys)))
         return self.checked(candidate, row.mode)
