@@ -124,9 +124,17 @@ def publish(path, value):
         raise ValueError('Manifest exceeds reserved metadata bound')
     partial = path.with_name(path.name + '.partial')
     fd = os.open(partial, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, 'wb') as file:
-        file.write(data)
-    os.rename(partial, path)
+    # Only successful exclusive creation grants this attempt cleanup ownership.
+    try:
+        with os.fdopen(fd, 'wb') as file:
+            file.write(data)
+        os.rename(partial, path)
+    except BaseException as error:
+        try:
+            partial.unlink(missing_ok=True)
+        except BaseException as cleanup_error:
+            raise error from cleanup_error
+        raise
 
 
 def require_identity(request):
