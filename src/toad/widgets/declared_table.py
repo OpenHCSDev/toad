@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from dataclasses import dataclass
+
 from agent_comms.disclosure_text import ViewTable
 from textual.content import Content
 from textual.style import Style
@@ -11,6 +15,47 @@ from ui_theme.scheme import ForegroundColour, ThemeColour
 
 from toad.widget_actions import MovesCursor, OpensSelected
 from toad.widgets.declared_disclosure import AnonymousKey, DisclosureKey, DisclosedValue
+
+
+@dataclass(frozen=True)
+class TableSelection[R](ABC):
+    """Absent or present original record, never a native row key or a reader request."""
+
+    @property
+    @abstractmethod
+    def records(self) -> tuple[R, ...]: ...
+
+    @property
+    def key(self) -> DisclosureKey:
+        return AnonymousKey()
+
+    @classmethod
+    def from_records(cls, records: Iterable[R], *preferred: DisclosureKey) -> TableSelection[R]:
+        """Resolve semantic preferences against actual records, otherwise take the first."""
+        choices = tuple(SelectedTableRecord(record) for record in records)
+        empty: TableSelection[R] = EmptyTableSelection()
+        return next((choice for key in preferred for choice in choices if choice.key == key),
+                    next(iter(choices), empty))
+
+
+@dataclass(frozen=True)
+class EmptyTableSelection[R](TableSelection[R]):
+    @property
+    def records(self) -> tuple[R, ...]:
+        return ()
+
+
+@dataclass(frozen=True)
+class SelectedTableRecord[R](TableSelection[R]):
+    record: R
+
+    @property
+    def records(self) -> tuple[R, ...]:
+        return (self.record,)
+
+    @property
+    def key(self) -> DisclosureKey:
+        return DisclosedValue.of(self.record).sequence_key()
 
 
 class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
@@ -33,65 +78,73 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
         return ForegroundColour
 
     def selection_changed(self) -> None:
-        """A table with a detail pane owns what highlighting a native row does."""
+        """The actual selected source record changed during reconciliation."""
 
-    def preferred_entity(self) -> DisclosureKey:
-        """A shared reader may retain its selection when a record moves between tables."""
-        return AnonymousKey()
+    def selection_highlighted(self) -> None:
+        """Native navigation may intentionally choose a different semantic record."""
+        self.selection_changed()
+
+    def preferred_selection(self) -> TableSelection[R]:
+        """A shared reader may retain its record when it moves between tables."""
+        return self.selected
 
     @property
-    def selected_key(self) -> RowKey | None:
+    def selected(self) -> TableSelection[R]:
         if not self.row_count:
-            return None
-        return self.coordinate_to_cell_key(self.cursor_coordinate).row_key
-
-    @property
-    def selected(self) -> R | None:
-        key = self.selected_key
-        return None if key is None else self.records.get(key)
+            return EmptyTableSelection()
+        key = self.coordinate_to_cell_key(self.cursor_coordinate).row_key
+        return SelectedTableRecord(self.records[key])
 
     def reconcile_source(self) -> None:
-        selected, previous = self.selected_key, self.selected
+        previous = self.selected
         offset = self.scroll_offset
         entities = {DisclosedValue.of(record).sequence_key(): record
                     for record in self.source.records}
         if len(entities) != len(self.source.records):
             raise ValueError("A declared table requires unique record identities")
-        keys = {entity: self.entity_keys.get(entity, RowKey()) for entity in entities}
-        selected = keys.get(self.preferred_entity(), selected)
-        incoming = {keys[entity]: record for entity, record in entities.items()}
+        selected = TableSelection[R].from_records(
+            entities.values(), self.preferred_selection().key, previous.key,
+        )
         available = self.size.width - self.scrollbar_size_vertical
         layout = self.source.layout(available - self.cell_padding * 2 * len(self.source.columns))
         widths = layout.widths(max(1, available - self.cell_padding * 2 * len(layout.columns)))
         self.show_header = layout.show_header
         rows = []
-        for record, texts in zip(incoming.values(), layout.texts):
+        for record, texts in zip(entities.values(), layout.texts):
             colour = self.app.colours.colour(self.row_tone(record))
             style = Style(background=colour, foreground=colour.get_contrast_text())
             rows.append(tuple(Content(text).stylize(style) for text in texts))
         columns_changed = tuple((column.key.value, column.width) for column in self.ordered_columns) != tuple(
             (column.name, width) for column, width in zip(layout.columns, widths)
         )
-        same_rows = (tuple(row.key for row in self.ordered_rows) == tuple(incoming)
-                     and tuple(tuple(self.get_row(key)) for key in incoming) == tuple(rows))
-        self.records, self.entity_keys = incoming, keys
-        if same_rows and not columns_changed:
-            return
-        # Public clear/add owns auto-height remeasurement and native row ordering.
-        # Retain row keys, cursor and scroll rather than mutating Textual's caches.
+        same_rows = (tuple(self.entity_keys) == tuple(entities)
+                     and tuple(row.key for row in self.ordered_rows) == tuple(self.entity_keys.values())
+                     and tuple(tuple(self.get_row(key)) for key in self.entity_keys.values()) == tuple(rows))
         with self.prevent(DataTable.RowHighlighted):
-            self.clear(columns=columns_changed)
-            if columns_changed:
-                for column, width in zip(layout.columns, widths):
-                    self.add_column(column.label, key=column.name, width=width)
-            for key, cells in zip(incoming, rows):
-                self.add_row(*cells, key=key, height=None)
-            if selected in incoming:
-                self.move_cursor(row=self.get_row_index(selected), animate=False, scroll=False)
-            elif incoming:
-                self.move_cursor(row=min(self.cursor_row, len(incoming) - 1), animate=False, scroll=False)
-            self.scroll_to(x=offset.x, y=offset.y, animate=False, force=True)
-        if not same_rows and self.selected != previous:
+            if same_rows and not columns_changed:
+                # The actual record can change while every painted cell stays equal.
+                self.records = {self.entity_keys[entity]: record for entity, record in entities.items()}
+            else:
+                # Anonymous keys are allocated by add_row, never invented beside it.
+                # Rebuild both maps from the returned keys, retaining semantic identity.
+                self.clear(columns=columns_changed)
+                if columns_changed:
+                    for column, width in zip(layout.columns, widths):
+                        self.add_column(column.label, key=column.name, width=width)
+                records: dict[RowKey, R] = {}
+                keys: dict[DisclosureKey, RowKey] = {}
+                for (entity, record), cells in zip(entities.items(), rows):
+                    native = self.add_row(
+                        *cells, height=None,
+                        key=self.entity_keys[entity].value if entity in self.entity_keys else None,
+                    )
+                    records[native], keys[entity] = record, native
+                self.records, self.entity_keys = records, keys
+                self.scroll_to(x=offset.x, y=offset.y, animate=False, force=True)
+            for record in selected.records:
+                key = self.entity_keys[DisclosedValue.of(record).sequence_key()]
+                self.move_cursor(row=self.get_row_index(key), animate=False, scroll=False)
+        if self.selected != previous:
             self.selection_changed()
 
     def on_resize(self) -> None:
@@ -99,11 +152,11 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
         event.stop()
-        self.selection_changed()
+        self.selection_highlighted()
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         event.stop()
-        self.selection_changed()
+        self.selection_highlighted()
 
     def cursor_up(self) -> None:
         DataTable.action_cursor_up(self)

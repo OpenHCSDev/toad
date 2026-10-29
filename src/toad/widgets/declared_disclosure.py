@@ -8,7 +8,7 @@ from functools import singledispatchmethod
 from typing import Hashable
 
 from agent_comms.disclosure_text import (
-    ClassText, DisclosureText, IdentifiedRecordText,
+    DisclosureText, IdentifiedRecordText,
     MappingText, RecordText, SequenceText,
 )
 from agent_comms.field_codec import FieldCodec
@@ -68,11 +68,6 @@ class DisclosedValue:
         """Adapt Core's decoded shape; never rediscover the original value's shape."""
         return cls(source)
 
-    @from_text.register(ClassText)
-    @classmethod
-    def _class(cls, source: ClassText) -> DisclosedValue:
-        return ClassValue(source)
-
     @from_text.register(RecordText)
     @classmethod
     def _record(cls, source: RecordText) -> DisclosedValue:
@@ -99,23 +94,10 @@ class DisclosedValue:
     def identity_part(self) -> object:
         return self.source.value
 
-    def summary(self, width: int | None = None) -> str:
-        return self.source.summary(width)
-
     def show(self, view: DeclaredDisclosure) -> None:
         view.body.display = True
         view.members.display = False
-        view.body.update(str(self.source.value))
-
-
-@dataclass(frozen=True)
-class ClassValue(DisclosedValue):
-    source: ClassText
-
-    def show(self, view: DeclaredDisclosure) -> None:
-        view.body.display = True
-        view.members.display = False
-        view.body.update(self.summary())
+        view.body.update(self.source.summary())
 
 
 class StructuredValue(DisclosedValue, ABC):
@@ -230,7 +212,7 @@ class DeclaredDisclosure(KeyedRows[DisclosureKey], Collapsible):
 
     def fit_title(self) -> None:
         width = max(1, self.size.width - 2)
-        title = Content(f"{self.entry.label[:width]}: {self.entry.value.summary(width)}")
+        title = Content(f"{self.entry.label[:width]}: {self.entry.value.source.summary(width)}")
         self.title = title.truncate(width, ellipsis=True)
 
     def on_resize(self, event: events.Resize) -> None:

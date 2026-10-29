@@ -34,9 +34,9 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction
 from toad.widgets.declared_disclosure import (
-    DeclaredDisclosure, DisclosureEntry, DisclosureKey, DisclosedValue, RootKey,
+    DeclaredDisclosure, DisclosureEntry, DisclosedValue, RootKey,
 )
-from toad.widgets.declared_table import DeclaredTable
+from toad.widgets.declared_table import DeclaredTable, EmptyTableSelection, TableSelection
 from toad.widgets.sidebar_tree import KeyedRows
 
 
@@ -75,25 +75,27 @@ class UnitTone(MroDispatch):
 
 class CommanderTable(DeclaredTable[HudRecord]):
     class Selected(Message):
-        def __init__(self, record: HudRecord | None) -> None:
-            self.record = record
+        def __init__(self, selection: TableSelection[HudRecord]) -> None:
+            self.selection = selection
             super().__init__()
 
     def row_tone(self, record: HudRecord) -> type[ThemeColour]:
         return UnitTone.of(record.hud_group.tone)
 
-    def preferred_entity(self) -> DisclosureKey:
-        return self.query_ancestor(CommanderFrameView).selection_key
+    def preferred_selection(self) -> TableSelection[HudRecord]:
+        return self.query_ancestor(CommanderFrameView).selected
 
     def selection_changed(self) -> None:
         frame = self.query_ancestor(CommanderFrameView)
-        record = self.selected
-        key = DisclosedValue.of(record).sequence_key()
-        if self.has_focus or key == frame.selection_key:
-            self.post_message(self.Selected(record))
+        selection = self.selected
+        if selection.key == frame.selected.key:
+            self.post_message(self.Selected(selection))
+
+    def selection_highlighted(self) -> None:
+        self.post_message(self.Selected(self.selected))
 
 
-class CommanderGroup(KeyedRows[type[HudRecord]], VerticalGroup):
+class CommanderGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
     """One native band really contains its rows, including ready unheld plan phases."""
 
     def __init__(self, section: HudSection) -> None:
@@ -137,7 +139,7 @@ class CommanderGroup(KeyedRows[type[HudRecord]], VerticalGroup):
         self.reconcile_keys(keys, changed=frozenset(keys))
 
 
-class CommanderAlarm(Collapsible):
+class CommanderAlarm(ToadNode, Collapsible):
     """Core's compact section stays visible; expansion reveals every original record."""
 
     DEFAULT_CSS = """
@@ -163,9 +165,10 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
 
     def __init__(self, commander: ThreadIncarnation) -> None:
         self.commander = commander
-        self.card: HudRecord | None = None
-        self.status = Static("Highlight a record to read its original details.", markup=False)
+        self.selection: TableSelection[HudRecord] = EmptyTableSelection()
+        self.status = Static("No records match the filter.", markup=False)
         self.original = VerticalGroup()
+        self.original.display = False
         super().__init__(classes="hud-detail")
 
     def compose(self) -> ComposeResult:
@@ -173,16 +176,16 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
         yield Button("Refresh original details", classes="refresh-unit", compact=True)
         yield self.original
 
-    def present(self, card: HudRecord | None) -> None:
-        if self.card == card:
+    def present(self, selection: TableSelection[HudRecord]) -> None:
+        if self.selection == selection:
             return
-        self.card = card
-        self.read_detail()
+        self.selection = selection
+        self.read_detail(selection)
 
     @on(Button.Pressed, ".refresh-unit")
     def refresh_detail(self, event: Button.Pressed) -> None:
         event.stop()
-        self.read_detail()
+        self.read_detail(self.selection)
 
     @handles(HudRecord)
     async def record_detail(self, card: HudRecord) -> object:
@@ -197,31 +200,29 @@ class CommanderDetails(MroDispatch, ToadNode, VerticalGroup):
         ))
 
     @work(exclusive=True, group="commander-detail")
-    async def read_detail(self) -> None:
-        card = self.card
+    async def read_detail(self, selection: TableSelection[HudRecord]) -> None:
         self.original.display = False
-        if card is None:
-            self.status.update("No records match the filter.")
-            return
-        label = DisclosedValue.of(card).summary()
-        self.status.update(f"Reading original records for {label}…")
-        try:
-            detail = await type(self).handler_for(type(card))(self, card)
-        except (DeferredRead, RelationViolationError, RouteChangedError, ToolRefusedError,
-                UnreadableHistory, WorkBranchError) as error:
-            if self.is_attached and self.card == card:
-                self.status.update(f"Original details unavailable: {error}")
-            return
-        if not self.is_attached or self.card != card:
-            return
-        entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosedValue.of(detail))
-        for view in self.original.query_children(DeclaredDisclosure):
-            view.present(entry)
-            break
-        else:
-            self.original.mount(DeclaredDisclosure(entry))
-        self.original.display = True
-        self.status.update("Original records; unit activity is bounded by Core.")
+        self.status.update("No records match the filter.")
+        for card in selection.records:
+            label = DisclosedValue.of(card).source.summary()
+            self.status.update(f"Reading original records for {label}…")
+            try:
+                detail = await type(self).handler_for(type(card))(self, card)
+            except (DeferredRead, RelationViolationError, RouteChangedError, ToolRefusedError,
+                    UnreadableHistory, WorkBranchError) as error:
+                if self.is_attached and self.selection == selection:
+                    self.status.update(f"Original details unavailable: {error}")
+                return
+            if not self.is_attached or self.selection != selection:
+                return
+            entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosedValue.of(detail))
+            for view in self.original.query_children(DeclaredDisclosure):
+                view.present(entry)
+                break
+            else:
+                self.original.mount(DeclaredDisclosure(entry))
+            self.original.display = True
+            self.status.update("Original records; unit activity is bounded by Core.")
 
     def on_unmount(self) -> None:
         self.workers.cancel_group(self, "commander-detail")
@@ -243,7 +244,9 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
 
     def __init__(self, hud: CommanderHud) -> None:
         self.hud = hud
-        self.selected = next((record for section in hud.groups() for record in section.records), None)
+        self.selected = TableSelection[HudRecord].from_records(
+            record for section in hud.groups() for record in section.records
+        )
         self.heading = Static("", markup=False, classes="hud-commander")
         self.status = Static("", markup=False, classes="hud-load")
         self.groups = VerticalGroup()
@@ -263,10 +266,6 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         yield self.groups
         yield from self.alarms.values()
         yield self.details
-
-    @property
-    def selection_key(self) -> DisclosureKey:
-        return DisclosedValue.of(self.selected).sequence_key()
 
     @property
     def sections(self) -> dict[type[HudGroup], HudSection]:
@@ -300,14 +299,25 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     @on(CommanderTable.Selected)
     def highlight_record(self, event: CommanderTable.Selected) -> None:
         event.stop()
-        self.selected = event.record
-        self.details.present(event.record)
+        self.selected = TableSelection[HudRecord].from_records(
+            (record for section in self.sections.values() for record in section.records),
+            event.selection.key,
+        )
+        self.details.present(self.selected)
 
     def present(self, hud: CommanderHud) -> None:
         self.hud = hud
         self.call_after_refresh(self.render_frame)
 
+    def focus_selection(self) -> None:
+        for table in self.query(CommanderTable):
+            if any(DisclosedValue.of(record).sequence_key() == self.selected.key
+                   for record in table.source.records):
+                table.focus(scroll_visible=False)
+                break
+
     def render_frame(self) -> None:
+        focused = any(table.has_focus for table in self.query(CommanderTable))
         self.heading.update(f"Commander {self.hud.commander.name}")
         now = time.time()
         self.status.update(self.hud.status_strip(now))
@@ -316,12 +326,15 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         for section in self.hud.alarms:
             self.alarms[section.group].present(section, now)
         sections = self.sections
-        records = {DisclosedValue.of(record).sequence_key(): record
-                   for section in sections.values() for record in section.records}
-        self.selected = records.get(self.selection_key, next(iter(records.values()), None))
+        self.selected = TableSelection[HudRecord].from_records(
+            (record for section in sections.values() for record in section.records),
+            self.selected.key,
+        )
         self.details.present(self.selected)
         keys = tuple(sections)
         self.reconcile_keys(keys, changed=frozenset(keys))
+        if focused:
+            self.call_after_refresh(self.focus_selection)
 
 
 class CommanderPage(KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None]):
