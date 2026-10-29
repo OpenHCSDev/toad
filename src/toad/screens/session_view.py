@@ -1,7 +1,6 @@
 """Logical session surfaces hosted by the one native WorkspaceScreen."""
 
 from textual.containers import Vertical
-from textual.geometry import Region
 from textual.reactive import reactive
 from contextlib import contextmanager
 from metaclass_registry.mro_dispatch import handles
@@ -73,16 +72,6 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
 
     async def wait_content_ready(self) -> None:
         """A view composed with its content is ready once mounted; loading views override this."""
-
-    def message_region(self) -> Region | None:
-        """The scrolling message viewport of this view's conversation, in screen cells;
-        none before its conversation mounts, and none in views without one."""
-        from toad.widgets.conversation import Conversation
-
-        conversation = self.query_one_optional(Conversation)
-        if conversation is None or not conversation.is_mounted:
-            return None
-        return conversation.window.scrollable_content_region
 
     def history_painted(self) -> None:
         """Only the session on screen reads what it painted; hidden tabs stay unread."""

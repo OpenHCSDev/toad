@@ -24,6 +24,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated
 from toad.large_text import LargeText
 from toad.app_node import ToadNode
+from toad.widgets.conversation import Conversation
 
 if TYPE_CHECKING:
     from textual._paint_state import PaintState
@@ -85,8 +86,8 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         self.lines: tuple[str, ...] = ()
         # The message viewport it was last fitted to, and where it sits in it, in screen cells.
         self.area = self.placed = Region()
-        # The session whose messages it was last shown over; read only while it shows.
-        self.over: SessionView | None = None
+        # The session whose messages it was last shown over.
+        self.over: tuple[SessionView, ...] = ()
         self.display = False
 
     def on_mount(self) -> None:
@@ -102,19 +103,20 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         """Every choice retires the name over the departing view; a workspace session (DM or
         channel) names itself once its messages are ready. The store has no session view."""
         self.retire()
-        if (view := self.app.workspace_sessions.views.get(event.mode_name)) is not None:
+        views = self.app.workspace_sessions.views
+        if event.mode_name in views:
             # Exclusive: a later choice cancels this wait. A view whose content failed
             # shows its own failure and gets no name over it.
-            self.run_worker(self.show_ready(view, event.mode_name), group="switch-toast",
-                            exclusive=True, exit_on_error=False)
+            self.run_worker(self.show_ready(views[event.mode_name], event.mode_name),
+                            group="switch-toast", exclusive=True, exit_on_error=False)
 
     async def show_ready(self, view: SessionView, mode_name: str) -> None:
         await view.wait_content_ready()
         if not self.app.workspace_sessions.source.shown(view):
             return
         titles = {tab.mode_name: tab.title for tab in self.app.open_tabs}
-        if mode_name in titles and (area := self.viewport(view)) is not None:
-            self.over = view
+        for area in self.viewport(view)[:1] if mode_name in titles else ():
+            self.over = (view,)
             self.show(titles[mode_name], area)
 
     @classmethod
@@ -139,11 +141,12 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         width, height = self.framed(max(map(cell_len, self.lines)), len(self.lines))
         return min(width, self.room(self.area)), height
 
-    def viewport(self, view: SessionView) -> Region | None:
-        """The view's scrolling message viewport in screen cells; none without a conversation,
-        or when it cannot contain even a one-cell, one-row framed name."""
-        region = view.message_region()
-        return region if region is not None and self.holds(region, 1, 1) else None
+    def viewport(self, view: SessionView) -> tuple[Region, ...]:
+        """The view's scrolling message viewport in screen cells; none in a view without a
+        conversation, or one that cannot contain even a one-cell, one-row framed name."""
+        return tuple(region for conversation in view.query(Conversation)
+                     for region in (conversation.window.scrollable_content_region,)
+                     if self.holds(region, 1, 1))
 
     def show(self, title: str, area: Region) -> None:
         self.title = title
@@ -175,10 +178,11 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         """A layout that moves the viewport while the name shows refits it, without restarting its swell."""
         if not self.display:
             return
-        if not self.app.workspace_sessions.source.shown(self.over) or (
-                area := self.viewport(self.over)) is None:
+        source = self.app.workspace_sessions.source
+        areas = tuple(area for view in self.over if source.shown(view) for area in self.viewport(view))
+        if not areas:
             self.retire()
-        elif self.fit(area):
+        elif self.fit(areas[0]):
             self.refresh(layout=True)
 
     def on_show(self) -> None:
