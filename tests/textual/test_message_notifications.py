@@ -35,7 +35,7 @@ class Notifications:
         view = chat.message_history.notification_view
         access = ui.app.coordination_access
         request = access.notification_views[view]
-        outcomes = self.answer(request.references)
+        outcomes = self.answer(request.operation.references)
         expected, = CheckedNotifications.for_references(
             chat.message_history.visible_fragments()[-1].notification_references, outcomes)
         access.notifications_observed(NotificationsObserved(access.revision, request, outcomes), access.observation.observed())
@@ -88,8 +88,8 @@ async def test_visible_references_are_bounded_and_typed_outcomes_paint_their_det
         request = ui.app.coordination_access.notification_views[history.notification_view]
         on_screen = {reference for fragment in history.visible_fragments()
                      for reference in fragment.notification_references}
-        assert 0 < len(request.references) <= len(on_screen) < 30
-        assert set(request.references) <= on_screen
+        assert 0 < len(request.operation.references) <= len(on_screen) < 30
+        assert set(request.operation.references) <= on_screen
         await notifications.publish(ui, chat)
         await ui.until_shows(newest_status(chat).title)
         assert newest_status(chat).working
@@ -144,7 +144,7 @@ async def test_a_hidden_view_unsubscribes_and_discards_a_late_reply(workspace):
         await ui.select_tab(owner)
         assert view not in ui.app.coordination_access.notification_views
         notifications.state = CompletedProgress(ShownToModelProgress(0))
-        view.notifications_observed(notifications.answer(request.references))
+        view.notifications_observed(notifications.answer(request.operation.references))
         await ui.step()
         assert view not in ui.app.coordination_access.notification_views
         assert {fragment.message.reference: fragment.shown.status
