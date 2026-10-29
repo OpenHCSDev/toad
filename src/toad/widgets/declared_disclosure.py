@@ -139,10 +139,11 @@ class IdentifiedRecordValue(RecordValue):
 @dataclass(frozen=True)
 class CollectionValue(StructuredValue):
     value: Collection[object]
-    noun: ClassVar[str] = "items"
+    noun: ClassVar[str] = "item"
 
     def summary(self, width: int) -> str:
-        return f"{len(self.value)} {self.noun}"
+        count = len(self.value)
+        return f"{count} {self.noun}{'s' if count != 1 else ''}"
 
 
 @dataclass(frozen=True)
@@ -160,7 +161,7 @@ class SequenceValue(CollectionValue):
 @dataclass(frozen=True)
 class MappingValue(CollectionValue):
     value: Mapping[Hashable, object]
-    noun = "fields"
+    noun = "field"
 
     def children(self) -> tuple[DisclosureEntry, ...]:
         return tuple(
@@ -210,7 +211,10 @@ class DeclaredDisclosure(KeyedRows[DisclosureKey], Collapsible):
 
     def reconcile_entries(self, entries: tuple[DisclosureEntry, ...]) -> None:
         # Reconciliation borrows the immediate declarations only for this call.
-        self.pending_entries = {entry.key: entry for entry in entries}
+        by_key = {entry.key: entry for entry in entries}
+        if len(by_key) != len(entries):
+            raise ValueError(f"Repeated declared identity in {self.entry.label}")
+        self.pending_entries = by_key
         try:
             self.reconcile_keys(tuple(self.pending_entries), changed=frozenset(self.pending_entries))
         finally:
