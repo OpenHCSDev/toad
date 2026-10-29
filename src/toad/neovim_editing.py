@@ -784,7 +784,8 @@ class NeovimEditing(VimMode):
     def engine_boundary(self, boundary: int, display: NeovimDisplay) -> bool:
         if not 0 <= boundary < len(self._boundaries):
             raise NeovimWireFailure("Unknown Neovim cursor boundary")
-        self.accept_display(display)
+        # A mapping's in-command view cannot certify SafeState completion.
+        self._publish(NeovimSnapshot(self.snapshot.state.update(display)))
         self._receiver.visit(self.render)
         return self._receiver.boundary(self._boundaries[boundary])
 
