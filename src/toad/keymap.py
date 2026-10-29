@@ -113,7 +113,7 @@ class KeymapCatalog:
                                 for binding in declaration.exclusive_bindings(native_mode))
             owned = [application]
             for owner in DOMNode.contexts():
-                defaults = owner.declared_bindings(native_mode)
+                defaults = tuple(binding for _, binding in owner.binding_defaults(native_mode))
                 if not issubclass(owner, ModalScreen):
                     defaults = (*defaults, *application)
                 owned.append(defaults)

@@ -7,7 +7,6 @@ from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.keys import KeyInvocation
 from textual.widgets import Button, Checkbox, DataTable, Input, Static
 from textual.document._editing import EditingMode
 
@@ -70,7 +69,8 @@ class KeymapScreen(DismissibleScreen[None]):
         table.clear()
         focused_only = self.query_one("#keymap-focused", Checkbox).value
         self.visible_declarations = tuple(declaration for declaration in self.declarations
-                             if (not focused_only or KeyInvocation.in_mode(declaration, self.focus_mode) in self.focused_ids)
+                             if (not focused_only or self.catalog.require(declaration).visible_for_focus(
+                                 self.focus_mode, self.focused_ids))
                              and term.casefold() in (self.catalog.require(declaration).key_title() + " "
                                                     + self.catalog.require(declaration).key_summary()).casefold())
         keymap = self.app.settings.ui.keymap
@@ -78,7 +78,8 @@ class KeymapScreen(DismissibleScreen[None]):
                      for row in (conflict.first, conflict.second)}
         for declaration in self.visible_declarations:
             title = Text(self.catalog.require(declaration).key_title(),
-                         style="" if KeyInvocation.in_mode(declaration, self.focus_mode) in self.focused_ids else "dim")
+                         style="" if self.catalog.require(declaration).visible_for_focus(
+                             self.focus_mode, self.focused_ids) else "dim")
             table.add_row(title, *(Text(", ".join(self.catalog.effective(row, keymap)) or "—",
                                             style="bold red" if row.binding_id in conflicts else "")
                                    for mode in self.modes for row in (KeymapRow(declaration, mode),)))
