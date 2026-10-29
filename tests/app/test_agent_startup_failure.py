@@ -9,7 +9,7 @@ from support.agents import command, peer
 async def test_a_process_that_exits_during_startup_is_reported(workspace):
     agent = command(sys.executable, "-c", "import sys; sys.stdin.readline()  # exits_during_startup")
     async with workspace.app(size=(139, 25), binding=AgentAttached(agent)) as ui:
-        await ui.until_shows("ACP process closed", seconds=20)
+        await ui.until_shows("ACP session startup failed", seconds=20)
         assert not ui.agent_ready()
         await ui.until(lambda: not workspace.child_processes("exits_during_startup"), why="the agent process to be gone")
 
