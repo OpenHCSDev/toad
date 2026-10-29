@@ -38,6 +38,7 @@ from toad.core import input_events
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver
 from toad.input_decision import InputAccepted, InputDecision
+from toad.key_modes import Standard
 from toad.tone_paint import TonePaint
 from toad.path_complete import PathComplete
 from toad.prompt_actions import PromptAction, SubmitNowAction
@@ -274,8 +275,12 @@ See on-screen instructions for details.
         self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
     def show_editing_mode(self, mode: EditingMode) -> None:
+        """Away from the box the Standard keys are in force, so the label says STANDARD."""
         if self.is_mounted:
-            self.prompt.editing_mode_label.update(mode.label)
+            self.prompt.editing_mode_label.update((mode if self.has_focus else Standard()).label)
+
+    def watch_has_focus(self, focus: bool) -> None:
+        self.show_editing_mode(self.editing_mode)
 
     def apply_keyboard_profile(self) -> None:
         self.editing_mode = self.screen.key_mode()
