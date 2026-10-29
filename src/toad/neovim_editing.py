@@ -10,12 +10,11 @@ from functools import cached_property
 from importlib.resources import files
 from itertools import count
 from typing import ClassVar
-from weakref import ref
 
 import msgpack
 from agent_comms.child_process import AttachedChild, join_retirement
 from agent_comms.declared_family import DeclaredFamily, UnknownFamilyMember
-from agent_comms.field_codec import FieldCodec, MalformedRecord
+from agent_comms.field_codec import FieldCodec, MalformedRecord, NullMember, SingleFieldValue, SubclassUnion, boundary_decoder
 from textual.binding import Binding
 from textual.cursor_shape import BlinkingBar, CursorShape, SteadyBlock
 from textual.document._document import Location, Selection
@@ -297,28 +296,30 @@ class DetachedReceiver:
     def visit(self, action: Callable[[TextArea], object]) -> None:
         pass
 
+    def boundary(self, binding: Binding) -> bool:
+        return False
+
 
 class AttachedReceiver(DetachedReceiver):
     def __init__(self, editor: TextArea) -> None:
-        self._editor = ref(editor)
+        self._editor = editor
 
     def require(self) -> TextArea:
-        editor = self._editor()
-        if editor is None:
-            return super().require()
-        return editor
+        return self._editor
 
     def owns(self, editor: TextArea) -> bool:
-        return self._editor() is editor
+        return self._editor is editor
 
     def visit(self, action: Callable[[TextArea], object]) -> None:
-        editor = self._editor()
-        if editor is not None and editor.is_attached:
-            action(editor)
+        if self._editor.is_attached:
+            action(self._editor)
+
+    def boundary(self, binding: Binding) -> bool:
+        return self._editor.is_attached and binding.engine_boundary(self._editor)
 
 
 class NeovimRequest(ABC):
-    """One admitted request; the writer never waits for its eventual reply."""
+    """One queued request; the writer never waits for its eventual reply."""
 
     _identities = count(1)
 
@@ -438,13 +439,15 @@ class NeovimUpdated(Message):
         self.owner = owner
 
 
-class NeovimNotification(DeclaredFamily, affix="Notification"):
+class NeovimMethod:
     method: ClassVar[str]
 
     @classmethod
     def selection_key(cls) -> str:
         return cls.method
 
+
+class NeovimNotification(NeovimMethod, DeclaredFamily, affix="Notification"):
     @classmethod
     @abstractmethod
     def receive(cls, owner: NeovimEditing, arguments: object) -> None: ...
@@ -478,8 +481,82 @@ class RedrawNotification(NeovimNotification):
         pass
 
 
+class NeovimHostRequest(NeovimMethod, DeclaredFamily, affix="Request"):
+    @classmethod
+    @abstractmethod
+    def receive(cls, owner: NeovimEditing, arguments: object) -> object: ...
+
+
+class CursorBoundaryRequest(NeovimHostRequest):
+    method = "toad_cursor_boundary"
+
+    @classmethod
+    def receive(cls, owner: NeovimEditing, arguments: object) -> bool:
+        boundary, = FieldCodec.decode(tuple[int], arguments)
+        return owner.engine_boundary(boundary)
+
+
+class NeovimReply(SubclassUnion, affix="Reply"):
+    @abstractmethod
+    def resolve(self, request: NeovimRequest, value: object) -> None: ...
+
+
+class SuccessfulReply(NullMember, NeovimReply):
+    def resolve(self, request: NeovimRequest, value: object) -> None:
+        request.resolve(value)
+
+
+@dataclass(frozen=True)
+class ErrorReply(SingleFieldValue, NeovimReply):
+    details: tuple[int, str]
+
+    def resolve(self, request: NeovimRequest, value: object) -> None:
+        code, message = self.details
+        request.reply.set_exception(NeovimWireFailure(f"Neovim {request.method} ({code}): {message}"))
+
+
+class NeovimFrame(DeclaredFamily, affix="Frame"):
+    kind: ClassVar[int]
+
+    @classmethod
+    def selection_key(cls) -> int:
+        return cls.kind
+
+    @classmethod
+    @abstractmethod
+    async def receive(cls, owner: NeovimEditing, payload: object) -> None: ...
+
+
+class ResponseFrame(NeovimFrame):
+    kind = 1
+
+    @classmethod
+    async def receive(cls, owner: NeovimEditing, payload: object) -> None:
+        identity, reply, value = FieldCodec.decode(tuple[int, NeovimReply, object], payload)
+        owner.resolve_reply(identity, reply, value)
+
+
+class NotificationFrame(NeovimFrame):
+    kind = 2
+
+    @classmethod
+    async def receive(cls, owner: NeovimEditing, payload: object) -> None:
+        method, arguments = FieldCodec.decode(tuple[str, object], payload)
+        NeovimNotification.member_selected(method).receive(owner, arguments)
+
+
+class RequestFrame(NeovimFrame):
+    kind = 0
+
+    @classmethod
+    async def receive(cls, owner: NeovimEditing, payload: object) -> None:
+        identity, method, arguments = FieldCodec.decode(tuple[int, str, object], payload)
+        reply = NeovimHostRequest.member_selected(method).receive(owner, arguments)
+        await owner.answer_request(identity, reply)
+
+
 class NeovimEditing(VimMode):
-    """One engine, one admission order, completed snapshots only from SafeState."""
+    """One engine, one input queue, completed snapshots only from SafeState."""
 
     initial_keys = ""
 
@@ -540,7 +617,7 @@ class NeovimEditing(VimMode):
         changed_receiver = not self._receiver.owns(editor)
         self._receiver = AttachedReceiver(editor)
         started = self._started
-        if started.done() and not started.cancelled() and started.exception() is None:
+        if started.done() and not started.cancelled():
             self.render(editor, force=changed_receiver)
 
     def resume(self, editor: TextArea) -> None:
@@ -590,7 +667,7 @@ class NeovimEditing(VimMode):
                     return
                 self._child_ready.set_result(child)
                 async with asyncio.TaskGroup() as tasks:
-                    tasks.create_task(self._write_admitted())
+                    tasks.create_task(self._write_queued())
                     await self._read(child)
         except* (EditingFailure, OSError, msgpack.UnpackException,
                  UnicodeDecodeError, MalformedRecord) as errors:
@@ -606,16 +683,18 @@ class NeovimEditing(VimMode):
                     request.reply.set_exception(error)
             self._pending.clear()
 
+    @boundary_decoder
     async def _read(self, child: AttachedChild) -> None:
-        assert child.stdout is not None
+        stream = child.stdout
+        assert stream is not None
         unpacker = msgpack.Unpacker(raw=False, strict_map_key=False, max_buffer_size=16 * 1024 * 1024)
-        while chunk := await child.stdout.read(65536):
+        while chunk := await stream.read(65536):
             unpacker.feed(chunk)
             for message in unpacker:
                 await self._receive(message)
         raise NeovimWireFailure(f"Neovim exited: {await child.stderr_tail()}")
 
-    async def _write_admitted(self) -> None:
+    async def _write_queued(self) -> None:
         await self._started
         while True:
             request = await self._outgoing.get()
@@ -632,7 +711,7 @@ class NeovimEditing(VimMode):
         await request.send(self._child)
         return await request.result()
 
-    def _admit(self, request: NeovimRequest) -> asyncio.Task[object]:
+    def _enqueue(self, request: NeovimRequest) -> asyncio.Task[object]:
         try:
             self._register(request)
         except EditingFailure as error:
@@ -649,10 +728,10 @@ class NeovimEditing(VimMode):
         return self._generation
 
     def _call(self, method: str, arguments: Sequence[object]) -> asyncio.Future[object]:
-        return self._admit(NeovimOperation(self._next_generation(), method, arguments))
+        return self._enqueue(NeovimOperation(self._next_generation(), method, arguments))
 
     def _input(self, keys: str) -> asyncio.Future[object]:
-        return self._admit(NeovimInput(self._next_generation(), keys))
+        return self._enqueue(NeovimInput(self._next_generation(), keys))
 
     async def _start(self) -> None:
         await self._child_ready
@@ -682,46 +761,32 @@ class NeovimEditing(VimMode):
             await self._bootstrap(NeovimInput(self._next_generation(), self.initial_keys))
             await self._bootstrap(NeovimCall("nvim_exec_lua", ["return ToadEditor.cursor(...)", [initial_cursor]]))
 
+    @boundary_decoder
     async def _receive(self, message: object) -> None:
-        """Decode the foreign MessagePack-RPC envelope once at the child boundary."""
-        frame = FieldCodec.decode(tuple[object, ...], message)
-        if not frame:
-            raise NeovimWireFailure("Empty Neovim RPC message")
-        kind = FieldCodec.decode(int, frame[0])
-        if kind == 1:
-            _, identity, error, result = FieldCodec.decode(tuple[int, int, object, object], frame)
-            try:
-                request = self._pending[identity]
-            except KeyError as failure:
-                raise NeovimWireFailure("Unexpected Neovim RPC response") from failure
-            if error is None:
-                request.resolve(result)
-            else:
-                request.reply.set_exception(NeovimWireFailure(f"Neovim {request.method}: {error}"))
-            del self._pending[identity]
-        elif kind == 2:
-            _, method, arguments = FieldCodec.decode(tuple[int, str, object], frame)
-            try:
-                notification = NeovimNotification.member_selected(method)
-            except UnknownFamilyMember as error:
-                raise NeovimWireFailure(str(error)) from error
-            notification.receive(self, arguments)
-        elif kind == 0:
-            _, identity, method, arguments = FieldCodec.decode(tuple[int, int, str, object], frame)
-            if method != "toad_cursor_boundary":
-                await self._child.write(msgpack.packb([1, identity, "Unsupported Neovim host request", None]))
-                return
-            boundary, = FieldCodec.decode(tuple[int], arguments)
-            if not 0 <= boundary < len(self._boundaries):
-                raise NeovimWireFailure("Unknown Neovim cursor boundary")
-            handled = False
-            def offer(editor: TextArea) -> None:
-                nonlocal handled
-                handled = self._boundaries[boundary].engine_boundary(editor)
-            self._receiver.visit(offer)
-            await self._child.write(msgpack.packb([1, identity, None, handled]))
-        else:
-            raise NeovimWireFailure("Invalid Neovim RPC envelope")
+        """Decode the envelope tag here; its member alone decodes the raw payload."""
+        if not isinstance(message, list) or not message:
+            raise NeovimWireFailure("Invalid Neovim RPC message")
+        kind = FieldCodec.decode(int, message[0])
+        try:
+            await NeovimFrame.member_selected(kind).receive(self, message[1:])
+        except UnknownFamilyMember as error:
+            raise NeovimWireFailure(str(error)) from error
+
+    def resolve_reply(self, identity: int, reply: NeovimReply, value: object) -> None:
+        try:
+            request = self._pending[identity]
+        except KeyError as error:
+            raise NeovimWireFailure("Unexpected Neovim RPC response") from error
+        reply.resolve(request, value)
+        del self._pending[identity]
+
+    def engine_boundary(self, boundary: int) -> bool:
+        if not 0 <= boundary < len(self._boundaries):
+            raise NeovimWireFailure("Unknown Neovim cursor boundary")
+        return self._receiver.boundary(self._boundaries[boundary])
+
+    async def answer_request(self, identity: int, reply: object) -> None:
+        await self._child.write(msgpack.packb([1, identity, None, reply]))
 
     def accept_lines(self, change: NeovimLineChange) -> None:
         if change.last == -1:

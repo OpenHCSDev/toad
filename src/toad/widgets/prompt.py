@@ -286,7 +286,7 @@ See on-screen instructions for details.
 
     async def _apply_keyboard_profile(self) -> None:
         mode = self.screen.key_mode
-        if type(self.editing_mode) is not mode:
+        if self.key_mode is not mode:
             await self.switch_editing_mode(mode())
 
     def on_neovim_updated(self, event: NeovimUpdated) -> None:
