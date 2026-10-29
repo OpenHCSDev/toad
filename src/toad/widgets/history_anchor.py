@@ -688,7 +688,9 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, VerticalScroll):
         """The header of the message drawn on the window's top row, when that header is scrolled above it."""
         y = self.scroll_y
         for page, first in self.placements(self.drawn_pages()):
-            if first <= y < first + page.line_count and (span := page.fragment_at(int(y - first))) is not None:
+            # A row inside the page's measured lines always has its fragment (as in ReaderPosition.of).
+            if first <= y < first + page.line_count:
+                span = page.fragment_at(int(y - first))
                 return span.fragment.sticky_header(span.index)
         return ()
 
