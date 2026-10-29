@@ -495,7 +495,7 @@ class NeovimCall(NeovimRequest):
 class NeovimOperation(NeovimCall):
     """Programmatic mutation executes on the same engine and invalidates its proof."""
 
-    operation: ClassVar[str] = "vim.api[operation]"
+    operation: ClassVar[str] = "assert(vim.api[operation], operation)"
 
     def __init__(self, generation: int, method: str, arguments: Sequence[object]) -> None:
         super().__init__("nvim_exec_lua", [
@@ -1169,7 +1169,10 @@ class NeovimEditing(VimMode, MroDispatch):
         return "<" + "-".join([*(NeovimKey.member_named(part).notation for part in modifiers), base]) + ">"
 
     def resize(self, editor: TextArea) -> None:
-        self._call("nvim_ui_try_resize", [max(1, editor.wrap_width), max(3, editor.content_size.height + 2)])
+        # This UI API is RPC-only, like nvim_ui_attach during startup. A
+        # viewport resize is not a buffer edit and must not advance its generation.
+        self._enqueue(NeovimCall("nvim_ui_try_resize",
+                                [max(1, editor.wrap_width), max(3, editor.content_size.height + 2)]))
 
     def enter_text(self, editor: TextArea) -> None:
         self._input("<Esc>i")
