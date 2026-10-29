@@ -17,6 +17,7 @@ from agent_comms.child_process import AttachedChild, join_retirement
 from agent_comms.declared_family import DeclaredFamily, UnknownFamilyMember
 from agent_comms.field_codec import FieldCodec, MalformedRecord, NullMember, SingleFieldValue, SubclassUnion, boundary_decoder
 from metaclass_registry.mro_dispatch import MroDispatch, handles
+from textual import log
 from textual.binding import Binding
 from textual.cursor_shape import BlinkingBar, CursorShape, SteadyBlock
 from textual.document._document import DocumentBase, Location, RangedEditResult, Selection
@@ -286,7 +287,7 @@ class FailedState(NeovimState):
 
     @property
     def label(self) -> str:
-        return "NEOVIM FAILED — draft preserved"
+        return f"NEOVIM FAILED — {self.error} — draft preserved"
 
     def raise_failure(self) -> None:
         raise self.error
@@ -1044,6 +1045,7 @@ class NeovimEditing(VimMode, MroDispatch):
         failed = previous.fail(error)
         if failed is previous:
             return
+        log.error("Neovim editing failed:", error)
         self.publish(NeovimSnapshot(failed))
         def notify(editor: TextArea) -> None:
             editor.notify(f"{error}. The displayed draft is preserved. Input was not replayed.",
@@ -1083,9 +1085,10 @@ class NeovimEditing(VimMode, MroDispatch):
         """Textual's foreign key vocabulary enters Neovim at this boundary."""
         *modifiers, name = key.split("+")
         literal = character or key_to_character(name) or ""
-        if not modifiers and literal.isprintable():
+        is_character = bool(literal) and literal.isprintable()
+        if not modifiers and is_character:
             return literal.replace("<", "<LT>")
-        base = literal if literal.isprintable() else NeovimKey.spelling(name)
+        base = literal if is_character else NeovimKey.spelling(name)
         base = base.replace("<", "LT")
         return "<" + "-".join([*(NeovimKey.member_named(part).notation for part in modifiers), base]) + ">"
 
