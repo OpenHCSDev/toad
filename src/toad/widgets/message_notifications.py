@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Iterable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
@@ -13,7 +13,8 @@ from textual.widgets import Collapsible
 
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.notification_reads import LiveNotificationRead
-from agent_comms.read_basis import NoDisplaySelection
+from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
+from agent_comms.message_reference import MessageReference
 from toad.submission_queue import QueueEvidenceChanged
 
 from toad.notification_status import (
@@ -124,7 +125,7 @@ class HistoryNotifications:
         self.subscribe_notifications(references)
         self.post_message(QueueEvidenceChanged())
 
-    def notification_read(self, references) -> ReadNotifications:
+    def notification_read(self, references: Iterable[MessageReference]) -> ReadNotifications:
         from toad.project_path_owner import ProjectPathOwner
 
         root = ProjectPathOwner.containing(self).coordination_root
@@ -181,7 +182,7 @@ class HistoryNotifications:
 class SourceNotifications:
     notification_view: HistoryNotifications
 
-    def notification_identity_for(self, references):
+    def notification_identity_for(self, references: frozenset[MessageReference]) -> DisplayIdentity | NoDisplaySelection:
         """Use retained prepared Core pages, even after the pending paint was retired."""
         return next((page.prepared.notification_identity for page in reversed(self.pages)
                      if any(references.intersection(fragment.notification_references)

@@ -1,6 +1,7 @@
 """Textual-facing: the presentation window; a wire source pages one conversation and notices when Core replaces its reading."""
 
 import os
+from pathlib import Path
 
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
@@ -35,7 +36,7 @@ def observed(source):
     return first, newest
 
 
-def test_empty_first_read_keeps_its_real_identity_after_the_unread_placeholder(tmp_path):
+def test_empty_first_read_keeps_its_real_identity_after_the_unread_placeholder(tmp_path: Path) -> None:
     comms = installed_wire(tmp_path / 'wire')
     comms.registry.declare(Thread('peer', frozenset({'team'}), Checkout(tmp_path)))
     source = channel_source(comms, '#team', tmp_path)
