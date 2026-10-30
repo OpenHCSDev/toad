@@ -8,14 +8,17 @@ from typing import Annotated
 from agent_comms.cli_command import TargetAction
 from agent_comms.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption
-from agent_comms.field_codec import compile_decoder
+from agent_comms.field_codec import EditorMember, MalformedRecord, MemberDraftFactory, MemberSelection, UnchosenMember
 from agent_comms.login import run_login
 from objectstate import ObjectState
-from python_introspect import AnnotationChoices, FieldLabel
+from python_introspect import AnnotationChoices, FieldLabel, optional_member_type
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Checkbox, Static
+from formbridge.forms.declared_fields import DeclaredField
+from toad.forms.member_editing import MemberDraft, UnchosenMemberDraft, UnionMembers
+from toad.forms.union_dialog import UnionMemberDialog
 from toad.forms.editors import ValueEditor
 from toad.forms.form_view import InlineFormView
 from formbridge.forms.declared_fields import Multiline
@@ -42,6 +45,77 @@ ValueEditor.shown_by[PreparedChoices] = lambda field: ValueEditor.showing(
 )(field)
 
 
+class CommandMemberDialog(UnionMemberDialog[MemberSelection], DismissibleScreen[None]):
+    """The generic transaction uses Toad's existing mode and dismissal owners."""
+
+
+@dataclass(frozen=True)
+class PreparedUnion(UnionMembers[MemberSelection], MemberDraftFactory[MemberDraft[MemberSelection]]):
+    """Decoder references are annotation metadata, never ObjectState values."""
+
+    parameter: TargetField
+
+    def choices(self) -> tuple[MemberSelection, ...]:
+        return self.parameter.editor_selections
+
+    def label(self, choice: MemberSelection) -> str:
+        return choice.label
+
+    def selected(self, value: object) -> MemberSelection:
+        return self.parameter.editor_selection(value)
+
+    def dialog(self, field: DeclaredField) -> CommandMemberDialog:
+        return CommandMemberDialog(field, self)
+
+    def draft(self, choice: MemberSelection, value: object) -> MemberDraft[MemberSelection]:
+        return choice.draft(self, value)
+
+    def unchosen(self, member: UnchosenMember) -> MemberDraft[MemberSelection]:
+        return UnchosenMemberDraft(member)
+
+    def member(self, member: EditorMember, value: object) -> MemberDraft[MemberSelection]:
+        return PreparedMemberDraft(member, value, self.selected(value) == member)
+
+
+class DeclaredDraft:
+    """One field-derived native input state, shared by command and member forms."""
+
+    def prepare_draft(self, parameters: tuple[TargetField, ...]) -> None:
+        self.parameters = parameters
+        self.choices: dict[str, PreparedChoices] = {}
+        declarations = []
+        for parameter in parameters:
+            hints: list[object] = [FieldLabel(parameter.description)]
+            hints.extend(parameter.editor_hints(
+                lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
+            if parameter.editor_members and optional_member_type(parameter.editor_annotation) is None:
+                hints.append(PreparedUnion(parameter))
+            if parameter.multiline:
+                hints.append(Multiline())
+            declarations.append((parameter.name, Annotated[parameter.editor_annotation, *hints],
+                                 field(default_factory=lambda initial=parameter.editor_initial: initial)))
+        self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
+
+    def arguments(self) -> dict[str, object]:
+        return {key: value for parameter in self.parameters
+                for key, value in parameter.argument(self.state.get_resolved_value(parameter.name)).items()}
+
+
+class PreparedMemberDraft(DeclaredDraft, MemberDraft[MemberSelection]):
+    refusal = MalformedRecord
+    selection: EditorMember
+
+    def __init__(self, member: EditorMember, value: object, supplied: bool) -> None:
+        self.selection = member
+        self.prepare_draft(tuple(
+            TargetField.of(entry, member.current(entry, value)) if supplied else TargetField.omitted(entry)
+            for entry in member.fields
+        ))
+
+    def complete(self) -> object:
+        return self.selection.complete(self.arguments())
+
+
 class CatalogField(ValueEditor, Button):
     """The shared model selector edits the form's canonical draft value."""
     shows = (ModelConfigOption,)
@@ -52,6 +126,9 @@ class CatalogField(ValueEditor, Button):
     def paint(self):
         self.label = next((choice.name for choice in self.field.metadata(PreparedChoices).parameter.options
                            if choice.value == self.field.value), 'Choose / connect a provider…')
+
+    def commit(self) -> None:
+        self.send(self.field.value)
 
     def on_button_pressed(self, event: Button.Pressed):
         event.stop()
@@ -141,7 +218,7 @@ class ApplyCommandAction(ViewAction):
             context.dismiss(arguments)
 
 
-class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyCommandAction,)):
+class CommandDialog(DeclaredDraft, DismissibleScreen[dict[str, object]], actions=(ApplyCommandAction,)):
     DEFAULT_CSS = """
     CommandDialog { align: center middle; background: $background 40%; }
     CommandDialog #command-box { width: 68; max-width: 95%; height: 90%;
@@ -157,17 +234,7 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
     def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...]):
         super().__init__()
         self.definition, self.target = definition, target
-        self.choices = {}
-        declarations = []
-        for parameter in fields:
-            hints = [FieldLabel(parameter.description)]
-            hints.extend(parameter.editor_hints(
-                lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
-            if parameter.multiline:
-                hints.append(Multiline())
-            declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
-                                 field(default=parameter.editor_default)))
-        self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
+        self.prepare_draft(fields)
         self.form = InlineFormView.whole(self.state)
         self.form.id = 'command-fields'
 
@@ -201,14 +268,15 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
         await ApplyCommandAction().apply(self)
 
 
-    def arguments(self):
-        return {name: self.state.get_resolved_value(name) for name in self.form.values}
-
     async def refresh_catalogs(self, arguments):
         self.query_one('#command-apply', Button).disabled = True
-        edited = self.definition.edited(arguments)
-        fields = await self.app.preparation.run_thread(
-            lambda: asyncio.run(edited.prepare_fields()))
+        try:
+            fields = await self.app.preparation.run_thread(
+                lambda: asyncio.run(self.definition.prepare_fields(arguments)))
+        except MalformedRecord as error:
+            if self.is_attached and arguments == self.arguments():
+                self.query_one('#command-confirmation', Static).update(str(error))
+            return
         if not self.is_attached or arguments != self.arguments():
             return
         for parameter in fields:
@@ -225,15 +293,18 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
         async def prepare():
             def read():
                 for name, choices in self.choices.items():
-                    if arguments[name] not in choices.choices():
+                    if name not in arguments or arguments[name] not in choices.choices():
                         return f'Choose {name.replace("_", " ")}', False
-                return self.definition.edited(arguments).confirmation, True
+                try:
+                    return self.definition.edited(arguments).confirmation, True
+                except MalformedRecord as error:
+                    return str(error), False
             confirmation, valid = await self.app.preparation.run_thread(read)
             if not self.is_attached or arguments != self.arguments():
                 return
             self.query_one('#command-confirmation', Static).update(confirmation)
             confirmed.display = valid and bool(confirmation)
             self.query_one('#command-apply', Button).disabled = not valid or any(
-                arguments[name] != choices.parameter.editor_default
+                name not in arguments or arguments[name] != choices.parameter.editor_default
                 for name, choices in self.choices.items())
         self.run_worker(prepare, group='command-confirmation', exclusive=True)

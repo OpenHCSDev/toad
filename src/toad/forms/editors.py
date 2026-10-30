@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from collections.abc import Iterable
 from enum import Enum
 from typing import TYPE_CHECKING, ClassVar, Optional
@@ -13,18 +14,18 @@ from python_introspect import (
     resolve_annotated,
 )
 from python_introspect.validation import validate_annotation_value
-from textual import containers
-from textual.app import ComposeResult
+from textual import containers, work
 from textual.message import Message
 from textual.reactive import var
 from textual.validation import Function
 from textual.geometry import Spacing
 from textual.css.scalar import Scalar
 from textual.widget import Widget
-from textual.widgets import Checkbox, Input, Select, TextArea
+from textual.widgets import Button, Checkbox, Input, Select, TextArea
 from textual.widgets._input import InputType
 
 from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, Multiline, declarations
+from toad.forms.member_editing import UnionMembers
 from toad.forms.presentation import FormCheckbox, FormInput, FormSelectCurrent, FramedControl
 from toad.widget_view import WidgetView
 from toad.tone_paint import UntintedTonePaint
@@ -77,6 +78,10 @@ class ValueEditor(DeclaredViews, EditorWidget):
     def finish(self) -> None:
         """Send an edit the user has not finished yet. Most controls have none."""
 
+    @abstractmethod
+    def commit(self) -> None:
+        """Explicitly supply the displayed input, even when it is unchanged."""
+
     def value_text(self, value: object) -> str:
         """How a value of this field reads."""
         return self.field.placeholder if value is None else str(value)
@@ -113,6 +118,9 @@ class BoolEditor(ValueEditor, FormCheckbox):
     def changed(self, message: Checkbox.Changed) -> None:
         message.stop()
         self.send(message.value)
+
+    def commit(self) -> None:
+        self.send(self.value)
 
     def paint(self) -> None:
         with self.prevent(Checkbox.Changed):
@@ -154,6 +162,9 @@ class LineEditor(ValueEditor, FormInput):
     def finish(self) -> None:
         if self.value == self.value_text(self.field.value):
             return
+        self.commit()
+
+    def commit(self) -> None:
         try:
             value = self.read(self.value)
         except ValueError as error:
@@ -197,6 +208,9 @@ class MultilineEditor(ValueEditor, UntintedTonePaint, FramedControl, TextArea):
 
     def changed(self, message: TextArea.Changed) -> None:
         message.stop()
+        self.send(self.text)
+
+    def commit(self) -> None:
         self.send(self.text)
 
     def paint(self) -> None:
@@ -247,6 +261,10 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
         message.stop()
         if message.value is not Select.NULL:
             self.send(message.value)
+
+    def commit(self) -> None:
+        if self.value is not Select.NULL:
+            self.send(self.value)
 
     def paint(self) -> None:
         value = self.field.value
@@ -305,12 +323,21 @@ class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
     def held_changed(self, message: Checkbox.Changed) -> None:
         message.stop()
         self.member.display = message.value
-        if not message.value:
+        if message.value:
+            self.member.commit()
+        else:
             self.member.set_reactive(ValueEditor.feedback, "")
             self.send(None)
 
     def finish(self) -> None:
-        self.member.finish()
+        if self.holds_value.value:
+            self.member.finish()
+
+    def commit(self) -> None:
+        if self.holds_value.value:
+            self.member.commit()
+        else:
+            self.send(None)
 
     def value_text(self, value: object) -> str:
         return "not set" if value is None else self.member.value_text(value)
@@ -321,3 +348,42 @@ class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
             self.holds_value.value = held
         self.member.display = held
         self.member.paint()
+
+
+class UnionEditor(ValueEditor, Button):
+    """Choose and edit a declared member without changing the parent until Apply."""
+
+    shows = (UnionMembers,)
+
+    @property
+    def members(self) -> UnionMembers:
+        metadata = self.field.metadata(UnionMembers)
+        assert metadata is not None
+        return metadata
+
+    def bind_control(self) -> None:
+        self.paint()
+
+    def value_text(self, value: object) -> str:
+        return self.members.label(self.members.selected(value))
+
+    def paint(self) -> None:
+        self.label = self.value_text(self.field.value)
+
+    def commit(self) -> None:
+        self.send(self.field.value)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        event.stop()
+        self.choose()
+
+    @work(exclusive=True)
+    async def choose(self) -> None:
+        dialog = self.members.dialog(self.field)
+        try:
+            await self.app.push_screen_wait(dialog)
+        finally:
+            if dialog.is_attached:
+                dialog.dismiss()
+        if self.is_attached:
+            self.paint()

@@ -17,7 +17,8 @@ from textual.layouts.stream import StreamLayout
 from rich.style import Style
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour
 
-from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, FormPage, form_pages
+from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, FormPage, declarations, form_pages
+from toad.forms.member_editing import UnionMembers
 from toad.forms.editors import ValueEditor
 from toad.widget_view import AUTO, FocusWithinView, WidgetView
 
@@ -68,8 +69,13 @@ class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
         ObjectState already extracted this topology. Reading it does not rebuild
         a second form tree or re-analyze the held object's values.
         """
-        return [FieldView.showing(type(parameter).__mro__)(DeclaredField(state, path))
-                for path, parameter in ParameterFormService().parameters_for_state(state, parent)]
+        views = []
+        for path, parameter in ParameterFormService().parameters_for_state(state, parent):
+            field = DeclaredField(state, path)
+            views.append(FieldView.showing((
+                *declarations(field.annotation), *type(parameter).__mro__,
+            ))(field))
+        return views
 
     def values(self) -> Iterator[ValueView]:
         """The views below this one that hold a single value."""
@@ -83,7 +89,7 @@ class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
 class ValueView(FieldView):
     """A field with one value: its label, its help and the editor for its kind."""
 
-    shows = (ParameterInfo,)
+    shows = (ParameterInfo, UnionMembers)
 
     CHANGED_MARK = " ●"
 
@@ -206,14 +212,20 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
         self.state.off_resolved_changed(self.values_changed)
         self.state.off_state_changed(self.marks_changed)
 
+    def observing_values(self, paths: set[str]) -> Iterator[ValueView]:
+        """Observe a changed path through its existing ancestor/descendant relation."""
+        for view in self.values.values():
+            if any(view.field.path.intersects_path(path) for path in paths):
+                yield view
+
     def values_changed(self, paths: set[str]) -> None:
-        for path in paths & self.values.keys():
-            self.values[path].editor.paint()
+        for view in self.observing_values(paths):
+            view.editor.paint()
 
     def marks_changed(self, paths: set[str]) -> None:
         differ = self.state.dirty_fields
-        for path in paths & self.values.keys():
-            self.values[path].mark(path in differ)
+        for view in self.observing_values(paths):
+            view.mark(any(view.field.path.intersects_path(path) for path in differ))
 
     def finish(self) -> None:
         """Send every edit the user has typed but not left yet."""

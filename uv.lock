@@ -284,7 +284,7 @@ requires-dist = [
     { name = "metaclass-registry", git = "https://github.com/OpenHCSDev/metaclass-registry?branch=main" },
     { name = "msgpack", specifier = "==1.2.2" },
     { name = "notify-py", specifier = "==0.3.43" },
-    { name = "objectstate", git = "https://github.com/OpenHCSDev/objectstate.git?rev=b5dd9f78b9293df145d7629f21deb89b042b9400" },
+    { name = "objectstate", git = "https://github.com/OpenHCSDev/objectstate.git?rev=1f859f06f70accd8c524a69b196d2837b0d79c70" },
     { name = "packaging", specifier = "==26.2" },
     { name = "pathspec", specifier = "==1.1.1" },
     { name = "platformdirs", specifier = "==4.9.6" },
@@ -887,7 +887,7 @@ wheels = [
 [[package]]
 name = "objectstate"
 version = "5.0.0"
-source = { git = "https://github.com/OpenHCSDev/objectstate.git?rev=b5dd9f78b9293df145d7629f21deb89b042b9400#b5dd9f78b9293df145d7629f21deb89b042b9400" }
+source = { git = "https://github.com/OpenHCSDev/objectstate.git?rev=1f859f06f70accd8c524a69b196d2837b0d79c70#1f859f06f70accd8c524a69b196d2837b0d79c70" }
 dependencies = [
     { name = "dill" },
     { name = "pycodify" },
