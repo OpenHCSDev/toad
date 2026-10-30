@@ -15,7 +15,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from agent_comms.importing import ImportedSessionMetadata
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.native_turn_context import NativeContextData
+from agent_comms.pi_payloads import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.presentation import ReadState
 from agent_comms.registry_document import RegistryEntry
