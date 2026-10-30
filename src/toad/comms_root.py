@@ -360,18 +360,31 @@ class CoordinationAccess(MroDispatch):
         self.commander_pages: WeakSet[CommanderPage] = WeakSet()
         self.commander_interest: ObserveCommanderHud | StopCommanderHud = StopCommanderHud()
 
+    @property
+    def selection(self) -> RouteSelection:
+        """The current route resolved from this app's held launch root."""
+        return RouteSelection.of(self.launch_root)
+
+    def selected(self, source: str | Path) -> RouteSelection:
+        """Select this app's route and refuse a foreign source."""
+        return self.selection.require_source(source)
+
+    def current(self, source: str | Path) -> bool:
+        """Whether a source still belongs to this app's current route."""
+        return self.selection.root_is_current(source)
+
     def open_current(self) -> Observing | FailedObservation:
         """Capture the current route and open its service, or expose the opening error."""
         with self.opening:
             selected: RouteSelection | UnselectedRoute = UnselectedRoute()
             try:
-                selected = RouteSelection.of(self.launch_root)
+                selected = self.selection
                 return self.require(selected)
             except (OSError, ValueError, RuntimeError) as error:
                 return self.observation.failed(error, selected)
 
     def confirm(self, selected: RouteSelection) -> None:
-        if RouteSelection.of(self.launch_root) != selected:
+        if self.selection != selected:
             raise RouteChangedError("Comms route changed before the operation")
 
     def require(self, selected: RouteSelection) -> Observing:

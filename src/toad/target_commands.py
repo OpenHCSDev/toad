@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from agent_comms.errors import RouteChangedError
 from toad.core import session_requests
 
 from abc import ABC, abstractmethod
@@ -14,7 +13,6 @@ from typing import TYPE_CHECKING, Self
 from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
-from agent_comms.route_selection import RouteSelection
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_command import CliCommand, TargetAction
 from toad.thread_actions import ThreadAction
@@ -53,18 +51,16 @@ class TargetContext:
         return ", ".join(names) if names else str(self.project)
 
     def current(self):
-        if not RouteSelection.of(self.app.coordination_access.launch_root).root_is_current(self.comms.root):
-            raise RouteChangedError(RouteChangedError.reader_sentence)
+        self.app.coordination_access.selected(self.comms.root)
         return self
 
     def available_actions(self):
-        selected = RouteSelection.of(self.app.coordination_access.launch_root).require_source(self.comms.root)
-        self.current()
+        access = self.app.coordination_access
+        selected = access.selected(self.comms.root)
         actions = CliCommand.target_catalog(self.comms,
             CliCommand.selected_targets(self.selection),
             self.channel, project=self.project)
-        if RouteSelection.of(self.app.coordination_access.launch_root).require_source(self.comms.root) != selected:
-            raise ValueError('Comms route changed during command discovery')
+        access.confirm(selected)
         return actions
 
     def show_menu(self, sidebar, offset):

@@ -117,7 +117,7 @@ class CommsChatView(Conversation):
         await self.app.coordination_access.current_sidebar()
         self.message_history.initialize_source(WireSource(
             comms, self.conversation, self.project_path, self._me,
-            IrcMessageStyle(), launch_root=self.app.coordination_access.launch_root,
+            IrcMessageStyle(), access=self.app.coordination_access,
         ))
         self.refresh_identity(comms.root)
         self.prepare_prompt()

@@ -15,8 +15,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms.launch_root import LaunchRoot
-from agent_comms.route_selection import RouteSelection
 from agent_comms.repo import Checkout
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
@@ -61,7 +59,7 @@ from toad.widgets.transcript_fragments import (
 if TYPE_CHECKING:
     from agent_comms.read_basis import NamedViewer
 
-    from toad.comms_root import Observation
+    from toad.comms_root import CoordinationAccess, Observation
     from toad.core.input_events import UserInputSubmitted
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.transcript_lines import Lines
@@ -296,7 +294,7 @@ class WireSource:
     project: Checkout
     me: str
     style: WireMessageStyle
-    launch_root: LaunchRoot = field(kw_only=True)
+    access: CoordinationAccess = field(kw_only=True)
     tail_limit: int = 8
     page_limit: int = 40
 
@@ -420,7 +418,7 @@ class WirePageBuffer(SavedHistory):
 
     async def route_is_current(self) -> bool:
         return not self.closed and await self.runtime.run_thread(
-            lambda: RouteSelection.of(self.loader.launch_root).root_is_current(self.loader.comms.root)
+            lambda: self.loader.access.current(self.loader.comms.root)
         )
 
     def status_thread(self, access):

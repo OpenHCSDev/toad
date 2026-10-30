@@ -13,7 +13,6 @@ from agent_comms.channel_targets import ThreadTarget
 from agent_comms.repo import Checkout
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.errors import RelationViolationError
-from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.observation import (
     ReadTranscript,
@@ -130,7 +129,7 @@ class KnownTranscript(TranscriptScope):
         return ((self.root, identity.thread_incarnation()),)
 
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
-        service = access.require(RouteSelection.of(access.launch_root).require_source(self.root)).service
+        service = access.require(access.selected(self.root)).service
         return (
             service.registry.canonical_name(session_id)
             == service.registry.require(self.name).name
@@ -407,7 +406,7 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
 
     def resolve_thread(self) -> str:
         identity = self.thread_identity
-        selected = RouteSelection.of(self.app.coordination_access.launch_root).require_source(identity.wire_root())
+        selected = self.app.coordination_access.selected(identity.wire_root())
         service = self.app.coordination_access.require(selected).service
         return identity.resolve_thread(service.registry, self.project_root)
 

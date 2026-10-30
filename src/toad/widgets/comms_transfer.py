@@ -104,7 +104,7 @@ class Transfers:
 
     def open(self, kind: type[TransferRequest]) -> None:
         access = self.app.coordination_access
-        selected = RouteSelection.of(access.launch_root).require_source(access.observation.observed().service.root)
+        selected = access.selected(access.observation.observed().service.root)
         self.app.push_screen(kind.dialog(selected), callback=partial(self.submitted, selected))
 
     def submitted(self, selected: RouteSelection, request: TransferRequest | None) -> None:

@@ -1,9 +1,12 @@
-"""A hidden channel leaves its history unchanged; returning fetches current data."""
+"""A hidden channel does no route check; returning fetches current data."""
 
+from unittest.mock import patch
+
+from agent_comms.route_selection import RouteSelection
 from support.textual_steps import refresh_chat
 
 
-async def test_hidden_channel_refresh_leaves_history_unchanged_and_resumed_window_fetches_current_message(workspace):
+async def test_hidden_channel_refresh_does_no_root_check_and_resumed_window_fetches_current_message(workspace):
     from toad.widgets.comms_chat import CommsChatView
 
     workspace.thread("peer", "one", "two")
@@ -18,12 +21,14 @@ async def test_hidden_channel_refresh_leaves_history_unchanged_and_resumed_windo
         await ui.until(lambda: not history.undrawn and history.state.accepts_source_work, why="the first channel's history read")
         await ui.open_channel("#two", actor="peer")
         # Let the hidden reader settle before the next message arrives.
-        await ui.until(lambda: history.state.accepts_source_work and not history.marking,
+        await ui.until(lambda: history.state.accepts_source_work,
                        why="the hidden channel to settle")
+        await history.read_worker.wait()
         comms.messaging.send("peer", "#one", "ARRIVED-WHILE-HIDDEN")
-        for _ in range(40):
-            await refresh_chat(chat)
-        assert not any(m.body == "ARRIVED-WHILE-HIDDEN" for m in history.messages)
+        with patch.object(RouteSelection, "root_is_current", side_effect=AssertionError("hidden route check")):
+            for _ in range(40):
+                await refresh_chat(chat)
+            assert not any(m.body == "ARRIVED-WHILE-HIDDEN" for m in history.messages)
         await ui.select_tab(first)
         await ui.until(lambda: any(m.body == "ARRIVED-WHILE-HIDDEN" for m in history.messages),
                        why="the resumed channel to fetch the current message")

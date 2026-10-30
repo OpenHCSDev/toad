@@ -280,7 +280,7 @@ def about(launch_root: LaunchRoot) -> None:
 
     from toad import about
 
-    print(about.render(launch_root))
+    print(about.render(launch_root.path))
 
 
 if __name__ == "__main__":

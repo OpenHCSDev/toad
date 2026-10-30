@@ -18,7 +18,6 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
-from agent_comms.route_selection import RouteSelection
 from agent_comms.session_load import (
     EnsuringSessionLoadPlan,
     ExistingSessionLoadPlan,
@@ -362,7 +361,7 @@ class AgentSession:
         try:
             try:
                 await asyncio.to_thread(
-                    RouteSelection.of, self.agent.controller.transcripts.access.launch_root)
+                    lambda: self.agent.controller.transcripts.access.selection)
             except RouteChangedError as error:
                 self.startup_failed(f"Reconnect blocked before restart: {error}")
                 return

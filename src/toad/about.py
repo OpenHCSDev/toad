@@ -6,7 +6,7 @@ from importlib.metadata import version
 import platform
 from string import Template
 
-from agent_comms.launch_root import LaunchRoot
+from pathlib import Path
 from toad.preferences import SavedSettings
 from toad.terminal_attention import TerminalAttention
 from toad import paths
@@ -78,7 +78,7 @@ uses its own stdio ACP process and reconnects to its saved wire thread.
 )
 
 
-def render(launch_root: LaunchRoot) -> str:
+def render(root: Path) -> str:
     """Render about markdown.
 
     Returns:
@@ -95,7 +95,7 @@ def render(launch_root: LaunchRoot) -> str:
         "COLORTERM": os.environ.get("COLORTERM", ""),
         "COMMS_AGENT_ARGS": shlex.join(InheritedArguments().configured().argv),
         "COMMS_AGENT_BIN": ConfiguredBinary().configured(),
-        "COMMS_ROOT": str(launch_root.path),
+        "COMMS_ROOT": str(root),
         "CONFIG": config,
         "DATA_PATH": paths.get_data(),
         "LOG_PATH": paths.get_log(),

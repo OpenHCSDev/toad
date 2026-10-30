@@ -18,7 +18,6 @@ from agent_comms.errors import (
 )
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import RegistrationsView
-from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.core import events as core_events
@@ -403,7 +402,7 @@ class SessionNavigation:
         if not origin.current(app.thread_navigation, owner_mode):
             return app.selected_mode
         if not await app.preparation.run_thread(
-            lambda: RouteSelection.of(app.coordination_access.launch_root).root_is_current(requested_root)
+            lambda: app.coordination_access.current(requested_root)
         ):
             return app.selected_mode
         if not origin.current(app.thread_navigation, owner_mode):
@@ -570,11 +569,11 @@ class SessionNavigation:
             answers = {}
             for root, (threads, channels) in asked.items():
                 try:
-                    selected = RouteSelection.of(self.app.coordination_access.launch_root).require_source(root)
-                    service = self.app.coordination_access.require(selected).service
+                    access = self.app.coordination_access
+                    selected = access.selected(root)
+                    service = access.require(selected).service
                     retired = service.views.retired_views(threads, channels)
-                    if RouteSelection.of(self.app.coordination_access.launch_root).require_source(root) != selected:
-                        continue  # Replaced while reading; the next observation reads it.
+                    access.confirm(selected)
                 except RouteChangedError:
                     continue  # The next observation reads the replacement route.
                 answers[root] = service, retired

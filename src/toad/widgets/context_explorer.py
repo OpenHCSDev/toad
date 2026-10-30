@@ -11,7 +11,6 @@ from agent_comms.coordination_errors import Refused
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.route_selection import RouteSelection
 from textual import on, work
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
@@ -360,7 +359,7 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
         self.state = previous.observe(access.revision)
         try:
             service = await self.app.preparation.run_thread(
-                lambda: access.require(RouteSelection.of(access.launch_root).require_source(identity.root_path())).service
+                lambda: access.require(access.selected(identity.root_path())).service
             )
             if not self._reading(identity):
                 return
