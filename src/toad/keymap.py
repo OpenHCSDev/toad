@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Mapping
 from functools import cache
 from importlib import import_module
 from pkgutil import walk_packages
@@ -15,7 +15,7 @@ from objectstate import mark_ui_hidden_config
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import NominalSpelling, NominalText
-from textual.binding import Binding, BindingsMap
+from textual.binding import KeymapClaim
 from textual.dom import DOMNode
 from textual.keys import KeyInvocation
 from textual.screen import ModalScreen
@@ -95,19 +95,6 @@ class KeyConflict:
 
 
 @dataclass(frozen=True)
-class KeymapClaim:
-    """A detached default claim, with its original nominal invocation intact."""
-
-    invocation: KeyInvocation
-    keys: tuple[str, ...]
-
-    @classmethod
-    def from_bindings(cls, bindings: Iterable[Binding]) -> Iterator[KeymapClaim]:
-        return (cls(invocation, (key,)) for key, binding in BindingsMap(bindings)
-                for invocation in binding.invocations())
-
-
-@dataclass(frozen=True)
 class KeymapCatalog:
     """A detached view of the same concrete bindings the native scopes dispatch."""
 
@@ -123,20 +110,16 @@ class KeymapCatalog:
         keys: dict[tuple[KeyInvocationId, type[KeyMode]], dict[str, None]] = {}
         for mode in modes:
             native_mode = mode().binding_mode
-            application = tuple(binding for declaration in ApplicationAction.declarations()
-                                for binding in declaration.exclusive_bindings(native_mode))
-            owned = [tuple(KeymapClaim.from_bindings(application))]
+            application = tuple(KeymapClaim.from_bindings(
+                binding for declaration in ApplicationAction.declarations()
+                for binding in declaration.exclusive_bindings(native_mode)
+            ))
+            owned = [application]
             for owner in DOMNode.contexts():
-                defaults = tuple(binding for _, binding in owner.binding_defaults(native_mode))
+                defaults = owner.keymap_claims(native_mode)
                 if not issubclass(owner, ModalScreen):
                     defaults = (*defaults, *application)
-                owned.append(tuple(KeymapClaim.from_bindings(defaults)))
-            from toad.widgets.menu import Menu
-            owned.append((
-                *KeymapClaim.from_bindings(binding for _, binding in Menu.binding_defaults(native_mode)),
-                *(KeymapClaim(declaration, declaration.default_keys())
-                  for declaration in MenuCommand.members_with(MenuCommand)),
-            ))
+                owned.append(defaults)
             scopes[mode] = tuple(owned)
             for defaults in owned:
                 for claim in defaults:
