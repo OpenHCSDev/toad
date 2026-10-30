@@ -359,11 +359,11 @@ class LocalBrowserAuthentication(BrowserAuthentication):
         )
 
     def credential(self, request: web.Request) -> BrowserAccess:
-        token = request.query.get("token")
-        if request.path == "/" and token is not None:
-            if request.method == "GET" and self.accepts(token):
+        match request.path, request.query.getall("token", []):
+            case "/", [token] if request.method == "GET" and self.accepts(token):
                 return BootstrapBrowserAccess(self)
-            return RejectedBrowserAccess()
+            case "/", [_, *_]:
+                return RejectedBrowserAccess()
         if self.accepts(request.cookies.get(self.endpoint.cookie_name, "")):
             return AuthenticatedBrowserAccess()
         return RejectedBrowserAccess()

@@ -93,6 +93,15 @@ def test_local_bootstrap_still_requires_its_capability() -> None:
                 headers = {"Host": endpoint.authority}
                 async with client.get(listening.make_url("/"), headers=headers) as response:
                     assert response.status == 403
+                for query in (
+                    [("token", "wrong")],
+                    [("token", authentication.capability), ("token", authentication.capability)],
+                ):
+                    async with client.get(
+                        listening.make_url("/").with_query(query),
+                        headers=headers, allow_redirects=False,
+                    ) as response:
+                        assert response.status == 403, query
                 async with client.get(
                     listening.make_url("/").with_query(token=authentication.capability),
                     headers=headers, allow_redirects=False,
