@@ -12,6 +12,7 @@ from toad.session_scope import AgentAttached, AgentBinding, NoAgent
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
+    from toad.web_server import BrowserAuthentication
 
 
 def persist_terminal_failure(error: Exception) -> None:
@@ -132,6 +133,7 @@ def run(launch_root: LaunchRoot, project_dir: str, agent: str = "1"):
     import asyncio
 
     from toad.app import ToadApp
+    from toad.web_server import BrowserAuthentication
 
     binding = asyncio.run(get_agent_binding(agent))
     app = ToadApp(
@@ -195,6 +197,7 @@ def acp(
         "actions": {},
     })
     from toad.app import ToadApp
+    from toad.web_server import BrowserAuthentication
 
     app = ToadApp(
         agent_binding=AgentAttached(agent_data),
@@ -243,6 +246,19 @@ def replay(path: str) -> None:
             stdout.flush()
 
 
+def serve_browser(authentication: BrowserAuthentication, toad_args: tuple[str, ...]) -> None:
+    """Each browser tab runs `toad TOAD ARGS`, or `toad .` when none are given."""
+    import shlex
+
+    from toad.application_lifetime import ApplicationLifetime
+    from toad.web_server import ToadWebServer
+
+    command = shlex.join([sys.executable, "-m", "toad", *(toad_args or (".",))])
+    server = ToadWebServer(command, authentication, title="Toad")
+    ApplicationLifetime.set_process_title("toad serve")
+    server.serve()
+
+
 @main.command(
     "serve",
     context_settings={"allow_interspersed_args": False},
@@ -255,35 +271,33 @@ def replay(path: str) -> None:
     default="127.0.0.1",
     help="Loopback address to listen on (127.0.0.1 or localhost).",
 )
-@click.option(
-    "--tailnet-port",
-    metavar="PORT",
-    type=click.IntRange(1, 65535),
-    default=None,
-    help="Admit only this machine's tailnet owner, through `tailscale serve --https=PORT`.",
-)
 @click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
-def serve(
-    port: int, host: str, tailnet_port: int | None, toad_args: tuple[str, ...]
-) -> None:
-    """Serve a Toad command line in a web browser.
+def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
+    """Serve a Toad command line in a web browser on this machine.
 
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
     `toad serve acp agent-comms-acp`.
     """
-    import shlex
+    from toad.web_server import LocalBrowserAuthentication, LocalBrowserEndpoint
 
-    from toad.application_lifetime import ApplicationLifetime
-    from toad.web_server import (
-        BrowserAuthentication,
-        ToadWebServer,
-    )
+    serve_browser(LocalBrowserAuthentication(LocalBrowserEndpoint(host, port)), toad_args)
 
-    command = shlex.join([sys.executable, "-m", "toad", *(toad_args or (".",))])
-    authentication = BrowserAuthentication.from_option(host, port, tailnet_port)
-    server = ToadWebServer(command, authentication, title="Toad")
-    ApplicationLifetime.set_process_title("toad serve")
-    server.serve()
+
+@main.command(
+    "serve-tailnet",
+    context_settings={"allow_interspersed_args": False},
+)
+@click.argument("https_port", metavar="PORT", type=click.IntRange(1, 65535))
+@click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
+def serve_tailnet(https_port: int, toad_args: tuple[str, ...]) -> None:
+    """Serve a Toad command line to this machine's tailnet owner only.
+
+    Listens on an owner-only unix socket for `tailscale serve --https=PORT`, which
+    supplies each caller's tailnet login.
+    """
+    from toad.web_server import TailnetBrowserAuthentication
+
+    serve_browser(TailnetBrowserAuthentication.from_status(https_port), toad_args)
 
 
 @main.command("about")

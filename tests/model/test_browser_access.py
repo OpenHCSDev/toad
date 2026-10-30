@@ -9,13 +9,18 @@ from aiohttp.test_utils import TestServer
 from agent_comms.field_codec import FieldCodec, MalformedRecord
 
 from toad.web_server import (
-    BrowserAuthentication,
     LocalBrowserAuthentication,
     LocalBrowserEndpoint,
+    OwnerOnlyDirectory,
     TailnetBrowserEndpoint,
     TailscaleStatus,
     ToadWebServer,
 )
+
+
+@pytest.fixture
+def runtime(tmp_path) -> OwnerOnlyDirectory:
+    return OwnerOnlyDirectory.decode(tmp_path / "runtime")
 
 
 @pytest.fixture
@@ -27,15 +32,13 @@ def tailnet_status() -> TailscaleStatus:
     }'''))
 
 
-def test_status_owns_the_node_origin_and_owner(tailnet_status: TailscaleStatus) -> None:
-    authentication = tailnet_status.authentication(8443)
+def test_status_owns_the_node_origin_and_owner(
+    tailnet_status: TailscaleStatus, runtime: OwnerOnlyDirectory
+) -> None:
+    authentication = tailnet_status.authentication(8443, runtime)
     assert authentication.owner.LoginName == "owner@example.test"
     assert authentication.entry_url == "https://owner.example.ts.net:8443/"
-    assert tailnet_status.Self.origin(443) == "https://owner.example.ts.net"
-    assert isinstance(
-        BrowserAuthentication.from_option("127.0.0.1", 8000, None),
-        LocalBrowserAuthentication,
-    )
+    assert tailnet_status.authentication(443, runtime).endpoint.url == "https://owner.example.ts.net"
 
 
 @pytest.mark.parametrize("wire", [
@@ -48,10 +51,10 @@ def test_malformed_status_is_refused_at_ingress(wire: str) -> None:
 
 
 def test_tailnet_owner_and_untrusted_requests_use_the_real_routes(
-    tailnet_status: TailscaleStatus,
+    tailnet_status: TailscaleStatus, runtime: OwnerOnlyDirectory,
 ) -> None:
     async def journey() -> None:
-        authentication = tailnet_status.authentication(8443)
+        authentication = tailnet_status.authentication(8443, runtime)
         endpoint = authentication.endpoint
         server = ToadWebServer("unused: HTTP requests must not start a child", authentication)
         async with TestServer(await server._make_app()) as listening:
@@ -101,13 +104,38 @@ def test_local_bootstrap_still_requires_its_capability() -> None:
     asyncio.run(journey())
 
 
-def test_tailnet_endpoint_listens_only_on_an_owner_only_socket(tmp_path) -> None:
-    endpoint = TailnetBrowserEndpoint("https://owner.example.ts.net:8443", 8443, tmp_path / "serve.sock")
-    listener = endpoint.listening_socket()
-    try:
+def test_tailnet_endpoint_listens_only_on_an_owner_only_socket(runtime: OwnerOnlyDirectory) -> None:
+    endpoint = TailnetBrowserEndpoint("owner.example.ts.net", 8443, runtime)
+    # A dead server's leftover path is reclaimed by the next lock holder.
+    endpoint.socket_path.touch()
+    with endpoint.listening() as listener:
         assert listener.family == socket.AF_UNIX
         assert stat.S_IMODE(endpoint.socket_path.stat().st_mode) == 0o600
-    finally:
-        listener.close()
-    # The closed server left its path behind; the next one reclaims it.
-    endpoint.listening_socket().close()
+    assert not endpoint.socket_path.exists()
+
+
+def test_a_starting_server_keeps_its_socket(runtime: OwnerOnlyDirectory) -> None:
+    endpoint = TailnetBrowserEndpoint("owner.example.ts.net", 8443, runtime)
+    with endpoint.listening():
+        # Bound but not yet listening: connects are refused, yet the server is alive.
+        with pytest.raises(RuntimeError, match="holds"):
+            with endpoint.listening():
+                pass
+        assert endpoint.socket_path.exists()
+
+
+@pytest.mark.parametrize("mode", [0o750, 0o755, 0o777])
+def test_runtime_directory_others_can_enter_is_refused(tmp_path, mode: int) -> None:
+    directory = tmp_path / "runtime"
+    directory.mkdir()
+    directory.chmod(mode)
+    with pytest.raises(RuntimeError, match="mode 0700"):
+        OwnerOnlyDirectory.decode(directory)
+
+
+def test_runtime_directory_symlink_is_refused(tmp_path) -> None:
+    target = tmp_path / "target"
+    target.mkdir(mode=0o700)
+    (tmp_path / "link").symlink_to(target)
+    with pytest.raises(RuntimeError, match="not a directory"):
+        OwnerOnlyDirectory.decode(tmp_path / "link")

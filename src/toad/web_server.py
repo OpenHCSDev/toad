@@ -8,13 +8,17 @@ proxies to, and that proxy supplies the caller's tailnet identity.
 from __future__ import annotations
 
 import asyncio
+import fcntl
 import logging
+import os
 import secrets
 import signal
 import socket
+import stat
 import subprocess
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterator
+from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass, field
 from importlib.metadata import version
 from pathlib import Path
@@ -23,7 +27,7 @@ from urllib.parse import quote, urlsplit
 import aiohttp_jinja2
 import jinja2
 import platformdirs
-from agent_comms.field_codec import FieldCodec, boundary_decoder
+from agent_comms.field_codec import FieldCodec
 from agent_comms.wire_models import WireModel
 from aiohttp import web
 from pydantic import Field
@@ -46,8 +50,9 @@ class BrowserEndpoint(ABC):
         """Where the listening socket is, printed once at startup."""
 
     @abstractmethod
-    def listening_socket(self) -> socket.socket:
-        """The bound, not yet listening, socket this endpoint alone accepts on."""
+    def listening(self) -> AbstractContextManager[socket.socket]:
+        """The bound, not yet listening, socket this endpoint alone accepts on, held
+        for the server's lifetime."""
 
     @property
     def authority(self) -> str:
@@ -83,16 +88,45 @@ class LocalBrowserEndpoint(BrowserEndpoint):
     def listens_on(self) -> str:
         return self.url
 
-    def listening_socket(self) -> socket.socket:
-        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        listener.bind((self.host, self.port))
-        return listener
+    @contextmanager
+    def listening(self) -> Iterator[socket.socket]:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+            listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            listener.bind((self.host, self.port))
+            yield listener
 
     @property
     def cookie_name(self) -> str:
         # Cookies have no port scope; concurrent local servers need distinct names.
         return f"toad_web_session_{self.port}"
+
+
+@dataclass(frozen=True)
+class OwnerOnlyDirectory:
+    """A directory only this user can enter, so nobody else can rename or plant its entries.
+
+    platformdirs falls back to /tmp/runtime-UID when /run/user/UID is not writable, and
+    another local user can create that path first; the directory is decoded, not trusted.
+    """
+
+    path: Path
+
+    @classmethod
+    def user_runtime(cls) -> OwnerOnlyDirectory:
+        return cls.decode(Path(platformdirs.user_runtime_dir()))
+
+    @classmethod
+    def decode(cls, path: Path) -> OwnerOnlyDirectory:
+        path.mkdir(mode=0o700, exist_ok=True)
+        status = path.lstat()
+        if not stat.S_ISDIR(status.st_mode):
+            raise RuntimeError(f"{path} is not a directory")
+        if status.st_uid != os.getuid() or status.st_mode & 0o077:
+            raise RuntimeError(
+                f"{path} must be owned by uid {os.getuid()} with mode 0700, "
+                f"found uid {status.st_uid} mode {stat.S_IMODE(status.st_mode):o}"
+            )
+        return cls(path)
 
 
 @dataclass(frozen=True)
@@ -103,18 +137,23 @@ class TailnetBrowserEndpoint(BrowserEndpoint):
     header: the only peer that reaches the routes is the proxy that sets it.
     """
 
-    origin: str
+    dns_name: str
     https_port: int
-    socket_path: Path
-
-    @classmethod
-    def served_at(cls, origin: str, https_port: int) -> TailnetBrowserEndpoint:
-        runtime = Path(platformdirs.user_runtime_dir("toad", ensure_exists=True))
-        return cls(origin, https_port, runtime / f"serve-{https_port}.sock")
+    directory: OwnerOnlyDirectory
 
     @property
     def url(self) -> str:
-        return self.origin
+        if self.https_port == 443:
+            return f"https://{self.dns_name}"
+        return f"https://{self.dns_name}:{self.https_port}"
+
+    @property
+    def socket_path(self) -> Path:
+        return self.directory.path / f"toad-serve-{self.https_port}.sock"
+
+    @property
+    def lock_path(self) -> Path:
+        return self.directory.path / f"toad-serve-{self.https_port}.lock"
 
     @property
     def listens_on(self) -> str:
@@ -123,27 +162,33 @@ class TailnetBrowserEndpoint(BrowserEndpoint):
             f"(tailscale serve --bg --https={self.https_port} unix:{self.socket_path})"
         )
 
-    def listening_socket(self) -> socket.socket:
-        self.release_stale_socket()
-        listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        listener.bind(str(self.socket_path))
-        # Nothing can connect before listen(), so the mode is set before any peer exists.
-        self.socket_path.chmod(0o600)
-        return listener
+    @contextmanager
+    def listening(self) -> Iterator[socket.socket]:
+        """Holding the lock is being the live server, so only its holder touches the path.
 
-    def release_stale_socket(self) -> None:
-        """A path left by a dead server is removed; a live server keeps it and we fail."""
-        if not self.socket_path.exists():
-            return
-        probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        A connect probe cannot tell a dead server from one that has bound but not yet
+        listened: both refuse.
+        """
+        lock = os.open(self.lock_path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
         try:
-            probe.connect(str(self.socket_path))
-        except ConnectionRefusedError:
-            self.socket_path.unlink()
-        else:
-            raise RuntimeError(f"Another toad serve already listens on {self.socket_path}")
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise RuntimeError(
+                    f"Another toad serve-tailnet holds {self.lock_path}"
+                ) from None
+            self.socket_path.unlink(missing_ok=True)
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener:
+                listener.bind(str(self.socket_path))
+                try:
+                    # Nothing can connect before listen(), so the mode is set before any
+                    # peer exists; the owner-only directory admits no symlink swap.
+                    self.socket_path.chmod(0o600)
+                    yield listener
+                finally:
+                    self.socket_path.unlink(missing_ok=True)
         finally:
-            probe.close()
+            os.close(lock)
 
 
 class ViewportTemplates(jinja2.FileSystemLoader):
@@ -157,7 +202,7 @@ class ViewportTemplates(jinja2.FileSystemLoader):
 
     def get_source(
         self, environment: jinja2.Environment, template: str
-    ) -> tuple[str, str | None, Callable[[], bool] | None]:
+    ) -> tuple[str, str, Callable[[], bool]]:
         source, filename, uptodate = super().get_source(environment, template)
         head, marker, rest = source.partition("<head>")
         if not marker:
@@ -233,16 +278,6 @@ class BrowserAuthentication(ABC):
     @abstractmethod
     def credential(self, request: web.Request) -> BrowserAccess: ...
 
-    @classmethod
-    @boundary_decoder
-    def from_option(
-        cls, host: str, port: int, tailnet_port: int | None
-    ) -> BrowserAuthentication:
-        """Decode the optional CLI port once into the authentication family."""
-        if tailnet_port is None:
-            return LocalBrowserAuthentication(LocalBrowserEndpoint(host, port))
-        return TailnetBrowserAuthentication.from_status(tailnet_port)
-
     @property
     @abstractmethod
     def entry_url(self) -> str:
@@ -259,12 +294,6 @@ class TailscaleNode(WireModel):
     DNSName: str = Field(min_length=1)
     UserID: int
 
-    def origin(self, port: int) -> str:
-        authority = self.DNSName.rstrip(".")
-        if port != 443:
-            authority = f"{authority}:{port}"
-        return f"https://{authority}"
-
 
 class TailscaleStatus(WireModel):
     """Only the required native status fields; unrelated status data stays opaque."""
@@ -272,9 +301,13 @@ class TailscaleStatus(WireModel):
     Self: TailscaleNode
     User: dict[str, TailscaleUser]
 
-    def authentication(self, tailnet_port: int) -> TailnetBrowserAuthentication:
+    def authentication(
+        self, https_port: int, directory: OwnerOnlyDirectory
+    ) -> TailnetBrowserAuthentication:
         return TailnetBrowserAuthentication(
-            TailnetBrowserEndpoint.served_at(self.Self.origin(tailnet_port), tailnet_port),
+            TailnetBrowserEndpoint(
+                self.Self.DNSName.rstrip("."), https_port, directory
+            ),
             self.User[str(self.Self.UserID)],
         )
 
@@ -287,14 +320,17 @@ class TailnetBrowserAuthentication(BrowserAuthentication):
     owner: TailscaleUser
 
     @classmethod
-    def from_status(cls, tailnet_port: int) -> TailnetBrowserAuthentication:
+    def from_status(cls, https_port: int) -> TailnetBrowserAuthentication:
         """This node's tailnet name and owning login, read from Tailscale itself."""
         result = subprocess.run(
-            ("tailscale", "status", "--json", "--self"), check=True,
-            capture_output=True, text=True, timeout=10,
+            ("tailscale", "status", "--json", "--self"),
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         status = FieldCodec.decode(TailscaleStatus, FieldCodec.parse(result.stdout))
-        return status.authentication(tailnet_port)
+        return status.authentication(https_port, OwnerOnlyDirectory.user_runtime())
 
     def credential(self, request: web.Request) -> BrowserAccess:
         if request.headers.getall("Tailscale-User-Login", []) == [self.owner.LoginName]:
@@ -353,19 +389,27 @@ class ToadWebServer(Server):
         self.authentication = authentication
 
     def serve(self, debug: bool = False) -> None:
-        """Listen only on the endpoint's socket; the vendor's serve binds TCP host:port."""
+        """Mirrors textual-serve 1.1.3 `Server.serve`, listening on the endpoint's socket.
+
+        The vendor binds TCP host:port; a tailnet endpoint has no TCP listener at all.
+        """
         self.debug = debug
         self.initialize_logging()
         loop = asyncio.new_event_loop()
         loop.add_signal_handler(signal.SIGINT, self.request_exit)
         loop.add_signal_handler(signal.SIGTERM, self.request_exit)
-        web.run_app(
-            self._make_app(),
-            sock=self.authentication.endpoint.listening_socket(),
-            handle_signals=False,
-            loop=loop,
-            print=lambda *args: None,
-        )
+        if self.debug:
+            logging.getLogger("textual-serve").info(
+                "Running in debug mode. You may use textual dev tools."
+            )
+        with self.authentication.endpoint.listening() as listener:
+            web.run_app(
+                self._make_app(),
+                sock=listener,
+                handle_signals=False,
+                loop=loop,
+                print=lambda *args: None,
+            )
 
     def initialize_logging(self) -> None:
         super().initialize_logging()
