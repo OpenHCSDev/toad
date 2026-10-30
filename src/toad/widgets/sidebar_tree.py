@@ -459,8 +459,7 @@ class ChangedChannels(SidebarChange):
             for name in self.names:
                 group = sidebar.groups.get(name)
                 if group is not None:
-                    group.present(rows[name])
-                    group.sync_members(frozenset(group.member_keys))
+                    group.sync_members(group.present(rows[name]))
 
     def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
         channel_list.sync_members(self.names)
