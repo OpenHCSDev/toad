@@ -6,7 +6,6 @@ reached through `tailscale serve`, which supplies the caller's tailnet identity.
 
 from __future__ import annotations
 
-import json
 import logging
 import secrets
 import subprocess
@@ -17,7 +16,10 @@ from importlib.metadata import version
 from pathlib import Path
 from urllib.parse import quote, urlsplit
 
+from agent_comms.field_codec import FieldCodec, boundary_decoder
+from agent_comms.wire_models import WireModel
 from aiohttp import web
+from pydantic import Field
 from textual_serve.server import Server
 
 type Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
@@ -147,10 +149,52 @@ class BrowserAuthentication(ABC):
     @abstractmethod
     def credential(self, request: web.Request) -> BrowserAccess: ...
 
+    @classmethod
+    @boundary_decoder
+    def from_option(
+        cls, host: str, port: int, tailnet_port: int | None
+    ) -> BrowserAuthentication:
+        """Decode the optional CLI port once into the authentication family."""
+        if tailnet_port is None:
+            return LocalBrowserAuthentication(LocalBrowserEndpoint(host, port))
+        return TailnetBrowserAuthentication.from_status(host, port, tailnet_port)
+
     @property
     @abstractmethod
     def entry_url(self) -> str:
         """What the operator opens; printed once at startup."""
+
+
+class TailscaleUser(WireModel):
+    """The external profile's login is the identity Serve places on requests."""
+
+    LoginName: str = Field(min_length=1)
+
+
+class TailscaleNode(WireModel):
+    DNSName: str = Field(min_length=1)
+    UserID: int
+
+    def origin(self, port: int) -> str:
+        authority = self.DNSName.rstrip(".")
+        if port != 443:
+            authority = f"{authority}:{port}"
+        return f"https://{authority}"
+
+
+class TailscaleStatus(WireModel):
+    """Only the required native status fields; unrelated status data stays opaque."""
+
+    Self: TailscaleNode
+    User: dict[str, TailscaleUser]
+
+    def authentication(
+        self, host: str, port: int, tailnet_port: int
+    ) -> TailnetBrowserAuthentication:
+        return TailnetBrowserAuthentication(
+            TailnetBrowserEndpoint(host, port, self.Self.origin(tailnet_port)),
+            self.User[str(self.Self.UserID)],
+        )
 
 
 @dataclass(frozen=True)
@@ -158,22 +202,20 @@ class TailnetBrowserAuthentication(BrowserAuthentication):
     """The tailnet login `tailscale serve` attaches to each request is the credential."""
 
     endpoint: TailnetBrowserEndpoint
-    login: str
+    owner: TailscaleUser
 
     @classmethod
     def from_status(cls, host: str, port: int, tailnet_port: int) -> TailnetBrowserAuthentication:
         """This node's tailnet name and owning login, read from Tailscale itself."""
-        status = json.loads(subprocess.run(
+        result = subprocess.run(
             ("tailscale", "status", "--json", "--self"), check=True,
             capture_output=True, text=True, timeout=10,
-        ).stdout)
-        node = status["Self"]
-        origin = f"https://{node['DNSName'].rstrip('.')}:{tailnet_port}"
-        login = status["User"][str(node["UserID"])]["LoginName"]
-        return cls(TailnetBrowserEndpoint(host, port, origin), login)
+        )
+        status = FieldCodec.decode(TailscaleStatus, FieldCodec.parse(result.stdout))
+        return status.authentication(host, port, tailnet_port)
 
     def credential(self, request: web.Request) -> BrowserAccess:
-        if request.headers.getall("Tailscale-User-Login", []) == [self.login]:
+        if request.headers.getall("Tailscale-User-Login", []) == [self.owner.LoginName]:
             return AuthenticatedBrowserAccess()
         return RejectedBrowserAccess()
 

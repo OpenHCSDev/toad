@@ -247,7 +247,7 @@ def replay(path: str) -> None:
     "serve",
     context_settings={"allow_interspersed_args": False},
 )
-@click.option("-p", "--port", metavar="PORT", default=8000, type=int)
+@click.option("-p", "--port", metavar="PORT", default=8000, type=click.IntRange(1, 65535))
 @click.option(
     "-H",
     "--host",
@@ -258,7 +258,7 @@ def replay(path: str) -> None:
 @click.option(
     "--tailnet-port",
     metavar="PORT",
-    type=int,
+    type=click.IntRange(1, 65535),
     default=None,
     help="Admit only this machine's tailnet owner, through `tailscale serve --https=PORT`.",
 )
@@ -275,18 +275,12 @@ def serve(
 
     from toad.application_lifetime import ApplicationLifetime
     from toad.web_server import (
-        LocalBrowserAuthentication,
-        LocalBrowserEndpoint,
-        TailnetBrowserAuthentication,
+        BrowserAuthentication,
         ToadWebServer,
     )
 
-    command = shlex.join([sys.executable, "-m", "toad", *toad_args])
-    authentication = (
-        LocalBrowserAuthentication(LocalBrowserEndpoint(host, port))
-        if tailnet_port is None
-        else TailnetBrowserAuthentication.from_status(host, port, tailnet_port)
-    )
+    command = shlex.join([sys.executable, "-m", "toad", *(toad_args or (".",))])
+    authentication = BrowserAuthentication.from_option(host, port, tailnet_port)
     server = ToadWebServer(command, authentication, title="Toad")
     ApplicationLifetime.set_process_title("toad serve")
     server.serve()
