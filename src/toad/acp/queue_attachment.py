@@ -14,6 +14,10 @@ from agent_comms.acp_extension import (
 from .projection_attachment import ProjectionAttachment
 
 
+class QueueActionRefused(Exception):
+    """The captured queue cannot confirm or authorize this action; never replay it."""
+
+
 class QueueAttachment(ProjectionAttachment):
     def __init__(self):
         super().__init__()

@@ -16,7 +16,7 @@ from textual.widgets import Button, Static
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from metaclass_registry.mro_dispatch import handles
-from toad.widgets.channel_prompt import ChannelPrompt
+from toad.widgets.channel_prompt import DraftPrompt
 
 
 class GoalEdit(CoreEventReceiver, DismissibleScreen[str | None]):
@@ -43,7 +43,7 @@ class GoalEdit(CoreEventReceiver, DismissibleScreen[str | None]):
         self.goal = goal
         self.on_save = on_save
         self.saving = False
-        self.editor = ChannelPrompt(project=project)
+        self.editor = DraftPrompt(project=project)
         self.editor.set_mention_candidates(candidates)
 
     def compose(self) -> ComposeResult:

@@ -220,13 +220,6 @@ class PageFragmentRange:
 
 
 @dataclass(frozen=True)
-class PageRevision[Cursor = TranscriptCursor | None](WorkRevision):
-    through: Cursor | None
-    request: PageRequest[Cursor]
-    size: ClassVar[int] = 512
-
-
-@dataclass(frozen=True)
 class FilteredTranscriptBatch:
     prepared: PreparedTranscriptPage
     stop: int
@@ -289,7 +282,7 @@ class NoProjection(HeldProjection):
         pass
 
 
-class PreparedPageSource(ABC):
+class PreparedPageSource:
     """One lifetime-owned source of prepared pages, independent of widget paging."""
 
     runtime: PreparationRuntime
@@ -440,7 +433,7 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
 class TranscriptNoProgress(ValueError):
     """A page read returned no new edge while its end still claimed more."""
 
-    def __init__(self, request: PageRequest, through: TranscriptCursor | None, page: TranscriptPage) -> None:
+    def __init__(self, request: PageRequest, through: TranscriptCursor, page: TranscriptPage) -> None:
         super().__init__(
             f"Transcript history made no cursor progress: {type(request.end).__name__} "
             f"from {request.cursor!r} through {through!r} returned before={page.before!r} "
@@ -449,7 +442,7 @@ class TranscriptNoProgress(ValueError):
 
 
 @dataclass(frozen=True)
-class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
+class TranscriptPageWork[Cursor = TranscriptCursor](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
     loader: Callable[..., Awaitable[TranscriptPage]]
     through: Cursor
@@ -459,13 +452,13 @@ class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[Prepared
     @property
     def work_key(self) -> WorkKey:
         # An older page is immutable as its source grows; a newer read ends at the source end.
-        return WorkKey(type(self), PageRevision(self.request.end.work_cursor(self.through), self.request), self.scope)
+        return WorkKey(type(self), self.request.end.work_revision(self.request, self.through), self.scope)
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
         return result.retained_bytes
 
     async def execute(
-        self: TranscriptPageWork[TranscriptCursor | None], runtime: PreparationRuntime, key: WorkKey,
+        self: TranscriptPageWork[TranscriptCursor], runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[PreparedTranscriptPage]:
         request = self.request
         page = await request.end.load_page(self.loader, request.cursor, self.through)

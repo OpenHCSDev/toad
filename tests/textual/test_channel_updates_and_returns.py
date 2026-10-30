@@ -16,7 +16,7 @@ async def test_live_update_paints_parked_channel_reads_nothing_and_return_shows_
         await ui.until_shows("INITIAL ROW")
         await chat.message_history.toggle_style()
         await ui.until(
-            lambda: any(initial.reference in read.references for read in access.notification_interest.reads),
+            lambda: any(initial.reference in read.operation.references for read in access.notification_interest.reads),
             why="the shown channel to subscribe to its notification references",
         )
 

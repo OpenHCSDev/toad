@@ -22,7 +22,7 @@ from agent_comms.historical_views import (
     ConversationObservation,
     ConversationRevision,
 )
-from agent_comms.message_page import MessagePage
+from agent_comms.message_page import MessagePage, MessagePageRequest
 from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
 from agent_comms.page_traversal import (
     LiveCursor,
@@ -51,6 +51,7 @@ from toad.transcript_state import (
 )
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
+from toad.submission_queue import BusQueueSource
 from toad.widgets.transcript_fragments import (
     BusMessageFragment,
     MessageShown,
@@ -103,6 +104,19 @@ class AfterMessage(WireCut):
     bounded = True
     kept = True
 
+    def accepts(self, current: MessagePage, incoming: MessagePage,
+                view: type[ConversationHistoryView]) -> bool:
+        return view.same_display(incoming, current)
+
+    def advanced_source(self, current: MessagePage, incoming: MessagePage) -> MessagePage:
+        return current
+
+    def observed(self) -> AfterMessage:
+        return self
+
+    def requires_read(self) -> bool:
+        return False
+
 
 @dataclass(frozen=True)
 class AfterSequence(AfterMessage):
@@ -128,6 +142,19 @@ class NothingRead(AfterSequence):
 
     cursor: LiveCursor = field(default_factory=lambda: LiveCursor(0))
 
+    def accepts(self, current: MessagePage, incoming: MessagePage,
+                view: type[ConversationHistoryView]) -> bool:
+        return True
+
+    def advanced_source(self, current: MessagePage, incoming: MessagePage) -> MessagePage:
+        return incoming
+
+    def observed(self) -> AfterSequence:
+        return AfterSequence(self.cursor)
+
+    def requires_read(self) -> bool:
+        return True
+
 
 @dataclass(frozen=True)
 class WirePage:
@@ -138,21 +165,16 @@ class WirePage:
     after: AfterMessage
     has_older: bool
     has_newer: bool
-    source: MessagePage | None
+    source: MessagePage
 
     @classmethod
     def unread(cls) -> WirePage:
-        """What is drawn before the first read: nothing, ending before any answer."""
-        return cls((), None, NothingRead(), False, False, None)
-
-    @property
-    def undrawn(self) -> bool:
-        return self.source is None
+        """The declared unread cursor carries an empty, unscoped placeholder."""
+        return cls((), None, NothingRead(), False, False, MessagePageRequest.empty)
 
     def accepts(self, page: MessagePage, view: type[ConversationHistoryView]) -> bool:
         """An initial placeholder accepts its first scope; Core compares actual pages."""
-        source = self.source
-        return source is None or view.same_display(page, source)
+        return self.after.accepts(self.source, page, view)
 
     def advanced(self, interval: WirePage, *, older: bool) -> WirePage:
         """An empty interval advances its cut and establishes the first Core page.
@@ -160,9 +182,10 @@ class WirePage:
         Existing fragments retain their original page evidence; a placeholder
         must adopt the actual empty Core page rather than remain unobserved.
         """
-        source = interval.source if self.undrawn else self.source
+        source = self.after.advanced_source(self.source, interval.source)
         return (
-            replace(self, before=interval.before, has_older=interval.has_older, source=source)
+            replace(self, before=interval.before, after=self.after.observed(),
+                    has_older=interval.has_older, source=source)
             if older
             else replace(self, after=interval.after, has_newer=interval.has_newer, source=source)
         )
@@ -202,7 +225,7 @@ class WireFragment(TranscriptFragment):
         return cls._roles.dispatch(type(message.role))(message, reader=reader, **fields)
 
     @classmethod
-    def from_message(cls, message, *, reader, **fields):
+    def from_message(cls, message, *, reader, page: MessagePage, **fields):
         return cls((IncomingTranscript.of(message, reader=reader),), **fields)
 
     @property
@@ -255,11 +278,12 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
     """A sent message: its header, text and the state of its notifications."""
 
     @classmethod
-    def from_message(cls, message, *, reader, **fields):
+    def from_message(cls, message, *, reader, page: MessagePage, **fields):
         return cls(
             (IncomingTranscript.of(message, reader=reader),),
             text_part=message.body,
             row=MessageRow(message, reader),
+            notification_identity=page.selection.notification_identity,
             **fields,
         )
 
@@ -283,7 +307,7 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
 
 
 @dataclass(frozen=True, eq=False)
-class WireSource:
+class WireSource(BusQueueSource):
     """One conversation as one viewer reads it from Core, and how its messages are styled.
 
     A page read to the newest messages is short so that it is drawn at once;
@@ -325,13 +349,13 @@ class WireSource:
         page = request.end.wire_page(self, request.cursor, through)
         shown = MessageShown(style=self.style)
         fragments = tuple(
-            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me)
+            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me, page=page)
             for message, evidence in page.message_evidence()
         )
         wire = WirePage(
             page.messages,
             BeforeMessage(page.messages[0].view_cursor) if page.messages else None,
-            AfterMessage(page.messages[-1].view_cursor) if page.has_newer and page.messages else through,
+            AfterMessage(page.messages[-1].view_cursor) if page.has_newer and page.messages else through.observed(),
             page.has_older and bool(page.messages),
             page.has_newer and bool(page.messages),
             page,
