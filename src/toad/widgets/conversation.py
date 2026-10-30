@@ -447,6 +447,16 @@ class ConversationSessionBinding(
         """Whether this conversation's owning session is still selected."""
         return self.query_ancestor(SessionScope).is_current
 
+    @cached_property
+    def navigation(self) -> ContentNavigation:
+        return ContentNavigation(self.contents)
+
+    def accepts_menu_owner(self, owner: Widget) -> bool:
+        return self.is_current_session and self.navigation.accepts_menu_owner(owner)
+
+    def open_line_link(self, link: LineLink) -> None:
+        self.transcript.binding.history.action_open(link)
+
     @property
     def operational_sources(self):
         return self.query_ancestor(SessionScope).presentation.sources
@@ -1103,10 +1113,6 @@ class Conversation(
         if self.terminal_action_state:
             await self.shell.interrupt()
             self.feedback.flash("Command interrupted", style="success")
-
-    @cached_property
-    def navigation(self) -> ContentNavigation:
-        return ContentNavigation(self.contents)
 
     @property
     def cursor_block(self) -> ConversationEntry | None:
@@ -1946,12 +1952,6 @@ class Conversation(
     MODE_BINDINGS = (
         ModeBinding("enter", action_select_block, "Select block", mode=EditingMode, show=True),
     )
-
-    def accepts_menu_owner(self, owner: Widget) -> bool:
-        return self.is_current_session and self.navigation.accepts_menu_owner(owner)
-
-    def open_line_link(self, link: LineLink) -> None:
-        self.transcript.binding.history.action_open(link)
 
     def action_copy_to_clipboard(self) -> None:
         cursor = self.navigation.cursor
