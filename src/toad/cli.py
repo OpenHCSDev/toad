@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import click
 
 from agent_comms.field_codec import FieldCodec
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached, AgentBinding, NoAgent
 
@@ -75,10 +76,9 @@ class DefaultCommandGroup(click.Group):
         if "--version" in args or "-v" in args:
             return super().parse_args(ctx, args)
         from agent_comms.active_route import ActiveRoute
-        from agent_comms.launch_root import LaunchRoot
 
-        # One selection, as in every Comms process: --comms-root if given, else the published route.
-        LaunchRoot.startup(args, ActiveRoute.published_launch)
+        # Select once at the process boundary; apps receive this captured value.
+        ctx.obj = LaunchRoot.startup(args, ActiveRoute.published_launch)
         # Check if first arg is a known subcommand
         if not args or args[0] not in self.commands:
             # If not a subcommand, prepend the default command name
@@ -123,7 +123,8 @@ def main(ctx, version):
 @main.command("run")
 @click.argument("project_dir", metavar="PATH", required=True)
 @click.option("-a", "--agent", metavar="AGENT", default="")
-def run(project_dir: str, agent: str = "1"):
+@click.pass_obj
+def run(launch_root: LaunchRoot, project_dir: str, agent: str = "1"):
     """Run an installed agent."""
 
     project = FieldCodec.decode(Checkout, project_dir).resolved(strict=True)
@@ -137,6 +138,7 @@ def run(project_dir: str, agent: str = "1"):
         mode=binding.startup_mode,
         agent_binding=binding,
         project_dir=project,
+        launch_root=launch_root,
     )
     run_terminal(app)
 
@@ -158,7 +160,9 @@ def run(project_dir: str, agent: str = "1"):
     default=None,
 )
 @click.option("-d", "--project-dir", "project_option", metavar="PATH", default=None)
+@click.pass_obj
 def acp(
+    launch_root: LaunchRoot,
     command: str,
     title: str | None,
     project_dir: str | None,
@@ -195,6 +199,7 @@ def acp(
     app = ToadApp(
         agent_binding=AgentAttached(agent_data),
         project_dir=FieldCodec.decode(Checkout, project_dir).resolved(strict=True),
+        launch_root=launch_root,
         agent_session_id=session_id,
     )
     run_terminal(app)
@@ -269,12 +274,13 @@ def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
 
 
 @main.command("about")
-def about() -> None:
+@click.pass_obj
+def about(launch_root: LaunchRoot) -> None:
     """Show about information."""
 
     from toad import about
 
-    print(about.render())
+    print(about.render(launch_root.path))
 
 
 if __name__ == "__main__":

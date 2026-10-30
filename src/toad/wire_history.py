@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
+from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
     ConversationHistoryView,
     ConversationObservation,
@@ -31,6 +32,7 @@ from agent_comms.page_traversal import (
 )
 from agent_comms.transcript_events import IncomingTranscript
 
+from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
@@ -293,12 +295,17 @@ class WireSource:
     project: Checkout
     me: str
     style: WireMessageStyle
+    access: CoordinationAccess = field(kw_only=True)
     tail_limit: int = 8
     page_limit: int = 40
 
     @property
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(self.project)
+
+    def references(self) -> CurrentDisplayReferences:
+        """Resolve stable destinations through this read's registry cut."""
+        return CurrentDisplayReferences.from_registry(str(self.comms.root), self.comms.registry.snapshot())
 
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
@@ -318,8 +325,8 @@ class WireSource:
         page = request.end.wire_page(self, request.cursor, through)
         shown = MessageShown(style=self.style)
         fragments = tuple(
-            WireFragment.of(message, shown=shown, evidence=page.evidence_for(message), reader=self.me)
-            for message in page.messages
+            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me)
+            for message, evidence in page.message_evidence()
         )
         wire = WirePage(
             page.messages,
@@ -411,9 +418,9 @@ class WirePageBuffer(SavedHistory):
         return observation.uses(self.loader.comms)
 
     async def route_is_current(self) -> bool:
-        from agent_comms.route_selection import root_is_current
-
-        return not self.closed and await self.runtime.run_thread(root_is_current, self.loader.comms.root)
+        return not self.closed and await self.runtime.run_thread(
+            lambda: self.loader.access.current(self.loader.comms.root)
+        )
 
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.comms.root, access)

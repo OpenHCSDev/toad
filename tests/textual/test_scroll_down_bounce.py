@@ -56,8 +56,8 @@ class RecordedHistoryScreen(WorkspaceScreen):
         self.frames.append((y, reader, page.prepared.start, page.prepared.stop))
 
 
-def recorded_app(**kwargs):
-    app = ToadApp(**kwargs)
+def recorded_app(*, launch_root, **kwargs):
+    app = ToadApp(launch_root=launch_root, **kwargs)
     app.remove_mode("workspace")
     app.add_mode("workspace", partial(RecordedHistoryScreen, id="workspace"))
     return app

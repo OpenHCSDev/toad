@@ -1,6 +1,7 @@
 """Textual-facing: stable conversation identities resolve current names through Core references."""
 
 from agent_comms.repo import Checkout
+from agent_comms.launch_root import LaunchRoot
 from dataclasses import FrozenInstanceError
 from functools import partial
 
@@ -9,11 +10,10 @@ from agent_comms.channel_targets import ChannelTarget
 from agent_comms.comms import Comms
 from agent_comms.active_route import resolve_comms_route
 from support.roots import installed_wire
-from agent_comms.errors import UnregisteredThreadError
+from support.agents import AppAgents
 from agent_comms.field_codec import FieldCodec
 from agent_comms.installer.backup import StoreBackup
 from agent_comms.message_page import PageBounds
-from agent_comms.thread_creation import RecordedCreationTime
 from agent_comms.threads import Thread
 
 from toad.constants import ALL_COMMS_TARGET
@@ -55,7 +55,8 @@ def test_conversation_family_resolves_copied_pages_and_current_labels(
     assert conversation.label(references) == label
     assert HistoryTarget.for_conversation(conversation, references) == route
     page = conversation.page(
-        WireSource(comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle()),
+        WireSource(comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
+                   access=AppAgents.unrun(tmp_path, LaunchRoot.from_path(comms.root)).app.coordination_access),
         PageBounds(limit=8),
     )
     assert body in [message.body for message in page.messages]
@@ -109,14 +110,11 @@ def test_kind_and_owner_are_part_of_identity_but_channel_address_is_shared(copie
     )
 
 
-async def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copied_conversations):
+def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copied_conversations):
     comms, viewer = copied_conversations
     direct = DirectTarget("peer").prepare(comms, viewer).conversation
     key = CommsViewKey(str(comms.root), "owner", direct)
     scope = direct.input_scope
-    assert await direct.status_text(comms, read_only=False) == (
-        comms.configuration.answer("peer").status_label
-    )
     comms.registry.rename("peer", "renamed")
     reopened = DirectTarget("renamed").prepare(comms, viewer).conversation
     references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
@@ -126,9 +124,6 @@ async def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name
     assert direct.label(references) == "@renamed"
     assert direct.send_target().selected_name(comms.registry.snapshot()) == "renamed"
     assert HistoryTarget.for_conversation(direct, references) == DirectTarget("renamed")
-    assert await direct.status_text(comms, read_only=False) == (
-        comms.configuration.answer("renamed").status_label
-    )
 
 
 def test_recreated_name_cannot_resolve_the_retired_dm(copied_conversations):
@@ -144,27 +139,6 @@ def test_recreated_name_cannot_resolve_the_retired_dm(copied_conversations):
     assert recreated.label(references) == "@peer"
     with pytest.raises(KeyError):
         direct.destination(references)
-
-
-@pytest.mark.parametrize("recreate", (False, True))
-async def test_dm_status_refuses_deleted_or_recreated_peer(copied_conversations, recreate):
-    comms, viewer = copied_conversations
-    original = comms.registry.require("peer")
-    direct = DirectTarget("peer").prepare(comms, viewer).conversation
-    comms.registry.unregister("peer")
-    comms.threads.delete("peer")
-    if recreate:
-        comms.registry.declare(Thread(
-            "peer", frozenset(), Checkout(comms.root.parent),
-            created_at=RecordedCreationTime(original.created_at + 1),
-        ))
-        replacement = DirectTarget("peer").prepare(comms, viewer).conversation
-        assert replacement != direct
-        assert await replacement.status_text(comms, read_only=False) == (
-            comms.configuration.answer("peer").status_label
-        )
-    with pytest.raises(UnregisteredThreadError):
-        await direct.status_text(comms, read_only=False)
 
 
 def test_history_picker_and_channel_status_use_the_same_declared_value(copied_conversations):

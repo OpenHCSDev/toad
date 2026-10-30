@@ -172,10 +172,28 @@ class CategorizedMount:
 
     def mount(self, *widgets, **kwargs):
         blocks = require_blocks(widgets)
-        mounted = super().mount(*blocks, **kwargs)
+        orders = {block.conversation_order for block in blocks}
+        if kwargs.keys() & {"before", "after"} or len(orders) != 1:
+            mounted = super().mount(*blocks, **kwargs)
+            self.sort_children(key=lambda block: block.conversation_order)
+        else:
+            # Children stay ordered, so blocks of one order go after the last
+            # child not above it: a live append (the common case) lands at the
+            # tail without visiting, sorting or relaying out the conversation.
+            (order,) = orders
+            children = self.children
+            index = len(children)
+            for index in range(len(children), 0, -1):
+                if children[index - 1].conversation_order <= order:
+                    break
+            else:
+                index = 0
+            if index == len(children):
+                mounted = super().mount(*blocks, **kwargs)
+            else:
+                mounted = super().mount(*blocks, before=children[index], **kwargs)
         # Registration supplies the history's real parent before its filter
         # prepares a projection; both still happen before first mount/paint.
-        self.sort_children(key=lambda block: block.conversation_order)
         selected = self.selected_categories
         for widget in blocks:
             widget.apply_message_filter(selected)

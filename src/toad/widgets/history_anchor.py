@@ -641,8 +641,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
                 history.request_latest(latest)
 
     MODE_BINDINGS = (
-        ModeBinding("j", action_scroll_down, "Scroll down", mode=VimMode, show=False),
-        ModeBinding("k", action_scroll_up, "Scroll up", mode=VimMode, show=False),
         ModeBinding("ctrl+d", action_page_down, "Page down", mode=VimMode, show=False),
         ModeBinding("ctrl+u", action_page_up, "Page up", mode=VimMode, show=False),
         ModeBinding("G", jump_to_latest, "Latest", mode=VimMode, show=False),

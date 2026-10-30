@@ -16,10 +16,12 @@ from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Checkbox, Static
-from toad.forms.declared_views import DeclaredField, MemberDraft, UnchosenMemberDraft, UnionMembers
-from toad.forms.editors import UnionMemberDialog, ValueEditor
+from formbridge.forms.declared_fields import DeclaredField
+from toad.forms.member_editing import MemberDraft, UnchosenMemberDraft, UnionMembers
+from toad.forms.union_dialog import UnionMemberDialog
+from toad.forms.editors import ValueEditor
 from toad.forms.form_view import InlineFormView
-from toad.forms.kinds import Multiline
+from formbridge.forms.declared_fields import Multiline
 from toad.screens.modal import ModalScreen, DismissibleScreen
 from toad.widget_actions import DismissAction, WidgetAction
 from textual.document._editing import EditingMode
@@ -43,12 +45,12 @@ ValueEditor.shown_by[PreparedChoices] = lambda field: ValueEditor.showing(
 )(field)
 
 
-class CommandMemberDialog(UnionMemberDialog, DismissibleScreen[None]):
+class CommandMemberDialog(UnionMemberDialog[MemberSelection], DismissibleScreen[None]):
     """The generic transaction uses Toad's existing mode and dismissal owners."""
 
 
 @dataclass(frozen=True)
-class PreparedUnion(UnionMembers, MemberDraftFactory[MemberDraft]):
+class PreparedUnion(UnionMembers[MemberSelection], MemberDraftFactory[MemberDraft[MemberSelection]]):
     """Decoder references are annotation metadata, never ObjectState values."""
 
     parameter: TargetField
@@ -56,19 +58,22 @@ class PreparedUnion(UnionMembers, MemberDraftFactory[MemberDraft]):
     def choices(self) -> tuple[MemberSelection, ...]:
         return self.parameter.editor_selections
 
+    def label(self, choice: MemberSelection) -> str:
+        return choice.label
+
     def selected(self, value: object) -> MemberSelection:
         return self.parameter.editor_selection(value)
 
     def dialog(self, field: DeclaredField) -> CommandMemberDialog:
         return CommandMemberDialog(field, self)
 
-    def draft(self, choice: MemberSelection, value: object) -> MemberDraft:
+    def draft(self, choice: MemberSelection, value: object) -> MemberDraft[MemberSelection]:
         return choice.draft(self, value)
 
-    def unchosen(self, member: UnchosenMember) -> MemberDraft:
+    def unchosen(self, member: UnchosenMember) -> MemberDraft[MemberSelection]:
         return UnchosenMemberDraft(member)
 
-    def member(self, member: EditorMember, value: object) -> MemberDraft:
+    def member(self, member: EditorMember, value: object) -> MemberDraft[MemberSelection]:
         return PreparedMemberDraft(member, value, self.selected(value) == member)
 
 
@@ -96,7 +101,7 @@ class DeclaredDraft:
                 for key, value in parameter.argument(self.state.get_resolved_value(parameter.name)).items()}
 
 
-class PreparedMemberDraft(DeclaredDraft, MemberDraft):
+class PreparedMemberDraft(DeclaredDraft, MemberDraft[MemberSelection]):
     refusal = MalformedRecord
     selection: EditorMember
 
@@ -230,7 +235,7 @@ class CommandDialog(DeclaredDraft, DismissibleScreen[dict[str, object]], actions
         super().__init__()
         self.definition, self.target = definition, target
         self.prepare_draft(fields)
-        self.form = InlineFormView(self.state)
+        self.form = InlineFormView.whole(self.state)
         self.form.id = 'command-fields'
 
     def compose(self) -> ComposeResult:

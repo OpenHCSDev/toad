@@ -1,9 +1,11 @@
 """A retired observation read cancels neither its caller nor the callback that awaits it."""
 
 import asyncio
+from pathlib import Path
 
 import pytest
 
+from toad.agent import AgentBase
 from toad.session_observation import SessionObservation
 
 
@@ -12,9 +14,18 @@ async def reached(event):
         await event.wait()
 
 
+class ReadAgent(AgentBase):
+    """A bound agent that only serves observation reads; it is never prompted."""
+
+    async def send_prompt(self, prompt):
+        raise AssertionError("observation reads never prompt the agent")
+
+
 class ReadSource:
     is_attached = True
-    agent = object()
+
+    def __init__(self):
+        self.agent_binding = ReadAgent(Path(__file__).parent)
 
 
 class WaitingObservation(SessionObservation):

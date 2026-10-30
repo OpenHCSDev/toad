@@ -9,9 +9,7 @@ from toad.acp.agent import Agent
 
 
 async def test_the_real_child_receives_the_selected_root_as_arguments_and_drops_the_environment_override(
-        app_agents, tmp_path, monkeypatch):
-    from agent_comms.launch_root import LaunchRoot
-
+        app_agents, launch_root, tmp_path, monkeypatch):
     output = tmp_path / "child-launch.json"
     program = (
         "import json,os,sys; from pathlib import Path; "
@@ -20,7 +18,7 @@ async def test_the_real_child_receives_the_selected_root_as_arguments_and_drops_
     )
     definition = replace(command(sys.executable, "-c", program, str(output)), accepts_comms_root=True)
     agent = app_agents.agent(Agent, definition)
-    selected = LaunchRoot.current()
+    selected = launch_root
     monkeypatch.setenv("AGENT_COMMS_ROOT", str(tmp_path / "wrong-wire"))
     try:
         await agent.start()

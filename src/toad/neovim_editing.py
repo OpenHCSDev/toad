@@ -27,6 +27,7 @@ from textual.events import Key
 from textual.keys import key_to_character
 from textual.message import Message
 from textual.widgets import TextArea
+from toad.neovim_runtime import Neovim
 
 
 class NeovimKey(DeclaredFamily, affix="Key"):
@@ -873,7 +874,7 @@ class NeovimEditing(VimMode, MroDispatch):
         try:
             async with AsyncExitStack() as cleanup:
                 async def acquire_child() -> AttachedChild:
-                    child = await AttachedChild.start(("nvim", "--embed", "--clean", "-n"))
+                    child = await AttachedChild.start(Neovim().command())
                     cleanup.push_async_callback(child.stop)
                     return child
 

@@ -6,7 +6,7 @@ from collections.abc import Iterator
 
 from formbridge.forms.parameter_form_service import ParameterFormService
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
-from objectstate import DottedFieldPath, ObjectState
+from objectstate import ObjectState
 from textual import containers, events, lazy, on
 from textual.app import ComposeResult
 from textual.content import Content
@@ -17,9 +17,9 @@ from textual.layouts.stream import StreamLayout
 from rich.style import Style
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour
 
-from toad.forms.declared_views import DeclaredField, DeclaredViews, UnionMembers, declarations
+from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, FormPage, declarations, form_pages
+from toad.forms.member_editing import UnionMembers
 from toad.forms.editors import ValueEditor
-from toad.forms.field_path import FieldPath
 from toad.widget_view import AUTO, FocusWithinView, WidgetView
 
 
@@ -54,8 +54,7 @@ class GroupTitle(WidgetView, Static):
 class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
-    def __init__(self, field: DeclaredField,
-                 included: frozenset[DottedFieldPath] | None = None) -> None:
+    def __init__(self, field: DeclaredField) -> None:
         super().__init__()
         self.field = field
 
@@ -64,8 +63,7 @@ class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
         return Spacing(0, 0, 0 if self.last_child else 1, 0)
 
     @staticmethod
-    def of(state: ObjectState, parent: str = "",
-           included: frozenset[DottedFieldPath] | None = None) -> list[FieldView]:
+    def of(state: ObjectState, parent: str = "") -> list[FieldView]:
         """Show ObjectState's direct children; FormBridge supplies each field's kind.
 
         ObjectState already extracted this topology. Reading it does not rebuild
@@ -73,11 +71,10 @@ class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
         """
         views = []
         for path, parameter in ParameterFormService().parameters_for_state(state, parent):
-            if included is None or path in included:
-                field = DeclaredField(state, path)
-                views.append(FieldView.showing((
-                    *declarations(field.annotation), *type(parameter).__mro__,
-                ))(field, included))
+            field = DeclaredField(state, path)
+            views.append(FieldView.showing((
+                *declarations(field.annotation), *type(parameter).__mro__,
+            ))(field))
         return views
 
     def values(self) -> Iterator[ValueView]:
@@ -96,17 +93,12 @@ class ValueView(FieldView):
 
     CHANGED_MARK = " ●"
 
-    def __init__(self, field: DeclaredField,
-                 included: frozenset[DottedFieldPath] | None = None) -> None:
-        super().__init__(field, included)
+    def __init__(self, field: DeclaredField) -> None:
+        super().__init__(field)
         self.editor = ValueEditor.declared_for(field)
         self.title = FieldTitle(field.label)
         self.refusal = FieldRefusal("", markup=False)
         self.refusal.display = False
-        self.search_text = " ".join(
-            DeclaredField(field.state, step).label
-            for step in field.state.parameter_structure.ancestors(field.path)
-        ).lower()
 
     def compose(self) -> ComposeResult:
         yield self.title
@@ -122,17 +114,16 @@ class ValueView(FieldView):
 
     def description(self) -> Content:
         help = Content.from_markup(self.field.help)
-        if not self.editor.states_default or not self.field.has_default:
-            return help
-        default = self.editor.value_text(self.field.default)
-        return Content.assemble(help, (f"\ndefault: {default}", "$text-secondary"))
+        if bounds := self.field.bounds_text:
+            help = Content.assemble(help, (f"\naccepts: {bounds}", "$text-secondary"))
+        return Content.assemble(help, (self.editor.default_note(), "$text-secondary"))
 
     def values(self) -> Iterator[ValueView]:
         yield self
 
     def filter(self, term: str) -> bool:
-        self.display = term in self.search_text
-        return term in self.search_text
+        self.display = term in self.field.search_text
+        return bool(self.display)
 
     def mark(self, changed: bool) -> None:
         """Say on the title whether the value differs from the saved one."""
@@ -158,10 +149,9 @@ class GroupView(FocusWithinView, FieldView):
                   colours.colour(ForegroundColour).multiply_alpha(0.2))
         return Edges(*(("tall", colour),) * 4)
 
-    def __init__(self, field: DeclaredField,
-                 included: frozenset[DottedFieldPath] | None = None) -> None:
-        super().__init__(field, included)
-        self.parts = FieldView.of(field.state, field.path.value, included)
+    def __init__(self, field: DeclaredField) -> None:
+        super().__init__(field)
+        self.parts = FieldView.of(field.state, field.path.value)
 
     def compose(self) -> ComposeResult:
         yield GroupTitle(self.field.label)
@@ -190,23 +180,27 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
     height = None
     overflow_y = "scroll"
 
-    def __init__(self, state: ObjectState, *, paths: tuple[FieldPath, ...] | None = None,
-                 focus: DottedFieldPath | None = None) -> None:
+    def __init__(self, state: ObjectState, parts: list[FieldView]) -> None:
         super().__init__()
         self.state = state
-        included = (None if paths is None else frozenset(
-            step for path in paths
-            for step in state.parameter_structure.ancestors(path.bind(state).path)
-        ))
-        self.parts = FieldView.of(state, included=included)
+        self.parts = parts
         self.values = {
             view.field.path.value: view for part in self.parts for view in part.values()
         }
-        if focus is not None:
-            editor = self.values[focus.value].editor
-            editor.listen(events.Mount, lambda _: editor.focus())
         self.listen(events.Mount, self.follow_state)
         self.listen(events.Unmount, self.leave_state)
+
+    @classmethod
+    def whole(cls, state: ObjectState) -> FormView:
+        """Every shown field of the state on one form."""
+        return cls(state, FieldView.of(state))
+
+    @classmethod
+    def pages(cls, state: ObjectState) -> dict[FormPage, FormView]:
+        """One form per page the top-level fields declare, in declaration order."""
+        parts = {part.field.path: part for part in FieldView.of(state)}
+        return {page: cls(state, [parts[path] for path in paths])
+                for page, paths in form_pages(state, parts).items()}
 
     def follow_state(self, event: events.Mount) -> None:
         lazy.Reveal.reveal(self, list(self.parts))
