@@ -10,8 +10,9 @@ from agent_comms.declared_choice import DeclaredChoice
 from python_introspect import AnnotationChoices
 
 if TYPE_CHECKING:
-    from toad.app import ToadApp
     from formbridge.forms.declared_fields import DeclaredField
+
+    from toad.app import ToadApp
 
 
 @dataclass(frozen=True)

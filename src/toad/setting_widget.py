@@ -3,10 +3,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from formbridge.forms.declared_fields import DeclaredField
+
 from toad.setting_declarations import Effect
 
 if TYPE_CHECKING:
-    from formbridge.forms.declared_fields import DeclaredField
     from toad.app import ToadApp
 
 

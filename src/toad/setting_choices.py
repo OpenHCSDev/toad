@@ -5,22 +5,21 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar, cast
 from random import choice
 from threading import Lock
-from textual.color import Color, TRANSPARENT
+from typing import ClassVar, cast
+
+from agent_comms.declared_choice import DeclaredChoice, TitledChoice
+from textual.color import TRANSPARENT, Color
 from textual.content import Content
 from textual.css._style_properties import Edges
 from textual.css.types import AlignHorizontal
 from textual.geometry import Spacing
 from textual.widget import Widget
-from toad.widgets.future_text import FutureText
 
-from agent_comms.declared_choice import DeclaredChoice, TitledChoice
+from toad.acp.status import ToolCallStatus
 from toad.platform import DesktopService, host
-
-if TYPE_CHECKING:
-    from toad.acp.status import ToolCallStatus
+from toad.widgets.future_text import FutureText
 
 
 @dataclass(frozen=True)
