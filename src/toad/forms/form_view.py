@@ -218,14 +218,20 @@ class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
         self.state.off_resolved_changed(self.values_changed)
         self.state.off_state_changed(self.marks_changed)
 
+    def observing_values(self, paths: set[str]) -> Iterator[ValueView]:
+        """Observe a changed path through its existing ancestor/descendant relation."""
+        for view in self.values.values():
+            if any(view.field.path.intersects_path(path) for path in paths):
+                yield view
+
     def values_changed(self, paths: set[str]) -> None:
-        for path in paths & self.values.keys():
-            self.values[path].editor.paint()
+        for view in self.observing_values(paths):
+            view.editor.paint()
 
     def marks_changed(self, paths: set[str]) -> None:
         differ = self.state.dirty_fields
-        for path in paths & self.values.keys():
-            self.values[path].mark(path in differ)
+        for view in self.observing_values(paths):
+            view.mark(any(view.field.path.intersects_path(path) for path in differ))
 
     def finish(self) -> None:
         """Send every edit the user has typed but not left yet."""
