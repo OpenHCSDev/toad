@@ -110,7 +110,9 @@ class FailedSessionDisposition(UnavailableSessionDisposition):
 
     @property
     def status(self) -> SessionDisconnected:
-        return SessionDisconnected(self.failure.message)
+        return SessionDisconnected(
+            self.failure.message, details=tuple(self.failure.details.splitlines())
+        )
 
     async def present_failure(self, failure: AgentFail, view) -> None:
         if failure is self.failure:
