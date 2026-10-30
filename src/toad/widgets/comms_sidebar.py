@@ -97,8 +97,8 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     def sidebar(self) -> CommsSidebar:
         return self.query_ancestor(CommsSidebar)
 
-    def present(self, channel: ChannelRowModel) -> None:
-        """Paint the channel header from its model row."""
+    def present(self, channel: ChannelRowModel) -> frozenset[str]:
+        """Paint the header and return members whose channel pin changed."""
         previous, self.channel = self.channel, channel
         row = self.row
         if previous.label != channel.label:
@@ -113,6 +113,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
             self.unread_badge.update(label, layout=width_changed)
             self.unread_badge.display = bool(label)
         self.sort_control.update_order(channel.order)
+        return previous.pinned_members ^ channel.pinned_members
 
     def toggle_members(self) -> None:
         super().toggle_members()
