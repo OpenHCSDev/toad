@@ -66,6 +66,10 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
             badge = (Style(foreground=self.app.colours.colour(AccentColour))
                      if tab.unread.highlighted else Style())
             content = Content.assemble(content, (f" {tab.unread.label}", badge))
+        # Every sidebar observation re-presents every open tab; one whose ink
+        # and text did not change keeps its paint (Content equality is text only).
+        if content.plain == self.content.plain and content.spans == self.content.spans:
+            return False
         width_changed = content.cell_length != self.content.cell_length
         self.update(content, layout=width_changed)
         return width_changed

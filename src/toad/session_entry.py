@@ -189,24 +189,20 @@ class NativeSessionEntry(SessionEntry):
         return NamedTab(self.identity, self.details.name.display or "New Session")
 
     def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
-        source = self.source(sessions)
-        if source is None or not source.belongs_to_wire(observed.service.root):
-            return self.unobserved_tab()
-        row = observed.sidebar.threads.rows.get(source.thread_identity.thread_name())
-        originals = self.original_threads(sessions)
-        if (
-            row is not None
-            and originals
-            and not any(
-                observed.observes(root) and identity == row.incarnation
-                for root, identity in originals
-            )
-        ):
-            return self.unobserved_tab()
+        # The original wire identity exists before a native view. Unopened tabs
+        # still show backend status/unread; attachment state belongs to a view.
+        row = next(
+            (
+                row
+                for root, identity in self.original_threads(sessions)
+                if observed.observes(root)
+                and (row := observed.sidebar.threads.rows.get(identity.name)) is not None
+                and row.incarnation == identity
+            ),
+            None,
+        )
         if row is not None:
-            return ThreadTab(
-                self.identity, source.session_disposition.present(row, row.disconnected)
-            )
+            return ThreadTab(self.identity, self.thread_row(sessions, row))
         return self.unobserved_tab()
 
     async def return_to(self, sessions: SessionNavigation) -> None:

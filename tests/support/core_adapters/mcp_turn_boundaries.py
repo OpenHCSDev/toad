@@ -16,7 +16,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.comms import wire
 from agent_comms.coordinator import Coordination
-from agent_comms.field_codec import TurnId
+from agent_comms.field_codec import AcpSessionId, FieldCodec, TurnId
 from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.pi_payloads import (
     McpLiveAcknowledgement, McpServerReceipt, ReadyMcpServerState, ConfirmMcpCallPolicy,
@@ -41,7 +41,7 @@ def notes(view):
 
 
 @asynccontextmanager
-async def turn_source(root: Path, session_id: str):
+async def turn_source(root: Path, session_id: AcpSessionId):
     """Use the original declaration, attachment and retirement owners once."""
     # This authored owner has its own registry. Inherited public caller names
     # must not select a different participant during same-process retirement.
@@ -87,7 +87,7 @@ async def exercise_boundaries(agent, view, pilot):
         assert result is None, result
         await pilot.pause()
 
-    session_id = agent.session_id
+    session_id = FieldCodec.decode(AcpSessionId, agent.session_id)
     source_root = agent.project_root_path.parent / "mcp-boundaries"
     async with turn_source(source_root, session_id) as producer:
         name = producer.sessions.require(session_id)

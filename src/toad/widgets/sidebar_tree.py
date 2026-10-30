@@ -38,6 +38,7 @@ from textual.geometry import Offset, Size
 from textual.layouts.vertical import VerticalLayout
 from textual.reactive import reactive
 from textual.widget import Widget
+from textual.worker import Worker
 from textual.widgets import Static
 
 from toad.core.events import (
@@ -238,7 +239,7 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     _rows_pending = False
     """A reconciliation ran out of its step and left rows unmounted."""
 
-    _row_mounting = None
+    _row_mounting: Worker[None] | None = None
     """The worker mounting pending rows after the following frames."""
 
     def __init__(

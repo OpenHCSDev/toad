@@ -293,9 +293,12 @@ See on-screen instructions for details.
         if self.key_mode is not mode:
             await self.switch_editing_mode(mode())
 
-    def on_neovim_updated(self, event: NeovimUpdated) -> None:
+    async def on_neovim_updated(self, event: NeovimUpdated) -> None:
         event.stop()
         event.owner.paint(self)
+        # A requested profile can outlive a refused transfer while RPC is pending.
+        # The existing completion update retries from the saved preference.
+        await self._apply_keyboard_profile()
 
     @property
     def submission_allowed(self) -> bool:

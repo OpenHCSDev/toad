@@ -162,6 +162,8 @@ class YieldingKey:
     """An application key that any binding closer to the focus replaces: it answers only
     where nothing local claims the key, so the claim is no conflict."""
 
+    priority = False
+
     @classmethod
     def exclusive_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
         return ()
@@ -177,7 +179,10 @@ class ExclusiveKeys:
 
 
 class ApplicationAction(Action, affix="Action"):
+    """Declared application shortcuts resolve before an editor takes the key."""
+
     binding_prefix = "app."
+    priority = True
 
     @classmethod
     def exclusive_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
@@ -192,8 +197,6 @@ class ApplicationAction(Action, affix="Action"):
 
 class VimWorkspaceAction(ApplicationAction, declared_name=None):
     """Workspace commands precede editor bindings only in idle modal command entry."""
-
-    priority = True
 
     def key_available(self, app):
         if app.current_mode != "workspace":
