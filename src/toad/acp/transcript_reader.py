@@ -16,7 +16,6 @@ import asyncio
 from functools import partial
 
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
-from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.observation import (
     AwaitedRead,
@@ -44,7 +43,7 @@ class CoordinationTranscriptReader:
 
     async def service(self, root):
         return await self.access.preparation.run_thread(
-            lambda: self.access.require(RouteSelection.capture(root)).service
+            lambda: self.access.require(self.access.selected(root)).service
         )
 
     async def thread_presentation(

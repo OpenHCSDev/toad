@@ -22,7 +22,6 @@ async def test_opening_stopped_thread_reads_history_without_loading_an_agent(wor
 
 async def test_started_owner_attaches_original_saved_session_in_place(workspace):
     from agent_comms.child_process import ProcessIdentity
-    from agent_comms.route_selection import RouteSelection
     from support.agents import peer
     import os
 
@@ -36,7 +35,7 @@ async def test_started_owner_attaches_original_saved_session_in_place(workspace)
         workspace.comms.registry.declare(replace(thread,
             process_identity=ProcessIdentity.capture(os.getpid())))
         await app.session_navigation.reconnect(
-            RouteSelection.capture(workspace.comms.root), ('stopped',))
+            app.coordination_access.selected(workspace.comms.root), ('stopped',))
         await ui.until(lambda: {'loaded': 'stopped'} in workspace.received(),
                        why='ACP to load the original saved session')
         assert ui.conversation is view

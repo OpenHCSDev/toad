@@ -209,7 +209,6 @@ class ThreadOpening:
         return self.owner_mode, self.request.root, self.request.target
 
     async def run(self) -> str:
-        from agent_comms.route_selection import root_is_current
 
         navigator = self.navigator
         try:
@@ -224,7 +223,7 @@ class ThreadOpening:
             ):
                 return navigator.app.selected_mode
             if not await navigator.app.preparation.run_thread(
-                root_is_current, self.request.root
+                lambda: navigator.app.coordination_access.current(self.request.root)
             ):
                 raise RuntimeError("The thread's bus route changed while opening")
             return await prepared.open(self)

@@ -1,6 +1,7 @@
 """Textual-facing: stable conversation identities resolve current names through Core references."""
 
 from agent_comms.repo import Checkout
+from agent_comms.launch_root import LaunchRoot
 from dataclasses import FrozenInstanceError
 from functools import partial
 
@@ -9,6 +10,7 @@ from agent_comms.channel_targets import ChannelTarget
 from agent_comms.comms import Comms
 from agent_comms.active_route import resolve_comms_route
 from support.roots import installed_wire
+from support.agents import AppAgents
 from agent_comms.field_codec import FieldCodec
 from agent_comms.installer.backup import StoreBackup
 from agent_comms.message_page import PageBounds
@@ -53,7 +55,8 @@ def test_conversation_family_resolves_copied_pages_and_current_labels(
     assert conversation.label(references) == label
     assert HistoryTarget.for_conversation(conversation, references) == route
     page = conversation.page(
-        WireSource(comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle()),
+        WireSource(comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
+                   access=AppAgents.unrun(tmp_path, LaunchRoot.from_path(comms.root)).app.coordination_access),
         PageBounds(limit=8),
     )
     assert body in [message.body for message in page.messages]
