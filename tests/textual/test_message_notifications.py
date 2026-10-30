@@ -4,7 +4,7 @@ Painting cases use controlled replies after retiring the shared observer's inter
 The live subscription/return journey is exercised in test_channel_updates_and_returns.
 """
 
-from agent_comms.audience_manifest import FrozenRecipient
+from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.notification_progress import (
     CompletedProgress, ConsumingProgress, IgnoredProgress, SendingProgress,
     ShownToModelProgress, UnrecordedProgress,

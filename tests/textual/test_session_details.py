@@ -5,7 +5,7 @@ from textual.content import Content
 from textual.screen import Screen
 from textual.widgets import Input
 
-from agent_comms.audience_manifest import FrozenRecipient
+from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.messages import InfoKind, Message
 from agent_comms.notification_progress import HarnessConsumedProgress
 from agent_comms.presentation import MessageNotification

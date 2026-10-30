@@ -2,7 +2,7 @@
 
 from dataclasses import replace
 
-from agent_comms.audience_manifest import FrozenRecipient
+from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.notification_progress import (
     CompletedProgress, ConsumingProgress, QueuedProgress, SentProgress, ShownToModelProgress,
 )
