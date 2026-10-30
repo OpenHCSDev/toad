@@ -12,7 +12,7 @@ from toad.widgets.wire_history import WireHistory
 async def test_divider_without_body_leaves_the_message_unread(workspace):
     workspace.thread("peer", "team")
     comms = workspace.comms
-    project = str(workspace.project)
+    project = workspace.project
     for index in range(7):
         comms.messaging.send("peer", "#team", f"earlier {index} " + "body " * 20)
     comms.views.mark_user_view_read("#team", worktree=Checkout(project))

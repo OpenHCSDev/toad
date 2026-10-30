@@ -51,10 +51,10 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         classifier, (AnswerProbability(RuleSpan, .7), AnswerProbability(CommitmentSpan, .2),
                      AnswerProbability(OtherSpan, .1)), .8, f"authored-answer-{index}", classifier.pin)
         for index, span in enumerate(spans))
-    # This unsealed model only exercises navigation: no request, no captured
-    # public text, no wire message, no native owner and no saved session.
+    # A locally captured context exercises navigation without a native request,
+    # wire message or saved session.
     manifest = ContextManifest(owner.incarnation,
-        RecordedContextTurn(TurnId("authored-unsealed-navigation"), TurnIdentity(owner.incarnation, 1)),
+        RecordedContextTurn(TurnId.mint(), TurnIdentity(owner.incarnation, 1)),
         (observed,), "authored-navigation")
     captured = service.contexts.record_after(AbsentContext(), manifest)
     inspection = ContextInspection(service.registry.entry(owner.name).entry,

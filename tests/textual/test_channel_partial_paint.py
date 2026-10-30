@@ -1,7 +1,6 @@
 """Textual-facing: read marks follow the message text the viewport has painted; scrolling the window reveals the rest."""
 
 from agent_comms.read_basis import ChannelConversation
-from support.textual_steps import text_rows_of
 
 
 async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_remaining_messages(workspace):
@@ -30,18 +29,15 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
         assert 0 < len(in_view) < len(rows)
         cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
         assert all((message.seq in cursor) == (message.seq in in_view) for message in rows)
-        # Messages beyond the first viewport stay unread until their text is scrolled to.
-        for message in reversed(rows):
-            if message.seq in ledger.cursor(viewer, snapshot).for_conversation(channel):
-                continue
-            if text_rows_of(chat, message) is None:
-                # Earlier messages are laid out as the reader nears them.
-                window.scroll_to(y=0, animate=False, immediate=True)
-                await ui.until(lambda: text_rows_of(chat, message) is not None, why=f"row {message.seq} laid out")
-            window.scroll_to(y=text_rows_of(chat, message).start, animate=False, immediate=True)
-            await ui.until(lambda: message.seq in ledger.cursor(
-                viewer, snapshot).for_conversation(channel),
-                why=f"row {message.seq} to be marked once scrolled to")
+        # Walk the actual viewport, including pages prepared on demand. A
+        # virtualized history need not keep every authored row mounted.
+        window.scroll_end(animate=False, immediate=True)
+        for _ in range(len(rows) * 4):
+            await ui.step(.2)
+            cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
+            if all(row.seq in cursor for row in rows):
+                break
+            window.scroll_page_up(animate=False)
         cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
         assert all(row.seq in cursor for row in rows)
         # A wholly read history has nothing left to mark: no further worker or route read.
@@ -51,6 +47,8 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
         for _ in range(50):
             history.mark_visible()
             assert history._read_worker is completed
+        window.scroll_end(animate=False, immediate=True)
+        await ui.until(lambda: ui.shows("row 7"), why="the newest row after returning to the bottom")
         recorded = tuple(message.view_key for message in history.messages)
         await ui.press("ctrl+t")
         await ui.until(lambda: isinstance(history.style, MarkdownMessageStyle), why="the Markdown style")
