@@ -16,14 +16,17 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
     viewer = workspace.viewer
     target = CommandTarget.named("peer")
     comms.messaging.send("peer", viewer, "old peer painted")
-    entered, release = Event(), Event()
+    entered, release, marked = Event(), Event(), Event()
     original_mark = HistoryViews.mark_page_read
 
     def pause_old_mark(self, page, **kwargs):
         entered.set()
-        if not release.wait(8):
-            raise TimeoutError("Old painted marker was not released")
-        return original_mark(self, page, **kwargs)
+        try:
+            if not release.wait(8):
+                raise TimeoutError("Old painted marker was not released")
+            return original_mark(self, page, **kwargs)
+        finally:
+            marked.set()
 
     try:
         with patch.object(HistoryViews, "mark_page_read", pause_old_mark):
@@ -41,7 +44,8 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
                 comms.messaging.send("peer", viewer, "new peer never painted")
                 await ui.select_tab(owner)
                 release.set()
-                await chat.message_history.read_worker.wait()
+                # The old page's mark runs in its thread even when leaving the tab cancels its worker.
+                assert await asyncio.to_thread(marked.wait, 8)
                 assert comms.bus.pending_count(viewer, target) == 1
                 assert not any(fragment.message.body == "new peer never painted"
                                for fragment in chat.message_history.fragments)
