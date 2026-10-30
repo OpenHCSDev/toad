@@ -313,7 +313,7 @@ class PreparationRuntime(ThreadScheduler):
             completed.exception()
 
     def retire_thread(self, release: Callable[[], None]) -> None:
-        """Retirement remains admitted and joined even after new work stops."""
+        """Retirement still takes a thread slot and is joined at close, even after new work stops."""
         self._track_thread(self._retire_thread(release))
 
     async def _retire_thread(self, release: Callable[[], None]) -> None:

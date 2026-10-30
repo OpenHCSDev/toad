@@ -544,7 +544,7 @@ class SavedPrefix[Loader = Callable[..., Awaitable[TranscriptPage]]](SavedHistor
     def new_scope(self) -> PreparationScope:
         return self.earlier.scope.fork()
 
-    def prefix(self, through) -> PreparedPageSource:
+    def prefix(self, through: TranscriptCursor) -> PreparedPageSource:
         return type(self)(self, self.loader, through, self.runtime)
 
     def replacement(self, through) -> SavedHistory[Loader]:

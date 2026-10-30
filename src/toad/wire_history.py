@@ -15,7 +15,6 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property, partial, singledispatch
 from pathlib import Path
 from threading import RLock
-from types import TracebackType
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
@@ -34,6 +33,7 @@ from agent_comms.page_traversal import (
     PageCursor,
 )
 from agent_comms.transcript_events import IncomingTranscript
+from agent_comms.transcripts import TranscriptCursor
 
 from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
@@ -376,10 +376,9 @@ class WireReading(ExitStack):
             page = request.end.wire_page(self.loader, request.cursor, through, self.pages)
             return self.loader.prepare(page, through)
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc: BaseException | None,
-                 traceback: TracebackType | None) -> bool:
+    def close(self) -> None:
         with self._use:
-            return super().__exit__(exc_type, exc, traceback)
+            super().close()
 
 
 class WireScope(PreparationScope):
@@ -465,7 +464,7 @@ class WirePageBuffer(SavedHistory[WireSource]):
     def new_scope(self) -> WireScope:
         return WireReading(self.loader).borrow()
 
-    def prefix(self, through) -> SavedPrefix[WireSource]:
+    def prefix(self, through: TranscriptCursor) -> SavedPrefix[WireSource]:
         return SavedPrefix(self, self.loader, through, self.runtime)
 
     def renew_reading(self, through: AfterSequence) -> None:
