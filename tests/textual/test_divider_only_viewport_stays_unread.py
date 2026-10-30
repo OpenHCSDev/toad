@@ -15,7 +15,7 @@ async def test_divider_without_body_leaves_the_message_unread(workspace):
     for index in range(7):
         comms.messaging.send("peer", "#team", f"earlier {index} " + "body " * 20)
     comms.views.mark_user_view_read("#team", worktree=Checkout(project))
-    last = comms.messaging.send_message("peer", "#team", "LAST " + "body " * 250)
+    last = comms.messaging.send("peer", "#team", "LAST " + "body " * 250).message
 
     # Hold read marks while arranging the divider-only viewport; the first
     # viewport shows the text and may legitimately mark it.
