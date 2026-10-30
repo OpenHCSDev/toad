@@ -30,12 +30,12 @@ jobs:
           python-version: '3.14'
       - uses: ./.github/actions/core-from-main
         with:
-          path: .core-ratchet
+          path: .core-gate
       - name: Install Core's declared checker dependencies
         run: |
           python - <<'PY'
           import pathlib, subprocess, tomllib
-          source = tomllib.loads(pathlib.Path('.core-ratchet/pyproject.toml').read_text())
+          source = tomllib.loads(pathlib.Path('.core-gate/pyproject.toml').read_text())
           subprocess.run(['uv', 'pip', 'install', '--python', '.venv/bin/python',
                           *source['project']['optional-dependencies']['dev']], check=True)
           PY
@@ -46,7 +46,7 @@ jobs:
           # change starts at the merge-base with the base branch's current tip.
           BASE_TIP: ${{ github.event.pull_request.base.ref && format('origin/{0}', github.event.pull_request.base.ref) || inputs.base }}
           PR_HEAD: ${{ github.event.pull_request.head.sha || inputs.head }}
-        run: PYTHONPATH="$PWD/.core-ratchet/src" PATH="$PWD/.venv/bin:$PATH" .venv/bin/python .core-ratchet/tools/client_ratchet.py --root src/toad --base "$(git merge-base "$BASE_TIP" "$PR_HEAD")" --head "$PR_HEAD"
+        run: PYTHONPATH="$PWD/.core-gate/src" PATH="$PWD/.venv/bin:$PATH" .venv/bin/python .core-gate/tools/nra_client_gate.py --root src/toad --base "$(git merge-base "$BASE_TIP" "$PR_HEAD")" --head "$PR_HEAD"
       - name: Run surface guards
         run: .venv/bin/pytest tests/guards
   suite:
