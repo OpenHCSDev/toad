@@ -8,13 +8,11 @@ import asyncio
 from dataclasses import replace
 import os
 
-from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.context_reading import UnmeasuredContext
 
 from support import journals
 from support.agents import deliver
-from support.coordination import carrying
+from support.coordination import carrying, registered_coordination_fact
 from toad.live_output import ResponseStream
 from toad.transcript_publication import CommitPublication
 from toad.widgets.agent_response import AgentResponse
@@ -31,10 +29,8 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         view = ui.conversation
         agent = ui.detached_agent("checkpoint-first")
         ui.attach_agent(agent)
-        agent.coordination = coordination = CoordinationChangedUpdate(
-            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
-            worktree=str(workspace.project), model="test-model", thinking_level=None, title=thread.name,
-            context_usage=UnmeasuredContext())
+        agent.coordination = coordination = registered_coordination_fact(
+            comms, "source", owner=ProcessIdentity.capture(os.getpid()), model="test-model", worktree=workspace.project)
         await deliver(agent, carrying(coordination))
         agent.session.settled.set()
         # The bound view mounts the wire history itself; the test reads that one, never a copy.

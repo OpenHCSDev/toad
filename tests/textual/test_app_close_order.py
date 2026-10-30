@@ -6,13 +6,13 @@ import json
 import os
 
 import pytest
-from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
+from agent_comms.acp_extension import encode_updates
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.fresh_private_session import create_fresh_private_session
 
 from support.agents import deliver
+from support.coordination import registered_coordination_fact
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -36,17 +36,15 @@ async def test_closing_the_app_after_the_observation_process_exits_raises_nothin
         stream.write(json.dumps({"type": "message", "id": "ask",
             "timestamp": "2026-10-22T00:00:00Z", "message": {
         "role": "user", "content": [{"type": "text", "text": "ASK_ROW"}]}}) + "\n")
-    thread = comms.registry.declare(replace(workspace.thread("source"), session_file=RegistrySessionLocation.from_path(str(saved), workspace.comms.root)))
+    comms.registry.declare(replace(workspace.thread("source"), session_file=RegistrySessionLocation.from_path(str(saved), workspace.comms.root)))
     workspace.thread("peer")
     comms.messaging.send("peer", "source", "SAVED_NOTICE")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
         agent = ui.detached_agent("closing")
         view.bind_agent(agent)
-        agent.coordination = CoordinationChangedUpdate(
-            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
-            worktree=str(project), model="test-model", thinking_level=None, title=thread.name,
-            context_usage=UnmeasuredContext())
+        agent.coordination = registered_coordination_fact(
+            comms, "source", owner=ProcessIdentity.capture(os.getpid()), model="test-model", worktree=project)
         await deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
             "_meta": encode_updates(agent.coordination)})

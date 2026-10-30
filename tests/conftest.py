@@ -121,6 +121,20 @@ def pytest_collection_modifyitems(config, items):
             item.add_report_section("call", "Recorded defect", note)
 
 
+def pytest_sessionfinish(session):
+    """The test's own process stops what its app left running before it exits.
+
+    Those helpers inherit this process's output pipes, which the runner reads to their end
+    (conftest's BoundedRun.run): left running after a failed close, they held a finished
+    test open until --test-timeout killed it.
+    """
+    if (attempt := os.environ.get(ATTEMPT)) is None:
+        return  # The runner; the processes it was given stop their own.
+    from support.processes import stop_test_children
+
+    asyncio.run(stop_test_children(attempt))
+
+
 def pytest_runtest_logreport(report):
     if (path := os.environ.get(RESULT)) is None:
         return

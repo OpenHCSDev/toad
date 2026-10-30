@@ -9,6 +9,7 @@ from agent_comms.acp_extension import (
     CursorAdvancedUpdate, CursorEnvelope, LiveCursorScope, VerifiedCursorObservation, encode_updates,
 )
 from agent_comms.child_process import ProcessIdentity
+from agent_comms.field_codec import AcpSessionId, RootId
 from agent_comms.native_input_record import FullNativeExecution, NumberNativeColumn, TextNativeColumn
 from agent_comms.native_runtime_input import CurrentNativeCursor
 from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
@@ -22,13 +23,14 @@ from support.agents import PendingAnswer, PendingConnection
 
 def response(session):
     owner = ClaimedIdentity(RecordedThreadIncarnation("owner", 1000.0), 1)
+    root = RootId("a" * 32)
     cursor = CurrentNativeCursor(
-        wire_root_id="a" * 32, recipient_lookup=owner.incarnation.lookup, owner_generation=1,
+        wire_root_id=root, recipient_lookup=owner.incarnation.lookup, owner_generation=1,
         owner_claimed_generation=1, covered_seq=2, injected_seq=2, input_id=TextNativeColumn("b" * 32),
         stage=TextNativeColumn(FullNativeExecution.declared_name), session_id=TextNativeColumn("native-session"),
         request_generation=NumberNativeColumn(1))
     fact = CursorAdvancedUpdate(CursorEnvelope(
-        LiveCursorScope(session_id=session, wire_root_id="a" * 32, claimed_identity=owner,
+        LiveCursorScope(session_id=AcpSessionId(session), wire_root_id=root, claimed_identity=owner,
                         owner=ProcessIdentity(1234, 1)), 1, VerifiedCursorObservation(cursor)))
     return NewSessionResponse(sessionId=session, _meta=encode_updates(fact))
 

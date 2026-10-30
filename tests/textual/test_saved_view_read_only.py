@@ -25,18 +25,19 @@ async def test_saved_view_shows_union_history_keeps_its_pin_and_refuses_to_send(
             "engineering", ViewPredicate(AnyOfMatch, frozenset({"api", "ui"})), 17,
             frozenset({"#engineering"}))},
     ))
-    before = comms.bus.log.path.read_bytes()
+    before = comms.views.latest_sequence()
 
     async with workspace.app(size=(110, 35)) as ui:
         sidebar = await channel_roster(ui, "#engineering")
         next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#engineering").row.focus()
         await ui.press("enter")
         chat = ui.textual[0].screen.query_one(CommsChatView)
-        await ui.until(lambda: [m.body for m in chat.message_history.messages] == [m.body for m in rows],
+        await ui.until(lambda: [fragment.message.body for fragment in chat.message_history.fragments]
+                       == [message.body for message in rows],
                        why="the saved view's history")
         assert chat.prompt.prompt_text_area.disabled
-        await ui.until(lambda: "Read-only" in chat.status, why="the read-only status")
+        await ui.until(lambda: "Read-only" in chat.thread_status, why="the read-only status")
         await chat.submit_input(input_events.UserInputSubmitted("must not publish"))
         assert chat.prompt.text == "must not publish"
-        assert comms.bus.log.path.read_bytes() == before
+        assert comms.views.latest_sequence() == before
         assert next(view for view in comms.views.channel_views() if view.channel.name == "#engineering").channel.pinned

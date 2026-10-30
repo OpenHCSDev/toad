@@ -58,5 +58,5 @@ async def test_the_resume_modal_lists_a_saved_session_and_returns_it_typed(tmp_p
             assert modal.session_table.get_row(str(pk))[:2] == ["Agent", "Saved session"]
             await modal.dissmiss_with_session(str(pk))
             await pilot.pause()
-            assert resumed[0].meta_json.cwd == tmp_path
+            assert resumed[0].meta_json.cwd == Checkout(tmp_path)
             assert resumed[0].agent_session_id == "saved-session"

@@ -178,7 +178,7 @@ class TextTokenRule(ProjectTokenRule):
         if context.linked:
             return [token]
         result, position = [], 0
-        for start, end, tokens in context.links.matches(token.content):
+        for start, end, tokens in cls.matches(token.content, context.links):
             if start > position:
                 result.append(Token(token.type, token.tag, 0, content=token.content[position:start]))
             # Retain inline-code formatting on both linked and unlinked pieces.
@@ -192,8 +192,17 @@ class TextTokenRule(ProjectTokenRule):
         return result
 
 
+    @staticmethod
+    def matches(text: str, links: LinkContext):
+        return links.matches(text)
+
+
 class CodeInlineTokenRule(TextTokenRule):
-    pass
+    """A code span links only when the whole span is a reference: `run file.md` is a command."""
+
+    @staticmethod
+    def matches(text: str, links: LinkContext):
+        return [(start, end, tokens) for start, end, tokens in links.matches(text) if (start, end) == (0, len(text))]
 
 
 class ProjectTokenRenderer:
@@ -211,6 +220,9 @@ class ProjectTokenRenderer:
 class _MarkdownParserState(local):
     def __init__(self):
         self.parser = MarkdownIt("gfm-like")
+        # Linkify owns written schemes and e-mail addresses. A schemeless spelling such as
+        # file.md or declarations.py is a project path first, which TextTokenRule resolves.
+        self.parser.linkify.set({"fuzzy_link": False})
         self.parser.validateLink = ProjectLink.opens
         self.resolver = ProjectTokenRenderer()
         self.syntax_rules = tuple(self.parser.core.ruler.getRules(""))

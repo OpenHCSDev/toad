@@ -1,6 +1,7 @@
 """Textual-facing: whether a channel message counts as read depends on which rows Textual painted, and a divider painted without its text is not enough."""
 
 from agent_comms.repo import Checkout
+from agent_comms.ui_model.unread import ExactUnread
 from unittest.mock import patch
 
 from support.textual_steps import text_rows_of
@@ -11,7 +12,7 @@ from toad.widgets.wire_history import WireHistory
 async def test_divider_without_body_leaves_the_message_unread(workspace):
     workspace.thread("peer", "team")
     comms = workspace.comms
-    project = str(workspace.project)
+    project = workspace.project
     for index in range(7):
         comms.messaging.send("peer", "#team", f"earlier {index} " + "body " * 20)
     comms.views.mark_user_view_read("#team", worktree=Checkout(project))
@@ -49,6 +50,8 @@ async def test_divider_without_body_leaves_the_message_unread(workspace):
             assert all(fragment.message.seq != last.seq for fragment in history.read_fragments())
 
             mark_visible(history)
-            await ui.until(lambda: not history.marking, why="marking to settle")
-            await ui.step(.2)
-            assert comms.views.viewer_snapshot(Checkout(project)).channel_unread["#team"] == 1
+            # Earlier visible messages may have work; completing that work
+            # must not acknowledge the unread message whose text was hidden.
+            await history.read_worker.wait()
+            await ui.step()
+            assert comms.views.viewer_snapshot(Checkout(project)).channel_unread["#team"] == ExactUnread(count=1)

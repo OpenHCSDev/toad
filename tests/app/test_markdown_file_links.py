@@ -2,6 +2,7 @@
 from toad.session_scope import AgentAttached
 
 from support.agents import peer
+from toad.project_link import DirectProjectFileLink, ExternalProjectLink
 
 # One reference per paragraph: ui.link_at reaches the first match on a drawn row.
 ANSWER_SOURCE = "see file.md\n\nsee `file.md`\n\nbut `run file.md` is a command\n\nsee [website](https://example.com)"
@@ -24,8 +25,8 @@ async def test_file_link_in_answer_opens_preview_and_return_keeps_draft(workspac
         await ui.until_shows("PEER_ANSWER")
         await ui.write_draft("KEEP_MARKDOWN_DRAFT")
         links = file_links(ui, "file.md")
-        assert sum(f"toad-file:{target}" in str(link) for link in links) == 2, links
-        assert any("https://example.com" in str(link) for link in file_links(ui, "website")), ui.visible_text()
+        assert links.count(DirectProjectFileLink(target.resolve(), original_root=workspace.project.resolve()).click) == 2, links
+        assert file_links(ui, "website") == [ExternalProjectLink("https://example.com").click], ui.visible_text()
         drawn = [i for i, line in enumerate(line for line in ui.visible_lines() if "file.md" in line)]
         await ui.click("file.md", occurrence=next(i for i in drawn if ui.link_at("file.md", occurrence=i) is not None))
         await ui.until_shows("REAL_MARKDOWN_FILE_PREVIEW")
