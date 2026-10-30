@@ -49,10 +49,14 @@ jobs:
         run: PYTHONPATH="$PWD/.core-gate/src" PATH="$PWD/.venv/bin:$PATH" .venv/bin/python .core-gate/tools/nra_client_gate.py --root src/toad --base "$(git merge-base "$BASE_TIP" "$PR_HEAD")" --head "$PR_HEAD"
       - name: Run surface guards
         run: .venv/bin/pytest tests/guards
-  suite:
+  suite-shard:
     runs-on: ubuntu-latest
     # A hung test must turn red in minutes, not burn GitHub's 6-hour default.
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -85,4 +89,13 @@ jobs:
       # xdist reports a collection error as a worker crash; collect alone first so it reads as one.
       - run: .venv/bin/pytest --collect-only -q
       # A test stuck past 120 s dumps every thread, so the red names where it hung.
-      - run: .venv/bin/pytest -n auto --basetemp .artifacts/pilots -o faulthandler_timeout=120 -rfE -vv --tb=short
+      # Each test owns its interpreter (OwnProcessTest), so a runner's two cores carry about a
+      # quarter of the suite inside the job limit; shards run on their own runners.
+      - run: .venv/bin/pytest -n auto --shard ${{ matrix.shard }}/4 --basetemp .artifacts/pilots -o faulthandler_timeout=120 -rfE -vv --tb=short
+  suite:
+    # The required check: green only when every shard is.
+    needs: suite-shard
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.suite-shard.result }}" = success

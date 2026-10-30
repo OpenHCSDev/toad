@@ -11,6 +11,7 @@ from pathlib import Path
 import shutil
 import sys
 import warnings
+import zlib
 
 import pytest
 
@@ -38,6 +39,8 @@ def open_defects() -> dict[str, str]:
 def pytest_addoption(parser):
     parser.addoption("--test-timeout", type=float, default=165,
                      help="Wall seconds one app test may take, once (no retries)")
+    parser.addoption("--shard", default="0/1",
+                     help="INDEX/COUNT: run only the tests whose node id hashes to INDEX of COUNT")
 
 
 @pytest.fixture
@@ -110,6 +113,10 @@ class OwnProcessTest(pytest.Item):
 def pytest_collection_modifyitems(config, items):
     if ATTEMPT in os.environ:
         return  # This is the process a test was given.
+    index, count = map(int, config.getoption("--shard").split("/"))
+    kept = [item for item in items if zlib.crc32(item.nodeid.encode()) % count == index]
+    config.hook.pytest_deselected(items=[item for item in items if item not in kept])
+    items[:] = kept
     defects = open_defects()
     if not config.args_source == config.ArgsSource.ARGS:
         for test in sorted(set(defects) - {item.nodeid for item in items}):
