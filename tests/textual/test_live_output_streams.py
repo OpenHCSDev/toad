@@ -3,12 +3,14 @@
 from agent_comms.routing import MessageRoute
 from support.agents import RecordedEvents
 
+from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.core.events import CoreEvent, Update
 from toad.core_event_carrier import CoreEventMessage, dispatch_publication
-from toad.live_output import OutputStream, ResponseStream, ThoughtStream
-from toad.response_delivery import RoutedResponse, UnroutedResponse
+from toad.live_output import CompleteResponseStream, OutputStream, ResponseStream, ThoughtStream
+from toad.response_delivery import RoutedResponse
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
+from toad.widgets.committed_presentation import CapturedClaim
 
 
 class DiagnosticStream(OutputStream):
@@ -17,6 +19,11 @@ class DiagnosticStream(OutputStream):
 
     def create(self, fragment):
         return AgentThought(fragment)
+
+
+def consumed_stream(agent):
+    """The stream one incoming agent message gets from the update consumer that owns it."""
+    return CommsUpdateConsumer(agent, "session").response_stream()
 
 
 def painted_window(ui):
@@ -61,8 +68,8 @@ async def test_queued_client_replies_of_one_local_turn_form_one_reply(workspace)
         ui.attach_agent(agent)
         subscription = agent.controller.surface.subscription
         view.turns.start_client()
-        first = view.turns.owner.response_stream(UnroutedResponse())
-        second = view.turns.owner.response_stream(UnroutedResponse())
+        first = consumed_stream(agent)
+        second = consumed_stream(agent)
         view.turns.finish_client()
         await dispatch_publication(view, CoreEventMessage(Update("text", "Local queued", first), subscription))
         await dispatch_publication(view, CoreEventMessage(Update("text", " response", second), subscription))
@@ -71,14 +78,14 @@ async def test_queued_client_replies_of_one_local_turn_form_one_reply(workspace)
         assert local.body.text == "Local queued response"
 
 
-async def test_a_different_turn_id_or_owner_notice_starts_a_new_block(workspace):
+async def test_a_different_append_claim_or_notice_starts_a_new_block(workspace):
     async with workspace.app() as ui:
         view = ui.conversation
-        one = await view.output.append(ResponseStream(turn_id="one"), "First turn")
-        two = await view.output.append(ResponseStream(turn_id="two"), "Second turn")
+        one = await view.output.append(ResponseStream(source_claim=CapturedClaim()), "First reply")
+        two = await view.output.append(ResponseStream(source_claim=CapturedClaim()), "Second reply")
         assert one is not two
-        notice = await view.output.append(view.turns.owner.response_stream(UnroutedResponse()), "Owner notice")
-        another = await view.output.append(view.turns.owner.response_stream(UnroutedResponse()), "Next owner notice")
+        notice = await view.output.append(CompleteResponseStream(), "Owner notice")
+        another = await view.output.append(CompleteResponseStream(), "Next owner notice")
         assert notice is not another
 
 
@@ -89,7 +96,7 @@ async def test_an_update_published_by_another_agent_adds_no_block(workspace):
         ui.attach_agent(agent)
         subscription = agent.controller.surface.subscription
         view.turns.start_client()
-        queued = view.turns.owner.response_stream(UnroutedResponse())
+        queued = consumed_stream(agent)
         view.turns.finish_client()
         await dispatch_publication(view, CoreEventMessage(Update("text", "Local queued", queued), subscription))
         await view.output.finish(ResponseStream)
