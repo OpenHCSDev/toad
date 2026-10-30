@@ -9,8 +9,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.errors import UnregisteredThreadError
+from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
+from toad.comms_root import CoordinationAccess
 from toad.format_path import format_path
 from toad.session_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
@@ -44,6 +46,10 @@ class SessionIdentity(ABC):
 
     def wire_root(self) -> str | None:
         return None
+
+    def selected_route(self, access: CoordinationAccess) -> RouteSelection:
+        """An unbound identity resolves within the app's own route."""
+        return access.selection
 
     def transcript_scope(self) -> TranscriptScope:
         return NoTranscript()
@@ -156,6 +162,10 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def wire_root(self) -> str:
         return self.root
+
+    def selected_route(self, access: CoordinationAccess) -> RouteSelection:
+        """A managed identity requires its recorded wire source."""
+        return access.selected(self.root)
 
     def transcript_scope(self) -> KnownTranscript:
         return KnownTranscript(self.root, self.thread_name())
