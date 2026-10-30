@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+from toad.project_link import DirectProjectFileLink, ExternalProjectLink, SearchProjectFileLink
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.project_panel import FilePreview
@@ -25,10 +26,13 @@ async def test_existing_project_paths_in_agent_text_are_links_and_other_text_is_
     async with workspace.app(size=(130, 35)) as ui:
         await say(ui, "See plans/tag-channel-view-plan.md:\n\n`plans/tag-channel-view-plan.md`\n\n"
                       "but not plans/missing.md\n\nor https://example.com/plans/tag-channel-view-plan.md.")
-        assert ui.hyperlink_at("plans/tag-channel-view-plan.md:", occurrence=0) == f"toad-file:{path}"
-        assert ui.hyperlink_at("plans/tag-channel-view-plan.md", occurrence=1) == f"toad-file:{path}"
-        assert ui.hyperlink_at("plans/missing.md") is None
-        assert ui.hyperlink_at("https://example.com/plans/tag-channel-view-plan.md.") is None
+        plan = DirectProjectFileLink(path, original_root=workspace.project.resolve()).click
+        assert ui.link_at("plans/tag-channel-view-plan.md:", occurrence=0) == plan
+        assert ui.link_at("plans/tag-channel-view-plan.md", occurrence=1) == plan
+        assert ui.link_at("plans/missing.md") is None
+        # Linkify's URLs are resolved syntax; the sentence's full stop is not part of the address.
+        assert ui.link_at("https://example.com/plans/tag-channel-view-plan.md") == ExternalProjectLink(
+            "https://example.com/plans/tag-channel-view-plan.md").click
 
 
 async def test_explicit_links_name_the_file_search_or_the_website(workspace):
@@ -36,9 +40,11 @@ async def test_explicit_links_name_the_file_search_or_the_website(workspace):
     async with workspace.app(size=(130, 35)) as ui:
         await say(ui, f"[Absolute]({path}) [Relative](plans/tag-channel-view-plan.md) "
                       "[Website](https://example.com/preview.py) [Missing](missing.py)")
-        assert [ui.hyperlink_at(name) for name in ("Absolute", "Relative", "Website", "Missing")] == [
-            f"toad-file:{path}", f"toad-file:{path}",
-            "https://example.com/preview.py", "toad-file-search:missing.py"]
+        root = workspace.project.resolve()
+        assert [ui.link_at(name) for name in ("Absolute", "Relative", "Website", "Missing")] == [
+            DirectProjectFileLink(path, original_root=root).click, DirectProjectFileLink(path, original_root=root).click,
+            ExternalProjectLink("https://example.com/preview.py").click,
+            SearchProjectFileLink("missing.py", original_root=root).click]
 
 
 async def test_clicking_a_file_link_opens_its_preview_tab(workspace):
@@ -82,7 +88,8 @@ async def test_a_bare_file_name_links_to_a_search_that_opens_the_one_matching_fi
         app, _ = ui.textual
         owner = ui.selected_tab
         await say(ui, "See declarations.py")
-        assert ui.hyperlink_at("declarations.py") == "toad-file-search:declarations.py"
+        assert ui.link_at("declarations.py") == SearchProjectFileLink(
+            "declarations.py", original_root=workspace.project.resolve()).click
         await ui.click("declarations.py")
         await ui.until(lambda: ui.selected_tab != owner, why="the preview of the nested file")
         preview = app.selected_session.query_one(FilePreview)
