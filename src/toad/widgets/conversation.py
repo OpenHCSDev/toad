@@ -1211,6 +1211,17 @@ class Conversation(
                 prompt.focus()
 
     @work
+    @handles(input_events.ChangeConfiguration)
+    async def on_change_configuration(self, event: input_events.ChangeConfiguration) -> None:
+        agent = self.agent_binding
+        setting = agent.configuration.setting(event.setting)
+        error = await setting.select(agent, event.value)
+        if agent is not self.agent_binding:
+            return
+        if error is not None:
+            self.app.show_error(error, f"Set {setting.picker_title}")
+
+    @work
     @handles(input_events.ChangeModel)
     async def on_change_model(self, event: input_events.ChangeModel) -> None:
         agent = self.agent_binding

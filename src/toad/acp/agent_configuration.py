@@ -38,6 +38,21 @@ class SelectChoices(MroDispatch):
 class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
     option: SessionConfigOptionSelect | None = None
     label: ClassVar[str]
+    show_provider: ClassVar[bool] = False
+
+    @property
+    def picker_title(self) -> str:
+        return self.option.name if self.option else self.label
+
+    def picker_settings(self) -> tuple[ConfigurationSetting, ...]:
+        return (self,) if self.available else ()
+
+    async def recent_choices(self, scope: str) -> list[str]:
+        return []
+
+    def selection_event(self, value: str):
+        from toad.core.input_events import ChangeConfiguration
+        return ChangeConfiguration(type(self), value)
 
     @classmethod
     @abstractmethod
@@ -87,6 +102,19 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
 
 class ModelConfigurationSetting(ConfigurationSetting):
     label = "model"
+    show_provider = True
+
+    def picker_settings(self) -> tuple[ConfigurationSetting, ...]:
+        # Provider setup remains reachable before a model is advertised.
+        return (self,)
+
+    async def recent_choices(self, scope: str) -> list[str]:
+        from toad.db import DB
+        return await DB().recent_models(scope)
+
+    def selection_event(self, value: str):
+        from toad.core.input_events import ChangeModel
+        return ChangeModel(value)
 
     @property
     def input_decision(self) -> InputDecision:
@@ -117,6 +145,14 @@ class ThinkingConfigurationSetting(ConfigurationSetting):
     @classmethod
     def matches(cls, option):
         return option.category == "thought_level" or option.id == "thinking_level"
+
+
+class ServiceTierConfigurationSetting(ConfigurationSetting):
+    label = "service tier"
+
+    @classmethod
+    def matches(cls, option):
+        return option.category == "service_tier" or option.id == "service_tier"
 
 
 class ModeConfigurationSetting(ConfigurationSetting):
@@ -163,6 +199,14 @@ class AgentConfiguration:
     @property
     def mode(self) -> ModeConfigurationSetting:
         return self.setting(ModeConfigurationSetting)
+
+    @property
+    def picker_settings(self) -> tuple[ConfigurationSetting, ...]:
+        return tuple(
+            member
+            for setting in self.selections.values()
+            for member in setting.picker_settings()
+        )
 
     def receive_current_mode(self, value: str) -> None:
         self.selections[ModeConfigurationSetting] = self.mode.with_current(value)
