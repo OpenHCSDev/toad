@@ -30,7 +30,7 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
                 await ui.open_direct("peer", actor=viewer)
                 chat = ui.textual[0].screen.query_one(CommsChatView)
                 assert await asyncio.to_thread(entered.wait, 4)
-                assert [message.body for message in chat.message_history.messages] == ["old peer painted"]
+                assert [fragment.message.body for fragment in chat.message_history.fragments] == ["old peer painted"]
                 assert comms.bus.pending_count(viewer, "peer") == 1
 
                 comms.registry.unregister("peer")
@@ -41,6 +41,7 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
                 release.set()
                 await chat.message_history.read_worker.wait()
                 assert comms.bus.pending_count(viewer, "peer") == 1
-                assert not any(message.body == "new peer never painted" for message in chat.message_history.messages)
+                assert not any(fragment.message.body == "new peer never painted"
+                               for fragment in chat.message_history.fragments)
     finally:
         release.set()

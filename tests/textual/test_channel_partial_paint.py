@@ -5,6 +5,7 @@ from agent_comms.read_basis import ChannelConversation
 
 async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_remaining_messages(workspace):
     from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.history_anchor import FragmentPosition
     from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 
     workspace.thread("peer", "team", running=True)
@@ -36,8 +37,10 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
                 continue
             fragment = next(part for part in history.fragments
                             if part.message.view_key == message.view_key)
-            await history.reveal_message_head(fragment, lambda: True)
-            history.show_fragment(fragment)
+            async with window.preserve_history(root=history):
+                window.reader_position = FragmentPosition(fragment.key, 0, 1, block=0)
+                await history.prepare_rows(lambda: True, window=window, target=history,
+                    selected=history.selected_categories, rows_needed=window.outer_size.height)
             await ui.until(lambda: message.seq in ledger.cursor(
                 viewer, snapshot).for_conversation(channel),
                 why=f"row {message.seq} to be marked once scrolled to")
@@ -52,12 +55,12 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
             assert history.read_worker is completed
         window.scroll_end(animate=False, immediate=True)
         await ui.until(lambda: ui.shows("row 7"), why="the newest row after returning to the bottom")
-        recorded = tuple(message.view_key for message in history.messages)
+        recorded = tuple(fragment.message.view_key for fragment in history.fragments)
         await ui.press("ctrl+t")
-        await ui.until(lambda: isinstance(history.style, MarkdownMessageStyle), why="the Markdown style")
+        await ui.until(lambda: isinstance(history.page_source.loader.style, MarkdownMessageStyle), why="the Markdown style")
         assert ui.shows("row 7")
         await ui.press("ctrl+t")
-        await ui.until(lambda: isinstance(history.style, IrcMessageStyle), why="the IRC style")
-        assert tuple(message.view_key for message in history.messages) == recorded
+        await ui.until(lambda: isinstance(history.page_source.loader.style, IrcMessageStyle), why="the IRC style")
+        assert tuple(fragment.message.view_key for fragment in history.fragments) == recorded
         cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
         assert all(row.seq in cursor for row in rows)

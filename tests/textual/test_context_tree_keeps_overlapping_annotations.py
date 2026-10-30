@@ -17,6 +17,7 @@ async def test_tree_rebinds_corrections_and_remounts_on_the_same_row_without_a_n
         await sidebar.wait_content_ready()
         next(panel for panel in sidebar.query(SideBarCollapsible) if panel.title == "Context").collapsed = False
         explorer = sidebar.query_one(ContextExplorer)
+        await ui.step()
         tree = explorer.query_one(ContextTree)
         tree.styles.height = 3
         tree.styles.min_height = 0
@@ -24,6 +25,8 @@ async def test_tree_rebinds_corrections_and_remounts_on_the_same_row_without_a_n
         intent.selected = short
         tree.present(inspection.working_memory())
         short_node, long_node = tree.resolve_reader(short.key), tree.resolve_reader(long.key)
+        tree.root.expand_all()
+        await ui.step()
         tree.move_cursor(short_node, animate=False)
         await ui.step()
         assert short_node is not long_node
