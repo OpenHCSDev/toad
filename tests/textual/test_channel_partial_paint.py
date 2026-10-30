@@ -1,11 +1,12 @@
 """Textual-facing: read marks follow the message text the viewport has painted; scrolling the window reveals the rest."""
 
+from dataclasses import replace
+
 from agent_comms.read_basis import ChannelConversation
 
 
 async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_remaining_messages(workspace):
     from toad.widgets.comms_chat import CommsChatView
-    from toad.widgets.history_anchor import FragmentPosition
     from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 
     workspace.thread("peer", "team", running=True)
@@ -37,10 +38,14 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
                 continue
             fragment = next(part for part in history.fragments
                             if part.message.view_key == message.view_key)
-            async with window.preserve_history(root=history):
-                window.reader_position = FragmentPosition(fragment.key, 0, 1, block=0)
-                await history.prepare_rows(lambda: True, window=window, target=history,
-                    selected=history.selected_categories, rows_needed=window.outer_size.height)
+            page, index = next((page, index) for page in history.pages
+                               for index, member in enumerate(page.prepared.fragments)
+                               if member is fragment)
+            destination = replace(page.prepared.capture_range(), start=index, stop=index + 1,
+                                  members=(fragment,))
+            await history.restore_reader_ranges((destination,), lambda: True)
+            history.show_fragment(fragment)
+            window.request_preparation()
             await ui.until(lambda: message.seq in ledger.cursor(
                 viewer, snapshot).for_conversation(channel),
                 why=f"row {message.seq} to be marked once scrolled to")

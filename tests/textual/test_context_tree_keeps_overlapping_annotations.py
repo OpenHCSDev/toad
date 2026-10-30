@@ -50,7 +50,9 @@ async def test_tree_rebinds_corrections_and_remounts_on_the_same_row_without_a_n
         await ui.step()
         short_node, long_node = tree.resolve_reader(short.key), tree.resolve_reader(long.key)
         assert tree.owns_node(short_node) and tree.owns_node(long_node)
-        assert tree.cursor_node is short_node and intent.selected is short_node.data
+        # A human correction moves the answer to another section. The old
+        # native row retires; detail rebinds without manufacturing navigation.
+        assert intent.selected is short_node.data
         assert short_node.data.annotation == found.corrected
         assert long_node.data.annotation == labels[1]
 

@@ -4,6 +4,7 @@ import asyncio
 from threading import Event
 from unittest.mock import patch
 
+from agent_comms.channel_targets import CommandTarget
 from agent_comms.history_views import HistoryViews
 
 
@@ -13,6 +14,7 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
     workspace.thread("peer", running=True)
     comms = workspace.comms
     viewer = workspace.viewer
+    target = CommandTarget.named("peer")
     comms.messaging.send("peer", viewer, "old peer painted")
     entered, release = Event(), Event()
     original_mark = HistoryViews.mark_page_read
@@ -31,7 +33,7 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
                 chat = ui.textual[0].screen.query_one(CommsChatView)
                 assert await asyncio.to_thread(entered.wait, 4)
                 assert [fragment.message.body for fragment in chat.message_history.fragments] == ["old peer painted"]
-                assert comms.bus.pending_count(viewer, "peer") == 1
+                assert comms.bus.pending_count(viewer, target) == 1
 
                 comms.registry.unregister("peer")
                 comms.registry.remove("peer")
@@ -40,7 +42,7 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
                 await ui.select_tab(owner)
                 release.set()
                 await chat.message_history.read_worker.wait()
-                assert comms.bus.pending_count(viewer, "peer") == 1
+                assert comms.bus.pending_count(viewer, target) == 1
                 assert not any(fragment.message.body == "new peer never painted"
                                for fragment in chat.message_history.fragments)
     finally:
