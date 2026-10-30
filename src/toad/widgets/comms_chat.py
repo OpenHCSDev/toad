@@ -117,7 +117,10 @@ class CommsChatView(Conversation):
             )
         comms = shared
         await self.app.coordination_access.current_sidebar()
-        source = WireSource(comms, self.conversation, self.project_path, self._me, IrcMessageStyle())
+        source = WireSource(
+            comms, self.conversation, self.project_path, self._me,
+            IrcMessageStyle(), access=self.app.coordination_access,
+        )
         self.queue_source = source
         self.message_history.initialize_source(source)
         self.refresh_identity(comms.root)

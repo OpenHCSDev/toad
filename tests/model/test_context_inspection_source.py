@@ -2,14 +2,14 @@
 
 import json
 
-from agent_comms.field_codec import FieldCodec
-from agent_comms.pi_payloads import AssistantMessage, TextContent, ToolCallContent
+from agent_comms.field_codec import FieldCodec, ToolCallId
+from agent_comms.pi_payloads import AssistantMessage, ReportedParts, TextContent, ToolCallContent
 from toad.core.context_inspection import NativeMessageNode
 
 
 def test_native_message_text_includes_its_tool_calls():
-    call = ToolCallContent(id="call-1", name="read", arguments={"path": "notes.md"})
-    message = AssistantMessage(content=(TextContent(text="Reading the notes."), call))
+    call = ToolCallContent(id=ToolCallId("call-1"), name="read", arguments={"path": "notes.md"})
+    message = AssistantMessage(content=ReportedParts((TextContent(text="Reading the notes."), call)))
     node = NativeMessageNode("native/0", None, None, message, 0)
 
     said, called = node.public_text().split("\n", 1)

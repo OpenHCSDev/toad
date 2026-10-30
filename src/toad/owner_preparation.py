@@ -62,18 +62,6 @@ class ExistingOwnerPlan(MroProjection[OwnerPlan]):
         return cls().project_value(binding)
 
 
-@dataclass(frozen=True, slots=True)
-class OwnerRequestContext:
-    """Supply the core proxy's service contract without capturing a UI widget.
-
-    The proxy still resolves and validates the live owner before sending. This
-    object supplies only the revision-aware reader, never cached goal/delivery
-    state or an alternative authority for request routing.
-    """
-
-    _comms: Comms
-
-
 def read_thread_presentation(comms: Comms, name: str) -> ThreadPresentation:
     """Read the existing core presentation on a worker, without UI dependencies; only its
     published projection leaves the worker, never the acquired delivery evidence."""

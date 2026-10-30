@@ -13,7 +13,6 @@ import asyncio
 from dataclasses import dataclass, field
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.route_selection import RouteSelection
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from agent_comms.ui_model.unread import UnobservedUnread
 from textual import on
@@ -281,7 +280,7 @@ class ThreadCommsSidebar(
         access = self.app.coordination_access
         return await self.app.preparation.run_thread(
             lambda: access.require(
-                RouteSelection.capture(identity.root_path())
+                access.selected(identity.root_path())
             ).service.relationships
         )
 

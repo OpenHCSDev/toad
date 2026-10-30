@@ -52,7 +52,7 @@ def launch_root(tmp_path):
 def app_agents(tmp_path, launch_root) -> Iterator[AppAgents]:
     """Agents of an app built on the test's own directory and never run."""
     with launch_root.selected():
-        yield AppAgents.unrun(tmp_path)
+        yield AppAgents.unrun(tmp_path, launch_root)
 
 
 @pytest.fixture

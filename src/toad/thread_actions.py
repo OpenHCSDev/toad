@@ -12,7 +12,6 @@ from agent_comms.cli_failures import CLI_FAILURES
 from agent_comms.cli_result import CliResult
 from agent_comms.errors import RouteChangedError
 from agent_comms.native_pi import NativePiUnavailable
-from agent_comms.route_selection import RouteSelection
 
 from toad.core import events as core_events
 
@@ -34,7 +33,7 @@ class ThreadActions:
 
     def invoke(self, action: ThreadAction, subject: str, *, source_root: Path) -> None:
         app = self.app
-        selected = RouteSelection.capture(source_root)
+        selected = app.coordination_access.selected(source_root)
         if any(target in self.requests for target in action.resources):
             app.notify(f"An action for {subject} is already in progress", title="Session action")
             return

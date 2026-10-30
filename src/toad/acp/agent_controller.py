@@ -22,6 +22,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.coordination_errors import Refused
+from agent_comms.runtime import RuntimeConnection, socket_path
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.order_tools import InputDeliveryRead
 from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
@@ -391,10 +392,6 @@ class AgentController(OperationalTerminalOwner):
     async def request_owner(self, method: str, **params: JsonValue):
         if self.coordination is None:
             raise ValueError("This action requires an agent-comms thread.")
-        from agent_comms.runtime import RuntimeProxy, socket_path
-
-        from toad.owner_preparation import OwnerRequestContext
-
         coordination = self.coordination
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         self.require_owner(coordination, authority)
@@ -404,8 +401,8 @@ class AgentController(OperationalTerminalOwner):
             owner = comms.registry.require(coordination.thread.name)
             if owner.incarnation != coordination.thread:
                 raise ValueError("The owner incarnation changed while preparing the request.")
-            return RuntimeProxy(
-                OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.require_process().pid)
+            return RuntimeConnection(
+                comms, owner.incarnation, socket_path(comms.root, owner.require_process().pid)
             )
 
         proxy = await asyncio.to_thread(resolve)

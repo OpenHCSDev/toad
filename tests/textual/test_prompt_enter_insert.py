@@ -99,6 +99,10 @@ async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(works
         await ui.until(lambda: ui.conversation.prompt.prompt_text_area.key_mode is Standard,
                        why="the actual saved Standard preference after reopen")
         area = ui.conversation.prompt.prompt_text_area
+        assert type(area.editing_mode) is Standard
         area.focus()
         await ui.until(lambda: str(ui.conversation.prompt.editing_mode_label.render()) == Standard.label,
                        why="the saved Standard label, without starting the engine")
+        await ui.type("B o stays native")
+        assert "B o stays native" in area.text
+        assert type(area.editing_mode) is Standard
