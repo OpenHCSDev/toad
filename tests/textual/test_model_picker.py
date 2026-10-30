@@ -14,6 +14,7 @@ from toad.db import DB
 from toad.widgets.prompt import AgentInfo
 from toad.widgets.model_switcher import ClearModelSearchAction
 from textual.document._editing import EditingMode
+from textual.geometry import Region
 
 GLM = "openrouter/z-ai/glm-5.3-flash"
 SONNET = "openrouter/anthropic/claude-sonnet-4.6"
@@ -120,9 +121,11 @@ async def test_opening_the_picker_focuses_search_and_lists_recent_models_first(w
         await open_by_clicking_the_model(picker)
         assert widget.search_input.has_focus
         assert picker.ids()[:3] == [SONNET, GPT, GLM]
-        highlighted_style = list(widget.option_list.render_line(0))[0].style
+        options = widget.option_list
+        first, second = options.render_lines(Region(0, 0, options.size.width, 2))
+        highlighted_style = list(first)[0].style
         assert highlighted_style.color != highlighted_style.bgcolor
-        assert highlighted_style.bgcolor != list(widget.option_list.render_line(1))[0].style.bgcolor
+        assert highlighted_style.bgcolor != list(second)[0].style.bgcolor
         assert "retired/model" not in picker.ids()
 
 
