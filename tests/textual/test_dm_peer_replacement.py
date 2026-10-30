@@ -15,16 +15,16 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
     viewer = workspace.viewer
     comms.messaging.send("peer", viewer, "old peer painted")
     entered, release = Event(), Event()
-    original_mark = HistoryViews.mark_dm_view_read
+    original_mark = HistoryViews.mark_page_read
 
-    def pause_old_mark(self, peer, **kwargs):
+    def pause_old_mark(self, page, **kwargs):
         entered.set()
         if not release.wait(8):
             raise TimeoutError("Old painted marker was not released")
-        return original_mark(self, peer, **kwargs)
+        return original_mark(self, page, **kwargs)
 
     try:
-        with patch.object(HistoryViews, "mark_dm_view_read", pause_old_mark):
+        with patch.object(HistoryViews, "mark_page_read", pause_old_mark):
             async with workspace.app(size=(120, 40)) as ui:
                 owner = ui.selected_tab
                 await ui.open_direct("peer", actor=viewer)
@@ -39,7 +39,7 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
                 comms.messaging.send("peer", viewer, "new peer never painted")
                 await ui.select_tab(owner)
                 release.set()
-                await ui.until(lambda: not chat.message_history.marking, why="the held mark to finish")
+                await chat.message_history.read_worker.wait()
                 assert comms.bus.pending_count(viewer, "peer") == 1
                 assert not any(message.body == "new peer never painted" for message in chat.message_history.messages)
     finally:

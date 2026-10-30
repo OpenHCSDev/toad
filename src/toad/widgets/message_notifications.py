@@ -90,18 +90,18 @@ class ReadWork(PaintedRead):
     work: Awaitable[None]
 
     def start(self, marker: VisibleReadMarking) -> None:
-        marker._read_worker = marker.run_worker(self.work, group="painted-read")
+        marker.read_worker = marker.run_worker(self.work, group="painted-read")
 
 
 class VisibleReadMarking:
     """One painted-read operation at a time, for pagers and native/CLI sessions."""
 
     def __init__(self, *args, **kwargs):
-        self._read_worker = None
+        self.read_worker = None
         super().__init__(*args, **kwargs)
 
     def mark_visible(self) -> None:
-        if self._read_worker is not None and not self._read_worker.is_finished:
+        if self.read_worker is not None and not self.read_worker.is_finished:
             return
         self.read_visible().start(self)
 
