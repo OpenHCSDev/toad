@@ -21,7 +21,7 @@ from agent_comms.messages import Message
 from agent_comms.routing import MessageRoute
 
 from toad.inline_spans import inline_spans
-from toad.menus import MenuItem
+from toad.menus import MenuCommand, OpenDestinationCommand, OpenSenderCommand
 from toad.line_blocks import (
     MarkdownBody, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole,
     OpenHistoricalTarget, OpenTarget, OutgoingRole, Span, Spans,
@@ -120,10 +120,10 @@ class MessageRow(MroDispatch):
         return self.name(self.route.targets[0]).link
 
     @property
-    def menu(self) -> tuple[MenuItem, ...]:
+    def menu(self) -> tuple[MenuCommand, ...]:
         """What the cursor's menu offers on this message, wherever it is drawn."""
-        return (MenuItem("Open [u]s[/u]ender", "block.open_sender", "s"),
-                *(MenuItem("Open [u]d[/u]estination", "block.open_destination", "d"),) * bool(self.route.targets))
+        return (OpenSenderCommand(self.sender),
+                *(OpenDestinationCommand(self.destination) for _ in self.route.targets[:1]))
 
     @property
     def route_text(self) -> str:

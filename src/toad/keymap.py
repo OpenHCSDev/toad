@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from collections.abc import Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from functools import cache
 from importlib import import_module
 from pkgutil import walk_packages
@@ -21,6 +21,7 @@ from textual.keys import KeyInvocation
 from textual.screen import ModalScreen
 
 from toad.key_modes import KeyMode
+from toad.menus import MenuCommand
 from toad.setting_declarations import Effect, FamilyChoices
 from toad.widget_actions import ApplicationAction
 
@@ -94,40 +95,64 @@ class KeyConflict:
 
 
 @dataclass(frozen=True)
+class KeymapClaim:
+    """A detached default claim, with its original nominal invocation intact."""
+
+    invocation: KeyInvocation
+    keys: tuple[str, ...]
+
+    @classmethod
+    def from_bindings(cls, bindings: Iterable[Binding]) -> Iterator[KeymapClaim]:
+        return (cls(invocation, (key,)) for key, binding in BindingsMap(bindings)
+                for invocation in binding.invocations())
+
+
+@dataclass(frozen=True)
 class KeymapCatalog:
     """A detached view of the same concrete bindings the native scopes dispatch."""
 
     invocations: Mapping[KeyInvocationId, KeyInvocation]
-    scopes: Mapping[type[KeyMode], tuple[tuple[Binding, ...], ...]]
+    scopes: Mapping[type[KeyMode], tuple[tuple[KeymapClaim, ...], ...]]
     default_keys: Mapping[tuple[KeyInvocationId, type[KeyMode]], tuple[str, ...]]
 
     @classmethod
     def capture(cls, modes: tuple[type[KeyMode], ...]) -> KeymapCatalog:
         discover()
         invocations: dict[KeyInvocationId, KeyInvocation] = {}
-        scopes: dict[type[KeyMode], tuple[tuple[Binding, ...], ...]] = {}
+        scopes: dict[type[KeyMode], tuple[tuple[KeymapClaim, ...], ...]] = {}
         keys: dict[tuple[KeyInvocationId, type[KeyMode]], dict[str, None]] = {}
         for mode in modes:
             native_mode = mode().binding_mode
             application = tuple(binding for declaration in ApplicationAction.declarations()
                                 for binding in declaration.exclusive_bindings(native_mode))
-            owned = [application]
+            owned = [tuple(KeymapClaim.from_bindings(application))]
             for owner in DOMNode.contexts():
                 defaults = tuple(binding for _, binding in owner.binding_defaults(native_mode))
                 if not issubclass(owner, ModalScreen):
                     defaults = (*defaults, *application)
-                owned.append(defaults)
+                owned.append(tuple(KeymapClaim.from_bindings(defaults)))
+            from toad.widgets.menu import Menu
+            owned.append((
+                *KeymapClaim.from_bindings(binding for _, binding in Menu.binding_defaults(native_mode)),
+                *(KeymapClaim(declaration, declaration.default_keys())
+                  for declaration in MenuCommand.members_with(MenuCommand)),
+            ))
             scopes[mode] = tuple(owned)
             for defaults in owned:
-                for key, binding in BindingsMap(defaults):
-                    for invocation in binding.invocations():
-                        reference = KeyInvocationId(invocation.key_identity())
-                        invocations.setdefault(reference, invocation)
+                for claim in defaults:
+                    reference = KeyInvocationId(claim.invocation.key_identity())
+                    invocations.setdefault(reference, claim.invocation)
+                    for key in claim.keys:
                         keys.setdefault((reference, mode), {})[key] = None
         return cls(MappingProxyType(invocations), MappingProxyType(scopes), MappingProxyType({
             (reference, mode): tuple(keys.get((reference, mode), ()))
             for reference in invocations for mode in modes
         }))
+
+    @staticmethod
+    def menu_keys(command: MenuCommand, mode: type[KeyMode], keymap: Keymap) -> tuple[str, ...]:
+        declaration = type(command)
+        return keymap.keys_for(KeymapRow.of(declaration, mode), declaration.default_keys())
 
     def require(self, reference: KeyInvocationId) -> KeyInvocation:
         try:
@@ -191,11 +216,10 @@ class Keymap:
         for defaults in catalog.scopes[mode]:
             # Inspect before Textual resolves clashes by replacing a conflicting binding.
             claims: dict[str, set[str]] = {}
-            for default_key, binding in BindingsMap(defaults):
-                if binding.id in rows:
-                    keys = self.keys_for(rows[binding.id], (default_key,))
-                    for key in keys:
-                        claims.setdefault(key, set()).add(binding.id)
+            for claim in defaults:
+                row = KeymapRow.of(claim.invocation, mode)
+                for key in self.keys_for(row, claim.keys):
+                    claims.setdefault(key, set()).add(row.binding_id)
             for key, identities in claims.items():
                 claimed = tuple(sorted(identities))
                 for index, first in enumerate(claimed):

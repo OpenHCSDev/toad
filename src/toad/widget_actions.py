@@ -45,19 +45,6 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
         return cls.declared_name.replace("_", " ").capitalize()
 
     @classmethod
-    def declarations(cls):
-        """Each nested family retains its own declaration registry."""
-        pending = [cls]
-        families = set()
-        while pending:
-            declaration = pending.pop()
-            pending.extend(declaration.__subclasses__())
-            family = declaration.family_root
-            if family not in families:
-                families.add(family)
-                yield from family.members_with(cls)
-
-    @classmethod
     def summary(cls) -> str:
         """The nearest docstring a member declares; the family roots document code, not keys."""
         root = cls.family_root
