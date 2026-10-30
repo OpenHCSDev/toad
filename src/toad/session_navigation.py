@@ -140,7 +140,7 @@ class SessionNavigation:
         identity = self.app.tab_order.previous(current, eligible=eligible)
         return identity.mode_name if identity is not None else self.app.tab_order.home
 
-    async def restore_mailbox(self, identity: MailboxTab) -> None:
+    async def mailbox_entry(self, identity: MailboxTab) -> SessionEntry:
         def prepare():
             service = self.app.coordination_access.observation.observed().service
             if service.root != Path(identity.root):
@@ -152,15 +152,13 @@ class SessionNavigation:
             return ThreadNavigationRequest(service, name, self.app.project_dir, ()).read()
 
         prepared = await self.app.preparation.run_thread(prepare)
-        await self.new(
+        return self.native_entry(
             identity, partial(prepared.launch_screen, self.app),
             title=prepared.thread.name,
             original=(prepared.root, prepared.thread.incarnation),
         )
 
-    async def restore_history(self, identity: HistoryTab) -> None:
-        source = self.app.workspace_sessions.require(identity.owner.mode_name)
-
+    async def history_entry(self, identity: HistoryTab, source: SessionScope) -> HistorySessionEntry:
         def participants():
             service = self.app.coordination_access.observation.observed().service
             if service.root != Path(identity.root):
@@ -169,14 +167,12 @@ class SessionNavigation:
                 service.registry.snapshot(), source.thread_identity.thread_name()
             )
 
-        entry = HistorySessionEntry(
+        return HistorySessionEntry(
             identity,
             CommsViewKey(identity.root, identity.owner.mode_name, identity.key),
             source.project_path, source.coordination_root,
             await self.app.preparation.run_thread(participants), source,
         )
-        if self.get(entry.mode) is None:
-            await self.open(entry)
 
     def thread_row(self, row: ThreadRowModel) -> ThreadRowModel:
         """A thread's row as this app shows it, with the state of each open session of it."""
@@ -239,14 +235,22 @@ class SessionNavigation:
             self._closing_retired.add(task)
             task.add_done_callback(self._closing_retired.discard)
 
-    async def open(self, entry: SessionEntry, *, after: str | None = None) -> str:
+    async def register(self, entry: SessionEntry, *, after: str | None = None) -> None:
+        """Keep the logical tab without mounting or selecting its native resources."""
         app = self.app
-        if self.get(entry.mode) is not None:
+        existing = self.get(entry.mode)
+        if existing is entry:
+            return
+        if existing is not None:
             raise ValueError(f"Logical session already registered: {entry.mode}")
         self.entries.setdefault(entry.owner_mode, {})[entry.mode] = entry
         previous = self.get(after)
         await app.tab_order.open(entry.identity, after=previous.identity if previous else None)
         self.publish()
+
+    async def open(self, entry: SessionEntry, *, after: str | None = None) -> str:
+        await self.register(entry, after=after)
+        app = self.app
         await app.select_session(entry.mode)
         await entry.ready(self)
         return entry.mode
@@ -259,13 +263,23 @@ class SessionNavigation:
         title: str = "New Session",
         original=None,
     ) -> SessionDetails:
+        entry = self.native_entry(identity, factory, title=title, original=original)
+        await self.open(entry)
+        return self.app.session_tracker.sessions[identity]
+
+    def native_entry(
+        self,
+        identity: SessionTabIdentity,
+        factory: Callable[[], MainScreen],
+        *,
+        title: str = "New Session",
+        original=None,
+    ) -> SessionEntry:
         existing = self.get(identity.mode_name)
         if existing is not None:
-            await self.app.select_session(existing.mode)
-            return self.app.session_tracker.sessions[identity]
+            return existing
         details = self.app.session_tracker.new_session(identity, title=title)
-        await self.open(NativeSessionEntry(details, factory, original))
-        return details
+        return NativeSessionEntry(details, factory, original)
 
     async def saved(
         self, agent: AgentDefinition, project: Checkout, *,
@@ -287,6 +301,22 @@ class SessionNavigation:
         project: Checkout,
         initial_prompt: str | None = None,
     ) -> None:
+        entry = await self.launch_entry(
+            agent_identity, agent_session_id=agent_session_id,
+            session_pk=session_pk, project=project, initial_prompt=initial_prompt,
+        )
+        if entry is not None:
+            await self.open(entry)
+
+    async def launch_entry(
+        self,
+        agent_identity: str,
+        *,
+        agent_session_id: str | None = None,
+        session_pk: int | None = None,
+        project: Checkout,
+        initial_prompt: str | None = None,
+    ) -> SessionEntry | None:
         from toad.agents import read_agents
         from toad.screens.main import MainScreen
 
@@ -304,8 +334,7 @@ class SessionNavigation:
                 None,
             )
             if existing is not None:
-                await app.select_session(existing)
-                return
+                return self.get(existing)
         agent, title = None, None
         if session_pk is not None:
             saved = await database.session_get(session_pk)
@@ -323,7 +352,7 @@ class SessionNavigation:
             else await self.saved(agent, project, title=title or "New Session",
                                   agent_session_id=agent_session_id)
         )
-        await self.new(
+        return self.native_entry(
             tab,
             lambda: MainScreen(
                 project,

@@ -34,7 +34,7 @@ from toad import messages
 from toad.core import session_requests
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
-from toad.session_scope import AgentBinding
+from toad.session_scope import AgentBinding, SessionScope
 from toad.render_backend import Renderer
 from toad.work_preparation import PreparationRuntime
 from toad.navigation_preparation import (
@@ -349,6 +349,11 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
                 "duration_ms": (monotonic() - started) * 1000,
             }))
 
+
+    async def prepare_session(self, mode: str) -> SessionScope:
+        """Mount an owner shell under the same admission as visible transitions."""
+        async with self._mode_switch_lock:
+            return await self.workspace_sessions.prepare(mode)
 
     def select_session(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
         if mode != self.selected_mode:
