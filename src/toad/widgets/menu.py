@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from textual.binding import BindingsMap
+from textual.binding import BindingsMap, KeymapClaim
 from textual.document._editing import EditingMode
 
 from textual import on
@@ -97,6 +97,14 @@ class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
         self._focus_owner = focus_owner
         self._commands = tuple(sorted(commands, key=lambda command: not type(command).default_keys()))
         super().__init__(*args, **kwargs)
+
+    @classmethod
+    def keymap_claims(cls, mode: type[EditingMode]) -> tuple[KeymapClaim, ...]:
+        return (
+            *super().keymap_claims(mode),
+            *(KeymapClaim(declaration, declaration.default_keys())
+              for declaration in MenuCommand.members_with(MenuCommand)),
+        )
 
     def binding_map(self, mode: type[EditingMode]) -> BindingsMap:
         return BindingsMap.merge((super().binding_map(mode), BindingsMap(
