@@ -24,6 +24,7 @@ from toad.command_catalog import CommandCatalog
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.input_decision import InputDecision, InputRefused
+from toad.submission_queue import QueueEvidence, QueueSource
 from toad.widgets.prompt import Prompt
 
 if TYPE_CHECKING:
@@ -297,9 +298,9 @@ class ConversationSubmissions:
         return self.view.agent_binding.presentation.queue
 
     @property
-    def queued_inputs(self):
-        """Accepted producer rows not yet handed to their original native body."""
-        return self.queue_projection.items
+    def queue_summary(self) -> str:
+        return self.view.queue_source.queue_summary(
+            QueueEvidence(self.view.agent_binding.presentation, self.delivering))
 
     @property
     def delivering(self):
@@ -340,12 +341,12 @@ class ConversationSubmissions:
     def send_bound_now(self, agent: Agent):
         session, scope = agent.session_id, agent.queue_attachment.scope
         return self.view.run_worker(
-            partial(self._send_now, agent, session, scope), group="send-queued-now", exclusive=True
+            partial(self._send_now, self.view.queue_source, agent, session, scope), group="send-queued-now", exclusive=True
         )
 
-    async def _send_now(self, agent: Agent, session, scope: QueueScope):
+    async def _send_now(self, source: QueueSource, agent: Agent, session, scope: QueueScope):
         try:
-            if await agent.controller.send_now():
+            if await source.queue_send_now(agent):
                 return
         except RequestError as error:
             if self.view.agent_binding is agent and agent.session_id == session:

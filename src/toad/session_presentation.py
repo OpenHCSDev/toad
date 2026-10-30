@@ -24,6 +24,7 @@ from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.prompt import MailboxPrompt
+from toad.submission_queue import NativeQueueSource
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -141,7 +142,7 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     async def attach_binding(self, conversation: Conversation) -> None: ...
 
 
-class OperationalSessionSources:
+class OperationalSessionSources(NativeQueueSource):
     """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:

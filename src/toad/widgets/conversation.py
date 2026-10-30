@@ -108,6 +108,7 @@ from toad.widgets.observed_thread_activity import (
     ObservedThreadActivity,
     ThreadStatusOwner,
 )
+from toad.submission_queue import QueueSource
 from toad.widgets.prompt import Prompt
 from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
 from toad.widgets.shell_terminal import ShellTerminal
@@ -1655,6 +1656,10 @@ class Conversation(
         self.feedback.flash("Compaction requested")
         await self.agent_binding.compact_context(instructions)
         self.feedback.flash("Context compacted", style="success")
+
+    @property
+    def queue_source(self) -> QueueSource:
+        return self.operational_sources
 
     def open_queue_menu(self) -> None:
         """Remote edits require exact input IDs and backend revision-CAS support."""
