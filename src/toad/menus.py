@@ -25,16 +25,16 @@ class MenuConversation:
     def accepts_menu_owner(self, owner: Widget) -> bool: ...
 
     @abstractmethod
-    def action_copy_to_clipboard(self) -> None: ...
+    def copy_block_to_clipboard(self) -> None: ...
 
     @abstractmethod
-    def action_copy_to_prompt(self) -> None: ...
+    def copy_block_to_prompt(self) -> None: ...
 
     @abstractmethod
-    def action_export_to_svg(self) -> None: ...
+    def export_block_to_svg(self) -> None: ...
 
     @abstractmethod
-    def action_maximize_block(self) -> None: ...
+    def maximize_block(self) -> None: ...
 
     @abstractmethod
     async def interrupt_shell(self) -> None: ...
@@ -134,7 +134,7 @@ class CopyClipboardCommand(KeyedMenuCommand):
     description = "[u]C[/]opy to clipboard"
 
     def apply(self, conversation: MenuConversation) -> None:
-        conversation.action_copy_to_clipboard()
+        conversation.copy_block_to_clipboard()
 
 
 class CopyPromptCommand(KeyedMenuCommand):
@@ -142,7 +142,7 @@ class CopyPromptCommand(KeyedMenuCommand):
     description = "Co[u]p[/u]y to prompt"
 
     def apply(self, conversation: MenuConversation) -> None:
-        conversation.action_copy_to_prompt()
+        conversation.copy_block_to_prompt()
 
 
 class ExportSvgCommand(KeyedMenuCommand):
@@ -150,7 +150,7 @@ class ExportSvgCommand(KeyedMenuCommand):
     description = "Open as S[u]V[/]G"
 
     def apply(self, conversation: MenuConversation) -> None:
-        conversation.action_export_to_svg()
+        conversation.export_block_to_svg()
 
 
 class MaximizeBlockCommand(KeyedMenuCommand):
@@ -158,7 +158,7 @@ class MaximizeBlockCommand(KeyedMenuCommand):
     description = "[u]M[/u]aximize"
 
     def apply(self, conversation: MenuConversation) -> None:
-        conversation.action_maximize_block()
+        conversation.maximize_block()
 
 
 class CopyThinkingCommand(CopyClipboardCommand):

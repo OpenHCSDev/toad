@@ -79,7 +79,7 @@ def test_nominal_block_interaction_caller_closure():
             if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
                 assert node.name not in retired, (path,node.lineno,node.name)
     tree=ast.parse((ROOT/'widgets/conversation.py').read_text())
-    methods={'action_copy_to_clipboard','action_copy_to_prompt','action_select_block',
+    methods={'copy_block_to_clipboard','copy_block_to_prompt','action_select_block',
              'action_expand_block','action_collapse_block'}
     for method in ast.walk(tree):
         if isinstance(method,(ast.FunctionDef,ast.AsyncFunctionDef)) and method.name in methods:
@@ -183,7 +183,7 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
                        ('action_link', 'widgets/linked_rows.py'), ('opens', 'project_link.py')):
         assert declared[name] == [home], (name, declared[name])
     assert '_open_name' not in declared and 'open_url' not in declared
-    assert source.count('"block.open_sender"') == source.count('"block.open_destination"') == 1
+    assert declared['OpenSenderCommand'] == declared['OpenDestinationCommand'] == ['menus.py']
     # Which addresses are links is one rule; the inline parser keeps no list of its own.
     assert 'urlsplit' not in (ROOT / 'inline_spans.py').read_text()
 

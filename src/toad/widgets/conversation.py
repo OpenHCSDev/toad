@@ -1962,25 +1962,25 @@ class Conversation(
         ModeBinding("enter", action_select_block, "Select block", mode=EditingMode, show=True),
     )
 
-    def action_copy_to_clipboard(self) -> None:
+    def copy_block_to_clipboard(self) -> None:
         cursor = self.navigation.cursor
         if text := cursor.get_clipboard_text():
             self.app.copy_to_clipboard(text)
             self.feedback.flash("Copied to clipboard")
 
-    def action_copy_to_prompt(self) -> None:
+    def copy_block_to_prompt(self) -> None:
         cursor = self.navigation.cursor
         if text := cursor.get_prompt_text():
             self.prompt.append(text)
             self.feedback.flash("Copied to prompt")
             self.focus_prompt()
 
-    def action_maximize_block(self) -> None:
+    def maximize_block(self) -> None:
         cursor = self.navigation.cursor
         if cursor.allow_maximize:
             cursor.maximize(self.screen)
 
-    def action_export_to_svg(self) -> None:
+    def export_block_to_svg(self) -> None:
         cursor = self.navigation.cursor
         if (export := cursor.export_render()) is None:
             return
