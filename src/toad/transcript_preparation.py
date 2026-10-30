@@ -465,7 +465,7 @@ class PreparedPageWork[Cursor = TranscriptCursor | None](ReusableWork[PreparedTr
 
 
 @dataclass(frozen=True)
-class TranscriptPageWork[Cursor = TranscriptCursor | None](PreparedPageWork[Cursor]):
+class TranscriptPageWork[Cursor](PreparedPageWork[Cursor]):
     loader: Callable[..., Awaitable[TranscriptPage]]
 
     async def execute(

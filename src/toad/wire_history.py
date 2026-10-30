@@ -38,6 +38,8 @@ from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
     PageRequest,
+    PreparationRuntime,
+    PreparationScope,
     PreparedTranscriptPage,
     ReplaceablePageSource,
     PreparedPageWork,
@@ -407,12 +409,12 @@ class WirePageWork(PreparedPageWork[WireCut]):
 class WirePageBuffer(SavedPageSource):
     """The line history's page reader over a wire source."""
 
-    def __init__(self, loader: WireSource, through, runtime, *, revision: ConversationObservation):
+    def __init__(self, loader: WireSource, through: WireCut, runtime: PreparationRuntime, *, revision: ConversationObservation):
         super().__init__(through, runtime)
         self.loader = loader
         self.revision = revision
 
-    def read_task(self, request, scope, through) -> WirePageWork:
+    def read_task(self, request: PageRequest, scope: PreparationScope, through: WireCut) -> WirePageWork:
         return WirePageWork(scope=scope, loader=self.loader, through=through, request=request)
 
     def replacement(self, through) -> WirePageBuffer:
