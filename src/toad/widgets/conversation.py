@@ -439,6 +439,7 @@ class ConversationSessionBinding(
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
+    contents = getters.query_one("#contents", Contents)
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
 
@@ -863,7 +864,6 @@ class Conversation(
     MAX_LIVE_BLOCKS = 32
     BINDING_GROUP_TITLE = "Conversation"
 
-    contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
 
