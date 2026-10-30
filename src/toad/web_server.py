@@ -1,13 +1,17 @@
-"""Authenticated access to the installed textual-serve routes, bound to loopback.
+"""Authenticated access to the installed textual-serve routes.
 
-A local endpoint is reached directly with a bootstrap capability; a tailnet endpoint is
-reached through `tailscale serve`, which supplies the caller's tailnet identity.
+A local endpoint listens on loopback TCP and is reached with a bootstrap capability; a
+tailnet endpoint listens only on an owner-only unix socket that `tailscale serve`
+proxies to, and that proxy supplies the caller's tailnet identity.
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
+import signal
+import socket
 import subprocess
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
@@ -16,6 +20,9 @@ from importlib.metadata import version
 from pathlib import Path
 from urllib.parse import quote, urlsplit
 
+import aiohttp_jinja2
+import jinja2
+import platformdirs
 from agent_comms.field_codec import FieldCodec, boundary_decoder
 from agent_comms.wire_models import WireModel
 from aiohttp import web
@@ -25,23 +32,22 @@ from textual_serve.server import Server
 type Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 
-@dataclass(frozen=True)
 class BrowserEndpoint(ABC):
-    """Where the server binds (always loopback) and the origin browsers address."""
-
-    host: str
-    port: int
-
-    def __post_init__(self) -> None:
-        if self.host not in {"localhost", "127.0.0.1"} or not 1 <= self.port <= 65535:
-            raise ValueError(
-                "Browser serving requires a loopback host and a valid port"
-            )
+    """Where the server listens and the origin browsers address."""
 
     @property
     @abstractmethod
     def url(self) -> str:
         """The origin a browser uses for pages and the websocket."""
+
+    @property
+    @abstractmethod
+    def listens_on(self) -> str:
+        """Where the listening socket is, printed once at startup."""
+
+    @abstractmethod
+    def listening_socket(self) -> socket.socket:
+        """The bound, not yet listening, socket this endpoint alone accepts on."""
 
     @property
     def authority(self) -> str:
@@ -60,9 +66,28 @@ class BrowserEndpoint(ABC):
 
 @dataclass(frozen=True)
 class LocalBrowserEndpoint(BrowserEndpoint):
+    host: str
+    port: int
+
+    def __post_init__(self) -> None:
+        if self.host not in {"localhost", "127.0.0.1"} or not 1 <= self.port <= 65535:
+            raise ValueError(
+                "Browser serving requires a loopback host and a valid port"
+            )
+
     @property
     def url(self) -> str:
         return f"http://{self.host}:{self.port}"
+
+    @property
+    def listens_on(self) -> str:
+        return self.url
+
+    def listening_socket(self) -> socket.socket:
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listener.bind((self.host, self.port))
+        return listener
 
     @property
     def cookie_name(self) -> str:
@@ -72,13 +97,72 @@ class LocalBrowserEndpoint(BrowserEndpoint):
 
 @dataclass(frozen=True)
 class TailnetBrowserEndpoint(BrowserEndpoint):
-    """Served by `tailscale serve --https=PORT`, which keeps Host and Origin."""
+    """A 0600 unix socket that only `tailscale serve` (root) and its owner can open.
+
+    No TCP listener exists, so no local process can forge the Tailscale-User-Login
+    header: the only peer that reaches the routes is the proxy that sets it.
+    """
 
     origin: str
+    https_port: int
+    socket_path: Path
+
+    @classmethod
+    def served_at(cls, origin: str, https_port: int) -> TailnetBrowserEndpoint:
+        runtime = Path(platformdirs.user_runtime_dir("toad", ensure_exists=True))
+        return cls(origin, https_port, runtime / f"serve-{https_port}.sock")
 
     @property
     def url(self) -> str:
         return self.origin
+
+    @property
+    def listens_on(self) -> str:
+        return (
+            f"unix:{self.socket_path} "
+            f"(tailscale serve --bg --https={self.https_port} unix:{self.socket_path})"
+        )
+
+    def listening_socket(self) -> socket.socket:
+        self.release_stale_socket()
+        listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        listener.bind(str(self.socket_path))
+        # Nothing can connect before listen(), so the mode is set before any peer exists.
+        self.socket_path.chmod(0o600)
+        return listener
+
+    def release_stale_socket(self) -> None:
+        """A path left by a dead server is removed; a live server keeps it and we fail."""
+        if not self.socket_path.exists():
+            return
+        probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            probe.connect(str(self.socket_path))
+        except ConnectionRefusedError:
+            self.socket_path.unlink()
+        else:
+            raise RuntimeError(f"Another toad serve already listens on {self.socket_path}")
+        finally:
+            probe.close()
+
+
+class ViewportTemplates(jinja2.FileSystemLoader):
+    """The vendor's own pages, plus the viewport its head lacks.
+
+    Without it phones lay the page out at desktop width; the rest of the page stays
+    the reviewed textual-serve 1.1.3 template, read from the package.
+    """
+
+    VIEWPORT = '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />'
+
+    def get_source(
+        self, environment: jinja2.Environment, template: str
+    ) -> tuple[str, str | None, Callable[[], bool] | None]:
+        source, filename, uptodate = super().get_source(environment, template)
+        head, marker, rest = source.partition("<head>")
+        if not marker:
+            raise RuntimeError(f"textual-serve template {template} has no <head>")
+        return f"{head}<head>\n    {self.VIEWPORT}{rest}", filename, uptodate
 
 
 class BrowserAccess(ABC):
@@ -157,7 +241,7 @@ class BrowserAuthentication(ABC):
         """Decode the optional CLI port once into the authentication family."""
         if tailnet_port is None:
             return LocalBrowserAuthentication(LocalBrowserEndpoint(host, port))
-        return TailnetBrowserAuthentication.from_status(host, port, tailnet_port)
+        return TailnetBrowserAuthentication.from_status(tailnet_port)
 
     @property
     @abstractmethod
@@ -188,11 +272,9 @@ class TailscaleStatus(WireModel):
     Self: TailscaleNode
     User: dict[str, TailscaleUser]
 
-    def authentication(
-        self, host: str, port: int, tailnet_port: int
-    ) -> TailnetBrowserAuthentication:
+    def authentication(self, tailnet_port: int) -> TailnetBrowserAuthentication:
         return TailnetBrowserAuthentication(
-            TailnetBrowserEndpoint(host, port, self.Self.origin(tailnet_port)),
+            TailnetBrowserEndpoint.served_at(self.Self.origin(tailnet_port), tailnet_port),
             self.User[str(self.Self.UserID)],
         )
 
@@ -205,14 +287,14 @@ class TailnetBrowserAuthentication(BrowserAuthentication):
     owner: TailscaleUser
 
     @classmethod
-    def from_status(cls, host: str, port: int, tailnet_port: int) -> TailnetBrowserAuthentication:
+    def from_status(cls, tailnet_port: int) -> TailnetBrowserAuthentication:
         """This node's tailnet name and owning login, read from Tailscale itself."""
         result = subprocess.run(
             ("tailscale", "status", "--json", "--self"), check=True,
             capture_output=True, text=True, timeout=10,
         )
         status = FieldCodec.decode(TailscaleStatus, FieldCodec.parse(result.stdout))
-        return status.authentication(host, port, tailnet_port)
+        return status.authentication(tailnet_port)
 
     def credential(self, request: web.Request) -> BrowserAccess:
         if request.headers.getall("Tailscale-User-Login", []) == [self.owner.LoginName]:
@@ -266,13 +348,24 @@ class ToadWebServer(Server):
         if version("textual-serve") != "1.1.3":
             raise RuntimeError("Browser serving requires reviewed textual-serve 1.1.3")
         endpoint = authentication.endpoint
-        super().__init__(
-            command, host=endpoint.host, port=endpoint.port, title=title,
-            public_url=endpoint.url,
-            # The vendor page lacks a viewport, so phones laid it out at desktop width.
-            templates_path=Path(__file__).parent / "web_templates",
-        )
+        # host and port stay the vendor defaults: serve() listens on the endpoint's socket.
+        super().__init__(command, title=title, public_url=endpoint.url)
         self.authentication = authentication
+
+    def serve(self, debug: bool = False) -> None:
+        """Listen only on the endpoint's socket; the vendor's serve binds TCP host:port."""
+        self.debug = debug
+        self.initialize_logging()
+        loop = asyncio.new_event_loop()
+        loop.add_signal_handler(signal.SIGINT, self.request_exit)
+        loop.add_signal_handler(signal.SIGTERM, self.request_exit)
+        web.run_app(
+            self._make_app(),
+            sock=self.authentication.endpoint.listening_socket(),
+            handle_signals=False,
+            loop=loop,
+            print=lambda *args: None,
+        )
 
     def initialize_logging(self) -> None:
         super().initialize_logging()
@@ -282,9 +375,11 @@ class ToadWebServer(Server):
     async def on_startup(self, app: web.Application) -> None:
         self.console.print("Toad browser (keep this URL private):")
         self.console.print(self.authentication.entry_url)
+        self.console.print(f"Listening on {self.authentication.endpoint.listens_on}")
 
     async def _make_app(self) -> web.Application:
         app = await super()._make_app()
+        aiohttp_jinja2.setup(app, loader=ViewportTemplates(self.templates_path))
 
         @web.middleware
         async def local_capability(

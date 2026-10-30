@@ -1,5 +1,7 @@
 """Exercise the real vendor routes behind the browser authentication boundary."""
 import asyncio
+import socket
+import stat
 
 import aiohttp
 import pytest
@@ -10,6 +12,7 @@ from toad.web_server import (
     BrowserAuthentication,
     LocalBrowserAuthentication,
     LocalBrowserEndpoint,
+    TailnetBrowserEndpoint,
     TailscaleStatus,
     ToadWebServer,
 )
@@ -25,7 +28,7 @@ def tailnet_status() -> TailscaleStatus:
 
 
 def test_status_owns_the_node_origin_and_owner(tailnet_status: TailscaleStatus) -> None:
-    authentication = tailnet_status.authentication("127.0.0.1", 8000, 8443)
+    authentication = tailnet_status.authentication(8443)
     assert authentication.owner.LoginName == "owner@example.test"
     assert authentication.entry_url == "https://owner.example.ts.net:8443/"
     assert tailnet_status.Self.origin(443) == "https://owner.example.ts.net"
@@ -48,7 +51,7 @@ def test_tailnet_owner_and_untrusted_requests_use_the_real_routes(
     tailnet_status: TailscaleStatus,
 ) -> None:
     async def journey() -> None:
-        authentication = tailnet_status.authentication("127.0.0.1", 8000, 8443)
+        authentication = tailnet_status.authentication(8443)
         endpoint = authentication.endpoint
         server = ToadWebServer("unused: HTTP requests must not start a child", authentication)
         async with TestServer(await server._make_app()) as listening:
@@ -70,7 +73,9 @@ def test_tailnet_owner_and_untrusted_requests_use_the_real_routes(
                         assert response.headers["Cache-Control"] == "no-store"
                         assert response.headers["X-Frame-Options"] == "DENY"
                         if expected == 200:
-                            assert f"wss://{endpoint.authority}/ws" in await response.text()
+                            page = await response.text()
+                            assert f"wss://{endpoint.authority}/ws" in page
+                            assert 'name="viewport"' in page
     asyncio.run(journey())
 
 
@@ -94,3 +99,15 @@ def test_local_bootstrap_still_requires_its_capability() -> None:
                 async with client.get(listening.make_url("/"), headers=headers) as response:
                     assert response.status == 200
     asyncio.run(journey())
+
+
+def test_tailnet_endpoint_listens_only_on_an_owner_only_socket(tmp_path) -> None:
+    endpoint = TailnetBrowserEndpoint("https://owner.example.ts.net:8443", 8443, tmp_path / "serve.sock")
+    listener = endpoint.listening_socket()
+    try:
+        assert listener.family == socket.AF_UNIX
+        assert stat.S_IMODE(endpoint.socket_path.stat().st_mode) == 0o600
+    finally:
+        listener.close()
+    # The closed server left its path behind; the next one reclaims it.
+    endpoint.listening_socket().close()
