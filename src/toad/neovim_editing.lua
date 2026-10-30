@@ -104,7 +104,7 @@ for _, mapping in ipairs(mappings) do
       if vim.v.count == 0 and not vim.fn.mode(1):match('^no') then
         if vim.rpcrequest(channel, 'toad_cursor_boundary', boundary, state()) then return '' end
       end
-      return api.nvim_replace_termcodes(rhs, true, false, true)
+      return rhs
     end, {expr = true, noremap = true, silent = true})
   end
 end
