@@ -24,29 +24,32 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
         await ui.until(lambda: any(row.seq in ledger.cursor(
             viewer, snapshot).for_conversation(channel) for row in rows),
             why="the first viewport to be marked")
-        await history._read_worker.wait()
+        await history.read_worker.wait()
         in_view = {fragment.message.seq for fragment in history.read_fragments()}
         assert 0 < len(in_view) < len(rows)
         cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
         assert all((message.seq in cursor) == (message.seq in in_view) for message in rows)
-        # Walk the actual viewport, including pages prepared on demand. A
-        # virtualized history need not keep every authored row mounted.
-        window.scroll_end(animate=False, immediate=True)
-        for _ in range(len(rows) * 4):
-            await ui.step(.2)
-            cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
-            if all(row.seq in cursor for row in rows):
-                break
-            window.scroll_page_up(animate=False)
+        # Address each original message through the history's own source
+        # fragments; revealing its head prepares virtualized rows on demand.
+        for message in reversed(rows):
+            if message.seq in ledger.cursor(viewer, snapshot).for_conversation(channel):
+                continue
+            fragment = next(part for part in history.fragments
+                            if part.message.view_key == message.view_key)
+            await history.reveal_message_head(fragment, lambda: True)
+            history.show_fragment(fragment)
+            await ui.until(lambda: message.seq in ledger.cursor(
+                viewer, snapshot).for_conversation(channel),
+                why=f"row {message.seq} to be marked once scrolled to")
         cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
         assert all(row.seq in cursor for row in rows)
         # A wholly read history has nothing left to mark: no further worker or route read.
-        await history._read_worker.wait()
-        assert all(fragment.evidence is None for fragment in history.wire_fragments)
-        completed = history._read_worker
+        await history.read_worker.wait()
+        assert all(fragment.evidence is None for fragment in history.fragments)
+        completed = history.read_worker
         for _ in range(50):
             history.mark_visible()
-            assert history._read_worker is completed
+            assert history.read_worker is completed
         window.scroll_end(animate=False, immediate=True)
         await ui.until(lambda: ui.shows("row 7"), why="the newest row after returning to the bottom")
         recorded = tuple(message.view_key for message in history.messages)
