@@ -233,11 +233,10 @@ class ReadyContent(ScreenContent):
         access = app.coordination_access
         identity = screen.thread_identity
         project = screen.project_path
-        source_root = identity.wire_root()
         worktree = app.project_dir
 
         def acknowledge(cursor) -> None:
-            selected = access.selected(source_root)
+            selected = identity.selected_route(access)
             comms = access.require(selected).service
 
             def mark() -> None:

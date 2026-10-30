@@ -406,7 +406,7 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
 
     def resolve_thread(self) -> str:
         identity = self.thread_identity
-        selected = self.app.coordination_access.selected(identity.wire_root())
+        selected = identity.selected_route(self.app.coordination_access)
         service = self.app.coordination_access.require(selected).service
         return identity.resolve_thread(service.registry, self.project_root)
 

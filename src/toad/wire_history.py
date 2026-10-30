@@ -40,9 +40,9 @@ from toad.transcript_preparation import (
     PageRequest,
     PreparedTranscriptPage,
     ReplaceablePageSource,
-    SavedHistory,
+    PreparedPageWork,
+    SavedPageSource,
     SourceObservation,
-    TranscriptPageWork,
     Unchanged,
 )
 from toad.transcript_state import (
@@ -386,8 +386,10 @@ class GrowingWireObservation(WireObservation):
 
 
 @dataclass(frozen=True)
-class WirePageWork(TranscriptPageWork[WireCut]):
-    """Read one wire page off the UI thread; `loader` is the WireSource."""
+class WirePageWork(PreparedPageWork[WireCut]):
+    """Read one wire page off the UI thread from its typed source."""
+
+    loader: WireSource
 
     @property
     def retain_result(self) -> bool:
@@ -402,14 +404,16 @@ class WirePageWork(TranscriptPageWork[WireCut]):
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 
-class WirePageBuffer(SavedHistory):
+class WirePageBuffer(SavedPageSource):
     """The line history's page reader over a wire source."""
 
-    work = WirePageWork
-
-    def __init__(self, *args, revision: ConversationObservation, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, loader: WireSource, through, runtime, *, revision: ConversationObservation):
+        super().__init__(through, runtime)
+        self.loader = loader
         self.revision = revision
+
+    def read_task(self, request, scope, through) -> WirePageWork:
+        return WirePageWork(scope=scope, loader=self.loader, through=through, request=request)
 
     def replacement(self, through) -> WirePageBuffer:
         return type(self)(self.loader, through, self.runtime, revision=self.revision)
