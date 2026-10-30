@@ -8,7 +8,7 @@ from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import (
     AvailableQueueProjection, QueueChangedUpdate, QueueItem, LiveQueueScope, encode_updates,
 )
-from agent_comms.field_codec import InputId
+from agent_comms.field_codec import AcpSessionId, InputId
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
 
@@ -20,7 +20,7 @@ from acp.exceptions import RequestError
 def response(session, next_owner=False):
     generation = 2 if next_owner else 1
     scope = LiveQueueScope(
-        session_id=session,
+        session_id=AcpSessionId(session),
         claimed_identity=ClaimedIdentity(RecordedThreadIncarnation(session, 1000.0), generation),
         owner=ProcessIdentity(1234, 1),
     )
