@@ -5,7 +5,24 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from toad.neovim_runtime import Neovim, NeovimUnavailable
+from toad.neovim_runtime import (
+    Neovim, NeovimUnavailable, ReleaseArchive, X64Architecture,
+)
+from toad.platform import WindowsPlatform
+
+
+@pytest.mark.parametrize("archive", Neovim.archives)
+def test_release_selection_uses_the_declared_pair(archive: ReleaseArchive, tmp_path: Path):
+    requirement = Neovim(tmp_path, archive.platform, archive.architecture)
+    assert requirement.archive is archive
+    assert not requirement.root.exists()
+
+
+def test_unsupported_pair_refuses_without_preparation(tmp_path: Path):
+    requirement = Neovim(tmp_path, WindowsPlatform, X64Architecture)
+    with pytest.raises(NeovimUnavailable):
+        requirement.command()
+    assert not (tmp_path / "share").exists()
 
 
 @pytest.fixture(scope="module")

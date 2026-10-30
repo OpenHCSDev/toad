@@ -19,7 +19,7 @@ from urllib.request import urlopen
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.native_build_inputs import Executable
 from agent_comms.runtime_preparation import RuntimePreparation
-from toad.platform import Platform, host
+from toad.platform import LinuxPlatform, MacPlatform, Platform, host
 
 
 class NeovimUnavailable(OSError):
@@ -55,9 +55,14 @@ class Arm64Architecture(Architecture):
 class ReleaseArchive:
     """Trusted release metadata, not a checksum fetched beside an untrusted download."""
 
-    name: str
+    platform: type[Platform]
+    architecture: type[Architecture]
     size: int
     sha256: bytes
+
+    @property
+    def name(self) -> str:
+        return f"{Neovim.program}-{self.platform.key}-{self.architecture.tag}.tar.gz"
 
     @property
     def directory(self) -> str:
@@ -92,13 +97,13 @@ class Neovim(RuntimePreparation, Executable):
     # Official neovim/neovim v0.12.4 release metadata, retained by P928.
     # These are external artifact records, not a roster of editing-mode members.
     archives: ClassVar[tuple[ReleaseArchive, ...]] = (
-        ReleaseArchive("nvim-linux-arm64.tar.gz", 11353219, bytes.fromhex(
+        ReleaseArchive(LinuxPlatform, Arm64Architecture, 11353219, bytes.fromhex(
             "ceb7e88c6b681f0515d135dcdfad54f5eb4373b25ce6172197cd9a69c758063f")),
-        ReleaseArchive("nvim-linux-x86_64.tar.gz", 11404178, bytes.fromhex(
+        ReleaseArchive(LinuxPlatform, X64Architecture, 11404178, bytes.fromhex(
             "012bf3fcac5ade43914df3f174668bf64d05e049a4f032a388c027b1ebd78628")),
-        ReleaseArchive("nvim-macos-arm64.tar.gz", 9630250, bytes.fromhex(
+        ReleaseArchive(MacPlatform, Arm64Architecture, 9630250, bytes.fromhex(
             "51ab83afa66d663627c2ab1be43209b0f4e81360d4598b53efaa4d8195f24c89")),
-        ReleaseArchive("nvim-macos-x86_64.tar.gz", 9896697, bytes.fromhex(
+        ReleaseArchive(MacPlatform, X64Architecture, 9896697, bytes.fromhex(
             "03fe16f8dd9f1e9eaf52d5e294913a39917b9e2faea30d7fb0fb385fbd36fe59")),
     )
 
@@ -110,9 +115,8 @@ class Neovim(RuntimePreparation, Executable):
 
     @cached_property
     def archive(self) -> ReleaseArchive:
-        name = f"{self.program}-{self.system.key}-{self.architecture.tag}.tar.gz"
         for archive in self.archives:
-            if archive.name == name:
+            if (archive.platform, archive.architecture) == (self.system, self.architecture):
                 return archive
         raise NeovimUnavailable(
             f"Neovim {self.version} has no declared asset for "
