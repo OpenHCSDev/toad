@@ -51,9 +51,9 @@ async def open_column_width_editor(ui, app):
     await ui.until(lambda: isinstance(app.screen, SettingsScreen), why="the settings screen")
     assert await ui.textual[1].click(app.screen.search)
     await ui.type('Width of the column')
-    await ui.until(lambda: app.screen.form.values["ui.column_width"].editor.is_mounted,
+    await ui.until(lambda: app.screen.values["ui.column_width"].editor.is_mounted,
                    why="the column width editor")
-    width = app.screen.form.values["ui.column_width"].editor
+    width = app.screen.values["ui.column_width"].editor
     width.scroll_visible(animate=False, immediate=True)
     await ui.step()
     assert await ui.textual[1].click(width)
@@ -196,9 +196,9 @@ async def test_column_alignment_moves_the_whole_conversation_and_is_saved(worksp
             await ui.until(lambda: isinstance(app.screen, SettingsScreen), why="settings")
             assert await ui.textual[1].click(app.screen.search)
             await ui.type('Column alignment')
-            await ui.until(lambda: app.screen.form.values["ui.column_alignment"].editor.is_mounted,
+            await ui.until(lambda: app.screen.values["ui.column_alignment"].editor.is_mounted,
                            why="alignment selector")
-            selector = app.screen.form.values["ui.column_alignment"].editor
+            selector = app.screen.values["ui.column_alignment"].editor
             selector.scroll_visible(animate=False, immediate=True)
             await ui.step()
             selector.focus()
