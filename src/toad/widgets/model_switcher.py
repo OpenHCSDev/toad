@@ -6,7 +6,7 @@ from toad.core_event_carrier import CoreEventReceiver
 
 from abc import abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Self, Protocol
+from typing import TYPE_CHECKING, Self, Protocol, cast
 
 from textual import getters, on, work
 from textual.app import ComposeResult
@@ -15,12 +15,12 @@ from toad.widget_actions import WidgetAction, PriorityActions, MovesCursor, Subm
 from textual.content import Content
 from textual.containers import VerticalGroup
 from textual.reactive import var
-from textual.widgets import Input, OptionList, Static
+from textual.widgets import Input, OptionList, Select, Static
 from toad.widget_actions import Activates
 from textual.widgets.option_list import Option
 
 from toad import messages
-from toad.db import DB
+from toad.acp.agent_configuration import ConfigurationSetting, ModelConfigurationSetting
 from toad.widgets.selection import SelectionOptionList, InlineSelection
 from toad.widgets.prompt_popup import InfoPopup
 
@@ -81,7 +81,9 @@ class ClearModelSearchAction(WidgetAction):
         context.search_input.clear()
 
 
-class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, CoreEventReceiver, VerticalGroup, actions=(ClearModelSearchAction,)):
+class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, CoreEventReceiver, VerticalGroup,
+                     actions=(ClearModelSearchAction,),
+                     scopes={PriorityActions: (ClearModelSearchAction,)}):
     """Search, recents and provider connection shared by prompt and creation views."""
     BINDING_GROUP_TITLE = "Model search"
     DEFAULT_CSS = """
@@ -114,7 +116,7 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
     """
 
     search_input = getters.query_one(Input)
-    option_list = getters.query_one(OptionList)
+    option_list = getters.query_one(SelectionOptionList)
     history_scope = var("")
     choice_name = "models"
 
@@ -157,15 +159,19 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
     def focus_content(self, scroll_visible: bool) -> None:
         self._open_generation += 1
         self._selection_moved = False
+        self.recent_ids = []
         with self.search_input.prevent(Input.Changed):
             self.search_input.value = ""
         self.filter_models()
         self.search_input.focus(scroll_visible=False)
         self.load_recents(self._open_generation, self.history_scope)
 
+    async def recent_choices(self, scope: str) -> list[str]:
+        return await ModelConfigurationSetting().recent_choices(scope)
+
     @work(exclusive=True)
     async def load_recents(self, generation: int, scope: str) -> None:
-        recent = await DB().recent_models(scope)
+        recent = await self.recent_choices(scope)
         if (
             self.selection_active
             and generation == self._open_generation
@@ -221,7 +227,7 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
         else:
             self.option_list.highlighted = None
         self.query_one(".model-count", Static).update(
-            f"{len(options)} / {len(models)} {self.choice_name} · {'best matches' if terms else 'recent first'}"
+            f"{len(options)} / {len(models)} {self.choice_name} · {'best matches' if terms else 'recent first' if recent else 'current first'}"
             if options
             else f"No matching {self.choice_name}"
         )
@@ -232,7 +238,12 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
         self._selection_moved = False
         self.filter_models()
 
-    @on(OptionList.OptionHighlighted)
+    @on(Input.Submitted)
+    def on_search_submitted(self, event: Input.Submitted) -> None:
+        event.stop()
+        self.submit()
+
+    @on(OptionList.OptionHighlighted, "SelectionOptionList")
     def on_option_highlighted(self, event: OptionList.OptionHighlighted):
         event.stop()
 
@@ -241,7 +252,7 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
         event.stop()
         self._selection_moved = True
 
-    @on(OptionList.OptionSelected)
+    @on(OptionList.OptionSelected, "SelectionOptionList")
     def on_option_selected(self, event: OptionList.OptionSelected):
         event.stop()
         if event.option_id is not None:
@@ -270,24 +281,73 @@ class ModelSwitcher(ModelSelection, InfoPopup):
     ModelSwitcher.-open { display: block; }
     """
 
+    setting_kind: type[ConfigurationSetting] = ModelConfigurationSetting
+
+    @property
+    def setting(self) -> ConfigurationSetting:
+        return self.prompt.agent_binding.configuration.setting(self.setting_kind)
+
+    def compose_content(self) -> ComposeResult:
+        yield Select(
+            [(self.setting_kind.label.title(), self.setting_kind)], allow_blank=False,
+            value=self.setting_kind, classes="configuration-kind", compact=True,
+        )
+        yield from super().compose_content()
+
+    def sync_picker(self) -> None:
+        choices = [
+            (setting.picker_title, type(setting))
+            for setting in self.prompt.agent_binding.configuration.picker_settings
+        ]
+        if self.setting_kind not in {kind for _, kind in choices}:
+            self.setting_kind = type(self).setting_kind
+        selector = self.query_one(".configuration-kind", Select)
+        with selector.prevent(Select.Changed):
+            selector.set_options(choices)
+            selector.value = self.setting_kind
+        self.choice_name = self.setting.picker_title
+        self.search_input.placeholder = f"Search {self.choice_name}…"
+        self.query_one(ConnectProvider).display = self.setting.show_provider
+
+    def configuration_changed(self) -> None:
+        if self.is_mounted and self.selection_active:
+            self.sync_picker()
+        super().configuration_changed()
+
+    def focus_content(self, scroll_visible: bool) -> None:
+        self.sync_picker()
+        super().focus_content(scroll_visible)
+
+    @on(Select.Changed, ".configuration-kind")
+    def on_setting_changed(self, event: Select.Changed) -> None:
+        event.stop()
+        # The nonblank Select owns validation of its advertised nominal values.
+        if event.value is Select.NULL:
+            return
+        self.setting_kind = cast(type[ConfigurationSetting], event.value)
+        self.focus_content(False)
+
     @classmethod
     def for_prompt(cls, prompt: Prompt) -> Self | None:
         return cls().data_bind(history_scope=type(prompt).model_history_scope)
 
     @property
     def choices(self):
-        return self.prompt.agent_binding.configuration.model.choices
+        return self.setting.choices
 
     @property
     def current(self):
-        return self.prompt.agent_binding.configuration.model.current
+        return self.setting.current
+
+    async def recent_choices(self, scope: str) -> list[str]:
+        return await self.setting.recent_choices(scope)
 
     @property
     def selection_active(self):
         return self.is_open
 
     def select_model(self, model_id: str):
-        self.publish_core(input_events.ChangeModel(model_id))
+        self.publish_core(self.setting.selection_event(model_id))
         self.dismiss_control()
 
     def connect_provider(self):
