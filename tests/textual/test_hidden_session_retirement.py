@@ -2,7 +2,6 @@
 
 from agent_comms.repo import Checkout
 from collections import Counter
-from pathlib import Path
 import sys
 
 from agent_comms.comms import Comms
@@ -34,7 +33,7 @@ async def open_hidden_sessions(workspace, ui, owners):
     first = ui.selected_tab
 
     def source(owner):
-        return MainScreen.from_thread(Path(owner.worktree), str(workspace.comms.root), owner.incarnation)
+        return MainScreen.from_thread(owner.worktree, str(workspace.comms.root), owner.incarnation)
 
     modes = {}
     for owner in owners[1:]:
@@ -121,7 +120,7 @@ async def test_a_same_name_successor_does_not_keep_the_deleted_threads_hidden_se
         _, gone = app.session_navigation.get(modes["agent-3"]).original_threads(app.session_navigation)[0]
         old = registry.require(gone.name)
         registry.unregister(old.name)
-        registry.remove_originals((registry.require(old.name),))
+        workspace.comms.threads.delete(old.name)
         registry.declare(Thread(old.name, old.tags, old.worktree, created_at=old.created_at + 1))
         await app.session_navigation.retire_missing()
         await ui.until(lambda: app.session_navigation.get(modes["agent-3"]) is None, seconds=15,
