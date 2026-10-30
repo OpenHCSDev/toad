@@ -30,7 +30,7 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.session_scope import AgentAttached, AgentBinding, AgentSession, SessionScope
+from toad.session_scope import AgentAttached, AgentBinding, AgentSession, ProjectSessionOrigin, SessionScope
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
@@ -158,7 +158,7 @@ class SessionNavigation:
             original=(prepared.root, prepared.thread.incarnation),
         )
 
-    async def history_entry(self, identity: HistoryTab, source: SessionScope) -> HistorySessionEntry:
+    async def history_entry(self, identity: HistoryTab, source: ProjectSessionOrigin) -> HistorySessionEntry:
         def participants():
             service = self.app.coordination_access.observation.observed().service
             if service.root != Path(identity.root):
@@ -346,7 +346,7 @@ class SessionNavigation:
                 agent = agents[agent_identity]
             except KeyError:
                 app.notify("Agent not found", title="Launch agent", severity="warning", markup=False)
-                return
+                return None
         tab = (
             AcpTab(session_pk) if session_pk is not None
             else await self.saved(agent, project, title=title or "New Session",

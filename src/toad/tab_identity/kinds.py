@@ -50,7 +50,7 @@ class MailboxTab(SessionTabIdentity):
         # Mailbox metadata already carries the original thread identity. Its
         # history needs the owner shell, not an ACP connection or painted body.
         entry = await self.restore(navigation)
-        return await navigation.app.prepare_session(entry.mode)
+        return (await navigation.app.prepare_session(entry.mode)).origin.require()
 
 
 @dataclass(frozen=True)
