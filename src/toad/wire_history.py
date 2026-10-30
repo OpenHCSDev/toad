@@ -349,7 +349,7 @@ class WireSource(BusQueueSource):
         page = request.end.wire_page(self, request.cursor, through)
         shown = MessageShown(style=self.style)
         fragments = tuple(
-            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me)
+            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me, page=page)
             for message, evidence in page.message_evidence()
         )
         wire = WirePage(
