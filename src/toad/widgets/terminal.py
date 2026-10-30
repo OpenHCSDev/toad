@@ -17,6 +17,7 @@ from textual.selection import Selection
 from textual.style import Style
 from textual.visual import Visual
 from textual.geometry import Size
+from textual.document._editing import NativeTextKeys
 from textual.scroll_view import ScrollView
 from textual._paint_state import PaintState
 from textual.strip import Strip
@@ -29,7 +30,7 @@ from toad import ansi
 ESCAPE_TAP_DURATION = 400 / 1000
 
 
-class Terminal(ConversationBlock, TerminalStateProjection, ScrollView, can_focus=True):
+class Terminal(NativeTextKeys, ConversationBlock, TerminalStateProjection, ScrollView, can_focus=True):
     BINDING_GROUP_TITLE = "Terminal"
     HELP = """\
 ## Terminal
@@ -368,11 +369,6 @@ Tap escape *twice* to exit.
         if self._escaping:
             await self.write_process_stdin(self.state.key_escape())
         self._escaping = False
-
-    @property
-    def allows_application_commands(self) -> bool:
-        # Focused terminal input belongs to the child, not workspace shortcuts.
-        return False
 
     def check_consume_key(self, key: str, character: str | None = None) -> bool:
         # Escape belongs to the child process / double-tap blur, not to an
