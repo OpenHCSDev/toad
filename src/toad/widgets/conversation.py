@@ -74,7 +74,10 @@ from toad.goal_interaction import GoalSession
 from toad.input_history import InputHistories
 from toad.layout import trim_trailing_margin
 from toad.live_output import LiveOutput
-from toad.menus import CopyClipboardCommand, CopyPromptCommand, ExportSvgCommand, MaximizeBlockCommand
+from toad.line_blocks import LineLink
+from toad.menus import (
+    CopyClipboardCommand, CopyPromptCommand, ExportSvgCommand, MaximizeBlockCommand, MenuConversation,
+)
 from toad.preferences import SETTINGS
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.resource_release import AsyncResourceRelease
@@ -832,7 +835,7 @@ from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 class Conversation(
     ConversationCommsHandlers,
     NativeMethodKeys,
-    ConversationSessionBinding, ToadNode,
+    ConversationSessionBinding, ToadNode, MenuConversation,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
@@ -1943,6 +1946,12 @@ class Conversation(
     MODE_BINDINGS = (
         ModeBinding("enter", action_select_block, "Select block", mode=EditingMode, show=True),
     )
+
+    def accepts_menu_owner(self, owner: Widget) -> bool:
+        return self.is_current_session and self.navigation.accepts_menu_owner(owner)
+
+    def open_line_link(self, link: LineLink) -> None:
+        self.transcript.binding.history.action_open(link)
 
     def action_copy_to_clipboard(self) -> None:
         cursor = self.navigation.cursor

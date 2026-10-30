@@ -14,7 +14,8 @@ from toad.tool_output import ToolOutput, ToolOutputPart
 from metaclass_registry.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
 from toad.line_blocks import Body, ToggleDetails, ToolOutputRole
-from toad.menus import CollapseCommand, ExpandCommand, MenuCommand
+from toad.block_content import CollapseCommand, ExpandCommand
+from toad.menus import MenuCommand
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation, ToolOutputClaim
 

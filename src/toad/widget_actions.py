@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterator, Mapping
 from functools import partialmethod
 from operator import or_
 from types import MappingProxyType
-from typing import ClassVar, Generic, Literal, Self, TypeVar
+from typing import ClassVar, Generic, Literal, Self, TypeVar, cast
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily, FamilyMeta
@@ -45,6 +45,11 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
     @classmethod
     def default_title(cls) -> str:
         return cls.declared_name.replace("_", " ").capitalize()
+
+    @classmethod
+    def declarations(cls) -> Iterator[type[Self]]:
+        """The native registry filters by this class, so each member is one of its own."""
+        return cast("Iterator[type[Self]]", super().declarations())
 
     @classmethod
     def summary(cls) -> str:
@@ -221,7 +226,7 @@ class DeclaredWidgetActions(ToadNode):
                 *(binding for declaration in cls.declared_actions()
                   for binding in cls.action_bindings(declaration, mode)))
 
-    def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs: object) -> None:
+    def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
         cls.own_actions = actions
         declarations = cls.declared_actions()
         for declaration in declarations:
@@ -506,10 +511,6 @@ class ActionPresentation(DeclaredWidgetActions):
                     style.field.name: style.combine(bool(style.field.current(binding)), selected)
                 })
         return binding
-
-    @classmethod
-    def present_navigation_binding(cls, declaration: type[KeyDeclaration], binding: Binding) -> Binding:
-        return cls.present_binding(declaration, super().present_navigation_binding(declaration, binding))
 
     @classmethod
     def action_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:

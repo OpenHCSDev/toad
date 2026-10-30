@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
 from textual._callback import invoke
@@ -14,13 +14,43 @@ from textual.document._editing import EditingMode
 from textual.keys import KeyDeclarationType, KeyInvocation
 from textual.widget import Widget
 
-from toad.widget_actions import ExclusiveKeys, KeyFamilyMeta
+from toad.line_blocks import LineLink
+from toad.widget_actions import KeyFamilyMeta
 
-if TYPE_CHECKING:
-    from toad.line_blocks import LineLink
-    from toad.widgets.conversation import Conversation
-    from toad.widgets.menu import Menu
-    from toad.widgets.tool_call import ToolCall
+
+class MenuConversation:
+    """What a block-menu command may ask of the conversation it was opened in."""
+
+    @abstractmethod
+    def accepts_menu_owner(self, owner: Widget) -> bool: ...
+
+    @abstractmethod
+    def action_copy_to_clipboard(self) -> None: ...
+
+    @abstractmethod
+    def action_copy_to_prompt(self) -> None: ...
+
+    @abstractmethod
+    def action_export_to_svg(self) -> None: ...
+
+    @abstractmethod
+    def action_maximize_block(self) -> None: ...
+
+    @abstractmethod
+    async def interrupt_shell(self) -> None: ...
+
+    @abstractmethod
+    def open_line_link(self, link: LineLink) -> None: ...
+
+
+class MenuOwner:
+    """The control a command was captured by, and where its effect lands."""
+
+    conversation: MenuConversation
+    block: Widget
+
+    @abstractmethod
+    def activate_command(self, command: MenuCommand) -> None: ...
 
 
 class MenuDeclaration(KeyFamilyMeta, KeyInvocation):
@@ -77,18 +107,16 @@ class MenuCommand(DeclaredFamily, metaclass=MenuDeclaration, affix="Command"):
             ).for_mode(mode)
         )
 
-    def __call__(self, menu: Menu) -> None:
+    def __call__(self, menu: MenuOwner) -> None:
         menu.activate_command(self)
 
-    async def run(self, owner: Menu) -> None:
+    async def run(self, owner: MenuOwner) -> None:
         conversation = owner.conversation
-        if conversation.is_current_session and conversation.navigation.accepts_menu_owner(
-            owner.block
-        ):
+        if conversation.accepts_menu_owner(owner.block):
             await invoke(self.apply, conversation)
 
     @abstractmethod
-    def apply(self, conversation: Conversation) -> object: ...
+    def apply(self, conversation: MenuConversation) -> object: ...
 
 
 class KeyedMenuCommand(MenuCommand, declared_name=None):
@@ -105,7 +133,7 @@ class CopyClipboardCommand(KeyedMenuCommand):
     key = "c"
     description = "[u]C[/]opy to clipboard"
 
-    def apply(self, conversation: Conversation) -> None:
+    def apply(self, conversation: MenuConversation) -> None:
         conversation.action_copy_to_clipboard()
 
 
@@ -113,7 +141,7 @@ class CopyPromptCommand(KeyedMenuCommand):
     key = "p"
     description = "Co[u]p[/u]y to prompt"
 
-    def apply(self, conversation: Conversation) -> None:
+    def apply(self, conversation: MenuConversation) -> None:
         conversation.action_copy_to_prompt()
 
 
@@ -121,7 +149,7 @@ class ExportSvgCommand(KeyedMenuCommand):
     key = "v"
     description = "Open as S[u]V[/]G"
 
-    def apply(self, conversation: Conversation) -> None:
+    def apply(self, conversation: MenuConversation) -> None:
         conversation.action_export_to_svg()
 
 
@@ -129,7 +157,7 @@ class MaximizeBlockCommand(KeyedMenuCommand):
     key = "m"
     description = "[u]M[/u]aximize"
 
-    def apply(self, conversation: Conversation) -> None:
+    def apply(self, conversation: MenuConversation) -> None:
         conversation.action_maximize_block()
 
 
@@ -144,7 +172,7 @@ class FocusBlockCommand(KeyedMenuCommand):
     key = "f"
     description = "Focus"
 
-    def apply(self, conversation: Conversation) -> None:
+    def apply(self, conversation: MenuConversation) -> None:
         self.block.focus()
 
 
@@ -152,40 +180,16 @@ class InterruptCommand(KeyedMenuCommand):
     key = "i"
     description = "Interrupt"
 
-    async def apply(self, conversation: Conversation) -> None:
+    async def apply(self, conversation: MenuConversation) -> None:
         await conversation.interrupt_shell()
-
-
-class ExpansionCommand(ExclusiveKeys, KeyedMenuCommand, declared_name=None):
-    """Collapse and expand alternate on one block, so they share their key."""
-
-
-@dataclass(frozen=True)
-class CollapseCommand(ExpansionCommand):
-    block: ToolCall
-    key = "x"
-    description = "Collapse"
-
-    def apply(self, conversation: Conversation) -> None:
-        self.block.collapse_block()
-
-
-@dataclass(frozen=True)
-class ExpandCommand(ExpansionCommand):
-    block: ToolCall
-    key = "x"
-    description = "Expand"
-
-    def apply(self, conversation: Conversation) -> None:
-        self.block.expand_block()
 
 
 @dataclass(frozen=True)
 class OpenLinkCommand(MenuCommand, declared_name=None):
     link: LineLink
 
-    def apply(self, conversation: Conversation) -> None:
-        conversation.transcript.binding.history.action_open(self.link)
+    def apply(self, conversation: MenuConversation) -> None:
+        conversation.open_line_link(self.link)
 
 
 class OpenSenderCommand(OpenLinkCommand, KeyedMenuCommand):

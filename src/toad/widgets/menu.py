@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from textual.binding import BindingsMap, KeymapClaim
 from textual.document._editing import EditingMode
@@ -15,21 +14,18 @@ from textual.widgets import ListView, Label
 from textual.widget import Widget
 from textual.layouts.horizontal import HorizontalLayout
 
-from toad.menus import MenuCommand
+from toad.app_node import ToadNode
+from toad.menus import MenuCommand, MenuConversation, MenuOwner
 from toad.keymap import KeymapCatalog
 from toad.widgets.selection import SelectionListItem
 from toad.tone_paint import UntintedTonePaint
-
-if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
-
 
 
 class NonSelectableLabel(Label):
     ALLOW_SELECT = False
 
 
-class MenuOption(SelectionListItem):
+class MenuOption(SelectionListItem, ToadNode):
     ALLOW_SELECT = False
     DEFAULT_LAYOUT = HorizontalLayout
 
@@ -49,7 +45,7 @@ class MenuOption(SelectionListItem):
         self.set_class(not keys, "-no_key")
 
 
-class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
+class Menu(DismissibleControl, UntintedTonePaint, ListView, MenuOwner, can_focus=True):
 
     DEFAULT_CSS = """
     Menu {
@@ -91,7 +87,7 @@ class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
         menu: Menu
         command: MenuCommand
 
-    def __init__(self, conversation: Conversation, owner: Widget,
+    def __init__(self, conversation: MenuConversation, owner: Widget,
                  commands: Sequence[MenuCommand], *args, focus_owner: Widget, **kwargs) -> None:
         self.conversation = conversation
         self.block = owner
