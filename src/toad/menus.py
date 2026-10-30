@@ -14,7 +14,7 @@ from textual.document._editing import EditingMode
 from textual.keys import KeyDeclarationType, KeyInvocation
 from textual.widget import Widget
 
-from toad.widget_actions import KeyFamilyMeta
+from toad.widget_actions import ExclusiveKeys, KeyFamilyMeta
 
 if TYPE_CHECKING:
     from toad.line_blocks import LineLink
@@ -156,10 +156,8 @@ class InterruptCommand(KeyedMenuCommand):
         await conversation.interrupt_shell()
 
 
-class ExpansionCommand(KeyedMenuCommand, declared_name=None):
-    @classmethod
-    def permits_key_overlap(cls, other: KeyDeclarationType) -> bool:
-        return issubclass(other, ExpansionCommand)
+class ExpansionCommand(ExclusiveKeys, KeyedMenuCommand, declared_name=None):
+    """Collapse and expand alternate on one block, so they share their key."""
 
 
 @dataclass(frozen=True)
