@@ -132,37 +132,29 @@ class GridSelect(
         return highlighted
 
     def action_cursor_up(self) -> None:
-        if (grid_size := self.grid_size) is None:
-            self.post_message(self.LeaveUp(self))
-            return
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            width, _height = grid_size
-            if self.highlighted >= width:
-                self.highlighted -= width
-            else:
-                self.post_message(self.LeaveUp(self))
+        self.move_row(-1, self.LeaveUp)
 
     def action_cursor_down(self) -> None:
-        if (grid_size := self.grid_size) is None:
-            self.post_message(self.LeaveDown(self))
-            return
+        self.move_row(1, self.LeaveDown)
 
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            width, height = grid_size
-            if self.highlighted + width < len(self.children):
-                self.highlighted += width
-            else:
-                self.post_message(self.LeaveDown(self))
+    def move_row(self, rows: Literal[-1, 1], leave: type[Message]) -> None:
+        """An unmeasured grid and a row past either edge both hand the cursor on."""
+        match self.grid_size, self.highlighted:
+            case None, _:
+                self.post_message(leave(self))
+            case _, None:
+                self.highlighted = 0
+            case (width, _), int(cell) if 0 <= cell + rows * width < len(self.children):
+                self.highlighted = cell + rows * width
+            case _:
+                self.post_message(leave(self))
 
     def cursor_horizontal(self, direction: Literal[-1, 1]) -> None:
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            self.highlighted += direction
+        match self.highlighted:
+            case None:
+                self.highlighted = 0
+            case int(cell):
+                self.highlighted = cell + direction
 
     def on_click(self, event: events.Click) -> None:
         if event.widget is None:

@@ -319,10 +319,12 @@ class WorkspaceScreen(WorkspaceFrame, actions=(ViewAction,)):
     """The shared live workspace, with its own navigation controls."""
 
     def back_to_bottom_available(self) -> bool:
-        return (
-            not (self.focused is not None and self.focused.uses_screen_coordinates)
-            and self.back_to_bottom_window is not None
-        )
+        match self.focused, self.back_to_bottom_window:
+            case Widget(uses_screen_coordinates=True), _:
+                return False
+            case _, None:
+                return False
+        return True
 
     def action_back_to_bottom(self) -> None:
         if (window := self.back_to_bottom_window) is not None:
