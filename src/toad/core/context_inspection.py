@@ -539,7 +539,7 @@ class ContextInspection:
         page = comms.contexts.page(owner, comms.registry,
             cursor=cursor, previous=previous)
         annotations = WorkingMemoryAnnotations.for_context(
-            comms.root / "coordination.sqlite3",
+            comms.registry.store.coordinator_reader,
             tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
         inspection_type = ThreadInspectionSource().project_value(entry.status)
