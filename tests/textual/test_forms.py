@@ -128,7 +128,8 @@ async def test_a_value_the_declaration_refuses_is_reported_and_the_editor_shows_
     async with open_form() as (app, pilot, shown):
         await leave(pilot, shown["count"], "0")
         assert app.state.to_object().count == 3 and shown["count"].value == "3"
-        assert any("at least 1" in notification.message for notification in app._notifications)
+        refusal = app.form.values["count"].refusal
+        assert refusal.display and "at least 1" in str(refusal.render())
         await leave(pilot, shown["count"], "")
         assert app.state.to_object().count == 3 and shown["count"].value == "3"
 

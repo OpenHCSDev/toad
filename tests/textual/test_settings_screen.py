@@ -9,6 +9,7 @@ from typing import Annotated
 
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 from ui_theme.catalog import SCHEMES
+from objectstate import is_ui_hidden_config_type
 from ui_theme.colour import Rgb
 from ui_theme.scheme import PrimaryColour
 
@@ -107,7 +108,7 @@ async def test_every_setting_the_user_may_edit_has_an_editor(workspace):
             declared = DeclaredField(app.saved_settings.state, structure.path(name))
             definition = next(item for item in fields(declared.owner_type)
                               if item.name == declared.path.field_name)
-            if definition.metadata.get("ui_hidden", False):
+            if definition.metadata.get("ui_hidden", False) or is_ui_hidden_config_type(declared.annotation):
                 hidden.add(name)
                 hidden.update(path.value for path in structure.leaf_paths(name))
         assert set(shown) == {path.value for path in structure.leaf_paths()} - hidden
