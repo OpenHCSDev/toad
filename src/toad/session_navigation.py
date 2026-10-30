@@ -22,6 +22,7 @@ from agent_comms.route_selection import root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.core import events as core_events
+from toad.agents import AgentNotFound
 from toad.core.events import CoreEventStream
 from toad.navigation_preparation import CommsNavigationRequest, ThreadNavigationRequest
 from toad.session_entry import (
@@ -30,7 +31,7 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.session_scope import AgentAttached, AgentBinding, AgentSession, SessionScope
+from toad.session_scope import AgentAttached, AgentBinding, AgentSession, ProjectSessionOrigin, SessionScope
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
@@ -158,7 +159,7 @@ class SessionNavigation:
             original=(prepared.root, prepared.thread.incarnation),
         )
 
-    async def history_entry(self, identity: HistoryTab, source: SessionScope) -> HistorySessionEntry:
+    async def history_entry(self, identity: HistoryTab, source: ProjectSessionOrigin) -> HistorySessionEntry:
         def participants():
             service = self.app.coordination_access.observation.observed().service
             if service.root != Path(identity.root):
@@ -301,11 +302,14 @@ class SessionNavigation:
         project: Checkout,
         initial_prompt: str | None = None,
     ) -> None:
-        entry = await self.launch_entry(
-            agent_identity, agent_session_id=agent_session_id,
-            session_pk=session_pk, project=project, initial_prompt=initial_prompt,
-        )
-        if entry is not None:
+        try:
+            entry = await self.launch_entry(
+                agent_identity, agent_session_id=agent_session_id,
+                session_pk=session_pk, project=project, initial_prompt=initial_prompt,
+            )
+        except AgentNotFound as error:
+            self.app.notify(str(error), title="Launch agent", severity="warning", markup=False)
+        else:
             await self.open(entry)
 
     async def launch_entry(
@@ -316,7 +320,7 @@ class SessionNavigation:
         session_pk: int | None = None,
         project: Checkout,
         initial_prompt: str | None = None,
-    ) -> SessionEntry | None:
+    ) -> SessionEntry:
         from toad.agents import read_agents
         from toad.screens.main import MainScreen
 
@@ -334,7 +338,7 @@ class SessionNavigation:
                 None,
             )
             if existing is not None:
-                return self.get(existing)
+                return self.entries[existing][existing]
         agent, title = None, None
         if session_pk is not None:
             saved = await database.session_get(session_pk)
@@ -344,9 +348,8 @@ class SessionNavigation:
             agents = await read_agents()
             try:
                 agent = agents[agent_identity]
-            except KeyError:
-                app.notify("Agent not found", title="Launch agent", severity="warning", markup=False)
-                return
+            except KeyError as error:
+                raise AgentNotFound(agent_identity) from error
         tab = (
             AcpTab(session_pk) if session_pk is not None
             else await self.saved(agent, project, title=title or "New Session",
