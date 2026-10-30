@@ -5,7 +5,6 @@ from typing import Literal
 
 from toad.acp.agent_configuration import ConfigurationSetting
 from toad.input_history import InputHistory
-from toad.navigation_target import NavigationTarget
 from toad.goal_interaction import GoalInteraction
 from .events import CoreEvent
 
@@ -66,11 +65,6 @@ class ChangeDirectory(CoreEvent):
 @dataclass(frozen=True)
 class OpenAgentDetails(CoreEvent):
     identity: str
-
-
-@dataclass(frozen=True)
-class SelectTarget(CoreEvent):
-    target: NavigationTarget
 
 
 @dataclass(frozen=True)

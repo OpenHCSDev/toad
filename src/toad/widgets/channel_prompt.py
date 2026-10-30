@@ -118,3 +118,13 @@ class ChannelPrompt(MessagePrompt):
             self.mention_list.display = False
         else:
             super().dismiss_control()
+
+
+class DraftPrompt(ChannelPrompt):
+    """Mention-enabled editing without a conversation or delivery authority."""
+
+    def compose_delivery_controls(self) -> ComposeResult:
+        return ()
+
+    def _update_queue_summary(self) -> None:
+        pass

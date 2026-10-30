@@ -237,7 +237,7 @@ async def test_returning_to_busy_tab_loads_the_saved_gap(workspace, hidden_count
                     parent=f'hidden-{index - 1}' if index else 'before')) + '\n')
         hidden = latest_assistant_commit(workspace.comms, "background", journal)
         pending_page = workspace.comms.transcripts.capture_page_read(
-            'background', after=view.transcript.binding.history.page_source.through).read()
+            'background', position=view.transcript.binding.history.page_source.through.later_page()).read()
         assert pending_page.has_newer == (hidden_count > 20)
         if pending_page.has_newer:
             assert pending_page.after.offset < hidden.page_bound.offset
