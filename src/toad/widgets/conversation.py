@@ -974,6 +974,11 @@ class Conversation(
                 model_history_scope=Conversation.model_history_scope,
                 status=Conversation.status,
             )
+            # A retained editor is installed before Prompt.on_mount can apply a
+            # profile. Returning to a tab must not spawn a throwaway Neovim.
+            prompt.initial_editing_mode = self.query_ancestor(
+                SessionScope
+            ).presentation.initial_editing_mode
             self.goal_bar: GoalBar = GoalBar(self, prompt=prompt)
             yield self.goal_bar
             yield prompt

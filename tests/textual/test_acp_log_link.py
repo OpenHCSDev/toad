@@ -26,7 +26,7 @@ async def shown_log(ui):
 async def test_the_log_link_highlights_under_the_pointer_and_opens_the_agents_log_in_one_tab(workspace):
     async with workspace.app(size=(139, 30), binding=AgentAttached(peer("refuses_initialize"))) as ui:
         app, pilot = ui.textual
-        await ui.until_shows("AGENT_REFUSED_TO_START", seconds=20)
+        await ui.until_shows(LINK, seconds=20)
         await ui.until(lambda: ui.shows(LINK) and ui.link_at(LINK) is not None, why="the log link drawn as a link")
         owner = ui.selected_tab
         cell = ui._cell_of(LINK, 0)

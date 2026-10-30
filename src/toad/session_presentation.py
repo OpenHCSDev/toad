@@ -11,6 +11,7 @@ from weakref import ref
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
+from textual.document._editing import EditingMode
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
@@ -35,8 +36,30 @@ class SessionSurfaceSlot(Widget):
     DEFAULT_CSS = "SessionSurfaceSlot { display: none; }"
 
 
+class NativeEditorSelection:
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return EditingMode()
+
+
+class SessionViewState(NativeEditorSelection):
+    """An uncaptured surface has no retained resources to restore or close."""
+
+    def prepare_conversation(self, conversation: Conversation) -> None:
+        pass
+
+    def prepare_transcript(self, conversation: Conversation) -> None:
+        pass
+
+    async def restore(self, conversation: Conversation) -> None:
+        pass
+
+    async def close(self) -> None:
+        pass
+
+
 @dataclass(frozen=True)
-class SessionViewState:
+class RetainedSessionViewState(SessionViewState):
     """The actual editor document/history and reader intent, not a transcript copy."""
 
     editor: TextAreaState
@@ -47,7 +70,7 @@ class SessionViewState:
     initial_prompt: str | None
 
     @classmethod
-    def capture(cls, conversation: Conversation) -> SessionViewState:
+    def capture(cls, conversation: Conversation) -> RetainedSessionViewState:
         editor = conversation.prompt.prompt_text_area
         return cls(
             editor.capture_editor_state(),
@@ -58,18 +81,28 @@ class SessionViewState:
             conversation.take_initial_prompt(),
         )
 
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return self.editor.editing_mode
+
+    def prepare_conversation(self, conversation: Conversation) -> None:
+        conversation._initial_prompt = self.initial_prompt
+
+    async def close(self) -> None:
+        await self.editor.editing_mode.close()
+
     def prepare_transcript(self, conversation: Conversation) -> None:
         conversation.visible_categories = self.visible_categories
         conversation.window.reader_position = self.reader_position
 
-    def restore(self, conversation: Conversation) -> None:
-        conversation.input_histories = self.input_histories
+    async def restore(self, conversation: Conversation) -> None:
         editor = conversation.prompt.prompt_text_area
-        editor.restore_editor_state(self.editor)
+        await editor.restore_editor_state(self.editor)
+        conversation.input_histories = self.input_histories
         editor.shell_mode = self.shell_mode
 
 
-class SessionSurfaceLifetime(ABC):
+class SessionSurfaceLifetime(NativeEditorSelection, ABC):
     """A session declares its own UI placement and activation lifetime."""
 
     @property
@@ -93,7 +126,11 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     """Own retained editor state and active shell close semantics."""
 
     def __init__(self) -> None:
-        self.state: SessionViewState | None = None
+        self.state: SessionViewState = SessionViewState()
+
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return self.state.initial_editing_mode
 
     @abstractmethod
     async def release_binding(
@@ -349,17 +386,14 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.widget = conversation
             screen._initial_prompt = None
         if not returning:
-            if self.state is not None:
-                conversation._initial_prompt = self.state.initial_prompt
+            self.state.prepare_conversation(conversation)
             await content.mount(conversation, before=slot)
             screen.thread_identity.bind_history(conversation.input_histories)
         yield conversation
-        if self.state is not None:
-            self.state.prepare_transcript(conversation)
+        self.state.prepare_transcript(conversation)
         await self.transcript.bind(conversation).restore_documents(self.transcript)
-        if self.state is not None:
-            self.state.restore(conversation)
-            self.state = None
+        await self.state.restore(conversation)
+        self.state = SessionViewState()
         await self.attach_binding(conversation)
         await self.transcript.bind(conversation).restore(self.transcript)
         if returning:
@@ -367,7 +401,8 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation.prompt.focus()
 
     async def close(self, screen: MainScreen) -> None:
-        self.state = None
+        await self.state.close()
+        self.state = SessionViewState()
         async with AsyncResourceRelease() as release:
             release.push_async_callback(self.sources.close)
             release.push_async_callback(self.transcript.close)
@@ -377,7 +412,10 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         """Release the owned native tree while retaining its actual editor resource."""
         if (conversation := self.widget) is None:
             return
-        self.state = SessionViewState.capture(conversation)
+        editor = conversation.prompt.prompt_text_area
+        if not await editor.editing_mode.flush(editor):
+            return  # Retain the actual view/engine while its modal input is pending.
+        self.state = RetainedSessionViewState.capture(conversation)
         await self.remove_native_tree(screen)
 
     def external_transcript_changed(self) -> None:
