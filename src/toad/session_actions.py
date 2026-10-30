@@ -30,5 +30,10 @@ class CloseViewAction(SessionViewAction):
     keys = {EditingMode: ("ctrl+w",)}
     priority = True
 
+    def key_available(self, context: SessionView) -> bool:
+        """The key closes a tab only where the focused widget permits application shortcuts;
+        an editor taking text keeps its own ctrl+w. The menu and palette still offer closing."""
+        return self.available(context) and context.screen.allows_application_commands
+
     async def apply(self, context: SessionView) -> None:
         await context.app.session_navigation.close(context.app.workspace_sessions.source.identity)

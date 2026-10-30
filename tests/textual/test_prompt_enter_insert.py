@@ -143,3 +143,25 @@ async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(works
         await ui.type("B o stays native")
         assert "B o stays native" in area.text
         assert type(area.editing_mode) is Standard
+
+
+async def test_ctrl_w_typed_into_a_channel_in_real_insert_deletes_a_word_and_keeps_the_tab(workspace):
+    workspace.thread("owner", "team", running=True)
+    async with workspace.app(size=(100, 36)) as ui:
+        app, _pilot = ui.textual
+        owner = ui.selected_tab
+        await workspace.bind(app.selected_session, "owner")
+        await ui.open_channel("#team", actor="owner", owner=owner)
+        channel = ui.selected_tab
+        area = app.selected_session.query_one("CommsChatView Prompt TextArea")
+        app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
+        await ui.until(lambda: area.key_mode is VimInsert and area.editing_mode.completed,
+                       why="the real child in Insert")
+        area.focus()
+        await ui.type("kept gone")
+        await ui.until(lambda: area.text == "kept gone" and area.editing_mode.completed,
+                       why="a real draft")
+        await ui.press("ctrl+w")
+        await ui.until(lambda: area.text == "kept " and area.editing_mode.completed,
+                       why="Neovim's own ctrl+w to delete the word")
+        assert ui.selected_tab == channel and area.has_focus and area.editing_mode.accepts_text
