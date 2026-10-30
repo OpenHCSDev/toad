@@ -261,7 +261,7 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
         assert original.rows[strikes] is before[strikes]
 
         ping = replace(RulePing.capture(ServicePassFailing(
-            watch="native-alarm", since=1000, error="original error")),
+            watch="native-alarm", since=1000, error="original error", failed_at=1000)),
                        since=RecordedEventTime(1000))
         section = AlarmSection(NewAlarms, (ping,))
         alarm = CommanderAlarm(NewAlarms)
