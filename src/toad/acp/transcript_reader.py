@@ -44,7 +44,7 @@ class CoordinationTranscriptReader:
 
     async def service(self, root):
         return await self.access.preparation.run_thread(
-            lambda: self.access.require(RouteSelection.capture(root)).service
+            lambda: self.access.require(RouteSelection.of(self.access.launch_root).require_source(root)).service
         )
 
     async def thread_presentation(

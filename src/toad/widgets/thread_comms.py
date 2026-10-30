@@ -282,7 +282,7 @@ class ThreadCommsSidebar(
         access = self.app.coordination_access
         return await self.app.preparation.run_thread(
             lambda: access.require(
-                RouteSelection.capture(identity.root_path())
+                RouteSelection.of(access.launch_root).require_source(identity.root_path())
             ).service.relationships
         )
 

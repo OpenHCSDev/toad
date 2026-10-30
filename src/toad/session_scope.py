@@ -130,7 +130,7 @@ class KnownTranscript(TranscriptScope):
         return ((self.root, identity.thread_incarnation()),)
 
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
-        service = access.require(RouteSelection.capture(self.root)).service
+        service = access.require(RouteSelection.of(access.launch_root).require_source(self.root)).service
         return (
             service.registry.canonical_name(session_id)
             == service.registry.require(self.name).name
@@ -407,7 +407,7 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
 
     def resolve_thread(self) -> str:
         identity = self.thread_identity
-        selected = RouteSelection.capture(identity.wire_root())
+        selected = RouteSelection.of(self.app.coordination_access.launch_root).require_source(identity.wire_root())
         service = self.app.coordination_access.require(selected).service
         return identity.resolve_thread(service.registry, self.project_root)
 

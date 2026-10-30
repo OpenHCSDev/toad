@@ -365,13 +365,13 @@ class CoordinationAccess(MroDispatch):
         with self.opening:
             selected: RouteSelection | UnselectedRoute = UnselectedRoute()
             try:
-                selected = RouteSelection.capture(self.launch_root.path)
+                selected = RouteSelection.of(self.launch_root)
                 return self.require(selected)
             except (OSError, ValueError, RuntimeError) as error:
                 return self.observation.failed(error, selected)
 
     def confirm(self, selected: RouteSelection) -> None:
-        if RouteSelection.capture(selected.root) != selected:
+        if RouteSelection.of(self.launch_root) != selected:
             raise RouteChangedError("Comms route changed before the operation")
 
     def require(self, selected: RouteSelection) -> Observing:
@@ -648,5 +648,5 @@ class CoordinationAccess(MroDispatch):
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. No route lock: the
         # store refuses a write an install holds, inside its own write transaction.
-        RouteSelection.capture(selected.root)
+        self.confirm(selected)
         return operation(*args, **kwargs)

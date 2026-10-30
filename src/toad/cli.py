@@ -78,8 +78,7 @@ class DefaultCommandGroup(click.Group):
         from agent_comms.active_route import ActiveRoute
 
         # Select once at the process boundary; apps receive this captured value.
-        LaunchRoot.startup(args, ActiveRoute.published_launch)
-        ctx.obj = LaunchRoot.current()
+        ctx.obj = LaunchRoot.startup(args, ActiveRoute.published_launch)
         # Check if first arg is a known subcommand
         if not args or args[0] not in self.commands:
             # If not a subcommand, prepend the default command name

@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
+from agent_comms.launch_root import LaunchRoot
+from agent_comms.route_selection import RouteSelection
 from agent_comms.repo import Checkout
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
@@ -294,6 +296,7 @@ class WireSource:
     project: Checkout
     me: str
     style: WireMessageStyle
+    launch_root: LaunchRoot = field(kw_only=True)
     tail_limit: int = 8
     page_limit: int = 40
 
@@ -416,9 +419,9 @@ class WirePageBuffer(SavedHistory):
         return observation.uses(self.loader.comms)
 
     async def route_is_current(self) -> bool:
-        from agent_comms.route_selection import root_is_current
-
-        return not self.closed and await self.runtime.run_thread(root_is_current, self.loader.comms.root)
+        return not self.closed and await self.runtime.run_thread(
+            lambda: RouteSelection.of(self.loader.launch_root).root_is_current(self.loader.comms.root)
+        )
 
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.comms.root, access)

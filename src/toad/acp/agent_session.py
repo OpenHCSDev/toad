@@ -362,7 +362,7 @@ class AgentSession:
         try:
             try:
                 await asyncio.to_thread(
-                    RouteSelection.capture, self.agent.controller.transcripts.access.launch_root.path)
+                    RouteSelection.of, self.agent.controller.transcripts.access.launch_root)
             except RouteChangedError as error:
                 self.startup_failed(f"Reconnect blocked before restart: {error}")
                 return

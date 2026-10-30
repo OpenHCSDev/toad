@@ -34,7 +34,7 @@ class ThreadActions:
 
     def invoke(self, action: ThreadAction, subject: str, *, source_root: Path) -> None:
         app = self.app
-        selected = RouteSelection.capture(source_root)
+        selected = RouteSelection.of(app.coordination_access.launch_root).require_source(source_root)
         if any(target in self.requests for target in action.resources):
             app.notify(f"An action for {subject} is already in progress", title="Session action")
             return

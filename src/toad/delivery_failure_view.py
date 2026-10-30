@@ -119,7 +119,7 @@ class DeliveryFailureView(ToadNode, Widget):
     async def submit_comms_message(self, root, conversation, body, current, present):
         """CLI transcripts and wire pages use the same Core-send checks."""
         from agent_comms.delivery_failure import delivery_failure
-        from agent_comms.route_selection import root_is_current
+        from agent_comms.route_selection import RouteSelection
 
         if not body.strip():
             return
@@ -135,7 +135,9 @@ class DeliveryFailureView(ToadNode, Widget):
                 self.feedback.flash(self.status, style="error")
                 return
             self._enter_send_state(SendPending())
-            route_current = await self.app.preparation.run_thread(root_is_current, root)
+            route_current = await self.app.preparation.run_thread(
+                lambda: RouteSelection.of(self.app.coordination_access.launch_root).root_is_current(root)
+            )
             if not route_current or not current():
                 raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
             sent = await self.commit_user_message(comms, conversation.send_target(), body)

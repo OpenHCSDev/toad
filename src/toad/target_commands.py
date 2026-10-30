@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Self
 from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
-from agent_comms.route_selection import root_is_current
+from agent_comms.route_selection import RouteSelection
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_command import CliCommand, TargetAction
 from toad.thread_actions import ThreadAction
@@ -53,18 +53,17 @@ class TargetContext:
         return ", ".join(names) if names else str(self.project)
 
     def current(self):
-        if not root_is_current(self.comms.root):
+        if not RouteSelection.of(self.app.coordination_access.launch_root).root_is_current(self.comms.root):
             raise RouteChangedError(RouteChangedError.reader_sentence)
         return self
 
     def available_actions(self):
-        from agent_comms.route_selection import RouteSelection
-        selected = RouteSelection.capture(self.comms.root)
+        selected = RouteSelection.of(self.app.coordination_access.launch_root).require_source(self.comms.root)
         self.current()
         actions = CliCommand.target_catalog(self.comms,
             CliCommand.selected_targets(self.selection),
             self.channel, project=self.project)
-        if RouteSelection.capture(self.comms.root) != selected:
+        if RouteSelection.of(self.app.coordination_access.launch_root).require_source(self.comms.root) != selected:
             raise ValueError('Comms route changed during command discovery')
         return actions
 

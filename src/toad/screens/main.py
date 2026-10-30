@@ -238,7 +238,7 @@ class ReadyContent(ScreenContent):
         worktree = app.project_dir
 
         def acknowledge(cursor) -> None:
-            selected = RouteSelection.capture(source_root)
+            selected = RouteSelection.of(access.launch_root).require_source(source_root)
             comms = access.require(selected).service
 
             def mark() -> None:

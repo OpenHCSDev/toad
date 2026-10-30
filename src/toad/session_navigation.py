@@ -18,7 +18,7 @@ from agent_comms.errors import (
 )
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.revision_views import RegistrationsView
-from agent_comms.route_selection import root_is_current
+from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.core import events as core_events
@@ -402,7 +402,9 @@ class SessionNavigation:
             return app.selected_mode
         if not origin.current(app.thread_navigation, owner_mode):
             return app.selected_mode
-        if not await app.preparation.run_thread(root_is_current, requested_root):
+        if not await app.preparation.run_thread(
+            lambda: RouteSelection.of(app.coordination_access.launch_root).root_is_current(requested_root)
+        ):
             return app.selected_mode
         if not origin.current(app.thread_navigation, owner_mode):
             return app.selected_mode
@@ -544,7 +546,6 @@ class SessionNavigation:
             await self.retire_missing()
 
     async def retire_missing(self) -> None:
-        from agent_comms.route_selection import RouteSelection
 
         # Borrow each open entry, including hidden views. Core decides
         # which of their sources no longer exist; Toad only closes the views.
@@ -569,10 +570,10 @@ class SessionNavigation:
             answers = {}
             for root, (threads, channels) in asked.items():
                 try:
-                    selected = RouteSelection.capture(root)
+                    selected = RouteSelection.of(self.app.coordination_access.launch_root).require_source(root)
                     service = self.app.coordination_access.require(selected).service
                     retired = service.views.retired_views(threads, channels)
-                    if RouteSelection.capture(root) != selected:
+                    if RouteSelection.of(self.app.coordination_access.launch_root).require_source(root) != selected:
                         continue  # Replaced while reading; the next observation reads it.
                 except RouteChangedError:
                     continue  # The next observation reads the replacement route.

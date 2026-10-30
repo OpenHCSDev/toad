@@ -36,7 +36,7 @@ async def test_started_owner_attaches_original_saved_session_in_place(workspace)
         workspace.comms.registry.declare(replace(thread,
             process_identity=ProcessIdentity.capture(os.getpid())))
         await app.session_navigation.reconnect(
-            RouteSelection.capture(workspace.comms.root), ('stopped',))
+            RouteSelection.of(workspace.launch_root).require_source(workspace.comms.root), ('stopped',))
         await ui.until(lambda: {'loaded': 'stopped'} in workspace.received(),
                        why='ACP to load the original saved session')
         assert ui.conversation is view
