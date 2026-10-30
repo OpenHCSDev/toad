@@ -1,14 +1,7 @@
 """Setting capabilities a widget composes: visibility, and the prompt's input settings."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from formbridge.forms.declared_fields import DeclaredField
-
-from toad.setting_declarations import Effect
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
+from toad.setting_declarations import EachOpenWidget
 
 
 class SettingVisibility:
@@ -23,17 +16,13 @@ class SettingVisibility:
 class PromptSettingEffects:
     """A prompt follows the input box settings: these are their effects on every open prompt."""
 
-    @staticmethod
-    @Effect
-    def apply_input_layout(app: ToadApp, field: DeclaredField) -> None:
+    @EachOpenWidget
+    def apply_input_layout(self) -> None:
         """Prompt parts read their room from the input box setting when laid out."""
-        for prompt in Effect.open_widgets(app, PromptSettingEffects):
-            for part in prompt.walk_children():
-                part.refresh(layout=True)
-            prompt.refresh(layout=True)
+        for part in self.walk_children():
+            part.refresh(layout=True)
+        self.refresh(layout=True)
 
-    @staticmethod
-    @Effect
-    def apply_input_text(app: ToadApp, field: DeclaredField) -> None:
-        for prompt in Effect.open_widgets(app, PromptSettingEffects):
-            prompt.update_prompt()
+    @EachOpenWidget
+    def apply_input_text(self) -> None:
+        self.update_prompt()
