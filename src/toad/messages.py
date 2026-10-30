@@ -7,6 +7,10 @@ from textual.widget import Widget
 from textual.message import Message
 
 
+class QueueEvidenceChanged(Message):
+    """Repaint the local queue after its existing evidence changes."""
+
+
 class SendPromptNow(Message):
     pass
 

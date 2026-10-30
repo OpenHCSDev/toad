@@ -17,6 +17,7 @@ from functools import partial
 
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.route_selection import RouteSelection
+from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.observation import (
     AwaitedRead,
@@ -69,17 +70,15 @@ class CoordinationTranscriptReader:
         self,
         scope: TranscriptScope,
         *,
-        before=None,
-        after=None,
-        through=None,
-        historical_source: str | None = None,
+        position: PagePosition = LatestPage(),
+        limit: PageLimit = AtFrontier(),
+        page_source: PageSource = LivePageSource(),
     ):
         snapshot = await self.snapshot(
             scope,
-            before=before,
-            after=after,
-            through=through,
-            historical_source=historical_source,
+            position=position,
+            limit=limit,
+            page_source=page_source,
         )
         return snapshot.page
 
@@ -87,17 +86,15 @@ class CoordinationTranscriptReader:
         self,
         scope: TranscriptScope,
         *,
-        before=None,
-        after=None,
-        through=None,
-        historical_source: str | None = None,
+        position: PagePosition = LatestPage(),
+        limit: PageLimit = AtFrontier(),
+        page_source: PageSource = LivePageSource(),
     ) -> TranscriptSnapshotUpdate:
         return await self.read(
             scope.snapshot_request(
-                before=before,
-                after=after,
-                through=through,
-                historical_source=historical_source,
+                position=position,
+                limit=limit,
+                page_source=page_source,
             )
         )
 
@@ -106,6 +103,6 @@ class CoordinationTranscriptReader:
         scope: TranscriptScope,
         previous: TranscriptPublicationState,
         *,
-        after=None,
+        position: PagePosition = LatestPage(),
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
-        return await self.read(scope.update_request(previous, after=after))
+        return await self.read(scope.update_request(previous, position=position))

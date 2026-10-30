@@ -11,7 +11,7 @@ from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction
 from textual.widgets import Button, Static
 
-from toad.core.input_events import SelectTarget
+from toad.navigation_target import SelectTarget
 from toad.goal_interaction import GoalSession
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.goal_text import GoalText

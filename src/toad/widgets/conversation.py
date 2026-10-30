@@ -11,8 +11,11 @@ from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Callable
 
 from acp import schema as acp_protocol
+from acp.exceptions import RequestError
+from toad.widgets.markdown_note import MarkdownNote
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
+from agent_comms.transcripts import TranscriptCursor
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.goals import NoGoal
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -42,6 +45,9 @@ from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
+from toad.messages import QueueEvidenceChanged
+from toad.submission_queue import QueueSource
+from toad.screens.queue import QueueInspection
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
@@ -101,7 +107,7 @@ from toad.widgets.input_delivery import (
 )
 from toad.widgets.menu import Menu
 from toad.widgets.message_divider import StickyHeader
-from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from toad.widgets.message_notifications import HistoryNotifications, NothingToRead, PaintedRead, SourceNotifications
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.note import Note
 from toad.widgets.observed_thread_activity import (
@@ -752,7 +758,6 @@ class ConversationSessionBinding(
         ):
             welcome = agent_data.welcome
             if welcome is not None:
-                from toad.widgets.markdown_note import MarkdownNote
 
                 await self.post(MarkdownNote(welcome))
                 if (
@@ -844,18 +849,24 @@ class Conversation(
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
 
-    @property
-    def visible_read_cursor(self):
-        """Only a painted, unfiltered tail can acknowledge the full transcript."""
+    async def submission_request_failed(self, error: RequestError, text: str) -> None:
+        self.turns.finish_client()
+        self.prompt.restore_draft(text)
+        await self.post(MarkdownNote(
+            INTERNAL_EROR.replace("$ERROR", str(error) or "no details were provided"),
+            classes="-stop-reason",
+        ))
+
+    def painted_read(self, acknowledge: Callable[[TranscriptCursor], PaintedRead]) -> PaintedRead:
+        """Decide before constructing a worker or opening a read/write context."""
         if not self.is_mounted or self.visible_categories != all_categories():
-            return None
+            return NothingToRead()
         window = self.window
-        through = self.transcript.displayed_cursor
-        if through is None or not window.follows_tail:
-            return None
+        if not window.follows_tail:
+            return NothingToRead()
         if any(history.blocks_visible_read for history in window.histories):
-            return None
-        return through
+            return NothingToRead()
+        return self.transcript.displayed_cursor.painted_read(acknowledge, NothingToRead())
 
     def watch_visible_categories(
         self,
@@ -1329,7 +1340,6 @@ class Conversation(
         self._turn_count += 1
 
         if stop_reason is not None and stop_reason.note:
-            from toad.widgets.markdown_note import MarkdownNote
 
             await self.post(
                 MarkdownNote(
@@ -1656,22 +1666,21 @@ class Conversation(
         await self.agent_binding.compact_context(instructions)
         self.feedback.flash("Context compacted", style="success")
 
+    @property
+    def queue_source(self) -> QueueSource:
+        return self.operational_sources
+
+    def queue_evidence_changed(self) -> None:
+        self.submissions.publish_pending()
+
+    @on(QueueEvidenceChanged)
+    def queue_observation_changed(self, event: QueueEvidenceChanged) -> None:
+        event.stop()
+        self.queue_evidence_changed()
+
     def open_queue_menu(self) -> None:
-        """Remote edits require exact input IDs and backend revision-CAS support."""
-        if self.submissions.queue_projection.items:
-            self._queue_edit_unavailable()
-
-    def _queue_edit_unavailable(self) -> None:
-        self.feedback.flash(
-            "Remote queue editing unavailable: requires ID-targeted, revision-checked backend support",
-            style="error",
-        )
-
-    def _on_queue_choice(self, action: str | None) -> None:
-        # A stale menu callback must not edit the draft or mutate the remote
-        # queue. Text/index matching cannot identify a sent input safely.
-        if action:
-            self._queue_edit_unavailable()
+        self.app.push_screen(QueueInspection(
+            self.queue_source, self.submissions.queue_evidence, self.submissions.publish_pending))
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, event: PreferenceChanged) -> None:

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
     ClearQueueRequest,
+    CommsRequest,
     CompactRequest,
     CoordinationChangedUpdate,
     InputFailedUpdate,
@@ -22,15 +23,18 @@ from agent_comms.acp_extension import (
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.coordination_errors import Refused
 from agent_comms.transcripts import TranscriptReadIdentity
-from agent_comms.ui_model.delivery import DeliveryView
-from agent_comms.ui_model.observation import ReadDeliveryOverview
+from agent_comms.order_tools import InputDeliveryRead
+from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
+from agent_comms.ui_model.observation import ReadOwnerOperation
 
-from toad.acp.client_session import ClientSessionRequest
+from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.status import StopReason
 from toad.core import events as core_events
 from toad.core.events import LogAgentFail
 from toad.plan import PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
+
+from toad.acp.queue_attachment import QueueActionRefused
 
 from .prompt import build as build_prompt
 from .session_output import SessionOutput
@@ -269,9 +273,9 @@ class AgentController(OperationalTerminalOwner):
             if submission is not None:
                 self._deferred_submissions.discard(submission)
 
-    async def submit_blocks(self, content: list[dict[str, str]], command: ClearQueueRequest | None = None):
+    async def submit_blocks(self, content: list[dict[str, str]], command: CommsRequest):
         agent = self.agent
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = QueueSessionRequest(agent, agent.session_id)
         return await self.operate(
             self._prompt_operation(
                 partial(self._prompt, content, command, authority, agent.queue_attachment.scope), authority
@@ -284,11 +288,11 @@ class AgentController(OperationalTerminalOwner):
         def require():
             authority.require()
             if not agent.queue_attachment.accepts_request(queue_scope):
-                raise ValueError("The queued input owner changed before submission; inspect the current queue.")
+                raise QueueActionRefused("The queued input owner changed before submission; inspect the current queue.")
 
         try:
             result = await agent.process.prompt(
-                agent, content, encode_request(command) if command is not None else {}, require
+                agent, content, encode_request(command), require
             )
         except RequestError as error:
             # The agent answered: this request failed and its session stays open.
@@ -300,15 +304,15 @@ class AgentController(OperationalTerminalOwner):
             report = agent.session.record_failure
         else:
             if authority.retired:
-                return None
+                return authority.unconfirmed("the captured ACP session retired before its reply")
             return StopReason.member_named(result.stop_reason)
         if authority.retired:
-            return None
+            return authority.unconfirmed("the captured ACP session retired during the request")
         failure = request_failure.failure
         self._prompt_failed(
             command, authority, queue_scope, failure, report, published=request_failure.notification_published
         )
-        return None
+        return authority.unconfirmed(failure.feedback)
 
     def _prompt_failed(
         self,
@@ -321,7 +325,7 @@ class AgentController(OperationalTerminalOwner):
         published: bool = False,
     ) -> None:
         agent = self.agent
-        user_text = command.draft_text if command is not None else None
+        user_text = command.draft_text
         if user_text:
             agent.events.publish(
                 core_events.CommsUpdated(
@@ -337,19 +341,16 @@ class AgentController(OperationalTerminalOwner):
     async def clear_queue(self) -> None:
         await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest())
 
-    async def send_now(self) -> bool:
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+    async def send_now(self) -> None:
+        authority = QueueSessionRequest(self.agent, self.agent.session_id)
         queue_scope = self.agent.queue_attachment.scope
         if pending := tuple(self._deferred_submissions):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
-        return (
-            await self.operate(
-                self._prompt_operation(
-                    partial(self._prompt, [{"type": "text", "text": " "}], SendNowRequest(), authority, queue_scope),
-                    authority,
-                )
+        await self.operate(
+            self._prompt_operation(
+                partial(self._prompt, [{"type": "text", "text": " "}], SendNowRequest(), authority, queue_scope),
+                authority,
             )
-            is not None
         )
 
     async def compact_context(self, instructions=None):
@@ -430,11 +431,11 @@ class AgentController(OperationalTerminalOwner):
         if coordination is None:
             return DeliveryView()
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        delivery = await self.transcripts.read(
-            ReadDeliveryOverview(coordination.wire_root, coordination.thread, include_history=include_history)
-        )
+        overview = await self.transcripts.read(ReadOwnerOperation(
+            coordination.wire_root, coordination.thread, InputDeliveryRead(include_history=include_history),
+        ))
         self.require_owner(coordination, authority)
-        return delivery
+        return ReadDeliveryView(overview)
 
     async def dismiss_historical_inputs(self):
         return await self.request_owner("dismiss_historical_inputs")
