@@ -8,14 +8,15 @@ proxies to, and that proxy supplies the caller's tailnet identity.
 from __future__ import annotations
 
 import asyncio
-import fcntl
 import logging
 import os
 import secrets
+import shlex
 import signal
 import socket
 import stat
 import subprocess
+import sys
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable, Iterator
 from contextlib import AbstractContextManager, contextmanager
@@ -28,10 +29,13 @@ import aiohttp_jinja2
 import jinja2
 import platformdirs
 from agent_comms.field_codec import FieldCodec
+from agent_comms.process_claim import ProcessSingleton
 from agent_comms.wire_models import WireModel
 from aiohttp import web
 from pydantic import Field
 from textual_serve.server import Server
+
+from toad.application_lifetime import ApplicationLifetime
 
 type Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
@@ -164,31 +168,24 @@ class TailnetBrowserEndpoint(BrowserEndpoint):
 
     @contextmanager
     def listening(self) -> Iterator[socket.socket]:
-        """Holding the lock is being the live server, so only its holder touches the path.
+        """Holding the claim is being the live server, so only its holder touches the path.
 
         A connect probe cannot tell a dead server from one that has bound but not yet
         listened: both refuse.
         """
-        lock = os.open(self.lock_path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
-        try:
-            try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:
-                raise RuntimeError(
-                    f"Another toad serve-tailnet holds {self.lock_path}"
-                ) from None
+        with (
+            ProcessSingleton(self.lock_path).claimed(),
+            socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener,
+        ):
             self.socket_path.unlink(missing_ok=True)
-            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener:
-                listener.bind(str(self.socket_path))
-                try:
-                    # Nothing can connect before listen(), so the mode is set before any
-                    # peer exists; the owner-only directory admits no symlink swap.
-                    self.socket_path.chmod(0o600)
-                    yield listener
-                finally:
-                    self.socket_path.unlink(missing_ok=True)
-        finally:
-            os.close(lock)
+            listener.bind(str(self.socket_path))
+            try:
+                # Nothing can connect before listen(), so the mode is set before any peer
+                # exists; nobody else can enter the directory to swap the path.
+                self.socket_path.chmod(0o600)
+                yield listener
+            finally:
+                self.socket_path.unlink(missing_ok=True)
 
 
 class ViewportTemplates(jinja2.FileSystemLoader):
@@ -387,6 +384,16 @@ class ToadWebServer(Server):
         # host and port stay the vendor defaults: serve() listens on the endpoint's socket.
         super().__init__(command, title=title, public_url=endpoint.url)
         self.authentication = authentication
+
+    @classmethod
+    def run_toad(
+        cls, authentication: BrowserAuthentication, toad_args: tuple[str, ...]
+    ) -> None:
+        """Each browser tab runs `toad TOAD ARGS`, or `toad .` when none are given."""
+        command = shlex.join([sys.executable, "-m", "toad", *(toad_args or (".",))])
+        server = cls(command, authentication, title="Toad")
+        ApplicationLifetime.set_process_title("toad serve")
+        server.serve()
 
     def serve(self, debug: bool = False) -> None:
         """Mirrors textual-serve 1.1.3 `Server.serve`, listening on the endpoint's socket.

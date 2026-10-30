@@ -7,6 +7,7 @@ import aiohttp
 import pytest
 from aiohttp.test_utils import TestServer
 from agent_comms.field_codec import FieldCodec, MalformedRecord
+from agent_comms.process_claim import ClaimHeldError
 
 from toad.web_server import (
     LocalBrowserAuthentication,
@@ -118,9 +119,8 @@ def test_a_starting_server_keeps_its_socket(runtime: OwnerOnlyDirectory) -> None
     endpoint = TailnetBrowserEndpoint("owner.example.ts.net", 8443, runtime)
     with endpoint.listening():
         # Bound but not yet listening: connects are refused, yet the server is alive.
-        with pytest.raises(RuntimeError, match="holds"):
-            with endpoint.listening():
-                pass
+        with pytest.raises(ClaimHeldError), endpoint.listening():
+            pass
         assert endpoint.socket_path.exists()
 
 
