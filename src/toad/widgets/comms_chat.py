@@ -114,7 +114,6 @@ class CommsChatView(Conversation):
                 f"Conversation root {self._bound_root} differs from observed root {shared.root}"
             )
         comms = shared
-        await self.app.coordination_access.current_sidebar()
         self.message_history.initialize_source(WireSource(
             comms, self.conversation, self.project_path, self._me,
             IrcMessageStyle(), access=self.app.coordination_access,

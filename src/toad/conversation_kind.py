@@ -6,6 +6,8 @@ from toad.session_actions import ReturnToViewAction
 
 import asyncio
 from abc import abstractmethod
+from collections.abc import Callable
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -78,7 +80,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return key
 
     @abstractmethod
-    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage: ...
+    def reading(self, source: WireSource) -> AbstractContextManager[Callable[[PageBounds], MessagePage]]: ...
 
     @classmethod
     @abstractmethod
@@ -182,12 +184,10 @@ class ChannelConversation(ConversationKind):
 
         return ChannelViewAddress(key.root, key.conversation)
 
-    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
-        return source.comms.views.channel_display_page(
-            self.target.name,
-            viewer=source.viewer,
-            bounds=bounds,
-        )
+    def reading(self, source: WireSource) -> AbstractContextManager[Callable[[PageBounds], MessagePage]]:
+        return source.comms.views.channel_display_view(
+            self.target.name, viewer=source.viewer,
+        ).reading(source.comms.views.presentation)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:
@@ -268,12 +268,10 @@ class DmConversation(ConversationKind):
     def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
         return observation.bus_unread(self.destination(references).name)
 
-    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
-        return source.comms.views.dm_display_page(
-            self.retained_target(),
-            worktree=source.project,
-            bounds=bounds,
-        )
+    def reading(self, source: WireSource) -> AbstractContextManager[Callable[[PageBounds], MessagePage]]:
+        return source.comms.views.dm_display_view(
+            self.retained_target(), worktree=source.project,
+        ).reading(source.comms.views.presentation)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:
@@ -300,8 +298,8 @@ class DmConversation(ConversationKind):
 
     async def status_text(self, comms: Comms, *, read_only: bool) -> str:
         def read():
-            references = CurrentDisplayReferences.from_registry(str(comms.root), comms.registry.snapshot())
-            return comms.configuration.answer(self.destination(references).name)
+            snapshot = comms.registry.snapshot()
+            return comms.configuration.answer(self.peer.require_current(snapshot).name)
 
         return (await asyncio.to_thread(read)).status_label
 

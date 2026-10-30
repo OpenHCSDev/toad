@@ -1,5 +1,7 @@
 """A mounted any-mode channel reveals older messages entering its scope."""
 
+from agent_comms.repo import Checkout
+
 
 async def test_mounted_any_mode_channel_reveals_older_messages_entering_its_scope(workspace):
     for name, tags in (("alice", ("team",)), ("bob", ()), ("carol", ()), ("dave", ())):
@@ -8,7 +10,10 @@ async def test_mounted_any_mode_channel_reveals_older_messages_entering_its_scop
     comms.messaging.send("carol", "dave", "older newly visible DM")
     comms.messaging.send("alice", "#team", "current channel message")
     comms.channels.set_channel_any_mode("#team", True)
-    assert [m.body for m in comms.views.channel_display_page("#team", worktree=str(workspace.project)).messages] == [
+    view = comms.views.channel_display_view(
+        "#team", viewer=comms.views.display_viewer(Checkout(workspace.project)),
+    )
+    assert [m.body for m in view.page(comms.views.presentation).messages] == [
         "current channel message"]
 
     async with workspace.app(size=(100, 30)) as ui:

@@ -9,20 +9,22 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC
+from collections.abc import Callable
+from contextlib import ExitStack
 from dataclasses import dataclass, field, replace
-from functools import partial, singledispatch
+from functools import cached_property, partial, singledispatch
 from pathlib import Path
+from threading import RLock
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
-from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
     ConversationHistoryView,
     ConversationObservation,
     ConversationRevision,
 )
-from agent_comms.message_page import MessagePage
+from agent_comms.message_page import MessagePage, PageBounds
 from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
 from agent_comms.page_traversal import (
     LiveCursor,
@@ -31,6 +33,7 @@ from agent_comms.page_traversal import (
     PageCursor,
 )
 from agent_comms.transcript_events import IncomingTranscript
+from agent_comms.transcripts import TranscriptCursor
 
 from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
@@ -41,6 +44,7 @@ from toad.transcript_preparation import (
     PreparedTranscriptPage,
     ReplaceablePageSource,
     SavedHistory,
+    SavedPrefix,
     SourceObservation,
     TranscriptPageWork,
     Unchanged,
@@ -49,6 +53,7 @@ from toad.transcript_state import (
     LatestReplacementViewportRequest,
     ReplacementViewportRequest,
 )
+from toad.work_preparation import PreparationRuntime, PreparationScope
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.widgets.transcript_fragments import (
@@ -303,10 +308,6 @@ class WireSource:
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(self.project)
 
-    def references(self) -> CurrentDisplayReferences:
-        """Resolve stable destinations through this read's registry cut."""
-        return CurrentDisplayReferences.from_registry(str(self.comms.root), self.comms.registry.snapshot())
-
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
         revision = self.conversation.history_view.revision(
@@ -320,9 +321,8 @@ class WireSource:
         observation = ReplacedWireObservation if revision.display_changed_since(seen) else GrowingWireObservation
         return observation(revision, high)
 
-    def read(self, request: PageRequest[WireCut], through: AfterSequence) -> PreparedTranscriptPage:
-        """Read the page a request names, never past `through`, as fragments to draw."""
-        page = request.end.wire_page(self, request.cursor, through)
+    def prepare(self, page: MessagePage, through: AfterSequence) -> PreparedTranscriptPage:
+        """Draw the original page and its evidence without reacquiring its source."""
         shown = MessageShown(style=self.style)
         fragments = tuple(
             WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me)
@@ -340,6 +340,59 @@ class WireSource:
 
     def restyled(self, style: WireMessageStyle) -> WireSource:
         return replace(self, style=style)
+
+
+class WireReading(ExitStack):
+    """One lazy Core cut, borrowed by independently revocable source scopes.
+
+    Scope borrowing/release belongs to the preparation loop. Workers serialize
+    acquisition, page reads and final close through the same lock.
+    """
+
+    def __init__(self, loader: WireSource) -> None:
+        super().__init__()
+        self.loader = loader
+        self._use = RLock()
+        self._borrowers = 0
+
+    @cached_property
+    def pages(self) -> Callable[[PageBounds], MessagePage]:
+        return self.enter_context(self.loader.conversation.reading(self.loader))
+
+    def borrow(self) -> WireScope:
+        self._borrowers += 1
+        return WireScope(self)
+
+    def release(self, runtime: PreparationRuntime) -> None:
+        self._borrowers -= 1
+        if self._borrowers == 0:
+            runtime.retire_thread(self.close)
+
+    def read(self, scope: WireScope, request: PageRequest[WireCut],
+             through: AfterSequence) -> PreparedTranscriptPage:
+        with self._use:
+            if scope.closed:
+                raise asyncio.CancelledError
+            page = request.end.wire_page(self.loader, request.cursor, through, self.pages)
+            return self.loader.prepare(page, through)
+
+    def close(self) -> None:
+        with self._use:
+            super().close()
+
+
+class WireScope(PreparationScope):
+    """Revoking one source does not revoke another source's borrowed cut."""
+
+    def __init__(self, reading: WireReading) -> None:
+        super().__init__()
+        self.reading = reading
+
+    def _fork(self) -> WireScope:
+        return self.reading.borrow()
+
+    def release(self, runtime: PreparationRuntime) -> None:
+        self.reading.release(runtime)
 
 
 @dataclass(frozen=True)
@@ -375,6 +428,7 @@ class ReplacedWireObservation(WireObservation):
 
 class GrowingWireObservation(WireObservation):
     async def apply(self, history, source) -> bool:
+        source.renew_reading(self.through)
         if not history.undrawn:
             published = await history.extend(self.through)
         else:
@@ -386,26 +440,40 @@ class GrowingWireObservation(WireObservation):
 
 
 @dataclass(frozen=True)
-class WirePageWork(TranscriptPageWork[WireCut]):
-    """Read one wire page off the UI thread; `loader` is the WireSource."""
+class WirePageWork(TranscriptPageWork[WireCut, WireSource]):
+    """Read through the source scope's original cut, not a fresh per-page cut."""
+
+    scope: WireScope
 
     @property
     def retain_result(self) -> bool:
         return self.request.cursor.kept
 
     async def execute(self, runtime, key):
-        import asyncio
-
-        prepared = await runtime.run_thread(self.loader.read, self.request, self.through)
+        prepared = await runtime.run_thread(self.scope.reading.read, self.scope, self.request, self.through)
         if self.scope.closed:
             raise asyncio.CancelledError
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 
-class WirePageBuffer(SavedHistory):
+class WirePageBuffer(SavedHistory[WireSource]):
     """The line history's page reader over a wire source."""
 
     work = WirePageWork
+
+    def new_scope(self) -> WireScope:
+        return WireReading(self.loader).borrow()
+
+    def prefix(self, through: TranscriptCursor) -> SavedPrefix[WireSource]:
+        return SavedPrefix(self, self.loader, through, self.runtime)
+
+    def renew_reading(self, through: AfterSequence) -> None:
+        # Read/notification-only revisions keep their cut. Growth needs a new
+        # main cut; prefixes retain the old cut under their own scopes.
+        if through != self.through:
+            previous = self.scope
+            self.scope = self.runtime.open_scope(self.new_scope)
+            self.runtime.discard_scope(previous)
 
     def __init__(self, *args, revision: ConversationObservation, **kwargs):
         super().__init__(*args, **kwargs)

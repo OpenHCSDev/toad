@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections import deque
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, fields, replace
 from functools import partial
 from itertools import zip_longest
@@ -15,8 +15,6 @@ from agent_comms.message_page import PageBounds
 from agent_comms.transcripts import TranscriptCursor
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from agent_comms.message_page import MessagePage
     from agent_comms.transcripts import TranscriptPage
     from agent_comms.ui_model.message_category import MessageCategory
@@ -183,7 +181,8 @@ class PageEnd(ABC):
         return cursor.accepts_source(edge) and not (
             start.contains(stop) and self.edge((page.has_older, page.has_newer)))
     @abstractmethod
-    def wire_page(self, source: WireSource, cursor: WireCut, through: AfterSequence) -> MessagePage: ...
+    def wire_page(self, source: WireSource, cursor: WireCut, through: AfterSequence,
+                  pages: Callable[[PageBounds], MessagePage]) -> MessagePage: ...
 
     def entry(self, length: int):
         return self.edge((length - 1, 0))
@@ -240,10 +239,10 @@ class OlderEnd(PageEnd):
     async def load_page(self, loader, cursor, through) -> TranscriptPage:
         return await through.read_page(loader, before=cursor)
 
-    def wire_page(self, source: WireSource, cursor: WireCut, through: AfterSequence) -> MessagePage:
-        return source.conversation.page(source, PageBounds(
-            cursor.older(),
-            source.tail_limit if cursor == through else source.page_limit))
+    def wire_page(self, source: WireSource, cursor: WireCut, through: AfterSequence,
+                  pages: Callable[[PageBounds], MessagePage]) -> MessagePage:
+        return pages(PageBounds(cursor.older(),
+                                source.tail_limit if cursor == through else source.page_limit))
 
     def advance_empty(self, edge: PreparedTranscriptPage, staged: PreparedTranscriptPage) -> None:
         edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
@@ -276,8 +275,9 @@ class NewerEnd(PageEnd):
     async def load_page(self, loader, cursor, through) -> TranscriptPage:
         return await through.read_page(loader, after=cursor)
 
-    def wire_page(self, source: WireSource, cursor: WireCut, through: AfterSequence) -> MessagePage:
-        page = source.conversation.page(source, PageBounds(cursor.newer(), source.page_limit))
+    def wire_page(self, source: WireSource, cursor: WireCut, through: AfterSequence,
+                  pages: Callable[[PageBounds], MessagePage]) -> MessagePage:
+        page = pages(PageBounds(cursor.newer(), source.page_limit))
         kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor.sequence)
         return replace(page, messages=kept, has_newer=False) if len(kept) < len(page.messages) else page
 

@@ -15,7 +15,10 @@ async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(work
     comms.messaging.send("carol", "dave", "older newly visible DM")
     comms.messaging.send("alice", "#team", "current channel message")
     comms.channels.set_channel_any_mode("#team", True)
-    assert [m.body for m in comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(Checkout(project))).messages] == [
+    assert [m.body for m in comms.views.channel_display_view(
+        '#team',
+        viewer=comms.views.display_viewer(Checkout(project)),
+    ).page(comms.views.presentation).messages] == [
         "current channel message"]
 
     async with workspace.app(size=(100, 30)) as ui:
@@ -30,9 +33,15 @@ async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(work
         await ui.app.coordination_access.stop_observing()
         history = chat.message_history
         source, snapshot = history.page_source, history.source_snapshot()
-        marked = comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(Checkout(project)))
+        marked = comms.views.channel_display_view(
+            '#team',
+            viewer=comms.views.display_viewer(Checkout(project)),
+        ).page(comms.views.presentation)
         comms.channels.update_tags("carol", add=frozenset({"team"}))
-        expanded = comms.views.channel_display_page("#team", viewer=comms.views.display_viewer(Checkout(project)))
+        expanded = comms.views.channel_display_view(
+            '#team',
+            viewer=comms.views.display_viewer(Checkout(project)),
+        ).page(comms.views.presentation)
         assert [m.body for m in expanded.messages][:2] == ["older newly visible DM", "current channel message"]
         await history._mark_page(marked, (), snapshot)
         await ui.until(lambda: history.page_source is not source,

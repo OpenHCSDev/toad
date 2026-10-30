@@ -1,6 +1,8 @@
 """Textual-facing: the presentation window; a wire source pages one conversation and notices when Core replaces its reading."""
 
 import os
+from contextlib import contextmanager
+from functools import partial
 
 from agent_comms.repo import Checkout
 from agent_comms.launch_root import LaunchRoot
@@ -17,7 +19,7 @@ from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.transcript_preparation import PageRequest, Unchanged
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.message_rows import IrcMessageStyle
-from toad.wire_history import AfterSequence, GrowingWireObservation, MessageFragment, ReplacedWireObservation, WireSource
+from toad.wire_history import AfterSequence, GrowingWireObservation, MessageFragment, ReplacedWireObservation, WireReading, WireSource
 
 
 def channel_source(comms, target, project):
@@ -27,12 +29,15 @@ def channel_source(comms, target, project):
                       access=AppAgents.unrun(project.path, LaunchRoot.from_path(comms.root)).app.coordination_access)
 
 
+@contextmanager
 def observed(source):
-    """What a view that just drew the newest page remembers of it."""
+    """Retain one original cut across the newest and subsequent bounded pages."""
     first = source.observe(ConversationObservation())
     assert isinstance(first, ReplacedWireObservation)
-    newest = source.read(PageRequest(OLDER_END, first.through), first.through)
-    return first, newest
+    with WireReading(source) as reading:
+        read = partial(reading.read, reading.borrow())
+        newest = read(PageRequest(OLDER_END, first.through), first.through)
+        yield first, newest, read
 
 
 def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_path):
@@ -40,9 +45,15 @@ def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_pat
     comms.registry.declare(Thread("peer", frozenset(), Checkout(tmp_path), process_identity=ProcessIdentity.capture(os.getpid())))
     viewer = comms.messaging.user_identity(Checkout(tmp_path)).name
     comms.messaging.send("peer", viewer, "shown across turn claim")
-    before = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
+    before = comms.views.dm_display_view(
+        ThreadTarget('peer'),
+        worktree=Checkout(tmp_path),
+    ).page(comms.views.presentation)
     comms.registry.lease_local_turn("peer", TurnId.mint())
-    after = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
+    after = comms.views.dm_display_view(
+        ThreadTarget('peer'),
+        worktree=Checkout(tmp_path),
+    ).page(comms.views.presentation)
     assert DmConversation.history_view.same_display(after, before)
 
 
@@ -53,33 +64,34 @@ def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
         comms.messaging.send("sender", "#one", f"Message {index}")
         comms.messaging.send("sender", "#two", f"Elsewhere {index}")
     source = channel_source(comms, "#one", tmp_path)
-    first, newest = observed(source)
-
     def bodies(prepared):
         return [fragment.message.body for fragment in prepared.fragments]
 
-    assert bodies(newest) == [f"Message {index}" for index in range(52, 60)]
-    assert newest.page.after == first.through and not newest.page.has_newer and newest.page.has_older
-    assert all(isinstance(fragment, MessageFragment) and not fragment.outgoing_sources
-               for fragment in newest.fragments)
-    earlier = source.read(PageRequest(OLDER_END, newest.page.before), first.through)
-    assert bodies(earlier) == [f"Message {index}" for index in range(12, 52)]
-    assert earlier.page.has_newer and earlier.page.has_older
-    oldest = source.read(PageRequest(OLDER_END, earlier.page.before), first.through)
-    assert bodies(oldest) == [f"Message {index}" for index in range(12)] and not oldest.page.has_older
-    assert bodies(source.read(PageRequest(NEWER_END, oldest.page.after), first.through))[:3] == [
-        "Message 12", "Message 13", "Message 14"]
+    with observed(source) as (first, newest, read):
+        assert bodies(newest) == [f"Message {index}" for index in range(52, 60)]
+        assert newest.page.after == first.through and not newest.page.has_newer and newest.page.has_older
+        assert all(isinstance(fragment, MessageFragment) and not fragment.outgoing_sources
+                   for fragment in newest.fragments)
+        earlier = read(PageRequest(OLDER_END, newest.page.before), first.through)
+        assert bodies(earlier) == [f"Message {index}" for index in range(12, 52)]
+        assert earlier.page.has_newer and earlier.page.has_older
+        oldest = read(PageRequest(OLDER_END, earlier.page.before), first.through)
+        assert bodies(oldest) == [f"Message {index}" for index in range(12)] and not oldest.page.has_older
+        assert bodies(read(PageRequest(NEWER_END, oldest.page.after), first.through))[:3] == [
+            "Message 12", "Message 13", "Message 14"]
 
     comms.messaging.send("sender", "#two", "Elsewhere again")
     grown = source.observe(first.revision)
     assert grown.through.cursor.sequence > first.through.cursor.sequence and isinstance(grown, GrowingWireObservation)
-    nothing = source.read(PageRequest(NEWER_END, first.through), grown.through)
-    assert not nothing.fragments and nothing.page.after == grown.through
+    with observed(source) as (_grown, _newest, read):
+        nothing = read(PageRequest(NEWER_END, first.through), grown.through)
+        assert not nothing.fragments and nothing.page.after == grown.through
     comms.messaging.send("sender", "#one", "arrived later")
     comms.messaging.send("sender", "#one", "arrived after the bound")
     later = AfterSequence(LiveCursor(grown.through.cursor.sequence + 1))
-    bounded = source.read(PageRequest(NEWER_END, grown.through), later)
-    assert bodies(bounded) == ["arrived later"] and bounded.page.after == later and not bounded.page.has_newer
+    with observed(source) as (_later, _newest, read):
+        bounded = read(PageRequest(NEWER_END, grown.through), later)
+        assert bodies(bounded) == ["arrived later"] and bounded.page.after == later and not bounded.page.has_newer
     current = source.observe(grown.revision)
     assert isinstance(source.observe(current.revision), Unchanged)
 
@@ -92,14 +104,14 @@ def test_any_mode_expansion_replaces_the_reading_without_new_bus_rows(tmp_path):
     comms.messaging.send("carol", "dave", "older DM")
     comms.messaging.send("alice", "#team", "channel message")
     source = channel_source(comms, "#team", tmp_path)
-    first, newest = observed(source)
-    assert [fragment.message.body for fragment in newest.fragments] == ["channel message"]
+    with observed(source) as (first, newest, _read):
+        assert [fragment.message.body for fragment in newest.fragments] == ["channel message"]
     comms.channels.set_channel_any_mode("#team", True)
     assert comms.bus.bus.revision() == first.through.cursor.sequence
     expanded = source.observe(first.revision)
     assert isinstance(expanded, ReplacedWireObservation) and expanded.through == first.through
-    again = source.read(PageRequest(OLDER_END, expanded.through), expanded.through)
-    assert [fragment.message.body for fragment in again.fragments] == ["older DM", "channel message"]
+    with observed(source) as (_expanded, again, _read):
+        assert [fragment.message.body for fragment in again.fragments] == ["older DM", "channel message"]
 
 
 def test_attaching_or_detaching_history_replaces_the_reading_without_new_live_messages(tmp_path):
@@ -109,15 +121,16 @@ def test_attaching_or_detaching_history_replaces_the_reading_without_new_live_me
         bus.registry.declare(Thread("alice", frozenset({"team"}), Checkout(tmp_path)))
         bus.messaging.send("alice", "#team", bus.root.name)
     source = channel_source(comms, "#team", tmp_path)
-    first, _newest = observed(source)
+    with observed(source) as (first, newest, _read):
+        assert [message.body for message in newest.page.events] == ["live"]
     comms.views.attach_history(old.root)
     attached = source.observe(first.revision)
     assert isinstance(attached, ReplacedWireObservation) and attached.through == first.through
-    page = source.read(PageRequest(OLDER_END, attached.through), attached.through)
-    assert [message.body for message in page.page.events] == ["old", "live"]
+    with observed(source) as (_attached, page, _read):
+        assert [message.body for message in page.page.events] == ["old", "live"]
     comms.bus.history.path.unlink()
     detached = source.observe(attached.revision)
     assert isinstance(detached, ReplacedWireObservation)
-    remaining = source.read(PageRequest(OLDER_END, detached.through), detached.through)
-    assert [message.body for message in remaining.page.events] == ["live"]
-    assert not remaining.page.has_older
+    with observed(source) as (_detached, remaining, _read):
+        assert [message.body for message in remaining.page.events] == ["live"]
+        assert not remaining.page.has_older

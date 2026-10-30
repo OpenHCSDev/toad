@@ -10,6 +10,7 @@ from toad.core import events as core_events
 from toad.navigation_target import NavigationTarget, ThreadTarget
 
 import asyncio
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 from agent_comms.display_order import ThreadSort
@@ -43,10 +44,9 @@ from toad.widget_actions import WidgetAction, OpensSelected
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
-    person = entry.person
-    if person is None:
-        return NavigationTarget.named(entry.target)
-    return ThreadTarget(person.thread.name)
+    for person in entry.person.views():
+        return ThreadTarget(person.thread.name)
+    return NavigationTarget.named(entry.target)
 
 
 @dataclass
@@ -110,7 +110,9 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
     available = True
     entry: RelationshipEntry | None = None
 
-    def present(self, entry, model) -> None:
+    def present(
+        self, entry: RelationshipEntry, rows: Mapping[str, ThreadRowModel]
+    ) -> None:
         previous, self.entry = self.entry, entry
         self.available, self.target = entry.available, entry_target(entry)
         if not entry.available:
@@ -119,36 +121,39 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
                 Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"),
                 layout=False,
             )
-        elif entry.person is not None:
-            if (
-                model is not None
-                and model.incarnation == entry.person.thread.incarnation
-            ):
+            self._show_entry_detail(entry)
+            return
+        for person in entry.person.views():
+            model = rows.get(person.thread.name)
+            if model is not None and model.incarnation == person.thread.incarnation:
                 self.workers.cancel_group(self, "relationship-row")
                 self._show_person(entry, model)
             elif previous != entry:
                 self.run_worker(
-                    self._present_person(entry),
+                    self._present_person(entry, person),
                     group="relationship-row",
                     exclusive=True,
                 )
-        elif previous != entry:
+            return
+        if previous != entry:
             self.set_label(entry.target)
-        if entry.person is None:
-            self.tooltip = (
-                Content(f"{entry.target}\n{entry.detail}")
-                if entry.detail
-                else entry.target
-            )
+        self._show_entry_detail(entry)
+
+    def _show_entry_detail(self, entry):
+        self.tooltip = (
+            Content(f"{entry.target}\n{entry.detail}")
+            if entry.detail
+            else entry.target
+        )
 
     def _show_person(self, entry, model):
         self.show(model)
         if entry.detail:
-            self.tooltip = Content(f"{entry.target}\n{entry.detail}")
+            self._show_entry_detail(entry)
 
-    async def _present_person(self, entry):
+    async def _present_person(self, entry, person):
         model = await self.app.preparation.run_thread(
-            ThreadRowModel.of, entry.person, UnobservedUnread()
+            ThreadRowModel.of, person, UnobservedUnread()
         )
         if self.entry == entry:
             self._show_person(entry, model)
@@ -206,7 +211,8 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         return frozenset(
             entry.target
             for entry in self.model.entries.values()
-            if entry.person is not None and entry.person.thread.name in names
+            for person in entry.person.views()
+            if person.thread.name in names
         )
 
     def new_row(self, key: str):
@@ -216,10 +222,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
     def show_member(self, key: str, row: RelationshipRow) -> None:
         entry = self.model.entries[key]
         threads = self.query_ancestor(ThreadCommsSidebar).model_state.shown.threads.rows
-        row.present(
-            entry,
-            threads.get(entry.person.thread.name) if entry.person is not None else None,
-        )
+        row.present(entry, threads)
 
     def sync_members(self, changed: frozenset[str]) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""

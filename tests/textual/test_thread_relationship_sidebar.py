@@ -76,6 +76,48 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         assert peer_group.entries["owner"].target == "owner"
         assert peer_group.entries["owner"].detail == "Review the sidebar"
 
+        # Use Core's actual entries and models in this already-open panel.
+        collaboration = tree.groups[CollaboratingRelationshipGroup]
+        person_entry = collaboration.model.entries["peer"]
+        person, = person_entry.person.views()
+        person_row = collaboration.new_row("peer")
+        channel_group = tree.groups[OutboundRelationshipGroup]
+        channel_entry = channel_group.model.entries["#team"]
+        channel_row = channel_group.new_row("#team")
+        await collaboration.member_container.mount(person_row)
+        await channel_group.member_container.mount(channel_row)
+        try:
+            person_row.present(person_entry, {})
+            await ui.until(
+                lambda: person_row.thread_row is not None,
+                why="an uncached person to finish real model preparation",
+            )
+            assert person_row.thread_row is not None
+            assert person_row.thread_row.incarnation == person.thread.incarnation
+            assert person_row.thread_row.name == "peer"
+            assert "Review the sidebar" in str(person_row.tooltip)
+
+            cached = tree.model_state.shown.threads.rows["peer"]
+            person_row.retire_thread_row()
+            person_row.present(person_entry, {"peer": cached})
+            assert person_row.thread_row is cached
+
+            assert tuple(channel_entry.person.views()) == ()
+            channel_row.present(channel_entry, tree.model_state.shown.threads.rows)
+            await ui.until(
+                lambda: "#team" in ui.painted(channel_row),
+                why="the nominally absent person to keep its channel label",
+            )
+            assert channel_row.thread_row is None
+            assert channel_row.entry == channel_entry
+            assert str(channel_row.tooltip) == (
+                f"{channel_entry.target}\n{channel_entry.detail}"
+                if channel_entry.detail else channel_entry.target
+            )
+        finally:
+            await person_row.remove()
+            await channel_row.remove()
+
         invoke_tool(comms, "comms_collaboration", {"action": "remove", "peer": "owner"},
                     caller=ThreadCaller("peer"))
         await ui.until(lambda: not tree.groups[CollaboratingRelationshipGroup].model.entries
