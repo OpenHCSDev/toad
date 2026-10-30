@@ -19,7 +19,7 @@ class Choice(ABC):
     title: ClassVar[str | None] = None
 
     @classmethod
-    def label(cls) -> str:
+    def choice_label(cls) -> str:
         return cls.title or cls.declared_name.replace("-", " ").replace("_", " ").title()
 
 
@@ -31,7 +31,7 @@ class FamilyChoices(AnnotationChoices):
         return tuple(self.family.members_with(self.family))
 
     def label(self, choice: object) -> str:
-        return choice.label()
+        return choice.choice_label()
 
 
 @dataclass(frozen=True)

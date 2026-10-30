@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from textual.widgets.text_area import EditingMode
+
 from functools import partial
 from typing import TYPE_CHECKING
 from textual.command import DiscoveryHit, Hit, Hits, Provider
@@ -10,7 +12,6 @@ from toad.preferences import SETTINGS
 from toad.widget_actions import (
     ApplicationAction,
     System,
-    VimApplicationAction,
     YieldingKey,
 )
 from toad.widgets.comms_transfer import TransferRequest
@@ -65,7 +66,7 @@ class NewThreadAction(ApplicationAction):
 class SettingsAction(ApplicationAction):
     """Edit persistent application preferences."""
 
-    keys = ("ctrl+comma",)
+    keys = {EditingMode: ("ctrl+comma",)}
 
     async def apply(self, app: ToadApp) -> None:
         app.run_worker(partial(self.edit, app))
@@ -139,7 +140,7 @@ class ToggleFooterAction(ApplicationAction):
 
 
 class HelpQuitAction(System, YieldingKey, ApplicationAction):
-    keys = ("ctrl+c",)
+    keys = {EditingMode: ("ctrl+c",)}
 
     async def apply(self, app: ToadApp) -> None:
         app.application.confirm_quit()
@@ -148,7 +149,7 @@ class HelpQuitAction(System, YieldingKey, ApplicationAction):
 class ToggleHelpPanelAction(ApplicationAction):
     """Toggle help for the focused widget and available keys."""
 
-    keys = ("f1",)
+    keys = {EditingMode: ("f1",)}
     priority = True
 
     def label(self, app: ToadApp) -> str:
@@ -164,7 +165,7 @@ class ToggleHelpPanelAction(ApplicationAction):
 class ChannelsAction(ApplicationAction):
     """Reveal channels and focus the selected session."""
 
-    keys = ("ctrl+s",)
+    keys = {EditingMode: ("ctrl+s",)}
     show = True
 
     async def apply(self, app: ToadApp) -> None:
@@ -174,106 +175,16 @@ class ChannelsAction(ApplicationAction):
 class DirectMessagesAction(ApplicationAction):
     """Open the most recently selected direct conversation."""
 
-    keys = ("ctrl+shift+d",)
+    keys = {EditingMode: ("ctrl+shift+d",)}
 
     async def apply(self, app: ToadApp) -> None:
         app.session_navigation.direct_messages()
 
 
-class VimNavigationAction(VimApplicationAction):
-    """Move through the selected conversation without moving focus or redirecting input."""
-
-    @staticmethod
-    def conversation(app):
-        from toad.widgets.conversation import Conversation
-
-        view = app.selected_session
-        return None if view is None else view.query_one_optional(Conversation)
-
-    def available(self, app):
-        return super().available(app) and self.conversation(app) is not None
-
-
-class VimScrollDownAction(VimNavigationAction):
-    keys = ("j",)
-
-    async def apply(self, app):
-        self.conversation(app).window.action_scroll_down()
-
-
-class VimScrollUpAction(VimNavigationAction):
-    keys = ("k",)
-
-    async def apply(self, app):
-        self.conversation(app).window.action_scroll_up()
-
-
-class VimScrollLeftAction(VimNavigationAction):
-    keys = ("h",)
-
-    async def apply(self, app):
-        self.conversation(app).window.action_scroll_left()
-
-
-class VimScrollRightAction(VimNavigationAction):
-    keys = ("l",)
-
-    async def apply(self, app):
-        self.conversation(app).window.action_scroll_right()
-
-
-class VimPageDownAction(VimNavigationAction):
-    keys = ("ctrl+d",)
-
-    async def apply(self, app):
-        self.conversation(app).window.action_page_down()
-
-
-class VimPageUpAction(VimNavigationAction):
-    keys = ("ctrl+u",)
-
-    async def apply(self, app):
-        self.conversation(app).window.action_page_up()
-
-
-class VimLatestAction(VimNavigationAction):
-    keys = ("G",)
-
-    async def apply(self, app):
-        self.conversation(app).jump_to_latest()
-
-
-class VimFocusPromptAction(VimNavigationAction):
-    """Focus the prompt, ready to type."""
-
-    keys = ("i",)
-
-    async def apply(self, app):
-        self.conversation(app).prompt.enter_insert()
-
-
-class VimNextTabAction(VimNavigationAction):
-    """Select the next tab."""
-
-    keys = ("J",)
-
-    async def apply(self, app):
-        app.selected_session.navigate_session(+1)
-
-
-class VimPreviousTabAction(VimNavigationAction):
-    """Select the previous tab."""
-
-    keys = ("K",)
-
-    async def apply(self, app):
-        app.selected_session.navigate_session(-1)
-
-
 class QuitAction(ApplicationAction):
     """Save preferences and quit the application."""
 
-    keys = ("ctrl+q",)
+    keys = {EditingMode: ("ctrl+q",)}
     priority = True
 
     async def apply(self, app: ToadApp) -> None:

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from textual.binding import Binding
+from textual.widgets.text_area import EditingMode
 from toad.widget_actions import Action
 
 if TYPE_CHECKING:
@@ -26,7 +27,7 @@ class SelectionAction(QuestionAction):
 
 
 class SelectionUpAction(SelectionAction):
-    keys = ("up",)
+    keys = {EditingMode: ("up",)}
 
     async def apply(self, question):
         question._reset_blink()
@@ -34,7 +35,7 @@ class SelectionUpAction(SelectionAction):
 
 
 class SelectionDownAction(SelectionAction):
-    keys = ("down",)
+    keys = {EditingMode: ("down",)}
 
     async def apply(self, question):
         question._reset_blink()
@@ -44,7 +45,7 @@ class SelectionDownAction(SelectionAction):
 class SelectAction(QuestionAction):
     """Answer with the selected option."""
 
-    keys = ("enter",)
+    keys = {EditingMode: ("enter",)}
     show = True
 
     def available(self, question):
