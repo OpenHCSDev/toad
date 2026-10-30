@@ -185,7 +185,9 @@ class ChannelConversation(ConversationKind):
         return ChannelViewAddress(key.root, key.conversation)
 
     def reading(self, source: WireSource) -> AbstractContextManager[Callable[[PageBounds], MessagePage]]:
-        return source.comms.views.channel_display_reading(self.target.name, viewer=source.viewer)
+        return source.comms.views.channel_display_view(
+            self.target.name, viewer=source.viewer,
+        ).reading(source.comms.views.presentation)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:
@@ -267,7 +269,9 @@ class DmConversation(ConversationKind):
         return observation.bus_unread(self.destination(references).name)
 
     def reading(self, source: WireSource) -> AbstractContextManager[Callable[[PageBounds], MessagePage]]:
-        return source.comms.views.dm_display_reading(self.retained_target(), worktree=source.project)
+        return source.comms.views.dm_display_view(
+            self.retained_target(), worktree=source.project,
+        ).reading(source.comms.views.presentation)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:

@@ -9,7 +9,9 @@ ACTION = "channel-activity"
 
 
 def bodies(comms):
-    return [message.body for message in comms.views.channel_display_page("#team").messages]
+    return [message.body for message in comms.views.channel_display_view(
+        '#team',
+    ).page(comms.views.presentation).messages]
 
 
 async def open_menu(ui, sidebar, channel):

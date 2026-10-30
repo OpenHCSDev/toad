@@ -42,9 +42,15 @@ def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_pat
     comms.registry.declare(Thread("peer", frozenset(), Checkout(tmp_path), process_identity=ProcessIdentity.capture(os.getpid())))
     viewer = comms.messaging.user_identity(Checkout(tmp_path)).name
     comms.messaging.send("peer", viewer, "shown across turn claim")
-    before = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
+    before = comms.views.dm_display_view(
+        ThreadTarget('peer'),
+        worktree=Checkout(tmp_path),
+    ).page(comms.views.presentation)
     comms.registry.lease_local_turn("peer", TurnId.mint())
-    after = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
+    after = comms.views.dm_display_view(
+        ThreadTarget('peer'),
+        worktree=Checkout(tmp_path),
+    ).page(comms.views.presentation)
     assert DmConversation.history_view.same_display(after, before)
 
 
