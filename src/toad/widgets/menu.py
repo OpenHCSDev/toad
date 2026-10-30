@@ -1,19 +1,26 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from textual.binding import BindingsMap
+from textual.document._editing import EditingMode
 
 from textual import on
 from textual.app import ComposeResult
 from toad.widget_actions import DismissibleControl
 from textual.message import Message
 from textual.widgets import ListView, Label
-from textual import events
 from textual.widget import Widget
 from textual.layouts.horizontal import HorizontalLayout
 
-from toad.menus import MenuItem
+from toad.menus import MenuCommand
+from toad.keymap import KeymapCatalog
 from toad.widgets.selection import SelectionListItem
 from toad.tone_paint import UntintedTonePaint
+
+if TYPE_CHECKING:
+    from toad.widgets.conversation import Conversation
 
 
 
@@ -25,15 +32,20 @@ class MenuOption(SelectionListItem):
     ALLOW_SELECT = False
     DEFAULT_LAYOUT = HorizontalLayout
 
-    def __init__(self, action: str | None, description: str, key: str | None) -> None:
-        self._action = action
-        self._description = description
-        self._key = key
-        super().__init__(classes="-has-key" if key else "-no_key")
+    def __init__(self, command: MenuCommand) -> None:
+        self.command = command
+        super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield NonSelectableLabel(self._key or " ", id="key")
-        yield NonSelectableLabel(self._description, id="description")
+        yield NonSelectableLabel(" ", id="key")
+        yield NonSelectableLabel(self.command.description, id="description")
+
+    def refresh_key(self) -> None:
+        keys = KeymapCatalog.menu_keys(self.command, type(self.app.settings.ui.key_mode),
+                                      self.app.settings.ui.keymap)
+        self.query_one("#key", NonSelectableLabel).update(", ".join(keys) or " ")
+        self.set_class(bool(keys), "-has-key")
+        self.set_class(not keys, "-no_key")
 
 
 class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
@@ -76,27 +88,42 @@ class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
         """The user selected on of the options."""
 
         menu: Menu
-        owner: Widget
-        action: str | None
+        command: MenuCommand
 
-    def __init__(self, owner: Widget, options: list[MenuItem], *args, focus_owner: Widget, **kwargs) -> None:
-        self._owner = owner
+    def __init__(self, conversation: Conversation, owner: Widget,
+                 commands: list[MenuCommand], *args, focus_owner: Widget, **kwargs) -> None:
+        self.conversation = conversation
+        self.block = owner
         self._focus_owner = focus_owner
-        self._options = sorted(options, key=lambda option: option.key is None)
+        self._commands = tuple(sorted(commands, key=lambda command: not type(command).default_keys()))
         super().__init__(*args, **kwargs)
+
+    def binding_map(self, mode: type[EditingMode]) -> BindingsMap:
+        return BindingsMap.merge((super().binding_map(mode), BindingsMap(
+            binding for command in self._commands for binding in command.bindings(mode))))
 
     def _insert_options(self) -> None:
         self.extend(
-            MenuOption(menu_item.action, menu_item.description, menu_item.key)
-            for menu_item in self._options
+            MenuOption(command) for command in self._commands
         )
 
     def on_mount(self) -> None:
         self._insert_options()
+        self.screen.bindings_updated_signal.subscribe(self, self.refresh_keys)
+        self.call_after_refresh(self.refresh_keys)
+
+    def on_unmount(self) -> None:
+        self.screen.bindings_updated_signal.unsubscribe(self)
+
+    def refresh_keys(self, _screen: object = None) -> None:
+        for option in self.query(MenuOption):
+            option.refresh_key()
 
     async def activate_index(self, index: int) -> None:
-        action = self._options[index].action
-        self.post_message(self.OptionSelected(self, self._owner, action))
+        self.activate_command(self._commands[index])
+
+    def activate_command(self, command: MenuCommand) -> None:
+        self.post_message(self.OptionSelected(self, command))
         self.dismiss_control()
 
     def dismiss_control(self) -> None:
@@ -109,15 +136,6 @@ class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
 
     def on_blur(self) -> None:
         self.dismiss_control()
-
-    @on(events.Key)
-    async def on_key(self, event: events.Key) -> None:
-        for index, option in enumerate(self._options):
-            if event.key == option.key:
-                self.index = index
-                event.stop()
-                await self.activate_index(index)
-                break
 
     @on(ListView.Selected)
     async def on_list_view_selected(self, event: ListView.Selected) -> None:

@@ -4,7 +4,7 @@ from functools import cached_property
 
 from textual.widgets import _markdown as native_markdown
 
-from toad.menus import MenuItem
+from toad.menus import MenuCommand
 
 
 class BlockContent:
@@ -17,7 +17,7 @@ class BlockContent:
 
         return AtomicBlockCursor(self)
 
-    def get_block_menu(self) -> Iterable[MenuItem]:
+    def get_block_menu(self) -> Iterable[MenuCommand]:
         return ()
 
     def get_clipboard_text(self) -> str | None:

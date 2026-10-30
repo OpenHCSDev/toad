@@ -5,7 +5,7 @@ from textual.content import Content
 from textual.dom import DOMNode
 from textual.message import Message
 
-from toad.menus import MenuItem
+from toad.menus import FocusBlockCommand, InterruptCommand, MenuCommand
 from toad.widgets.terminal import Terminal
 
 
@@ -28,10 +28,10 @@ class ShellTerminal(Terminal):
         def control(self) -> DOMNode:
             return self.terminal
 
-    def get_block_menu(self) -> Iterable[MenuItem]:
+    def get_block_menu(self) -> Iterable[MenuCommand]:
         if not self.is_finalized:
-            yield MenuItem("Interrupt", "interrupt", "i")
-            yield MenuItem("Focus", f"focus_block({self.id!r})", "f")
+            yield InterruptCommand()
+            yield FocusBlockCommand(self)
 
     def get_clipboard_text(self) -> str | None:
         return "\n".join(line.content.plain for line in self.state.buffer.lines)

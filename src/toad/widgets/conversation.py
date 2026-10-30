@@ -74,7 +74,7 @@ from toad.goal_interaction import GoalSession
 from toad.input_history import InputHistories
 from toad.layout import trim_trailing_margin
 from toad.live_output import LiveOutput
-from toad.menus import MenuItem
+from toad.menus import CopyClipboardCommand, CopyPromptCommand, ExportSvgCommand, MaximizeBlockCommand
 from toad.preferences import SETTINGS
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.resource_release import AsyncResourceRelease
@@ -1350,12 +1350,7 @@ class Conversation(
     @on(Menu.OptionSelected)
     async def on_menu_option_selected(self, event: Menu.OptionSelected) -> None:
         event.stop()
-        if (
-            self.query_ancestor(SessionScope).is_current
-            and event.action is not None
-            and self.navigation.accepts_menu_owner(event.owner)
-        ):
-            await self.run_action(event.action, {"block": event.owner})
+        await event.command.run(event.menu)
         self.call_after_refresh(self.cursor.refresh)
 
     @handles(CurrentWorkingDirectoryChanged)
@@ -1924,11 +1919,11 @@ class Conversation(
     async def action_select_block(self) -> None:
         cursor = self.navigation.cursor
         for block in cursor.selected_widgets:
-            menu_options = [MenuItem('[u]C[/]opy to clipboard', 'copy_to_clipboard', 'c'), MenuItem('Co[u]p[/u]y to prompt', 'copy_to_prompt', 'p'), MenuItem('Open as S[u]V[/]G', 'export_to_svg', 'v')]
+            commands = [CopyClipboardCommand(), CopyPromptCommand(), ExportSvgCommand()]
             if cursor.allow_maximize:
-                menu_options.append(MenuItem('[u]M[/u]aximize', 'maximize_block', 'm'))
-            menu_options.extend(cursor.get_block_menu())
-            menu = Menu(block, menu_options, focus_owner=self.window)
+                commands.append(MaximizeBlockCommand())
+            commands.extend(cursor.get_block_menu())
+            menu = Menu(self, block, commands, focus_owner=self.window)
             region = cursor.region
             menu.offset = Offset(1, region.y if region is not None else self.window.region.y)
             await self.mount(menu)
