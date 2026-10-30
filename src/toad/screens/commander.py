@@ -8,7 +8,8 @@ from dataclasses import replace
 from agent_comms.commander_hud import CommanderHud, CommanderUnit, HudRecord, HudSection
 from agent_comms.coordination_errors import DeferredRead
 from agent_comms.disclosure_text import (
-    AccentTone, ErrorTone, HudTone, MutedTone, SuccessTone, ViewTable, WarningTone,
+    AccentTone, DisclosureEntry, DisclosureKey, DisclosureText, ErrorTone, HudTone,
+    MutedTone, RootKey, SuccessTone, ViewTable, WarningTone,
 )
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.task_attachments.commander_pings import AlarmGroup, AlarmSection
@@ -33,9 +34,7 @@ from toad.core.events import CommanderHudChanged, CommanderHudFailed
 from toad.core_event_carrier import CoreEventReceiver
 from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction
-from toad.widgets.declared_disclosure import (
-    DeclaredDisclosure, DisclosureEntry, DisclosureKey, DisclosedValue, RootKey,
-)
+from toad.widgets.declared_disclosure import DeclaredDisclosure
 from toad.widgets.declared_table import (
     DeclaredTable, EmptyTableSelection, SelectedTableRecord, SelectionView, TableSelection,
 )
@@ -218,7 +217,7 @@ class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Vertical
     async def read_detail(self, selection: SelectedTableRecord[HudRecord]) -> None:
         self.original.display = False
         card = selection.record
-        label = DisclosedValue.of(card).source.summary()
+        label = DisclosureText.of(card).summary
         self.status.update(f"Reading original records for {label}…")
         try:
             detail = await type(self).handler_for(type(card))(self, card)
@@ -229,7 +228,7 @@ class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Vertical
             return
         if not self.is_attached or self.selection != selection:
             return
-        entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosedValue.of(detail))
+        entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosureText.of(detail))
         for view in self.original.query_children(DeclaredDisclosure):
             view.present(entry)
             break
@@ -325,7 +324,7 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     def focus_selection(self) -> None:
         for table in self.query(CommanderTable):
             # Focus needs the prepared semantic record, not allocated native row keys.
-            if self.selected.key in table.entities:
+            if self.selected.key in table.source.entities:
                 table.focus(scroll_visible=False)
                 break
 
@@ -339,8 +338,8 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         for section in self.hud.alarms:
             self.alarms[section.group].present(section, now)
         self.shown = self.filtered_sections()
-        records = {DisclosedValue.of(record).sequence_key(): record
-                   for section in self.shown.values() for record in section.records}
+        records = {key: record for section in self.shown.values() for table in section.tables
+                   for key, record in table.entities.items()}
         self.selected = TableSelection[HudRecord].from_records(records, self.selected.key)
         self.details.present(self.selected)
         keys = tuple(self.shown)

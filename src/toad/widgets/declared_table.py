@@ -5,9 +5,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from types import MappingProxyType
 
-from agent_comms.disclosure_text import ViewTable
+from agent_comms.disclosure_text import AnonymousKey, DisclosureKey, ViewTable
 from textual.content import Content
 from textual.style import Style
 from textual.widgets import DataTable
@@ -15,7 +14,6 @@ from textual.widgets._data_table import RowKey
 from ui_theme.scheme import ForegroundColour, ThemeColour
 
 from toad.widget_actions import MovesCursor, OpensSelected
-from toad.widgets.declared_disclosure import AnonymousKey, DisclosureKey, DisclosedValue
 
 
 class SelectionView[R]:
@@ -86,10 +84,6 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
 
     def present(self, source: ViewTable[R]) -> None:
         self.source = source
-        self.entities = MappingProxyType({DisclosedValue.of(record).sequence_key(): record
-                                         for record in source.records})
-        if len(self.entities) != len(source.records):
-            raise ValueError("A declared table requires unique record identities")
         # The native message pump runs this after mount/layout, including updates
         # supplied by a parent's Mount before its child's Mount has run.
         self.call_after_refresh(self.reconcile_source)
@@ -118,7 +112,7 @@ class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
     def reconcile_source(self) -> None:
         previous = self.selected
         offset = self.scroll_offset
-        entities = self.entities
+        entities = self.source.entities
         selected = TableSelection[R].from_records(
             entities, self.preferred_selection().key, previous.key,
         )
