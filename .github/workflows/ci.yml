@@ -56,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        shard: [0, 1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -90,8 +90,8 @@ jobs:
       - run: .venv/bin/pytest --collect-only -q
       # A test stuck past 120 s dumps every thread, so the red names where it hung.
       # Each test owns its interpreter (OwnProcessTest), so a runner's two cores carry about a
-      # quarter of the suite inside the job limit; shards run on their own runners.
-      - run: .venv/bin/pytest -n auto --shard ${{ matrix.shard }}/4 --basetemp .artifacts/pilots -o faulthandler_timeout=120 -rfE -vv --tb=short
+      # sixth of the suite well inside the job limit; shards run on their own runners.
+      - run: .venv/bin/pytest -n auto --shard ${{ matrix.shard }}/6 --basetemp .artifacts/pilots -o faulthandler_timeout=120 -rfE -vv --tb=short
   suite:
     # The required check: green only when every shard is.
     needs: suite-shard
