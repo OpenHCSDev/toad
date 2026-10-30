@@ -2,7 +2,7 @@
 
 from agent_comms.repo import Checkout
 from support.agents import peer
-from toad.key_modes import Standard, VimInsert
+from toad.key_modes import Standard, VimInsert, VimNormal
 from toad.preferences import SETTINGS
 from toad.screens.settings import SettingsScreen
 from toad.session_scope import AgentAttached
@@ -11,6 +11,40 @@ from toad.widgets.prompt import MessagePrompt
 
 def test_enter_insert_before_compose_has_no_editor_to_touch(tmp_path):
     MessagePrompt(project=Checkout(tmp_path)).enter_insert()
+
+
+async def test_normal_profile_arrow_aliases_stay_out_of_real_insert_text(workspace):
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimNormal)
+        await ui.until(lambda: area.key_mode is VimNormal and area.editing_mode.completed,
+                       why="the real child in the saved Normal profile")
+        area.focus()
+        await ui.press("i")
+        await ui.until(lambda: area.editing_mode.accepts_text, why="real Insert entered from Normal")
+        await ui.type("hjkl")
+        await ui.until(lambda: area.text == "hjkl" and area.editing_mode.completed,
+                       why="printable aliases to arrive as text in Insert")
+
+
+async def test_escape_in_real_normal_selects_standard_and_keeps_draft(workspace):
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
+        await ui.until(lambda: area.key_mode is VimInsert and area.editing_mode.completed,
+                       why="the real child in Insert")
+        area.focus()
+        await ui.type("draft")
+        await ui.until(lambda: area.text == "draft" and area.editing_mode.completed,
+                       why="a real draft to carry over")
+        await ui.press("escape")
+        await ui.until(lambda: area.editing_mode.allows_application_commands,
+                       why="the first Escape to leave Insert for Normal, not the profile")
+        assert area.key_mode is VimInsert
+        await ui.press("escape")
+        await ui.until(lambda: area.key_mode is Standard and ui.app.settings.ui.key_mode is Standard,
+                       why="Escape in Normal to select Standard")
+        assert area.text == "draft"
 
 
 async def test_real_neovim_submission_shrinks_document_and_cursor_together(workspace):
