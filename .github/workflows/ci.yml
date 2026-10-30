@@ -16,8 +16,8 @@ concurrency:
   group: toad-verification-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  ratchet:
-    name: Debt ratchet
+  nra-gate:
+    name: NRA gate
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
