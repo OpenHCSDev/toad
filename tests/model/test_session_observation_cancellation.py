@@ -12,9 +12,21 @@ async def reached(event):
         await event.wait()
 
 
+class ReadBinding:
+    """The bound agent schedules reads on itself, as toad.agent.Agent does."""
+
+    def invalidate_observation(self, observation):
+        observation.schedule(self)
+
+    def matches_agent(self, agent):
+        return self is agent
+
+
 class ReadSource:
     is_attached = True
-    agent = object()
+
+    def __init__(self):
+        self.agent_binding = ReadBinding()
 
 
 class WaitingObservation(SessionObservation):

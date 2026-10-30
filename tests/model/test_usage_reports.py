@@ -15,7 +15,7 @@ async def test_the_tls_context_is_built_once():
 
     app = SimpleNamespace(
         preparation=SimpleNamespace(run_thread=run_thread), size=(80, 24),
-        settings=SimpleNamespace(anon_id="anon"), terminal_attention=SimpleNamespace(program="st"),
+        settings=SimpleNamespace(anon_id="anon"), terminal_attention=SimpleNamespace(program=lambda: "st"),
     )
     reports = UsageReports(app)
     clients = []
