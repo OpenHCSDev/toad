@@ -262,7 +262,11 @@ def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
     `toad serve acp agent-comms-acp`.
     """
-    from toad.web_server import LocalBrowserAuthentication, LocalBrowserEndpoint, ToadWebServer
+    from toad.web_server import (
+        LocalBrowserAuthentication,
+        LocalBrowserEndpoint,
+        ToadWebServer,
+    )
 
     ToadWebServer.run_toad(
         LocalBrowserAuthentication(LocalBrowserEndpoint(host, port)), toad_args

@@ -35,6 +35,7 @@ from aiohttp import web
 from pydantic import Field
 from textual_serve.server import Server
 
+import toad
 from toad.application_lifetime import ApplicationLifetime
 
 type Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
@@ -390,7 +391,9 @@ class ToadWebServer(Server):
         cls, authentication: BrowserAuthentication, toad_args: tuple[str, ...]
     ) -> None:
         """Each browser tab runs `toad TOAD ARGS`, or `toad .` when none are given."""
-        command = shlex.join([sys.executable, "-m", "toad", *(toad_args or (".",))])
+        command = shlex.join(
+            [sys.executable, "-m", toad.__name__, *(toad_args or (".",))]
+        )
         server = cls(command, authentication, title="Toad")
         ApplicationLifetime.set_process_title("toad serve")
         server.serve()

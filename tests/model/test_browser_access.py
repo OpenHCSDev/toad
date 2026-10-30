@@ -5,9 +5,9 @@ import stat
 
 import aiohttp
 import pytest
-from aiohttp.test_utils import TestServer
 from agent_comms.field_codec import FieldCodec, MalformedRecord
 from agent_comms.process_claim import ClaimHeldError
+from aiohttp.test_utils import TestServer
 
 from toad.web_server import (
     LocalBrowserAuthentication,
