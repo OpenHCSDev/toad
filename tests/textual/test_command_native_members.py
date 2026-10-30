@@ -25,14 +25,9 @@ async def show_command(ui: TextualUi, definition: TargetAction) -> CommandDialog
 
 
 async def supply(ui: TextualUi, editor: ValueEditor, text: str) -> None:
-    control = editor
-    if isinstance(editor, OptionalEditor):
-        editor.holds_value.value = True
-        await ui.step()
-        control = editor.member
-    assert isinstance(control, LineEditor)
-    control.value = text
-    control.finish(explicit=True)
+    assert isinstance(editor, LineEditor)
+    editor.value = text
+    editor.commit()
     await ui.step()
 
 
@@ -62,11 +57,19 @@ async def test_new_dialog_keeps_missing_name_and_tags_distinct_from_explicit_emp
         assert dialog.query_one('#command-apply', Button).disabled
         with pytest.raises(MalformedRecord):
             definition.edited(dialog.arguments())
-        await supply(ui, dialog.form.values['name'].editor, 'new-child')
+        name = dialog.form.values['name'].editor
+        assert isinstance(name, OptionalEditor)
+        name.holds_value.value = True
+        await ui.step()
+        await supply(ui, name.member, 'new-child')
         assert 'tags' not in dialog.arguments()
         with pytest.raises(MalformedRecord):
             definition.edited(dialog.arguments())
-        await supply(ui, dialog.form.values['tags'].editor, text)
+        tags = dialog.form.values['tags'].editor
+        assert isinstance(tags, OptionalEditor)
+        tags.holds_value.value = True
+        await ui.step()
+        await supply(ui, tags.member, text)
         completed, = definition.edited(dialog.arguments()).bound
         assert completed.name == 'new-child'
         assert completed.tags == GivenTags(expected)
@@ -87,7 +90,11 @@ async def test_fork_member_selection_apply_reopen_cancel_and_native_parent_refre
         command = await show_command(ui, definition)
         assert 'parent' not in command.form.values
         assert 'name' not in command.arguments()
-        await supply(ui, command.form.values['name'].editor, 'fork-child')
+        name = command.form.values['name'].editor
+        assert isinstance(name, OptionalEditor)
+        name.holds_value.value = True
+        await ui.step()
+        await supply(ui, name.member, 'fork-child')
         untouched, = definition.edited(command.arguments()).bound
         assert untouched.tags == InheritedTags()
         assert untouched.tags.for_child(frozenset({'later'})) == frozenset({'later'})
@@ -115,9 +122,17 @@ async def test_fork_member_selection_apply_reopen_cancel_and_native_parent_refre
         await ui.step()
         assert member.draft.arguments() == {}
         assert member.apply_button.disabled
-        await supply(ui, member.form.values['add'].editor, '["new"]')
+        add = member.form.values['add'].editor
+        remove = member.form.values['remove'].editor
+        assert isinstance(add, OptionalEditor)
+        assert isinstance(remove, OptionalEditor)
+        add.holds_value.value = True
+        await ui.step()
+        await supply(ui, add.member, '["new"]')
         assert member.apply_button.disabled
-        await supply(ui, member.form.values['remove'].editor, '["old"]')
+        remove.holds_value.value = True
+        await ui.step()
+        await supply(ui, remove.member, '["old"]')
         expected = ChangedTags(frozenset({'new'}), frozenset({'old'}))
         assert member.draft.complete() == expected
         assert await ui.pilot.click(member.apply_button)

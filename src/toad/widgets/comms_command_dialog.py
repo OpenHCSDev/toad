@@ -69,7 +69,7 @@ class PreparedUnion(UnionMembers, MemberDraftFactory[MemberDraft]):
         return UnchosenMemberDraft(member)
 
     def member(self, member: EditorMember, value: object) -> MemberDraft:
-        return PreparedMemberDraft(member, value, self.selected(value).declaration is member.declaration)
+        return PreparedMemberDraft(member, value, self.selected(value) == member)
 
 
 class DeclaredDraft:
