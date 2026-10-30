@@ -57,7 +57,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
     @property
     def undrawn(self) -> bool:
         """Nothing of the bound source has been drawn yet."""
-        return all(view.prepared.page.undrawn for view in self.pages)
+        return all(view.prepared.page.after.requires_read() for view in self.pages)
 
     @property
     def source_identity(self):

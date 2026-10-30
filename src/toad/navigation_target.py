@@ -11,6 +11,7 @@ from agent_comms.channel_targets import ChannelTarget as CoreChannelTarget
 from agent_comms.channel_targets import ThreadTarget as CoreThreadTarget
 from agent_comms.declared_family import DeclaredFamily
 
+from toad.core.events import CoreEvent
 from toad.constants import ALL_COMMS_TARGET
 from toad.navigation_context import NavigationContext, NavigationOwner
 from toad.conversation_kind import (
@@ -61,6 +62,11 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
     @abstractmethod
     async def open(self, context: NavigationContext) -> str:
         pass
+
+
+@dataclass(frozen=True)
+class SelectTarget(CoreEvent):
+    target: NavigationTarget
 
 
 @dataclass(frozen=True)

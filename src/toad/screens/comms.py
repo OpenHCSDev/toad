@@ -23,11 +23,10 @@ from toad import messages
 from toad.conversation_kind import ConversationKind
 from toad.widgets.comms_chat import CommsChatView
 from toad.core.input_events import SelectHistoricalIdentity
-from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.session_tracker import SidebarState
 from toad.navigation_context import NavigationContext
-from toad.navigation_target import HistoryTarget, NavigationTarget
+from toad.navigation_target import HistoryTarget, NavigationTarget, SelectTarget
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar

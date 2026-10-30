@@ -15,6 +15,8 @@ from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRe
 from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteSelection
 from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.order_tools import TranscriptPageRead
+from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
 from agent_comms.ui_model.observation import (
     ReadTranscript,
     ReadTranscriptUpdate,
@@ -35,7 +37,6 @@ from toad.status_thread import NoStatusThread, StatusThread
 if TYPE_CHECKING:
     from toad.widget_actions import DeclaredWidgetActions
     from agent_comms.messages import Message
-    from agent_comms.transcripts import TranscriptCursor
     from agent_comms.thread_presentation import ThreadPresentation
     from textual.command import Provider
     from textual.dom import DOMNode
@@ -83,10 +84,9 @@ class TranscriptScope(ABC):
     def snapshot_request(
         self,
         *,
-        before: TranscriptCursor | None = None,
-        after: TranscriptCursor | None = None,
-        through: TranscriptCursor | None = None,
-        historical_source: str | None = None,
+        position: PagePosition = LatestPage(),
+        limit: PageLimit = AtFrontier(),
+        page_source: PageSource = LivePageSource(),
     ) -> ReadTranscript: ...
 
     @abstractmethod
@@ -94,7 +94,7 @@ class TranscriptScope(ABC):
         self,
         previous: TranscriptPublicationState,
         *,
-        after: TranscriptCursor | None = None,
+        position: PagePosition = LatestPage(),
     ) -> ReadTranscriptUpdate: ...
 
     @abstractmethod
@@ -162,27 +162,26 @@ class KnownTranscript(TranscriptScope):
     def snapshot_request(
         self,
         *,
-        before: TranscriptCursor | None = None,
-        after: TranscriptCursor | None = None,
-        through: TranscriptCursor | None = None,
-        historical_source: str | None = None,
+        position: PagePosition = LatestPage(),
+        limit: PageLimit = AtFrontier(),
+        page_source: PageSource = LivePageSource(),
     ) -> ReadTranscript:
-        return ReadTranscript(
-            self.root,
-            self.name,
-            before=before,
-            after=after,
-            through=through,
-            historical_source=historical_source,
-        )
+        return ReadTranscript(self.root, TranscriptPageRead(
+            thread=self.name,
+            position=position,
+            limit=limit,
+            page_source=page_source,
+        ))
 
     def update_request(
         self,
         previous: TranscriptPublicationState,
         *,
-        after: TranscriptCursor | None = None,
+        position: PagePosition = LatestPage(),
     ) -> ReadTranscriptUpdate:
-        return ReadTranscriptUpdate(self.root, self.name, previous=previous, after=after)
+        return ReadTranscriptUpdate(
+            self.root, TranscriptPageRead(thread=self.name, position=position), previous=previous
+        )
 
     def mailbox_target(self) -> ThreadTarget:
         return ThreadTarget(self.name)
@@ -262,10 +261,9 @@ class NoTranscript(TranscriptScope):
     def snapshot_request(
         self,
         *,
-        before: TranscriptCursor | None = None,
-        after: TranscriptCursor | None = None,
-        through: TranscriptCursor | None = None,
-        historical_source: str | None = None,
+        position: PagePosition = LatestPage(),
+        limit: PageLimit = AtFrontier(),
+        page_source: PageSource = LivePageSource(),
     ) -> Never:
         self.unavailable()
 
@@ -273,7 +271,7 @@ class NoTranscript(TranscriptScope):
         self,
         previous: TranscriptPublicationState,
         *,
-        after: TranscriptCursor | None = None,
+        position: PagePosition = LatestPage(),
     ) -> Never:
         self.unavailable()
 

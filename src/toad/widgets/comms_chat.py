@@ -7,6 +7,7 @@ from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
 from toad.wire_history import WireSource
+from toad.submission_queue import QueueSource, ReadOnlyQueueSource
 from toad.transcript_publication import NoView, ViewBinding
 
 import re
@@ -61,6 +62,7 @@ class HistoryLoading(ConversationBlock, Static):
 class CommsChatView(Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
+    queue_source: QueueSource = ReadOnlyQueueSource()
 
     def __init__(
         self,
@@ -96,7 +98,7 @@ class CommsChatView(Conversation):
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation.compose_activity(self)
             yield self.throbber_above
-            yield self.conversation.prompt(self.project_path).data_bind(
+            yield self.conversation.prompt(self.project_path, submissions=self.submissions).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -115,10 +117,9 @@ class CommsChatView(Conversation):
             )
         comms = shared
         await self.app.coordination_access.current_sidebar()
-        self.message_history.initialize_source(WireSource(
-            comms, self.conversation, self.project_path, self._me,
-            IrcMessageStyle(),
-        ))
+        source = WireSource(comms, self.conversation, self.project_path, self._me, IrcMessageStyle())
+        self.queue_source = source
+        self.message_history.initialize_source(source)
         self.refresh_identity(comms.root)
         self.prepare_prompt()
         self.window.anchor()

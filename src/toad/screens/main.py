@@ -14,6 +14,7 @@ from agent_comms.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.route_selection import RouteSelection
 from agent_comms.repo import Checkout
+from agent_comms.transcripts import TranscriptCursor
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
@@ -36,13 +37,13 @@ from toad.acp.agent_session import SessionDisposition
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent
-from toad.core.input_events import SelectTarget
 from toad.format_path import format_path
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import (
     DirectTarget,
     FeedTarget,
     NavigationTarget,
+    SelectTarget,
     ThreadTarget,
 )
 from toad.screens.mcp_inventory import MCPInventoryScreen
@@ -225,11 +226,11 @@ class ReadyContent(ScreenContent):
             screen.screen.set_focus(target, scroll_visible=False)
 
     def read_visible(self, screen: MainScreen) -> PaintedRead:
-        """Only mounted content can supply a painted reader cursor."""
+        return screen.conversation.painted_read(partial(self.read_work, screen))
+
+    def read_work(self, screen: MainScreen, through: TranscriptCursor) -> ReadWork:
+        """Only a painted cursor reaches route selection and the write worker."""
         conversation = screen.conversation
-        through = conversation.visible_read_cursor
-        if through is None:
-            return NothingToRead()
         app = screen.app
         access = app.coordination_access
         identity = screen.thread_identity
