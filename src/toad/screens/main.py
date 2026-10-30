@@ -12,7 +12,6 @@ from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.coordination_errors import DMScopeChanged, Refused
 from agent_comms.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.route_selection import RouteSelection
 from agent_comms.repo import Checkout
 from textual import containers, getters, on
 from textual.app import ComposeResult
@@ -238,7 +237,7 @@ class ReadyContent(ScreenContent):
         worktree = app.project_dir
 
         def acknowledge(cursor) -> None:
-            selected = RouteSelection.capture(source_root)
+            selected = access.selected(source_root)
             comms = access.require(selected).service
 
             def mark() -> None:

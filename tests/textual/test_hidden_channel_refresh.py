@@ -1,7 +1,8 @@
-"""Textual-facing: a hidden channel view's refresh callback (a widget lifecycle) reads nothing; the shown one fetches current data."""
+"""A hidden channel does no route check; returning fetches current data."""
 
 from unittest.mock import patch
 
+from agent_comms.route_selection import RouteSelection
 from support.textual_steps import refresh_chat
 
 
@@ -19,12 +20,12 @@ async def test_hidden_channel_refresh_does_no_root_check_and_resumed_window_fetc
         history = chat.message_history
         await ui.until(lambda: not history.undrawn and history.state.accepts_source_work, why="the first channel's history read")
         await ui.open_channel("#two", actor="peer")
-        # Mark the current page loaded before instrumenting the hidden reader.
-        await ui.until(lambda: history.state.accepts_source_work and not history.marking,
+        # Let the hidden reader settle before the next message arrives.
+        await ui.until(lambda: history.state.accepts_source_work,
                        why="the hidden channel to settle")
+        await history.read_worker.wait()
         comms.messaging.send("peer", "#one", "ARRIVED-WHILE-HIDDEN")
-        with patch("agent_comms.route_selection.root_is_current", side_effect=AssertionError("hidden route check")):
-            # Exercise the real hidden callback, not a mocked visibility test.
+        with patch.object(RouteSelection, "root_is_current", side_effect=AssertionError("hidden route check")):
             for _ in range(40):
                 await refresh_chat(chat)
             assert not any(m.body == "ARRIVED-WHILE-HIDDEN" for m in history.messages)

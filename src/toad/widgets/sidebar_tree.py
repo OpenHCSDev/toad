@@ -38,6 +38,7 @@ from textual.geometry import Offset, Size
 from textual.layouts.vertical import VerticalLayout
 from textual.reactive import reactive
 from textual.widget import Widget
+from textual.worker import Worker
 from textual.widgets import Static
 
 from toad.core.events import (
@@ -220,6 +221,22 @@ class KeyedRows[KeyT]:
         return ordered
 
 
+class NoWorker:
+    """No work was scheduled; queries need no absence branch or native task."""
+
+    @property
+    def is_finished(self) -> bool:
+        return True
+
+    @property
+    def is_running(self) -> bool:
+        return False
+
+    @property
+    def error(self) -> None:
+        return None
+
+
 class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
@@ -238,8 +255,8 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     _rows_pending = False
     """A reconciliation ran out of its step and left rows unmounted."""
 
-    _row_mounting = None
-    """The worker mounting pending rows after the following frames."""
+    _row_mounting: Worker[None] | NoWorker = NoWorker()
+    """The pending-row worker, or unscheduled work answering the same queries."""
 
     def __init__(
         self,
@@ -389,9 +406,7 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
         self._rows_pending = False
         self._row_deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
         ordered = self.reconcile_keys(keys, changed=changed)
-        if self._rows_pending and (
-            self._row_mounting is None or self._row_mounting.is_finished
-        ):
+        if self._rows_pending and self._row_mounting.is_finished:
             self._row_mounting = self.run_worker(
                 self._mount_pending_rows(), group="sidebar-rows"
             )
@@ -458,8 +473,7 @@ class ChangedChannels(SidebarChange):
             for name in self.names:
                 group = sidebar.groups.get(name)
                 if group is not None:
-                    group.present(rows[name])
-                    group.sync_members(frozenset(group.member_keys))
+                    group.sync_members(group.present(rows[name]))
 
     def apply_welcome(self, channel_list: SidebarGroup, thread_list: SidebarGroup) -> None:
         channel_list.sync_members(self.names)

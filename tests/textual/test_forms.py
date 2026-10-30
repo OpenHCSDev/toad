@@ -11,13 +11,11 @@ from annotated_types import Ge
 from objectstate import ObjectState
 from python_introspect import AnnotatedDataclassValidationMixin, AnnotationChoices, FieldLabel
 from textual.app import App, ComposeResult
-from textual.widgets import Checkbox, Select
 
 import toad.preferences  # noqa: F401  names the process-wide root ObjectState asks for (ObjectState issue #44)
 from toad.forms import editors
-from toad.forms.field_path import FieldPath
 from toad.forms.form_view import FormView, GroupView, ValueView
-from toad.forms.kinds import Multiline
+from formbridge.forms.declared_fields import Multiline
 from toad.textual_colours import ThemedApp
 
 
@@ -60,7 +58,7 @@ class FormApp(ThemedApp, App[None]):
         self.state = ObjectState(Everything())
 
     def compose(self) -> ComposeResult:
-        self.form = FormView(self.state)
+        self.form = FormView.whole(self.state)
         yield self.form
 
 
@@ -130,7 +128,8 @@ async def test_a_value_the_declaration_refuses_is_reported_and_the_editor_shows_
     async with open_form() as (app, pilot, shown):
         await leave(pilot, shown["count"], "0")
         assert app.state.to_object().count == 3 and shown["count"].value == "3"
-        assert any("at least 1" in notification.message for notification in app._notifications)
+        refusal = app.form.values["count"].refusal
+        assert refusal.display and "at least 1" in str(refusal.render())
         await leave(pilot, shown["count"], "")
         assert app.state.to_object().count == 3 and shown["count"].value == "3"
 

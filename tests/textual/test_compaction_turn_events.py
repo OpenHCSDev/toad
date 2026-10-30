@@ -9,6 +9,7 @@ from agent_comms.child_process import SpawnedProcess
 from agent_comms.coordinator import Coordination
 from agent_comms.goal_presentation import IdleGoalExecution
 from agent_comms.goals import NoGoal
+from agent_comms.native_build_inputs import DetachedChildStdio
 from support.agents import deliver
 
 
@@ -19,7 +20,9 @@ async def test_core_compaction_publications_retain_the_active_turn_and_refuse_a_
     import json
 
     command = (sys.executable, str(PRODUCER), str(workspace.roots.wire), str(workspace.project))
-    with SpawnedProcess.launch(command, output=subprocess.PIPE, stderr=subprocess.PIPE) as child:
+    with SpawnedProcess.launch(
+        command, stdio=DetachedChildStdio(stdout=subprocess.PIPE, stderr=subprocess.PIPE),
+    ) as child:
         stdout, stderr = await Coordination.run_worker(child.process.communicate)
         outcome = child.reap()
     assert outcome.successful, (outcome, stderr.decode())

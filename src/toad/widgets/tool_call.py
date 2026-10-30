@@ -9,7 +9,6 @@ from textual.await_complete import AwaitComplete
 from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
-from textual.widget import Widget
 
 from toad.tool_output import ToolOutput, ToolOutputPart
 from metaclass_registry.mro_dispatch import handles
@@ -208,8 +207,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             return
         tool_call_expand = self.app.settings.tools.expand
         status = tool_call
-        if (status.completed and tool_call_expand.patch_preview
-                and self.output.preview_fits()):
+        if tool_call_expand.expands_preview(status, self.output.preview_fits):
             self._auto_expanded = True
             self.expanded = True
             return

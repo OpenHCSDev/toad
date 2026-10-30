@@ -57,7 +57,8 @@ async def test_closing_a_tab_keeps_its_thread_and_reports_no_error(workspace):
             for thread in threads:
                 owner = thread.incarnation
                 identity = MailboxTab(owner, root)
-                await app.session_navigation.restore_mailbox(identity)
+                entry = await identity.restore(app.session_navigation)
+                await app.session_navigation.open(entry)
                 modes.append(identity.mode_name)
                 await app.selected_session.wait_content_ready()
             first, second = modes

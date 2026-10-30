@@ -380,7 +380,7 @@ def main() -> None:
             app.screenshot("store")
         # CheckRoot restores stopped declarations. Ask the lifecycle owner to
         # start the selected worker before waiting for a connected editor.
-        wire().owners.start(args.thread)
+        wire().owners.start_many((args.thread,))[0]
         command = [*command, "acp",
                    shlex.quote(str(args.runtime / "agent-comms-acp")),
                    wire().registry.require(args.thread).worktree,

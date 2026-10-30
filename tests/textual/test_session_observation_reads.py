@@ -43,7 +43,7 @@ async def next_read(observation):
 
 
 async def test_invalidation_during_a_read_supersedes_its_result(workspace):
-    agents = AppAgents.unrun(workspace.project)
+    agents = AppAgents.unrun(workspace.project, workspace.launch_root)
     view, app = ProbeView(agents.detached_agent()), App()
     observation = ProbeObservation(view)
     async with app.run_test():
@@ -61,7 +61,7 @@ async def test_invalidation_during_a_read_supersedes_its_result(workspace):
 
 
 async def test_a_read_for_a_previous_agent_is_not_published(workspace):
-    agents = AppAgents.unrun(workspace.project)
+    agents = AppAgents.unrun(workspace.project, workspace.launch_root)
     view, app = ProbeView(agents.detached_agent()), App()
     observation = ProbeObservation(view)
     async with app.run_test():
@@ -81,7 +81,7 @@ async def test_a_read_for_a_previous_agent_is_not_published(workspace):
 
 
 async def test_a_closed_observation_starts_no_read_and_delivery_actions_refuse(workspace):
-    agents = AppAgents.unrun(workspace.project)
+    agents = AppAgents.unrun(workspace.project, workspace.launch_root)
     view, app = ProbeView(agents.detached_agent()), App()
     observation = ProbeObservation(view)
     async with app.run_test() as pilot:

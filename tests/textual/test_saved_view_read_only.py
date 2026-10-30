@@ -15,7 +15,7 @@ async def test_saved_view_shows_union_history_keeps_its_pin_and_refuses_to_send(
     workspace.thread("api-agent", "api", running=True)
     workspace.thread("ui-agent", "ui", running=True)
     comms = workspace.comms
-    rows = [comms.messaging.send_message("api-agent", target, body)
+    rows = [comms.messaging.send("api-agent", target, body).message
             for target, body in (("#engineering", "union message"), ("#api", "exact message"),
                                  ("#engineering", "another union message"))]
     comms.channels.catalog.replace(CatalogDocument(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from agent_comms.repo import Checkout, Repo
+from agent_comms.launch_root import LaunchRoot
 from contextlib import asynccontextmanager
 from functools import cached_property
 import os
@@ -24,13 +25,12 @@ class Workspace:
     """Everything a test of the running app starts from."""
 
     def __init__(self, roots: Roots) -> None:
-        from agent_comms.launch_root import LaunchRoot
-
         self.roots = roots
         self.project = roots.project
         self.project.mkdir(parents=True, exist_ok=True)
         Repo.git(self.project, "init", "-q")
-        LaunchRoot.from_path(roots.wire).install()
+        self.launch_root = LaunchRoot.from_path(roots.wire)
+        self.launch_root.install()
         self.comms = installed_wire(roots.wire)
 
     @property
@@ -90,7 +90,7 @@ class Workspace:
 
     @cached_property
     def agents(self) -> AppAgents:
-        return AppAgents.unrun(self.project)
+        return AppAgents.unrun(self.project, self.launch_root)
 
     @asynccontextmanager
     async def app(self, *, size: tuple[int, int] = (120, 40), binding: AgentBinding = NoAgent(),
@@ -103,7 +103,8 @@ class Workspace:
         from toad.app import ToadApp
 
         launch = {} if resume is None else {"agent_session_id": resume}
-        app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project), **launch)
+        app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project),
+                                      launch_root=self.launch_root, **launch)
         async with app.run_test(size=size) as pilot:
             await app.application.start_worker.wait()
             ui = TextualUi(app, pilot)

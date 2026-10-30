@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
-from toad.forms.declared_views import DeclaredField
+from formbridge.forms.declared_fields import DeclaredField
 from toad.setting_widget import SettingVisibility
 from toad.widgets.history_anchor import HistoryWindow
 
@@ -69,3 +69,4 @@ def sessions_bar(app: ToadApp, field: DeclaredField) -> None:
 @Effect
 def blink_title(app: ToadApp, field: DeclaredField) -> None:
     app.terminal_attention.update()
+
