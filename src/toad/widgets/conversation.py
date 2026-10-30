@@ -1982,13 +1982,13 @@ class Conversation(
 
     def export_block_to_svg(self) -> None:
         cursor = self.navigation.cursor
-        if (export := cursor.export_render()) is None:
-            return
+        match cursor.export_render():
+            case None:
+                return
+            case (width, height), render:
+                pass
         import platformdirs
         from textual._files import generate_datetime_filename
-
-        size, render = export
-        width, height = size
 
         import io
         import os.path
