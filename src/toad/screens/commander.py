@@ -217,7 +217,7 @@ class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Vertical
     async def read_detail(self, selection: SelectedTableRecord[HudRecord]) -> None:
         self.original.display = False
         card = selection.record
-        label = DisclosureText.of(card).summary
+        label = DisclosureText.describe(card).summary
         self.status.update(f"Reading original records for {label}…")
         try:
             detail = await type(self).handler_for(type(card))(self, card)
@@ -228,7 +228,7 @@ class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Vertical
             return
         if not self.is_attached or self.selection != selection:
             return
-        entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosureText.of(detail))
+        entry = DisclosureEntry(RootKey(type(detail)), "Original details", DisclosureText.describe(detail))
         for view in self.original.query_children(DeclaredDisclosure):
             view.present(entry)
             break

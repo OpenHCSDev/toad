@@ -28,7 +28,7 @@ from toad.widgets.declared_table import EmptyTableSelection, SelectedTableRecord
 
 
 def selected(record: HudRecord) -> SelectedTableRecord[HudRecord]:
-    return SelectedTableRecord(DisclosureText.of(record).sequence_key, record)
+    return SelectedTableRecord(DisclosureText.describe(record).sequence_key, record)
 
 
 def row_maps_cohere(table: CommanderTable) -> bool:
@@ -230,17 +230,17 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
     async with workspace.app() as ui:
         app, _pilot = ui.textual
         for value in (hud.units[0].strikes, CommanderUnit, Detached):
-            disclosed = DisclosureText.of(value)
+            disclosed = DisclosureText.describe(value)
             disclosure = DeclaredDisclosure(DisclosureEntry(RootKey(type(value)), "Original", disclosed))
             await app.screen.mount(disclosure)
             disclosure.collapsed = False
             await ui.until(lambda: disclosure.body.display, why="the scalar/class/family body to expand")
             assert str(disclosure.body.render()) == disclosed.summary
             assert disclosed.summary in str(disclosure.title)
-        assert DisclosureText.of(Detached).summary == Detached.declared_name
+        assert DisclosureText.describe(Detached).summary == Detached.declared_name
         assert not str(disclosure.body.render()).startswith("<class ")
 
-        source = DisclosureText.of(hud.units[0])
+        source = DisclosureText.describe(hud.units[0])
         assert isinstance(source, StructuredText)
         entry = DisclosureEntry(RootKey(CommanderUnit), "Original unit", source)
         original = DeclaredDisclosure(entry)
@@ -254,7 +254,7 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
         await ui.until(lambda: all(original.rows[key] is row for key, row in before.items()),
                        why="presenting the same source to preserve its native child widgets")
         changed = replace(hud.units[0], strikes=hud.units[0].strikes + 1)
-        original.present(DisclosureEntry(entry.key, entry.label, DisclosureText.of(changed)))
+        original.present(DisclosureEntry(entry.key, entry.label, DisclosureText.describe(changed)))
         strikes = FieldKey(CommanderUnit, "strikes")
         await ui.until(lambda: original.rows[strikes].entry.value.value == changed.strikes,
                        why="an original detail field to update even when its identity summary is equal")
