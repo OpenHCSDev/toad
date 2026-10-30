@@ -42,10 +42,10 @@ def published_hud() -> CommanderHud:
         PendingClock(1.0, 1.0), (), 1, (), (),
     )
     return CommanderHud(
-        RecordedThreadIncarnation("claude-code", 1.0), (unit,), (),
-        OverloadDegradation.from_orders((), 0, 0),
-        (RecordedThreadIncarnation("fork-hud", 2.0),),
-        CodexUsage(UnreadableUsage(reason="not requested")), open_pings=(),
+        commander=RecordedThreadIncarnation("claude-code", 1.0), units=(unit,), phases=(),
+        load=OverloadDegradation.from_orders((), 0, 0),
+        forks=(RecordedThreadIncarnation("fork-hud", 2.0),),
+        usage=CodexUsage(UnreadableUsage(reason="not requested")), open_pings=(),
     )
 
 
@@ -260,7 +260,8 @@ async def test_core_summaries_and_alarm_ages_reach_native_disclosures(workspace:
                        why="an original detail field to update even when its identity summary is equal")
         assert original.rows[strikes] is before[strikes]
 
-        ping = replace(RulePing.capture(ServicePassFailing("native-alarm", 1000, "original error")),
+        ping = replace(RulePing.capture(ServicePassFailing(
+            watch="native-alarm", since=1000, error="original error")),
                        since=RecordedEventTime(1000))
         section = AlarmSection(NewAlarms, (ping,))
         alarm = CommanderAlarm(NewAlarms)
