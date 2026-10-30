@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
@@ -30,6 +30,22 @@ class PreparationScope:
 
     def __init__(self) -> None:
         self.closed = False
+
+    def fork(self) -> PreparationScope:
+        if self.closed:
+            raise ValueError("Cannot borrow a revoked preparation scope")
+        return self._fork()
+
+    def _fork(self) -> PreparationScope:
+        return PreparationScope()
+
+    def revoke(self, runtime: PreparationRuntime) -> None:
+        if not self.closed:
+            self.closed = True
+            self.release(runtime)
+
+    def release(self, runtime: PreparationRuntime) -> None:
+        """Scopes with resources retire them through the preparation owner."""
 
 
 class WorkRevision(ABC):
@@ -262,6 +278,7 @@ class PreparationRuntime(ThreadScheduler):
         self._admitted = dict.fromkeys(WorkLane, 0)
         self._threads = asyncio.Semaphore(4)
         self._thread_tasks: set[asyncio.Task] = set()
+        self._scopes: set[PreparationScope] = set()
         self._changed = asyncio.Event()
         self._closed = False
         self._shutdown: asyncio.Task[None] | None = None
@@ -277,23 +294,48 @@ class PreparationRuntime(ThreadScheduler):
         if self._closed:
             self._threads.release()
             raise asyncio.CancelledError
-        context = self.renderer.execution_context()
-        task = asyncio.create_task(asyncio.to_thread(function, *args), name="preparation-thread",
-                                   context=context)
-        self._thread_tasks.add(task)
-
-        def finished(completed):
-            self._thread_tasks.discard(completed)
-            if not completed.cancelled():
-                completed.exception()
-            self._threads.release()
-
-        task.add_done_callback(finished, context=context)
+        task = self._track_thread(asyncio.to_thread(function, *args))
+        task.add_done_callback(lambda completed: self._threads.release(),
+                               context=self.renderer.execution_context())
         await self.renderer.wait_for_work(task)
         return task.result()
 
+    def _track_thread[Value](self, work: Coroutine[object, object, Value]) -> asyncio.Task[Value]:
+        task = asyncio.create_task(work, name="preparation-thread",
+                                   context=self.renderer.execution_context())
+        self._thread_tasks.add(task)
+        task.add_done_callback(self._thread_finished, context=self.renderer.execution_context())
+        return task
+
+    def _thread_finished(self, completed: asyncio.Task) -> None:
+        self._thread_tasks.discard(completed)
+        if not completed.cancelled():
+            completed.exception()
+
+    def retire_thread(self, release: Callable[[], None]) -> None:
+        """Retirement remains admitted and joined even after new work stops."""
+        self._track_thread(self._retire_thread(release))
+
+    async def _retire_thread(self, release: Callable[[], None]) -> None:
+        try:
+            async with self._threads:
+                await super().run_thread(release)
+        except Exception as error:
+            asyncio.get_running_loop().call_exception_handler({
+                "message": "Preparation retirement failed", "exception": error,
+            })
+            raise
+
+    def open_scope[Scope: PreparationScope](self, create: Callable[[], Scope]) -> Scope:
+        if self._closed:
+            raise asyncio.CancelledError
+        scope = create()
+        self._scopes.add(scope)
+        return scope
+
     def discard_scope(self, scope: PreparationScope) -> None:
-        scope.closed = True
+        scope.revoke(self)
+        self._scopes.discard(scope)
         for key in tuple(self._ready):
             if key.scope is scope:
                 _, size = self._ready.pop(key)
@@ -380,6 +422,8 @@ class PreparationRuntime(ThreadScheduler):
         self._shutdown.result()
 
     async def _close(self) -> None:
+        for scope in tuple(self._scopes):
+            self.discard_scope(scope)
         if self._pending:
             await asyncio.gather(*tuple(self._pending.values()), return_exceptions=True)
         if self._thread_tasks:

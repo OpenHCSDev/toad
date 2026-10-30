@@ -449,9 +449,9 @@ class TranscriptNoProgress(ValueError):
 
 
 @dataclass(frozen=True)
-class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
+class TranscriptPageWork[Cursor = TranscriptCursor | None, Loader = Callable[..., Awaitable[TranscriptPage]]](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
-    loader: Callable[..., Awaitable[TranscriptPage]]
+    loader: Loader
     through: Cursor
     request: PageRequest[Cursor]
     lane = WorkLane.MODEL
@@ -465,7 +465,8 @@ class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[Prepared
         return result.retained_bytes
 
     async def execute(
-        self: TranscriptPageWork[TranscriptCursor | None], runtime: PreparationRuntime, key: WorkKey,
+        self: TranscriptPageWork[TranscriptCursor | None, Callable[..., Awaitable[TranscriptPage]]],
+        runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[PreparedTranscriptPage]:
         request = self.request
         page = await request.end.load_page(self.loader, request.cursor, self.through)
@@ -495,7 +496,7 @@ class ReplaceablePageSource(PreparedPageSource):
     def replacement(self, through) -> ReplaceablePageSource: ...
 
 
-class SavedHistory(ReplaceablePageSource):
+class SavedHistory[Loader = Callable[..., Awaitable[TranscriptPage]]](ReplaceablePageSource):
     """Prepared pages for a snapshot; storage and work limits belong to the runtime.
 
     The loader retains ownership of transcript/routing semantics and off-loop
@@ -505,23 +506,26 @@ class SavedHistory(ReplaceablePageSource):
     """
 
     # The work that reads and prepares one page of this kind of source.
-    work: ClassVar[type[TranscriptPageWork]] = TranscriptPageWork
+    work: ClassVar[type[TranscriptPageWork[object, object]]] = TranscriptPageWork
 
     def __init__(
-        self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,
+        self, loader: Loader, through: TranscriptCursor,
         runtime: PreparationRuntime,
     ) -> None:
         super().__init__()
         self.loader, self.through, self.runtime = loader, through, runtime
-        self.scope = PreparationScope()
+        self.scope = runtime.open_scope(self.new_scope)
+
+    def new_scope(self) -> PreparationScope:
+        return PreparationScope()
 
     def prefix(self, through) -> PreparedPageSource:
-        return SavedPrefix(self, self.loader, through, self.runtime)
+        return ReusedPrefix(self, self.loader, through, self.runtime)
 
-    def replacement(self, through) -> SavedHistory:
+    def replacement(self, through) -> SavedHistory[Loader]:
         return type(self)(self.loader, through, self.runtime)
 
-    def read_task(self, request: PageRequest) -> TranscriptPageWork:
+    def read_task(self, request: PageRequest) -> TranscriptPageWork[object, object]:
         return self.work(self.scope, self.loader, self.through, request)
 
     async def _get(self, request: PageRequest) -> PreparedTranscriptPage:
@@ -532,12 +536,18 @@ class SavedHistory(ReplaceablePageSource):
         await self.runtime.prepare(self.read_task(request))
 
 
-class SavedPrefix(SavedHistory):
-    def __init__(self, earlier: SavedHistory, loader: Callable[..., Awaitable[TranscriptPage]], through, runtime: PreparationRuntime) -> None:
-        super().__init__(loader, through, runtime)
+class SavedPrefix[Loader = Callable[..., Awaitable[TranscriptPage]]](SavedHistory[Loader]):
+    def __init__(self, earlier: SavedHistory[Loader], loader: Loader, through, runtime: PreparationRuntime) -> None:
         self.earlier = earlier
+        super().__init__(loader, through, runtime)
 
-    def replacement(self, through) -> SavedHistory:
+    def new_scope(self) -> PreparationScope:
+        return self.earlier.scope.fork()
+
+    def prefix(self, through) -> PreparedPageSource:
+        return type(self)(self, self.loader, through, self.runtime)
+
+    def replacement(self, through) -> SavedHistory[Loader]:
         # A replacement reads the complete source; it must not delegate older
         # reads to the superseded prefix's preparation scope.
         return self.earlier.replacement(through)
@@ -545,6 +555,10 @@ class SavedPrefix(SavedHistory):
     def read_task(self, request: PageRequest):
         # Keep the upstream task's declared native/wire behavior, bounded here.
         return replace(self.earlier.read_task(request), scope=self.scope, through=self.through)
+
+
+class ReusedPrefix[Loader = Callable[..., Awaitable[TranscriptPage]]](SavedPrefix[Loader]):
+    """An immutable native prefix can reuse its original prepared older pages."""
 
     async def _get(self, request: PageRequest):
         return await request.end.edge((self.earlier.get, super()._get))(request)
@@ -575,7 +589,7 @@ class ClosedHistory(ReplaceablePageSource):
     def __init__(self, through: TranscriptCursor, runtime: PreparationRuntime) -> None:
         super().__init__()
         self.through, self.runtime = through, runtime
-        self.scope = PreparationScope()
+        self.scope = runtime.open_scope(PreparationScope)
 
     def uses_observation(self, observation: Observation) -> bool:
         return False

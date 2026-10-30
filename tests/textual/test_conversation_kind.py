@@ -54,10 +54,11 @@ def test_conversation_family_resolves_copied_pages_and_current_labels(
     assert resolved.viewer == viewer
     assert conversation.label(references) == label
     assert HistoryTarget.for_conversation(conversation, references) == route
-    page = conversation.page(
-        WireSource(comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle()),
-        PageBounds(limit=8),
+    source = WireSource(
+        comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
     )
+    with conversation.reading(source) as pages:
+        page = pages(PageBounds(limit=8))
     assert body in [message.body for message in page.messages]
     assert FieldCodec.decode(type[ConversationKind], FieldCodec.encode(type(conversation))) is type(conversation)
     with pytest.raises(FrozenInstanceError):
