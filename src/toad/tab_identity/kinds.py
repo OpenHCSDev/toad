@@ -9,6 +9,7 @@ from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.conversation_kind import ConversationKind
+from toad.agents import AgentNotFound
 from toad.session_entry import PreviewSessionEntry
 from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
 from toad.tab_identity.history_origin import HistoryOrigin
@@ -27,15 +28,15 @@ class AcpTab(SessionTabIdentity):
             project = Checkout.checked(saved.meta_json.cwd.require_present().path)
         except ValueError as error:
             raise TabTargetGone(self, f"Saved ACP session {self.key}: {error}") from error
-        entry = await navigation.launch_entry(
-            saved.agent_identity,
-            agent_session_id=saved.agent_session_id,
-            session_pk=self.key,
-            project=project,
-        )
-        if entry is None:
-            raise TabTargetGone(self, f"Saved ACP agent {saved.agent_identity} is unavailable")
-        return entry
+        try:
+            return await navigation.launch_entry(
+                saved.agent_identity,
+                agent_session_id=saved.agent_session_id,
+                session_pk=self.key,
+                project=project,
+            )
+        except AgentNotFound as error:
+            raise TabTargetGone(self, str(error)) from error
 
 
 @dataclass(frozen=True)
