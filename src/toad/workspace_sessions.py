@@ -189,6 +189,7 @@ class WorkspaceSessions:
     async def prepare(self, identity: str) -> "SessionScope":
         if view := self.views.get(identity):
             return view
+        await self.app._init_mode("workspace")
         view = (self.app.session_navigation.get(identity) or self.resident[identity])()
         view.id = identity
         view.display = False
