@@ -7,15 +7,17 @@ import httpx
 
 import toad
 from toad.application_lifetime import UsageReports
+from toad.terminal_attention import TerminalAttention
 
 
-async def test_the_tls_context_is_built_once():
+async def test_the_tls_context_is_built_once(monkeypatch):
+    monkeypatch.setenv("TERM_PROGRAM", "st")
     async def run_thread(function, *args):
         return function(*args)
 
     app = SimpleNamespace(
         preparation=SimpleNamespace(run_thread=run_thread), size=(80, 24),
-        settings=SimpleNamespace(anon_id="anon"), terminal_attention=SimpleNamespace(program=lambda: "st"),
+        settings=SimpleNamespace(anon_id="anon"), terminal_attention=TerminalAttention,
     )
     reports = UsageReports(app)
     clients = []
