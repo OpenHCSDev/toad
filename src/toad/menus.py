@@ -1,4 +1,5 @@
 """Block-menu declarations and their captured native operations."""
+
 from __future__ import annotations
 
 import inspect
@@ -6,12 +7,14 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.declared_family import DeclaredFamily, FamilyMeta
+from agent_comms.declared_family import DeclaredFamily
 from textual._callback import invoke
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
-from textual.keys import KeyDeclaration, KeyInvocation
+from textual.keys import KeyDeclarationType, KeyInvocation
 from textual.widget import Widget
+
+from toad.widget_actions import KeyFamilyMeta
 
 if TYPE_CHECKING:
     from toad.line_blocks import LineLink
@@ -20,7 +23,7 @@ if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
 
 
-class MenuDeclaration(FamilyMeta, KeyInvocation):
+class MenuDeclaration(KeyFamilyMeta, KeyInvocation):
     """The declaration, not captured instance parameters, owns keyboard identity."""
 
     description: str
@@ -40,7 +43,7 @@ class MenuDeclaration(FamilyMeta, KeyInvocation):
     def permits_invocation_overlap(cls, other: KeyInvocation) -> bool:
         return other.overlaps_declaration(cls)
 
-    def overlaps_declaration(cls, other: type[KeyDeclaration]) -> bool:
+    def overlaps_declaration(cls, other: KeyDeclarationType) -> bool:
         return cls.permits_key_overlap(other)
 
 
@@ -61,22 +64,27 @@ class MenuCommand(DeclaredFamily, metaclass=MenuDeclaration, affix="Command"):
     def default_keys(cls) -> tuple[str, ...]:
         return ()
 
-    @classmethod
-    def permits_key_overlap(cls, other: type[KeyDeclaration]) -> bool:
-        return False
-
     def bindings(self, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
-        return tuple(binding for key in type(self).default_keys()
-                     for binding in MenuBinding(key=key, action=self, mode=EditingMode,
-                                                description=self.description, show=False).for_mode(mode))
+        return tuple(
+            binding
+            for key in type(self).default_keys()
+            for binding in MenuBinding(
+                key=key,
+                action=self,
+                mode=EditingMode,
+                description=self.description,
+                show=False,
+            ).for_mode(mode)
+        )
 
     def __call__(self, menu: Menu) -> None:
         menu.activate_command(self)
 
     async def run(self, owner: Menu) -> None:
         conversation = owner.conversation
-        if (conversation.is_current_session
-                and conversation.navigation.accepts_menu_owner(owner.block)):
+        if conversation.is_current_session and conversation.navigation.accepts_menu_owner(
+            owner.block
+        ):
             await invoke(self.apply, conversation)
 
     @abstractmethod
@@ -150,7 +158,7 @@ class InterruptCommand(KeyedMenuCommand):
 
 class ExpansionCommand(KeyedMenuCommand, declared_name=None):
     @classmethod
-    def permits_key_overlap(cls, other: type[KeyDeclaration]) -> bool:
+    def permits_key_overlap(cls, other: KeyDeclarationType) -> bool:
         return issubclass(other, ExpansionCommand)
 
 

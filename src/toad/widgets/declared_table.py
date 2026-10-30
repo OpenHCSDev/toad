@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 
 from agent_comms.disclosure_text import AnonymousKey, DisclosureKey, ViewTable
 from textual.content import Content
-from textual.navigation import MovesCursor
 from textual.style import Style
 from textual.widgets import DataTable
 from textual.widgets._data_table import RowKey
@@ -74,7 +73,7 @@ class SelectedTableRecord[R](TableSelection[R]):
         table.move_cursor(row=table.get_row_index(native), animate=False, scroll=False)
 
 
-class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
+class DeclaredTable[R](OpensSelected, DataTable[Content]):
     """Core owns columns and measurement; DataTable owns rows, geometry and repaint."""
 
     def __init__(self, source: ViewTable[R]) -> None:

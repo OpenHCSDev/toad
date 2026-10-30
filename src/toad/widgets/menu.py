@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -91,7 +92,7 @@ class Menu(DismissibleControl, UntintedTonePaint, ListView, can_focus=True):
         command: MenuCommand
 
     def __init__(self, conversation: Conversation, owner: Widget,
-                 commands: list[MenuCommand], *args, focus_owner: Widget, **kwargs) -> None:
+                 commands: Sequence[MenuCommand], *args, focus_owner: Widget, **kwargs) -> None:
         self.conversation = conversation
         self.block = owner
         self._focus_owner = focus_owner

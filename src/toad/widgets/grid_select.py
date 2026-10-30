@@ -11,7 +11,14 @@ from textual.navigation import MovesCursor
 from toad.widget_actions import MovesHorizontalCursor, Selects, VisibleActions
 
 
-class GridSelect(VisibleActions, MovesCursor, MovesHorizontalCursor, Selects, containers.ItemGrid, can_focus=True):
+class GridSelect(
+    VisibleActions,
+    MovesCursor,
+    MovesHorizontalCursor,
+    Selects,
+    containers.ItemGrid,
+    can_focus=True,
+):
     FOCUS_ON_CLICK = False
 
     highlighted: reactive[int | None] = reactive(None)

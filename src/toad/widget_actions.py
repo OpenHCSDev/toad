@@ -7,29 +7,31 @@ from collections.abc import Callable, Iterator, Mapping
 from functools import partialmethod
 from operator import or_
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar, Generic, Literal, Self, TypeVar
+from typing import ClassVar, Generic, Literal, Self, TypeVar
 
 from agent_comms.command import Command
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.declared_family import DeclaredFamily, FamilyMeta
 from agent_comms.field_codec import FieldCodec, FieldPlan
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
-from textual.keys import KeyDeclaration
+from textual.keys import KeyDeclaration, KeyDeclarationType
 from textual.widgets.text_area import EditingMode
 from textual.dom import DOMNode
 from toad.app_node import ToadNode
 from copy import replace
 from dataclasses import dataclass
 
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-
 Context = TypeVar("Context", bound=DOMNode)
 
 
-class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context], affix="Action"):
+class KeyFamilyMeta(FamilyMeta, KeyDeclarationType):
+    """A named command family whose classes declare native key overlap."""
+
+
+class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
+             metaclass=KeyFamilyMeta, affix="Action"):
     """Only the Textual boundary decodes an external action name. A member declares its
     keys, and its title and docstring are the only text any view shows for it."""
 
@@ -163,7 +165,7 @@ class ExclusiveKeys:
     """One declared family of mutually exclusive actions may share its default keys."""
 
     @classmethod
-    def permits_key_overlap(cls, other: type[KeyDeclaration]) -> bool:
+    def permits_key_overlap(cls, other: KeyDeclarationType) -> bool:
         family = next(base for base in cls.__mro__ if ExclusiveKeys in base.__bases__)
         return issubclass(other, family)
 
@@ -179,7 +181,7 @@ class ApplicationAction(Action, affix="Action"):
         return cls.bindings_for(mode)
 
     @classmethod
-    def menu(cls, app: ToadApp) -> tuple[tuple[ApplicationAction, str], ...]:
+    def menu(cls, app) -> tuple[tuple[ApplicationAction, str], ...]:
         """Every offered member under its label, in declaration order."""
         return tuple((command, command.label(app))
                      for member in cls.members_with(cls) for command in member.offered(app))
@@ -188,7 +190,7 @@ class ApplicationAction(Action, affix="Action"):
 class VimWorkspaceAction(ApplicationAction, declared_name=None):
     """Workspace commands precede editor bindings only in idle modal command entry."""
 
-    def key_available(self, app: ToadApp) -> bool:
+    def key_available(self, app) -> bool:
         if app.current_mode != "workspace":
             return False
         return (app.screen is app.workspace_screen
