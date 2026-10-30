@@ -4,6 +4,7 @@ import asyncio
 import shlex
 from dataclasses import replace
 from pathlib import Path
+from types import FunctionType
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, Literal, Self
 
@@ -18,7 +19,8 @@ from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.widgets.text_area import EditingMode, VimMode
-from textual.document._editing import LineMotion, VimNormal
+from toad.neovim_editing import NeovimUpdated
+from textual.document._editing import EditingFailure
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
 from textual.geometry import Spacing
@@ -28,7 +30,7 @@ from textual.style import Style
 from textual.widgets import Label, OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
-from ui_theme.scheme import PrimaryColour, PromptToneColour
+from ui_theme.scheme import MutedColour, PrimaryColour, PromptToneColour
 
 from toad import messages
 from toad.clipboard_image import read_clipboard_png, save_clipboard_png
@@ -49,12 +51,12 @@ from toad.prompt_cursor import (
     PreviousHistoryCursor,
     PromptCursor,
 )
-from toad.setting_widget import SettingVisibility
+from toad.setting_widget import PromptSettingEffects, SettingVisibility
 from toad.slash_command import SlashCommand
 from toad.widget_actions import (
     DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
 )
-from toad.widget_view import AUTO, WidgetView
+from toad.widget_view import AUTO, FocusWithinView, WidgetView
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
 from toad.widgets.model_switcher import ModelSwitcher
@@ -107,11 +109,7 @@ class AgentInfo(
 
     @property
     def padding(self):
-        return (
-            super().padding
-            if self.app.settings.ui.compact_input
-            else Spacing(0, 1, 0, 1)
-        )
+        return self.app.settings.ui.input.box.agent_info_padding
 
     @property
     def primary_activation(self):
@@ -155,25 +153,34 @@ class InfoBar(
     @property
     def margin(self):
         ui = self.app.settings.ui
-        space = 0 if ui.compact_input else int(ui.footer)
-        return Spacing(0, space, 0, space)
+        return ui.input.box.info_bar_margin(ui.footer)
 
 
 class PromptLabel(WidgetView, Label):
     width = AUTO
-    AI = Content.styled("❯", "$text-secondary")
-    SHELL = Content.styled("$", "$text-primary")
-    MULTILINE = Content.styled("☰", "$text-secondary")
 
     @property
     def padding(self):
-        return Spacing(0, 1, 0, 0 if self.app.settings.ui.compact_input else 1)
+        return self.app.settings.ui.input.box.label_padding
 
     def render(self):
         return self.query_ancestor(Prompt).label_glyph()
 
 
-class PromptContainer(WidgetView, containers.HorizontalGroup):
+class PromptContainer(FocusWithinView, containers.HorizontalGroup):
+    @property
+    def margin(self):
+        return self.app.settings.ui.input.box.frame_margin
+
+    @property
+    def padding(self):
+        return self.app.settings.ui.input.box.frame_padding
+
+    @property
+    def border(self):
+        colour = self.app.colours.colour(PrimaryColour if self.has_focus_within else MutedColour)
+        return self.app.settings.ui.input.box.frame_border(colour)
+
     def on_mouse_down(self, event: events.MouseUp) -> None:
         self.query_ancestor(Prompt).focus()
 
@@ -228,6 +235,7 @@ See on-screen instructions for details.
         super().__init__()
         # The composer that built this editor owns its turns, popups and modes.
         self.prompt = prompt
+        self.set_reactive(TextArea.editing_mode, prompt.initial_editing_mode)
         self.set_reactive(PromptTextArea.project_path, prompt.project_path)
         self._submit_pending = False
         self._submit_immediate = False
@@ -271,6 +279,7 @@ See on-screen instructions for details.
     def on_mount(self) -> None:
         self.highlight_cursor_line = False
         self.hide_suggestion_on_blur = False
+        self.editing_mode.attach(self)
         self.apply_keyboard_profile()
         self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
@@ -283,7 +292,19 @@ See on-screen instructions for details.
         self.show_editing_mode(self.editing_mode)
 
     def apply_keyboard_profile(self) -> None:
-        self.editing_mode = self.screen.key_mode()
+        self.call_later(self._apply_keyboard_profile)
+
+    async def _apply_keyboard_profile(self) -> None:
+        mode = self.screen.key_mode
+        if self.key_mode is not mode:
+            await self.switch_editing_mode(mode())
+
+    async def on_neovim_updated(self, event: NeovimUpdated) -> None:
+        event.stop()
+        event.owner.paint(self)
+        # A requested profile can outlive a refused transfer while RPC is pending.
+        # The existing completion update retries from the saved preference.
+        await self._apply_keyboard_profile()
 
     @property
     def submission_allowed(self) -> bool:
@@ -304,9 +325,7 @@ See on-screen instructions for details.
     def _paste_clipboard_text(self, text: str) -> None:
         # A fresh Paste event posted directly here would bubble to App and be
         # forwarded back to the focused TextArea, inserting it a second time.
-        self.editing_mode = self.editing_mode.pasted()
-        if result := self._replace_via_keyboard(text, *self.selection):
-            self.move_cursor(result.end_location)
+        self.editing_mode.paste(self, text)
 
     @work(group='clipboard-paste', exclusive=True)
     async def action_paste_clipboard(self) -> None:
@@ -378,9 +397,17 @@ See on-screen instructions for details.
                     priority=True),
     )
 
-    def _submit(self) -> None:
+    async def _submit(self) -> None:
         """Silently cancel a submission superseded by focus, mode or popup changes."""
         self._submit_pending = False
+        mode = self.editing_mode
+        try:
+            if not await mode.flush(self):
+                return
+        except EditingFailure:
+            return  # The engine already reported its failure; never submit stale text.
+        if mode is not self.editing_mode:
+            return
         immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus or not self.submission_allowed:
             return
@@ -410,15 +437,14 @@ See on-screen instructions for details.
         if shell:
             self.prompt.shell_mode = False
 
-    def move_line_motion(self, motion: type[LineMotion], mode: VimNormal, count: int) -> None:
-        if not HistoryCursor.move_motion(self, mode, motion):
-            super().move_line_motion(motion, mode, count)
+    def before_engine_input(self, action: FunctionType) -> bool:
+        return HistoryCursor.try_input(self, action)
 
     def action_cursor_up(self, select: bool = False):
-        PreviousHistoryCursor.move(self, select, super().action_cursor_up)
+        PreviousHistoryCursor.move(self, select)
 
     def action_cursor_down(self, select: bool = False):
-        NextHistoryCursor.move(self, select, super().action_cursor_down)
+        NextHistoryCursor.move(self, select)
 
     def action_delete_left(self) -> None:
         if not self.editing_mode.accepts_text:
@@ -459,7 +485,8 @@ class MessageTextArea(PromptTextArea):
         return False
 
 
-class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, containers.VerticalGroup):
+class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingEffects, TonePaint,
+             containers.VerticalGroup):
     tone = PromptToneColour
 
     DEFAULT_CSS = """
@@ -512,6 +539,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.set_reactive(Prompt.project_path, project)
         self.ask_queue: list[Ask] = []
+        self.initial_editing_mode: EditingMode = EditingMode()
         self.turns = turns
         self.submissions = submissions
 
@@ -539,10 +567,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
 
     @text.setter
     def text(self, text: str) -> None:
-        self.prompt_text_area.text = text
-        self.prompt_text_area.selection = Selection.cursor(
-            self.prompt_text_area.get_cursor_line_end_location()
-        )
+        editor = self.prompt_text_area
+        editor.text = text
+        editor.editing_mode.move_to_end(editor)
 
     @property
     def supports_completion(self) -> bool:
@@ -759,7 +786,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
                 "Enter shell command\t[r]▌esc▐[/r] prompt mode"
             ).expand_tabs(8)
             if shell
-            else ""
+            else self.app.settings.ui.input.placeholder
         )
         editor.highlight_language = "shell" if shell else "markdown"
         self.prompt_label.refresh()
@@ -772,10 +799,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
         """
         if not self.is_mounted:
             return
-        from toad.key_modes import VimInsert
         from toad.widgets.conversation import Conversation
 
-        self.prompt_text_area.editing_mode = VimInsert()
+        self.prompt_text_area.editing_mode.enter_text(self.prompt_text_area)
         self.query_ancestor(Conversation).focus_prompt()
 
     MODE_BINDINGS = (
@@ -818,12 +844,14 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, TonePaint, con
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
     def label_glyph(self) -> Content:
+        symbols = self.app.settings.ui.input
         if self.shell_mode:
-            return PromptLabel.SHELL
-        return (
-            PromptLabel.MULTILINE
+            return Content.styled(symbols.shell_symbol, "$text-primary")
+        return Content.styled(
+            symbols.multiline_symbol
             if "\n" in self.text or "```" in self.text
-            else PromptLabel.AI
+            else symbols.agent_symbol,
+            "$text-secondary",
         )
 
     def compose_completions(self) -> ComposeResult:
@@ -927,7 +955,7 @@ class MessagePrompt(Prompt):
         self.prompt_label.refresh()
 
     def label_glyph(self) -> Content:
-        return PromptLabel.AI
+        return Content.styled(self.app.settings.ui.input.agent_symbol, "$text-secondary")
 
     def compose_delivery_controls(self) -> ComposeResult:
         return ()

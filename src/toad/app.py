@@ -18,6 +18,7 @@ from time import monotonic
 from typing import TYPE_CHECKING, Callable, Never, TypeVar, cast
 
 from agent_comms.acp_extension import TranscriptChangedUpdate
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.repo import Checkout
 from toad.core import input_events
 from rich.console import RenderableType
@@ -34,7 +35,7 @@ from toad import messages
 from toad.core import session_requests
 from toad.core_event_carrier import CoreEventReceiver
 from metaclass_registry.mro_dispatch import handles
-from toad.session_scope import AgentBinding
+from toad.session_scope import AgentBinding, SessionScope
 from toad.render_backend import Renderer
 from toad.work_preparation import PreparationRuntime
 from toad.navigation_preparation import (
@@ -150,6 +151,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self,
         agent_binding: AgentBinding,
         project_dir: Checkout,
+        launch_root: LaunchRoot,
         mode: str | None = None,
         agent_session_id: str | None = None,
     ) -> None:
@@ -158,6 +160,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         Args:
             agent_binding: The agent selected at startup.
             project_dir: Project directory.
+            launch_root: Coordination root selected by the launch owner.
             mode: Initial mode.
         """
         from toad.render_processes import RenderProcessPool
@@ -189,7 +192,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
             db=DB(),
         )
         self._session_tracker = SessionTracker(self.tab_order)
-        self.coordination_access = CoordinationAccess(self)
+        self.coordination_access = CoordinationAccess(self, launch_root)
 
         from toad.file_kind import FileKind
         FileKind.prepare_terminal()
@@ -349,6 +352,11 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
                 "duration_ms": (monotonic() - started) * 1000,
             }))
 
+
+    async def prepare_session(self, mode: str) -> SessionScope:
+        """Mount an owner shell under the same admission as visible transitions."""
+        async with self._mode_switch_lock:
+            return await self.workspace_sessions.prepare(mode)
 
     def select_session(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
         if mode != self.selected_mode:

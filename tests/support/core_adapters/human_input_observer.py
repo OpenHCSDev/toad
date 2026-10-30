@@ -17,6 +17,7 @@ import shlex
 import sys
 
 from agent_comms.field_codec import FieldCodec
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.native_entries import NativeEntry
@@ -179,7 +180,7 @@ async def _open_actual_s2_ingress(owner, subject, output):
             'accepts_comms_root': True,
         })
         app = ToadApp(agent_binding=AgentAttached(definition), project_dir=subject.worktree,
-                      agent_session_id=subject.name)
+                      agent_session_id=subject.name, launch_root=LaunchRoot.from_path(owner._comms.root))
         phase('before_actual_toad_run_test')
         async with app.run_test(headless=True, size=(160, 44)) as pilot:
             phase('actual_toad_run_test_yielded_before_saved_view_ready')

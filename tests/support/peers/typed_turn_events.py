@@ -16,10 +16,10 @@ import agent_comms.agent_events as agent_events
 from agent_comms.agent_event_updates import AcpEventConsumer
 from agent_comms.controller import SessionUpdateSink
 from agent_comms.coordinator import Coordination
-from agent_comms.field_codec import TurnId
+from agent_comms.field_codec import AcpSessionId, TurnId
 from turn_source import turn_source
 
-SESSION = "pilot"
+SESSION = AcpSessionId("pilot")
 
 
 class Pipe(SessionUpdateSink):
@@ -53,7 +53,7 @@ async def produce(wire_root: Path, project: Path):
             assert await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION)) == before
             # An earlier finished cut: the current binding must refuse it.
             await consumer.dispatch(retired)
-        await producer.turns.goals.sync_goal_execution(SESSION, name)
+        await producer.turns.goals.sync_goal_execution(SESSION)
 
 
 if __name__ == "__main__":

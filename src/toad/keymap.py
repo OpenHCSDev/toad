@@ -1,33 +1,32 @@
 """Stored overrides and views of the keyboard declarations."""
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+import re
 from collections.abc import Mapping
+from dataclasses import dataclass, replace
 from functools import cache
 from importlib import import_module
 from pkgutil import walk_packages
-import re
 from types import MappingProxyType
-from typing import Annotated, TYPE_CHECKING
-
-import toad
-from objectstate import mark_ui_hidden_config
+from typing import TYPE_CHECKING, Annotated
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import NominalSpelling, NominalText
+from objectstate import mark_ui_hidden_config
 from textual.binding import Binding, BindingsMap
 from textual.dom import DOMNode
 from textual.keys import KeyInvocation
 from textual.screen import ModalScreen
 
+import toad
 from toad.key_modes import KeyMode
 from toad.setting_declarations import Effect, FamilyChoices
 from toad.widget_actions import ApplicationAction
 
-
 if TYPE_CHECKING:
+    from formbridge.forms.declared_fields import DeclaredField
+
     from toad.app import ToadApp
-    from toad.forms.declared_views import DeclaredField
 
 
 @cache
@@ -113,8 +112,7 @@ class KeymapCatalog:
                                 for binding in declaration.exclusive_bindings(native_mode))
             owned = [application]
             for owner in DOMNode.contexts():
-                defaults = (*(binding for _, binding in owner.binding_defaults(native_mode)),
-                            *owner.editor_command_bindings(native_mode))
+                defaults = tuple(binding for _, binding in owner.binding_defaults(native_mode))
                 if not issubclass(owner, ModalScreen):
                     defaults = (*defaults, *application)
                 owned.append(defaults)

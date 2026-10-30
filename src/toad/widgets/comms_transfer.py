@@ -156,7 +156,8 @@ class Transfers:
         self.app = app
 
     def open(self, kind: type[TransferRequest]) -> None:
-        selected = RouteSelection.capture(self.app.coordination_access.observation.observed().service.root)
+        access = self.app.coordination_access
+        selected = access.selected(access.observation.observed().service.root)
         self.app.push_screen(kind.dialog(selected), callback=partial(self.submitted, selected))
 
     def submitted(self, selected: RouteSelection, request: TransferRequest | None) -> None:

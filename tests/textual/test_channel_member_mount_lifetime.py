@@ -23,10 +23,11 @@ async def test_pending_channel_members_stop_when_sidebar_hides_and_resume_when_s
             # for the next frame; do not fabricate a model or a worker result.
             screen.LAYOUT_STEP_NS = 0
             group.toggle_members()
-            await ui.until(lambda: group._row_mounting is not None
-                           and group._row_mounting.is_running,
+            await ui.until(lambda: group._row_mounting.is_running,
                            why='member mounting waiting for its next frame')
             worker = group._row_mounting
+            group.sync_members(frozenset())
+            assert group._row_mounting is worker
             sidebar.collapsed = True
             assert not tree.model_state.shows_model()
         finally:
