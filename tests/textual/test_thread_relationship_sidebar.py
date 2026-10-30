@@ -79,7 +79,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         # Use Core's actual entries and models in this already-open panel.
         collaboration = tree.groups[CollaboratingRelationshipGroup]
         person_entry = collaboration.model.entries["peer"]
-        person, = person_entry.person.present()
+        person, = person_entry.person.views()
         person_row = collaboration.new_row("peer")
         channel_group = tree.groups[OutboundRelationshipGroup]
         channel_entry = channel_group.model.entries["#team"]
@@ -102,7 +102,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
             person_row.present(person_entry, {"peer": cached})
             assert person_row.thread_row is cached
 
-            assert tuple(channel_entry.person.present()) == ()
+            assert tuple(channel_entry.person.views()) == ()
             channel_row.present(channel_entry, tree.model_state.shown.threads.rows)
             await ui.until(
                 lambda: "#team" in ui.painted(channel_row),

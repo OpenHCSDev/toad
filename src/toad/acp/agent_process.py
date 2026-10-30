@@ -70,7 +70,7 @@ class AgentProcess(Client):
             agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True)
         env = os.environ.copy()
         cwd = str(agent.project_root_path.resolve())
-        selection = RouteSelection.capture(agent.controller.transcripts.access.launch_root.path)
+        selection = agent.controller.transcripts.access.selection
         if not agent.session.accepts_updates:
             return self
         for connection in dict.fromkeys((self, *processes)):

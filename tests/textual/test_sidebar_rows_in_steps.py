@@ -7,10 +7,11 @@ from textual.screen import Screen
 from textual.widgets import Static
 
 from toad.textual_colours import ThemedApp
-from toad.widgets.sidebar_tree import SidebarGroup
+from toad.tone_paint import AlternatingTone
+from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 
 
-class Row(Static):
+class Row(AlternatingTone, Static):
     pass
 
 
@@ -19,20 +20,28 @@ class Group(SidebarGroup):
 
     def __init__(self, count: int) -> None:
         self.keys = tuple(f"row-{index}" for index in range(count))
-        self.members: dict[str, Row] = {}
         self.painted: list[str] = []
         super().__init__(Static("group"), expanded=True)
 
-    def on_mount(self) -> None:
-        self.sync_members()
+    @property
+    def member_keys(self) -> tuple[str, ...]:
+        return self.keys
 
-    def sync_members(self, changed=None) -> None:
-        def update(key, row):
-            if changed is None or key in changed or not row.has_class("-painted"):
-                row.add_class("-painted")
-                self.painted.append(key)
+    def new_row(self, key: str) -> Row:
+        return Row(key)
 
-        self.reconcile_rows(self.keys, self.members, lambda key: Row(key), update)
+    def show_member(self, key: str, row: Row) -> None:
+        row.add_class("-painted")
+        self.painted.append(key)
+
+    def sync_members(self, changed: frozenset[str]) -> None:
+        self.reconcile_rows(changed=changed)
+
+
+class Tree(TargetTree):
+    @property
+    def navigation_groups(self):
+        return self.query(Group)
 
 
 class Rows(ThemedApp, App):
@@ -43,6 +52,7 @@ class Rows(ThemedApp, App):
 
     def compose(self) -> ComposeResult:
         yield Static("before")
+        yield Tree()
 
     def _display(self, screen: Screen, renderable) -> None:
         if renderable is not None:
@@ -57,12 +67,12 @@ class SidebarRowsInSteps(unittest.IsolatedAsyncioTestCase):
         async with app.run_test(size=(60, 30)) as pilot:
             app.screen.LAYOUT_STEP_NS = 1_000_000
             group = Group(app.count)
-            await app.screen.mount(group)
+            await app.screen.query_one(Tree).mount(group)
             first = len(group.member_container.children)
             self.assertGreater(first, 0)
             self.assertLess(first, app.count, "the first step mounts only part of the list")
             await pilot.pause()
-            while group._row_mounting is not None and not group._row_mounting.is_finished:
+            while not group._row_mounting.is_finished:
                 await pilot.pause()
             await pilot.pause()
             children = list(group.member_container.children)
@@ -82,8 +92,11 @@ class SidebarRowsInSteps(unittest.IsolatedAsyncioTestCase):
             # so the budget is fixed here the way the long-list test fixes it.
             app.screen.LAYOUT_STEP_NS = 1_000_000_000
             group = Group(app.count)
-            await app.screen.mount(group)
+            unscheduled = group._row_mounting
+            self.assertTrue(unscheduled.is_finished)
+            self.assertFalse(unscheduled.is_running)
+            await app.screen.query_one(Tree).mount(group)
             self.assertEqual(len(group.member_container.children), app.count)
-            self.assertIsNone(group._row_mounting)
+            self.assertIs(group._row_mounting, unscheduled)
             await pilot.pause()
 

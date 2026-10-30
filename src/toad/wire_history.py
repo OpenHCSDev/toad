@@ -35,6 +35,7 @@ from agent_comms.page_traversal import (
 )
 from agent_comms.transcript_events import IncomingTranscript
 
+from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
@@ -299,6 +300,7 @@ class WireSource:
     project: Checkout
     me: str
     style: WireMessageStyle
+    access: CoordinationAccess = field(kw_only=True)
     tail_limit: int = 8
     page_limit: int = 40
 
@@ -323,8 +325,8 @@ class WireSource:
         """Draw the original page and its evidence without reacquiring its source."""
         shown = MessageShown(style=self.style)
         fragments = tuple(
-            WireFragment.of(message, shown=shown, evidence=page.evidence_for(message), reader=self.me)
-            for message in page.messages
+            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me)
+            for message, evidence in page.message_evidence()
         )
         wire = WirePage(
             page.messages,
@@ -485,9 +487,9 @@ class WirePageBuffer(SavedHistory[WireSource]):
         return observation.uses(self.loader.comms)
 
     async def route_is_current(self) -> bool:
-        from agent_comms.route_selection import root_is_current
-
-        return not self.closed and await self.runtime.run_thread(root_is_current, self.loader.comms.root)
+        return not self.closed and await self.runtime.run_thread(
+            lambda: self.loader.access.current(self.loader.comms.root)
+        )
 
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.comms.root, access)

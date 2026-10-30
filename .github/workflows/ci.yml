@@ -60,14 +60,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
-      - name: Install Neovim
-        run: |
-          curl --fail --location --silent --show-error \
-            https://github.com/neovim/neovim/releases/download/v0.12.4/nvim-linux-x86_64.tar.gz \
-            --output "$RUNNER_TEMP/neovim.tar.gz"
-          tar --extract --gzip --file "$RUNNER_TEMP/neovim.tar.gz" --directory "$RUNNER_TEMP"
-          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
-          "$RUNNER_TEMP/nvim-linux-x86_64/bin/nvim" --version
       - uses: ./.github/actions/core-from-main
         with:
           path: .artifacts/core
@@ -88,6 +80,8 @@ jobs:
           with open(os.environ['GITHUB_ENV'], 'a') as env:
               env.write(f'AC_NATIVE_COPIED_PACKAGE={package.resolve()}\n')
           PYCORE
+      - name: Prepare the declared Neovim requirement
+        run: .venv/bin/python -m toad.neovim_runtime
       # xdist reports a collection error as a worker crash; collect alone first so it reads as one.
       - run: .venv/bin/pytest --collect-only -q
       # A test stuck past 120 s dumps every thread, so the red names where it hung.

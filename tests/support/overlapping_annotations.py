@@ -9,7 +9,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from agent_comms.comms import Comms
-from agent_comms.session_revision import SessionRevision
+from agent_comms.session_revision import NoSessionObservation
 from agent_comms.thread_identity import RecordedThreadIncarnation, TurnId, TurnIdentity
 from agent_comms.registration import Registration
 from agent_comms.turn_context import (
@@ -56,7 +56,7 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
     manifest = ContextManifest(owner.incarnation,
         RecordedContextTurn(TurnId("authored-unsealed-navigation"), TurnIdentity(owner.incarnation, 1)),
         (observed,), "authored-navigation")
-    inspection = ContextInspection(owner, (manifest,), SessionRevision.observe(None),
+    inspection = ContextInspection(owner, (manifest,), NoSessionObservation(),
                                    Comms(resolve_comms_route(directory / "unused-wire")), labels)
     ((_, (source,), _),) = inspection.working_memory()
     short, long = source.children()

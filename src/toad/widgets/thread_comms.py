@@ -14,7 +14,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.route_selection import RouteSelection
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from agent_comms.ui_model.unread import UnobservedUnread
 from textual import on
@@ -45,7 +44,7 @@ from toad.widget_actions import WidgetAction, OpensSelected
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
-    for person in entry.person.present():
+    for person in entry.person.views():
         return ThreadTarget(person.thread.name)
     return NavigationTarget.named(entry.target)
 
@@ -124,7 +123,7 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
             )
             self._show_entry_detail(entry)
             return
-        for person in entry.person.present():
+        for person in entry.person.views():
             model = rows.get(person.thread.name)
             if model is not None and model.incarnation == person.thread.incarnation:
                 self.workers.cancel_group(self, "relationship-row")
@@ -212,7 +211,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         return frozenset(
             entry.target
             for entry in self.model.entries.values()
-            for person in entry.person.present()
+            for person in entry.person.views()
             if person.thread.name in names
         )
 
@@ -285,7 +284,7 @@ class ThreadCommsSidebar(
         access = self.app.coordination_access
         return await self.app.preparation.run_thread(
             lambda: access.require(
-                RouteSelection.capture(identity.root_path())
+                access.selected(identity.root_path())
             ).service.relationships
         )
 

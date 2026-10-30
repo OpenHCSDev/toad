@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import (
@@ -29,7 +28,6 @@ from agent_comms.acp_extension import (
     TurnChangedUpdate,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.errors import RouteChangedError
 from agent_comms.native_output import AssistantOutput, ToolOutput
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.transcripts import NativeCommittedPrefix
@@ -186,9 +184,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(CoordinationChangedUpdate)
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
         agent = self.agent
-        root = agent.controller.transcripts.access.launch_root.path
-        if Path(update.wire_root).resolve() != root.resolve():
-            raise RouteChangedError("ACP owner reported a different coordination root")
+        agent.controller.transcripts.access.selected(update.wire_root)
         agent.coordination = update
         agent.project_root_path = update.worktree.path
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)
