@@ -622,7 +622,7 @@ class ContextInspection:
         if owner.incarnation != self.owner.incarnation:
             raise ValueError("Selected context thread incarnation changed")
         process = owner.require_process()
-        connection = RuntimeConnection(self.service, owner.name, socket_path(self.service.root, process.pid))
+        connection = RuntimeConnection(self.service, owner.incarnation, socket_path(self.service.root, process.pid))
         try:
             return await connection.request(action, **parameters)
         finally:
