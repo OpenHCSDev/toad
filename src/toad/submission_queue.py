@@ -27,9 +27,6 @@ class QueueSource(ABC):
     @abstractmethod
     def queue_summary(self, evidence: QueueEvidence) -> str: ...
 
-    @abstractmethod
-    async def queue_send_now(self, agent: Agent) -> bool: ...
-
 
 class NativeQueueSource(QueueSource):
     def queue_summary(self, evidence: QueueEvidence) -> str:
@@ -45,6 +42,3 @@ class NativeQueueSource(QueueSource):
             if texts:
                 parts.append(f"{label} ({len(texts)}{detail}): " + " · ".join(texts[:self.preview_limit]))
         return " | ".join(parts)
-
-    async def queue_send_now(self, agent: Agent) -> bool:
-        return await agent.controller.send_now()
