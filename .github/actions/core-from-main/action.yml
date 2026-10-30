@@ -38,6 +38,4 @@ runs:
         repository: ${{ steps.core.outputs.repository }}
         ref: ${{ steps.core.outputs.commit }}
         path: ${{ inputs.path }}
-        # Core's ratchet imports the refactor-audit its commit pins, a submodule.
-        submodules: true
         submodules: recursive
