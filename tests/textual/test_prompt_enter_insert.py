@@ -27,7 +27,7 @@ async def test_normal_profile_arrow_aliases_stay_out_of_real_insert_text(workspa
                        why="printable aliases to arrive as text in Insert")
 
 
-async def test_escape_in_real_normal_selects_standard_and_keeps_draft(workspace):
+async def test_escape_in_real_normal_leaves_the_box_and_keeps_vim_and_draft(workspace):
     async with workspace.app() as ui:
         area = ui.conversation.prompt.prompt_text_area
         ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
@@ -42,8 +42,11 @@ async def test_escape_in_real_normal_selects_standard_and_keeps_draft(workspace)
                        why="the first Escape to leave Insert for Normal, not the profile")
         assert area.key_mode is VimInsert
         await ui.press("escape")
-        await ui.until(lambda: area.key_mode is Standard and ui.app.settings.ui.key_mode is Standard,
-                       why="Escape in Normal to select Standard")
+        await ui.until(lambda: ui.conversation.window.has_focus,
+                       why="Escape in Normal to leave the box for navigation")
+        assert not area.has_focus
+        assert ui.conversation.prompt.editing_mode_label.content == "STANDARD"
+        assert area.key_mode is VimInsert and ui.app.settings.ui.key_mode is VimInsert
         assert area.text == "draft"
 
 

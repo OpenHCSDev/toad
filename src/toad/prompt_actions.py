@@ -2,8 +2,6 @@
 from __future__ import annotations
 from textual.document._editing import VimMode
 from textual.widgets.text_area import EditingMode
-from toad.key_modes import Standard
-from toad.preferences import SETTINGS
 from toad.widget_actions import Action
 from typing import TYPE_CHECKING
 
@@ -17,7 +15,7 @@ class PromptAction(Action, affix="Action"):
 
 
 class StandardEditingAction(PromptAction):
-    """Leave Neovim's idle Normal mode for Standard editing."""
+    """Escape from Neovim's idle Normal mode leaves the box for Standard navigation."""
 
     keys = {VimMode: ("escape",)}
     priority = True
@@ -26,8 +24,7 @@ class StandardEditingAction(PromptAction):
         return editor.editing_mode.allows_application_commands
 
     async def apply(self, editor: PromptTextArea) -> None:
-        editor.app.saved_settings.set(SETTINGS.ui.key_mode, Standard)
-        await editor.app.saved_settings.save()
+        editor.leave_modal_editor()
 
 
 class EnterShellAction(PromptAction):
