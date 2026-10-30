@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
 
@@ -137,7 +138,7 @@ class GridSelect(
     def action_cursor_down(self) -> None:
         self.move_row(1, self.LeaveDown)
 
-    def move_row(self, rows: Literal[-1, 1], leave: type[Message]) -> None:
+    def move_row(self, rows: Literal[-1, 1], leave: Callable[["GridSelect"], Message]) -> None:
         """An unmeasured grid and a row past either edge both hand the cursor on."""
         match self.grid_size, self.highlighted:
             case None, _:
