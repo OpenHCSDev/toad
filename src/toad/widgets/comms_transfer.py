@@ -296,10 +296,10 @@ class WireExportDialog(TransferDialog):
             kind = self.query_one("#export-scope", Select).value
             target = self.query_one("#export-target", Input).value.strip()
             if kind == "channel":
-                scope = ChannelScope(target)
+                scope: WireExportScope = ChannelScope(target)
             elif kind == "dm":
                 participants = [name.strip().removeprefix("@") for name in target.split(",")]
-                scope = DmScope(tuple(participants))
+                scope = FieldCodec.decode(DmScope, {"participants": participants})
             else:
                 scope = EverythingScope()
             value = self.query_one("#export-limit", Input).value.strip()
@@ -323,8 +323,8 @@ class ThreadImportDialog(TransferDialog):
             yield Static("Thread Import: a stored harness session")
             harnesses = Harness.members_with(Harness)
             yield Select(
-                [(harness.declared_name, harness) for harness in harnesses],
-                value=harnesses[0], id="import-harness", allow_blank=False,
+                [(harness.declared_name, harness.declared_name) for harness in harnesses],
+                value=harnesses[0].declared_name, id="import-harness", allow_blank=False,
             )
             yield Input(id="import-source", placeholder="Source JSON, database or rollout JSONL")
             yield Input(id="import-name", placeholder="New thread name")
@@ -346,7 +346,7 @@ class ThreadImportDialog(TransferDialog):
             return
         self.dismiss(ThreadImportRequest(
             Path(source).expanduser(),
-            self.query_one("#import-harness", Select).value,
+            FieldCodec.decode(type[Harness], self.query_one("#import-harness", Select).value),
             name,
             FieldCodec.decode(ExpectedSession, self.query_one("#import-session-id", Input).value.strip() or None),
             FieldCodec.decode(ImportDirectory, self.query_one("#import-worktree", Input).value.strip() or None),
