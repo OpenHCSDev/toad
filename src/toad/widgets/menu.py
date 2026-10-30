@@ -38,7 +38,7 @@ class MenuOption(SelectionListItem, ToadNode):
         yield NonSelectableLabel(self.command.description, id="description")
 
     def refresh_key(self) -> None:
-        keys = KeymapCatalog.menu_keys(self.command, type(self.app.settings.ui.key_mode),
+        keys = KeymapCatalog.menu_keys(self.command, self.app.settings.ui.key_mode,
                                       self.app.settings.ui.keymap)
         self.query_one("#key", NonSelectableLabel).update(", ".join(keys) or " ")
         self.set_class(bool(keys), "-has-key")
