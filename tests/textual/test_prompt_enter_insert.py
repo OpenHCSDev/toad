@@ -165,3 +165,27 @@ async def test_ctrl_w_typed_into_a_channel_in_real_insert_deletes_a_word_and_kee
         await ui.until(lambda: area.text == "kept " and area.editing_mode.completed,
                        why="Neovim's own ctrl+w to delete the word")
         assert ui.selected_tab == channel and area.has_focus and area.editing_mode.accepts_text
+
+
+async def test_normal_hjkl_and_arrows_reach_neovim_motions(workspace):
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimNormal)
+        await ui.until(lambda: area.key_mode is VimNormal and area.editing_mode.completed,
+                       why="the real child in the saved Normal profile")
+        area.focus()
+        await ui.press("i")
+        await ui.until(lambda: area.editing_mode.accepts_text, why="real Insert entered from Normal")
+        await ui.type("abc")
+        await ui.press("shift+enter")
+        await ui.type("def")
+        await ui.press("escape")
+        await ui.until(lambda: area.text == "abc\ndef" and area.cursor_location == (1, 2)
+                       and area.editing_mode.allows_application_commands,
+                       why="a two-line draft back in real Normal")
+        for key, location in (("k", (0, 2)), ("h", (0, 1)), ("j", (1, 1)), ("l", (1, 2)),
+                              ("up", (0, 2)), ("left", (0, 1)), ("down", (1, 1)), ("right", (1, 2))):
+            await ui.press(key)
+            await ui.until(lambda: area.cursor_location == location and area.editing_mode.completed,
+                           why=f"Normal {key} to move the real Neovim cursor to {location}")
+        assert area.text == "abc\ndef" and area.has_focus
