@@ -367,7 +367,7 @@ class RetainViewportCommit(CommitPlan):
         self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
     ) -> Snapshot:
         try:
-            return await read(after=history.page_source.through)
+            return await read(position=history.page_source.through.later_page())
         except TranscriptChanged:
             # A replaced source cannot extend the old reader's source range.
             return await read()

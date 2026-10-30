@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Iterable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
@@ -11,10 +11,14 @@ from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible
 
+from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
+from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
+from agent_comms.message_reference import MessageReference
+from toad.messages import QueueEvidenceChanged
 
 from toad.notification_status import (
-    CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
+    CheckedNotifications, MessageQueueEntry, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
 if TYPE_CHECKING:
     from toad.widgets.tool_content import ToolContent
@@ -110,7 +114,7 @@ class HistoryNotifications:
     """Visible history rows subscribe to Core; paging never decides when outcomes changed."""
 
     NOTIFICATION_GROUP = "message-notifications"
-    notification_request = ReadNotifications
+    notification_operation = LiveNotificationRead
 
     # Core feedback for every visible bus message, native or wire.
 
@@ -119,14 +123,20 @@ class HistoryNotifications:
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
         self.subscribe_notifications(references)
+        self.post_message(QueueEvidenceChanged())
 
-    def notification_read(self, references) -> ReadNotifications:
+    def notification_read(self, references: Iterable[MessageReference]) -> ReadNotifications:
         from toad.project_path_owner import ProjectPathOwner
 
         root = ProjectPathOwner.containing(self).coordination_root
         if root is None:
             raise ValueError("Notification observation requires a bound thread root")
-        return self.notification_request(root, references)
+        references = tuple(references)
+        wanted = frozenset(references)
+        display = next((target.notification_identity_for(wanted)
+                        for target in self.notification_targets()
+                        if wanted.intersection(target.notification_references)), NoDisplaySelection())
+        return ReadNotifications(root, self.notification_operation(references), display=display)
 
     def subscribe_notifications(self, references) -> None:
         access = self.app.coordination_access
@@ -144,6 +154,7 @@ class HistoryNotifications:
     async def _show_notifications(self, results):
         for target in self.notification_targets():
             await target.show_notifications(results)
+        self.post_message(QueueEvidenceChanged())
 
     def notifications_failed(self, failure: Exception) -> None:
         if self.can_draw_on_screen:
@@ -153,6 +164,7 @@ class HistoryNotifications:
     async def _show_notification_error(self, status):
         for target in self.notification_targets():
             await target.show_notification_status(status)
+        self.post_message(QueueEvidenceChanged())
 
     def on_mount(self) -> None:
         self.call_after_refresh(self.check_notifications)
@@ -169,6 +181,16 @@ class HistoryNotifications:
 
 class SourceNotifications:
     notification_view: HistoryNotifications
+
+    def queue_entries(self) -> Iterable[MessageQueueEntry]:
+        for fragment in self.visible_fragments():
+            yield from fragment.queue_entries()
+
+    def notification_identity_for(self, references: frozenset[MessageReference]) -> DisplayIdentity | NoDisplaySelection:
+        """Use the visible BUS fragments' construction-time display identity."""
+        return next((fragment.notification_identity
+                     for fragment in reversed(tuple(self.visible_fragments()))
+                     if references.intersection(fragment.notification_references)), NoDisplaySelection())
 
     def rows_published(self) -> None:
         super().rows_published()

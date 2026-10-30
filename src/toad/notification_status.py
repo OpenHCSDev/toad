@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.message_reference import MessageReference
@@ -39,8 +39,16 @@ class NotificationStatus:
         return ""
 
     @property
+    def queue_title(self) -> str:
+        return self.title
+
+    @property
     def details(self) -> DetailLines:
         return ()
+
+    @property
+    def queue_details(self) -> DetailLines:
+        return self.details
 
     @property
     def disclosure(self) -> SpanColumns:
@@ -52,6 +60,21 @@ class NotificationStatus:
         summary = shown.summary(self.title, role, link)
         return ((summary, self.disclosure)
                 if shown.details_open else (summary,))
+
+
+@dataclass(frozen=True)
+class MessageQueueEntry:
+    reference: MessageReference
+    status: NotificationStatus
+
+    @property
+    def summary(self) -> str:
+        return f"{self.reference.seq}: {self.status.queue_title}"
+
+    @property
+    def details(self) -> DetailLines:
+        return ((Span(f"Original {self.reference.seq}/{self.reference.message_id}", MutedRole),),
+                *self.status.queue_details)
 
 
 @dataclass(frozen=True)
@@ -71,7 +94,12 @@ class CheckedNotifications(NotificationStatus):
         """Yield nothing when this answer has no matching reference."""
         loaded = results.keys() & {(reference.seq, reference.message_id) for reference in references}
         if loaded:
-            yield cls(tuple(item for reference in loaded for item in results[reference]))
+            yield cls.from_notifications(tuple(item for reference in loaded for item in results[reference]))
+
+    @classmethod
+    def from_notifications(cls, notifications: tuple[MessageNotification, ...]) -> CheckedNotifications:
+        """Keep a matched empty result distinct from an observed recipient."""
+        return cls(notifications) if notifications else EmptyCheckedNotifications()
 
     @property
     def working(self) -> bool:
@@ -82,6 +110,24 @@ class CheckedNotifications(NotificationStatus):
         return MessageNotification.summary(self.notifications)
 
     @property
+    def queue_title(self) -> str:
+        # Keep the leading recipient's actual proof; routing is not arrival.
+        first = self.notifications[0]
+        return f"@{first.recipient} {first.label}"
+
+    @property
+    def queue_details(self) -> DetailLines:
+        leading = CheckedNotifications.from_notifications(self.notifications[:1])
+        return (
+            (Span(self.title, MutedRole),),
+            *((Span(f"Recipient {item.recipient_identity.recipient_lookup}", MutedRole),)
+              for item in leading.notifications),
+            *leading.details,
+            *((Span(text, MutedRole),)
+              for item in leading.notifications for text in item.answer.detail_texts()),
+        )
+
+    @property
     def details(self) -> DetailLines:
         lines = []
         for item in MessageNotification.ordered(self.notifications):
@@ -90,9 +136,19 @@ class CheckedNotifications(NotificationStatus):
                 line += (Span(" · Read by ", MutedRole),
                          Span(reader.name, NameRole, OpenTarget(reader.name)))
             lines.append(line)
-        return (tuple(lines) if lines else (
-            (Span("No notification result is recorded for this message. "
-                  "This does not confirm the message was received.", MutedRole),),))
+        return tuple(lines)
+
+
+@dataclass(frozen=True)
+class EmptyCheckedNotifications(CheckedNotifications):
+    """The original matched, but no recipient feedback is visible to this viewer."""
+
+    notifications: tuple[()] = field(default=(), init=False)
+    queue_title = "No recipient feedback"
+
+    @property
+    def details(self) -> DetailLines:
+        return ((Span("No recipient feedback to display.", MutedRole),),)
 
 
 @dataclass(frozen=True)

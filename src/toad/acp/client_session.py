@@ -1,6 +1,7 @@
 """One captured session authority for ACP client-side effects."""
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
+from .queue_attachment import QueueActionRefused
 
 if TYPE_CHECKING:
     from .agent import Agent
@@ -33,6 +34,16 @@ class ClientSessionRequest:
     def require(self):
         if not self.current:
             raise RequestError.invalid_params({'details': 'ACP client request belongs to a retired session'})
+
+    def unconfirmed(self, reason: str) -> None:
+        """Ordinary input failure is presented by its existing failure publication."""
+
+
+class QueueSessionRequest(ClientSessionRequest):
+    """A queue mutation requires confirmation; an absent reply is never success."""
+
+    def unconfirmed(self, reason: str) -> NoReturn:
+        raise QueueActionRefused(f"Queue action not confirmed: {reason}. Inspect the queue before another action.")
 
 
 class ClientRequestOwner:

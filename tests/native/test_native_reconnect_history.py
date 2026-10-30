@@ -87,7 +87,7 @@ async def test_returning_during_a_turn_loads_messages_written_while_hidden(works
             await ui.until(return_ready.is_set, seconds=90, why="the hidden native rounds to finish")
             if hidden_rounds > 1:
                 pending = await view.transcript.get_transcript_page(
-                    after=view.transcript.binding.history.page_source.through)
+                    position=view.transcript.binding.history.page_source.through.later_page())
                 assert pending.has_newer, 'The native hidden gap must exceed one real source page'
             await ui.select_tab(tab)
             assert ui.conversation is view

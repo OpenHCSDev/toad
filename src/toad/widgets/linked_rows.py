@@ -18,13 +18,13 @@ from textual.widget import Widget
 
 from toad.block_navigation import ConversationEntry
 from toad.core.events import LinkContextChanged
-from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
+from toad.core.input_events import SelectHistoricalIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import AnimationEffects
 from toad.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
 from toad.menus import MenuCommand
 from toad.message_rows import MessageRow
-from toad.navigation_target import NavigationTarget
+from toad.navigation_target import NavigationTarget, SelectTarget
 from toad.project_link import ProjectLink
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.transcript_lines import Lines

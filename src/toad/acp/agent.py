@@ -15,7 +15,8 @@ from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import Goal, GoalDeclaration, NoGoal
 from agent_comms.goal_history import RecordedGoalHistory
-from agent_comms.ui_model.observation import ReadOwnerGoal
+from agent_comms.order_tools import OwnerGoalRead
+from agent_comms.ui_model.observation import ReadOwnerOperation
 
 from toad import paths
 from toad.acp.agent_configuration import (
@@ -238,7 +239,7 @@ class Agent(AgentBase):
         authority = ClientSessionRequest(self, self.session_id)
         consumer = OwnerSnapshotConsumer(self, self.session_id, turn_token=self.presentation.turns.sequence)
         snapshot = await self.controller.transcripts.read(
-            ReadOwnerGoal(coordination.wire_root, coordination.thread))
+            ReadOwnerOperation(coordination.wire_root, coordination.thread, operation=OwnerGoalRead()))
         self.controller.require_owner(coordination, authority)
         for fact in snapshot.meta.batch.updates:
             consumer.dispatch_sync(fact)

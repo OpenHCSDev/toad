@@ -1,6 +1,7 @@
 """Textual-facing: the presentation window; a wire source pages one conversation and notices when Core replaces its reading."""
 
 import os
+from pathlib import Path
 
 from agent_comms.repo import Checkout
 from agent_comms.launch_root import LaunchRoot
@@ -17,7 +18,10 @@ from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.transcript_preparation import PageRequest, Unchanged
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.message_rows import IrcMessageStyle
-from toad.wire_history import AfterSequence, GrowingWireObservation, MessageFragment, ReplacedWireObservation, WireSource
+from toad.wire_history import (
+    AfterSequence, GrowingWireObservation, MessageFragment, NothingRead,
+    PreparedWirePage, ReplacedWireObservation, WirePage, WireSource,
+)
 
 
 def channel_source(comms, target, project):
@@ -33,6 +37,23 @@ def observed(source):
     assert isinstance(first, ReplacedWireObservation)
     newest = source.read(PageRequest(OLDER_END, first.through), first.through)
     return first, newest
+
+
+def test_empty_first_read_keeps_its_real_identity_after_the_unread_placeholder(tmp_path: Path) -> None:
+    comms = installed_wire(tmp_path / 'wire')
+    comms.registry.declare(Thread('peer', frozenset({'team'}), Checkout(tmp_path)))
+    source = channel_source(comms, '#team', tmp_path)
+    placeholder = PreparedWirePage.empty(WirePage.unread())
+    assert placeholder.page.after.requires_read() and not placeholder.page.source.selection.has_evidence
+    initial = NothingRead()
+    prepared = source.read(PageRequest(OLDER_END, initial), initial)
+    assert not prepared.fragments and not prepared.page.after.requires_read()
+    identity = prepared.page.source.selection.notification_identity
+    assert identity.viewer == comms.registry.require(source.viewer.name).incarnation
+    assert placeholder.page.accepts(prepared.page.source, source.conversation.history_view)
+    placeholder.advance_empty(prepared, older=True)
+    assert not placeholder.page.after.requires_read()
+    assert placeholder.page.source.selection.notification_identity == identity
 
 
 def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_path):
@@ -61,6 +82,8 @@ def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
     assert bodies(newest) == [f"Message {index}" for index in range(52, 60)]
     assert newest.page.after == first.through and not newest.page.has_newer and newest.page.has_older
     assert all(isinstance(fragment, MessageFragment) and not fragment.outgoing_sources
+               for fragment in newest.fragments)
+    assert all(fragment.notification_identity == newest.page.source.selection.notification_identity
                for fragment in newest.fragments)
     earlier = source.read(PageRequest(OLDER_END, newest.page.before), first.through)
     assert bodies(earlier) == [f"Message {index}" for index in range(12, 52)]

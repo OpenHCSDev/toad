@@ -14,7 +14,8 @@ from agent_comms.disclosure_text import (
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
 from agent_comms.task_attachments.commander_pings import AlarmGroup, AlarmSection
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.observation import ReadCommanderUnit, UnreadableHistory
+from agent_comms.order_tools import CommanderUnitRead
+from agent_comms.ui_model.observation import ReadOperation, UnreadableHistory
 from agent_comms.ui_model.unit_state import HudGroup
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -209,9 +210,9 @@ class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Vertical
     async def unit_detail(self, card: CommanderUnit) -> object:
         access = self.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
-        return await observed.process.read(ReadCommanderUnit(
-            str(observed.service.root), self.commander, card.unit, card.order_ids,
-        ))
+        return await observed.process.read(ReadOperation(str(observed.service.root), CommanderUnitRead(
+            commander=self.commander, unit=card.unit, orders=card.order_ids,
+        )))
 
     @work(exclusive=True, group="commander-detail")
     async def read_detail(self, selection: SelectedTableRecord[HudRecord]) -> None:
