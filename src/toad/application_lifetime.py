@@ -171,8 +171,7 @@ class ApplicationLifetime:
                 original=(navigation.root, navigation.thread.incarnation),
             )
         elif destination is not None:
-            await app.select_session(destination.mode)
-            await destination.ready(app.session_navigation)
+            await app.session_navigation.open(destination)
         if not app.tab_order.names:
             await app.select_session(app.tab_order.home)
         app.terminal_attention.attach()

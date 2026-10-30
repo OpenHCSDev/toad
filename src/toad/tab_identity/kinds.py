@@ -71,4 +71,4 @@ class PreviewTab(TabIdentity):
     async def entry(self, navigation):
         if not await navigation.app.preparation.run_thread(self.key.exists):
             raise TabTargetGone(self, f"Preview file no longer exists: {self.key}")
-        return PreviewSessionEntry.of(self, self.key, navigation.app.selected_mode)
+        return PreviewSessionEntry.of(self, self.key, navigation.previous(self))
