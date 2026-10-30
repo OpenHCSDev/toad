@@ -67,7 +67,7 @@ class SessionRename(WorkspaceSessionRequest):
 
 
 @dataclass(frozen=True)
-class SessionArchive(WorkspaceSessionRequest):
+class SessionClose(WorkspaceSessionRequest):
     mode_name: str
 
     async def apply(self, navigation: SessionNavigation) -> None:

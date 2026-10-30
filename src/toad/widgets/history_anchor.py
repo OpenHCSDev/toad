@@ -11,6 +11,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING
 from weakref import WeakSet
 
+from metaclass_registry.mro_dispatch import handles
 from textual import events
 from textual.binding import ModeBinding
 from textual.widgets.text_area import VimMode
@@ -19,8 +20,10 @@ from textual.containers import VerticalScroll
 from textual.geometry import Size
 from textual.widget import Widget
 
+from toad.core.projection import MroProjection
 from toad.transcript_state import LatestViewportRequest
 from toad.widget_view import WorkspaceHosted
+from toad.widgets.message_row_owner import MessageRowOwner
 from toad.widgets.presentation_window import (
     NEWER_END,
     OLDER_END,
@@ -29,6 +32,7 @@ from toad.widgets.presentation_window import (
 )
 
 if TYPE_CHECKING:
+    from toad.line_blocks import Divider
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.conversation import Contents
@@ -152,6 +156,10 @@ class ReaderPosition(ABC):
         """The position after the reader chose to follow the latest message."""
         return TailPosition()
 
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
+        """The position after a message arrived at the followed end: only following hands it the reader."""
+        return self
+
     def placed(self, window: "HistoryWindow", reached: bool) -> "ReaderPosition":
         """What the window keeps after a layout placed this: itself while the history is still changing.
 
@@ -213,6 +221,9 @@ class TailPosition(ReaderPosition):
 
     def joined_tail(self) -> ReaderPosition:
         return self
+
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
+        return ArrivalPosition(page, key)
 
 
 class OffsetPosition(ReaderPosition):
@@ -323,6 +334,53 @@ class BlockPosition(OffsetPosition):
 
     def destination(self, window: "HistoryWindow") -> float:
         return window.row_of(self.block) + self.y - self.row
+
+
+@dataclass(frozen=True)
+class ArrivalPosition(OffsetPosition):
+    """A message that just arrived at the followed end, on the page that draws it.
+
+    One that fits in the window follows the tail as before. One taller than
+    the window is placed with its first row at the window's top instead of
+    its last, so the reader sees it arrive from its head; following stops
+    there, as when the reader scrolls up to read. The page is a geometry
+    target, so the layout that adds the message also places it.
+    """
+
+    page: TranscriptPageView
+    key: FragmentKey
+
+    def location(self) -> FragmentLocation:
+        return self.page.fragment_row(self.key, 0)
+
+    def bodies(self, window: HistoryWindow) -> tuple[Widget, ...]:
+        return (self.page,)
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        if self.page.is_attached and window.displays(self.page):
+            return position
+        return position.without_holder(window)
+
+    def laid_out(self, window: HistoryWindow) -> bool:
+        return self.location().laid_out(window)
+
+    def destination(self, window: HistoryWindow) -> float:
+        return self.location().destination(window, 0.0)
+
+    def tall(self, window: HistoryWindow) -> bool:
+        """Whether the message is taller than the window, in the layout just made."""
+        return window.message_head_hidden(self.page.drawn_height(self.location().location().fragment), None)
+
+    def place(self, window: HistoryWindow) -> bool:
+        if self.tall(window):
+            return super().place(window)
+        return TailPosition().place(window)
+
+    def shifted(self, rows: float) -> ReaderPosition:
+        # Kept through its change, so every layout of the change places it
+        # from its own page; afterwards the window reads where the reader is.
+        # The reader leaving the tail replaces it through left_tail.
+        return self
 
 
 @dataclass(frozen=True)
@@ -469,6 +527,10 @@ class LatestPosition(HeldReaderDestination, TailPosition):
             window.reader_position = self.released()
             window.place_reader()
 
+    def arrived(self, page: TranscriptPageView, key: FragmentKey) -> ReaderPosition:
+        # End was pressed: the newest row stays the destination until its source settles.
+        return self
+
     def released(self) -> ReaderPosition:
         return TailPosition()
 
@@ -509,7 +571,7 @@ class HistoryChange:
         await self.layout_ready.wait()
 
 
-class HistoryWindow(NativeMethodKeys, WorkspaceHosted, VerticalScroll):
+class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]], VerticalScroll):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
@@ -624,6 +686,31 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, VerticalScroll):
             return row
         raise LookupError(f"{widget!r} is not placed in {self!r}'s layout; "
                           "a reader position's widgets must be visible or declared geometry targets")
+
+    @handles(Widget)
+    def native_message_rows(self, widget: Widget) -> tuple[MessageRowOwner, ...]:
+        """A native widget supplies no live message unless it declares that capability."""
+        return ()
+
+    @handles(MessageRowOwner)
+    def live_message_row(self, message: MessageRowOwner) -> tuple[MessageRowOwner, ...]:
+        return (message,)
+
+    def top_message_header(self) -> tuple[Divider, ...]:
+        """The header of the message drawn on the window's top row, when that header is scrolled above it."""
+        y = self.scroll_y
+        for page, first in self.placements(self.drawn_pages()):
+            # A row inside the page's measured lines always has its fragment (as in ReaderPosition.of).
+            if first <= y < first + page.line_count:
+                span = page.fragment_at(int(y - first))
+                return span.fragment.sticky_header(span.index)
+        messages = (message
+                    for widget in self.visible_history_items(self.screen._compositor.published_widgets)
+                    for message in self.project_value(widget))
+        for message, first in self.placements(messages):
+            if first <= y < first + message.outer_size.height:
+                return message.sticky_header(int(y - first))
+        return ()
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""

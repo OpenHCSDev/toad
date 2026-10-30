@@ -4,12 +4,12 @@ import asyncio
 import shlex
 from dataclasses import replace
 from pathlib import Path
+from types import FunctionType
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, Literal, Self
 
 from agent_comms.acp_extension import QueueItem
 
-from rich.cells import cell_len
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
 from textual._activation import PrimaryActivation
@@ -19,9 +19,11 @@ from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.widgets.text_area import EditingMode, VimMode
+from toad.neovim_editing import NeovimUpdated
+from textual.document._editing import EditingFailure
 from textual.content import Content, Span
 from textual.css.scalar import Scalar
-from textual.geometry import Size, Spacing
+from textual.geometry import Spacing
 from textual.reactive import Initialize, Required, var
 from textual.strip import Strip
 from textual.style import Style
@@ -37,11 +39,14 @@ from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver
+from toad.input_decision import InputAccepted, InputDecision
+from toad.key_modes import Standard
 from toad.tone_paint import TonePaint
 from toad.path_complete import PathComplete
 from toad.prompt_actions import PromptAction, SubmitNowAction
 from toad.prompt_cursor import (
     CommandText,
+    HistoryCursor,
     NextHistoryCursor,
     PreviousHistoryCursor,
     PromptCursor,
@@ -230,6 +235,7 @@ See on-screen instructions for details.
         super().__init__()
         # The composer that built this editor owns its turns, popups and modes.
         self.prompt = prompt
+        self.set_reactive(TextArea.editing_mode, prompt.initial_editing_mode)
         self.set_reactive(PromptTextArea.project_path, prompt.project_path)
         self._submit_pending = False
         self._submit_immediate = False
@@ -237,10 +243,6 @@ See on-screen instructions for details.
     @property
     def agent_busy(self) -> bool:
         return self.prompt.agent_busy
-
-    @property
-    def agent_ready(self) -> bool:
-        return self.shell_mode or self.prompt.agent_ready
 
     @property
     def can_enter_shell(self) -> bool:
@@ -277,59 +279,32 @@ See on-screen instructions for details.
     def on_mount(self) -> None:
         self.highlight_cursor_line = False
         self.hide_suggestion_on_blur = False
+        self.editing_mode.attach(self)
         self.apply_keyboard_profile()
         self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
-    def show_editing_mode(self, mode) -> None:
-        # The mode label is painted on the last text row, so a new label can move it.
+    def show_editing_mode(self, mode: EditingMode) -> None:
+        """Away from the box the Standard keys are in force, so the label says STANDARD."""
         if self.is_mounted:
-            self._refresh_size()
-            self.refresh()
+            self.prompt.editing_mode_label.update((mode if self.has_focus else Standard()).label)
 
-    @property
-    def mode_label(self) -> Content:
-        label = self.editing_mode.label
-        styled = Content.styled(f" {label} ", "reverse") if label else Content()
-        # Never wider than the box: at width 0 the label is empty and nothing wraps.
-        return styled.truncate(self.content_size.width)
-
-    @property
-    def text_width(self) -> int:
-        """Columns left for text on the row the mode label shares."""
-        return self.content_size.width - self.mode_label.cell_length
-
-    @property
-    def mode_row_below(self) -> bool:
-        """The last text row reaches the label, so the label takes the next row."""
-        if not self.mode_label.cell_length:
-            return False
-        if not self.text and self.placeholder:
-            rows = Content.from_text(self.placeholder, markup=False).wrap(self.content_size.width)
-            last = rows[-1].cell_length if rows else 0
-        else:
-            sections = self.wrapped_document.get_sections(self.document.line_count - 1)
-            last = cell_len(sections[-1]) if sections else 0
-        # One cell stays free for the cursor resting after the text.
-        return last + 1 > self.text_width
-
-    def _refresh_size(self) -> None:
-        super()._refresh_size()
-        if self.mode_row_below:
-            width, height = self.virtual_size
-            self.virtual_size = Size(width, height + 1)
-
-    def render_line(self, y: int, paint: PaintState) -> Strip:
-        line = super().render_line(y, paint)
-        label = self.mode_label
-        if not label.cell_length or self.scroll_offset.y + y != self.virtual_size.height - 1:
-            return line
-        return Strip.join((
-            line.crop_extend(0, self.text_width, paint.visual_style.rich_style),
-            Strip(label.render_segments(paint.visual_style), label.cell_length),
-        ))
+    def watch_has_focus(self, focus: bool) -> None:
+        self.show_editing_mode(self.editing_mode)
 
     def apply_keyboard_profile(self) -> None:
-        self.editing_mode = self.screen.key_mode()
+        self.call_later(self._apply_keyboard_profile)
+
+    async def _apply_keyboard_profile(self) -> None:
+        mode = self.screen.key_mode
+        if self.key_mode is not mode:
+            await self.switch_editing_mode(mode())
+
+    async def on_neovim_updated(self, event: NeovimUpdated) -> None:
+        event.stop()
+        event.owner.paint(self)
+        # A requested profile can outlive a refused transfer while RPC is pending.
+        # The existing completion update retries from the saved preference.
+        await self._apply_keyboard_profile()
 
     @property
     def submission_allowed(self) -> bool:
@@ -350,9 +325,7 @@ See on-screen instructions for details.
     def _paste_clipboard_text(self, text: str) -> None:
         # A fresh Paste event posted directly here would bubble to App and be
         # forwarded back to the focused TextArea, inserting it a second time.
-        self.editing_mode = self.editing_mode.pasted()
-        if result := self._replace_via_keyboard(text, *self.selection):
-            self.move_cursor(result.end_location)
+        self.editing_mode.paste(self, text)
 
     @work(group='clipboard-paste', exclusive=True)
     async def action_paste_clipboard(self) -> None:
@@ -424,24 +397,26 @@ See on-screen instructions for details.
                     priority=True),
     )
 
-    def _submit(self) -> None:
+    async def _submit(self) -> None:
+        """Silently cancel a submission superseded by focus, mode or popup changes."""
         self._submit_pending = False
+        mode = self.editing_mode
+        try:
+            if not await mode.flush(self):
+                return
+        except EditingFailure:
+            return  # The engine already reported its failure; never submit stale text.
+        if mode is not self.editing_mode:
+            return
         immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus or not self.submission_allowed:
             return
         input_text = CommandText.decode_input(self.text, self.slash_commands)
-        local_command = not input_text.requires_agent
-        if not self.agent_ready and not self.shell_mode and not local_command:
-            self.app.bell()
-            self.post_message(
-                messages.Flash(
-                    self.query_ancestor(
-                        Prompt
-                    ).operational_submissions.unavailable_reason,
-                    "error",
-                )
-            )
-            return
+        if input_text.requires_agent:
+            decision = self.prompt.input_decision
+            decision.announce(self)
+            if not decision.allows:
+                return
         if self.suggestion:
             if " " not in self.text:
                 self.insert(self.suggestion + " ")
@@ -462,11 +437,14 @@ See on-screen instructions for details.
         if shell:
             self.prompt.shell_mode = False
 
+    def before_engine_input(self, action: FunctionType) -> bool:
+        return HistoryCursor.try_input(self, action)
+
     def action_cursor_up(self, select: bool = False):
-        PreviousHistoryCursor.move(self, select, super().action_cursor_up)
+        PreviousHistoryCursor.move(self, select)
 
     def action_cursor_down(self, select: bool = False):
-        NextHistoryCursor.move(self, select, super().action_cursor_down)
+        NextHistoryCursor.move(self, select)
 
     def action_delete_left(self) -> None:
         if not self.editing_mode.accepts_text:
@@ -517,6 +495,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     Prompt .delivery-controls { display: none; height: 1; padding-left: 1; }
     Prompt.-queue-mode .delivery-controls { display: block; }
     Prompt SendNow { color: $text-secondary; pointer: pointer; }
+    Prompt #editing-mode { dock: right; width: auto; height: 1; padding: 0 1; text-wrap: nowrap; text-style: reverse; }
     """
 
 
@@ -525,6 +504,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     prompt_container = getters.query_one(PromptContainer)
     prompt_text_area = getters.query_one(PromptTextArea)
     prompt_label = getters.query_one(PromptLabel)
+    editing_mode_label = getters.query_one("#editing-mode", Label)
     current_directory = getters.query_one(CondensedPath)
     path_search = getters.query_one(PathSearch)
     slash_complete = getters.query_one(SlashComplete)
@@ -559,6 +539,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.set_reactive(Prompt.project_path, project)
         self.ask_queue: list[Ask] = []
+        self.initial_editing_mode: EditingMode = EditingMode()
         self.turns = turns
         self.submissions = submissions
 
@@ -573,8 +554,12 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         return self.submissions
 
     @property
+    def input_decision(self) -> InputDecision:
+        return InputAccepted() if self.shell_mode else self.operational_submissions.input_decision
+
+    @property
     def agent_ready(self) -> bool:
-        return self.shell_mode or self.operational_submissions.ready
+        return self.input_decision.allows
 
     @property
     def text(self) -> str:
@@ -582,10 +567,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
     @text.setter
     def text(self, text: str) -> None:
-        self.prompt_text_area.text = text
-        self.prompt_text_area.selection = Selection.cursor(
-            self.prompt_text_area.get_cursor_line_end_location()
-        )
+        editor = self.prompt_text_area
+        editor.text = text
+        editor.editing_mode.move_to_end(editor)
 
     @property
     def supports_completion(self) -> bool:
@@ -751,12 +735,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     def watch_agent_info(self, agent_info: Content) -> None:
         if not self.is_mounted:
             return
-        if self.agent_ready:
-            self.query_one(AgentInfo).update(agent_info)
-        else:
-            self.query_one(AgentInfo).update(
-                self.operational_submissions.unavailable_reason
-            )
+        self.query_one(AgentInfo).update(self.input_decision.agent_info_text(agent_info))
 
     def watch_shell_mode(self) -> None:
         self.update_prompt()
@@ -820,10 +799,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         """
         if not self.is_mounted:
             return
-        from toad.key_modes import VimInsert
         from toad.widgets.conversation import Conversation
 
-        self.prompt_text_area.editing_mode = VimInsert()
+        self.prompt_text_area.editing_mode.enter_text(self.prompt_text_area)
         self.query_ancestor(Conversation).focus_prompt()
 
     MODE_BINDINGS = (
@@ -915,6 +893,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
                 )
         yield from self.compose_info_popups()
         with InfoBar(id="info-container"):
+            yield Label("", id="editing-mode", markup=False)
             yield from self.compose_agent_info()
             yield StatusLine(markup=False).data_bind(status=Prompt.status)
             yield from self.compose_mode_controls()
@@ -944,8 +923,8 @@ class MessagePrompt(Prompt):
         super().__init__(**kwargs)
 
     @property
-    def agent_ready(self) -> bool:
-        return True
+    def input_decision(self) -> InputDecision:
+        return InputAccepted()
 
     @property
     def supports_completion(self) -> bool:

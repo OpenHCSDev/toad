@@ -172,10 +172,17 @@ class FragmentLineConsumer(MroProjection[None]):
     def __init__(self, *, show_divider: bool) -> None:
         self.show_divider = show_divider
         self.blocks: list[LineBlock] = []
+        self.header: tuple[Divider, ...] = ()
+        # The blocks up to and including a drawn header; a continuation draws none.
+        self.header_end = 0
 
     def divider(self, label: str, timestamp: float | None, role: type[LineRole]) -> None:
+        """The first event's divider is the fragment's message header, drawn or not."""
+        divider = Divider.titled(label, role, timestamp)
+        self.header = self.header or (divider,)
         if self.show_divider:
-            self.blocks.append(Divider.titled(label, role, timestamp))
+            self.blocks.append(divider)
+            self.header_end = self.header_end or len(self.blocks)
 
     @handles(TranscriptEvent)
     def other(self, event: TranscriptEvent) -> None:
@@ -353,18 +360,30 @@ class TranscriptFragment:
         """The fragment's content occupies its drawn rows unless it owns a header."""
         return range(lines.height)
 
+    def sticky_header(self, block: int) -> tuple[Divider, ...]:
+        """The header to pin over the window's top row when that row is in this block: a
+        user or agent message pins its divider once the divider's own row is above the top
+        row, and a continuation, which draws none, always pins it."""
+        consumed = self.consumed
+        return consumed.header if block >= consumed.header_end else ()
+
+    @cached_property
+    def consumed(self) -> FragmentLineConsumer:
+        """This fragment's events projected once; the blocks do not depend on how it is shown."""
+        consumer = FragmentLineConsumer(show_divider=not self.continuation)
+        if self.starts_agent_activity and not self.continuation:
+            consumer.blocks.extend(AgentActivityPresentation.group)
+        for event in self.events:
+            consumer.project_value(event)
+        return consumer
+
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """What this fragment draws in committed history when shown so, one block per visual part.
 
         A continuation of the previous fragment has no divider. The blocks do
         not depend on the width: each width's lines are built from them.
         """
-        consumer = FragmentLineConsumer(show_divider=not self.continuation)
-        if self.starts_agent_activity and not self.continuation:
-            consumer.blocks.extend(AgentActivityPresentation.group)
-        for event in self.events:
-            consumer.project_value(event)
-        return tuple(consumer.blocks)
+        return tuple(self.consumed.blocks)
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
@@ -514,6 +533,11 @@ class BusMessageFragment(TranscriptFragment):
     @property
     def leading(self):
         return () if self.continuation else (Gap(), self.row.header)
+
+    def sticky_header(self, block: int) -> tuple[Divider, ...]:
+        """Every part of a message pins its header once the header's own row is above the top row;
+        a continuation part draws no header, so it always pins it."""
+        return () if block < len(self.leading) else (self.row.header,)
 
     @property
     def body_text(self):

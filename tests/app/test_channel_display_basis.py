@@ -8,9 +8,9 @@ async def test_shown_messages_are_read_exactly_and_hidden_expansion_stays_unread
     comms = workspace.comms
     viewer = workspace.viewer
     project = str(workspace.project)
-    hidden = comms.messaging.send_message("bob", "carol", "older hidden DM")
+    hidden = comms.messaging.send("bob", "carol", "older hidden DM").message
     # Every line of a message names it, so a message whose text is partly on screen is recognisable.
-    messages = [comms.messaging.send_message("alice", "#team", "\n".join(f"channel {i:02d} line" for _ in range(12)))
+    messages = [comms.messaging.send("alice", "#team", "\n".join(f"channel {i:02d} line" for _ in range(12))).message
                 for i in range(12)]
 
     def seen():

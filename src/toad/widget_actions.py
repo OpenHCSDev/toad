@@ -73,17 +73,15 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
     @classmethod
     def mode_binding(cls, mode: type[EditingMode], key: str) -> ModeBinding:
         command = cls.command_for_key(mode, key)
-        return cls.command_binding(mode, key, command, mode)
+        return cls.command_binding(mode, key, command)
 
     @classmethod
-    def command_binding(cls, capability: type[EditingMode], key: str, command: Self,
-                        mode: type[EditingMode]) -> ModeBinding:
+    def command_binding(cls, capability: type[EditingMode], key: str, command: Self) -> ModeBinding:
         return CommandBinding(
             key=key, action=command, description=cls.title,
             available=command.key_available, mode=capability,
             tooltip=cls.summary(), show=cls.show, priority=cls.priority,
             system=cls.system, group=cls.group, key_display=cls.key_display,
-            id=command.binding_identity(mode),
         )
 
     @classmethod
@@ -91,9 +89,11 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
         """The nearest declared capability supplies defaults; identity follows active mode."""
         for capability in mode.__mro__:
             if capability in cls.keys:
-                return tuple(cls.command_binding(capability, key,
-                                                 cls.command_for_key(capability, key), mode)
-                             for key in cls.keys[capability])
+                return tuple(binding for _, binding in BindingsMap(
+                    cls.command_binding(capability, key,
+                                        cls.command_for_key(capability, key))
+                    for key in cls.keys[capability]
+                ).project(mode))
         return ()
 
     @classmethod
@@ -162,6 +162,8 @@ class YieldingKey:
     """An application key that any binding closer to the focus replaces: it answers only
     where nothing local claims the key, so the claim is no conflict."""
 
+    priority = False
+
     @classmethod
     def exclusive_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
         return ()
@@ -177,7 +179,10 @@ class ExclusiveKeys:
 
 
 class ApplicationAction(Action, affix="Action"):
+    """Declared application shortcuts resolve before an editor takes the key."""
+
     binding_prefix = "app."
+    priority = True
 
     @classmethod
     def exclusive_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
@@ -193,9 +198,9 @@ class ApplicationAction(Action, affix="Action"):
 class VimWorkspaceAction(ApplicationAction, declared_name=None):
     """Workspace commands precede editor bindings only in idle modal command entry."""
 
-    priority = True
-
     def key_available(self, app):
+        if app.current_mode != "workspace":
+            return False
         return (app.screen is app.workspace_screen
                 and app.screen.allows_application_commands)
 
@@ -204,17 +209,6 @@ class DeclaredWidgetActions(ToadNode):
     """One family supplies both native dispatch and dynamic availability."""
 
     own_actions: ClassVar[tuple[type[Action], ...]] = ()
-
-    @classmethod
-    def contexts(cls) -> tuple[type[DeclaredWidgetActions], ...]:
-        pending = [cls]
-        found: dict[type[DeclaredWidgetActions], None] = {}
-        while pending:
-            owner = pending.pop()
-            if owner not in found:
-                found[owner] = None
-                pending.extend(reversed(owner.__subclasses__()))
-        return tuple(found)
 
     @classmethod
     def declared_actions(cls) -> tuple[type[Action], ...]:
@@ -230,18 +224,10 @@ class DeclaredWidgetActions(ToadNode):
         return declaration.bindings_for(mode)
 
     @classmethod
-    def native_bindings(cls, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
-        return ()
-
-    @classmethod
     def declared_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
-        return (*cls.native_bindings(mode),
+        return (*super().declared_bindings(mode),
                 *(binding for declaration in cls.declared_actions()
                   for binding in cls.action_bindings(declaration, mode)))
-
-    def binding_map(self, mode: type[EditingMode]) -> BindingsMap:
-        return BindingsMap.merge((super().binding_map(mode),
-                                  BindingsMap(self.declared_bindings(mode))))
 
     def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
         cls.own_actions = actions
@@ -274,12 +260,6 @@ class NativeMethodKeys(DeclaredWidgetActions):
     @classmethod
     def method_key_owners(cls) -> tuple[type, ...]:
         return cls.__mro__
-
-    @classmethod
-    def native_bindings(cls, mode: type[EditingMode]) -> tuple[ModeBinding, ...]:
-        return tuple(projected for base in cls.method_key_owners()
-                     for binding in base.__dict__.get("MODE_BINDINGS", ())
-                     for projected in binding.for_mode(mode))
 
 
 class LocalMethodKeys(NativeMethodKeys):

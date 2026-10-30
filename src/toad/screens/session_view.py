@@ -70,6 +70,9 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
         """Views without a conversation have no native transcript to mark read."""
         return NothingToRead()
 
+    async def wait_content_ready(self) -> None:
+        """A view composed with its content is ready once mounted; loading views override this."""
+
     def history_painted(self) -> None:
         """Only the session on screen reads what it painted; hidden tabs stay unread."""
         if self.is_current:

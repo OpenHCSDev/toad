@@ -145,6 +145,7 @@ class InputDeliveryDetails(DismissibleScreen[None]):
                     "These inputs have no confirmed start. They may still be queued. "
                     "They are not automatically retried.",
                     markup=False,
+                    id="delivery-pending-explanation",
                 )
                 yield Static(markup=False, id="delivery-records")
                 yield Static(markup=False, id="delivery-historical-summary")
@@ -193,6 +194,7 @@ class InputDeliveryDetails(DismissibleScreen[None]):
         if not self.is_attached:
             return
         self.watch_error()
+        self.query_one("#delivery-pending-explanation").display = bool(self.delivery.current)
         self.query_one("#delivery-records", Static).update(
             self.delivery.pending_records_text()
         )

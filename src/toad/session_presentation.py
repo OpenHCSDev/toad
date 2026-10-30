@@ -11,6 +11,7 @@ from weakref import ref
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
+from textual.document._editing import EditingMode
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
@@ -18,7 +19,7 @@ from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.conversation_kind import DmConversation
 from toad.input_history import InputHistories
-from toad.owner_preparation import ExistingOwnerPlan
+from toad.input_decision import InputDecision
 from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
@@ -35,8 +36,30 @@ class SessionSurfaceSlot(Widget):
     DEFAULT_CSS = "SessionSurfaceSlot { display: none; }"
 
 
+class NativeEditorSelection:
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return EditingMode()
+
+
+class SessionViewState(NativeEditorSelection):
+    """An uncaptured surface has no retained resources to restore or close."""
+
+    def prepare_conversation(self, conversation: Conversation) -> None:
+        pass
+
+    def prepare_transcript(self, conversation: Conversation) -> None:
+        pass
+
+    async def restore(self, conversation: Conversation) -> None:
+        pass
+
+    async def close(self) -> None:
+        pass
+
+
 @dataclass(frozen=True)
-class SessionViewState:
+class RetainedSessionViewState(SessionViewState):
     """The actual editor document/history and reader intent, not a transcript copy."""
 
     editor: TextAreaState
@@ -47,7 +70,7 @@ class SessionViewState:
     initial_prompt: str | None
 
     @classmethod
-    def capture(cls, conversation: Conversation) -> SessionViewState:
+    def capture(cls, conversation: Conversation) -> RetainedSessionViewState:
         editor = conversation.prompt.prompt_text_area
         return cls(
             editor.capture_editor_state(),
@@ -58,18 +81,28 @@ class SessionViewState:
             conversation.take_initial_prompt(),
         )
 
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return self.editor.editing_mode
+
+    def prepare_conversation(self, conversation: Conversation) -> None:
+        conversation._initial_prompt = self.initial_prompt
+
+    async def close(self) -> None:
+        await self.editor.editing_mode.close()
+
     def prepare_transcript(self, conversation: Conversation) -> None:
         conversation.visible_categories = self.visible_categories
         conversation.window.reader_position = self.reader_position
 
-    def restore(self, conversation: Conversation) -> None:
-        conversation.input_histories = self.input_histories
+    async def restore(self, conversation: Conversation) -> None:
         editor = conversation.prompt.prompt_text_area
-        editor.restore_editor_state(self.editor)
+        await editor.restore_editor_state(self.editor)
+        conversation.input_histories = self.input_histories
         editor.shell_mode = self.shell_mode
 
 
-class SessionSurfaceLifetime(ABC):
+class SessionSurfaceLifetime(NativeEditorSelection, ABC):
     """A session declares its own UI placement and activation lifetime."""
 
     @property
@@ -93,7 +126,11 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     """Own retained editor state and active shell close semantics."""
 
     def __init__(self) -> None:
-        self.state: SessionViewState | None = None
+        self.state: SessionViewState = SessionViewState()
+
+    @property
+    def initial_editing_mode(self) -> EditingMode:
+        return self.state.initial_editing_mode
 
     @abstractmethod
     async def release_binding(
@@ -146,34 +183,14 @@ class OperationalSessionSources:
 
         return await InputSubmission.from_event(event, owner.view).execute(owner)
 
-    def input_ready(self, conversation: Conversation) -> bool:
+    def input_decision(self, conversation: Conversation) -> InputDecision:
         agent = conversation.agent_binding
-        if not agent.ready:
-            return False
-        if agent.configuration.model.requires_selection:
-            return False
-        if conversation.transcript.readable:
-            presentation = conversation.thread_presentation
-            return ExistingOwnerPlan.from_binding(presentation.binding).available
-        return True
-
-    def unavailable_reason(self, conversation: Conversation) -> str:
-        presentation = conversation.thread_presentation
-        agent = conversation.agent_binding
-        if (
-            conversation.transcript.readable
-            and not ExistingOwnerPlan.from_binding(presentation.binding).available
-        ):
-            line = self.activity_row(conversation).presentation.summary
-        elif agent.configuration.model.requires_selection:
-            line = (
-                "Choose a model or connect a provider (click here). Your draft is kept."
+        return agent.readiness_decision.then(
+            lambda: agent.configuration.model.input_decision
+        ).then(
+            lambda: conversation.transcript.binding.thread_scope.owner_decision(
+                conversation.thread_presentation
             )
-        else:
-            line = self.activity_row(conversation).presentation.summary
-        return self.activity_row(conversation).status.with_disconnection(
-            line,
-            lambda: agent.session_disposition.input_notice(line),
         )
 
     def start_agent(self, conversation: Conversation) -> None:
@@ -255,9 +272,6 @@ class MailboxSessionSources(OperationalSessionSources):
             group="mailbox-status",
             exclusive=True,
         )
-
-    def input_ready(self, conversation: Conversation) -> bool:
-        return conversation.transcript.readable
 
     async def present(self, conversation: Conversation) -> None:
         await super().present(conversation)
@@ -372,17 +386,14 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.widget = conversation
             screen._initial_prompt = None
         if not returning:
-            if self.state is not None:
-                conversation._initial_prompt = self.state.initial_prompt
+            self.state.prepare_conversation(conversation)
             await content.mount(conversation, before=slot)
             screen.thread_identity.bind_history(conversation.input_histories)
         yield conversation
-        if self.state is not None:
-            self.state.prepare_transcript(conversation)
+        self.state.prepare_transcript(conversation)
         await self.transcript.bind(conversation).restore_documents(self.transcript)
-        if self.state is not None:
-            self.state.restore(conversation)
-            self.state = None
+        await self.state.restore(conversation)
+        self.state = SessionViewState()
         await self.attach_binding(conversation)
         await self.transcript.bind(conversation).restore(self.transcript)
         if returning:
@@ -390,27 +401,32 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation.prompt.focus()
 
     async def close(self, screen: MainScreen) -> None:
-        self.state = None
+        await self.state.close()
+        self.state = SessionViewState()
         async with AsyncResourceRelease() as release:
             release.push_async_callback(self.sources.close)
             release.push_async_callback(self.transcript.close)
             await screen.app.workspace_chrome.native.dispose(screen)
 
-    async def evict(self) -> None:
+    async def evict(self, screen: MainScreen) -> None:
         """Release the owned native tree while retaining its actual editor resource."""
         if (conversation := self.widget) is None:
             return
-        self.state = SessionViewState.capture(conversation)
-        await self.remove_native_tree()
+        editor = conversation.prompt.prompt_text_area
+        if not await editor.editing_mode.flush(editor):
+            return  # Retain the actual view/engine while its modal input is pending.
+        self.state = RetainedSessionViewState.capture(conversation)
+        await self.remove_native_tree(screen)
 
     def external_transcript_changed(self) -> None:
         """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
         if self.widget is not None:
             self.sources.external_transcript_changed(self.widget)
 
-    async def remove_native_tree(self) -> None:
+    async def remove_native_tree(self, screen: MainScreen) -> None:
         if (conversation := self.widget) is None:
             return
+        screen.content.detaching(screen)
         self.widget = None
         async with AsyncResourceRelease() as release:
             release.push_async_callback(conversation.remove)
@@ -475,8 +491,9 @@ class NativeSessionSurface:
         """
         app = self._app()
         budget = selected.window.presentation_budget
+        screens = {owner: screen for screen, owner in self._presentations()}
         candidates = {}
-        for screen, owner in self._presentations():
+        for owner, screen in screens.items():
             candidates.setdefault(screen.id, []).append(owner)
         required = (
             self.view.presentation,
@@ -504,14 +521,14 @@ class NativeSessionSurface:
         )
         for owner in ordered:
             if owner not in kept:
-                await owner.evict()
+                await owner.evict(screens[owner])
 
     async def dispose(self, screen: MainScreen) -> None:
         """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
             owner = screen.presentation
             async with AsyncResourceRelease() as release:
-                release.push_async_callback(owner.remove_native_tree)
+                release.push_async_callback(owner.remove_native_tree, screen)
                 if self.view is screen:
                     self.view = None
                     await owner.release_binding(owner.widget, screen)

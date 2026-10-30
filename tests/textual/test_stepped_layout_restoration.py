@@ -48,7 +48,8 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         async def settled():
             await ui.step(0.1)
             seen.append(scene(screen))
-            return len(seen) > 2 and seen[-1] == seen[-2] == seen[-3]
+            return (not ui.app.workspace_chrome.switch_toast.display
+                    and len(seen) > 2 and seen[-1] == seen[-2] == seen[-3])
 
         await ui.until(settled, why="the workspace's widgets to finish mounting")
 

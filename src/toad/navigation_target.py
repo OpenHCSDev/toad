@@ -23,7 +23,7 @@ from toad.conversation_kind import (
 if TYPE_CHECKING:
     from agent_comms.display_references import CurrentDisplayReferences
 
-    from toad.widgets.comms_sidebar import CommsRow
+    from toad.widgets.comms_sidebar import CommsRow, ListedRow
     from toad.widgets.sidebar_tree import SidebarGroup
 
 @dataclass(frozen=True)
@@ -55,7 +55,7 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
         """Different opening behaviors may display the same sidebar address."""
         return self.name == target.name
 
-    def rows_in(self, group: SidebarGroup[CommsRow]) -> tuple[CommsRow, ...]:
+    def rows_in(self, group: SidebarGroup[ListedRow]) -> tuple[CommsRow, ...]:
         return group.rows_for_target(self.name)
 
     @abstractmethod
@@ -73,7 +73,7 @@ class NoTarget(NavigationTarget):
     def matches(self, target: NavigationTarget) -> bool:
         return False
 
-    def rows_in(self, group: SidebarGroup[CommsRow]) -> tuple[CommsRow, ...]:
+    def rows_in(self, group: SidebarGroup[ListedRow]) -> tuple[CommsRow, ...]:
         return ()
 
     async def open(self, context: NavigationContext) -> str:

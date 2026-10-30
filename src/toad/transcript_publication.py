@@ -221,21 +221,17 @@ class TranscriptPublication(BoundFrame, ABC):
 class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
+    def __init__(self, binding: BoundView, owner: TranscriptPresentation, generation: int) -> None:
+        super().__init__(binding, owner, generation)
+        self.plan = commit_plan(binding.window)
+
     async def read_snapshot(self):
-        return await self.read_past_history(
+        return await self.plan.read_snapshot(
             partial(
                 self.binding.reader.updates, self.thread_scope, self.owner.current_read
-            )
+            ),
+            self.binding.history,
         )
-
-    async def read_past_history(self, read, **whole):
-        """What follows the mounted history's end while its source only grew, else the whole latest page."""
-        history = self.binding.history
-        try:
-            return await read(after=history.page_source.through)
-        except TranscriptChanged:
-            pass  # Another source file replaced the history's.
-        return await read(**whole)
 
     async def publish_applied(self) -> bool:
         if not self.owner.readable:
@@ -370,14 +366,10 @@ class SourcePublicationRequests:
 
 
 class CommitPublication(CanonicalSourcePublication):
-    def __init__(self, binding: BoundView, owner: TranscriptPresentation, generation: int) -> None:
-        super().__init__(binding, owner, generation)
-        self.plan = commit_plan(binding.window)
-
     async def read_snapshot(self):
-        # Mounted history grows by what follows its end; without one the window needs a whole page.
-        return await self.read_past_history(
-            partial(self.binding.reader.snapshot, self.thread_scope)
+        return await self.plan.read_snapshot(
+            partial(self.binding.reader.snapshot, self.thread_scope),
+            self.binding.history,
         )
 
     def current(self) -> bool:
@@ -424,8 +416,8 @@ class CommitPublication(CanonicalSourcePublication):
         is_current = partial(self.source_current, page.after)
         if not is_current():
             return True
-        prepared = await plan.prepare(view, history, page, self.captured, is_current)
-        if prepared is None or not is_current():
+        prepared = await plan.prepare(view, history, page, self.captured)
+        if not is_current():
             return True
         evidence = NativeCommitEvidence(
             self.captured,

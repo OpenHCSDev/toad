@@ -116,8 +116,11 @@ async def test_a_growing_channel_draws_new_messages_for_a_tail_reader_and_keeps_
         await ui.until(lambda: history.state.accepts_source_work and not window.follows_tail, why="the reader above the tail")
         await ui.step()
         def message_rows():
-            # The message area's part of each screen line; the sidebar's unread count changes beside it.
-            return [line.rsplit("│", 1)[-1] for line in ui.visible_lines() if "Message" in line]
+            # Read the message area, excluding sidebar and scrollbar ink.
+            region = window.scrollable_content_region
+            rows = (strip.crop(region.x, region.right).text
+                    for strip in ui.app.screen._compositor.render_strips()[region.y:region.bottom])
+            return [line for line in rows if "Message" in line]
 
         position, top = window.scroll_y, message_rows()
         for index in range(60):

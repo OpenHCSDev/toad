@@ -16,14 +16,13 @@ from objectstate import mark_ui_hidden_config
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import NominalSpelling, NominalText
 from textual.binding import Binding, BindingsMap
-from textual.document._editing import EditorCommand
+from textual.dom import DOMNode
 from textual.keys import KeyInvocation
 from textual.screen import ModalScreen
-from textual.widgets import TextArea
 
 from toad.key_modes import KeyMode
 from toad.setting_declarations import Effect, FamilyChoices
-from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
+from toad.widget_actions import ApplicationAction
 
 
 if TYPE_CHECKING:
@@ -75,13 +74,6 @@ class KeymapRow:
     def binding_id(self) -> str:
         return KeyInvocation.in_mode(self.declaration, self.mode().binding_mode)
 
-    @property
-    def defaults(self) -> tuple[str, ...]:
-        return KeymapCatalog.capture((self.mode,)).defaults(self)
-
-    def effective(self, keymap: Keymap) -> tuple[str, ...]:
-        return keymap.keys_for(self, self.defaults)
-
 
 @dataclass(frozen=True)
 class KeyRemap(KeymapRow):
@@ -119,14 +111,9 @@ class KeymapCatalog:
             native_mode = mode().binding_mode
             application = tuple(binding for declaration in ApplicationAction.declarations()
                                 for binding in declaration.exclusive_bindings(native_mode))
-            editor = tuple(binding for declaration in EditorCommand.declarations()
-                           for binding in declaration.bindings_for(native_mode))
-            owned = [application, editor]
-            for owner in DeclaredWidgetActions.contexts():
-                defaults = owner.declared_bindings(native_mode)
-                if issubclass(owner, TextArea):
-                    defaults = (*defaults, *(binding for binding in editor
-                                             if binding.id not in {item.id for item in defaults}))
+            owned = [application]
+            for owner in DOMNode.contexts():
+                defaults = tuple(binding for _, binding in owner.binding_defaults(native_mode))
                 if not issubclass(owner, ModalScreen):
                     defaults = (*defaults, *application)
                 owned.append(defaults)
@@ -178,8 +165,7 @@ class Keymap:
         return next((remap.keys for remap in self.bindings if remap.binding_id == row.binding_id), defaults)
 
     def changed(self, row: KeymapRow, keys: tuple[str, ...]) -> Keymap:
-        if not keys:
-            raise KeymapRefused("Enter a key, or use Reset to restore the defaults.")
+        """No keys is an explicit unbinding, kept as its own override; Reset restores the defaults."""
         bindings = tuple(remap for remap in self.bindings if remap.binding_id != row.binding_id)
         candidate = replace(self, bindings=(*bindings, KeyRemap(row.declaration, row.mode, keys)))
         return self.checked(candidate, row.mode)

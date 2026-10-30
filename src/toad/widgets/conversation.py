@@ -45,7 +45,6 @@ from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
-from toad.app import ToadApp
 from toad.block_navigation import (
     BlockCursor,
     ContentNavigation,
@@ -88,6 +87,7 @@ from toad.session_scope import SessionScope, TranscriptScope
 from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
+from toad.app_node import ToadNode
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.comms_menu import ContextMenu
@@ -100,6 +100,7 @@ from toad.widgets.input_delivery import (
     InputDeliveryDetails,
 )
 from toad.widgets.menu import Menu
+from toad.widgets.message_divider import StickyHeader
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.note import Note
@@ -171,10 +172,28 @@ class CategorizedMount:
 
     def mount(self, *widgets, **kwargs):
         blocks = require_blocks(widgets)
-        mounted = super().mount(*blocks, **kwargs)
+        orders = {block.conversation_order for block in blocks}
+        if kwargs.keys() & {"before", "after"} or len(orders) != 1:
+            mounted = super().mount(*blocks, **kwargs)
+            self.sort_children(key=lambda block: block.conversation_order)
+        else:
+            # Children stay ordered, so blocks of one order go after the last
+            # child not above it: a live append (the common case) lands at the
+            # tail without visiting, sorting or relaying out the conversation.
+            (order,) = orders
+            children = self.children
+            index = len(children)
+            for index in range(len(children), 0, -1):
+                if children[index - 1].conversation_order <= order:
+                    break
+            else:
+                index = 0
+            if index == len(children):
+                mounted = super().mount(*blocks, **kwargs)
+            else:
+                mounted = super().mount(*blocks, before=children[index], **kwargs)
         # Registration supplies the history's real parent before its filter
         # prepares a projection; both still happen before first mount/paint.
-        self.sort_children(key=lambda block: block.conversation_order)
         selected = self.selected_categories
         for widget in blocks:
             widget.apply_message_filter(selected)
@@ -345,9 +364,21 @@ This is a view of your conversation with the agent.
             JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
             id="back-to-bottom-bar",
         )
+        self.sticky_header = StickyHeader()
 
     def compose(self) -> ComposeResult:
+        yield self.sticky_header
         yield self.jump_bar
+
+    def watch_scroll_y(self, old_value: float, new_value: float) -> None:
+        super().watch_scroll_y(old_value, new_value)
+        self.sticky_header.pin(self.top_message_header())
+
+    def prepare_viewport(self) -> None:
+        """Committed geometry can change the top row's message at an unchanged offset
+        (a reflow, a filter, replaced pages, a restored tab); pin from that scene too."""
+        super().prepare_viewport()
+        self.sticky_header.pin(self.top_message_header())
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -796,7 +827,7 @@ from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 class Conversation(
     ConversationCommsHandlers,
     NativeMethodKeys,
-    ConversationSessionBinding,
+    ConversationSessionBinding, ToadNode,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
@@ -812,16 +843,15 @@ class Conversation(
     contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
-    app = getters.app(ToadApp)
 
     @property
     def visible_read_cursor(self):
         """Only a painted, unfiltered tail can acknowledge the full transcript."""
         if not self.is_mounted or self.visible_categories != all_categories():
             return None
-        window = self.query_one_optional(Window)
+        window = self.window
         through = self.transcript.displayed_cursor
-        if through is None or window is None or not window.follows_tail:
+        if through is None or not window.follows_tail:
             return None
         if any(history.blocks_visible_read for history in window.histories):
             return None
@@ -962,6 +992,11 @@ class Conversation(
                 model_history_scope=Conversation.model_history_scope,
                 status=Conversation.status,
             )
+            # A retained editor is installed before Prompt.on_mount can apply a
+            # profile. Returning to a tab must not spawn a throwaway Neovim.
+            prompt.initial_editing_mode = self.query_ancestor(
+                SessionScope
+            ).presentation.initial_editing_mode
             self.goal_bar: GoalBar = GoalBar(self, prompt=prompt)
             yield self.goal_bar
             yield prompt
@@ -1096,7 +1131,7 @@ class Conversation(
         self.prompt.sync_session()
         if (details := self.query_one_optional(SessionDetails)) is not None:
             details.sync_turn()
-        self.app.show_error(event.message, "Agent failure")
+        self.app.notify(event.message, title="Agent failure", severity="error", markup=False)
 
         if self._agent_data is not None:
             self.app.application.usage.publish(
@@ -1192,6 +1227,17 @@ class Conversation(
             if (prompt := self.query_one_optional(Prompt)) is not None:
                 prompt.disabled = False
                 prompt.focus()
+
+    @work
+    @handles(input_events.ChangeConfiguration)
+    async def on_change_configuration(self, event: input_events.ChangeConfiguration) -> None:
+        agent = self.agent_binding
+        setting = agent.configuration.setting(event.setting)
+        error = await setting.select(agent, event.value)
+        if agent is not self.agent_binding:
+            return
+        if error is not None:
+            self.app.show_error(error, f"Set {setting.picker_title}")
 
     @work
     @handles(input_events.ChangeModel)

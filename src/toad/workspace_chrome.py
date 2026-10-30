@@ -9,6 +9,7 @@ from textual.layouts.vertical import VerticalLayout
 from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.footer import ToadFooter
+from toad.widgets.switch_toast import SwitchToast
 from ui_theme.scheme import HeaderToneColour
 from toad.tone_paint import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
@@ -39,6 +40,7 @@ class WorkspaceChrome(VerticalLayout):
         self.navigation = WorkspaceHeader(id="tab-navigation-header")
         self.channels = ChannelsSidebar()
         self.footer = ToadFooter(id="workspace-footer")
+        self.switch_toast = SwitchToast()
         self.native = NativeSessionSurface(app)
 
     def presented_sidebars(self):

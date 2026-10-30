@@ -155,9 +155,10 @@ class ApplicationLifetime:
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")
         self.usage.publish("toad-run")
+        destination = None
         for identity in await app.tab_order.load():
             try:
-                await identity.restore(app.session_navigation)
+                destination = await identity.restore(app.session_navigation)
             except TabTargetGone as error:
                 await app.tab_order.close((identity,))
                 app.log.error(f"Removed stale tab {error.identity}: {error.reason}")
@@ -169,6 +170,8 @@ class ApplicationLifetime:
                 partial(navigation.launch_screen, app),
                 original=(navigation.root, navigation.thread.incarnation),
             )
+        elif destination is not None:
+            await app.session_navigation.open(destination)
         if not app.tab_order.names:
             await app.select_session(app.tab_order.home)
         app.terminal_attention.attach()

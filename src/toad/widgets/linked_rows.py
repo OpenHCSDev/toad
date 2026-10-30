@@ -29,7 +29,6 @@ from toad.project_link import ProjectLink
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.transcript_lines import Lines
 
-
 class ReferenceRendering(CoreEventReceiver):
     """Borrow the source's observation for exactly this rendering lifetime."""
     def _on_mount(self):
