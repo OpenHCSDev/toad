@@ -50,6 +50,8 @@ async def test_divider_without_body_leaves_the_message_unread(workspace):
             assert all(fragment.message.seq != last.seq for fragment in history.read_fragments())
 
             mark_visible(history)
-            assert history.read_worker is None
-            await ui.step(.2)
+            # Earlier visible messages may have work; completing that work
+            # must not acknowledge the unread message whose text was hidden.
+            await history.read_worker.wait()
+            await ui.step()
             assert comms.views.viewer_snapshot(Checkout(project)).channel_unread["#team"] == ExactUnread(count=1)

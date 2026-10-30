@@ -28,9 +28,10 @@ async def test_hidden_channel_refresh_does_no_root_check_and_resumed_window_fetc
             # Exercise the real hidden callback, not a mocked visibility test.
             for _ in range(40):
                 await refresh_chat(chat)
-            assert not any(m.body == "ARRIVED-WHILE-HIDDEN" for m in history.messages)
+            assert not any(fragment.message.body == "ARRIVED-WHILE-HIDDEN" for fragment in history.fragments)
         await ui.select_tab(first)
-        await ui.until(lambda: any(m.body == "ARRIVED-WHILE-HIDDEN" for m in history.messages),
+        await ui.until(lambda: any(fragment.message.body == "ARRIVED-WHILE-HIDDEN"
+                                   for fragment in history.fragments),
                        why="the resumed channel to fetch the current message")
         # The history holds the message before layout has measured its rows; the next layout draws it.
         await ui.until(lambda: ui.shows("ARRIVED-WHILE-HIDDEN"), why="the fetched message drawn")
