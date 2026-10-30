@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from agent_comms.repo import Checkout
+from agent_comms.launch_root import LaunchRoot
 import shlex
 import sys
 from typing import TYPE_CHECKING
@@ -53,11 +54,11 @@ class AppAgents:
         self.app = app
 
     @classmethod
-    def unrun(cls, project: Path) -> AppAgents:
+    def unrun(cls, project: Path, launch_root: LaunchRoot) -> AppAgents:
         """For a test with no app running: agents of an app built on ``project`` and never run."""
         from toad.app import ToadApp
 
-        return cls(ToadApp(agent_binding=NoAgent(), project_dir=Checkout(project)))
+        return cls(ToadApp(agent_binding=NoAgent(), project_dir=Checkout(project), launch_root=launch_root))
 
     def agent[A: Agent](self, kind: type[A], definition: AgentDefinition, session_id: str | None = None,
                         **fields: object) -> A:

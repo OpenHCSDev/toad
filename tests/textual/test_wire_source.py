@@ -3,10 +3,12 @@
 import os
 
 from agent_comms.repo import Checkout
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.field_codec import TurnId
 from support.roots import installed_wire
+from support.agents import AppAgents
 from agent_comms.historical_views import ConversationObservation
 from agent_comms.page_traversal import LiveCursor
 from agent_comms.threads import Thread
@@ -21,7 +23,8 @@ from toad.wire_history import AfterSequence, GrowingWireObservation, MessageFrag
 def channel_source(comms, target, project):
     project = Checkout(project)
     viewer = comms.messaging.user_identity(project).name
-    return WireSource(comms, ChannelConversation(ChannelTarget(target)), project, viewer, IrcMessageStyle())
+    return WireSource(comms, ChannelConversation(ChannelTarget(target)), project, viewer, IrcMessageStyle(),
+                      access=AppAgents.unrun(project.path, LaunchRoot.from_path(comms.root)).app.coordination_access)
 
 
 def observed(source):

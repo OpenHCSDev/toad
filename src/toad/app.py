@@ -18,6 +18,7 @@ from time import monotonic
 from typing import TYPE_CHECKING, Callable, Never, TypeVar, cast
 
 from agent_comms.acp_extension import TranscriptChangedUpdate
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.repo import Checkout
 from toad.core import input_events
 from rich.console import RenderableType
@@ -150,6 +151,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self,
         agent_binding: AgentBinding,
         project_dir: Checkout,
+        launch_root: LaunchRoot,
         mode: str | None = None,
         agent_session_id: str | None = None,
     ) -> None:
@@ -158,6 +160,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         Args:
             agent_binding: The agent selected at startup.
             project_dir: Project directory.
+            launch_root: Coordination root selected by the launch owner.
             mode: Initial mode.
         """
         from toad.render_processes import RenderProcessPool
@@ -189,7 +192,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
             db=DB(),
         )
         self._session_tracker = SessionTracker(self.tab_order)
-        self.coordination_access = CoordinationAccess(self)
+        self.coordination_access = CoordinationAccess(self, launch_root)
 
         from toad.file_kind import FileKind
         FileKind.prepare_terminal()

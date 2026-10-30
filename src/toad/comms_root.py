@@ -24,6 +24,7 @@ from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
@@ -329,11 +330,9 @@ class AnsweringReads(Observing):
 class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
 
-    def __init__(self, app: ToadApp) -> None:
-        from agent_comms.launch_root import LaunchRoot
-
+    def __init__(self, app: ToadApp, launch_root: LaunchRoot) -> None:
         self.app = app
-        self.launch_root = LaunchRoot.current()
+        self.launch_root = launch_root
         from toad.acp.transcript_reader import CoordinationTranscriptReader
 
         self.transcripts = CoordinationTranscriptReader(self)
@@ -361,18 +360,31 @@ class CoordinationAccess(MroDispatch):
         self.commander_pages: WeakSet[CommanderPage] = WeakSet()
         self.commander_interest: ObserveCommanderHud | StopCommanderHud = StopCommanderHud()
 
+    @property
+    def selection(self) -> RouteSelection:
+        """The current route resolved from this app's held launch root."""
+        return RouteSelection.of(self.launch_root)
+
+    def selected(self, source: str | Path) -> RouteSelection:
+        """Select this app's route and refuse a foreign source."""
+        return self.selection.require_source(source)
+
+    def current(self, source: str | Path) -> bool:
+        """Whether a source still belongs to this app's current route."""
+        return self.selection.root_is_current(source)
+
     def open_current(self) -> Observing | FailedObservation:
         """Capture the current route and open its service, or expose the opening error."""
         with self.opening:
             selected: RouteSelection | UnselectedRoute = UnselectedRoute()
             try:
-                selected = RouteSelection.capture(self.launch_root.path)
+                selected = self.selection
                 return self.require(selected)
             except (OSError, ValueError, RuntimeError) as error:
                 return self.observation.failed(error, selected)
 
     def confirm(self, selected: RouteSelection) -> None:
-        if RouteSelection.capture() != selected:
+        if self.selection != selected:
             raise RouteChangedError("Comms route changed before the operation")
 
     def require(self, selected: RouteSelection) -> Observing:
@@ -649,5 +661,5 @@ class CoordinationAccess(MroDispatch):
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. No route lock: the
         # store refuses a write an install holds, inside its own write transaction.
-        RouteSelection.capture(selected.root)
+        self.confirm(selected)
         return operation(*args, **kwargs)

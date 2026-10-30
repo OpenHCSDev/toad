@@ -15,7 +15,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from agent_comms.importing import ImportedSessionMetadata
 from metaclass_registry.mro_dispatch import handles
-from agent_comms.native_turn_context import NativeContextData
+from agent_comms.pi_payloads import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.presentation import ReadState
 from agent_comms.registry_document import RegistryEntry
@@ -539,7 +539,7 @@ class ContextInspection:
         page = comms.contexts.page(owner, comms.registry,
             cursor=cursor, previous=previous)
         annotations = WorkingMemoryAnnotations.for_context(
-            comms.root / "coordination.sqlite3",
+            comms.registry.store.coordinator_reader,
             tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
         inspection_type = ThreadInspectionSource().project_value(entry.status)
@@ -622,7 +622,7 @@ class ContextInspection:
         if owner.incarnation != self.owner.incarnation:
             raise ValueError("Selected context thread incarnation changed")
         process = owner.require_process()
-        connection = RuntimeConnection(self.service, owner.name, socket_path(self.service.root, process.pid))
+        connection = RuntimeConnection(self.service, owner.incarnation, socket_path(self.service.root, process.pid))
         try:
             return await connection.request(action, **parameters)
         finally:
