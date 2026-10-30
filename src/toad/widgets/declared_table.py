@@ -8,12 +8,13 @@ from dataclasses import dataclass, field
 
 from agent_comms.disclosure_text import AnonymousKey, DisclosureKey, ViewTable
 from textual.content import Content
+from textual.navigation import MovesCursor
 from textual.style import Style
 from textual.widgets import DataTable
 from textual.widgets._data_table import RowKey
 from ui_theme.scheme import ForegroundColour, ThemeColour
 
-from toad.widget_actions import MovesCursor, OpensSelected
+from toad.widget_actions import OpensSelected
 
 
 class SelectionView[R]:

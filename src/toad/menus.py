@@ -23,7 +23,6 @@ if TYPE_CHECKING:
 class MenuDeclaration(FamilyMeta, KeyInvocation):
     """The declaration, not captured instance parameters, owns keyboard identity."""
 
-    key: str | None
     description: str
 
     def key_identity(cls) -> str:
@@ -37,9 +36,6 @@ class MenuDeclaration(FamilyMeta, KeyInvocation):
 
     def key_system(cls) -> bool:
         return False
-
-    def default_keys(cls) -> tuple[str, ...]:
-        return () if cls.key is None else (cls.key,)
 
     def permits_invocation_overlap(cls, other: KeyInvocation) -> bool:
         return other.overlaps_declaration(cls)
@@ -59,8 +55,11 @@ class MenuBinding(ModeBinding):
 class MenuCommand(DeclaredFamily, metaclass=MenuDeclaration, affix="Command"):
     """Every block operation checks the captured menu context before acting."""
 
-    key: ClassVar[str | None] = None
     description: ClassVar[str]
+
+    @classmethod
+    def default_keys(cls) -> tuple[str, ...]:
+        return ()
 
     @classmethod
     def permits_key_overlap(cls, other: type[KeyDeclaration]) -> bool:
@@ -75,10 +74,8 @@ class MenuCommand(DeclaredFamily, metaclass=MenuDeclaration, affix="Command"):
         menu.activate_command(self)
 
     async def run(self, owner: Menu) -> None:
-        from toad.session_scope import SessionScope
-
         conversation = owner.conversation
-        if (conversation.query_ancestor(SessionScope).is_current
+        if (conversation.is_current_session
                 and conversation.navigation.accepts_menu_owner(owner.block)):
             await invoke(self.apply, conversation)
 
@@ -86,7 +83,17 @@ class MenuCommand(DeclaredFamily, metaclass=MenuDeclaration, affix="Command"):
     def apply(self, conversation: Conversation) -> object: ...
 
 
-class CopyClipboardCommand(MenuCommand):
+class KeyedMenuCommand(MenuCommand, declared_name=None):
+    """A command with a declared default key supplies it through inheritance."""
+
+    key: ClassVar[str]
+
+    @classmethod
+    def default_keys(cls) -> tuple[str, ...]:
+        return (cls.key,)
+
+
+class CopyClipboardCommand(KeyedMenuCommand):
     key = "c"
     description = "[u]C[/]opy to clipboard"
 
@@ -94,7 +101,7 @@ class CopyClipboardCommand(MenuCommand):
         conversation.action_copy_to_clipboard()
 
 
-class CopyPromptCommand(MenuCommand):
+class CopyPromptCommand(KeyedMenuCommand):
     key = "p"
     description = "Co[u]p[/u]y to prompt"
 
@@ -102,7 +109,7 @@ class CopyPromptCommand(MenuCommand):
         conversation.action_copy_to_prompt()
 
 
-class ExportSvgCommand(MenuCommand):
+class ExportSvgCommand(KeyedMenuCommand):
     key = "v"
     description = "Open as S[u]V[/]G"
 
@@ -110,7 +117,7 @@ class ExportSvgCommand(MenuCommand):
         conversation.action_export_to_svg()
 
 
-class MaximizeBlockCommand(MenuCommand):
+class MaximizeBlockCommand(KeyedMenuCommand):
     key = "m"
     description = "[u]M[/u]aximize"
 
@@ -124,7 +131,7 @@ class CopyThinkingCommand(CopyClipboardCommand):
 
 
 @dataclass(frozen=True)
-class FocusBlockCommand(MenuCommand):
+class FocusBlockCommand(KeyedMenuCommand):
     block: Widget
     key = "f"
     description = "Focus"
@@ -133,19 +140,15 @@ class FocusBlockCommand(MenuCommand):
         self.block.focus()
 
 
-class InterruptCommand(MenuCommand):
+class InterruptCommand(KeyedMenuCommand):
     key = "i"
     description = "Interrupt"
 
     async def apply(self, conversation: Conversation) -> None:
-        from toad.conversation_actions import InterruptAction
-
-        command = InterruptAction()
-        if command.available(conversation):
-            await command.apply(conversation)
+        await conversation.interrupt_shell()
 
 
-class ExpansionCommand(MenuCommand, declared_name=None):
+class ExpansionCommand(KeyedMenuCommand, declared_name=None):
     @classmethod
     def permits_key_overlap(cls, other: type[KeyDeclaration]) -> bool:
         return issubclass(other, ExpansionCommand)
@@ -179,11 +182,11 @@ class OpenLinkCommand(MenuCommand, declared_name=None):
         conversation.transcript.binding.history.action_open(self.link)
 
 
-class OpenSenderCommand(OpenLinkCommand):
+class OpenSenderCommand(OpenLinkCommand, KeyedMenuCommand):
     key = "s"
     description = "Open [u]s[/u]ender"
 
 
-class OpenDestinationCommand(OpenLinkCommand):
+class OpenDestinationCommand(OpenLinkCommand, KeyedMenuCommand):
     key = "d"
     description = "Open [u]d[/u]estination"

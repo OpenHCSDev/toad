@@ -440,6 +440,11 @@ class ConversationSessionBinding(
     """An observed presentation whose transcript refresh waits for this view to be shown."""
 
     @property
+    def is_current_session(self) -> bool:
+        """Whether this conversation's owning session is still selected."""
+        return self.query_ancestor(SessionScope).is_current
+
+    @property
     def operational_sources(self):
         return self.query_ancestor(SessionScope).presentation.sources
 
@@ -481,7 +486,7 @@ class ConversationSessionBinding(
     def _publish_thread_source(self, presentation: ThreadPresentation) -> None:
         if not self.transcript.readable:
             return
-        if self.query_ancestor(SessionScope).is_current:
+        if self.is_current_session:
             from toad.transcript_publication import ObservedSourcePublication
 
             self._unpublished_presentation = NoThreadPresentation()
@@ -493,7 +498,7 @@ class ConversationSessionBinding(
 
     @handles(core_events.SessionSelected)
     async def _thread_view_selected(self, event: core_events.SessionSelected) -> None:
-        if not self.query_ancestor(SessionScope).is_current:
+        if not self.is_current_session:
             return
         self.refresh_thread_status()
         self.goal_observation.invalidate()
@@ -1090,6 +1095,12 @@ class Conversation(
         if (terminal := self._terminal) is not None:
             terminal.focus()
 
+    async def interrupt_shell(self) -> None:
+        """Menu and keyboard interruption share the live terminal's eligibility."""
+        if self.terminal_action_state:
+            await self.shell.interrupt()
+            self.feedback.flash("Command interrupted", style="success")
+
     @cached_property
     def navigation(self) -> ContentNavigation:
         return ContentNavigation(self.contents)
@@ -1684,7 +1695,7 @@ class Conversation(
 
     def on_click(self, event: events.Click) -> None:
         # A queued history click may arrive after its logical source retired.
-        if not self.query_ancestor(SessionScope).is_current:
+        if not self.is_current_session:
             return
         if (
             self._mouse_down_offset is not None
@@ -1999,7 +2010,7 @@ class Conversation(
         if (
             self.is_attached
             and not self.is_leaving
-            and self.query_ancestor(SessionScope).is_current
+            and self.is_current_session
             and self.navigation.cursor is cursor
         ):
             show(cursor)
