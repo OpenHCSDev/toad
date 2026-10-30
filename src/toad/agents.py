@@ -8,6 +8,13 @@ class AgentReadError(Exception):
     """Problem reading the agents."""
 
 
+class AgentNotFound(AgentReadError):
+    """The requested agent is absent from the available declarations."""
+
+    def __init__(self, identity: str) -> None:
+        super().__init__(f"Agent not found: {identity}")
+
+
 async def read_agents() -> dict[str, AgentDefinition]:
     """Read agent information from data/agents
 

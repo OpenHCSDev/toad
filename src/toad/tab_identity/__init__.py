@@ -12,7 +12,7 @@ from agent_comms.field_codec import FieldCodec
 if TYPE_CHECKING:
     from toad.session_entry import SessionEntry
     from toad.session_navigation import SessionNavigation
-    from toad.session_scope import SessionScope
+    from toad.session_scope import ProjectSessionOrigin
 
 
 class TabTargetGone(Exception):
@@ -42,9 +42,9 @@ class TabIdentity(DeclaredFamily, affix="Tab", discovery_package="toad.tab_ident
 class SessionTabIdentity(TabIdentity):
     """An agent or mailbox tab can own history tabs."""
 
-    async def history_source(self, navigation: SessionNavigation) -> SessionScope:
+    async def history_source(self, navigation: SessionNavigation) -> ProjectSessionOrigin:
         """An ACP session must establish its actual identity before routing history."""
         entry = await self.restore(navigation)
         await navigation.app.select_session(entry.mode)
         await navigation.app.workspace_sessions.require(entry.mode).wait_content_ready()
-        return navigation.app.workspace_sessions.require(entry.mode)
+        return navigation.app.workspace_sessions.require(entry.mode).origin.require()
