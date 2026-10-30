@@ -26,6 +26,7 @@ from textual.widget import Widget
 from textual.screen import ModalScreen
 from textual.widgets import Button, Checkbox, Input, Select, Static, TextArea
 from textual.widgets._input import InputType
+from textual.widgets.select import NoSelection
 
 from toad.forms.declared_views import DeclaredField, DeclaredViews, UnionMembers, declarations
 from toad.forms.kinds import Multiline
@@ -34,6 +35,8 @@ from toad.widget_view import WidgetView
 from toad.tone_paint import UntintedTonePaint
 
 if TYPE_CHECKING:
+    from agent_comms.field_codec import MemberSelection
+
     EditorWidget = Widget
 else:
     EditorWidget = object
@@ -365,7 +368,7 @@ class UnionEditor(ValueEditor, Button):
         self.paint()
 
     def value_text(self, value: object) -> str:
-        return self.members.label(self.members.selected(value))
+        return self.members.selected(value).label
 
     def paint(self) -> None:
         self.label = self.value_text(self.field.value)
@@ -406,8 +409,8 @@ class UnionMemberDialog(ModalScreen[None]):
         super().__init__()
         self.field, self.members = field, members
         choice = members.selected(field.value)
-        self.selector = Select(
-            [(members.label(member), member) for member in members.choices()],
+        self.selector: Select[MemberSelection] = Select(
+            [(member.label, member) for member in members.choices()],
             value=choice, allow_blank=False, id='union-member',
         )
         self.draft = members.draft(choice, field.value)
@@ -451,14 +454,17 @@ class UnionMemberDialog(ModalScreen[None]):
         from toad.forms.form_view import InlineFormView
 
         event.stop()
-        if event.value is self.draft.selection.declaration:
+        choice = self.selector.value
+        if isinstance(choice, NoSelection):
+            raise ValueError('A union selector requires a declared selection')
+        if choice == self.draft.selection:
             return
         self.apply_button.disabled = True
         self.draft.state.off_resolved_changed(self.changed)
         await self.form.remove()
         if not self.is_attached:
             return
-        self.draft = self.members.draft(event.value, self.field.value)
+        self.draft = self.members.draft(choice, self.field.value)
         self.form = InlineFormView(self.draft.state)
         await self.body.mount(self.form)
         self.draft.state.on_resolved_changed(self.changed)

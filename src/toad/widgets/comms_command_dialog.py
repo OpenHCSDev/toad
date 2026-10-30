@@ -53,30 +53,23 @@ class PreparedUnion(UnionMembers, MemberDraftFactory[MemberDraft]):
 
     parameter: TargetField
 
-    def choices(self) -> tuple[object, ...]:
-        return tuple(member.declaration for member in self.parameter.editor_selections)
+    def choices(self) -> tuple[MemberSelection, ...]:
+        return self.parameter.editor_selections
 
-    def selection(self, choice: object) -> MemberSelection:
-        return next(member for member in self.parameter.editor_selections
-                    if member.declaration is choice)
-
-    def label(self, choice: object) -> str:
-        return self.selection(choice).label
-
-    def selected(self, value: object) -> object:
-        return self.parameter.editor_selection(value).declaration
+    def selected(self, value: object) -> MemberSelection:
+        return self.parameter.editor_selection(value)
 
     def dialog(self, field: DeclaredField) -> CommandMemberDialog:
         return CommandMemberDialog(field, self)
 
-    def draft(self, choice: object, value: object) -> MemberDraft:
-        return self.selection(choice).draft(self, value)
+    def draft(self, choice: MemberSelection, value: object) -> MemberDraft:
+        return choice.draft(self, value)
 
     def unchosen(self, member: UnchosenMember) -> MemberDraft:
         return UnchosenMemberDraft(member)
 
     def member(self, member: EditorMember, value: object) -> MemberDraft:
-        return PreparedMemberDraft(member, value, self.selected(value) is member.declaration)
+        return PreparedMemberDraft(member, value, self.selected(value).declaration is member.declaration)
 
 
 class DeclaredDraft:
