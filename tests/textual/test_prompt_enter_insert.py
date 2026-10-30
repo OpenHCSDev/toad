@@ -2,7 +2,7 @@
 
 from agent_comms.repo import Checkout
 from support.agents import peer
-from toad.key_modes import Standard, VimInsert
+from toad.key_modes import Standard, VimInsert, VimNormal
 from toad.preferences import SETTINGS
 from toad.screens.settings import SettingsScreen
 from toad.session_scope import AgentAttached
@@ -11,6 +11,43 @@ from toad.widgets.prompt import MessagePrompt
 
 def test_enter_insert_before_compose_has_no_editor_to_touch(tmp_path):
     MessagePrompt(project=Checkout(tmp_path)).enter_insert()
+
+
+async def test_normal_profile_arrow_aliases_stay_out_of_real_insert_text(workspace):
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimNormal)
+        await ui.until(lambda: area.key_mode is VimNormal and area.editing_mode.completed,
+                       why="the real child in the saved Normal profile")
+        area.focus()
+        await ui.press("i")
+        await ui.until(lambda: area.editing_mode.accepts_text, why="real Insert entered from Normal")
+        await ui.type("hjkl")
+        await ui.until(lambda: area.text == "hjkl" and area.editing_mode.completed,
+                       why="printable aliases to arrive as text in Insert")
+
+
+async def test_escape_in_real_normal_leaves_the_box_and_keeps_vim_and_draft(workspace):
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
+        await ui.until(lambda: area.key_mode is VimInsert and area.editing_mode.completed,
+                       why="the real child in Insert")
+        area.focus()
+        await ui.type("draft")
+        await ui.until(lambda: area.text == "draft" and area.editing_mode.completed,
+                       why="a real draft to carry over")
+        await ui.press("escape")
+        await ui.until(lambda: area.editing_mode.allows_application_commands,
+                       why="the first Escape to leave Insert for Normal, not the profile")
+        assert area.key_mode is VimInsert
+        await ui.press("escape")
+        await ui.until(lambda: ui.conversation.window.has_focus,
+                       why="Escape in Normal to leave the box for navigation")
+        assert not area.has_focus
+        assert ui.conversation.prompt.editing_mode_label.content == "STANDARD"
+        assert area.key_mode is VimInsert and ui.app.settings.ui.key_mode is VimInsert
+        assert area.text == "draft"
 
 
 async def test_real_neovim_submission_shrinks_document_and_cursor_together(workspace):
@@ -106,3 +143,25 @@ async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(works
         await ui.type("B o stays native")
         assert "B o stays native" in area.text
         assert type(area.editing_mode) is Standard
+
+
+async def test_ctrl_w_typed_into_a_channel_in_real_insert_deletes_a_word_and_keeps_the_tab(workspace):
+    workspace.thread("owner", "team", running=True)
+    async with workspace.app(size=(100, 36)) as ui:
+        app, _pilot = ui.textual
+        owner = ui.selected_tab
+        await workspace.bind(app.selected_session, "owner")
+        await ui.open_channel("#team", actor="owner", owner=owner)
+        channel = ui.selected_tab
+        area = app.selected_session.query_one("CommsChatView Prompt TextArea")
+        app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
+        await ui.until(lambda: area.key_mode is VimInsert and area.editing_mode.completed,
+                       why="the real child in Insert")
+        area.focus()
+        await ui.type("kept gone")
+        await ui.until(lambda: area.text == "kept gone" and area.editing_mode.completed,
+                       why="a real draft")
+        await ui.press("ctrl+w")
+        await ui.until(lambda: area.text == "kept " and area.editing_mode.completed,
+                       why="Neovim's own ctrl+w to delete the word")
+        assert ui.selected_tab == channel and area.has_focus and area.editing_mode.accepts_text

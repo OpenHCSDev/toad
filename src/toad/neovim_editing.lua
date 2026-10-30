@@ -98,8 +98,8 @@ end, namespace)
 -- Install the actual native arrow declarations, including saved aliases, inside
 -- Neovim. Its mapping engine knows that the k in fk is an operand, not Up.
 for _, mapping in ipairs(mappings) do
-  local lhs, rhs, boundary = unpack(mapping)
-  for _, mode in ipairs({'', 'i'}) do
+  local lhs, rhs, boundary, modes = unpack(mapping)
+  for _, mode in ipairs(modes) do
     vim.keymap.set(mode, lhs, function()
       if vim.v.count == 0 and not vim.fn.mode(1):match('^no') then
         if vim.rpcrequest(channel, 'toad_cursor_boundary', boundary, state()) then return '' end
