@@ -1,6 +1,7 @@
 """A channel marks read exactly the messages whose text it showed, never the history it left out."""
 from agent_comms.read_basis import ChannelConversation
 from agent_comms.repo import Checkout
+from agent_comms.ui_model.unread import ExactUnread
 
 
 async def test_shown_messages_are_read_exactly_and_hidden_expansion_stays_unread(workspace):
@@ -32,13 +33,15 @@ async def test_shown_messages_are_read_exactly_and_hidden_expansion_stays_unread
         ), why="the shown messages to be marked read")
         # Earlier messages were read from Core for scrolling, but never shown.
         assert 0 < len(shown()) < len(messages) and not ui.shows("channel 00 line")
-        assert comms.views.viewer_snapshot(Checkout(project)).channel_unread["#team"] == len(messages) - len(shown())
+        assert comms.views.viewer_snapshot(Checkout(project)).channel_unread["#team"] == ExactUnread(
+            count=len(messages) - len(shown()))
         assert hidden.seq not in ledger.cursor(viewer, snapshot).for_conversation(
             ledger.conversation(hidden, snapshot))
         await ui.select_tab(owner)
         comms.channels.set_channel_any_mode("#team", True)
         comms.channels.update_tags("bob", add=frozenset({"team"}))
         # Expanding a hidden tab's view never manufactures read facts.
-        assert comms.views.viewer_snapshot(Checkout(project)).channel_unread["#team"] >= len(messages) - len(shown()) + 1
+        assert comms.views.viewer_snapshot(Checkout(project)).channel_unread["#team"] == ExactUnread(
+            count=len(messages) - len(shown()) + 1)
         assert hidden.seq not in ledger.cursor(viewer, snapshot).for_conversation(
             ledger.conversation(hidden, snapshot))
