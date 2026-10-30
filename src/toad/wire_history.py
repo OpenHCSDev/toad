@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
+from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
     ConversationHistoryView,
     ConversationObservation,
@@ -299,6 +300,10 @@ class WireSource:
     @property
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(self.project)
+
+    def references(self) -> CurrentDisplayReferences:
+        """Resolve stable destinations through this read's registry cut."""
+        return CurrentDisplayReferences.from_registry(str(self.comms.root), self.comms.registry.snapshot())
 
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""

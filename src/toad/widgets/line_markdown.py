@@ -68,10 +68,12 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
             rows = self._row_count()
             # A completed stream may own a final semantic row (for example the
             # gap after thinking). It cannot remain inside a styled prefix once
-            # more text follows it.
-            if self.line_blocks(self.text, complete=True) != self.line_blocks(
-                self.text, complete=False
-            ):
+            # more text follows it. Only a render of the whole text was
+            # complete; a paragraph prefix (the streaming case) has no final
+            # row and stays, so each chunk re-renders only its plain tail.
+            if self._styled_text == self.text and self.line_blocks(
+                self.text, complete=True
+            ) != self.line_blocks(self.text, complete=False):
                 self._styled, self._styled_text = None, ""
             self._plain = None
             self.text = text
