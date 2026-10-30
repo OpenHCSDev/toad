@@ -31,7 +31,7 @@ class WelcomeHistoryOrigin(HistoryOrigin):
         return WELCOME
 
     async def restore(self, navigation) -> SessionScope:
-        source = await navigation.app.workspace_sessions.prepare(WELCOME)
+        source = await navigation.app.prepare_session(WELCOME)
         await source.prepare_history_origin()
         return source
 

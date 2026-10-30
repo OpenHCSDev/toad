@@ -350,6 +350,11 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
             }))
 
 
+    async def prepare_session(self, mode: str):
+        """Mount an owner shell under the same admission as visible transitions."""
+        async with self._mode_switch_lock:
+            return await self.workspace_sessions.prepare(mode)
+
     def select_session(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
         if mode != self.selected_mode:
             self.navigation_reader.invalidate()
