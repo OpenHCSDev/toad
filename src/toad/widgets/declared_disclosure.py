@@ -1,14 +1,9 @@
-"""Lazy disclosures of declared values, not a second handwritten record schema."""
+"""Lazy native paint over Core's prepared disclosure tree."""
 
 from __future__ import annotations
 
-from collections.abc import Collection, Mapping, Sequence
-from dataclasses import dataclass, is_dataclass
-from functools import singledispatchmethod
-from typing import ClassVar, Hashable
-
-from agent_comms.field_codec import DisclosureIdentity, FieldCodec, FieldPlan
-from python_introspect import declared_field_label
+from agent_comms.disclosure_text import DisclosureEntry, DisclosureKey, DisclosureText, StructuredText
+from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import events
 from textual.containers import VerticalGroup
 from textual.content import Content
@@ -17,185 +12,8 @@ from textual.widgets import Collapsible, Static
 from toad.widgets.sidebar_tree import KeyedRows
 
 
-class DisclosureKey:
-    """Nominal native-row identity; its members carry only their differing components."""
-
-
-@dataclass(frozen=True)
-class RecordKey(DisclosureKey):
-    owner: type
-
-
-class RootKey(RecordKey):
-    """The whole record, not one of its fields."""
-
-
-@dataclass(frozen=True)
-class FieldKey(RecordKey):
-    name: str
-
-
-@dataclass(frozen=True)
-class EntityKey(RecordKey):
-    parts: tuple[object, ...]
-
-
-class AnonymousKey(DisclosureKey):
-    """A source without declared entity identity cannot inherit another item's view."""
-
-
-@dataclass(frozen=True)
-class MappingKey(DisclosureKey):
-    key: Hashable
-
-
-@dataclass(frozen=True)
-class DisclosedValue:
-    """One borrowed value. Shape is recovered only at this structural boundary."""
-
-    value: object
-
-    @singledispatchmethod
-    @classmethod
-    def of(cls, value: object) -> DisclosedValue:
-        if is_dataclass(value):
-            identity = tuple(
-                plan for plan in FieldCodec.field_plans(type(value))
-                if DisclosureIdentity.read(plan.annotation, False)
-            )
-            if identity:
-                return IdentifiedRecordValue(value, identity)
-            return RecordValue(value)
-        return cls(value)
-
-    @of.register(type)
-    @classmethod
-    def _class(cls, value: type) -> DisclosedValue:
-        return ClassValue(value)
-
-    @of.register(Mapping)
-    @classmethod
-    def _mapping(cls, value: Mapping[Hashable, object]) -> DisclosedValue:
-        return MappingValue(value)
-
-    @of.register(Sequence)
-    @classmethod
-    def _sequence(cls, value: Sequence[object]) -> DisclosedValue:
-        return SequenceValue(value)
-
-    @of.register(str)
-    @of.register(bytes)
-    @classmethod
-    def _scalar(cls, value: str | bytes) -> DisclosedValue:
-        return cls(value)
-
-    def sequence_key(self) -> DisclosureKey:
-        return AnonymousKey()
-
-    def identity_part(self) -> object:
-        return self.value
-
-    def summary(self, width: int) -> str:
-        # Preview work is bounded by the visible label, not the history body's size.
-        return str(self.value)[:width].partition("\n")[0]
-
-    def show(self, view: DeclaredDisclosure) -> None:
-        view.body.display = True
-        view.members.display = False
-        view.body.update(str(self.value))
-
-
-@dataclass(frozen=True)
-class ClassValue(DisclosedValue):
-    value: type
-
-    def summary(self, width: int) -> str:
-        return self.value.__name__
-
-
-class StructuredValue(DisclosedValue):
-    def children(self) -> tuple[DisclosureEntry, ...]:
-        raise NotImplementedError
-
-    def show(self, view: DeclaredDisclosure) -> None:
-        view.body.display = False
-        view.members.display = True
-        entries = self.children()
-        view.reconcile_entries(entries)
-
-
-class RecordValue(StructuredValue):
-    def summary(self, width: int) -> str:
-        return type(self.value).__name__
-
-    def children(self) -> tuple[DisclosureEntry, ...]:
-        return tuple(
-            DisclosureEntry(
-                FieldKey(type(self.value), plan.name),
-                declared_field_label(plan.annotation) or plan.key.replace("_", " ").capitalize(),
-                DisclosedValue.of(plan.current(self.value)),
-            )
-            for plan in FieldCodec.field_plans(type(self.value)) if plan.records
-        )
-
-
-@dataclass(frozen=True)
-class IdentifiedRecordValue(RecordValue):
-    identity: tuple[FieldPlan, ...]
-
-    def sequence_key(self) -> EntityKey:
-        return EntityKey(type(self.value), tuple(
-            DisclosedValue.of(plan.current(self.value)).identity_part()
-            for plan in self.identity
-        ))
-
-    def identity_part(self) -> EntityKey:
-        return self.sequence_key()
-
-
-@dataclass(frozen=True)
-class CollectionValue(StructuredValue):
-    value: Collection[object]
-    noun: ClassVar[str] = "item"
-
-    def summary(self, width: int) -> str:
-        count = len(self.value)
-        return f"{count} {self.noun}{'s' if count != 1 else ''}"
-
-
-@dataclass(frozen=True)
-class SequenceValue(CollectionValue):
-    value: Sequence[object]
-
-    def children(self) -> tuple[DisclosureEntry, ...]:
-        entries = []
-        for index, value in enumerate(self.value):
-            disclosed = DisclosedValue.of(value)
-            entries.append(DisclosureEntry(disclosed.sequence_key(), str(index + 1), disclosed))
-        return tuple(entries)
-
-
-@dataclass(frozen=True)
-class MappingValue(CollectionValue):
-    value: Mapping[Hashable, object]
-    noun = "field"
-
-    def children(self) -> tuple[DisclosureEntry, ...]:
-        return tuple(
-            DisclosureEntry(MappingKey(key), str(key), DisclosedValue.of(value))
-            for key, value in self.value.items()
-        )
-
-
-@dataclass(frozen=True)
-class DisclosureEntry:
-    key: DisclosureKey
-    label: str
-    value: DisclosedValue
-
-
-class DeclaredDisclosure(KeyedRows[DisclosureKey], Collapsible):
-    """Native widgets own expansion/focus; only open branches acquire child widgets."""
+class DeclaredDisclosure(KeyedRows[DisclosureKey], MroDispatch, Collapsible):
+    """Core owns children and identity; native widgets own expansion and focus."""
 
     DEFAULT_CSS = """
     DeclaredDisclosure { height: auto; border: none; padding: 0; margin: 0; }
@@ -227,7 +45,7 @@ class DeclaredDisclosure(KeyedRows[DisclosureKey], Collapsible):
         row.present(self.pending_entries[key])
 
     def reconcile_entries(self, entries: tuple[DisclosureEntry, ...]) -> None:
-        # Reconciliation borrows the immediate declarations only for this call.
+        # Reconciliation borrows the immediate prepared children only for this call.
         by_key = {entry.key: entry for entry in entries}
         if len(by_key) != len(entries):
             raise ValueError(f"Repeated declared identity in {self.entry.label}")
@@ -237,9 +55,25 @@ class DeclaredDisclosure(KeyedRows[DisclosureKey], Collapsible):
         finally:
             del self.pending_entries
 
+    @handles(DisclosureText)
+    def scalar(self, source: DisclosureText) -> None:
+        self.body.display = True
+        self.members.display = False
+        self.body.update(source.summary)
+
+    @handles(StructuredText)
+    def structured(self, source: StructuredText) -> None:
+        self.body.display = False
+        self.members.display = True
+        self.reconcile_entries(source.children)
+
+    def show_source(self) -> None:
+        source = self.entry.value
+        type(self).handler_for(type(source))(self, source)
+
     def fit_title(self) -> None:
         width = max(1, self.size.width - 2)
-        title = Content(f"{self.entry.label[:width]}: {self.entry.value.summary(width)}")
+        title = Content(f"{self.entry.label}: {self.entry.value.summary}".partition("\n")[0])
         self.title = title.truncate(width, ellipsis=True)
 
     def on_resize(self, event: events.Resize) -> None:
@@ -249,9 +83,9 @@ class DeclaredDisclosure(KeyedRows[DisclosureKey], Collapsible):
         self.entry = entry
         self.fit_title()
         if self.is_mounted and not self.collapsed:
-            entry.value.show(self)
+            self.show_source()
 
     def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
         if event.collapsible is self:
             event.stop()
-            self.entry.value.show(self)
+            self.show_source()
