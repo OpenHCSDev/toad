@@ -10,13 +10,13 @@ from types import MappingProxyType
 from typing import ClassVar, Generic, Literal, Self, TypeVar
 
 from agent_comms.command import Command
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.declared_family import DeclaredFamily, FamilyMeta
 from agent_comms.field_codec import FieldCodec, FieldPlan
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
-from textual.keys import KeyDeclaration
+from textual.keys import KeyDeclaration, KeyDeclarationType
 from textual.widgets.text_area import EditingMode
 from textual.dom import DOMNode
 from toad.app_node import ToadNode
@@ -26,7 +26,12 @@ from dataclasses import dataclass
 Context = TypeVar("Context", bound=DOMNode)
 
 
-class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context], affix="Action"):
+class KeyFamilyMeta(FamilyMeta, KeyDeclarationType):
+    """A named command family whose classes declare native key overlap."""
+
+
+class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
+             metaclass=KeyFamilyMeta, affix="Action"):
     """Only the Textual boundary decodes an external action name. A member declares its
     keys, and its title and docstring are the only text any view shows for it."""
 

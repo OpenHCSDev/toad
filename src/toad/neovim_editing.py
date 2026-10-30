@@ -773,6 +773,7 @@ class NeovimEditing(VimMode, MroDispatch):
     """One engine, one input queue, completed snapshots only from SafeState."""
 
     initial_keys = ""
+    map_modes: ClassVar[tuple[str, ...]] = ()
 
     def __init__(self) -> None:
         self._receiver: DetachedReceiver = DetachedReceiver()
@@ -1018,11 +1019,14 @@ class NeovimEditing(VimMode, MroDispatch):
             [row + 1, len(initial_lines[row][:column].encode("utf-8"))]]))
         script = files(toad).joinpath("neovim_editing.lua").read_text()
         mappings: list[list[object]] = []
-        for key, binding in editor.binding_map(type(self)):
-            for spelling, native in binding.declared_key.input_bindings(key):
-                index = len(self._boundaries)
-                self._boundaries.append(binding)
-                mappings.append([self.input_code(spelling), self.input_code(native), index])
+        # One engine crosses every Neovim mode, so each mode takes its own profile's keys.
+        for profile in NeovimEditing.__subclasses__():
+            for key, binding in editor.binding_map(profile):
+                for spelling, native in binding.declared_key.input_bindings(key):
+                    index = len(self._boundaries)
+                    self._boundaries.append(binding)
+                    mappings.append([self.input_code(spelling), self.input_code(native), index,
+                                     list(profile.map_modes)])
         await self._bootstrap(NeovimCall("nvim_exec_lua", [script, [mappings, api.channel]]))
         await self._bootstrap(NeovimCall("nvim_set_option_value", ["tabstop", editor.indent_width, {}]))
         if self.initial_keys:
