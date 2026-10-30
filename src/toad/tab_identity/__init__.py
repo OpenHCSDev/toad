@@ -11,6 +11,8 @@ from agent_comms.field_codec import FieldCodec
 
 if TYPE_CHECKING:
     from toad.session_entry import SessionEntry
+    from toad.session_navigation import SessionNavigation
+    from toad.session_scope import SessionScope
 
 
 class TabTargetGone(Exception):
@@ -25,7 +27,7 @@ class TabIdentity(DeclaredFamily, affix="Tab", discovery_package="toad.tab_ident
     def mode_name(self) -> str:
         return f"{self.declared_name}-{FieldCodec.digest(self)}"
 
-    async def restore(self, navigation) -> SessionEntry:
+    async def restore(self, navigation: SessionNavigation) -> SessionEntry:
         """Restore logical membership, not a succession of visible conversations."""
         entry = navigation.get(self.mode_name)
         if entry is None:
@@ -34,13 +36,13 @@ class TabIdentity(DeclaredFamily, affix="Tab", discovery_package="toad.tab_ident
         return entry
 
     @abstractmethod
-    async def entry(self, navigation) -> SessionEntry: ...
+    async def entry(self, navigation: SessionNavigation) -> SessionEntry: ...
 
 
 class SessionTabIdentity(TabIdentity):
     """An agent or mailbox tab can own history tabs."""
 
-    async def history_source(self, navigation):
+    async def history_source(self, navigation: SessionNavigation) -> SessionScope:
         """An ACP session must establish its actual identity before routing history."""
         entry = await self.restore(navigation)
         await navigation.app.select_session(entry.mode)

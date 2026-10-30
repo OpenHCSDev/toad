@@ -12,6 +12,7 @@ from toad.constants import WELCOME
 from toad.tab_identity import SessionTabIdentity
 
 if TYPE_CHECKING:
+    from toad.session_navigation import SessionNavigation
     from toad.session_scope import SessionScope
 
 
@@ -21,7 +22,7 @@ class HistoryOrigin(DeclaredFamily, affix="HistoryOrigin"):
     def mode_name(self) -> str: ...
 
     @abstractmethod
-    async def restore(self, navigation) -> SessionScope: ...
+    async def restore(self, navigation: SessionNavigation) -> SessionScope: ...
 
 
 @dataclass(frozen=True)
@@ -30,7 +31,7 @@ class WelcomeHistoryOrigin(HistoryOrigin):
     def mode_name(self) -> str:
         return WELCOME
 
-    async def restore(self, navigation) -> SessionScope:
+    async def restore(self, navigation: SessionNavigation) -> SessionScope:
         source = await navigation.app.prepare_session(WELCOME)
         await source.prepare_history_origin()
         return source
@@ -44,5 +45,5 @@ class SessionHistoryOrigin(HistoryOrigin):
     def mode_name(self) -> str:
         return self.identity.mode_name
 
-    async def restore(self, navigation) -> SessionScope:
+    async def restore(self, navigation: SessionNavigation) -> SessionScope:
         return await self.identity.history_source(navigation)

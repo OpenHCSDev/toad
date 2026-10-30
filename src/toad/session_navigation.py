@@ -158,7 +158,7 @@ class SessionNavigation:
             original=(prepared.root, prepared.thread.incarnation),
         )
 
-    async def history_entry(self, identity: HistoryTab, source) -> HistorySessionEntry:
+    async def history_entry(self, identity: HistoryTab, source: SessionScope) -> HistorySessionEntry:
         def participants():
             service = self.app.coordination_access.observation.observed().service
             if service.root != Path(identity.root):
