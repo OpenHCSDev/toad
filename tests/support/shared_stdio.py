@@ -21,11 +21,12 @@ async def threads_owned_here(comms, project, names=("alpha", "beta")):
     """Declare `names` as threads of `project`, owned by this process through Core's ACP agent."""
     from agent_comms.acp import CommsAgent
     from agent_comms.field_codec import AcpSessionId
+    from agent_comms.repo import Checkout
 
     owner = CommsAgent(comms, runtime_enabled=True, auto_wake=False)
     try:
         for name in names:
-            comms.threads.claim_thread(name, tags=frozenset({"acp"}), worktree=str(project))
+            comms.threads.claim_thread(name, tags=frozenset({"acp"}), worktree=Checkout(project))
             comms.registry.restore_stopped(comms.registry.snapshot(), (name,))
             thread = comms.owners.acquire_thread(name)
             await owner.sessions.bind_owned(thread, AcpSessionId(name))

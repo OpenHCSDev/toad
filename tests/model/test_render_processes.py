@@ -12,6 +12,7 @@ from unittest.mock import patch
 import pytest
 
 from agent_comms.launch_runtime import ThreadLaunch
+from agent_comms.repo import Checkout
 
 from toad.render_processes import RenderProcessPool
 
@@ -77,7 +78,7 @@ async def test_workers_are_spawned_apart_from_the_parent_and_errors_propagate(mo
     async with pools() as make:
         pool = make()
         assert pool._executor is None
-        launch = ThreadLaunch("pilot-only", "/pilot-only", frozenset({"pilot"}), managed=True)
+        launch = ThreadLaunch("pilot-only", Checkout(Path("/pilot-only")), frozenset({"pilot"}), managed=True)
         for name, value in launch.encode().items():
             monkeypatch.setenv(name, value)
         assert ThreadLaunch.inherited(os.environ) == launch.encode()

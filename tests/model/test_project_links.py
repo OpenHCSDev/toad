@@ -23,9 +23,9 @@ def decode(root, href):
 
 def test_absolute_and_relative_spellings_name_the_same_existing_file(project):
     root, plan = project
-    assert decode(root, str(plan)) == DirectProjectFileLink(plan)
-    assert decode(root, "plans/tag-channel-view-plan.md") == DirectProjectFileLink(plan)
-    assert decode(root, plan.as_uri()) == DirectProjectFileLink(plan)
+    assert decode(root, str(plan)) == DirectProjectFileLink(plan, original_root=root)
+    assert decode(root, "plans/tag-channel-view-plan.md") == DirectProjectFileLink(plan, original_root=root)
+    assert decode(root, plan.as_uri()) == DirectProjectFileLink(plan, original_root=root)
 
 
 def test_web_addresses_stay_external(project):
@@ -36,8 +36,8 @@ def test_web_addresses_stay_external(project):
 
 def test_a_bare_file_name_that_is_not_at_the_root_is_searched_for(project):
     root, _ = project
-    assert decode(root, "missing.py") == SearchProjectFileLink("missing.py")
-    assert decode(root, "plans/missing.md") == MissingProjectFileLink("plans/missing.md")
+    assert decode(root, "missing.py") == SearchProjectFileLink("missing.py", original_root=root)
+    assert decode(root, "plans/missing.md") == MissingProjectFileLink("plans/missing.md", original_root=root)
 
 
 async def test_a_unique_file_name_resolves_to_its_nested_path(project):
@@ -46,9 +46,9 @@ async def test_a_unique_file_name_resolves_to_its_nested_path(project):
     nested.parent.mkdir(parents=True)
     nested.write_text("# NESTED-DECLARATIONS-MARKER\n")
     link = decode(root, "declarations.py")
-    assert link == SearchProjectFileLink("declarations.py")
+    assert link == SearchProjectFileLink("declarations.py", original_root=root)
     assert await link.resolve(root) == nested
-    assert decode(root, f"{nested}") == DirectProjectFileLink(nested)
+    assert decode(root, f"{nested}") == DirectProjectFileLink(nested, original_root=root)
 
 
 async def test_a_file_name_found_twice_is_ambiguous_and_a_file_name_found_nowhere_is_missing(project):
@@ -57,7 +57,7 @@ async def test_a_file_name_found_twice_is_ambiguous_and_a_file_name_found_nowher
         (root / place).mkdir(parents=True, exist_ok=True)
         (root / place / "declarations.py").write_text("# declaration\n")
     with pytest.raises(AmbiguousProjectFile) as ambiguous:
-        await SearchProjectFileLink("declarations.py").resolve(root)
+        await SearchProjectFileLink("declarations.py", original_root=root).resolve(root)
     assert "Several files named declarations.py" in ambiguous.value.notice
     with pytest.raises(ProjectLinkProblem):
-        await SearchProjectFileLink("absent.py").resolve(root)
+        await SearchProjectFileLink("absent.py", original_root=root).resolve(root)

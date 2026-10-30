@@ -9,7 +9,7 @@ class ProbePermissionPresentation(PermissionPresentation):
     priority = 1
 
     @classmethod
-    def admit(cls, kind, title, content):
+    def for_request(cls, kind, title, content):
         return cls(title) if kind == "read" else None
 
 
