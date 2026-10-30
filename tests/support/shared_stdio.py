@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agent_comms.repo import Checkout
 from contextlib import asynccontextmanager
 import shlex
 import sys
