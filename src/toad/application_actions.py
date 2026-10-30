@@ -166,7 +166,6 @@ class KeymapAction(ApplicationAction):
     """Browse keyboard shortcuts and change their keys for each editing mode."""
 
     keys = {EditingMode: ("f1",)}
-    priority = True
 
     async def apply(self, app: ToadApp) -> None:
         focused = frozenset(binding.id for node, bindings in app.screen._binding_chain
@@ -278,7 +277,6 @@ class QuitAction(ApplicationAction):
     """Save preferences and quit the application."""
 
     keys = {EditingMode: ("ctrl+q",)}
-    priority = True
 
     async def apply(self, app: ToadApp) -> None:
         app.application.quit()

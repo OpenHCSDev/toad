@@ -10,7 +10,7 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
     workspace.thread("peer", "team", running=True)
     comms = workspace.comms
     viewer = workspace.viewer
-    rows = [comms.messaging.send_message("peer", "#team", f"row {i}\n" + "body\n" * 10) for i in range(8)]
+    rows = [comms.messaging.send("peer", "#team", f"row {i}\n" + "body\n" * 10).message for i in range(8)]
 
     def seen():
         return comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot())

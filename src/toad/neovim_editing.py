@@ -379,7 +379,7 @@ class DetachedReceiver:
     def boundary(self, binding: Binding) -> bool:
         return False
 
-    def project(self, changes: Sequence[NeovimChange]) -> None:
+    def project(self, changes: Sequence[NeovimChange], cursor: Location) -> None:
         pass
 
     def finish_projection(self) -> None:
@@ -400,7 +400,7 @@ class RetainedReceiver(DetachedReceiver):
         if editor.document is not self.document:
             editor.set_document(self.document)
 
-    def project(self, changes: Sequence[NeovimChange]) -> None:
+    def project(self, changes: Sequence[NeovimChange], cursor: Location) -> None:
         for change in changes:
             self.project_edit(change.apply(self.document))
 
@@ -415,6 +415,13 @@ class AttachedReceiver(RetainedReceiver):
     @property
     def document(self) -> DocumentBase:
         return self._editor.document
+
+    def project(self, changes: Sequence[NeovimChange], cursor: Location) -> None:
+        """Publish the document and its cursor before size-dependent effects."""
+        super().project(changes, cursor)
+        if self._editor.cursor_location != cursor:
+            self._editor.paint_selection(Selection.cursor(cursor))
+            self._editor.record_cursor_width()
 
     def project_edit(self, result: RangedEditResult) -> None:
         self._editor.project_engine_edit(result)
@@ -831,6 +838,7 @@ class NeovimEditing(VimMode, MroDispatch):
         self._rendered = self._rendered.unpainted()
         started = self._started
         if started.done() and not started.cancelled():
+            self._receiver.project((), self.snapshot.state.cursor)
             self.paint(editor)
 
     def resume(self, editor: TextArea) -> None:
@@ -1068,8 +1076,7 @@ class NeovimEditing(VimMode, MroDispatch):
     def publish(self, snapshot: NeovimSnapshot) -> None:
         """Project preceding lines before exposing the display that describes them."""
         changes, self._changes = self._changes, []
-        if changes:
-            self._receiver.project(changes)
+        self._receiver.project(changes, snapshot.state.cursor)
         self.snapshot = snapshot
         if changes:
             self._receiver.finish_projection()
@@ -1098,9 +1105,6 @@ class NeovimEditing(VimMode, MroDispatch):
         if self.snapshot is self._rendered:
             return
         previous, current = self._rendered, self.snapshot.state
-        if not previous.matches(current, lambda state: state.cursor):
-            editor.paint_selection(Selection.cursor(current.cursor))
-            editor.record_cursor_width()
         if not previous.matches(current, lambda state: state.regions):
             editor.invalidate_engine_regions((*previous.state.regions, *current.regions))
         if not previous.matches(current, lambda state: (state.label, state.command_line)):
@@ -1150,10 +1154,8 @@ class NeovimEditing(VimMode, MroDispatch):
         return await finished
 
     async def handle_key(self, editor: TextArea, event: Key) -> bool:
-        try:
-            await self._input(self.input_code(event.key, event.character or ""))
-        except EditingFailure:
-            pass  # The child/wire failure was reported; never replay input.
+        """Queue input; the existing request owner observes its reply and failure."""
+        self._input(self.input_code(event.key, event.character or ""))
         return True
 
     @staticmethod

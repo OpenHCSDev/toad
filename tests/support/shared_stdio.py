@@ -20,6 +20,7 @@ def stdio_agent_definition():
 async def threads_owned_here(comms, project, names=("alpha", "beta")):
     """Declare `names` as threads of `project`, owned by this process through Core's ACP agent."""
     from agent_comms.acp import CommsAgent
+    from agent_comms.field_codec import AcpSessionId
 
     owner = CommsAgent(comms, runtime_enabled=True, auto_wake=False)
     try:
@@ -27,7 +28,7 @@ async def threads_owned_here(comms, project, names=("alpha", "beta")):
             comms.threads.claim_thread(name, tags=frozenset({"acp"}), worktree=str(project))
             comms.registry.restore_stopped(comms.registry.snapshot(), (name,))
             thread = comms.owners.acquire_thread(name)
-            await owner.sessions.bind_owned(thread, name)
+            await owner.sessions.bind_owned(thread, AcpSessionId(name))
         yield owner
     finally:
         await owner.shutdown()
