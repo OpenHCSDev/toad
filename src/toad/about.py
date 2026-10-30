@@ -78,7 +78,7 @@ uses its own stdio ACP process and reconnects to its saved wire thread.
 )
 
 
-def render() -> str:
+def render(launch_root: LaunchRoot) -> str:
     """Render about markdown.
 
     Returns:
@@ -95,7 +95,7 @@ def render() -> str:
         "COLORTERM": os.environ.get("COLORTERM", ""),
         "COMMS_AGENT_ARGS": shlex.join(InheritedArguments().configured().argv),
         "COMMS_AGENT_BIN": ConfiguredBinary().configured(),
-        "COMMS_ROOT": str(LaunchRoot.current().path),
+        "COMMS_ROOT": str(launch_root.path),
         "CONFIG": config,
         "DATA_PATH": paths.get_data(),
         "LOG_PATH": paths.get_log(),

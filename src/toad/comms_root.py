@@ -24,6 +24,7 @@ from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
+from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
@@ -329,11 +330,9 @@ class AnsweringReads(Observing):
 class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
 
-    def __init__(self, app: ToadApp) -> None:
-        from agent_comms.launch_root import LaunchRoot
-
+    def __init__(self, app: ToadApp, launch_root: LaunchRoot) -> None:
         self.app = app
-        self.launch_root = LaunchRoot.current()
+        self.launch_root = launch_root
         from toad.acp.transcript_reader import CoordinationTranscriptReader
 
         self.transcripts = CoordinationTranscriptReader(self)
@@ -372,7 +371,7 @@ class CoordinationAccess(MroDispatch):
                 return self.observation.failed(error, selected)
 
     def confirm(self, selected: RouteSelection) -> None:
-        if RouteSelection.capture() != selected:
+        if RouteSelection.capture(selected.root) != selected:
             raise RouteChangedError("Comms route changed before the operation")
 
     def require(self, selected: RouteSelection) -> Observing:
