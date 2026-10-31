@@ -529,8 +529,10 @@ class SidebarResizeHandle(
 
     def drag_to(self, position: Offset) -> None:
         edge = self._drag_edge
-        extent = self._start_extent + edge.sign * edge.coordinate(position - self._start_point)
-        self.query_ancestor(SideBar).resize_to(round(100 * extent / max(1, self._drag_viewport)))
+        delta = edge.sign * edge.coordinate(position - self._start_point)
+        self.query_ancestor(SideBar).resize_to(
+            self._start_percent + round(100 * delta / max(1, self._drag_viewport))
+        )
 
     def resize_by(self, direction: Offset) -> None:
         bar = self.query_ancestor(SideBar)
@@ -547,8 +549,8 @@ class SidebarResizeHandle(
         bar = self.query_ancestor(SideBar)
         self._drag_edge = bar.placement.side
         self._start_point = event.screen_offset
-        self._start_extent = self._drag_edge.extent(bar.size)
-        self._drag_viewport = self._drag_edge.extent(bar.screen.size)
+        self._start_percent = bar.placement.extent_percent
+        self._drag_viewport = self._drag_edge.extent(bar.query_ancestor(Widget).content_size)
 
 
 class ClearSidebarSearchAction(WidgetAction):

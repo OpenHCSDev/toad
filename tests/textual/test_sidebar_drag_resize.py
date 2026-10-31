@@ -1,4 +1,4 @@
-"""Textual-facing: pointer capture, drag, hover styling and keyboard resize of a sidebar from either edge, with the width slider mirrored."""
+"""Textual-facing: captured resize, hover and keys; zero-motion release preserves intent on every edge."""
 
 import pytest
 
@@ -94,3 +94,22 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         bar.reveal()
         await ui.step()
         assert handle.display
+
+
+@pytest.mark.parametrize("side", SidebarEdge.members_with(SidebarEdge))
+async def test_zero_motion_resize_keeps_requested_percentage_on_every_edge(workspace, side):
+    async with workspace.app(size=(51, 27)) as ui:
+        app, pilot = ui.textual
+        bar = app.screen.query_one("#channels-sidebar", SideBar)
+        app.sidebar_layout.move(bar.id, side)
+        app.sidebar_layout.resize(bar.id, 40)
+        bar.reveal()
+        app.workspace_chrome.refresh_layout()
+        await ui.step()
+        handle = bar.query_one(SidebarResizeHandle)
+        before = bar.region
+        assert await pilot.click(handle)
+        await ui.step()
+        assert bar.placement.extent_percent == 40
+        assert bar.region == before
+        assert not handle._dragging and app.mouse_captured is None
