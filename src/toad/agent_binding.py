@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from agent_comms.session_load import ExistingSessionLoadPlan
 
     from toad.conversation_submission import (
-        AgentInputSubmission,
+        PromptInputSubmission,
         ConversationSubmissions,
         SubmissionStart,
     )
@@ -91,8 +91,8 @@ class AgentConnection(ABC):
     @abstractmethod
     def accepts_message(self, message: CoreEventMessage) -> bool: ...
 
-    @abstractmethod
-    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart: ...
+    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart:
+        return owner.unbound(submission, self.readiness_refusal)
 
     @abstractmethod
     def accepts_failed_input(self, message: CoreEventMessage) -> bool: ...
@@ -185,9 +185,6 @@ class NoAgentConnection(AgentConnection):
 
     async def cancel_turn(self, view: Conversation) -> None:
         """No native turn exists to cancel."""
-
-    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission):
-        return owner.unbound(submission, self.readiness_refusal)
 
     def accepts_failed_input(self, message: CoreEventMessage) -> bool:
         return False

@@ -5,6 +5,7 @@ from agent_comms.launch_root import LaunchRoot
 
 from support.roots import installed_wire
 from toad.core.input_events import UserInputSubmitted
+from toad.conversation_submission import OrdinaryInputSubmission
 from toad.widgets.comms_chat import CommsChatView
 
 
@@ -17,8 +18,10 @@ async def test_a_view_that_changed_during_send_preflight_keeps_the_draft_editabl
         view = ui.app.selected_session.query_one(CommsChatView)
         messaging = view.message_history.page_source.loader.comms.messaging
         before = messaging.bus.bus.revision()
-        await view.submit_comms_message(workspace.roots.wire, view.conversation, "STALE_DRAFT",
-                                       lambda: False, view._show_sent)
+        await view.submissions.start_message(
+            OrdinaryInputSubmission("STALE_DRAFT"), workspace.roots.wire,
+            view.conversation, lambda: False, view._show_sent,
+        ).prepare()
         await ui.until(lambda: not view.prompt.prompt_text_area.disabled,
                        why="the refused draft editable again")
         assert not view.send_block_reason

@@ -4,26 +4,27 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
-from typing import ClassVar
+from pathlib import Path
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
     InputStartedUpdate,
-    PendingQueueProjection,
     QueuePromptRequest,
     QueueScope,
     SteerPromptRequest,
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.delivery_failure import delivery_failure
+from agent_comms.errors import CommittedMessageError, HumanSendError, HumanSendRefusedError, RelationViolationError, RouteChangedError
+from agent_comms.messages import Message
 
 from toad import messages
-from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
-from toad.acp.agent import Agent
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.submission_queue import QueueEvidence, QueueSource
+from toad.queue_capability import QueueActions, QueueEvidence
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.input_decision import InputDecision, InputRefused
@@ -32,7 +33,6 @@ from toad.widgets.prompt import Prompt
 @dataclass(frozen=True)
 class InputSubmission(DeclaredFamily, affix="InputSubmission"):
     source_text: str
-    priority: ClassVar[int] = 0
 
     @property
     def text(self):
@@ -49,41 +49,35 @@ class InputSubmission(DeclaredFamily, affix="InputSubmission"):
     def from_event(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         kind = next(
             kind
-            for kind in sorted(cls.members_with(InputSubmission), key=lambda kind: kind.priority, reverse=True)
+            for kind in sorted(cls.members_with(InputSubmission), key=lambda kind: len(kind.__mro__), reverse=True)
             if kind.matches(event, owner)
         )
         return kind(event.body)
 
 
 class NoInputSubmission(InputSubmission):
-    priority = -1
-
     @classmethod
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
-        return True
+        return not event.body.strip()
 
     async def execute(self, owner: ConversationSubmissions):
         pass
 
 
-class QueueNowInputSubmission(InputSubmission):
-    priority = 100
-
+class QueueNowInputSubmission(NoInputSubmission):
     @classmethod
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         if event.shell or event.body.strip():
             return False
-        return event.immediate and owner.view.agent_binding.presentation.queue_supported
+        return event.immediate and owner.view.queue_source.queue_actions_available(owner.view.agent_binding.presentation)
 
     async def execute(self, owner: ConversationSubmissions):
         projection = owner.queue_projection
-        if projection.status == "available" and projection.items:
+        if projection.items:
             owner.send_now()
 
 
 class ShellInputSubmission(InputSubmission):
-    priority = 90
-
     @classmethod
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         return event.shell and bool(event.body.strip())
@@ -109,7 +103,7 @@ class SubmissionStart(ABC):
 
 class UnboundSubmissionStart(SubmissionStart):
     def __init__(
-        self, owner: ConversationSubmissions, submission: AgentInputSubmission, refusal: InputRefused
+        self, owner: ConversationSubmissions, submission: PromptInputSubmission, refusal: InputRefused
     ):
         self.owner, self.submission, self.refusal = owner, submission, refusal
 
@@ -120,7 +114,7 @@ class UnboundSubmissionStart(SubmissionStart):
         )
 
 
-class AgentInputSubmission(InputSubmission):
+class PromptInputSubmission(InputSubmission):
     @property
     @abstractmethod
     def request(self): ...
@@ -143,7 +137,7 @@ class AgentInputSubmission(InputSubmission):
         return await owner.begin(self).prepare()
 
 
-class OrdinaryInputSubmission(AgentInputSubmission):
+class OrdinaryInputSubmission(PromptInputSubmission):
     @classmethod
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         if event.shell:
@@ -156,8 +150,6 @@ class OrdinaryInputSubmission(AgentInputSubmission):
 
 
 class DeferredInputSubmission(OrdinaryInputSubmission):
-    priority = 70
-
     @classmethod
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         if not super().matches(event, owner):
@@ -165,7 +157,7 @@ class DeferredInputSubmission(OrdinaryInputSubmission):
         if event.immediate:
             return False
         view = owner.view
-        return view.turns.owner.busy and view.agent_binding.presentation.queue_supported
+        return view.queue_source.defers_input(view)
 
     @property
     def request(self):
@@ -177,77 +169,198 @@ class DeferredInputSubmission(OrdinaryInputSubmission):
 
 
 class ImmediateInputSubmission(OrdinaryInputSubmission):
-    priority = 80
-
     @classmethod
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         if not super().matches(event, owner):
             return False
-        return event.immediate and owner.view.agent_binding.presentation.queue_supported
+        return event.immediate and owner.view.queue_source.queue_actions_available(owner.view.agent_binding.presentation)
 
     @property
     def request(self):
         return SteerPromptRequest(self.text)
 
 
-class SubmissionExecution(SubmissionStart):
-    """Immutable source binding and the real outstanding local request."""
+class SendState:
+    """One transaction's local outcome; widgets only draw this answer."""
 
-    def __init__(self, owner: ConversationSubmissions, submission: AgentInputSubmission, agent: Agent):
-        self.owner, self.submission, self.agent = owner, submission, agent
-        self.authority = ClientSessionRequest(agent, agent.session_id)
-        self.scope = agent.queue_attachment.scope
-        self.request = submission.request
-        self.started_update: InputStartedUpdate | None = None
+    reason = ""
 
-    async def prepare(self):
-        owner, submission = self.owner, self.submission
-        view = owner.view
-        owner.publish_pending()
-        view.run_worker(partial(view.input_histories.prompt.record, submission.source_text), group="history")
-        try:
-            await submission.feedback(self)
-            if self.current:
-                return view.run_worker(partial(self.send), group="conversation-submission")
-            owner.finish(self)
-        except BaseException:
-            owner.finish(self)
-            raise
+    def settle(self, execution) -> None:
+        execution.owner.retire(execution)
+
+    def drawn_in(self, view) -> bool:
+        return False
+
+    def response_finished(self, execution) -> None:
+        """A retained outcome already names the transaction's answer."""
+
+    def local_intent(self, execution, accepted) -> tuple[str, ...]:
+        return ()
+
+
+class NoSend(SendState):
+    pass
+
+
+class RetainedSend(SendState):
+    def settle(self, execution) -> None:
+        """A pending, undrawn or UNKNOWN result keeps its original transaction."""
+
+
+class CheckingSend(RetainedSend):
+    reason = "Checking source; do not retry"
+
+    def response_finished(self, execution) -> None:
+        execution.enter(NoSend())
+
+    def local_intent(self, execution, accepted) -> tuple[str, ...]:
+        return () if execution.accepted(accepted) else (execution.submission.text,)
+
+
+class SendPending(CheckingSend):
+    reason = "Send pending; do not retry"
+
+    def response_finished(self, execution) -> None:
+        execution.delivery_blocked(
+            "Request ended without a known outcome; inspect the source, do not retry",
+            execution.submission.source_text,
+        )
+
+
+@dataclass(frozen=True)
+class SentUndrawn(RetainedSend):
+    root: Path
+    sent: Message
 
     @property
-    def current(self):
-        view = self.owner.view
-        if view.agent_binding is not self.agent or self.authority.retired:
-            return False
-        return self.agent.queue_attachment.accepts_request(self.scope)
+    def reason(self) -> str:
+        return f"Sent {self.root}/{self.sent.seq}/{self.sent.message_id}; waiting to be drawn, do not retry"
+
+    def drawn_in(self, view) -> bool:
+        return view.queue_source.draws_message(view, self.root, self.sent)
+
+
+@dataclass(frozen=True)
+class SendBlocked(RetainedSend):
+    description: str
+
+    @property
+    def reason(self) -> str:
+        return f"Send blocked: {self.description}"
+
+
+class SubmissionExecution(SubmissionStart):
+    """Shared history, worker and outcome lifetime over an immutable source binding."""
+
+    def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission):
+        self.owner, self.submission = owner, submission
+        self.state: SendState = CheckingSend()
+
+    @property
+    @abstractmethod
+    def current(self) -> bool: ...
 
     @property
     def retired(self):
         return not self.current
 
-    async def send(self):
-        view = self.owner.view
-        managed = self.agent.presentation.uses_managed_turns
-        local = not managed
-        reason = None
-        if local:
-            view.turns.start_client()
-        try:
-            if self.agent.presentation.queue_supported:
-                reason = await self.agent.send_prompt(self.submission.text, request=self.request)
-            else:
-                reason = await self.agent.send_prompt(self.submission.text)
-        except RequestError as error:
-            if self.current:
-                await view.submission_request_failed(error, self.submission.text)
-        finally:
-            self.owner.finish(self)
-        if self.current and local:
-            view.call_later(self.complete, reason)
+    def enter(self, state: SendState) -> None:
+        self.state = state
+        self.owner.view.refresh_submission_state()
 
-    async def complete(self, reason):
+    def accepted(self, accepted) -> bool:
+        return False
+
+    def native_input_presented(self, started: InputStartedUpdate) -> None:
+        """A non-native source has no native start to observe."""
+
+    async def feedback(self):
+        """Only a source's own acceptance can confirm its input."""
+
+    async def prepare(self):
+        view, submission = self.owner.view, self.submission
+        self.owner.publish_pending()
+        view.run_worker(partial(view.input_histories.prompt.record, submission.source_text), group="history")
+        try:
+            await self.feedback()
+            if self.current:
+                return view.run_worker(partial(self.send), group="conversation-submission")
+            self.delivery_refused("Message source changed; reopen this view", submission.source_text)
+        except BaseException:
+            self.state.response_finished(self)
+            self.owner.finish(self)
+            raise
+        self.owner.finish(self)
+
+    @abstractmethod
+    async def deliver(self): ...
+
+    async def send(self):
+        try:
+            if self.current:
+                await self.deliver()
+            else:
+                self.delivery_refused("Message source changed; reopen this view", self.submission.source_text)
+        finally:
+            self.state.response_finished(self)
+            self.owner.finish(self)
+
+    def delivery_blocked(self, description: str, body: str) -> None:
+        self.enter(SendBlocked(description))
+        self.owner.view.prompt.restore_draft(body)
+        self.owner.view.feedback.flash(self.state.reason, style="error")
+
+    def delivery_refused(self, description: str, body: str) -> None:
+        self.enter(NoSend())
+        self.owner.view.delivery_refused(description, body)
+
+
+class MessageSubmissionExecution(SubmissionExecution):
+    """An original Core publication, including a worker whose outcome is UNKNOWN."""
+
+    def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission,
+                 root: Path, conversation, current: Callable[[], bool],
+                 present: Callable[[Message], Awaitable[None]]):
+        super().__init__(owner, submission)
+        self.root, self.conversation = root, conversation
+        self.source_current, self.present = current, present
+
+    @property
+    def current(self) -> bool:
+        return self.source_current()
+
+    async def deliver(self):
+        view, body = self.owner.view, self.submission.source_text
+        try:
+            comms = await view.app.coordination_access.transcripts.service(self.root)
+            read_only = await view.app.preparation.run_thread(self.conversation.read_only, comms)
+            if read_only:
+                raise HumanSendRefusedError(RelationViolationError("Read-only saved view"))
+            route_current = await view.app.preparation.run_thread(
+                lambda: view.app.coordination_access.current(self.root))
+            if not route_current or not self.current:
+                raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
+            self.enter(SendPending())
+            task = asyncio.create_task(asyncio.to_thread(
+                comms.messaging.send_user_message, self.conversation.send_target(), body,
+                worktree=view.project_path))
+            try:
+                sent = await asyncio.shield(task)
+            except asyncio.CancelledError:
+                self.delivery_blocked("Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry", body)
+                task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+                return
+            except CommittedMessageError as error:
+                sent = error.record
+            self.enter(SentUndrawn(comms.root, sent))
+        except asyncio.CancelledError:
+            self.delivery_refused("Cancelled before sending", body)
+            raise
+        except (HumanSendError, RouteChangedError) as error:
+            delivery_failure(error).present(self, body)
+            return
         if self.current:
-            await self.owner.view.agent_turn_over(reason)
+            await self.present(sent)
 
 
 class ConversationSubmissions:
@@ -257,26 +370,37 @@ class ConversationSubmissions:
         self.view = view
         self.active: list[SubmissionExecution] = []
 
-    def begin(self, submission: AgentInputSubmission):
-        return self.view.agent_binding.begin_submission(self, submission)
+    def begin(self, submission: PromptInputSubmission):
+        return self.view.queue_source.begin_submission(self, submission)
 
-    def unbound(self, submission: AgentInputSubmission, refusal: InputRefused):
+    def unbound(self, submission: PromptInputSubmission, refusal: InputRefused):
         return UnboundSubmissionStart(self, submission, refusal)
 
-    def start(self, submission: AgentInputSubmission, agent: Agent):
-        execution = SubmissionExecution(self, submission, agent)
+    def start(self, execution: SubmissionExecution):
         self.active.append(execution)
+        self.view.refresh_submission_state()
         return execution
+
+    def start_message(self, submission: PromptInputSubmission, root: Path, conversation,
+                      current: Callable[[], bool], present: Callable[[Message], Awaitable[None]]):
+        return self.start(MessageSubmissionExecution(self, submission, root, conversation, current, present))
+
+    @property
+    def send_block_reason(self) -> str:
+        return next((item.state.reason for item in self.active if item.state.reason), "")
 
     @property
     def input_decision(self) -> InputDecision:
-        return self.view.operational_sources.input_decision(self.view)
+        return self.view.queue_source.input_decision(self.view)
 
     async def submit(self, event: UserInputSubmitted):
         text = event.body.strip()
         if not event.shell and text.startswith("/") and await CommandCatalog.execute(text, self.view):
             return
-        return await self.view.operational_sources.submit(self, event)
+        if self.send_block_reason:
+            self.view.delivery_refused(self.send_block_reason, event.body)
+            return
+        return await InputSubmission.from_event(event, self).execute(self)
 
     def accepts_failure(self, message: CoreEventMessage):
         return self.view.agent_binding.accepts_failed_input(message)
@@ -285,7 +409,7 @@ class ConversationSubmissions:
     def queue_evidence(self) -> QueueEvidence:
         return QueueEvidence(
             self.view.agent_binding.presentation, self.delivering,
-            self.view.send_block_reason, self.view.contents.notification_targets)
+            self.send_block_reason, self.view.contents.notification_targets)
 
     @property
     def queue_summary(self) -> str:
@@ -304,34 +428,31 @@ class ConversationSubmissions:
     def delivering(self):
         queue = self.queue_projection
         accepted = {row.input_id for row in (*queue.items, *queue.restored)}
-        return tuple(
-            item.submission.text
-            for item in self.active
-            if item.current
-            and item.agent.presentation.uses_managed_turns
-            and item.request.input_id not in accepted
-            and item.started_update is None
-        )
+        return tuple(text for item in self.active if item.current
+                     for text in item.state.local_intent(item, accepted))
 
     def native_input_presented(self, started: InputStartedUpdate):
         """Retain this request's actual response while its RPC is outstanding."""
         for execution in self.active:
-            if execution.current and started.started_request(execution.request.input_id):
-                execution.started_update = started
+            execution.native_input_presented(started)
 
     def publish_pending(self):
         if (prompt := self.view.query_one_optional(Prompt)) is not None:
             prompt.sync_queue()
 
-    def finish(self, execution: SubmissionExecution):
+    def retire(self, execution: SubmissionExecution) -> None:
         if execution in self.active:
             self.active.remove(execution)
-        if execution.current:
-            self.publish_pending()
 
-    def reset(self):
-        self.active.clear()
+    def finish(self, execution: SubmissionExecution):
+        execution.state.settle(execution)
         self.publish_pending()
+
+    def settle_drawn(self) -> None:
+        for execution in tuple(self.active):
+            if execution.state.drawn_in(self.view):
+                execution.enter(NoSend())
+                self.finish(execution)
 
     def send_now(self):
         source = self.view.queue_source
@@ -342,7 +463,7 @@ class ConversationSubmissions:
             group="send-queued-now", exclusive=True,
         )
 
-    async def _send_now(self, source: QueueSource, presentation, scope: QueueScope) -> None:
+    async def _send_now(self, source: QueueActions, presentation, scope: QueueScope) -> None:
         try:
             await source.queue_send_now(presentation, scope)
         except (RequestError, QueueActionRefused) as error:

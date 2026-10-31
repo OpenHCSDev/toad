@@ -42,7 +42,6 @@ if TYPE_CHECKING:
     from agent_comms.message_page import MessagePage
 
     from toad.comms_root import CoordinationAccess, Observation
-    from toad.core.input_events import UserInputSubmitted
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.conversation import Contents
@@ -583,9 +582,6 @@ class ClosedHistory(ReplaceablePageSource):
 
     def command_context(self, view: CommsChatView):
         return None
-
-    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
-        view.delivery_refused("Conversation source is not ready", event.body)
 
     def schedule_refresh(self, view: CommsChatView):
         return None
