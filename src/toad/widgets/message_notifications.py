@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible
+from textual.worker import Worker
 
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
@@ -85,6 +86,11 @@ class PaintedRead(ABC):
 
 
 class NothingToRead(PaintedRead):
+    is_finished = True
+
+    async def wait(self) -> None:
+        pass
+
     def start(self, marker: VisibleReadMarking) -> None:
         pass
 
@@ -94,18 +100,18 @@ class ReadWork(PaintedRead):
     work: Awaitable[None]
 
     def start(self, marker: VisibleReadMarking) -> None:
-        marker._read_worker = marker.run_worker(self.work, group="painted-read")
+        marker.read_worker = marker.run_worker(self.work, group="painted-read")
 
 
 class VisibleReadMarking:
     """One painted-read operation at a time, for pagers and native/CLI sessions."""
 
     def __init__(self, *args, **kwargs):
-        self._read_worker = None
+        self.read_worker: Worker[None] | NothingToRead = NothingToRead()
         super().__init__(*args, **kwargs)
 
     def mark_visible(self) -> None:
-        if self._read_worker is not None and not self._read_worker.is_finished:
+        if not self.read_worker.is_finished:
             return
         self.read_visible().start(self)
 
