@@ -16,7 +16,7 @@ from tempfile import TemporaryDirectory
 from typing import ClassVar
 from urllib.request import urlopen
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.native_build_inputs import Executable
 from agent_comms.runtime_preparation import RuntimePreparation
 from toad.platform import LinuxPlatform, MacPlatform, Platform, host

@@ -10,7 +10,7 @@ from agent_comms.acp_extension import (
     PromptRequest,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import Goal, GoalDeclaration, NoGoal

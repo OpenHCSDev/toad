@@ -63,7 +63,7 @@ def test_input_start_members_dispatch_before_queue_revision_checks(tmp_path):
         IdentifiedInputStarted,
         UnidentifiedInputStarted,
     )
-    from agent_comms.field_codec import InputId
+    from agent_comms.nominal.field_codec import InputId
 
     _, scope = declared_scope(tmp_path)
     attachment = QueueAttachment()

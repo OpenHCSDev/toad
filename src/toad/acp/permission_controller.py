@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from acp import schema as protocol
 from .client_session import ClientRequestOwner, ClientSessionRequest
 from toad.answer import Answer

@@ -7,7 +7,7 @@ from contextlib import ExitStack
 from functools import partial
 from typing import TYPE_CHECKING
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.ui_model.message_category import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.widgets.presentation_window import OLDER_END, PageRequest

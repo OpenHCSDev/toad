@@ -18,8 +18,8 @@ import sys
 import time
 from typing import ClassVar
 
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import FieldCodec
 
 
 STATUS_LIMIT = 65536

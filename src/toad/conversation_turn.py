@@ -8,7 +8,7 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from agent_comms.activity import ActivityState
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.turn_lease import NoTurn as IdleTurn
 from agent_comms.turn_lease import TurnState
 from agent_comms.ui_model.status import ThreadStatusModel

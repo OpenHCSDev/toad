@@ -6,7 +6,7 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.field_codec import ToolCallId
+from agent_comms.nominal.field_codec import ToolCallId
 from agent_comms.message_reference import MessageReference
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.turn_item import NativeItemId

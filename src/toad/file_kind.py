@@ -1,6 +1,6 @@
 """Accepted attachment and preview kinds have one declaration owner."""
 from pathlib import Path
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.widgets import Static
 
 
