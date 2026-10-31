@@ -14,6 +14,7 @@ from typing import ClassVar, Iterator
 
 from textual.binding import Binding
 from textual.dom import DOMNode
+from textual.navigation import MovesCursor
 from textual.screen import ModalScreen
 
 ROOT = Path(__file__).resolve().parents[2] / 'src/toad'
@@ -72,14 +73,16 @@ class HandBindings(KeymapMeasure):
 
 
 class ActionMethods(KeymapMeasure):
-    """`def action_*`: behaviour Textual finds by string name."""
-    ceiling = 46
+    """`def action_*`: behaviour Textual finds by string name. A method MovesCursor declares is
+    a required contract its key family calls, so its implementers are not this."""
+    ceiling = 36
 
     @classmethod
     def lines(cls, tree):
         for node in ast.walk(tree):
             match node:
-                case ast.FunctionDef(name=name) | ast.AsyncFunctionDef(name=name) if name.startswith('action_'):
+                case ast.FunctionDef(name=name) | ast.AsyncFunctionDef(name=name) if (
+                        name.startswith('action_') and name not in vars(MovesCursor)):
                     yield node.lineno
 
 

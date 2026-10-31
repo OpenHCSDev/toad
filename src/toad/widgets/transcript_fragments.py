@@ -44,7 +44,7 @@ from toad.line_blocks import (
     UserRole,
 )
 from toad.markdown_preparation import PreparedMarkdownPart
-from toad.menus import MenuItem
+from toad.menus import MenuCommand
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import MessageQueueEntry, NotificationStatus, UncheckedNotifications
 from toad.widgets.agent_activity import AgentActivityPresentation
@@ -423,7 +423,7 @@ class TranscriptFragment:
         return "\n\n".join(event.text for event in self.events if isinstance(event, TextTranscript)) or None
 
     @property
-    def block_menu(self) -> tuple[MenuItem, ...]:
+    def block_menu(self) -> tuple[MenuCommand, ...]:
         """What the cursor's menu offers on this fragment, besides copying."""
         return ()
 

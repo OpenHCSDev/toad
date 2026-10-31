@@ -30,7 +30,7 @@ from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.content import Content
 from textual.css.query import NoMatches
-from textual.geometry import Offset, Region
+from textual.geometry import Offset, Region, Size
 from textual.layout import WidgetPlacement
 from textual.layouts.grid import GridLayout
 from textual.reactive import Required, var
@@ -80,7 +80,10 @@ from toad.goal_interaction import GoalSession
 from toad.input_history import InputHistories
 from toad.layout import trim_trailing_margin
 from toad.live_output import LiveOutput
-from toad.menus import MenuItem
+from toad.line_blocks import LineLink
+from toad.menus import (
+    CopyClipboardCommand, CopyPromptCommand, ExportSvgCommand, MaximizeBlockCommand, MenuConversation,
+)
 from toad.preferences import SETTINGS
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.resource_release import AsyncResourceRelease
@@ -436,6 +439,7 @@ class ConversationSessionBinding(
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
+    contents = getters.query_one("#contents", Contents)
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
 
@@ -444,6 +448,21 @@ class ConversationSessionBinding(
 
     _unpublished_presentation: ThreadPresentation = NoThreadPresentation()
     """An observed presentation whose transcript refresh waits for this view to be shown."""
+
+    @property
+    def is_current_session(self) -> bool:
+        """Whether this conversation's owning session is still selected."""
+        return self.query_ancestor(SessionScope).is_current
+
+    @cached_property
+    def navigation(self) -> ContentNavigation:
+        return ContentNavigation(self.contents)
+
+    def accepts_menu_owner(self, owner: Widget) -> bool:
+        return self.is_current_session and self.navigation.accepts_menu_owner(owner)
+
+    def open_line_link(self, link: LineLink) -> None:
+        self.transcript.binding.history.action_open(link)
 
     @property
     def operational_sources(self):
@@ -462,7 +481,7 @@ class ConversationSessionBinding(
         """Capture turn token and client authority for the next observed presentation."""
         self._thread_read = self.agent_binding.thread_read()
 
-    def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
+    def thread_observed(self, event: core_events.ThreadRowsChanged | None = None) -> None:
         """Consume this thread's one observed presentation."""
         presentation = self.app.coordination_access.thread_status.open(
             self.status_thread().name
@@ -487,7 +506,7 @@ class ConversationSessionBinding(
     def _publish_thread_source(self, presentation: ThreadPresentation) -> None:
         if not self.transcript.readable:
             return
-        if self.query_ancestor(SessionScope).is_current:
+        if self.is_current_session:
             from toad.transcript_publication import ObservedSourcePublication
 
             self._unpublished_presentation = NoThreadPresentation()
@@ -499,7 +518,7 @@ class ConversationSessionBinding(
 
     @handles(core_events.SessionSelected)
     async def _thread_view_selected(self, event: core_events.SessionSelected) -> None:
-        if not self.query_ancestor(SessionScope).is_current:
+        if not self.is_current_session:
             return
         self.refresh_thread_status()
         self.goal_observation.invalidate()
@@ -832,7 +851,7 @@ from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 class Conversation(
     ConversationCommsHandlers,
     NativeMethodKeys,
-    ConversationSessionBinding, ToadNode,
+    ConversationSessionBinding, ToadNode, MenuConversation,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
@@ -845,7 +864,6 @@ class Conversation(
     MAX_LIVE_BLOCKS = 32
     BINDING_GROUP_TITLE = "Conversation"
 
-    contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
 
@@ -1101,9 +1119,11 @@ class Conversation(
         if (terminal := self._terminal) is not None:
             terminal.focus()
 
-    @cached_property
-    def navigation(self) -> ContentNavigation:
-        return ContentNavigation(self.contents)
+    async def interrupt_shell(self) -> None:
+        """Menu and keyboard interruption share the live terminal's eligibility."""
+        if self.terminal_action_state:
+            await self.shell.interrupt()
+            self.feedback.flash("Command interrupted", style="success")
 
     @property
     def cursor_block(self) -> ConversationEntry | None:
@@ -1360,12 +1380,7 @@ class Conversation(
     @on(Menu.OptionSelected)
     async def on_menu_option_selected(self, event: Menu.OptionSelected) -> None:
         event.stop()
-        if (
-            self.query_ancestor(SessionScope).is_current
-            and event.action is not None
-            and self.navigation.accepts_menu_owner(event.owner)
-        ):
-            await self.run_action(event.action, {"block": event.owner})
+        await event.command.run(event.menu)
         self.call_after_refresh(self.cursor.refresh)
 
     @handles(CurrentWorkingDirectoryChanged)
@@ -1471,10 +1486,6 @@ class Conversation(
         self, event: core_events.AvailableCommandsUpdate
     ) -> None:
         self.update_slash_commands()
-
-    def action_focus_block(self, block_id: str) -> None:
-        with suppress(NoMatches):
-            self.query_one(f"#{block_id}").focus()
 
     async def set_mode(self, mode_id: str | None) -> None:
         if mode_id is None:
@@ -1698,7 +1709,7 @@ class Conversation(
 
     def on_click(self, event: events.Click) -> None:
         # A queued history click may arrive after its logical source retired.
-        if not self.query_ancestor(SessionScope).is_current:
+        if not self.is_current_session:
             return
         if (
             self._mouse_down_offset is not None
@@ -1933,11 +1944,11 @@ class Conversation(
     async def action_select_block(self) -> None:
         cursor = self.navigation.cursor
         for block in cursor.selected_widgets:
-            menu_options = [MenuItem('[u]C[/]opy to clipboard', 'copy_to_clipboard', 'c'), MenuItem('Co[u]p[/u]y to prompt', 'copy_to_prompt', 'p'), MenuItem('Open as S[u]V[/]G', 'export_to_svg', 'v')]
+            commands = [CopyClipboardCommand(), CopyPromptCommand(), ExportSvgCommand()]
             if cursor.allow_maximize:
-                menu_options.append(MenuItem('[u]M[/u]aximize', 'maximize_block', 'm'))
-            menu_options.extend(cursor.get_block_menu())
-            menu = Menu(block, menu_options, focus_owner=self.window)
+                commands.append(MaximizeBlockCommand())
+            commands.extend(cursor.get_block_menu())
+            menu = Menu(self, block, commands, focus_owner=self.window)
             region = cursor.region
             menu.offset = Offset(1, region.y if region is not None else self.window.region.y)
             await self.mount(menu)
@@ -1947,33 +1958,31 @@ class Conversation(
         ModeBinding("enter", action_select_block, "Select block", mode=EditingMode, show=True),
     )
 
-    def action_copy_to_clipboard(self) -> None:
+    def copy_block_to_clipboard(self) -> None:
         cursor = self.navigation.cursor
         if text := cursor.get_clipboard_text():
             self.app.copy_to_clipboard(text)
             self.feedback.flash("Copied to clipboard")
 
-    def action_copy_to_prompt(self) -> None:
+    def copy_block_to_prompt(self) -> None:
         cursor = self.navigation.cursor
         if text := cursor.get_prompt_text():
             self.prompt.append(text)
             self.feedback.flash("Copied to prompt")
             self.focus_prompt()
 
-    def action_maximize_block(self) -> None:
+    def maximize_block(self) -> None:
         cursor = self.navigation.cursor
         if cursor.allow_maximize:
             cursor.maximize(self.screen)
 
-    def action_export_to_svg(self) -> None:
-        cursor = self.navigation.cursor
-        if (export := cursor.export_render()) is None:
-            return
+    def export_block_to_svg(self) -> None:
+        self.navigation.cursor.export_to_svg(self)
+
+    def open_render_as_svg(self, size: Size, render: object) -> None:
+        width, height = size
         import platformdirs
         from textual._files import generate_datetime_filename
-
-        size, render = export
-        width, height = size
 
         import io
         import os.path
@@ -2013,7 +2022,7 @@ class Conversation(
         if (
             self.is_attached
             and not self.is_leaving
-            and self.query_ancestor(SessionScope).is_current
+            and self.is_current_session
             and self.navigation.cursor is cursor
         ):
             show(cursor)

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from functools import partial
@@ -32,6 +33,7 @@ from agent_comms.revision_views import ExternalTranscriptsView, StatusView
 from agent_comms.route_selection import RouteSelection
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.ui_model.observation import (
+    AwaitedRead,
     CommanderHudObserved,
     CommanderHudUnreadable,
     ObserveCommanderHud,
@@ -96,7 +98,7 @@ class UnselectedRoute:
 
 
 @dataclass(frozen=True, kw_only=True)
-class Observation:
+class Observation(ABC):
     access: CoordinationAccess = field(compare=False)
     subscriptions: ResourceRelease = field(default_factory=ResourceRelease, compare=False)
     # View updates end before the views close; `subscriptions` retires the observation after them.
@@ -104,6 +106,9 @@ class Observation:
 
     def observed(self):
         return self
+
+    @abstractmethod
+    async def read(self, request: AwaitedRead) -> object: ...
 
     def is_current(self) -> bool:
         return self is self.access.observation
@@ -163,11 +168,17 @@ class NotObserving(Observation):
     def observed(self):
         return self.access.open_current()
 
+    async def read(self, request: AwaitedRead) -> object:
+        return await self.observed().read(request)
+
 
 @dataclass(frozen=True, eq=False)
 class FailedObservation(Observation):
     error: Exception = field(compare=False, repr=False)
     selection: RouteSelection | UnselectedRoute
+
+    async def read(self, request: AwaitedRead) -> object:
+        raise self.error
 
     def __eq__(self, other: object) -> bool:
         # Exceptions declare their type, constructor fields and extra state through
@@ -218,6 +229,9 @@ class Observing(Observation):
     service: Comms = field()
     sidebar: SidebarModel = field()
     process: ObservationProcess = field(compare=False)
+
+    async def read(self, request: AwaitedRead) -> object:
+        return await self.process.read(request)
 
     def observes(self, root: str | Path) -> bool:
         return self.service.root == Path(root).resolve()

@@ -40,7 +40,7 @@ from toad.navigation_target import channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
-from toad.widget_actions import CursorAction, HiddenActions, OpenSelectedAction, OpensSelected
+from toad.widget_actions import HiddenActions, OpenSelectedAction, OpensSelected
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.tone_paint import AlternatingTone
@@ -166,7 +166,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
 
 class CommsRow(
     TargetTreeMember, OpensSelected, PrimaryActivation, ContextActivation, CoreEventReceiver, HoverSelection, ViewLabel,
-    scopes={HiddenActions: (CursorAction, OpenSelectedAction)},
+    scopes={HiddenActions: (OpenSelectedAction,)},
 ):
     """One interactive row: a channel or a thread."""
 

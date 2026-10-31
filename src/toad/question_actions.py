@@ -34,24 +34,6 @@ class SelectionAction(QuestionAction):
         return context.question.accepts_selection
 
 
-class SelectionUpAction(SelectionAction):
-    keys = {EditingMode: ("up",)}
-
-    async def apply(self, context):
-        question = context.question
-        question._reset_blink()
-        question.selection = max(0, question.selection - 1)
-
-
-class SelectionDownAction(SelectionAction):
-    keys = {EditingMode: ("down",)}
-
-    async def apply(self, context):
-        question = context.question
-        question._reset_blink()
-        question.selection = min(len(question.options) - 1, question.selection + 1)
-
-
 class SelectAction(QuestionAction):
     """Answer with the selected option."""
 

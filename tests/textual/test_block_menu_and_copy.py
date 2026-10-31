@@ -14,7 +14,9 @@ from toad.block_navigation import ConversationBlock
 from toad.widgets.conversation import Conversation, FocusPromptAction
 from textual.keys import KeyDeclaration
 from textual.document._editing import EditingMode
-from toad.menus import MenuItem
+from dataclasses import dataclass
+
+from toad.menus import KeyedMenuCommand
 from toad.widgets.menu import Menu
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
@@ -25,15 +27,22 @@ from toad.widgets.project_panel import FilePreview
 from toad.project_link import DirectProjectFileLink
 
 
+@dataclass(frozen=True)
+class ChooseDeclaredCommand(KeyedMenuCommand):
+    block: Static
+    key = "z"
+    description = "Apply declared action"
+
+    def apply(self, conversation):
+        self.block.update("DECLARED_ACTION_PAINT")
+
+
 class DeclaredExtraBlock(ConversationBlock, Static):
     def get_clipboard_text(self):
         return "DECLARED_COPY café 界"
 
     def get_block_menu(self):
-        return (MenuItem("Apply declared action", "block.choose", "z"),)
-
-    def action_choose(self):
-        self.update("DECLARED_ACTION_PAINT")
+        return (ChooseDeclaredCommand(self),)
 
 
 @pytest.fixture

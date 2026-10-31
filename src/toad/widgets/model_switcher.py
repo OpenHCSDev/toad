@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING, Self, Protocol, cast
 from textual import getters, on, work
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
-from toad.widget_actions import WidgetAction, PriorityActions, MovesCursor, Submits, DismissibleControl
+from textual.navigation import MovesCursor
+from toad.widget_actions import WidgetAction, PriorityActions, Submits, DismissibleControl
 from textual.content import Content
 from textual.containers import VerticalGroup
 from textual.reactive import var
@@ -258,11 +259,11 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
         if event.option_id is not None:
             self.select_model(event.option_id)
 
-    def cursor_up(self):
+    def action_cursor_up(self):
         self._selection_moved = True
         self.option_list.action_cursor_up()
 
-    def cursor_down(self):
+    def action_cursor_down(self):
         self._selection_moved = True
         self.option_list.action_cursor_down()
 
