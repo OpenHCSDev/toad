@@ -16,6 +16,7 @@ from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.message_reference import MessageReference
+from toad.app_node import ToadNode
 from toad.messages import QueueEvidenceChanged
 
 from toad.notification_status import (
@@ -104,7 +105,7 @@ class ReadWork(PaintedRead):
         marker._read_worker = marker.run_worker(self.run(marker), group="painted-read")
 
 
-class VisibleReadMarking:
+class VisibleReadMarking(ToadNode):
     """One painted-read operation at a time, for pagers and native/CLI sessions."""
 
     def __init__(self, *args, **kwargs):
