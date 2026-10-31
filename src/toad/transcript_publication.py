@@ -616,6 +616,8 @@ class BoundView(ViewBinding):
                 view, view.app.coordination_access, view.thread_observed
             )
         )
+        # The shared status may already be published before this view subscribes.
+        view.thread_observed()
 
     @property
     def reports_coverage(self):
