@@ -27,7 +27,7 @@ from textual.message import Message
 from textual.style import Style
 from textual.widgets import Button, Checkbox, Collapsible, Input, Static
 from ui_theme.scheme import (
-    AccentColour, ErrorColour, ForegroundMutedColour, SuccessColour, ThemeColour, WarningColour,
+    AccentColour, ErrorColour, MutedColour, SuccessColour, ThemeColour, WarningColour,
 )
 
 from toad.app_node import ToadNode
@@ -51,8 +51,8 @@ class UnitTone(MroDispatch):
 
     @handles(MutedTone)
     @staticmethod
-    def ordinary(tone: type[MutedTone]) -> type[ThemeColour]:
-        return ForegroundMutedColour
+    def ordinary(tone: type[MutedTone]) -> type[MutedColour]:
+        return MutedColour
 
     @handles(WarningTone)
     @staticmethod
