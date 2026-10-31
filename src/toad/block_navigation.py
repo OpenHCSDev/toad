@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Iterable
 from functools import cached_property
 from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from agent_comms.ui_model.message_category import AgentActivityBoundary
     from textual.screen import Screen
 
+    from toad.notification_status import MessageQueueEntry
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory
     from toad.widgets.conversation import Conversation
@@ -401,6 +403,10 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     def notification_identity_for(self, references: frozenset[MessageReference]) -> DisplayCut:
         """Live entries have no captured BUS display cut; source rows override with theirs."""
         return NoDisplaySelection()
+
+    def queue_entries(self) -> Iterable[MessageQueueEntry]:
+        """Live entries supply no captured BUS delivery rows; source rows override with theirs."""
+        return ()
 
     @cached_property
     def block_cursor(self) -> BlockCursor:
