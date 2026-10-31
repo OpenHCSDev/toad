@@ -15,7 +15,7 @@ from toad.tone_paint import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope
-from toad.sidebar_layout import Side
+from toad.sidebar_layout import SidebarEdge
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -49,7 +49,7 @@ class WorkspaceChrome(VerticalLayout):
         return tuple(bar for bar in (self.channels, *source.sidebars())
                      if bar.presentation_visible and bar.id in layout.placements)
 
-    def toggle_sidebar(self, side: Side) -> None:
+    def toggle_sidebar(self, side: type[SidebarEdge]) -> None:
         layout = self.app.sidebar_layout
         bars = tuple(bar for bar in self.presented_sidebars()
                      if layout.get(bar.id).side == side)
@@ -83,23 +83,22 @@ class WorkspaceChrome(VerticalLayout):
         layout = self.app.sidebar_layout
         own = tuple(source.sidebars())
         bars = self.presented_sidebars()
-        resolved = layout.resolve(size.width, {bar.id: bar.collapsed for bar in bars})
+        resolved = layout.resolve(size, {bar.id: bar.collapsed for bar in bars})
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.
         nested = parent is self.channels.parent and any(
             bar.parent.layout is self for bar in own
         )
-        left = 0 if nested else resolved.left_gutter
-        right = 0 if nested else resolved.right_gutter
+        gutter = Spacing() if nested else resolved.gutter
         placements = [
             placement._replace(
-                region=placement.region + Offset(left, 0),
-                margin=placement.margin + Spacing(0, right, 0, left),
+                region=placement.region + Offset(gutter.left, gutter.top),
+                margin=placement.margin + gutter,
             )
             for placement in super().arrange(
                 parent,
                 [child for child in children if child not in bars],
-                Size(max(0, size.width - left - right), size.height),
+                Size(max(0, size.width - gutter.width), max(0, size.height - gutter.height)),
                 greedy,
             )
         ]
@@ -109,8 +108,8 @@ class WorkspaceChrome(VerticalLayout):
                 geometry = resolved.bars[bar.id]
                 placements.append(
                     WidgetPlacement(
-                        Region(0, 0, geometry.width, size.height),
-                        Offset(geometry.x, 0),
+                        geometry.reset_offset,
+                        geometry.offset,
                         Spacing(),
                         bar,
                         order[bar.id],
