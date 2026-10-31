@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
-from toad.core import input_events
 from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
@@ -41,7 +40,6 @@ from toad.status_thread import StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.session_scope import NoTranscript, SessionScope
-from toad.command_catalog import CommandCatalog
 
 
 def session_thread_name(project_path) -> str:
@@ -153,7 +151,7 @@ class CommsChatView(Conversation):
         access = self.app.coordination_access
         if message.publisher is not history:
             return
-        self.settle_user_message()
+        self.submissions.settle_drawn()
         if (not history.state.accepts_source_work
                 or not source.uses_observation(access.observation.observed())):
             return
@@ -256,7 +254,7 @@ class CommsChatView(Conversation):
             await self.refresh_composer(read_only)
             self._refreshed_from = announced
             # A sent message may now be drawn: composing resumes before mentions are read.
-            self.settle_user_message()
+            self.submissions.settle_drawn()
         except (CoordinationReadUnavailable, StaleRevision):
             raise
         # Composer mentions and DM status read the observer's snapshot
@@ -312,19 +310,11 @@ class CommsChatView(Conversation):
     async def command_target_context(self):
         return self.message_history.page_source.command_context(self)
 
-    async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
-        if event.body.strip().startswith("/") and await CommandCatalog.execute(event.body.strip(), self):
-            return
-        if not event.body.strip():
-            return
-        await self.message_history.page_source.submit_input(self, event)
-
-    async def _show_sent(self, sent: WireMessage, body: str) -> None:
+    async def _show_sent(self, sent: WireMessage) -> None:
         """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
-        self.run_worker(partial(self.input_histories.prompt.record, body), group="history")
         self.window.jump_to_latest()
         await self._refresh()
-        self.settle_user_message()
+        self.submissions.settle_drawn()
 
     def draws_user_message(self, sent) -> bool:
         return self.message_history.draws(sent)

@@ -75,3 +75,7 @@ class ModelSelectionRequired(InputRefused):
 
 class OwnerNotAttached(InputRefused):
     message = "No live owner binding for this thread; its input stays read-only. Your draft is kept."
+
+
+class InputSourceUnavailable(InputRefused):
+    message = "Conversation source is not ready. Your draft is kept."
