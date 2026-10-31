@@ -23,7 +23,7 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.command_catalog import CommandCatalog
 from toad.acp.agent import Agent
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.submission_queue import QueueEvidence
+from toad.submission_queue import QueueEvidence, QueueSource
 from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.input_decision import InputDecision, InputRefused
@@ -334,10 +334,11 @@ class ConversationSubmissions:
         self.publish_pending()
 
     def send_now(self):
-        source = self.queue_source
+        source = self.view.queue_source
+        presentation = self.view.agent_binding.presentation
         return self.view.run_worker(
-            partial(self._send_now, source, self.view.agent_binding.presentation,
-                    source.queue_scope(self.view.agent_binding.presentation)),
+            partial(self._send_now, source, presentation,
+                    source.queue_scope(presentation)),
             group="send-queued-now", exclusive=True,
         )
 
