@@ -1,6 +1,7 @@
 """Goal requests reach the managed native owner through Toad's real controller."""
 
 import pytest
+from agent_comms.coordination_errors import Refused
 from agent_comms.goal_actions import SetGoalAction
 from agent_comms.goal_history import RecordedGoalHistory
 from agent_comms.input_attempt import OwnerQueueInputDeliveryScope
@@ -28,7 +29,7 @@ async def test_editing_a_goal_keeps_its_identity_and_refuses_a_stale_edit(worksp
         assert changed.revision == first.revision + 1
         assert changed.state == first.state
         assert comms.registry.require(session).goal == changed
-        with pytest.raises(ValueError):
+        with pytest.raises(Refused):
             await agent.edit_goal(first, "Stale overwrite")
         history: RecordedGoalHistory = await agent.get_goal_history(changed.id)
         assert any(entry.after.shows_document and entry.after.require().text == "First objective"

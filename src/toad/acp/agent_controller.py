@@ -21,7 +21,6 @@ from agent_comms.acp_extension import (
     encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
-from agent_comms.coordination_errors import Refused
 from agent_comms.runtime import RuntimeConnection, socket_path
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.order_tools import InputDeliveryRead
@@ -411,8 +410,6 @@ class AgentController(OperationalTerminalOwner):
             result = await proxy.request(method, **params)
             self.require_owner(coordination, authority)
             return result
-        except (RuntimeError, Refused) as error:
-            raise ValueError(str(error)) from error
         finally:
             await proxy.close()
 

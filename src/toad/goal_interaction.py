@@ -5,6 +5,7 @@ from abc import abstractmethod
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ref
 
+from agent_comms.coordination_errors import Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
 from agent_comms.goal_presentation import ControlledExecution, GoalExecution
@@ -161,9 +162,10 @@ class GoalSession:
             return
         try:
             await action.apply(self)
-        except ValueError as error:
-            if self.owns(agent):
-                view.feedback.flash(str(error), style="error")
+        except Refused as error:
+            if not self.owns(agent):
+                raise
+            view.app.show_error(error, "Goal action failed")
 
     async def change(self, action: type[GoalAction], text: str = "") -> None:
         view = self.view
@@ -181,15 +183,10 @@ class GoalSession:
     async def write(self, agent, operation):
         """Every write settles by reading the owner, including rejected writes."""
         try:
-            try:
-                return await operation
-            finally:
-                if self.owns(agent):
-                    await self.view.goal_observation.refresh()
-        except (OSError, ValueError) as error:
+            return await operation
+        finally:
             if self.owns(agent):
-                raise ValueError(self.view.goal_display.action_failure(error)) from error
-            raise
+                await self.view.goal_observation.refresh()
 
     def close(self) -> None:
         modal = self.modal
