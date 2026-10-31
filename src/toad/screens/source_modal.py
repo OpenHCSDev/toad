@@ -2,17 +2,12 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING
 
 from metaclass_registry.mro_dispatch import handles
-from toad.core_event_carrier import CoreEventReceiver
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.navigation_target import SelectTarget
 from toad.project_path_owner import ProjectPathOwner
 from toad.screens.modal import DismissibleScreen
-
-if TYPE_CHECKING:
-    from toad.core_event_carrier import CoreEventMessage
-
 
 class SourceModal(CoreEventReceiver, ProjectPathOwner, DismissibleScreen[None]):
     """Rich modal content keeps the original view's project and navigation."""

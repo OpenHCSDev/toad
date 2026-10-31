@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Iterable
 from functools import cached_property
 from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
@@ -15,16 +16,14 @@ from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 
 from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
+from toad.notification_status import MessageQueueEntry
 from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
     from agent_comms.message_reference import MessageReference
     from agent_comms.ui_model.message_category import AgentActivityBoundary
     from textual.screen import Screen
 
-    from toad.notification_status import MessageQueueEntry
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory
     from toad.widgets.conversation import Conversation
