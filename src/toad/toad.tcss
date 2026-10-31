@@ -148,6 +148,15 @@ HelpPanel {
 
 
 
+/* Notifications reserve their own row instead of owning clicks over the editor. */
+ToastRack {
+    layer: default;
+    dock: none;
+    split: bottom;
+    max-height: 25vh;
+    margin-bottom: 0;
+}
+
 Toast {    
     margin: 0 0;
     padding: 0 1;
