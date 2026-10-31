@@ -10,7 +10,7 @@ def test_each_goal_state_answers_visibility_control_and_snapshot():
     goal = published_goal("Keep the objective", "display-state")
     idle = IdleGoalExecution()
     for state, visible, enabled, snapshot in (
-        (NoGoal(), False, False, NoGoal()),  # nothing to control: Core answers a control with "This goal has been cleared."
+        (NoGoal(), False, False, NoGoal()),
         (goal, True, True, goal),
         (GoalUnavailable(goal), True, False, goal),
         (GoalUnavailable(NoGoal()), True, False, NoGoal()),
@@ -38,9 +38,6 @@ def test_a_new_goal_state_needs_only_its_own_declaration():
 
         def standby(self, execution):
             return False
-
-        def action_failure(self, error):
-            return str(error)
 
     state = OwnerReconnecting()
     assert state.visible
