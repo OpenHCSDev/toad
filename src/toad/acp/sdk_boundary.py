@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 
 from acp.schema import SessionNotification, ToolCall
 from agent_comms.acp_extension import AgentCommsUpdate, decode_updates
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldRepresentation
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import FieldRepresentation
 
 from toad.acp.notification_items import NotificationItems
 from toad.render_backend import RenderTask

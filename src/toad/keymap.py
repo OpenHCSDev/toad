@@ -10,8 +10,8 @@ from pkgutil import walk_packages
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Annotated
 
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import NominalSpelling, NominalText
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import NominalSpelling, NominalText
 from objectstate import mark_ui_hidden_config
 from textual.binding import KeymapClaim
 from textual.dom import DOMNode

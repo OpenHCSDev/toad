@@ -19,7 +19,7 @@ from functools import lru_cache, partial
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.cli_result import ResultShower
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 from rich.color import Color as RichColor
 from rich.console import RenderableType
 from rich.segment import Segment

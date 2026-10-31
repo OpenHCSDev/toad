@@ -5,7 +5,7 @@ from pathlib import Path
 import sqlite3
 
 import pytest
-from agent_comms.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec
 
 from toad.db import Session
 

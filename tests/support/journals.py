@@ -34,7 +34,7 @@ def user_entry(text: str, *, id: str, parent: str | None = None, input_id: str |
 
 def write_journal(path: Path, *entries: dict) -> Path:
     """Write `entries` as the lines of a session journal and return its path."""
-    from agent_comms.field_codec import RecordedTimestamp
+    from agent_comms.nominal.field_codec import RecordedTimestamp
     from agent_comms.native_entries import MessageEntry, NativeEntry, SessionEntry
     from agent_comms.pi_payloads import ReportedText, UnknownMessage
 

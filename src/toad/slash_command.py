@@ -10,7 +10,7 @@ import shlex
 from pathlib import Path
 
 from agent_comms.command import Command
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.goal_actions import (
     ActiveGoalAction,
     ClearGoalAction,

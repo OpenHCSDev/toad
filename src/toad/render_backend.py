@@ -10,7 +10,7 @@ from contextvars import Context, copy_context
 from types import get_original_bases
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar, cast, get_args, get_origin
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 
 from toad.work_preparation import (
     PreparationRuntime,

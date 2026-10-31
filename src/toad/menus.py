@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._callback import invoke
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode

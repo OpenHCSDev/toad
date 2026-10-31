@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, ClassVar
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import PathText
+from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import PathText
 from agent_comms.presentation import ReadState
 from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem

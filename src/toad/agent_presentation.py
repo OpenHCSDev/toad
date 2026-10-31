@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.acp_extension import NoQueueScope, PendingQueueProjection, QueueProjection, QueueScope
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
