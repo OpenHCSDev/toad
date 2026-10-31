@@ -1,23 +1,18 @@
 """A full-height, scrollable projection of a persistent goal."""
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
-from metaclass_registry.mro_dispatch import handles
-
 from datetime import datetime
 
 from agent_comms.goal_history import RecordedGoalHistory
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
-from toad.screens.modal import DismissibleScreen
+from toad.screens.source_modal import SourceModal
 from toad.widget_actions import DismissAction
 from textual.widgets import Button, Static
 
-from toad.navigation_target import SelectTarget
 from toad.goal_interaction import GoalSession
-from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.goal_text import GoalText
 
 
-class GoalDetails(CoreEventReceiver, ProjectPathOwner, DismissibleScreen[None]):
+class GoalDetails(SourceModal):
     AUTO_FOCUS = "#goal-document"
     DEFAULT_CSS = """
     GoalDetails { align: center middle; background: $background 40%; }
@@ -37,16 +32,8 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, DismissibleScreen[None]):
         self.failures = history.failures
 
     @property
-    def project_root(self):
-        return ProjectPathOwner.containing(self.source.view).project_root
-
-    @property
-    def coordination_root(self):
-        return ProjectPathOwner.containing(self.source.view).coordination_root
-
-    @property
-    def link_context_events(self):
-        return ProjectPathOwner.containing(self.source.view).link_context_events
+    def source_view(self):
+        return self.source.view
 
     @property
     def goal_display(self):
@@ -109,9 +96,3 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, DismissibleScreen[None]):
         progress = self.query_one("#goal-current-progress", GoalText)
         progress.update_goal_text(f"Progress: {goal.progress}")
         progress.display = goal.shows_progress
-
-    @handles(SelectTarget)
-    def open_target(self, event: SelectTarget, message: CoreEventMessage) -> None:
-        message.stop()
-        self.dismiss(None)
-        self.source.view.publish_core(event)

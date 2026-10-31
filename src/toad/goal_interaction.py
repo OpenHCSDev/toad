@@ -159,7 +159,11 @@ class GoalSession:
         if not action.enabled(self):
             view.feedback.flash(view.goal_display.heading(view.goal_execution))
             return
-        await action.apply(self)
+        try:
+            await action.apply(self)
+        except ValueError as error:
+            if self.owns(agent):
+                view.feedback.flash(str(error), style="error")
 
     async def change(self, action: type[GoalAction], text: str = "") -> None:
         view = self.view
