@@ -188,9 +188,14 @@ async def test_goal_history_lists_earlier_revisions(workspace):
 
 async def test_refused_goal_control_preserves_owner_state_and_composer(workspace):
     async with workspace.app(size=(100, 35), notifications=True) as ui:
-        owner, view, _bar, _status = await shown_goal(workspace, ui)
+        owner, view, bar, _status = await shown_goal(workspace, ui)
         original = owner.goal
-        await ui.pilot.click("#goal-clear")
+        clear = bar.query_one("#goal-clear", Button)
+        clear.active_effect_duration = 0
+        await ui.until(lambda: clear.region.width > 0 and not clear.disabled
+                       and ui.app.screen.get_widget_at(*clear.region.offset)[0] is clear,
+                       why="the actual goal-clear control to be the unobscured mouse target")
+        assert await ui.pilot.click(clear), "the real clear button must receive the click"
         await ui.until(lambda: owner.requests == [("update", ClearGoalAction)],
                        why="one goal-clear request at the scripted owner")
         await ui.until_shows("Goal action failed")
