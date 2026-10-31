@@ -8,6 +8,7 @@ from textual._activation import PrimaryActivation
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.message import Message
+from textual.navigation import MovesCursor
 from textual.reactive import reactive, var
 from textual.widget import Widget
 from textual.screen import Screen
@@ -16,7 +17,7 @@ from toad.answer import Answer
 from toad.tone_paint import UntintedTonePaint
 from toad.question_actions import QuestionAction, QuestionContext, SelectKindAction
 from toad.question_presentation import QuestionPresentation
-from toad.widget_actions import DeclaredWidgetActions
+from toad.widget_actions import VisibleActions
 
 type Options = list[Answer]
 
@@ -122,7 +123,7 @@ class Option(PrimaryActivation, containers.HorizontalGroup):
         self.post_message(self.Selected(self.index))
 
 
-class Question(QuestionContext, DeclaredWidgetActions, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
+class Question(VisibleActions, MovesCursor, QuestionContext, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
     """A text question with a menu of responses."""
 
     BINDING_GROUP_TITLE = "Question"
@@ -198,7 +199,6 @@ class Question(QuestionContext, DeclaredWidgetActions, containers.VerticalGroup,
         self.screen.bindings_updated_signal.subscribe(self, self.refresh_option_keys)
 
     def on_unmount(self) -> None:
-        self.screen.bindings_updated_signal.unsubscribe(self)
         self.presentation.retire()
 
     def _reset_blink(self) -> None:
@@ -255,6 +255,18 @@ class Question(QuestionContext, DeclaredWidgetActions, containers.VerticalGroup,
     @property
     def accepts_selection(self) -> bool:
         return not self.selected and 0 <= self.selection < len(self.options)
+
+    @property
+    def accepts_navigation(self) -> bool:
+        return self.accepts_selection
+
+    def action_cursor_up(self) -> None:
+        self._reset_blink()
+        self.selection = max(0, self.selection - 1)
+
+    def action_cursor_down(self) -> None:
+        self._reset_blink()
+        self.selection = min(len(self.options) - 1, self.selection + 1)
 
     def watch_selection(self, old_selection: int, new_selection: int) -> None:
         self.presentation.mount.select(new_selection)

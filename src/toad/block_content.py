@@ -1,10 +1,14 @@
 """Declared block capabilities shared by scene and original source consumers."""
+from __future__ import annotations
+
 from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import cached_property
 
 from textual.widgets import _markdown as native_markdown
 
-from toad.menus import MenuItem
+from toad.menus import KeyedMenuCommand, MenuCommand, MenuConversation
+from toad.widget_actions import ExclusiveKeys
 
 
 class BlockContent:
@@ -17,7 +21,7 @@ class BlockContent:
 
         return AtomicBlockCursor(self)
 
-    def get_block_menu(self) -> Iterable[MenuItem]:
+    def get_block_menu(self) -> Iterable[MenuCommand]:
         return ()
 
     def get_clipboard_text(self) -> str | None:
@@ -37,6 +41,30 @@ class BlockContent:
 
     def collapse_block(self) -> None:
         pass
+
+
+class ExpansionCommand(ExclusiveKeys, KeyedMenuCommand, declared_name=None):
+    """Collapse and expand alternate on one block, so they share their key."""
+
+
+@dataclass(frozen=True)
+class CollapseCommand(ExpansionCommand):
+    block: BlockContent
+    key = "x"
+    description = "Collapse"
+
+    def apply(self, conversation: MenuConversation) -> None:
+        self.block.collapse_block()
+
+
+@dataclass(frozen=True)
+class ExpandCommand(ExpansionCommand):
+    block: BlockContent
+    key = "x"
+    description = "Expand"
+
+    def apply(self, conversation: MenuConversation) -> None:
+        self.block.expand_block()
 
 
 class MarkdownBlockContent(BlockContent):

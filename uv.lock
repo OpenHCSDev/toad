@@ -1338,7 +1338,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?branch=main#832b0f6d93500c8f250f41c8ceee2337a3839ba4" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?branch=main#76f9ef770bfa0630d09aeaee931ca4356996120b" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },

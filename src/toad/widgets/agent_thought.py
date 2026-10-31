@@ -5,7 +5,7 @@ from agent_comms.ui_model.message_category import ThinkingCategory
 from typing import Iterable
 
 from toad.line_blocks import LineBlock
-from toad.menus import MenuItem
+from toad.menus import CopyThinkingCommand, MenuCommand
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
@@ -44,5 +44,5 @@ class AgentThought(
     async def finish_stream(self) -> None:
         pass
 
-    def get_block_menu(self) -> Iterable[MenuItem]:
-        yield MenuItem("Copy thinking", "block.copy", "y")
+    def get_block_menu(self) -> Iterable[MenuCommand]:
+        yield CopyThinkingCommand()

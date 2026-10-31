@@ -46,8 +46,7 @@ class InterruptAction(ConversationAction):
         return bool(conversation.terminal_action_state)
 
     async def apply(self, conversation: Conversation) -> None:
-        await conversation.shell.interrupt()
-        conversation.feedback.flash("Command interrupted", style="success")
+        await conversation.interrupt_shell()
 
 
 

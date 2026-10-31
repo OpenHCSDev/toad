@@ -1,22 +1,26 @@
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Literal, Self
 
 from textual import containers
-from textual.binding import Binding
 from textual import events
 from textual.message import Message
 from textual.reactive import reactive
 from textual.layouts.grid import GridLayout
 from textual.widget import Widget
-from toad.widget_actions import MovesCursor, Selects
+from textual.navigation import MovesCursor
+from toad.widget_actions import MovesHorizontalCursor, Selects, VisibleActions
 
 
-class GridSelect(MovesCursor, Selects, containers.ItemGrid, can_focus=True):
+class GridSelect(
+    VisibleActions,
+    MovesCursor,
+    MovesHorizontalCursor,
+    Selects,
+    containers.ItemGrid,
+    can_focus=True,
+):
     FOCUS_ON_CLICK = False
-    CURSOR_GROUP = Binding.Group("Select")
-    BINDINGS = [
-        Binding("left", "cursor_left", "Cursor Left", group=CURSOR_GROUP),
-        Binding("right", "cursor_right", "Cursor Right", group=CURSOR_GROUP),
-    ]
 
     highlighted: reactive[int | None] = reactive(None)
 
@@ -128,44 +132,30 @@ class GridSelect(MovesCursor, Selects, containers.ItemGrid, can_focus=True):
             return len(self.children) - 1
         return highlighted
 
-    def cursor_up(self):
-        if (grid_size := self.grid_size) is None:
-            self.post_message(self.LeaveUp(self))
-            return
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            width, _height = grid_size
-            if self.highlighted >= width:
-                self.highlighted -= width
-            else:
-                self.post_message(self.LeaveUp(self))
+    def action_cursor_up(self) -> None:
+        self.move_row(-1, self.LeaveUp)
 
-    def cursor_down(self):
-        if (grid_size := self.grid_size) is None:
-            self.post_message(self.LeaveDown(self))
-            return
+    def action_cursor_down(self) -> None:
+        self.move_row(1, self.LeaveDown)
 
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            width, height = grid_size
-            if self.highlighted + width < len(self.children):
-                self.highlighted += width
-            else:
-                self.post_message(self.LeaveDown(self))
+    def move_row(self, rows: Literal[-1, 1], leave: Callable[[Self], Message]) -> None:
+        """An unmeasured grid and a row past either edge both hand the cursor on."""
+        match self.grid_size, self.highlighted:
+            case None, _:
+                self.post_message(leave(self))
+            case _, None:
+                self.highlighted = 0
+            case (width, _), int(cell) if 0 <= cell + rows * width < len(self.children):
+                self.highlighted = cell + rows * width
+            case _:
+                self.post_message(leave(self))
 
-    def action_cursor_left(self):
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            self.highlighted -= 1
-
-    def action_cursor_right(self):
-        if self.highlighted is None:
-            self.highlighted = 0
-        else:
-            self.highlighted += 1
+    def cursor_horizontal(self, direction: Literal[-1, 1]) -> None:
+        match self.highlighted:
+            case None:
+                self.highlighted = 0
+            case int(cell):
+                self.highlighted = cell + direction
 
     def on_click(self, event: events.Click) -> None:
         if event.widget is None:

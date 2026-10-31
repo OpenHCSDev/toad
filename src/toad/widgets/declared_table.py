@@ -13,7 +13,7 @@ from textual.widgets import DataTable
 from textual.widgets._data_table import RowKey
 from ui_theme.scheme import ForegroundColour, ThemeColour
 
-from toad.widget_actions import MovesCursor, OpensSelected
+from toad.widget_actions import OpensSelected
 
 
 class SelectionView[R]:
@@ -73,7 +73,7 @@ class SelectedTableRecord[R](TableSelection[R]):
         table.move_cursor(row=table.get_row_index(native), animate=False, scroll=False)
 
 
-class DeclaredTable[R](MovesCursor, OpensSelected, DataTable[Content]):
+class DeclaredTable[R](OpensSelected, DataTable[Content]):
     """Core owns columns and measurement; DataTable owns rows, geometry and repaint."""
 
     def __init__(self, source: ViewTable[R]) -> None:

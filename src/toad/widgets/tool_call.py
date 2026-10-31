@@ -14,7 +14,8 @@ from toad.tool_output import ToolOutput, ToolOutputPart
 from metaclass_registry.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
 from toad.line_blocks import Body, ToggleDetails, ToolOutputRole
-from toad.menus import MenuItem
+from toad.block_content import CollapseCommand, ExpandCommand
+from toad.menus import MenuCommand
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation, ToolOutputClaim
 
@@ -128,17 +129,11 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.query_one("#tool-title", LineMarkdown).update(self.current_status.title)
         return self.output.sync()
 
-    def get_block_menu(self) -> Iterable[MenuItem]:
+    def get_block_menu(self) -> Iterable[MenuCommand]:
         if self.expanded:
-            yield MenuItem("Collapse", "block.collapse", "x")
+            yield CollapseCommand(self)
         else:
-            yield MenuItem("Expand", "block.expand", "x")
-
-    def action_collapse(self) -> None:
-        self.set_expanded(False)
-
-    def action_expand(self) -> None:
-        self.set_expanded(True)
+            yield ExpandCommand(self)
 
     def can_expand(self) -> bool:
         return not self.expanded

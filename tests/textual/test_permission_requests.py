@@ -41,6 +41,32 @@ class HeldPush:
         await self.actual()
 
 
+async def test_j_and_k_step_through_the_changes_from_the_question(workspace):
+    async with workspace.app() as ui:
+        app, _pilot = ui.textual
+        agent = ui.detached_agent("session")
+        ui.conversation.bind_agent(agent)
+        await ui.step()
+        diffs = [{"type": "diff", "path": str(workspace.project / name), "oldText": "old", "newText": "new"}
+                 for name in ("first.txt", "second.txt")]
+        call = schema.RequestPermissionRequest.model_validate(permission_call(
+            1, "two-changes", kind="edit", title="Pending review", option="Allow", content=diffs)["params"])
+        task = asyncio.create_task(agent.permissions.request_permission(
+            call.session_id, call.options, call.tool_call, call.field_meta))
+        await ui.until(lambda: isinstance(app.screen, PermissionsScreen), why="the review screen")
+        await ui.until(lambda: app.screen.query("#navigator") and app.screen.navigator.option_count == 2,
+                       why="both changes listed")
+        navigator = app.screen.navigator
+        assert not navigator.has_focus
+        await ui.press("j", "j")
+        await ui.until(lambda: navigator.highlighted == 1, why="j moved to the second change")
+        await ui.press("k")
+        await ui.until(lambda: navigator.highlighted == 0, why="k moved back to the first change")
+        await ui.press("enter")
+        assert (await task).outcome == schema.AllowedOutcome(outcome="selected", option_id="allow")
+        await agent.stop()
+
+
 @pytest.mark.parametrize("outcome", ["cancel"])
 async def test_a_request_changed_while_its_screen_push_is_pending_is_cancelled_or_shown_once(workspace, outcome):
     async with workspace.app() as ui:

@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterator, Mapping
 from functools import partialmethod
 from operator import or_
 from types import MappingProxyType
-from typing import ClassVar, Generic, Literal, Self, TypeVar
+from typing import ClassVar, Generic, Literal, Self, TypeVar, cast
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily, FamilyMeta
@@ -47,17 +47,9 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
         return cls.declared_name.replace("_", " ").capitalize()
 
     @classmethod
-    def declarations(cls):
-        """Each nested family retains its own declaration registry."""
-        pending = [cls]
-        families = set()
-        while pending:
-            declaration = pending.pop()
-            pending.extend(declaration.__subclasses__())
-            family = declaration.family_root
-            if family not in families:
-                families.add(family)
-                yield from family.members_with(cls)
+    def declarations(cls) -> Iterator[type[Self]]:
+        """The native registry filters by this class, so each member is one of its own."""
+        return cast("Iterator[type[Self]]", super().declarations())
 
     @classmethod
     def summary(cls) -> str:
@@ -159,7 +151,7 @@ class System:
     system: ClassVar[bool] = True
 
     @classmethod
-    def offered(cls, context) -> Iterator[Action]:
+    def offered(cls, context: DOMNode) -> Iterator[Self]:
         return iter(())
 
 
@@ -178,7 +170,7 @@ class ExclusiveKeys:
     """One declared family of mutually exclusive actions may share its default keys."""
 
     @classmethod
-    def permits_key_overlap(cls, other: type[KeyDeclaration]) -> bool:
+    def permits_key_overlap(cls, other: KeyDeclarationType) -> bool:
         family = next(base for base in cls.__mro__ if ExclusiveKeys in base.__bases__)
         return issubclass(other, family)
 
@@ -194,7 +186,7 @@ class ApplicationAction(Action, affix="Action"):
         return cls.bindings_for(mode)
 
     @classmethod
-    def menu(cls, app):
+    def menu(cls, app) -> tuple[tuple[ApplicationAction, str], ...]:
         """Every offered member under its label, in declaration order."""
         return tuple((command, command.label(app))
                      for member in cls.members_with(cls) for command in member.offered(app))
@@ -203,7 +195,7 @@ class ApplicationAction(Action, affix="Action"):
 class VimWorkspaceAction(ApplicationAction, declared_name=None):
     """Workspace commands precede editor bindings only in idle modal command entry."""
 
-    def key_available(self, app):
+    def key_available(self, app) -> bool:
         if app.current_mode != "workspace":
             return False
         return (app.screen is app.workspace_screen
@@ -249,13 +241,13 @@ class DeclaredWidgetActions(ToadNode):
                 return declaration.parse(parameters).key_available(self)
         return super().check_action(action, parameters)
 
-    def _run_declared_action(self, declaration, *parameters) -> object:
+    def _run_declared_action(self, declaration: type[Action], *parameters: object) -> object:
         command = declaration.parse(parameters)
         if command.available(self):
             return command.apply(self)
         return None
 
-    async def _run_declared_async_action(self, declaration, *parameters) -> None:
+    async def _run_declared_async_action(self, declaration: type[Action], *parameters: object) -> None:
         await invoke(self._run_declared_action, declaration, *parameters)
 
 
@@ -303,25 +295,8 @@ class DismissAction(VisibleAction):
         context.dismiss_control()
 
 
-class CursorAction(VisibleAction, affix="Action"):
+class HorizontalCursorAction(VisibleAction, declared_name=None):
     group = Binding.Group("Select")
-
-
-class CursorUpAction(CursorAction):
-    keys = {EditingMode: ("up",)}
-
-    async def apply(self, context: MovesCursor) -> None:
-        context.cursor_up()
-
-
-class CursorDownAction(CursorAction):
-    keys = {EditingMode: ("down",)}
-
-    async def apply(self, context: MovesCursor) -> None:
-        context.cursor_down()
-
-
-class HorizontalCursorAction(CursorAction, declared_name=None):
     direction: ClassVar[Literal[-1, 1]]
 
     async def apply(self, context: MovesHorizontalCursor) -> None:
@@ -431,15 +406,6 @@ class DismissibleControl(Dismisses):
         """Close this control without imposing a native screen result contract."""
 
 
-class MovesCursor(DeclaredWidgetActions, actions=(CursorAction,)):
-
-    @abstractmethod
-    def cursor_up(self) -> None: ...
-
-    @abstractmethod
-    def cursor_down(self) -> None: ...
-
-
 class MovesHorizontalCursor(DeclaredWidgetActions, actions=(HorizontalCursorAction,)):
     @abstractmethod
     def cursor_horizontal(self, direction: Literal[-1, 1]) -> None: ...
@@ -508,7 +474,7 @@ class CyclesFocus(DeclaredWidgetActions, actions=(FocusAction,)):
 
 
 Combiner = Callable[[bool, bool], bool]
-PresentationScopes = Mapping[type, tuple[type[Action], ...]]
+PresentationScopes = Mapping[type, tuple[type[KeyDeclaration], ...]]
 
 
 @dataclass(frozen=True)
@@ -535,12 +501,12 @@ class ActionPresentation(DeclaredWidgetActions):
         super().__init_subclass__(actions=actions, **kwargs)
 
     @classmethod
-    def present_binding(cls, declaration: type[Action], binding: Binding) -> Binding:
+    def present_binding(cls, declaration: type[KeyDeclaration], binding: Binding) -> Binding:
         scopes = {family: members for base in reversed(cls.__mro__)
                   for family, members in base.__dict__.get("scopes", {}).items()}
         for base in reversed(cls.__mro__):
             for style in base.__dict__.get("binding_styles", ()):
-                selected = any(root in declaration.__mro__ for root in scopes.get(base, (Action,)))
+                selected = any(root in declaration.__mro__ for root in scopes.get(base, (KeyDeclaration,)))
                 binding = replace(binding, **{
                     style.field.name: style.combine(bool(style.field.current(binding)), selected)
                 })

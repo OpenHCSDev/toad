@@ -39,7 +39,7 @@ from ui_theme.effects import NEW_TEXT, Amount, Transition
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
-from toad.message_rows import MessageClock, MessageRow
+from toad.message_rows import MessageClock
 from toad.session_scope import SessionScope
 from toad.transcript_filter import FilterState
 from toad.transcript_preparation import (
@@ -80,7 +80,7 @@ from toad.widgets.history_anchor import (
 )
 from toad.widgets.linked_rows import (
     HorizontalRows,
-    OpensMessageNames,
+    OpensLinks,
     ReferenceRendering,
     selection_painted,
 )
@@ -518,7 +518,7 @@ class DrawsBusMessages:
         return any(fragment.draws(message) for fragment in reversed(self.fragments_in_range))
 
 
-class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
+class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the newest page and the reader's position.
@@ -700,13 +700,6 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensMessageNames, Tran
 
     def collapse_block(self) -> None:
         self._set_selected_details(False)
-
-    # The message cursor
-
-    @property
-    def message_row(self) -> MessageRow:
-        """The bus message the cursor rests on; its menu is offered on no other fragment."""
-        return self.block_cursor.current.row
 
     @property
     def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
