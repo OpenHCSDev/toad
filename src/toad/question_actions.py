@@ -96,3 +96,22 @@ class RejectAlwaysAction(SelectKindAction):
     title = "Reject always"
     keys = {EditingMode: ("R",)}
     group = RejectOnceAction.group
+
+
+class PermissionNavigationAction(Action, declared_name=None):
+    group = Binding.Group("Navigation", compact=True)
+    show = True
+
+
+class NextChangeAction(PermissionNavigationAction):
+    keys = {EditingMode: ("j",)}
+
+    async def apply(self, context):
+        context.navigator.action_cursor_down()
+
+
+class PreviousChangeAction(PermissionNavigationAction):
+    keys = {EditingMode: ("k",)}
+
+    async def apply(self, context):
+        context.navigator.action_cursor_up()

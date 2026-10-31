@@ -117,9 +117,6 @@ class Menu(DismissibleControl, UntintedTonePaint, ListView, MenuOwner, can_focus
         self.screen.bindings_updated_signal.subscribe(self, self.refresh_keys)
         self.call_after_refresh(self.refresh_keys)
 
-    def on_unmount(self) -> None:
-        self.screen.bindings_updated_signal.unsubscribe(self)
-
     def refresh_keys(self, _screen: object = None) -> None:
         for option in self.query(MenuOption):
             option.refresh_key()

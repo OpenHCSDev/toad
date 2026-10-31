@@ -30,7 +30,7 @@ from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.content import Content
 from textual.css.query import NoMatches
-from textual.geometry import Offset, Region
+from textual.geometry import Offset, Region, Size
 from textual.layout import WidgetPlacement
 from textual.layouts.grid import GridLayout
 from textual.reactive import Required, var
@@ -1487,10 +1487,6 @@ class Conversation(
     ) -> None:
         self.update_slash_commands()
 
-    def action_focus_block(self, block_id: str) -> None:
-        with suppress(NoMatches):
-            self.query_one(f"#{block_id}").focus()
-
     async def set_mode(self, mode_id: str | None) -> None:
         if mode_id is None:
             return
@@ -1981,12 +1977,10 @@ class Conversation(
             cursor.maximize(self.screen)
 
     def export_block_to_svg(self) -> None:
-        cursor = self.navigation.cursor
-        match cursor.export_render():
-            case None:
-                return
-            case (width, height), render:
-                pass
+        self.navigation.cursor.export_to_svg(self)
+
+    def open_render_as_svg(self, size: Size, render: object) -> None:
+        width, height = size
         import platformdirs
         from textual._files import generate_datetime_filename
 

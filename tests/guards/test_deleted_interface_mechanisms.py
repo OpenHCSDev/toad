@@ -178,11 +178,9 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
     assert Divider.__dataclass_fields__.keys() == {'spans', 'role', 'timestamp'}
 
     # The message owns its menu and one class runs it: a view has no open actions or menu entries of its own.
-    for name, home in (('action_open_sender', 'widgets/linked_rows.py'),
-                       ('action_open_destination', 'widgets/linked_rows.py'),
-                       ('action_link', 'widgets/linked_rows.py'), ('opens', 'project_link.py')):
+    for name, home in (('action_link', 'widgets/linked_rows.py'), ('opens', 'project_link.py')):
         assert declared[name] == [home], (name, declared[name])
-    assert '_open_name' not in declared and 'open_url' not in declared
+    assert not {'_open_name', 'open_url', 'action_open_sender', 'action_open_destination'} & declared.keys()
     assert declared['OpenSenderCommand'] == declared['OpenDestinationCommand'] == ['menus.py']
     # Which addresses are links is one rule; the inline parser keeps no list of its own.
     assert 'urlsplit' not in (ROOT / 'inline_spans.py').read_text()

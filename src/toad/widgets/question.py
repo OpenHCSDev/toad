@@ -199,7 +199,6 @@ class Question(VisibleActions, MovesCursor, QuestionContext, containers.Vertical
         self.screen.bindings_updated_signal.subscribe(self, self.refresh_option_keys)
 
     def on_unmount(self) -> None:
-        self.screen.bindings_updated_signal.unsubscribe(self)
         self.presentation.retire()
 
     def _reset_blink(self) -> None:

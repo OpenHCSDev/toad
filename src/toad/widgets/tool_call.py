@@ -135,12 +135,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         else:
             yield ExpandCommand(self)
 
-    def action_collapse(self) -> None:
-        self.set_expanded(False)
-
-    def action_expand(self) -> None:
-        self.set_expanded(True)
-
     def can_expand(self) -> bool:
         return not self.expanded
 

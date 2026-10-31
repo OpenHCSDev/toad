@@ -115,15 +115,10 @@ class MessageRow(MroDispatch):
         return self.name(self.route.sender).link
 
     @property
-    def destination(self) -> LineLink:
-        """What opens the first thread or channel the message was sent to."""
-        return self.name(self.route.targets[0]).link
-
-    @property
     def menu(self) -> tuple[MenuCommand, ...]:
         """What the cursor's menu offers on this message, wherever it is drawn."""
         return (OpenSenderCommand(self.sender),
-                *(OpenDestinationCommand(self.destination) for _ in self.route.targets[:1]))
+                *(OpenDestinationCommand(self.name(target).link) for target in self.route.targets[:1]))
 
     @property
     def route_text(self) -> str:

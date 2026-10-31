@@ -91,21 +91,10 @@ class OpensLinks(CoreEventReceiver, MroDispatch):
         self.action_open(LineLink.from_href(href))
 
 
-class OpensMessageNames(OpensLinks):
-    """A block the cursor rests on while it draws a bus message: what the message's menu (`MessageRow.menu`) runs."""
-
-    # The message under the cursor.
-    message_row: MessageRow
-
-    def action_open_sender(self) -> None:
-        self.action_open(self.message_row.sender)
-
-    def action_open_destination(self) -> None:
-        self.action_open(self.message_row.destination)
-
-
-class MessageRowBlock(OpensMessageNames):
+class MessageRowBlock(OpensLinks):
     """A widget that is one bus message under the cursor: it offers the message's menu."""
+
+    message_row: MessageRow
 
     def get_block_menu(self) -> tuple[MenuCommand, ...]:
         return self.message_row.menu

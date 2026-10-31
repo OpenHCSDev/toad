@@ -118,8 +118,8 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
                 animate=False, immediate=True,
             )
 
-    def export_render(self):
-        return None
+    def export_to_svg(self, conversation: Conversation) -> None:
+        """Only a cursor resting on one drawn block has something to export."""
 
 
 class NoBlockCursor(BlockCursor):
@@ -199,12 +199,12 @@ class AtomicBlockCursor(BlockCursor):
     def show_moved_to(self, window: HistoryWindow):
         window.scroll_to_center(self.block, immediate=True)
 
-    def export_render(self):
+    def export_to_svg(self, conversation: Conversation) -> None:
         from textual._compositor import Compositor
 
         compositor = Compositor()
         compositor.reflow(self.block, self.block.outer_size)
-        return self.block.outer_size, compositor.render_full_update()
+        conversation.open_render_as_svg(self.block.outer_size, compositor.render_full_update())
 
 
 class FragmentBlockCursor(BlockCursor):
