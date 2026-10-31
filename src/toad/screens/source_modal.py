@@ -5,13 +5,13 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from metaclass_registry.mro_dispatch import handles
-from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
+from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import SelectTarget
 from toad.project_path_owner import ProjectPathOwner
 from toad.screens.modal import DismissibleScreen
 
 if TYPE_CHECKING:
-    from textual.widget import Widget
+    from toad.core_event_carrier import CoreEventMessage
 
 
 class SourceModal(CoreEventReceiver, ProjectPathOwner, DismissibleScreen[None]):
@@ -19,7 +19,7 @@ class SourceModal(CoreEventReceiver, ProjectPathOwner, DismissibleScreen[None]):
 
     @property
     @abstractmethod
-    def source_view(self) -> Widget: ...
+    def source_view(self) -> CoreEventReceiver: ...
 
     @property
     def project_root(self):

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Iterable
 from functools import cached_property
 from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
@@ -19,6 +18,8 @@ from toad.frame_presentation import AnimationEffects
 from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from agent_comms.message_reference import MessageReference
     from agent_comms.ui_model.message_category import AgentActivityBoundary
     from textual.screen import Screen
