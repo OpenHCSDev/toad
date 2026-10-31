@@ -7,6 +7,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.read_basis import DisplayCut, NoDisplaySelection
 from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
 from textual.geometry import Region
 from textual.widget import Widget
@@ -17,6 +18,7 @@ from toad.frame_presentation import AnimationEffects
 from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
 
 if TYPE_CHECKING:
+    from agent_comms.message_reference import MessageReference
     from agent_comms.ui_model.message_category import AgentActivityBoundary
     from textual.screen import Screen
 
@@ -395,6 +397,10 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
 
     def notification_targets(self):
         return ()
+
+    def notification_identity_for(self, references: frozenset[MessageReference]) -> DisplayCut:
+        """Live entries have no captured BUS display cut; source rows override with theirs."""
+        return NoDisplaySelection()
 
     @cached_property
     def block_cursor(self) -> BlockCursor:
