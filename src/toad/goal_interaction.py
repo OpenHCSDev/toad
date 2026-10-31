@@ -6,6 +6,7 @@ from typing import ClassVar, TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.coordination_errors import Refused
+from agent_comms.errors import GoalRefused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
 from agent_comms.goal_presentation import ControlledExecution, GoalExecution
@@ -104,7 +105,7 @@ class EditInteraction(GoalInteraction):
 
         async def save(text: str) -> None:
             if not session.owns(agent):
-                raise ValueError("The goal presentation changed; reopen its editor.")
+                raise GoalRefused("The goal presentation changed; reopen its editor.")
             await session.write(agent, agent.edit_goal(goal, text))
 
         observed = await view.app.preparation.run_thread(view.app.coordination_access.observation.observed)
@@ -169,11 +170,9 @@ class GoalSession:
 
     async def change(self, action: type[GoalAction], text: str = "") -> None:
         view = self.view
-        if not view.is_attached:
-            raise ValueError("The goal presentation changed; reopen its controls.")
         agent = view.agent_binding
         if not self.owns(agent):
-            raise ValueError("The goal presentation changed; reopen its controls.")
+            raise GoalRefused("The goal presentation changed; reopen its controls.")
         # The existing Agent boundary encodes the declared goal operation.
         # Goal state governs continuation, never interruption of an active turn.
         await self.write(agent, agent.update_goal(action, text))
