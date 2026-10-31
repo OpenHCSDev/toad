@@ -2,7 +2,8 @@
 
 from agent_comms.goal_presentation import IdleGoalExecution
 from agent_comms.goals import GoalDeclaration, NoGoal
-from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
+from agent_comms.goals import GoalUnavailable
+from agent_comms.ui_model.goal import GoalDisplay
 from support.goals import published_goal
 
 

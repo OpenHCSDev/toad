@@ -616,7 +616,8 @@ class ContextInspection:
         return tuple(matches)
 
     async def _request(self, action: str, **parameters: JsonValue | tuple[int, ...]):
-        from agent_comms.runtime import RuntimeConnection, socket_path
+        from agent_comms.owner_connection import socket_path
+        from agent_comms.runtime import RuntimeConnection
 
         owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
         if owner.incarnation != self.owner.incarnation:

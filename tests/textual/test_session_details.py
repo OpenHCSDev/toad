@@ -5,11 +5,11 @@ from textual.content import Content
 from textual.screen import Screen
 from textual.widgets import Input
 
+from agent_comms.transcripts import NotifiedThreadPresentation
 from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.messages import InfoKind, Message
 from agent_comms.notification_progress import HarnessConsumedProgress
 from agent_comms.presentation import MessageNotification
-from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.delivery import ReadDeliveryView
 from agent_comms.input_disposition import DeliveryOverview
 from agent_comms.input_attempt import UnobservedInputDeliveryScope
@@ -27,7 +27,7 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         FrozenRecipient("owner", "owner"), "peer", HarnessConsumedProgress(), message=Message("peer", "#comms", f"Notice {index}: " + "body " * 30,
                                                  InfoKind, seq=index + 1),
     ) for index in range(30))
-    state = ThreadPresentation("owner", "●", "Ready", notifications=notifications)
+    state = NotifiedThreadPresentation("owner", "●", "Ready", notifications=notifications)
     history = NativeHistory()
     history.status = NoneCursorStatus
     delivery = InputDeliveryBar()

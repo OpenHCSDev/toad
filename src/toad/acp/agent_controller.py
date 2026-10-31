@@ -22,7 +22,8 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.coordination_errors import Refused
-from agent_comms.runtime import RuntimeConnection, socket_path
+from agent_comms.owner_connection import socket_path
+from agent_comms.runtime import RuntimeConnection
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.order_tools import InputDeliveryRead
 from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView

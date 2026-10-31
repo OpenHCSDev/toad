@@ -3,7 +3,7 @@
 from unittest.mock import patch
 
 from agent_comms.goals import NoGoal
-from agent_comms.ui_model.goal import GoalUnavailable
+from agent_comms.goals import GoalUnavailable
 from textual.containers import VerticalScroll
 
 from toad.widgets.goal_bar import GoalBar
