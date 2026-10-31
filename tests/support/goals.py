@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from agent_comms.errors import GoalRefused
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_mentions import bind_goal_mentions
 from agent_comms.goal_presentation import GoalExecution, GoalSnapshot, RunnableExecution
@@ -56,16 +57,19 @@ class ScriptedGoalOwner(Agent):
     async def get_goal_snapshot(self):
         return GoalSnapshot(self.goal, self.execution)
 
+    def accept_write(self, kind: str, details: object) -> None:
+        self.requests.append((kind, details))
+        if self.reject:
+            raise GoalRefused("Goal changed; refresh before writing")
+
     async def update_goal(self, action: type[GoalAction], text: str = ""):
-        self.requests.append(("update", action))
+        self.accept_write("update", action)
         self.goal = replace(self.goal, state=ActiveGoal())
         self.execution = RunnableExecution(self.goal.id)
         return self.goal
 
     async def edit_goal(self, expected, text):
-        self.requests.append(("edit", (expected.id, expected.revision, text)))
-        if self.reject:
-            raise ValueError("Goal changed; refresh before editing")
+        self.accept_write("edit", (expected.id, expected.revision, text))
         self.goal = replace(self.goal, text=text, revision=self.goal.revision + 1)
         return self.goal
 
