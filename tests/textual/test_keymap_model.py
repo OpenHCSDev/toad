@@ -12,17 +12,17 @@ def test_saved_remaps_keep_modes_independent_and_reset_to_the_declaration():
     catalog = KeymapCatalog.capture(KeyMode.members_with(KeyMode))
     ordinary = KeymapRow.of(KeymapAction(), Standard)
     normal = KeymapRow.of(KeymapAction(), VimNormal)
-    keymap = Keymap().changed(normal, ("f7",))
+    keymap = Keymap().changed(normal, ("f18",))
     applied = []
     settings = SavedSettings(applied=applied.append)
     settings.set(SETTINGS.ui.keymap.bindings, keymap.bindings)
     loaded = SavedSettings(settings.document()).current.ui.keymap
     assert [setting.path for setting in applied] == [SETTINGS.ui.keymap.bindings.bind(settings.state).path]
-    assert catalog.effective(normal, loaded) == ("f7",)
+    assert catalog.effective(normal, loaded) == ("f18",)
     assert catalog.effective(ordinary, loaded) == catalog.defaults(ordinary)
     assert catalog.effective(normal, loaded.reset(normal)) == catalog.defaults(normal)
     with pytest.raises(ValueError, match="Commander.*Keymap|Keymap.*Commander"):
-        loaded.changed(KeymapRow.of(CommanderAction(), VimNormal), ("f7",))
+        loaded.changed(KeymapRow.of(CommanderAction(), VimNormal), ("f18",))
 
 
 def test_an_empty_override_unbinds_and_survives_saving_until_reset():
@@ -44,7 +44,7 @@ def test_defaults_allow_the_declared_alternatives_in_every_mode():
 def test_reset_cannot_reintroduce_a_collision_and_duplicate_rows_are_refused():
     catalog = KeymapCatalog.capture(KeyMode.members_with(KeyMode))
     menu = KeymapRow.of(KeymapAction(), Standard)
-    keymap = Keymap().changed(menu, ("f7",))
+    keymap = Keymap().changed(menu, ("f18",))
     keymap = keymap.changed(KeymapRow.of(CommanderAction(), Standard), catalog.defaults(menu))
     with pytest.raises(ValueError, match="Key conflict"):
         keymap.reset(menu)
