@@ -47,7 +47,7 @@ async def test_evicted_saved_tab_restores_before_its_first_published_frame(works
         document, undo = editor.document, editor.history
         old_view = ui.conversation
         other = await ui.new_session()
-        await owner.presentation.evict()
+        await owner.presentation.evict(owner)
         assert owner.presentation.widget is None
         assert owner.presentation.transcript.documents
 

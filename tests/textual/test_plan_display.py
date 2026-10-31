@@ -108,7 +108,7 @@ async def test_an_empty_plan_resets_the_view_and_a_retired_sidebar_shows_later_p
         advance(workspace, 0)
         await ui.until(lambda: plan.all_complete, why="the completed plan")
         advance(workspace, 1)
-        await sidebar.evict()
+        await sidebar.evict(ui.textual[0].selected_session)
         assert not sidebar.panels
         await ui.until(lambda: not plan.entries and not plan.all_complete, why="the plan to reset")
         await ui.until(lambda: painted_text(plan, "No plan yet"), why="the empty plan painted")

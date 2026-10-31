@@ -51,7 +51,7 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         table = app.screen.query_one(DataTable)
         assert table.size.height > table.header_height, "The command rows must have visible space"
         await choose(ui, KeymapAction(), mode)
-        app.screen.query_one("#keymap-keys", Input).value = "f7"
+        app.screen.query_one("#keymap-keys", Input).value = "f18"
         await ui.pilot.click("#keymap-apply")
         await ui.until(lambda: KeymapAction.binding_id(mode().binding_mode) in app._keymap,
                        why="the saved menu remap")
@@ -67,10 +67,10 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         await ui.until(lambda: app.screen is app.workspace_screen, why="the keymap menu closed")
         await ui.press("f1")
         assert app.screen is app.workspace_screen
-        await ui.press("f7")
+        await ui.press("f18")
         await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the remapped menu key")
         await choose(ui, CommanderAction(), mode)
-        app.screen.query_one("#keymap-keys", Input).value = "f7"
+        app.screen.query_one("#keymap-keys", Input).value = "f18"
         await ui.pilot.click("#keymap-apply")
         await ui.until(lambda: "Key conflict" in str(app.screen.query_one("#keymap-status", Static).render()),
                        why="the colliding remap refusal")
@@ -80,7 +80,7 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
     async with workspace.app(size=size) as reopened:
         await reopened.press("f1")
         assert reopened.app.screen is reopened.app.workspace_screen
-        await reopened.press("f7")
+        await reopened.press("f18")
         await reopened.until(lambda: isinstance(reopened.app.screen, KeymapScreen),
                              why="the saved menu remap after restarting the app")
 

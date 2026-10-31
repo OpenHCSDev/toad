@@ -1,5 +1,6 @@
 """Textual-facing: the channels sidebar's expansion, scroll position and range anchor survive switching between views, painted identically from its first ready frame."""
 
+from agent_comms.repo import Checkout
 from support.stylesheets import INSTALLED
 from support.textual_steps import channel_roster
 
@@ -75,7 +76,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         worker = await app.session_navigation.new(
             MailboxTab(workspace.comms.registry.require("worker").incarnation, str(workspace.comms.root)),
             lambda: MainScreen.from_thread(
-                workspace.project,
+                Checkout(workspace.project),
                 str(workspace.comms.root),
                 workspace.comms.registry.require("worker").incarnation,
             )

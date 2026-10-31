@@ -165,6 +165,10 @@ class ParkedWorkspaceSource(BoundWorkspaceSource):
         return self
 
 
+class SessionStartFailed(RuntimeError):
+    """A session's own startup failed; the app has already shown that error."""
+
+
 class WorkspaceSessions:
     def __init__(self, app: "ToadApp") -> None:
         self.app = app
@@ -196,6 +200,8 @@ class WorkspaceSessions:
         self.views[identity] = view
         host = self.app.workspace_screen.query_one("#workspace-session-host", Container)
         await host.mount(view)
+        if identity not in self.views:
+            raise SessionStartFailed(identity)
         return view
 
     async def select(self, identity: str) -> "SessionScope":

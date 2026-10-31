@@ -328,6 +328,13 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
     footer_compact = False
     presentation: OperationalSessionPresentation
 
+    async def _pre_process(self) -> bool:
+        """Textual tears a failed start down; the workspace must not keep the dead tree."""
+        started = await super()._pre_process()
+        if not started:
+            self.app.workspace_sessions.detach(self.id)
+        return started
+
     def matches_launch(self, agent_identity: str, session_id: str) -> bool:
         return False
 
