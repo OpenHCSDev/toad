@@ -462,7 +462,10 @@ class ConversationSessionBinding(
         """Capture turn token and client authority for the next observed presentation."""
         self._thread_read = self.agent_binding.thread_read()
 
-    def thread_observed(self, event: core_events.ThreadRowsChanged | None = None) -> None:
+    def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
+        self.consume_thread_presentation()
+
+    def consume_thread_presentation(self) -> None:
         """Consume this thread's one observed presentation."""
         presentation = self.app.coordination_access.thread_status.open(
             self.status_thread().name
