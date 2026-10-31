@@ -7,7 +7,7 @@ from types import FunctionType
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ref
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.content import Content
 from textual.document._editing import EditingMode
 from textual.widgets import TextArea

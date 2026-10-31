@@ -4,7 +4,7 @@ import hashlib
 from pathlib import Path
 from typing import Literal, cast
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from toad.history import History, HistoryEntry
 
 

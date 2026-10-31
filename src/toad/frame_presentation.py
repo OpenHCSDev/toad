@@ -10,7 +10,7 @@ from functools import partial
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ref
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._paint_state import PaintState
 from textual.app import ScreenStackError, UnknownModeError
 from textual.strip import Strip

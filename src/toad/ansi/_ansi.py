@@ -10,7 +10,7 @@ from itertools import accumulate
 from typing import ClassVar, Literal, NamedTuple
 
 import rich.repr
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from rich.cells import chop_cells
 from rich.color import Color
 from rich.style import Style

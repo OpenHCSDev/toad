@@ -1,7 +1,7 @@
 """A question mount owns its option view and timer for exactly that lifetime."""
 from abc import abstractmethod
 from dataclasses import dataclass
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 
 
 class QuestionMount(DeclaredFamily, affix="QuestionMount"):

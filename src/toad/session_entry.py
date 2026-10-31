@@ -12,7 +12,7 @@ from pathlib import Path
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.thread_identity import ThreadIncarnation

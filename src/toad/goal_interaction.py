@@ -5,7 +5,7 @@ from abc import abstractmethod
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ref
 
-from agent_comms.declared_family import DeclaredFamily
+from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
 from agent_comms.goal_presentation import ControlledExecution, GoalExecution
 from agent_comms.goal_history import RecordedGoalHistory
