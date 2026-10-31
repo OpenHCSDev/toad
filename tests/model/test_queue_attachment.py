@@ -8,6 +8,7 @@ from agent_comms.acp_extension import (
     AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, LiveQueueScope,
 )
 from agent_comms.child_process import ProcessIdentity
+from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.input_origin import HumanInputOrigin
 from agent_comms.threads import Thread
 
@@ -22,7 +23,7 @@ def declared_scope(tmp_path):
     comms.registry.declare(Thread("source", frozenset(), Checkout(tmp_path),
                                   process_identity=owner))
     return comms, LiveQueueScope(
-        session_id="source", claimed_identity=comms.registry.snapshot().claimed_identity("source"), owner=owner,
+        session_id=AcpSessionId("source"), claimed_identity=comms.registry.snapshot().claimed_identity("source"), owner=owner,
     )
 
 
