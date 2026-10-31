@@ -60,7 +60,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         owner.publication.clear()
         await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(app.project_dir))
         await app.selected_session.wait_content_ready()
-        await owner.presentation.evict()
+        await owner.presentation.evict(owner)
         assert view._initial_prompt is None
         assert owner.presentation.state.initial_prompt == "NEWEST_PENDING_LOCAL_UI_EVENT"
         assert owner.presentation.widget is None
@@ -84,7 +84,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         # The consumed value must stay absent on another eviction.
         await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(app.project_dir))
         await app.selected_session.wait_content_ready()
-        await owner.presentation.evict()
+        await owner.presentation.evict(owner)
         assert owner.presentation.state.initial_prompt is None
         await ui.select_tab(owner.id)
         await ui.step()
