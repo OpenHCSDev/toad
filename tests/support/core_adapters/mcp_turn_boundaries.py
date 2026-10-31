@@ -18,9 +18,8 @@ from agent_comms.comms import wire
 from agent_comms.coordinator import Coordination
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, TurnId
 from agent_comms.launch_runtime import ThreadLaunch
-from agent_comms.pi_payloads import (
-    McpLiveAcknowledgement, McpServerReceipt, ReadyMcpServerState, ConfirmMcpCallPolicy,
-)
+from agent_comms.pi_wire import McpLiveAcknowledgement, McpServerReceipt
+from agent_comms.pi_payloads import ReadyMcpServerState, ConfirmMcpCallPolicy
 from toad.widgets.note import Note
 
 RETIRED = TurnId("0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a")
