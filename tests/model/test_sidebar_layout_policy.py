@@ -78,6 +78,17 @@ def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels,
     }, "Swap must not change extents through order-dependent rounding"
 
 
+@pytest.mark.parametrize("side, viewport", list(product(EDGES, (Size(51, 27), Size(36, 18)))))
+def test_shrinking_preserves_each_axis_minimum_when_both_controls_fit(side, viewport):
+    layout = SidebarLayout()
+    layout.move("channels-sidebar", side)
+    layout.move("thread-sidebar", side.opposite())
+    layout.resize("channels-sidebar", layout.maximum_percent)
+    layout.resize("thread-sidebar", layout.minimum_percent)
+    resolved = layout.resolve(viewport, {key: False for key in layout.placements})
+    assert all(side.extent(bar.size) >= side.minimum for bar in resolved.bars.values())
+
+
 @pytest.mark.parametrize("channels_edge, thread_edge", list(product(EDGES, repeat=2)))
 def test_every_edge_combination_stays_inside_native_viewport(channels_edge, thread_edge):
     layout = SidebarLayout()

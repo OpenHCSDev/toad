@@ -183,7 +183,7 @@ class ToggleSidebarAction(WidgetAction):
 
 class SideBarToggle(HoverSelection, DeclaredWidgetActions, PrimaryActivation, widgets.Static,
                     actions=(ToggleSidebarAction,)):
-    """Full-height collapse target beside the conversation-facing resize edge."""
+    """Collapse target spanning the conversation-facing resize edge."""
 
     @property
     def paint_highlighted(self):
@@ -506,7 +506,7 @@ class SidebarAction(Activates, HoverSelection, widgets.Static, can_focus=True):
 class SidebarResizeHandle(
     MovesHorizontalCursor, MovesVerticalCursor, CapturedDrag, ColourSelection, widgets.Static, ToadNode, can_focus=True
 ):
-    """Drag the conversation-facing edge; the placement model owns the width."""
+    """Drag the conversation-facing edge; the placement model owns the extent."""
 
     highlight_foreground = ForegroundColour
 
@@ -575,6 +575,35 @@ class SearchSidebarAction(WidgetAction):
         sidebar.search_input.focus()
 
 
+class SidebarContentStack(containers.Vertical):
+    """One padded flow for content; padding never intercepts the outer handles."""
+
+    hit_test_transparent = True
+
+    DEFAULT_CSS = """
+    SidebarContentStack {
+        width: 1fr; height: 1fr; layer: sidebar-content;
+        overflow: hidden hidden;
+    }
+    SidebarContentStack > SidebarViewport {
+        width: 1fr;
+        height: 1fr;
+        overflow: auto auto;
+        scrollbar-size: 1 1;
+        scrollbar-gutter: stable;
+    }
+    SidebarContentStack > #sidebar-controls {
+        width: 1fr;
+        height: auto;
+    }
+    SidebarContentStack #sidebar-layout-actions {
+        height: auto; width: 1fr; overflow: hidden hidden;
+        grid-size: 2; grid-columns: 1fr 1fr; grid-rows: 1;
+    }
+    SidebarContentStack #sidebar-float { column-span: 2; width: 1fr; }
+    """
+
+
 class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
               containers.Vertical, ToadNode, actions=(SearchSidebarAction,)):
     tone = SidebarToneColour
@@ -590,24 +619,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         width: auto;
         border: none;
     }
-    SideBar > SidebarViewport {
-        width: 1fr;
-        height: 1fr;
-        layer: sidebar-content;
-        overflow: auto auto;
-        scrollbar-size: 1 1;
-        scrollbar-gutter: stable;
-    }
-    SideBar > #sidebar-controls {
-        width: 1fr;
-        height: auto;
-        layer: sidebar-content;
-    }
-    SideBar #sidebar-layout-actions {
-        height: auto; width: 1fr; overflow: hidden hidden;
-        grid-size: 2; grid-columns: 1fr 1fr; grid-rows: 1;
-    }
-    SideBar #sidebar-float { column-span: 2; width: 1fr; }
     """
 
     collapsed = reactive(False)
@@ -638,8 +649,8 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
+        self.content_stack = SidebarContentStack()
         self.search_input = SidebarSearch(placeholder="Search", compact=True)
-        self.search_input.styles.layer = "sidebar-content"
         self.panels_viewport: SidebarViewport = SidebarViewport()
         self.hide = hide
         self.extent_slider = SidebarSlider(
@@ -739,13 +750,14 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
     def compose(self) -> ComposeResult:
         yield SideBarToggle(self.collapsed, edge=self.placement.side)
         yield SidebarResizeHandle(self.placement.side)
-        yield self.search_input
-        with self.panels_viewport:
-            if self._panels_loaded:
-                yield from self._compose_panels()
-        with containers.Vertical(id="sidebar-controls"):
-            if self._panels_loaded:
-                yield from self._compose_controls()
+        with self.content_stack:
+            yield self.search_input
+            with self.panels_viewport:
+                if self._panels_loaded:
+                    yield from self._compose_panels()
+            with containers.Vertical(id="sidebar-controls"):
+                if self._panels_loaded:
+                    yield from self._compose_controls()
 
     @on(widgets.Input.Changed)
     def search_changed(self, event: widgets.Input.Changed) -> None:
@@ -805,9 +817,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         slider = self.extent_slider
         if previous is None or previous.presentation != current.presentation:
             edge = placement.side
-            margin = edge.controls_margin()
-            self.search_input.styles.margin = margin
-            self.panels_viewport.styles.margin = margin
+            self.content_stack.styles.padding = edge.content_padding()
             if toggle := self.query_one_optional(SideBarToggle):
                 toggle.set_collapsed(self.collapsed, edge)
             if handle := self.query_one_optional(SidebarResizeHandle):
@@ -815,8 +825,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
                 handle.styles.dock = edge.opposite().dock
                 handle.display = not self.collapsed
             if controls is not None:
-                controls.styles.margin = margin
-                controls.display = not self.collapsed
                 slider.reversed = edge.sign < 0
                 slider.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
                                  placement.extent_percent)
@@ -873,11 +881,8 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         if not collapsed and self.is_mounted:
             self.schedule_hydration()
         self._presented_collapsed = collapsed
-        # Panel visibility is independent of its native placement.
-        self.panels_viewport.display = not collapsed
-        self.search_input.display = not collapsed
-        if controls := self.query_one_optional("#sidebar-controls"):
-            controls.display = not collapsed
+        # One content flow hides without retiring its retained children.
+        self.content_stack.display = not collapsed
         self.tooltip = "Expand sidebar" if collapsed else None
         toggle = self.query_one_optional(SideBarToggle)
         if toggle is not None:

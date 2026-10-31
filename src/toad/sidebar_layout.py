@@ -67,7 +67,7 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
         return next(edge for edge in SidebarEdge.members_with(cls.axis()) if edge is not cls)
 
     @classmethod
-    def controls_margin(cls) -> Spacing:
+    def content_padding(cls) -> Spacing:
         return cls.opposite().gutter(cls.collapsed_extent + 1)
 
     @classmethod
@@ -419,8 +419,11 @@ class SidebarLayout:
             wanted = sum(extents[key] for key in expanded)
             available = max(0, budget - handles)
             if wanted > available:
+                minimum = min(axis.minimum, available // len(expanded))
+                surplus = available - minimum * len(expanded)
+                demand = wanted - minimum * len(expanded)
                 for key in expanded:
-                    extents[key] = available * extents[key] // wanted
+                    extents[key] = minimum + surplus * (extents[key] - minimum) // demand
                 for key in expanded[:available - sum(extents[key] for key in expanded)]:
                     extents[key] += 1
             if handles > total:
