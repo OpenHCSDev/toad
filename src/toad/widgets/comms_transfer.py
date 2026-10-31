@@ -4,6 +4,9 @@ from __future__ import annotations
 from toad.core import events as core_events
 
 from dataclasses import dataclass
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from time import monotonic
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar
@@ -12,9 +15,17 @@ from functools import partial
 from abc import abstractmethod
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.comms import Comms
+from agent_comms.cli_result import CliResult
+from agent_comms.importing import ThreadImported
 from agent_comms.route_selection import RouteSelection
 
 from agent_comms.exporting import (
+    CancellableWireExport,
+    WireExportCancelled,
+    WireExportObserver,
+    WireExportProgress,
+    WireExportProvenance,
     ChannelScope,
     DmScope,
     EverythingScope,
@@ -28,11 +39,21 @@ from agent_comms.cli_bridges.history import ExpectedSession, OfflineHistory
 from agent_comms.harness_install import Harness
 from agent_comms.thread_management import ImportDirectory
 from textual import on
-from textual.app import ComposeResult
+from textual.app import App, ComposeResult
+from textual.message import Message
 from textual.containers import Vertical
 from toad.screens.modal import DismissibleScreen
+from toad.comms_root import CoordinationAccess
+from toad.application_lifetime import TerminalOutcome
 from toad.widget_actions import DismissAction
 from textual.widgets import Button, Input, Select, Static
+
+
+class TransferProgress(WireExportObserver):
+    """The shared progress capability does not make an operation cancellable."""
+
+    def cancel(self) -> None:
+        pass
 
 
 class TransferRequest(DeclaredFamily, affix="Request"):
@@ -40,13 +61,26 @@ class TransferRequest(DeclaredFamily, affix="Request"):
 
     failure_title: ClassVar[str]
     title: ClassVar[str]
+    cancelled_by: ClassVar[tuple[type[BaseException], ...]] = ()
 
     @classmethod
     @abstractmethod
     def dialog(cls, selected: RouteSelection): ...
 
     @abstractmethod
-    def apply(self, comms): ...
+    def apply(self, comms: Comms, observer: TransferProgress) -> CliResult: ...
+
+    def execute(self, access: CoordinationAccess, selected: RouteSelection,
+                observer: TransferProgress) -> CliResult:
+        comms = access.require(selected).service
+        return access.write(selected, self.apply, comms, observer)
+
+    @asynccontextmanager
+    async def progress(self, app: App[TerminalOutcome]) -> AsyncIterator[TransferProgress]:
+        yield TransferProgress()
+
+    def cancelled(self, app: App[TerminalOutcome]) -> None:
+        pass
 
     @abstractmethod
     def completed(self, app, result) -> None: ...
@@ -61,13 +95,32 @@ class WireExportRequest(TransferRequest):
 
     failure_title = "Wire export failed"
     title = "Export wire history…"
+    cancelled_by = (WireExportCancelled,)
 
     @classmethod
     def dialog(cls, selected):
         return WireExportDialog(selected.root)
 
-    def apply(self, comms):
-        return comms.views.export_wire(self.destination, format=self.format, scope=self.scope, limit=self.limit)
+    def apply(self, comms: Comms, observer: TransferProgress) -> WireExportProvenance:
+        return comms.views.export_wire(self.destination, format=self.format, scope=self.scope,
+                                       limit=self.limit, observer=observer)
+
+    def execute(self, access: CoordinationAccess, selected: RouteSelection,
+                observer: TransferProgress) -> WireExportProvenance:
+        return self.apply(access.require(selected).service, observer)
+
+    @asynccontextmanager
+    async def progress(self, app: App[TerminalOutcome]) -> AsyncIterator[TransferProgress]:
+        progress = WireExportProgressView()
+        try:
+            await app.mount(progress)
+            yield progress
+        finally:
+            progress.cancel()
+            await progress.remove()
+
+    def cancelled(self, app: App[TerminalOutcome]) -> None:
+        app.notify("Wire export cancelled", title="Wire export")
 
     def completed(self, app, result) -> None:
         app.notify(f"Exported {result.exported_messages} messages to {result.destination}", title="Wire export")
@@ -88,7 +141,7 @@ class ThreadImportRequest(TransferRequest):
     def dialog(cls, selected):
         return ThreadImportDialog()
 
-    def apply(self, comms):
+    def apply(self, comms: Comms, observer: TransferProgress) -> ThreadImported:
         return comms.threads.import_thread(OfflineHistory.stored(self.harness, self.source, self.session),
                                           name=self.name, worktree=self.worktree)
 
@@ -113,9 +166,17 @@ class Transfers:
                                 group=FieldCodec.encode(type(request)), exclusive=True)
 
     async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
-        comms = self.app.coordination_access.require(selected).service
         try:
-            result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
+            async with request.progress(self.app) as observer:
+                try:
+                    result = await self.app.preparation.run_thread(
+                        request.execute, self.app.coordination_access, selected, observer)
+                except asyncio.CancelledError:
+                    observer.cancel()
+                    raise
+        except request.cancelled_by:
+            request.cancelled(self.app)
+            return
         except (OSError, ValueError) as error:
             self.app.show_error(error, request.failure_title)
             return
@@ -135,6 +196,52 @@ class TransferDialog(DismissibleScreen):
     """
     def _error(self, error: str) -> None:
         self.query_one("#transfer-error", Static).update(error)
+
+
+class WireExportProgressView(CancellableWireExport, TransferProgress, Vertical):
+    """The export's cancellation capability and a view of its own byte/message counters."""
+
+    DEFAULT_CSS = """
+    WireExportProgressView {
+        position: absolute; overlay: screen; width: 64; max-width: 95%; height: auto;
+        padding: 1 2; border: solid $primary; background: $surface;
+    }
+    """
+
+    @dataclass
+    class Updated(Message):
+        progress: WireExportProgress
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.last_report = 0.0
+
+    def compose(self) -> ComposeResult:
+        yield Static("Exporting wire history")
+        yield Static("0 messages · 0 bytes written", id="export-progress")
+        yield Button("Cancel export", id="cancel-export")
+
+    def advanced(self, progress: WireExportProgress) -> None:
+        now = monotonic()
+        if now - self.last_report >= 0.1:
+            self.last_report = now
+            self.post_message(self.Updated(progress))
+
+    @on(Updated)
+    def update_progress(self, event: Updated) -> None:
+        progress = event.progress
+        self.query_one("#export-progress", Static).update(
+            f"{progress.messages_written:,} messages · {progress.bytes_written:,} bytes written")
+
+    @on(Button.Pressed, "#cancel-export")
+    def cancel_export(self) -> None:
+        self.cancel()
+        button = self.query_one("#cancel-export", Button)
+        button.label = "Cancelling…"
+        button.disabled = True
+
+    def on_unmount(self) -> None:
+        self.cancel()
 
 
 class WireExportDialog(TransferDialog):
@@ -186,7 +293,7 @@ class WireExportDialog(TransferDialog):
             kind = self.query_one("#export-scope", Select).value
             target = self.query_one("#export-target", Input).value.strip()
             if kind == "channel":
-                scope = ChannelScope(target)
+                scope: WireExportScope = ChannelScope(target)
             elif kind == "dm":
                 participants = [name.strip().removeprefix("@") for name in target.split(",")]
                 scope = DmScope(tuple(participants))
