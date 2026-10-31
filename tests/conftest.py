@@ -121,6 +121,15 @@ def pytest_collection_modifyitems(config, items):
             item.add_report_section("call", "Recorded defect", note)
 
 
+def pytest_unconfigure(config):
+    """Helpers inherit this process's pipes; the runner reads until they close, so a test
+    whose close failed would otherwise run out its whole timeout after it already reported."""
+    if (attempt := os.environ.get(ATTEMPT)) is not None:
+        from support.processes import stop_test_children
+
+        asyncio.run(stop_test_children(attempt))
+
+
 def pytest_runtest_logreport(report):
     if (path := os.environ.get(RESULT)) is None:
         return
