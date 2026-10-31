@@ -18,10 +18,13 @@ from toad.frame_presentation import AnimationEffects
 from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from agent_comms.message_reference import MessageReference
     from agent_comms.ui_model.message_category import AgentActivityBoundary
     from textual.screen import Screen
 
+    from toad.notification_status import MessageQueueEntry
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory
     from toad.widgets.conversation import Conversation
@@ -401,6 +404,10 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     def notification_identity_for(self, references: frozenset[MessageReference]) -> DisplayCut:
         """Live entries have no captured BUS display cut; source rows override with theirs."""
         return NoDisplaySelection()
+
+    def queue_entries(self) -> Iterable[MessageQueueEntry]:
+        """Live entries supply no captured BUS delivery rows; source rows override with theirs."""
+        return ()
 
     @cached_property
     def block_cursor(self) -> BlockCursor:

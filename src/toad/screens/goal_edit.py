@@ -80,7 +80,7 @@ class GoalEdit(CoreEventReceiver, DismissibleScreen[str | None]):
         save_button.disabled = True
         try:
             await self.on_save(text.strip())
-        except (Refused, ValueError) as error:
+        except Refused as error:
             self.query_one("#goal-edit-error", Static).update(str(error))
         else:
             self.dismiss(text.strip())

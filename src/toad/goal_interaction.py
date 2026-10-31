@@ -5,6 +5,8 @@ from abc import abstractmethod
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ref
 
+from agent_comms.coordination_errors import Refused
+from agent_comms.errors import GoalRefused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
 from agent_comms.goal_presentation import ControlledExecution, GoalExecution
@@ -103,7 +105,7 @@ class EditInteraction(GoalInteraction):
 
         async def save(text: str) -> None:
             if not session.owns(agent):
-                raise ValueError("The goal presentation changed; reopen its editor.")
+                raise GoalRefused("The goal presentation changed; reopen its editor.")
             await session.write(agent, agent.edit_goal(goal, text))
 
         observed = await view.app.preparation.run_thread(view.app.coordination_access.observation.observed)
@@ -159,15 +161,18 @@ class GoalSession:
         if not action.enabled(self):
             view.feedback.flash(view.goal_display.heading(view.goal_execution))
             return
-        await action.apply(self)
+        try:
+            await action.apply(self)
+        except Refused as error:
+            if not self.owns(agent):
+                raise
+            view.app.show_error(error, "Goal action failed")
 
     async def change(self, action: type[GoalAction], text: str = "") -> None:
         view = self.view
-        if not view.is_attached:
-            raise ValueError("The goal presentation changed; reopen its controls.")
         agent = view.agent_binding
         if not self.owns(agent):
-            raise ValueError("The goal presentation changed; reopen its controls.")
+            raise GoalRefused("The goal presentation changed; reopen its controls.")
         # The existing Agent boundary encodes the declared goal operation.
         # Goal state governs continuation, never interruption of an active turn.
         await self.write(agent, agent.update_goal(action, text))
@@ -177,15 +182,10 @@ class GoalSession:
     async def write(self, agent, operation):
         """Every write settles by reading the owner, including rejected writes."""
         try:
-            try:
-                return await operation
-            finally:
-                if self.owns(agent):
-                    await self.view.goal_observation.refresh()
-        except (OSError, ValueError) as error:
+            return await operation
+        finally:
             if self.owns(agent):
-                raise ValueError(self.view.goal_display.action_failure(error)) from error
-            raise
+                await self.view.goal_observation.refresh()
 
     def close(self) -> None:
         modal = self.modal

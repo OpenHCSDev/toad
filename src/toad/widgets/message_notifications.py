@@ -11,10 +11,12 @@ from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible
 
+from agent_comms.maintenance_barrier import MaintenanceHeldError
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.message_reference import MessageReference
+from toad.app_node import ToadNode
 from toad.messages import QueueEvidenceChanged
 
 from toad.notification_status import (
@@ -93,11 +95,17 @@ class NothingToRead(PaintedRead):
 class ReadWork(PaintedRead):
     work: Awaitable[None]
 
+    async def run(self, marker: VisibleReadMarking) -> None:
+        try:
+            await self.work
+        except MaintenanceHeldError as error:
+            marker.app.show_error(error, "Read not marked", severity="warning")
+
     def start(self, marker: VisibleReadMarking) -> None:
-        marker._read_worker = marker.run_worker(self.work, group="painted-read")
+        marker._read_worker = marker.run_worker(self.run(marker), group="painted-read")
 
 
-class VisibleReadMarking:
+class VisibleReadMarking(ToadNode):
     """One painted-read operation at a time, for pagers and native/CLI sessions."""
 
     def __init__(self, *args, **kwargs):
