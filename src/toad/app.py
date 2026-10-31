@@ -19,7 +19,9 @@ from typing import TYPE_CHECKING, Callable, Never, TypeVar, cast
 
 from agent_comms.acp_extension import TranscriptChangedUpdate
 from agent_comms.launch_root import LaunchRoot
+from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.repo import Checkout
+from agent_comms.root_runtime import RootRuntime
 from toad.core import input_events
 from rich.console import RenderableType
 from textual._time import after_input
@@ -63,7 +65,6 @@ from toad.application_lifetime import ApplicationLifetime, Ended, Succeeded, Ter
 from toad.resource_release import AsyncResourceRelease
 
 if TYPE_CHECKING:
-    from agent_comms.launch_runtime import LaunchRuntime
     from toad.db import DB
     from toad.render_backend import RenderTask
     from toad.screens.main import MainScreen
@@ -228,6 +229,12 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.call_from_thread(self.exit, Succeeded(runtime))
         raise asyncio.CancelledError
 
+    def relaunch(self) -> None:
+        running = LaunchRuntime.running()
+        self.exit(Succeeded(RootRuntime.attachment(
+            self.coordination_access.selection.root, running,
+        ).proceed(lambda: running, lambda runtime: runtime)))
+
 
     async def _close_all(self) -> None:
         # View release can fail. The application still owns its observation
@@ -301,6 +308,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
     async def on_load(self) -> None:
         asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, self.exit)
+        asyncio.get_running_loop().add_signal_handler(signal.SIGUSR1, self.relaunch)
         self.preparation.renderer.start()
         self._prewarm_conversation_css()
         db = await self.get_db()
