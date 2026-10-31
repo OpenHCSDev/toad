@@ -295,10 +295,14 @@ class DismissAction(VisibleAction):
         context.dismiss_control()
 
 
-class HorizontalCursorAction(VisibleAction, declared_name=None):
+class CursorAction(VisibleAction, declared_name=None):
+    """Select along the widget's cursor axis."""
+
     group = Binding.Group("Select")
     direction: ClassVar[Literal[-1, 1]]
 
+
+class HorizontalCursorAction(CursorAction, declared_name=None):
     async def apply(self, context: MovesHorizontalCursor) -> None:
         context.cursor_horizontal(self.direction)
 
@@ -313,10 +317,7 @@ class CursorRightAction(HorizontalCursorAction):
     direction = +1
 
 
-class VerticalCursorAction(VisibleAction, declared_name=None):
-    group = HorizontalCursorAction.group
-    direction: ClassVar[Literal[-1, 1]]
-
+class VerticalCursorAction(CursorAction, declared_name=None):
     async def apply(self, context: MovesVerticalCursor) -> None:
         context.cursor_vertical(self.direction)
 
