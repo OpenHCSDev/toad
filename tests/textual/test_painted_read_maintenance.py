@@ -4,6 +4,7 @@ import asyncio
 
 from agent_comms.maintenance_barrier import MaintenanceOperator, NoMaintenanceHolder
 from agent_comms.read_ledger import ReadLedger
+from support.applications import record_notifications
 
 from toad.widgets.message_notifications import ReadWork
 
@@ -19,6 +20,7 @@ async def test_maintenance_keeps_read_marks_and_fresh_work_succeeds(workspace):
 
     with NoMaintenanceHolder().selected():
         async with workspace.app(size=(100, 35)) as ui:
+            record_notifications(ui.app)
             marker = ui.app.selected_session
             hold = barrier.begin(MaintenanceOperator.current())
             try:
