@@ -77,6 +77,13 @@ class MessageQueueEntry:
                 *self.status.queue_details)
 
 
+class QueueEntries:
+    """A drawn target supplies its original message queue evidence, or none."""
+
+    def queue_entries(self) -> Iterable[MessageQueueEntry]:
+        return ()
+
+
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
     # The row is drawn before Core answers, so the answer changes its text

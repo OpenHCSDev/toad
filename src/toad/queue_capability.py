@@ -11,8 +11,7 @@ from agent_comms.message_reference import MessageReference
 from agent_comms.notification_assignment import NotificationSelection
 
 from toad.agent_presentation import AgentPresentation
-from toad.block_navigation import ConversationEntry
-from toad.notification_status import MessageQueueEntry
+from toad.notification_status import MessageQueueEntry, QueueEntries
 
 
 @dataclass(frozen=True)
@@ -22,7 +21,7 @@ class QueueEvidence:
     presentation: AgentPresentation
     delivering: tuple[str, ...]
     transport: str
-    read_targets: Callable[[], tuple[ConversationEntry, ...]]
+    read_targets: Callable[[], tuple[QueueEntries, ...]]
 
     @cached_property
     def entries(self) -> tuple[MessageQueueEntry, ...]:

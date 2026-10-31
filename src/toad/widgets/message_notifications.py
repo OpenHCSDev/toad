@@ -20,7 +20,7 @@ from toad.app_node import ToadNode
 from toad.messages import QueueEvidenceChanged
 
 from toad.notification_status import (
-    CheckedNotifications, MessageQueueEntry, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
+    CheckedNotifications, MessageQueueEntry, QueueEntries, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
 if TYPE_CHECKING:
     from toad.widgets.tool_content import ToolContent
@@ -187,7 +187,7 @@ class HistoryNotifications:
         self.call_after_refresh(self.check_notifications)
 
 
-class SourceNotifications:
+class SourceNotifications(QueueEntries):
     notification_view: HistoryNotifications
 
     def queue_entries(self) -> Iterable[MessageQueueEntry]:
