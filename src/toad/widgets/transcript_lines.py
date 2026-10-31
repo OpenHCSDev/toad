@@ -457,26 +457,31 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Divider)
     def divider(self, block: Divider) -> None:
-        spans = block.spans
+        groups = (block.spans,)
         if block.timestamp is not None:
-            spans = (*spans, Span(f" · {MessageClock.recorded(block.timestamp).display()[0]}"))
+            timestamp = MessageClock.recorded(block.timestamp).display()[0]
+            timed = (*block.spans, Span(f" · {timestamp}"))
+            groups = ((block.spans, (Span(timestamp),))
+                      if sum(cell_len(span.text) for span in timed) > max(1, self.width - 8)
+                      else (timed,))
         rule, bold = self.theme.style(block.role), Style(bold=True)
-        title, room = [Segment(" ", rule)], max(0, self.width - 8)
-        for span in spans:
-            # A title longer than the rule ends in an ellipsis; what follows is not drawn.
-            text = _fit(span.text, room)
-            room -= cell_len(text)
-            title.append(
-                Segment(
-                    text, (rule if span.link is None else self.theme.style(span.role)) + bold + link_style(span.link)
-                )
-            )
-            if room == 0:
-                break
-        title.append(Segment(" ", rule))
-        length = sum(segment.cell_length for segment in title)
-        left = max(0, (self.width - length) // 2)
-        self.output.append((Segment("─" * left, rule), *title, Segment("─" * max(0, self.width - left - length), rule)))
+        # Fit actual content, not a guessed phone width. Each semantic span and
+        # the complete recorded time survive wrapping, including long names.
+        inset = min(1, (self.width - 1) // 2)
+        for spans in groups:
+            content = Text.assemble(*(
+                (span.text, (rule if span.link is None else self.theme.style(span.role))
+                 + bold + link_style(span.link))
+                for span in spans
+            ))
+            for row in self.console.render_lines(
+                content, self.console.options.update(width=self.width - 2 * inset), pad=False
+            ):
+                title = (Segment(" " * inset, rule), *row, Segment(" " * inset, rule))
+                length = sum(segment.cell_length for segment in title)
+                left = max(0, (self.width - length) // 2)
+                self.output.append((Segment("─" * left, rule), *title,
+                                    Segment("─" * max(0, self.width - left - length), rule)))
 
     @handles(Summary)
     def summary(self, block: Summary) -> None:
@@ -491,10 +496,14 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Spans)
     def spans(self, block: Spans) -> None:
+        content = Text.assemble(*(
+            (span.text, self.theme.style(span.role) + link_style(span.link))
+            for span in block.spans
+        ))
         self.output.extend(
-            (Segment(line[start : start + self.width]),)
-            for line in _plain_lines(block.text)
-            for start in _plain_spans(line, self.width)
+            tuple(row) for row in self.console.render_lines(
+                content, self.console.options, pad=False
+            )
         )
 
     @handles(PreparedLines)
