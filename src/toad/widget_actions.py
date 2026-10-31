@@ -313,6 +313,24 @@ class CursorRightAction(HorizontalCursorAction):
     direction = +1
 
 
+class VerticalCursorAction(VisibleAction, declared_name=None):
+    group = HorizontalCursorAction.group
+    direction: ClassVar[Literal[-1, 1]]
+
+    async def apply(self, context: MovesVerticalCursor) -> None:
+        context.cursor_vertical(self.direction)
+
+
+class CursorUpAction(VerticalCursorAction):
+    keys = {EditingMode: ("up",)}
+    direction = -1
+
+
+class CursorDownAction(VerticalCursorAction):
+    keys = {EditingMode: ("down",)}
+    direction = +1
+
+
 class SubmitAction(VisibleAction):
     keys = {EditingMode: ("enter",)}
 
@@ -409,6 +427,11 @@ class DismissibleControl(Dismisses):
 class MovesHorizontalCursor(DeclaredWidgetActions, actions=(HorizontalCursorAction,)):
     @abstractmethod
     def cursor_horizontal(self, direction: Literal[-1, 1]) -> None: ...
+
+
+class MovesVerticalCursor(DeclaredWidgetActions, actions=(VerticalCursorAction,)):
+    @abstractmethod
+    def cursor_vertical(self, direction: Literal[-1, 1]) -> None: ...
 
 
 class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):
