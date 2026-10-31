@@ -1,9 +1,10 @@
 import asyncio
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 
 import rich.repr
+from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
     InputStartedUpdate,
@@ -47,6 +48,9 @@ from toad.agent import AgentBase
 from toad.agent_presentation import ACPAgentPresentation
 from toad.agent_schema import AgentDefinition
 from toad.core import events as core_events
+from toad.conversation_submission import (
+    PromptInputSubmission, ConversationSubmissions, NoSend, SendPending, SendState, SubmissionExecution,
+)
 from toad.platform import host
 
 
@@ -156,6 +160,9 @@ class Agent(AgentBase):
 
         await self.process.stop(self)
 
+
+    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission):
+        return owner.start(NativeSubmissionExecution(owner, submission, self))
 
     async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):
         """Submit through AgentBase's contract; the controller runs the request."""
@@ -306,3 +313,63 @@ class Agent(AgentBase):
 
     async def set_session_name(self, name: str) -> None:
         await self.session.set_name(name)
+
+
+@dataclass(frozen=True)
+class NativeInputPresented(SendState):
+    started: InputStartedUpdate
+
+    def response_finished(self, execution) -> None:
+        execution.enter(NoSend())
+
+
+class NativeSubmissionExecution(SubmissionExecution):
+    """ACP owns its captured request and native acknowledgement, not the shared transaction."""
+
+    def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission, agent: Agent):
+        super().__init__(owner, submission)
+        self.agent = agent
+        self.authority = ClientSessionRequest(agent, agent.session_id)
+        self.scope = agent.queue_attachment.scope
+        self.request = submission.request
+
+    @property
+    def current(self):
+        view = self.owner.view
+        return (view.agent_binding is self.agent and not self.authority.retired
+                and self.agent.queue_attachment.accepts_request(self.scope))
+
+    async def feedback(self):
+        await self.submission.feedback(self)
+
+    def accepted(self, accepted) -> bool:
+        return self.request.input_id in accepted or not self.agent.presentation.uses_managed_turns
+
+    def native_input_presented(self, started: InputStartedUpdate) -> None:
+        if self.current and started.started_request(self.request.input_id):
+            self.enter(NativeInputPresented(started))
+
+    async def deliver(self):
+        view = self.owner.view
+        local = not self.agent.presentation.uses_managed_turns
+        reason = None
+        if local:
+            view.turns.start_client()
+        self.enter(SendPending())
+        try:
+            if self.agent.presentation.queue_supported:
+                reason = await self.agent.send_prompt(self.submission.text, request=self.request)
+            else:
+                reason = await self.agent.send_prompt(self.submission.text)
+        except RequestError as error:
+            self.enter(NoSend())
+            if self.current:
+                await view.submission_request_failed(error, self.submission.text)
+        else:
+            self.enter(NoSend())
+        if self.current and local:
+            view.call_later(self.complete, reason)
+
+    async def complete(self, reason):
+        if self.current:
+            await self.owner.view.agent_turn_over(reason)

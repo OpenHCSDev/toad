@@ -835,7 +835,7 @@ class ConversationSessionBinding(
         attachments = binding.presentation.attachments
         self.native_history_status = attachments.cursor
         self._private_cursor_sequence = attachments.cursor_sequence
-        self.submissions.reset()
+        self.submissions.publish_pending()
         # The observed presentation is Core's answer for this thread, not the
         # agent's; it stays until the next observation replaces it.
         self.arm_thread_read()

@@ -66,9 +66,6 @@ class AgentBase(AgentConnection):
     def request_compaction(self, view: Conversation, instructions) -> None:
         view.compact_context(instructions)
 
-    def begin_submission(self, owner, submission):
-        return owner.start(submission, self)
-
     def accepts_failed_input(self, message):
         if message.publisher is not self or message.event.session_id != self.session_id:
             return False
