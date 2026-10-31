@@ -176,7 +176,7 @@ async def test_standby_goal_mention_opens_its_peer_and_returns_to_the_draft(work
             "peer", frozenset(), Checkout(native.project), model=owner.model,
             thinking_level=owner.thinking_level,
         ))
-        await asyncio.to_thread(comms.owners.start, "peer")
+        await asyncio.to_thread(comms.owners.start_many, ("peer",))
         goal = comms.goals.update_goal(native.thread, SetGoalAction(text="Coordinate with @peer"))
         comms.goals.update_goal(native.thread, StandbyGoalAction(
             wait_for=("peer",), expect=GoalPrecondition(goal_id=OneGoal(goal.id))))

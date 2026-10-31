@@ -22,7 +22,6 @@ from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.turn_failure import NativeChildSignaled
 from textual.widgets import Button, Static
 
-from support.applications import record_notifications
 from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
 from support.agents import RecordedEvents
 from support.textual_steps import channel_roster
@@ -188,8 +187,7 @@ async def test_goal_history_lists_earlier_revisions(workspace):
 
 
 async def test_refused_goal_control_preserves_owner_state_and_composer(workspace):
-    async with workspace.app(size=(100, 35)) as ui:
-        record_notifications(ui.app)
+    async with workspace.app(size=(100, 35), notifications=True) as ui:
         owner, view, _bar, _status = await shown_goal(workspace, ui)
         original = owner.goal
         await ui.pilot.click("#goal-clear")

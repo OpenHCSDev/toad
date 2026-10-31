@@ -46,7 +46,7 @@ async def test_start_attaches_stopped_saved_tab_and_receives_dm(workspace, nativ
                 assert not provider.requests, 'Start must not submit a prompt'
                 before = comms.registry.require('stopped').process_identity
                 # A second successful Start must still nominate this tab for attachment.
-                result = await asyncio.to_thread(comms.owners.start, 'stopped')
+                result, = await asyncio.to_thread(comms.owners.start_many, ('stopped',))
                 assert not result.launched
                 assert result.reconnect_targets() == ('stopped',)
                 assert comms.registry.require('stopped').process_identity == before
