@@ -16,11 +16,11 @@ from toad.session_scope import (
     SessionOrigin,
     SessionScope,
 )
+from toad.widget_actions import DeclaredWidgetActions
+from toad.widgets.side_bar import SideBar
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.widget_actions import DeclaredWidgetActions
-    from toad.widgets.side_bar import SideBar
 
 
 def welcome_view() -> "SessionScope":
