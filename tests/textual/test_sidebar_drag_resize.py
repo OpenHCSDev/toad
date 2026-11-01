@@ -5,7 +5,7 @@ import pytest
 from toad.key_modes import Standard
 from toad.keymap import KeymapRow
 from toad.preferences import SETTINGS
-from toad.widget_actions import CursorRightAction
+from textual.keys import RightKey
 from toad.sidebar_layout import SidebarEdge, WidthSidebarEdge
 from toad.widgets.side_bar import (
     SideBar, SideBarToggle, SidebarAction, SidebarResizeHandle, SidebarSlider, TabHistoryControls,
@@ -63,7 +63,7 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         assert slider.value == 41
         await ui.press("left" if side.sign > 0 else "right")
         assert slider.value == 40
-        remap = app.settings.ui.keymap.changed(KeymapRow.of(CursorRightAction(), Standard), ("f6",))
+        remap = app.settings.ui.keymap.changed(KeymapRow.of(RightKey(), Standard), ("f6",))
         app.saved_settings.set(SETTINGS.ui.keymap.bindings, remap.bindings)
         for control in (slider, handle):
             control.focus()

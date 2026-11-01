@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, ClassVar
 from textual import containers, events, on, widgets
 from textual.app import ComposeResult
 from textual.events import Click
-from textual.geometry import Offset, Region
+from textual.geometry import Offset
 from textual.message import Message
 from textual.reactive import reactive
 from textual._activation import PrimaryActivation
@@ -72,7 +72,6 @@ class BarPresentation:
 @dataclass(frozen=True)
 class PresentedBar:
     presentation: BarPresentation
-    geometry: Region
     extent_percent: int
 
 
@@ -807,7 +806,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
             presentation=BarPresentation.from_placement(
                 placement, collapsed=self.collapsed, directions=directions
             ),
-            geometry=self.region,
             extent_percent=placement.extent_percent,
         )
         previous = self._presented_layout

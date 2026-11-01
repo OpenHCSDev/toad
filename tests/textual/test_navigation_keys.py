@@ -79,9 +79,13 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         assert editor.text == 'HJKL'
         assert ui.selected_tab == third
         assert app.tab_order.names == originals
-        await ui.press('ctrl+shift+k')
-        assert editor.text == ''
+        # Neovim owns Insert chords: Ctrl-K starts a digraph, not the
+        # native TextArea's delete-line command. The workspace must yield.
+        await ui.press('ctrl+shift+k', 'A', 'E')
+        assert editor.text == 'HJKLÆ'
         assert ui.selected_tab == third and app.tab_order.names == originals
+        await ui.press('ctrl+u')
+        assert editor.text == ''
         await ui.press('H', 'J', 'K', 'L')
 
         await ui.press('escape')
@@ -177,4 +181,9 @@ async def test_workspace_keys_do_not_interrupt_editor_sequences(workspace):
         assert ui.selected_tab == selected and editor.has_focus
         await ui.press('escape', 'd', 'H')
         assert ui.selected_tab == selected and editor.has_focus
+        # H is a real linewise motion under the pending delete operator.
+        # Its edit and undo must happen here, never turn into tab navigation.
+        assert editor.text == ''
+        await ui.press('u')
         assert editor.text == 'abcHdef'
+        assert ui.selected_tab == selected and editor.has_focus

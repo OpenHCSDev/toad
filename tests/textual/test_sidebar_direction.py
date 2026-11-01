@@ -14,6 +14,10 @@ async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
         thread = app.selected_session.query_one("#thread-sidebar", SideBar)
         channels.reveal()
         thread.reveal()
+        # Vacate the destination before establishing the requested outer/inner
+        # order. Moving an existing occupant to its own edge is a no-op.
+        app.sidebar_layout.move(channels.id, side.opposite())
+        app.sidebar_layout.move(thread.id, side.opposite())
         app.sidebar_layout.move(channels.id, side)
         app.sidebar_layout.move(thread.id, side)
         app.workspace_chrome.refresh_layout()

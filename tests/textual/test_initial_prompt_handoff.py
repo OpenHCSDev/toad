@@ -10,15 +10,8 @@ from toad.agent_binding import NoAgentConnection
 
 from toad.core.input_events import UserInputSubmitted
 from toad.screens.main import MainScreen
-from toad.session_presentation import OperationalSessionSources
+from toad.session_presentation import SessionViewState
 from support.ui import saved_tab
-
-
-class ObservedLaunchSources(OperationalSessionSources):
-    def make_conversation(self, screen):
-        conversation = super().make_conversation(screen)
-        screen.subscriptions.append(conversation.core_publications.subscribe(UserInputSubmitted, screen.observed))
-        return conversation
 
 
 class ObservedLaunchScreen(MainScreen):
@@ -29,7 +22,13 @@ class ObservedLaunchScreen(MainScreen):
         self.inputs = Counter()
         self.publication = asyncio.Event()
         self.subscriptions = []
-        self.presentation.sources = ObservedLaunchSources()
+
+    def make_conversation(self):
+        conversation = super().make_conversation()
+        self.subscriptions.append(
+            conversation.core_publications.subscribe(UserInputSubmitted, self.observed)
+        )
+        return conversation
 
     def observed(self, event, subscription):
         assert not event.shell
@@ -76,7 +75,8 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await ui.step()
         restored = owner.conversation
         assert restored is not view and isinstance(restored.agent_binding, NoAgentConnection)
-        assert restored._initial_prompt is None and owner.presentation.state is None
+        assert restored._initial_prompt is None
+        assert type(owner.presentation.state) is SessionViewState
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
         editor = restored.prompt.prompt_text_area
         assert editor.document is document and editor.history is undo
@@ -99,6 +99,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await app.session_navigation.close(owner.id)
         assert owner.thread_sidebar is sidebar
         assert not sidebar.presentation_visible
-        assert owner.presentation.widget is None and owner.presentation.state is None
+        assert owner.presentation.widget is None
+        assert type(owner.presentation.state) is SessionViewState
         assert owner.id not in app.workspace_sessions.views
         assert ui.failure() is None
