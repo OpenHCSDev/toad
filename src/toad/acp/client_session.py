@@ -1,4 +1,7 @@
 """One captured session authority for ACP client-side effects."""
+from __future__ import annotations
+
+from abc import abstractmethod
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
@@ -7,7 +10,7 @@ from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
 from .queue_attachment import QueueActionRefused
-from .status import FailedPromptResult, PromptResult, StopReason, UnconfirmedPromptResult
+from .status import ConfirmedPromptResult, PromptResult, StopReason
 
 if TYPE_CHECKING:
     from .agent import Agent
@@ -79,6 +82,42 @@ class ClientSessionRequest:
     def resolve(self, outcome: PromptResult) -> PromptResult:
         """Ordinary callers retain the answer, including unconfirmed input."""
         return outcome
+
+
+@dataclass(frozen=True)
+class UnfinishedPromptResult(PromptResult):
+    request: ClientSessionRequest
+    failure: RequestFailure
+
+    def publish_failure(self, controller, command, queue_scope) -> None:
+        if self.request.current:
+            controller._prompt_failed(
+                command, self.request, queue_scope, self.failure.failure,
+                lambda event: self.report_failure(controller.agent, event),
+                published=self.failure.notification_published,
+            )
+
+    @abstractmethod
+    def report_failure(self, agent, event) -> None: ...
+
+    def require_confirmation(self) -> StopReason:
+        raise QueueActionRefused(
+            f"Request not confirmed: {self.failure.failure.feedback}. Inspect its state before another action."
+        )
+
+
+class FailedPromptResult(ConfirmedPromptResult, UnfinishedPromptResult):
+    """A known failure retains its original facts without closing a usable session."""
+
+    def report_failure(self, agent, event) -> None:
+        agent.events.publish(event)
+
+
+class UnconfirmedPromptResult(UnfinishedPromptResult):
+    """The captured request lost its reply or authority; it grants no retry."""
+
+    def report_failure(self, agent, event) -> None:
+        agent.session.record_failure(event)
 
 
 class QueueSessionRequest(ClientSessionRequest):
