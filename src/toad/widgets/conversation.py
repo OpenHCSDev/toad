@@ -1693,8 +1693,7 @@ class Conversation(
         self.queue_evidence_changed()
 
     def open_queue_menu(self) -> None:
-        self.app.push_screen(QueueInspection(
-            self.queue_source, self.submissions.queue_evidence, self.submissions.publish_pending))
+        self.app.push_screen(QueueInspection(self.submissions))
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, event: PreferenceChanged) -> None:

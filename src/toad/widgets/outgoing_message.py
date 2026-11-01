@@ -14,7 +14,7 @@ from agent_comms.ui_model.message_category import OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.linked_rows import MessageRowBlock
 from toad.widgets.message_row_owner import MessageRowOwner
-from toad.notification_status import CheckedNotifications, NotificationStatus
+from toad.notification_status import CheckedNotifications, MessageQueueEntry, NotificationStatus
 from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessageClaim
 
 
@@ -39,6 +39,9 @@ class OutgoingMessage(MessageRowOwner, MessageRowBlock, CommitParticipant, Conve
 
     def notification_targets(self):
         return (self,) if self.message_dividers and self.display else ()
+
+    def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
+        return (MessageQueueEntry(self.message_reference, self.query_one(MessageNotifications).status),)
 
     @property
     def notification_references(self):

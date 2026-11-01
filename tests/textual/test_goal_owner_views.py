@@ -3,8 +3,11 @@
 import asyncio
 from dataclasses import replace
 
+import pytest
+
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.nominal.field_codec import TurnId
+from agent_comms.goal_actions import ClearGoalAction
+from agent_comms.nominal.field_codec import FieldCodec, MalformedRecord, TurnId
 from agent_comms.goal_failure_observation import FailedTurnEvidence
 from agent_comms.goal_history import (
     RecordedGoalHistory, RecordedGoalRevision, BaselineRevision, TransitionRevision, ObservedGapRevision,
@@ -13,7 +16,7 @@ from agent_comms.goal_presentation import (
     GoalWaitTarget, IdleGoalExecution, PausedExecution, RunnableExecution, StandbyExecution,
 )
 from agent_comms.goal_states import PausedGoal
-from agent_comms.goals import NoGoal
+from agent_comms.goals import Goal, NoGoal
 from agent_comms.repo import Checkout
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.turn_failure import NativeChildSignaled
@@ -26,7 +29,7 @@ from toad.core.events import CommsUpdated
 from toad.navigation_target import SelectTarget
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
-from toad.widgets.goal_bar import GoalBar
+from toad.widgets.goal_bar import GoalBar, GoalControl
 
 
 def goal_owner(workspace, app):
@@ -181,6 +184,42 @@ async def test_goal_history_lists_earlier_revisions(workspace):
             await ui.until_shows(text)
         await ui.press("escape")
         assert view.prompt.text == "Composer draft stays"
+
+
+async def test_refused_goal_control_preserves_owner_state_and_composer(workspace):
+    async with workspace.app(size=(100, 35), notifications=True) as ui:
+        owner, view, bar, _status = await shown_goal(workspace, ui)
+        original = owner.goal
+        clear = bar.query_one("#goal-clear", GoalControl)
+        hit = ui.app.screen.get_widget_at(*clear.region.offset)[0]
+        print(f"Goal clear region={clear.region!r}; hit={hit!r}; disabled={clear.disabled}")
+        assert await ui.pilot.click(clear), "the real clear control must receive the click"
+        await ui.until(lambda: owner.requests == [("update", ClearGoalAction)],
+                       why="one goal-clear request at the scripted owner")
+        await ui.until_shows("Goal action failed")
+        assert owner.goal == original
+        assert view.goal_display.snapshot == original
+        assert view.prompt.text == "Composer draft stays"
+
+
+async def test_goal_editor_does_not_relabel_a_malformed_reply_as_a_refusal(workspace):
+    async with workspace.app(size=(100, 35)) as ui:
+        owner, view, _bar, _status = await shown_goal(workspace, ui)
+
+        async def save(text):
+            async def decode_reply():
+                return FieldCodec.decode(Goal, {})
+            await view.goal_controls.write(owner, decode_reply())
+
+        editor = GoalEdit(owner.goal, project=Checkout(workspace.project), on_save=save)
+        await ui.app.push_screen(editor)
+        editor.editor.text = "Keep this draft after the bad reply"
+        with pytest.raises(MalformedRecord):
+            await editor.save(editor.editor.text)
+        assert ui.app.screen is editor
+        assert editor.editor.text == "Keep this draft after the bad reply"
+        assert owner.requests == []
+        assert view.goal_display.snapshot == owner.goal
 
 
 async def test_owner_pushes_replace_and_then_remove_the_goal(workspace):

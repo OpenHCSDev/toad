@@ -94,7 +94,8 @@ class Workspace:
 
     @asynccontextmanager
     async def app(self, *, size: tuple[int, int] = (120, 40), binding: AgentBinding = NoAgent(),
-                  application: type | None = None, session: bool = True, resume: str | None = None):
+                  application: type | None = None, session: bool = True, resume: str | None = None,
+                  notifications: bool = False):
         """Start Toad headless on this project; yields once its first session is shown.
 
         Toad itself starts with no tab open unless the launch names a session
@@ -105,7 +106,7 @@ class Workspace:
         launch = {} if resume is None else {"agent_session_id": resume}
         app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project),
                                       launch_root=self.launch_root, **launch)
-        async with app.run_test(size=size) as pilot:
+        async with app.run_test(size=size, notifications=notifications) as pilot:
             await app.application.start_worker.wait()
             ui = TextualUi(app, pilot)
             if session:

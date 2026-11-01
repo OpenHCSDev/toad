@@ -1,4 +1,5 @@
 """Inspect the captured queue source through the actual conversation view."""
+from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 
@@ -11,13 +12,12 @@ from textual.widgets import Button, Static
 
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent_presentation import AgentPresentation
+from toad.conversation_submission import ConversationSubmissions
 from toad.line_blocks import SpanColumns
-from toad.screens.modal import DismissibleScreen
-from toad.submission_queue import QueueEvidence, QueueSource
+from toad.screens.source_modal import SourceModal
 from toad.widgets.tool_content import ToolContent
 
-
-class QueueInspection(DismissibleScreen[None]):
+class QueueInspection(SourceModal):
     """One screen captures the source, presentation and scope it actually displays."""
 
     DEFAULT_CSS = """
@@ -28,11 +28,16 @@ class QueueInspection(DismissibleScreen[None]):
     QueueInspection #queue-error { height: auto; color: $error; }
     """
 
-    def __init__(self, source: QueueSource, evidence: QueueEvidence, changed: Callable[[], None]) -> None:
+    def __init__(self, submissions: ConversationSubmissions) -> None:
         super().__init__()
-        self.source, self.evidence = source, evidence
-        self.scope = source.queue_scope(evidence.presentation)
-        self.changed = changed
+        self.submissions = submissions
+        self.source = submissions.view.queue_source
+        self.evidence = submissions.queue_evidence
+        self.scope = self.source.queue_scope(self.evidence.presentation)
+
+    @property
+    def source_view(self):
+        return self.submissions.view
 
     def compose(self) -> ComposeResult:
         with Vertical():
@@ -55,7 +60,7 @@ class QueueInspection(DismissibleScreen[None]):
         except (QueueActionRefused, RequestError) as error:
             self.query_one("#queue-error", Static).update(str(error))
             return
-        self.changed()
+        self.submissions.publish_pending()
         self.dismiss()
 
     @on(Button.Pressed, "#queue-send-now")

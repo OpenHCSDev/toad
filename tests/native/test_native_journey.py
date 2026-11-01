@@ -75,7 +75,7 @@ async def test_owner_is_attached_and_navigable(workspace, native_package):
         owner = native.comms.registry.require("beta")
         assert owner.process_identity is not None and owner.process_alive
         navigation = await asyncio.to_thread(
-            ThreadNavigationRequest(native.comms, "beta", ui.app.project_dir, ()).read)
+            ThreadNavigationRequest(native.comms, "beta", native.ui.app.project_dir, ()).read)
         assert navigation.attachable and navigation.thread.process_alive
 
 
@@ -103,7 +103,9 @@ async def test_busy_owner_is_shown_busy_in_the_sidebar_at_any_width(workspace, n
 
 
 async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspace, native_package):
-    async with native_session(workspace) as native:
+    # Send now explicitly aborts the held first reply before consuming the queued input.
+    provider = ControlledProvider(expected_disconnects=frozenset({1}))
+    async with native_session(workspace, provider=provider) as native:
         ui, agent, comms = native.ui, native.agent, native.comms
         view = ui.conversation
         await send_first_input_and_hold_its_reply(native)
@@ -112,6 +114,7 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         queued = await queue_behind_the_held_turn(native, queued_text)
         assert view.submissions.queue_projection.status == "available"
         assert len(view.submissions.queue_projection.items[0].preview) <= 100
+        await view.submissions.send_now().wait()
         await finish_both_turns(native)
         assert ui.draft() == "unsent local draft"
 
@@ -129,6 +132,10 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
 
         native_rows = [json.loads(line) for line in
                        Path(comms.registry.require("beta").runtime.path).read_text().splitlines()]
+        first_answer = next(row["message"] for row in native_rows
+                            if row.get("message", {}).get("role") == "assistant")
+        assert first_answer["stopReason"] == "aborted"
+        assert len(provider.requests) == 2, "Send now replayed or lost a native input"
         disposition = InputDispositions(comms.root).lookup(AcpInputKey(queued))
         assert isinstance(disposition, StartedInput)
         original = next(row["message"] for row in native_rows
