@@ -42,7 +42,9 @@ async def test_an_ambient_root_change_does_not_retarget_the_captured_app_namespa
         with LaunchRoot.from_path(second.root).selected():
             worker = await view.submissions.submit(UserInputSubmitted(body))
             await asyncio.wait_for(worker.wait(), 10)
-        await ui.until(lambda: not view.send_block_reason, why="the original publication acknowledged by its source")
+        await ui.until(lambda: not view.prompt.prompt_text_area.disabled,
+                       why="source acknowledgement to enable the original composer")
+        assert not view.send_block_reason
         assert ui.app.coordination_access.launch_root is workspace.launch_root
         assert ui.app.coordination_access.selection.root == first.root
         assert (first.bus.bus.revision(), second.bus.bus.revision()) == (before[0] + 1, before[1])
