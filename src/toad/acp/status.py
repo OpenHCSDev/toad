@@ -1,7 +1,17 @@
 """Specification-spelled reasons and statuses own toolkit independent facts."""
-from dataclasses import dataclass
+from __future__ import annotations
 
-from acp.schema import ToolCall
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from acp.schema import PromptResponse, ToolCall
+from agent_comms.acp_failure import RequestFailure
+
+from .queue_attachment import QueueActionRefused
+
+if TYPE_CHECKING:
+    from .client_session import ClientSessionRequest
 from agent_comms.agent_event_updates import AcpToolAction
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -22,13 +32,91 @@ from toad.line_blocks import (
 )
 
 
-class StopReason(DeclaredFamily, affix='StopReason'):
-    completed = False
+class PromptResult(ABC):
+    """A request's answer, not an optional SDK stop reason."""
+
+    @abstractmethod
+    def require_confirmation(self) -> StopReason: ...
+
+    def publish_failure(self, controller, command, queue_scope) -> None:
+        """A confirmed completion has no failure to publish."""
+
+    def settle_submission(self, execution) -> None:
+        execution.state.response_finished(execution)
+
+    async def finish_turn(self, view) -> None:
+        """No confirmed completion: release local activity, not a completed turn."""
+        view.turns.finish_client()
+
+
+class ConfirmedPromptResult(PromptResult):
+    """An SDK reply or a proved pre-send refusal gives this request a known result."""
+
+    def settle_submission(self, execution) -> None:
+        execution.state.response_confirmed(execution)
+
+
+@dataclass(frozen=True)
+class UnfinishedPromptResult(PromptResult):
+    request: ClientSessionRequest
+    failure: RequestFailure
+
+    def publish_failure(self, controller, command, queue_scope) -> None:
+        if self.request.current:
+            controller._prompt_failed(
+                command, self.request, queue_scope, self.failure.failure,
+                lambda event: self.report_failure(controller.agent, event),
+                published=self.failure.notification_published,
+            )
+
+    @abstractmethod
+    def report_failure(self, agent, event) -> None: ...
+
+    def require_confirmation(self) -> StopReason:
+        raise QueueActionRefused(
+            f"Request not confirmed: {self.failure.failure.feedback}. Inspect its state before another action."
+        )
+
+
+class FailedPromptResult(ConfirmedPromptResult, UnfinishedPromptResult):
+    """A known failure retains its original facts without closing a usable session."""
+
+    def report_failure(self, agent, event) -> None:
+        agent.events.publish(event)
+
+
+class UnconfirmedPromptResult(UnfinishedPromptResult):
+    """The captured request lost its reply or authority; it grants no retry."""
+
+    def report_failure(self, agent, event) -> None:
+        agent.session.record_failure(event)
+
+
+@dataclass(frozen=True)
+class StopReason(ConfirmedPromptResult, DeclaredFamily, affix='StopReason'):
+    """Only the SDK's declared stop reasons are confirmed prompt completions."""
+
+    response: PromptResponse
     note = ''
+
+    @classmethod
+    def from_acp(cls, response: PromptResponse) -> StopReason:
+        return cls.member_named(response.stop_reason)(response)
+
+    def require_confirmation(self) -> StopReason:
+        """A returned SDK completion confirms a queue mutation."""
+        return self
+
+    async def finish_turn(self, view) -> None:
+        await view.agent_turn_over(self)
+
+    def record_model_usage(self, view) -> None:
+        """Only a successful end-turn records recent model use."""
 
 
 class EndTurnStopReason(StopReason):
-    completed = True
+    def record_model_usage(self, view) -> None:
+        view.record_model_usage()
 
 
 class MaxTokensStopReason(StopReason):

@@ -28,6 +28,9 @@ class InputDecision(DeclaredFamily, ABC):
     @abstractmethod
     def announce(self, editor: PromptTextArea) -> None: ...
 
+    @abstractmethod
+    def begin_submission(self, owner, submission): ...
+
 
 class InputAccepted(InputDecision):
     allows = True
@@ -40,6 +43,9 @@ class InputAccepted(InputDecision):
 
     def announce(self, editor: PromptTextArea) -> None:
         """Accepted input needs no refusal feedback."""
+
+    def begin_submission(self, owner, submission):
+        return owner.view.agent_binding.begin_submission(owner, submission)
 
 
 class InputRefused(InputDecision):
@@ -58,6 +64,9 @@ class InputRefused(InputDecision):
     def announce(self, editor: PromptTextArea) -> None:
         editor.app.bell()
         editor.post_message(messages.Flash(self.message, "error"))
+
+    def begin_submission(self, owner, submission):
+        return owner.unbound(submission, self)
 
 
 @dataclass(frozen=True)

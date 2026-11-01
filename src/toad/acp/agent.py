@@ -4,7 +4,6 @@ from datetime import datetime
 from pathlib import Path
 
 import rich.repr
-from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
     InputStartedUpdate,
@@ -42,6 +41,7 @@ from toad.acp.permission_controller import PermissionController
 from toad.acp.projection_attachment import CursorAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.acp.session_updates import SessionNotificationOwner
+from toad.acp.status import PromptResult
 from toad.acp.tool_calls import SessionToolCalls
 from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.agent import AgentBase
@@ -164,7 +164,7 @@ class Agent(AgentBase):
     def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission):
         return owner.start(NativeSubmissionExecution(owner, submission, self))
 
-    async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):
+    async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None) -> PromptResult:
         """Submit through AgentBase's contract; the controller runs the request."""
         return await self.controller.submit(prompt, request=request)
 
@@ -352,24 +352,17 @@ class NativeSubmissionExecution(SubmissionExecution):
     async def deliver(self):
         view = self.owner.view
         local = not self.agent.presentation.uses_managed_turns
-        reason = None
         if local:
             view.turns.start_client()
         self.enter(SendPending())
-        try:
-            if self.agent.presentation.queue_supported:
-                reason = await self.agent.send_prompt(self.submission.text, request=self.request)
-            else:
-                reason = await self.agent.send_prompt(self.submission.text)
-        except RequestError as error:
-            self.enter(NoSend())
-            if self.current:
-                await view.submission_request_failed(error, self.submission.text)
+        if self.agent.presentation.queue_supported:
+            outcome = await self.agent.send_prompt(self.submission.text, request=self.request)
         else:
-            self.enter(NoSend())
+            outcome = await self.agent.send_prompt(self.submission.text)
+        outcome.settle_submission(self)
         if self.current and local:
-            view.call_later(self.complete, reason)
+            view.call_later(self.complete, outcome)
 
-    async def complete(self, reason):
+    async def complete(self, outcome: PromptResult):
         if self.current:
-            await self.owner.view.agent_turn_over(reason)
+            await outcome.finish_turn(self.owner.view)

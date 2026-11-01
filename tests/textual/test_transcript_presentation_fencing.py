@@ -90,11 +90,14 @@ async def test_cancelling_a_waiting_caller_leaves_the_pump_and_runs_nothing(work
         async with hold_application(view):
             entered, release = asyncio.Event(), asyncio.Event()
             pending = asyncio.create_task(view.transcript.publish(DeclaredCase, entered, release))
-            assert await stays_waiting(pending)
-            pending.cancel()
-            result = await asyncio.gather(pending, return_exceptions=True)
-            assert isinstance(result[0], asyncio.CancelledError)
-            assert not entered.is_set() and not view.task.done()
+            try:
+                assert await stays_waiting(pending)
+                pending.cancel()
+                result = await asyncio.gather(pending, return_exceptions=True)
+                assert isinstance(result[0], asyncio.CancelledError)
+                assert not entered.is_set() and not view.task.done()
+            finally:
+                release.set()
         await ui.step()
 
 
@@ -103,9 +106,11 @@ async def test_a_case_invalidated_while_applying_paints_nothing_and_the_next_one
         view = ui.conversation
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(DeclaredCase, entered, release))
-        await ui.until(entered.is_set, why="the case to start applying")
-        view.transcript.invalidate_publications()
-        release.set()
+        try:
+            await ui.until(entered.is_set, why="the case to start applying")
+            view.transcript.invalidate_publications()
+        finally:
+            release.set()
         await finish(ui, pending, "the invalidated case to return")
         assert not view.contents.query(AgentResponse)
         await view.transcript.publish(DeclaredCase, entered, release)
@@ -118,12 +123,14 @@ async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
         requests = view.transcript.source_requests
         entered, release = asyncio.Event(), asyncio.Event()
         requests.request(DeclaredCase, entered, release)
-        await ui.until(entered.is_set, why="the running request to start")
-        queued_entered, queued_release = asyncio.Event(), asyncio.Event()
-        queued_release.set()
-        requests.request(DeclaredCase, queued_entered, queued_release)
-        view.transcript.invalidate_publications()
-        release.set()
+        try:
+            await ui.until(entered.is_set, why="the running request to start")
+            queued_entered, queued_release = asyncio.Event(), asyncio.Event()
+            queued_release.set()
+            requests.request(DeclaredCase, queued_entered, queued_release)
+            view.transcript.invalidate_publications()
+        finally:
+            release.set()
         await requests.worker.wait()
         await ui.step()
         assert not view.contents.query(AgentResponse), "A pending request painted the replacement source"
@@ -144,9 +151,11 @@ async def test_a_certified_read_that_expired_acquires_no_application(workspace):
         original = view.transcript.binding.history
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(HeldSourceCase, entered, release))
-        await ui.until(entered.is_set, why="the certified read to be held")
-        view.transcript.invalidate_publications()
-        release.set()
+        try:
+            await ui.until(entered.is_set, why="the certified read to be held")
+            view.transcript.invalidate_publications()
+        finally:
+            release.set()
         await finish(ui, pending, "the expired read to return")
         assert view.transcript.binding.history is original, "Expired read replaced the mounted history"
         await view.transcript.publish(HeldSourceCase, entered, release)
@@ -159,9 +168,15 @@ async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
         view = ui.conversation
         entered, release = asyncio.Event(), asyncio.Event()
         pending = asyncio.create_task(view.transcript.publish(DeclaredCase, entered, release))
-        await ui.until(entered.is_set, why="the case to start applying")
-        await view.transcript.close()
-        release.set()
+        try:
+            await ui.until(entered.is_set, why="the case to start applying")
+            generation = view.transcript.generation
+            closing = asyncio.create_task(view.transcript.close())
+            await ui.until(lambda: view.transcript.closed and view.transcript.generation != generation,
+                           why="close to revoke the held generation before joining its work")
+        finally:
+            release.set()
+        await asyncio.wait_for(closing, 10)
         await finish(ui, pending, "the case to return after close")
         assert not view.contents.query(AgentResponse)
         assert not view.transcript.binding.matches(view)

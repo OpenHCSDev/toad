@@ -129,10 +129,10 @@ async def test_a_prompt_the_agent_cannot_be_reached_for_is_restored_to_the_compo
         assert receiver.session.disposition.failure is not None
         await ui.write_draft("")
         body = "the local failure prompt"
-        worker = await view.submissions.submit(UserInputSubmitted(body))
-        await asyncio.wait_for(worker.wait(), 10)
+        await view.submissions.submit(UserInputSubmitted(body))
         await ui.until(lambda: ui.draft() == body, why="the refused local input back in the draft")
         assert not view.send_block_reason
+        assert not view.submissions.retains_surface
         assert not workspace.prompts_received()
 
 
