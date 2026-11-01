@@ -516,7 +516,7 @@ class TerminalApp:
 
     def show_thread(self, thread):
         self.wait("ready", lambda screen: thread in screen.text
-                  and "▶ Session details · Ready" in "\n".join(screen.text.splitlines()[-8:]))
+                  and "▶ Ready" in "\n".join(screen.text.splitlines()[-8:]))
         self.click_cell(self.columns - 1, self.rows // 2)
         return self.wait("shown", lambda screen: "User messages" in screen.text and all(
             "Indexing" not in line.split("│", 1)[0] for line in screen.text.splitlines()))

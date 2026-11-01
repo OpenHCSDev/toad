@@ -154,6 +154,44 @@ async def test_a_certified_read_that_expired_acquires_no_application(workspace):
         assert view.transcript.binding.history.page_source.through.session_file == str(journal)
 
 
+async def test_followed_saved_append_keeps_painted_page_and_fragments(workspace):
+    import json
+    from dataclasses import replace
+
+    thread = workspace.thread("append-source")
+    journal = write_journal(
+        thread.project.path / "append.jsonl",
+        assistant_entry("FIRST_RETAINED_ROW", id="first"),
+        assistant_entry("SECOND_RETAINED_ROW", id="second", parent="first"),
+        assistant_entry("THIRD_RETAINED_ROW", id="third", parent="second"),
+    )
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    async with workspace.app(resume="append-source") as ui:
+        await ui.until_shows("THIRD_RETAINED_ROW")
+        view = ui.conversation
+        await ui.app.coordination_access.stop_observing()
+        await view.transcript.suspend()
+        history = view.transcript.binding.history
+        assert view.window.follows_tail
+        pages = tuple(history.pages)
+        fragments = tuple(history.fragments_in_range)
+        assert pages and fragments
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry(
+                "APPENDED_SAVED_ROW", id="appended", parent="third")) + "\n")
+        view.transcript.require_commit()
+        await ui.until_shows("APPENDED_SAVED_ROW")
+        assert view.transcript.binding.history is history
+        assert all(page in history.pages for page in pages)
+        current = tuple(history.fragments_in_range)
+        assert all(any(fragment is kept for kept in current) for fragment in fragments)
+        painted = ui.painted(view.window)
+        assert all(marker in painted for marker in (
+            "FIRST_RETAINED_ROW", "SECOND_RETAINED_ROW", "THIRD_RETAINED_ROW"))
+        assert ui.failure() is None
+
+
 async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
     async with workspace.app() as ui:
         view = ui.conversation
