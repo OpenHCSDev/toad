@@ -8,8 +8,10 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.installer.probes.interpreter import InterpreterBuildProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution
 from agent_comms.storage_rules import StorageRule
+from agent_comms.nominal.field_codec import FieldCodec
 from tools.physical_ui_remote import (
-    AdmittedResult, FrontendIdentity, ObservedResult, PendingRun, RunObservation, RunTarget,
+    AdmitOperation, AdmittedResult, FrontendIdentity, ObserveOperation, ObservedResult,
+    PendingRun, RunObservation, RunTarget, StartOperation, StopRootOperation,
 )
 
 
@@ -47,6 +49,18 @@ def physical_admission(
     physical_target: RunTarget, physical_observation: RunObservation,
 ) -> AdmittedResult:
     return AdmittedResult(physical_observation, physical_target.build).admitted(physical_target)
+
+
+def test_startup_connection_decodes_only_observation_operations(physical_target: RunTarget) -> None:
+    identity = ProcessIdentity.current()
+    tools = Path(__file__).resolve().parents[2] / "tools"
+    for operation in (ObserveOperation(physical_target, identity, tools),
+                      AdmitOperation(physical_target, identity, tools)):
+        assert FieldCodec.decode(ObserveOperation, FieldCodec.encode(operation)) == operation
+    start = StartOperation(physical_target, identity, (str(physical_target.runtime / "bin/toad"),), 9)
+    for operation in (start, StopRootOperation(physical_target)):
+        with pytest.raises(ValueError):
+            FieldCodec.decode(ObserveOperation, FieldCodec.encode(operation))
 
 
 def test_current_observation_cannot_substitute_for_build_admission(

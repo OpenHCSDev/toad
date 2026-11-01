@@ -5,7 +5,7 @@
 
 Core supplies a rehearsal root and thread. A fresh frontend home does NOT restore
 source-bound saved Toad tabs. Plain st and the real ACP editor share TerminalApp's
-post-attachment source/runtime/persistence admission. SHOWN, SEEN and the final
+startup-owned source/runtime/persistence admission. SHOWN, SEEN and the final
 JSON retain Core's existing protocol; failed/UNKNOWN fresh input is never replayed.
 """
 from __future__ import annotations
@@ -125,7 +125,7 @@ def main() -> None:
     target = TerminalApp.prepare_target(comms.root, LaunchRuntime.at_prefix(args.runtime.parent))
     with OwnedDisplay(args.output) as display:
         command = (str(args.runtime / "toad"),)
-        plain = TerminalApp(command, display, args.output / "plain", target, target.home)
+        plain = TerminalApp((*command, str(target.home)), display, args.output / "plain", target, target.home)
         with display.recording(args.output / "journey.mp4", plain.environment):
             with plain as app:
                 app.wait("store", lambda screen: "Toad" in screen.text or "agent" in screen.text.lower())

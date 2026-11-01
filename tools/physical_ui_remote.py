@@ -1,29 +1,36 @@
 """Typed operations of one owned physical run, copied beside their requests.
 
-The exec operation grants only its recorded controller's descendants debugging
-access, then execs the unchanged launcher. Observation reads live source owners;
-it never opens a Comms, sends input, repairs a route or traverses the heap.
+Startup owns one inherited request connection and the installed Python entrypoint.
+The controller submits only typed observation packets, applied on Textual's loop.
+No attachment, debugger permission, code injection or signal handler is used.
 """
 
 from abc import abstractmethod
-import ctypes
 from dataclasses import dataclass
+from importlib.metadata import distribution
 import json
+from multiprocessing.connection import Connection
 import os
 from pathlib import Path
 import pwd
 import sys
 import time
+from threading import Thread
 from typing import ClassVar
 
+from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.child_process import ChildOutcome, ProcessIdentity
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.installer.probes.resolution import RuntimeResolutionProbe
-from agent_comms.installer.runtime_resolution import RuntimeResolution
+from agent_comms.installer.runtime_resolution import RuntimeResolution, ToadPackage
 from agent_comms.storage_rules import StorageRule
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import DeclaredWireType, FieldCodec
+from metaclass_registry.mro_dispatch import handles
 from textual.geometry import Region
+from toad.acp.agent import Agent
+from toad.agent_binding import NoAgentConnection
+from toad.core.projection import MroProjection
 from ui_theme.wal import WalFile
 from agent_comms.store_files import ExclusiveAtomicFile
 
@@ -78,9 +85,9 @@ class RunTarget:
     def require_resources(self, observed):
         """Current UI/source resources; build evidence belongs to AdmittedResult."""
         if observed.home != self.home or observed.runtime != self.runtime:
-            raise ValueError("Post-attachment HOME/runtime differs from the run target")
+            raise ValueError("Observed HOME/runtime differs from the run target")
         if (observed.config, observed.state, observed.data) != (self.config, self.state, self.data):
-            raise ValueError("Post-attachment XDG persistence differs from the private run")
+            raise ValueError("Observed XDG persistence differs from the private run")
         if observed.palette_directory != self.palette:
             raise ValueError("The actual theme palette is outside the private home")
         if not observed.database.is_relative_to(self.state):
@@ -165,7 +172,7 @@ class PhysicalResult(DeclaredFamily, affix="Result"):
         raise ValueError("This physical operation did not observe an application")
 
     def process(self) -> ProcessIdentity:
-        raise ValueError("This physical operation did not exec a frontend")
+        raise ValueError("This physical operation did not start a frontend")
 
 
 @dataclass(frozen=True)
@@ -195,9 +202,9 @@ class AdmittedResult(ObservedResult):
 
 
 @dataclass(frozen=True)
-class ExecResult(PhysicalResult):
+class StartedResult(PhysicalResult):
     identity: ProcessIdentity
-    debugger: ProcessIdentity
+    controller: ProcessIdentity
 
     def process(self) -> ProcessIdentity:
         return self.identity
@@ -270,31 +277,93 @@ class PhysicalOperation(DeclaredFamily, affix="Operation"):
             operation.execute(directory)
         except PendingRun as error:
             cls.publish(result, PendingResult(str(error)[:2048]))
-        except BaseException as error:
+        except Exception as error:
             cls.publish(directory / "error.json", FailedResult(type(error).__name__, str(error)[:2048]))
 
 
 @dataclass(frozen=True)
-class ExecOperation(PhysicalOperation):
-    """One new child, not an arbitrary existing trace target or global policy."""
+class StartOperation(PhysicalOperation):
+    """Instrument a new Python frontend at startup, never an existing process."""
 
     target: RunTarget
-    debugger: ProcessIdentity
+    controller: ProcessIdentity
     arguments: tuple[str, ...]
-    PR_SET_PTRACER: ClassVar[int] = 0x59616D61  # Linux's declared prctl ABI.
+    descriptor: int
 
     def execute(self, directory: Path) -> None:
-        if not self.arguments or not self.debugger.alive():
-            raise ValueError("Exec needs its original living controller and command")
+        if not self.arguments or not self.controller.alive() or self.descriptor < 3:
+            raise ValueError("Startup needs its living controller, entrypoint and inherited connection")
         if Path.home().resolve() != self.target.home:
-            raise ValueError("st changed HOME before frontend exec")
-        prctl = ctypes.CDLL(None, use_errno=True).prctl
-        prctl.argtypes = (ctypes.c_int, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong)
-        prctl.restype = ctypes.c_int
-        if prctl(self.PR_SET_PTRACER, self.debugger.pid, 0, 0, 0) != 0:
-            raise OSError(ctypes.get_errno(), "Cannot admit this controller's debugger descendants")
-        self.publish(directory / "result.json", ExecResult(ProcessIdentity.current(), self.debugger))
-        os.execvpe(self.arguments[0], self.arguments, os.environ)
+            raise ValueError("st changed HOME before frontend startup")
+        if LaunchRuntime.running().prefix != self.target.runtime:
+            raise ValueError("Frontend startup must use its declared runtime")
+        entrypoint = Path(self.arguments[0]).resolve(strict=True)
+        if not entrypoint.is_relative_to(self.target.runtime):
+            raise ValueError("The instrumented entrypoint is outside the declared runtime")
+        (declared,) = distribution(ToadPackage.distribution).entry_points.select(
+            group="console_scripts", name=entrypoint.name,
+        )
+        os.set_inheritable(self.descriptor, False)
+        with Connection(self.descriptor, writable=False) as requests:
+            # This thread owns no UI state and never wakes periodically. Its
+            # private pipe closes with this frontend/controller lifetime.
+            reader = Thread(target=self.serve, args=(requests, directory.parent), daemon=True)
+            reader.start()
+            self.publish(directory / "result.json", StartedResult(ProcessIdentity.current(), self.controller))
+            sys.argv = list(self.arguments)
+            # Keep this declaration module alive while the installed entrypoint
+            # runs; replacing __main__ would change the codec's type namespace.
+            declared.load()()
+
+    def serve(self, requests: Connection, output: Path) -> None:
+        while True:
+            try:
+                raw = requests.recv_bytes(self.metadata_bytes)
+            except EOFError:
+                return
+            packet = FieldCodec.decode(Path, FieldCodec.parse(raw.decode()))
+            if (not packet.is_absolute() or packet != packet.resolve(strict=True)
+                    or not packet.is_relative_to(output / "operations")
+                    or packet.name != "request.json"):
+                raise ValueError("Observation packet is outside this startup's operation directory")
+            from textual._context import NoActiveAppError
+            from toad.app import ToadApp
+
+            try:
+                app = ToadApp.running_app()
+                if not app.is_running:
+                    raise PendingRun("The frontend message loop has not started")
+                # The existing decoder admits only ObserveOperation descendants;
+                # a stop/start packet cannot execute through this read-only pipe.
+                app.call_from_thread(ObserveOperation.execute_file, packet)
+            except (NoActiveAppError, PendingRun) as error:
+                self.publish(packet.parent / "result.json", PendingResult(str(error)[:2048]))
+            except Exception as error:
+                self.publish(packet.parent / "error.json", FailedResult(type(error).__name__, str(error)[:2048]))
+
+
+class AcpRoots(MroProjection[tuple[Path, ...]]):
+    """One foreign-connection decoder, not a new handler class per observation."""
+
+    @handles(object)
+    def unknown(self, value):
+        raise ValueError(f"Unadmitted ACP metadata type: {type(value).__name__}")
+
+    @handles(type(None))
+    def pending(self, value):
+        raise PendingRun("A bound ACP has not published its coordination root")
+
+    @handles(NoAgentConnection)
+    def unbound(self, value):
+        return ()
+
+    @handles(Agent)
+    def bound(self, value):
+        return self.project_value(value.coordination)
+
+    @handles(CoordinationChangedUpdate)
+    def coordinated(self, value):
+        return (Path(value.wire_root).resolve(),)
 
 
 @dataclass(frozen=True)
@@ -309,9 +378,9 @@ class ObserveOperation(PhysicalOperation):
     def execute(self, directory: Path) -> None:
         started = time.monotonic_ns()
         if ProcessIdentity.current() != self.identity:
-            raise ValueError("Post-attachment frontend incarnation changed")
+            raise ValueError("Observed frontend incarnation changed")
         if Path.home().resolve() != self.target.home:
-            raise ValueError("Post-attachment HOME is not private")
+            raise ValueError("Observed HOME is not private")
         # The existing reviewed validator remains the single module-location policy.
         # The temporary tool import path is retired before inspecting application state.
         previous = sys.path[:]
@@ -323,39 +392,11 @@ class ObserveOperation(PhysicalOperation):
         import agent_comms
         import textual
         import toad
-        from agent_comms.acp_extension import CoordinationChangedUpdate
-        from metaclass_registry.mro_dispatch import handles
-        from toad.acp.agent import Agent
-        from toad.agent_binding import NoAgentConnection
         from toad.app import ToadApp
         from textual._context import NoActiveAppError
         from textual.app import ScreenStackError
-        from toad.core.projection import MroProjection
         from toad.widgets.history_anchor import HistoryWindow
         from xdg_base_dirs import xdg_config_home, xdg_data_home, xdg_state_home
-
-        class AcpRoots(MroProjection[tuple[Path, ...]]):
-            """Decode foreign running-UI connections once, without guessing readiness."""
-
-            @handles(object)
-            def unknown(self, value):
-                raise ValueError(f"Unadmitted ACP metadata type: {type(value).__name__}")
-
-            @handles(type(None))
-            def pending(self, value):
-                raise PendingRun("A bound ACP has not published its coordination root")
-
-            @handles(NoAgentConnection)
-            def unbound(self, value):
-                return ()
-
-            @handles(Agent)
-            def bound(self, value):
-                return self.project_value(value.coordination)
-
-            @handles(CoordinationChangedUpdate)
-            def coordinated(self, value):
-                return (Path(value.wire_root).resolve(),)
 
         try:
             app = ToadApp.running_app()
@@ -427,8 +468,8 @@ class StopRootOperation(PhysicalOperation):
         self.publish(directory / "result.json", StoppedResult(self.target.root))
 
 
-# Normal imports define the family. A controller-bound module filename selects
-# only that immutable copy's adjacent request, including under remote_exec.
+# Normal imports define the family. A startup/shutdown program selects only
+# its immutable adjacent request; observations decode data, never program text.
 _source = Path(__file__)
 if _source.with_suffix(".json").is_file():
     PhysicalOperation.execute_file(_source)
