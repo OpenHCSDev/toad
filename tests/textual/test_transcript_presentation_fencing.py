@@ -231,7 +231,8 @@ async def test_followed_commit_publishes_a_known_undrawn_gap_before_settling(wor
         assert ui.failure() is None
 
 
-async def test_closed_same_source_commit_acquires_the_complete_replacement(workspace):
+@pytest.mark.parametrize("following", (False, True))
+async def test_closed_same_source_commit_acquires_complete_coverage(workspace, following):
     import json
     from dataclasses import replace
 
@@ -247,13 +248,66 @@ async def test_closed_same_source_commit_acquires_the_complete_replacement(works
         await view.transcript.suspend()
         history = view.transcript.binding.history
         history.close()
+        if not following:
+            view.window.release_anchor()
+        pages = tuple(history.pages)
+        fragments = tuple(history.fragments_in_range)
+        position = view.window.reader_position
         with journal.open("a") as output:
             output.write(json.dumps(assistant_entry(
                 "CLOSED_PREFIX_SUCCESSOR", id="after", parent="before")) + "\n")
         view.transcript.dirty = view.transcript.commit_required = True
         await view.transcript.publish(CommitPublication)
-        await ui.until_shows("CLOSED_PREFIX_SUCCESSOR")
+        if following:
+            await ui.until_shows("CLOSED_PREFIX_SUCCESSOR")
+        else:
+            await ui.step()
+            assert tuple(history.pages) == pages
+            assert all(actual is original for actual, original in
+                       zip(history.fragments_in_range, fragments, strict=True))
+            assert view.window.reader_position == position
+            assert "CLOSED_PREFIX_SUCCESSOR" not in ui.painted(view.window)
         assert "CLOSED_PREFIX_MUST_SURVIVE" in ui.painted(view.window)
+        assert view.transcript.binding.history is history
+        assert ui.failure() is None
+
+
+@pytest.mark.parametrize("following", (False, True))
+async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(workspace, following):
+    from dataclasses import replace
+    from agent_comms.errors import TranscriptChanged
+
+    thread = workspace.thread("rewritten-source")
+    journal = write_journal(thread.project_path / "rewritten.jsonl",
+                            assistant_entry("SUPERSEDED_SOURCE_ROW", id="old"))
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    async with workspace.app(resume="rewritten-source") as ui:
+        await ui.until_shows("SUPERSEDED_SOURCE_ROW")
+        view = ui.conversation
+        await ui.app.coordination_access.stop_observing()
+        await view.transcript.suspend()
+        history = view.transcript.binding.history
+        original = history.page_source.through
+        if not following:
+            view.window.release_anchor()
+        # Reuse the path, but replace its native bytes with a longer record.
+        # Filename/offset containment alone cannot witness this old prefix.
+        write_journal(journal, assistant_entry(
+            "REPLACEMENT_SOURCE_ROW " * 80, id="new"))
+
+        def read_replacement():
+            read = workspace.comms.transcripts.capture_page_read("rewritten-source")
+            with pytest.raises(TranscriptChanged):
+                read.read(position=original.later_page())
+            return read.read()
+
+        replacement = await asyncio.to_thread(read_replacement)
+        assert replacement.after.contains(original)
+        view.transcript.dirty = view.transcript.commit_required = True
+        await view.transcript.publish(CommitPublication)
+        await ui.until_shows("REPLACEMENT_SOURCE_ROW")
+        assert "SUPERSEDED_SOURCE_ROW" not in ui.painted(view.window)
         assert view.transcript.binding.history is history
         assert ui.failure() is None
 
