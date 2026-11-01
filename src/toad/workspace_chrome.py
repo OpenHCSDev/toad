@@ -68,8 +68,11 @@ class WorkspaceChrome(VerticalLayout):
         return changed
 
     def refresh_layout(self) -> None:
-        """Placement changes retire both native parent arrangements."""
-        for parent in {bar.parent for bar in self.presented_sidebars()}:
+        """Project placement intent before retiring both native arrangements."""
+        bars = self.presented_sidebars()
+        for bar in bars:
+            bar.present_controls()
+        for parent in {bar.parent for bar in bars}:
             parent.refresh(repaint=False, layout=True)
 
     def arrange(

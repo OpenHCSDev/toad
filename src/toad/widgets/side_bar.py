@@ -790,13 +790,10 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
             id="sidebar-layout-actions",
         )
 
-    def on_resize(self, event: events.Resize) -> None:
-        self._present_controls()
-
     def on_show(self) -> None:
         self.restore_navigation()
 
-    def _present_controls(self) -> bool:
+    def present_controls(self) -> bool:
         if not self.presentation_visible:
             self._presented_layout = None
             return False
@@ -836,7 +833,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
 
     def resize_to(self, percentage: int) -> None:
         if self.app.sidebar_layout.resize(self.id, percentage):
-            self._present_controls()
             self.app.workspace_chrome.refresh_layout()
 
     @on(SidebarSlider.Changed)
@@ -851,11 +847,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
             return
         app = self.app
         event.action.apply(app.sidebar_layout, self.id)
-        for bar in (
-            app.workspace_chrome.channels,
-            *app.workspace_sessions.source.sidebars(),
-        ):
-            bar._present_controls()
         app.workspace_chrome.refresh_layout()
 
     def restore_navigation(self) -> bool:
@@ -863,7 +854,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         if changed:
             self.watch_collapsed(self.collapsed)
         else:
-            self._present_controls()
             self.app.workspace_chrome.refresh_layout()
         navigation = self.navigation
         for panel in self.query(SideBarCollapsible):
@@ -890,7 +880,6 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         for panel in self.panels:
             panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
-        self._present_controls()
         self.app.workspace_chrome.refresh_layout()
 
     def render(self) -> str:

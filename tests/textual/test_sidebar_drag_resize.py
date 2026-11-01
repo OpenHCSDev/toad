@@ -63,13 +63,14 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         assert slider.value == 41
         await ui.press("left" if side.sign > 0 else "right")
         assert slider.value == 40
-        remap = app.settings.ui.keymap.changed(KeymapRow.of(RightKey(), Standard), ("f6",))
+        remapped_key = "ctrl+f6"  # Plain f6 already belongs to TextArea's Select line.
+        remap = app.settings.ui.keymap.changed(KeymapRow.of(RightKey(), Standard), (remapped_key,))
         app.saved_settings.set(SETTINGS.ui.keymap.bindings, remap.bindings)
         for control in (slider, handle):
             control.focus()
             await ui.press("right")
             assert slider.value == 40
-            await ui.press("f6")
+            await ui.press(remapped_key)
             assert slider.value == 40 + direction
             await ui.press("left")
             assert slider.value == 40
