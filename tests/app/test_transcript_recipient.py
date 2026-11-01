@@ -7,6 +7,7 @@ from dataclasses import replace
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.threads import Thread
 from toad.acp.agent_controller import SessionBinding
+from toad.acp.coordination_attachment import CoordinatedThread
 
 from support.agents import deliver
 from support.coordination import carrying, registered_coordination_fact
@@ -24,13 +25,14 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
         updates[name] = TranscriptSnapshotUpdate(read.read(), read.identity)
 
     expected = registered_coordination_fact(workspace.comms, "alpha")
+    attachment = CoordinatedThread(expected)
     identity = updates["alpha"].identity
-    assert SessionBinding("alpha").accepts_snapshot(identity, expected)
-    assert not SessionBinding("beta").accepts_snapshot(identity, expected)
+    assert SessionBinding("alpha").accepts_snapshot(identity, attachment)
+    assert not SessionBinding("beta").accepts_snapshot(identity, attachment)
     assert not SessionBinding("alpha").accepts_snapshot(
-        replace(identity, root=str(workspace.project)), expected)
+        replace(identity, root=str(workspace.project)), attachment)
     assert not SessionBinding("alpha").accepts_snapshot(replace(
-        identity, thread=replace(identity.thread, created_at=identity.thread.created_at - 0.5)), expected)
+        identity, thread=replace(identity.thread, created_at=identity.thread.created_at - 0.5)), attachment)
 
     async with workspace.app(size=(110, 38)) as ui:
         alpha_tab = await ui.app.thread_navigation.open(
@@ -44,7 +46,7 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
         ui.attach_agent(beta)
         assert not beta.controller.session.accepts_notification("alpha")
         await deliver(beta, carrying(expected, updates["alpha"]), session_id="alpha")
-        assert beta.coordination is None
+        assert not beta.presentation.queue_supported
         # Publication also refuses foreign work without relying on its envelope.
         await beta.controller.publish_transcript_snapshot(
             updates["alpha"], beta.controller.surface, beta.controller.session)

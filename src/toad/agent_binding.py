@@ -13,6 +13,7 @@ from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
+from toad.acp.thread_read import NoPendingThreadRead, ThreadRead
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.conversation_turn import NoTurn
 from toad.input_decision import InputDecision, InputAccepted, NoLiveAgent
@@ -67,8 +68,7 @@ class AgentConnection(ABC):
     async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None:
         """A connection without a coordinated owner has no snapshot to consume."""
 
-    def thread_read(self):
-        from toad.acp.comms_updates import NoPendingThreadRead
+    def thread_read(self) -> ThreadRead:
         return NoPendingThreadRead()
 
     def model_info(self, session_name: str) -> Content:

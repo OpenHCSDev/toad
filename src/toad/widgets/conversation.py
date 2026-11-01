@@ -40,7 +40,7 @@ from textual.document._editing import EditingMode
 from ui_theme.effects import CURSOR_BLINK, Mix
 
 from toad import messages, paths
-from toad.acp.comms_updates import NoPendingThreadRead
+from toad.acp.thread_read import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent import AgentBase
@@ -1221,13 +1221,7 @@ class Conversation(
                 ):
                     await asyncio.sleep(0.1)
                 self.prompt.disabled = True
-                if (
-                    agent.coordination.wire_root
-                    if agent and agent.coordination
-                    else None
-                ) is None:
-                    await self.prune_window(0, 0)
-                    self.output.boundary()
+                await agent.coordination_attachment.prepare_login(self)
                 await agent.session.reconnect_after_login()
             else:
                 await agent.session.authenticate(method_id)

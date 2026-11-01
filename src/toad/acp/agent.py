@@ -1,5 +1,5 @@
 import asyncio
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -13,11 +13,9 @@ from agent_comms.acp_extension import (
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.nominal.field_codec import FieldCodec, GoalId
 from agent_comms.goal_actions import GoalAction
-from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
-from agent_comms.goals import Goal, GoalDeclaration, NoGoal
+from agent_comms.goal_presentation import GoalSnapshot
+from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.goal_history import RecordedGoalHistory
-from agent_comms.order_tools import OwnerGoalRead
-from agent_comms.ui_model.observation import ReadOwnerOperation
 
 from toad import paths
 from toad.acp.agent_configuration import (
@@ -31,12 +29,9 @@ from toad.acp.agent_session import AgentSession, SessionDisposition
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.client_session import ClientSessionRequest
-from toad.acp.comms_updates import (
-    CommsUpdateConsumer,
-    NoPendingThreadRead,
-    PendingThreadRead,
-    ThreadRead,
-)
+from toad.acp.comms_updates import CommsUpdateConsumer
+from toad.acp.coordination_attachment import CoordinationAttachment, CoordinatedThread
+from toad.acp.thread_read import ThreadRead
 from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.permission_controller import PermissionController
 from toad.acp.projection_attachment import CursorAttachment
@@ -120,6 +115,7 @@ class Agent(AgentBase):
             log_path = paths.get_log() / log_filename
         self._presentation = ACPAgentPresentation(self, log_path)
         self.permissions = PermissionController(self)
+        self.coordination_attachment: CoordinationAttachment = CoordinationAttachment()
         self.controller = AgentController(self, transcripts)
         self.tools = SessionToolCalls(self)
         self.session_id = session_id
@@ -242,13 +238,15 @@ class Agent(AgentBase):
     def detach_surface(self, surface) -> None:
         self.controller.detach(surface)
 
-    @property
-    def coordination(self) -> CoordinationChangedUpdate | None:
-        return self.controller.coordination
-
-    @coordination.setter
-    def coordination(self, value: CoordinationChangedUpdate | None) -> None:
-        self.controller.coordination = value
+    def receive_coordination(self, update: CoordinationChangedUpdate, session_id: str) -> None:
+        """Admit one original publication and refresh its derived projections."""
+        self.controller.transcripts.access.selected(update.wire_root)
+        self.coordination_attachment = CoordinatedThread(update)
+        self.project_root_path = update.worktree.path
+        self.context_measurement = ContextMeasurement.saved(update.context_usage)
+        self.update_status_line()
+        self.coordination_attachment.publish(self, session_id)
+        self.session.coordinated_title(update.title)
 
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
         self.controller.surface.sync_queue()
@@ -285,18 +283,7 @@ class Agent(AgentBase):
 
     async def get_goal_snapshot(self) -> GoalSnapshot:
         """The owner's goal snapshot, read by the observation service; its turn settles here."""
-        from .comms_updates import OwnerSnapshotConsumer
-        coordination = self.coordination
-        if coordination is None:
-            return GoalSnapshot(NoGoal(), IdleGoalExecution())
-        authority = ClientSessionRequest(self, self.session_id)
-        consumer = OwnerSnapshotConsumer(self, self.session_id, turn_token=self.presentation.turns.sequence)
-        snapshot = await self.controller.transcripts.read(
-            ReadOwnerOperation(coordination.wire_root, coordination.thread, operation=OwnerGoalRead()))
-        self.controller.require_owner(coordination, authority)
-        for fact in snapshot.meta.batch.updates:
-            consumer.dispatch_sync(fact)
-        return snapshot
+        return await self.coordination_attachment.goal_snapshot(self)
 
     async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:
         result = await self.controller.request_owner("goal_history", goal_id=goal_id)
@@ -309,42 +296,17 @@ class Agent(AgentBase):
         return FieldCodec.decode(Goal, result["goal"])
 
     def observed_thread(self) -> tuple[str, str] | None:
-        coordination = self.coordination
-        if coordination is None or coordination.wire_root is None or coordination.thread.name is None:
-            return None
-        return coordination.wire_root, coordination.thread.name
+        return self.coordination_attachment.observed_thread()
 
     def thread_read(self) -> ThreadRead:
         """Capture, before a presentation read, what its result must still match."""
-        from .comms_updates import OwnerSnapshotConsumer
-
-        coordination = self.coordination
-        if coordination is None:
-            return NoPendingThreadRead()
-        return PendingThreadRead(self, coordination, ClientSessionRequest(self, self.session_id),
-                          OwnerSnapshotConsumer(self, self.session_id,
-                                                turn_token=self.presentation.turns.sequence))
+        return self.coordination_attachment.thread_read(self)
 
     async def observe_thread_presentation(self, presentation) -> None:
-        await self.session.observe_owner(presentation)
+        await self.coordination_attachment.observe_owner(self, presentation)
 
     async def update_project(self, path: str) -> str:
-        if (self.coordination.wire_root if self.coordination else None) is None or (
-            self.coordination.thread.name if self.coordination else None
-        ) is None:
-            raise ValueError("Project changes require an agent-comms thread.")
-        authority = ClientSessionRequest(self, self.session_id)
-        coordination = self.coordination
-        comms = await self.controller.transcripts.service(coordination.wire_root)
-        authority.require()
-        result = await asyncio.to_thread(
-            comms.threads.set_project, coordination.thread.name, path,
-        )
-        authority.require()
-        self.coordination = replace(self.coordination, worktree=result.current)
-        self.project_root_path = Path(result.current)
-        self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
-        return result.current
+        return await self.coordination_attachment.update_project(self, path)
 
     async def update_goal(self, action: type[GoalAction], text: str = "") -> GoalDeclaration:
         result = await action.submit_control(
