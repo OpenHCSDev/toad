@@ -11,7 +11,6 @@ from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Callable
 
 from acp import schema as acp_protocol
-from acp.exceptions import RequestError
 from toad.widgets.markdown_note import MarkdownNote
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
@@ -43,6 +42,7 @@ from ui_theme.effects import CURSOR_BLINK, Mix
 from toad import messages, paths
 from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
+from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.messages import QueueEvidenceChanged
@@ -874,14 +874,6 @@ class Conversation(
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
 
-    async def submission_request_failed(self, error: RequestError, text: str) -> None:
-        self.turns.finish_client()
-        self.prompt.restore_draft(text)
-        await self.post(MarkdownNote(
-            INTERNAL_EROR.replace("$ERROR", str(error) or "no details were provided"),
-            classes="-stop-reason",
-        ))
-
     def painted_read(self, acknowledge: Callable[[TranscriptCursor], PaintedRead]) -> PaintedRead:
         """Decide before constructing a worker or opening a read/write context."""
         if not self.is_mounted or self.visible_categories != all_categories():
@@ -1337,25 +1329,20 @@ class Conversation(
         """Wire views override the same submission boundary."""
         await self.submissions.submit(event)
 
-    async def agent_turn_over(self, stop_reason: type[StopReason] | None) -> None:
-        """Called when the agent's turn is over.
-
-        Args:
-            stop_reason: The stop reason returned from the Agent, or `None`.
-        """
-        self.turns.finish_client()
-        self._agent_activity_boundary.reset()
+    def record_model_usage(self) -> None:
         model = self.agent_binding.configuration.model.selected
-        if stop_reason is not None and stop_reason.completed and model is not None:
+        if model is not None:
             from toad.db import DB
 
-            # Complete visible turn settlement independently of recent-model
-            # database contention. The native worker owns this optional write.
-            self.run_worker(
-                DB().record_model_usage(
-                    self.model_history_scope, model.value, last_used=time_ns()
-                )
-            )
+            # The native worker owns this optional write, not turn settlement.
+            self.run_worker(DB().record_model_usage(
+                self.model_history_scope, model.value, last_used=time_ns()))
+
+    async def agent_turn_over(self, stop_reason: StopReason) -> None:
+        """Present a confirmed SDK turn completion, never a missing reply."""
+        self.turns.finish_client()
+        self._agent_activity_boundary.reset()
+        stop_reason.record_model_usage(self)
         await self.output.settle()
         pending_loading, self._loading = self._loading, None
         if pending_loading is not None and pending_loading.is_attached:
@@ -1366,7 +1353,7 @@ class Conversation(
 
         self._turn_count += 1
 
-        if stop_reason is not None and stop_reason.note:
+        if stop_reason.note:
 
             await self.post(
                 MarkdownNote(
@@ -1681,7 +1668,11 @@ class Conversation(
         """Keep processing owner notifications while compaction is in flight."""
         self.window.anchor()
         self.feedback.flash("Compaction requested")
-        await self.agent_binding.compact_context(instructions)
+        try:
+            await self.agent_binding.compact_context(instructions)
+        except QueueActionRefused as error:
+            self.feedback.flash(f"Compaction not confirmed: {error}", style="error")
+            return
         self.feedback.flash("Context compacted", style="success")
 
     @property
