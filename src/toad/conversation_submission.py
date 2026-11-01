@@ -184,7 +184,9 @@ class ImmediateInputSubmission(OrdinaryInputSubmission):
 class SendState:
     """One transaction's local outcome; widgets only draw this answer."""
 
-    reason = ""
+    @property
+    def reason(self) -> str:
+        return ""
 
     def settle(self, execution) -> None:
         execution.owner.retire(execution)
