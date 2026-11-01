@@ -119,3 +119,40 @@ Current helpers are `tools/physical_ui.py` and `tools/physical_ui_remote.py` on
 PR #1393. Consumers must start a new controller from one published checkpoint,
 not combine a live process with a newly imported wire shape. A completed
 stopped-history scenario is not bound-ACP or performance acceptance.
+
+## Pager failure retirement
+
+The retained configured-fork attempt failed when multiprocessing spawn re-entered
+an unguarded controller. Its `BrokenProcessPool` also exposed a separate pager
+cleanup defect; neither is an image verdict and the failed root is not replayed.
+
+`WorkingTranscript.execute` reports a read failure inside the pager Worker.
+`TranscriptSourcePreparation.source_failed` immediately revokes its source and
+starts `retire_source`. Textual's `AwaitComplete` eagerly schedules the join in a
+new task, copying the caller's `active_worker`. `Worker.wait` then rejects that
+inherited identity as a self-wait before awaiting anything. The traceback is not
+evidence of a synchronous UI stall.
+
+The existing shared preparation base now creates that independent `AwaitComplete`
+in an empty native `Context`. Its join needs only the cancelled Worker handles;
+it must not borrow the caller's worker or message pump. Revocation, generation,
+subscription closure, cancellation, awaited outcomes and error propagation stay
+with their existing owners. Textual's genuine self-wait guard is unchanged.
+All six pager descendants inherit the correction, including saved, wire and
+projected history; there is no per-view exception handler or second cleanup path.
+
+Before editing, the retained NRA parser/syntax/canonical-class query covered
+1,533 modules: 9,005 original class declarations, 8,966 canonical projections,
+39 unprojected OPEN rows and 190 selected lifecycle sites. The manifest retains
+source hashes. This is source evidence, not domain completeness or live binding
+proof; external/unresolved bases, dynamic mutation and non-Python behavior stay
+OPEN. Actual imported MROs confirm the shared base on the relevant saved-history
+classes. The source query uses NRA's existing owners, not another parser.
+
+The existing lifecycle controls now observe original coverage publications and
+saved error artifacts instead of replacing our own methods. They cover caller-
+initiated retirement, pager-initiated retirement, resume, real self-wait rejection,
+and a failed read that retires once without an unhandled cleanup exception.
+Both changed Python files compile and the source imports from this checkout.
+The controls have **not yet run**; the combined host-lease run and affected
+physical journey remain open. This checkpoint is not a performance acceptance.

@@ -3,11 +3,15 @@
 from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 from dataclasses import replace
-from unittest.mock import patch
-
+import pytest
+from textual.await_complete import AwaitComplete
+from textual.worker import DeadlockError, get_current_worker
 
 from support import journals
+from support.agents import RecordedEvents
 from support.textual_steps import saved_history
+from toad.core.source_events import TranscriptCoverage
+from toad.paths import get_log
 from toad.transcript_state import DetachedTranscript, LiveTranscript, ProvisionalTranscript
 
 
@@ -28,8 +32,8 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         await ui.until(lambda: history.is_mounted, why="the history mounted")
         assert isinstance(history.state, ProvisionalTranscript)
         assert not history.state.can_draw
-        coverage = []
-        history.publish_core = coverage.append
+        coverage = RecordedEvents()
+        subscription = history.core_publications.subscribe(TranscriptCoverage, coverage.receive)
         history.publish_committed()
         assert not coverage, "source coverage escaped before the first painted frame"
         await ui.step()
@@ -58,6 +62,25 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         assert not history.state.can_draw
         history.resume_source()
         await ui.until(lambda: history.state.accepts_source_work, why="source work accepted after resume")
+        # A pager can initiate retirement from its own operation. Its independent
+        # join must not inherit that worker's self-wait identity.
+        retired: asyncio.Future[AwaitComplete] = asyncio.get_running_loop().create_future()
+
+        async def retire_from_source():
+            retired.set_result(history.retire_source(parked=True))
+
+        history.reserve_source_work().schedule(history, retire_from_source)
+        await (await retired)
+        assert not history.state.can_draw
+        history.resume_source()
+        await ui.until(lambda: history.state.accepts_source_work, why="source accepts work after its own retirement")
+
+        # Context isolation must not weaken a genuine worker self-wait.
+        async def reject_self_wait():
+            with pytest.raises(DeadlockError):
+                await get_current_worker().wait()
+
+        await ui.app.run_worker(reject_self_wait).wait()
         # The framework worker is cancelled during retirement; its completion
         # cannot restore the earlier live source.
         await history.retire_source()
@@ -70,6 +93,7 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         await removal
         await ui.until(lambda: not history.is_attached, why="the history removed")
         assert not history.state.can_draw
+        subscription.close()
     assert "Retain the source" in source.read_text()
 
 
@@ -78,23 +102,38 @@ async def test_unexpected_source_failure_is_shown_once_and_retires_the_history(w
 
     workspace.thread("peer", "one")
     workspace.comms.messaging.send("peer", "#one", "Visible before the failed read")
-    async with workspace.app() as ui:
-        await ui.open_channel("#one", actor="peer")
-        chat = ui.app.screen.query_one(CommsChatView)
-        history = chat.message_history
-        await ui.until(lambda: not history.undrawn and history.state.accepts_source_work,
-                       why="the initial message body")
-        error = RuntimeError("source read failed loudly")
+    loop = asyncio.get_running_loop()
+    previous_handler = loop.get_exception_handler()
+    unhandled: list[dict[str, object]] = []
 
-        async def failed_read():
-            raise error
+    def record_unhandled(loop: asyncio.AbstractEventLoop, context: dict[str, object]) -> None:
+        unhandled.append(context)
 
-        with patch.object(history, "source_failed", wraps=history.source_failed) as failed:
-            history.reserve_source_work().schedule(history, failed_read)
-            await ui.until(lambda: failed.call_count == 1, why="the source failure shown")
-            assert failed.call_args.args == (error,)
+    loop.set_exception_handler(record_unhandled)
+    try:
+        async with workspace.app() as ui:
+            await ui.open_channel("#one", actor="peer")
+            chat = ui.app.screen.query_one(CommsChatView)
+            history = chat.message_history
+            await ui.until(lambda: not history.undrawn and history.state.accepts_source_work,
+                           why="the initial message body")
+            error = RuntimeError("source read failed loudly")
+            before = set(get_log().glob("*.txt"))
+
+            async def failed_read():
+                raise error
+
+            worker = history.reserve_source_work().schedule(history, failed_read)
+            await ui.until(lambda: worker.is_finished, why="the failed pager finishes")
+            logs = set(get_log().glob("*.txt")) - before
+            assert len(logs) == 1
+            assert str(error) in next(iter(logs)).read_text()
             assert not history.state.accepts_source_work
             workspace.comms.messaging.send("peer", "#one", "A later observation must not retry")
             await ui.step(.2)
-            assert failed.call_count == 1
+            assert set(get_log().glob("*.txt")) - before == logs
+            assert worker not in ui.app.workers
             assert not history.state.accepts_source_work
+        assert not unhandled
+    finally:
+        loop.set_exception_handler(previous_handler)
