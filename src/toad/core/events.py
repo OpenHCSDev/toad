@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, ClassVar
+from typing import TYPE_CHECKING, Annotated
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -23,12 +23,19 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 
 if TYPE_CHECKING:
     from agent_comms.commander_hud import CommanderHud
+    from toad.agent_binding import AgentConnection
+    from toad.conversation_turn import TurnOwner
+    from toad.core_event_carrier import CoreEventMessage
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
 
-    session_scoped: ClassVar[bool] = False
+    def accepted_by(
+        self, message: CoreEventMessage, agent: AgentConnection, turn: TurnOwner
+    ) -> bool:
+        """Ordinary publications do not carry an ACP session constraint."""
+        return True
 
     def subscribers(self, stream: CoreEventStream):
         for event_type in type(self).__mro__:
@@ -82,11 +89,18 @@ class Update(CoreEvent):
 class CommsUpdated(CoreEvent):
     """The original typed publication retains its emission-time context."""
 
-    session_scoped = True
-
     update: AgentCommsUpdate | QueuePresentation | CursorPresentation
     session_id: str | None = None
     sequence: int | None = None
+
+    def accepted_by(
+        self, message: CoreEventMessage, agent: AgentConnection, turn: TurnOwner
+    ) -> bool:
+        return (
+            agent.matches_agent(message.publisher)
+            and agent.matches_session(self.session_id)
+            and turn.accepts_update(self.update)
+        )
 
 
 @dataclass(frozen=True)
