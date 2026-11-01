@@ -17,6 +17,7 @@ from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
 from textual.keys import KeyDeclaration, KeyDeclarationType
+from textual.navigation import SelectCursor
 from textual.widgets.text_area import EditingMode
 from textual.dom import DOMNode
 from toad.app_node import ToadNode
@@ -330,6 +331,11 @@ class SelectAction(VisibleAction):
 class OpenSelectedAction(VisibleAction):
     title = "Open"
     keys = {EditingMode: ("enter",)}
+
+    @classmethod
+    def permits_key_overlap(cls, other: KeyDeclarationType) -> bool:
+        """Opening the row is what selecting the cursor means on a list that opens rows."""
+        return issubclass(other, SelectCursor)
 
     async def apply(self, context: OpensSelected) -> None:
         context.open_selected()

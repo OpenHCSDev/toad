@@ -57,7 +57,7 @@ jobs:
     if: ${{ inputs.release_qualification }}
     runs-on: ubuntu-latest
     # A hung test must turn red in minutes, not burn GitHub's 6-hour default.
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
         with:

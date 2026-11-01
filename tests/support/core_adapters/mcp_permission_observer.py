@@ -102,7 +102,7 @@ class Observer:
                 previous = self.view
                 presentation = self.session.presentation
                 await presentation.retire(self.session)
-                await presentation.evict()
+                await presentation.evict(self.session)
                 assert request.pending and not self.agent.controller.surface.owns(previous)
                 assert not previous.is_mounted and presentation.sources.agent is self.agent
                 await presentation.prepare(self.session)

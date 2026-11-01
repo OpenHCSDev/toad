@@ -140,7 +140,7 @@ async def exercise(ui, screen, root):
     assert tree_ref() is sidebar.query_one(ProjectDirectoryTree)
     await sidebar.prepare_presentation()
     assert tree_ref() is sidebar.query_one(ProjectDirectoryTree)
-    await sidebar.evict()
+    await sidebar.evict(screen)
     assert not sidebar.panels and not sidebar._panels_loaded
     assert screen._project_panel is None
     assert not tuple(viewport.children)
@@ -214,7 +214,7 @@ async def test_panels_rebuild_after_eviction_while_collapsed(workspace):
     async with workspace.app(size=(130, 44), application=InstalledApp) as ui:
         screen = await started(workspace, ui)
         sidebar = screen.query_one(SessionThreadSidebar)
-        await sidebar.evict()
+        await sidebar.evict(screen)
         sidebar.reveal()
         sidebar.collapsed = True
         await ui.step(0.05)
@@ -231,7 +231,7 @@ async def test_panels_show_the_current_project_after_the_source_project_changes_
     async with workspace.app(size=(130, 44), application=InstalledApp) as ui:
         screen = await started(workspace, ui)
         sidebar = await reveal(ui, screen)
-        await sidebar.evict()
+        await sidebar.evict(screen)
         replacement = workspace.project.parent / "replacement-project"
         replacement.mkdir()
         (replacement / "new-source.txt").write_text("Current filesystem")
@@ -254,7 +254,7 @@ async def test_leaving_a_view_stops_its_sidebar_hydration(workspace):
         sidebar = await reveal(ui, screen)
         # The next tab is saved first, so leaving the view does not wait on the database.
         tab = await saved_tab(app)
-        await sidebar.evict()
+        await sidebar.evict(screen)
         sidebar._start_hydration()
         assert sidebar._panels_loading
         workers = tuple(

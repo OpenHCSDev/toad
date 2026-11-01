@@ -2,7 +2,6 @@
 
 from agent_comms.repo import Checkout
 from collections import Counter
-from pathlib import Path
 import sys
 
 from agent_comms.comms import Comms
@@ -34,7 +33,7 @@ async def open_hidden_sessions(workspace, ui, owners):
     first = ui.selected_tab
 
     def source(owner):
-        return MainScreen.from_thread(Path(owner.worktree), str(workspace.comms.root), owner.incarnation)
+        return MainScreen.from_thread(owner.worktree, str(workspace.comms.root), owner.incarnation)
 
     modes = {}
     for owner in owners[1:]:
