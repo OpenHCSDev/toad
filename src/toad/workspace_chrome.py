@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 from textual.app import ComposeResult
 from textual.containers import Horizontal
-from textual.geometry import Offset, Region, Size, Spacing
+from textual.geometry import Offset, Size, Spacing
 from textual.layout import ArrangeResult, WidgetPlacement
 from textual.layouts.vertical import VerticalLayout
 from textual.widget import Widget

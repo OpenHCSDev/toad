@@ -184,14 +184,14 @@ Tap escape *twice* to exit.
         """Prohibit focus when the terminal is finalized and couldn't accept input."""
         return not self.is_finalized
 
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+    def get_selection(self, selection: Selection) -> tuple[str, str]:
         """Get the text under the selection.
 
         Args:
             selection: Selection information.
 
         Returns:
-            Tuple of extracted text and ending (typically "\n" or " "), or `None` if no text could be extracted.
+            Tuple of extracted text and ending (typically "\n" or " ").
         """
         text = "\n".join(
             line_record.content.plain for line_record in self.state.buffer.lines

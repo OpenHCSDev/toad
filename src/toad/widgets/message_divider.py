@@ -76,7 +76,7 @@ class LineBlockRow(LinkedRows, Widget):
 class ConversationLineBlock(BlockContent, LineBlockRow):
     """A line block in the conversation: navigable and selectable like any block."""
 
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+    def get_selection(self, selection: Selection) -> tuple[str, str]:
         return selection.extract(self.block.selection_text), "\n"
 
 
