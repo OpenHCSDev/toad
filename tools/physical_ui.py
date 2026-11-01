@@ -44,7 +44,7 @@ from textual.strip import Strip
 from ui_theme.wal import WalFile
 
 from physical_ui_remote import (
-    AdmitOperation, CapturedRegion, StartOperation, ObserveOperation, PendingRun, PhysicalOperation,
+    AdmitOperation, StartOperation, ObserveOperation, PendingRun, PhysicalOperation,
     ProcessRetirement, RunObservation, RunTarget, StopRootOperation,
 )
 
@@ -176,14 +176,14 @@ class OwnedDisplay(XvfbDisplay):
 
 @dataclass(frozen=True)
 class ScreenCapture:
-    """Real st text paired with the published viewport geometry observed for it."""
+    """Real st text paired with its original application observation."""
 
     text: str
-    history_regions: tuple[CapturedRegion, ...]
+    observation: RunObservation
 
     def message_rows(self):
         lines = self.text.splitlines()
-        for captured in self.history_regions:
+        for captured in self.observation.history_regions:
             region = captured.region
             for row in range(max(0, region.y), min(len(lines), region.bottom)):
                 yield row, Strip([Segment(lines[row])]).crop(region.x, region.right).text
@@ -486,7 +486,7 @@ class TerminalApp:
                 stream.seek(offset)
                 data = stream.read()
             if data.count(b"\n") >= self.rows:
-                return ScreenCapture(data.decode("utf-8"), observed.history_regions)
+                return ScreenCapture(data.decode("utf-8"), observed)
             if self.terminal.process.poll() is not None or time.monotonic() >= deadline:
                 raise RuntimeError("st did not finish its screen dump")
             time.sleep(.02)
@@ -531,8 +531,8 @@ class TerminalApp:
             time.sleep(.2)
 
     def show_thread(self, thread):
-        self.wait("ready", lambda screen: thread in screen.text
-                  and "▶ Ready" in "\n".join(screen.text.splitlines()[-8:]))
+        self.wait("history-published", lambda screen: thread in screen.text
+                  and screen.observation.history_published)
         self.click_cell(self.columns - 1, self.rows // 2)
         return self.wait("shown", lambda screen: "User messages" in screen.text and all(
             "Indexing" not in line.split("│", 1)[0] for line in screen.text.splitlines()))

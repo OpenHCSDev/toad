@@ -150,6 +150,7 @@ class RunObservation:
     saved_roots: tuple[Path, ...]
     acp_roots: tuple[Path, ...]
     history_regions: tuple[CapturedRegion, ...]
+    history_published: bool
     modules_checked: int
 
 
@@ -422,6 +423,13 @@ class ObserveOperation(PhysicalOperation):
         # from sidebar separators that may also occur inside a user's message.
         regions = tuple(CapturedRegion(region) for window in screen.query(HistoryWindow)
                         for region in (window.published_content_region,) if region is not None)
+        histories = tuple(history for window in screen.query(HistoryWindow)
+                          if window.published_content_region is not None
+                          for history in window.histories)
+        # The pager's original publication state also supplies the footer's
+        # saved-history availability. Agent status is an independent fact.
+        history_published = bool(histories) and all(
+            history.state.reports_coverage for history in histories)
         frontend = FrontendIdentity(
             self.identity, Path(toad.__file__).resolve(), Path(agent_comms.__file__).resolve(),
             Path(textual.__file__).resolve(),
@@ -431,7 +439,7 @@ class ObserveOperation(PhysicalOperation):
             Path.home().resolve(), xdg_config_home().resolve(), xdg_state_home().resolve(),
             xdg_data_home().resolve(), app.tab_order._db.path.resolve(),
             app.colours.wal_directory.resolve(), root,
-            opened, storage_rule, saved, acp, regions, checked,
+            opened, storage_rule, saved, acp, regions, history_published, checked,
         )
         self.target.require_resources(observed)
         self.publish(directory / "result.json", self.observed_result(observed))
