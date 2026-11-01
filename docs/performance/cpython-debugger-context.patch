@@ -1,0 +1,79 @@
+--- a/Python/ceval_gil.c
++++ b/Python/ceval_gil.c
+@@ -1216,22 +1216,16 @@
+     return 0;
+ }
+ 
+-// Note that this function is inline to avoid creating a PLT entry
+-// that would be an easy target for a ROP gadget.
+-static inline void run_remote_debugger_script(PyObject *path)
++// This private callback is invoked only inside the debugger's Python frame.
++// It remains static: there is no new exported or PLT entry point.
++static PyObject *
++run_remote_debugger_script_body(PyObject *Py_UNUSED(self), PyObject *path)
+ {
+-    if (0 != PySys_Audit("cpython.remote_debugger_script", "O", path)) {
+-        PyErr_FormatUnraisable(
+-            "Audit hook failed for remote debugger script %U", path);
+-        return;
+-    }
+-
+-    // Open the debugger script with the open code hook, and reopen the
+-    // resulting file object to get a C FILE* object.
++    // Preserve the existing open-code hook, read/close ordering and errors.
+     PyObject* fileobj = PyFile_OpenCodeObject(path);
+     if (!fileobj) {
+         PyErr_FormatUnraisable("Can't open debugger script %U", path);
+-        return;
++        Py_RETURN_NONE;
+     }
+ 
+     PyObject* source = PyObject_CallMethodNoArgs(fileobj, &_Py_ID(read));
+@@ -1253,6 +1247,47 @@
+         }
+         Py_DECREF(source);
+     }
++    Py_RETURN_NONE;
++}
++
++// Note that this function is inline to avoid creating a PLT entry
++// that would be an easy target for a ROP gadget.
++static inline void run_remote_debugger_script(PyObject *path)
++{
++    // Keep the existing debugger refusal before context compilation/execution.
++    if (0 != PySys_Audit("cpython.remote_debugger_script", "O", path)) {
++        PyErr_FormatUnraisable(
++            "Audit hook failed for remote debugger script %U", path);
++        return;
++    }
++    static PyMethodDef body_definition = {
++        "_run_remote_debugger_script_body",
++        run_remote_debugger_script_body,
++        METH_O,
++        NULL
++    };
++    PyObject *ns = PyDict_New();
++    if (!ns) {
++        PyErr_FormatUnraisable("Can't prepare debugger namespace for %U", path);
++        return;
++    }
++    // PyRun_String initializes this namespace from the interpreter's builtins.
++    // A real Python call frame then owns audit/open/read/close as well as exec;
++    // it neither borrows the interrupted frame's builtins nor detaches its GC roots.
++    PyObject *entry = PyRun_String("lambda load, path: load(path)", Py_eval_input, ns, ns);
++    if (entry) {
++        PyObject *body = PyCFunction_New(&body_definition, NULL);
++        if (body) {
++            PyObject *result = PyObject_CallFunctionObjArgs(entry, body, path, NULL);
++            Py_XDECREF(result);
++            Py_DECREF(body);
++        }
++        Py_DECREF(entry);
++    }
++    Py_DECREF(ns);
++    if (PyErr_Occurred()) {
++        PyErr_FormatUnraisable("Can't enter debugger execution context for %U", path);
++    }
+ }
+ 
+ int _PyRunRemoteDebugger(PyThreadState *tstate)
