@@ -130,13 +130,14 @@ class OwnedDisplay(XvfbDisplay):
 
     startup_seconds = 10.0
     stop_seconds = 10.0
+    default_size = Size(1600, 1000)
 
-    def __init__(self, output: Path):
+    def __init__(self, output: Path, *, size: Size = default_size):
         self.output = output
         output.mkdir(parents=True, exist_ok=True)
         self.log = (output / "xvfb.log").open("wb")
         self.server = SpawnedProcess.launch(
-            ("Xvfb", "-displayfd", "1", "-screen", "0", "1600x1000x24", "-nolisten", "tcp"),
+            ("Xvfb", "-displayfd", "1", "-screen", "0", f"{size.width}x{size.height}x24", "-nolisten", "tcp"),
             stdio=DetachedChildStdio(stdout=subprocess.PIPE, stderr=self.log),
         )
         try:
@@ -296,7 +297,8 @@ class TerminalApp:
     @classmethod
     @contextmanager
     def copied(cls, source: Comms, threads: tuple[str, ...], runtime: LaunchRuntime,
-               output: Path, *, thread: str, size: Size = Size(140, 40)) -> Iterator[TerminalApp]:
+               output: Path, *, thread: str, size: Size = Size(140, 40),
+               framebuffer: Size = OwnedDisplay.default_size) -> Iterator[TerminalApp]:
         """Create under the source owner, bind only its copy, retain run evidence."""
         output = output.expanduser().absolute()
         output.mkdir(mode=0o700, parents=True)  # Fresh evidence, never overwrite a failed run.
@@ -304,7 +306,7 @@ class TerminalApp:
         RootRuntime.publish(copied.root, runtime)
         target = cls.prepare_target(copied.root, runtime)
         try:
-            with OwnedDisplay(output / "display") as display:
+            with OwnedDisplay(output / "display", size=framebuffer) as display:
                 # Keep the real default launcher: its root/runtime succession is
                 # precisely what the post-attachment observation must establish.
                 command = (str(Path.home() / ".local/bin/toad-comms"), thread)
@@ -427,6 +429,7 @@ class TerminalApp:
         )
         if int(owner.partition("=")[2].strip()) != self.terminal.identity.pid:
             raise ValueError("Window does not belong to this run's st frontend")
+        self.read_grid()
         return observed
 
     def input(self, *commands: str) -> RunObservation:
@@ -552,8 +555,13 @@ class TerminalApp:
         self.cell_width, self.cell_height = minimum_x - base_x, minimum_y - base_y
         self.border_x, self.border_y = base_x / 2, base_y / 2
         self.window_region = Region(int(size["X"]), int(size["Y"]), int(size["WIDTH"]), int(size["HEIGHT"]))
+        self.require_visible(self.window_region)
         self.grid_size = Size((self.window_region.width - base_x) // self.cell_width,
                               (self.window_region.height - base_y) // self.cell_height)
+
+    def require_visible(self, region: Region) -> None:
+        if not Region(0, 0, *self.display.size).contains_region(region):
+            raise ValueError(f"Terminal {region} exceeds the owned framebuffer {self.display.size}")
 
     def click_cell(self, column, row):
         self.read_grid()
@@ -563,8 +571,10 @@ class TerminalApp:
 
     def resize(self, columns: int, rows: int) -> None:
         self.read_grid()
-        self.input("windowsize", "--sync", str(self.window), str(int(2 * self.border_x + columns * self.cell_width)),
-                   str(int(2 * self.border_y + rows * self.cell_height)))
+        width = int(2 * self.border_x + columns * self.cell_width)
+        height = int(2 * self.border_y + rows * self.cell_height)
+        self.require_visible(Region(self.window_region.x, self.window_region.y, width, height))
+        self.input("windowsize", "--sync", str(self.window), str(width), str(height))
         self.read_grid()
 
     def close(self) -> None:

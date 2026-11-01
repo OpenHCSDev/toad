@@ -16,7 +16,7 @@ from agent_comms.active_route import ActiveRoute
 from agent_comms.comms import wire
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
-from physical_ui import TerminalApp
+from physical_ui import OwnedDisplay, TerminalApp
 from physical_ui_remote import ObservedResult, PhysicalOperation
 from textual.geometry import Size
 
@@ -29,6 +29,10 @@ def main():
     parser.add_argument("--output", type=Path, required=True, help="Fresh owned agent-scratch directory")
     parser.add_argument("--columns", type=int, default=140)
     parser.add_argument("--rows", type=int, default=40)
+    parser.add_argument("--framebuffer", nargs=2, type=int, default=OwnedDisplay.default_size,
+                        metavar=("WIDTH", "HEIGHT"), help="Owned display size in pixels, not terminal cells")
+    parser.add_argument("--resize", nargs=2, type=int, action="append", default=[],
+                        metavar=("COLUMNS", "ROWS"), help="Resize through the same owner after scrolling")
     arguments = sys.argv[1:]
     LaunchRoot.startup(arguments, ActiveRoute.published_launch)
     args = parser.parse_args(arguments)
@@ -39,7 +43,7 @@ def main():
     threads = tuple(dict.fromkeys((args.thread, *args.history_thread)))
     with TerminalApp.copied(
         wire(), threads, LaunchRuntime.at_prefix(args.runtime), args.output,
-        thread=args.thread, size=Size(args.columns, args.rows),
+        thread=args.thread, size=Size(args.columns, args.rows), framebuffer=Size(*args.framebuffer),
     ) as app:
         app.wait("history", lambda screen: bool(screen.reader_position()))
         PhysicalOperation.publish(args.output / "admitted.json", ObservedResult(app.observe()))
@@ -55,6 +59,9 @@ def main():
         app.screenshot("wheel-up")
         app.keys("End")
         app.screenshot("end-return")
+        for columns, rows in args.resize:
+            app.resize(columns, rows)
+            app.screenshot(f"resized-{columns}x{rows}")
     print(args.output)
 
 
