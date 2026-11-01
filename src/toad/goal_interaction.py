@@ -13,9 +13,9 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
 from agent_comms.goal_presentation import ControlledExecution, GoalExecution
 from agent_comms.goal_history import RecordedGoalHistory
+from toad.agent_binding import AgentConnection
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Agent
     from toad.widgets.conversation import Conversation
 
 
@@ -168,7 +168,7 @@ class GoalSession:
             await action.apply(self)
 
     @contextmanager
-    def reporting_refusals(self, agent: Agent) -> Iterator[None]:
+    def reporting_refusals(self, agent: AgentConnection) -> Iterator[None]:
         """Buttons and slash controls report once, only to their original source."""
         try:
             yield
