@@ -18,9 +18,11 @@ def installed_wire(root: Path) -> Comms:
     """Prepare the same bus and native schemas that an installed owner uses."""
     from agent_comms.bus import Bus
     from agent_comms.comms import Comms
+    from agent_comms.storage_rules import StorageRule
 
     from agent_comms.active_route import resolve_comms_route
 
+    StorageRule().prepare_isolated(root)
     comms = Comms(resolve_comms_route(root))
     comms.registry.store.prepare_native_root()
     Bus.install(Bus.path_in(root))
