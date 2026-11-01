@@ -1,7 +1,13 @@
 """Textual-facing: the conversation's submissions owner puts a locally failed prompt back in the composer,
 and remote failure facts never overwrite what the user is typing."""
 
+import asyncio
+from contextlib import closing
+import sqlite3
 from unittest.mock import patch
+
+import pytest
+from textual.worker import WorkerCancelled
 
 from acp.exceptions import RequestError
 
@@ -9,7 +15,7 @@ from agent_comms.acp_extension import InputFailedUpdate, QueuePromptRequest, Req
 from agent_comms.acp_failure import BackendDeliveryFailure
 
 from support.agents import deliver
-from toad.conversation_submission import ImmediateInputSubmission
+from toad.conversation_submission import ImmediateInputSubmission, SendBlocked, SendPending
 from toad.core.input_events import UserInputSubmitted
 
 
@@ -107,3 +113,76 @@ async def test_a_successful_wire_send_keeps_a_different_unsent_draft(workspace):
                        why="the committed message drawn and composing released")
         assert chat.prompt.text == "A different unsent draft"
         assert editor.document is document and editor.history is history
+        (sent,) = comms.bus.bus.latest_addressed(
+            frozenset((workspace.viewer,)), frozenset(("peer",)))
+        assert sent.body == "The submitted message"
+        reply = "\n\n".join(f"LONG_REPLY_{line}" for line in range(200))
+        comms.messaging.send("peer", workspace.viewer, reply)
+        chat.window.jump_to_latest()
+        await ui.until(lambda: "LONG_REPLY_199" in ui.painted(chat.window),
+                       why="the real long reply at the latest viewport")
+        assert "The submitted message" not in ui.painted(chat.window)
+        assert chat.contains_user_message(sent), "the loaded source still contains the original commit"
+        assert not chat.send_block_reason
+        assert chat.prompt.text == "A different unsent draft"
+        assert editor.document is document and editor.history is history
+
+
+async def test_cancelling_before_worker_start_restores_the_same_editor_without_sending(workspace):
+    workspace.thread("peer")
+    async with workspace.app(size=(110, 32)) as ui:
+        await ui.open_direct("peer", actor=workspace.viewer)
+        chat = ui.conversation
+        await ui.write_draft("Different draft")
+        editor = chat.prompt.prompt_text_area
+        document, history = editor.document, editor.history
+        bus = workspace.comms.bus.bus
+        before = bus.revision()
+        worker = await chat.submissions.submit(UserInputSubmitted("CANCELLED_BEFORE_START"))
+        worker.cancel()  # No yield between admission and cancellation: the callable never ran.
+        with pytest.raises(WorkerCancelled):
+            await asyncio.wait_for(worker.wait(), 10)
+        await chat.submissions.close()
+        assert chat.prompt.text == "Different draft\n\nCANCELLED_BEFORE_START"
+        assert editor.document is document and editor.history is history
+        assert not chat.submissions.retains_surface
+        assert not chat.send_block_reason
+        assert bus.revision() == before
+
+
+async def test_cancelled_bus_write_keeps_unknown_and_never_retries_the_publication(workspace):
+    workspace.thread("peer")
+    comms = workspace.comms
+    async with workspace.app(size=(110, 32)) as ui:
+        await ui.open_direct("peer", actor=workspace.viewer)
+        chat = ui.conversation
+        body = "CANCELLED_DURING_REAL_BUS_WRITE"
+        await ui.write_draft("")
+        bus = comms.bus.bus
+        before = bus.revision()
+        # Hold SQLite's real writer, not a patched messaging method. Readers still run.
+        with closing(sqlite3.connect(bus.path)) as blocker:
+            blocker.execute("BEGIN IMMEDIATE")
+            try:
+                worker = await chat.submissions.submit(UserInputSubmitted(body))
+                (execution,) = chat.submissions.active
+                await ui.until(lambda: isinstance(execution.state, SendPending),
+                               why="the original write handed to its worker")
+                worker.cancel()
+                await asyncio.wait_for(worker.wait(), 10)
+                assert isinstance(execution.state, SendBlocked)
+                assert chat.submissions.retains_surface
+                assert chat.prompt.text == body
+            finally:
+                blocker.rollback()
+        # The shielded original may finish; observing it is not permission to replay.
+        await ui.until(lambda: bus.revision() > before, why="the original publication after writer relief")
+        (sent,) = bus.latest_addressed(frozenset((workspace.viewer,)), frozenset(("peer",)))
+        assert sent.body == body
+        assert execution.root == comms.root
+        assert isinstance(execution.state, SendBlocked)
+        await chat.submissions.submit(UserInputSubmitted(body))
+        await chat.submissions.close()
+        assert bus.revision() == before + 1
+        assert chat.prompt.text == body
+        assert chat.submissions.retains_surface
