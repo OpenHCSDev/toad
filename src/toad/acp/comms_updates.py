@@ -108,7 +108,7 @@ class CommsUpdateConsumer(MroDispatch):
     def input_failed(self, update: InputFailedUpdate) -> None:
         self.agent.events.publish(
             core_events.CommsUpdated(
-                update, recover_draft=False, session_id=self.session_id
+                update, session_id=self.session_id
             )
         )
 

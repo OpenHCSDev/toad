@@ -22,6 +22,7 @@ from agent_comms.errors import CommittedMessageError, HumanSendError, HumanSendR
 from agent_comms.messages import Message
 
 from toad import messages
+from agent_comms.acp_failure import ACPFailure
 from toad.command_catalog import CommandCatalog
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.queue_capability import QueueActions, QueueEvidence
@@ -194,6 +195,9 @@ class SendState:
     def response_finished(self, execution) -> None:
         """A retained outcome already names the transaction's answer."""
 
+    def response_failed(self, execution, failure: ACPFailure) -> None:
+        """An observed input acknowledgement is not undone by a failed reply."""
+
     def response_confirmed(self, execution) -> None:
         """A confirmed input disposition settles input, not merely an RPC reply."""
         execution.enter(NoSend())
@@ -217,6 +221,9 @@ class RetainedSend(SendState):
 
 class CheckingSend(RetainedSend):
     reason = "Checking source; do not retry"
+
+    def response_failed(self, execution, failure: ACPFailure) -> None:
+        execution.delivery_refused(failure.feedback, execution.submission.source_text)
 
     def response_finished(self, execution) -> None:
         execution.delivery_refused(

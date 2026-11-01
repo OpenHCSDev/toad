@@ -14,13 +14,11 @@ from agent_comms.acp_extension import (
     CommsRequest,
     CompactRequest,
     CoordinationChangedUpdate,
-    InputFailedUpdate,
     PromptRequest,
     QueuePromptRequest,
     SendNowRequest,
     encode_request,
 )
-from agent_comms.acp_failure import ACPFailure
 from agent_comms.owner_connection import socket_path
 from agent_comms.runtime import RuntimeConnection
 from agent_comms.transcripts import TranscriptReadIdentity
@@ -31,7 +29,6 @@ from agent_comms.ui_model.observation import ReadOwnerOperation
 from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.status import PromptResult
 from toad.core import events as core_events
-from toad.core.events import LogAgentFail
 from toad.plan import PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
 
@@ -51,7 +48,6 @@ if TYPE_CHECKING:
     from pydantic import JsonValue
 
     from toad.acp.agent import Agent
-    from toad.core.events import AgentFail
     from toad.render_backend import Renderer, RenderTask
 
 
@@ -292,32 +288,8 @@ class AgentController(OperationalTerminalOwner):
                 raise QueueActionRefused("The queued input owner changed before submission; inspect the current queue.")
 
         outcome = await authority.prompt(content, encode_request(command), require)
-        outcome.publish_failure(self, command, queue_scope)
+        outcome.publish_failure()
         return authority.resolve(outcome)
-
-    def _prompt_failed(
-        self,
-        command,
-        authority: ClientSessionRequest,
-        queue_scope: QueueScope,
-        failure: ACPFailure,
-        report: Callable[[AgentFail], None],
-        *,
-        published: bool = False,
-    ) -> None:
-        agent = self.agent
-        user_text = command.draft_text
-        if user_text:
-            agent.events.publish(
-                core_events.CommsUpdated(
-                    InputFailedUpdate(user_text, failure),
-                    recover_draft=True,
-                    session_id=authority.session_id,
-                    queue_scope=queue_scope,
-                )
-            )
-        if not published:
-            report(LogAgentFail(failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
     async def clear_queue(self) -> PromptResult:
         return await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest())
