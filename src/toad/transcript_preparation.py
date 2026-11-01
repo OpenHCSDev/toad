@@ -21,6 +21,7 @@ from agent_comms.ui_model.message_category import MessageCategory
 
 from toad.render_backend import ReusableRenderTask
 from toad.transcript_state import LatestViewportRequest
+from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
 from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
@@ -288,6 +289,7 @@ class PreparedPageSource:
     runtime: PreparationRuntime
     scope: PreparationScope
     through: TranscriptCursor
+    commit_preparation: ClassVar[type[PreparedPageCommit]] = PreparedPageCommit
 
     def __init__(self) -> None:
         # This source holds the resources after their widgets detach. These are the
@@ -499,6 +501,7 @@ class SavedHistory(ReplaceablePageSource):
 
     # The work that reads and prepares one page of this kind of source.
     work: ClassVar[type[TranscriptPageWork]] = TranscriptPageWork
+    commit_preparation = PreparedAppendCommit
 
     def __init__(
         self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,

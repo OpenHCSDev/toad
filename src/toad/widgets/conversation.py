@@ -1782,7 +1782,11 @@ class Conversation(
                 # Height pressure is not source evidence. Dropping the source
                 # pager or an uncovered wire claim lets a later observation
                 # recreate the same record as a new tail arrival.
-                if self.contents.virtual_size.height > high_mark:
+                # Saved pages already have a bounded preparation owner. Only
+                # the native tail consumes the live-block pressure allowance.
+                live_height = (self.contents.virtual_size.height
+                               - self.transcript.binding.history.outer_size.height)
+                if live_height > high_mark:
                     self.transcript.require_commit()
             else:
                 await self.prune_window(low_mark, high_mark)
