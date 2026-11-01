@@ -38,10 +38,12 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
             for _ in rows:
                 if history.draws_fragment(fragment):
                     break
-                window.scroll_page_up(animate=False)
+                window.action_page_up()
                 await ui.step()
-                await ui.until(lambda: window.reader_position.laid_out(window),
-                               why="the scrolled viewport to finish layout")
+                await ui.until(lambda: history.state.accepts_source_work
+                               and window.reader_position.laid_out(window),
+                               why="the scrolled viewport to finish preparation and layout")
+            assert history.draws_fragment(fragment), f"Message {message.seq} was not prepared by paging"
             await history.reveal_message_head(fragment, lambda: True)
             history.show_fragment(fragment)
             await ui.until(lambda: message.seq in ledger.cursor(

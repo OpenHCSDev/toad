@@ -20,9 +20,14 @@ async def test_divider_without_body_leaves_the_message_unread(workspace):
         await ui.open_channel("#team", actor="peer")
         chat = app.screen.query_one(CommsChatView)
         history, window = chat.message_history, chat.window
+        # The initial source must have committed scrollable rows before moving
+        # the reader; opening the tab alone does not establish that state.
+        await ui.until(lambda: history.state.accepts_source_work and window.max_scroll_y > 0
+                       and window.reader_position.laid_out(window), why="the initial scrollable history")
         # Move away from the tail before the new message exists. Its text must
         # never paint during setup; no patched read-marker can hide a mistake.
-        window.scroll_to(y=0, animate=False, immediate=True)
+        window.release_anchor()
+        window.scroll_home(animate=False, immediate=True)
         await ui.step()
         assert not window.follows_tail
         last = comms.messaging.send("peer", "#team", "LAST " + "body " * 250).message
