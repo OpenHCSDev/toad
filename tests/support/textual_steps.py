@@ -96,7 +96,7 @@ def text_rows_of(chat, message) -> range | None:
     the window is not on them until that layout ends.
     """
     window = chat.window
-    if window.reader_position is not None or window.screen._stepped_layout is not None:
+    if not window.reader_position.laid_out(window) or window.screen._stepped_layout is not None:
         return None
     for page in chat.message_history.pages:
         for fragment, first, lines in page._layout:
