@@ -44,6 +44,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         owner = ObservedLaunchScreen(workspace.project, initial_prompt="INITIAL_LOCAL_UI_EVENT")
         sidebar = owner.thread_sidebar
         assert owner.sidebars() == (sidebar,) and not sidebar.is_mounted
+        assert not sidebar.presentation_visible
         await app.session_navigation.new(await saved_tab(app), lambda: owner)
         assert owner.thread_sidebar is sidebar
         await owner.wait_content_ready()
@@ -96,6 +97,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         assert isinstance(owner.conversation.agent_binding, NoAgentConnection) and not owner.conversation.submissions.active
         await app.session_navigation.close(owner.id)
         assert owner.thread_sidebar is sidebar
+        assert not sidebar.presentation_visible
         assert owner.presentation.widget is None and owner.presentation.state is None
         assert owner.id not in app.workspace_sessions.views
         assert ui.failure() is None
