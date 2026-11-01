@@ -73,4 +73,4 @@ async def test_bus_sources_keep_publication_draft_and_queue_authority_separate(
         assert view.prompt.text == "Keep this different unsent draft"
         assert editor.document is document and editor.history is undo
         assert comms.bus.bus.revision() == before + 1
-        assert not workspace.child_processes("agent_comms.pi_native")
+        assert not comms.registry.require("cli-peer").process_identity.runs_here()
