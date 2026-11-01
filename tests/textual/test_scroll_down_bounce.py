@@ -94,7 +94,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
         ui.app.saved_settings.set(SETTINGS.ui.history_buffer_viewports, 1)
         await ui.app.session_navigation.new(
             MailboxTab(owner.incarnation, root),
-            partial(MainScreen.from_thread, workspace.project, root, owner.incarnation),
+            partial(MainScreen.from_thread, owner.worktree, root, owner.incarnation),
             original=(root, owner.incarnation))
         await ui.until(lambda: ui.conversation.transcript.reports_coverage,
                        why="the retained transcript to load")

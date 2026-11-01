@@ -32,7 +32,7 @@ async def test_a_start_notice_after_the_saved_history_draws_the_message_once(wor
         root = str(workspace.comms.root)
         await ui.app.session_navigation.new(
             MailboxTab(owner.incarnation, root),
-            partial(MainScreen.from_thread, workspace.project, root, owner.incarnation),
+            partial(MainScreen.from_thread, owner.worktree, root, owner.incarnation),
             original=(root, owner.incarnation),
         )
         view = ui.conversation

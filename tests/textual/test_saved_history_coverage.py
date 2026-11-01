@@ -30,7 +30,7 @@ async def saved_history(workspace, ui):
     root = str(workspace.comms.root)
     await ui.app.session_navigation.new(
         MailboxTab(owner.incarnation, root),
-        partial(MainScreen.from_thread, workspace.project, root, owner.incarnation),
+        partial(MainScreen.from_thread, owner.worktree, root, owner.incarnation),
         original=(root, owner.incarnation),
     )
     conversation = ui.conversation
