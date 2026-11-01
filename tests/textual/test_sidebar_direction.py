@@ -10,16 +10,16 @@ from toad.widgets.side_bar import SideBar, SidebarAction
 async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
     async with workspace.app(size=(120, 60)) as ui:
         app, pilot = ui.textual
-        channels = app.screen.query_one("#channels-sidebar", SideBar)
-        thread = app.selected_session.query_one("#thread-sidebar", SideBar)
+        channels = app.workspace_chrome.channels
+        thread = app.selected_session.thread_sidebar
         channels.reveal()
         thread.reveal()
         # Vacate the destination before establishing the requested outer/inner
         # order. Moving an existing occupant to its own edge is a no-op.
-        app.sidebar_layout.move(channels.id, side.opposite())
-        app.sidebar_layout.move(thread.id, side.opposite())
-        app.sidebar_layout.move(channels.id, side)
-        app.sidebar_layout.move(thread.id, side)
+        app.sidebar_layout.move(channels.placement_identity, side.opposite())
+        app.sidebar_layout.move(thread.placement_identity, side.opposite())
+        app.sidebar_layout.move(channels.placement_identity, side)
+        app.sidebar_layout.move(thread.placement_identity, side)
         app.workspace_chrome.refresh_layout()
         await ui.step()
 
@@ -29,7 +29,7 @@ async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
             await ui.step()
 
         def check_controls(bar: SideBar) -> None:
-            for edge, shift in app.sidebar_layout.directions(bar.id).items():
+            for edge, shift in app.sidebar_layout.directions(bar.placement_identity).items():
                 button = bar.query_one(f"#sidebar-{edge.declared_name}", SidebarAction)
                 assert button.display == shift.available
 

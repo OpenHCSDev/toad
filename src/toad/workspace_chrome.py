@@ -8,6 +8,7 @@ from textual.layout import ArrangeResult, WidgetPlacement
 from textual.layouts.vertical import VerticalLayout
 from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.side_bar import SideBar
 from toad.widgets.footer import ToadFooter
 from toad.widgets.switch_toast import SwitchToast
 from ui_theme.scheme import HeaderToneColour
@@ -43,16 +44,14 @@ class WorkspaceChrome(VerticalLayout):
         self.switch_toast = SwitchToast()
         self.native = NativeSessionSurface(app)
 
-    def presented_sidebars(self):
+    def presented_sidebars(self) -> tuple[SideBar, ...]:
         source = self.app.workspace_sessions.source
-        layout = self.app.sidebar_layout
         return tuple(bar for bar in (self.channels, *source.sidebars())
-                     if bar.presentation_visible and bar.id in layout.placements)
+                     if bar.presentation_visible)
 
     def toggle_sidebar(self, side: type[SidebarEdge]) -> None:
-        layout = self.app.sidebar_layout
         bars = tuple(bar for bar in self.presented_sidebars()
-                     if layout.get(bar.id).side == side)
+                     if bar.placement.side is side)
         collapsed = any(not bar.collapsed for bar in bars)
         for bar in bars:
             if bar.collapsed != collapsed:
@@ -81,7 +80,7 @@ class WorkspaceChrome(VerticalLayout):
         """Place chrome and conversation directly in the native layout pass."""
         layout = self.app.sidebar_layout
         bars = self.presented_sidebars()
-        resolved = layout.resolve(size, {bar.id: bar.collapsed for bar in bars})
+        resolved = layout.resolve(size, {bar.placement_identity: bar.collapsed for bar in bars})
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.
         nested = parent is self.channels.parent and any(
@@ -103,14 +102,14 @@ class WorkspaceChrome(VerticalLayout):
         order = {identity: index for index, identity in enumerate(layout.ordered())}
         for bar in bars:
             if bar in children:
-                geometry = resolved.bars[bar.id]
+                geometry = resolved.bars[bar.placement_identity]
                 placements.append(
                     WidgetPlacement(
                         geometry.reset_offset,
                         geometry.offset,
                         Spacing(),
                         bar,
-                        order[bar.id],
+                        order[bar.placement_identity],
                         overlay=True,
                         absolute=True,
                     )

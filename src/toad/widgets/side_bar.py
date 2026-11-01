@@ -38,6 +38,7 @@ from toad.sidebar_layout import (
     SidebarPlacement,
     SidebarPlacementAction,
     SidebarShift,
+    ThreadSidebarPlacement,
 )
 from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 from toad.app_node import ToadNode
@@ -660,17 +661,23 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         id: str | None = None
         header_control: Widget | None = None
 
+    @property
+    def placement_identity(self) -> type[SidebarPlacement]:
+        return self._placement_identity
+
     def __init__(
         self,
         *panels: Panel,
+        placement_identity: type[SidebarPlacement],
         name: str | None = None,
-        id: str | None = None,
         classes: str | None = None,
         disabled: bool = False,
         hide: bool = False,
         defer_mount: bool = False,
     ) -> None:
-        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self._placement_identity = placement_identity
+        super().__init__(name=name, id=placement_identity.native_id(),
+                         classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
         self.content_stack = SidebarContentStack()
         self.search_input = SidebarSearch(placeholder="Search", compact=True)
@@ -700,7 +707,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
 
     @property
     def placement(self) -> SidebarPlacement:
-        return self.app.sidebar_layout.get(self.id)
+        return self.app.sidebar_layout.get(self.placement_identity)
 
     @property
     def panels_loaded(self) -> bool:
@@ -830,7 +837,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
             self.invalidate_controls()
             return False
         placement = self.placement
-        directions = self.app.sidebar_layout.directions(self.id)
+        directions = self.app.sidebar_layout.directions(self.placement_identity)
         current = PresentedBar(
             presentation=BarPresentation.from_placement(
                 placement, collapsed=self.collapsed, directions=directions
@@ -862,7 +869,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         return True
 
     def resize_to(self, percentage: int) -> None:
-        if self.app.sidebar_layout.resize(self.id, percentage):
+        if self.app.sidebar_layout.resize(self.placement_identity, percentage):
             self.app.workspace_chrome.refresh_layout()
 
     @on(SidebarSlider.Changed)
@@ -873,10 +880,8 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
     @on(SidebarAction.Pressed)
     def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
         event.stop()
-        if self.id is None:
-            return
         app = self.app
-        event.action.apply(app.sidebar_layout, self.id)
+        event.action.apply(app.sidebar_layout, self.placement_identity)
         app.workspace_chrome.refresh_layout()
 
     def restore_navigation(self) -> bool:
@@ -965,7 +970,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
 class ThreadSidebar(SideBar):
     def __init__(self, *panels, state: SidebarState, **kwargs):
         self.state = state
-        super().__init__(*panels, id="thread-sidebar", hide=True, **kwargs)
+        super().__init__(*panels, placement_identity=ThreadSidebarPlacement, hide=True, **kwargs)
         self.collapsed = self.hide
 
     @property

@@ -5,7 +5,10 @@ from itertools import product
 import pytest
 from textual.geometry import Size
 
-from toad.sidebar_layout import LeftSidebarEdge, RightSidebarEdge, SidebarEdge, SidebarLayout
+from toad.sidebar_layout import (
+    ChannelsSidebarPlacement, LeftSidebarEdge, RightSidebarEdge,
+    SidebarEdge, SidebarLayout, ThreadSidebarPlacement,
+)
 
 
 EDGES = SidebarEdge.members_with(SidebarEdge)
@@ -13,31 +16,31 @@ EDGES = SidebarEdge.members_with(SidebarEdge)
 
 def test_moving_swapping_and_resizing_keep_both_sidebars_and_clamp_extent():
     layout = SidebarLayout()
-    assert layout.ordered() == ("channels-sidebar", "thread-sidebar")
-    assert layout.move("channels-sidebar", RightSidebarEdge)
-    assert layout.get("thread-sidebar").order == 0
-    assert layout.get("channels-sidebar").order == 1
-    assert layout.swap("channels-sidebar")
-    assert layout.get("channels-sidebar").order == 0
-    assert layout.get("thread-sidebar").order == 1
-    assert layout.ordered() == ("thread-sidebar", "channels-sidebar")
-    assert layout.move("thread-sidebar", LeftSidebarEdge)
-    assert layout.ordered() == ("thread-sidebar", "channels-sidebar")
-    assert layout.get("thread-sidebar").order == 0
-    assert layout.resize("channels-sidebar", 70)
-    assert layout.get("channels-sidebar").extent_percent == layout.maximum_percent
-    assert layout.resize("channels-sidebar", 1)
-    assert layout.get("channels-sidebar").extent_percent == layout.minimum_percent
-    assert layout.float_mode("thread-sidebar") is True
-    assert layout.float_mode("thread-sidebar") is False
-    assert set(layout.ordered()) == {"thread-sidebar", "channels-sidebar"}
+    assert layout.ordered() == (ChannelsSidebarPlacement, ThreadSidebarPlacement)
+    assert layout.move(ChannelsSidebarPlacement, RightSidebarEdge)
+    assert layout.get(ThreadSidebarPlacement).order == 0
+    assert layout.get(ChannelsSidebarPlacement).order == 1
+    assert layout.swap(ChannelsSidebarPlacement)
+    assert layout.get(ChannelsSidebarPlacement).order == 0
+    assert layout.get(ThreadSidebarPlacement).order == 1
+    assert layout.ordered() == (ThreadSidebarPlacement, ChannelsSidebarPlacement)
+    assert layout.move(ThreadSidebarPlacement, LeftSidebarEdge)
+    assert layout.ordered() == (ThreadSidebarPlacement, ChannelsSidebarPlacement)
+    assert layout.get(ThreadSidebarPlacement).order == 0
+    assert layout.resize(ChannelsSidebarPlacement, 70)
+    assert layout.get(ChannelsSidebarPlacement).extent_percent == layout.maximum_percent
+    assert layout.resize(ChannelsSidebarPlacement, 1)
+    assert layout.get(ChannelsSidebarPlacement).extent_percent == layout.minimum_percent
+    assert layout.float_mode(ThreadSidebarPlacement) is True
+    assert layout.float_mode(ThreadSidebarPlacement) is False
+    assert set(layout.ordered()) == {ThreadSidebarPlacement, ChannelsSidebarPlacement}
 
 
 @pytest.mark.parametrize("side", EDGES)
 def test_two_sidebars_on_one_edge_swap_inward_then_cross(side):
     pair = SidebarLayout()
-    pair.move("channels-sidebar", side)
-    pair.move("thread-sidebar", side)
+    pair.move(ChannelsSidebarPlacement, side)
+    pair.move(ThreadSidebarPlacement, side)
     outer, inner = sorted(pair.placements, key=lambda key: pair.get(key).order)
     inward = side.opposite()
     before = dict(pair.placements)
@@ -55,9 +58,9 @@ def test_two_sidebars_on_one_edge_swap_inward_then_cross(side):
 )
 def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels, hide_thread):
     pair = SidebarLayout()
-    pair.move("channels-sidebar", side)
-    pair.move("thread-sidebar", side)
-    collapsed = {"channels-sidebar": hide_channels, "thread-sidebar": hide_thread}
+    pair.move(ChannelsSidebarPlacement, side)
+    pair.move(ThreadSidebarPlacement, side)
+    collapsed = {ChannelsSidebarPlacement: hide_channels, ThreadSidebarPlacement: hide_thread}
     before = pair.resolve(viewport, collapsed)
     order = pair.ordered()
     for name in order:
@@ -71,7 +74,7 @@ def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels,
     for name, hidden in collapsed.items():
         if hidden:
             assert side.extent(before.bars[name].size) == side.collapsed_extent
-    pair.swap("channels-sidebar")
+    pair.swap(ChannelsSidebarPlacement)
     after = pair.resolve(viewport, dict(reversed(tuple(collapsed.items()))))
     assert {key: side.extent(bar.size) for key, bar in after.bars.items()} == {
         key: side.extent(bar.size) for key, bar in before.bars.items()
@@ -81,10 +84,10 @@ def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels,
 @pytest.mark.parametrize("side, viewport", list(product(EDGES, (Size(51, 27), Size(36, 18)))))
 def test_shrinking_preserves_each_axis_minimum_when_both_controls_fit(side, viewport):
     layout = SidebarLayout()
-    layout.move("channels-sidebar", side)
-    layout.move("thread-sidebar", side.opposite())
-    layout.resize("channels-sidebar", layout.maximum_percent)
-    layout.resize("thread-sidebar", layout.minimum_percent)
+    layout.move(ChannelsSidebarPlacement, side)
+    layout.move(ThreadSidebarPlacement, side.opposite())
+    layout.resize(ChannelsSidebarPlacement, layout.maximum_percent)
+    layout.resize(ThreadSidebarPlacement, layout.minimum_percent)
     resolved = layout.resolve(viewport, {key: False for key in layout.placements})
     assert all(side.extent(bar.size) >= side.minimum for bar in resolved.bars.values())
 
@@ -92,8 +95,8 @@ def test_shrinking_preserves_each_axis_minimum_when_both_controls_fit(side, view
 @pytest.mark.parametrize("channels_edge, thread_edge", list(product(EDGES, repeat=2)))
 def test_every_edge_combination_stays_inside_native_viewport(channels_edge, thread_edge):
     layout = SidebarLayout()
-    layout.move("channels-sidebar", channels_edge)
-    layout.move("thread-sidebar", thread_edge)
+    layout.move(ChannelsSidebarPlacement, channels_edge)
+    layout.move(ThreadSidebarPlacement, thread_edge)
     viewport = Size(52, 70)
     resolved = layout.resolve(viewport, {key: False for key in layout.placements})
     bars = tuple(resolved.bars.values())

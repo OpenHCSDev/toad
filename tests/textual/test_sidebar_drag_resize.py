@@ -8,7 +8,7 @@ from toad.preferences import SETTINGS
 from textual.keys import RightKey
 from toad.sidebar_layout import SidebarEdge, WidthSidebarEdge
 from toad.widgets.side_bar import (
-    SideBar, SideBarToggle, SidebarAction, SidebarResizeHandle, SidebarSlider, TabHistoryControls,
+    SideBarToggle, SidebarAction, SidebarResizeHandle, SidebarSlider, TabHistoryControls,
 )
 
 
@@ -16,9 +16,9 @@ from toad.widgets.side_bar import (
 async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, side):
     async with workspace.app(size=(120, 40)) as ui:
         app, pilot = ui.textual
-        bar = app.screen.query_one("#channels-sidebar", SideBar)
-        app.sidebar_layout.move("channels-sidebar", side)
-        app.sidebar_layout.resize("channels-sidebar", 30)
+        bar = app.workspace_chrome.channels
+        app.sidebar_layout.move(bar.placement_identity, side)
+        app.sidebar_layout.resize(bar.placement_identity, 30)
         app.workspace_chrome.refresh_layout()
         await ui.step()
         slider = bar.extent_slider
@@ -54,7 +54,7 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
         await pilot.mouse_up(offset=(start + direction * 12, y))
         await ui.step()
         assert bar.size.width == old_width + 12, (side, bar.size, old_width)
-        assert slider.value == app.sidebar_layout.get(bar.id).extent_percent == 40
+        assert slider.value == bar.placement.extent_percent == 40
         assert not handle._dragging and app.mouse_captured is None
 
         # The physical arrow keys and slider endpoints mirror as well.
@@ -101,9 +101,9 @@ async def test_resize_by_edge_drag_slider_and_keys_follows_the_side(workspace, s
 async def test_zero_motion_resize_keeps_requested_percentage_on_every_edge(workspace, side):
     async with workspace.app(size=(51, 27)) as ui:
         app, pilot = ui.textual
-        bar = app.screen.query_one("#channels-sidebar", SideBar)
-        app.sidebar_layout.move(bar.id, side)
-        app.sidebar_layout.resize(bar.id, 40)
+        bar = app.workspace_chrome.channels
+        app.sidebar_layout.move(bar.placement_identity, side)
+        app.sidebar_layout.resize(bar.placement_identity, 40)
         bar.reveal()
         app.workspace_chrome.refresh_layout()
         await ui.step()
