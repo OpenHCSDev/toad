@@ -33,7 +33,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
     transcript: TranscriptPresentation
 
     def accepts(self, message: CoreEventMessage) -> bool:
-        return message.event.accepted_by(message, self.agent_binding, self.turns.owner)
+        return message.event.accepted_by(message, self)
 
     @handles(CursorPresentation)
     def on_private_native_cursor_update(

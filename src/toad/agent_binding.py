@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from toad.acp.agent_process import AgentProcess
     from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
     from toad.conversation_turn import TurnOwner
+    from toad.core_event_carrier import CoreEventMessage
     from toad.screens.main import MainScreen
     from toad.session_observation import SessionObservation
     from toad.session_presentation import OperationalSessionSources
@@ -101,7 +102,10 @@ class AgentConnection(ABC):
     @abstractmethod
     def matches_agent(self, agent: object) -> bool: ...
 
-    def matches_session(self, session_id: str | None) -> bool:
+    def accepts_publication(
+        self, message: CoreEventMessage, session_id: str | None
+    ) -> bool:
+        """A connection without an ACP session never reads its publisher."""
         return False
 
     def borrowed_processes(self) -> tuple[AgentProcess, ...]:

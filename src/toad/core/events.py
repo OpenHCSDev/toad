@@ -23,18 +23,15 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 
 if TYPE_CHECKING:
     from agent_comms.commander_hud import CommanderHud
-    from toad.agent_binding import AgentConnection
-    from toad.conversation_turn import TurnOwner
     from toad.core_event_carrier import CoreEventMessage
+    from toad.widgets.conversation import Conversation
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
 
-    def accepted_by(
-        self, message: CoreEventMessage, agent: AgentConnection, turn: TurnOwner
-    ) -> bool:
-        """Ordinary publications do not carry an ACP session constraint."""
+    def accepted_by(self, message: CoreEventMessage, view: Conversation) -> bool:
+        """Ordinary publications never inspect a conversation's native state."""
         return True
 
     def subscribers(self, stream: CoreEventStream):
@@ -93,13 +90,10 @@ class CommsUpdated(CoreEvent):
     session_id: str | None = None
     sequence: int | None = None
 
-    def accepted_by(
-        self, message: CoreEventMessage, agent: AgentConnection, turn: TurnOwner
-    ) -> bool:
+    def accepted_by(self, message: CoreEventMessage, view: Conversation) -> bool:
         return (
-            agent.matches_agent(message.publisher)
-            and agent.matches_session(self.session_id)
-            and turn.accepts_update(self.update)
+            view.agent_binding.accepts_publication(message, self.session_id)
+            and view.turns.owner.accepts_update(self.update)
         )
 
 
