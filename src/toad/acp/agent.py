@@ -56,6 +56,7 @@ from toad.platform import host
 
 if TYPE_CHECKING:
     from agent_comms.session_load import ExistingSessionLoadPlan
+    from toad.core_event_carrier import CoreEventMessage
     from toad.screens.main import MainScreen
     from toad.widgets.conversation import Conversation
 
@@ -139,8 +140,10 @@ class Agent(AgentBase):
     def session_disposition(self) -> SessionDisposition:
         return self.session.disposition
 
-    def matches_session(self, session_id: str | None) -> bool:
-        return self.session_id == session_id
+    def accepts_publication(
+        self, message: CoreEventMessage, session_id: str | None
+    ) -> bool:
+        return message.publisher is self and self.session_id == session_id
 
     def borrowed_processes(self) -> tuple[AgentProcess, ...]:
         return (self.process,)
