@@ -1,5 +1,7 @@
 """Textual-facing: whether a channel message counts as read depends on which rows Textual painted, and a divider painted without its text is not enough."""
 
+import asyncio
+
 from agent_comms.repo import Checkout
 from agent_comms.ui_model.unread import ExactUnread
 
@@ -31,8 +33,14 @@ async def test_divider_without_body_leaves_the_message_unread(workspace):
         await ui.step()
         assert not window.follows_tail
         last = comms.messaging.send("peer", "#team", "LAST " + "body " * 250).message
-        await ui.until(lambda: text_rows_of(chat, last) is not None,
-                       seconds=5, why="the last message laid out")
+        # Offscreen rows are deliberately lazy. Approach through the viewport's
+        # real input route until lookahead prepares the new message, stopping
+        # before its body can paint or supply a read mark.
+        async with asyncio.timeout(5):
+            while text_rows_of(chat, last) is None:
+                window.action_scroll_down()
+                await ui.step()
+                assert not ui.shows("LAST"), "Setup scrolled past the unread caption"
         assert not ui.shows("LAST")
 
         # Its caption is above its text: place that caption at the viewport's

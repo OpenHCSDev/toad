@@ -58,8 +58,17 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
         for _ in range(50):
             history.mark_visible()
             assert history._read_worker is completed
-        window.scroll_end(animate=False, immediate=True)
-        await ui.until(lambda: ui.shows("row 7"), why="the newest row after returning to the bottom")
+        window.action_scroll_end()
+        await ui.until(lambda: history.state.accepts_source_work and any(
+            part.message.view_key == rows[-1].view_key for part in history.drawn_fragments),
+            why="the latest message prepared by End")
+        # End shows the newest bottom viewport, not necessarily the first line
+        # of a tall message. Reveal that head before checking style preservation.
+        latest = next(part for part in history.drawn_fragments
+                      if part.message.view_key == rows[-1].view_key)
+        await history.reveal_message_head(latest, lambda: True)
+        history.show_fragment(latest)
+        await ui.until(lambda: ui.shows("row 7"), why="the newest message head")
         recorded = tuple(fragment.message.view_key for fragment in history.fragments)
         await ui.press("ctrl+t")
         await ui.until(lambda: isinstance(history.page_source.loader.style, MarkdownMessageStyle), why="the Markdown style")
