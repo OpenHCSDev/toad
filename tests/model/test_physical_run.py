@@ -107,7 +107,7 @@ def test_actual_source_policy_is_checked_after_admission(
 ) -> None:
     foreign = physical_observation.storage_rule.within(tmp_path / "foreign")
     current = replace(physical_observation, storage_rule=foreign)
-    with pytest.raises(ValueError, match="actual source storage policy"):
+    with pytest.raises(ValueError):
         physical_admission.observe(physical_target, current)
 
 

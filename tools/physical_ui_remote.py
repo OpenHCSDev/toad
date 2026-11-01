@@ -89,8 +89,7 @@ class RunTarget:
             raise ValueError("Core selected a foreign source")
         if not observed.opened:
             raise PendingRun("Core has not opened the intended private source")
-        if observed.storage_rule != observed.storage_rule.within(self.root):
-            raise ValueError("The actual source storage policy escapes the private root")
+        observed.storage_rule.require_isolated(self.root)
         for root in (*observed.saved_roots, *observed.acp_roots):
             if root != self.root:
                 raise ValueError(f"Foreign saved/ACP source refuses physical input: {root}")
