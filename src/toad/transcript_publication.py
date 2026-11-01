@@ -109,7 +109,7 @@ class BoundFrame:
             self.owner.displayed_cursor = cursor
             view.app.history_displayed()
             view.query_ancestor(SessionView).history_painted()
-            view.submissions.settle_drawn()
+            view.submissions.settle_acknowledged()
 
 
 class TranscriptPublication(BoundFrame, ABC):

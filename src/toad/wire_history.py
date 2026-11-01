@@ -323,8 +323,8 @@ class WireSource(BusQueueSource):
     tail_limit: int = 8
     page_limit: int = 40
 
-    def draws_message(self, view, root: Path, sent: Message) -> bool:
-        return self.comms.root == root and view.draws_user_message(sent)
+    def contains_message(self, view, root: Path, sent: Message) -> bool:
+        return self.comms.root == root and view.contains_user_message(sent)
 
     def begin_submission(self, owner: ConversationSubmissions,
                          submission: PromptInputSubmission) -> SubmissionStart:

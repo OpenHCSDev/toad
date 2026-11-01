@@ -349,8 +349,8 @@ class TranscriptFragment:
     def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
         return ()
 
-    def draws(self, message: BusMessage) -> bool:
-        """Whether this fragment draws that bus message; only bus-message fragments do."""
+    def contains_message(self, message: BusMessage) -> bool:
+        """Only bus-message fragments contain the original message reference."""
         return False
 
     @classmethod
@@ -535,7 +535,7 @@ class BusMessageFragment(TranscriptFragment):
         return tuple(MessageQueueEntry(reference, self.shown.status)
                      for reference in self.notification_references)
 
-    def draws(self, message: BusMessage) -> bool:
+    def contains_message(self, message: BusMessage) -> bool:
         return self.events[0].source == message.reference
 
     def shown_live_by(self, claim: CommitClaim) -> bool:

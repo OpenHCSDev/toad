@@ -609,7 +609,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             async with window.preserve_history(root=self):
                 return self.prepared.replace_range(self, selected, current)
 
-class DrawsBusMessages:
+class ContainsBusMessages:
     """The fragments the loaded pages draw, and whether they include a bus message, scrolled into view or not."""
 
     pages: deque[TranscriptPageView]
@@ -618,11 +618,11 @@ class DrawsBusMessages:
     def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
 
-    def draws(self, message: BusMessage) -> bool:
-        return any(fragment.draws(message) for fragment in reversed(self.fragments_in_range))
+    def contains_message(self, message: BusMessage) -> bool:
+        return any(page.prepared.contains_message(message) for page in reversed(self.pages))
 
 
-class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
+class LineHistory(ContainsBusMessages, SourceNotifications, OpensLinks, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the newest page and the reader's position.

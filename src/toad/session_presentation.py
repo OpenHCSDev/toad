@@ -253,8 +253,8 @@ class OperationalSessionSources(NativeQueueSource):
 class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
 
-    def draws_message(self, view: Conversation, root: Path, sent: Message) -> bool:
-        return view.transcript.binding.thread_scope.draws_message(view, root, sent)
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+        return view.transcript.binding.thread_scope.contains_message(view, root, sent)
 
     def activity_row(self, conversation: Conversation):
         return conversation.thread_activity.row
@@ -411,6 +411,8 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         editor = conversation.prompt.prompt_text_area
         if not await editor.editing_mode.flush(editor):
             return  # Retain the actual view/engine while its modal input is pending.
+        if conversation.submissions.retains_surface:
+            return  # Eviction cannot discard an unresolved transaction or its draft recovery.
         self.state = RetainedSessionViewState.capture(conversation)
         await self.remove_native_tree(screen)
 

@@ -159,11 +159,15 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
 async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace, native_package):
     async with native_session(workspace) as native:
         ui, agent = native.ui, native.agent
-        owner_tab = ui.selected_tab
+        owner_tab, owner = ui.selected_tab, ui.app.selected_session
         await send_first_input_and_hold_its_reply(native)
         await ui.write_draft("unsent local draft")
+        original = ui.conversation
         process, queue = agent.process.process, agent.queue_attachment
         await ui.new_session()
+        assert original.submissions.retains_surface
+        await owner.presentation.evict(owner)
+        assert owner.presentation.widget is original, "Eviction discarded a running submission owner"
         assert agent.process.process is process and process.returncode is None
         await asyncio.wait_for(agent.send_prompt(
             "QUEUED_NATIVE_INPUT", request=QueuePromptRequest("QUEUED_NATIVE_INPUT", True)), 10)

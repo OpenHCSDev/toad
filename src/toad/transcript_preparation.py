@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.historical_views import ConversationObservation
+from agent_comms.messages import Message
 from agent_comms.sent_message import OutgoingMessageReference
 from agent_comms.transcripts import (
     TranscriptCursor,
@@ -100,6 +101,10 @@ class PreparedTranscriptPage:
     def configure(self, *, batch_size: int) -> None:
         if self.fragment_range is None:
             self.set_fragment_range(slice(max(0, len(self.fragments) - batch_size), len(self.fragments)))
+
+    def contains_message(self, message: Message) -> bool:
+        """Loaded source evidence does not disappear when its drawing range moves."""
+        return any(fragment.contains_message(message) for fragment in reversed(self.fragments))
 
     @property
     def fragments_in_range(self):

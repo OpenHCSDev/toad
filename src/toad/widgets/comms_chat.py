@@ -151,7 +151,7 @@ class CommsChatView(Conversation):
         access = self.app.coordination_access
         if message.publisher is not history:
             return
-        self.submissions.settle_drawn()
+        self.submissions.settle_acknowledged()
         if (not history.state.accepts_source_work
                 or not source.uses_observation(access.observation.observed())):
             return
@@ -253,8 +253,8 @@ class CommsChatView(Conversation):
                 return
             await self.refresh_composer(read_only)
             self._refreshed_from = announced
-            # A sent message may now be drawn: composing resumes before mentions are read.
-            self.submissions.settle_drawn()
+            # The source may now acknowledge the commit, before viewport paint or mention reads.
+            self.submissions.settle_acknowledged()
         except (CoordinationReadUnavailable, StaleRevision):
             raise
         # Composer mentions and DM status read the observer's snapshot
@@ -311,10 +311,10 @@ class CommsChatView(Conversation):
         return self.message_history.page_source.command_context(self)
 
     async def _show_sent(self, sent: WireMessage) -> None:
-        """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
+        """Read the conversation's end; composing resumes when its source acknowledges `sent`."""
         self.window.jump_to_latest()
         await self._refresh()
-        self.submissions.settle_drawn()
+        self.submissions.settle_acknowledged()
 
-    def draws_user_message(self, sent) -> bool:
-        return self.message_history.draws(sent)
+    def contains_user_message(self, sent) -> bool:
+        return self.message_history.contains_message(sent)
