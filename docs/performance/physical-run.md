@@ -105,14 +105,18 @@ content hashing or complete loaded-code equivalence. Process/root/module-origin
 and saved/ACP-root invalidation remain current before every key.
 
 Current observations also carry the actual typed `StorageRule` from the already
-observing service's `Registration`. The rule must equal its own `within(root)`
-projection; observation neither constructs a Comms nor writes a policy. This
-checks declared allocation/default scope, not private HOME alone. Canonical
-filesystem containment, registered allocations, persisted reopen and future-child
-qualification remain separate prerequisites owned by the isolation work. In
-particular, a `checkouts` symlink can defeat equality-only projection in the
-current Core owner; that counterexample is handed to the isolation owner, not
-silently counted as qualified.
+observing service's `Registration`. `RunTarget` calls that rule's pure
+`require_isolated(root)` observation contract; it no longer repeats the owner's
+projection/equality decision. Observation neither constructs a Comms nor writes
+a policy. The paired Core must include this API: its `ScopedDirectory` field
+declarations own canonical directory checks and future default allocations,
+including outward-symlink refusal. There is no fallback to an older API.
+
+Filesystem behavior, registered allocations, persisted reopen and future-child
+qualification remain separate prerequisites owned by the isolation work. The
+owner's eleven new filesystem cases are written, not run; a source implementation
+is not isolation acceptance. Candidate02's Core7e4/Toad620955 artifact pairing
+predates this API and cannot qualify the current consumer; preserve it unchanged.
 
 `WheelRuntime` retains copies of its exact inputs under the new prefix's
 `inputs/` directory; borrowed originals remain read-only. The package probe
@@ -120,8 +124,10 @@ compares every root-wheel member except the installer's rewritten `RECORD`
 against installed bytes, then records the verified archive SHA256. Root-layout
 wheels are the supported domain; `.data` relocation is refused, not silently
 skipped. Remote archive hashes remain metadata, never permission to fetch them.
-The deployed donor package probe keeps its existing core-only wire; a target
-subclass adds wheel verification without changing old workers' request shape.
+The deployed donor package probe keeps its existing core-only wire. Updated
+built workers derive retained inputs from their own `RuntimeResolution`; the
+target subclass supplies explicit inputs before its first resolution exists.
+Both use the same verification loop, without changing old workers' request shape.
 
 The interpreter observation keeps the invoked environment separate from the
 resolved executable and the native image actually named by the loader for
