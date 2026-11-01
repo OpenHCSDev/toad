@@ -3,15 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
-
 from acp.schema import PromptResponse, ToolCall
-from agent_comms.acp_failure import RequestFailure
-
-from .queue_attachment import QueueActionRefused
-
-if TYPE_CHECKING:
-    from .client_session import ClientSessionRequest
 from agent_comms.agent_event_updates import AcpToolAction
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -54,42 +46,6 @@ class ConfirmedPromptResult(PromptResult):
 
     def settle_submission(self, execution) -> None:
         execution.state.response_confirmed(execution)
-
-
-@dataclass(frozen=True)
-class UnfinishedPromptResult(PromptResult):
-    request: ClientSessionRequest
-    failure: RequestFailure
-
-    def publish_failure(self, controller, command, queue_scope) -> None:
-        if self.request.current:
-            controller._prompt_failed(
-                command, self.request, queue_scope, self.failure.failure,
-                lambda event: self.report_failure(controller.agent, event),
-                published=self.failure.notification_published,
-            )
-
-    @abstractmethod
-    def report_failure(self, agent, event) -> None: ...
-
-    def require_confirmation(self) -> StopReason:
-        raise QueueActionRefused(
-            f"Request not confirmed: {self.failure.failure.feedback}. Inspect its state before another action."
-        )
-
-
-class FailedPromptResult(ConfirmedPromptResult, UnfinishedPromptResult):
-    """A known failure retains its original facts without closing a usable session."""
-
-    def report_failure(self, agent, event) -> None:
-        agent.events.publish(event)
-
-
-class UnconfirmedPromptResult(UnfinishedPromptResult):
-    """The captured request lost its reply or authority; it grants no retry."""
-
-    def report_failure(self, agent, event) -> None:
-        agent.session.record_failure(event)
 
 
 @dataclass(frozen=True)

@@ -7,7 +7,7 @@ from agent_comms.acp_extension import QueuePromptRequest
 
 from support.agents import peer, script
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.acp.status import UnconfirmedPromptResult
+from toad.acp.client_session import UnconfirmedPromptResult
 from toad.session_scope import AgentAttached
 
 
