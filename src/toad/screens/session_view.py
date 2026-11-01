@@ -1,5 +1,7 @@
 """Logical session surfaces hosted by the one native WorkspaceScreen."""
 
+from abc import abstractmethod
+from functools import cached_property
 from textual.containers import Vertical
 from textual.reactive import reactive
 from contextlib import contextmanager
@@ -10,6 +12,8 @@ from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.navigation_target import NavigationTarget, NoTarget
+from toad.session_tracker import SidebarState
+from toad.widgets.side_bar import ThreadSidebar
 from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.message_notifications import (
     NothingToRead,
@@ -158,3 +162,26 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
     def retained_native_presentations(self):
         """Declare accepted native trees; non-native views own no such trees."""
         return ()
+
+
+class SidebarSessionView[SidebarT: ThreadSidebar](SessionView):
+    """One session-owned sidebar survives construction, mounting and retirement.
+
+    Composition mounts this resource; it does not create its identity. Chrome
+    may ask for membership before the native tree exists, and close still owns
+    the same resource after it has left that tree.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._thread_sidebar_state = SidebarState()
+
+    @abstractmethod
+    def make_thread_sidebar(self) -> SidebarT: ...
+
+    @cached_property
+    def thread_sidebar(self) -> SidebarT:
+        return self.make_thread_sidebar()
+
+    def sidebars(self) -> tuple[SidebarT, ...]:
+        return (self.thread_sidebar,)

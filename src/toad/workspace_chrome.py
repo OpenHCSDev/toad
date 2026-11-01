@@ -47,7 +47,7 @@ class WorkspaceChrome(VerticalLayout):
         source = self.app.workspace_sessions.source
         layout = self.app.sidebar_layout
         return tuple(bar for bar in (self.channels, *source.sidebars())
-                     if bar.presentation_visible and bar.id in layout.placements)
+                     if bar.is_mounted and bar.presentation_visible and bar.id in layout.placements)
 
     def toggle_sidebar(self, side: type[SidebarEdge]) -> None:
         layout = self.app.sidebar_layout
@@ -79,15 +79,13 @@ class WorkspaceChrome(VerticalLayout):
         self, parent: Widget, children: list[Widget], size: Size, greedy: bool = True
     ) -> ArrangeResult:
         """Place chrome and conversation directly in the native layout pass."""
-        source = self.app.workspace_sessions.source
         layout = self.app.sidebar_layout
-        own = tuple(source.sidebars())
         bars = self.presented_sidebars()
         resolved = layout.resolve(size, {bar.id: bar.collapsed for bar in bars})
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.
         nested = parent is self.channels.parent and any(
-            bar.parent.layout is self for bar in own
+            bar.parent is not parent and bar.parent.layout is self for bar in bars
         )
         gutter = Spacing() if nested else resolved.gutter
         placements = [
