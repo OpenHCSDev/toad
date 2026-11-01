@@ -154,5 +154,17 @@ saved error artifacts instead of replacing our own methods. They cover caller-
 initiated retirement, pager-initiated retirement, resume, real self-wait rejection,
 and a failed read that retires once without an unhandled cleanup exception.
 Both changed Python files compile and the source imports from this checkout.
-The controls have **not yet run**; the combined host-lease run and affected
-physical journey remain open. This checkpoint is not a performance acceptance.
+The exact source head `59d8218a4b70896aa0f8226367202cff035dd411`
+passed both app controls: **2 passed in 31.58s, exit 0**, under Core's shared
+`TestLease`. The controller asserted the actual Core and Toad source origins
+before invoking `tests/textual/test_transcript_lifecycle.py`; the retained log
+prints both paths, the interpreter and the acquired lease. Its first attempt
+failed before pytest because the controller shadowed an imported module with a
+`Path`; that attempt is not a test run. The passing run paired Core's earlier
+`a5b` lifecycle source, not its subsequent parallel-reader correction.
+
+Receipts: `pi-commander/heartbeat-publication/pager-lifetime-controls-2.log`
+and `.rc` under `/home/ts/.cache/agent-scratch/`. These are app-level lifecycle
+controls, not installed or physical acceptance. The affected physical journey,
+full isolation counterexamples and production performance measurement remain
+open; no failed configured-fork root was replayed.
