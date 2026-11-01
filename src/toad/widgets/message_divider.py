@@ -33,7 +33,7 @@ from toad.widgets.transcript_lines import (
 class LineBlockRow(LinkedRows, Widget):
     """One semantic line block, drawn exactly as transcript history draws it."""
 
-    DEFAULT_CSS = "LineBlockRow { width: 1fr; height: 1; }"
+    DEFAULT_CSS = "LineBlockRow { width: 1fr; height: auto; }"
 
     def __init__(self, block: LineBlock) -> None:
         super().__init__()
@@ -48,26 +48,32 @@ class LineBlockRow(LinkedRows, Widget):
     def update_block(self, block: LineBlock) -> None:
         if block != self.block:
             self.block, self._lines = block, None
-            self.refresh()
+            self.refresh(layout=True)
 
     def _drawn(self, theme: LineTheme, width: int) -> PreparedLines:
         return PreparedLines(width, RichLineRenderer(theme, width).rows((self.block,)))
 
-    def render_line(self, y: int, paint: PaintState) -> Strip:
-        width = self.size.width
-        if y or not width:
-            return self.blank_row(width, paint)
+    def prepared_lines(self, width: int) -> PreparedLines:
         theme = self.line_theme
         if self._lines is None or self._lines[0] != theme or self._lines[1].width != width:
             self._lines = theme, self._drawn(theme, width)
-        return self.on_background(self._lines[1].strips_at(self._link_place)[0], paint, y)
+        return self._lines[1]
+
+    def render_line(self, y: int, paint: PaintState) -> Strip:
+        width = self.size.width
+        if not width:
+            return self.blank_row(width, paint)
+        lines = self.prepared_lines(width)
+        if y >= lines.height:
+            return self.blank_row(width, paint)
+        return self.on_background(lines.strips_at(self._link_place)[y], paint, y)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        return 1
+        return self.prepared_lines(width).height
 
 
-class SingleLineBlock(BlockContent, LineBlockRow):
+class ConversationLineBlock(BlockContent, LineBlockRow):
     """A line block in the conversation: navigable and selectable like any block."""
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
@@ -94,7 +100,7 @@ class StickyHeader(LineBlockRow):
         self.display = bool(headers)
 
 
-class MessageDivider(Animated[Mix], SingleLineBlock):
+class MessageDivider(Animated[Mix], ConversationLineBlock):
     """The rule above a live message: the same `Divider` block saved history draws.
 
     A message that has just arrived fades in from the accent colour.
@@ -105,7 +111,7 @@ class MessageDivider(Animated[Mix], SingleLineBlock):
     DEFAULT_CSS = """
     MessageDivider {
         width: 1fr;
-        height: 1;
+        height: auto;
         margin: 1 0 0 0;
     }
     """
@@ -139,7 +145,7 @@ class MessageRowDivider(MessageRowBlock, MessageDivider):
         self.message_row = row
 
 
-class AgentActivityDivider(ConversationBlock, CommitParticipant, CategorizedBlock, SingleLineBlock):
+class AgentActivityDivider(ConversationBlock, CommitParticipant, CategorizedBlock, ConversationLineBlock):
     """The shared activity-group row, filtered with the activity that follows it."""
 
     ALLOW_SELECT = False

@@ -42,7 +42,11 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
     async with workspace.app(size=(110, 35)) as ui:
         app, _pilot = ui.textual
         owner = ObservedLaunchScreen(workspace.project, initial_prompt="INITIAL_LOCAL_UI_EVENT")
+        sidebar = owner.thread_sidebar
+        assert owner.sidebars() == (sidebar,) and not sidebar.is_mounted
+        assert not sidebar.presentation_visible
         await app.session_navigation.new(await saved_tab(app), lambda: owner)
+        assert owner.thread_sidebar is sidebar
         await owner.wait_content_ready()
         await asyncio.wait_for(owner.publication.wait(), 12)
         await ui.step()
@@ -61,6 +65,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(app.project_dir))
         await app.selected_session.wait_content_ready()
         await owner.presentation.evict()
+        assert owner.thread_sidebar is sidebar
         assert view._initial_prompt is None
         assert owner.presentation.state.initial_prompt == "NEWEST_PENDING_LOCAL_UI_EVENT"
         assert owner.presentation.widget is None
@@ -91,6 +96,8 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
         assert isinstance(owner.conversation.agent_binding, NoAgentConnection) and not owner.conversation.submissions.active
         await app.session_navigation.close(owner.id)
+        assert owner.thread_sidebar is sidebar
+        assert not sidebar.presentation_visible
         assert owner.presentation.widget is None and owner.presentation.state is None
         assert owner.id not in app.workspace_sessions.views
         assert ui.failure() is None

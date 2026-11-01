@@ -20,7 +20,7 @@ from toad.widgets.comms_transfer import TransferRequest
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 from toad.core.session_requests import SessionNavigate
-from toad.sidebar_layout import Side
+from toad.sidebar_layout import LeftSidebarEdge, RightSidebarEdge, SidebarEdge
 from agent_comms.errors import RelationViolationError
 from agent_comms.cli_verbs.new import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
@@ -234,7 +234,7 @@ class VimHistoryForwardAction(VimHistoryAction):
 
 
 class VimSidebarAction(VimWorkspaceAction, declared_name=None):
-    side: Side
+    side: type[SidebarEdge]
 
     async def apply(self, app: ToadApp) -> None:
         app.workspace_chrome.toggle_sidebar(self.side)
@@ -243,13 +243,13 @@ class VimSidebarAction(VimWorkspaceAction, declared_name=None):
 class VimLeftSidebarAction(VimSidebarAction):
     """Toggle the sidebars on the left edge."""
     keys = {VimMode: ("ctrl+shift+h",)}
-    side = "left"
+    side = LeftSidebarEdge
 
 
 class VimRightSidebarAction(VimSidebarAction):
     """Toggle the sidebars on the right edge."""
     keys = {VimMode: ("ctrl+shift+l",)}
-    side = "right"
+    side = RightSidebarEdge
 
 
 class VimMoveTabAction(VimWorkspaceAction, declared_name=None):
