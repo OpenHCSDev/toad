@@ -295,10 +295,14 @@ class DismissAction(VisibleAction):
         context.dismiss_control()
 
 
-class HorizontalCursorAction(VisibleAction, declared_name=None):
+class CursorAction(VisibleAction, declared_name=None):
+    """Select along the widget's cursor axis."""
+
     group = Binding.Group("Select")
     direction: ClassVar[Literal[-1, 1]]
 
+
+class HorizontalCursorAction(CursorAction, declared_name=None):
     async def apply(self, context: MovesHorizontalCursor) -> None:
         context.cursor_horizontal(self.direction)
 
@@ -310,6 +314,21 @@ class CursorLeftAction(HorizontalCursorAction):
 
 class CursorRightAction(HorizontalCursorAction):
     keys = {EditingMode: ("right",)}
+    direction = +1
+
+
+class VerticalCursorAction(CursorAction, declared_name=None):
+    async def apply(self, context: MovesVerticalCursor) -> None:
+        context.cursor_vertical(self.direction)
+
+
+class CursorUpAction(VerticalCursorAction):
+    keys = {EditingMode: ("up",)}
+    direction = -1
+
+
+class CursorDownAction(VerticalCursorAction):
+    keys = {EditingMode: ("down",)}
     direction = +1
 
 
@@ -409,6 +428,11 @@ class DismissibleControl(Dismisses):
 class MovesHorizontalCursor(DeclaredWidgetActions, actions=(HorizontalCursorAction,)):
     @abstractmethod
     def cursor_horizontal(self, direction: Literal[-1, 1]) -> None: ...
+
+
+class MovesVerticalCursor(DeclaredWidgetActions, actions=(VerticalCursorAction,)):
+    @abstractmethod
+    def cursor_vertical(self, direction: Literal[-1, 1]) -> None: ...
 
 
 class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):

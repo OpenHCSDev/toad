@@ -1,5 +1,10 @@
 # Scroll series
 
+Historical measurements below retain their original commands, API names and
+source/traffic scopes. The unsafe shell controller and raw display-input API
+are retired. Use the [shared isolated physical-run owner](physical-run.md) for
+new work; its stopped-history scenario is not the old active-response benchmark.
+
 One line per change, from `tools/performance/scroll_scenario.sh` (real `toad` in `st` on display :121, a fork of `perf-base-20261009`, which is a fork of the saved `agent-comms-ux` session; an active response, held PageUp from the input box, wheel bursts with reversal, End, tab return). Frame work is UI-thread time per frame handed to the driver; input-to-paint runs from the driver posting an event to the first frame after its last handler returns. Input-to-paint pairs each input with the first frame after it is handled (fixed 2026-10-09; earlier summaries paired out of order). Raw results are under `~/.cache/agent-scratch/scroll-series/<name>/`.
 
 | Date | Change | Total frame median (ms) | Total frame p95 (ms) | Input-to-paint median (ms) | Input-to-paint p95 (ms) | Scroll-path lines +/- | What the screen showed |

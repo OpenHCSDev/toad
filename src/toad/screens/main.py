@@ -46,10 +46,10 @@ from toad.navigation_target import (
     ThreadTarget,
 )
 from toad.screens.mcp_inventory import MCPInventoryScreen
-from toad.screens.session_view import SessionView
+from toad.screens.session_view import SidebarSessionView
 from toad.session_presentation import OperationalSessionPresentation
 from toad.session_scope import AgentBinding, NoAgent, ViewSessionOrigin
-from toad.session_tracker import SessionDetails, SidebarState
+from toad.session_tracker import SessionDetails
 from toad.tab_identity.history_origin import SessionHistoryOrigin
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar
@@ -294,7 +294,7 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SessionView, ToadNode,
+class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SidebarSessionView[SessionThreadSidebar], ToadNode,
                  scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 
@@ -310,7 +310,6 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         return self.content.keyboard_scopes(self)
-    thread_sidebar = getters.query_one(SessionThreadSidebar)
 
     @property
     def side_bar(self):
@@ -332,7 +331,6 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         self._identity = binding.initial_identity(NoThreadIdentity())
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
-        self._thread_sidebar_state = SidebarState()
         self._project_panel: ProjectPanel | None = None
         self.content: ScreenContent = OpeningContent()
         self.presentation = OperationalSessionPresentation()
@@ -436,12 +434,12 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         if self._project_panel is not None:
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
-    def sidebars(self):
-        return (self.thread_sidebar,)
+    def make_thread_sidebar(self) -> SessionThreadSidebar:
+        return SessionThreadSidebar(self)
 
     def compose(self) -> ComposeResult:
         with containers.Center().set_styles(layout=self.app.workspace_chrome):
-            yield SessionThreadSidebar(self)
+            yield self.thread_sidebar
             with containers.Vertical(id="session-content"):
                 yield self.content.render(self)
                 yield self.presentation.compose_content(self)
