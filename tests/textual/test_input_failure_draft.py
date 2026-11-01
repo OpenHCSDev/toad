@@ -192,8 +192,10 @@ async def test_cancelling_before_worker_start_restores_the_same_editor_without_s
 async def test_cancelled_bus_write_keeps_unknown_and_never_retries_the_publication(workspace):
     workspace.thread("peer")
     comms = workspace.comms
+    comms.messaging.send("peer", workspace.viewer, "READY_BUS_WRITE_SOURCE")
     async with workspace.app(size=(110, 32)) as ui:
         await ui.open_direct("peer", actor=workspace.viewer)
+        await ui.until_shows("READY_BUS_WRITE_SOURCE")
         chat = ui.conversation
         body = "CANCELLED_DURING_REAL_BUS_WRITE"
         await ui.write_draft("")
