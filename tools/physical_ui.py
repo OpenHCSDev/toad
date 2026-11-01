@@ -42,7 +42,7 @@ from textual.strip import Strip
 from ui_theme.wal import WalFile
 
 from physical_ui_remote import (
-    CapturedRegion, ExecOperation, ObserveOperation, PendingRun, PhysicalOperation,
+    AdmitOperation, CapturedRegion, ExecOperation, ObserveOperation, PendingRun, PhysicalOperation,
     ProcessRetirement, RunObservation, RunTarget, StopRootOperation,
 )
 
@@ -389,7 +389,8 @@ class TerminalApp:
             self.read_grid()
             while True:
                 try:
-                    self.observe()
+                    self.admission = self._observe(AdmitOperation).admitted(self.target)
+                    PhysicalOperation.publish(self.output / "build-admitted.json", self.admission)
                     break
                 except PendingRun:
                     self._require_starting(deadline)
@@ -412,18 +413,16 @@ class TerminalApp:
             self._require_starting(deadline)
             time.sleep(.02)
 
-    def observe(self) -> RunObservation:
+    def _observe(self, operation: type[ObserveOperation]):
         self.terminal.platform.require(self.frontend)
-        operation = ObserveOperation(self.target, self.frontend, Path(__file__).resolve().parent)
-        script = self._packet(operation)
+        script = self._packet(operation(self.target, self.frontend, Path(__file__).resolve().parent))
         # This controller is an ancestor of its st/frontend. No arbitrary PID,
         # helper privilege escalation, installed-file edit or source retry.
         sys.remote_exec(self.frontend.pid, str(script))
         self._await_result(script.parent, time.monotonic() + PhysicalOperation.timeout)
-        observed = self.result(script.parent).observation()
-        if observed.process != self.frontend:
+        result = self.result(script.parent)
+        if result.observation().frontend.process != self.frontend:
             raise ValueError("Observation belongs to another frontend incarnation")
-        self.target.require(observed)
         self.terminal.platform.require(self.terminal.identity)
         self.server_identity()
         owner = subprocess.check_output(
@@ -433,7 +432,11 @@ class TerminalApp:
         if int(owner.partition("=")[2].strip()) != self.terminal.identity.pid:
             raise ValueError("Window does not belong to this run's st frontend")
         self.read_grid()
-        return observed
+        return result
+
+    def observe(self) -> RunObservation:
+        current = self._observe(ObserveOperation).observation()
+        return self.admission.observe(self.target, current)
 
     def input(self, *commands: str) -> RunObservation:
         observed = self.observe()
@@ -595,6 +598,11 @@ class TerminalApp:
             # An exceptional/uncertain operation is not permission for another
             # attachment or input. Retire only the already owned child instead.
             if exception_type is None and self.terminal.process.poll() is None:
+                final = self._observe(AdmitOperation).admitted(self.target)
+                self.admission.observe(self.target, final.observation())
+                if final.build != self.admission.build:
+                    raise ValueError("The verified runtime build changed during the physical run")
+                PhysicalOperation.publish(self.output / "build-final.json", final)
                 self.keys("ctrl+q")
                 self.terminal.process.wait(timeout=5)
         finally:

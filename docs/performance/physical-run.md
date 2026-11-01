@@ -75,10 +75,44 @@ acceptance and actual borrower checks.
 
 The current source requires a `RuntimeResolution` with a recorded interpreter
 observation, not just a prefix and three module locations. `RunTarget` retains
-that intended build; `ObserveOperation` obtains the actual process's resolution
-through the same target-owned probe before `RunTarget.require` permits input.
+that intended build. `AdmitOperation(ObserveOperation)` obtains the actual
+process's resolution once at frontend admission through the target-owned probe.
+Its `AdmittedResult` belongs to that exact frontend birth; a plain
+`ObservedResult` cannot substitute for it. `RunObservation` describes current UI
+resources, not a freshly hashed build.
 An old build record without interpreter evidence is explicitly unrecorded and
 refuses admission. It is not retrofitted by reading its intended executable.
+
+`TerminalApp` owns the admission result with its frontend resource. Every later
+observation still checks the actual process, runtime, module origins, HOME/XDG,
+database, palette, selected/opened source and all saved/ACP roots before keys.
+The declared `FrontendIdentity` groups process birth and primary module-file
+paths; equality is derived from that record rather than restating its fields in
+two comparison tuples. It must agree with the admission.
+Only full wheel/native hashing leaves that repeated callback; there is no
+permission flag or product-widget cache replacing those current checks.
+
+A normal exit performs full build verification again and requires equality with
+the admitted snapshot before quitting. `frontend/build-admitted.json` and
+`frontend/build-final.json` retain the two build observations; ordinary operation
+results and `admitted.json` remain current UI/source observations. An exceptional
+or uncertain operation still retires without another attachment or input.
+
+The selected candidate must remain immutable during the run. Entry/final disk
+checks do not prove that arbitrary intermediate disk mutations were impossible,
+and a final refusal cannot undo earlier input. This does not claim continuous
+content hashing or complete loaded-code equivalence. Process/root/module-origin
+and saved/ACP-root invalidation remain current before every key.
+
+Current observations also carry the actual typed `StorageRule` from the already
+observing service's `Registration`. The rule must equal its own `within(root)`
+projection; observation neither constructs a Comms nor writes a policy. This
+checks declared allocation/default scope, not private HOME alone. Canonical
+filesystem containment, registered allocations, persisted reopen and future-child
+qualification remain separate prerequisites owned by the isolation work. In
+particular, a `checkouts` symlink can defeat equality-only projection in the
+current Core owner; that counterexample is handed to the isolation owner, not
+silently counted as qualified.
 
 `WheelRuntime` retains copies of its exact inputs under the new prefix's
 `inputs/` directory; borrowed originals remain read-only. The package probe
@@ -113,6 +147,12 @@ loaded code. Screen dumps help inspect text; the continuous Xvfb recording owns
 visible pixels. Neither an import nor one screenshot proves the whole journey.
 A run with no ACP bindings does not demonstrate the bound/pending/foreign ACP
 cases.
+
+The new admission/resource-lifetime split has written model controls for build
+admission versus ordinary observation, changed build/process/resources/module
+paths, new saved/ACP roots, actual storage policy and source readiness after admission. These controls
+are not yet executed. The source/codec checks and eventual candidate preparation
+must not be reported as physical or performance acceptance.
 
 Source-observer work is part of the measurement overhead. For example, one
 prototype observation took about 97 ms inside the callback before considering

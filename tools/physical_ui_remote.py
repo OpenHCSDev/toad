@@ -20,6 +20,7 @@ from agent_comms.child_process import ChildOutcome, ProcessIdentity
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.installer.probes.resolution import RuntimeResolutionProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution
+from agent_comms.storage_rules import StorageRule
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import DeclaredWireType, FieldCodec
 from textual.geometry import Region
@@ -74,8 +75,8 @@ class RunTarget:
     def data(self) -> Path:
         return self.home / "data"
 
-    def require(self, observed):
-        self.build.require_runtime(observed.build)
+    def require_resources(self, observed):
+        """Current UI/source resources; build evidence belongs to AdmittedResult."""
         if observed.home != self.home or observed.runtime != self.runtime:
             raise ValueError("Post-attachment HOME/runtime differs from the run target")
         if (observed.config, observed.state, observed.data) != (self.config, self.state, self.data):
@@ -88,6 +89,8 @@ class RunTarget:
             raise ValueError("Core selected a foreign source")
         if not observed.opened:
             raise PendingRun("Core has not opened the intended private source")
+        if observed.storage_rule != observed.storage_rule.within(self.root):
+            raise ValueError("The actual source storage policy escapes the private root")
         for root in (*observed.saved_roots, *observed.acp_roots):
             if root != self.root:
                 raise ValueError(f"Foreign saved/ACP source refuses physical input: {root}")
@@ -114,12 +117,21 @@ class CapturedRegion(DeclaredWireType):
 
 
 @dataclass(frozen=True)
-class RunObservation:
+class FrontendIdentity:
+    """One process birth and its primary module-file locations."""
+
     process: ProcessIdentity
+    toad_module: Path
+    core_module: Path
+    textual_module: Path
+
+
+@dataclass(frozen=True)
+class RunObservation:
+    frontend: FrontendIdentity
     started_ns: int
     finished_ns: int
     runtime: Path
-    build: RuntimeResolution
     home: Path
     config: Path
     state: Path
@@ -128,13 +140,11 @@ class RunObservation:
     palette_directory: Path
     root: Path
     opened: bool
+    storage_rule: StorageRule
     saved_roots: tuple[Path, ...]
     acp_roots: tuple[Path, ...]
     history_regions: tuple[CapturedRegion, ...]
     modules_checked: int
-    toad_module: Path
-    core_module: Path
-    textual_module: Path
 
 
 @dataclass(frozen=True)
@@ -149,6 +159,9 @@ class PhysicalResult(DeclaredFamily, affix="Result"):
     def require(self):
         return self
 
+    def admitted(self, target: RunTarget) -> AdmittedResult:
+        raise ValueError("This physical operation did not verify the runtime build")
+
     def observation(self) -> RunObservation:
         raise ValueError("This physical operation did not observe an application")
 
@@ -162,6 +175,24 @@ class ObservedResult(PhysicalResult):
 
     def observation(self) -> RunObservation:
         return self.value
+
+
+@dataclass(frozen=True)
+class AdmittedResult(ObservedResult):
+    """Build evidence for one frontend birth, not a fresh hash on every UI read."""
+
+    build: RuntimeResolution
+
+    def admitted(self, target: RunTarget) -> AdmittedResult:
+        target.build.require_runtime(self.build)
+        target.require_resources(self.value)
+        return self
+
+    def observe(self, target: RunTarget, current: RunObservation) -> RunObservation:
+        if current.frontend != self.value.frontend:
+            raise ValueError("The admitted frontend process or module-file locations changed")
+        # Dynamic persistence and every saved/ACP root still precede each input.
+        return target.require_resources(current)
 
 
 @dataclass(frozen=True)
@@ -273,6 +304,9 @@ class ObserveOperation(PhysicalOperation):
     identity: ProcessIdentity
     tools: Path
 
+    def observed_result(self, observed: RunObservation) -> PhysicalResult:
+        return ObservedResult(observed)
+
     def execute(self, directory: Path) -> None:
         started = time.monotonic_ns()
         if ProcessIdentity.current() != self.identity:
@@ -332,6 +366,11 @@ class ObserveOperation(PhysicalOperation):
         checked = require_modules(self.target.runtime)
         access = app.coordination_access
         root = access.selection.root
+        observation = access.observation
+        opened = observation.observes(root)
+        if not opened:
+            raise PendingRun("Core has not opened the intended private source")
+        storage_rule = observation.service.registry.storage_rule
         sessions = app.session_navigation
         saved = tuple(Path(source).resolve() for entry in sessions.members
                       for source, _identity in (*entry.original_threads(sessions), *entry.original_channels()))
@@ -343,20 +382,30 @@ class ObserveOperation(PhysicalOperation):
         # from sidebar separators that may also occur inside a user's message.
         regions = tuple(CapturedRegion(region) for window in screen.query(HistoryWindow)
                         for region in (window.published_content_region,) if region is not None)
-        build = RuntimeResolutionProbe(
-            self.target.build.core_commit, self.target.build.wheel_inputs()
-        ).run()
+        frontend = FrontendIdentity(
+            self.identity, Path(toad.__file__).resolve(), Path(agent_comms.__file__).resolve(),
+            Path(textual.__file__).resolve(),
+        )
         observed = RunObservation(
-            self.identity, started, time.monotonic_ns(), Path(sys.prefix).resolve(), build,
+            frontend, started, time.monotonic_ns(), Path(sys.prefix).resolve(),
             Path.home().resolve(), xdg_config_home().resolve(), xdg_state_home().resolve(),
             xdg_data_home().resolve(), app.tab_order._db.path.resolve(),
             app.colours.wal_directory.resolve(), root,
-            access.observation.observes(root), saved, acp, regions, checked,
-            Path(toad.__file__).resolve(), Path(agent_comms.__file__).resolve(),
-            Path(textual.__file__).resolve(),
+            opened, storage_rule, saved, acp, regions, checked,
         )
-        self.target.require(observed)
-        self.publish(directory / "result.json", ObservedResult(observed))
+        self.target.require_resources(observed)
+        self.publish(directory / "result.json", self.observed_result(observed))
+
+
+@dataclass(frozen=True)
+class AdmitOperation(ObserveOperation):
+    """Full disk-artifact verification at entry and successful retirement only."""
+
+    def observed_result(self, observed: RunObservation) -> PhysicalResult:
+        build = RuntimeResolutionProbe(
+            self.target.build.core_commit, self.target.build.wheel_inputs()
+        ).run()
+        return AdmittedResult(observed, build).admitted(self.target)
 
 
 @dataclass(frozen=True)
