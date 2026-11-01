@@ -6,7 +6,7 @@ from dataclasses import replace
 import pytest
 
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.goal_actions import ClearGoalAction
+from agent_comms.goal_actions import ClearGoalAction, RetryGoalAction
 from agent_comms.nominal.field_codec import FieldCodec, MalformedRecord, TurnId
 from agent_comms.goal_failure_observation import FailedTurnEvidence
 from agent_comms.goal_history import (
@@ -29,6 +29,7 @@ from toad.core.events import CommsUpdated
 from toad.navigation_target import SelectTarget
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
+from toad.command_catalog import CommandCatalog
 from toad.widgets.goal_bar import GoalBar, GoalControl
 
 
@@ -186,17 +187,23 @@ async def test_goal_history_lists_earlier_revisions(workspace):
         assert view.prompt.text == "Composer draft stays"
 
 
-async def test_refused_goal_control_preserves_owner_state_and_composer(workspace):
+@pytest.mark.parametrize("command, expected_action", (
+    ("", ClearGoalAction),
+    ("/goal retry", RetryGoalAction),
+))
+async def test_refused_goal_control_preserves_owner_state_and_composer(workspace, command, expected_action):
     async with workspace.app(size=(100, 35), notifications=True) as ui:
         owner, view, bar, _status = await shown_goal(workspace, ui)
         original = owner.goal
-        clear = bar.query_one("#goal-clear", GoalControl)
-        hit = ui.app.screen.get_widget_at(*clear.region.offset)[0]
-        print(f"Goal clear region={clear.region!r}; hit={hit!r}; disabled={clear.disabled}")
-        assert await ui.pilot.click(clear), "the real clear control must receive the click"
-        await ui.until(lambda: owner.requests == [("update", ClearGoalAction)],
-                       why="one goal-clear request at the scripted owner")
+        if command:
+            assert await CommandCatalog.execute(command, view)
+        else:
+            clear = bar.query_one("#goal-clear", GoalControl)
+            assert await ui.pilot.click(clear), "the real clear control must receive the click"
+        await ui.until(lambda: owner.requests == [("update", expected_action)],
+                       why="one goal-control request at the scripted owner")
         await ui.until_shows("Goal action failed")
+        assert sum(note.title == "Goal action failed" for note in ui.app._notifications) == 1
         assert owner.goal == original
         assert view.goal_display.snapshot == original
         assert view.prompt.text == "Composer draft stays"

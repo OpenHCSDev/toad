@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ref
 
@@ -13,6 +15,7 @@ from agent_comms.goal_presentation import ControlledExecution, GoalExecution
 from agent_comms.goal_history import RecordedGoalHistory
 
 if TYPE_CHECKING:
+    from toad.acp.agent import Agent
     from toad.widgets.conversation import Conversation
 
 
@@ -161,12 +164,18 @@ class GoalSession:
         if not action.enabled(self):
             view.feedback.flash(view.goal_display.heading(view.goal_execution))
             return
-        try:
+        with self.reporting_refusals(agent):
             await action.apply(self)
+
+    @contextmanager
+    def reporting_refusals(self, agent: Agent) -> Iterator[None]:
+        """Buttons and slash controls report once, only to their original source."""
+        try:
+            yield
         except Refused as error:
             if not self.owns(agent):
                 raise
-            view.app.show_error(error, "Goal action failed")
+            self.view.app.show_error(error, "Goal action failed")
 
     async def change(self, action: type[GoalAction], text: str = "") -> None:
         view = self.view
@@ -175,9 +184,10 @@ class GoalSession:
             raise GoalRefused("The goal presentation changed; reopen its controls.")
         # The existing Agent boundary encodes the declared goal operation.
         # Goal state governs continuation, never interruption of an active turn.
-        await self.write(agent, agent.update_goal(action, text))
-        if self.owns(agent):
-            view.prompt.focus()
+        with self.reporting_refusals(agent):
+            await self.write(agent, agent.update_goal(action, text))
+            if self.owns(agent):
+                view.prompt.focus()
 
     async def write(self, agent, operation):
         """Every write settles by reading the owner, including rejected writes."""
