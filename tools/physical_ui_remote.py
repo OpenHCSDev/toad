@@ -18,6 +18,8 @@ from typing import ClassVar
 
 from agent_comms.child_process import ChildOutcome, ProcessIdentity
 from agent_comms.launch_runtime import LaunchRuntime
+from agent_comms.installer.probes.resolution import RuntimeResolutionProbe
+from agent_comms.installer.runtime_resolution import RuntimeResolution
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import DeclaredWireType, FieldCodec
 from textual.geometry import Region
@@ -36,8 +38,10 @@ class RunTarget:
     root: Path
     home: Path
     runtime: Path
+    build: RuntimeResolution
 
     def __post_init__(self):
+        self.build.interpreter.require_recorded()
         for path in (self.root, self.home, self.runtime):
             if path != path.resolve(strict=True):
                 raise ValueError(f"A physical run needs canonical existing paths: {path}")
@@ -71,6 +75,7 @@ class RunTarget:
         return self.home / "data"
 
     def require(self, observed):
+        self.build.require_runtime(observed.build)
         if observed.home != self.home or observed.runtime != self.runtime:
             raise ValueError("Post-attachment HOME/runtime differs from the run target")
         if (observed.config, observed.state, observed.data) != (self.config, self.state, self.data):
@@ -114,6 +119,7 @@ class RunObservation:
     started_ns: int
     finished_ns: int
     runtime: Path
+    build: RuntimeResolution
     home: Path
     config: Path
     state: Path
@@ -337,8 +343,11 @@ class ObserveOperation(PhysicalOperation):
         # from sidebar separators that may also occur inside a user's message.
         regions = tuple(CapturedRegion(region) for window in screen.query(HistoryWindow)
                         for region in (window.published_content_region,) if region is not None)
+        build = RuntimeResolutionProbe(
+            self.target.build.core_commit, self.target.build.wheel_inputs()
+        ).run()
         observed = RunObservation(
-            self.identity, started, time.monotonic_ns(), Path(sys.prefix).resolve(),
+            self.identity, started, time.monotonic_ns(), Path(sys.prefix).resolve(), build,
             Path.home().resolve(), xdg_config_home().resolve(), xdg_state_home().resolve(),
             xdg_data_home().resolve(), app.tab_order._db.path.resolve(),
             app.colours.wal_directory.resolve(), root,

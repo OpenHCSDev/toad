@@ -28,6 +28,7 @@ from agent_comms.check_root import CheckRoot
 from agent_comms.child_process import DetachedChildStdio, ProcessIdentity, SpawnedProcess
 from agent_comms.comms import Comms
 from agent_comms.installer.practice import SuppliedRuntimeHome
+from agent_comms.installer.runtime_resolution import RuntimeResolution
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime, ThreadLaunch
 from agent_comms.nominal.field_codec import FieldCodec
@@ -254,6 +255,8 @@ class TerminalApp:
         from toad.preferences import INTERFACE, SETTINGS, SavedSettings, ToadSettings
 
         root = root.resolve(strict=True)
+        build = RuntimeResolution.at(runtime.prefix)
+        build.interpreter.require_recorded()
         home = root.parent / "frontend-home"
         # Validate the intended paths before touching the home. RunTarget also
         # rejects the real user's home/workspace and an unrelated bus.
@@ -267,7 +270,7 @@ class TerminalApp:
             raise ValueError("Refusing frontend setup beside a live user root")
         home.mkdir(mode=0o700)
         SuppliedRuntimeHome(home, runtime).prepare()
-        target = RunTarget(root, home.resolve(), runtime.prefix)
+        target = RunTarget(root, home.resolve(), runtime.prefix, build)
         for directory in (target.config, target.state, target.data):
             directory.mkdir(mode=0o700)
         settings = SavedSettings.path()
