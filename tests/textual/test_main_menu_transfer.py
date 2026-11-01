@@ -1,16 +1,20 @@
 """Textual-facing: the main menu button opens Toad's menu and its dialogs drive Core's wire export and stopped-thread import."""
 
-from agent_comms.session_file import RegistrySessionLocation
 import json
 from pathlib import Path
 
-from textual.widgets import Input, Select
+import pytest
+from textual.widgets import Button, Input, Select
+from agent_comms.exporting import EverythingScope, FullLimit, JsonlFormat, WireExportCancelled, WireExportProgress
 
 from agent_comms.harness_install import OpenCodeHarness
 from support.applications import record_notifications
 from toad.widget_actions import ApplicationAction
 from toad.widgets.comms_menu import ContextMenu
-from toad.widgets.comms_transfer import ThreadImportDialog, WireExportDialog
+from toad.widgets.comms_transfer import (
+    ChannelScopeInput, EverythingScopeInput, JsonlFormatInput, TextFormatInput,
+    ThreadImportDialog, WireExportDialog, WireExportProgressView, WireExportRequest,
+)
 from toad.widgets.side_bar import BackTabButton, ForwardTabButton, MainMenuButton, TabHistoryControls
 
 
@@ -56,20 +60,24 @@ async def test_main_menu_exports_the_wire_as_jsonl(workspace):
         # export operation resolves the channel and refuses an unknown one.
         await choose(ui, await open_main_menu(ui), "Export wire history…")
         await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
-        app.screen.query_one("#export-scope", Select).value = "channel"
+        app.screen.query_one("#export-scope", Select).value = ChannelScopeInput
         app.screen.action_submit()
         await ui.until(lambda: any(note.title == "Wire export failed" and "Unknown channel" in note.message
                                    for note in app._notifications), why="the export refusal")
+        assert not app.query(WireExportProgressView), "the failed export must remove its progress resource"
         await choose(ui, await open_main_menu(ui), "Export wire history…")
         await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
         dialog = app.screen
-        dialog.query_one("#export-scope", Select).value = "everything"
+        dialog.query_one("#export-scope", Select).value = EverythingScopeInput
         dialog.query_one("#export-path", Input).value = str(destination)
         dialog.action_submit()
         await ui.until(destination.exists, seconds=10, why="the export file")
         rows = [json.loads(line) for line in destination.read_text().splitlines()]
         assert rows[0]["record"] == "header"
         assert [row["message"]["text"] for row in rows[1:]] == ["exported message"]
+        await ui.until(lambda: any(note.title == "Wire export" and str(destination) in note.message
+                                   for note in app._notifications), why="the completed export notification")
+        assert not app.query(WireExportProgressView), "completion removes the actual progress widget"
 
 
 async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
@@ -83,6 +91,7 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
     }))
     comms = workspace.comms
     async with workspace.app(size=(110, 40)) as ui:
+        record_notifications(ui.textual[0])
         menu = await open_main_menu(ui)
         await choose(ui, menu, "Thread Import…")
         await ui.until(lambda: isinstance(ui.textual[0].screen, ThreadImportDialog), why="the import dialog")
@@ -96,3 +105,43 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
         thread = comms.registry.require("imported")
         assert comms.registry.status(thread.name).stopped
         assert "Imported history" in Path(thread.runtime.path).read_text()
+        await ui.until(lambda: any(note.title == "Thread Import" and "@imported" in note.message
+                                   for note in ui.textual[0]._notifications), why="the import completion")
+        assert not ui.textual[0].query(WireExportProgressView), "imports do not allocate export cancellation"
+
+
+async def test_export_format_updates_only_the_generated_destination(workspace):
+    async with workspace.app(size=(110, 40)) as ui:
+        app, _ = ui.textual
+        await choose(ui, await open_main_menu(ui), "Export wire history…")
+        await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
+        dialog = app.screen
+        assert dialog.format_select.selection is JsonlFormatInput
+        dialog.format_select.value = TextFormatInput
+        await ui.until(lambda: dialog.destination_input.value == str(TextFormatInput.destination(dialog.destination_stem)),
+                       why="the text format's generated destination")
+        custom = str(workspace.project / "custom-output.log")
+        dialog.destination_input.value = custom
+        dialog.format_select.value = JsonlFormatInput
+        await ui.press("tab")
+        assert dialog.format_select.selection is JsonlFormatInput
+        assert dialog.destination_input.value == custom, "format changes must retain the user's chosen path"
+
+
+async def test_export_progress_presents_counters_and_native_cancel(workspace):
+    """Exercise the real progress capability/view, not exporter or staging acceptance."""
+    async with workspace.app(size=(110, 40)) as ui:
+        app, _ = ui.textual
+        request = WireExportRequest(workspace.project / "unused.jsonl", JsonlFormat(), EverythingScope(), FullLimit())
+        async with request.progress(app) as observer:
+            progress = app.query_one(WireExportProgressView)
+            assert observer is progress
+            observer.advanced(WireExportProgress(bytes_written=4096, messages_written=7))
+            await ui.until_shows("7 messages · 4,096 bytes written")
+            await ui.click("Cancel export")
+            await ui.until(progress.cancelled, why="the exporter's actual cancellation event")
+            assert progress.query_one("#cancel-export", Button).disabled
+            with pytest.raises(WireExportCancelled):
+                observer.check()
+        assert not app.query(WireExportProgressView)
+        assert not request.destination.exists(), "this case supplies progress observations, never a fake export"
