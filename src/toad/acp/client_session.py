@@ -9,6 +9,7 @@ from acp.schema import PromptResponse
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
+from toad.core.events import LogAgentFail
 from .queue_attachment import QueueActionRefused
 from .status import ConfirmedPromptResult, PromptResult, StopReason
 
@@ -92,13 +93,11 @@ class UnfinishedPromptResult(PromptResult):
     request: ClientSessionRequest
     failure: RequestFailure
 
-    def publish_failure(self, controller, command, queue_scope) -> None:
-        if self.request.current:
-            controller._prompt_failed(
-                command, self.request, queue_scope, self.failure.failure,
-                lambda event: self.report_failure(controller.agent, event),
-                published=self.failure.notification_published,
-            )
+    def publish_failure(self) -> None:
+        if self.request.current and not self.failure.notification_published:
+            agent, failure = self.request.agent, self.failure.failure
+            self.report_failure(agent, LogAgentFail(
+                failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
     @abstractmethod
     def report_failure(self, agent, event) -> None: ...
@@ -118,6 +117,9 @@ class FailedPromptResult(UnfinishedPromptResult):
 
 class ResolvedFailurePromptResult(ConfirmedPromptResult, FailedPromptResult):
     """A definite input disposition, including a proved refusal before SDK invocation."""
+
+    def settle_submission(self, execution) -> None:
+        execution.state.response_failed(execution, self.failure.failure)
 
 
 class UnconfirmedPromptResult(UnfinishedPromptResult):

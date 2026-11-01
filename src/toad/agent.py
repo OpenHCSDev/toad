@@ -67,13 +67,7 @@ class AgentBase(AgentConnection):
         view.compact_context(instructions)
 
     def accepts_failed_input(self, message):
-        if message.publisher is not self or message.event.session_id != self.session_id:
-            return False
-        return (
-            self.queue_attachment.accepts_request(message.event.queue_scope)
-            if message.event.recover_draft
-            else True
-        )
+        return message.publisher is self and message.event.session_id == self.session_id
 
     def invalidate_observation(self, observation: SessionObservation) -> None:
         observation.schedule(self)

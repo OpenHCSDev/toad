@@ -15,13 +15,14 @@ from acp.schema import ConfigOptionUpdate, NewSessionResponse, SessionConfigOpti
 
 from agent_comms.acp_extension import (
     AvailableQueueProjection, IdentifiedInputStarted, InputFailedUpdate, LiveQueueScope,
-    QueueChangedUpdate, RequestFailedUpdate, encode_updates,
+    QueueChangedUpdate, RequestFailedUpdate, decode_request, encode_updates,
 )
 from agent_comms.acp_failure import BackendDeliveryFailure, RequestFailure
 from agent_comms.input_attempt import BoundUnknownInput, InputAttempt, NotSentInput, ReservedInput, StartedInput
 from agent_comms.nominal.field_codec import AcpSessionId, InputId
 
 from support.agents import PEERS, command, peer, script
+from toad.acp.agent import NativeInputPresented
 from toad.conversation_submission import SendBlocked, SendPending
 from toad.core.input_events import UserInputSubmitted
 from toad.session_scope import AgentAttached
@@ -118,7 +119,9 @@ async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_se
         assert {"error": error.to_error_obj()} in workspace.received()
 
 
-async def test_a_late_original_native_start_settles_a_failed_request_without_replaying(workspace):
+@pytest.mark.parametrize("acknowledge_before_reply", (False, True))
+async def test_original_native_start_settles_a_failed_request_without_replaying(
+        workspace, acknowledge_before_reply: bool):
     owner = workspace.thread("scope-owner", running=True)
     session = "late-ack-session"
     scope = LiveQueueScope(
@@ -139,22 +142,36 @@ async def test_a_late_original_native_start_settles_a_failed_request_without_rep
         assert not receiver.presentation.queue_supported, "A queue observation must not invent coordination"
         original = RequestFailure.from_error(RequestError.internal_error({"details": "lost input disposition"}))
         failure = replace(original, failure=replace(original.failure, input_state=BoundUnknownInput))
-        body = script({"error": RequestError.internal_error(failure.error_data()).to_error_obj()})
+        body = script({"wait": "request-error-ready"},
+                      {"error": RequestError.internal_error(failure.error_data()).to_error_obj()})
         await ui.write_draft("")
         worker = await view.submissions.submit(UserInputSubmitted(body))
         (execution,) = view.submissions.active
-        await asyncio.wait_for(worker.wait(), 10)
-        await ui.until(lambda: ui.draft() == body, why="the uncertain input's retained draft")
-        assert isinstance(execution.state, SendBlocked)
-        await view.submissions.submit(UserInputSubmitted(body))
-        assert workspace.prompts_received().count(body) == 1
+        await ui.until(lambda: workspace.prompts_received() == [body], why="the captured input at the held SDK peer")
+        metadata = next(fact["metadata"] for fact in workspace.received() if fact.get("prompt") == body)
+        assert decode_request(**metadata) == execution.request, "The peer received a second request identity"
         started = IdentifiedInputStarted(body, scope, 2, InputId.mint(), execution.request.input_id)
-        await asyncio.wait_for(receiver.send_prompt(script({"update": {
-            "sessionUpdate": "session_info_update", "_meta": encode_updates(started)}})), 10)
+        acknowledgement = script({"update": {
+            "sessionUpdate": "session_info_update", "_meta": encode_updates(started)}})
+        if acknowledge_before_reply:
+            await asyncio.wait_for(receiver.send_prompt(acknowledgement), 10)
+            await ui.until(lambda: isinstance(execution.state, NativeInputPresented), why="input acknowledged before its error reply")
+            assert not worker.is_finished and execution in view.submissions.active
+        workspace.release("request-error-ready")
+        await asyncio.wait_for(worker.wait(), 10)
+        if acknowledge_before_reply:
+            await ui.step()
+            assert ui.draft() == "", "A negative reply resurrected input already acknowledged"
+        else:
+            await ui.until(lambda: ui.draft() == body, why="the uncertain input's retained draft")
+            assert isinstance(execution.state, SendBlocked)
+            await view.submissions.submit(UserInputSubmitted(body))
+            assert workspace.prompts_received().count(body) == 1
+            await asyncio.wait_for(receiver.send_prompt(acknowledgement), 10)
+            assert ui.draft() == body  # A later observation cannot delete the user's inspection draft.
         await ui.until(lambda: not view.submissions.retains_surface,
-                       why="the late original native acknowledgement to retire its completed request")
+                       why="the original acknowledgement and completed response to retire their request")
         assert not view.send_block_reason
-        assert ui.draft() == body  # A later observation cannot delete the user's inspection draft.
         assert workspace.prompts_received().count(body) == 1
         assert receiver.session.connected
 
