@@ -247,7 +247,7 @@ def replay(path: str) -> None:
     "serve",
     context_settings={"allow_interspersed_args": False},
 )
-@click.option("-p", "--port", metavar="PORT", default=8000, type=int)
+@click.option("-p", "--port", metavar="PORT", default=8000, type=click.IntRange(1, 65535))
 @click.option(
     "-H",
     "--host",
@@ -257,20 +257,37 @@ def replay(path: str) -> None:
 )
 @click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
 def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
-    """Serve a Toad command line in a web browser.
+    """Serve a Toad command line in a web browser on this machine.
 
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
     `toad serve acp agent-comms-acp`.
     """
-    import shlex
+    from toad.web_server import (
+        LocalBrowserAuthentication,
+        LocalBrowserEndpoint,
+        ToadWebServer,
+    )
 
-    from toad.application_lifetime import ApplicationLifetime
-    from toad.web_server import ToadWebServer
+    ToadWebServer.run_toad(
+        LocalBrowserAuthentication(LocalBrowserEndpoint(host, port)), toad_args
+    )
 
-    command = shlex.join([sys.executable, "-m", "toad", *toad_args])
-    server = ToadWebServer(command, host=host, port=port, title="Toad")
-    ApplicationLifetime.set_process_title("toad serve")
-    server.serve()
+
+@main.command(
+    "serve-tailnet",
+    context_settings={"allow_interspersed_args": False},
+)
+@click.argument("https_port", metavar="PORT", type=click.IntRange(1, 65535))
+@click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
+def serve_tailnet(https_port: int, toad_args: tuple[str, ...]) -> None:
+    """Serve a Toad command line to this machine's tailnet owner only.
+
+    Listens on an owner-only unix socket for `tailscale serve --https=PORT`, which
+    supplies each caller's tailnet login.
+    """
+    from toad.web_server import TailnetBrowserAuthentication, ToadWebServer
+
+    ToadWebServer.run_toad(TailnetBrowserAuthentication.from_status(https_port), toad_args)
 
 
 @main.command("about")
