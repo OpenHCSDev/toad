@@ -105,13 +105,16 @@ class Agent(AgentBase):
             project_root: Project root path.
             command: Command to launch agent.
         """
+        self.definition = agent
         super().__init__(project_root)
         self.process = AgentProcess(self)
-        self.presentation = ACPAgentPresentation(self)
+        log_filename = generate_datetime_filename(self.definition.name, ".txt")
+        if (log_path := AgentLog.selected()) is None:
+            log_path = paths.get_log() / log_filename
+        self._presentation = ACPAgentPresentation(self, log_path)
         self.permissions = PermissionController(self)
         self.controller = AgentController(self, transcripts)
         self.tools = SessionToolCalls(self)
-        self.definition = agent
         self.session_id = session_id
         self.updates = SessionNotificationOwner(self)
         self.files = FileClientRequestOwner(self)
@@ -120,12 +123,11 @@ class Agent(AgentBase):
         self._private_cursor = CursorAttachment()
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
-        log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")
-        if (log_path := AgentLog.selected()) is not None:
-            self.presentation.log_path = log_path
-        else:
-            self.presentation.log_path = paths.get_log() / log_filename
         self.context_measurement = ContextMeasurement.saved(UnmeasuredContext())
+
+    @property
+    def presentation(self) -> ACPAgentPresentation:
+        return self._presentation
 
     @property
     def command(self) -> str | None:

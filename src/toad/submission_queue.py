@@ -17,7 +17,7 @@ from toad.queue_capability import QueueActions, QueueEvidence
 
 
 class QueueSource(QueueActions):
-    """The captured source owns admission, observation and mutation capability."""
+    """The captured source controls sending, observation and queue changes."""
 
     preview_limit: ClassVar[int] = 3
 
@@ -46,13 +46,14 @@ class QueueSource(QueueActions):
         return "Queue unavailable"
 
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
-        lines = [(Span("Submitting is local intent; acceptance is not consumption.", MutedRole),)]
-        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),)
-                     for text in evidence.delivering)
+        lines: DetailLines = (
+            (Span("Submitting is local intent; acceptance is not consumption.", MutedRole),),
+            *((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),)
+              for text in evidence.delivering),
+        )
         if evidence.transport:
-            lines.append((Span(evidence.transport, MutedRole),))
-        lines.extend(self.observed_details(evidence))
-        return tuple(lines)
+            lines += ((Span(evidence.transport, MutedRole),),)
+        return (*lines, *self.observed_details(evidence))
 
     def observed_details(self, evidence: QueueEvidence) -> DetailLines:
         return ((Span("No queue observation is available for this source.", MutedRole),),)
