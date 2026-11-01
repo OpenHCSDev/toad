@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import shlex
-from dataclasses import replace
+from abc import abstractmethod
+from dataclasses import dataclass, replace
 from pathlib import Path
 from types import FunctionType
 from agent_comms.repo import Checkout
@@ -36,13 +37,12 @@ from toad.clipboard_image import read_clipboard_png, save_clipboard_png
 from toad.agent_binding import NoAgentConnection
 from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
-from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver
 from toad.input_decision import InputAccepted, InputDecision
 from toad.key_modes import Standard
 from toad.tone_paint import TonePaint
 from toad.path_complete import PathComplete
-from toad.prompt_actions import PromptAction, SubmitNowAction
+from toad.prompt_actions import PromptAction, SubmitInputAction, SubmitNowAction
 from toad.prompt_cursor import (
     CommandText,
     HistoryCursor,
@@ -184,23 +184,57 @@ class PromptContainer(FocusWithinView, containers.HorizontalGroup):
         self.query_ancestor(Prompt).focus()
 
 
-class PromptSubmission:
+class PromptSubmissionState:
+    """A coalesced editor request owns its intent until its callback takes it."""
+
+    def request(self, editor: PromptSubmission, action: SubmitInputAction) -> PromptSubmissionState:
+        # Queue behind the widget's earlier input events, never a timer.
+        if editor.call_later(editor.submit_pending):
+            return PendingPromptSubmission(action, editor.editing_mode)
+        return self
+
+    async def submit(self, editor: PromptSubmission) -> None:
+        pass
+
+
+class NoPromptSubmission(PromptSubmissionState):
+    pass
+
+
+@dataclass(frozen=True)
+class PendingPromptSubmission(PromptSubmissionState):
+    action: SubmitInputAction
+    mode: EditingMode
+
+    def request(self, editor: PromptSubmission, action: SubmitInputAction) -> PromptSubmissionState:
+        if self.mode is editor.editing_mode:
+            action = self.action.coalesce(action)
+        return PendingPromptSubmission(action, editor.editing_mode)
+
+    async def submit(self, editor: PromptSubmission) -> None:
+        await editor._submit(self.action, self.mode)
+
+
+class PromptSubmission(HighlightedTextArea):
     """Admit model and local command submission through the current prompt."""
 
-    def schedule_submission(self, *, immediate: bool = False) -> None:
-        self._submit_immediate |= immediate
-        # The callback is queued behind this widget's input events. Unlike a
-        # timer, it preserves paste/typing order without adding a fixed latency.
-        if not self._submit_pending:
-            self._submit_pending = True
-            self.call_later(self._submit)
+    def __init__(self) -> None:
+        self._submission: PromptSubmissionState = NoPromptSubmission()
+        super().__init__()
 
+    def schedule_submission(self, action: SubmitInputAction) -> None:
+        self._submission = self._submission.request(self, action)
 
+    async def submit_pending(self) -> None:
+        request, self._submission = self._submission, NoPromptSubmission()
+        await request.submit(self)
 
+    @abstractmethod
+    async def _submit(self, action: SubmitInputAction, mode: EditingMode) -> None: ...
 
 
 class PromptTextArea(
-    CoreEventReceiver, LocalMethodKeys, PromptSubmission, HighlightedTextArea,
+    CoreEventReceiver, LocalMethodKeys, PromptSubmission,
     actions=(PromptAction,),
 ):
     HELP = """\
@@ -236,8 +270,6 @@ See on-screen instructions for details.
         self.prompt = prompt
         self.set_reactive(TextArea.editing_mode, prompt.initial_editing_mode)
         self.set_reactive(PromptTextArea.project_path, prompt.project_path)
-        self._submit_pending = False
-        self._submit_immediate = False
 
     @property
     def agent_busy(self) -> bool:
@@ -396,10 +428,10 @@ See on-screen instructions for details.
                     priority=True),
     )
 
-    async def _submit(self) -> None:
-        """Silently cancel a submission superseded by focus, mode or popup changes."""
-        self._submit_pending = False
-        mode = self.editing_mode
+    async def _submit(self, action: SubmitInputAction, mode: EditingMode) -> None:
+        """A refused or superseded transfer consumes no text and retains no intent."""
+        if mode is not self.editing_mode:
+            return
         try:
             if not await mode.flush(self):
                 return
@@ -407,7 +439,6 @@ See on-screen instructions for details.
             return  # The engine already reported its failure; never submit stale text.
         if mode is not self.editing_mode:
             return
-        immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus or not self.submission_allowed:
             return
         input_text = CommandText.decode_input(self.text, self.slash_commands)
@@ -432,7 +463,7 @@ See on-screen instructions for details.
         shell = self.shell_mode
         text = self.text
         self.clear()
-        self.publish_core(UserInputSubmitted(text, shell, immediate=immediate))
+        self.publish_core(action.submission_event(text, shell))
         if shell:
             self.prompt.shell_mode = False
 

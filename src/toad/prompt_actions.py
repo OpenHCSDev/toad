@@ -3,6 +3,7 @@ from __future__ import annotations
 from textual.document._editing import VimMode
 from textual.widgets.text_area import EditingMode
 from toad.widget_actions import Action
+from toad.core.input_events import UserInputSubmitted
 from typing import TYPE_CHECKING
 
 
@@ -47,15 +48,21 @@ class SubmitInputAction(PromptAction, declared_name=None):
     def available(self, editor):
         return editor.submission_allowed
 
+    async def apply(self, editor: PromptTextArea) -> None:
+        editor.schedule_submission(self)
+
+    def coalesce(self, following: SubmitInputAction) -> SubmitInputAction:
+        return following
+
+    def submission_event(self, text: str, shell: bool) -> UserInputSubmitted:
+        return UserInputSubmitted(text, shell)
+
 
 class SubmitAction(SubmitInputAction):
     """Send the prompt to the agent."""
     keys = {EditingMode: ("enter",)}
     title = "Send"
     key_display = "⏎"
-
-    async def apply(self, editor: PromptTextArea) -> None:
-        editor.schedule_submission()
 
 
 class SubmitNowAction(SubmitInputAction):
@@ -68,8 +75,11 @@ class SubmitNowAction(SubmitInputAction):
         return (super().available(editor) and editor.prompt.agent_ready and editor.agent_busy
                 and editor.prompt.agent_binding.presentation.queue_supported)
 
-    async def apply(self, editor: PromptTextArea) -> None:
-        editor.schedule_submission(immediate=True)
+    def coalesce(self, following: SubmitInputAction) -> SubmitInputAction:
+        return self
+
+    def submission_event(self, text: str, shell: bool) -> UserInputSubmitted:
+        return UserInputSubmitted(text, shell, immediate=True)
 
 
 class CopyOrClearInputAction(PromptAction):
