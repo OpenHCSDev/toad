@@ -27,7 +27,6 @@ from toad.command_catalog import CommandCatalog
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.queue_capability import QueueActions, QueueEvidence
 from toad.core.input_events import UserInputSubmitted
-from toad.core_event_carrier import CoreEventMessage
 from toad.input_decision import InputDecision, InputRefused
 from toad.widgets.prompt import Prompt
 
@@ -436,9 +435,6 @@ class ConversationSubmissions:
             self.view.delivery_refused(self.send_block_reason, event.body)
             return
         return await InputSubmission.from_event(event, self).execute(self)
-
-    def accepts_failure(self, message: CoreEventMessage):
-        return self.view.agent_binding.accepts_failed_input(message)
 
     @property
     def queue_evidence(self) -> QueueEvidence:
