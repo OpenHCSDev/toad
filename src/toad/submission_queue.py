@@ -77,7 +77,7 @@ class ReadOnlyQueueSource(QueueSource):
 class NativeQueueSource(QueueSource):
     def begin_submission(self, owner: ConversationSubmissions,
                          submission: PromptInputSubmission) -> SubmissionStart:
-        return owner.view.agent_binding.begin_submission(owner, submission)
+        return self.input_decision(owner.view).begin_submission(owner, submission)
 
     def defers_input(self, view) -> bool:
         return view.turns.owner.busy and view.agent_binding.presentation.queue_supported

@@ -6,7 +6,8 @@ import subprocess
 import sys
 
 from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
-from toad.acp.status import EndTurnStopReason
+from acp.schema import PromptResponse
+from toad.acp.status import StopReason
 from support.agents import AppAgents, command
 from toad.acp.agent import Agent
 from toad.command_catalog import CommandCatalog
@@ -206,7 +207,7 @@ async def test_a_model_counts_as_used_when_a_turn_completes_not_when_it_is_recei
         agent.configuration.receive([agent.configuration.model.option.model_copy(update={'current_value': SONNET})])
         await picker.ui.until(lambda: agent.configuration.model.current == SONNET, why="the received model")
         assert (await picker.recents())[0] == GPT
-        await picker.conversation.agent_turn_over(EndTurnStopReason)
+        await picker.conversation.agent_turn_over(StopReason.from_acp(PromptResponse(stopReason="end_turn")))
         async def sonnet_first():
             return (await picker.recents())[0] == SONNET
         await picker.ui.until(sonnet_first, why="the completed turn to record its model")
