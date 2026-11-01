@@ -11,14 +11,16 @@ from contextlib import AbstractContextManager, ExitStack, contextmanager
 import ctypes
 from dataclasses import dataclass
 import itertools
+import json
+from multiprocessing import Pipe
 import os
 from pathlib import Path
 import re
 import select
+import shlex
 import socket
 import struct
 import subprocess
-import sys
 import time
 from typing import get_args, get_type_hints
 
@@ -42,7 +44,7 @@ from textual.strip import Strip
 from ui_theme.wal import WalFile
 
 from physical_ui_remote import (
-    AdmitOperation, CapturedRegion, ExecOperation, ObserveOperation, PendingRun, PhysicalOperation,
+    AdmitOperation, CapturedRegion, StartOperation, ObserveOperation, PendingRun, PhysicalOperation,
     ProcessRetirement, RunObservation, RunTarget, StopRootOperation,
 )
 
@@ -221,7 +223,8 @@ class TerminalApp:
 
     def __init__(self, command: tuple[str, ...], display: XvfbDisplay, output: Path,
                  target: RunTarget, cwd: Path, *, size: Size = Size(140, 40)):
-        self.command, self.display, self.output = tuple(map(str, command)), display, output
+        self.command, self.display = tuple(map(str, command)), display
+        self.output = output.expanduser().resolve()
         self.target, self.cwd, self.requested_size = target, cwd, size
         environment = LaunchRoot.environment(ThreadLaunch.strip(dict(os.environ)))
         for key in tuple(environment):
@@ -306,13 +309,16 @@ class TerminalApp:
         output = output.expanduser().absolute()
         output.mkdir(mode=0o700, parents=True)  # Fresh evidence, never overwrite a failed run.
         copied = CheckRoot(source, threads, output / "bus").create()
+        project = copied.registry.require(thread).project_path
         RootRuntime.publish(copied.root, runtime)
         target = cls.prepare_target(copied.root, runtime)
         try:
             with OwnedDisplay(output / "display", size=framebuffer) as display:
-                # Keep the real default launcher: its root/runtime succession is
-                # precisely what the post-attachment observation must establish.
-                command = (str(Path.home() / ".local/bin/toad-comms"), thread)
+                # Startup instrumentation runs the actual installed Toad CLI.
+                # This is NOT proof of the separate toad-comms shell launcher.
+                command = (str(runtime.interpreter.parent / "toad"), "acp",
+                           shlex.join((str(runtime.interpreter), "-m", "agent_comms.acp")),
+                           str(project), "--session", thread, "--title", "Agent Comms")
                 app = cls(command, display, output / "frontend", target, target.home, size=size)
                 with display.recording(output / "journey.mp4", app.environment), app:
                     yield app
@@ -328,11 +334,9 @@ class TerminalApp:
         # controller lifetime. Later source edits cannot change a run's wire.
         raw = cls.operation_program
         script = directory / "operation.py"
-        # remote_exec supplies no module filename. Bind only that external
-        # datum; the program stays in its reviewed source file and the request
-        # stays in FieldCodec's adjacent record, as in capture_history.
-        filename = f"__file__ = {str(script)!r}\n".encode()
-        ExclusiveAtomicFile(script).write_bytes(filename + raw)
+        # Only startup/shutdown executes a program. Normal Python supplies its
+        # filename; later observations submit data to the startup-owned reader.
+        ExclusiveAtomicFile(script).write_bytes(raw)
         PhysicalOperation.publish(script.with_suffix(".json"), operation)
         return script
 
@@ -352,23 +356,37 @@ class TerminalApp:
             child.collect(timeout=30).check_returncode()
         cls.result(directory)
 
-    def _packet(self, operation: PhysicalOperation) -> Path:
-        return self.operation_file(operation, self.output / "operations" / f"{next(self.operations):06d}")
+    def _packet(self, operation: ObserveOperation) -> Path:
+        directory = self.output / "operations" / f"{next(self.operations):06d}"
+        directory.mkdir(mode=0o700, parents=True)
+        packet = directory / "request.json"
+        PhysicalOperation.publish(packet, operation)
+        return packet
 
     def __enter__(self):
         self.output.mkdir(mode=0o700, parents=True)
         self.dump = self.output / "st-screen.txt"
         self.log = (self.output / "st.log").open("wb")
-        script = self._packet(ExecOperation(self.target, ProcessIdentity.current(), self.command))
-        self.terminal = SpawnedProcess.launch(
-            ("st", "-f", "DejaVu Sans Mono:pixelsize=16",
-             "-g", f"{self.requested_size.width}x{self.requested_size.height}", "-o", str(self.dump), "-e", "env",
-             f"HOME={self.target.home}", f"XDG_CONFIG_HOME={self.target.config}",
-             f"XDG_STATE_HOME={self.target.state}", f"XDG_DATA_HOME={self.target.data}",
-             str(self.target.launch_runtime.interpreter), "-I", str(script)),
-            cwd=self.cwd, env=self.environment,
-            stdio=DetachedChildStdio(stdout=self.log, stderr=self.log),
-        )
+        frontend_requests, self.observer = Pipe(duplex=False)
+        try:
+            descriptor = frontend_requests.fileno()
+            script = self.operation_file(StartOperation(
+                self.target, ProcessIdentity.current(), self.command, descriptor), self.output / "startup")
+            self.terminal = SpawnedProcess.launch(
+                ("st", "-f", "DejaVu Sans Mono:pixelsize=16",
+                 "-g", f"{self.requested_size.width}x{self.requested_size.height}", "-o", str(self.dump), "-e", "env",
+                 f"HOME={self.target.home}", f"XDG_CONFIG_HOME={self.target.config}",
+                 f"XDG_STATE_HOME={self.target.state}", f"XDG_DATA_HOME={self.target.data}",
+                 str(self.target.launch_runtime.interpreter), "-I", str(script)),
+                cwd=self.cwd, env=self.environment, pass_fds=(descriptor,),
+                stdio=DetachedChildStdio(stdout=self.log, stderr=self.log),
+            )
+        except BaseException:
+            self.observer.close()
+            self.log.close()
+            raise
+        finally:
+            frontend_requests.close()
         try:
             PhysicalOperation.publish(self.output / "st-process.json", self.terminal.identity)
             self.window = int(subprocess.check_output(
@@ -377,12 +395,10 @@ class TerminalApp:
             deadline = time.monotonic() + self.startup_seconds
             self._await_result(script.parent, deadline)
             self.frontend = self.result(script.parent).process()
-            # Wait until the exec wrapper has left and the real interpreter has
-            # emitted terminal data. Neither is application/source readiness:
-            # that answer comes from the live Toad owner in observe() below.
+            # Startup stays in the same interpreter; native image and terminal
+            # data do not imply application/source readiness. The UI owner does.
             while (Path(f"/proc/{self.frontend.pid}/exe").resolve()
                    != self.target.launch_runtime.interpreter.resolve()
-                   or os.fsencode(script) in Path(f"/proc/{self.frontend.pid}/cmdline").read_bytes()
                    or not self.dump.stat().st_size):
                 self._require_starting(deadline)
                 time.sleep(.05)
@@ -415,12 +431,12 @@ class TerminalApp:
 
     def _observe(self, operation: type[ObserveOperation]):
         self.terminal.platform.require(self.frontend)
-        script = self._packet(operation(self.target, self.frontend, Path(__file__).resolve().parent))
-        # This controller is an ancestor of its st/frontend. No arbitrary PID,
-        # helper privilege escalation, installed-file edit or source retry.
-        sys.remote_exec(self.frontend.pid, str(script))
-        self._await_result(script.parent, time.monotonic() + PhysicalOperation.timeout)
-        result = self.result(script.parent)
+        packet = self._packet(operation(self.target, self.frontend, Path(__file__).resolve().parent))
+        # Only this new frontend inherited the reader. It decodes this data
+        # packet and applies it through Textual's own main-loop boundary.
+        self.observer.send_bytes(json.dumps(FieldCodec.encode(packet)).encode())
+        self._await_result(packet.parent, time.monotonic() + PhysicalOperation.timeout)
+        result = self.result(packet.parent)
         if result.observation().frontend.process != self.frontend:
             raise ValueError("Observation belongs to another frontend incarnation")
         self.terminal.platform.require(self.terminal.identity)
@@ -586,6 +602,7 @@ class TerminalApp:
     def close(self) -> None:
         """Retire one child lifetime on normal exit and failed entry alike."""
         try:
+            self.observer.close()
             outcome = self.terminal.stop_sync(deadline=time.monotonic() + self.stop_seconds)
             PhysicalOperation.publish(self.output / "st-retired.json",
                                       ProcessRetirement(self.terminal.identity, outcome))
@@ -604,6 +621,7 @@ class TerminalApp:
                     raise ValueError("The verified runtime build changed during the physical run")
                 PhysicalOperation.publish(self.output / "build-final.json", final)
                 self.keys("ctrl+q")
+                self.observer.close()
                 self.terminal.process.wait(timeout=5)
         finally:
             self.close()

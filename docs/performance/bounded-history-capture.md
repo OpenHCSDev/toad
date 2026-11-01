@@ -1,4 +1,8 @@
-# Root-only history/frame observation
+# Historical history/frame observation — do not run
+
+The frozen inputs documented here remain unchanged for retained diagnosis.
+Their running-process injection is forbidden by the current host permission;
+the old approval is not launch authority. See [the startup replacement](physical-run.md#startup-observation-current-source-not-yet-run).
 
 This is an observation tool, not a history performance repair. Authors do not run it. Root reviews the exact head, selects the private-process controls below, and only then attaches to its explicitly selected copied-bus frontend. No synthetic app, UI input, screenshots, provider calls, saved-history decoding or service operations are involved.
 

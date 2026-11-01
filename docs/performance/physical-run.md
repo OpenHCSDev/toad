@@ -37,6 +37,30 @@ retains the copied root, frontend-home, operation receipts, screenshots and
 recording on exit. The caller still owns retiring those retained files after
 acceptance and actual borrower checks.
 
+## Startup observation (current source, not yet run)
+
+`StartOperation` runs the installed distribution's declared Toad entrypoint in
+the new frontend interpreter. One private inherited pipe belongs to that exact
+frontend/controller lifetime; the descriptor cannot travel into later execs.
+The blocking reader receives only paths to fresh data packets under this run's
+operation directory. `FieldCodec` admits `ObserveOperation` descendants, never
+start/stop operations. Textual's existing `call_from_thread` applies observations
+on its own loop. No executable packet, debugger attachment, ptracer grant,
+signal handler, periodic wakeup or second controller is involved.
+
+The copied-history factory now exercises the instrumented installed **Toad CLI**,
+not the separate `toad-comms` shell launcher or its executable wrapper. Those
+entrypoints need their own evidence; this run cannot claim it. The operation
+module stays alive while the distribution entrypoint runs so its declared wire
+types do not acquire a different `__main__` namespace. `AcpRoots` is declared
+once per module, not rebuilt and registered on every observation.
+
+The startup/shutdown programs retain the bounded immutable source snapshot.
+Ordinary observations write only typed request/result data, not another copy of
+the program. Closing the controller pipe and the existing child lifetime retires
+this reader. Exceptional exit sends no further observation or physical input.
+The new path is source work until actual fresh-prefix/physical execution proves it.
+
 ## What the owner establishes
 
 - `CheckRoot` alone selects/imports bounded stopped history; old goals, turns,
@@ -52,18 +76,18 @@ acceptance and actual borrower checks.
 - HOME/XDG inside `st -e env`: st itself resets HOME from passwd before exec.
 - Xvfb uses displayfd, not a guessed display number. Xlib checks its actual
   local peer UID/process; the run verifies the allocated server incarnation.
-- Child exec grants debugging only to the recorded controller PID and its
-  descendants. It changes no global ptrace policy and needs no sudo. The
-  controller owns one bounded operation-source snapshot for its entire Python
-  lifetime; editing the checkout cannot change an already started run's wire.
+- Startup retains the recorded controller/frontend births and its inherited
+  private connection. It grants no debugging permission and performs no running-
+  process injection. The controller owns one bounded operation-source snapshot;
+  editing the checkout cannot change an already started run's wire.
 - Before physical input: the actual frontend incarnation, runtime and loaded
   Toad/Core/Textual module locations, HOME/XDG/database, selected/opened source,
   every saved entry's source and every borrowed ACP process's creator/session
   agent coordination roots. Pending/foreign sources refuse input.
 - The read-only observation asks `ToadApp.running_app()` and the actual screen
-  owner. A window caption is not readiness. `remote_exec` receives an explicit
-  module filename binding and an adjacent FieldCodec request; a missing or
-  timed-out result is not a successful observation.
+  owner on Textual's loop. A window caption is not readiness. The startup reader
+  accepts an adjacent FieldCodec data request; a missing or timed-out result is
+  not a successful observation.
 - st text travels with the actually published history viewport geometry.
   `ScreenCapture` clips through Textual/Rich's cell geometry, not sidebar
   separators that disappear when a sidebar closes or occur inside code.
@@ -166,13 +190,29 @@ its compilation/dispatch cost. Do not report that overhead as production frame
 cost or quietly subtract it from a user-facing latency claim. Correlate complete
 controller/call spans and the recording.
 
-The separate reviewed `capture_history.py` path retains its own explicit
-approval, identity, size/time budgets and completion token. This entry point
-neither starts that capture nor authorizes heap, GC, repaint, remeasure or
-arbitrary trace experiments. The legacy `capture_live.py` diagnostic options do
-not become authorized merely because they import the shared display resource.
+The frozen `capture_history.py`, `history_capture_remote.py` and `frame_meter.py`
+inputs remain unchanged and unrun. Their old injection path is forbidden by the
+current host permission, notwithstanding historical approval. Replacement of
+that capture needs its proper source/execution admission. No heap, GC, repaint,
+remeasure or arbitrary trace experiment is authorized. `capture_live.py` now
+exposes only read-only py-spy profiling; its injection and mutation options are
+deleted, not retained behind a permission flag.
 
-## Current qualification
+## Append/publication app controls
+
+The authorized five-case selection on application source `26a16fe2` passed:
+**5 collected, 5 passed, 71.91 s, exit 0**. It covers retained page/fragment paint,
+the known-gap destination immediately after a witnessed admitted real read,
+complete closed-prefix replacement, and both live-pressure cases. Setup and
+teardown completed through the existing `pytest_session`/`TestLease`, using the
+actual ceeed interpreter/Core/Textual and this checkout's Toad source. Evidence:
+`pi-ui-performance/dm-app-controls-03/{origins.log,pytest.log,pytest.rc}` under
+`/home/ts/.cache/agent-scratch/`. The earlier four-pass/one-fail run remains failed;
+the new fixture witnesses admission instead of assuming a successful return
+means work ran. These are headless app controls before today's-main rebase,
+not incoming native-tool, startup-transport, shell-launcher or physical proof.
+
+## Historical qualification — not the startup replacement
 
 Core #3821 is installed in 7d0d; the merger reports 23 selected checks passed.
 Fresh runs10 and12 used that installed source interpreter with `-I` and no Core
