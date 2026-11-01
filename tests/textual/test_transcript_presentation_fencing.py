@@ -207,15 +207,23 @@ async def test_followed_commit_publishes_a_known_undrawn_gap_before_settling(wor
         await ui.app.coordination_access.stop_observing()
         await view.transcript.suspend()
         history = view.transcript.binding.history
+        await ui.until(lambda: history.source_ready, why="the original source work to finish")
         with journal.open("a") as output:
             output.write(json.dumps(assistant_entry(
                 "AFTER_SOURCE_GAP", id="after", parent="before")) + "\n")
-        page = workspace.comms.transcripts.capture_page_read("gap-source").read()
-        # The real retained-reader operation advances access, not the drawn end.
-        history.retain_committed(page.after)
-        assert view.window.follows_tail and history.drawn_end_more
         view.transcript.dirty = view.transcript.commit_required = True
-        await view.transcript.publish(CommitPublication)
+        entered, release = asyncio.Event(), asyncio.Event()
+        pending = asyncio.create_task(view.transcript.publish(HeldSourceCase, entered, release))
+        try:
+            # A successful publication return can also mean a guarded no-op.
+            # Hold the existing real read only AFTER the commit was admitted.
+            await ui.until(entered.is_set, why="the admitted commit to acquire its real source")
+            page = workspace.comms.transcripts.capture_page_read("gap-source").read()
+            history.retain_committed(page.after)
+            assert view.window.follows_tail and history.drawn_end_more
+        finally:
+            release.set()
+            await pending
         # Check the publication contract before a later lookahead can hide it.
         assert not history.drawn_end_more
         assert history.pages[-1].prepared.page.after.same_position(page.after)
