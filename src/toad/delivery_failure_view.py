@@ -26,7 +26,7 @@ class DeliveryFailureView(ToadNode, Widget):
     composer_block: var[str] = var("")
 
     @abstractmethod
-    def draws_user_message(self, message: Message) -> bool: ...
+    def contains_user_message(self, message: Message) -> bool: ...
 
     async def composer_read_only(self) -> bool:
         return False

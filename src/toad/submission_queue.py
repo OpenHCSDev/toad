@@ -31,7 +31,7 @@ class QueueSource(QueueActions):
     def defers_input(self, view) -> bool:
         return False
 
-    def draws_message(self, view, root: Path, sent: Message) -> bool:
+    def contains_message(self, view, root: Path, sent: Message) -> bool:
         """Only the original message source can confirm its committed row."""
         return False
 
