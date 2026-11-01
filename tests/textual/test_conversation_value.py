@@ -190,7 +190,7 @@ async def test_recreated_dm_peer_retires_the_old_view_and_opens_a_new_incarnatio
         def replace_peer():
             registry = workspace.comms.registry
             registry.unregister(peer.name)
-            registry.remove_originals((registry.require(peer.name),))
+            workspace.comms.threads.delete(peer.name)
             return registry.declare(Thread(
                 peer.name, peer.tags, peer.worktree, created_at=peer.created_at + 1,
             ))
