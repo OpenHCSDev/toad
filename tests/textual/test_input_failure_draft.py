@@ -5,12 +5,13 @@ import asyncio
 from contextlib import closing
 from dataclasses import replace
 import sqlite3
+import sys
 
 import pytest
 from textual.worker import WorkerCancelled
 
 from acp.exceptions import RequestError
-from acp.schema import ConfigOptionUpdate, SessionConfigOptionSelect
+from acp.schema import ConfigOptionUpdate, NewSessionResponse, SessionConfigOptionSelect
 
 from agent_comms.acp_extension import (
     AvailableQueueProjection, IdentifiedInputStarted, InputFailedUpdate, LiveQueueScope,
@@ -20,7 +21,7 @@ from agent_comms.acp_failure import BackendDeliveryFailure, RequestFailure
 from agent_comms.input_attempt import BoundUnknownInput, InputAttempt, NotSentInput, ReservedInput, StartedInput
 from agent_comms.nominal.field_codec import AcpSessionId, InputId
 
-from support.agents import command, peer, script
+from support.agents import PEERS, command, peer, script
 from toad.conversation_submission import SendBlocked, SendPending
 from toad.core.input_events import UserInputSubmitted
 from toad.session_scope import AgentAttached
@@ -119,19 +120,23 @@ async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_se
 
 async def test_a_late_original_native_start_settles_a_failed_request_without_replaying(workspace):
     owner = workspace.thread("scope-owner", running=True)
-    async with workspace.app(size=(110, 32), binding=AgentAttached(peer("scripted"))) as ui:
+    session = "late-ack-session"
+    scope = LiveQueueScope(
+        session_id=AcpSessionId(session),
+        claimed_identity=workspace.comms.registry.snapshot().claimed_identity(owner.name),
+        owner=owner.require_process(),
+    )
+    response = NewSessionResponse(sessionId=session, _meta=encode_updates(
+        QueueChangedUpdate(scope, 1, AvailableQueueProjection())))
+    response_path = workspace.project / "late-session.json"
+    response_path.write_text(response.model_dump_json(by_alias=True))
+    definition = command(sys.executable, str(PEERS / "session_response.py"), str(response_path))
+    async with workspace.app(size=(110, 32), binding=AgentAttached(definition)) as ui:
         await ui.until_agent_ready()
         view = ui.conversation
         receiver = view.agent_binding
-        scope = LiveQueueScope(
-            session_id=AcpSessionId(receiver.session_id),
-            claimed_identity=workspace.comms.registry.snapshot().claimed_identity(owner.name),
-            owner=owner.require_process(),
-        )
-        await asyncio.wait_for(receiver.send_prompt(script({"update": {
-            "sessionUpdate": "session_info_update",
-            "_meta": encode_updates(QueueChangedUpdate(scope, 1, AvailableQueueProjection()))}})), 10)
-        await ui.until(lambda: receiver.presentation.queue_supported, why="the peer's live queue scope")
+        assert receiver.queue_attachment.accepts_request(scope), "The SDK session response did not bind its scope"
+        assert not receiver.presentation.queue_supported, "A queue observation must not invent coordination"
         original = RequestFailure.from_error(RequestError.internal_error({"details": "lost input disposition"}))
         failure = replace(original, failure=replace(original.failure, input_state=BoundUnknownInput))
         body = script({"error": RequestError.internal_error(failure.error_data()).to_error_obj()})
