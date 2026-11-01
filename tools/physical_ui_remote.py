@@ -16,11 +16,12 @@ import sys
 import time
 from typing import ClassVar
 
-from agent_comms.child_process import ProcessIdentity
+from agent_comms.child_process import ChildOutcome, ProcessIdentity
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import DeclaredWireType, FieldCodec
 from textual.geometry import Region
+from ui_theme.wal import WalFile
 from agent_comms.store_files import ExclusiveAtomicFile
 
 
@@ -54,6 +55,10 @@ class RunTarget:
         return LaunchRuntime.at_prefix(self.runtime)
 
     @property
+    def palette(self) -> Path:
+        return WalFile.directory({"HOME": str(self.home)})
+
+    @property
     def config(self) -> Path:
         return self.home / "config"
 
@@ -70,6 +75,8 @@ class RunTarget:
             raise ValueError("Post-attachment HOME/runtime differs from the run target")
         if (observed.config, observed.state, observed.data) != (self.config, self.state, self.data):
             raise ValueError("Post-attachment XDG persistence differs from the private run")
+        if observed.palette_directory != self.palette:
+            raise ValueError("The actual theme palette is outside the private home")
         if not observed.database.is_relative_to(self.state):
             raise ValueError("Toad's actual database is outside private state")
         if observed.root != self.root:
@@ -112,6 +119,7 @@ class RunObservation:
     state: Path
     data: Path
     database: Path
+    palette_directory: Path
     root: Path
     opened: bool
     saved_roots: tuple[Path, ...]
@@ -121,6 +129,14 @@ class RunObservation:
     toad_module: Path
     core_module: Path
     textual_module: Path
+
+
+@dataclass(frozen=True)
+class ProcessRetirement:
+    """The existing child owner's result, qualified by the exact resource birth."""
+
+    identity: ProcessIdentity
+    outcome: ChildOutcome
 
 
 class PhysicalResult(DeclaredFamily, affix="Result"):
@@ -324,7 +340,8 @@ class ObserveOperation(PhysicalOperation):
         observed = RunObservation(
             self.identity, started, time.monotonic_ns(), Path(sys.prefix).resolve(),
             Path.home().resolve(), xdg_config_home().resolve(), xdg_state_home().resolve(),
-            xdg_data_home().resolve(), app.tab_order._db.path.resolve(), root,
+            xdg_data_home().resolve(), app.tab_order._db.path.resolve(),
+            app.colours.wal_directory.resolve(), root,
             access.observation.observes(root), saved, acp, regions, checked,
             Path(toad.__file__).resolve(), Path(agent_comms.__file__).resolve(),
             Path(textual.__file__).resolve(),

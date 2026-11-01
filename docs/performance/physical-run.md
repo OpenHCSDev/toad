@@ -40,12 +40,18 @@ acceptance and actual borrower checks.
   source owner creates history; only its disposable copy is published through
   `RootRuntime.publish` to a supplied runtime.
 - Fresh Toad config/state/data and no copied saved-tab database. Presentation
-  settings can travel; source identities cannot be repaired by rewriting tabs.
+  settings derive from the declarations on the `INTERFACE` page; session/shell/
+  launcher settings and the original anonymous identity do not travel. Collection
+  is disabled through `SavedSettings`. The optional palette is copied/validated
+  through `WalFile` and the actual private palette directory is observed.
+  Source identities cannot be repaired by rewriting tabs.
 - HOME/XDG inside `st -e env`: st itself resets HOME from passwd before exec.
 - Xvfb uses displayfd, not a guessed display number. Xlib checks its actual
   local peer UID/process; the run verifies the allocated server incarnation.
 - Child exec grants debugging only to the recorded controller PID and its
-  descendants. It changes no global ptrace policy and needs no sudo.
+  descendants. It changes no global ptrace policy and needs no sudo. The
+  controller owns one bounded operation-source snapshot for its entire Python
+  lifetime; editing the checkout cannot change an already started run's wire.
 - Before physical input: the actual frontend incarnation, runtime and loaded
   Toad/Core/Textual module locations, HOME/XDG/database, selected/opened source,
   every saved entry's source and every borrowed ACP process's creator/session
@@ -88,11 +94,23 @@ not become authorized merely because they import the shared display resource.
 
 ## Current qualification
 
-Core #3821 is an API checkpoint; full acceptance is separate. Prototype7
-completed with exit0: actual copied b34 frontend/source/home/runtime admission,
-held PageUp/PageDown, reversal, End and wheel input, screenshots, a continuous
-recording and typed copied-root stop. Its source controller still used the
-owned Core overlay, and it had no bound ACP. Earlier failed run receipts remain
-retained. Candidate admission, installed-source qualification, four isolation
-counterexamples, tab/resize/arrival/retirement coverage and final profiling must
-be reported individually; none is implied by this bounded scrolling result.
+Core #3821 is installed in 7d0d; the merger reports 23 selected checks passed.
+Fresh runs10 and12 used that installed source interpreter with `-I` and no Core
+source overlay, and observed all three actual package origins in the supplied
+mobile candidate. Run12 completed exit0 through held PageUp/PageDown, reversal,
+End and wheel input, with screenshots/recording and typed private-copy stop.
+The st, Xvfb and encoder receipts name their exact process births and existing
+child-owner outcomes; their PIDs and the frontend were independently absent.
+There were **no bound ACPs**. Four isolation counterexamples, the wider tab/
+resize/arrival journey and actual profiling remain separate obligations.
+
+Run8's foreign candidate-module origin, run9's missing-palette warning and
+callback timeout, and run11's first-observation timeout remain retained. A
+missing palette was demonstrated, not proved to explain every timeout. Failed
+or uncertain operations now go straight to the existing owned-process shutdown;
+exit does not attempt another attachment/key. No such attempt is replayed.
+
+Current helpers are `tools/physical_ui.py` and `tools/physical_ui_remote.py` on
+PR #1393. Consumers must start a new controller from one published checkpoint,
+not combine a live process with a newly imported wire shape. A completed
+stopped-history scenario is not bound-ACP or performance acceptance.
