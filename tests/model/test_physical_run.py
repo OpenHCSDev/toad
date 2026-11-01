@@ -40,7 +40,7 @@ def physical_observation(physical_target: RunTarget) -> RunObservation:
         database=target.state / "toad.db", palette_directory=target.palette,
         root=target.root, opened=True, storage_rule=StorageRule().within(target.root),
         saved_roots=(target.root,),
-        acp_roots=(target.root,), history_regions=(), modules_checked=3,
+        acp_roots=(target.root,), history_regions=(), history_published=False, modules_checked=3,
     )
 
 
