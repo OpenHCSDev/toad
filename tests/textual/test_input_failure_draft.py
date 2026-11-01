@@ -3,6 +3,7 @@ and remote failure facts never overwrite what the user is typing."""
 
 import asyncio
 from contextlib import closing
+from dataclasses import replace
 import sqlite3
 
 import pytest
@@ -11,8 +12,13 @@ from textual.worker import WorkerCancelled
 from acp.exceptions import RequestError
 from acp.schema import ConfigOptionUpdate, SessionConfigOptionSelect
 
-from agent_comms.acp_extension import InputFailedUpdate, RequestFailedUpdate, encode_updates
-from agent_comms.acp_failure import BackendDeliveryFailure
+from agent_comms.acp_extension import (
+    AvailableQueueProjection, IdentifiedInputStarted, InputFailedUpdate, LiveQueueScope,
+    QueueChangedUpdate, RequestFailedUpdate, encode_updates,
+)
+from agent_comms.acp_failure import BackendDeliveryFailure, RequestFailure
+from agent_comms.input_attempt import BoundUnknownInput, InputAttempt, NotSentInput, ReservedInput, StartedInput
+from agent_comms.nominal.field_codec import AcpSessionId, InputId
 
 from support.agents import command, peer, script
 from toad.conversation_submission import SendBlocked, SendPending
@@ -35,22 +41,42 @@ async def test_a_failure_reported_by_the_remote_side_never_overwrites_the_draft(
         assert workspace.prompts_received() == [remote, remote]
 
 
-async def test_a_prompt_whose_request_fails_is_restored_to_the_composer(workspace):
+@pytest.mark.parametrize(("input_state", "blocked"), (
+    (None, True),
+    (BoundUnknownInput, True),
+    (ReservedInput, True),
+    (NotSentInput, False),
+    (StartedInput, False),
+))
+async def test_request_failure_preserves_its_reported_input_disposition(
+        workspace, input_state: type[InputAttempt] | None, blocked: bool):
     async with workspace.app(size=(110, 32), binding=AgentAttached(peer("scripted"))) as ui:
         await ui.until_agent_ready()
         view = ui.conversation
         receiver = view.agent_binding
         disposition, child = receiver.session.disposition, receiver.process.process
-        error = RequestError.invalid_params({"reason": "owner unavailable"})
+        original = RequestFailure.from_error(RequestError.invalid_params({"reason": "owner unavailable"}))
+        reported = replace(original, failure=replace(original.failure, input_state=input_state))
+        error = RequestError.invalid_params(reported.error_data())
         body = script({"error": error.to_error_obj()})
         await ui.write_draft("")
         worker = await view.submissions.submit(UserInputSubmitted(body))
+        (execution,) = view.submissions.active
         await asyncio.wait_for(worker.wait(), 10)
-        await ui.until(lambda: ui.draft() == body, why="the refused request's original text back in the draft")
-        assert not view.send_block_reason
+        await ui.until(lambda: ui.draft() == body, why="the failed request's original text back in the draft")
         assert receiver.session.disposition is disposition
         assert receiver.process.process is child and child.returncode is None
-        assert workspace.prompts_received() == [body]
+        if blocked:
+            assert isinstance(execution.state, SendBlocked)
+            assert view.submissions.retains_surface
+            await view.submissions.submit(UserInputSubmitted(body))
+            await ui.step()
+            assert ui.draft() == body
+            assert isinstance(execution.state, SendBlocked)
+        else:
+            assert not view.send_block_reason
+            assert not view.submissions.retains_surface
+        assert workspace.prompts_received() == [body], "An unconfirmed input was replayed"
         assert {"error": error.to_error_obj()} in workspace.received()
 
 
@@ -87,7 +113,45 @@ async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_se
         assert receiver.session.disposition is disposition
         assert receiver.process.process is child and child.returncode is None
         assert view.model_selection_available
+        assert view.send_block_reason and view.submissions.retains_surface
         assert {"error": error.to_error_obj()} in workspace.received()
+
+
+async def test_a_late_original_native_start_settles_a_failed_request_without_replaying(workspace):
+    owner = workspace.thread("scope-owner", running=True)
+    async with workspace.app(size=(110, 32), binding=AgentAttached(peer("scripted"))) as ui:
+        await ui.until_agent_ready()
+        view = ui.conversation
+        receiver = view.agent_binding
+        scope = LiveQueueScope(
+            session_id=AcpSessionId(receiver.session_id),
+            claimed_identity=workspace.comms.registry.snapshot().claimed_identity(owner.name),
+            owner=owner.require_process(),
+        )
+        await asyncio.wait_for(receiver.send_prompt(script({"update": {
+            "sessionUpdate": "session_info_update",
+            "_meta": encode_updates(QueueChangedUpdate(scope, 1, AvailableQueueProjection()))}})), 10)
+        await ui.until(lambda: receiver.presentation.queue_supported, why="the peer's live queue scope")
+        original = RequestFailure.from_error(RequestError.internal_error({"details": "lost input disposition"}))
+        failure = replace(original, failure=replace(original.failure, input_state=BoundUnknownInput))
+        body = script({"error": RequestError.internal_error(failure.error_data()).to_error_obj()})
+        await ui.write_draft("")
+        worker = await view.submissions.submit(UserInputSubmitted(body))
+        (execution,) = view.submissions.active
+        await asyncio.wait_for(worker.wait(), 10)
+        await ui.until(lambda: ui.draft() == body, why="the uncertain input's retained draft")
+        assert isinstance(execution.state, SendBlocked)
+        await view.submissions.submit(UserInputSubmitted(body))
+        assert workspace.prompts_received().count(body) == 1
+        started = IdentifiedInputStarted(body, scope, 2, InputId.mint(), execution.request.input_id)
+        await asyncio.wait_for(receiver.send_prompt(script({"update": {
+            "sessionUpdate": "session_info_update", "_meta": encode_updates(started)}})), 10)
+        await ui.until(lambda: not view.submissions.retains_surface,
+                       why="the late original native acknowledgement to retire its completed request")
+        assert not view.send_block_reason
+        assert ui.draft() == body  # A later observation cannot delete the user's inspection draft.
+        assert workspace.prompts_received().count(body) == 1
+        assert receiver.session.connected
 
 
 async def test_a_lost_held_peer_retains_unknown_and_refuses_retry(workspace):
