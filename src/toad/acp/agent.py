@@ -347,7 +347,7 @@ class NativeSubmissionExecution(SubmissionExecution):
 
     def native_input_presented(self, started: InputStartedUpdate) -> None:
         if self.current and started.started_request(self.request.input_id):
-            self.enter(NativeInputPresented(started))
+            self.state.presented(self, NativeInputPresented(started))
 
     async def deliver(self):
         view = self.owner.view
@@ -355,10 +355,7 @@ class NativeSubmissionExecution(SubmissionExecution):
         if local:
             view.turns.start_client()
         self.enter(SendPending())
-        if self.agent.presentation.queue_supported:
-            outcome = await self.agent.send_prompt(self.submission.text, request=self.request)
-        else:
-            outcome = await self.agent.send_prompt(self.submission.text)
+        outcome = await self.agent.send_prompt(self.submission.text, request=self.request)
         outcome.settle_submission(self)
         if self.current and local:
             view.call_later(self.complete, outcome)

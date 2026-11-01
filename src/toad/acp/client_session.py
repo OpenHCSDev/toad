@@ -51,10 +51,10 @@ class ClientSessionRequest:
             await process.prepare_prompt(self.agent, require)
         except RequestError as error:
             failure = RequestFailure.from_error(error)
-            return FailedPromptResult(self, replace(failure, failure=replace(
+            return ResolvedFailurePromptResult(self, replace(failure, failure=replace(
                 failure.failure, input_state=NotSentInput)))
         except (OSError, QueueActionRefused, RouteChangedError) as error:
-            return FailedPromptResult(self, RequestFailure(replace(ACPFailure.from_detail(
+            return ResolvedFailurePromptResult(self, RequestFailure(replace(ACPFailure.from_detail(
                 None, f"{type(error).__name__}: {error}"), input_state=NotSentInput), False))
         try:
             response = await process.rpc.prompt(self.session_id, content, **metadata)
@@ -74,7 +74,10 @@ class ClientSessionRequest:
     def failed(self, failure: RequestFailure) -> PromptResult:
         if self.retired:
             return self.unconfirmed(failure)
-        return FailedPromptResult(self, failure)
+        return failure.failure.input_failure_result(
+            lambda: ResolvedFailurePromptResult(self, failure),
+            lambda: FailedPromptResult(self, failure),
+        )
 
     def unconfirmed(self, failure: RequestFailure) -> UnconfirmedPromptResult:
         return UnconfirmedPromptResult(self, failure)
@@ -106,11 +109,15 @@ class UnfinishedPromptResult(PromptResult):
         )
 
 
-class FailedPromptResult(ConfirmedPromptResult, UnfinishedPromptResult):
-    """A known failure retains its original facts without closing a usable session."""
+class FailedPromptResult(UnfinishedPromptResult):
+    """A negative reply preserves the session, not a claim that input was accounted for."""
 
     def report_failure(self, agent, event) -> None:
         agent.events.publish(event)
+
+
+class ResolvedFailurePromptResult(ConfirmedPromptResult, FailedPromptResult):
+    """A definite input disposition, including a proved refusal before SDK invocation."""
 
 
 class UnconfirmedPromptResult(UnfinishedPromptResult):

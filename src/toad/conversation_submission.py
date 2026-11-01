@@ -195,8 +195,12 @@ class SendState:
         """A retained outcome already names the transaction's answer."""
 
     def response_confirmed(self, execution) -> None:
-        """A confirmed reply settles input; an absent reply never calls this."""
+        """A confirmed input disposition settles input, not merely an RPC reply."""
         execution.enter(NoSend())
+
+    def presented(self, execution, evidence: SendState) -> None:
+        """An in-flight request retains actual input acknowledgement until its reply."""
+        execution.enter(evidence)
 
     def local_intent(self, execution, accepted) -> tuple[str, ...]:
         return ()
@@ -249,6 +253,11 @@ class SentAwaitingSource(RetainedSend):
 @dataclass(frozen=True)
 class SendBlocked(RetainedSend):
     description: str
+
+    def presented(self, execution, evidence: SendState) -> None:
+        """A late original acknowledgement resolves the already-finished request."""
+        execution.enter(NoSend())
+        execution.owner.finish(execution)
 
     @property
     def reason(self) -> str:
