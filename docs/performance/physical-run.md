@@ -25,10 +25,14 @@ private copy's runtime. The source controller remains installed. The candidate
 must contain its own Toad/Core/Textual packages; a dependency `.pth` pointing
 those packages outside the selected prefix fails actual module-origin checks.
 Supply a new output directory for each distinct run. Do not replay a failed or
-UNKNOWN input against an old run.
+UNKNOWN input against an old run. Terminal dimensions are **cells**; framebuffer
+sizes are **pixels**. For the mobile48×48 →140×40 journey, supply
+`--columns 48 --rows 48 --framebuffer 1600 1200 --resize 140 40`, or pass
+`framebuffer=Size(1600, 1200)` to the callable factory. The owner checks actual
+native window bounds and rejects clipping instead of recording half a terminal.
 
 The callable entry point is `TerminalApp.copied(source, threads, runtime,
-output, thread=..., size=Size(...))`. Its context yields the admitted app and
+output, thread=..., size=Size(...), framebuffer=Size(...))`. Its context yields the admitted app and
 retains the copied root, frontend-home, operation receipts, screenshots and
 recording on exit. The caller still owns retiring those retained files after
 acceptance and actual borrower checks.
@@ -101,7 +105,8 @@ mobile candidate. Run12 completed exit0 through held PageUp/PageDown, reversal,
 End and wheel input, with screenshots/recording and typed private-copy stop.
 The st, Xvfb and encoder receipts name their exact process births and existing
 child-owner outcomes; their PIDs and the frontend were independently absent.
-There were **no bound ACPs**. Four isolation counterexamples, the wider tab/
+Run13 also completed the48×48 →140×40 candidate geometry journey in a1600×1200
+owned framebuffer. There were **no bound ACPs**. Four isolation counterexamples, the wider tab/
 resize/arrival journey and actual profiling remain separate obligations.
 
 Run8's foreign candidate-module origin, run9's missing-palette warning and
