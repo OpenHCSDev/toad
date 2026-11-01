@@ -30,7 +30,7 @@ class PromptResult(ABC):
     @abstractmethod
     def require_confirmation(self) -> StopReason: ...
 
-    def publish_failure(self, controller, command, queue_scope) -> None:
+    def publish_failure(self) -> None:
         """A confirmed completion has no failure to publish."""
 
     def settle_submission(self, execution) -> None:
@@ -42,7 +42,7 @@ class PromptResult(ABC):
 
 
 class ConfirmedPromptResult(PromptResult):
-    """An SDK reply or a proved pre-send refusal gives this request a known result."""
+    """An SDK completion or definite input disposition gives this request a known result."""
 
     def settle_submission(self, execution) -> None:
         execution.state.response_confirmed(execution)
