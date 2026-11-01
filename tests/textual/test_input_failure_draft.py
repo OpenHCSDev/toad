@@ -4,52 +4,54 @@ and remote failure facts never overwrite what the user is typing."""
 import asyncio
 from contextlib import closing
 import sqlite3
-from unittest.mock import patch
 
 import pytest
 from textual.worker import WorkerCancelled
 
 from acp.exceptions import RequestError
+from acp.schema import ConfigOptionUpdate, SessionConfigOptionSelect
 
-from agent_comms.acp_extension import InputFailedUpdate, QueuePromptRequest, RequestFailedUpdate, encode_updates
+from agent_comms.acp_extension import InputFailedUpdate, RequestFailedUpdate, encode_updates
 from agent_comms.acp_failure import BackendDeliveryFailure
 
-from support.agents import deliver
-from toad.conversation_submission import ImmediateInputSubmission, SendBlocked, SendPending
+from support.agents import command, peer, script
+from toad.conversation_submission import SendBlocked, SendPending
 from toad.core.input_events import UserInputSubmitted
+from toad.session_scope import AgentAttached
 
 
 async def test_a_failure_reported_by_the_remote_side_never_overwrites_the_draft(workspace):
-    async with workspace.app(size=(110, 32)) as ui:
-        receiver = ui.detached_agent("fixture")
-        ui.attach_agent(receiver)
+    async with workspace.app(size=(110, 32), binding=AgentAttached(peer("scripted"))) as ui:
+        await ui.until_agent_ready()
+        receiver = ui.conversation.agent_binding
         await ui.write_draft("new draft")
+        remote = script({"update": {
+            "sessionUpdate": "session_info_update",
+            "_meta": encode_updates(InputFailedUpdate("remote prompt", BackendDeliveryFailure("native preflight failed")))}})
         for _ in range(2):
-            await deliver(receiver, {
-                "sessionUpdate": "session_info_update",
-                "_meta": encode_updates(InputFailedUpdate("remote prompt", BackendDeliveryFailure("native preflight failed")))})
+            await asyncio.wait_for(receiver.send_prompt(remote), 10)
             await ui.step()
             assert ui.draft() == "new draft"
-        await receiver.stop()
+        assert workspace.prompts_received() == [remote, remote]
 
 
 async def test_a_prompt_whose_request_fails_is_restored_to_the_composer(workspace):
-    async with workspace.app(size=(110, 32)) as ui:
-        for error in (RequestError.invalid_params({"reason": "owner unavailable"}),
-                      ConnectionError("socket disconnected")):
-            # A lost transport closes its session, so each failure gets its own agent.
-            receiver = ui.detached_agent("fixture")
-            ui.attach_agent(receiver)
-            await ui.write_draft("")
-            with patch.object(receiver.process, "prompt", side_effect=error):
-                await receiver.controller.submit_blocks(
-                    [{"type": "text", "text": "rpc prompt"}], QueuePromptRequest("rpc prompt"))
-            await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
-            if isinstance(error, ConnectionError):
-                failure = receiver.session.disposition.failure
-                assert "Unconfirmed" in failure.details
-                assert "before deciding whether to send again" in failure.details
-            await receiver.stop()
+    async with workspace.app(size=(110, 32), binding=AgentAttached(peer("scripted"))) as ui:
+        await ui.until_agent_ready()
+        view = ui.conversation
+        receiver = view.agent_binding
+        disposition, child = receiver.session.disposition, receiver.process.process
+        error = RequestError.invalid_params({"reason": "owner unavailable"})
+        body = script({"error": error.to_error_obj()})
+        await ui.write_draft("")
+        worker = await view.submissions.submit(UserInputSubmitted(body))
+        await asyncio.wait_for(worker.wait(), 10)
+        await ui.until(lambda: ui.draft() == body, why="the refused request's original text back in the draft")
+        assert not view.send_block_reason
+        assert receiver.session.disposition is disposition
+        assert receiver.process.process is child and child.returncode is None
+        assert workspace.prompts_received() == [body]
+        assert {"error": error.to_error_obj()} in workspace.received()
 
 
 MODEL_ADVERTISEMENT = {
@@ -61,40 +63,77 @@ MODEL_ADVERTISEMENT = {
 
 
 async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_selector(workspace):
-    from acp import schema
-
-    async with workspace.app(size=(110, 32)) as ui:
-        receiver = ui.detached_agent("fixture")
-        ui.attach_agent(receiver)
-        receiver.configuration.receive([schema.SessionConfigOptionSelect.model_validate(MODEL_ADVERTISEMENT)])
-        disposition = receiver.session.disposition
-        assert ui.conversation.model_selection_available
+    async with workspace.app(size=(110, 32), binding=AgentAttached(peer("scripted"))) as ui:
+        await ui.until_agent_ready()
+        view = ui.conversation
+        receiver = view.agent_binding
+        advertised = ConfigOptionUpdate(session_update="config_option_update", config_options=[
+            SessionConfigOptionSelect.model_validate(MODEL_ADVERTISEMENT)])
+        await asyncio.wait_for(receiver.send_prompt(script({
+            "update": advertised.model_dump(mode="json", by_alias=True, exclude_none=True)})), 10)
+        await ui.until(lambda: view.model_selection_available, why="the foreign peer's advertised model selector")
+        disposition, child = receiver.session.disposition, receiver.process.process
+        error = RequestError.internal_error({"details": "WebSocket error"})
+        body = script({"error": error.to_error_obj()})
         await ui.write_draft("")
-        with patch.object(receiver.process, "prompt",
-                          side_effect=RequestError.internal_error({"details": "WebSocket error"})):
-            await receiver.controller.submit_blocks(
-                [{"type": "text", "text": "rpc prompt"}], QueuePromptRequest("rpc prompt"))
-        await ui.until(lambda: ui.draft() == "rpc prompt", why="the failed request's text back in the draft")
-        await deliver(receiver, {
+        worker = await view.submissions.submit(UserInputSubmitted(body))
+        await asyncio.wait_for(worker.wait(), 10)
+        await ui.until(lambda: ui.draft() == body, why="the failed request's original text back in the draft")
+        await asyncio.wait_for(receiver.send_prompt(script({"update": {
             "sessionUpdate": "session_info_update",
-            "_meta": encode_updates(RequestFailedUpdate(BackendDeliveryFailure("provider refused the model")))})
+            "_meta": encode_updates(RequestFailedUpdate(BackendDeliveryFailure("provider refused the model")))}})), 10)
         await ui.step()
+        assert ui.draft() == body
         assert receiver.session.disposition is disposition
-        assert ui.conversation.model_selection_available
-        await receiver.stop()
+        assert receiver.process.process is child and child.returncode is None
+        assert view.model_selection_available
+        assert {"error": error.to_error_obj()} in workspace.received()
+
+
+async def test_a_lost_held_peer_retains_unknown_and_refuses_retry(workspace):
+    async with workspace.app(size=(110, 32), binding=AgentAttached(peer("scripted"))) as ui:
+        await ui.until_agent_ready()
+        view = ui.conversation
+        receiver = view.agent_binding
+        body = script({"wait": "lost-transport"})
+        await ui.write_draft("")
+        worker = await view.submissions.submit(UserInputSubmitted(body))
+        await ui.until(lambda: workspace.prompts_received() == [body], why="the original request at the actual held peer")
+        (execution,) = view.submissions.active
+        child = receiver.process.process
+        await asyncio.wait_for(child.stop(), 10)
+        try:
+            await asyncio.wait_for(worker.wait(), 10)
+        except WorkerCancelled:
+            pass  # Session retirement may cancel its caller; its shared completion still settles.
+        await ui.until(lambda: ui.draft() == body, why="the lost request's body retained for inspection")
+        assert isinstance(execution.state, SendBlocked)
+        assert view.submissions.retains_surface
+        assert receiver.session.disposition.failure is not None
+        assert not receiver.session.connected
+        await view.submissions.submit(UserInputSubmitted(body))
+        await ui.step()
+        assert workspace.prompts_received() == [body], "The uncertain request was replayed"
+        assert ui.draft() == body
+        assert isinstance(execution.state, SendBlocked)
 
 
 async def test_a_prompt_the_agent_cannot_be_reached_for_is_restored_to_the_composer(workspace):
-    async with workspace.app(size=(110, 32)) as ui:
-        conversation = ui.conversation
-        receiver = ui.detached_agent("fixture")
-        ui.attach_agent(receiver)
+    missing = workspace.project / "missing-acp-command"
+    assert not missing.exists()
+    async with workspace.app(size=(110, 32), binding=AgentAttached(command(str(missing)))) as ui:
+        view = ui.conversation
+        receiver = view.agent_binding
+        await ui.until(receiver.session.settled.is_set, seconds=20, why="the actual failed command launch")
+        assert not receiver.ready
+        assert receiver.session.disposition.failure is not None
         await ui.write_draft("")
-        with patch.object(receiver.process, "prompt", side_effect=FileNotFoundError(2, "agent socket disappeared")):
-            worker = await ImmediateInputSubmission("the local failure prompt").execute(conversation.submissions)
-            await worker.wait()
-        await ui.until(lambda: ui.draft() == "the local failure prompt", why="the failed prompt back in the draft")
-        await receiver.stop()
+        body = "the local failure prompt"
+        worker = await view.submissions.submit(UserInputSubmitted(body))
+        await asyncio.wait_for(worker.wait(), 10)
+        await ui.until(lambda: ui.draft() == body, why="the refused local input back in the draft")
+        assert not view.send_block_reason
+        assert not workspace.prompts_received()
 
 
 async def test_a_successful_wire_send_keeps_a_different_unsent_draft(workspace):
