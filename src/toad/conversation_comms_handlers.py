@@ -107,21 +107,11 @@ class ConversationCommsHandlers(CoreEventReceiver):
     def on_input_failed(
         self, update: InputFailedUpdate, message: CoreEventMessage
     ) -> None:
-        """Only a locally failed request may recover its own draft text."""
+        """Remote failure evidence never owns the local submission or its draft."""
         if not self.submissions.accepts_failure(message):
             return
-        if not message.event.recover_draft:
-            # Server notices (including unstarted queued/restored inputs) are
-            # read-only evidence, not permission to change the local composer.
-            self.feedback.flash(
-                f"{message.event.update.failure.title}: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",
-                style="error",
-            )
-            return
-        self.prompt.restore_draft(message.event.update.text)
-
         self.feedback.flash(
-            f"{message.event.update.failure.title}; draft restored: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",
+            f"{update.failure.title}: {update.failure.description}\n{update.failure.input_disposition}\n{update.failure.action}",
             style="error",
         )
 
