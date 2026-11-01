@@ -246,6 +246,12 @@ class PreparedCommit:
     history: CommittedHistory
     sequences: frozenset[int]
 
+    @classmethod
+    async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage,
+                      sequences: frozenset[int]) -> Self:
+        """A retained reader accepts coverage without preparing replacement paint."""
+        return cls(history, sequences)
+
     @property
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
         return self.history.outgoing_coverage
@@ -305,23 +311,34 @@ class PreparedAppendCommit(PreparedPageCommit):
     async def read_snapshot[Snapshot](
         cls, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
     ) -> Snapshot:
-        try:
-            return await read(position=history.page_source.through.later_page())
-        except TranscriptChanged:
-            return await read()
+        return await read(position=history.page_source.through.later_page())
 
     async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool:
         return await self.history.publish_append(cursor, publication_current=is_current)
 
 
 class CommitPlan(ABC):
-    """The captured viewport intent owns source acquisition and publication."""
+    """Capture source acquisition and viewport publication together for one read."""
+
+    preparation: type[PreparedCommit]
+
+    def preparation_for_source(self, source: type[PreparedPageCommit]) -> type[PreparedCommit]:
+        """A held viewport retains its original paint after a successful read."""
+        return PreparedCommit
 
     async def read_snapshot[Snapshot](
         self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
     ) -> Snapshot:
-        """The source's declared commit member owns acquisition and publication."""
-        return await history.page_source.commit_preparation.read_snapshot(read, history)
+        """The source declares acquisition; its result fixes this read's publication."""
+        source = history.page_source.commit_preparation
+        self.preparation = self.preparation_for_source(source)
+        try:
+            return await source.read_snapshot(read, history)
+        except TranscriptChanged:
+            # A full retry is a replacement, even when the file path is reused
+            # and its new cursor contains the old byte offset.
+            self.preparation = PreparedPageCommit
+            return await PreparedPageCommit.read_snapshot(read, history)
 
     @abstractmethod
     def current(self, window: HistoryWindow) -> bool:
@@ -342,13 +359,8 @@ class CommitPlan(ABC):
             sequences |= history.covered_sequences(required) | frozenset(
                 sequence for sequence in required if page.after.covers_incoming(sequence)
             )
-            return await self.extend(view, history, page, sequences)
+            return await self.preparation.capture(view, history, page, sequences)
         return await PreparedPageCommit.capture(view, history, page, sequences)
-
-    @abstractmethod
-    async def extend(self, view: Conversation, history: TranscriptHistory, page: TranscriptPage,
-                     sequences: frozenset[int]) -> PreparedCommit:
-        """Prepare publication within the history's existing source."""
 
     def commit(self, prepared: PreparedCommit, cursor: TranscriptCursor) -> None:
         """Apply source metadata only after the final retirement checks."""
@@ -368,9 +380,9 @@ class FollowTailCommit(CommitPlan):
     def current(self, window: HistoryWindow) -> bool:
         return window.follows_tail and window.scroll_revision == self.revision
 
-    async def extend(self, view: Conversation, history: TranscriptHistory, page: TranscriptPage,
-                     sequences: frozenset[int]) -> PreparedPageCommit:
-        return await history.page_source.commit_preparation.capture(view, history, page, sequences)
+    def preparation_for_source(self, source: type[PreparedPageCommit]) -> type[PreparedPageCommit]:
+        """A following viewport publishes through the same member that acquired it."""
+        return source
 
     def finish(self, view, cursor) -> None:
         view.transcript.binding.painted(view.transcript, cursor)
@@ -402,10 +414,6 @@ class RetainViewportCommit(CommitPlan):
             return True
         return not any(widget in visible and visible[widget][0].overlaps(viewport)
                        for widget in candidates)
-
-    async def extend(self, view: Conversation, history: TranscriptHistory, page: TranscriptPage,
-                     sequences: frozenset[int]) -> PreparedCommit:
-        return PreparedCommit(history, sequences)
 
     def commit(self, prepared, cursor) -> None:
         prepared.history.retain_committed(cursor)
