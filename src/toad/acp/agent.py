@@ -2,6 +2,7 @@ import asyncio
 from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import rich.repr
 from agent_comms.acp_extension import (
@@ -26,7 +27,7 @@ from toad.acp.agent_configuration import (
 from toad.acp.agent_controller import AgentController
 from toad.acp.agent_log import AgentLog
 from toad.acp.agent_process import AgentProcess
-from toad.acp.agent_session import AgentSession
+from toad.acp.agent_session import AgentSession, SessionDisposition
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.client_session import ClientSessionRequest
@@ -52,6 +53,11 @@ from toad.conversation_submission import (
     PromptInputSubmission, ConversationSubmissions, NoSend, SendPending, SendState, SubmissionExecution,
 )
 from toad.platform import host
+
+if TYPE_CHECKING:
+    from agent_comms.session_load import ExistingSessionLoadPlan
+    from toad.screens.main import MainScreen
+    from toad.widgets.conversation import Conversation
 
 
 def generate_datetime_filename(
@@ -128,6 +134,41 @@ class Agent(AgentBase):
     @property
     def presentation(self) -> ACPAgentPresentation:
         return self._presentation
+
+    @property
+    def session_disposition(self) -> SessionDisposition:
+        return self.session.disposition
+
+    def matches_session(self, session_id: str | None) -> bool:
+        return self.session_id == session_id
+
+    def borrowed_processes(self) -> tuple[AgentProcess, ...]:
+        return (self.process,)
+
+    async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None:
+        await self.session.reconnect(plan)
+
+    async def change_project(self, view: Conversation, path: Path) -> None:
+        from textual.content import Content
+
+        project = await self.update_project(str(path))
+        view.feedback.flash(Content(f"Project changed to {project}"), style="success")
+
+    def request_compaction(self, view: Conversation, instructions: str | None) -> None:
+        view.compact_context(instructions)
+
+    async def project_changed(self, path: Path) -> None:
+        from toad.db import DB
+
+        await super().project_changed(path)
+        if (session_pk := self.session.pk) is not None:
+            await DB().session_update_project(session_pk, path)
+
+    def refresh_context(self, view: Conversation) -> None:
+        view.thread_status = self.context_measurement.status()
+
+    async def compact_context(self, instructions: str | None) -> None:
+        await self.controller.compact_context(instructions)
 
     @property
     def command(self) -> str | None:

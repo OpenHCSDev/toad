@@ -33,11 +33,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
     transcript: TranscriptPresentation
 
     def accepts(self, message: CoreEventMessage) -> bool:
-        if not message.event.session_scoped:
-            return True
-        if not self.agent_binding.accepts_message(message):
-            return False
-        return self.turns.owner.accepts_update(message.event.update)
+        return message.event.accepted_by(message, self.agent_binding, self.turns.owner)
 
     @handles(CursorPresentation)
     def on_private_native_cursor_update(
@@ -107,9 +103,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
     def on_input_failed(
         self, update: InputFailedUpdate, message: CoreEventMessage
     ) -> None:
-        """Remote failure evidence never owns the local submission or its draft."""
-        if not self.submissions.accepts_failure(message):
-            return
+        """The accepted publication supplies feedback, never the local draft."""
         self.feedback.flash(
             f"{update.failure.title}: {update.failure.description}\n{update.failure.input_disposition}\n{update.failure.action}",
             style="error",
