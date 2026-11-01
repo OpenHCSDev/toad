@@ -188,7 +188,7 @@ class SendState:
     def settle(self, execution) -> None:
         execution.owner.retire(execution)
 
-    def drawn_in(self, view) -> bool:
+    def acknowledged_by(self, view) -> bool:
         return False
 
     def response_finished(self, execution) -> None:
@@ -211,7 +211,9 @@ class CheckingSend(RetainedSend):
     reason = "Checking source; do not retry"
 
     def response_finished(self, execution) -> None:
-        execution.enter(NoSend())
+        execution.delivery_refused(
+            "Request ended before handing input to its source", execution.submission.source_text,
+        )
 
     def local_intent(self, execution, accepted) -> tuple[str, ...]:
         return () if execution.accepted(accepted) else (execution.submission.text,)
@@ -228,16 +230,16 @@ class SendPending(CheckingSend):
 
 
 @dataclass(frozen=True)
-class SentUndrawn(RetainedSend):
+class SentAwaitingSource(RetainedSend):
     root: Path
     sent: Message
 
     @property
     def reason(self) -> str:
-        return f"Sent {self.root}/{self.sent.seq}/{self.sent.message_id}; waiting to be drawn, do not retry"
+        return f"Sent {self.root}/{self.sent.seq}/{self.sent.message_id}; waiting for source acknowledgement, do not retry"
 
-    def drawn_in(self, view) -> bool:
-        return view.queue_source.draws_message(view, self.root, self.sent)
+    def acknowledged_by(self, view) -> bool:
+        return view.queue_source.contains_message(view, self.root, self.sent)
 
 
 @dataclass(frozen=True)
@@ -251,6 +253,8 @@ class SendBlocked(RetainedSend):
 
 class SubmissionExecution(SubmissionStart):
     """Shared history, worker and outcome lifetime over an immutable source binding."""
+
+    worker_group = __qualname__
 
     def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission):
         self.owner, self.submission = owner, submission
@@ -282,28 +286,26 @@ class SubmissionExecution(SubmissionStart):
         self.owner.publish_pending()
         view.run_worker(partial(view.input_histories.prompt.record, submission.source_text), group="history")
         try:
-            await self.feedback()
-            if self.current:
-                return view.run_worker(partial(self.send), group="conversation-submission")
-            self.delivery_refused("Message source changed; reopen this view", submission.source_text)
+            worker = view.run_worker(partial(self.send), group=self.worker_group)
+            worker._add_done_callback(lambda _worker: self.finish())
+            return worker
         except BaseException:
-            self.state.response_finished(self)
-            self.owner.finish(self)
+            self.finish()
             raise
-        self.owner.finish(self)
 
     @abstractmethod
     async def deliver(self): ...
 
     async def send(self):
-        try:
-            if self.current:
-                await self.deliver()
-            else:
-                self.delivery_refused("Message source changed; reopen this view", self.submission.source_text)
-        finally:
-            self.state.response_finished(self)
-            self.owner.finish(self)
+        await self.feedback()
+        if self.current:
+            await self.deliver()
+        else:
+            self.delivery_refused("Message source changed; reopen this view", self.submission.source_text)
+
+    def finish(self) -> None:
+        self.state.response_finished(self)
+        self.owner.finish(self)
 
     def delivery_blocked(self, description: str, body: str) -> None:
         self.enter(SendBlocked(description))
@@ -352,7 +354,7 @@ class MessageSubmissionExecution(SubmissionExecution):
                 return
             except CommittedMessageError as error:
                 sent = error.record
-            self.enter(SentUndrawn(comms.root, sent))
+            self.enter(SentAwaitingSource(comms.root, sent))
         except asyncio.CancelledError:
             self.delivery_refused("Cancelled before sending", body)
             raise
@@ -369,6 +371,17 @@ class ConversationSubmissions:
     def __init__(self, view):
         self.view = view
         self.active: list[SubmissionExecution] = []
+
+    @property
+    def retains_surface(self) -> bool:
+        """Pending, unacknowledged and UNKNOWN intent still owns this view's resources."""
+        return bool(self.active)
+
+    async def close(self) -> None:
+        workers = self.view.workers.cancel_group(self.view, SubmissionExecution.worker_group)
+        # Worker reports errors itself; retirement waits for every completion,
+        # including cancellation, before the view releases its draft resources.
+        await asyncio.gather(*(worker.wait() for worker in workers), return_exceptions=True)
 
     def begin(self, submission: PromptInputSubmission):
         return self.view.queue_source.begin_submission(self, submission)
@@ -448,9 +461,9 @@ class ConversationSubmissions:
         execution.state.settle(execution)
         self.publish_pending()
 
-    def settle_drawn(self) -> None:
+    def settle_acknowledged(self) -> None:
         for execution in tuple(self.active):
-            if execution.state.drawn_in(self.view):
+            if execution.state.acknowledged_by(self.view):
                 execution.enter(NoSend())
                 self.finish(execution)
 

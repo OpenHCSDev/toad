@@ -686,7 +686,8 @@ class ConversationSessionBinding(
         )
         self.cli_draft = CliDraft()
         self.tool_expansions: dict[str, bool] = {}
-        # Both explicit eviction and Textual unmount consume this same lifetime.
+        # Explicit eviction and message-loop exit consume this same lifetime
+        # before the child editor and feedback surfaces are released.
         # The stack removes callbacks before calling them and continues on error.
         self._source_resources = AsyncResourceRelease()
         self._source_resources.push_async_callback(
@@ -697,12 +698,17 @@ class ConversationSessionBinding(
         self._source_resources.callback(self.output.retire)
         self._source_resources.push_async_callback(self.transcript.detach, self)
         self._source_resources.callback(self.goal_controls.close)
+        self._source_resources.push_async_callback(self.submissions.close)
+
+    async def _message_loop_exit(self) -> None:
+        async with AsyncResourceRelease() as release:
+            release.push_async_callback(super()._message_loop_exit)
+            await self._release_source_resources()
 
     async def on_unmount(self) -> None:
         async with AsyncResourceRelease() as release:
             release.callback(self._publish_session_end)
             release.push_async_callback(self.agent_binding.retire_surface, self)
-            release.push_async_callback(self._release_source_resources)
 
     def _publish_session_end(self) -> None:
         if self._agent_data is not None and self.session_start_time is not None:
@@ -1132,8 +1138,8 @@ class Conversation(
     def cursor_block(self) -> ConversationEntry | None:
         return self.navigation.current
 
-    def draws_user_message(self, sent) -> bool:
-        return self.transcript.binding.history.draws(sent)
+    def contains_user_message(self, sent) -> bool:
+        return self.transcript.binding.history.contains_message(sent)
 
     async def _apply_session_name(self, name: str) -> None:
         await self.agent_binding.set_session_name(name)

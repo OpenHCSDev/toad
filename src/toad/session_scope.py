@@ -96,7 +96,7 @@ class TranscriptScope(ABC):
         position: PagePosition = LatestPage(),
     ) -> ReadTranscriptUpdate: ...
 
-    def draws_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
         return False
 
     @abstractmethod
@@ -183,8 +183,8 @@ class KnownTranscript(TranscriptScope):
             self.root, TranscriptPageRead(thread=self.name, position=position), previous=previous
         )
 
-    def draws_message(self, view: Conversation, root: Path, sent: Message) -> bool:
-        return Path(self.root) == root and self.shown_by(view) and view.draws_user_message(sent)
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+        return Path(self.root) == root and self.shown_by(view) and view.contains_user_message(sent)
 
     def mailbox_target(self) -> ThreadTarget:
         return ThreadTarget(self.name)
