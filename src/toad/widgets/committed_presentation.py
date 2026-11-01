@@ -264,6 +264,13 @@ class PreparedPageCommit(PreparedCommit):
     page: PreparedTranscriptPage
 
     @classmethod
+    async def read_snapshot[Snapshot](
+        cls, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
+    ) -> Snapshot:
+        """Replacement needs the complete destination, even for a closed prefix."""
+        return await read()
+
+    @classmethod
     async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage, sequences: frozenset[int]) -> Self:
         from toad.transcript_preparation import TranscriptPageRenderTask
         from toad.work_preparation import RenderPreparation
@@ -281,21 +288,40 @@ class PreparedPageCommit(PreparedCommit):
             if not history.source_ready or not is_current():
                 return False
             operation = history.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
-        return await operation.execute(history, partial(
-            history.show_newest,
+        return await operation.execute(history, partial(self.publish, cursor, is_current))
+
+    async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool:
+        history = self.history
+        return await history.show_newest(
             PreparedReplacementViewportRequest(LatestPosition.hold(history.window), self.page),
             publication_current=is_current,
-        ))
+        )
+
+
+class PreparedAppendCommit(PreparedPageCommit):
+    """The saved source extends its original pages, retaining their rendered prefix."""
+
+    @classmethod
+    async def read_snapshot[Snapshot](
+        cls, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
+    ) -> Snapshot:
+        try:
+            return await read(position=history.page_source.through.later_page())
+        except TranscriptChanged:
+            return await read()
+
+    async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool:
+        return await self.history.publish_append(cursor, publication_current=is_current)
 
 
 class CommitPlan(ABC):
     """The captured viewport intent owns source acquisition and publication."""
 
-    @abstractmethod
     async def read_snapshot[Snapshot](
         self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
     ) -> Snapshot:
-        """Acquire the saved destination this plan will publish."""
+        """The source's declared commit member owns acquisition and publication."""
+        return await history.page_source.commit_preparation.read_snapshot(read, history)
 
     @abstractmethod
     def current(self, window: HistoryWindow) -> bool:
@@ -339,18 +365,12 @@ class FollowTailCommit(CommitPlan):
     def __init__(self, window: HistoryWindow) -> None:
         self.revision = window.scroll_revision
 
-    async def read_snapshot[Snapshot](
-        self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
-    ) -> Snapshot:
-        # No after cursor: Core reads newest-first at its captured saved cut.
-        return await read()
-
     def current(self, window: HistoryWindow) -> bool:
         return window.follows_tail and window.scroll_revision == self.revision
 
     async def extend(self, view: Conversation, history: TranscriptHistory, page: TranscriptPage,
                      sequences: frozenset[int]) -> PreparedPageCommit:
-        return await PreparedPageCommit.capture(view, history, page, sequences)
+        return await history.page_source.commit_preparation.capture(view, history, page, sequences)
 
     def finish(self, view, cursor) -> None:
         view.transcript.binding.painted(view.transcript, cursor)
@@ -363,15 +383,6 @@ class FollowTailCommit(CommitPlan):
             window.anchor()
 
 class RetainViewportCommit(CommitPlan):
-    async def read_snapshot[Snapshot](
-        self, read: Callable[..., Awaitable[Snapshot]], history: CommittedHistory,
-    ) -> Snapshot:
-        try:
-            return await read(position=history.page_source.through.later_page())
-        except TranscriptChanged:
-            # A replaced source cannot extend the old reader's source range.
-            return await read()
-
     def current(self, window: HistoryWindow) -> bool:
         # Extending the source leaves the loaded rows and reader position intact.
         # Retirement checks the current viewport again when applying the change.
