@@ -20,6 +20,7 @@ import struct
 import subprocess
 import sys
 import time
+from typing import get_args, get_type_hints
 
 from agent_comms.active_route import ActiveRoute, active_route_path, route_new_bus
 from agent_comms.bus import Bus
@@ -29,6 +30,7 @@ from agent_comms.comms import Comms
 from agent_comms.installer.practice import SuppliedRuntimeHome
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime, ThreadLaunch
+from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.recorded_bus import RecordedBusIdentity
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.store_files import ExclusiveAtomicFile
@@ -36,10 +38,11 @@ from rich.cells import cell_len
 from rich.segment import Segment
 from textual.geometry import Region, Size
 from textual.strip import Strip
+from ui_theme.wal import WalFile
 
 from physical_ui_remote import (
     CapturedRegion, ExecOperation, ObserveOperation, PendingRun, PhysicalOperation,
-    RunObservation, RunTarget, StopRootOperation,
+    ProcessRetirement, RunObservation, RunTarget, StopRootOperation,
 )
 
 
@@ -105,12 +108,18 @@ class XvfbDisplay(AbstractContextManager):
                 env=environment,
                 stdio=DetachedChildStdio(stdin=subprocess.PIPE, stdout=log, stderr=log),
             ) as child:
+                PhysicalOperation.publish(path.with_suffix(".process.json"), child.identity)
                 try:
                     yield path
                 finally:
-                    child.process.communicate(b"q", timeout=10)
-                    if child.process.returncode:
-                        raise RuntimeError(f"Physical recording failed; see {log.name}")
+                    try:
+                        child.process.communicate(b"q", timeout=10)
+                        if child.process.returncode:
+                            raise RuntimeError(f"Physical recording failed; see {log.name}")
+                    finally:
+                        outcome = child.stop_sync(deadline=time.monotonic() + 10)
+                        PhysicalOperation.publish(path.with_suffix(".retired.json"),
+                                                  ProcessRetirement(child.identity, outcome))
 
     def __exit__(self, *exception):
         return self.close_display.__exit__(*exception)
@@ -123,6 +132,7 @@ class OwnedDisplay(XvfbDisplay):
     stop_seconds = 10.0
 
     def __init__(self, output: Path):
+        self.output = output
         output.mkdir(parents=True, exist_ok=True)
         self.log = (output / "xvfb.log").open("wb")
         self.server = SpawnedProcess.launch(
@@ -139,13 +149,16 @@ class OwnedDisplay(XvfbDisplay):
             if self.process != self.server.identity:
                 self.close_display.close()
                 raise ValueError("Xlib connected to a server this run did not create")
+            PhysicalOperation.publish(output / "xvfb-process.json", self.process)
         except BaseException:
             self.close_server()
             raise
 
     def close_server(self) -> None:
         try:
-            self.server.stop_sync(deadline=time.monotonic() + self.stop_seconds)
+            outcome = self.server.stop_sync(deadline=time.monotonic() + self.stop_seconds)
+            PhysicalOperation.publish(self.output / "xvfb-retired.json",
+                                      ProcessRetirement(self.server.identity, outcome))
         finally:
             self.server.close_streams()
             self.log.close()
@@ -197,6 +210,12 @@ class TerminalApp:
 
     startup_seconds = 60.0
     stop_seconds = 10.0
+    # One source snapshot belongs to the controller's Python module lifetime,
+    # not to each callback executing inside a foreign running application.
+    with Path(__file__).with_name("physical_ui_remote.py").open("rb") as _source:
+        operation_program = _source.read(PhysicalOperation.source_bytes + 1)
+    if len(operation_program) > PhysicalOperation.source_bytes:
+        raise ValueError("Physical operation source exceeds its bound")
 
     def __init__(self, command: tuple[str, ...], display: XvfbDisplay, output: Path,
                  target: RunTarget, cwd: Path, *, size: Size = Size(140, 40)):
@@ -210,6 +229,7 @@ class TerminalApp:
             HOME=str(target.home), DISPLAY=display.name,
             XDG_CONFIG_HOME=str(target.config), XDG_STATE_HOME=str(target.state),
             XDG_DATA_HOME=str(target.data),
+            PYWAL_CACHE_DIR=str(target.palette),
             AGENT_COMMS_RUNTIME_ROOT=str(target.launch_runtime.interpreter.parent),
         )
         self.environment = environment
@@ -230,7 +250,7 @@ class TerminalApp:
         Only presentation settings travel. Saved Toad databases/tabs never do.
         Existing installer acceptance and copied-history runs share this setup.
         """
-        from toad.preferences import SavedSettings
+        from toad.preferences import INTERFACE, SETTINGS, SavedSettings, ToadSettings
 
         root = root.resolve(strict=True)
         home = root.parent / "frontend-home"
@@ -250,10 +270,24 @@ class TerminalApp:
         for directory in (target.config, target.state, target.data):
             directory.mkdir(mode=0o700)
         settings = SavedSettings.path()
+        destination = target.config / settings.parent.name / settings.name
+        destination.parent.mkdir(mode=0o700)
+        selected = {}
         if settings.is_file():
-            destination = target.config / settings.parent.name / settings.name
-            destination.parent.mkdir(mode=0o700)
-            ExclusiveAtomicFile(destination).write_bytes(settings.read_bytes())
+            raw = FieldCodec.decode(dict[str, object], FieldCodec.parse(settings.read_text()))
+            annotations = get_type_hints(ToadSettings, include_extras=True)
+            presentation = frozenset(key for field, key in FieldCodec.record_fields(ToadSettings)
+                                     if INTERFACE in get_args(annotations[field.name]))
+            selected = {key: value for key, value in raw.items() if key in presentation}
+        private_settings = SavedSettings(selected)
+        private_settings.set(SETTINGS.statistics.allow_collect, False)
+        ExclusiveAtomicFile(destination).write_bytes(private_settings.json.encode())
+        palette = WalFile.directory(os.environ) / WalFile.NAME
+        if palette.is_file():
+            target.palette.mkdir(mode=0o700, parents=True)
+            destination = target.palette / WalFile.NAME
+            ExclusiveAtomicFile(destination).write_bytes(palette.read_bytes())
+            WalFile.read(destination)  # Validate the exact copied bytes through their format owner.
         route = ActiveRoute(root, RecordedBusIdentity.capture(Bus.path_in(root)))
         route_path = home / active_route_path().relative_to(Path.home())
         route_new_bus(route, route_path)
@@ -282,14 +316,12 @@ class TerminalApp:
             # Files remain until the actual acceptance and borrower checks retire them.
             cls.stop_copy(target, output / "retirement")
 
-    @staticmethod
-    def operation_file(operation: PhysicalOperation, directory: Path) -> Path:
+    @classmethod
+    def operation_file(cls, operation: PhysicalOperation, directory: Path) -> Path:
         directory.mkdir(mode=0o700, parents=True)
-        source = Path(__file__).with_name("physical_ui_remote.py")
-        with source.open("rb") as stream:
-            raw = stream.read(PhysicalOperation.source_bytes + 1)
-        if len(raw) > PhysicalOperation.source_bytes:
-            raise ValueError("Physical operation source exceeds its bound")
+        # The declaration module owns one bounded program snapshot for this
+        # controller lifetime. Later source edits cannot change a run's wire.
+        raw = cls.operation_program
         script = directory / "operation.py"
         # remote_exec supplies no module filename. Bind only that external
         # datum; the program stays in its reviewed source file and the request
@@ -333,6 +365,7 @@ class TerminalApp:
             stdio=DetachedChildStdio(stdout=self.log, stderr=self.log),
         )
         try:
+            PhysicalOperation.publish(self.output / "st-process.json", self.terminal.identity)
             self.window = int(subprocess.check_output(
                 ("xdotool", "search", "--sync", "--onlyvisible", "--pid", str(self.terminal.identity.pid)),
                 env=self.environment, text=True, timeout=10).splitlines()[0])
@@ -362,9 +395,7 @@ class TerminalApp:
             self.wait("terminal", lambda screen: bool(screen.text.strip()))
             return self
         except BaseException:
-            self.terminal.stop_sync(deadline=time.monotonic() + self.stop_seconds)
-            self.terminal.close_streams()
-            self.log.close()
+            self.close()
             raise
 
     def _require_starting(self, deadline: float) -> None:
@@ -387,10 +418,7 @@ class TerminalApp:
         observed = self.result(script.parent).observation()
         if observed.process != self.frontend:
             raise ValueError("Observation belongs to another frontend incarnation")
-        return self.target.require(observed)
-
-    def input(self, *commands: str) -> RunObservation:
-        observed = self.observe()
+        self.target.require(observed)
         self.terminal.platform.require(self.terminal.identity)
         self.server_identity()
         owner = subprocess.check_output(
@@ -399,6 +427,10 @@ class TerminalApp:
         )
         if int(owner.partition("=")[2].strip()) != self.terminal.identity.pid:
             raise ValueError("Window does not belong to this run's st frontend")
+        return observed
+
+    def input(self, *commands: str) -> RunObservation:
+        observed = self.observe()
         PhysicalOperation.publish(
             self.output / "operations" / f"input-{next(self.operations):06d}.json", observed,
         )
@@ -447,6 +479,7 @@ class TerminalApp:
         return self.wait(name, settled).reader_position()
 
     def screenshot(self, name):
+        self.observe()
         path = self.output / f"{name}.png"
         subprocess.run(("import", "-display", self.display.name, "-window", str(self.window), str(path)),
                        check=True, timeout=10)
@@ -534,16 +567,22 @@ class TerminalApp:
                    str(int(2 * self.border_y + rows * self.cell_height)))
         self.read_grid()
 
-    def __exit__(self, *exception):
+    def close(self) -> None:
+        """Retire one child lifetime on normal exit and failed entry alike."""
         try:
-            if self.terminal.process.poll() is None:
-                try:
-                    self.keys("ctrl+q")
-                    self.terminal.process.wait(timeout=5)
-                finally:
-                    # The process owner retires the whole exact child lifetime,
-                    # including exceptional/half-started UI teardown.
-                    self.terminal.stop_sync(deadline=time.monotonic() + self.stop_seconds)
+            outcome = self.terminal.stop_sync(deadline=time.monotonic() + self.stop_seconds)
+            PhysicalOperation.publish(self.output / "st-retired.json",
+                                      ProcessRetirement(self.terminal.identity, outcome))
         finally:
             self.terminal.close_streams()
             self.log.close()
+
+    def __exit__(self, exception_type, exception, traceback):
+        try:
+            # An exceptional/uncertain operation is not permission for another
+            # attachment or input. Retire only the already owned child instead.
+            if exception_type is None and self.terminal.process.poll() is None:
+                self.keys("ctrl+q")
+                self.terminal.process.wait(timeout=5)
+        finally:
+            self.close()
