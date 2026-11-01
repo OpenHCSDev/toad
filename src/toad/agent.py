@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -7,7 +8,7 @@ from textual.content import Content
 
 from toad.acp.status import PromptResult
 from toad.agent_binding import AgentConnection
-from toad.agent_presentation import LocalAgentPresentation
+from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.conversation_turn import NoTurn
 from toad.core.events import CoreEventStream
 from toad.surface_binding import SurfaceBinding
@@ -28,12 +29,15 @@ class AgentBase(AgentConnection):
     def __init__(self, project_root: Path) -> None:
         self.project_root_path = project_root
         self.events = CoreEventStream(self)
-        self.presentation = LocalAgentPresentation(self)
         from toad.acp.agent_configuration import AgentConfiguration
 
         self.configuration = AgentConfiguration(self)
 
     ready = False
+
+    @cached_property
+    def presentation(self) -> AgentPresentation:
+        return LocalAgentPresentation(self)
 
     def attach_view(self, view) -> None:
         from toad.agent_surface import AttachedSurfaceBinding

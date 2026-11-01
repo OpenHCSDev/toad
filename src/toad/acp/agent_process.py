@@ -1,4 +1,4 @@
-"""ACP connection, admitted subprocess and attached-session lifetime."""
+"""ACP connection, subprocess and attached-session lifetime."""
 from __future__ import annotations
 
 import asyncio
@@ -93,7 +93,7 @@ class AgentProcess(Client):
         return connection
 
     async def prepare_prompt(self, agent, require: Callable[[], None]) -> None:
-        """Finish route/session admission before a request can reach the SDK."""
+        """Prepare the route and session before a request can reach the SDK."""
         access = agent.controller.transcripts.access
         await access.preparation.run_thread(partial(access.require, self.route_selection))
         require()
