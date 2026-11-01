@@ -1,78 +1,26 @@
 """Measure an explicitly selected live Toad process on required --display.
 
-Input controllers use this same XvfbDisplay.input owner and terminal launch identity.
+Physical input belongs to physical_ui.TerminalApp's observed private-run lifetime.
 --profile-seconds  record a py-spy speedscope profile.
 --frame-meter N    time UI work per frame and input-to-paint for N seconds (frame_meter.py).
 --targets          write where sidebar thread rows and session tabs are (frame_meter.targets).
 """
 
 import argparse
-from contextlib import AbstractContextManager, ExitStack
-import ctypes
+from contextlib import ExitStack
 import json
 import os
-import socket
-import struct
 from pathlib import Path
 import subprocess
+import sys
 import time
 
 import psutil
 
 
-class XvfbDisplay(AbstractContextManager):
-    """Own a connection to a local framebuffer, resolving X11 aliases at Xlib."""
-
-    def __init__(self, name: str):
-        if not name:
-            raise ValueError("An explicit isolated Xvfb display is required")
-        x11 = ctypes.CDLL('libX11.so.6')
-        x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
-        x11.XOpenDisplay.restype = ctypes.c_void_p
-        x11.XConnectionNumber.argtypes = [ctypes.c_void_p]
-        x11.XConnectionNumber.restype = ctypes.c_int
-        x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
-        x11.XCloseDisplay.restype = ctypes.c_int
-        connection = x11.XOpenDisplay(name.encode())
-        if not connection:
-            raise ValueError(f'Cannot connect to isolated Xvfb display: {name}')
-        with ExitStack() as close_display:
-            close_display.callback(x11.XCloseDisplay, connection)
-            with socket.fromfd(x11.XConnectionNumber(connection), socket.AF_UNIX, socket.SOCK_STREAM) as peer:
-                pid, uid, _gid = struct.unpack('3i', peer.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
-                address = Path(os.fsdecode(peer.getpeername()).lstrip('\0'))
-            if address.name == 'X0' or uid != os.getuid() or Path(psutil.Process(pid).exe()).name != 'Xvfb':
-                raise ValueError(f'Not an owned isolated Xvfb resource: {name}')
-            self.name = name
-            self.close_display = close_display.pop_all()
-
-    @property
-    def environment(self) -> dict[str, str]:
-        return {**os.environ, "DISPLAY": self.name}
-
-    @classmethod
-    def input(cls, frontend: psutil.Process, created: float, window: int, *commands: str) -> None:
-        """Take the display from the actual st frontend, never the controller environment."""
-        if frontend.create_time() != created or not frontend.is_running():
-            raise ValueError("Frontend launch identity changed")
-        with cls(frontend.environ()["DISPLAY"]) as display:
-            env = display.environment
-            owner = subprocess.check_output(
-                ["xprop", "-display", display.name, "-id", str(window), "_NET_WM_PID"],
-                env=env, text=True, timeout=5,
-            )
-            if int(owner.partition("=")[2].strip()) != frontend.pid:
-                raise ValueError("Window does not belong to the frontend on its display")
-            print(json.dumps({"at_ns": time.time_ns(), "monotonic_ns": time.monotonic_ns(),
-                  "input_target": {"display": display.name, "window": window,
-                  "frontend_pid": frontend.pid, "created": created}}), flush=True)
-            subprocess.run(
-                ["xdotool", "windowfocus", "--sync", str(window), *commands],
-                env=env, check=True,
-            )
-
-    def __exit__(self, *exception):
-        return self.close_display.__exit__(*exception)
+# The shared physical resource owns Xlib admission; capture never owns raw input.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from physical_ui import XvfbDisplay
 
 
 def main():
