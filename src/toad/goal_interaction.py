@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Iterator
+from collections.abc import Awaitable, Iterator
 from contextlib import contextmanager
 from typing import ClassVar, TYPE_CHECKING
-from weakref import ref
+from weakref import ReferenceType, ref
 
 from agent_comms.coordination_errors import Refused
 from agent_comms.errors import GoalRefused
@@ -16,6 +16,7 @@ from agent_comms.goal_history import RecordedGoalHistory
 from toad.agent_binding import AgentConnection
 
 if TYPE_CHECKING:
+    from toad.screens.modal import ModalScreen
     from toad.widgets.conversation import Conversation
 
 
@@ -99,7 +100,7 @@ class EditInteraction(GoalInteraction):
     label = "Edit"
 
     @classmethod
-    async def apply(cls, session):
+    async def apply(cls, session: GoalSession) -> None:
         from toad.screens.goal_edit import GoalEdit
         from toad.widgets.goal_text import goal_mention_candidates
         view = session.view
@@ -129,10 +130,10 @@ class GoalSession:
 
     def __init__(self, view: Conversation):
         self.view = view
-        self._modal = None
+        self._modal: ReferenceType[ModalScreen[None]] | None = None
 
     @property
-    def modal(self):
+    def modal(self) -> ModalScreen[None] | None:
         return self._modal() if self._modal is not None else None
 
     @property
@@ -143,13 +144,13 @@ class GoalSession:
     def execution(self) -> GoalExecution:
         return self.view.goal_execution
 
-    def owns(self, agent) -> bool:
+    def owns(self, agent: AgentConnection) -> bool:
         view = self.view
         if not view.is_attached:
             return False
         return view.goal_controls is self and view.agent_binding is agent
 
-    def present(self, modal) -> None:
+    def present(self, modal: ModalScreen[None]) -> None:
         self._modal = ref(modal)
         self.view.app.push_screen(modal)
 
@@ -189,7 +190,7 @@ class GoalSession:
             if self.owns(agent):
                 view.prompt.focus()
 
-    async def write(self, agent, operation):
+    async def write[Result](self, agent: AgentConnection, operation: Awaitable[Result]) -> Result:
         """Every write settles by reading the owner, including rejected writes."""
         try:
             return await operation

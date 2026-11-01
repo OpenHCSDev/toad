@@ -19,7 +19,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.widgets.channel_prompt import DraftPrompt
 
 
-class GoalEdit(CoreEventReceiver, DismissibleScreen[str | None]):
+class GoalEdit(CoreEventReceiver, DismissibleScreen[None]):
     AUTO_FOCUS = "ChannelTextArea"
     DEFAULT_CSS = """
     GoalEdit { align: center middle; background: $background 40%; }
@@ -83,7 +83,7 @@ class GoalEdit(CoreEventReceiver, DismissibleScreen[str | None]):
         except Refused as error:
             self.query_one("#goal-edit-error", Static).update(str(error))
         else:
-            self.dismiss(text.strip())
+            self.dismiss()
         finally:
             self.saving = False
             save_button.disabled = False
