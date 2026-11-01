@@ -32,10 +32,11 @@ async def test_pointer_toggles_keep_editing_focus_and_keyboard_toggle_enters_the
                 bar.toggle()
                 await ui.step()
             toggle.focus(scroll_visible=False)
-            await ui.step()
+            await ui.until(lambda: app.focused is toggle, why="native focus on the keyboard handle")
             await ui.press("enter")
             assert not bar.collapsed
             title = bar.query_one("SideBarCollapsible CollapsibleTitle")
+            await ui.until(lambda: app.focused is title, why="the queued native focus enters the title")
             assert app.focused is title
             # Exercise native focus selection, not an overridden property that
             # deliberately sends Textual down its foreign-chain path.

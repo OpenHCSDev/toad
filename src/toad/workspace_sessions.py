@@ -20,6 +20,7 @@ from toad.session_scope import (
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.widget_actions import DeclaredWidgetActions
+    from toad.widgets.side_bar import SideBar
 
 
 def welcome_view() -> "SessionScope":
@@ -63,7 +64,7 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget: ...
 
     @abstractmethod
-    def sidebars(self):
+    def sidebars(self) -> tuple[SideBar, ...]:
         """Native sidebar membership belongs to this logical source."""
         ...
 
@@ -93,7 +94,7 @@ class DetachedWorkspaceSource(WorkspaceSource):
     def visible_target(self, sessions: WorkspaceSessions, root: Path | None) -> NavigationTarget:
         return NoTarget()
 
-    def sidebars(self):
+    def sidebars(self) -> tuple[SideBar, ...]:
         return ()
 
 
@@ -137,7 +138,7 @@ class BoundWorkspaceSource(WorkspaceSource):
             else NoTarget()
         )
 
-    def sidebars(self):
+    def sidebars(self) -> tuple[SideBar, ...]:
         return self.view.sidebars()
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:

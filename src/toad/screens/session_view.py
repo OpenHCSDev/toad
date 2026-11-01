@@ -13,7 +13,7 @@ from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.navigation_target import NavigationTarget, NoTarget
 from toad.session_tracker import SidebarState
-from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.widget_actions import DeclaredWidgetActions
 from toad.widgets.message_notifications import (
     NothingToRead,
@@ -93,7 +93,7 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
             "Direct messages are unavailable from this view", title="Direct messages"
         )
 
-    def sidebars(self):
+    def sidebars(self) -> tuple[SideBar, ...]:
         """Supply this view's native sidebar resources through its declaration."""
         return ()
 

@@ -71,8 +71,8 @@ class WorkspaceChrome(VerticalLayout):
         bars = self.presented_sidebars()
         for bar in bars:
             bar.present_controls()
-        for parent in {bar.parent for bar in bars}:
-            parent.refresh(repaint=False, layout=True)
+            # Native invalidation retires this resource's parent arrangement.
+            bar.refresh(repaint=False, layout=True)
 
     def arrange(
         self, parent: Widget, children: list[Widget], size: Size, greedy: bool = True
@@ -83,8 +83,8 @@ class WorkspaceChrome(VerticalLayout):
         resolved = layout.resolve(size, {bar.placement_identity: bar.collapsed for bar in bars})
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.
-        nested = parent is self.channels.parent and any(
-            bar.parent is not parent and bar.parent.layout is self for bar in bars
+        nested = self.channels in parent.children and any(
+            bar not in children for bar in bars
         )
         gutter = Spacing() if nested else resolved.gutter
         placements = [
