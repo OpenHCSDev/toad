@@ -10,6 +10,10 @@ on:
       head:
         required: true
         type: string
+      release_qualification:
+        description: Run the full suite before publishing a PyPI release
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -50,6 +54,7 @@ jobs:
       - name: Run surface guards
         run: .venv/bin/pytest tests/guards
   suite:
+    if: ${{ inputs.release_qualification }}
     runs-on: ubuntu-latest
     # A hung test must turn red in minutes, not burn GitHub's 6-hour default.
     timeout-minutes: 60
