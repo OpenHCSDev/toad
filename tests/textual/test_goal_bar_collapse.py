@@ -4,7 +4,7 @@ from dataclasses import replace
 
 from agent_comms.goal_presentation import GoalWaitTarget, RunnableExecution, StandbyExecution
 from agent_comms.thread_identity import RecordedThreadIncarnation
-from agent_comms.ui_model.goal import GoalUnavailable
+from agent_comms.goals import GoalUnavailable
 from textual.widgets import Static
 
 from toad.screens.goal_details import GoalDetails
