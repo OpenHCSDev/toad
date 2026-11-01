@@ -71,6 +71,36 @@ acceptance and actual borrower checks.
   adds only the existing `DeclaredWireType` boundary capability and retains the
   actual Region object, without copying its coordinate declarations.
 
+## Runtime input identity (Core #3825 dependency)
+
+The current source requires a `RuntimeResolution` with a recorded interpreter
+observation, not just a prefix and three module locations. `RunTarget` retains
+that intended build; `ObserveOperation` obtains the actual process's resolution
+through the same target-owned probe before `RunTarget.require` permits input.
+An old build record without interpreter evidence is explicitly unrecorded and
+refuses admission. It is not retrofitted by reading its intended executable.
+
+`WheelRuntime` retains copies of its exact inputs under the new prefix's
+`inputs/` directory; borrowed originals remain read-only. The package probe
+compares every root-wheel member except the installer's rewritten `RECORD`
+against installed bytes, then records the verified archive SHA256. Root-layout
+wheels are the supported domain; `.data` relocation is refused, not silently
+skipped. Remote archive hashes remain metadata, never permission to fetch them.
+The deployed donor package probe keeps its existing core-only wire; a target
+subclass adds wheel verification without changing old workers' request shape.
+
+The interpreter observation keeps the invoked environment separate from the
+resolved executable and the native image actually named by the loader for
+`Py_GetVersion`. Stable file reads use `FileRevision`; their SHA256 values are
+native **disk-artifact** evidence, not complete loaded-code or stdlib-content
+equivalence. Repository ancestry remains `RecordedBuildIdentity`'s separate
+contract: a verified archive still does not acquire a Git revision.
+
+This implementation is a published source checkpoint, not candidate/carry or
+physical qualification. The first prepared candidate remains immutable and
+unqualified under the new interpreter requirement. No frontend/native/model
+launch follows from the earlier single artifact-preparation approval.
+
 ## Evidence limits
 
 This scenario exercises **bounded stopped history**, not the retired shell
