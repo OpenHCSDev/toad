@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections import deque
 from contextlib import AsyncExitStack
+from contextvars import Context
 from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING
@@ -409,7 +410,11 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 except WorkerCancelled:
                     pass
 
-        return AwaitComplete(join())
+        # The join owns only the cancelled Worker handles, not the caller's
+        # worker or message pump. AwaitComplete eagerly schedules its coroutine;
+        # inheriting a failed pager's active_worker makes Worker.wait reject this
+        # independent join as a self-wait.
+        return Context().run(AwaitComplete, join())
 
     def resume_source(self) -> None:
         self._source_state = self._source_state.resume()
