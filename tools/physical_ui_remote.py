@@ -468,8 +468,7 @@ class StopRootOperation(PhysicalOperation):
         self.publish(directory / "result.json", StoppedResult(self.target.root))
 
 
-# Normal imports define the family. A startup/shutdown program selects only
-# its immutable adjacent request; observations decode data, never program text.
-_source = Path(__file__)
-if _source.with_suffix(".json").is_file():
-    PhysicalOperation.execute_file(_source)
+# Imports, including multiprocessing's __mp_main__, only declare the family.
+# Explicit startup/shutdown execution owns its immutable adjacent request.
+if __name__ == "__main__":
+    PhysicalOperation.execute_file(Path(__file__))
