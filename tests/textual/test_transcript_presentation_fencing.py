@@ -160,7 +160,7 @@ async def test_followed_saved_append_keeps_painted_page_and_fragments(workspace)
 
     thread = workspace.thread("append-source")
     journal = write_journal(
-        thread.project.path / "append.jsonl",
+        thread.project_path / "append.jsonl",
         assistant_entry("FIRST_RETAINED_ROW", id="first"),
         assistant_entry("SECOND_RETAINED_ROW", id="second", parent="first"),
         assistant_entry("THIRD_RETAINED_ROW", id="third", parent="second"),
@@ -197,7 +197,7 @@ async def test_followed_commit_publishes_a_known_undrawn_gap_before_settling(wor
     from dataclasses import replace
 
     thread = workspace.thread("gap-source")
-    journal = write_journal(thread.project.path / "gap.jsonl",
+    journal = write_journal(thread.project_path / "gap.jsonl",
                             assistant_entry("BEFORE_SOURCE_GAP", id="before"))
     workspace.comms.registry.declare(replace(
         thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
@@ -228,7 +228,7 @@ async def test_closed_same_source_commit_acquires_the_complete_replacement(works
     from dataclasses import replace
 
     thread = workspace.thread("closed-prefix")
-    journal = write_journal(thread.project.path / "closed.jsonl",
+    journal = write_journal(thread.project_path / "closed.jsonl",
                             assistant_entry("CLOSED_PREFIX_MUST_SURVIVE", id="before"))
     workspace.comms.registry.declare(replace(
         thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
@@ -256,7 +256,7 @@ async def test_prune_pressure_counts_live_blocks_not_saved_history(workspace, pr
     from toad.preferences import SETTINGS
 
     thread = workspace.thread("pressure-source")
-    journal = write_journal(thread.project.path / "pressure.jsonl",
+    journal = write_journal(thread.project_path / "pressure.jsonl",
                             assistant_entry("SAVED_PRESSURE_ROW_ONE\n\nSAVED_PRESSURE_ROW_TWO", id="saved"))
     workspace.comms.registry.declare(replace(
         thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
