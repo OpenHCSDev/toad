@@ -23,8 +23,10 @@ from toad.message_rows import LiveMessageClock, MessageClock, MessageRow
 from toad.widgets.committed_presentation import CommitParticipant
 from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
 from toad.widgets.transcript_lines import (
+    BlockLines,
     LineTheme,
-    PreparedLines,
+    NoRows,
+    RowAcquisition,
     RichLineRenderer,
     link_place,
 )
@@ -39,7 +41,7 @@ class LineBlockRow(LinkedRows, Widget):
         super().__init__()
         self.block = block
         self._link_place = link_place()
-        self._lines: tuple[LineTheme, PreparedLines] | None = None
+        self._lines: RowAcquisition = NoRows()
 
     @property
     def line_theme(self) -> LineTheme:
@@ -47,17 +49,15 @@ class LineBlockRow(LinkedRows, Widget):
 
     def update_block(self, block: LineBlock) -> None:
         if block != self.block:
-            self.block, self._lines = block, None
+            self.block, self._lines = block, NoRows()
             self.refresh(layout=True)
 
-    def _drawn(self, theme: LineTheme, width: int) -> PreparedLines:
-        return PreparedLines(width, RichLineRenderer(theme, width).rows((self.block,)))
-
-    def prepared_lines(self, width: int) -> PreparedLines:
-        theme = self.line_theme
-        if self._lines is None or self._lines[0] != theme or self._lines[1].width != width:
-            self._lines = theme, self._drawn(theme, width)
-        return self._lines[1]
+    def prepared_lines(self, width: int) -> BlockLines:
+        measured = self._lines.plain(
+            width, RichLineRenderer(self.line_theme, width), (self.block,)
+        )
+        self._lines = measured
+        return measured.lines
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         width = self.size.width

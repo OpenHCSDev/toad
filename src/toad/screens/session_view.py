@@ -28,9 +28,9 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
 
     DEFAULT_CSS = "SessionView { width: 1fr; height: 1fr; }"
 
-    def __init__(self, *args, **kwargs):
-        self._identity: SessionIdentity = NoThreadIdentity()
-        super().__init__(*args, **kwargs)
+    # The absent identity is an immutable value; concrete bindings replace it
+    # on the instance. Native construction stays with Vertical/Widget.
+    _identity: SessionIdentity = NoThreadIdentity()
 
     def close_core_events(self) -> None:
         """Retire this logical source's descendants before its tab entry disappears."""
@@ -172,9 +172,9 @@ class SidebarSessionView[SidebarT: ThreadSidebar](SessionView):
     the same resource after it has left that tree.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._thread_sidebar_state = SidebarState()
+    @cached_property
+    def _thread_sidebar_state(self) -> SidebarState:
+        return SidebarState()
 
     @abstractmethod
     def make_thread_sidebar(self) -> SidebarT: ...

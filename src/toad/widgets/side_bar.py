@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import cached_property
+
 from textual._callback import invoke
 
 from metaclass_registry.mro_dispatch import handles
@@ -69,10 +71,30 @@ class BarPresentation:
         )
 
 
+class BarDisplay:
+    """Whether native controls already show a requested sidebar projection."""
+
+    def matches(self, current: PresentedBar) -> bool:
+        return False
+
+    def controls_changed(self, current: PresentedBar) -> bool:
+        return True
+
+
+class UnpresentedBar(BarDisplay):
+    """No native projection has been applied, or its view was retired."""
+
+
 @dataclass(frozen=True)
-class PresentedBar:
+class PresentedBar(BarDisplay):
     presentation: BarPresentation
     extent_percent: int
+
+    def matches(self, current: PresentedBar) -> bool:
+        return self == current
+
+    def controls_changed(self, current: PresentedBar) -> bool:
+        return self.presentation != current.presentation
 
 
 class SidebarPanelWidget(Widget):
@@ -653,6 +675,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         self.content_stack = SidebarContentStack()
         self.search_input = SidebarSearch(placeholder="Search", compact=True)
         self.panels_viewport: SidebarViewport = SidebarViewport()
+        self.layout_controls = containers.Vertical(id="sidebar-controls")
         self.hide = hide
         self.extent_slider = SidebarSlider(
             SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
@@ -662,7 +685,18 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         self._panels_loading = False
         self._panels_ready = asyncio.Event()
         self._presented_collapsed: bool | None = None
-        self._presented_layout: PresentedBar | None = None
+        self._presented_layout: BarDisplay = UnpresentedBar()
+
+    def invalidate_controls(self) -> None:
+        self._presented_layout = UnpresentedBar()
+
+    @cached_property
+    def toggle_control(self) -> SideBarToggle:
+        return SideBarToggle(self.collapsed, edge=self.placement.side)
+
+    @cached_property
+    def resize_handle(self) -> SidebarResizeHandle:
+        return SidebarResizeHandle(self.placement.side)
 
     @property
     def placement(self) -> SidebarPlacement:
@@ -729,12 +763,10 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
             await self.panels_viewport.mount_all(self._compose_panels())
             if not self.presentation_visible:
                 return
-            controls = self.query_one_optional("#sidebar-controls")
-            if controls is not None:
-                await controls.mount_all(self._compose_controls())
+            await self.layout_controls.mount_all(self._compose_controls())
             if self.presentation_visible:
                 self._panels_loaded = True
-                self._presented_layout = None
+                self.invalidate_controls()
                 await self.panels_hydrated()
                 self.restore_navigation()
         finally:
@@ -750,14 +782,14 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         self._panels_ready.set()
 
     def compose(self) -> ComposeResult:
-        yield SideBarToggle(self.collapsed, edge=self.placement.side)
-        yield SidebarResizeHandle(self.placement.side)
+        yield self.toggle_control
+        yield self.resize_handle
         with self.content_stack:
             yield self.search_input
             with self.panels_viewport:
                 if self._panels_loaded:
                     yield from self._compose_panels()
-            with containers.Vertical(id="sidebar-controls"):
+            with self.layout_controls:
                 if self._panels_loaded:
                     yield from self._compose_controls()
 
@@ -795,7 +827,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
 
     def present_controls(self) -> bool:
         if not self.presentation_visible:
-            self._presented_layout = None
+            self.invalidate_controls()
             return False
         placement = self.placement
         directions = self.app.sidebar_layout.directions(self.id)
@@ -806,25 +838,23 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
             extent_percent=placement.extent_percent,
         )
         previous = self._presented_layout
-        if current == previous:
+        if previous.matches(current):
             return False
         self._presented_layout = current
-        controls = self.query_one_optional("#sidebar-controls") if self._panels_loaded else None
         slider = self.extent_slider
-        if previous is None or previous.presentation != current.presentation:
+        if previous.controls_changed(current):
             edge = placement.side
             self.content_stack.styles.padding = edge.content_padding()
-            if toggle := self.query_one_optional(SideBarToggle):
-                toggle.set_collapsed(self.collapsed, edge)
-            if handle := self.query_one_optional(SidebarResizeHandle):
-                edge.size_handle(handle)
-                handle.styles.dock = edge.opposite().dock
-                handle.display = not self.collapsed
-            if controls is not None:
+            self.toggle_control.set_collapsed(self.collapsed, edge)
+            handle = self.resize_handle
+            edge.size_handle(handle)
+            handle.styles.dock = edge.opposite().dock
+            handle.display = not self.collapsed
+            if self._panels_loaded:
                 slider.reversed = edge.sign < 0
                 slider.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
                                  placement.extent_percent)
-                for button in controls.query(SidebarAction):
+                for button in self.layout_controls.query(SidebarAction):
                     button.action.present(button, placement, directions)
         if slider.value != placement.extent_percent:
             slider.value = placement.extent_percent
@@ -873,13 +903,11 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         # One content flow hides without retiring its retained children.
         self.content_stack.display = not collapsed
         self.tooltip = "Expand sidebar" if collapsed else None
-        toggle = self.query_one_optional(SideBarToggle)
-        if toggle is not None:
-            toggle.set_collapsed(collapsed, self.placement.side)
-            toggle.refresh_paint()
+        self.toggle_control.set_collapsed(collapsed, self.placement.side)
+        self.toggle_control.refresh_paint()
         for panel in self.panels:
             panel.widget.sidebar_visibility_changed()
-        self._presented_layout = None
+        self.invalidate_controls()
         self.app.workspace_chrome.refresh_layout()
 
     def render(self) -> str:
@@ -904,7 +932,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
     @on(events.Leave)
     def gutter_hover_changed(self) -> None:
         if self.presentation_visible:
-            self.query_one(SideBarToggle).refresh_paint()
+            self.toggle_control.refresh_paint()
 
     def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed

@@ -1,15 +1,19 @@
 """Textual-facing: a wire message's lines wrap at the full width as Rich draws them, and its names stay clickable at every width."""
 
+from dataclasses import replace
+
+from rich.style import Style
+
 from agent_comms.message_page import MessagePageRequest
 from agent_comms.display_references import ProjectReferences
 from agent_comms.messages import InfoKind, Message
 from textual.app import App
 
-from toad.line_blocks import OpenTarget
+from toad.line_blocks import Divider, OpenTarget, Span, UserRole
 from toad.markdown_links import LinkContext
 from toad.notification_status import CheckedNotifications
 from toad.textual_colours import ThemedApp
-from toad.widgets.transcript_lines import LinePreparation, PlainLines, RichLineRenderer, TranscriptLinesRenderTask
+from toad.widgets.transcript_lines import LinePreparation, NoRows, PlainLines, RichLineRenderer, TranscriptLinesRenderTask
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.widgets.transcript_fragments import MessageShown
 from toad.wire_history import WireFragment
@@ -58,6 +62,30 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_drawn_names_clickable_at_ever
             expected = {OpenTarget(name).click for name in names if name in drawn}
             actual = clicks(rows) - {shown.details_link.click}
             assert actual == expected, (width, text, actual, expected)
+
+
+def test_divider_acquisition_reuses_equal_fades_rewraps_and_repaints_changed_styles() -> None:
+    current_theme = theme()
+    link = OpenTarget("receiver-with-long-name")
+    block = Divider((Span("Sender 界 → receiver-with-long-name", UserRole, link),), UserRole)
+    acquired = NoRows().plain(36, RichLineRenderer(current_theme, 36), (block,))
+    first = acquired.lines
+    assert tuple(first) == RichLineRenderer(current_theme, 36).rows((block,))
+    assert link.click in clicks(first)
+
+    equal_fade = replace(current_theme, styles=dict(current_theme.styles))
+    assert acquired.plain(36, RichLineRenderer(equal_fade, 36), (block,)) is acquired
+    assert acquired.lines is first
+    assert acquired.plain(80, RichLineRenderer(equal_fade, 80), (block,)) is acquired
+    assert acquired.lines is not first
+    assert tuple(acquired.lines) == RichLineRenderer(equal_fade, 80).rows((block,))
+
+    changed_fade = replace(current_theme, styles={**current_theme.styles, UserRole: Style(color="red")})
+    changed = acquired.plain(80, RichLineRenderer(changed_fade, 80), (block,))
+    assert changed is not acquired
+    assert tuple(changed.lines) == RichLineRenderer(changed_fade, 80).rows((block,))
+    assert tuple(changed.lines) != tuple(acquired.lines)
+    assert link.click in clicks(changed.lines)
 
 
 def test_opening_notification_details_draws_more_rows_than_the_collapsed_message():

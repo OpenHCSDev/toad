@@ -304,9 +304,8 @@ class SpanText(LineBlock):
         return self.text
 
     @classmethod
-    def titled(cls, title: str, role: type[LineRole] = MutedRole,
-               link: LineLink | None = None) -> Self:
-        return cls((Span(title, role, link),))
+    def titled(cls, title: str, role: type[LineRole] = MutedRole) -> Self:
+        return cls((Span(title, role),))
 
 
 @dataclass(frozen=True)

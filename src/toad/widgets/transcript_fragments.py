@@ -39,6 +39,7 @@ from toad.line_blocks import (
     LineRole,
     MarkdownBody,
     MutedRole,
+    Span,
     SpanText,
     Spans,
     Summary,
@@ -222,7 +223,7 @@ class Shown:
 
     def summary(self, title: str, role: type[LineRole], link: LineLink) -> SpanText:
         """The disclosure retains the source occurrence supplied by its fragment."""
-        return self.summary_type.titled(("▼ " if self.details_open else "▶ ") + title, role, link)
+        return self.summary_type((Span(("▼ " if self.details_open else "▶ ") + title, role, link),))
 
     def toggled(self) -> "Shown":
         return replace(self, details_open=not self.details_open)

@@ -10,6 +10,8 @@ from typing import ClassVar
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.css.types import DockEdge
 from textual.geometry import Offset, Region, Size, Spacing
+from textual.widget import Widget
+from textual.widgets import Static
 
 
 class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
@@ -48,11 +50,11 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
     @classmethod
     @abstractmethod
-    def size_toggle(cls, toggle) -> None: ...
+    def size_toggle(cls, toggle: Widget) -> None: ...
 
     @classmethod
     @abstractmethod
-    def size_handle(cls, handle) -> None: ...
+    def size_handle(cls, handle: Widget) -> None: ...
 
     @classmethod
     @abstractmethod
@@ -118,11 +120,11 @@ class WidthSidebarEdge(SidebarEdge):
                       span.extent, max(0, size.height - occupied.height))
 
     @classmethod
-    def size_toggle(cls, toggle) -> None:
+    def size_toggle(cls, toggle: Widget) -> None:
         toggle.styles.width, toggle.styles.height = cls.collapsed_extent, "1fr"
 
     @classmethod
-    def size_handle(cls, handle) -> None:
+    def size_handle(cls, handle: Widget) -> None:
         handle.styles.width, handle.styles.height = 1, "1fr"
         handle.styles.pointer = "ew-resize"
 
@@ -157,11 +159,11 @@ class HeightSidebarEdge(SidebarEdge):
         return Region(0, cls.origin(size.height, span.offset, span.extent), size.width, span.extent)
 
     @classmethod
-    def size_toggle(cls, toggle) -> None:
+    def size_toggle(cls, toggle: Widget) -> None:
         toggle.styles.width, toggle.styles.height = "1fr", cls.collapsed_extent
 
     @classmethod
-    def size_handle(cls, handle) -> None:
+    def size_handle(cls, handle: Widget) -> None:
         handle.styles.width, handle.styles.height = "1fr", 1
         handle.styles.pointer = "ns-resize"
 
@@ -223,32 +225,35 @@ class SidebarShift(DeclaredFamily, affix="SidebarShift"):
 class BlockedSidebarShift(SidebarShift):
     available = False
 
-    def apply(self, layout, identity, direction):
+    def apply(self, layout: SidebarLayout, identity: str, direction: type[SidebarEdge]) -> bool:
         return False
 
-    def tooltip(self, direction):
+    def tooltip(self, direction: type[SidebarEdge]) -> str:
         return "Outside workspace edge"
 
 
 class SwapSidebarShift(SidebarShift):
-    def apply(self, layout, identity, direction):
+    def apply(self, layout: SidebarLayout, identity: str, direction: type[SidebarEdge]) -> bool:
         return layout.swap(identity)
 
-    def tooltip(self, direction):
+    def tooltip(self, direction: type[SidebarEdge]) -> str:
         return f"Swap with the sidebar toward {direction.declared_name}"
 
 
 class MoveSidebarShift(SidebarShift):
-    def apply(self, layout, identity, direction):
+    def apply(self, layout: SidebarLayout, identity: str, direction: type[SidebarEdge]) -> bool:
         return layout.move(identity, direction)
 
-    def tooltip(self, direction):
+    def tooltip(self, direction: type[SidebarEdge]) -> str:
         return f"Move sidebar to {direction.declared_name}"
 
 
 class SidebarPlacementAction(DeclaredFamily, affix="SidebarPlacementAction"):
     classes = ""
-    label: str
+
+    @property
+    @abstractmethod
+    def label(self) -> str: ...
 
     @property
     def name(self) -> str:
@@ -262,7 +267,7 @@ class SidebarPlacementAction(DeclaredFamily, affix="SidebarPlacementAction"):
     def apply(self, layout: SidebarLayout, identity: str) -> None: ...
 
     @abstractmethod
-    def present(self, button, placement: SidebarPlacement,
+    def present(self, button: Static, placement: SidebarPlacement,
                 directions: dict[type[SidebarEdge], SidebarShift]) -> None: ...
 
 
@@ -284,22 +289,26 @@ class DirectionalSidebarPlacementAction(SidebarPlacementAction):
         for edge in SidebarEdge.members_with(SidebarEdge):
             yield cls(edge)
 
-    def apply(self, layout, identity):
+    def apply(self, layout: SidebarLayout, identity: str) -> None:
         layout.shift(identity, self.direction)
 
-    def present(self, button, placement, directions):
+    def present(self, button: Static, placement: SidebarPlacement,
+                directions: dict[type[SidebarEdge], SidebarShift]) -> None:
         action = directions[self.direction]
         button.display = action.available
         button.tooltip = action.tooltip(self.direction)
 
 
 class FloatSidebarPlacementAction(SidebarPlacementAction):
-    label = "Float"
+    @property
+    def label(self) -> str:
+        return "Float"
 
-    def apply(self, layout, identity):
+    def apply(self, layout: SidebarLayout, identity: str) -> None:
         layout.float_mode(identity)
 
-    def present(self, button, placement, directions):
+    def present(self, button: Static, placement: SidebarPlacement,
+                directions: dict[type[SidebarEdge], SidebarShift]) -> None:
         button.update("Push" if placement.floating else "Float", layout=False)
         button.tooltip = ("Push conversation text" if placement.floating
                           else "Float over conversation text")

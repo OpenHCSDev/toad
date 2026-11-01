@@ -457,7 +457,7 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Divider)
     def divider(self, block: Divider) -> None:
-        groups = (block.spans,)
+        groups: tuple[tuple[Span, ...], ...] = (block.spans,)
         if block.timestamp is not None:
             timestamp = MessageClock.recorded(block.timestamp).display()[0]
             timed = (*block.spans, Span(f" · {timestamp}"))
@@ -683,8 +683,10 @@ class MeasuredRows(RowAcquisition):
     def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
         return self.source.theme is theme and self.lines.preparation is lines.preparation
 
-    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
-        if self.source.theme is renderer.theme:
+    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> MeasuredRows:
+        # Synchronous rows depend on style values, including a divider's fade.
+        # Async publication/retention still requires the captured theme identity.
+        if self.source.theme == renderer.theme:
             self.lines = self.lines.rewrap(width)
             return self
         return super().plain(width, renderer, blocks)
