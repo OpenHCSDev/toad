@@ -194,6 +194,10 @@ class SendState:
     def response_finished(self, execution) -> None:
         """A retained outcome already names the transaction's answer."""
 
+    def response_confirmed(self, execution) -> None:
+        """A confirmed reply settles input; an absent reply never calls this."""
+        execution.enter(NoSend())
+
     def local_intent(self, execution, accepted) -> tuple[str, ...]:
         return ()
 

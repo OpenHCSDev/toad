@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from agent_comms.thread_presentation import ThreadPresentation
 from textual.content import Content
 
-from toad.acp.status import StopReason
+from toad.acp.status import PromptResult
 from toad.agent_binding import AgentConnection
 from toad.agent_presentation import LocalAgentPresentation
 from toad.conversation_turn import NoTurn
@@ -146,8 +146,8 @@ class AgentBase(AgentConnection):
         """Consume a published canonical change; unmanaged agents need no binding."""
 
     @abstractmethod
-    async def send_prompt(self, prompt: str) -> type[StopReason] | None:
-        """Send a prompt; return its stop reason."""
+    async def send_prompt(self, prompt: str) -> PromptResult:
+        """Send a prompt; preserve its completed, failed or unconfirmed answer."""
 
     @property
     def available_modes(self):

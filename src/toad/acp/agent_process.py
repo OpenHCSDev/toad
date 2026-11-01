@@ -92,12 +92,11 @@ class AgentProcess(Client):
         connection.runner = asyncio.create_task(connection.run())
         return connection
 
-    async def prompt(self, agent, content, metadata: dict[str, JsonValue], require: Callable[[], None]):
-        """The agent-comms-acp child writes the prompt under Core's maintenance gate."""
+    async def prepare_prompt(self, agent, require: Callable[[], None]) -> None:
+        """Finish route/session admission before a request can reach the SDK."""
         access = agent.controller.transcripts.access
         await access.preparation.run_thread(partial(access.require, self.route_selection))
         require()
-        return await self.rpc.prompt(agent.session_id, content, **metadata)
 
     def observe_stream(self, event: StreamEvent) -> None:
         """Keep the original frame with its SDK handler."""

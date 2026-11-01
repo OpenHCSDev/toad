@@ -20,7 +20,7 @@ from agent_comms.acp_extension import (
     SendNowRequest,
     encode_request,
 )
-from agent_comms.acp_failure import ACPFailure, RequestFailure
+from agent_comms.acp_failure import ACPFailure
 from agent_comms.owner_connection import socket_path
 from agent_comms.runtime import RuntimeConnection
 from agent_comms.transcripts import TranscriptReadIdentity
@@ -29,7 +29,7 @@ from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
 from agent_comms.ui_model.observation import ReadOwnerOperation
 
 from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
-from toad.acp.status import StopReason
+from toad.acp.status import PromptResult
 from toad.core import events as core_events
 from toad.core.events import LogAgentFail
 from toad.plan import PlanItem
@@ -209,7 +209,7 @@ class AgentController(OperationalTerminalOwner):
     async def operate[Result](self, operation: Coroutine[None, None, Result]) -> Result:
         return await asyncio.shield(self.start_operation(operation))
 
-    async def submit(self, prompt: str, *, request: PromptRequest | None = None):
+    async def submit(self, prompt: str, *, request: PromptRequest | None = None) -> PromptResult:
         agent = self.agent
         command = request if request is not None else QueuePromptRequest(prompt)
         authority = ClientSessionRequest(agent, agent.session_id)
@@ -251,7 +251,7 @@ class AgentController(OperationalTerminalOwner):
         authority: ClientSessionRequest,
         queue_scope: QueueScope,
         project: Path,
-    ):
+    ) -> PromptResult:
         submission = asyncio.current_task() if command.defer_display else None
         if submission is not None:
             self._deferred_submissions.add(submission)
@@ -274,7 +274,7 @@ class AgentController(OperationalTerminalOwner):
             if submission is not None:
                 self._deferred_submissions.discard(submission)
 
-    async def submit_blocks(self, content: list[dict[str, str]], command: CommsRequest):
+    async def submit_blocks(self, content: list[dict[str, str]], command: CommsRequest) -> PromptResult:
         agent = self.agent
         authority = QueueSessionRequest(agent, agent.session_id)
         return await self.operate(
@@ -283,7 +283,7 @@ class AgentController(OperationalTerminalOwner):
             )
         )
 
-    async def _prompt(self, content, command, authority: ClientSessionRequest, queue_scope: QueueScope):
+    async def _prompt(self, content, command, authority: ClientSessionRequest, queue_scope: QueueScope) -> PromptResult:
         agent = self.agent
 
         def require():
@@ -291,29 +291,9 @@ class AgentController(OperationalTerminalOwner):
             if not agent.queue_attachment.accepts_request(queue_scope):
                 raise QueueActionRefused("The queued input owner changed before submission; inspect the current queue.")
 
-        try:
-            result = await agent.process.prompt(
-                agent, content, encode_request(command), require
-            )
-        except RequestError as error:
-            # The agent answered: this request failed and its session stays open.
-            request_failure = RequestFailure.from_error(error)
-            report = agent.events.publish
-        except OSError as error:
-            # The transport is gone, and the session with it.
-            request_failure = RequestFailure(ACPFailure.from_detail(None, f"{type(error).__name__}: {error}"), False)
-            report = agent.session.record_failure
-        else:
-            if authority.retired:
-                return authority.unconfirmed("the captured ACP session retired before its reply")
-            return StopReason.member_named(result.stop_reason)
-        if authority.retired:
-            return authority.unconfirmed("the captured ACP session retired during the request")
-        failure = request_failure.failure
-        self._prompt_failed(
-            command, authority, queue_scope, failure, report, published=request_failure.notification_published
-        )
-        return authority.unconfirmed(failure.feedback)
+        outcome = await authority.prompt(content, encode_request(command), require)
+        outcome.publish_failure(self, command, queue_scope)
+        return authority.resolve(outcome)
 
     def _prompt_failed(
         self,
@@ -339,15 +319,15 @@ class AgentController(OperationalTerminalOwner):
         if not published:
             report(LogAgentFail(failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
-    async def clear_queue(self) -> None:
-        await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest())
+    async def clear_queue(self) -> PromptResult:
+        return await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest())
 
-    async def send_now(self) -> None:
+    async def send_now(self) -> PromptResult:
         authority = QueueSessionRequest(self.agent, self.agent.session_id)
         queue_scope = self.agent.queue_attachment.scope
         if pending := tuple(self._deferred_submissions):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
-        await self.operate(
+        return await self.operate(
             self._prompt_operation(
                 partial(self._prompt, [{"type": "text", "text": " "}], SendNowRequest(), authority, queue_scope),
                 authority,
@@ -362,20 +342,14 @@ class AgentController(OperationalTerminalOwner):
 
     async def _compact_context(self, instructions, authority: ClientSessionRequest):
         agent = self.agent
-        try:
-            response = await agent.process.prompt(
-                agent, [{"type": "text", "text": " "}], encode_request(CompactRequest(instructions)), authority.require
-            )
-        except RequestError as error:
-            failure = RequestFailure.from_error(error).failure
-            raise ValueError(
-                f"{failure.title}: {failure.detail}\n{failure.input_disposition}\n{failure.action}"
-            ) from error
+        outcome = await self._prompt(
+            [{"type": "text", "text": " "}], CompactRequest(instructions), authority,
+            agent.queue_attachment.scope,
+        )
+        confirmed = outcome.require_confirmation()
         authority.require()
-        if response is None:
-            raise ValueError("Compaction returned no result")
         consumer = agent.comms_consumer_class(agent, authority.session_id)
-        await consumer.consume_metadata(response.field_meta)
+        await consumer.consume_metadata(confirmed.response.field_meta)
         return consumer.compaction.require()
 
     async def cancel_prompt(self):
