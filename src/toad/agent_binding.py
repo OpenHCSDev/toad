@@ -39,9 +39,12 @@ if TYPE_CHECKING:
 
 class AgentConnection(ABC):
     configuration: AgentConfiguration
-    presentation: AgentPresentation
     ready: bool
     session_disposition: SessionDisposition
+
+    @property
+    @abstractmethod
+    def presentation(self) -> AgentPresentation: ...
 
     @property
     def readiness_refusal(self) -> NoLiveAgent:
