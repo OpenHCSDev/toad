@@ -1,0 +1,98 @@
+# Isolated physical Toad runs
+
+The shared implementation is `tools/physical_ui.py`: the existing
+`XvfbDisplay → OwnedDisplay` family owns Xlib/display allocation and retirement;
+`TerminalApp` owns st, the frontend, source observations and all physical input.
+`tools/acceptance.py` and the scrolling scenario consume it. There is no public
+raw-input method on a display.
+
+## Entry point
+
+Run with the **installed source runtime's Python**, with Core's retained
+`CheckRoot.create()` and `SuppliedRuntimeHome` APIs available (Core PR #3821).
+Do not put the candidate Core checkout on `PYTHONPATH` and call that installed
+source qualification.
+
+```sh
+/home/ts/.local/share/agent-comms/current/bin/python \
+  tools/performance/scroll_scenario.py \
+  --thread YOUR_THREAD --history-thread ANOTHER_THREAD \
+  --output /home/ts/.cache/agent-scratch/YOUR_OWNER/fresh-run
+```
+
+`--runtime /absolute/complete/candidate-prefix` selects only the frontend and
+private copy's runtime. The source controller remains installed. The candidate
+must contain its own Toad/Core/Textual packages; a dependency `.pth` pointing
+those packages outside the selected prefix fails actual module-origin checks.
+Supply a new output directory for each distinct run. Do not replay a failed or
+UNKNOWN input against an old run.
+
+The callable entry point is `TerminalApp.copied(source, threads, runtime,
+output, thread=..., size=Size(...))`. Its context yields the admitted app and
+retains the copied root, frontend-home, operation receipts, screenshots and
+recording on exit. The caller still owns retiring those retained files after
+acceptance and actual borrower checks.
+
+## What the owner establishes
+
+- `CheckRoot` alone selects/imports bounded stopped history; old goals, turns,
+  tasks, processes and input authority do not travel with it. The installed
+  source owner creates history; only its disposable copy is published through
+  `RootRuntime.publish` to a supplied runtime.
+- Fresh Toad config/state/data and no copied saved-tab database. Presentation
+  settings can travel; source identities cannot be repaired by rewriting tabs.
+- HOME/XDG inside `st -e env`: st itself resets HOME from passwd before exec.
+- Xvfb uses displayfd, not a guessed display number. Xlib checks its actual
+  local peer UID/process; the run verifies the allocated server incarnation.
+- Child exec grants debugging only to the recorded controller PID and its
+  descendants. It changes no global ptrace policy and needs no sudo.
+- Before physical input: the actual frontend incarnation, runtime and loaded
+  Toad/Core/Textual module locations, HOME/XDG/database, selected/opened source,
+  every saved entry's source and every borrowed ACP process's creator/session
+  agent coordination roots. Pending/foreign sources refuse input.
+- The read-only observation asks `ToadApp.running_app()` and the actual screen
+  owner. A window caption is not readiness. `remote_exec` receives an explicit
+  module filename binding and an adjacent FieldCodec request; a missing or
+  timed-out result is not a successful observation.
+- st text travels with the actually published history viewport geometry.
+  `ScreenCapture` clips through Textual/Rich's cell geometry, not sidebar
+  separators that disappear when a sidebar closes or occur inside code.
+  Textual's installed compiled `Region` rejects subclassing; `CapturedRegion`
+  adds only the existing `DeclaredWireType` boundary capability and retains the
+  actual Region object, without copying its coordinate declarations.
+
+## Evidence limits
+
+This scenario exercises **bounded stopped history**, not the retired shell
+benchmark's active provider response. Historical `scroll-series.md` entries
+retain their original source/traffic scopes and old API names. They are not
+commands to rerun against the live root.
+
+A source observation establishes module **locations**, not hashes of already
+loaded code. Screen dumps help inspect text; the continuous Xvfb recording owns
+visible pixels. Neither an import nor one screenshot proves the whole journey.
+A run with no ACP bindings does not demonstrate the bound/pending/foreign ACP
+cases.
+
+Source-observer work is part of the measurement overhead. For example, one
+prototype observation took about 97 ms inside the callback before considering
+its compilation/dispatch cost. Do not report that overhead as production frame
+cost or quietly subtract it from a user-facing latency claim. Correlate complete
+controller/call spans and the recording.
+
+The separate reviewed `capture_history.py` path retains its own explicit
+approval, identity, size/time budgets and completion token. This entry point
+neither starts that capture nor authorizes heap, GC, repaint, remeasure or
+arbitrary trace experiments. The legacy `capture_live.py` diagnostic options do
+not become authorized merely because they import the shared display resource.
+
+## Current qualification
+
+Core #3821 is an API checkpoint; full acceptance is separate. Prototype7
+completed with exit0: actual copied b34 frontend/source/home/runtime admission,
+held PageUp/PageDown, reversal, End and wheel input, screenshots, a continuous
+recording and typed copied-root stop. Its source controller still used the
+owned Core overlay, and it had no bound ACP. Earlier failed run receipts remain
+retained. Candidate admission, installed-source qualification, four isolation
+counterexamples, tab/resize/arrival/retirement coverage and final profiling must
+be reported individually; none is implied by this bounded scrolling result.
