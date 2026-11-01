@@ -697,13 +697,16 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
             self.schedule_hydration()
 
     def schedule_hydration(self) -> None:
-        if not self._panels_loaded and not self._panels_loading:
+        if not self._panels_loaded and not self._panels_loading and self.presentation_visible:
             self.screen.frame_presentation.defer(self, self._start_hydration)
 
     @property
     def presentation_visible(self) -> bool:
+        """Native attachment owns whether this retained resource may present."""
         return (
-            self.screen.is_current
+            self.is_attached
+            and not self.is_leaving
+            and self.screen.is_current
             and self.display
             and all(
                 ancestor.display
@@ -716,9 +719,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         if (
             self._panels_loaded
             or self._panels_loading
-            or not self.is_attached
             or not self.presentation_visible
-            or self.is_leaving
         ):
             return
         self._panels_loading = True
@@ -727,12 +728,12 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
     async def _hydrate_panels(self) -> None:
         try:
             await self.panels_viewport.mount_all(self._compose_panels())
-            if not self.is_attached or self.is_leaving or not self.presentation_visible:
+            if not self.presentation_visible:
                 return
             controls = self.query_one_optional("#sidebar-controls")
             if controls is not None:
                 await controls.mount_all(self._compose_controls())
-            if self.is_attached and not self.is_leaving and self.presentation_visible:
+            if self.presentation_visible:
                 self._panels_loaded = True
                 self._presented_layout = None
                 await self.panels_hydrated()
@@ -794,15 +795,13 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         self._present_controls()
 
     def on_show(self) -> None:
-        self._present_controls()
+        self.restore_navigation()
 
     def _present_controls(self) -> bool:
-        if not self.is_mounted:
-            return False
-        placement = self.placement
-        if self.parent is None or not self.presentation_visible:
+        if not self.presentation_visible:
             self._presented_layout = None
             return False
+        placement = self.placement
         directions = self.app.sidebar_layout.directions(self.id)
         current = PresentedBar(
             presentation=BarPresentation.from_placement(
@@ -875,12 +874,12 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         return changed
 
     def watch_collapsed(self, collapsed: bool) -> None:
-        if self.is_mounted and not self.presentation_visible:
-            # Keep shared intent current without resizing every hidden transcript.
-            # Activation applies the latest value inside its render transaction;
-            # an open/close round trip can therefore keep unchanged geometry.
+        if not self.presentation_visible:
+            # Keep shared intent current without native work before attachment,
+            # while hidden or during retirement. Activation applies the latest
+            # value inside its render transaction.
             return
-        if not collapsed and self.is_mounted:
+        if not collapsed:
             self.schedule_hydration()
         self._presented_collapsed = collapsed
         # One content flow hides without retiring its retained children.
@@ -893,9 +892,8 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         for panel in self.panels:
             panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
-        if self.is_mounted:
-            self._present_controls()
-            self.app.workspace_chrome.refresh_layout()
+        self._present_controls()
+        self.app.workspace_chrome.refresh_layout()
 
     def render(self) -> str:
         return self.placement.side.toggle_symbol(self.collapsed) if self.collapsed else ""
@@ -918,12 +916,13 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
     @on(events.Enter)
     @on(events.Leave)
     def gutter_hover_changed(self) -> None:
-        self.query_one(SideBarToggle).refresh_paint()
+        if self.presentation_visible:
+            self.query_one(SideBarToggle).refresh_paint()
 
     def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed
         return_focus = collapsed and (focus or self.has_focus_within)
-        if return_focus and self.is_mounted and self.screen.is_current:
+        if return_focus and self.presentation_visible:
             # Return input focus before native Hide reconstructs its focus chain.
             self.screen.focus_sidebar_return()
         self.store_collapsed(collapsed)

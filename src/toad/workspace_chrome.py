@@ -47,7 +47,7 @@ class WorkspaceChrome(VerticalLayout):
         source = self.app.workspace_sessions.source
         layout = self.app.sidebar_layout
         return tuple(bar for bar in (self.channels, *source.sidebars())
-                     if bar.is_mounted and bar.presentation_visible and bar.id in layout.placements)
+                     if bar.presentation_visible and bar.id in layout.placements)
 
     def toggle_sidebar(self, side: type[SidebarEdge]) -> None:
         layout = self.app.sidebar_layout
@@ -69,10 +69,7 @@ class WorkspaceChrome(VerticalLayout):
 
     def refresh_layout(self) -> None:
         """Placement changes retire both native parent arrangements."""
-        source = self.app.workspace_sessions.source
-        for parent in {
-            bar.parent for bar in (self.channels, *source.sidebars()) if bar.is_mounted
-        }:
+        for parent in {bar.parent for bar in self.presented_sidebars()}:
             parent.refresh(repaint=False, layout=True)
 
     def arrange(
