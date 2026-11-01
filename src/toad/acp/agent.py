@@ -10,7 +10,7 @@ from agent_comms.acp_extension import (
     PromptRequest,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec, GoalId
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import Goal, GoalDeclaration, NoGoal
@@ -245,7 +245,7 @@ class Agent(AgentBase):
             consumer.dispatch_sync(fact)
         return snapshot
 
-    async def get_goal_history(self, goal_id: str) -> RecordedGoalHistory:
+    async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:
         result = await self.controller.request_owner("goal_history", goal_id=goal_id)
         return FieldCodec.decode(RecordedGoalHistory, result)
 

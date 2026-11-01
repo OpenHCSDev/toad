@@ -5,9 +5,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.errors import GoalRefused
 from agent_comms.goal_history import RecordedGoalHistory
 from textual.content import Content
 
@@ -19,6 +20,8 @@ from toad.widgets.committed_presentation import CommitSource
 
 if TYPE_CHECKING:
     from agent_comms.goal_actions import GoalAction
+    from agent_comms.goals import Goal, GoalDeclaration
+    from agent_comms.nominal.field_codec import GoalId
     from agent_comms.session_load import ExistingSessionLoadPlan
 
     from toad.conversation_submission import (
@@ -96,6 +99,17 @@ class AgentConnection(ABC):
 
     @abstractmethod
     def matches_agent(self, agent) -> bool: ...
+
+    goal_control_refusal: ClassVar[str] = "Persistent goals require an agent-comms session"
+
+    async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:
+        return RecordedGoalHistory.empty()
+
+    async def edit_goal(self, goal: Goal, text: str) -> Goal:
+        raise GoalRefused(self.goal_control_refusal)
+
+    async def update_goal(self, action: type[GoalAction], text: str = "") -> GoalDeclaration:
+        raise GoalRefused(self.goal_control_refusal)
 
 
 class NoAgentConnection(AgentConnection):
@@ -177,12 +191,6 @@ class NoAgentConnection(AgentConnection):
 
     def accepts_failed_input(self, message: CoreEventMessage) -> bool:
         return False
-
-    async def get_goal_history(self, goal_id: str) -> RecordedGoalHistory:
-        return RecordedGoalHistory.empty()
-
-    async def update_goal(self, action: type[GoalAction], text: str):
-        raise ValueError("Persistent goals require an agent-comms session")
 
     def cancel_allowed(self, turn: TurnOwner) -> bool:
         return False
