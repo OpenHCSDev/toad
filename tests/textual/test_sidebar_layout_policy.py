@@ -1,4 +1,4 @@
-"""Placement preserves both sidebars, peer order, axis bounds and conversation clearance."""
+"""Textual-facing: native sidebar geometry preserves peer order and conversation clearance."""
 
 from itertools import product
 
