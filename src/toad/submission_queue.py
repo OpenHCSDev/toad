@@ -9,7 +9,7 @@ from typing import ClassVar
 
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.message_reference import MessageReference
-from agent_comms.notification_evidence import NotificationWindow
+from agent_comms.notification_assignment import NotificationSelection
 
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent_presentation import AgentPresentation
@@ -33,7 +33,7 @@ class QueueEvidence:
         for target in self.read_targets():
             for entry in target.queue_entries():
                 entries[entry.reference] = entry
-                if len(entries) >= NotificationWindow.window_limit:
+                if len(entries) >= NotificationSelection.window_limit:
                     return tuple(entries.values())
         return tuple(entries.values())
 

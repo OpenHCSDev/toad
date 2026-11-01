@@ -34,6 +34,7 @@ from agent_comms.turn_context import (
 from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.working_memory_labels import JevClassifier, ModelLabel
 from agent_comms.working_memory_questions import SpanAnswer
+from agent_comms.owner_connection import socket_path
 from pydantic import JsonValue
 
 from toad.core.projection import MroProjection
@@ -616,7 +617,7 @@ class ContextInspection:
         return tuple(matches)
 
     async def _request(self, action: str, **parameters: JsonValue | tuple[int, ...]):
-        from agent_comms.runtime import RuntimeConnection, socket_path
+        from agent_comms.runtime import RuntimeConnection
 
         owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
         if owner.incarnation != self.owner.incarnation:
