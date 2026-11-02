@@ -285,6 +285,7 @@ class ObservedTerminalApp:
     startup_seconds = 60.0
     stop_seconds = 10.0
     start_operation = StartOperation
+    check_root_type: type[CheckRoot] = CheckRoot
     entry_operation = InstalledOperation
     entry_record = "resources-observed.json"
     final_record = "resources-final.json"
@@ -389,7 +390,7 @@ class ObservedTerminalApp:
         """Create under the source owner, bind only its copy, retain run evidence."""
         output = output.expanduser().absolute()
         output.mkdir(mode=0o700, parents=True)  # Fresh evidence, never overwrite a failed run.
-        copied = CheckRoot(source, threads, output / "bus").create()
+        copied = cls.check_root_type(source, threads, output / "bus").create()
         project = copied.registry.require(thread).project_path
         RootRuntime.publish(copied.root, runtime)
         target = cls.prepare_target(copied.root, runtime)
