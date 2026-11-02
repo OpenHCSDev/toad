@@ -431,9 +431,10 @@ class AgentSession:
             return
         assert response is not None
         self.agent.session_id = response.session_id
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        bound_session_id = self.agent.controller.session.require_session_id()
+        authority = ClientSessionRequest(self.agent, bound_session_id)
         await self.agent.comms_consumer_class(
-            self.agent, self.agent.session_id,
+            self.agent, bound_session_id,
             cursor_token=cursor_token, queue_token=queue_token,
         ).consume_metadata(response.field_meta)
 
@@ -471,8 +472,7 @@ class AgentSession:
     async def load(self) -> None:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         authority.require()
-        assert self.agent.controller.session.bound, "Session id must be set"
-        request_session_id = self.agent.session_id
+        request_session_id = authority.binding.require_session_id()
         cursor_token = self.agent._private_cursor.begin(request_session_id)
         queue_token = self.agent.queue_attachment.begin(request_session_id)
         self.agent._post_private_cursor()
@@ -511,7 +511,7 @@ class AgentSession:
         if owner is not None:
             self.agent.queue_attachment.unavailable = HistoryOnlyQueueProjection(owner)
         await self.agent.comms_consumer_class(
-            self.agent, self.agent.session_id,
+            self.agent, request_session_id,
             cursor_token=cursor_token, queue_token=queue_token,
         ).consume_metadata(response.field_meta)
         if owner is not None:

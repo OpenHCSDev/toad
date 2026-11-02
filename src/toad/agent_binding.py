@@ -9,6 +9,7 @@ from typing import ClassVar, TYPE_CHECKING
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.errors import GoalRefused
 from agent_comms.goal_history import RecordedGoalHistory
+from agent_comms.nominal.field_codec import AcpSessionId
 from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
@@ -103,7 +104,7 @@ class AgentConnection(ABC):
     def matches_agent(self, agent: object) -> bool: ...
 
     def accepts_publication(
-        self, message: CoreEventMessage, session_id: str | None
+        self, message: CoreEventMessage, session_id: AcpSessionId | None
     ) -> bool:
         """A connection without an ACP session never reads its publisher."""
         return False

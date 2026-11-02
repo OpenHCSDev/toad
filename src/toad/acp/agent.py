@@ -12,7 +12,7 @@ from agent_comms.acp_extension import (
     PromptRequest,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.nominal.field_codec import FieldCodec, GoalId, InputId
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, GoalId, InputId
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal, GoalDeclaration
@@ -140,7 +140,7 @@ class Agent(AgentBase):
         return self.session.disposition
 
     def accepts_publication(
-        self, message: CoreEventMessage, session_id: str | None
+        self, message: CoreEventMessage, session_id: AcpSessionId | None
     ) -> bool:
         return message.publisher is self and self.session_id == session_id
 
@@ -215,11 +215,11 @@ class Agent(AgentBase):
 
 
     @property
-    def session_id(self):
+    def session_id(self) -> AcpSessionId | None:
         return self.controller.session.session_id
 
     @session_id.setter
-    def session_id(self, value) -> None:
+    def session_id(self, value: str | None) -> None:
         self.controller.bind_session(value)
 
     @property
@@ -241,7 +241,7 @@ class Agent(AgentBase):
     def detach_surface(self, surface: Conversation) -> None:
         self.controller.detach(surface)
 
-    def receive_coordination(self, update: CoordinationChangedUpdate, session_id: str) -> None:
+    def receive_coordination(self, update: CoordinationChangedUpdate, session_id: AcpSessionId) -> None:
         """Consume one original publication and refresh its derived projections."""
         self.controller.transcripts.access.selected(update.wire_root)
         self.coordination_attachment = CoordinatedThread(update)

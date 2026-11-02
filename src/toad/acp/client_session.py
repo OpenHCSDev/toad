@@ -12,6 +12,7 @@ from pydantic import JsonValue
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
+from agent_comms.nominal.field_codec import AcpSessionId
 from toad.core.events import LogAgentFail
 from .queue_attachment import QueueActionRefused
 from .status import ConfirmedPromptResult, PromptResult, StopReason
@@ -27,7 +28,7 @@ from acp.exceptions import RequestError
 @dataclass(frozen=True)
 class ClientSessionRequest:
     agent: "Agent"
-    session_id: str | None
+    session_id: AcpSessionId | None
     disposition: "SessionDisposition" = field(init=False)
     binding: "SessionBinding" = field(init=False)
 
@@ -57,6 +58,7 @@ class ClientSessionRequest:
         process = self.agent.process
         try:
             await process.prepare_prompt(self.agent, require)
+            session_id = self.binding.require_session_id()
         except RequestError as error:
             failure = RequestFailure.from_error(error)
             return ResolvedFailurePromptResult(self, replace(failure, failure=replace(
@@ -65,7 +67,7 @@ class ClientSessionRequest:
             return ResolvedFailurePromptResult(self, RequestFailure(replace(ACPFailure.from_detail(
                 None, f"{type(error).__name__}: {error}"), input_state=NotSentInput), False))
         try:
-            response = await process.rpc.prompt(self.session_id, content, **metadata)
+            response = await process.rpc.prompt(session_id, content, **metadata)
         except RequestError as error:
             return self.failed(RequestFailure.from_error(error))
         except OSError as error:
@@ -148,7 +150,10 @@ class ClientRequestOwner:
     def __init__(self, agent: Agent):
         self.agent = agent
 
-    def session_request(self, session_id: str | None) -> ClientSessionRequest:
-        request = ClientSessionRequest(self.agent, session_id)
+    def session_request(self, session_id: str) -> ClientSessionRequest:
+        """Match foreign SDK spelling, then retain the existing nominal binding."""
+        request = ClientSessionRequest(self.agent, self.agent.session_id)
         request.require()
+        if not request.binding.accepts_notification(session_id):
+            raise RequestError.invalid_params({'details': 'ACP client request belongs to a retired session'})
         return request

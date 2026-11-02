@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from agent_comms.acp_extension import CoordinationChangedUpdate, PromptRequest
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import NoGoal
+from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.order_tools import InputDeliveryRead, OwnerGoalRead
 from agent_comms.owner_connection import socket_path
 from agent_comms.repo import Checkout
@@ -66,7 +67,7 @@ class CoordinationAttachment:
     def require_source(self, update: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
         raise ValueError(self.retired_notice)
 
-    def publish(self, agent: Agent, session_id: str | None) -> None:
+    def publish(self, agent: Agent, session_id: AcpSessionId | None) -> None:
         """No coordination publication exists."""
 
     def publish_row_state(self, events: CoreEventStream) -> None:
@@ -160,16 +161,17 @@ class CoordinatedThread(CoordinationAttachment):
         if not self.matches_source(update):
             raise ValueError(self.changed_notice)
 
-    def publish(self, agent: Agent, session_id: str | None) -> None:
+    def publish(self, agent: Agent, session_id: AcpSessionId | None) -> None:
         agent.events.publish(CommsUpdated(self.update, session_id))
 
     def publish_row_state(self, events: CoreEventStream) -> None:
         events.publish(ThreadRowStateChanged(frozenset((self.update.thread.name,))))
 
     def thread_read(self, agent: Agent) -> ThreadRead:
+        authority = ClientSessionRequest(agent, agent.session_id)
         return PendingThreadRead(
-            agent, self, ClientSessionRequest(agent, agent.session_id),
-            OwnerSnapshotConsumer(agent, agent.session_id, turn_token=agent.presentation.turns.sequence),
+            agent, self, authority,
+            OwnerSnapshotConsumer(agent, authority.binding.require_session_id(), turn_token=agent.presentation.turns.sequence),
         )
 
     def finish_prompt(self, agent: Agent, authority: ClientSessionRequest) -> None:
@@ -228,7 +230,7 @@ class CoordinatedThread(CoordinationAttachment):
 
     async def goal_snapshot(self, agent: Agent) -> GoalSnapshot:
         authority = ClientSessionRequest(agent, agent.session_id)
-        consumer = OwnerSnapshotConsumer(agent, agent.session_id,
+        consumer = OwnerSnapshotConsumer(agent, authority.binding.require_session_id(),
                                          turn_token=agent.presentation.turns.sequence)
         snapshot = await agent.controller.transcripts.read(ReadOwnerOperation(
             self.update.wire_root, self.update.thread, operation=OwnerGoalRead()))

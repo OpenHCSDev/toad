@@ -1,6 +1,7 @@
 """A recorded transcript keeps its selected source through snapshot, refresh and presentation, with no live owner."""
 
 from agent_comms.repo import Checkout
+from agent_comms.nominal.field_codec import AcpSessionId
 import json
 from dataclasses import replace
 
@@ -61,7 +62,7 @@ def test_recorded_presentation_does_not_acquire_live_owner(recorded):
     identity = live.transcripts.capture_page_read("reader", page_source=RecordedPageSource(source.key)).identity
     # There is no live agent/controller to acquire: the recorded declaration
     # cannot publish a turn even when delivered to the ordinary snapshot consumer.
-    consumer = OwnerSnapshotConsumer(None, "authored", turn_token=1)
+    consumer = OwnerSnapshotConsumer(None, AcpSessionId("authored"), turn_token=1)
     consumer.thread_presentation(replace(presentation, read_identity=identity))
     assert TranscriptSnapshotUpdate.capture(live.transcripts, "reader",
                                             page_source=RecordedPageSource(source.key)).identity == identity

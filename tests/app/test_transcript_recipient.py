@@ -7,7 +7,7 @@ from dataclasses import replace
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.threads import Thread
-from toad.acp.agent_controller import SessionBinding
+from toad.acp.agent_controller import BoundSessionBinding, SessionBinding
 from toad.acp.coordination_attachment import CoordinatedThread
 
 from support.agents import deliver
@@ -29,12 +29,12 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
     attachment = CoordinatedThread(expected)
     identity = updates["alpha"].identity
     destination = AcpSessionId("original-acp-destination")
-    assert SessionBinding(destination).accepts_snapshot(identity, attachment, destination)
-    assert not SessionBinding("beta").accepts_snapshot(identity, attachment, destination)
-    assert not SessionBinding(None).accepts_snapshot(identity, attachment, destination)
-    assert not SessionBinding(destination).accepts_snapshot(
+    assert BoundSessionBinding(destination).accepts_snapshot(identity, attachment, destination)
+    assert not BoundSessionBinding(AcpSessionId("beta")).accepts_snapshot(identity, attachment, destination)
+    assert not SessionBinding().accepts_snapshot(identity, attachment, destination)
+    assert not BoundSessionBinding(destination).accepts_snapshot(
         replace(identity, root=str(workspace.project)), attachment, destination)
-    assert not SessionBinding(destination).accepts_snapshot(replace(
+    assert not BoundSessionBinding(destination).accepts_snapshot(replace(
         identity, thread=replace(identity.thread, created_at=identity.thread.created_at - 0.5)),
         attachment, destination)
 
