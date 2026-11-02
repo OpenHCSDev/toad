@@ -473,7 +473,7 @@ class ConversationSessionBinding(
         self, message: CoreEventMessage, update: core_events.CommsUpdated,
     ) -> bool:
         return (
-            self.agent_binding.accepts_publication(message, update.session_id)
+            self.agent_binding.accepts_publication(message, update)
             and self.turns.owner.accepts_update(update.update)
         )
 

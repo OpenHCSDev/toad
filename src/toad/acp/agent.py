@@ -141,9 +141,9 @@ class Agent(AgentBase):
         return self.session.disposition
 
     def accepts_publication(
-        self, message: CoreEventMessage, session_id: AcpSessionId | None
+        self, message: CoreEventMessage, update: core_events.CommsUpdated
     ) -> bool:
-        return message.publisher is self and self.session_id == session_id
+        return message.publisher is self and self.session_id == update.session_id
 
     def borrowed_processes(self) -> tuple[AgentProcess, ...]:
         return (self.process,)

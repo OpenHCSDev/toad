@@ -12,7 +12,7 @@ from agent_comms.goal_history import RecordedGoalHistory
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.session_load import ExistingSessionLoadPlan
-from agent_comms.nominal.field_codec import AcpSessionId, GoalId
+from agent_comms.nominal.field_codec import GoalId
 from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
@@ -20,6 +20,7 @@ from toad.acp.session_disposition import SessionDisposition, UnopenedSessionDisp
 from toad.acp.thread_read import NoPendingThreadRead, ThreadRead
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.conversation_turn import NoTurn
+from toad.core.events import CommsUpdated
 from toad.input_decision import InputDecision, InputAccepted, NoLiveAgent
 from toad.widgets.committed_presentation import CommitSource
 
@@ -108,7 +109,7 @@ class AgentConnection(ABC):
     def matches_agent(self, agent: object) -> bool: ...
 
     def accepts_publication(
-        self, message: CoreEventMessage, session_id: AcpSessionId | None
+        self, message: CoreEventMessage, update: CommsUpdated
     ) -> bool:
         """A connection without an ACP session never reads its publisher."""
         return False
