@@ -18,6 +18,7 @@ from agent_comms.acp_extension import (
     SendNowRequest,
     encode_request,
 )
+from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.delivery import DeliveryView
 
@@ -62,9 +63,10 @@ class SessionBinding:
         return self.bound and self.session_id == session_id
 
     def accepts_snapshot(
-        self, identity: TranscriptReadIdentity, coordination: CoordinationAttachment
+        self, identity: TranscriptReadIdentity, coordination: CoordinationAttachment,
+        destination: AcpSessionId,
     ) -> bool:
-        return self.accepts_notification(identity.requested_name) and coordination.accepts_read(identity)
+        return self.accepts_notification(destination) and coordination.accepts_read(identity)
 
 
 class TaskRunner(ABC):
@@ -151,16 +153,23 @@ class AgentController(OperationalTerminalOwner):
         binding.schedule_terminal_presentation(self)
 
     async def publish_transcript_snapshot(
-        self, update: TranscriptSnapshotUpdate, binding: SurfaceBinding, session: SessionBinding
+        self, update: TranscriptSnapshotUpdate, binding: SurfaceBinding, session: SessionBinding,
+        *, destination: AcpSessionId,
     ) -> None:
-        if binding.target is None or not session.accepts_snapshot(update.identity, self.agent.coordination_attachment):
+        if self.session is not session or self.surface is not binding:
+            return
+        if binding.target is None or not session.accepts_snapshot(
+            update.identity, self.agent.coordination_attachment, destination,
+        ):
             return  # No view or matching request owns this publication.
         snapshot = await self.transcripts.publication(update)
         if self.session is not session:
             return
         if self.surface is not binding:
             return
-        if not session.accepts_snapshot(snapshot.identity, self.agent.coordination_attachment):
+        if not session.accepts_snapshot(
+            snapshot.identity, self.agent.coordination_attachment, destination,
+        ):
             return
         self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 

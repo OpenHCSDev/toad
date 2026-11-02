@@ -18,12 +18,14 @@ from agent_comms.acp_extension import (
     QueueChangedUpdate, RequestFailedUpdate, decode_request, encode_updates,
 )
 from agent_comms.acp_failure import BackendDeliveryFailure, RequestFailure
+from agent_comms.channel_targets import ThreadTarget
+from agent_comms.repo import Checkout
 from agent_comms.input_attempt import BoundUnknownInput, InputAttempt, NotSentInput, ReservedInput, StartedInput
 from agent_comms.nominal.field_codec import AcpSessionId, InputId
 
 from support.agents import PEERS, command, peer, script
 from toad.acp.agent import NativeInputPresented
-from toad.conversation_submission import SendBlocked, SendPending
+from toad.conversation_submission import SendBlocked, SendPending, SentAwaitingSource
 from toad.core.input_events import UserInputSubmitted
 from toad.session_scope import AgentAttached
 
@@ -275,41 +277,76 @@ async def test_cancelling_before_worker_start_restores_the_same_editor_without_s
         assert bus.revision() == before
 
 
-async def test_cancelled_bus_write_keeps_unknown_and_never_retries_the_publication(workspace):
+@pytest.mark.parametrize("close_app", (False, True))
+async def test_cancelled_bus_write_keeps_unknown_and_never_retries_the_publication(
+    workspace, close_app,
+):
     workspace.thread("peer")
     comms = workspace.comms
-    comms.messaging.send("peer", workspace.viewer, "READY_BUS_WRITE_SOURCE")
+    body = "CANCELLED_DURING_REAL_BUS_WRITE"
+    # Equal text from an older message is not acknowledgement of this write.
+    previous = comms.messaging.send_user_message(
+        ThreadTarget("peer"), body, worktree=Checkout(workspace.project),
+    )
     async with workspace.app(size=(110, 32)) as ui:
         await ui.open_direct("peer", actor=workspace.viewer)
-        await ui.until_shows("READY_BUS_WRITE_SOURCE")
+        await ui.until_shows(body)
         chat = ui.conversation
-        body = "CANCELLED_DURING_REAL_BUS_WRITE"
-        await ui.write_draft("")
+        assert chat.contains_user_message(previous)
+        await ui.write_draft("An unrelated unsent draft")
+        editor = chat.prompt.prompt_text_area
+        document, history = editor.document, editor.history
         bus = comms.bus.bus
         before = bus.revision()
-        # Hold SQLite's real writer, not a patched messaging method. Readers still run.
+        close_task = None
+        # Hold SQLite's actual writer; readers and the original UI stay live.
         with closing(sqlite3.connect(bus.path)) as blocker:
             blocker.execute("BEGIN IMMEDIATE")
             try:
                 worker = await chat.submissions.submit(UserInputSubmitted(body))
                 (execution,) = chat.submissions.active
                 await ui.until(lambda: isinstance(execution.state, SendPending),
-                               why="the original write handed to its worker")
+                               why="the original write admitted by preparation")
+                publication = execution.publication
+                assert publication is not None
+                assert publication in ui.app.preparation._thread_tasks
                 worker.cancel()
                 await asyncio.wait_for(worker.wait(), 10)
                 assert isinstance(execution.state, SendBlocked)
+                assert not publication.done()
                 assert chat.submissions.retains_surface
-                assert chat.prompt.text == body
+                assert chat.prompt.text == "An unrelated unsent draft\n\n" + body
+                restored = editor.text
+                await chat.submissions.submit(UserInputSubmitted(body))
+                assert bus.revision() == before
+                if close_app:
+                    # Run the application's real close owner, including view
+                    # release and the preparation lifetime, while SQLite is held.
+                    close_task = asyncio.create_task(ui.app._close_all())
+                    async with asyncio.timeout(10):
+                        while not ui.app.preparation._closed and not close_task.done():
+                            await asyncio.sleep(.01)
+                    assert ui.app.preparation._closed
+                    assert not close_task.done(), "app close passed the admitted physical writer"
+                    assert not publication.done()
             finally:
                 blocker.rollback()
-        # The shielded original may finish; observing it is not permission to replay.
-        await ui.until(lambda: bus.revision() > before, why="the original publication after writer relief")
-        (sent,) = bus.latest_addressed(frozenset((workspace.viewer,)), frozenset(("peer",)))
-        assert sent.body == body
+        sent = await asyncio.wait_for(asyncio.shield(publication), 10)
+        assert sent.body == body and sent.message_id != previous.message_id
         assert execution.root == comms.root
-        assert isinstance(execution.state, SendBlocked)
-        await chat.submissions.submit(UserInputSubmitted(body))
-        await chat.submissions.close()
+        if close_app:
+            await asyncio.wait_for(close_task, 15)
+            assert isinstance(execution.state, SentAwaitingSource)
+            assert execution.state.sent is sent
+            assert chat.submissions.retains_surface, "a closed view has supplied no source ACK"
+        else:
+            await ui.until(lambda: not chat.send_block_reason,
+                           why="the exact original publication acknowledged by its source")
+            assert chat.contains_user_message(sent)
+            assert not chat.submissions.retains_surface
         assert bus.revision() == before + 1
-        assert chat.prompt.text == body
-        assert chat.submissions.retains_surface
+        assert editor.text == restored
+        assert editor.document is document and editor.history is history
+        assert publication.done()
+        if close_app:
+            assert not ui.app.preparation._thread_tasks

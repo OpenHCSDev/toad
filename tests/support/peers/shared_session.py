@@ -1,4 +1,5 @@
 """A real SDK peer that can keep two loaded sessions on one process."""
+from acp.exceptions import RequestError
 from acp.schema import (
     AgentCapabilities, CloseSessionResponse, InitializeResponse, LoadSessionResponse,
     SessionCapabilities, SessionCloseCapabilities,
@@ -20,6 +21,9 @@ class SharedSessionPeer(Peer):
         return LoadSessionResponse()
 
     async def close_session(self, session_id: str, **kwargs: object) -> CloseSessionResponse:
+        if session_id == "refuse-close":
+            self.record(close_refused=session_id)
+            raise RequestError.invalid_params({"details": "Original session close refused"})
         self.record(closed=session_id)
         return CloseSessionResponse()
 

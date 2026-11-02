@@ -210,6 +210,12 @@ class SendState:
     def local_intent(self, execution, accepted) -> tuple[str, ...]:
         return ()
 
+    async def present_written(self, execution) -> None:
+        """Only a definite original publication supplies a message to present."""
+
+    def waiter_cancelled(self, execution) -> None:
+        """Cancellation cannot undo an already definite completion."""
+
 
 class NoSend(SendState):
     pass
@@ -238,6 +244,12 @@ class CheckingSend(RetainedSend):
 class SendPending(CheckingSend):
     reason = "Send pending; do not retry"
 
+    def waiter_cancelled(self, execution) -> None:
+        execution.delivery_blocked(
+            "Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry",
+            execution.submission.source_text,
+        )
+
     def response_finished(self, execution) -> None:
         execution.delivery_blocked(
             "Request ended without a known outcome; inspect the source, do not retry",
@@ -256,6 +268,10 @@ class SentAwaitingSource(RetainedSend):
 
     def acknowledged_by(self, view) -> bool:
         return view.queue_source.contains_message(view, self.root, self.sent)
+
+    async def present_written(self, execution) -> None:
+        if execution.current:
+            await execution.present(self.sent)
 
 
 @dataclass(frozen=True)
@@ -330,12 +346,14 @@ class SubmissionExecution(SubmissionStart):
 
     def delivery_blocked(self, description: str, body: str) -> None:
         self.enter(SendBlocked(description))
-        self.owner.view.prompt.restore_draft(body)
-        self.owner.view.feedback.flash(self.state.reason, style="error")
+        if self.owner.view.is_attached:
+            self.owner.view.prompt.restore_draft(body)
+            self.owner.view.feedback.flash(self.state.reason, style="error")
 
     def delivery_refused(self, description: str, body: str) -> None:
         self.enter(NoSend())
-        self.owner.view.delivery_refused(description, body)
+        if self.owner.view.is_attached:
+            self.owner.view.delivery_refused(description, body)
 
 
 class MessageSubmissionExecution(SubmissionExecution):
@@ -347,6 +365,7 @@ class MessageSubmissionExecution(SubmissionExecution):
         super().__init__(owner, submission)
         self.root, self.conversation = root, conversation
         self.source_current, self.present = current, present
+        self.publication: asyncio.Task[Message] | None = None
 
     @property
     def current(self) -> bool:
@@ -363,27 +382,42 @@ class MessageSubmissionExecution(SubmissionExecution):
                 lambda: view.app.coordination_access.current(self.root))
             if not route_current or not self.current:
                 raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
-            self.enter(SendPending())
-            task = asyncio.create_task(asyncio.to_thread(
+            runtime = view.app.preparation
+            self.publication = await runtime.admit_thread(partial(
                 comms.messaging.send_user_message, self.conversation.send_target(), body,
                 worktree=view.project_path))
+            self.enter(SendPending())
+            self.publication.add_done_callback(
+                self.publication_finished, context=runtime.renderer.execution_context(),
+            )
             try:
-                sent = await asyncio.shield(task)
+                await runtime.renderer.wait_for_work(self.publication)
             except asyncio.CancelledError:
-                self.delivery_blocked("Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry", body)
-                task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
+                self.state.waiter_cancelled(self)
                 return
-            except CommittedMessageError as error:
-                sent = error.record
-            self.enter(SentAwaitingSource(comms.root, sent))
         except asyncio.CancelledError:
             self.delivery_refused("Cancelled before sending", body)
             raise
         except (HumanSendError, RouteChangedError) as error:
             delivery_failure(error).present(self, body)
             return
+        await self.state.present_written(self)
+
+    def publication_finished(self, completed: asyncio.Task[Message]) -> None:
+        """The original physical writer resolves UNKNOWN; no waiter may replay it."""
+        try:
+            sent = completed.result()
+        except CommittedMessageError as error:
+            sent = error.record
+        except (HumanSendError, RouteChangedError) as error:
+            view = self.owner.view
+            view.log.error("Original message publication failed", self.root, error)
+            delivery_failure(error).present(self, self.submission.source_text)
+            self.owner.finish(self)
+            return
+        self.enter(SentAwaitingSource(self.root, sent))
         if self.current:
-            await self.present(sent)
+            self.owner.settle_acknowledged()
 
 
 class ConversationSubmissions:
