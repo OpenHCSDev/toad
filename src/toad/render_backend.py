@@ -97,13 +97,20 @@ class RenderTask(RenderExecution[ResultT], PreparationStorage[ResultT], Declared
 
         return WorkKey(type(work), UniqueRevision(), work.scope)
 
-class ReusableRenderTask(SerializedStorage[ResultT], RenderTask[ResultT]):
+class ContentAddressedRenderTask(RenderTask[ResultT]):
+    """Reusable input identity, independent of the result's storage declaration."""
+
     async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
         from dataclasses import replace
 
         from toad.work_preparation import ContentAddressedWork
 
         return replace(await ContentAddressedWork.identity(work, runtime), scope=work.scope)
+
+
+class ReusableRenderTask(SerializedStorage[ResultT], ContentAddressedRenderTask[ResultT]):
+    """Content-addressed work whose independent deliveries decode serialized data."""
+
 
 class RendererSpawn(ABC):
     @staticmethod

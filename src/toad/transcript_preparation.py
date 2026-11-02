@@ -20,7 +20,7 @@ from agent_comms.transcripts import (
 )
 from agent_comms.ui_model.message_category import MessageCategory
 
-from toad.render_backend import ReusableRenderTask
+from toad.render_backend import ContentAddressedRenderTask
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
 from toad.widgets.history_anchor import LatestPosition
@@ -31,6 +31,8 @@ from toad.work_preparation import (
     PreparationRuntime,
     PreparationScope,
     PreparedResult,
+    RenderPreparation,
+    ReusableStorage,
     ReusableWork,
     ScopedWork,
     ThreadWork,
@@ -422,7 +424,7 @@ class RangeCategoryProjection(CategoryProjection):
 
 
 @dataclass(frozen=True)
-class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
+class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentAddressedRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
 
     @property
@@ -473,7 +475,7 @@ class TranscriptPageWork[Cursor = TranscriptCursor](ReusableWork[PreparedTranscr
             raise TranscriptNoProgress(request, self.through, page)
         if self.scope.closed:
             raise asyncio.CancelledError
-        prepared = await runtime.renderer.capture(TranscriptPageRenderTask(page))
+        _, prepared = await runtime._prepare(RenderPreparation(TranscriptPageRenderTask(page)))
         return await runtime.run_thread(self.finish_prepared, key, prepared)
 
 
