@@ -1,6 +1,7 @@
 """Textual-facing: the window's top edge. Upward wheel travel never moves the reader forward, past live thoughts or through saved history; a wrapped message header pins the moment its first row leaves, drawn exactly as the flow draws it; at phone width the reader's top row keeps its text while saved fragments restyle and while a live thought streams."""
 
 
+import re
 from collections.abc import Callable
 from functools import partial
 
@@ -32,16 +33,29 @@ async def test_wheel_up_passes_live_thoughts(workspace, before):
         window = view.window
         window.anchor()
         await ui.until(lambda: window.max_scroll_y > 0 and window.follows_tail, why="a scrollable tail")
-        travel = [window.scroll_y]
-        for _ in range(400):
+        # The reader is the painted text, not the offset: a block above the reader that
+        # renders late adds rows, and the window raises scroll_y to keep the text still.
+        rows = painted_markers(ui.visible_lines())
+        forward = []
+        for step in range(400):
             await wheel(ui, window, events.MouseScrollUp)
-            travel.append(window.scroll_y)
+            painted = painted_markers(ui.visible_lines())
+            forward += [(step, marker, rows[marker], painted[marker])
+                        for marker in rows.keys() & painted.keys() if painted[marker] < rows[marker]]
+            rows = painted
             if window.scroll_y == 0:
                 break
-        backwards = [(index, before, after) for index, (before, after)
-                     in enumerate(zip(travel, travel[1:])) if after > before]
-        assert not backwards, f"Upward wheel moved the reader down: {backwards} in {travel}"
-        assert travel[-1] == 0, f"Upward wheel never reached the top: {travel[-12:]}"
+        assert not forward, f"Upward wheel moved visible text up (step, text, row before, row after): {forward}"
+        assert window.scroll_y == 0, "Upward wheel never reached the top"
+
+
+MARKER = re.compile(r"(?:Earlier|Later) paragraph \d+\b|" + "|".join(map(re.escape, THOUGHTS)))
+
+
+def painted_markers(lines: list[str]) -> dict[str, int]:
+    """The screen row of every distinct transcript marker painted on screen."""
+    return {match.group(0): row for row, line in enumerate(lines)
+            for match in MARKER.finditer(line)}
 
 
 @pytest.mark.parametrize("size", [(100, 32), (50, 44)])
