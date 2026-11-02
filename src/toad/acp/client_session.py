@@ -12,7 +12,7 @@ from pydantic import JsonValue
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from toad.core.events import LogAgentFail
 from .queue_attachment import QueueActionRefused
 from .status import ConfirmedPromptResult, PromptResult, StopReason
@@ -154,6 +154,6 @@ class ClientRequestOwner:
         """Match foreign SDK spelling, then retain the existing nominal binding."""
         request = ClientSessionRequest(self.agent, self.agent.session_id)
         request.require()
-        if not request.binding.accepts_notification(session_id):
+        if not request.binding.accepts_notification(FieldCodec.decode(AcpSessionId, session_id)):
             raise RequestError.invalid_params({'details': 'ACP client request belongs to a retired session'})
         return request

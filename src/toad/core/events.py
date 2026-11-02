@@ -13,7 +13,7 @@ from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import AcpSessionId, PathText
 from agent_comms.presentation import ReadState
-from agent_comms.transcript_sources import AssignedSourceIdentity
+from toad.acp.tool_source import ToolCallSource, UncoordinatedToolCallSource
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
@@ -25,13 +25,13 @@ from textual.worker import Worker
 if TYPE_CHECKING:
     from agent_comms.team_hud import TeamHud
     from toad.core_event_carrier import CoreEventMessage
-    from toad.widgets.conversation import Conversation
+    from toad.widgets.conversation import ConversationSessionBinding
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
 
-    def accepted_by(self, message: CoreEventMessage, view: Conversation) -> bool:
+    def accepted_by(self, message: CoreEventMessage, view: ConversationSessionBinding) -> bool:
         """Ordinary publications never inspect a conversation's native state."""
         return True
 
@@ -91,7 +91,7 @@ class CommsUpdated(CoreEvent):
     session_id: AcpSessionId | None = None
     sequence: int | None = None
 
-    def accepted_by(self, message: CoreEventMessage, view: Conversation) -> bool:
+    def accepted_by(self, message: CoreEventMessage, view: ConversationSessionBinding) -> bool:
         return (
             view.agent_binding.accepts_publication(message, self.session_id)
             and view.turns.owner.accepts_update(self.update)
@@ -110,12 +110,10 @@ class ToolCall(CoreEvent):
     """The original tool owner assembled this exact SDK call snapshot."""
 
     tool_call: Annotated[ToolCallStatus, ToolCallWire]
-    scope: AssignedSourceIdentity | None = None
+    scope: ToolCallSource = field(default_factory=UncoordinatedToolCallSource)
 
-    def in_native_source(self, scope):
-        if self.scope is None:
-            return scope is None
-        return scope is not None and scope.same_publication_source(self.scope)
+    def in_native_source(self, scope: ToolCallSource) -> bool:
+        return self.scope == scope
 
     @property
     def tool_id(self) -> str:

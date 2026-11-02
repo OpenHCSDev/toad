@@ -73,7 +73,7 @@ class SessionBinding:
     def require_session_id(self) -> AcpSessionId:
         raise RequestError.invalid_params({'details': 'ACP request has no bound session'})
 
-    def accepts_notification(self, session_id: str) -> bool:
+    def accepts_notification(self, session_id: AcpSessionId) -> bool:
         return False
 
     def accepts_snapshot(
@@ -98,7 +98,7 @@ class BoundSessionBinding(SessionBinding):
     def require_session_id(self) -> AcpSessionId:
         return self.identity
 
-    def accepts_notification(self, session_id: str) -> bool:
+    def accepts_notification(self, session_id: AcpSessionId) -> bool:
         return self.identity == session_id
 
 

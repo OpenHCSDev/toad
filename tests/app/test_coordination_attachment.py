@@ -43,14 +43,14 @@ async def test_project_change_publishes_the_real_checkout(workspace):
 async def test_rename_keeps_canonical_name_distinct_from_display_title(workspace):
     async with workspace.app() as ui:
         agent = await bind(ui, workspace, "source")
+        source = workspace.comms.registry.require("source").incarnation.require_recorded().lookup
         await agent.set_session_name("A chosen display title")
-        source = agent.coordination_attachment.tool_scope
-        assert source is not None
-        assert source.root == str(workspace.comms.root)
-        current = workspace.comms.registry.require(source.recipient.name)
+        current = workspace.comms.registry.snapshot().born(source)
         assert current.title.require("renaming must publish a title") == "A chosen display title"
         assert agent.coordination_attachment.title == "A chosen display title"
-        assert current.incarnation == agent.coordination_attachment.tool_scope.recipient
+        assert agent.coordination_attachment.matches_identity(
+            str(workspace.comms.root), current.incarnation,
+        )
 
 
 async def test_captured_attachment_cannot_mutate_a_replacement_thread(workspace):

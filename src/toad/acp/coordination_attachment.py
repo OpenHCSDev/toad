@@ -15,7 +15,6 @@ from agent_comms.owner_connection import socket_path
 from agent_comms.repo import Checkout
 from agent_comms.runtime import RuntimeConnection
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.sent_message import AssignedSourceIdentity
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
 from agent_comms.ui_model.observation import ReadOwnerOperation
@@ -24,6 +23,7 @@ from pydantic import JsonValue
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.comms_updates import OwnerSnapshotConsumer
 from toad.acp.thread_read import NoPendingThreadRead, PendingThreadRead, ThreadRead
+from toad.acp.tool_source import AssignedToolCallSource, ToolCallSource, UncoordinatedToolCallSource
 from toad.core.events import CommsUpdated, ThreadRowStateChanged
 
 if TYPE_CHECKING:
@@ -47,8 +47,8 @@ class CoordinationAttachment:
         return "New Session"
 
     @property
-    def tool_scope(self) -> AssignedSourceIdentity | None:
-        return None
+    def tool_scope(self) -> ToolCallSource:
+        return UncoordinatedToolCallSource()
 
     def matches_source(self, update: CoordinationChangedUpdate) -> bool:
         return False
@@ -133,10 +133,10 @@ class CoordinatedThread(CoordinationAttachment):
         return self.update.title
 
     @property
-    def tool_scope(self) -> AssignedSourceIdentity | None:
+    def tool_scope(self) -> ToolCallSource:
         return self.update.thread.recorded_or(
-            lambda recorded: AssignedSourceIdentity(self.update.wire_root, recorded),
-            lambda: None,
+            lambda recorded: AssignedToolCallSource(self.update.wire_root, recorded),
+            UncoordinatedToolCallSource,
         )
 
     def matches_source(self, update: CoordinationChangedUpdate) -> bool:

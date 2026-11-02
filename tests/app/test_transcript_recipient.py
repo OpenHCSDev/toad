@@ -48,7 +48,7 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
         await ui.step()
         beta = ui.detached_agent(None)
         ui.attach_agent(beta)
-        assert not beta.controller.session.accepts_notification("alpha")
+        assert not beta.controller.session.accepts_notification(AcpSessionId("alpha"))
         await deliver(beta, carrying(expected, updates["alpha"]), session_id="alpha")
         assert not beta.presentation.queue_supported
         # Publication also refuses foreign work without relying on its envelope.
@@ -83,6 +83,6 @@ async def test_bound_acp_destination_accepts_its_different_canonical_history(wor
             lambda: ui.shows("CANONICAL_HISTORY_ON_ORIGINAL_DESTINATION"),
             why="canonical history painted only on its original ACP recipient",
         )
-        assert agent.controller.session.accepts_notification(destination)
+        assert agent.controller.session.accepts_notification(AcpSessionId(destination))
         assert snapshot.identity.requested_name != destination
         assert agent.coordination_attachment.accepts_read(snapshot.identity)
