@@ -11,6 +11,7 @@ import asyncio
 from abc import ABC
 from dataclasses import dataclass, field, replace
 from functools import partial, singledispatch
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -18,6 +19,7 @@ from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess
+from agent_comms.errors import RouteChangedError
 from agent_comms.repo import Checkout
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import ConversationObservation, ConversationRevision
@@ -34,6 +36,7 @@ from agent_comms.transcript_events import IncomingTranscript
 
 from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
+from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -60,8 +63,8 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from toad.comms_root import Observation
-    from toad.core.input_events import UserInputSubmitted
     from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.conversation import Conversation
     from toad.widgets.transcript_lines import Lines
     from toad.widgets.wire_history import WireHistory
 
@@ -320,6 +323,21 @@ class WireSource(BusQueueSource):
     tail_limit: int = 8
     page_limit: int = 40
 
+    def capture_queue_service(self, view: Conversation) -> Callable[[], Comms]:
+        return self.queue_service
+
+    def queue_service(self) -> Comms:
+        if not self.access.observation.uses(self.comms):
+            raise RouteChangedError("The queue's original message source retired")
+        return self.comms
+
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+        return self.comms.root == root and view.contains_user_message(sent)
+
+    def begin_submission(self, owner: ConversationSubmissions,
+                         submission: PromptInputSubmission) -> SubmissionStart:
+        return owner.view.bind_bus_submission(self, owner, submission)
+
     def references(self) -> CurrentDisplayReferences:
         """Resolve stable destinations through this read's registry cut."""
         return CurrentDisplayReferences.from_registry(str(self.comms.root), self.comms.registry.snapshot())
@@ -461,15 +479,6 @@ class WirePageBuffer(SavedHistory):
             self.loader.me,
             self.loader.project,
             view.query_ancestor(SessionScope).id,
-        )
-
-    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
-        conversation = self.loader.conversation
-        current = lambda: (
-            view.is_attached and self is view.message_history.page_source and conversation == view.conversation
-        )
-        await view.submit_comms_message(
-            self.loader.comms.root, conversation, event.body, current, partial(view._show_sent, body=event.body)
         )
 
     def schedule_refresh(self, view: CommsChatView):

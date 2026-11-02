@@ -1,6 +1,7 @@
 """Textual-facing: live agent output merges into blocks that the conversation window paints and retires."""
 
 from agent_comms.routing import MessageRoute
+from agent_comms.nominal.field_codec import AcpSessionId
 from support.agents import RecordedEvents
 
 from toad.acp.comms_updates import CommsUpdateConsumer
@@ -23,7 +24,7 @@ class DiagnosticStream(OutputStream):
 
 def consumed_stream(agent):
     """The stream one incoming agent message gets from the update consumer that owns it."""
-    return CommsUpdateConsumer(agent, "session").response_stream()
+    return CommsUpdateConsumer(agent, AcpSessionId("session")).response_stream()
 
 
 def painted_window(ui):

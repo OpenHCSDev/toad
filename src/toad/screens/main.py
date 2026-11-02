@@ -32,7 +32,7 @@ from textual.widgets import (
     Tree,
 )
 
-from toad.acp.agent_session import SessionDisposition
+from toad.acp.session_disposition import SessionDisposition
 from toad.core import events as core_events
 from toad.core import input_events, session_requests
 from toad.core.events import SessionChangedEvent

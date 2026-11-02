@@ -3,32 +3,42 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, ClassVar
+from typing import Annotated
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.nominal.field_codec import PathText
+from agent_comms.nominal.field_codec import AcpSessionId, PathText
 from agent_comms.presentation import ReadState
-from agent_comms.transcript_sources import AssignedSourceIdentity
+from agent_comms.team_hud import TeamHud
+from toad.acp.tool_source import ToolCallSource, UncoordinatedToolCallSource
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream, ThoughtStream
-from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
+from toad.failure_presentation import FailurePresentation
+from agent_comms.acp_extension import AgentCommsUpdate, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
+from textual.worker import Worker
 
-if TYPE_CHECKING:
-    from agent_comms.team_hud import TeamHud
+class CommsPublicationTarget(ABC):
+    """A source-bound surface decides whether this publication belongs to it."""
+
+    @abstractmethod
+    def accepts_comms_publication(
+        self, message: event_carrier.CoreEventMessage, update: CommsUpdated,
+    ) -> bool: ...
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
 
-    session_scoped: ClassVar[bool] = False
+    def accepted_by(self, message: event_carrier.CoreEventMessage, view: CommsPublicationTarget) -> bool:
+        """Ordinary publications never inspect a conversation's native state."""
+        return True
 
     def subscribers(self, stream: CoreEventStream):
         for event_type in type(self).__mro__:
@@ -82,13 +92,12 @@ class Update(CoreEvent):
 class CommsUpdated(CoreEvent):
     """The original typed publication retains its emission-time context."""
 
-    session_scoped = True
-
     update: AgentCommsUpdate | QueuePresentation | CursorPresentation
-    session_id: str | None = None
+    session_id: AcpSessionId | None = None
     sequence: int | None = None
-    recover_draft: bool = False
-    queue_scope: QueueScope = field(default_factory=NoQueueScope)
+
+    def accepted_by(self, message: event_carrier.CoreEventMessage, view: CommsPublicationTarget) -> bool:
+        return view.accepts_comms_publication(message, self)
 
 
 @dataclass(frozen=True)
@@ -103,12 +112,10 @@ class ToolCall(CoreEvent):
     """The original tool owner assembled this exact SDK call snapshot."""
 
     tool_call: Annotated[ToolCallStatus, ToolCallWire]
-    scope: AssignedSourceIdentity | None = None
+    scope: ToolCallSource = field(default_factory=UncoordinatedToolCallSource)
 
-    def in_native_source(self, scope):
-        if self.scope is None:
-            return scope is None
-        return scope is not None and scope.same_publication_source(self.scope)
+    def in_native_source(self, scope: ToolCallSource) -> bool:
+        return self.scope == scope
 
     @property
     def tool_id(self) -> str:
@@ -155,7 +162,7 @@ class TabHistoryChanged(CoreEvent):
 class NamedThreadRowsChanged(CoreEvent):
     """The named rows changed; tab membership belongs to OpenTabsChanged."""
 
-    names: frozenset[str] = field()
+    threads: frozenset[str]
 
 
 @dataclass(frozen=True)
@@ -253,7 +260,7 @@ class ThreadRowsChanged(NamedThreadRowsChanged):
     root: str
 
     def subscribers(self, stream: CoreEventStream):
-        for thread in self.names:
+        for thread in self.threads:
             yield from stream.thread_subscriptions.get((self.root, thread), ())
         yield from super().subscribers(stream)
 
@@ -319,14 +326,19 @@ class AgentReady(CoreEvent):
 class AgentFail(CoreEvent):
     """Failure feedback; its source owns any persistent presentation."""
 
-    message: str
-    details: str
+    @property
+    @abstractmethod
+    def message(self) -> str: ...
 
-    async def present_session(self, view) -> None:
+    @property
+    @abstractmethod
+    def details(self) -> str: ...
+
+    async def present_session(self, view: FailurePresentation) -> None:
         """Specialized setup/help feedback survives the session's failure label."""
         await self.present(view)
 
-    async def present(self, view) -> None:
+    async def present(self, view: FailurePresentation) -> None:
         from textual.content import Content
         from toad.widgets.note import Note
 
@@ -345,8 +357,16 @@ class AgentFail(CoreEvent):
 class TextAgentFail(AgentFail):
     """A failure without a saved journal row owns its visible notice."""
 
-    message: str
-    details: str = ""
+    title: str
+    description: str = ""
+
+    @property
+    def message(self) -> str:
+        return self.title
+
+    @property
+    def details(self) -> str:
+        return self.description
 
 
 class HelpAgentFail(TextAgentFail):
@@ -354,7 +374,7 @@ class HelpAgentFail(TextAgentFail):
     @abstractmethod
     def help_text(self) -> str: ...
 
-    async def present(self, view) -> None:
+    async def present(self, view: FailurePresentation) -> None:
         from toad.widgets.markdown_note import MarkdownNote
 
         await super().present(view)
@@ -381,7 +401,7 @@ class FailureLog:
 
     log_path: Path
 
-    async def show_log(self, view) -> None:
+    async def show_log(self, view: FailurePresentation) -> None:
         from toad.project_link import AcpLogLink
         from toad.widgets.agent_response import AgentResponse
         from agent_comms.ui_model.message_category import OtherCategory
@@ -396,12 +416,12 @@ class FailureLog:
 class LogAgentFail(FailureLog, TextAgentFail):
     log_path: Annotated[Path, PathText] = field(kw_only=True)
 
-    async def present_session(self, view) -> None:
+    async def present_session(self, view: FailurePresentation) -> None:
         # MainScreen presents the current terminal failure. Retain its journal
         # link, not a second error panel that outlives a recovered session.
         await self.show_log(view)
 
-    async def present(self, view) -> None:
+    async def present(self, view: FailurePresentation) -> None:
         await super().present(view)
         await self.show_log(view)
 
@@ -421,7 +441,7 @@ class RequestAgentFail(FailureLog, AgentFail):
     def details(self) -> str:
         return self.update.failure.feedback
 
-    async def present(self, view) -> None:
+    async def present(self, view: FailurePresentation) -> None:
         if not self.update.source.retained_in_history:
             await super().present(view)
             await self.show_log(view)
@@ -433,10 +453,10 @@ class RequestAgentFail(FailureLog, AgentFail):
 
 
 @dataclass(eq=False)
-class Subscription:
+class Subscription[Publisher]:
     """A subscriber owns this resource for as long as it wants publications."""
 
-    stream: CoreEventStream
+    stream: CoreEventStream[Publisher]
     event_type: type[CoreEvent]
     listener: InitVar[Callable[[CoreEvent, Subscription], object]]
     _listener: Callable[[], Callable[[CoreEvent, Subscription], object] | None] = field(init=False, repr=False)
@@ -488,8 +508,15 @@ class Subscription:
         self.close()
 
 
+class ThreadInterest(ABC):
+    """The publisher capability needed by a live thread subscription."""
+
+    @abstractmethod
+    def request_thread_interest(self) -> Worker[None]: ...
+
+
 @dataclass(eq=False)
-class ThreadChangeSubscription(Subscription):
+class ThreadChangeSubscription(Subscription[ThreadInterest]):
     """One live thread scope owns both delivery and observation interest."""
 
     scope: tuple[str, str] = field(kw_only=True)
@@ -499,24 +526,22 @@ class ThreadChangeSubscription(Subscription):
         return self.stream.thread_subscriptions.setdefault(self.scope, WeakSet())
 
     def bucket_opened(self) -> None:
-        publisher = self.stream.publisher
-        publisher.app.run_worker(publisher.update_thread_interest,
-                                 group="thread-interest", exclusive=True)
+        self.stream.publisher.request_thread_interest()
 
     def bucket_emptied(self) -> None:
         self.bucket_opened()
 
 
-class CoreEventStream:
+class CoreEventStream[Publisher]:
     """Publish original events; neither retain state nor schedule frontend work."""
 
-    def __init__(self, publisher: object) -> None:
+    def __init__(self, publisher: Publisher) -> None:
         self._publisher = ref(publisher)
         self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = {}
         self.thread_subscriptions: WeakValueDictionary[tuple[str, str], WeakSet[Subscription]] = WeakValueDictionary()
 
     @property
-    def publisher(self) -> object:
+    def publisher(self) -> Publisher:
         publisher = self._publisher()
         if publisher is None:
             raise RuntimeError("The publication resource outlived its original owner")
@@ -549,3 +574,8 @@ class CoreEventStream:
         for subscription in subscriptions:
             for listener in subscription.listeners():
                 listener(event, subscription)
+
+
+# The carrier imports these declarations; its module supplies annotations once
+# both sides' declarations exist, without importing a rich conversation widget.
+from toad import core_event_carrier as event_carrier

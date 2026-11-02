@@ -712,9 +712,10 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         editor = self.prompt_text_area
         self.set_class(SubmitNowAction().available(editor), "-queue-mode")
         editor.refresh_bindings()
-        from toad.widgets.conversation import Conversation
+        self.sync_queue_separator()
 
-        self.query_ancestor(Conversation).goal_bar._queue_separator_update()
+    def sync_queue_separator(self) -> None:
+        self.operational_submissions.view.goal_bar._queue_separator_update()
 
     def sync_queue(self) -> None:
         if self.is_mounted:
@@ -946,9 +947,8 @@ class MessagePrompt(Prompt):
     def supports_completion(self) -> bool:
         return False
 
-    def sync_turn(self) -> None:
-        # Message composers have no delivery controls or operational turn.
-        pass
+    def sync_queue_separator(self) -> None:
+        """Message composers share delivery controls, but have no goal separator."""
 
     def sync_configuration(self) -> None:
         pass

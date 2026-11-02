@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from functools import lru_cache, partial
@@ -31,7 +31,7 @@ from textual.color import Color
 from textual.content import Content
 from textual.design import ColorSystem
 from textual.driver import TerminalGaveNoPalette
-from textual.message_pump import _MessagePumpMeta
+from toad.native_node_meta import NativeNodeMeta
 from textual.notifications import SeverityLevel
 from textual.screen import Screen
 from textual.strip import Strip
@@ -504,11 +504,7 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
             self._cadence = self._arm(cadence.interval)
 
 
-class _ThemedAppMeta(_MessagePumpMeta, ABCMeta):
-    """Compose Textual message dispatch with the result display capability."""
-
-
-class ThemedApp(App[ReturnType], ResultShower, metaclass=_ThemedAppMeta):
+class ThemedApp(App[ReturnType], ResultShower, metaclass=NativeNodeMeta):
     """A Textual app drawn through ui_theme: mix in before `App`.
 
     Holds the colours owner and answers Textual's three questions from it: the

@@ -84,7 +84,7 @@ async def deliver(agent, update: dict, *, session_id: str | None = None):
 
 
 def script(*steps: dict) -> str:
-    """A prompt for ``peer("scripted")``: steps of {"update": ...}, {"say": ...} or {"wait": name}."""
+    """A prompt for ``peer("scripted")``: updates, replies, waits or an SDK error's error object."""
     import json
 
     return json.dumps(list(steps))

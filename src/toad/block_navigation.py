@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Iterable
 from functools import cached_property
 from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
@@ -17,7 +16,7 @@ from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 
 from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
-from toad.notification_status import MessageQueueEntry
+from toad.notification_status import QueueEntries
 from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
 
 if TYPE_CHECKING:
@@ -378,7 +377,7 @@ class ChildBlockCursor(BlockCursor):
         self._child = None
 
 
-class ConversationEntry(AnimationEffects[Mix], BlockContent):
+class ConversationEntry(AnimationEffects[Mix], BlockContent, QueueEntries):
     """Conversation content, with an owned atomic cursor by default.
 
     The rows drawn inside an entry paint its fades (`LinkedRows.arrival`).
@@ -404,10 +403,6 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     def notification_identity_for(self, references: frozenset[MessageReference]) -> DisplayCut:
         """Live entries have no captured BUS display cut; source rows override with theirs."""
         return NoDisplaySelection()
-
-    def queue_entries(self) -> Iterable[MessageQueueEntry]:
-        """Live entries supply no captured BUS delivery rows; source rows override with theirs."""
-        return ()
 
     @cached_property
     def block_cursor(self) -> BlockCursor:

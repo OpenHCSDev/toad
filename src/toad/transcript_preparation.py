@@ -12,6 +12,7 @@ from weakref import ReferenceType, ref
 
 from agent_comms.historical_views import ConversationObservation, UnobservedConversation
 from agent_comms.nominal.field_codec import ContentExclude, FieldCodec
+from agent_comms.messages import Message
 from agent_comms.sent_message import OutgoingMessageReference
 from agent_comms.transcripts import (
     TranscriptCursor,
@@ -46,7 +47,6 @@ if TYPE_CHECKING:
     from agent_comms.message_page import MessagePage
 
     from toad.comms_root import CoordinationAccess, Observation
-    from toad.core.input_events import UserInputSubmitted
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.conversation import Contents
@@ -105,6 +105,10 @@ class PreparedTranscriptPage:
     def configure(self, *, batch_size: int) -> None:
         if self.fragment_range is None:
             self.set_fragment_range(slice(max(0, len(self.fragments) - batch_size), len(self.fragments)))
+
+    def contains_message(self, message: Message) -> bool:
+        """Loaded source evidence does not disappear when its drawing range moves."""
+        return any(fragment.contains_message(message) for fragment in reversed(self.fragments))
 
     @property
     def fragments_in_range(self):
@@ -599,9 +603,6 @@ class ClosedHistory(ReplaceablePageSource):
 
     def command_context(self, view: CommsChatView):
         return None
-
-    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
-        view.delivery_refused("Conversation source is not ready", event.body)
 
     def schedule_refresh(self, view: CommsChatView):
         return None

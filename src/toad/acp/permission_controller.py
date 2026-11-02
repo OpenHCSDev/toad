@@ -5,7 +5,8 @@ import asyncio
 from abc import abstractmethod
 from agent_comms.nominal.declared_family import DeclaredFamily
 from acp import schema as protocol
-from .client_session import ClientRequestOwner, ClientSessionRequest
+from acp.exceptions import RequestError
+from .client_session import ClientRequestOwner
 from toad.answer import Answer
 from toad.permission_presentation import PermissionPresentation
 
@@ -142,8 +143,9 @@ class PermissionController(ClientRequestOwner):
                                  toolCall: protocol.ToolCallUpdate,
                                  _meta: dict | None = None) -> protocol.RequestPermissionResponse:
         cancelled = protocol.RequestPermissionResponse(outcome=protocol.DeniedOutcome(outcome="cancelled"))
-        authority = ClientSessionRequest(self.agent, sessionId)
-        if authority.retired:
+        try:
+            authority = self.session_request(sessionId)
+        except RequestError:
             return cancelled
         visible = self.agent.tools.permission(toolCall)
         request = self.request(options, visible)

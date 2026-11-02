@@ -1,75 +1,75 @@
-"""Source-owned queue capabilities and captured evidence, independent of screens."""
+"""Source-bound submission capabilities and one queue presentation workflow."""
 from __future__ import annotations
 
 import asyncio
-from abc import ABC, abstractmethod
 from collections.abc import Callable
-from dataclasses import dataclass
-from functools import cached_property
-from typing import ClassVar
+from pathlib import Path
+from typing import TYPE_CHECKING, ClassVar
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.comms import Comms
-from agent_comms.errors import RelationViolationError
-from agent_comms.message_reference import MessageReference
-from agent_comms.notification_assignment import NotificationSelection
+from agent_comms.errors import RelationViolationError, RouteChangedError, UnregisteredThreadError
+from agent_comms.frozen_recipient import FrozenRecipient
+from agent_comms.messages import Message
 from agent_comms.runtime_requests import ClearQueueRuntimeRequest, QueueActionRuntimeRequest, SendNowRuntimeRequest
 
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.agent_presentation import AgentPresentation
-from toad.block_navigation import ConversationEntry
+from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
+from toad.input_decision import InputAccepted, InputDecision, InputSourceUnavailable
 from toad.line_blocks import MutedRole, Span
-from toad.notification_status import DetailLines, MessageQueueEntry
+from toad.notification_status import DetailLines
+from toad.queue_capability import QueueActions, QueueEvidence
+
+if TYPE_CHECKING:
+    from toad.widgets.conversation import Conversation
 
 
-@dataclass(frozen=True)
-class QueueEvidence:
-    """One UI read; only a BUS source asks for its visible message entries."""
-
-    presentation: AgentPresentation
-    delivering: tuple[str, ...]
-    transport: str
-    read_targets: Callable[[], tuple[ConversationEntry, ...]]
-    service: Callable[[], Comms]
-
-    @cached_property
-    def entries(self) -> tuple[MessageQueueEntry, ...]:
-        entries: dict[MessageReference, MessageQueueEntry] = {}
-        for target in self.read_targets():
-            for entry in target.queue_entries():
-                entries[entry.reference] = entry
-                if len(entries) >= NotificationSelection.window_limit:
-                    return tuple(entries.values())
-        return tuple(entries.values())
-
-    @cached_property
-    def queued_recipients(self) -> tuple[str, ...]:
-        """Each recipient still holding one of the visible messages, once."""
-        return tuple(dict.fromkeys(name for entry in self.entries for name in entry.status.queued_recipients))
-
-
-class QueueSource(ABC):
-    """The source selects its capability; the actual presentation owns native facts."""
+class QueueSource(QueueActions):
+    """The captured source controls sending, observation and queue changes."""
 
     preview_limit: ClassVar[int] = 3
 
-    @abstractmethod
-    def queue_scope(self, evidence: QueueEvidence) -> QueueScope: ...
+    def capture_queue_service(self, view: Conversation) -> Callable[[], Comms]:
+        return view.app.coordination_access.observation.queue_service
 
-    @abstractmethod
-    def queue_actions_available(self, evidence: QueueEvidence) -> bool: ...
+    def send_now_available(self, owner: ConversationSubmissions) -> bool:
+        return self.queue_actions_available(owner.queue_evidence)
 
-    @abstractmethod
-    async def queue_send_now(self, evidence: QueueEvidence, scope: QueueScope) -> None: ...
+    def begin_submission(self, owner: ConversationSubmissions,
+                         submission: PromptInputSubmission) -> SubmissionStart:
+        return owner.unbound(submission, InputSourceUnavailable())
 
-    @abstractmethod
-    async def queue_clear(self, evidence: QueueEvidence, scope: QueueScope) -> None: ...
+    def input_decision(self, view: Conversation) -> InputDecision:
+        return InputSourceUnavailable()
+
+    def defers_input(self, view: Conversation) -> bool:
+        return False
+
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+        """Only the original message source can confirm its committed row."""
+        return False
 
     def queue_summary(self, evidence: QueueEvidence) -> str:
+        local = evidence.delivering
+        submitting = (f"Submitting ({len(local)}): " + " · ".join(
+            QueueItem.summarize(text) for text in local[:self.preview_limit])) if local else ""
+        return " | ".join(part for part in (
+            evidence.transport, submitting, self.observed_summary(evidence)) if part)
+
+    def observed_summary(self, evidence: QueueEvidence) -> str:
         return "Queue unavailable"
 
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
+        lines = [(Span("Submitting is local intent; acceptance is not consumption.", MutedRole),)]
+        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),)
+                     for text in evidence.delivering)
+        if evidence.transport:
+            lines.append((Span(evidence.transport, MutedRole),))
+        lines.extend(self.observed_details(evidence))
+        return tuple(lines)
+
+    def observed_details(self, evidence: QueueEvidence) -> DetailLines:
         return ((Span("No queue observation is available for this source.", MutedRole),),)
 
 
@@ -90,29 +90,38 @@ class NoQueueSource(QueueSource):
 
 
 class NativeQueueSource(QueueSource):
-    def queue_summary(self, evidence: QueueEvidence) -> str:
+    def send_now_available(self, owner: ConversationSubmissions) -> bool:
+        return self.defers_input(owner.view) and super().send_now_available(owner)
+
+    def begin_submission(self, owner: ConversationSubmissions,
+                         submission: PromptInputSubmission) -> SubmissionStart:
+        return owner.view.agent_binding.begin_submission(owner, submission)
+
+    def defers_input(self, view: Conversation) -> bool:
+        return view.turns.owner.busy and view.agent_binding.presentation.queue_supported
+
+    def observed_summary(self, evidence: QueueEvidence) -> str:
         presentation = evidence.presentation
         projection = presentation.queue
         feedback = projection.feedback(presentation.queue_supported)
         parts = [feedback] if feedback else []
-        for label, texts, detail in (
-            ("Submitting", tuple(QueueItem.summarize(text) for text in evidence.delivering), ""),
-            ("Queued", tuple(row.preview for row in projection.items), ""),
-            ("Restored", tuple(row.preview for row in projection.restored), ", read-only"),
+        for label, rows, detail in (
+            ("Queued", projection.items, ""),
+            ("Restored", projection.restored, ", read-only"),
         ):
-            if texts:
-                parts.append(f"{label} ({len(texts)}{detail}): " + " · ".join(texts[:self.preview_limit]))
+            if rows:
+                parts.append(f"{label} ({len(rows)}{detail}): " + " · ".join(
+                    row.preview for row in rows[:self.preview_limit]))
         return " | ".join(parts)
 
-    def queue_details(self, evidence: QueueEvidence) -> DetailLines:
+    def observed_details(self, evidence: QueueEvidence) -> DetailLines:
         projection = evidence.presentation.queue
-        lines = [(Span("Submitting is local intent; Queued is producer acceptance, not consumption.", MutedRole),)]
-        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),) for text in evidence.delivering)
-        lines.extend((Span(f"Queued {row.input_id}: {row.preview}", MutedRole),) for row in projection.items)
-        lines.extend((Span(f"Restored {row.input_id} (read-only): {row.preview}", MutedRole),)
-                     for row in projection.restored)
-        lines.append((Span(evidence.presentation.queue_identity, MutedRole),))
-        return tuple(lines)
+        return (
+            *((Span(f"Queued {row.input_id}: {row.preview}", MutedRole),) for row in projection.items),
+            *((Span(f"Restored {row.input_id} (read-only): {row.preview}", MutedRole),)
+              for row in projection.restored),
+            (Span(evidence.presentation.queue_identity, MutedRole),),
+        )
 
     def queue_scope(self, evidence: QueueEvidence) -> QueueScope:
         return evidence.presentation.queue_scope
@@ -130,8 +139,14 @@ class NativeQueueSource(QueueSource):
 
 
 class BusQueueSource(QueueSource):
-    """A channel or inbox: each recipient still holding a visible message has its own queue,
-    reached through that recipient's owner exactly as the DM view reaches its agent's."""
+    """The channel/inbox source reaches each original recipient's own queue."""
+
+    def send_now_available(self, owner: ConversationSubmissions) -> bool:
+        # Mailbox also inherits NativeQueueSource; BUS owns this lookup choice.
+        return QueueSource.send_now_available(self, owner)
+
+    def input_decision(self, view: Conversation) -> InputDecision:
+        return InputAccepted()
 
     def queue_scope(self, evidence: QueueEvidence) -> QueueScope:
         return NoQueueScope()
@@ -146,31 +161,36 @@ class BusQueueSource(QueueSource):
         await self.at_owners(evidence, ClearQueueRuntimeRequest, "Clear")
 
     @staticmethod
+    def at_original_owner(comms: Comms, recipient: FrozenRecipient,
+                          action: type[QueueActionRuntimeRequest]) -> None:
+        original = comms.registry.snapshot().born(recipient.lookup)
+        action.at_owner(comms.root, original)
+
+    @staticmethod
     async def at_owners(evidence: QueueEvidence, action: type[QueueActionRuntimeRequest], title: str) -> None:
-        """Ask every recipient's owner; name each one that refused."""
-        comms = evidence.service()
         refused = []
-        for name in evidence.queued_recipients:
+        for recipient in evidence.queued_recipients:
             try:
-                await asyncio.to_thread(action.at_owner, comms.root, comms.registry.require(name))
-            except (RequestError, OSError, RelationViolationError) as error:
-                refused.append(f"{name}: {error}")
+                comms = evidence.service()
+                await asyncio.to_thread(BusQueueSource.at_original_owner, comms, recipient, action)
+            except (RequestError, OSError, RelationViolationError, RouteChangedError,
+                    UnregisteredThreadError) as error:
+                refused.append(f"{recipient.canonical_thread}: {error}")
         if refused:
             raise QueueActionRefused(f"{title} refused by " + "; ".join(refused))
 
-    def queue_summary(self, evidence: QueueEvidence) -> str:
+    def observed_summary(self, evidence: QueueEvidence) -> str:
         entries = evidence.entries
         previews = " · ".join(entry.summary for entry in entries[:self.preview_limit])
         coverage = f"Delivery ({len(entries)} visible messages)"
-        return " | ".join(part for part in (
-            evidence.transport, coverage + (f": {previews}" if previews else ": unobserved")) if part)
+        return coverage + (f": {previews}" if previews else ": unobserved")
 
-    def queue_details(self, evidence: QueueEvidence) -> DetailLines:
+    def observed_details(self, evidence: QueueEvidence) -> DetailLines:
         recipients = evidence.queued_recipients
         return (
-            (Span("Visible original message references; actions reach each recipient that has not taken them yet.", MutedRole),),
-            (Span(evidence.transport, MutedRole),),
+            (Span("Visible original message references; actions reach their original recipients.", MutedRole),),
             (Span(f"Showing up to {self.preview_limit} visible messages and their leading observed recipient.", MutedRole),),
             *(line for entry in evidence.entries[:self.preview_limit] for line in entry.details),
-            (Span("Queued at: " + (", ".join(recipients) if recipients else "no recipient"), MutedRole),),
+            (Span("Queued at: " + (", ".join(recipient.canonical_thread for recipient in recipients)
+                                  if recipients else "no recipient"), MutedRole),),
         )

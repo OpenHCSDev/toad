@@ -3,11 +3,11 @@ from dataclasses import dataclass, field, replace
 
 from acp.schema import ToolCall, ToolCallStart, ToolCallUpdate
 from agent_comms.nominal.field_codec import ToolCallId
-from agent_comms.transcript_sources import AssignedSourceIdentity
 from agent_comms.transcripts import NativeCommittedPrefix
 from toad.core import events
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.status import ToolCallStatus
+from toad.acp.tool_source import ToolCallSource
 from toad.widgets.committed_presentation import CapturedClaim
 
 
@@ -15,7 +15,7 @@ from toad.widgets.committed_presentation import CapturedClaim
 class SessionToolCall:
     call: ToolCall
     request: ClientSessionRequest
-    scope: AssignedSourceIdentity | None
+    scope: ToolCallSource
     source_claim: CapturedClaim = field(default_factory=CapturedClaim, compare=False)
 
     def update(self, value: ToolCallUpdate):
@@ -42,11 +42,7 @@ class SessionToolCalls:
 
     @property
     def scope(self):
-        coordination = self.agent.coordination
-        return None if coordination is None else coordination.thread.recorded_or(
-            lambda recorded: AssignedSourceIdentity(coordination.wire_root, recorded),
-            lambda: None,
-        )
+        return self.agent.coordination_attachment.tool_scope
 
     def capture(self, call):
         return SessionToolCall(call, ClientSessionRequest(self.agent, self.agent.session_id), self.scope)

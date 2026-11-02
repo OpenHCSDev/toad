@@ -1,8 +1,11 @@
 """Specification-spelled reasons and statuses own toolkit independent facts."""
-from dataclasses import dataclass
+from __future__ import annotations
 
-from acp.schema import ToolCall
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from acp.schema import PromptResponse, ToolCall
 from agent_comms.agent_event_updates import AcpToolAction
+from agent_comms.acp_failure import ACPFailure
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
@@ -22,13 +25,83 @@ from toad.line_blocks import (
 )
 
 
-class StopReason(DeclaredFamily, affix='StopReason'):
-    completed = False
+from toad.conversation_turn import ConversationTurn
+
+
+class PromptSubmissionOutcome(ABC):
+    """The submission owner applies an answer to its retained transaction state."""
+
+    @abstractmethod
+    def response_finished(self) -> None: ...
+
+    @abstractmethod
+    def response_confirmed(self) -> None: ...
+
+    @abstractmethod
+    def response_failed(self, failure: ACPFailure) -> None: ...
+
+
+class PromptTurnTarget(ABC):
+    """The rich surface owns turn completion and its model-use effects."""
+
+    turns: ConversationTurn
+
+    @abstractmethod
+    async def agent_turn_over(self, stop_reason: StopReason) -> None: ...
+
+    @abstractmethod
+    def record_model_usage(self) -> None: ...
+
+
+class PromptResult(ABC):
+    """A request's answer, not an optional SDK stop reason."""
+
+    @abstractmethod
+    def require_confirmation(self) -> StopReason: ...
+
+    def publish_failure(self) -> None:
+        """A confirmed completion has no failure to publish."""
+
+    def settle_submission(self, execution: PromptSubmissionOutcome) -> None:
+        execution.response_finished()
+
+    async def finish_turn(self, view: PromptTurnTarget) -> None:
+        """No confirmed completion: release local activity, not a completed turn."""
+        view.turns.finish_client()
+
+
+class ConfirmedPromptResult(PromptResult):
+    """An SDK completion or definite input disposition gives this request a known result."""
+
+    def settle_submission(self, execution: PromptSubmissionOutcome) -> None:
+        execution.response_confirmed()
+
+
+@dataclass(frozen=True)
+class StopReason(ConfirmedPromptResult, DeclaredFamily, affix='StopReason'):
+    """Only the SDK's declared stop reasons are confirmed prompt completions."""
+
+    response: PromptResponse
     note = ''
+
+    @classmethod
+    def from_acp(cls, response: PromptResponse) -> StopReason:
+        return cls.member_named(response.stop_reason)(response)
+
+    def require_confirmation(self) -> StopReason:
+        """A returned SDK completion confirms a queue mutation."""
+        return self
+
+    async def finish_turn(self, view: PromptTurnTarget) -> None:
+        await view.agent_turn_over(self)
+
+    def record_model_usage(self, view: PromptTurnTarget) -> None:
+        """Only a successful end-turn records recent model use."""
 
 
 class EndTurnStopReason(StopReason):
-    completed = True
+    def record_model_usage(self, view: PromptTurnTarget) -> None:
+        view.record_model_usage()
 
 
 class MaxTokensStopReason(StopReason):

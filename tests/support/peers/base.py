@@ -7,6 +7,7 @@ where ``Workspace.received`` reads it. Subclasses change what it answers.
 import asyncio
 import json
 from pathlib import Path
+from typing import ClassVar
 
 from acp import Agent, Client, run_agent
 from acp.schema import (
@@ -17,6 +18,7 @@ RECEIVED = "peer-received.jsonl"
 
 
 class Peer(Agent):
+    use_unstable_protocol: ClassVar[bool] = False
     session_id = "peer-session"
 
     def on_connect(self, conn: Client) -> None:
@@ -31,7 +33,7 @@ class Peer(Agent):
 
     async def prompt(self, session_id, prompt, **kwargs):
         text = prompt[0].text
-        self.record(prompt=text)
+        self.record(prompt=text, metadata=kwargs)
         await self.answer(session_id, text)
         return PromptResponse(stopReason="end_turn")
 
@@ -48,4 +50,4 @@ class Peer(Agent):
 
     @classmethod
     def main(cls) -> None:
-        asyncio.run(run_agent(cls()))
+        asyncio.run(run_agent(cls(), use_unstable_protocol=cls.use_unstable_protocol))

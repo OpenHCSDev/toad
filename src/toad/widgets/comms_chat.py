@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
-from toad.core import input_events
 from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
@@ -29,6 +28,7 @@ from textual.widgets import Static
 from textual.worker import Worker
 
 from toad.conversation_kind import ConversationKind
+from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
 from toad import messages
 from toad.widgets.conversation import (
     Contents,
@@ -41,7 +41,6 @@ from toad.status_thread import StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.session_scope import NoTranscript, SessionScope
-from toad.command_catalog import CommandCatalog
 
 
 def session_thread_name(project_path) -> str:
@@ -154,7 +153,7 @@ class CommsChatView(Conversation):
         access = self.app.coordination_access
         if message.publisher is not history:
             return
-        self.settle_user_message()
+        self.submissions.settle_acknowledged()
         if (not history.state.accepts_source_work
                 or not source.uses_observation(access.observation.observed())):
             return
@@ -256,8 +255,8 @@ class CommsChatView(Conversation):
                 return
             await self.refresh_composer(read_only)
             self._refreshed_from = announced
-            # A sent message may now be drawn: composing resumes before mentions are read.
-            self.settle_user_message()
+            # The source may now acknowledge the commit, before viewport paint or mention reads.
+            self.submissions.settle_acknowledged()
         except (CoordinationReadUnavailable, StaleRevision):
             raise
         # Composer mentions and DM status read the observer's snapshot
@@ -313,19 +312,23 @@ class CommsChatView(Conversation):
     async def command_target_context(self):
         return self.message_history.page_source.command_context(self)
 
-    async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
-        if event.body.strip().startswith("/") and await CommandCatalog.execute(event.body.strip(), self):
-            return
-        if not event.body.strip():
-            return
-        await self.message_history.page_source.submit_input(self, event)
+    def bind_bus_submission(
+        self, source: WireSource, owner: ConversationSubmissions,
+        submission: PromptInputSubmission,
+    ) -> SubmissionStart:
+        page_source = self.message_history.page_source
+        return owner.start_message(
+            submission, source.comms.root, source.conversation,
+            lambda: (self.is_attached and page_source is self.message_history.page_source
+                     and source.conversation == self.conversation),
+            self._show_sent,
+        )
 
-    async def _show_sent(self, sent: WireMessage, body: str) -> None:
-        """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
-        self.run_worker(partial(self.input_histories.prompt.record, body), group="history")
+    async def _show_sent(self, sent: WireMessage) -> None:
+        """Read the conversation's end; composing resumes when its source acknowledges `sent`."""
         self.window.jump_to_latest()
         await self._refresh()
-        self.settle_user_message()
+        self.submissions.settle_acknowledged()
 
-    def draws_user_message(self, sent) -> bool:
-        return self.message_history.draws(sent)
+    def contains_user_message(self, sent) -> bool:
+        return self.message_history.contains_message(sent)

@@ -22,6 +22,7 @@ from acp.schema import (
     UserMessageChunk,
 )
 from agent_comms.acp_extension import AgentCommsUpdate
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
@@ -138,14 +139,16 @@ class SessionNotificationOwner(ClientRequestOwner):
     async def receive(self, notification, raw_update):
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         async with self.lock:
-            if authority.retired or not authority.binding.accepts_notification(notification.session_id):
+            if authority.retired or not authority.binding.accepts_notification(
+                FieldCodec.decode(AcpSessionId, notification.session_id)
+            ):
                 return
             validation = await self.agent.controller.task_runner.run(
                 ValidateSessionUpdateTask(notification, raw_update)
             )
             if authority.retired:
                 return
-            validation.publish(self, notification.session_id, raw_update, notification.field_meta)
+            validation.publish(self, authority.binding.require_session_id(), raw_update, notification.field_meta)
 
     def reject(self, session_id: str, update, metadata, error: str):
         self.agent.log(
@@ -154,7 +157,7 @@ class SessionNotificationOwner(ClientRequestOwner):
         )
         self.agent.events.publish(events.RejectedSessionUpdate())
 
-    def publish(self, session_id: str, update: SessionNotification, facts: tuple[AgentCommsUpdate, ...]):
+    def publish(self, session_id: AcpSessionId, update: SessionNotification, facts: tuple[AgentCommsUpdate, ...]):
         metadata = update.update.field_meta
         consumer = self.agent.comms_consumer_class(self.agent, session_id)
         effect = SessionUpdateEffect(self.agent, consumer)

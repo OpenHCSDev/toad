@@ -10,9 +10,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Never
 
 from agent_comms.channel_targets import ThreadTarget
+from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
-from agent_comms.errors import RelationViolationError
+from agent_comms.errors import RelationViolationError, RouteChangedError
+from agent_comms.messages import Message
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
@@ -24,18 +26,19 @@ from agent_comms.ui_model.observation import (
 
 from toad.app_node import ToadNode
 from toad.constants import WELCOME
+from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
-from toad.input_decision import InputAccepted, InputDecision
+from toad.input_decision import InputAccepted, InputDecision, InputSourceUnavailable
 from toad.navigation_context import NavigationOwner
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
+from toad.transcript_read_scope import TranscriptReadScope
 
 if TYPE_CHECKING:
     from toad.widget_actions import DeclaredWidgetActions
-    from agent_comms.messages import Message
     from agent_comms.thread_presentation import ThreadPresentation
     from textual.command import Provider
     from toad.widgets.side_bar import SideBar
@@ -43,19 +46,14 @@ if TYPE_CHECKING:
     from toad.agent_schema import AgentDefinition
     from toad.comms_root import CoordinationAccess
     from toad.conversation_kind import DmConversation
-    from toad.core.input_events import UserInputSubmitted
     from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
     from toad.widgets.conversation import Conversation
 
 
-class TranscriptScope(ABC):
-    """A transcript address owns its reads, observations and absent behavior."""
-
-    @property
-    @abstractmethod
-    def readable(self) -> bool: ...
+class TranscriptScope(TranscriptReadScope, ABC):
+    """A transcript address composes reading, observation and submission capabilities."""
 
     @abstractmethod
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision: ...
@@ -79,34 +77,21 @@ class TranscriptScope(ABC):
         resume: Callable[[ThreadRowsChanged], bool | None],
     ) -> ResourceRelease: ...
 
-    @abstractmethod
-    def snapshot_request(
-        self,
-        *,
-        position: PagePosition = LatestPage(),
-        limit: PageLimit = AtFrontier(),
-        page_source: PageSource = LivePageSource(),
-    ) -> ReadTranscript: ...
+    def queue_service(self, service: Callable[[], Comms]) -> Comms:
+        raise RouteChangedError("The queue has no original transcript source")
 
-    @abstractmethod
-    def update_request(
-        self,
-        previous: TranscriptPublicationState,
-        *,
-        position: PagePosition = LatestPage(),
-    ) -> ReadTranscriptUpdate: ...
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+        return False
 
     @abstractmethod
     def mailbox_target(self) -> ThreadTarget: ...
 
     @abstractmethod
-    async def submit_mailbox(
-        self,
-        view: Conversation,
-        event: UserInputSubmitted,
+    def bind_submission(
+        self, owner: ConversationSubmissions, submission: PromptInputSubmission,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
-    ) -> None: ...
+        presented: Callable[[Message], Awaitable[None]],
+    ) -> SubmissionStart: ...
 
     @abstractmethod
     async def show_mailbox_status(
@@ -119,6 +104,12 @@ class KnownTranscript(TranscriptScope):
     root: str
     name: str
     readable = True
+
+    def queue_service(self, service: Callable[[], Comms]) -> Comms:
+        comms = service()
+        if comms.root != Path(self.root):
+            raise RouteChangedError("The queue's original transcript root changed")
+        return comms
 
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
         return ExistingOwnerPlan.from_binding(presentation.binding).decision
@@ -182,22 +173,21 @@ class KnownTranscript(TranscriptScope):
             self.root, TranscriptPageRead(thread=self.name, position=position), previous=previous
         )
 
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+        return Path(self.root) == root and self.shown_by(view) and view.contains_user_message(sent)
+
     def mailbox_target(self) -> ThreadTarget:
         return ThreadTarget(self.name)
 
-    async def submit_mailbox(
-        self,
-        view: Conversation,
-        event: UserInputSubmitted,
+    def bind_submission(
+        self, owner: ConversationSubmissions, submission: PromptInputSubmission,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
-    ) -> None:
-        await view.submit_comms_message(
-            self.root,
-            self.mailbox_conversation(view, conversation_type),
-            event.body,
-            lambda: self.shown_by(view),
-            presented,
+        presented: Callable[[Message], Awaitable[None]],
+    ) -> SubmissionStart:
+        view = owner.view
+        return owner.start_message(
+            submission, Path(self.root), self.mailbox_conversation(view, conversation_type),
+            lambda: self.shown_by(view), presented,
         )
 
     async def show_mailbox_status(
@@ -277,14 +267,12 @@ class NoTranscript(TranscriptScope):
     def mailbox_target(self) -> Never:
         self.unavailable()
 
-    async def submit_mailbox(
-        self,
-        view: Conversation,
-        event: UserInputSubmitted,
+    def bind_submission(
+        self, owner: ConversationSubmissions, submission: PromptInputSubmission,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
-    ) -> None:
-        view.delivery_refused("CLI transcript is not ready", event.body)
+        presented: Callable[[Message], Awaitable[None]],
+    ) -> SubmissionStart:
+        return owner.unbound(submission, InputSourceUnavailable())
 
     async def show_mailbox_status(
         self, view: Conversation, conversation_type: type[DmConversation]
