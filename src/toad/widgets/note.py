@@ -1,10 +1,8 @@
-from toad.block_navigation import ConversationBlock
+from toad.block_navigation import SeparatedBlock
 from textual.widgets import Static
 
 
 
-class Note(ConversationBlock, Static):
-    DEFAULT_CLASSES = "block"
-
+class Note(SeparatedBlock, Static):
     def get_clipboard_text(self) -> str | None:
         return str(self.render())

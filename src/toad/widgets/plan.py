@@ -17,7 +17,6 @@ class NonSelectableStatic(Static):
 
 
 class Plan(ConversationBlock, SidebarPanelWidget, containers.Grid):
-    DEFAULT_CLASSES = "block"
     DEFAULT_CSS = """
 
     Plan {        

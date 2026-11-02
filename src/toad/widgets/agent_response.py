@@ -4,7 +4,7 @@ from functools import cached_property
 
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
-from toad.line_blocks import AgentRole, Divider
+from toad.line_blocks import AgentRole, Divider, MarkdownMessageBody
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.message_rows import MessageClock, LiveMessageClock
@@ -40,7 +40,7 @@ class AgentResponse(ConversationBlock, SnapshotPresentation, CategorizedBlock, V
         self._message_category = category or delivery.category
         super().__init__()
         self._prefix = (MessageDivider(Divider.titled("Agent", AgentRole), clock=clock),) if show_divider else ()
-        self.body = LineMarkdown(markdown or "")
+        self.body = LineMarkdown(markdown or "", body=MarkdownMessageBody)
         self.delivery = delivery
 
     def compose(self) -> ComposeResult:

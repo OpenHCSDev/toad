@@ -51,7 +51,6 @@ class ToolCallHeader(ConversationLineBlock):
 class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup, ToadNode):
     DEFAULT_CSS = """
     ToolCall {
-        margin: 0 !important;
         width: 1fr;
         height: auto;
 
@@ -59,7 +58,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             display: none;
         }
         &.-has-content #tool-content {
-            margin: 0 1 1 0;
+            margin-right: 1;
         }
         &.-expanded {
             #tool-title, #tool-content {
@@ -72,8 +71,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         }
     }
     """
-
-    DEFAULT_CLASSES = "block"
 
     @property
     def message_category(self) -> type[MessageCategory]:

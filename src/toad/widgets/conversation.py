@@ -54,9 +54,9 @@ from toad.conversation_actions import ConversationAction, WindowAction
 from toad.block_navigation import (
     BlockCursor,
     ContentNavigation,
-    ConversationBlock,
     ConversationEntry,
     CursorDirection,
+    SeparatedBlock,
     require_blocks,
 )
 from toad.command_catalog import CommandCatalog
@@ -165,10 +165,8 @@ Ask on {HELP_URL} if you need assistance.
 """
 
 
-class Loading(ConversationBlock, Static):
-    """Tiny widget to show loading indicator."""
-
-    DEFAULT_CLASSES = "block"
+class Loading(SeparatedBlock, Static):
+    """A transient notice inherits native outside-border separation."""
     DEFAULT_CSS = """
     Loading {
         height: auto;        

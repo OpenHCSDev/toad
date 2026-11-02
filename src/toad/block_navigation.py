@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Callable, ClassVar, cast
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.read_basis import DisplayCut, NoDisplaySelection
 from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
-from textual.geometry import Region
+from textual.app import App
+from textual.geometry import Region, Spacing
 from textual.widget import Widget
 from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 
@@ -437,6 +438,14 @@ class ConversationBlock(ConversationEntry):
     def on_mount(self) -> None:
         for fade in self.text_fades:
             self.run_effect(fade)
+
+
+class SeparatedBlock(ConversationBlock, Widget):
+    """Native blocks keep separation outside their borders, not inside body rows."""
+
+    def _post_register(self, app: App) -> None:
+        super()._post_register(app)
+        self.styles.margin = Spacing(0, 1, 1, 0)
 
 
 class ContentNavigation:

@@ -37,7 +37,8 @@ from toad.line_blocks import (
     LineBlock,
     LineLink,
     LineRole,
-    MarkdownBody,
+    MarkdownMessageBody,
+    MessageBody,
     MutedRole,
     Span,
     Summary,
@@ -194,12 +195,12 @@ class FragmentLineConsumer(MroProjection[None]):
     @handles(UserTranscript)
     def user(self, event: UserTranscript) -> None:
         self.divider("User", event.timestamp, UserRole)
-        self.blocks += [Body(event.text, bar=UserRole), Gap()]
+        self.blocks += MessageBody(event.text, bar=UserRole).presentation()
 
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript) -> None:
         self.divider("Agent", event.timestamp, AgentRole)
-        self.blocks += [MarkdownBody(event.text), Gap()]
+        self.blocks += MarkdownMessageBody(event.text).presentation()
 
     @handles(SentTranscript)
     def sent_report(self, event: SentTranscript) -> None:
