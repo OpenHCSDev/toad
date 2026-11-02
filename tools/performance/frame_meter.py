@@ -426,7 +426,7 @@ def _metadata_boundary():
                         before=self.project_value(page.before, capture),
                         after=self.project_value(page.after, capture), root=witness.root[:384],
                         thread=witness.requested_name[:160],
-                        through=self.project_value(witness.through, capture),
+                        page_bound=self.project_value(witness.page_bound, capture),
                         thread_birth=witness.thread.incarnation.wire_birth,
                         snapshot=capture.label(witness))
 

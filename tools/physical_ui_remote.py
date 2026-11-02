@@ -6,6 +6,7 @@ No attachment, debugger permission, code injection or signal handler is used.
 """
 
 from abc import abstractmethod
+from contextlib import contextmanager
 from dataclasses import dataclass
 from importlib.metadata import distribution
 import json
@@ -16,16 +17,18 @@ import pwd
 import sys
 import time
 from threading import Thread
-from typing import ClassVar
+from typing import ClassVar, Self
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.child_process import ChildOutcome, ProcessIdentity
 from agent_comms.launch_runtime import LaunchRuntime
-from agent_comms.installer.probes.resolution import RuntimeResolutionProbe
+from agent_comms.installer.interpreter_operation import RuntimeProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution, ToadPackage
+from agent_comms.installer.runtime_stack import Extendable
 from agent_comms.storage_rules import StorageRule
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import DeclaredWireType, FieldCodec
+from pydantic import JsonValue
 from metaclass_registry.mro_dispatch import handles
 from textual.geometry import Region
 from toad.acp.agent import Agent
@@ -40,16 +43,14 @@ class PendingRun(RuntimeError):
 
 
 @dataclass(frozen=True)
-class RunTarget:
+class RunResources(Extendable):
     """Intended private resources, distinct from an observation of the app."""
 
     root: Path
     home: Path
     runtime: Path
-    build: RuntimeResolution
 
     def __post_init__(self):
-        self.build.interpreter.require_recorded()
         for path in (self.root, self.home, self.runtime):
             if path != path.resolve(strict=True):
                 raise ValueError(f"A physical run needs canonical existing paths: {path}")
@@ -82,8 +83,11 @@ class RunTarget:
     def data(self) -> Path:
         return self.home / "data"
 
+    def require_build(self, actual: RuntimeResolution) -> None:
+        raise ValueError("An installed resource observation does not certify a candidate build")
+
     def require_resources(self, observed):
-        """Current UI/source resources; build evidence belongs to AdmittedResult."""
+        """Current UI/source resources, independent of candidate build evidence."""
         if observed.home != self.home or observed.runtime != self.runtime:
             raise ValueError("Observed HOME/runtime differs from the run target")
         if (observed.config, observed.state, observed.data) != (self.config, self.state, self.data):
@@ -152,6 +156,8 @@ class RunObservation:
     history_regions: tuple[CapturedRegion, ...]
     history_published: bool
     modules_checked: int
+    agent_ready: bool = False
+    active_response: bool = False
 
 
 @dataclass(frozen=True)
@@ -166,8 +172,14 @@ class PhysicalResult(DeclaredFamily, affix="Result"):
     def require(self):
         return self
 
-    def admitted(self, target: RunTarget) -> AdmittedResult:
+    def admitted(self, target: RunResources) -> Self:
         raise ValueError("This physical operation did not verify the runtime build")
+
+    def require_build(self) -> RuntimeResolution:
+        raise ValueError("This observation carries no candidate build proof")
+
+    def require_origins(self, original: InstalledResult) -> None:
+        raise ValueError("This result did not observe installed executable and package origins")
 
     def observation(self) -> RunObservation:
         raise ValueError("This physical operation did not observe an application")
@@ -183,23 +195,33 @@ class ObservedResult(PhysicalResult):
     def observation(self) -> RunObservation:
         return self.value
 
-
-@dataclass(frozen=True)
-class AdmittedResult(ObservedResult):
-    """Build evidence for one frontend birth, not a fresh hash on every UI read."""
-
-    build: RuntimeResolution
-
-    def admitted(self, target: RunTarget) -> AdmittedResult:
-        target.build.require_runtime(self.build)
-        target.require_resources(self.value)
-        return self
-
-    def observe(self, target: RunTarget, current: RunObservation) -> RunObservation:
+    def observe(self, target: RunResources, current: RunObservation) -> RunObservation:
         if current.frontend != self.value.frontend:
             raise ValueError("The admitted frontend process or module-file locations changed")
         # Dynamic persistence and every saved/ACP root still precede each input.
         return target.require_resources(current)
+
+    def finish(self, target: RunResources, current: PhysicalResult) -> None:
+        self.observe(target, current.observation())
+
+
+@dataclass(frozen=True)
+class InstalledResult(ObservedResult):
+    """Actual installed origins, not interpreter or candidate byte verification."""
+
+    python_executable: Path
+    native_executable: Path
+    packages: JsonValue
+
+    def finish(self, target: RunResources, current: PhysicalResult) -> None:
+        super().finish(target, current)
+        current.require_origins(self)
+
+    def require_origins(self, original: InstalledResult) -> None:
+        if (self.python_executable != original.python_executable
+                or self.native_executable != original.native_executable
+                or self.packages != original.packages):
+            raise ValueError("Installed executable or package origins changed during the run")
 
 
 @dataclass(frozen=True)
@@ -286,7 +308,7 @@ class PhysicalOperation(DeclaredFamily, affix="Operation"):
 class StartOperation(PhysicalOperation):
     """Instrument a new Python frontend at startup, never an existing process."""
 
-    target: RunTarget
+    target: RunResources
     controller: ProcessIdentity
     arguments: tuple[str, ...]
     descriptor: int
@@ -343,7 +365,14 @@ class StartOperation(PhysicalOperation):
                 self.publish(packet.parent / "error.json", FailedResult(type(error).__name__, str(error)[:2048]))
 
 
-class AcpRoots(MroProjection[tuple[Path, ...]]):
+@dataclass(frozen=True)
+class AcpObservation:
+    roots: tuple[Path, ...]
+    ready: bool = False
+    active: bool = False
+
+
+class AcpObservationDecoder(MroProjection[AcpObservation]):
     """One foreign-connection decoder, not a new handler class per observation."""
 
     @handles(object)
@@ -356,24 +385,34 @@ class AcpRoots(MroProjection[tuple[Path, ...]]):
 
     @handles(NoAgentConnection)
     def unbound(self, value):
-        return ()
+        return AcpObservation(())
 
     @handles(Agent)
     def bound(self, value):
-        return self.project_value(value.coordination)
+        source = self.project_value(value.coordination)
+        return AcpObservation(source.roots, value.ready, value.current_turn.busy)
 
     @handles(CoordinationChangedUpdate)
     def coordinated(self, value):
-        return (Path(value.wire_root).resolve(),)
+        return AcpObservation((Path(value.wire_root).resolve(),))
 
 
 @dataclass(frozen=True)
 class ObserveOperation(PhysicalOperation):
-    target: RunTarget
+    target: RunResources
     identity: ProcessIdentity
     tools: Path
 
-    def observed_result(self, observed: RunObservation) -> PhysicalResult:
+    @contextmanager
+    def tool_imports(self):
+        previous = sys.path[:]
+        try:
+            sys.path.insert(0, str(self.tools))
+            yield
+        finally:
+            sys.path[:] = previous
+
+    def observed_result(self, observed: RunObservation, directory: Path) -> PhysicalResult:
         return ObservedResult(observed)
 
     def execute(self, directory: Path) -> None:
@@ -384,12 +423,8 @@ class ObserveOperation(PhysicalOperation):
             raise ValueError("Observed HOME is not private")
         # The existing reviewed validator remains the single module-location policy.
         # The temporary tool import path is retired before inspecting application state.
-        previous = sys.path[:]
-        try:
-            sys.path.insert(0, str(self.tools))
+        with self.tool_imports():
             from performance.history_capture_remote import require_modules
-        finally:
-            sys.path[:] = previous
         import agent_comms
         import textual
         import toad
@@ -415,10 +450,11 @@ class ObserveOperation(PhysicalOperation):
         sessions = app.session_navigation
         saved = tuple(Path(source).resolve() for entry in sessions.members
                       for source, _identity in (*entry.original_threads(sessions), *entry.original_channels()))
-        decoder = AcpRoots()
-        acp = tuple(source for process in dict.fromkeys(sessions.processes)
-                    for agent in (process.agent, *(session.agent for session in process.sessions))
-                    for source in decoder.project_value(agent))
+        decoder = AcpObservationDecoder()
+        acp_states = tuple(decoder.project_value(agent)
+                           for process in dict.fromkeys(sessions.processes)
+                           for agent in (process.agent, *(session.agent for session in process.sessions)))
+        acp = tuple(source for state in acp_states for source in state.roots)
         # This is geometry of actually published history windows, not a guess
         # from sidebar separators that may also occur inside a user's message.
         regions = tuple(CapturedRegion(region) for window in screen.query(HistoryWindow)
@@ -440,27 +476,34 @@ class ObserveOperation(PhysicalOperation):
             xdg_data_home().resolve(), app.tab_order._db.path.resolve(),
             app.colours.wal_directory.resolve(), root,
             opened, storage_rule, saved, acp, regions, history_published, checked,
+            agent_ready=bool(acp_states) and all(state.ready for state in acp_states),
+            active_response=any(state.active for state in acp_states),
         )
         self.target.require_resources(observed)
-        self.publish(directory / "result.json", self.observed_result(observed))
+        self.publish(directory / "result.json", self.observed_result(observed, directory))
 
 
 @dataclass(frozen=True)
-class AdmitOperation(ObserveOperation):
-    """Full disk-artifact verification at entry and successful retirement only."""
-
-    def observed_result(self, observed: RunObservation) -> PhysicalResult:
-        build = RuntimeResolutionProbe(
-            self.target.build.core_commit, self.target.build.wheel_inputs()
-        ).run()
-        return AdmittedResult(observed, build).admitted(self.target)
+class InstalledOperation(ObserveOperation):
+    def observed_result(self, observed: RunObservation, directory: Path) -> PhysicalResult:
+        recorded = RuntimeResolution.at(self.target.runtime)
+        # This is the installed runtime's stable wire operation, not an import
+        # of a concrete probe from a possibly different source-module layout.
+        probe = FieldCodec.decode(RuntimeProbe, {
+            "kind": "installed_packages", "core": recorded.core_commit,
+        })
+        packages = FieldCodec.encode(probe.run(), probe.answer_type())
+        return InstalledResult(
+            observed, Path(sys.executable).resolve(strict=True),
+            Path("/proc/self/exe").resolve(strict=True), packages,
+        )
 
 
 @dataclass(frozen=True)
 class StopRootOperation(PhysicalOperation):
     """Stop only the private copy, in its own declared runtime; retain its files."""
 
-    target: RunTarget
+    target: RunResources
 
     def execute(self, directory: Path) -> None:
         if LaunchRuntime.running().prefix != self.target.runtime:

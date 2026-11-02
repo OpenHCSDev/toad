@@ -10,6 +10,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import AbstractContextManager, ExitStack, contextmanager
 import ctypes
 from dataclasses import dataclass
+from functools import cache
 import itertools
 import json
 from multiprocessing import Pipe
@@ -30,7 +31,6 @@ from agent_comms.check_root import CheckRoot
 from agent_comms.child_process import DetachedChildStdio, ProcessIdentity, SpawnedProcess
 from agent_comms.comms import Comms
 from agent_comms.installer.practice import SuppliedRuntimeHome
-from agent_comms.installer.runtime_resolution import RuntimeResolution
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime, ThreadLaunch
 from agent_comms.nominal.field_codec import FieldCodec
@@ -43,16 +43,17 @@ from textual.geometry import Region, Size
 from textual.strip import Strip
 from ui_theme.wal import WalFile
 
-from physical_ui_remote import (
-    AdmitOperation, StartOperation, ObserveOperation, PendingRun, PhysicalOperation,
-    ProcessRetirement, RunObservation, RunTarget, StopRootOperation,
+from tools import physical_ui_remote
+from tools.physical_ui_remote import (
+    StartOperation, ObserveOperation, InstalledOperation, PendingRun, PhysicalOperation,
+    ProcessRetirement, RunObservation, RunResources, StopRootOperation,
 )
 
 
 class XvfbDisplay(AbstractContextManager):
     """Own a connection to a local framebuffer, resolving aliases at Xlib.
 
-    This resource has no raw-input entrypoint. Only TerminalApp may drive its
+    This resource has no raw-input entrypoint. Only ObservedTerminalApp may drive its
     window after checking the actual application/source on that incarnation.
     """
 
@@ -209,20 +210,38 @@ class ScreenCapture:
         return ()
 
 
-class TerminalApp:
+@dataclass(frozen=True)
+class OperationProgram:
+    path: Path
+    source: bytes
+
+    @classmethod
+    def capture(cls, path: Path):
+        with path.open("rb") as source:
+            raw = source.read(PhysicalOperation.source_bytes + 1)
+        if len(raw) > PhysicalOperation.source_bytes:
+            raise ValueError("Physical operation source exceeds its bound")
+        return cls(path, raw)
+
+
+class ObservedTerminalApp:
     """Own one isolated st window, actual-source checks and all physical input."""
 
     startup_seconds = 60.0
     stop_seconds = 10.0
-    # One source snapshot belongs to the controller's Python module lifetime,
-    # not to each callback executing inside a foreign running application.
-    with Path(__file__).with_name("physical_ui_remote.py").open("rb") as _source:
-        operation_program = _source.read(PhysicalOperation.source_bytes + 1)
-    if len(operation_program) > PhysicalOperation.source_bytes:
-        raise ValueError("Physical operation source exceeds its bound")
+    start_operation = StartOperation
+    entry_operation = InstalledOperation
+    entry_record = "resources-observed.json"
+    final_record = "resources-final.json"
+
+    @classmethod
+    @cache
+    def operation_programs(cls):
+        # Capture once when execution starts, never as an import side effect.
+        return (OperationProgram.capture(Path(physical_ui_remote.__file__)),)
 
     def __init__(self, command: tuple[str, ...], display: XvfbDisplay, output: Path,
-                 target: RunTarget, cwd: Path, *, size: Size = Size(140, 40)):
+                 target: RunResources, cwd: Path, *, size: Size = Size(140, 40)):
         self.command, self.display = tuple(map(str, command)), display
         self.output = output.expanduser().resolve()
         self.target, self.cwd, self.requested_size = target, cwd, size
@@ -248,8 +267,8 @@ class TerminalApp:
     def rows(self) -> int:
         return self.grid_size.height
 
-    @staticmethod
-    def prepare_target(root: Path, runtime: LaunchRuntime) -> RunTarget:
+    @classmethod
+    def prepare_target(cls, root: Path, runtime: LaunchRuntime) -> RunResources:
         """Prepare a fresh frontend home beside an already owned private root.
 
         Only presentation settings travel. Saved Toad databases/tabs never do.
@@ -258,10 +277,9 @@ class TerminalApp:
         from toad.preferences import INTERFACE, SETTINGS, SavedSettings, ToadSettings
 
         root = root.resolve(strict=True)
-        build = RuntimeResolution.at(runtime.prefix)
-        build.interpreter.require_recorded()
+        runtime.require_available()
         home = root.parent / "frontend-home"
-        # Validate the intended paths before touching the home. RunTarget also
+        # Validate the intended paths before touching the home. RunResources also
         # rejects the real user's home/workspace and an unrelated bus.
         if home.exists():
             raise FileExistsError(f"A physical run needs fresh frontend persistence: {home}")
@@ -273,7 +291,7 @@ class TerminalApp:
             raise ValueError("Refusing frontend setup beside a live user root")
         home.mkdir(mode=0o700)
         SuppliedRuntimeHome(home, runtime).prepare()
-        target = RunTarget(root, home.resolve(), runtime.prefix, build)
+        target = RunResources(root, home.resolve(), runtime.prefix)
         for directory in (target.config, target.state, target.data):
             directory.mkdir(mode=0o700)
         settings = SavedSettings.path()
@@ -304,7 +322,7 @@ class TerminalApp:
     @contextmanager
     def copied(cls, source: Comms, threads: tuple[str, ...], runtime: LaunchRuntime,
                output: Path, *, thread: str, size: Size = Size(140, 40),
-               framebuffer: Size = OwnedDisplay.default_size) -> Iterator[TerminalApp]:
+               framebuffer: Size = OwnedDisplay.default_size) -> Iterator[ObservedTerminalApp]:
         """Create under the source owner, bind only its copy, retain run evidence."""
         output = output.expanduser().absolute()
         output.mkdir(mode=0o700, parents=True)  # Fresh evidence, never overwrite a failed run.
@@ -332,7 +350,12 @@ class TerminalApp:
         directory.mkdir(mode=0o700, parents=True)
         # The declaration module owns one bounded program snapshot for this
         # controller lifetime. Later source edits cannot change a run's wire.
-        raw = cls.operation_program
+        programs = cls.operation_programs()
+        for program in programs[:-1]:
+            package = directory / program.path.parent.name
+            package.mkdir(mode=0o700, exist_ok=True)
+            ExclusiveAtomicFile(package / program.path.name).write_bytes(program.source)
+        raw = programs[-1].source
         script = directory / "operation.py"
         # Only startup/shutdown executes a program. Normal Python supplies its
         # filename; later observations submit data to the startup-owned reader.
@@ -347,7 +370,7 @@ class TerminalApp:
         return PhysicalOperation.read_result(path).require()
 
     @classmethod
-    def stop_copy(cls, target: RunTarget, directory: Path) -> None:
+    def stop_copy(cls, target: RunResources, directory: Path) -> None:
         script = cls.operation_file(StopRootOperation(target), directory)
         with SpawnedProcess.launch(
             (str(target.launch_runtime.interpreter), "-I", str(script)),
@@ -370,7 +393,7 @@ class TerminalApp:
         frontend_requests, self.observer = Pipe(duplex=False)
         try:
             descriptor = frontend_requests.fileno()
-            script = self.operation_file(StartOperation(
+            script = self.operation_file(self.start_operation(
                 self.target, ProcessIdentity.current(), self.command, descriptor), self.output / "startup")
             self.terminal = SpawnedProcess.launch(
                 ("st", "-f", "DejaVu Sans Mono:pixelsize=16",
@@ -403,8 +426,8 @@ class TerminalApp:
                 self._require_starting(deadline)
                 time.sleep(.05)
             self.read_grid()
-            self.admission = self._observe(AdmitOperation).admitted(self.target)
-            PhysicalOperation.publish(self.output / "build-admitted.json", self.admission)
+            self.entry = self.check_entry(self._observe(self.entry_operation))
+            PhysicalOperation.publish(self.output / self.entry_record, self.entry)
             # -o enables st's raw printer too. Even these printer keys pass the
             # same source admission as every later physical key/click.
             self.keys("ctrl+Print")
@@ -413,6 +436,10 @@ class TerminalApp:
         except BaseException:
             self.close()
             raise
+
+    def check_entry(self, result):
+        self.target.require_resources(result.observation())
+        return result
 
     def _require_starting(self, deadline: float) -> None:
         if self.terminal.process.poll() is not None or time.monotonic() >= deadline:
@@ -454,7 +481,7 @@ class TerminalApp:
 
     def observe(self) -> RunObservation:
         current = self._observe(ObserveOperation).observation()
-        return self.admission.observe(self.target, current)
+        return self.entry.observe(self.target, current)
 
     def input(self, *commands: str) -> RunObservation:
         observed = self.observe()
@@ -619,11 +646,9 @@ class TerminalApp:
             # An exceptional/uncertain operation is not permission for another
             # attachment or input. Retire only the already owned child instead.
             if exception_type is None and self.terminal.process.poll() is None:
-                final = self._observe(AdmitOperation).admitted(self.target)
-                self.admission.observe(self.target, final.observation())
-                if final.build != self.admission.build:
-                    raise ValueError("The verified runtime build changed during the physical run")
-                PhysicalOperation.publish(self.output / "build-final.json", final)
+                final = self.check_entry(self._observe(self.entry_operation))
+                self.entry.finish(self.target, final)
+                PhysicalOperation.publish(self.output / self.final_record, final)
                 self.keys("ctrl+q")
                 self.observer.close()
                 self.terminal.process.wait(timeout=5)

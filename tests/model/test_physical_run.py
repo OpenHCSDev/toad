@@ -9,22 +9,30 @@ from agent_comms.installer.probes.interpreter import InterpreterBuildProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution
 from agent_comms.storage_rules import StorageRule
 from agent_comms.nominal.field_codec import FieldCodec
+from tools.physical_ui_admission import (
+    AdmitOperation, AdmittedResult, RunTarget, StartAdmittedOperation,
+)
 from tools.physical_ui_remote import (
-    AdmitOperation, AdmittedResult, FrontendIdentity, ObserveOperation, ObservedResult,
-    PendingRun, RunObservation, RunTarget, StartOperation, StopRootOperation,
+    FrontendIdentity, InstalledResult, ObserveOperation,
+    ObservedResult, PendingRun, RunObservation, RunResources, StartOperation, StopRootOperation,
 )
 
 
 @pytest.fixture
-def physical_target(tmp_path: Path) -> RunTarget:
-    """Synthetic resource paths and metadata, not an application admission proof."""
+def physical_resources(tmp_path: Path) -> RunResources:
     root, home, runtime = (tmp_path / name for name in ("bus", "frontend-home", "runtime"))
     for path in (root, home, runtime):
         path.mkdir()
+    return RunResources(root, home, runtime)
+
+
+@pytest.fixture
+def physical_target(physical_resources: RunResources) -> RunTarget:
+    """Synthetic resource paths and metadata, not an application admission proof."""
     build = RuntimeResolution(
         core_commit="a" * 40, packages={}, interpreter=InterpreterBuildProbe().run(),
     )
-    return RunTarget(root, home, runtime, build)
+    return physical_resources.extended(RunTarget, build=build)
 
 
 @pytest.fixture
@@ -51,14 +59,19 @@ def physical_admission(
     return AdmittedResult(physical_observation, physical_target.build).admitted(physical_target)
 
 
-def test_startup_connection_decodes_only_observation_operations(physical_target: RunTarget) -> None:
+def test_startup_connection_decodes_only_observation_operations(
+    physical_target: RunTarget, physical_resources: RunResources,
+) -> None:
     identity = ProcessIdentity.current()
     tools = Path(__file__).resolve().parents[2] / "tools"
-    for operation in (ObserveOperation(physical_target, identity, tools),
+    for operation in (ObserveOperation(physical_resources, identity, tools),
                       AdmitOperation(physical_target, identity, tools)):
         assert FieldCodec.decode(ObserveOperation, FieldCodec.encode(operation)) == operation
-    start = StartOperation(physical_target, identity, (str(physical_target.runtime / "bin/toad"),), 9)
-    for operation in (start, StopRootOperation(physical_target)):
+    start = StartOperation(physical_resources, identity, (str(physical_target.runtime / "bin/toad"),), 9)
+    strict = StartAdmittedOperation(
+        physical_target, identity, (str(physical_target.runtime / "bin/toad"),), 9,
+    )
+    for operation in (start, strict, StopRootOperation(physical_resources)):
         with pytest.raises(ValueError):
             FieldCodec.decode(ObserveOperation, FieldCodec.encode(operation))
 
@@ -69,6 +82,22 @@ def test_current_observation_cannot_substitute_for_build_admission(
     with pytest.raises(ValueError, match="did not verify the runtime build"):
         ObservedResult(physical_observation).admitted(physical_target)
     assert physical_admission.observe(physical_target, physical_observation) == physical_observation
+
+
+def test_installed_origins_are_not_candidate_proof(
+    physical_resources: RunResources, physical_observation: RunObservation,
+) -> None:
+    result = InstalledResult(
+        physical_observation, physical_resources.runtime / "bin/python",
+        physical_resources.runtime / "python-image", {"sample": {"version": "1"}},
+    )
+    result.finish(physical_resources, result)
+    with pytest.raises(ValueError, match="did not verify the runtime build"):
+        result.admitted(physical_resources)
+    with pytest.raises(ValueError, match="origins changed"):
+        result.finish(physical_resources, replace(result, packages={"sample": {"version": "2"}}))
+    with pytest.raises(ValueError, match="origins changed"):
+        result.finish(physical_resources, replace(result, native_executable=Path("/foreign/python")))
 
 
 def test_admission_refuses_different_build_and_frontend_birth(

@@ -11,13 +11,14 @@ import argparse
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agent_comms.active_route import ActiveRoute
 from agent_comms.comms import wire
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
-from physical_ui import OwnedDisplay, TerminalApp
-from physical_ui_remote import ObservedResult, PhysicalOperation
+from tools.physical_ui import OwnedDisplay
+from tools.physical_ui_candidate import TerminalApp
+from tools.physical_ui_remote import ObservedResult, PhysicalOperation
 from textual.geometry import Size
 
 

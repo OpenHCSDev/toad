@@ -25,9 +25,10 @@ from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.ui_model.message_category import InboundCategory, all_categories
 from toad.widgets.side_bar import BackTabButton
 
-# Isolated Python omits the script directory; this tool owns its sibling imports.
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from physical_ui import OwnedDisplay, TerminalApp
+# Isolated Python omits the project directory; admit this tool package only.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from tools.physical_ui import OwnedDisplay
+from tools.physical_ui_candidate import TerminalApp
 
 
 def any_channel(screen):

@@ -1,6 +1,6 @@
 """Read-only py-spy capture of an explicit live PID on an isolated display.
 
-In-process observations belong to physical_ui.TerminalApp's startup lifetime.
+In-process observations belong to physical_ui.ObservedTerminalApp's startup lifetime.
 This command never injects frame meters, callbacks, heap changes or UI input.
 """
 
@@ -14,8 +14,8 @@ import time
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import FieldCodec
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from physical_ui import XvfbDisplay
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from tools.physical_ui import XvfbDisplay
 
 
 def main():

@@ -2,12 +2,53 @@
 
 The shared implementation is `tools/physical_ui.py`: the existing
 `XvfbDisplay → OwnedDisplay` family owns Xlib/display allocation and retirement;
-`TerminalApp` owns st, the frontend, source observations and all physical input.
-`tools/acceptance.py` and the scrolling scenario consume it. There is no public
-raw-input method on a display.
+`ObservedTerminalApp` owns st, the frontend, source observations and all physical
+input. `tools/physical_ui_candidate.py::TerminalApp` extends that same lifetime
+with strict candidate-build verification. `tools/acceptance.py` and the existing
+stopped-history CLI use the strict member. There is no public raw-input method
+on a display.
 
-## Entry point
+## Installed observation, without candidate admission
 
+Import `tools.physical_ui.ObservedTerminalApp` from the published source checkpoint
+with the installed interpreter. Its existing `copied(source, threads, runtime,
+output, thread=...)` factory owns the same `CheckRoot`, private home, lease/display,
+startup connection and input checks. Use `LaunchRuntime.installed()` for installed
+bytes. This does not require an interpreter observation in old build metadata.
+Wait for both `screen.observation.history_published` and
+`screen.observation.agent_ready` before the readiness-dependent journey; an active
+capture additionally needs `active_response` and actual response text/focus.
+
+Entry/final `InstalledOperation` records the actual Python/native executable
+paths and the installed runtime's package-origin answer through its existing
+`installed_packages` wire operation. There is no duplicate metadata parser or
+fallback probe import. Its `InstalledResult` checks origin continuity at normal
+exit and retains `resources-observed.json` / `resources-final.json`. These are
+origin observations, not candidate byte/interpreter proof. Per-input observations
+still check the actual frontend birth, module locations and current private
+resources; package inventory is not rescanned for every key.
+
+The qualified module namespace is `tools.physical_ui*` for controllers, consumers
+and staged dependencies. Program source is captured only when execution starts,
+not during ordinary imports. Candidate operations stage their required sibling
+module under that same namespace. No live-process alias or import fallback exists.
+
+Data/source qualification: `observer-installed-06.log` decoded three staged
+requests on the installed interpreter without loading the new candidate probe;
+`observer-candidate-06.log` decoded three strict-member requests on the existing
+immutable0402/3475 interpreter. Neither executes a frontend, build probe or input.
+The source map covers Core src, Toad src/tools and the physical-run consumer:
+971 modules, 8,192 raw classes, 8,184 canonical projections, zero parse omissions.
+Dynamic imports/aliases, descriptor/effect behavior, foreign platforms, physical
+movement and mounted readiness remain OPEN. A separate `observer-result-07.log`
+on installed Core038c checks the result codec/origin continuity and changed-
+executable refusal using an explicitly synthetic UI record and the real package
+answer. It is not a mounted observation. No author pytest ran.
+
+## Candidate/build-verifying entry point
+
+This member requires Core3825's recorded-interpreter/probe APIs; that requirement
+belongs here, not to installed-only observation.
 Run with the **installed source runtime's Python**, with Core's retained
 `CheckRoot.create()` and `SuppliedRuntimeHome` APIs available (Core PR #3821).
 Do not put the candidate Core checkout on `PYTHONPATH` and call that installed
@@ -31,7 +72,8 @@ sizes are **pixels**. For the mobile48×48 →140×40 journey, supply
 `framebuffer=Size(1600, 1200)` to the callable factory. The owner checks actual
 native window bounds and rejects clipping instead of recording half a terminal.
 
-The callable entry point is `TerminalApp.copied(source, threads, runtime,
+The strict callable entry point is
+`tools.physical_ui_candidate.TerminalApp.copied(source, threads, runtime,
 output, thread=..., size=Size(...), framebuffer=Size(...))`. Its context yields the admitted app and
 retains the copied root, frontend-home, operation receipts, screenshots and
 recording on exit. The caller still owns retiring those retained files after
@@ -52,8 +94,8 @@ The copied-history factory now exercises the instrumented installed **Toad CLI**
 not the separate `toad-comms` shell launcher or its executable wrapper. Those
 entrypoints need their own evidence; this run cannot claim it. The operation
 module stays alive while the distribution entrypoint runs so its declared wire
-types do not acquire a different `__main__` namespace. `AcpRoots` is declared
-once per module, not rebuilt and registered on every observation.
+types do not acquire a different `__main__` namespace. `AcpObservationDecoder`
+is declared once per module, not rebuilt and registered on every observation.
 
 The startup/shutdown programs retain the bounded immutable source snapshot.
 Ordinary observations write only typed request/result data, not another copy of
@@ -97,8 +139,8 @@ The new path is source work until actual fresh-prefix/physical execution proves 
 
 ## Runtime input identity (Core #3825 dependency)
 
-The current source requires a `RuntimeResolution` with a recorded interpreter
-observation, not just a prefix and three module locations. `RunTarget` retains
+Only the strict candidate member requires a `RuntimeResolution` with a recorded
+interpreter observation, not just a prefix and three module locations. `RunTarget` retains
 that intended build. `AdmitOperation(ObserveOperation)` obtains the actual
 process's resolution once at frontend admission through the target-owned probe.
 Its `AdmittedResult` belongs to that exact frontend birth; a plain
@@ -129,7 +171,7 @@ content hashing or complete loaded-code equivalence. Process/root/module-origin
 and saved/ACP-root invalidation remain current before every key.
 
 Current observations also carry the actual typed `StorageRule` from the already
-observing service's `Registration`. `RunTarget` calls that rule's pure
+observing service's `Registration`. Shared `RunResources` calls that rule's pure
 `require_isolated(root)` observation contract; it no longer repeats the owner's
 projection/equality decision. Observation neither constructs a Comms nor writes
 a policy. The paired Core must include this API: its `ScopedDirectory` field
@@ -196,7 +238,9 @@ current host permission, notwithstanding historical approval. Replacement of
 that capture needs its proper source/execution admission. No heap, GC, repaint,
 remeasure or arbitrary trace experiment is authorized. `capture_live.py` now
 exposes only read-only py-spy profiling; its injection and mutation options are
-deleted, not retained behind a permission flag.
+deleted, not retained behind a permission flag. The mutable source mapper now
+reads the declared `TranscriptReadIdentity.page_bound`; frozen inputs are not
+edited and that caller correction authorizes no injection experiment.
 
 ## Append/publication app controls
 
