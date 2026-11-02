@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Callable, ClassVar, cast
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.read_basis import DisplayCut, NoDisplaySelection
 from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
+from textual.app import App
 from textual.geometry import Region, Spacing
 from textual.widget import Widget
 from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
@@ -20,7 +21,6 @@ from toad.notification_status import MessageQueueEntry
 from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
 
 if TYPE_CHECKING:
-    from textual.app import App
     from agent_comms.message_reference import MessageReference
     from agent_comms.ui_model.message_category import AgentActivityBoundary
     from textual.screen import Screen
