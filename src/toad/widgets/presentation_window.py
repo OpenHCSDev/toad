@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Annotated, ClassVar, get_args
 
 from agent_comms.message_page import PageBounds
 from agent_comms.transcripts import TranscriptCursor
+from textual.screen import Screen
 from toad.work_preparation import WorkRevision
 
 if TYPE_CHECKING:
@@ -64,7 +65,7 @@ class NativePresentation:
     def retained_paint_bytes(self) -> int:
         return 0
 
-    def required_presentations(self) -> tuple[NativePresentation, ...]:
+    def required_presentations(self, screen: Screen) -> tuple[NativePresentation, ...]:
         """Resources whose actual native identity must survive this budget pass."""
         return ()
 

@@ -12,6 +12,7 @@ from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
 from textual.document._editing import EditingMode
+from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
@@ -317,9 +318,10 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresent
             else self.sources.agent_binding
         )
 
-    def required_presentations(self) -> tuple[NativePresentation, ...]:
+    def required_presentations(self, screen: Screen) -> tuple[NativePresentation, ...]:
         """A mounted view's native reader cannot outlive the tree it addresses."""
-        return self.widget.window.reader_position.required_presentations(self)
+        conversation = screen.query_one(Conversation)
+        return conversation.window.reader_position.required_presentations(self)
 
     @property
     def retained_widget_count(self) -> int:
@@ -508,7 +510,8 @@ class NativeSessionSurface:
                 for owner in candidates.get(self.view.id, ())
                 if owner is not self.view.presentation
             ),
-            *(resource for owner in screens for resource in owner.required_presentations()),
+            *(resource for owner, screen in screens.items()
+              for resource in owner.required_presentations(screen)),
         )
         ordered = dict.fromkeys(
             (
