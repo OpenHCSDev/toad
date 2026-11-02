@@ -36,6 +36,7 @@ from agent_comms.transcript_events import IncomingTranscript
 
 from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
+from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -64,8 +65,8 @@ if TYPE_CHECKING:
     from agent_comms.read_basis import NamedViewer
 
     from toad.comms_root import Observation
-    from toad.core.input_events import UserInputSubmitted
     from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.conversation import Conversation
     from toad.widgets.transcript_lines import Lines
     from toad.widgets.wire_history import WireHistory
 
@@ -325,6 +326,13 @@ class WireSource(BusQueueSource):
     tail_limit: int = 8
     page_limit: int = 40
 
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+        return self.comms.root == root and view.contains_user_message(sent)
+
+    def begin_submission(self, owner: ConversationSubmissions,
+                         submission: PromptInputSubmission) -> SubmissionStart:
+        return owner.view.bind_bus_submission(self, owner, submission)
+
     @property
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(self.project)
@@ -471,15 +479,6 @@ class WirePageBuffer(SavedHistory):
             self.loader.me,
             self.loader.project,
             view.query_ancestor(SessionScope).id,
-        )
-
-    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
-        conversation = self.loader.conversation
-        current = lambda: (
-            view.is_attached and self is view.message_history.page_source and conversation == view.conversation
-        )
-        await view.submit_comms_message(
-            self.loader.comms.root, conversation, event.body, current, partial(view._show_sent, body=event.body)
         )
 
     def schedule_refresh(self, view: CommsChatView):

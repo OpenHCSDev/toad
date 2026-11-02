@@ -13,6 +13,7 @@ from toad import messages
 
 if TYPE_CHECKING:
     from toad.acp.agent_session import SessionDisposition
+    from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
     from toad.widgets.prompt import PromptTextArea
 
 
@@ -28,6 +29,9 @@ class InputDecision(DeclaredFamily, ABC):
     @abstractmethod
     def announce(self, editor: PromptTextArea) -> None: ...
 
+    @abstractmethod
+    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart: ...
+
 
 class InputAccepted(InputDecision):
     allows = True
@@ -40,6 +44,9 @@ class InputAccepted(InputDecision):
 
     def announce(self, editor: PromptTextArea) -> None:
         """Accepted input needs no refusal feedback."""
+
+    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart:
+        return owner.view.agent_binding.begin_submission(owner, submission)
 
 
 class InputRefused(InputDecision):
@@ -59,6 +66,9 @@ class InputRefused(InputDecision):
         editor.app.bell()
         editor.post_message(messages.Flash(self.message, "error"))
 
+    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart:
+        return owner.unbound(submission, self)
+
 
 @dataclass(frozen=True)
 class NoLiveAgent(InputRefused):
@@ -75,3 +85,7 @@ class ModelSelectionRequired(InputRefused):
 
 class OwnerNotAttached(InputRefused):
     message = "No live owner binding for this thread; its input stays read-only. Your draft is kept."
+
+
+class InputSourceUnavailable(InputRefused):
+    message = "Conversation source is not ready. Your draft is kept."

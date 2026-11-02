@@ -259,7 +259,7 @@ class PreparationRuntime(ThreadScheduler):
         self.max_entries, self.max_bytes, self.max_pending = max_entries, max_bytes, max_pending
         self._ready: OrderedDict[WorkKey, tuple[PreparedValue, int]] = OrderedDict()
         self._pending: dict[WorkKey, asyncio.Task[PreparedValue]] = {}
-        self._admitted = dict.fromkeys(WorkLane, 0)
+        self._in_flight = dict.fromkeys(WorkLane, 0)
         self._threads = asyncio.Semaphore(4)
         self._thread_tasks: set[asyncio.Task] = set()
         self._changed = asyncio.Event()
@@ -271,6 +271,14 @@ class PreparationRuntime(ThreadScheduler):
     async def run_thread[*Args, Value](
         self, function: Callable[[*Args], Value], *args: *Args
     ) -> Value:
+        task = await self.start_thread(function, *args)
+        await self.renderer.wait_for_work(task)
+        return task.result()
+
+    async def start_thread[*Args, Value](
+        self, function: Callable[[*Args], Value], *args: *Args
+    ) -> asyncio.Task[Value]:
+        """Retain the actual accepted operation independently of its UI waiter."""
         if self._closed:
             raise asyncio.CancelledError
         await self._threads.acquire()
@@ -289,8 +297,7 @@ class PreparationRuntime(ThreadScheduler):
             self._threads.release()
 
         task.add_done_callback(finished, context=context)
-        await self.renderer.wait_for_work(task)
-        return task.result()
+        return task
 
     def discard_scope(self, scope: PreparationScope) -> None:
         scope.closed = True
@@ -324,9 +331,9 @@ class PreparationRuntime(ThreadScheduler):
             if pending := self._pending.get(key):
                 self.shared += 1
                 break
-            if self._admitted[work.lane] < self.max_pending:
+            if self._in_flight[work.lane] < self.max_pending:
                 self.misses += 1
-                self._admitted[work.lane] += 1
+                self._in_flight[work.lane] += 1
                 context = self.renderer.execution_context()
                 pending = asyncio.create_task(self._execute(key, work), name=f"prepare-{type(work).__name__}",
                                               context=context)
@@ -334,7 +341,7 @@ class PreparationRuntime(ThreadScheduler):
 
                 def finished(completed, lane=work.lane):
                     self._pending.pop(key, None)
-                    self._admitted[lane] -= 1
+                    self._in_flight[lane] -= 1
                     if not completed.cancelled():
                         completed.exception()
                     self._changed.set()

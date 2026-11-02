@@ -1,36 +1,36 @@
-"""A prompt still being built is refused, and never sent, when the session changes and returns meanwhile."""
+"""A real late reply cannot confirm a captured session that changed and returned."""
+
 import asyncio
-import threading
+
+import pytest
 from agent_comms.acp_extension import QueuePromptRequest
-from toad.acp import agent_controller
+
+from support.agents import peer, script
+from toad.acp.queue_attachment import QueueActionRefused
+from toad.acp.client_session import UnconfirmedPromptResult
+from toad.session_scope import AgentAttached
 
 
-async def test_pending_prompt_build_is_refused_when_the_session_changes_and_returns(app_agents, monkeypatch):
-    agent = app_agents.detached_agent('A', identity='prompt-session')
-    entered, release = threading.Event(), threading.Event()
-    real_build = agent_controller.build_prompt
-    def pending_build(project, text):
-        entered.set()
-        assert release.wait(5), 'Test failed to release resource preparation'
-        return real_build(project, text)
-    dispatched = []
-    monkeypatch.setattr(agent_controller, 'build_prompt', pending_build)
-    async def recorded_prompt(agent, content, metadata, require):
-        require()
-        dispatched.append(content)
-    monkeypatch.setattr(agent.process, 'prompt', recorded_prompt)
-    pending = asyncio.create_task(agent.send_prompt('unchanged local input', request=QueuePromptRequest('unchanged local input', True)))
-    assert await asyncio.to_thread(entered.wait, 5)
-    assert agent.controller.prompt_in_flight == 1
-    sending_now = asyncio.create_task(agent.controller.send_now())
-    await asyncio.sleep(0)
-    agent.session_id = 'B'
-    agent.session_id = 'A'
-    release.set()
-    # The retired prompt's controller refuses it at the write and reports no stop reason.
-    assert await pending is None
-    assert await sending_now is False
-    assert dispatched == []
-    assert agent.controller.prompt_in_flight == 0
-    assert not agent.controller._deferred_submissions
-    await agent.stop()
+async def test_pending_prompt_reply_is_unconfirmed_when_the_session_changes_and_returns(workspace):
+    async with workspace.app(binding=AgentAttached(peer("scripted"))) as ui:
+        await ui.until_agent_ready()
+        agent = ui.conversation.agent_binding
+        session_id, original = agent.session_id, agent.controller.session
+        body = script({"wait": "retired-prompt"})
+        pending = asyncio.create_task(agent.send_prompt(body, request=QueuePromptRequest(body, True)))
+        await ui.until(lambda: workspace.prompts_received() == [body],
+                       why="the original request held by the actual peer")
+        assert agent.controller.prompt_in_flight == 1
+        # Exercise the binding owner's setter, not a patched prompt or ambient root.
+        agent.session_id = "replacement-session"
+        agent.session_id = session_id
+        assert agent.controller.session is not original
+        workspace.release("retired-prompt")
+        outcome = await asyncio.wait_for(pending, 10)
+        assert isinstance(outcome, UnconfirmedPromptResult)
+        assert outcome.request.binding is original
+        with pytest.raises(QueueActionRefused):
+            outcome.require_confirmation()
+        assert workspace.prompts_received() == [body]
+        assert agent.controller.prompt_in_flight == 0
+        assert not agent.controller._deferred_submissions

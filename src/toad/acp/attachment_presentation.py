@@ -18,6 +18,7 @@ class AttachmentPresentation:
 @dataclass(frozen=True)
 class CursorPresentation(AttachmentPresentation):
     status: type[CursorStatus]
+    sequence: int
 
 
 @dataclass(frozen=True)

@@ -5,9 +5,8 @@ from dataclasses import replace
 import json
 import os
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, TurnChangedUpdate
+from agent_comms.acp_extension import TurnChangedUpdate
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.nominal.field_codec import TurnId
 from agent_comms.turn_lease import ActiveTurn, FinishedTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
@@ -16,7 +15,7 @@ from agent_comms.fresh_private_session import create_fresh_private_session
 from ui_theme.effects import NEW_TEXT
 
 from support.agents import deliver
-from support.coordination import carrying
+from support.coordination import carrying, registered_coordination_fact
 from support.textual_steps import tool_status
 from toad.frame_presentation import EFFECT_UNSTARTED
 from toad.widgets.agent_response import AgentResponse
@@ -55,11 +54,9 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         view = ui.conversation
         agent = ui.detached_agent("arrival-fade")
         view.bind_agent(agent)
-        coordination = CoordinationChangedUpdate(
-            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
-            worktree=str(project), model="test-model", thinking_level=None, title=thread.name,
-            context_usage=UnmeasuredContext())
-        agent.coordination = coordination
+        coordination = registered_coordination_fact(
+            comms, thread.name, owner=ProcessIdentity.capture(os.getpid()),
+            worktree=project, model="test-model")
         await deliver(agent, carrying(coordination))
         agent.presentation.managed_turns().receive(
             TurnState(ActiveTurn(FIRST_TURN, os.getpid(), phase=PublishingPhase())))

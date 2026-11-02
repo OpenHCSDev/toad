@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.message_reference import MessageReference
+from agent_comms.nominal.field_codec import MessageId
 from agent_comms.presentation import MessageNotification
 from toad.line_blocks import LineBlock, LineLink, MutedRole, NameRole, NoticeRole, OpenTarget, Span, SpanColumns, WorkingRole
 
@@ -31,8 +32,12 @@ def recipient_line(recipient: str, text: str) -> tuple[Span, ...]:
 class NotificationStatus:
     """One state of the check: its one-line title and the details behind it."""
 
-    working: ClassVar[bool] = False
     unavailable: ClassVar[bool] = False
+
+    @property
+    def working(self) -> bool:
+        """Only a concrete observed status can report active work."""
+        return False
 
     def failed(self, failure: NotificationStatus) -> NotificationStatus:
         """A failed read replaces this status; a known answer stays until a new answer."""
@@ -81,6 +86,13 @@ class MessageQueueEntry:
                 *self.status.queue_details)
 
 
+class QueueEntries:
+    """A drawn target supplies its original message queue evidence, or none."""
+
+    def queue_entries(self) -> Iterable[MessageQueueEntry]:
+        return ()
+
+
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
     # The row is drawn before Core answers, so the answer changes its text
@@ -94,7 +106,7 @@ class CheckedNotifications(NotificationStatus):
 
     @classmethod
     def for_references(cls, references: Iterable[MessageReference],
-                       results: Mapping[tuple[int, str], tuple[MessageNotification, ...]]) -> Iterator[CheckedNotifications]:
+                       results: Mapping[tuple[int, MessageId], tuple[MessageNotification, ...]]) -> Iterator[CheckedNotifications]:
         """Yield nothing when this answer has no matching reference."""
         loaded = results.keys() & {(reference.seq, reference.message_id) for reference in references}
         if loaded:

@@ -93,7 +93,7 @@ class ActualS2Ingress:
         assert original.source_text == prompt
         with self.comms.bus.log.locked():
             assert origin.root_id == self.comms.bus.log.read_metadata_unlocked().wire_root_id
-        assert Path(agent.coordination.wire_root) == self.comms.root
+        assert agent.observed_thread() == (str(self.comms.root), self.subject.name)
         receipt = {'original': FieldCodec.encode(original),
                    'wire_sequence_before': wire_sequence}
         self.receipts.append(receipt)

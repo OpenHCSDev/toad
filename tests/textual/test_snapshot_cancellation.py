@@ -9,15 +9,13 @@ from dataclasses import replace
 import os
 from unittest.mock import patch
 
-from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.context_reading import UnmeasuredContext
 import pytest
 from textual.worker import WorkerCancelled
 
 from support import journals
 from support.agents import deliver
-from support.coordination import carrying
+from support.coordination import carrying, registered_coordination_fact
 from toad.live_output import ResponseStream
 from support.textual_steps import saved_history
 
@@ -43,10 +41,9 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
         await view.contents.mount(old)
         await ui.until(lambda: old in view.window.histories, why="the old history")
         thread = workspace.comms.registry.require("replacement")
-        agent.coordination = coordination = CoordinationChangedUpdate(
-            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
-            worktree=str(workspace.project), model="test-model", thinking_level=None, title=thread.name,
-            context_usage=UnmeasuredContext())
+        coordination = registered_coordination_fact(
+            workspace.comms, thread.name, owner=ProcessIdentity.capture(os.getpid()),
+            worktree=workspace.project, model="test-model")
         await deliver(agent, carrying(coordination))
         agent.session.settled.set()
         # A live stream block that the saved page already covers.
