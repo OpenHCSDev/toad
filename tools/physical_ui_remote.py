@@ -19,6 +19,7 @@ import pwd
 import sys
 import time
 from threading import Thread
+from types import ModuleType
 from typing import ClassVar, Self
 
 # Only a newly launched program adds its frozen dependency directory. An
@@ -460,18 +461,19 @@ class ObserveOperation(PhysicalOperation):
         """The read-only observation protocol owns its one packet filename."""
         return directory / "request.json"
 
-    def require_modules(self) -> int:
+    def require_modules(self, packages: tuple[ModuleType, ...]) -> int:
         """Observe foreign ModuleSpec origins through this startup's validator.
 
         Locations establish provenance, not hashes of already-loaded code.
         Namespace packages must supply every owned search location.
         """
         runtime = self.target.runtime
+        package_names = frozenset(package.__name__ for package in packages)
         checked = 0
         for name, module in tuple(sys.modules.items()):
-            if name.split('.', 1)[0] not in ('toad', 'textual', 'agent_comms'):
+            if name.partition('.')[0] not in package_names:
                 continue
-            spec = getattr(module, '__spec__', None)  # foreign Python module boundary
+            spec = module.__spec__  # foreign Python module boundary
             if not isinstance(spec, importlib.machinery.ModuleSpec):
                 raise RuntimeError(f'Loaded package has no ModuleSpec: {name[:160]}')
             locations = ((spec.origin,) if spec.has_location else
@@ -483,8 +485,8 @@ class ObserveOperation(PhysicalOperation):
                 if not resolved.is_relative_to(runtime):
                     raise RuntimeError(f'Loaded package outside approved runtime: {name[:160]} {str(resolved)[:384]}')
             checked += 1
-        if not checked or 'toad.app' not in sys.modules:
-            raise RuntimeError('No loaded Toad runtime to observe')
+        if not checked:
+            raise RuntimeError('No loaded runtime packages to observe')
         return checked
 
     def observed_result(self, observed: RunObservation, directory: Path) -> PhysicalResult:
@@ -513,7 +515,7 @@ class ObserveOperation(PhysicalOperation):
             screen = app.screen
         except (NoActiveAppError, ScreenStackError) as error:
             raise PendingRun("No sole running Toad application with a screen yet") from error
-        checked = self.require_modules()
+        checked = self.require_modules((toad, textual, agent_comms))
         access = app.coordination_access
         root = access.selection.root
         observation = access.observation

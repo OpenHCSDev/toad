@@ -1,6 +1,7 @@
 """Physical frontend observation and admission contracts, using native geometry."""
 from dataclasses import replace
 from importlib.machinery import PathFinder
+import json
 from pathlib import Path
 
 import pytest
@@ -85,6 +86,18 @@ def test_startup_connection_decodes_only_observation_operations(
     for operation in (start, strict, measured, measured_strict, StopRootOperation(physical_resources)):
         with pytest.raises(ValueError):
             FieldCodec.decode(ObserveOperation, FieldCodec.encode(operation))
+
+
+def test_module_observation_uses_actual_package_locations(physical_resources: RunResources) -> None:
+    # Exercise real stdlib ModuleSpecs without claiming a running Toad admission.
+    package_root = Path(json.__file__).resolve().parent
+    inside = replace(physical_resources, runtime=package_root)
+    identity = ProcessIdentity.current()
+    assert ObserveOperation(inside, identity).require_modules((json,)) > 0
+    with pytest.raises(RuntimeError, match="outside approved runtime"):
+        ObserveOperation(physical_resources, identity).require_modules((json,))
+    with pytest.raises(RuntimeError, match="No loaded runtime packages"):
+        ObserveOperation(inside, identity).require_modules(())
 
 
 @pytest.mark.parametrize("app_type", (MeasuredTerminalApp, MeasuredCandidateTerminalApp))
