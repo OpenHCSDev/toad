@@ -319,7 +319,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresent
 
     def required_presentations(self) -> tuple[NativePresentation, ...]:
         """A mounted view's native reader cannot outlive the tree it addresses."""
-        assert self.widget is not None, "Only mounted presentations enter the native budget"
         return self.widget.window.reader_position.required_presentations(self)
 
     @property

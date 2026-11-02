@@ -28,7 +28,6 @@ if TYPE_CHECKING:
         ProjectedTranscriptSource,
     )
     from toad.transcript_source_preparation import TranscriptSourcePreparation
-    from toad.screens.main import MainScreen
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory, TranscriptPageView
     from toad.wire_history import AfterSequence, WireCut, WireSource
@@ -65,12 +64,9 @@ class NativePresentation:
     def retained_paint_bytes(self) -> int:
         return 0
 
-    def required_presentations(self) -> tuple["NativePresentation", ...]:
+    def required_presentations(self) -> tuple[NativePresentation, ...]:
         """Resources whose actual native identity must survive this budget pass."""
         return ()
-
-    async def evict(self, screen: "MainScreen") -> None:
-        """An empty native resource has nothing to release."""
 
 
 @dataclass(frozen=True)
