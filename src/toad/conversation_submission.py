@@ -10,6 +10,8 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from textual.worker import Worker
+
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
     InputStartedUpdate,
@@ -30,6 +32,7 @@ from toad.acp.queue_attachment import QueueActionRefused
 from toad.queue_capability import QueueActions, QueueEvidence
 from toad.core.input_events import UserInputSubmitted
 from toad.input_decision import InputDecision, InputRefused
+from toad.input_history import InputHistory
 from toad.widgets.prompt import Prompt
 
 if TYPE_CHECKING:
@@ -96,7 +99,7 @@ class ShellInputSubmission(InputSubmission):
             shell.focus_output()
             await shell.send_input(self.source_text, paste=True)
         else:
-            view.run_worker(partial(view.input_histories.shell.record, self.source_text), group="history")
+            owner.record_history(view.input_histories.shell, self.source_text)
             await view.post_shell(self.source_text)
         view.jump_to_latest()
 
@@ -331,7 +334,7 @@ class SubmissionExecution(SubmissionStart):
     async def prepare(self):
         view, submission = self.owner.view, self.submission
         self.owner.publish_pending()
-        view.run_worker(partial(view.input_histories.prompt.record, submission.source_text), group="history")
+        self.owner.record_history(view.input_histories.prompt, submission.source_text)
         try:
             worker = view.run_worker(partial(self.send), group=self.worker_group)
             worker._add_done_callback(lambda _worker: self.finish())
@@ -453,6 +456,9 @@ class ConversationSubmissions:
 
     def begin(self, submission: PromptInputSubmission):
         return self.view.queue_source.begin_submission(self, submission)
+
+    def record_history(self, history: InputHistory, text: str) -> Worker[bool]:
+        return self.view.run_worker(partial(history.record, text), group="history")
 
     def unbound(self, submission: PromptInputSubmission, refusal: InputRefused):
         return UnboundSubmissionStart(self, submission, refusal)
