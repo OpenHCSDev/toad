@@ -4,6 +4,7 @@ import asyncio
 import gc
 from weakref import ref
 
+from agent_comms.repo import Checkout
 from agent_comms.relationships import (
     AddRelationshipEdit,
     CollaboratingRelationshipGroup,
@@ -132,7 +133,7 @@ async def exercise(ui, screen, root):
     assert state.selected == chosen
     saved = [ref(panel.widget) for panel in sidebar.panels]
     tree_ref = ref(tree)
-    await sidebar.retire_presentation()
+    await sidebar.retire_presentation(screen)
     assert all(
         widget() is panel.widget
         for widget, panel in zip(saved, sidebar.panels, strict=True)
@@ -235,7 +236,7 @@ async def test_panels_show_the_current_project_after_the_source_project_changes_
         replacement = workspace.project.parent / "replacement-project"
         replacement.mkdir()
         (replacement / "new-source.txt").write_text("Current filesystem")
-        screen.project_path = replacement
+        screen.project_path = Checkout(replacement)
         await sidebar.prepare_presentation()
         await sidebar.wait_content_ready()
         tree = await prepare_project(ui, sidebar)

@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from agent_comms.messages import Message
     from agent_comms.thread_presentation import ThreadPresentation
     from textual.command import Provider
-    from textual.dom import DOMNode
+    from toad.widgets.side_bar import SideBar
 
     from toad.agent_schema import AgentDefinition
     from toad.comms_root import CoordinationAccess
@@ -362,7 +362,7 @@ class SessionScope(NavigationOwner, ProjectPathOwner, ToadNode):
     def belongs_to_wire(self, root: str | Path) -> bool: ...
 
     @abstractmethod
-    def sidebars(self) -> tuple[DOMNode, ...]: ...
+    def sidebars(self) -> tuple[SideBar, ...]: ...
 
     @abstractmethod
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]: ...

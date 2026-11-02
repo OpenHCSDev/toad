@@ -2,17 +2,31 @@
 
 from __future__ import annotations
 
+from fractions import Fraction
+
+from textual.box_model import BoxModel
 from textual.containers import HorizontalGroup, VerticalScroll
+from textual.geometry import Size
 
 
 class SidebarHeader(HorizontalGroup):
     DEFAULT_CSS = "SidebarHeader { width: 100%; }"
 
+    def _get_box_model(
+        self, container: Size, viewport: Size,
+        width_fraction: Fraction, height_fraction: Fraction,
+        constrain_width: bool = False, greedy: bool = True,
+    ) -> BoxModel:
+        # The immediate auto-width group belongs to the wide body. Header
+        # controls instead consume the enclosing scrollport's native width.
+        width = self.query_ancestor(SidebarViewport).scrollable_content_region.width
+        return super()._get_box_model(
+            container.with_width(width), viewport, width_fraction, height_fraction,
+            constrain_width, greedy,
+        )
+
     def on_mount(self) -> None:
-        viewport = next((node for node in self.walk_ancestors()
-                         if isinstance(node, SidebarViewport)), None)
-        if viewport is not None:
-            viewport.align_header(self)
+        self.query_ancestor(SidebarViewport).align_header(self)
 
 
 class SidebarViewport(VerticalScroll):
@@ -38,6 +52,12 @@ class SidebarViewport(VerticalScroll):
     def on_mount(self) -> None:
         self.watch(self, "scroll_x", self._align_headers, init=False)
         self._align_headers()
+
+    def on_resize(self) -> None:
+        # Native resize commits the scrollport, including its scrollbar gutter.
+        # Invalidate only dependent headers; never store a second pixel width.
+        for header in self.query(SidebarHeader):
+            header.refresh(repaint=False, layout=True)
 
     def align_header(self, header: SidebarHeader) -> None:
         # The content still owns its full intrinsic width. Counter only its

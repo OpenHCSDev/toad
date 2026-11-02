@@ -2,7 +2,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import events as core_events
 from toad.core import session_requests
-from toad.screens.session_view import SessionView
+from toad.screens.session_view import SidebarSessionView
 from toad.project_path_owner import CheckoutRoot
 import asyncio
 from functools import partial
@@ -24,7 +24,6 @@ from toad.conversation_kind import ConversationKind
 from toad.widgets.comms_chat import CommsChatView
 from toad.core.input_events import SelectHistoricalIdentity
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
-from toad.session_tracker import SidebarState
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import HistoryTarget, NavigationTarget, SelectTarget
 from toad.widgets.session_tabs import SessionsTabs
@@ -78,7 +77,7 @@ class FocusPromptAction(ViewAction):
             chat.prepare_prompt()
 
 
-class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SessionView, ToadNode, can_focus=False,
+class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[ThreadSidebar], ToadNode, can_focus=False,
                   actions=(ViewAction, ReturnToViewAction, CloseViewAction)):
     """A channel or DM represented as a native concurrent Toad session."""
 
@@ -102,7 +101,6 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SessionView, ToadNod
         self._identity = SessionIdentity.for_thread(me, owner_root)
         self.conversation = conversation
         self.wire_root = wire_root
-        self._thread_sidebar_state = SidebarState()
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
         self._content_loaded = False
@@ -143,9 +141,21 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SessionView, ToadNod
             chat.project_path = project
             chat.working_directory = str(project)
 
-    def sidebars(self):
-        sidebar = self.query_one_optional(ThreadSidebar)
-        return (sidebar,) if sidebar is not None else ()
+    def make_thread_sidebar(self) -> ThreadSidebar:
+        return ThreadSidebar(
+            SideBar.Panel(
+                "Connection",
+                CoordinationStatus(),
+                id="coordination-panel",
+            ),
+            SideBar.Panel(
+                "Comms",
+                ThreadCommsSidebar(),
+                id="thread-comms-panel",
+                header_control=RelationshipSort(),
+            ),
+            state=self._thread_sidebar_state,
+        )
 
     def compose(self) -> ComposeResult:
         content = (
@@ -156,20 +166,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SessionView, ToadNod
             )
         )
         yield containers.Center(
-            ThreadSidebar(
-                SideBar.Panel(
-                    "Connection",
-                    CoordinationStatus(),
-                    id="coordination-panel",
-                ),
-                SideBar.Panel(
-                    "Comms",
-                    ThreadCommsSidebar(),
-                    id="thread-comms-panel",
-                    header_control=RelationshipSort(),
-                ),
-                state=self._thread_sidebar_state,
-            ),
+            self.thread_sidebar,
             containers.Vertical(*content, id="comms-content"),
         ).set_styles(layout=self.app.workspace_chrome)
 

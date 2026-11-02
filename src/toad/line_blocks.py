@@ -17,7 +17,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import DisplayReference
 from agent_comms.nominal.field_codec import FieldCodec
 
-from typing import ClassVar
+from typing import ClassVar, Self
 
 from ui_theme.scheme import (
     AccentColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour, SuccessColour,
@@ -303,6 +303,10 @@ class SpanText(LineBlock):
     def selection_text(self) -> str:
         return self.text
 
+    @classmethod
+    def titled(cls, title: str, role: type[LineRole] = MutedRole) -> Self:
+        return cls((Span(title, role),))
+
 
 @dataclass(frozen=True)
 class Spans(SpanText):
@@ -348,14 +352,6 @@ class Summary(SpanText):
     def text(self) -> str:
         return super().text + "".join(span.text for span in self.kept)
 
-    @classmethod
-    def titled(cls, title: str, role: type[LineRole] = MutedRole,
-               link: LineLink | None = None) -> Summary:
-        return cls((Span(title, role, link),))
-
-    @property
-    def selection_text(self) -> str:
-        return self.text
 
 
 @dataclass(frozen=True)

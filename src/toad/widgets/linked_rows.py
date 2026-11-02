@@ -151,7 +151,7 @@ class LinkedRows(OpensLinks):
     def line_sets(self) -> tuple[Lines, ...]:
         raise NotImplementedError
 
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+    def get_selection(self, selection: Selection) -> tuple[str, str]:
         rows = "\n".join("".join(segment.text for segment in row).rstrip()
                          for lines in self.line_sets for row in lines)
         return selection.extract(rows), "\n"

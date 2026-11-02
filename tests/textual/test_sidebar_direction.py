@@ -1,67 +1,70 @@
-"""Textual-facing: sidebar arrow buttons follow spatial neighbours (walls, inward swaps, outward swaps, cross-centre moves) as laid out by the compositor."""
+"""Native sidebar controls reflect the placement owner at every declared edge."""
 
+import pytest
+
+from toad.sidebar_layout import SidebarEdge
 from toad.widgets.side_bar import SideBar, SidebarAction
 
 
-def arrows(bar: SideBar) -> list[str]:
-    return [button.render().plain for button in bar.query(SidebarAction)
-            if button.display and button.action.directional]
-
-
-async def test_arrow_clicks_follow_spatial_neighbours(workspace):
-    async with workspace.app(size=(120, 40)) as ui:
+@pytest.mark.parametrize("side", SidebarEdge.members_with(SidebarEdge))
+async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
+    async with workspace.app(size=(120, 60)) as ui:
         app, pilot = ui.textual
-        channels = app.screen.query_one("#channels-sidebar", SideBar)
-        thread = app.selected_session.query_one("#thread-sidebar", SideBar)
+        channels = app.workspace_chrome.channels
+        thread = app.selected_session.thread_sidebar
+        channels.reveal()
         thread.reveal()
+        # Vacate the destination before establishing the requested outer/inner
+        # order. Moving an existing occupant to its own edge is a no-op.
+        app.sidebar_layout.move(channels.placement_identity, side.opposite())
+        app.sidebar_layout.move(thread.placement_identity, side.opposite())
+        app.sidebar_layout.move(channels.placement_identity, side)
+        app.sidebar_layout.move(thread.placement_identity, side)
+        app.workspace_chrome.refresh_layout()
         await ui.step()
 
-        async def click(bar: SideBar, label: str) -> None:
-            button = next(button for button in bar.query(SidebarAction)
-                          if button.display and button.render().plain == label)
-            assert await pilot.click(button), (
-                bar.id, label, button.region, bar.region,
-                tuple((item.id, item.region, item.collapsed) for item in app.screen.query(SideBar)),
-                button in app.screen._compositor.visible_widgets)
+        async def click(bar: SideBar, edge) -> None:
+            button = bar.query_one(f"#sidebar-{edge.declared_name}", SidebarAction)
+            assert button.display and await pilot.click(button), (bar.id, edge, button.region, bar.region)
             await ui.step()
 
-        assert arrows(channels) == ["──>"] and arrows(thread) == ["<──"], (
-            arrows(channels), arrows(thread), ui.visible_text())
-        await click(thread, "<──")
-        assert not channels.right and not thread.right
-        assert channels.region.right == thread.region.x
-        assert arrows(channels) == ["──>"], "Wall-adjacent bar must have only the inward arrow"
-        assert arrows(thread) == ["<──", "──>"]
+        def check_controls(bar: SideBar) -> None:
+            for edge, shift in app.sidebar_layout.directions(bar.placement_identity).items():
+                button = bar.query_one(f"#sidebar-{edge.declared_name}", SidebarAction)
+                assert button.display == shift.available
 
-        await click(channels, "──>")
-        assert not channels.right and not thread.right, "Inward click must swap, not cross the conversation"
-        assert thread.region.right == channels.region.x
-        assert arrows(thread) == ["──>"] and arrows(channels) == ["<──", "──>"]
-        await click(channels, "<──")
-        assert channels.region.right == thread.region.x
-        await click(thread, "──>")
-        assert thread.right and not channels.right
+        def check_adjacent() -> None:
+            regions = sorted((channels.region, thread.region), key=lambda region: side.coordinate(region.offset))
+            assert side.coordinate(regions[0].offset) + side.extent(regions[0].size) == side.coordinate(regions[1].offset)
 
-        await click(channels, "──>")
-        assert channels.right and thread.right
-        assert channels.region.right == thread.region.x
-        assert arrows(thread) == ["<──"] and arrows(channels) == ["<──", "──>"]
-        await click(thread, "<──")
-        assert channels.right and thread.right
-        assert thread.region.right == channels.region.x
-        assert arrows(channels) == ["<──"] and arrows(thread) == ["<──", "──>"]
-        await click(thread, "──>")
-        assert channels.region.right == thread.region.x
+        # The wall is blocked, the inward arrow swaps, then crosses the centre.
+        assert channels.placement.order == 0 and thread.placement.order == 1
+        check_controls(channels)
+        check_controls(thread)
+        check_adjacent()
+        inward = side.opposite()
+        await click(channels, inward)
+        assert channels.placement.side is thread.placement.side is side
+        assert thread.placement.order == 0 and channels.placement.order == 1
+        check_adjacent()
+        await click(channels, side)
+        assert channels.placement.order == 0 and thread.placement.order == 1
+        await click(thread, inward)
+        assert thread.placement.side is inward and channels.placement.side is side
+        await click(channels, inward)
+        assert channels.placement.side is thread.placement.side is inward
+        check_controls(channels)
+        check_controls(thread)
+        check_adjacent()
 
-        # Float and a collapsed neighbour do not change the arrow policy.
-        await click(thread, "Float")
-        channels.toggle()
+        # Float and collapse keep the same canonical peer/action policy.
+        assert await pilot.click(thread.query_one("#sidebar-float", SidebarAction))
+        channels.toggle(focus=False)
         await ui.step()
-        assert arrows(thread) == ["<──"]
-        await click(thread, "<──")
-        assert thread.right and channels.right
-        assert thread.region.right == channels.region.x
-        assert arrows(thread) == ["<──", "──>"]
+        check_controls(thread)
+        await click(thread, side)
+        assert thread.placement.side is channels.placement.side is inward
         channels.reveal()
         await ui.step()
-        assert arrows(channels) == ["<──"]
+        check_controls(channels)
+        check_controls(thread)

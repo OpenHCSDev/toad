@@ -32,7 +32,10 @@ class MessageNotifications(Collapsible):
     MessageNotifications {
         height: auto; padding: 0; margin: 0; border: none;
         background: transparent; color: $text-muted;
-        CollapsibleTitle { padding: 0; min-height: 1; }
+        CollapsibleTitle {
+            padding: 0; width: 1fr; height: auto; min-height: 1;
+            text-wrap: wrap; text-overflow: fold;
+        }
         Contents { padding: 0; }
     }
     MessageNotifications.-working > CollapsibleTitle { color: $accent; }

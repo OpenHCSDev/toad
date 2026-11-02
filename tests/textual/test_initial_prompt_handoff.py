@@ -10,15 +10,8 @@ from toad.agent_binding import NoAgentConnection
 
 from toad.core.input_events import UserInputSubmitted
 from toad.screens.main import MainScreen
-from toad.session_presentation import OperationalSessionSources
+from toad.session_presentation import SessionViewState
 from support.ui import saved_tab
-
-
-class ObservedLaunchSources(OperationalSessionSources):
-    def make_conversation(self, screen):
-        conversation = super().make_conversation(screen)
-        screen.subscriptions.append(conversation.core_publications.subscribe(UserInputSubmitted, screen.observed))
-        return conversation
 
 
 class ObservedLaunchScreen(MainScreen):
@@ -29,7 +22,13 @@ class ObservedLaunchScreen(MainScreen):
         self.inputs = Counter()
         self.publication = asyncio.Event()
         self.subscriptions = []
-        self.presentation.sources = ObservedLaunchSources()
+
+    def make_conversation(self):
+        conversation = super().make_conversation()
+        self.subscriptions.append(
+            conversation.core_publications.subscribe(UserInputSubmitted, self.observed)
+        )
+        return conversation
 
     def observed(self, event, subscription):
         assert not event.shell
@@ -43,7 +42,11 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
     async with workspace.app(size=(110, 35)) as ui:
         app, _pilot = ui.textual
         owner = ObservedLaunchScreen(Checkout(workspace.project), initial_prompt="INITIAL_LOCAL_UI_EVENT")
+        sidebar = owner.thread_sidebar
+        assert owner.sidebars() == (sidebar,) and not sidebar.is_mounted
+        assert not sidebar.presentation_visible
         await app.session_navigation.new(await saved_tab(app), lambda: owner)
+        assert owner.thread_sidebar is sidebar
         await owner.wait_content_ready()
         await asyncio.wait_for(owner.publication.wait(), 12)
         await ui.step()
@@ -62,6 +65,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(app.project_dir))
         await app.selected_session.wait_content_ready()
         await owner.presentation.evict(owner)
+        assert owner.thread_sidebar is sidebar
         assert view._initial_prompt is None
         assert owner.presentation.state.initial_prompt == "NEWEST_PENDING_LOCAL_UI_EVENT"
         assert owner.presentation.widget is None
@@ -71,7 +75,8 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await ui.step()
         restored = owner.conversation
         assert restored is not view and isinstance(restored.agent_binding, NoAgentConnection)
-        assert restored._initial_prompt is None and owner.presentation.state is None
+        assert restored._initial_prompt is None
+        assert type(owner.presentation.state) is SessionViewState
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
         editor = restored.prompt.prompt_text_area
         assert editor.document is document and editor.history is undo
@@ -92,6 +97,9 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
         assert isinstance(owner.conversation.agent_binding, NoAgentConnection) and not owner.conversation.submissions.active
         await app.session_navigation.close(owner.id)
-        assert owner.presentation.widget is None and owner.presentation.state is None
+        assert owner.thread_sidebar is sidebar
+        assert not sidebar.presentation_visible
+        assert owner.presentation.widget is None
+        assert type(owner.presentation.state) is SessionViewState
         assert owner.id not in app.workspace_sessions.views
         assert ui.failure() is None

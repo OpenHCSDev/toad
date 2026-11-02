@@ -3,11 +3,12 @@
 from typing import TYPE_CHECKING
 from textual.app import ComposeResult
 from textual.containers import Horizontal
-from textual.geometry import Offset, Region, Size, Spacing
+from textual.geometry import Offset, Size, Spacing
 from textual.layout import ArrangeResult, WidgetPlacement
 from textual.layouts.vertical import VerticalLayout
 from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.side_bar import SideBar
 from toad.widgets.footer import ToadFooter
 from toad.widgets.switch_toast import SwitchToast
 from ui_theme.scheme import HeaderToneColour
@@ -15,7 +16,7 @@ from toad.tone_paint import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope
-from toad.sidebar_layout import Side
+from toad.sidebar_layout import SidebarEdge
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -43,16 +44,14 @@ class WorkspaceChrome(VerticalLayout):
         self.switch_toast = SwitchToast()
         self.native = NativeSessionSurface(app)
 
-    def presented_sidebars(self):
+    def presented_sidebars(self) -> tuple[SideBar, ...]:
         source = self.app.workspace_sessions.source
-        layout = self.app.sidebar_layout
         return tuple(bar for bar in (self.channels, *source.sidebars())
-                     if bar.presentation_visible and bar.id in layout.placements)
+                     if bar.presentation_visible)
 
-    def toggle_sidebar(self, side: Side) -> None:
-        layout = self.app.sidebar_layout
+    def toggle_sidebar(self, side: type[SidebarEdge]) -> None:
         bars = tuple(bar for bar in self.presented_sidebars()
-                     if layout.get(bar.id).side == side)
+                     if bar.placement.side is side)
         collapsed = any(not bar.collapsed for bar in bars)
         for bar in bars:
             if bar.collapsed != collapsed:
@@ -68,52 +67,49 @@ class WorkspaceChrome(VerticalLayout):
         return changed
 
     def refresh_layout(self) -> None:
-        """Placement changes retire both native parent arrangements."""
-        source = self.app.workspace_sessions.source
-        for parent in {
-            bar.parent for bar in (self.channels, *source.sidebars()) if bar.is_mounted
-        }:
-            parent.refresh(repaint=False, layout=True)
+        """Project placement intent before retiring both native arrangements."""
+        bars = self.presented_sidebars()
+        for bar in bars:
+            bar.present_controls()
+            # Native invalidation retires this resource's parent arrangement.
+            bar.refresh(repaint=False, layout=True)
 
     def arrange(
         self, parent: Widget, children: list[Widget], size: Size, greedy: bool = True
     ) -> ArrangeResult:
         """Place chrome and conversation directly in the native layout pass."""
-        source = self.app.workspace_sessions.source
         layout = self.app.sidebar_layout
-        own = tuple(source.sidebars())
         bars = self.presented_sidebars()
-        resolved = layout.resolve(size.width, {bar.id: bar.collapsed for bar in bars})
+        resolved = layout.resolve(size, {bar.placement_identity: bar.collapsed for bar in bars})
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.
-        nested = parent is self.channels.parent and any(
-            bar.parent.layout is self for bar in own
+        nested = self.channels in parent.children and any(
+            bar not in children for bar in bars
         )
-        left = 0 if nested else resolved.left_gutter
-        right = 0 if nested else resolved.right_gutter
+        gutter = Spacing() if nested else resolved.gutter
         placements = [
             placement._replace(
-                region=placement.region + Offset(left, 0),
-                margin=placement.margin + Spacing(0, right, 0, left),
+                region=placement.region + Offset(gutter.left, gutter.top),
+                margin=placement.margin + gutter,
             )
             for placement in super().arrange(
                 parent,
                 [child for child in children if child not in bars],
-                Size(max(0, size.width - left - right), size.height),
+                Size(max(0, size.width - gutter.width), max(0, size.height - gutter.height)),
                 greedy,
             )
         ]
         order = {identity: index for index, identity in enumerate(layout.ordered())}
         for bar in bars:
             if bar in children:
-                geometry = resolved.bars[bar.id]
+                geometry = resolved.bars[bar.placement_identity]
                 placements.append(
                     WidgetPlacement(
-                        Region(0, 0, geometry.width, size.height),
-                        Offset(geometry.x, 0),
+                        geometry.reset_offset,
+                        geometry.offset,
                         Spacing(),
                         bar,
-                        order[bar.id],
+                        order[bar.placement_identity],
                         overlay=True,
                         absolute=True,
                     )

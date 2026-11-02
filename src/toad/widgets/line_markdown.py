@@ -191,5 +191,5 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         # Prepared rows span exactly this width (Lines.strips_at).
         return self.on_background(strips[y], paint, y)
 
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+    def get_selection(self, selection: Selection) -> tuple[str, str]:
         return selection.extract(self.text), "\n"

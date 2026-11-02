@@ -1,5 +1,6 @@
 """The shared Channels view, including during a destination's loading frame."""
 
+from toad.sidebar_layout import ChannelsSidebarPlacement
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_sort import ChannelListSort
 from toad.widgets.side_bar import SideBar
@@ -16,7 +17,7 @@ class ChannelsSidebar(SideBar):
                 flex=True,
                 header_control=ChannelListSort(),
             ),
-            id="channels-sidebar",
+            placement_identity=ChannelsSidebarPlacement,
             defer_mount=defer_mount,
         )
 
