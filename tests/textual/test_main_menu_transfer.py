@@ -64,7 +64,7 @@ async def test_main_menu_exports_the_wire_as_jsonl(workspace):
         app.screen.action_submit()
         await ui.until(lambda: any(note.title == "Wire export failed" and "Unknown channel" in note.message
                                    for note in app._notifications), why="the export refusal")
-        assert not app.query(WireExportProgressView), "the failed export must remove its progress resource"
+        assert not app.screen.query(WireExportProgressView), "the failed export must remove its progress resource"
         await choose(ui, await open_main_menu(ui), "Export wire history…")
         await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
         dialog = app.screen
@@ -77,7 +77,7 @@ async def test_main_menu_exports_the_wire_as_jsonl(workspace):
         assert [row["message"]["text"] for row in rows[1:]] == ["exported message"]
         await ui.until(lambda: any(note.title == "Wire export" and str(destination) in note.message
                                    for note in app._notifications), why="the completed export notification")
-        assert not app.query(WireExportProgressView), "completion removes the actual progress widget"
+        assert not app.screen.query(WireExportProgressView), "completion removes the actual progress widget"
 
 
 async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
@@ -107,7 +107,7 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
         assert "Imported history" in Path(thread.runtime.path).read_text()
         await ui.until(lambda: any(note.title == "Thread Import" and "@imported" in note.message
                                    for note in ui.textual[0]._notifications), why="the import completion")
-        assert not ui.textual[0].query(WireExportProgressView), "imports do not allocate export cancellation"
+        assert not ui.textual[0].screen.query(WireExportProgressView), "imports do not allocate export cancellation"
 
 
 async def test_export_format_updates_only_the_generated_destination(workspace):
@@ -134,7 +134,7 @@ async def test_export_progress_presents_counters_and_native_cancel(workspace):
         app, _ = ui.textual
         request = WireExportRequest(workspace.project / "unused.jsonl", JsonlFormat(), EverythingScope(), FullLimit())
         async with request.progress(app) as observer:
-            progress = app.query_one(WireExportProgressView)
+            progress = app.screen.query_one(WireExportProgressView)
             assert observer is progress
             observer.advanced(WireExportProgress(bytes_written=4096, messages_written=7))
             await ui.until_shows("7 messages · 4,096 bytes written")
@@ -143,5 +143,6 @@ async def test_export_progress_presents_counters_and_native_cancel(workspace):
             assert progress.query_one("#cancel-export", Button).disabled
             with pytest.raises(WireExportCancelled):
                 observer.check()
-        assert not app.query(WireExportProgressView)
+        assert progress.parent is None, "the actual mounted resource must be detached"
+        assert not app.screen.query(WireExportProgressView)
         assert not request.destination.exists(), "this case supplies progress observations, never a fake export"
