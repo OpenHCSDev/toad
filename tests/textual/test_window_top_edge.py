@@ -276,7 +276,7 @@ async def test_a_live_thought_crossing_the_top_edge_keeps_its_rows_at_phone_widt
         thought = AgentThought(THINKING)
         await view.post(thought)
         await view.post(AgentResponse("\n\n".join(f"Later paragraph {i}" for i in range(20))))
-        await ui.until(lambda: thought._styled is not None, why="the thought's styled rows")
+        await ui.until(lambda: not thought._styled.awaits_styling, why="the thought's styled rows")
         window = view.window
         window.anchor()
         await ui.until(lambda: window.max_scroll_y > 0 and window.follows_tail, why="a scrollable tail")
@@ -292,7 +292,7 @@ async def test_a_live_thought_crossing_the_top_edge_keeps_its_rows_at_phone_widt
         for chunk in (" and", " then a few more", " words arrive", " in the last paragraph"):
             thought.append(chunk)
             await ui.step()
-        await ui.until(lambda: thought._render_worker is None or thought._render_worker.is_finished,
+        await ui.until(lambda: thought._render_worker.is_finished,
                        why="the streamed text to be styled")
         for _ in range(4):
             await ui.step()

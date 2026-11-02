@@ -8,7 +8,7 @@ async def test_window_follows_tail_releases_on_scroll_up_and_resumes(workspace):
         conversation = ui.conversation
         response = await conversation.post(AgentResponse("\n\n".join(f"Paragraph {i}" for i in range(40))))
         # A block's rows are its styled rows: scrolling needs them to exist.
-        await ui.until(lambda: response.body._styled is not None, why="the response's first styled rows")
+        await ui.until(lambda: not response.body._styled.awaits_styling, why="the response's first styled rows")
         window = conversation.window
         window.anchor(False)
         conversation.refresh_block_cursor(lambda cursor: cursor.show_moved_to(conversation.window))
