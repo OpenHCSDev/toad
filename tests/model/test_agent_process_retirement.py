@@ -63,7 +63,7 @@ async def test_stopping_one_shared_session_keeps_the_other_usable(
         process = first.process
         child = process.process
         assert child is not None
-        await second.start(first.borrowed_processes)
+        await second.start(first.borrowed_processes())
         await until(lambda: second.ready, "the second loaded session")
         assert second.process is process
         if close_refused:
