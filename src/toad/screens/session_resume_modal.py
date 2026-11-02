@@ -3,13 +3,12 @@ from agent_comms.nominal.field_codec import RecordedTimestamp
 
 from textual import containers, getters, on, widgets
 from textual.app import ComposeResult
-from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
+from textual.css.native import Keyword, NativeDeclaration, Percent, TextVariable, Variable
 from textual.css.styles import Styles
 from textual.widgets._markdown import MarkdownH1
 from ui_theme.scheme import PrimaryColour, WarningColour
 
 from toad.native_layout import NativeLayout, NativeTheme
-from toad.textual_colours import WarningTextColour
 from toad.screens.modal import DismissibleScreen
 
 from toad.db import DB, Session
@@ -33,7 +32,7 @@ class ResumeHelp(widgets.Markdown):
 class ResumeWarning(NativeTheme, NativeLayout, widgets.Static):
     native_theme = (
         NativeDeclaration.of(Styles.border, Keyword("round"), Variable(WarningColour.name)),
-        NativeDeclaration.of(Styles.color, Variable(WarningTextColour.name)),
+        NativeDeclaration.of(Styles.color, TextVariable(WarningColour.name)),
     )
 
     def apply_native_layout(self) -> None:
