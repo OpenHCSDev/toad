@@ -43,7 +43,7 @@ def check_typed_reply(app: TerminalApp, thread: str, output: Path) -> None:
     attempt = {"status": "UNKNOWN", "replay": False, "thread": thread, "token": token}
     marker = output / "typed-input.json"
     app.click_cell(app.columns // 2, app.rows - 4)
-    app.type_text("Reply with " + token + ". Do not use tools.")
+    app.type_prompt("Reply with " + token + ". Do not use tools.")
     marker.write_text(json.dumps(attempt))
     started = time.monotonic()
     app.keys("Return")
