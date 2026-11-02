@@ -1,58 +1,78 @@
-"""An agent process ends through EOF, cancellation or an explicit stop with its child gone and its session retired."""
+"""Real ACP handshake/EOF/cancellation retire the original process group."""
 
 import asyncio
-import sys
+from collections.abc import Callable
 
-import psutil
 import pytest
+from acp import text_block
 
-from support.agents import command
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.nominal.field_codec import FieldCodec
+from support.agents import peer
+from support.workspace import Workspace
 from toad.acp.agent import Agent
 
 
-@pytest.fixture
-def home(tmp_path, monkeypatch):
-    """The user's home is private to this test."""
-    monkeypatch.setenv("HOME", str(tmp_path))
-    return tmp_path
-
-
-async def until(ui_condition, why):
+async def until(condition: Callable[[], bool], why: str) -> None:
     try:
         async with asyncio.timeout(8):
-            while not ui_condition():
+            while not condition():
                 await asyncio.sleep(.02)
     except TimeoutError:
         raise AssertionError(f"{why} not reached in 8s") from None
 
 
-@pytest.mark.parametrize("how", ["cancel", "stop", "eof"])
-async def test_the_child_and_session_are_retired(home, how, app_agents):
-    pid_file = home / f"{how}.pid"
-    code = (
-        "import subprocess,sys,time;from pathlib import Path;"
-        "p=subprocess.Popen([sys.executable,'-c','import time;time.sleep(60)'],"
-        "stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL);"
-        f"Path({str(pid_file)!r}).write_text(str(p.pid));"
-        + ("time.sleep(60)" if how != "eof" else "")
-    )
-    agent = app_agents.agent(
-        Agent, command(sys.executable, "-c", code, name="Retirement", identity="retirement"),
-    )
-
-    async def session():
-        await asyncio.Future()
-
-    agent.session.run = session
-    await agent.start()
-    runner = agent.process.runner
-    await until(pid_file.exists, "the child's pid file")
-    descendant = psutil.Process(int(pid_file.read_text()))
-    if how == "cancel":
-        runner.cancel()
-    elif how == "stop":
+@pytest.mark.parametrize("how", ("cancel", "stop", "eof"))
+async def test_the_child_and_session_are_retired(workspace: Workspace, how: str) -> None:
+    agent = workspace.agents.agent(Agent, peer(
+        "retirement_eof" if how == "eof" else "retirement",
+        name="Retirement", identity="retirement",
+    ))
+    try:
+        await agent.start()
+        runner = agent.process.runner
+        assert runner is not None
+        await until(lambda: bool(workspace.received()), "the actual descendant receipt")
+        descendant = FieldCodec.decode(ProcessIdentity, workspace.received()[0]["descendant"])
+        if how != "eof":
+            await until(lambda: agent.ready, "the actual SDK handshake")
+            if how == "cancel":
+                runner.cancel()
+            else:
+                await agent.stop()
+        await asyncio.gather(runner, return_exceptions=True)
+        await until(lambda: not descendant.alive(), "the original descendant birth to retire")
+        assert not agent.session.accepts_updates
+        assert not agent.session.responses
+    finally:
         await agent.stop()
-    await asyncio.gather(runner, return_exceptions=True)
-    await until(lambda: not descendant.is_running() or descendant.status() == psutil.STATUS_ZOMBIE, "the child to end")
-    assert agent.process.process is None and agent.session.task is None
-    assert not agent.session.responses and not agent.session.accepts_updates
+
+
+async def test_stopping_one_shared_session_keeps_the_other_usable(workspace: Workspace) -> None:
+    definition = peer("shared_session", name="Shared sessions", identity="shared-sessions")
+    first = workspace.agents.agent(Agent, definition, "first")
+    second = workspace.agents.agent(Agent, definition, "second")
+    try:
+        await first.start()
+        await until(lambda: first.ready, "the first loaded session")
+        process = first.process
+        child = process.process
+        assert child is not None
+        await second.start(first.borrowed_processes)
+        await until(lambda: second.ready, "the second loaded session")
+        assert second.process is process
+        await first.stop()
+        assert not first.session.accepts_updates
+        assert not first.session.responses
+        assert second.ready and second.session.accepts_updates
+        assert child.identity.alive()
+        response = await second.process.rpc.prompt("second", [text_block("still-connected")])
+        assert response is not None
+        assert response.stop_reason == "end_turn"
+        assert {row["closed"] for row in workspace.received() if "closed" in row} == {"first"}
+        assert any(row.get("prompt") == "still-connected" for row in workspace.received())
+    finally:
+        try:
+            await first.stop()
+        finally:
+            await second.stop()

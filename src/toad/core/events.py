@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, ClassVar
+from typing import TYPE_CHECKING, Annotated
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -18,17 +18,22 @@ from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream, ThoughtStream
-from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
+from agent_comms.acp_extension import AgentCommsUpdate, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
 if TYPE_CHECKING:
     from agent_comms.commander_hud import CommanderHud
+    from toad.comms_root import CoordinationAccess
+    from toad.core_event_carrier import CoreEventMessage
+    from toad.widgets.conversation import Conversation
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
 
-    session_scoped: ClassVar[bool] = False
+    def accepted_by(self, message: CoreEventMessage, view: Conversation) -> bool:
+        """Ordinary publications never inspect a conversation's native state."""
+        return True
 
     def subscribers(self, stream: CoreEventStream):
         for event_type in type(self).__mro__:
@@ -82,13 +87,15 @@ class Update(CoreEvent):
 class CommsUpdated(CoreEvent):
     """The original typed publication retains its emission-time context."""
 
-    session_scoped = True
-
     update: AgentCommsUpdate | QueuePresentation | CursorPresentation
     session_id: str | None = None
     sequence: int | None = None
-    recover_draft: bool = False
-    queue_scope: QueueScope = field(default_factory=NoQueueScope)
+
+    def accepted_by(self, message: CoreEventMessage, view: Conversation) -> bool:
+        return (
+            view.agent_binding.accepts_publication(message, self.session_id)
+            and view.turns.owner.accepts_update(self.update)
+        )
 
 
 @dataclass(frozen=True)
@@ -155,7 +162,7 @@ class TabHistoryChanged(CoreEvent):
 class NamedThreadRowsChanged(CoreEvent):
     """The named rows changed; tab membership belongs to OpenTabsChanged."""
 
-    names: frozenset[str] = field()
+    threads: frozenset[str]
 
 
 @dataclass(frozen=True)
@@ -253,7 +260,7 @@ class ThreadRowsChanged(NamedThreadRowsChanged):
     root: str
 
     def subscribers(self, stream: CoreEventStream):
-        for thread in self.names:
+        for thread in self.threads:
             yield from stream.thread_subscriptions.get((self.root, thread), ())
         yield from super().subscribers(stream)
 
@@ -319,8 +326,13 @@ class AgentReady(CoreEvent):
 class AgentFail(CoreEvent):
     """Failure feedback; its source owns any persistent presentation."""
 
-    message: str
-    details: str
+    @property
+    @abstractmethod
+    def message(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def details(self) -> str: ...
 
     async def present_session(self, view) -> None:
         """Specialized setup/help feedback survives the session's failure label."""
@@ -345,8 +357,16 @@ class AgentFail(CoreEvent):
 class TextAgentFail(AgentFail):
     """A failure without a saved journal row owns its visible notice."""
 
-    message: str
-    details: str = ""
+    title: str
+    description: str = ""
+
+    @property
+    def message(self) -> str:
+        return self.title
+
+    @property
+    def details(self) -> str:
+        return self.description
 
 
 class HelpAgentFail(TextAgentFail):
@@ -433,10 +453,10 @@ class RequestAgentFail(FailureLog, AgentFail):
 
 
 @dataclass(eq=False)
-class Subscription:
+class Subscription[Publisher]:
     """A subscriber owns this resource for as long as it wants publications."""
 
-    stream: CoreEventStream
+    stream: CoreEventStream[Publisher]
     event_type: type[CoreEvent]
     listener: InitVar[Callable[[CoreEvent, Subscription], object]]
     _listener: Callable[[], Callable[[CoreEvent, Subscription], object] | None] = field(init=False, repr=False)
@@ -489,7 +509,7 @@ class Subscription:
 
 
 @dataclass(eq=False)
-class ThreadChangeSubscription(Subscription):
+class ThreadChangeSubscription(Subscription["CoordinationAccess"]):
     """One live thread scope owns both delivery and observation interest."""
 
     scope: tuple[str, str] = field(kw_only=True)
@@ -499,24 +519,22 @@ class ThreadChangeSubscription(Subscription):
         return self.stream.thread_subscriptions.setdefault(self.scope, WeakSet())
 
     def bucket_opened(self) -> None:
-        publisher = self.stream.publisher
-        publisher.app.run_worker(publisher.update_thread_interest,
-                                 group="thread-interest", exclusive=True)
+        self.stream.publisher.request_thread_interest()
 
     def bucket_emptied(self) -> None:
         self.bucket_opened()
 
 
-class CoreEventStream:
+class CoreEventStream[Publisher]:
     """Publish original events; neither retain state nor schedule frontend work."""
 
-    def __init__(self, publisher: object) -> None:
+    def __init__(self, publisher: Publisher) -> None:
         self._publisher = ref(publisher)
         self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = {}
         self.thread_subscriptions: WeakValueDictionary[tuple[str, str], WeakSet[Subscription]] = WeakValueDictionary()
 
     @property
-    def publisher(self) -> object:
+    def publisher(self) -> Publisher:
         publisher = self._publisher()
         if publisher is None:
             raise RuntimeError("The publication resource outlived its original owner")

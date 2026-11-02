@@ -31,7 +31,7 @@ class Peer(Agent):
 
     async def prompt(self, session_id, prompt, **kwargs):
         text = prompt[0].text
-        self.record(prompt=text)
+        self.record(prompt=text, metadata=kwargs)
         await self.answer(session_id, text)
         return PromptResponse(stopReason="end_turn")
 

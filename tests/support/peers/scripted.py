@@ -3,6 +3,7 @@
 - ``{"update": {...}}`` sends that ``session/update`` as written, valid or not.
 - ``{"say": "text"}`` sends an agent message chunk.
 - ``{"wait": "name"}`` waits until the test releases ``name`` (``Workspace.release``).
+- ``{"error": RequestError.to_error_obj()}`` raises that SDK error through the real request connection.
 - ``{"ask": "title", "options": ["Allow", "Reject"]}`` asks the user for permission and records
   the answer as ``{"answered": <option name or "cancelled">}``.
 
@@ -12,6 +13,7 @@ A prompt that is not such a list is answered like the echo peer.
 import asyncio
 import json
 
+from acp.exceptions import RequestError
 from base import Peer
 
 
@@ -40,6 +42,10 @@ class ScriptedPeer(Peer):
                     options=[PermissionOption(option_id=name, name=name, kind=kinds.get(name, "allow_once"))
                              for name in names])
                 self.record(answered=getattr(answer.outcome, "option_id", "cancelled"))
+            elif "error" in step:
+                error = RequestError(**step["error"])
+                self.record(error=error.to_error_obj())
+                raise error
             elif "wait" in step:
                 async with asyncio.timeout(60):
                     while not (self.project / f"released-{step['wait']}").exists():

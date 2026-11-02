@@ -322,7 +322,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
             members = {entry.mode: entry for entry in sessions.members}
             for mode in self._last_tabs.keys() & members.keys():
                 previous = self._last_tabs[mode]
-                if previous.affected_by(event.names):
+                if previous.affected_by(event.threads):
                     if (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
                         tab = observation.tab(members[mode], sessions)
                         geometry_changed |= label.present(tab)

@@ -4,12 +4,16 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.acp_extension import NoQueueScope, PendingQueueProjection, QueueProjection, QueueScope
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.slash_command import AgentAdvertisedCommand
+
+if TYPE_CHECKING:
+    from toad.acp.agent import Agent
 
 
 @dataclass(frozen=True)
@@ -23,7 +27,11 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
     def __init__(self, agent):
         self.agent = agent
         self.turns = self.TURN_BINDING(agent)
-        self.log_path: Path | None = None
+
+    @property
+    def log_path(self) -> Path | None:
+        """Sources without an ACP process have no process log."""
+        return None
 
     @property
     def auth_methods(self):
@@ -86,6 +94,14 @@ class LocalAgentPresentation(AgentPresentation):
 class ACPAgentPresentation(AgentPresentation):
     TURN_BINDING = LocalTurnBinding
 
+    def __init__(self, agent: Agent, log_path: Path) -> None:
+        super().__init__(agent)
+        self._log_path = log_path
+
+    @property
+    def log_path(self) -> Path:
+        return self._log_path
+
     @property
     def auth_methods(self):
         response = self.agent.process.initialization
@@ -103,7 +119,7 @@ class ACPAgentPresentation(AgentPresentation):
     @property
     def queue_supported(self) -> bool:
         """Advertisement belongs to the original coordination declaration."""
-        return self.agent.coordination is not None
+        return self.agent.coordination_attachment.queue_supported
 
     @property
     def queue_scope(self) -> QueueScope:

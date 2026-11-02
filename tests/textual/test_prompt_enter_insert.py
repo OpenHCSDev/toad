@@ -1,7 +1,11 @@
 """Textual-facing: vim `i` asks the prompt for insert mode; the prompt owns whether its editor exists."""
 
+import pytest
+
 from agent_comms.repo import Checkout
-from support.agents import peer
+from support.agents import RecordedEvents, peer
+from toad.core.input_events import UserInputSubmitted
+from toad.prompt_actions import SubmitAction, SubmitInputAction, SubmitNowAction
 from toad.key_modes import Standard, VimInsert, VimNormal
 from toad.preferences import SETTINGS
 from toad.screens.settings import SettingsScreen
@@ -83,6 +87,74 @@ async def test_real_neovim_submission_shrinks_document_and_cursor_together(works
                        why="the local clear command, not the yielding app quit hint")
 
 
+@pytest.mark.parametrize("rejected_action", (SubmitAction, SubmitNowAction))
+async def test_refused_native_transfer_cannot_change_the_next_ordinary_submission(
+    workspace, rejected_action: type[SubmitInputAction],
+):
+    async with workspace.app(binding=AgentAttached(peer("echo"))) as ui:
+        await ui.until_agent_ready()
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimNormal)
+        await ui.until(lambda: area.key_mode is VimNormal and area.editing_mode.completed,
+                       why="the real Neovim child in Normal")
+        area.focus()
+        await ui.press("i")
+        await ui.until(lambda: area.editing_mode.accepts_text, why="real Insert")
+        await ui.type("kept draft")
+        await ui.press("escape")
+        await ui.until(lambda: area.text == "kept draft" and area.editing_mode.allows_application_commands,
+                       why="the completed draft in real Normal")
+        submitted = RecordedEvents()
+        subscription = area.core_publications.subscribe(UserInputSubmitted, submitted.receive)
+        try:
+            await ui.press("d")
+            await ui.until(lambda: not area.editing_mode.completed
+                           and not area.editing_mode.snapshot.state.transferable,
+                           why="the actual pending Neovim operator refuses transfer")
+            # Exercise the queued request's refusal, including a request whose
+            # editing state became pending after its key was admitted.
+            area.schedule_submission(rejected_action())
+            await ui.step()
+            assert area.text == "kept draft"
+            assert submitted == [] and workspace.prompts_received() == []
+            await ui.press("escape")
+            await ui.until(lambda: area.editing_mode.allows_application_commands,
+                           why="the real operator cancelled without replay")
+            await ui.press("i")
+            await ui.until(lambda: area.editing_mode.accepts_text, why="real Insert resumed")
+            await ui.press("enter")
+            await ui.until(lambda: workspace.prompts_received() == ["kept draft"],
+                           why="one fresh ordinary submission reaches the real private peer")
+            assert submitted == [UserInputSubmitted("kept draft")]
+        finally:
+            subscription.close()
+
+
+@pytest.mark.parametrize("actions,immediate", (
+    ((SubmitAction, SubmitAction), False),
+    ((SubmitAction, SubmitNowAction, SubmitAction), True),
+    ((SubmitNowAction, SubmitAction), True),
+))
+async def test_coalesced_prompt_actions_publish_one_owned_intent(workspace, actions, immediate):
+    async with workspace.app(binding=AgentAttached(peer("echo"))) as ui:
+        await ui.until_agent_ready()
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, Standard)
+        await ui.until(lambda: area.key_mode is Standard, why="the native Standard editor")
+        area.focus()
+        await ui.type("one request")
+        submitted = RecordedEvents()
+        subscription = area.core_publications.subscribe(UserInputSubmitted, submitted.receive)
+        try:
+            for action in actions:
+                area.schedule_submission(action())
+            await ui.until(lambda: workspace.prompts_received() == ["one request"],
+                           why="the coalesced request reaches the real private peer once")
+            assert submitted == [UserInputSubmitted("one request", immediate=immediate)]
+        finally:
+            subscription.close()
+
+
 async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(workspace):
     async with workspace.app() as ui:
         app = ui.app
@@ -101,9 +173,9 @@ async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(works
         await ui.press("ctrl+comma")
         await ui.until(lambda: isinstance(app.screen, SettingsScreen),
                        why="the application settings binding before Neovim")
-        await ui.until(lambda: str(SETTINGS.ui.key_mode) in app.screen.form.values,
+        await ui.until(lambda: str(SETTINGS.ui.key_mode) in app.screen.values,
                        why="the existing declared mode chooser")
-        chooser = app.screen.form.values[str(SETTINGS.ui.key_mode)].editor
+        chooser = app.screen.values[str(SETTINGS.ui.key_mode)].editor
         assert chooser.lists(Standard)
         chooser.value = Standard
         await ui.until(lambda: app.settings.ui.key_mode is Standard and area.key_mode is Standard,

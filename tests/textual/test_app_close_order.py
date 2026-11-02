@@ -6,13 +6,13 @@ import json
 import os
 
 import pytest
-from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
+from agent_comms.acp_extension import encode_updates
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.fresh_private_session import create_fresh_private_session
 
 from support.agents import deliver
+from support.coordination import registered_coordination_fact
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -43,13 +43,12 @@ async def test_closing_the_app_after_the_observation_process_exits_raises_nothin
         view = ui.conversation
         agent = ui.detached_agent("closing")
         view.bind_agent(agent)
-        agent.coordination = CoordinationChangedUpdate(
-            thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
-            worktree=str(project), model="test-model", thinking_level=None, title=thread.name,
-            context_usage=UnmeasuredContext())
+        coordination = registered_coordination_fact(
+            comms, thread.name, owner=ProcessIdentity.capture(os.getpid()),
+            worktree=project, model="test-model")
         await deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
-            "_meta": encode_updates(agent.coordination)})
+            "_meta": encode_updates(coordination)})
         await ui.until(lambda: "SAVED_NOTICE" in ui.painted(view.window), why="the saved history")
         assert view.contents.query(TranscriptHistory)
         observer = ui.app.coordination_access.observation.process.process

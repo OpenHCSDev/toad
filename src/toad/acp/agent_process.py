@@ -1,4 +1,4 @@
-"""ACP connection, admitted subprocess and attached-session lifetime."""
+"""ACP connection, subprocess and attached-session lifetime."""
 from __future__ import annotations
 
 import asyncio
@@ -8,7 +8,7 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from functools import partial
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from acp import Client, ClientSideConnection, schema
 from acp.connection import StreamDirection, StreamEvent
@@ -27,20 +27,19 @@ from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
 from toad.resource_release import AsyncResourceRelease
 
+if TYPE_CHECKING:
+    from toad.acp.agent import Agent
+
 
 class AgentProcess(Client):
-    def __init__(self, agent) -> None:
+    def __init__(self, agent: Agent) -> None:
         self.agent = agent
-        self.env = None
-        self.cwd = None
-        self.route_selection = None
-        self.process = None
+        self.process: AttachedChild | None = None
         self.connection: ClientSideConnection | None = None
-        self.runner = None
-        self.retirement = None
-        self.sessions = set()
-        self.initialization = None
-        self.command = None
+        self.runner: asyncio.Task[None] | None = None
+        self.retirement: asyncio.Task[None] | None = None
+        self.sessions: set[AgentSession] = set()
+        self.initialization: schema.InitializeResponse | None = None
         self.attachment_lock = asyncio.Lock()
         self._incoming: ContextVar[dict] = ContextVar('acp_incoming')
 
@@ -50,20 +49,12 @@ class AgentProcess(Client):
             raise ConnectionError('ACP process is not connected')
         return self.connection
 
-    def accepts_attachment(self, agent, env: dict[str, str], cwd: str, selection: RouteSelection):
-        response = self.initialization
-        capabilities = response.agent_capabilities if response is not None else None
-        lifecycle = capabilities.session_capabilities if capabilities is not None else None
-        return (self.runner is not None and not self.runner.done()
-                and self.retirement is None and self.process is not None
-                and self.process.returncode is None
-                and lifecycle is not None and lifecycle.close is not None
-                and self.command == agent.command and self.env == env
-                and self.cwd == cwd and self.route_selection == selection
-                and agent.session_id is not None
-                and all(member.agent.session_id != agent.session_id for member in self.sessions))
+    def accepts_attachment(self, agent: Agent, env: dict[str, str], cwd: str,
+                           selection: RouteSelection) -> bool:
+        """An unconfigured group has no reusable child."""
+        return False
 
-    async def start(self, agent, processes: tuple[AgentProcess, ...]=()):
+    async def start(self, agent: Agent, processes: tuple[AgentProcess, ...]=()) -> AgentProcess:
         agent.session.reopen()
         agent.session.starting()
         await asyncio.to_thread(
@@ -80,24 +71,19 @@ class AgentProcess(Client):
                 agent.controller.replace_terminal_session()
                 agent.session.start()
                 return connection
-        connection = AgentProcess(agent) if self.sessions else self
-        connection.agent = agent
-        connection.env, connection.cwd, connection.route_selection = env, cwd, selection
-        connection.command = agent.command
-        connection.initialization = None
-        connection.retirement = None
+        command = agent.command
+        if command is None:
+            agent.session.startup_failed('No run command for this OS')
+            return self
+        connection = ConfiguredAgentProcess(agent, env, cwd, selection, command)
         agent.process = connection
         connection.sessions.add(agent.session)
         agent.controller.replace_terminal_session()
         connection.runner = asyncio.create_task(connection.run())
         return connection
 
-    async def prompt(self, agent, content, metadata: dict[str, JsonValue], require: Callable[[], None]):
-        """The agent-comms-acp child writes the prompt under Core's maintenance gate."""
-        access = agent.controller.transcripts.access
-        await access.preparation.run_thread(partial(access.require, self.route_selection))
-        require()
-        return await self.rpc.prompt(agent.session_id, content, **metadata)
+    async def prepare_prompt(self, agent: Agent, require: Callable[[], None]) -> None:
+        raise ConnectionError('ACP process has no selected launch')
 
     def observe_stream(self, event: StreamEvent) -> None:
         """Keep the original frame with its SDK handler."""
@@ -224,8 +210,7 @@ class AgentProcess(Client):
     async def retire(self) -> None:
         for session in tuple(self.sessions):
             session.close()
-            for task in tuple(session.responses):
-                task.cancel()
+            session.cancel_responses()
         if self.retirement is None:
             self.retirement = asyncio.create_task(self._retire())
         await join_retirement(self.retirement)
@@ -257,10 +242,7 @@ class AgentProcess(Client):
             try:
                 if (self.retirement is None and len(self.sessions) > 1
                         and session.disposition.held_by_agent):
-                    task = asyncio.create_task(self.rpc.close_session(session.agent.session_id))
-                    session.responses.add(task)
-                    task.add_done_callback(session.responses.discard)
-                    await task
+                    await session.close_in(self.rpc)
             except BaseException:
                 if self.runner is not None:
                     self.runner.cancel()
@@ -280,6 +262,38 @@ class AgentProcess(Client):
             await self.retire()
             self.runner = None
 
+
+class ConfiguredAgentProcess(AgentProcess):
+    """One original launch, selected before its asynchronous resources arrive."""
+
+    def __init__(self, agent: Agent, env: dict[str, str], cwd: str,
+                 selection: RouteSelection, command: str) -> None:
+        super().__init__(agent)
+        self.env = env
+        self.cwd = cwd
+        self.route_selection = selection
+        self.command = command
+
+    def accepts_attachment(self, agent: Agent, env: dict[str, str], cwd: str,
+                           selection: RouteSelection) -> bool:
+        response = self.initialization
+        capabilities = response.agent_capabilities if response is not None else None
+        lifecycle = capabilities.session_capabilities if capabilities is not None else None
+        return (self.runner is not None and not self.runner.done()
+                and self.retirement is None and self.process is not None
+                and self.process.returncode is None
+                and lifecycle is not None and lifecycle.close is not None
+                and self.command == agent.command and self.env == env
+                and self.cwd == cwd and self.route_selection == selection
+                and agent.session_id is not None
+                and all(member.agent.session_id != agent.session_id for member in self.sessions))
+
+    async def prepare_prompt(self, agent: Agent, require: Callable[[], None]) -> None:
+        """Only this captured launch's route may admit the request."""
+        access = agent.controller.transcripts.access
+        await access.preparation.run_thread(partial(access.require, self.route_selection))
+        require()
+
     async def run(self) -> None:
         try:
             await self.communicate()
@@ -288,16 +302,13 @@ class AgentProcess(Client):
 
     async def communicate(self) -> None:
         agent = self.agent
-        env = (self.env or os.environ).copy()
+        env = self.env.copy()
         env['TOAD_CWD'] = str(Path('./').absolute())
-        if (command := self.command) is None:
-            agent.session.startup_failed('No run command for this OS')
-            return
         try:
             accepts_root = agent.definition.accepts_comms_root
             launch = LaunchRoot.from_path(self.route_selection.root)
             process = self.process = await AttachedChild.start(
-                (*ShellCommand.current().argv(command, accepts_comms_root=accepts_root),
+                (*ShellCommand.current().argv(self.command, accepts_comms_root=accepts_root),
                  *(launch.arguments() if accepts_root else ())),
                 env=LaunchRoot.environment(env), cwd=self.cwd,
                 stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
@@ -319,6 +330,6 @@ class AgentProcess(Client):
                 session.agent.log(f'[error] {fail_details}')
                 session.record_failure(LogAgentFail(
                     f'Agent {outcome.summary}',
-                    details=fail_details, log_path=session.agent.presentation.log_path))
+                    description=fail_details, log_path=session.agent.presentation.log_path))
             elif not session.settled.is_set():
                 session.startup_failed('ACP process closed before session initialization completed.')

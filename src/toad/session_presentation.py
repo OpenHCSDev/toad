@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.messages import Message
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
 from textual.document._editing import EditingMode
@@ -18,6 +19,7 @@ from textual.widgets.text_area import TextAreaState
 from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.conversation_kind import DmConversation
+from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
 from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
 from toad.resource_release import AsyncResourceRelease
@@ -179,11 +181,6 @@ class OperationalSessionSources(NativeQueueSource):
 
         return Prompt(project=conversation.project_path, turns=conversation.turns, submissions=conversation.submissions)
 
-    async def submit(self, owner, event):
-        from toad.conversation_submission import InputSubmission
-
-        return await InputSubmission.from_event(event, owner).execute(owner)
-
     def input_decision(self, conversation: Conversation) -> InputDecision:
         agent = conversation.agent_binding
         return agent.readiness_decision.then(
@@ -256,6 +253,9 @@ class OperationalSessionSources(NativeQueueSource):
 class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
 
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+        return view.transcript.binding.thread_scope.contains_message(view, root, sent)
+
     def activity_row(self, conversation: Conversation):
         return conversation.thread_activity.row
 
@@ -279,21 +279,16 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
         self.external_transcript_changed(conversation)
         self.thread_presented(conversation)
 
-    async def submit(self, owner, event):
+    def begin_submission(self, owner: ConversationSubmissions,
+                         submission: PromptInputSubmission) -> SubmissionStart:
         view = owner.view
 
         async def presented(sent):
-            view.run_worker(
-                view.input_histories.prompt.record(event.body), group="history"
-            )
             view.window.jump_to_latest()
             self.external_transcript_changed(view)
 
-        await view.transcript.binding.thread_scope.submit_mailbox(
-            view,
-            event,
-            DmConversation,
-            presented,
+        return view.transcript.binding.thread_scope.bind_submission(
+            owner, submission, DmConversation, presented,
         )
 
 
@@ -416,6 +411,8 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         editor = conversation.prompt.prompt_text_area
         if not await editor.editing_mode.flush(editor):
             return  # Retain the actual view/engine while its modal input is pending.
+        if conversation.submissions.retains_surface:
+            return  # Eviction cannot discard an unresolved transaction or its draft recovery.
         self.state = RetainedSessionViewState.capture(conversation)
         await self.remove_native_tree(screen)
 

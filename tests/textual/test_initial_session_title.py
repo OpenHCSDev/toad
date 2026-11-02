@@ -1,40 +1,46 @@
-"""Textual-facing: the title in a new ACP session's first metadata names the tab (a Textual tab label) and the saved session without switching tabs."""
-
-from contextlib import nullcontext
-from unittest.mock import AsyncMock, patch
+"""New/load SDK metadata names the visible tab and its real saved session."""
+import os
+import sys
 
 import pytest
-from acp.schema import AgentCapabilities, InitializeResponse, LoadSessionResponse, NewSessionResponse
+from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import encode_updates
+from agent_comms.child_process import ProcessIdentity
 
-from support.agents import command
-from support.coordination import coordination_fact
+from support.agents import AppAgents, PEERS, RecordedEvents, command, deliver
+from support.coordination import carrying, registered_coordination_fact
 from toad.acp.agent import Agent
-from toad.core.events import SessionInfoUpdate
+from toad.core.events import CoreEvent, SessionInfoUpdate
 from toad.db import DB
 
 THREAD = "existing-worker"
 
 
-class Response:
-    def __init__(self, payload):
-        self.payload = payload
+def response_peer(workspace, response: NewSessionResponse):
+    """An actual SDK response supplied to the real stdio peer."""
+    path = workspace.project / "title-session-response.json"
+    path.write_text(response.model_dump_json(by_alias=True))
+    return command(sys.executable, str(PEERS / "resumable_session_response.py"), str(path),
+                   name="Title response peer", identity="title-response-peer")
 
-    async def wait(self):
-        return self.payload
+
+def named_peer(workspace, title=None):
+    """The scratch registry owns the response's real incarnation and process."""
+    workspace.thread(THREAD, "acp", running=True, title=title)
+    fact = registered_coordination_fact(
+        workspace.comms, THREAD, title=title, worktree=workspace.project,
+        owner=ProcessIdentity.capture(os.getpid()),
+    )
+    return response_peer(workspace, NewSessionResponse(sessionId=THREAD, _meta=encode_updates(fact)))
 
 
-def resumable_agent(workspace, session_id=None, session_pk=None):
-    """An agent object with no process whose handshake advertises session loading."""
-    agent = Agent(workspace.project, command("false", name="fixture", identity="agent-comms.openhcs.dev"),
-                  session_id, session_pk)
-    agent.process.initialization = InitializeResponse(
-        protocolVersion=1, agentCapabilities=AgentCapabilities(loadSession=True))
+async def start(ui, definition, *, session_id=None, session_pk=None, name=None):
+    agent = AppAgents(ui.app).agent(Agent, definition, session_id, session_pk=session_pk)
+    agent.session.chosen_name = name
+    ui.attach_agent(agent)
+    await agent.start()
+    await ui.until(lambda: agent.ready, why="the actual SDK title handshake")
     return agent
-
-
-def metadata(workspace, title):
-    return encode_updates(coordination_fact(THREAD, workspace.roots.wire, title=title, worktree=workspace.project))
 
 
 def tab_title(ui, identity):
@@ -44,108 +50,63 @@ def tab_title(ui, identity):
 @pytest.mark.parametrize("title", ["An already named thread", None], ids=["named", "unnamed"])
 async def test_new_session_metadata_names_the_tab_and_the_saved_session(workspace, title):
     expected = title or THREAD
-    workspace.thread(THREAD, "acp", title=title)
-    meta = metadata(workspace, title)
-    created, loaded_response = NewSessionResponse(sessionId=THREAD, _meta=meta), LoadSessionResponse(_meta=meta)
-    created_titles = []
-    create_session = DB.session_new
-
-    async def record_creation(db, name, *args, **kwargs):
-        created_titles.append(name)
-        return await create_session(db, name, *args, **kwargs)
-
+    definition = named_peer(workspace, title=title)
     async with workspace.app(size=(120, 40)) as ui:
-        app, _pilot = ui.textual
         mode = ui.selected_tab
-        agent = resumable_agent(workspace)
-        ui.attach_agent(agent)
-        with (
-            patch.object(agent, "request", return_value=nullcontext()),
-            patch("toad.acp.agent_session.api.session_new", return_value=Response(created)),
-            patch.object(DB, "session_new", new=record_creation),
-        ):
-            await agent.session.new()
-        await ui.until(lambda: expected in tab_title(ui, mode), why="the tab to carry the thread's title")
-        assert created_titles == [expected], ("saved title at creation", created_titles, expected)
-        assert ui.selected_tab == mode, "No tab switch should be needed"
-        assert app.session_tracker.get_session(mode).name.display == expected
+        agent = await start(ui, definition)
+        await ui.until(lambda: expected in tab_title(ui, mode), why="the first metadata title")
+        assert ui.selected_tab == mode
+        assert ui.app.session_tracker.get_session(mode).name.display == expected
         assert agent.session.pk is not None
         assert (await DB().session_get(agent.session.pk)).title == expected
-        assert workspace.comms.registry.require(THREAD).title == title, "Presenting a title must not rename the thread"
+        assert workspace.comms.registry.require(THREAD).title.otherwise(None) == title
 
 
 @pytest.mark.parametrize("title", ["An already named thread", None], ids=["named", "unnamed"])
 async def test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label(workspace, title):
     expected = title or THREAD
-    workspace.thread(THREAD, "acp", title=title)
-    meta = metadata(workspace, title)
-    created, loaded_response = NewSessionResponse(sessionId=THREAD, _meta=meta), LoadSessionResponse(_meta=meta)
+    definition = named_peer(workspace, title=title)
     async with workspace.app(size=(120, 40)) as ui:
-        app, _pilot = ui.textual
-        agent = resumable_agent(workspace)
-        ui.attach_agent(agent)
-        with (
-            patch.object(agent, "request", return_value=nullcontext()),
-            patch("toad.acp.agent_session.api.session_new", return_value=Response(created)),
-        ):
-            await agent.session.new()
+        agent = await start(ui, definition)
         loaded = await ui.new_session()
-        resumed = resumable_agent(workspace, THREAD, agent.session.pk)
-        ui.attach_agent(resumed)
-        with (
-            patch.object(resumed, "request", return_value=nullcontext()),
-            patch("toad.acp.agent_session.api.session_load", return_value=Response(loaded_response)),
-        ):
-            await resumed.session.load()
-        await ui.until(lambda: expected in tab_title(ui, loaded), why="the loaded tab to carry the thread's title")
+        resumed = await start(ui, definition, session_id=THREAD, session_pk=agent.session.pk)
+        await ui.until(lambda: expected in tab_title(ui, loaded), why="the loaded metadata title")
         assert ui.selected_tab == loaded
-        assert app.session_tracker.get_session(loaded).name.display == expected
+        assert ui.app.session_tracker.get_session(loaded).name.display == expected
         assert (await DB().session_get(agent.session.pk)).title == expected
-        app.session_tracker.name_session(loaded, "My explicit label")
-        app.selected_session.on_comms_session_named(THREAD)
-        assert app.session_tracker.get_session(loaded).name.display == "My explicit label"
-        resumed.comms_consumer_class(resumed, resumed.session_id).dispatch_sync(
-            coordination_fact(THREAD, workspace.roots.wire))
+        ui.app.session_tracker.name_session(loaded, "My explicit label")
+        await deliver(resumed, carrying(registered_coordination_fact(
+            workspace.comms, THREAD, owner=ProcessIdentity.capture(os.getpid()),
+            worktree=workspace.project,
+        )))
         await ui.step()
-        assert app.session_tracker.get_session(loaded).name.display == "My explicit label"
-
-
-async def new_session_with_pending_name(workspace):
-    created = NewSessionResponse(sessionId=THREAD, _meta=metadata(workspace, None))
-    agent = resumable_agent(workspace)
-    agent.session.chosen_name = "My pending title"
-    saved = AsyncMock(return_value=7)
-    updates = []
-    with (
-        patch.object(agent, "request", return_value=nullcontext()),
-        patch("toad.acp.agent_session.api.session_new", return_value=Response(created)),
-        patch.object(DB, "session_new", new=saved),
-        patch.object(DB, "session_update_title", new=AsyncMock()),
-        patch.object(agent.session, "rename_coordination"),
-        agent.events.subscribe(lambda event, _subscription: updates.append(event)),
-    ):
-        await agent.session.new()
-    return saved, updates
+        assert ui.app.session_tracker.get_session(loaded).name.display == "My explicit label"
 
 
 async def test_a_name_chosen_before_the_session_exists_is_saved_with_the_session(workspace):
+    definition = named_peer(workspace)
     async with workspace.app(size=(120, 40)) as ui:
-        saved, _updates = await new_session_with_pending_name(workspace)
-        assert saved.call_args.args[0] == "My pending title"
+        agent = await start(ui, definition, name="My pending title")
+        assert agent.session.pk is not None
+        assert (await DB().session_get(agent.session.pk)).title == "My pending title"
 
 
 async def test_a_name_chosen_before_the_session_exists_is_announced_as_its_title(workspace):
+    definition = named_peer(workspace)
     async with workspace.app(size=(120, 40)) as ui:
-        _saved, updates = await new_session_with_pending_name(workspace)
+        agent = AppAgents(ui.app).agent(Agent, definition)
+        agent.session.chosen_name = "My pending title"
+        ui.attach_agent(agent)
+        updates = RecordedEvents()
+        with agent.events.subscribe(CoreEvent, updates.receive):
+            await agent.start()
+            await ui.until(lambda: agent.ready, why="the chosen-title SDK handshake")
         assert [event.title for event in updates if isinstance(event, SessionInfoUpdate)] == ["My pending title"]
 
 
 async def test_metadata_without_a_title_gives_the_session_no_coordination_title(workspace):
+    definition = response_peer(workspace, NewSessionResponse(sessionId=THREAD))
     async with workspace.app(size=(120, 40)) as ui:
-        agent = resumable_agent(workspace)
-        with (
-            patch.object(agent, "request", return_value=nullcontext()),
-            patch("toad.acp.agent_session.api.session_new", return_value=Response(NewSessionResponse(sessionId="generic"))),
-        ):
-            await agent.session.new()
-        assert agent.coordination is None
+        agent = await start(ui, definition)
+        assert not agent.presentation.queue_supported
+        assert (await DB().session_get(agent.session.pk)).title == "New Session"

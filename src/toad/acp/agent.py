@@ -1,7 +1,8 @@
 import asyncio
-from dataclasses import replace
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import rich.repr
 from agent_comms.acp_extension import (
@@ -12,11 +13,9 @@ from agent_comms.acp_extension import (
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.nominal.field_codec import FieldCodec, GoalId
 from agent_comms.goal_actions import GoalAction
-from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
-from agent_comms.goals import Goal, GoalDeclaration, NoGoal
+from agent_comms.goal_presentation import GoalSnapshot
+from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.goal_history import RecordedGoalHistory
-from agent_comms.order_tools import OwnerGoalRead
-from agent_comms.ui_model.observation import ReadOwnerOperation
 
 from toad import paths
 from toad.acp.agent_configuration import (
@@ -26,28 +25,35 @@ from toad.acp.agent_configuration import (
 from toad.acp.agent_controller import AgentController
 from toad.acp.agent_log import AgentLog
 from toad.acp.agent_process import AgentProcess
-from toad.acp.agent_session import AgentSession
+from toad.acp.agent_session import AgentSession, SessionDisposition
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.client_session import ClientSessionRequest
-from toad.acp.comms_updates import (
-    CommsUpdateConsumer,
-    NoPendingThreadRead,
-    PendingThreadRead,
-    ThreadRead,
-)
+from toad.acp.comms_updates import CommsUpdateConsumer
+from toad.acp.coordination_attachment import CoordinationAttachment, CoordinatedThread
+from toad.acp.thread_read import ThreadRead
 from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.permission_controller import PermissionController
 from toad.acp.projection_attachment import CursorAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.acp.session_updates import SessionNotificationOwner
+from toad.acp.status import PromptResult
 from toad.acp.tool_calls import SessionToolCalls
 from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.agent import AgentBase
 from toad.agent_presentation import ACPAgentPresentation
 from toad.agent_schema import AgentDefinition
 from toad.core import events as core_events
+from toad.conversation_submission import (
+    PromptInputSubmission, ConversationSubmissions, NoSend, SendPending, SendState, SubmissionExecution,
+)
 from toad.platform import host
+
+if TYPE_CHECKING:
+    from agent_comms.session_load import ExistingSessionLoadPlan
+    from toad.core_event_carrier import CoreEventMessage
+    from toad.screens.main import MainScreen
+    from toad.widgets.conversation import Conversation
 
 
 def generate_datetime_filename(
@@ -101,13 +107,17 @@ class Agent(AgentBase):
             project_root: Project root path.
             command: Command to launch agent.
         """
+        self.definition = agent
         super().__init__(project_root)
         self.process = AgentProcess(self)
-        self.presentation = ACPAgentPresentation(self)
+        log_filename = generate_datetime_filename(self.definition.name, ".txt")
+        if (log_path := AgentLog.selected()) is None:
+            log_path = paths.get_log() / log_filename
+        self._presentation = ACPAgentPresentation(self, log_path)
         self.permissions = PermissionController(self)
+        self.coordination_attachment: CoordinationAttachment = CoordinationAttachment()
         self.controller = AgentController(self, transcripts)
         self.tools = SessionToolCalls(self)
-        self.definition = agent
         self.session_id = session_id
         self.updates = SessionNotificationOwner(self)
         self.files = FileClientRequestOwner(self)
@@ -116,12 +126,48 @@ class Agent(AgentBase):
         self._private_cursor = CursorAttachment()
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
-        log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")
-        if (log_path := AgentLog.selected()) is not None:
-            self.presentation.log_path = log_path
-        else:
-            self.presentation.log_path = paths.get_log() / log_filename
         self.context_measurement = ContextMeasurement.saved(UnmeasuredContext())
+
+    @property
+    def presentation(self) -> ACPAgentPresentation:
+        return self._presentation
+
+    @property
+    def session_disposition(self) -> SessionDisposition:
+        return self.session.disposition
+
+    def accepts_publication(
+        self, message: CoreEventMessage, session_id: str | None
+    ) -> bool:
+        return message.publisher is self and self.session_id == session_id
+
+    def borrowed_processes(self) -> tuple[AgentProcess, ...]:
+        return (self.process,)
+
+    async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None:
+        await self.session.reconnect(plan)
+
+    async def change_project(self, view: Conversation, path: Path) -> None:
+        from textual.content import Content
+
+        project = await self.update_project(str(path))
+        view.feedback.flash(Content(f"Project changed to {project}"), style="success")
+
+    def request_compaction(self, view: Conversation, instructions: str | None) -> None:
+        view.compact_context(instructions)
+
+    async def project_changed(self, path: Path) -> None:
+        from toad.db import DB
+
+        await super().project_changed(path)
+        if (session_pk := self.session.pk) is not None:
+            await DB().session_update_project(session_pk, path)
+
+    def refresh_context(self, view: Conversation) -> None:
+        view.thread_status = self.context_measurement.status()
+
+    async def compact_context(self, instructions: str | None) -> None:
+        await self.controller.compact_context(instructions)
 
     @property
     def command(self) -> str | None:
@@ -157,7 +203,10 @@ class Agent(AgentBase):
         await self.process.stop(self)
 
 
-    async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):
+    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission):
+        return owner.start(NativeSubmissionExecution(owner, submission, self))
+
+    async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None) -> PromptResult:
         """Submit through AgentBase's contract; the controller runs the request."""
         return await self.controller.submit(prompt, request=request)
 
@@ -189,13 +238,15 @@ class Agent(AgentBase):
     def detach_surface(self, surface) -> None:
         self.controller.detach(surface)
 
-    @property
-    def coordination(self) -> CoordinationChangedUpdate | None:
-        return self.controller.coordination
-
-    @coordination.setter
-    def coordination(self, value: CoordinationChangedUpdate | None) -> None:
-        self.controller.coordination = value
+    def receive_coordination(self, update: CoordinationChangedUpdate, session_id: str) -> None:
+        """Admit one original publication and refresh its derived projections."""
+        self.controller.transcripts.access.selected(update.wire_root)
+        self.coordination_attachment = CoordinatedThread(update)
+        self.project_root_path = update.worktree.path
+        self.context_measurement = ContextMeasurement.saved(update.context_usage)
+        self.update_status_line()
+        self.coordination_attachment.publish(self, session_id)
+        self.session.coordinated_title(update.title)
 
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
         self.controller.surface.sync_queue()
@@ -204,7 +255,10 @@ class Agent(AgentBase):
 
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
-        self.events.publish(core_events.CommsUpdated(CursorPresentation(self._private_cursor.status), self.session_id, self._private_cursor_sequence))
+        self.events.publish(core_events.CommsUpdated(
+            CursorPresentation(self._private_cursor.status, self._private_cursor_sequence),
+            self.session_id,
+        ))
 
     def _invalidate_attachment_views(self) -> None:
         self._private_cursor.invalidate()
@@ -232,18 +286,7 @@ class Agent(AgentBase):
 
     async def get_goal_snapshot(self) -> GoalSnapshot:
         """The owner's goal snapshot, read by the observation service; its turn settles here."""
-        from .comms_updates import OwnerSnapshotConsumer
-        coordination = self.coordination
-        if coordination is None:
-            return GoalSnapshot(NoGoal(), IdleGoalExecution())
-        authority = ClientSessionRequest(self, self.session_id)
-        consumer = OwnerSnapshotConsumer(self, self.session_id, turn_token=self.presentation.turns.sequence)
-        snapshot = await self.controller.transcripts.read(
-            ReadOwnerOperation(coordination.wire_root, coordination.thread, operation=OwnerGoalRead()))
-        self.controller.require_owner(coordination, authority)
-        for fact in snapshot.meta.batch.updates:
-            consumer.dispatch_sync(fact)
-        return snapshot
+        return await self.coordination_attachment.goal_snapshot(self)
 
     async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:
         result = await self.controller.request_owner("goal_history", goal_id=goal_id)
@@ -256,42 +299,17 @@ class Agent(AgentBase):
         return FieldCodec.decode(Goal, result["goal"])
 
     def observed_thread(self) -> tuple[str, str] | None:
-        coordination = self.coordination
-        if coordination is None or coordination.wire_root is None or coordination.thread.name is None:
-            return None
-        return coordination.wire_root, coordination.thread.name
+        return self.coordination_attachment.observed_thread()
 
     def thread_read(self) -> ThreadRead:
         """Capture, before a presentation read, what its result must still match."""
-        from .comms_updates import OwnerSnapshotConsumer
-
-        coordination = self.coordination
-        if coordination is None:
-            return NoPendingThreadRead()
-        return PendingThreadRead(self, coordination, ClientSessionRequest(self, self.session_id),
-                          OwnerSnapshotConsumer(self, self.session_id,
-                                                turn_token=self.presentation.turns.sequence))
+        return self.coordination_attachment.thread_read(self)
 
     async def observe_thread_presentation(self, presentation) -> None:
-        await self.session.observe_owner(presentation)
+        await self.coordination_attachment.observe_owner(self, presentation)
 
     async def update_project(self, path: str) -> str:
-        if (self.coordination.wire_root if self.coordination else None) is None or (
-            self.coordination.thread.name if self.coordination else None
-        ) is None:
-            raise ValueError("Project changes require an agent-comms thread.")
-        authority = ClientSessionRequest(self, self.session_id)
-        coordination = self.coordination
-        comms = await self.controller.transcripts.service(coordination.wire_root)
-        authority.require()
-        result = await asyncio.to_thread(
-            comms.threads.set_project, coordination.thread.name, path,
-        )
-        authority.require()
-        self.coordination = replace(self.coordination, worktree=result.current)
-        self.project_root_path = Path(result.current)
-        self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
-        return result.current
+        return await self.coordination_attachment.update_project(self, path)
 
     async def update_goal(self, action: type[GoalAction], text: str = "") -> GoalDeclaration:
         result = await action.submit_control(
@@ -306,3 +324,53 @@ class Agent(AgentBase):
 
     async def set_session_name(self, name: str) -> None:
         await self.session.set_name(name)
+
+
+@dataclass(frozen=True)
+class NativeInputPresented(SendState):
+    started: InputStartedUpdate
+
+    def response_finished(self, execution) -> None:
+        execution.enter(NoSend())
+
+
+class NativeSubmissionExecution(SubmissionExecution):
+    """ACP owns its captured request and native acknowledgement, not the shared transaction."""
+
+    def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission, agent: Agent):
+        super().__init__(owner, submission)
+        self.agent = agent
+        self.authority = ClientSessionRequest(agent, agent.session_id)
+        self.scope = agent.queue_attachment.scope
+        self.request = submission.request
+
+    @property
+    def current(self):
+        view = self.owner.view
+        return (view.agent_binding is self.agent and not self.authority.retired
+                and self.agent.queue_attachment.accepts_request(self.scope))
+
+    async def feedback(self):
+        await self.submission.feedback(self)
+
+    def accepted(self, accepted) -> bool:
+        return self.request.input_id in accepted or not self.agent.presentation.uses_managed_turns
+
+    def native_input_presented(self, started: InputStartedUpdate) -> None:
+        if self.current and started.started_request(self.request.input_id):
+            self.state.presented(self, NativeInputPresented(started))
+
+    async def deliver(self):
+        view = self.owner.view
+        local = not self.agent.presentation.uses_managed_turns
+        if local:
+            view.turns.start_client()
+        self.enter(SendPending())
+        outcome = await self.agent.send_prompt(self.submission.text, request=self.request)
+        outcome.settle_submission(self)
+        if self.current and local:
+            view.call_later(self.complete, outcome)
+
+    async def complete(self, outcome: PromptResult):
+        if self.current:
+            await outcome.finish_turn(self.owner.view)

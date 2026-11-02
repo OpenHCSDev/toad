@@ -11,7 +11,6 @@ from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Callable
 
 from acp import schema as acp_protocol
-from acp.exceptions import RequestError
 from toad.widgets.markdown_note import MarkdownNote
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
@@ -41,8 +40,9 @@ from textual.document._editing import EditingMode
 from ui_theme.effects import CURSOR_BLINK, Mix
 
 from toad import messages, paths
-from toad.acp.comms_updates import NoPendingThreadRead
+from toad.acp.thread_read import NoPendingThreadRead
 from toad.acp.status import StopReason
+from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.messages import QueueEvidenceChanged
@@ -61,7 +61,14 @@ from toad.block_navigation import (
 )
 from toad.command_catalog import CommandCatalog
 from toad.target_commands import CommandContextChanged, TargetContext
-from toad.conversation_comms_handlers import ConversationCommsHandlers
+import agent_comms.agent_events as comms_events
+from agent_comms.acp_extension import (
+    CompactionChangedUpdate, CoordinationChangedUpdate, GoalChangedUpdate,
+    InputFailedUpdate, InputStartedUpdate, McpClientAcknowledgementUpdate,
+    NativeRoundCommittedUpdate, PromptCancelledUpdate, TranscriptChangedUpdate,
+    TranscriptSnapshotUpdate, TurnChangedUpdate,
+)
+from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.conversation_submission import ConversationSubmissions
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
@@ -142,27 +149,6 @@ if TYPE_CHECKING:
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
     from toad.widgets.transcript_history import LineHistory
-
-
-HELP_URL = "https://github.com/batrachianai/toad/discussions"
-
-INTERNAL_EROR = f"""\
-## Internal error
-
-The agent reported an internal error:
-
-```
-$ERROR
-```
-
-This is likely an issue with the agent, and not Toad.
-
-- Try the prompt again
-- Report the issue to the Agent developer
-
-Ask on {HELP_URL} if you need assistance.
-
-"""
 
 
 class Loading(ConversationBlock, Static):
@@ -686,7 +672,8 @@ class ConversationSessionBinding(
         )
         self.cli_draft = CliDraft()
         self.tool_expansions: dict[str, bool] = {}
-        # Both explicit eviction and Textual unmount consume this same lifetime.
+        # Explicit eviction and message-loop exit consume this same lifetime
+        # before the child editor and feedback surfaces are released.
         # The stack removes callbacks before calling them and continues on error.
         self._source_resources = AsyncResourceRelease()
         self._source_resources.push_async_callback(
@@ -697,12 +684,17 @@ class ConversationSessionBinding(
         self._source_resources.callback(self.output.retire)
         self._source_resources.push_async_callback(self.transcript.detach, self)
         self._source_resources.callback(self.goal_controls.close)
+        self._source_resources.push_async_callback(self.submissions.close)
+
+    async def _message_loop_exit(self) -> None:
+        async with AsyncResourceRelease() as release:
+            release.push_async_callback(super()._message_loop_exit)
+            await self._release_source_resources()
 
     async def on_unmount(self) -> None:
         async with AsyncResourceRelease() as release:
             release.callback(self._publish_session_end)
             release.push_async_callback(self.agent_binding.retire_surface, self)
-            release.push_async_callback(self._release_source_resources)
 
     def _publish_session_end(self) -> None:
         if self._agent_data is not None and self.session_start_time is not None:
@@ -835,7 +827,7 @@ class ConversationSessionBinding(
         attachments = binding.presentation.attachments
         self.native_history_status = attachments.cursor
         self._private_cursor_sequence = attachments.cursor_sequence
-        self.submissions.reset()
+        self.submissions.publish_pending()
         # The observed presentation is Core's answer for this thread, not the
         # agent's; it stays until the next observation replaces it.
         self.arm_thread_read()
@@ -852,12 +844,151 @@ from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 
 
 class Conversation(
-    ConversationCommsHandlers,
+    CoreEventReceiver,
     NativeMethodKeys,
     ConversationSessionBinding, ToadNode, MenuConversation,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
+
+    def accepts(self, message: CoreEventMessage) -> bool:
+        return message.event.accepted_by(message, self)
+
+    @handles(CursorPresentation)
+    def on_private_native_cursor_update(
+        self, update: CursorPresentation, message: CoreEventMessage
+    ) -> None:
+        message.stop()
+        if update.sequence <= self._private_cursor_sequence:
+            return
+        self._private_cursor_sequence = update.sequence
+        self.native_history_status = update.status
+
+    @handles(McpClientAcknowledgementUpdate)
+    async def on_mcp_client_status(
+        self, update: McpClientAcknowledgementUpdate, message: CoreEventMessage
+    ) -> None:
+        """Show the MCP server summary only within the active turn it describes."""
+        if self._mcp_live_note:
+            return  # The package emits at most one server summary per turn.
+        rows = update.acknowledgement.servers
+        summary = (
+            "; ".join(
+                f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
+                f" tools={row.tools} resources={row.resources} prompts={row.prompts}"
+                for row in rows
+            )
+            or "no approved servers"
+        )
+        self.output.boundary()
+        self._mcp_live_note = Note(
+            Content.styled(
+                f"MCP live (this turn, not a grant): {summary}", "$text-muted"
+            ),
+        )
+        await self.post(self._mcp_live_note)
+
+    @handles(TurnChangedUpdate)
+    async def on_turn_changed(
+        self, update: TurnChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        if not self.turns.changed(message):
+            return
+        if self.turns.owner.busy:
+            return
+        await self._clear_mcp_live()
+        self._agent_activity_boundary.reset()
+        await self.output.settle()
+        self.transcript.retry()
+
+    @handles(QueuePresentation)
+    async def on_queue_view_update(
+        self, update: QueuePresentation, message: CoreEventMessage
+    ) -> None:
+        async with self.window.preserve_history(root=self.contents):
+            for started in update.starts:
+                await self.present_started_input(started)
+            self.submissions.publish_pending()
+
+    @handles(InputStartedUpdate)
+    async def on_input_started(
+        self, update: InputStartedUpdate, message: CoreEventMessage
+    ) -> None:
+        async with self.window.preserve_history(root=self.contents):
+            await self.present_started_input(update)
+            self.submissions.publish_pending()
+
+    @handles(InputFailedUpdate)
+    def on_input_failed(
+        self, update: InputFailedUpdate, message: CoreEventMessage
+    ) -> None:
+        """The accepted publication supplies feedback, never the local draft."""
+        self.feedback.flash(
+            f"{update.failure.title}: {update.failure.description}\n{update.failure.input_disposition}\n{update.failure.action}",
+            style="error",
+        )
+
+    @handles(core_events.CommsUpdated)
+    async def on_comms_updated(self, event: core_events.CommsUpdated, message: CoreEventMessage) -> None:
+        await self.dispatch(event.update, message)
+
+    @handles(CoordinationChangedUpdate)
+    def on_coordination_changed(
+        self, update: CoordinationChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        # Source binding is published independently of registry/activity changes:
+        # a newly bound thread joins the observed threads (or reads as foreign).
+        self.arm_thread_read()
+        self.refresh_thread_status()
+        self.prompt.sync_session()
+        self.prompt.sync_queue()
+
+    @handles(PromptCancelledUpdate)
+    async def on_prompt_cancelled(
+        self, update: PromptCancelledUpdate, message: CoreEventMessage
+    ) -> None:
+        await self.post(
+            MarkdownNote(
+                f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"
+            )
+        )
+
+    @handles(TranscriptChangedUpdate)
+    def on_transcript_changed(
+        self, update: TranscriptChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.changed(update.cursor)
+
+    @handles(NativeRoundCommittedUpdate)
+    def on_native_round_committed(
+        self, update: NativeRoundCommittedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.require_commit()
+
+    @handles(GoalChangedUpdate)
+    def on_goal_changed(
+        self, update: GoalChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.goal_observation.receive(message.publisher, update)
+
+    @handles(CompactionChangedUpdate)
+    async def on_compaction_changed(
+        self, update: CompactionChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        await self.dispatch(update.event, message)
+
+    @handles(comms_events.CompactionEnd)
+    def on_compaction_end(
+        self, event: comms_events.CompactionEnd, message: CoreEventMessage
+    ) -> None:
+        # Pi's saved compaction entry owns the notice; re-read the transcript.
+        self.transcript.require_commit()
+
+    @handles(TranscriptSnapshotUpdate)
+    def on_transcript_snapshot(
+        self, update: TranscriptSnapshotUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.received(update.page)
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """The conversation owns its persistent reader and composer key targets."""
@@ -869,14 +1000,6 @@ class Conversation(
 
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
-
-    async def submission_request_failed(self, error: RequestError, text: str) -> None:
-        self.turns.finish_client()
-        self.prompt.restore_draft(text)
-        await self.post(MarkdownNote(
-            INTERNAL_EROR.replace("$ERROR", str(error) or "no details were provided"),
-            classes="-stop-reason",
-        ))
 
     def painted_read(self, acknowledge: Callable[[TranscriptCursor], PaintedRead]) -> PaintedRead:
         """Decide before constructing a worker or opening a read/write context."""
@@ -1132,8 +1255,8 @@ class Conversation(
     def cursor_block(self) -> ConversationEntry | None:
         return self.navigation.current
 
-    def draws_user_message(self, sent) -> bool:
-        return self.transcript.binding.history.draws(sent)
+    def contains_user_message(self, sent) -> bool:
+        return self.transcript.binding.history.contains_message(sent)
 
     async def _apply_session_name(self, name: str) -> None:
         await self.agent_binding.set_session_name(name)
@@ -1244,13 +1367,7 @@ class Conversation(
                 ):
                     await asyncio.sleep(0.1)
                 self.prompt.disabled = True
-                if (
-                    agent.coordination.wire_root
-                    if agent and agent.coordination
-                    else None
-                ) is None:
-                    await self.prune_window(0, 0)
-                    self.output.boundary()
+                await agent.coordination_attachment.prepare_login(self)
                 await agent.session.reconnect_after_login()
             else:
                 await agent.session.authenticate(method_id)
@@ -1333,25 +1450,20 @@ class Conversation(
         """Wire views override the same submission boundary."""
         await self.submissions.submit(event)
 
-    async def agent_turn_over(self, stop_reason: type[StopReason] | None) -> None:
-        """Called when the agent's turn is over.
-
-        Args:
-            stop_reason: The stop reason returned from the Agent, or `None`.
-        """
-        self.turns.finish_client()
-        self._agent_activity_boundary.reset()
+    def record_model_usage(self) -> None:
         model = self.agent_binding.configuration.model.selected
-        if stop_reason is not None and stop_reason.completed and model is not None:
+        if model is not None:
             from toad.db import DB
 
-            # Complete visible turn settlement independently of recent-model
-            # database contention. The native worker owns this optional write.
-            self.run_worker(
-                DB().record_model_usage(
-                    self.model_history_scope, model.value, last_used=time_ns()
-                )
-            )
+            # The native worker owns this optional write, not turn settlement.
+            self.run_worker(DB().record_model_usage(
+                self.model_history_scope, model.value, last_used=time_ns()))
+
+    async def agent_turn_over(self, stop_reason: StopReason) -> None:
+        """Present a confirmed SDK turn completion, never a missing reply."""
+        self.turns.finish_client()
+        self._agent_activity_boundary.reset()
+        stop_reason.record_model_usage(self)
         await self.output.settle()
         pending_loading, self._loading = self._loading, None
         if pending_loading is not None and pending_loading.is_attached:
@@ -1362,7 +1474,7 @@ class Conversation(
 
         self._turn_count += 1
 
-        if stop_reason is not None and stop_reason.note:
+        if stop_reason.note:
 
             await self.post(
                 MarkdownNote(
@@ -1677,7 +1789,11 @@ class Conversation(
         """Keep processing owner notifications while compaction is in flight."""
         self.window.anchor()
         self.feedback.flash("Compaction requested")
-        await self.agent_binding.compact_context(instructions)
+        try:
+            await self.agent_binding.compact_context(instructions)
+        except QueueActionRefused as error:
+            self.feedback.flash(f"Compaction not confirmed: {error}", style="error")
+            return
         self.feedback.flash("Context compacted", style="success")
 
     @property

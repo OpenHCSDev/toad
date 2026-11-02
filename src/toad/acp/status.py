@@ -1,7 +1,9 @@
 """Specification-spelled reasons and statuses own toolkit independent facts."""
-from dataclasses import dataclass
+from __future__ import annotations
 
-from acp.schema import ToolCall
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from acp.schema import PromptResponse, ToolCall
 from agent_comms.agent_event_updates import AcpToolAction
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -22,13 +24,55 @@ from toad.line_blocks import (
 )
 
 
-class StopReason(DeclaredFamily, affix='StopReason'):
-    completed = False
+class PromptResult(ABC):
+    """A request's answer, not an optional SDK stop reason."""
+
+    @abstractmethod
+    def require_confirmation(self) -> StopReason: ...
+
+    def publish_failure(self) -> None:
+        """A confirmed completion has no failure to publish."""
+
+    def settle_submission(self, execution) -> None:
+        execution.state.response_finished(execution)
+
+    async def finish_turn(self, view) -> None:
+        """No confirmed completion: release local activity, not a completed turn."""
+        view.turns.finish_client()
+
+
+class ConfirmedPromptResult(PromptResult):
+    """An SDK completion or definite input disposition gives this request a known result."""
+
+    def settle_submission(self, execution) -> None:
+        execution.state.response_confirmed(execution)
+
+
+@dataclass(frozen=True)
+class StopReason(ConfirmedPromptResult, DeclaredFamily, affix='StopReason'):
+    """Only the SDK's declared stop reasons are confirmed prompt completions."""
+
+    response: PromptResponse
     note = ''
+
+    @classmethod
+    def from_acp(cls, response: PromptResponse) -> StopReason:
+        return cls.member_named(response.stop_reason)(response)
+
+    def require_confirmation(self) -> StopReason:
+        """A returned SDK completion confirms a queue mutation."""
+        return self
+
+    async def finish_turn(self, view) -> None:
+        await view.agent_turn_over(self)
+
+    def record_model_usage(self, view) -> None:
+        """Only a successful end-turn records recent model use."""
 
 
 class EndTurnStopReason(StopReason):
-    completed = True
+    def record_model_usage(self, view) -> None:
+        view.record_model_usage()
 
 
 class MaxTokensStopReason(StopReason):

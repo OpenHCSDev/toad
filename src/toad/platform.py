@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import platform
-from typing import ClassVar, Literal, Mapping
-
-type OS = Literal["linux", "macos", "windows", "*"]
+from typing import ClassVar, Mapping
 
 
 class DesktopService:
@@ -76,7 +74,7 @@ class Platform:
     """The operating system Toad runs on; each member owns what differs there."""
 
     system: ClassVar[str]
-    key: ClassVar[OS]
+    key: ClassVar[str]
     application_name: ClassVar[str] = "Toad"
     members: ClassVar[dict[str, type[Platform]]] = {}
 
@@ -85,9 +83,9 @@ class Platform:
         Platform.members[cls.system] = cls
 
     @classmethod
-    def select[V](cls, matrix: Mapping[OS, V]) -> V | None:
+    def select[V](cls, matrix: Mapping[str, V]) -> V | None:
         """The catalog's exact platform entry, or its declared wildcard."""
-        return matrix.get(cls.key, matrix.get("*"))
+        return matrix.get(cls.key, matrix.get(UnknownPlatform.key))
 
     @classmethod
     def desktop(cls) -> DesktopService:

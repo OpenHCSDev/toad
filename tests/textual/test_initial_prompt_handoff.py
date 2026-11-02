@@ -71,7 +71,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await ui.step()
         restored = owner.conversation
         assert restored is not view and isinstance(restored.agent_binding, NoAgentConnection)
-        assert restored._initial_prompt is None and owner.presentation.state is None
+        assert restored._initial_prompt is None
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
         editor = restored.prompt.prompt_text_area
         assert editor.document is document and editor.history is undo
@@ -92,6 +92,6 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
         assert isinstance(owner.conversation.agent_binding, NoAgentConnection) and not owner.conversation.submissions.active
         await app.session_navigation.close(owner.id)
-        assert owner.presentation.widget is None and owner.presentation.state is None
+        assert owner.presentation.widget is None
         assert owner.id not in app.workspace_sessions.views
         assert ui.failure() is None
