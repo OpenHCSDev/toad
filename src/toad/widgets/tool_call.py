@@ -21,14 +21,14 @@ from toad.widgets.committed_presentation import CAPTURED_CLAIM, CapturedClaim, S
 
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
-from toad.widgets.message_divider import SingleLineBlock
+from toad.widgets.message_divider import ConversationLineBlock
 from toad.widgets.tool_content import ToolContent
 from toad.app_node import ToadNode
 
 
 
 
-class ToolCallHeader(SingleLineBlock):
+class ToolCallHeader(ConversationLineBlock):
     ALLOW_SELECT = False
     DEFAULT_CSS = """
     ToolCallHeader {

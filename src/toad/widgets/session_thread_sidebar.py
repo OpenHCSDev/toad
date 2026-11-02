@@ -67,11 +67,10 @@ class SessionThreadSidebar(ThreadSidebar):
         self.navigation.panel_scroll_y = self.panels_viewport.scroll_y
         self.capture_panels(screen)
         await self.panels_viewport.remove_children()
-        if controls := self.query_one_optional("#sidebar-controls"):
-            await controls.remove_children()
+        await self.layout_controls.remove_children()
         self.panels.clear()
         self._panels_loaded = self._panels_loading = False
-        self._presented_layout = None
+        self.invalidate_controls()
         self._panels_ready.set()
 
     async def panels_hydrated(self) -> None:

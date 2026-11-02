@@ -1,6 +1,6 @@
 """Textual-facing: read marks follow the message text the viewport has painted; scrolling the window reveals the rest."""
 
-from support.textual_steps import text_rows_of
+from agent_comms.read_basis import ChannelConversation
 
 
 async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_remaining_messages(workspace):
@@ -11,41 +11,70 @@ async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_
     comms = workspace.comms
     viewer = workspace.viewer
     rows = [comms.messaging.send("peer", "#team", f"row {i}\n" + "body\n" * 10).message for i in range(8)]
-
-    def seen():
-        return comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot())
+    ledger = comms.bus.reads
+    snapshot = comms.registry.snapshot()
+    channel = ChannelConversation("#team")
 
     async with workspace.app(size=(90, 24)) as ui:
         app = ui.textual[0]
         await ui.open_channel("#team", actor=viewer)
         chat = app.screen.query_one(CommsChatView)
         history, window = chat.message_history, chat.window
-        await ui.until(lambda: seen() and not history.marking, why="the first viewport to be marked")
+        await ui.until(lambda: any(row.seq in ledger.cursor(
+            viewer, snapshot).for_conversation(channel) for row in rows),
+            why="the first viewport to be marked")
+        await history._read_worker.wait()
         in_view = {fragment.message.seq for fragment in history.read_fragments()}
-        assert 0 < len(seen()) < len(rows)
-        assert seen() == in_view
-        # Messages beyond the first viewport stay unread until their text is scrolled to.
+        assert 0 < len(in_view) < len(rows)
+        cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
+        assert all((message.seq in cursor) == (message.seq in in_view) for message in rows)
+        # Address each original message through the history's own source
+        # fragments; revealing its head prepares virtualized rows on demand.
         for message in reversed(rows):
-            if message.seq in seen():
+            if message.seq in ledger.cursor(viewer, snapshot).for_conversation(channel):
                 continue
-            if text_rows_of(chat, message) is None:
-                # Earlier messages are laid out as the reader nears them.
-                window.scroll_to(y=0, animate=False, immediate=True)
-                await ui.until(lambda: text_rows_of(chat, message) is not None, why=f"row {message.seq} laid out")
-            window.scroll_to(y=text_rows_of(chat, message).start, animate=False, immediate=True)
-            await ui.until(lambda: message.seq in seen(), why=f"row {message.seq} to be marked once scrolled to")
-        assert seen() == {row.seq for row in rows}
+            fragment = next(part for part in history.fragments
+                            if part.message.view_key == message.view_key)
+            for _ in rows:
+                if history.draws_fragment(fragment):
+                    break
+                window.action_page_up()
+                await ui.step()
+                await ui.until(lambda: history.state.accepts_source_work
+                               and window.reader_position.laid_out(window),
+                               why="the scrolled viewport to finish preparation and layout")
+            assert history.draws_fragment(fragment), f"Message {message.seq} was not prepared by paging"
+            await history.reveal_message_head(fragment, lambda: True)
+            history.show_fragment(fragment)
+            await ui.until(lambda: message.seq in ledger.cursor(
+                viewer, snapshot).for_conversation(channel),
+                why=f"row {message.seq} to be marked once scrolled to")
+        cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
+        assert all(row.seq in cursor for row in rows)
         # A wholly read history has nothing left to mark: no further worker or route read.
-        await ui.until(lambda: not history.marking, why="marking to settle")
-        assert all(fragment.evidence is None for fragment in history.wire_fragments)
+        await history._read_worker.wait()
+        assert all(fragment.evidence is None for fragment in history.fragments)
+        completed = history._read_worker
         for _ in range(50):
             history.mark_visible()
-            assert not history.marking
-        recorded = tuple(message.view_key for message in history.messages)
+            assert history._read_worker is completed
+        window.action_scroll_end()
+        await ui.until(lambda: history.state.accepts_source_work and any(
+            part.message.view_key == rows[-1].view_key for part in history.drawn_fragments),
+            why="the latest message prepared by End")
+        # End shows the newest bottom viewport, not necessarily the first line
+        # of a tall message. Reveal that head before checking style preservation.
+        latest = next(part for part in history.drawn_fragments
+                      if part.message.view_key == rows[-1].view_key)
+        await history.reveal_message_head(latest, lambda: True)
+        history.show_fragment(latest)
+        await ui.until(lambda: ui.shows("row 7"), why="the newest message head")
+        recorded = tuple(fragment.message.view_key for fragment in history.fragments)
         await ui.press("ctrl+t")
-        await ui.until(lambda: isinstance(history.style, MarkdownMessageStyle), why="the Markdown style")
+        await ui.until(lambda: isinstance(history.page_source.loader.style, MarkdownMessageStyle), why="the Markdown style")
         assert ui.shows("row 7")
         await ui.press("ctrl+t")
-        await ui.until(lambda: isinstance(history.style, IrcMessageStyle), why="the IRC style")
-        assert tuple(message.view_key for message in history.messages) == recorded
-        assert seen() == {row.seq for row in rows}
+        await ui.until(lambda: isinstance(history.page_source.loader.style, IrcMessageStyle), why="the IRC style")
+        assert tuple(fragment.message.view_key for fragment in history.fragments) == recorded
+        cursor = ledger.cursor(viewer, snapshot).for_conversation(channel)
+        assert all(row.seq in cursor for row in rows)
