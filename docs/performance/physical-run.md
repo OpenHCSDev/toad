@@ -12,8 +12,10 @@ on a display.
 
 Import `tools.physical_ui.ObservedTerminalApp` from the published source checkpoint
 with the installed interpreter. Its existing `copied(source, threads, runtime,
-output, thread=...)` factory owns the same `CheckRoot`, private home, lease/display,
-startup connection and input checks. Use `LaunchRuntime.installed()` for installed
+output, thread=...)` factory owns the same `CheckRoot`, private home, display,
+startup connection and input checks. The caller holds `TestLease.current().held()`
+around that factory; the factory does not acquire the host lease itself.
+Use `LaunchRuntime.installed()` for installed
 bytes. This does not require an interpreter observation in old build metadata.
 Wait for both `screen.observation.history_published` and
 `screen.observation.agent_ready` before the readiness-dependent journey; an active

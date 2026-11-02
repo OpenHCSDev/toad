@@ -5,6 +5,48 @@ source/traffic scopes. The unsafe shell controller and raw display-input API
 are retired. Use the [shared isolated physical-run owner](physical-run.md) for
 new work; its stopped-history scenario is not the old active-response benchmark.
 
+## 2026-11-02 installed observation attempts 08/09 — not scrolling results
+
+Both attempts used the read-only `observer-head-53e04c515` tool archive and
+installed Core `038c8f657`, not candidate package overlays. The command launched
+the installed Toad CLI; it did not exercise the `toad-comms` shell launcher.
+The caller, not the frontend factory, held the existing host `TestLease`.
+
+- **08:** the copied history's project was not a Git checkout.
+  `LaunchCheckout.checked` refused before any frontend, fork, input or profiling.
+  The private copy retired; no guard was weakened or repository manufactured.
+- **09:** the existing goal-owned prepared Toad checkout passed qualification.
+  A fresh private fork reached visibly loaded history and Ready. Its new prompt
+  was submitted once: input `fc3ca84a66414cf595de16f8da929a65`, turn
+  `fb0955e420bc49148a352628315ac2ba`. ACP recorded `identified_input_started`,
+  and the retained native session contains that user message. No replay occurred.
+  The provider WebSocket connected at 347 ms and its first stream event arrived
+  at 742 ms **from native request preparation**, not from physical input or paint.
+  These events establish request progress, not response text. The retained ACP
+  log and 164-record session contain no new assistant text; the active-response
+  predicate failed after 75 s, before any scroll gestures or profiler launch.
+  The missing response's cause remains unestablished. Retirement also logged a
+  cancellation followed by `RelationViolationError: An authorized original turn
+  is required` at `owned_turn.py:547`; that separate cleanup failure does not
+  establish why no answer appeared before the deadline.
+
+For09, retained process-birth records show st stopped by TERM, Xvfb exited0 and
+recording exited0; `result.json` records private-copy retirement. The controller's
+lease ended with its context; this does not prove global lease availability.
+Video/screen snapshots are retained, but there is **no frame/input-to-paint
+latency distribution, held-scroll acceptance or representative CPU result**.
+Input-start evidence does not establish a completed response; its final outcome
+remains uncertain and the original input is not eligible for replay.
+
+Artifacts: `~/.cache/agent-scratch/pi-ui-performance/installed-active-038-{08,09}/`
+and adjacent controller logs/return codes.09 includes `frontend/loaded-ready.png`,
+`frontend/active-response-failed.png`, the complete ACP log under
+`frontend-home/state/toad/logs/`, and native request/session records under `bus/`.
+The immutable archive remains borrowed by UI; these records do not replace the
+configured active-answer/held-PageUp/default-launcher journey still owed.
+
+## Historical series
+
 One line per change, from `tools/performance/scroll_scenario.sh` (real `toad` in `st` on display :121, a fork of `perf-base-20261009`, which is a fork of the saved `agent-comms-ux` session; an active response, held PageUp from the input box, wheel bursts with reversal, End, tab return). Frame work is UI-thread time per frame handed to the driver; input-to-paint runs from the driver posting an event to the first frame after its last handler returns. Input-to-paint pairs each input with the first frame after it is handled (fixed 2026-10-09; earlier summaries paired out of order). Raw results are under `~/.cache/agent-scratch/scroll-series/<name>/`.
 
 | Date | Change | Total frame median (ms) | Total frame p95 (ms) | Input-to-paint median (ms) | Input-to-paint p95 (ms) | Scroll-path lines +/- | What the screen showed |
