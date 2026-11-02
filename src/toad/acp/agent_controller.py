@@ -344,16 +344,16 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
             )
         )
 
-    async def compact_context(self, instructions=None):
+    async def compact_context(self, request: CompactRequest):
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         return await self.operate(
-            self._prompt_operation(partial(self._compact_context, instructions, authority), authority)
+            self._prompt_operation(partial(self._compact_context, request, authority), authority)
         )
 
-    async def _compact_context(self, instructions, authority: ClientSessionRequest):
+    async def _compact_context(self, request: CompactRequest, authority: ClientSessionRequest):
         agent = self.agent
         outcome = await self._control_prompt(
-            CompactRequest(instructions), authority,
+            request, authority,
             agent.queue_attachment.scope,
         )
         confirmed = outcome.require_confirmation()

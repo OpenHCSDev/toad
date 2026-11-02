@@ -67,6 +67,7 @@ from toad.command_catalog import CommandCatalog
 from toad.target_commands import CommandContextChanged, TargetContext
 import agent_comms.agent_events as comms_events
 from agent_comms.acp_extension import (
+    CompactRequest,
     CompactionChangedUpdate, CoordinationChangedUpdate, GoalChangedUpdate,
     InputFailedUpdate, InputStartedUpdate, McpClientAcknowledgementUpdate,
     NativeRoundCommittedUpdate, PromptCancelledUpdate, TranscriptChangedUpdate,
@@ -1854,12 +1855,12 @@ class Conversation(
         await self.goal_controls.activate(event.action)
 
     @work(group="context-compaction")
-    async def compact_context(self, instructions: str | None) -> None:
+    async def compact_context(self, request: CompactRequest) -> None:
         """Keep processing owner notifications while compaction is in flight."""
         self.window.anchor()
         self.feedback.flash("Compaction requested")
         try:
-            await self.agent_binding.compact_context(instructions)
+            await self.agent_binding.compact_context(request)
         except QueueActionRefused as error:
             self.feedback.flash(f"Compaction not confirmed: {error}", style="error")
             return

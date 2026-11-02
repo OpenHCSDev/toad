@@ -6,6 +6,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import ClassVar, TYPE_CHECKING
 
+from agent_comms.acp_extension import CompactRequest
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.errors import GoalRefused
 from agent_comms.goal_history import RecordedGoalHistory
@@ -129,10 +130,10 @@ class AgentConnection(ABC):
     def refresh_context(self, view: Conversation) -> None:
         """A connection without native measurements leaves the display unchanged."""
 
-    def request_compaction(self, view: Conversation, instructions: str | None) -> None:
+    def request_compaction(self, view: Conversation, request: CompactRequest) -> None:
         view.feedback.flash("Context compaction requires an agent-comms session", style="error")
 
-    async def compact_context(self, instructions: str | None) -> None:
+    async def compact_context(self, request: CompactRequest) -> None:
         """No native context exists to compact."""
 
     async def cancel_turn(self, view: Conversation) -> None:

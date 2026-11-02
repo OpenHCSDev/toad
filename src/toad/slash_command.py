@@ -4,11 +4,12 @@ from __future__ import annotations
 from toad.core import session_requests
 
 from abc import abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar, Self
 import shlex
 from pathlib import Path
 
+from agent_comms.acp_extension import CompactRequest
 from agent_comms.command import Command
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.goal_actions import (
@@ -222,11 +223,11 @@ class GoalCommand(SlashCommand, LocalCommand):
 class CompactCommand(SlashCommand, LocalCommand):
     help = "Compact this thread's model context"
     hint = "<optional summary instructions>"
-    instructions: str | None = None
+    request: CompactRequest = field(default_factory=CompactRequest)
 
     @classmethod
     def parse(cls, arguments: str) -> Self:
-        return cls(arguments.strip() or None)
+        return cls(CompactRequest(arguments.strip() or None))
 
     async def apply(self, conversation: Conversation) -> bool:
         if not conversation.turns.owner.can_compact:
@@ -234,7 +235,7 @@ class CompactCommand(SlashCommand, LocalCommand):
                 "Wait for the current response before compacting", style="error"
             )
         else:
-            conversation.agent_binding.request_compaction(conversation, self.instructions)
+            conversation.agent_binding.request_compaction(conversation, self.request)
         return True
 
 

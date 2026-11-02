@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import rich.repr
 from agent_comms.acp_extension import (
+    CompactRequest,
     CoordinationChangedUpdate,
     InputStartedUpdate,
     PromptRequest,
@@ -157,8 +158,8 @@ class Agent(AgentBase):
         project = await self.update_project(str(path))
         view.feedback.flash(Content(f"Project changed to {project}"), style="success")
 
-    def request_compaction(self, view: Conversation, instructions: str | None) -> None:
-        view.compact_context(instructions)
+    def request_compaction(self, view: Conversation, request: CompactRequest) -> None:
+        view.compact_context(request)
 
     async def project_changed(self, path: Path) -> None:
         from toad.db import DB
@@ -170,8 +171,8 @@ class Agent(AgentBase):
     def refresh_context(self, view: Conversation) -> None:
         view.thread_status = self.context_measurement.status()
 
-    async def compact_context(self, instructions: str | None) -> None:
-        await self.controller.compact_context(instructions)
+    async def compact_context(self, request: CompactRequest) -> None:
+        await self.controller.compact_context(request)
 
     @property
     def command(self) -> str | None:
