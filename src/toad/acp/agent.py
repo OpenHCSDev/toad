@@ -2,6 +2,7 @@ import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from collections.abc import Container
 from typing import TYPE_CHECKING
 
 import rich.repr
@@ -11,11 +12,12 @@ from agent_comms.acp_extension import (
     PromptRequest,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.nominal.field_codec import FieldCodec, GoalId
+from agent_comms.nominal.field_codec import FieldCodec, GoalId, InputId
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.goal_history import RecordedGoalHistory
+from agent_comms.thread_presentation import ThreadPresentation
 
 from toad import paths
 from toad.acp.agent_configuration import (
@@ -53,6 +55,7 @@ if TYPE_CHECKING:
     from agent_comms.session_load import ExistingSessionLoadPlan
     from toad.core_event_carrier import CoreEventMessage
     from toad.screens.main import MainScreen
+    from toad.surface_binding import SurfaceBinding
     from toad.widgets.conversation import Conversation
 
 
@@ -227,15 +230,15 @@ class Agent(AgentBase):
     def current_turn(self):
         return self.presentation.turns.owner
 
-    async def retire_surface(self, surface) -> None:
+    async def retire_surface(self, surface: Conversation) -> None:
         if self.controller.surface.owns(surface):
             self.detach_surface(surface)
             await self.stop()
 
-    def attach_surface(self, surface) -> None:
+    def attach_surface(self, surface: SurfaceBinding) -> None:
         self.controller.attach(surface)
 
-    def detach_surface(self, surface) -> None:
+    def detach_surface(self, surface: Conversation) -> None:
         self.controller.detach(surface)
 
     def receive_coordination(self, update: CoordinationChangedUpdate, session_id: str) -> None:
@@ -305,7 +308,7 @@ class Agent(AgentBase):
         """Capture, before a presentation read, what its result must still match."""
         return self.coordination_attachment.thread_read(self)
 
-    async def observe_thread_presentation(self, presentation) -> None:
+    async def observe_thread_presentation(self, presentation: ThreadPresentation) -> None:
         await self.coordination_attachment.observe_owner(self, presentation)
 
     async def update_project(self, path: str) -> str:
@@ -330,7 +333,7 @@ class Agent(AgentBase):
 class NativeInputPresented(SendState):
     started: InputStartedUpdate
 
-    def response_finished(self, execution) -> None:
+    def response_finished(self, execution: SubmissionExecution) -> None:
         execution.enter(NoSend())
 
 
@@ -353,7 +356,7 @@ class NativeSubmissionExecution(SubmissionExecution):
     async def feedback(self):
         await self.submission.feedback(self)
 
-    def accepted(self, accepted) -> bool:
+    def accepted(self, accepted: Container[InputId]) -> bool:
         return self.request.input_id in accepted or not self.agent.presentation.uses_managed_turns
 
     def native_input_presented(self, started: InputStartedUpdate) -> None:

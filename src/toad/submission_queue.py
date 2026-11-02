@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.messages import Message
@@ -15,6 +15,9 @@ from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines
 from toad.queue_capability import QueueActions, QueueEvidence
 
+if TYPE_CHECKING:
+    from toad.widgets.conversation import Conversation
+
 
 class QueueSource(QueueActions):
     """The captured source controls sending, observation and queue changes."""
@@ -25,13 +28,13 @@ class QueueSource(QueueActions):
                          submission: PromptInputSubmission) -> SubmissionStart:
         return owner.unbound(submission, InputSourceUnavailable())
 
-    def input_decision(self, view) -> InputDecision:
+    def input_decision(self, view: Conversation) -> InputDecision:
         return InputSourceUnavailable()
 
-    def defers_input(self, view) -> bool:
+    def defers_input(self, view: Conversation) -> bool:
         return False
 
-    def contains_message(self, view, root: Path, sent: Message) -> bool:
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
         """Only the original message source can confirm its committed row."""
         return False
 
@@ -80,7 +83,7 @@ class NativeQueueSource(QueueSource):
                          submission: PromptInputSubmission) -> SubmissionStart:
         return self.input_decision(owner.view).begin_submission(owner, submission)
 
-    def defers_input(self, view) -> bool:
+    def defers_input(self, view: Conversation) -> bool:
         return view.turns.owner.busy and view.agent_binding.presentation.queue_supported
 
     def observed_summary(self, evidence: QueueEvidence) -> str:
@@ -122,7 +125,7 @@ class NativeQueueSource(QueueSource):
 
 
 class BusQueueSource(ReadOnlyQueueSource):
-    def input_decision(self, view) -> InputDecision:
+    def input_decision(self, view: Conversation) -> InputDecision:
         return InputAccepted()
 
     def observed_summary(self, evidence: QueueEvidence) -> str:

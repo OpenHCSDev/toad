@@ -66,6 +66,7 @@ if TYPE_CHECKING:
 
     from toad.comms_root import Observation
     from toad.widgets.comms_chat import CommsChatView
+    from toad.widgets.conversation import Conversation
     from toad.widgets.transcript_lines import Lines
     from toad.widgets.wire_history import WireHistory
 
@@ -325,7 +326,7 @@ class WireSource(BusQueueSource):
     tail_limit: int = 8
     page_limit: int = 40
 
-    def contains_message(self, view, root: Path, sent: Message) -> bool:
+    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
         return self.comms.root == root and view.contains_user_message(sent)
 
     def begin_submission(self, owner: ConversationSubmissions,

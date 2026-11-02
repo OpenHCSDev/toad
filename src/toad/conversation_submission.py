@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Container
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
@@ -17,6 +18,7 @@ from agent_comms.acp_extension import (
     SteerPromptRequest,
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.nominal.field_codec import InputId
 from agent_comms.delivery_failure import delivery_failure
 from agent_comms.errors import CommittedMessageError, HumanSendError, HumanSendRefusedError, RelationViolationError, RouteChangedError
 from agent_comms.messages import Message
@@ -29,6 +31,11 @@ from toad.queue_capability import QueueActions, QueueEvidence
 from toad.core.input_events import UserInputSubmitted
 from toad.input_decision import InputDecision, InputRefused
 from toad.widgets.prompt import Prompt
+
+if TYPE_CHECKING:
+    from toad.agent_presentation import AgentPresentation
+    from toad.conversation_kind import ConversationKind
+    from toad.widgets.conversation import Conversation
 
 @dataclass(frozen=True)
 class InputSubmission(DeclaredFamily, affix="InputSubmission"):
@@ -82,7 +89,7 @@ class ShellInputSubmission(InputSubmission):
     def matches(cls, event: UserInputSubmitted, owner: ConversationSubmissions):
         return event.shell and bool(event.body.strip())
 
-    async def execute(self, owner):
+    async def execute(self, owner: ConversationSubmissions):
         view = owner.view
         shell = view.shell
         if await shell.is_busy():
@@ -187,33 +194,33 @@ class SendState:
     def reason(self) -> str:
         return ""
 
-    def settle(self, execution) -> None:
+    def settle(self, execution: SubmissionExecution) -> None:
         execution.owner.retire(execution)
 
-    def acknowledged_by(self, view) -> bool:
+    def acknowledged_by(self, view: Conversation) -> bool:
         return False
 
-    def response_finished(self, execution) -> None:
+    def response_finished(self, execution: SubmissionExecution) -> None:
         """A retained outcome already names the transaction's answer."""
 
-    def response_failed(self, execution, failure: ACPFailure) -> None:
+    def response_failed(self, execution: SubmissionExecution, failure: ACPFailure) -> None:
         """An observed input acknowledgement is not undone by a failed reply."""
 
-    def response_confirmed(self, execution) -> None:
+    def response_confirmed(self, execution: SubmissionExecution) -> None:
         """A confirmed input disposition settles input, not merely an RPC reply."""
         execution.enter(NoSend())
 
-    def presented(self, execution, evidence: SendState) -> None:
+    def presented(self, execution: SubmissionExecution, evidence: SendState) -> None:
         """An in-flight request retains actual input acknowledgement until its reply."""
         execution.enter(evidence)
 
-    def local_intent(self, execution, accepted) -> tuple[str, ...]:
+    def local_intent(self, execution: SubmissionExecution, accepted: Container[InputId]) -> tuple[str, ...]:
         return ()
 
-    async def present_written(self, execution) -> None:
+    async def present_written(self, execution: SubmissionExecution) -> None:
         """Only a definite original publication supplies a message to present."""
 
-    def waiter_cancelled(self, execution) -> None:
+    def waiter_cancelled(self, execution: SubmissionExecution) -> None:
         """Cancellation cannot undo an already definite completion."""
 
 
@@ -222,35 +229,35 @@ class NoSend(SendState):
 
 
 class RetainedSend(SendState):
-    def settle(self, execution) -> None:
+    def settle(self, execution: SubmissionExecution) -> None:
         """A pending, undrawn or UNKNOWN result keeps its original transaction."""
 
 
 class CheckingSend(RetainedSend):
     reason = "Checking source; do not retry"
 
-    def response_failed(self, execution, failure: ACPFailure) -> None:
+    def response_failed(self, execution: SubmissionExecution, failure: ACPFailure) -> None:
         execution.delivery_refused(failure.feedback, execution.submission.source_text)
 
-    def response_finished(self, execution) -> None:
+    def response_finished(self, execution: SubmissionExecution) -> None:
         execution.delivery_refused(
             "Request ended before handing input to its source", execution.submission.source_text,
         )
 
-    def local_intent(self, execution, accepted) -> tuple[str, ...]:
+    def local_intent(self, execution: SubmissionExecution, accepted: Container[InputId]) -> tuple[str, ...]:
         return () if execution.accepted(accepted) else (execution.submission.text,)
 
 
 class SendPending(CheckingSend):
     reason = "Send pending; do not retry"
 
-    def waiter_cancelled(self, execution) -> None:
+    def waiter_cancelled(self, execution: SubmissionExecution) -> None:
         execution.delivery_blocked(
             "Send cancelled while worker may still write; outcome UNKNOWN, inspect the bus, do not retry",
             execution.submission.source_text,
         )
 
-    def response_finished(self, execution) -> None:
+    def response_finished(self, execution: SubmissionExecution) -> None:
         execution.delivery_blocked(
             "Request ended without a known outcome; inspect the source, do not retry",
             execution.submission.source_text,
@@ -266,10 +273,10 @@ class SentAwaitingSource(RetainedSend):
     def reason(self) -> str:
         return f"Sent {self.root}/{self.sent.seq}/{self.sent.message_id}; waiting for source acknowledgement, do not retry"
 
-    def acknowledged_by(self, view) -> bool:
+    def acknowledged_by(self, view: Conversation) -> bool:
         return view.queue_source.contains_message(view, self.root, self.sent)
 
-    async def present_written(self, execution) -> None:
+    async def present_written(self, execution: SubmissionExecution) -> None:
         if execution.current:
             await execution.present(self.sent)
 
@@ -278,7 +285,7 @@ class SentAwaitingSource(RetainedSend):
 class SendBlocked(RetainedSend):
     description: str
 
-    def presented(self, execution, evidence: SendState) -> None:
+    def presented(self, execution: SubmissionExecution, evidence: SendState) -> None:
         """A late original acknowledgement resolves the already-finished request."""
         execution.enter(NoSend())
         execution.owner.finish(execution)
@@ -309,7 +316,7 @@ class SubmissionExecution(SubmissionStart):
         self.state = state
         self.owner.view.refresh_submission_state()
 
-    def accepted(self, accepted) -> bool:
+    def accepted(self, accepted: Container[InputId]) -> bool:
         return False
 
     def native_input_presented(self, started: InputStartedUpdate) -> None:
@@ -360,7 +367,7 @@ class MessageSubmissionExecution(SubmissionExecution):
     """An original Core publication, including a worker whose outcome is UNKNOWN."""
 
     def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission,
-                 root: Path, conversation, current: Callable[[], bool],
+                 root: Path, conversation: ConversationKind, current: Callable[[], bool],
                  present: Callable[[Message], Awaitable[None]]):
         super().__init__(owner, submission)
         self.root, self.conversation = root, conversation
@@ -423,7 +430,7 @@ class MessageSubmissionExecution(SubmissionExecution):
 class ConversationSubmissions:
     """Own pending local transactions; remote membership stays with QueueAttachment."""
 
-    def __init__(self, view):
+    def __init__(self, view: Conversation):
         self.view = view
         self.active: list[SubmissionExecution] = []
 
@@ -449,7 +456,7 @@ class ConversationSubmissions:
         self.view.refresh_submission_state()
         return execution
 
-    def start_message(self, submission: PromptInputSubmission, root: Path, conversation,
+    def start_message(self, submission: PromptInputSubmission, root: Path, conversation: ConversationKind,
                       current: Callable[[], bool], present: Callable[[Message], Awaitable[None]]):
         return self.start(MessageSubmissionExecution(self, submission, root, conversation, current, present))
 
@@ -528,7 +535,7 @@ class ConversationSubmissions:
             group="send-queued-now", exclusive=True,
         )
 
-    async def _send_now(self, source: QueueActions, presentation, scope: QueueScope) -> None:
+    async def _send_now(self, source: QueueActions, presentation: AgentPresentation, scope: QueueScope) -> None:
         try:
             await source.queue_send_now(presentation, scope)
         except (RequestError, QueueActionRefused) as error:

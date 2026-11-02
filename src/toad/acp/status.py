@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from acp.schema import PromptResponse, ToolCall
 from agent_comms.agent_event_updates import AcpToolAction
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -24,6 +25,11 @@ from toad.line_blocks import (
 )
 
 
+if TYPE_CHECKING:
+    from toad.conversation_submission import SubmissionExecution
+    from toad.widgets.conversation import Conversation
+
+
 class PromptResult(ABC):
     """A request's answer, not an optional SDK stop reason."""
 
@@ -33,10 +39,10 @@ class PromptResult(ABC):
     def publish_failure(self) -> None:
         """A confirmed completion has no failure to publish."""
 
-    def settle_submission(self, execution) -> None:
+    def settle_submission(self, execution: SubmissionExecution) -> None:
         execution.state.response_finished(execution)
 
-    async def finish_turn(self, view) -> None:
+    async def finish_turn(self, view: Conversation) -> None:
         """No confirmed completion: release local activity, not a completed turn."""
         view.turns.finish_client()
 
@@ -44,7 +50,7 @@ class PromptResult(ABC):
 class ConfirmedPromptResult(PromptResult):
     """An SDK completion or definite input disposition gives this request a known result."""
 
-    def settle_submission(self, execution) -> None:
+    def settle_submission(self, execution: SubmissionExecution) -> None:
         execution.state.response_confirmed(execution)
 
 
@@ -63,15 +69,15 @@ class StopReason(ConfirmedPromptResult, DeclaredFamily, affix='StopReason'):
         """A returned SDK completion confirms a queue mutation."""
         return self
 
-    async def finish_turn(self, view) -> None:
+    async def finish_turn(self, view: Conversation) -> None:
         await view.agent_turn_over(self)
 
-    def record_model_usage(self, view) -> None:
+    def record_model_usage(self, view: Conversation) -> None:
         """Only a successful end-turn records recent model use."""
 
 
 class EndTurnStopReason(StopReason):
-    def record_model_usage(self, view) -> None:
+    def record_model_usage(self, view: Conversation) -> None:
         view.record_model_usage()
 
 
