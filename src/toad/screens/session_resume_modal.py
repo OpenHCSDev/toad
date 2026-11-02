@@ -3,6 +3,12 @@ from agent_comms.nominal.field_codec import RecordedTimestamp
 
 from textual import containers, getters, on, widgets
 from textual.app import ComposeResult
+from textual.css.native import Keyword, NativeDeclaration, Percent, TextVariable, Variable
+from textual.css.styles import Styles
+from textual.widgets._markdown import MarkdownH1
+from ui_theme.scheme import PrimaryColour, WarningColour
+
+from toad.native_layout import NativeLayout, NativeTheme
 from toad.screens.modal import DismissibleScreen
 
 from toad.db import DB, Session
@@ -14,23 +20,73 @@ Pick a session to resume.
 """
 
 
-class SessionResumeModal(DismissibleScreen[Session]):
+class ResumeHeading(NativeLayout, MarkdownH1):
+    def apply_native_layout(self) -> None:
+        self.styles.margin = (1, 0)
+
+
+class ResumeHelp(widgets.Markdown):
+    BLOCKS = widgets.Markdown.BLOCKS | {f"h{ResumeHeading.LEVEL}": ResumeHeading}
+
+
+class ResumeWarning(NativeTheme, NativeLayout, widgets.Static):
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("round"), Variable(WarningColour.name)),
+        NativeDeclaration.of(Styles.color, TextVariable(WarningColour.name)),
+    )
+
+    def apply_native_layout(self) -> None:
+        self.styles.padding = (0, 1)
+        self.styles.margin = (0, 0, 1, 1)
+
+
+class ResumeFrame(NativeTheme, NativeLayout, containers.VerticalGroup):
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("thick"), Variable(PrimaryColour.name), Percent(20)),
+    )
+
+    def apply_native_layout(self) -> None:
+        self.styles.margin = (2, 4, 1, 4)
+        self.styles.padding = (0, 1, 0, 0)
+        self.styles.max_width = 100
+        self.styles.height = "auto"
+
+
+class ResumeTableContainer(NativeLayout, containers.Center):
+    def apply_native_layout(self) -> None:
+        self.styles.height = "auto"
+        self.styles.padding = (0, 0, 0, 1)
+
+
+class ResumeTable(NativeLayout, widgets.DataTable):
+    def apply_native_layout(self) -> None:
+        self.styles.width = "1fr"
+        self.styles.height = 12
+
+
+class ResumeButtons(NativeLayout, containers.HorizontalGroup):
+    def apply_native_layout(self) -> None:
+        self.styles.margin = (1, 0, 0, 0)
+        self.styles.align = ("right", "top")
+
+
+class SessionResumeModal(NativeLayout, DismissibleScreen[Session]):
     """Dialog to select a session to resume."""
 
-    CSS_PATH = "session_resume_modal.tcss"
+    session_table = getters.query_one("#sessions", ResumeTable)
 
-    session_table = getters.query_one("#sessions", widgets.DataTable)
+    def apply_native_layout(self) -> None:
+        self.styles.align = ("center", "middle")
 
     def compose(self) -> ComposeResult:
-        with containers.VerticalGroup(id="container"):
-            yield widgets.Markdown(HELP)
-            yield widgets.Static(
+        with ResumeFrame(id="container"):
+            yield ResumeHelp(HELP)
+            yield ResumeWarning(
                 "⚠ Not all ACP agents currently support resume",
-                classes="warning",
             )
-            with containers.Center(id="table-container"):
-                yield widgets.DataTable(id="sessions", cursor_type="row")
-            with containers.HorizontalGroup(id="buttons"):
+            with ResumeTableContainer(id="table-container"):
+                yield ResumeTable(id="sessions", cursor_type="row")
+            with ResumeButtons(id="buttons"):
                 yield widgets.Button(
                     "Resume", id="resume", variant="primary", disabled=True
                 )
