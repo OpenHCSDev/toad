@@ -22,7 +22,8 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
     sign: ClassVar[int]
     minimum: ClassVar[int]
     conversation_minimum: ClassVar[int]
-    collapsed_extent: ClassVar[int]
+    collapsed_extent: ClassVar[int] = 3
+    """The collapsed bar is three cells thick on every edge."""
 
     @classmethod
     @abstractmethod
@@ -100,7 +101,6 @@ class TrailingSidebarEdge:
 class WidthSidebarEdge(SidebarEdge):
     minimum = 18
     conversation_minimum = 24
-    collapsed_extent = 3
 
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
@@ -140,7 +140,6 @@ class WidthSidebarEdge(SidebarEdge):
 class HeightSidebarEdge(SidebarEdge):
     minimum = 9
     conversation_minimum = 8
-    collapsed_extent = 1
 
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
