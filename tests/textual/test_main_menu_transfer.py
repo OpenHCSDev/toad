@@ -5,7 +5,9 @@ from pathlib import Path
 
 import pytest
 from textual.widgets import Button, Input, Select
-from agent_comms.exporting import EverythingScope, FullLimit, JsonlFormat, WireExportCancelled, WireExportProgress
+from agent_comms.exporting import EverythingScope, FullLimit, JsonlFormat, TextFormat, WireExportCancelled, WireExportProgress
+from agent_comms.messages import InfoKind, Message, PublicRecord
+from support.workspace import Workspace
 
 from agent_comms.harness_install import OpenCodeHarness
 from support.applications import record_notifications
@@ -146,3 +148,67 @@ async def test_export_progress_presents_counters_and_native_cancel(workspace):
         assert progress.parent is None, "the actual mounted resource must be detached"
         assert not app.screen.query(WireExportProgressView)
         assert not request.destination.exists(), "this case supplies progress observations, never a fake export"
+
+
+@pytest.mark.parametrize("close_app", (False, True), ids=("native-cancel", "app-close"))
+async def test_running_export_retires_writer_and_staging(workspace: Workspace, close_app: bool):
+    """A real indexed wire and real writer, without replacing exporter or preparation methods."""
+    workspace.thread("sender")
+    wire = workspace.comms.bus.bus
+    payload = "running-export-row " + "x" * 32768
+    for _ in range(2048):
+        wire.append(lambda seq, db: PublicRecord.from_message(
+            Message("sender", "#all", payload, InfoKind, seq=seq)))
+    print("Seeded 2048 indexed wire records for running-writer acceptance", flush=True)
+    destination = workspace.project / "running-export.txt"
+    protected = workspace.project / "existing-export.txt"
+    protected.write_bytes(b"preserve the existing destination\n")
+    original = protected.read_bytes()
+
+    async with workspace.app(size=(110, 40)) as ui:
+        app, _ = ui.textual
+        record_notifications(app)
+        access = app.coordination_access
+        selected = access.selected(access.observation.observed().service.root)
+        app.transfer_submitted(selected, WireExportRequest(
+            protected, TextFormat(), EverythingScope(), FullLimit()))
+        await ui.until(lambda: any(note.title == "Wire export failed" for note in app._notifications),
+                       why="refusal of the pre-existing destination")
+        assert protected.read_bytes() == original
+        assert not list(protected.parent.glob(".existing-export.txt.*.tmp"))
+
+        request = WireExportRequest(destination, TextFormat(), EverythingScope(), FullLimit())
+        worker = app.run_worker(request.execute(app, selected),
+                                group=type(request).declared_name, exclusive=True)
+
+        def writing() -> bool:
+            assert not destination.exists(), "the case must reach the writer before publication"
+            return any(path.stat().st_size > 65536
+                       for path in destination.parent.glob(".running-export.txt.*.tmp"))
+
+        await ui.until(writing, why="actual bytes flushed to the writer's private stage")
+        progress = app.screen.query_one(WireExportProgressView)
+        assert not worker.is_finished
+        # Ordinary wire traffic still uses the authoritative publisher while
+        # the export holds its fixed read snapshot and streams the old rows.
+        sent = workspace.comms.messaging.send("sender", "#all", "sent during export").message
+        assert wire.lookup(sent.seq).body == "sent during export"
+        assert not worker.is_finished, "the ordinary send must overlap the running writer"
+        print("Observed live staging and an overlapping ordinary send", flush=True)
+        if close_app:
+            app.exit()
+        else:
+            # The separate view case checks the pointer path; this invokes the
+            # same native Button activation while the actual writer is alive.
+            progress.query_one("#cancel-export", Button).press()
+            await ui.until(lambda: worker.is_finished, why="the real cancelled writer to finish")
+            assert progress.cancelled()
+            await ui.until(lambda: any(note.message == "Wire export cancelled"
+                                      for note in app._notifications), why="actual export cancellation")
+            assert progress.parent is None
+
+    assert worker.is_finished, "application release must join accepted export work"
+    assert not destination.exists(), "cancel/close must not publish the interrupted export"
+    assert not list(destination.parent.glob(".running-export.txt.*.tmp")), "private staging must unwind"
+    assert protected.read_bytes() == original
+    print("Writer finished; private staging removed; existing destination unchanged", flush=True)
