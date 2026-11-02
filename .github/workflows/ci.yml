@@ -24,6 +24,9 @@ jobs:
     name: NRA gate
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,15 +47,29 @@ jobs:
                           *source['project']['optional-dependencies']['dev']], check=True)
           PY
       - name: Compare production source
+        id: gate
         env:
           # pull_request.base.sha is not refreshed when the base branch moves, so it can name a
           # revision many commits behind and charge the PR for debt main introduced. The PR's own
           # change starts at the merge-base with the base branch's current tip.
           BASE_TIP: ${{ github.event.pull_request.base.ref && format('origin/{0}', github.event.pull_request.base.ref) || inputs.base }}
           PR_HEAD: ${{ github.event.pull_request.head.sha || inputs.head }}
-        run: PYTHONPATH="$PWD/.core-gate/src" PATH="$PWD/.venv/bin:$PATH" .venv/bin/python .core-gate/tools/nra_client_gate.py --root src/toad --base "$(git merge-base "$BASE_TIP" "$PR_HEAD")" --head "$PR_HEAD"
+        # The verdict lines go to stderr; they are kept for the pull request comment below.
+        run: |
+          status=0
+          PYTHONPATH="$PWD/.core-gate/src" PATH="$PWD/.venv/bin:$PATH" .venv/bin/python .core-gate/tools/nra_client_gate.py --root src/toad --base "$(git merge-base "$BASE_TIP" "$PR_HEAD")" --head "$PR_HEAD" 2>gate-findings.txt || status=$?
+          cat gate-findings.txt >&2
+          exit "$status"
       - name: Run surface guards
         run: .venv/bin/pytest tests/guards
+      # Core owns the comment: the same action and Core commit as the gate itself.
+      - name: The gate's findings on the pull request
+        if: always() && github.event_name == 'pull_request' && contains(fromJSON('["success","failure"]'), steps.gate.outcome)
+        uses: ./.core-gate/.github/actions/nra-findings
+        with:
+          findings: gate-findings.txt
+          kind: debt-src
+          outcome: ${{ steps.gate.outcome }}
   suite:
     if: ${{ inputs.release_qualification }}
     runs-on: ubuntu-latest
