@@ -30,7 +30,7 @@ class NativeTheme(Widget):
 
     def on_mount(self) -> None:
         self.apply_native_theme()
-        self.app.theme_changed_signal.subscribe(self, self._native_theme_changed)
+        self.app.theme_changed_signal.subscribe(self, self._native_theme_changed, immediate=True)
 
     def _native_theme_changed(self, theme: Theme) -> None:
         self.apply_native_theme()
