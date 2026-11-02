@@ -15,7 +15,6 @@ from textual.css.styles import Styles
 from textual.view import AUTO, FILL
 from ui_theme.scheme import BackgroundColour, PrimaryColour
 
-from toad.app_node import ToadNode
 from toad.native_layout import NativeLayout, NativeTheme
 
 from textual.widgets import OptionList, Static, Select
@@ -133,7 +132,7 @@ class ToolScroll(FocusedFrame, BackgroundArea, FillArea, containers.VerticalScro
         self.styles.margin = (1, 0, 0, 0)
 
 
-class PermissionsScreen(BackgroundArea, ToadNode, QuestionContext, PriorityActions, CyclesFocus, Screen[Answer],
+class PermissionsScreen(BackgroundArea, QuestionContext, PriorityActions, CyclesFocus, Screen[Answer],
                         actions=(SelectKindAction, PermissionNavigationAction),
                         scopes={PriorityActions: (SelectKindAction,)}):
     BINDING_GROUP_TITLE = "Permissions"
