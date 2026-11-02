@@ -7,12 +7,13 @@ from abc import ABC, abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import AcpSessionId, PathText
 from agent_comms.presentation import ReadState
+from agent_comms.team_hud import TeamHud
 from toad.acp.tool_source import ToolCallSource, UncoordinatedToolCallSource
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
@@ -22,16 +23,19 @@ from agent_comms.acp_extension import AgentCommsUpdate, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from textual.worker import Worker
 
-if TYPE_CHECKING:
-    from agent_comms.team_hud import TeamHud
-    from toad.core_event_carrier import CoreEventMessage
-    from toad.widgets.conversation import ConversationSessionBinding
+class CommsPublicationTarget(ABC):
+    """A source-bound surface decides whether this publication belongs to it."""
+
+    @abstractmethod
+    def accepts_comms_publication(
+        self, message: event_carrier.CoreEventMessage, update: CommsUpdated,
+    ) -> bool: ...
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
 
-    def accepted_by(self, message: CoreEventMessage, view: ConversationSessionBinding) -> bool:
+    def accepted_by(self, message: event_carrier.CoreEventMessage, view: CommsPublicationTarget) -> bool:
         """Ordinary publications never inspect a conversation's native state."""
         return True
 
@@ -91,11 +95,8 @@ class CommsUpdated(CoreEvent):
     session_id: AcpSessionId | None = None
     sequence: int | None = None
 
-    def accepted_by(self, message: CoreEventMessage, view: ConversationSessionBinding) -> bool:
-        return (
-            view.agent_binding.accepts_publication(message, self.session_id)
-            and view.turns.owner.accepts_update(self.update)
-        )
+    def accepted_by(self, message: event_carrier.CoreEventMessage, view: CommsPublicationTarget) -> bool:
+        return view.accepts_comms_publication(message, self)
 
 
 @dataclass(frozen=True)
@@ -572,3 +573,8 @@ class CoreEventStream[Publisher]:
         for subscription in subscriptions:
             for listener in subscription.listeners():
                 listener(event, subscription)
+
+
+# The carrier imports these declarations; its module supplies annotations once
+# both sides' declarations exist, without importing a rich conversation widget.
+from toad import core_event_carrier as event_carrier

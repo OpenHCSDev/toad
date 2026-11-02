@@ -27,7 +27,7 @@ from agent_comms.ui_model.observation import (
 )
 
 from toad.owner_preparation import read_thread_presentation
-from toad.session_scope import TranscriptScope
+from toad.transcript_read_scope import TranscriptReadScope
 
 
 class CoordinationTranscriptReader:
@@ -67,7 +67,7 @@ class CoordinationTranscriptReader:
 
     async def page(
         self,
-        scope: TranscriptScope,
+        scope: TranscriptReadScope,
         *,
         position: PagePosition = LatestPage(),
         limit: PageLimit = AtFrontier(),
@@ -83,7 +83,7 @@ class CoordinationTranscriptReader:
 
     async def snapshot(
         self,
-        scope: TranscriptScope,
+        scope: TranscriptReadScope,
         *,
         position: PagePosition = LatestPage(),
         limit: PageLimit = AtFrontier(),
@@ -99,7 +99,7 @@ class CoordinationTranscriptReader:
 
     async def updates(
         self,
-        scope: TranscriptScope,
+        scope: TranscriptReadScope,
         previous: TranscriptPublicationState,
         *,
         position: PagePosition = LatestPage(),

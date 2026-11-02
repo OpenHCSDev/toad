@@ -3,16 +3,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
-
 from agent_comms.thread_presentation import ThreadPresentation
-
-if TYPE_CHECKING:
-    from toad.acp.agent import Agent
-    from toad.acp.client_session import ClientSessionRequest
-    from toad.acp.comms_updates import OwnerSnapshotConsumer
-    from toad.acp.coordination_attachment import CoordinatedThread
-    from toad.acp.transcript_reader import CoordinationTranscriptReader
+from toad.acp.client_session import ClientSessionRequest
+from toad.acp.comms_updates import OwnerSnapshotConsumer
+from toad.acp.transcript_reader import CoordinationTranscriptReader
 
 
 class ThreadReadOutcome:
@@ -56,13 +50,12 @@ class NoPendingThreadRead(ThreadRead):
 class PendingThreadRead(ThreadRead):
     """Retain attachment, request and turn identities from before the read."""
 
-    agent: Agent
-    coordination: CoordinatedThread
+    coordination: coordination_attachment.CoordinatedThread
     authority: ClientSessionRequest
     snapshot: OwnerSnapshotConsumer
 
     def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
-        if not self.agent.coordination_attachment.matches_source(self.coordination.update):
+        if not self.authority.agent.coordination_attachment.matches_source(self.coordination.update):
             return ChangedAttachmentRead()
         if self.authority.retired:
             return EndedSessionRead()
@@ -74,3 +67,8 @@ class PendingThreadRead(ThreadRead):
             self.coordination.update.wire_root, self.coordination.update.thread.name
         )
         self.settle(read.raised())
+
+
+# The attachment creates captured reads; its module supplies the retained type
+# after these declarations exist, including during a reciprocal module import.
+from toad.acp import coordination_attachment

@@ -9,7 +9,10 @@ from typing import ClassVar, TYPE_CHECKING
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.errors import GoalRefused
 from agent_comms.goal_history import RecordedGoalHistory
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.goal_actions import GoalAction
+from agent_comms.goals import Goal, GoalDeclaration
+from agent_comms.session_load import ExistingSessionLoadPlan
+from agent_comms.nominal.field_codec import AcpSessionId, GoalId
 from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
@@ -21,10 +24,6 @@ from toad.input_decision import InputDecision, InputAccepted, NoLiveAgent
 from toad.widgets.committed_presentation import CommitSource
 
 if TYPE_CHECKING:
-    from agent_comms.goal_actions import GoalAction
-    from agent_comms.goals import Goal, GoalDeclaration
-    from agent_comms.nominal.field_codec import GoalId
-    from agent_comms.session_load import ExistingSessionLoadPlan
     from toad.acp.agent_process import AgentProcess
     from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
     from toad.conversation_turn import TurnOwner

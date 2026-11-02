@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, PromptRequest
+from agent_comms.acp_extension import CoordinationChangedUpdate, PromptRequest, QueueScope
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import NoGoal
 from agent_comms.nominal.field_codec import AcpSessionId
@@ -15,6 +15,7 @@ from agent_comms.owner_connection import socket_path
 from agent_comms.repo import Checkout
 from agent_comms.runtime import RuntimeConnection
 from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
 from agent_comms.ui_model.observation import ReadOwnerOperation
@@ -24,13 +25,10 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.acp.comms_updates import OwnerSnapshotConsumer
 from toad.acp.thread_read import NoPendingThreadRead, PendingThreadRead, ThreadRead
 from toad.acp.tool_source import AssignedToolCallSource, ToolCallSource, UncoordinatedToolCallSource
-from toad.core.events import CommsUpdated, ThreadRowStateChanged
+from toad.core.events import CommsUpdated, CoreEventStream, ThreadRowStateChanged
 
 if TYPE_CHECKING:
-    from agent_comms.acp_extension import QueueScope
-    from agent_comms.thread_presentation import ThreadPresentation
     from toad.acp.agent import Agent
-    from toad.core.events import CoreEventStream
     from toad.widgets.conversation import Conversation
 
 
@@ -166,7 +164,7 @@ class CoordinatedThread(CoordinationAttachment):
     def thread_read(self, agent: Agent) -> ThreadRead:
         authority = ClientSessionRequest(agent, agent.session_id)
         return PendingThreadRead(
-            agent, self, authority,
+            self, authority,
             OwnerSnapshotConsumer(agent, authority.binding.require_session_id(), turn_token=agent.presentation.turns.sequence),
         )
 

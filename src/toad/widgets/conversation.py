@@ -438,6 +438,7 @@ class AgentWindow(Window):
 
 
 class ConversationSessionBinding(
+    core_events.CommsPublicationTarget,
     MroDispatch,
     WorkspaceHosted,
     ThreadStatusOwner,
@@ -467,6 +468,14 @@ class ConversationSessionBinding(
 
     def accepts_menu_owner(self, owner: Widget) -> bool:
         return self.is_current_session and self.navigation.accepts_menu_owner(owner)
+
+    def accepts_comms_publication(
+        self, message: CoreEventMessage, update: core_events.CommsUpdated,
+    ) -> bool:
+        return (
+            self.agent_binding.accepts_publication(message, update.session_id)
+            and self.turns.owner.accepts_update(update.update)
+        )
 
     def open_line_link(self, link: LineLink) -> None:
         self.transcript.binding.history.action_open(link)

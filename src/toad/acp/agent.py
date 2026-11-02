@@ -18,6 +18,7 @@ from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.goal_history import RecordedGoalHistory
 from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.session_load import ExistingSessionLoadPlan
 
 from toad import paths
 from toad.acp.agent_configuration import (
@@ -46,16 +47,15 @@ from toad.agent import AgentBase
 from toad.agent_presentation import ACPAgentPresentation
 from toad.agent_schema import AgentDefinition
 from toad.core import events as core_events
+from toad.core_event_carrier import CoreEventMessage
+from toad.surface_binding import SurfaceBinding
 from toad.conversation_submission import (
     PromptInputSubmission, ConversationSubmissions, NoSend, SendPending, SendState, SubmissionExecution,
 )
 from toad.platform import host
 
 if TYPE_CHECKING:
-    from agent_comms.session_load import ExistingSessionLoadPlan
-    from toad.core_event_carrier import CoreEventMessage
     from toad.screens.main import MainScreen
-    from toad.surface_binding import SurfaceBinding
     from toad.widgets.conversation import Conversation
 
 

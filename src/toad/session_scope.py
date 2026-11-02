@@ -34,6 +34,7 @@ from toad.owner_preparation import ExistingOwnerPlan
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
+from toad.transcript_read_scope import TranscriptReadScope
 
 if TYPE_CHECKING:
     from toad.widget_actions import DeclaredWidgetActions
@@ -50,12 +51,8 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
 
 
-class TranscriptScope(ABC):
-    """A transcript address owns its reads, observations and absent behavior."""
-
-    @property
-    @abstractmethod
-    def readable(self) -> bool: ...
+class TranscriptScope(TranscriptReadScope, ABC):
+    """A transcript address composes reading, observation and submission capabilities."""
 
     @abstractmethod
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision: ...
@@ -78,23 +75,6 @@ class TranscriptScope(ABC):
         access: CoordinationAccess,
         resume: Callable[[ThreadRowsChanged], bool | None],
     ) -> ResourceRelease: ...
-
-    @abstractmethod
-    def snapshot_request(
-        self,
-        *,
-        position: PagePosition = LatestPage(),
-        limit: PageLimit = AtFrontier(),
-        page_source: PageSource = LivePageSource(),
-    ) -> ReadTranscript: ...
-
-    @abstractmethod
-    def update_request(
-        self,
-        previous: TranscriptPublicationState,
-        *,
-        position: PagePosition = LatestPage(),
-    ) -> ReadTranscriptUpdate: ...
 
     def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
         return False
