@@ -132,7 +132,7 @@ class ScreenWidth(IntEnum):
 class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, Transfers, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
-    CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
+    CSS_PATH = "toad.tcss"
     COMMANDS = {ApplicationCommands}
     MODES = {"store": get_store_screen, "workspace": get_workspace_screen}
     BINDING_GROUP_TITLE = "System"

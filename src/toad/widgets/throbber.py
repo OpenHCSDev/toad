@@ -10,7 +10,7 @@ from textual.style import Style
 from textual.strip import Strip
 from textual.visual import RenderOptions
 from textual.reactive import reactive
-from textual.css.styles import RulesMap
+from textual.text_format import TextFormat
 
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import TurnBandColour
@@ -37,10 +37,10 @@ class ThrobberVisual(Visual):
         frame = throbber.effect_frame(throbber.effect)
         return [throbber.app.colours.paint_gradient(frame, base, edge=throbber.ink_edge)]
 
-    def get_optimal_width(self, rules: RulesMap, container_width: int) -> int:
+    def get_optimal_width(self, rules: TextFormat, container_width: int) -> int:
         return container_width
 
-    def get_height(self, rules: RulesMap, width: int) -> int:
+    def get_height(self, rules: TextFormat, width: int) -> int:
         return 1
 
 

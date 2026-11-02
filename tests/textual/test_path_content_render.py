@@ -1,4 +1,4 @@
-"""Textual-facing: path text renders through Textual's own widget styles, and a height bound crops exactly what the full render would."""
+"""Path policy preserves spans and crops the same full render at each height bound."""
 import unittest
 
 from textual.content import Content
@@ -20,7 +20,7 @@ class PathContentRenderTest(unittest.TestCase):
         content = PathContent(source.plain, list(source.spans), source.cell_length)
         options = RenderOptions(
             widget._get_style,
-            widget.styles,
+            widget.text_format,
             selection=Selection.from_offsets(Offset(2, 0), Offset(6, 2)),
             selection_style=Style.parse("reverse"),
             post_style=Style.parse("italic"),
@@ -36,6 +36,6 @@ class PathContentRenderTest(unittest.TestCase):
                         [(strip.cell_length, list(strip)) for strip in bounded],
                         [(strip.cell_length, list(strip)) for strip in expected],
                     )
-            self.assertIs(options.rules, widget.styles)
+            self.assertIs(options.text_format, widget.text_format)
         self.assertEqual(content.render_strips(0, None, base_style, options), [])
 

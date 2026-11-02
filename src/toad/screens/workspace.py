@@ -115,7 +115,7 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
     def coordination_root(self):
         return self.app.workspace_sessions.source.coordination_root()
 
-    CSS_PATH = ["main.tcss", "comms.tcss"]
+    CSS_PATH = "main.tcss"
 
     def compose(self):
         from textual.containers import Container, Horizontal

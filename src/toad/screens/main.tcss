@@ -435,17 +435,7 @@ ModeSwitcher {
 
 }
 
-MainScreen {    
-    background: $background;
-    layers: sidebar screen base;    
-
-    & > Center { height: 1fr; }
-
-    #session-content {
-        width: 1fr;
-        height: 1fr;
-    }
-
+MainScreen {
     SideBar {        
         background: transparent;        
 

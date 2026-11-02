@@ -8,7 +8,7 @@ from rich.segment import Segment
 
 from textual.cache import LRUCache
 from textual.content import Content
-from textual.css.styles import RulesMap
+from textual.text_format import TextFormat
 from textual.visual import Visual, RenderOptions
 from textual.strip import Strip
 from textual.style import Style
@@ -47,10 +47,10 @@ class Row(Visual):
         strips = self.columns.render(self.row_index, width, style)
         return strips
 
-    def get_optimal_width(self, rules: RulesMap, container_width: int) -> int:
+    def get_optimal_width(self, rules: TextFormat, container_width: int) -> int:
         return min(container_width, self.columns.get_optimal_width())
 
-    def get_height(self, rules: RulesMap, width: int) -> int:
+    def get_height(self, rules: TextFormat, width: int) -> int:
         return self.columns.get_row_height(width, self.row_index)
 
 

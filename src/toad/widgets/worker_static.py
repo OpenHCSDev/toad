@@ -173,9 +173,7 @@ class WorkerStatic(PreparedPaintSource, Static):
                 auto_width, self._get_justify_method(), app.console.color_system,
                 SyntaxPalette.of(app),
                 tuple((name, self._get_style(name)) for name in source.style_names),
-                tuple((name, self.styles.get_rule(name))
-                      for name in ("text_align", "text_overflow", "text_wrap", "line_pad")
-                      if self.styles.has_rule(name)), native_style,
+                self.text_format.snapshot(), native_style,
             )
             request = _Preparation(self._generation, RichRenderTask(source, presentation))
         self._wanted = request
