@@ -1,4 +1,4 @@
-"""Admission and current-resource contracts; no frontend, provider or private bus."""
+"""Physical frontend observation and admission contracts, using native geometry."""
 from dataclasses import replace
 from pathlib import Path
 
