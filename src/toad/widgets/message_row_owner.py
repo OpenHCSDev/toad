@@ -18,7 +18,9 @@ class MessageRowOwner(Widget):
     message_dividers: tuple[MessageDivider, ...]
 
     def sticky_header(self, row: int) -> tuple[Divider, ...]:
-        """Pin the displayed block only after its divider has left the viewport."""
-        header_height = sum(divider.outer_size.height + divider.styles.margin.height
-                            for divider in self.message_dividers)
-        return tuple(divider.block for divider in self.message_dividers) if row >= header_height else ()
+        """Pin the displayed block once its divider's first row is above the window's top row,
+        which is `row` of this message."""
+        if not self.message_dividers:
+            return ()
+        first = self.message_dividers[0].styles.margin.top
+        return tuple(divider.block for divider in self.message_dividers) if row > first else ()

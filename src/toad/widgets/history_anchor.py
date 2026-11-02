@@ -90,6 +90,17 @@ class UnloadedFragment(FragmentLocation):
         return self
 
 
+@dataclass(frozen=True)
+class PinnedHeader:
+    """The header to pin over a window's top row and the column its message draws it in (x from
+    the window's content edge, and width), so the pinned copy sits and wraps exactly as the
+    flow's own header does."""
+
+    headers: tuple[Divider, ...]
+    x: int
+    width: int
+
+
 class ReaderPosition(ABC):
     """Where the reader is in a history window, named by what they read.
 
@@ -694,21 +705,26 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def live_message_row(self, message: MessageRowOwner) -> tuple[MessageRowOwner, ...]:
         return (message,)
 
-    def top_message_header(self) -> tuple[Divider, ...]:
-        """The header of the message drawn on the window's top row, when that header is scrolled above it."""
+    def top_message_header(self) -> PinnedHeader:
+        """The header of the message drawn on the window's top row, when that header is scrolled
+        above it, with the column the flow draws it in."""
         y = self.scroll_y
         for page, first in self.placements(self.drawn_pages()):
             # A row inside the page's measured lines always has its fragment (as in ReaderPosition.of).
             if first <= y < first + page.line_count:
-                span = page.fragment_at(int(y - first))
-                return span.fragment.sticky_header(span.index)
+                row = int(y - first)
+                span = page.fragment_at(row)
+                return PinnedHeader(span.fragment.sticky_header(span.index, row - span.first),
+                                    page.content_region.x - self.content_region.x, page.size.width)
         messages = (message
                     for widget in self.visible_history_items(self.screen._compositor.published_widgets)
                     for message in self.project_value(widget))
         for message, first in self.placements(messages):
             if first <= y < first + message.outer_size.height:
-                return message.sticky_header(int(y - first))
-        return ()
+                return PinnedHeader(message.sticky_header(int(y - first)),
+                                    message.content_region.x - self.content_region.x,
+                                    message.size.width)
+        return PinnedHeader((), 0, 0)
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""

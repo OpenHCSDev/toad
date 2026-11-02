@@ -372,12 +372,12 @@ class TranscriptFragment:
         """The fragment's content occupies its drawn rows unless it owns a header."""
         return range(lines.height)
 
-    def sticky_header(self, block: int) -> tuple[Divider, ...]:
-        """The header to pin over the window's top row when that row is in this block: a
-        user or agent message pins its divider once the divider's own row is above the top
-        row, and a continuation, which draws none, always pins it."""
+    def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
+        """The header to pin over the window's top row, which is `row` of block `block`: a user
+        or agent message pins its divider once the divider's first row is above the top row,
+        and a continuation, which draws none, always pins it."""
         consumed = self.consumed
-        return consumed.header if block >= consumed.header_end else ()
+        return consumed.header if (block, row) > (consumed.header_end - 1, 0) else ()
 
     @cached_property
     def consumed(self) -> FragmentLineConsumer:
@@ -559,10 +559,11 @@ class BusMessageFragment(TranscriptFragment):
     def leading(self):
         return () if self.continuation else (Gap(), self.row.header)
 
-    def sticky_header(self, block: int) -> tuple[Divider, ...]:
-        """Every part of a message pins its header once the header's own row is above the top row;
-        a continuation part draws no header, so it always pins it."""
-        return () if block < len(self.leading) else (self.row.header,)
+    def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
+        """Every part of a message pins its header once the header's first row is above the top
+        row, which is `row` of block `block`; a continuation part draws no header, so it always
+        pins it."""
+        return (self.row.header,) if (block, row) > (len(self.leading) - 1, 0) else ()
 
     @property
     def body_text(self):

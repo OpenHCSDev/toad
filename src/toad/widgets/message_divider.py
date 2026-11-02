@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from agent_comms.ui_model.message_category import MessageCategory
 from rich.style import Style
@@ -30,6 +30,9 @@ from toad.widgets.transcript_lines import (
     RichLineRenderer,
     link_place,
 )
+
+if TYPE_CHECKING:
+    from toad.widgets.history_anchor import PinnedHeader
 
 
 class LineBlockRow(LinkedRows, Widget):
@@ -93,11 +96,17 @@ class StickyHeader(LineBlockRow):
     def __init__(self) -> None:
         super().__init__(Gap())
 
-    def pin(self, headers: tuple[Divider, ...]) -> None:
-        """Draw the one header the window's top row needs, or none."""
-        for header in headers:
+    def pin(self, pinned: PinnedHeader) -> None:
+        """Draw the one header the window's top row needs, or none, in the column its message
+        draws it in, so it sits and wraps exactly as the flow's own header does."""
+        for header in pinned.headers:
             self.update_block(header)
-        self.display = bool(headers)
+        if pinned.headers:
+            if self.styles.width is None or self.styles.width.value != pinned.width:
+                self.styles.width = pinned.width
+            if self.styles.offset.x.value != pinned.x:
+                self.styles.offset = (pinned.x, 0)
+        self.display = bool(pinned.headers)
 
 
 class MessageDivider(Animated[Mix], ConversationLineBlock):
