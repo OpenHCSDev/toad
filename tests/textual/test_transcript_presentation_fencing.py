@@ -275,7 +275,7 @@ async def test_closed_same_source_commit_acquires_complete_coverage(workspace, f
 @pytest.mark.parametrize("following", (False, True))
 async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(workspace, following):
     from dataclasses import replace
-    from agent_comms.errors import TranscriptChanged
+    from agent_comms.coordination_errors import TranscriptChanged
 
     thread = workspace.thread("rewritten-source")
     journal = write_journal(thread.project_path / "rewritten.jsonl",
