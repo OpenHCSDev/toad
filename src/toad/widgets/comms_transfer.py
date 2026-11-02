@@ -50,6 +50,13 @@ from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime
 from toad.widget_actions import DismissAction
 from textual.widgets import Button, Input, Select, Static
+from textual.color import Color
+from textual.css._style_properties import Edges
+from textual.css.scalar import Scalar, Unit
+from textual.geometry import Spacing
+from ui_theme.scheme import ForegroundColour, PrimaryColour, SurfaceColour
+from toad.app_node import ToadNode
+from toad.widget_view import WidgetView
 
 
 class TransferProgress(WireExportObserver):
@@ -220,15 +227,27 @@ class TransferDialog(DismissibleScreen[Transfer]):
         return value
 
 
-class WireExportProgressView(CancellableWireExport, TransferProgress, Vertical):
+class WireExportProgressView(CancellableWireExport, TransferProgress, WidgetView, ToadNode, Vertical):
     """The export's cancellation capability and a view of its own byte/message counters."""
 
-    DEFAULT_CSS = """
-    WireExportProgressView {
-        position: absolute; overlay: screen; width: 64; max-width: 95%; height: auto;
-        padding: 1 2; border: solid $primary; background: $surface;
-    }
-    """
+    layer_name = "wire-export-progress"
+    position = "absolute"
+    overlay = "screen"
+    width = Scalar.from_number(64)
+    max_width = Scalar(95, Unit.PERCENT, Unit.WIDTH)
+    padding = Spacing(1, 2, 1, 2)
+
+    @property
+    def border(self) -> Edges:
+        return Edges(*(("solid", self.app.colours.colour(PrimaryColour)),) * 4)
+
+    @property
+    def paint_background(self) -> Color:
+        return self.app.colours.colour(SurfaceColour)
+
+    @property
+    def paint_foreground(self) -> Color:
+        return self.app.colours.colour(ForegroundColour)
 
     @dataclass
     class Updated(Message):
