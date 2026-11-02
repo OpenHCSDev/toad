@@ -1,6 +1,7 @@
 """Textual-facing: vim `i` asks the prompt for insert mode; the prompt owns whether its editor exists."""
 
 import pytest
+from textual import events
 
 from agent_comms.repo import Checkout
 from support.agents import RecordedEvents, peer
@@ -261,3 +262,35 @@ async def test_normal_hjkl_and_arrows_reach_neovim_motions(workspace):
             await ui.until(lambda: area.cursor_location == location and area.editing_mode.completed,
                            why=f"Normal {key} to move the real Neovim cursor to {location}")
         assert area.text == "abc\ndef" and area.has_focus
+
+
+async def test_escape_escape_i_in_quick_succession_reach_their_modes(workspace):
+    """A person presses Escape, Escape, i without waiting for Neovim's reply to each.
+
+    Each key must be answered in the mode the keys before it produced, not the mode
+    the last completed snapshot showed when the key arrived.
+    """
+    async with workspace.app() as ui:
+        area = ui.conversation.prompt.prompt_text_area
+        ui.app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
+        await ui.until(lambda: area.key_mode is VimInsert and area.editing_mode.completed,
+                       why="the real child in Insert")
+        area.focus()
+        await ui.type("draft")
+        await ui.until(lambda: area.text == "draft" and area.editing_mode.completed,
+                       why="a real draft in Insert")
+        # A terminal delivers keys as they are typed; Pilot.press waits for idle between
+        # keys, which hides the race. Post both the way the driver does.
+        for _ in range(2):
+            ui.app.post_message(events.Key("escape", None))
+        await ui.until(lambda: ui.conversation.window.has_focus,
+                       why="the second Escape, pressed before Neovim answered the first, "
+                           "to leave the box from Normal")
+        assert not area.has_focus
+        await ui.press("i")
+        await ui.until(lambda: area.has_focus and area.editing_mode.accepts_text,
+                       why="i from navigation to focus the prompt in Insert")
+        await ui.type("!")
+        # Escape from Insert leaves the cursor on the last character; Vim's i inserts before it.
+        await ui.until(lambda: area.text == "draf!t" and area.editing_mode.completed,
+                       why="typed text to land in the returned Insert mode")

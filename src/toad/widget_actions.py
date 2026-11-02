@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterator, Mapping
 from functools import partialmethod
 from operator import or_
 from types import MappingProxyType
-from typing import ClassVar, Generic, Literal, Self, TypeVar, cast
+from typing import TYPE_CHECKING, ClassVar, Generic, Literal, Self, TypeVar, cast
 
 from agent_comms.command import Command
 from agent_comms.nominal.declared_family import DeclaredFamily, FamilyMeta
@@ -16,7 +16,7 @@ from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual import events
 from textual._activation import PrimaryActivation
 from textual._callback import invoke
-from textual.keys import KeyDeclaration, KeyDeclarationType
+from textual.keys import DeclaredKey, KeyDeclaration, KeyDeclarationType, UndecodedKey
 from textual.navigation import SelectCursor
 from textual.widgets.text_area import EditingMode
 from textual.dom import DOMNode
@@ -24,11 +24,32 @@ from toad.app_node import ToadNode
 from copy import replace
 from dataclasses import dataclass
 
+if TYPE_CHECKING:
+    from textual.widgets import TextArea
+
 Context = TypeVar("Context", bound=DOMNode)
 
 
 class KeyFamilyMeta(FamilyMeta, KeyDeclarationType):
     """A named command family whose classes declare native key overlap."""
+
+
+class EngineKey(DeclaredKey):
+    """A key an external editing engine receives first and offers back at its own boundary.
+
+    The engine maps the key to itself: declining the boundary leaves the key's native meaning.
+    """
+
+    def input_bindings(self, spelling: str) -> tuple[tuple[str, str], ...]:
+        return ((spelling, spelling),)
+
+
+@dataclass(frozen=True, kw_only=True)
+class ActionBinding(CommandBinding):
+    """An action's binding; an engine boundary for its key is the action's to answer."""
+
+    def engine_boundary(self, editor: TextArea) -> bool:
+        return self.action.engine_boundary(editor)
 
 
 class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
@@ -42,6 +63,7 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
     group: ClassVar[Binding.Group | None] = None
     key_display: ClassVar[str | None] = None
     binding_prefix: ClassVar[str] = ""
+    declared_key: ClassVar[DeclaredKey] = UndecodedKey()
 
     @classmethod
     def default_title(cls) -> str:
@@ -75,11 +97,12 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
 
     @classmethod
     def command_binding(cls, capability: type[EditingMode], key: str, command: Self) -> ModeBinding:
-        return CommandBinding(
+        return ActionBinding(
             key=key, action=command, description=cls.title,
             available=command.key_available, mode=capability,
             tooltip=cls.summary(), show=cls.show, priority=cls.priority,
             system=cls.system, group=cls.group, key_display=cls.key_display,
+            declared_key=cls.declared_key,
         )
 
     @classmethod
@@ -137,6 +160,10 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
 
     def available(self, context: Context) -> bool | None:
         return True
+
+    def engine_boundary(self, editor: TextArea) -> bool:
+        """An external engine offers this action at its key; only an EngineKey member is asked."""
+        return False
 
     def key_available(self, context: Context) -> bool | None:
         """Keyboard scope may be narrower than menu/palette command availability."""

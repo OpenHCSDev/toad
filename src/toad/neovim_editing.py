@@ -806,10 +806,15 @@ class NeovimEditing(VimMode, MroDispatch):
         return self.completed and self.snapshot.state.allows_application_commands
 
     @property
+    def boundary_state(self) -> NeovimState:
+        """Neovim's own state at an engine boundary. Its expression mapping calls the
+        boundary while the key is executing, so that input cannot already have a SafeState
+        completion; the boundary published this snapshot from Neovim at that key."""
+        return self.snapshot.state
+
+    @property
     def allows_history_navigation(self) -> bool:
-        # The engine's expression mapping calls this boundary while an arrow is
-        # executing. That input cannot already have a SafeState completion.
-        return self.snapshot.state.allows_history_navigation
+        return self.boundary_state.allows_history_navigation
 
     @property
     def cursor_shape(self) -> CursorShape:
@@ -1001,6 +1006,11 @@ class NeovimEditing(VimMode, MroDispatch):
     def _input(self, keys: str) -> asyncio.Future[object]:
         return self._enqueue(NeovimInput(self._next_generation(), keys))
 
+    # Escape is the person's key: Neovim offers it back at the Standard boundary.
+    # The application reaches Normal from any mode with Neovim's own CTRL-\ CTRL-N,
+    # on the same ordered input path, so its keys never reach that boundary.
+    to_normal = "<C-\\><C-N>"
+
     async def _start(self) -> None:
         await self._child_ready
         editor = self._receiver.require()
@@ -1182,7 +1192,7 @@ class NeovimEditing(VimMode, MroDispatch):
                                 [max(1, editor.wrap_width), max(3, editor.content_size.height + 2)]))
 
     def enter_text(self, editor: TextArea) -> None:
-        self._input("<Esc>i")
+        self._input(self.to_normal + "i")
 
     def load_text(self, editor: TextArea, text: str) -> None:
         self._lua("return ToadEditor.load(...)", [text])
@@ -1212,7 +1222,7 @@ class NeovimEditing(VimMode, MroDispatch):
 
     def request_selection(self, editor: TextArea, selection: Selection) -> Selection:
         if not selection.is_empty:
-            self._input("<Esc>")
+            self._input(self.to_normal)
             self._lua("return ToadEditor.select(...)", sorted(selection))
         elif selection.end != self.snapshot.state.cursor:
             self._lua("return ToadEditor.cursor(...)", [selection.end])

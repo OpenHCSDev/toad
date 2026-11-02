@@ -2,7 +2,7 @@
 from __future__ import annotations
 from textual.document._editing import VimMode
 from textual.widgets.text_area import EditingMode
-from toad.widget_actions import Action
+from toad.widget_actions import Action, EngineKey
 from toad.core.input_events import UserInputSubmitted
 from typing import TYPE_CHECKING
 
@@ -16,16 +16,27 @@ class PromptAction(Action, affix="Action"):
 
 
 class StandardEditingAction(PromptAction):
-    """Escape from Neovim's idle Normal mode leaves the box for Standard navigation."""
+    """Escape from Neovim's idle Normal mode leaves the box for Standard navigation.
+
+    Neovim receives the key first and offers it back from the mode the keys before it
+    produced. A decision taken here from the last completed snapshot would treat a
+    second Escape typed before Neovim answered the first as one more Escape in Insert.
+    """
 
     keys = {VimMode: ("escape",)}
-    priority = True
+    declared_key = EngineKey()
 
     def available(self, editor):
         return editor.editing_mode.allows_application_commands
 
     async def apply(self, editor: PromptTextArea) -> None:
         editor.leave_modal_editor()
+
+    def engine_boundary(self, editor: PromptTextArea) -> bool:
+        if not editor.editing_mode.boundary_state.allows_application_commands:
+            return False
+        editor.leave_modal_editor()
+        return True
 
 
 class EnterShellAction(PromptAction):
