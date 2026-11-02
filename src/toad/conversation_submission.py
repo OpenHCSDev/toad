@@ -285,7 +285,8 @@ class ConversationSubmissions:
     def queue_evidence(self) -> QueueEvidence:
         return QueueEvidence(
             self.view.agent_binding.presentation, self.delivering,
-            self.view.send_block_reason, self.view.contents.notification_targets)
+            self.view.send_block_reason, self.view.contents.notification_targets,
+            lambda: self.view.app.coordination_access.observation.observed().service)
 
     @property
     def queue_summary(self) -> str:
@@ -335,16 +336,15 @@ class ConversationSubmissions:
 
     def send_now(self):
         source = self.view.queue_source
-        presentation = self.view.agent_binding.presentation
+        evidence = self.queue_evidence
         return self.view.run_worker(
-            partial(self._send_now, source, presentation,
-                    source.queue_scope(presentation)),
+            partial(self._send_now, source, evidence, source.queue_scope(evidence)),
             group="send-queued-now", exclusive=True,
         )
 
-    async def _send_now(self, source: QueueSource, presentation, scope: QueueScope) -> None:
+    async def _send_now(self, source: QueueSource, evidence: QueueEvidence, scope: QueueScope) -> None:
         try:
-            await source.queue_send_now(presentation, scope)
+            await source.queue_send_now(evidence, scope)
         except (RequestError, QueueActionRefused) as error:
             self.view.feedback.flash(f"Send now failed: {error}", style="error")
         self.publish_pending()

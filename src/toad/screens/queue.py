@@ -11,10 +11,10 @@ from textual.containers import HorizontalGroup, Vertical, VerticalScroll
 from textual.widgets import Button, Static
 
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.agent_presentation import AgentPresentation
 from toad.conversation_submission import ConversationSubmissions
 from toad.line_blocks import SpanColumns
 from toad.screens.source_modal import SourceModal
+from toad.submission_queue import QueueEvidence
 from toad.widgets.tool_content import ToolContent
 
 class QueueInspection(SourceModal):
@@ -33,7 +33,7 @@ class QueueInspection(SourceModal):
         self.submissions = submissions
         self.source = submissions.view.queue_source
         self.evidence = submissions.queue_evidence
-        self.scope = self.source.queue_scope(self.evidence.presentation)
+        self.scope = self.source.queue_scope(self.evidence)
 
     @property
     def source_view(self):
@@ -49,14 +49,14 @@ class QueueInspection(SourceModal):
             yield Static("Individual edit/delete/reorder requires ID-targeted, revision-checked backend support.")
             yield Static("", id="queue-error")
             with HorizontalGroup():
-                available = self.source.queue_actions_available(self.evidence.presentation)
+                available = self.source.queue_actions_available(self.evidence)
                 yield Button("Send now", id="queue-send-now", disabled=not available)
                 yield Button("Clear queued inputs", id="queue-clear", disabled=not available)
                 yield Button("Close", id="queue-close")
 
-    async def apply_action(self, action: Callable[[AgentPresentation, QueueScope], Awaitable[None]]) -> None:
+    async def apply_action(self, action: Callable[[QueueEvidence, QueueScope], Awaitable[None]]) -> None:
         try:
-            await action(self.evidence.presentation, self.scope)
+            await action(self.evidence, self.scope)
         except (QueueActionRefused, RequestError) as error:
             self.query_one("#queue-error", Static).update(str(error))
             return
