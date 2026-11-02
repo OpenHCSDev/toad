@@ -330,6 +330,6 @@ class ConfiguredAgentProcess(AgentProcess):
                 session.agent.log(f'[error] {fail_details}')
                 session.record_failure(LogAgentFail(
                     f'Agent {outcome.summary}',
-                    details=fail_details, log_path=session.agent.presentation.log_path))
+                    description=fail_details, log_path=session.agent.presentation.log_path))
             elif not session.settled.is_set():
                 session.startup_failed('ACP process closed before session initialization completed.')

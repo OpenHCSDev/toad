@@ -61,7 +61,14 @@ from toad.block_navigation import (
 )
 from toad.command_catalog import CommandCatalog
 from toad.target_commands import CommandContextChanged, TargetContext
-from toad.conversation_comms_handlers import ConversationCommsHandlers
+import agent_comms.agent_events as comms_events
+from agent_comms.acp_extension import (
+    CompactionChangedUpdate, CoordinationChangedUpdate, GoalChangedUpdate,
+    InputFailedUpdate, InputStartedUpdate, McpClientAcknowledgementUpdate,
+    NativeRoundCommittedUpdate, PromptCancelledUpdate, TranscriptChangedUpdate,
+    TranscriptSnapshotUpdate, TurnChangedUpdate,
+)
+from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.conversation_submission import ConversationSubmissions
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
@@ -837,12 +844,151 @@ from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 
 
 class Conversation(
-    ConversationCommsHandlers,
+    CoreEventReceiver,
     NativeMethodKeys,
     ConversationSessionBinding, ToadNode, MenuConversation,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
+
+    def accepts(self, message: CoreEventMessage) -> bool:
+        return message.event.accepted_by(message, self)
+
+    @handles(CursorPresentation)
+    def on_private_native_cursor_update(
+        self, update: CursorPresentation, message: CoreEventMessage
+    ) -> None:
+        message.stop()
+        if update.sequence <= self._private_cursor_sequence:
+            return
+        self._private_cursor_sequence = update.sequence
+        self.native_history_status = update.status
+
+    @handles(McpClientAcknowledgementUpdate)
+    async def on_mcp_client_status(
+        self, update: McpClientAcknowledgementUpdate, message: CoreEventMessage
+    ) -> None:
+        """Show the MCP server summary only within the active turn it describes."""
+        if self._mcp_live_note:
+            return  # The package emits at most one server summary per turn.
+        rows = update.acknowledgement.servers
+        summary = (
+            "; ".join(
+                f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
+                f" tools={row.tools} resources={row.resources} prompts={row.prompts}"
+                for row in rows
+            )
+            or "no approved servers"
+        )
+        self.output.boundary()
+        self._mcp_live_note = Note(
+            Content.styled(
+                f"MCP live (this turn, not a grant): {summary}", "$text-muted"
+            ),
+        )
+        await self.post(self._mcp_live_note)
+
+    @handles(TurnChangedUpdate)
+    async def on_turn_changed(
+        self, update: TurnChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        if not self.turns.changed(message):
+            return
+        if self.turns.owner.busy:
+            return
+        await self._clear_mcp_live()
+        self._agent_activity_boundary.reset()
+        await self.output.settle()
+        self.transcript.retry()
+
+    @handles(QueuePresentation)
+    async def on_queue_view_update(
+        self, update: QueuePresentation, message: CoreEventMessage
+    ) -> None:
+        async with self.window.preserve_history(root=self.contents):
+            for started in update.starts:
+                await self.present_started_input(started)
+            self.submissions.publish_pending()
+
+    @handles(InputStartedUpdate)
+    async def on_input_started(
+        self, update: InputStartedUpdate, message: CoreEventMessage
+    ) -> None:
+        async with self.window.preserve_history(root=self.contents):
+            await self.present_started_input(update)
+            self.submissions.publish_pending()
+
+    @handles(InputFailedUpdate)
+    def on_input_failed(
+        self, update: InputFailedUpdate, message: CoreEventMessage
+    ) -> None:
+        """The accepted publication supplies feedback, never the local draft."""
+        self.feedback.flash(
+            f"{update.failure.title}: {update.failure.description}\n{update.failure.input_disposition}\n{update.failure.action}",
+            style="error",
+        )
+
+    @handles(core_events.CommsUpdated)
+    async def on_comms_updated(self, event: core_events.CommsUpdated, message: CoreEventMessage) -> None:
+        await self.dispatch(event.update, message)
+
+    @handles(CoordinationChangedUpdate)
+    def on_coordination_changed(
+        self, update: CoordinationChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        # Source binding is published independently of registry/activity changes:
+        # a newly bound thread joins the observed threads (or reads as foreign).
+        self.arm_thread_read()
+        self.refresh_thread_status()
+        self.prompt.sync_session()
+        self.prompt.sync_queue()
+
+    @handles(PromptCancelledUpdate)
+    async def on_prompt_cancelled(
+        self, update: PromptCancelledUpdate, message: CoreEventMessage
+    ) -> None:
+        await self.post(
+            MarkdownNote(
+                f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"
+            )
+        )
+
+    @handles(TranscriptChangedUpdate)
+    def on_transcript_changed(
+        self, update: TranscriptChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.changed(update.cursor)
+
+    @handles(NativeRoundCommittedUpdate)
+    def on_native_round_committed(
+        self, update: NativeRoundCommittedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.require_commit()
+
+    @handles(GoalChangedUpdate)
+    def on_goal_changed(
+        self, update: GoalChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.goal_observation.receive(message.publisher, update)
+
+    @handles(CompactionChangedUpdate)
+    async def on_compaction_changed(
+        self, update: CompactionChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        await self.dispatch(update.event, message)
+
+    @handles(comms_events.CompactionEnd)
+    def on_compaction_end(
+        self, event: comms_events.CompactionEnd, message: CoreEventMessage
+    ) -> None:
+        # Pi's saved compaction entry owns the notice; re-read the transcript.
+        self.transcript.require_commit()
+
+    @handles(TranscriptSnapshotUpdate)
+    def on_transcript_snapshot(
+        self, update: TranscriptSnapshotUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.received(update.page)
 
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """The conversation owns its persistent reader and composer key targets."""

@@ -28,6 +28,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.native_output import AssistantOutput, ToolOutput
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.transcripts import NativeCommittedPrefix
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -63,7 +64,7 @@ class CommsUpdateConsumer(MroDispatch):
         queue_token: int | None = None,
     ) -> None:
         self.agent = agent
-        self.session_id = session_id
+        self.session_id = FieldCodec.decode(AcpSessionId, session_id)
         self.delivery: ResponseDelivery = UnroutedResponse()
         self.response_type: type[ResponseStream] = ResponseStream
         self.compaction: CompactionReply = CompactionReply()
