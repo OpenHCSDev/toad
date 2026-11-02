@@ -40,7 +40,7 @@ from toad.sidebar_layout import (
     SidebarShift,
     ThreadSidebarPlacement,
 )
-from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
+from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
 from toad.app_node import ToadNode
 
 if TYPE_CHECKING:
@@ -188,7 +188,7 @@ The Sidebar contains additonal information associated with the conversation.
         if self.header_control is None:
             yield from super().compose()
         else:
-            with SidebarHeader(classes="sidebar-header"):
+            with ViewportHeader(classes="sidebar-header"):
                 yield self._title
                 yield self.header_control
             with self.Contents():

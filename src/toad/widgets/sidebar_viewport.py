@@ -1,4 +1,4 @@
-"""Sidebar rows scroll horizontally; their header controls stay in the viewport."""
+"""Sidebar rows scroll horizontally; panel headers remain in their scrollport."""
 
 from __future__ import annotations
 
@@ -10,7 +10,13 @@ from textual.geometry import Size
 
 
 class SidebarHeader(HorizontalGroup):
+    """Shared header presentation, valid with or without a sidebar scrollport."""
+
     DEFAULT_CSS = "SidebarHeader { width: 100%; }"
+
+
+class ViewportHeader(SidebarHeader):
+    """A panel header whose width and horizontal position belong to its scrollport."""
 
     def _get_box_model(
         self, container: Size, viewport: Size,
@@ -56,10 +62,10 @@ class SidebarViewport(VerticalScroll):
     def on_resize(self) -> None:
         # Native resize commits the scrollport, including its scrollbar gutter.
         # Invalidate only dependent headers; never store a second pixel width.
-        for header in self.query(SidebarHeader):
+        for header in self.query(ViewportHeader):
             header.refresh(repaint=False, layout=True)
 
-    def align_header(self, header: SidebarHeader) -> None:
+    def align_header(self, header: ViewportHeader) -> None:
         # The content still owns its full intrinsic width. Counter only its
         # horizontal scroll for these one-line headers, without pinning y or
         # creating a second read/presentation authority.
@@ -67,5 +73,5 @@ class SidebarViewport(VerticalScroll):
 
     def _align_headers(self) -> None:
         if self.is_mounted:
-            for header in self.query(SidebarHeader):
+            for header in self.query(ViewportHeader):
                 self.align_header(header)
