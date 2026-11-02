@@ -6,11 +6,11 @@ from agent_comms.repo import Checkout
 import asyncio
 import os
 from abc import abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, replace
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from acp import schema
+from acp import ClientSideConnection, schema
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import HistoryOnlyQueueProjection
 from agent_comms.acp_failure import ACPFailure, RequestFailure
@@ -37,6 +37,9 @@ from toad.core.events import (
     UnsupportedResumeAgentFail,
 )
 from toad.db import DB, SessionMeta
+
+if TYPE_CHECKING:
+    from toad.acp.agent import Agent
 
 PROTOCOL_VERSION = 1
 
@@ -137,16 +140,16 @@ class AgentSession:
 
     reconnect_timeout_seconds = 30
 
-    def __init__(self, agent, pk, app_events: core_events.CoreEventStream) -> None:
+    def __init__(self, agent: Agent, pk, app_events: core_events.CoreEventStream) -> None:
         self.agent = agent
         # The app's stream: its thread rows show this session's state, attached to a view or not.
         self.app_events = app_events
-        self.task = None
-        self.responses = set()
-        self.retirement = None
+        self.task: asyncio.Task[None] | None = None
+        self.responses: set[asyncio.Task[object]] = set()
+        self.retirement: asyncio.Task[None] | None = None
         self._disposition: SessionDisposition = ActiveSessionDisposition(self)
         self.pk = pk
-        self.chosen_name = None
+        self.chosen_name: str | None = None
         self.connected = False
         self.reconnecting = False
         self.load_plan: SessionLoadPlan = EnsuringSessionLoadPlan()
@@ -179,13 +182,26 @@ class AgentSession:
         """Only this active session may consume work for its current binding."""
         return self.accepts_updates and self.agent.session_id == session_id
 
-    def start_operation(self, operation):
+    def _track_operation[Result](self, operation: Coroutine[None, None, Result]) -> asyncio.Task[Result]:
         task = asyncio.create_task(operation)
-        if not self.accepts_updates:
-            task.cancel()
         self.responses.add(task)
         task.add_done_callback(self.responses.discard)
         return task
+
+    def start_operation[Result](self, operation: Coroutine[None, None, Result]) -> asyncio.Task[Result]:
+        task = self._track_operation(operation)
+        if not self.accepts_updates:
+            task.cancel()
+        return task
+
+    def cancel_responses(self) -> None:
+        """Transport retirement cancels session work through its actual owner."""
+        for task in tuple(self.responses):
+            task.cancel()
+
+    async def close_in(self, connection: ClientSideConnection) -> None:
+        """Closing the remote session is tracked even after input admission closes."""
+        await self._track_operation(connection.close_session(self.agent.session_id))
 
     def close(self) -> None:
         self.disposition = self.disposition.close(self.agent)
@@ -211,22 +227,23 @@ class AgentSession:
     async def _retire(self) -> None:
         pending = tuple(task for task in (self.task, *self.responses)
                         if task is not None)
-        for task in pending:
-            task.cancel()
+        if self.task is not None:
+            self.task.cancel()
+        self.cancel_responses()
         if pending:
             await asyncio.gather(*pending, return_exceptions=True)
         self.responses.clear()
         self.task = None
         await self.agent.process.detach(self)
 
-    def session_finished(self, task) -> None:
+    def session_finished(self, task: asyncio.Task[None]) -> None:
         if task.cancelled():
             return
         error = task.exception()
         if error is not None and self.accepts_updates:
             self.startup_failed(f"{type(error).__name__}: {error}")
 
-    def retirement_finished(self, task) -> None:
+    def retirement_finished(self, task: asyncio.Task[None]) -> None:
         if task.cancelled():
             return
         error = task.exception()
