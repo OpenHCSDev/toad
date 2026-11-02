@@ -19,7 +19,7 @@ from agent_comms.nominal.field_codec import FieldCodec, MalformedRecord, NullMem
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import log
 from textual.binding import Binding
-from textual.cursor_shape import BlinkingBar, CursorShape, SteadyBlock
+from textual.cursor_shape import CursorShape, SteadyBlock, TextEntryCursor
 from textual.document._document import DocumentBase, Location, RangedEditResult, Selection
 from textual.document._editing import EditingFailure, EditingMode, VimMode
 from textual.document._edit import Edit, InsertionPoint
@@ -252,7 +252,7 @@ class TransferableState(NeovimState, declared_name=None):
 
 
 class TextEntryState(TransferableState, declared_name=None):
-    cursor_shape = BlinkingBar()
+    cursor_shape = TextEntryCursor()
 
     @property
     def accepts_text(self) -> bool:
