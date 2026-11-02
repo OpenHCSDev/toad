@@ -272,14 +272,6 @@ class Agent(AgentBase):
         self._post_queue_view()
 
 
-    @property
-    def available_modes(self):
-        return self.configuration.mode.choices
-
-    @property
-    def current_mode(self):
-        return self.configuration.mode.selected
-
     async def set_mode(self, mode_id: str) -> str | None:
         return await self.configuration.mode.select(self, mode_id)
 

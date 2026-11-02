@@ -154,14 +154,6 @@ class AgentConnection(ABC):
     def current_turn(self):
         return NoTurn()
 
-    @property
-    def available_modes(self):
-        return ()
-
-    @property
-    def current_mode(self):
-        return None
-
     async def set_mode(self, mode_id: str) -> str | None:
         return "This agent does not support mode selection"
 

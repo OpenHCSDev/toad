@@ -601,7 +601,7 @@ class ConversationSessionBinding(
 
     @property
     def mode_selection_available(self) -> bool:
-        return bool(self.agent_binding.available_modes)
+        return bool(self.agent_binding.configuration.mode.choices)
 
     input_delivery: var[DeliveryView] = var(DeliveryView())
 
@@ -1661,7 +1661,7 @@ class Conversation(
             return
         if error is not None:
             self.app.show_error(error, "Set Mode")
-        elif (mode := agent.current_mode) is not None:
+        elif (mode := agent.configuration.mode.selected) is not None:
             self.feedback.flash(
                 Content.from_markup("Mode changed to [b]$mode", mode=mode.name),
                 style="success",

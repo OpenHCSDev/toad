@@ -87,7 +87,7 @@ class SessionCommands(Provider):
 class ModeProvider(SessionCommands):
     def commands(self, session: MainScreen) -> Iterable[SimpleCommand]:
         for mode in sorted(
-            session.conversation.agent_binding.available_modes,
+            session.conversation.agent_binding.configuration.mode.choices,
             key=lambda mode: mode.name,
         ):
             yield SimpleCommand(

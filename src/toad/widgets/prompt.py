@@ -632,7 +632,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     def sync_configuration(self) -> None:
         """Render the original operational owners; no accepted selection lives here."""
         agent = self.agent_binding
-        mode = agent.current_mode
+        mode = agent.configuration.mode.selected
         self.set_class(mode is not None, "-has-mode")
         info = self.query_one(ModeInfo)
         info.update(mode.name if mode is not None else "")
@@ -689,8 +689,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         from toad.visuals.columns import Columns
 
         agent = self.agent_binding
-        mode_list = sorted(agent.available_modes, key=lambda mode: mode.name.lower())
-        current = agent.current_mode
+        mode_list = sorted(agent.configuration.mode.choices, key=lambda mode: mode.name.lower())
+        current = agent.configuration.mode.selected
         columns = Columns("auto", "auto", "flex")
         for mode in mode_list:
             columns.add_row(
