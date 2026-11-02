@@ -13,8 +13,8 @@ class AgentActivityPresentation:
     group = (Summary.titled("· Agent activity", ThinkingRole),)
 
     @staticmethod
-    def thinking(text: str, *, complete: bool = True) -> tuple[LineBlock, ...]:
-        return MarkdownMessageBody(text, role=ThinkingRole).presentation(complete=complete)
+    def thinking(text: str) -> tuple[LineBlock, ...]:
+        return MarkdownMessageBody(text, role=ThinkingRole).presentation()
 
     @staticmethod
     def tool_has_details(status: ToolCallStatus, details_available: bool) -> bool:

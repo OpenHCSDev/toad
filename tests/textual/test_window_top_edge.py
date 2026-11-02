@@ -1,6 +1,7 @@
-"""Textual-facing: the window's top edge. Upward wheel travel never moves the reader forward, past live thoughts or through saved history; a wrapped message header pins the moment its first row leaves, drawn exactly as the flow draws it."""
+"""Textual-facing: the window's top edge. Upward wheel travel never moves the reader forward, past live thoughts or through saved history; a wrapped message header pins the moment its first row leaves, drawn exactly as the flow draws it; at phone width the reader's top row keeps its text while saved fragments restyle and while a live thought streams."""
 
 
+from collections.abc import Callable
 from functools import partial
 
 import pytest
@@ -150,25 +151,34 @@ async def test_wrapped_header_pins_once_its_first_row_leaves_and_matches_the_flo
 
 
 class TopRowScreen(RecordedHistoryScreen):
-    """Record the text on the window's top row in every published frame."""
+    """Record the text on the window's top row in every published frame, read by `watching`."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.top_rows: list[str] = []
-        self.watching = False
+        self.watching: Callable[[], str] | None = None
 
     def _on_frame_published(self):
         super()._on_frame_published()
-        if self.watching:
-            self.top_rows.append(top_row_text(self.query_one(Conversation).window))
+        if self.watching is not None:
+            self.top_rows.append(self.watching())
 
 
 def top_row_text(window) -> str:
+    """The saved-history row drawn on the window's top row."""
     y = window.scroll_y
     for page, first in window.placements(window.drawn_pages()):
         if first <= y < first + page.line_count:
             return "".join(segment.text for segment in page.render_line(int(y - first), page._paint_state))
     return ""
+
+
+def block_top_row_text(window, block) -> str:
+    """The row of a live block drawn on the window's top row, when the block crosses it."""
+    row = window.content_region.y - block.region.y
+    if not 0 <= row < block.size.height:
+        return ""
+    return "".join(segment.text for segment in block.render_line(row, block._paint_state))
 
 
 def top_row_app(*, launch_root, **kwargs):
@@ -218,13 +228,61 @@ async def test_rows_without_styling_never_move_the_reader_at_phone_width(workspa
         top = top_row_text(window)
         assert top.strip(), "The reader's top row draws no text to keep"
         screen = ui.app.screen
-        screen.watching = True
+        screen.watching = partial(top_row_text, window)
         ui.app.theme = next(name for name in ui.app.available_themes if name != ui.app.theme)
         await ui.until(lambda: all(page.rows_measured for page in history.pages),
                        why="the restyled pages to be measured", seconds=60)
         for _ in range(4):
             await ui.step()
-        screen.watching = False
+        screen.watching = None
         moved = [row for row in screen.top_rows if row != top]
         assert not moved, (f"At width {history.pages[0].size.width} the top row {top!r} "
                            f"showed {moved[:3]} while styled rows were missing")
+
+
+THINKING = "\n\n".join((
+    "### Tracing the **reader position** through `ReaderPosition.of`",
+    "The window anchors on the top row's fragment, so a row that changes height above "
+    "the anchor moves everything below it. `place_reader` restores the fraction, "
+    "but only against the *current* height.",
+    "- check `FragmentPosition.fraction` after a restyle\n- check `BlockPosition` for live rows\n"
+    "- compare **plain** and **styled** wrap at `36` columns",
+    "Next: the live thought itself streams while the reader sits on it, so its rows "
+    "must not change as more text arrives",
+))
+
+
+async def test_a_live_thought_crossing_the_top_edge_keeps_its_rows_at_phone_width(workspace):
+    """A live thought's height is its styled rows' alone: while it streams with the reader on
+    one of its rows at the top edge, that row keeps its text in every frame instead of
+    switching to a plain stand-in wrap and back."""
+    async with workspace.app(size=(63, 40), application=top_row_app) as ui:
+        view = ui.conversation
+        await view.post(AgentResponse("\n\n".join(f"Earlier paragraph {i}" for i in range(20))))
+        thought = AgentThought(THINKING)
+        await view.post(thought)
+        await view.post(AgentResponse("\n\n".join(f"Later paragraph {i}" for i in range(20))))
+        await ui.until(lambda: thought._styled is not None, why="the thought's styled rows")
+        window = view.window
+        window.anchor()
+        await ui.until(lambda: window.max_scroll_y > 0 and window.follows_tail, why="a scrollable tail")
+        for _ in range(400):
+            if thought.region.y + 2 < window.content_region.y < thought.region.bottom - 6:
+                break
+            await wheel(ui, window, events.MouseScrollUp)
+        await ui.step()
+        top = block_top_row_text(window, thought)
+        assert top.strip(), f"The thought never crossed the top edge at width {thought.size.width}"
+        screen = ui.app.screen
+        screen.watching = partial(block_top_row_text, window, thought)
+        for chunk in (" and", " then a few more", " words arrive", " in the last paragraph"):
+            thought.append(chunk)
+            await ui.step()
+        await ui.until(lambda: thought._render_worker is None or thought._render_worker.is_finished,
+                       why="the streamed text to be styled")
+        for _ in range(4):
+            await ui.step()
+        screen.watching = None
+        moved = [row for row in screen.top_rows if row != top]
+        assert not moved, (f"At width {thought.size.width} the thought's top row {top!r} "
+                           f"showed {moved[:3]} while its text streamed")
