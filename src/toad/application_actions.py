@@ -11,6 +11,7 @@ from textual.command import DiscoveryHit, Hit, Hits, Provider
 from agent_comms.nominal.field_codec import FieldCodec
 from toad.preferences import SETTINGS
 from toad.screens.keymap import KeymapScreen
+from toad.keymap import KeyInvocationId
 from toad.widget_actions import (
     ApplicationAction,
     System,
@@ -169,10 +170,11 @@ class KeymapAction(ApplicationAction):
     keys = {EditingMode: ("f1",)}
 
     async def apply(self, app: ToadApp) -> None:
-        focused = frozenset(binding.id for node, bindings in app.screen._binding_chain
-                            for _key, binding in bindings
-                            if binding.id and binding.state(app, node))
-        app.push_screen(KeymapScreen(app.screen.active_binding_mode, focused))
+        focused = frozenset(KeyInvocationId(invocation.key_identity())
+                            for node, bindings in app.screen._binding_chain
+                            for _key, binding in bindings if binding.state(app, node)
+                            for invocation in binding.invocations())
+        app.push_screen(KeymapScreen(focused))
 
 
 class ChannelsAction(ApplicationAction):

@@ -8,10 +8,9 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Checkbox, DataTable, Input, Static
-from textual.document._editing import EditingMode
 
 from toad.key_modes import KeyMode
-from toad.keymap import Keymap, KeymapCatalog, KeymapRefused, KeymapRow, discover
+from toad.keymap import KeyInvocationId, Keymap, KeymapCatalog, KeymapRefused, KeymapRow, discover
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
 from toad.screens.modal import DismissibleScreen
@@ -33,10 +32,10 @@ class KeymapScreen(DismissibleScreen[None]):
     KeymapScreen #keymap-keys { width: 1fr; }
     """
 
-    def __init__(self, focus_mode: type[EditingMode], focused: frozenset[str]) -> None:
+    def __init__(self, focused: frozenset[KeyInvocationId]) -> None:
         super().__init__()
         discover()
-        self.focus_mode, self.focused_ids = focus_mode, focused
+        self.focused_ids = focused
         self.mode_choices = FamilyChoices(KeyMode)
         self.modes = self.mode_choices.choices()
         self.catalog = KeymapCatalog.capture(self.modes)
@@ -70,7 +69,7 @@ class KeymapScreen(DismissibleScreen[None]):
         focused_only = self.query_one("#keymap-focused", Checkbox).value
         self.visible_declarations = tuple(declaration for declaration in self.declarations
                              if (not focused_only or self.catalog.require(declaration).visible_for_focus(
-                                 self.focus_mode, self.focused_ids))
+                                 declaration in self.focused_ids))
                              and term.casefold() in (self.catalog.require(declaration).key_title() + " "
                                                     + self.catalog.require(declaration).key_summary()).casefold())
         keymap = self.app.settings.ui.keymap
@@ -79,7 +78,7 @@ class KeymapScreen(DismissibleScreen[None]):
         for declaration in self.visible_declarations:
             title = Text(self.catalog.require(declaration).key_title(),
                          style="" if self.catalog.require(declaration).visible_for_focus(
-                             self.focus_mode, self.focused_ids) else "dim")
+                             declaration in self.focused_ids) else "dim")
             table.add_row(title, *(Text(", ".join(self.catalog.effective(row, keymap)) or "—",
                                             style="bold red" if row.binding_id in conflicts else "")
                                    for mode in self.modes for row in (KeymapRow(declaration, mode),)))
