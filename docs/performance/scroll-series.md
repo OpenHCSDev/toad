@@ -1,5 +1,151 @@
 # Scroll series
 
+Historical measurements below retain their original commands, API names and
+source/traffic scopes. The unsafe shell controller and raw display-input API
+are retired. Use the [shared isolated physical-run owner](physical-run.md) for
+new work; its stopped-history scenario is not the old active-response benchmark.
+
+## 2026-11-02 installed observation attempts 08/09 — not scrolling results
+
+Both attempts used the read-only `observer-head-53e04c515` tool archive and
+installed Core `038c8f657`, not candidate package overlays. The command launched
+the installed Toad CLI; it did not exercise the `toad-comms` shell launcher.
+The caller, not the frontend factory, held the existing host `TestLease`.
+
+- **08:** the copied history's project was not a Git checkout.
+  `LaunchCheckout.checked` refused before any frontend, fork, input or profiling.
+  The private copy retired; no guard was weakened or repository manufactured.
+- **09:** the existing goal-owned prepared Toad checkout passed qualification.
+  A fresh private fork reached visibly loaded history and Ready. Its new prompt
+  was submitted once: input `fc3ca84a66414cf595de16f8da929a65`, turn
+  `fb0955e420bc49148a352628315ac2ba`. ACP recorded `identified_input_started`,
+  and the retained native session contains that user message. No replay occurred.
+  The provider WebSocket connected at 347 ms and its first stream event arrived
+  at 742 ms **from native request preparation**, not from physical input or paint.
+  These events establish request progress, not response text. The retained ACP
+  log and 164-record session contain no new assistant text; the active-response
+  predicate failed after 75 s, before any scroll gestures or profiler launch.
+  The missing response's cause remains unestablished. Retirement also logged a
+  cancellation followed by `RelationViolationError: An authorized original turn
+  is required` at `owned_turn.py:547`; that separate cleanup failure does not
+  establish why no answer appeared before the deadline.
+
+For09, retained process-birth records show st stopped by TERM, Xvfb exited0 and
+recording exited0; `result.json` records private-copy retirement. The controller's
+lease ended with its context; this does not prove global lease availability.
+Video/screen snapshots are retained, but there is **no frame/input-to-paint
+latency distribution, held-scroll acceptance or representative CPU result**.
+Input-start evidence does not establish a completed response; its final outcome
+remains uncertain and the original input is not eligible for replay.
+
+Artifacts: `~/.cache/agent-scratch/pi-ui-performance/installed-active-038-{08,09}/`
+and adjacent controller logs/return codes.09 includes `frontend/loaded-ready.png`,
+`frontend/active-response-failed.png`, the complete ACP log under
+`frontend-home/state/toad/logs/`, and native request/session records under `bus/`.
+The immutable archive remains borrowed by UI; these records do not replace the
+configured active-answer/held-PageUp/default-launcher journey still owed.
+
+## 2026-11-02 candidate1408 capture15 — partial, not a latency result
+
+Target Toad `14f05429add046cf81d9535a787e7841fbfdfc82` with Core
+`94631c18e04a168c48293073bc93fef40b1eb050` was prepared through the
+existing WheelRuntime owner in `capture-1408-build-02`. Interpreter, native,
+package, resolution and client probes completed. The dependency donor was the
+immutable cb4 runtime, not the later installed stack. This is a source-qualified
+candidate epoch; it does not exercise the default shell launcher or phone.
+
+The installed owner created a fresh private history copy/fork, stopped that
+private source owner and retargeted only the copy. The target owner was started
+through its existing lifecycle. On an owned isolated display/plain st with
+private HOME/XDG/root, startup admission, saved history, Ready and composer focus
+passed. The fresh input was attempted once. `before-observation.json` records
+both `turn_busy=true` and actual response text containing
+`STYLED_HEAD_14F_FRESH_STREAM`; the qualification also required that text in the
+clipped published response's real st cells. This was not a user echo or thought.
+
+The controller dispatched held PageUp (8s), held PageDown (4s), wheel reversals
+and End. **The End screenshot still shows old history and Back to bottom; it does
+not establish an End-to-tail pass.** The run then failed `tab-away` (rc1). Its
+predicate compared `active_mode`, but that field is the owning Textual screen
+mode (`app.current_mode`), not tab identity; the image also shows only one tab.
+A changing tab cannot be certified by changing workspace mode. The complete
+scenario, tab-return and preservation assertions therefore remain unproved.
+
+Exceptional teardown bypassed the normal successful frontend exit path and no
+`frontend/frame-meter.json` was published. All frame-work and input-to-paint
+median/p95 values are **not measured**, not zero. The 24s CPU request stopped
+when the selected process ended:741 samples,0 sampling errors, followed by
+`The selected process birth ended during profiling`. Keep that partial
+speedscope file as diagnostic evidence, not representative completed CPU proof.
+The video and screenshots remain useful bounded visual evidence, not latency
+numbers. st/Xvfb/recording and private-copy retirement records were retained;
+this does not establish a successful application journey.
+
+Artifacts: `~/.cache/agent-scratch/pi-ui-performance/capture-1408-14f-15/`,
+its adjacent log/rc, and `capture-1408-build-02/result.json`. Failed d34 capture14
+and capture15 retain their original input/session evidence and are not replay
+candidates. No follow-up input or repeated capture is authorized by a new number.
+The next harness correction must use actual tab identity/setup and preserve the
+startup meter through its existing observation lifetime on exceptional close.
+Separately,1408's late-first-styled-rows reader question is tested with the
+anchor's actual painted screen position, not scroll_y alone.
+
+| Epoch | Frame median/p95 | Input-to-paint median/p95 | CPU | Result |
+|---|---|---|---|---|
+| Candidate1408/14f capture15 | Not measured: final artifact absent | Not measured: final artifact absent | Partial741-sample profile only | Active reply qualified; gestures dispatched; End-to-tail and tab-return not established; scenario failed |
+
+## 2026-11-02 source controls09/10 — overlay is not discarded rows
+
+Startup-only geometry observation09 reproduced the closed-prefix assertion at
+immutable `prepared-metadata-08` source. Before the commit, painted row30 was
+`▌CLOSED_PREFIX_MUST_SURVIVE`; afterward it was
+`▌CLOSED_PREFIX_MUST_S ↓ Back to bottom · Esc`. The same acquired supplier still
+held3 cached rows, with unchanged page and window regions. The existing
+`#back-to-bottom-bar` is a3-row floating screen overlay; it covered the marker
+suffix. This trace refutes the earlier diagnosis that the prefix's source rows
+had disappeared. It does not prove unrestricted screen-position preservation.
+The failed long-marker evidence remains in `closed-prefix-09/`.
+
+The control now uses a short distinct source marker clear of that overlay.
+Its page identity, original fragment identity, reader equality, no-successor
+paint and failure checks are unchanged. No overlay CSS or reader-placement
+workaround was added to turn it green.
+
+Current-source controls10 ran Toad22d plus the retained uncommitted marker/doc
+patch, Core946 and current-library paths recorded in `inputs.json`. Result:
+**5 passed,1 failed in93.57s**, rc1; host lease released. Both closed-prefix
+following modes, live-message coverage, fresh read metadata/original suppliers
+and the restyle counterexample passed. The known-gap case still failed
+`assert not history.drawn_end_more` immediately after publication, before its
+later lookahead. It remains an open source-publication obligation; this is not a
+complete green source or installed result. The separate Core rewritten-prefix
+witness failure is not included in these six controls and remains open too.
+
+Artifacts: `~/.cache/agent-scratch/pi-ui-performance/closed-prefix-09/` and
+`prepared-current-10/`, their adjacent logs/rc, and the exact uncommitted patch
+retained by controls10. No provider input or physical frontend was started by
+these source controls.
+
+### Source-trace correction to the known-gap oracle
+
+`CommitPublication.publish_source_page` treats a guarded no-op as completion;
+its True return does not certify a drawn destination. `PreparedPageCommit.draw`
+may decline while the pager owns source work. Retirement occurs only after its
+successful draw and the final current-source checks. Source work finishes through
+`TranscriptSourcePreparation.finish_source_work` → `TranscriptSourceWorkFinished`
+→ `TranscriptPresentation.source_work_finished` → `retry`.
+
+The gap test now checks the reader contract rather than assigning a stronger
+meaning to that return: the known gap blocks visible read acknowledgement,
+the destination becomes visible through native paint, and source settlement
+removes the gap and retains the expected cursor. This corrects the immediate
+assertion above; the earlier failing run remains retained. The corrected case
+passed once: 1 passed in16.21s, rc0, with the host lease acquired and released.
+`pi-ui-performance/gap-contract-27/pytest.log` retains that exact execution and
+its source snapshot; it is not a new physical or installed-app result.
+
+## Historical series
+
 One line per change, from `tools/performance/scroll_scenario.sh` (real `toad` in `st` on display :121, a fork of `perf-base-20261009`, which is a fork of the saved `agent-comms-ux` session; an active response, held PageUp from the input box, wheel bursts with reversal, End, tab return). Frame work is UI-thread time per frame handed to the driver; input-to-paint runs from the driver posting an event to the first frame after its last handler returns. Input-to-paint pairs each input with the first frame after it is handled (fixed 2026-10-09; earlier summaries paired out of order). Raw results are under `~/.cache/agent-scratch/scroll-series/<name>/`.
 
 | Date | Change | Total frame median (ms) | Total frame p95 (ms) | Input-to-paint median (ms) | Input-to-paint p95 (ms) | Scroll-path lines +/- | What the screen showed |

@@ -7,7 +7,6 @@ from agent_comms.session_file import RegistrySessionLocation
 import asyncio
 from dataclasses import replace
 import os
-from unittest.mock import patch
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.child_process import ProcessIdentity
@@ -53,36 +52,24 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
         block = await view.output.append(ResponseStream(), new_page.events[0].text)
         view.window.anchor()
         view.prompt.focus()
-        entered = asyncio.Event()
-        retire = view.output.retire_presentations
-        covered = {}
-
-        async def observe_retirement(candidates):
-            covered["old"] = old in candidates
-            covered["stream"] = block in candidates
-            entered.set()
-            await retire(candidates)
-
-        with patch.object(view.output, "retire_presentations", observe_retirement):
-            async with view.output.lock:
-                # The transcript owner runs its own commit; a second one built here would race it.
-                view.transcript.require_commit()
-                await asyncio.wait_for(entered.wait(), 5)
-                # While the output owner is held, finishing must still be able to take the source and tree locks.
-                async with asyncio.timeout(5):
-                    async with view.window.history_lock:
-                        async with view.window.lock:
-                            pass
-                assert not old.display
-                # The owner may have restarted its commit; the one retiring now is its current worker.
-                worker = view.transcript.worker
-                worker.cancel()
-                await ui.step(0.05)
-            with pytest.raises(WorkerCancelled):
-                await asyncio.wait_for(worker.wait(), 5)
-            await ui.step(0.1)
-        assert covered["old"], "The source did not cover the old history"
-        assert covered["stream"], "Source did not cover the live stream"
+        async with view.output.lock:
+            # The transcript owner runs its own commit; a second one built here would race it.
+            view.transcript.require_commit()
+            await ui.until(lambda: not old.display and not block.display,
+                           why="accepted source retirement to withdraw both original resources")
+            # Withdrawal is synchronous; the real output lock still prevents teardown.
+            assert old.is_attached and block.is_attached
+            # Joining retirement must not retain the source and tree locks.
+            async with asyncio.timeout(5):
+                async with view.window.history_lock:
+                    async with view.window.lock:
+                        pass
+            worker = view.transcript.worker
+            worker.cancel()
+            await ui.step(0.05)
+        with pytest.raises(WorkerCancelled):
+            await asyncio.wait_for(worker.wait(), 5)
+        await ui.step(0.1)
         assert not old.is_attached, "Accepted cancellation abandoned the old history"
         assert old not in view.window.histories, "Accepted cancellation kept two histories"
         assert not block.is_attached, "The covered live stream block survived retirement"

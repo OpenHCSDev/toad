@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.historical_views import ConversationObservation
+from agent_comms.nominal.field_codec import ContentExclude, FieldCodec
 from agent_comms.sent_message import OutgoingMessageReference
 from agent_comms.transcripts import (
     TranscriptCursor,
@@ -19,8 +20,9 @@ from agent_comms.transcripts import (
 )
 from agent_comms.ui_model.message_category import MessageCategory
 
-from toad.render_backend import ReusableRenderTask
+from toad.render_backend import ContentAddressedRenderTask
 from toad.transcript_state import LatestViewportRequest
+from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead
 from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
@@ -29,6 +31,8 @@ from toad.work_preparation import (
     PreparationRuntime,
     PreparationScope,
     PreparedResult,
+    RenderPreparation,
+    ReusableStorage,
     ReusableWork,
     ScopedWork,
     ThreadWork,
@@ -180,12 +184,13 @@ class PreparedTranscriptPage:
         return True
 
     def same_source(self, other: PreparedTranscriptPage) -> bool:
-        """Keep a view only when its bounded read came from the same source snapshot."""
-        # A filtered page can share the Core read but draw different members.
-        # The retained worker result shares this immutable tuple with its views;
-        # another projection cannot borrow that view's prepared rows. Each page
-        # type owns equality of its source, traversal and read evidence.
-        return self.fragments is other.fragments and self.page == other.page
+        """Keep original suppliers only when declared page content is unchanged."""
+        # Filtered/restyled results must retain their distinct supplier tuples.
+        # Core's content projection excludes read annotations without discarding
+        # the fresh witness carried by each acquired page.
+        return (self.fragments is other.fragments
+                and FieldCodec.project(self.page, ContentExclude)
+                == FieldCodec.project(other.page, ContentExclude))
 
     def for_view(self) -> PreparedTranscriptPage:
         """An independent view owns its drawing range and loaded source data.
@@ -287,6 +292,7 @@ class PreparedPageSource:
     runtime: PreparationRuntime
     scope: PreparationScope
     through: TranscriptCursor
+    commit_preparation: ClassVar[type[PreparedPageCommit]] = PreparedPageCommit
 
     def __init__(self) -> None:
         # This source holds the resources after their widgets detach. These are the
@@ -419,14 +425,24 @@ class RangeCategoryProjection(CategoryProjection):
 
 
 @dataclass(frozen=True)
-class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
+class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentAddressedRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
+
+    @property
+    def preparation_inputs(self) -> object:
+        """Read marks and coordination activity cannot change prepared content."""
+        return FieldCodec.project(self.page, ContentExclude)
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
         return result.retained_bytes
 
     def execute(self) -> PreparedTranscriptPage:
         return PreparedTranscriptPage.prepare(self.page)
+
+    async def prepared(self, runtime: PreparationRuntime) -> PreparedTranscriptPage:
+        """Reuse immutable suppliers, never another read's page metadata."""
+        prepared = await runtime.submit(RenderPreparation(self))
+        return replace(prepared, page=self.page)
 
 
 class TranscriptNoProgress(ValueError):
@@ -465,8 +481,8 @@ class TranscriptPageWork[Cursor = TranscriptCursor](ReusableWork[PreparedTranscr
             raise TranscriptNoProgress(request, self.through, page)
         if self.scope.closed:
             raise asyncio.CancelledError
-        prepared = await runtime.renderer.capture(TranscriptPageRenderTask(page))
-        return await runtime.run_thread(self.finish_prepared, key, prepared)
+        prepared = await TranscriptPageRenderTask(page).prepared(runtime)
+        return await runtime.run_thread(self.finish_result, key, prepared)
 
 
 @dataclass(frozen=True)
@@ -498,6 +514,7 @@ class SavedHistory(ReplaceablePageSource):
 
     # The work that reads and prepares one page of this kind of source.
     work: ClassVar[type[TranscriptPageWork]] = TranscriptPageWork
+    commit_preparation = PreparedAppendCommit
 
     def __init__(
         self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,

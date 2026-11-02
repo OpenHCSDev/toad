@@ -1,0 +1,377 @@
+# Isolated physical Toad runs
+
+The shared implementation is `tools/physical_ui.py`: the existing
+`XvfbDisplay → OwnedDisplay` family owns Xlib/display allocation and retirement;
+`ObservedTerminalApp` owns st, the frontend, source observations and all physical
+input. `tools/physical_ui_candidate.py::TerminalApp` extends that same lifetime
+with strict candidate-build verification. `tools/acceptance.py` and the existing
+stopped-history CLI use the strict member. There is no public raw-input method
+on a display.
+
+## Installed observation, without candidate admission
+
+Import `tools.physical_ui.ObservedTerminalApp` from the published source checkpoint
+with the installed interpreter. Its existing `copied(source, threads, runtime,
+output, thread=...)` factory owns the same `CheckRoot`, private home, display,
+startup connection and input checks. The caller holds `TestLease.current().held()`
+around that factory; the factory does not acquire the host lease itself.
+Use `LaunchRuntime.installed()` for installed
+bytes. This does not require an interpreter observation in old build metadata.
+Wait for both `screen.observation.history_published` and
+`screen.observation.agent_ready` before the readiness-dependent journey; an active
+capture additionally needs `screen.has_active_reply(marker)` and the actual
+`screen.observation.composer_focused` result, not an assumed click coordinate.
+`turn_busy` only reports the backend phase; it does not prove that an answer exists.
+The reply check requires both the current `ResponseStream`'s source text and matching
+real st cells inside that block's last published region. A user echo, Thinking text,
+a saved row or a completed notice cannot substitute for that live reply.
+
+Entry/final `InstalledOperation` records the actual Python/native executable
+paths and the installed runtime's package-origin answer through its existing
+`installed_packages` wire operation. There is no duplicate metadata parser or
+fallback probe import. Its `InstalledResult` checks origin continuity at normal
+exit and retains `resources-observed.json` / `resources-final.json`. These are
+origin observations, not candidate byte/interpreter proof. Per-input observations
+still check the actual frontend birth, module locations and current private
+resources; package inventory is not rescanned for every key.
+
+The qualified module namespace is `tools.physical_ui*` for controllers, consumers
+and staged dependencies. Program source is captured only when execution starts,
+not during ordinary imports. Candidate operations stage their required sibling
+module under that same namespace. No live-process alias or import fallback exists.
+
+Data/source qualification: `observer-installed-06.log` decoded three staged
+requests on the installed interpreter without loading the new candidate probe;
+`observer-candidate-06.log` decoded three strict-member requests on the existing
+immutable0402/3475 interpreter. Neither executes a frontend, build probe or input.
+The historical context-free source map listed Core src, Toad src/tools and the
+physical-run consumer:971 modules,8,192 raw classes and8,184 projected rows.
+Those counts do not establish canonical binding closure through declared import
+roots; that stronger claim is withdrawn and the rooted reconstruction stays OPEN.
+Dynamic imports/aliases, descriptor/effect behavior, foreign platforms, physical
+movement and mounted readiness remain OPEN. A separate `observer-result-07.log`
+on installed Core038c checks the result codec/origin continuity and changed-
+executable refusal using an explicitly synthetic UI record and the real package
+answer. It is not a mounted observation. No author pytest ran.
+
+## Launch-time frame measurement
+
+`MeasuredTerminalApp(ObservedTerminalApp)` adds the existing bounded frame meter
+through `ApplicationLifetime.observe_next_start` before the saved session opens.
+Its `MeasuredStartOperation` owns the meter until that actual distribution
+entrypoint exits. It snapshots the meter source beside the startup program and
+restores its hooks through the same bounded capture's closer. The read-only
+observation pipe still accepts only `ObserveOperation` descendants; measurement
+cannot be installed by sending an executable packet to a running app.
+
+`MeasuredCandidateTerminalApp(TerminalApp, MeasuredTerminalApp)` composes the same
+measurement with strict candidate admission. It does not create another frontend,
+resource lifetime or admission implementation. Output is `frontend/frame-meter.json`;
+record caps, censored spans and restoration status must be read before reporting
+numbers. Setup/startup records are not the fixed scrolling scenario. Driver-handoff
+measurements are not proof of terminal pixels; retain the physical recording and
+actual response qualification with the input spans.
+
+## Candidate/build-verifying entry point
+
+This member requires Core3825's recorded-interpreter/probe APIs; that requirement
+belongs here, not to installed-only observation.
+Run with the **installed source runtime's Python**, with Core's retained
+`CheckRoot.create()` and `SuppliedRuntimeHome` APIs available (Core PR #3821).
+Do not put the candidate Core checkout on `PYTHONPATH` and call that installed
+source qualification.
+
+```sh
+/home/ts/.local/share/agent-comms/current/bin/python \
+  tools/performance/scroll_scenario.py \
+  --thread YOUR_THREAD --history-thread ANOTHER_THREAD \
+  --output /home/ts/.cache/agent-scratch/YOUR_OWNER/fresh-run
+```
+
+`--runtime /absolute/complete/candidate-prefix` selects only the frontend and
+private copy's runtime. The source controller remains installed. The candidate
+must contain its own Toad/Core/Textual packages; a dependency `.pth` pointing
+those packages outside the selected prefix fails actual module-origin checks.
+Supply a new output directory for each distinct run. Do not replay a failed or
+UNKNOWN input against an old run. Terminal dimensions are **cells**; framebuffer
+sizes are **pixels**. For the mobile48×48 →140×40 journey, supply
+`--columns 48 --rows 48 --framebuffer 1600 1200 --resize 140 40`, or pass
+`framebuffer=Size(1600, 1200)` to the callable factory. The owner checks actual
+native window bounds and rejects clipping instead of recording half a terminal.
+
+The strict callable entry point is
+`tools.physical_ui_candidate.TerminalApp.copied(source, threads, runtime,
+output, thread=..., size=Size(...), framebuffer=Size(...))`. Its context yields the admitted app and
+retains the copied root, frontend-home, operation receipts, screenshots and
+recording on exit. The caller still owns retiring those retained files after
+acceptance and actual borrower checks.
+
+## Startup observation
+
+Fresh qualification10 used published467 observer code with installed Core f03,
+loaded the copied saved history and reached ACP Ready without provider input.
+The new `turn_busy` and response-placement fields decoded in the real frontend;
+its private copy, st and Xvfb retired successfully, controller rc0.
+
+Qualification11 added the launch-time meter on that installed application. It
+recorded83 display handoffs and4 physical input arrivals (3 followed by a handoff),
+restored all10 hooks, dropped/censored no records and retired the private run,
+rc0. Its109,328-byte capture covers startup and three paging keys, **not** the
+fixed active-answer scenario or1408. Evidence is retained under
+`pi-ui-performance/installed-observer-f03-10` and `installed-meter-f03-11` in the
+host scratch owner. No provider prompt was sent in either qualification.
+
+`StartOperation` runs the installed distribution's declared Toad entrypoint in
+the new frontend interpreter. One private inherited pipe belongs to that exact
+frontend/controller lifetime; the descriptor cannot travel into later execs.
+The blocking reader receives only paths to fresh data packets under this run's
+operation directory. `FieldCodec` admits `ObserveOperation` descendants, never
+start/stop operations. Textual's existing `call_from_thread` applies observations
+on its own loop. No executable packet, debugger attachment, ptracer grant,
+signal handler, periodic wakeup or second controller is involved.
+
+The copied-history factory now exercises the instrumented installed **Toad CLI**,
+not the separate `toad-comms` shell launcher or its executable wrapper. Those
+entrypoints need their own evidence; this run cannot claim it. The operation
+module stays alive while the distribution entrypoint runs so its declared wire
+types do not acquire a different `__main__` namespace. `AcpObservationDecoder`
+is declared once per module, not rebuilt and registered on every observation.
+
+The startup/shutdown programs retain the bounded immutable source snapshot,
+including the measurement dependency when that capability is selected. Frozen
+dependencies retain their package layout with owned package initializers, so
+Python cannot merge them with another tools namespace. `ObserveOperation` owns
+the module-location validator; observation packets contain resources and process
+identity, not a tools directory or another authority to select imported code.
+Ordinary observations write only typed request/result data, not another copy of
+the program. Closing the controller pipe and the existing child lifetime retires
+this reader. Exceptional exit sends no further observation or physical input.
+The new path is source work until actual fresh-prefix/physical execution proves it.
+
+## What the owner establishes
+
+- `CheckRoot` alone selects/imports bounded stopped history; old goals, turns,
+  tasks, processes and input authority do not travel with it. The installed
+  source owner creates history; only its disposable copy is published through
+  `RootRuntime.publish` to a supplied runtime.
+- Fresh Toad config/state/data and no copied saved-tab database. Presentation
+  settings derive from the declarations on the `INTERFACE` page; session/shell/
+  launcher settings and the original anonymous identity do not travel. Collection
+  is disabled through `SavedSettings`. The optional palette is copied/validated
+  through `WalFile` and the actual private palette directory is observed.
+  Source identities cannot be repaired by rewriting tabs.
+- HOME/XDG inside `st -e env`: st itself resets HOME from passwd before exec.
+- Xvfb uses displayfd, not a guessed display number. Xlib checks its actual
+  local peer UID/process; the run verifies the allocated server incarnation.
+- Startup retains the recorded controller/frontend births and its inherited
+  private connection. It grants no debugging permission and performs no running-
+  process injection. The controller owns one bounded operation-source snapshot;
+  editing the checkout cannot change an already started run's wire.
+- Before physical input: the actual frontend incarnation, runtime and loaded
+  Toad/Core/Textual module locations, HOME/XDG/database, selected/opened source,
+  every saved entry's source and every borrowed ACP process's creator/session
+  agent coordination roots. Pending/foreign sources refuse input.
+- The read-only observation asks `ToadApp.running_app()` and the actual screen
+  owner on Textual's loop. A window caption is not readiness. The startup reader
+  accepts an adjacent FieldCodec data request; a missing or timed-out result is
+  not a successful observation.
+- st text travels with the actually published history viewport geometry.
+  `ScreenCapture` clips through Textual/Rich's cell geometry, not sidebar
+  separators that disappear when a sidebar closes or occur inside code.
+  Textual's installed compiled `Region` rejects subclassing; `CapturedRegion`
+  adds only the existing `DeclaredWireType` boundary capability and retains the
+  actual Region object, without copying its coordinate declarations.
+
+## Runtime input identity (Core #3825 dependency)
+
+Only the strict candidate member requires a `RuntimeResolution` with a recorded
+interpreter observation, not just a prefix and three module locations. `RunTarget` retains
+that intended build. `AdmitOperation(ObserveOperation)` obtains the actual
+process's resolution once at frontend admission through the target-owned probe.
+Its `AdmittedResult` belongs to that exact frontend birth; a plain
+`ObservedResult` cannot substitute for it. `RunObservation` describes current UI
+resources, not a freshly hashed build.
+An old build record without interpreter evidence is explicitly unrecorded and
+refuses admission. It is not retrofitted by reading its intended executable.
+
+`TerminalApp` owns the admission result with its frontend resource. Every later
+observation still checks the actual process, runtime, module origins, HOME/XDG,
+database, palette, selected/opened source and all saved/ACP roots before keys.
+The declared `FrontendIdentity` groups process birth and primary module-file
+paths; equality is derived from that record rather than restating its fields in
+two comparison tuples. It must agree with the admission.
+Only full wheel/native hashing leaves that repeated callback; there is no
+permission flag or product-widget cache replacing those current checks.
+
+A normal exit performs full build verification again and requires equality with
+the admitted snapshot before quitting. `frontend/build-admitted.json` and
+`frontend/build-final.json` retain the two build observations; ordinary operation
+results and `admitted.json` remain current UI/source observations. An exceptional
+or uncertain operation still retires without another attachment or input.
+
+The selected candidate must remain immutable during the run. Entry/final disk
+checks do not prove that arbitrary intermediate disk mutations were impossible,
+and a final refusal cannot undo earlier input. This does not claim continuous
+content hashing or complete loaded-code equivalence. Process/root/module-origin
+and saved/ACP-root invalidation remain current before every key.
+
+Current observations also carry the actual typed `StorageRule` from the already
+observing service's `Registration`. Shared `RunResources` calls that rule's pure
+`require_isolated(root)` observation contract; it no longer repeats the owner's
+projection/equality decision. Observation neither constructs a Comms nor writes
+a policy. The paired Core must include this API: its `ScopedDirectory` field
+declarations own canonical directory checks and future default allocations,
+including outward-symlink refusal. There is no fallback to an older API.
+
+Filesystem behavior, registered allocations, persisted reopen and future-child
+qualification remain separate prerequisites owned by the isolation work. The
+owner's eleven new filesystem cases are written, not run; a source implementation
+is not isolation acceptance. Candidate02's Core7e4/Toad620955 artifact pairing
+predates this API and cannot qualify the current consumer; preserve it unchanged.
+
+`WheelRuntime` retains copies of its exact inputs under the new prefix's
+`inputs/` directory; borrowed originals remain read-only. The package probe
+compares every root-wheel member except the installer's rewritten `RECORD`
+against installed bytes, then records the verified archive SHA256. Root-layout
+wheels are the supported domain; `.data` relocation is refused, not silently
+skipped. Remote archive hashes remain metadata, never permission to fetch them.
+The deployed donor package probe keeps its existing core-only wire. Updated
+built workers derive retained inputs from their own `RuntimeResolution`; the
+target subclass supplies explicit inputs before its first resolution exists.
+Both use the same verification loop, without changing old workers' request shape.
+
+The interpreter observation keeps the invoked environment separate from the
+resolved executable and the native image actually named by the loader for
+`Py_GetVersion`. Stable file reads use `FileRevision`; their SHA256 values are
+native **disk-artifact** evidence, not complete loaded-code or stdlib-content
+equivalence. Repository ancestry remains `RecordedBuildIdentity`'s separate
+contract: a verified archive still does not acquire a Git revision.
+
+This implementation is a published source checkpoint, not candidate/carry or
+physical qualification. The first prepared candidate remains immutable and
+unqualified under the new interpreter requirement. No frontend/native/model
+launch follows from the earlier single artifact-preparation approval.
+
+## Evidence limits
+
+This scenario exercises **bounded stopped history**, not the retired shell
+benchmark's active provider response. Historical `scroll-series.md` entries
+retain their original source/traffic scopes and old API names. They are not
+commands to rerun against the live root.
+
+A source observation establishes module **locations**, not hashes of already
+loaded code. Screen dumps help inspect text; the continuous Xvfb recording owns
+visible pixels. Neither an import nor one screenshot proves the whole journey.
+A run with no ACP bindings does not demonstrate the bound/pending/foreign ACP
+cases.
+
+The admission/resource-lifetime split has model controls for build admission
+versus ordinary observation, changed build/process/resources/module paths, new
+saved/ACP roots, actual storage policy and readiness after admission. Run14
+executed25/25 Toad cases; run15 executed25/25 after adding measured-startup codec
+round trips and read-only-pipe rejection. These are source-model controls, not
+candidate or physical scenario acceptance. The source/codec checks and eventual candidate preparation
+must not be reported as physical or performance acceptance.
+
+Source-observer work is part of the measurement overhead. For example, one
+prototype observation took about 97 ms inside the callback before considering
+its compilation/dispatch cost. Do not report that overhead as production frame
+cost or quietly subtract it from a user-facing latency claim. Correlate complete
+controller/call spans and the recording.
+
+The frozen `capture_history.py`, `history_capture_remote.py` and `frame_meter.py`
+inputs remain unchanged and unrun. Their old injection path is forbidden by the
+current host permission, notwithstanding historical approval. Replacement of
+that capture needs its proper source/execution admission. No heap, GC, repaint,
+remeasure or arbitrary trace experiment is authorized. `capture_live.py` now
+exposes only read-only py-spy profiling; its injection and mutation options are
+deleted, not retained behind a permission flag. The mutable source mapper now
+reads the declared `TranscriptReadIdentity.page_bound`; frozen inputs are not
+edited and that caller correction authorizes no injection experiment.
+
+## Append/publication app controls
+
+The authorized five-case selection on application source `26a16fe2` passed:
+**5 collected, 5 passed, 71.91 s, exit 0**. It covers retained page/fragment paint,
+the known-gap destination immediately after a witnessed admitted real read,
+complete closed-prefix replacement, and both live-pressure cases. Setup and
+teardown completed through the existing `pytest_session`/`TestLease`, using the
+actual ceeed interpreter/Core/Textual and this checkout's Toad source. Evidence:
+`pi-ui-performance/dm-app-controls-03/{origins.log,pytest.log,pytest.rc}` under
+`/home/ts/.cache/agent-scratch/`. The earlier four-pass/one-fail run remains failed;
+the new fixture witnesses admission instead of assuming a successful return
+means work ran. These are headless app controls before today's-main rebase,
+not incoming native-tool, startup-transport, shell-launcher or physical proof.
+
+## Historical qualification — not the startup replacement
+
+Core #3821 is installed in 7d0d; the merger reports 23 selected checks passed.
+Fresh runs10 and12 used that installed source interpreter with `-I` and no Core
+source overlay, and observed all three actual package origins in the supplied
+mobile candidate. Run12 completed exit0 through held PageUp/PageDown, reversal,
+End and wheel input, with screenshots/recording and typed private-copy stop.
+The st, Xvfb and encoder receipts name their exact process births and existing
+child-owner outcomes; their PIDs and the frontend were independently absent.
+Run13 also completed the48×48 →140×40 candidate geometry journey in a1600×1200
+owned framebuffer. There were **no bound ACPs**. Four isolation counterexamples, the wider tab/
+resize/arrival journey and actual profiling remain separate obligations.
+
+Run8's foreign candidate-module origin, run9's missing-palette warning and
+callback timeout, and run11's first-observation timeout remain retained. A
+missing palette was demonstrated, not proved to explain every timeout. Failed
+or uncertain operations now go straight to the existing owned-process shutdown;
+exit does not attempt another attachment/key. No such attempt is replayed.
+
+Current helpers are `tools/physical_ui.py` and `tools/physical_ui_remote.py` on
+PR #1393. Consumers must start a new controller from one published checkpoint,
+not combine a live process with a newly imported wire shape. A completed
+stopped-history scenario is not bound-ACP or performance acceptance.
+
+## Pager failure retirement
+
+The retained configured-fork attempt failed when multiprocessing spawn re-entered
+an unguarded controller. Its `BrokenProcessPool` also exposed a separate pager
+cleanup defect; neither is an image verdict and the failed root is not replayed.
+
+`WorkingTranscript.execute` reports a read failure inside the pager Worker.
+`TranscriptSourcePreparation.source_failed` immediately revokes its source and
+starts `retire_source`. Textual's `AwaitComplete` eagerly schedules the join in a
+new task, copying the caller's `active_worker`. `Worker.wait` then rejects that
+inherited identity as a self-wait before awaiting anything. The traceback is not
+evidence of a synchronous UI stall.
+
+The existing shared preparation base now creates that independent `AwaitComplete`
+in an empty native `Context`. Its join needs only the cancelled Worker handles;
+it must not borrow the caller's worker or message pump. Revocation, generation,
+subscription closure, cancellation, awaited outcomes and error propagation stay
+with their existing owners. Textual's genuine self-wait guard is unchanged.
+All six pager descendants inherit the correction, including saved, wire and
+projected history; there is no per-view exception handler or second cleanup path.
+
+Before editing, the retained NRA parser/syntax/canonical-class query covered
+1,533 modules: 9,005 original class declarations, 8,966 canonical projections,
+39 unprojected OPEN rows and 190 selected lifecycle sites. The manifest retains
+source hashes. This is source evidence, not domain completeness or live binding
+proof; external/unresolved bases, dynamic mutation and non-Python behavior stay
+OPEN. Actual imported MROs confirm the shared base on the relevant saved-history
+classes. The source query uses NRA's existing owners, not another parser.
+
+The existing lifecycle controls now observe original coverage publications and
+saved error artifacts instead of replacing our own methods. They cover caller-
+initiated retirement, pager-initiated retirement, resume, real self-wait rejection,
+and a failed read that retires once without an unhandled cleanup exception.
+Both changed Python files compile and the source imports from this checkout.
+The exact source head `59d8218a4b70896aa0f8226367202cff035dd411`
+passed both app controls: **2 passed in 31.58s, exit 0**, under Core's shared
+`TestLease`. The controller asserted the actual Core and Toad source origins
+before invoking `tests/textual/test_transcript_lifecycle.py`; the retained log
+prints both paths, the interpreter and the acquired lease. Its first attempt
+failed before pytest because the controller shadowed an imported module with a
+`Path`; that attempt is not a test run. The passing run paired Core's earlier
+`a5b` lifecycle source, not its subsequent parallel-reader correction.
+
+Receipts: `pi-commander/heartbeat-publication/pager-lifetime-controls-2.log`
+and `.rc` under `/home/ts/.cache/agent-scratch/`. These are app-level lifecycle
+controls, not installed or physical acceptance. The affected physical journey,
+full isolation counterexamples and production performance measurement remain
+open; no failed configured-fork root was replayed.

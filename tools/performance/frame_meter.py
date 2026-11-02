@@ -1,6 +1,7 @@
 """Total UI-thread work per frame and input-to-paint latency in a live Textual app.
 
-``install`` runs inside the application (through ``capture_live.py --frame-meter``).
+``install`` runs inside the application through its normal-user startup hook
+(``physical_ui.MeasuredTerminalApp``), never through live-process injection.
 Every event-loop callback is timed; a frame is the UI-thread work done since the
 previous frame was handed to the driver. An input event is timed from the moment
 the driver posts it to the App until the first frame handed over after its last
@@ -426,7 +427,7 @@ def _metadata_boundary():
                         before=self.project_value(page.before, capture),
                         after=self.project_value(page.after, capture), root=witness.root[:384],
                         thread=witness.requested_name[:160],
-                        through=self.project_value(witness.through, capture),
+                        page_bound=self.project_value(witness.page_bound, capture),
                         thread_birth=witness.thread.incarnation.wire_birth,
                         snapshot=capture.label(witness))
 
@@ -644,7 +645,7 @@ def install(*, expected_pid, seconds, output, max_records=20000, max_bytes=3 << 
         return refresh_bindings(self)
 
     def timed_run(handle):
-        if not capture.accepting:
+        if not capture.accepting or handle._loop is not capture.loop:
             return run(handle)
         state['current'] = begin = clock()
         cpu_begin = time.thread_time_ns()
