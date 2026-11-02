@@ -9,6 +9,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from acp.exceptions import RequestError
+from acp.helpers import ContentBlock, text_block
 from agent_comms.acp_extension import (
     ClearQueueRequest,
     CommsRequest,
@@ -260,16 +261,16 @@ class AgentController(OperationalTerminalOwner):
             if submission is not None:
                 self._deferred_submissions.discard(submission)
 
-    async def submit_blocks(self, content: list[dict[str, str]], command: CommsRequest) -> PromptResult:
-        agent = self.agent
-        authority = QueueSessionRequest(agent, agent.session_id)
-        return await self.operate(
-            self._prompt_operation(
-                partial(self._prompt, content, command, authority, agent.queue_attachment.scope), authority
-            )
-        )
+    async def _control_prompt(
+        self, command: CommsRequest, authority: ClientSessionRequest, queue_scope: QueueScope,
+    ) -> PromptResult:
+        """Control metadata uses the SDK's single blank text carrier."""
+        return await self._prompt([text_block(" ")], command, authority, queue_scope)
 
-    async def _prompt(self, content, command, authority: ClientSessionRequest, queue_scope: QueueScope) -> PromptResult:
+    async def _prompt(
+        self, content: list[ContentBlock], command: CommsRequest,
+        authority: ClientSessionRequest, queue_scope: QueueScope,
+    ) -> PromptResult:
         agent = self.agent
 
         def require():
@@ -282,7 +283,14 @@ class AgentController(OperationalTerminalOwner):
         return authority.resolve(outcome)
 
     async def clear_queue(self) -> PromptResult:
-        return await self.submit_blocks([{"type": "text", "text": " "}], ClearQueueRequest())
+        agent = self.agent
+        authority = QueueSessionRequest(agent, agent.session_id)
+        return await self.operate(
+            self._prompt_operation(
+                partial(self._control_prompt, ClearQueueRequest(), authority, agent.queue_attachment.scope),
+                authority,
+            )
+        )
 
     async def send_now(self) -> PromptResult:
         authority = QueueSessionRequest(self.agent, self.agent.session_id)
@@ -291,7 +299,7 @@ class AgentController(OperationalTerminalOwner):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
         return await self.operate(
             self._prompt_operation(
-                partial(self._prompt, [{"type": "text", "text": " "}], SendNowRequest(), authority, queue_scope),
+                partial(self._control_prompt, SendNowRequest(), authority, queue_scope),
                 authority,
             )
         )
@@ -304,8 +312,8 @@ class AgentController(OperationalTerminalOwner):
 
     async def _compact_context(self, instructions, authority: ClientSessionRequest):
         agent = self.agent
-        outcome = await self._prompt(
-            [{"type": "text", "text": " "}], CompactRequest(instructions), authority,
+        outcome = await self._control_prompt(
+            CompactRequest(instructions), authority,
             agent.queue_attachment.scope,
         )
         confirmed = outcome.require_confirmation()

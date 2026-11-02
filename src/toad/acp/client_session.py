@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
@@ -50,7 +50,7 @@ class ClientSessionRequest:
             raise RequestError.invalid_params({'details': 'ACP client request belongs to a retired session'})
 
     async def prompt(
-        self, content: Sequence[ContentBlock | dict[str, str]],
+        self, content: list[ContentBlock],
         metadata: dict[str, JsonValue], require: Callable[[], None],
     ) -> PromptResult:
         """Decode once at the captured request's real SDK/write boundary."""
