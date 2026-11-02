@@ -1,5 +1,4 @@
-from itertools import chain
-from typing import Iterable, Sequence
+from collections.abc import Mapping
 from pathlib import Path
 from os.path import abspath
 import pathspec
@@ -40,11 +39,11 @@ class PathFilter:
     """Filter paths according to .gitignore files."""
 
     def __init__(
-        self, root: Path, path_specs: Iterable[GitIgnoreSpec] | None = None
+        self, root: Path, path_specs: Mapping[Path, GitIgnoreSpec] | None = None
     ) -> None:
         self._root = Path(abspath(root))
-        self._default_specs = [] if path_specs is None else list(path_specs)
-        self._path_specs: dict[Path, Sequence[GitIgnoreSpec]] = {}
+        self._default_specs = {} if path_specs is None else dict(path_specs)
+        self._path_specs: dict[Path, Mapping[Path, GitIgnoreSpec]] = {}
 
     def __rich_repr__(self) -> rich.repr.Result:
         yield (str(self._root),)
@@ -61,45 +60,60 @@ class PathFilter:
         """
         path = Path(abspath(path))
         filter_root = path
-        path_specs: list[GitIgnoreSpec] = []
+        path_specs: dict[Path, GitIgnoreSpec] = {}
         while (parent := path.parent) != path:
             if (path_spec := load_path_spec(path / ".gitignore")) is not None:
-                path_specs.append(path_spec)
+                path_specs[path] = path_spec
             if (path / ".git").exists():
                 break
             path = parent
         else:
-            del path_specs[:]
-        return PathFilter(filter_root, reversed(path_specs))
+            path_specs.clear()
+        return cls(filter_root, dict(reversed(path_specs.items())))
 
-    def get_path_specs(self, path: Path) -> Sequence[GitIgnoreSpec]:
-        """Get a sequence of path specs applicable to the give path.
+    def get_path_specs(self, path: Path) -> Mapping[Path, GitIgnoreSpec]:
+        """Get applicable specs in declaration order, keyed by their directory.
 
-        This will inherit path specs up to the root path of the filtr.
+        Each spec retains the origin against which its patterns are interpreted.
 
         Args:
             path: A directory path
 
         Returns:
-            A sequence of path specs.
+            A mapping from declaring directory to its spec.
         """
         path = Path(abspath(path))
         if not path.is_relative_to(self._root):
-            return ()
+            return {}
         if (cached_path_specs := self._path_specs.get(path)) is not None:
             return cached_path_specs
-        path_spec = load_path_spec(path / ".gitignore")
         if path == self._root:
-            path_specs = [path_spec] if path_spec is not None else []
+            path_specs: dict[Path, GitIgnoreSpec] = {}
+            for origin, path_spec in self._default_specs.items():
+                if not self._matches(origin, path_specs, directory=True):
+                    path_specs[origin] = path_spec
         else:
-            parent_path_specs = self.get_path_specs(path.parent)
-            path_specs = (
-                parent_path_specs
-                if path_spec is None
-                else [*parent_path_specs, path_spec]
-            )
+            path_specs = dict(self.get_path_specs(path.parent))
+        # Admission is cached per directory, not rechecked for every file.
+        # Git never reads a deeper ignore file through an excluded directory.
+        if path not in path_specs and not self._matches(path, path_specs, directory=True):
+            if (path_spec := load_path_spec(path / ".gitignore")) is not None:
+                path_specs[path] = path_spec
         self._path_specs[path] = path_specs
         return path_specs
+
+    @staticmethod
+    def _matches(path: Path, specs: Mapping[Path, GitIgnoreSpec], *, directory: bool) -> bool:
+        ignored = False
+        for origin, path_spec in specs.items():
+            if path == origin:
+                continue  # An ignore file does not match its own directory.
+            relative = path.relative_to(origin).as_posix() + ("/" if directory else "")
+            # Preserve the foreign parser's no-match / !rule / ignore answers.
+            decision = path_spec.check_file(relative).include
+            if decision is not None:
+                ignored = decision
+        return ignored
 
     def match(self, path: Path) -> bool:
         """Match a path againt the path filter.
@@ -110,11 +124,8 @@ class PathFilter:
         path = Path(abspath(path))
         if path.name == ".git" or not path.is_relative_to(self._root):
             return True
-        path_specs = self.get_path_specs(path.parent)
-        for path_spec in chain(self._default_specs, path_specs):
-            if path_spec.match_file(path):
-                return True
-        return False
+        specs = self.get_path_specs(path if path == self._root else path.parent)
+        return self._matches(path, specs, directory=path.is_dir())
 
 
 if __name__ == "__main__":
