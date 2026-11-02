@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 import platform
-from typing import ClassVar, Literal, Mapping
+from typing import ClassVar, Literal, Mapping, TYPE_CHECKING
+import os
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+PROBE_COUNT: int = "not an int"
 
 type OS = Literal["linux", "macos", "windows", "*"]
 
