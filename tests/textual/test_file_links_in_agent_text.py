@@ -2,7 +2,8 @@
 
 from unittest.mock import patch
 
-from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
+from toad.clipboard import TerminalClipboard
+from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.project_panel import FilePreview
 
@@ -61,16 +62,16 @@ async def test_right_clicking_a_file_link_offers_to_copy_its_full_path(workspace
     path = project_plan(workspace)
     async with workspace.app(size=(130, 35)) as ui:
         app, pilot = ui.textual
+        # Exercise real publication without touching the host's desktop clipboard.
+        app.clipboard_transport = TerminalClipboard()
         owner = ui.selected_tab
         await say(ui, "[Relative](plans/tag-channel-view-plan.md)")
         x, y = ui._cell_of("Relative", 0)
         assert await pilot.click(offset=(x, y), button=3)
         await ui.until(lambda: isinstance(app.screen, ContextMenu), why="the link menu")
-        with patch.object(app, "copy_to_clipboard") as copied:
-            copy = next(item for item in app.screen.query(ContextMenuItem) if item.action == "copy_path")
-            assert await pilot.click(copy)
-            await ui.until(lambda: copied.called, why="the path copied")
-            copied.assert_called_once_with(str(path))
+        assert "copy_path" in await ui.menu("the file-link menu options")
+        await ui.choose_menu_action("copy_path")
+        await ui.until(lambda: app.clipboard == str(path), why="the full path in the clipboard")
         assert ui.selected_tab == owner
 
 

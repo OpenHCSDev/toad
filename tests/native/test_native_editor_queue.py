@@ -84,17 +84,8 @@ async def test_enter_queues_during_a_turn_and_a_tab_click_returns_to_the_same_ed
         await ui.until(
             lambda: isinstance(app.screen, ContextMenu), why="the thinking menu"
         )
-        high = next(
-            item
-            for item in app.screen.query("ContextMenuItem")
-            if item.action == "high"
-        )
-        await ui.until(
-            lambda: high in app.screen._compositor.visible_widgets
-            and high.region.width > 0,
-            why="the 'high' menu item",
-        )
-        assert await pilot.click(high, offset=(1, 0))
+        assert "high" in await ui.menu("the thinking menu options")
+        await ui.choose_menu_action("high")
         await ui.until(
             lambda: agent.configuration.thinking.current == "high",
             seconds=20,
