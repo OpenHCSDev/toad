@@ -19,7 +19,7 @@ from agent_comms.acp_extension import (
     SendNowRequest,
     encode_request,
 )
-from agent_comms.nominal.field_codec import AcpSessionId
+from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.delivery import DeliveryView
 
@@ -53,21 +53,53 @@ if TYPE_CHECKING:
 class SessionBinding:
     """Actual ACP binding identity, preserved only until session replacement."""
 
-    session_id: str | None
-    output: SessionOutput = field(default_factory=SessionOutput, compare=False)
+    output: SessionOutput = field(default_factory=SessionOutput, compare=False, kw_only=True)
+
+    @staticmethod
+    def from_sdk(session_id: str | None) -> SessionBinding:
+        """Decode the acquired SDK binding once, including actual absence."""
+        if session_id is None:
+            return SessionBinding()
+        return BoundSessionBinding(FieldCodec.decode(AcpSessionId, session_id))
+
+    @property
+    def session_id(self) -> AcpSessionId | None:
+        return None
 
     @property
     def bound(self) -> bool:
-        return self.session_id is not None
+        return False
 
-    def accepts_notification(self, session_id: str):
-        return self.bound and self.session_id == session_id
+    def require_session_id(self) -> AcpSessionId:
+        raise RequestError.invalid_params({'details': 'ACP request has no bound session'})
+
+    def accepts_notification(self, session_id: str) -> bool:
+        return False
 
     def accepts_snapshot(
         self, identity: TranscriptReadIdentity, coordination: CoordinationAttachment,
         destination: AcpSessionId,
     ) -> bool:
         return self.accepts_notification(destination) and coordination.accepts_read(identity)
+
+
+@dataclass(frozen=True)
+class BoundSessionBinding(SessionBinding):
+    identity: AcpSessionId
+
+    @property
+    def session_id(self) -> AcpSessionId:
+        return self.identity
+
+    @property
+    def bound(self) -> bool:
+        return True
+
+    def require_session_id(self) -> AcpSessionId:
+        return self.identity
+
+    def accepts_notification(self, session_id: str) -> bool:
+        return self.identity == session_id
 
 
 class TaskRunner(ABC):
@@ -98,17 +130,17 @@ class AgentController(OperationalTerminalOwner):
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
         self.transcripts = transcripts
-        self.session = SessionBinding(None)
+        self.session = SessionBinding()
         self.commands: list[AvailableCommand] = []
         self.plan_entries: list[PlanItem] | None = None
 
-    def bind_session(self, session_id) -> None:
+    def bind_session(self, session_id: str | None) -> None:
         if session_id != self.session.session_id:
             self.replace_terminal_session()
             self.agent.permissions.cancel()
             self.agent.tools.reset()
             self.agent.presentation.turns.reset()
-            self.session = SessionBinding(session_id)
+            self.session = SessionBinding.from_sdk(session_id)
             self.reset_configuration()
 
     def attach(self, binding: SurfaceBinding) -> None:
@@ -318,7 +350,7 @@ class AgentController(OperationalTerminalOwner):
         )
         confirmed = outcome.require_confirmation()
         authority.require()
-        consumer = agent.comms_consumer_class(agent, authority.session_id)
+        consumer = agent.comms_consumer_class(agent, authority.binding.require_session_id())
         await consumer.consume_metadata(confirmed.response.field_meta)
         return consumer.compaction.require()
 
@@ -328,7 +360,7 @@ class AgentController(OperationalTerminalOwner):
     async def _cancel_prompt(self, authority: ClientSessionRequest):
         authority.require()
         try:
-            await self.agent.process.rpc.cancel(authority.session_id)
+            await self.agent.process.rpc.cancel(authority.binding.require_session_id())
         except RequestError:
             return False
         return authority.current

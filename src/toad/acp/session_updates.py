@@ -22,6 +22,7 @@ from acp.schema import (
     UserMessageChunk,
 )
 from agent_comms.acp_extension import AgentCommsUpdate
+from agent_comms.nominal.field_codec import AcpSessionId
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
@@ -145,7 +146,7 @@ class SessionNotificationOwner(ClientRequestOwner):
             )
             if authority.retired:
                 return
-            validation.publish(self, notification.session_id, raw_update, notification.field_meta)
+            validation.publish(self, authority.binding.require_session_id(), raw_update, notification.field_meta)
 
     def reject(self, session_id: str, update, metadata, error: str):
         self.agent.log(
@@ -154,7 +155,7 @@ class SessionNotificationOwner(ClientRequestOwner):
         )
         self.agent.events.publish(events.RejectedSessionUpdate())
 
-    def publish(self, session_id: str, update: SessionNotification, facts: tuple[AgentCommsUpdate, ...]):
+    def publish(self, session_id: AcpSessionId, update: SessionNotification, facts: tuple[AgentCommsUpdate, ...]):
         metadata = update.update.field_meta
         consumer = self.agent.comms_consumer_class(self.agent, session_id)
         effect = SessionUpdateEffect(self.agent, consumer)
