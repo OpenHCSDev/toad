@@ -8,6 +8,8 @@ from base import Peer
 
 
 class SharedSessionPeer(Peer):
+    use_unstable_protocol = True
+
     async def initialize(self, protocol_version: int, **kwargs: object) -> InitializeResponse:
         response = await super().initialize(protocol_version, **kwargs)
         response.agent_capabilities = AgentCapabilities(
