@@ -6,6 +6,8 @@ from contextlib import asynccontextmanager
 import pytest
 
 from support.journals import assistant_entry, write_journal
+from support.ui import TextualUi
+from toad.widgets.transcript_history import TranscriptHistory
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.threads import Thread
 from toad.transcript_publication import CommitPublication, TranscriptPublication
@@ -57,6 +59,17 @@ async def hold_application(view):
         yield
     finally:
         release.set()
+
+
+async def hold_saved_prefix(ui: TextualUi, marker: str) -> TranscriptHistory:
+    """Freeze actual saved paint, not an initial live replay of the same text."""
+    history = ui.conversation.transcript.binding.history
+    await ui.until(lambda: history.source_ready and history.state.reports_coverage
+                   and marker in ui.painted(history),
+                   why="the saved prefix to paint before its source is held")
+    await ui.app.coordination_access.stop_observing()
+    await ui.conversation.transcript.suspend()
+    return history
 
 
 async def stays_waiting(task) -> bool:
@@ -152,6 +165,196 @@ async def test_a_certified_read_that_expired_acquires_no_application(workspace):
         await view.transcript.publish(HeldSourceCase, entered, release)
         assert view.transcript.binding.history is original
         assert view.transcript.binding.history.page_source.through.session_file == str(journal)
+
+
+async def test_followed_saved_append_keeps_painted_page_and_fragments(workspace):
+    import json
+    from dataclasses import replace
+
+    thread = workspace.thread("append-source")
+    journal = write_journal(
+        thread.project_path / "append.jsonl",
+        assistant_entry("FIRST_RETAINED_ROW", id="first"),
+        assistant_entry("SECOND_RETAINED_ROW", id="second", parent="first"),
+        assistant_entry("THIRD_RETAINED_ROW", id="third", parent="second"),
+    )
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    async with workspace.app(resume="append-source") as ui:
+        await ui.until_shows("THIRD_RETAINED_ROW")
+        view = ui.conversation
+        history = await hold_saved_prefix(ui, "THIRD_RETAINED_ROW")
+        assert view.window.follows_tail
+        pages = tuple(history.pages)
+        fragments = tuple(history.fragments_in_range)
+        assert pages and fragments
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry(
+                "APPENDED_SAVED_ROW", id="appended", parent="third")) + "\n")
+        view.transcript.require_commit()
+        await ui.until_shows("APPENDED_SAVED_ROW")
+        assert view.transcript.binding.history is history
+        assert all(page in history.pages for page in pages)
+        current = tuple(history.fragments_in_range)
+        assert all(any(fragment is kept for kept in current) for fragment in fragments)
+        painted = ui.painted(view.window)
+        assert all(marker in painted for marker in (
+            "FIRST_RETAINED_ROW", "SECOND_RETAINED_ROW", "THIRD_RETAINED_ROW"))
+        assert ui.failure() is None
+
+
+async def test_followed_commit_publishes_a_known_undrawn_gap_before_settling(workspace):
+    import json
+    from dataclasses import replace
+
+    thread = workspace.thread("gap-source")
+    journal = write_journal(thread.project_path / "gap.jsonl",
+                            assistant_entry("BEFORE_SOURCE_GAP", id="before"))
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    async with workspace.app(resume="gap-source") as ui:
+        await ui.until_shows("BEFORE_SOURCE_GAP")
+        view = ui.conversation
+        history = await hold_saved_prefix(ui, "BEFORE_SOURCE_GAP")
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry(
+                "AFTER_SOURCE_GAP", id="after", parent="before")) + "\n")
+        view.transcript.dirty = view.transcript.commit_required = True
+        entered, release = asyncio.Event(), asyncio.Event()
+        case = view.transcript.binding.capture(view.transcript, HeldSourceCase, entered, release)
+        assert case is not None
+        pending = asyncio.create_task(case.publish())
+        try:
+            # A successful publication return can also mean a guarded no-op.
+            # Hold the existing real read only AFTER the commit was admitted.
+            await ui.until(entered.is_set, why="the admitted commit to acquire its real source")
+            page = workspace.comms.transcripts.capture_page_read("gap-source").read()
+            history.retain_committed(page.after)
+            assert view.window.follows_tail and history.drawn_end_more
+        finally:
+            release.set()
+            await pending
+        # Check the publication contract before a later lookahead can hide it.
+        assert not history.drawn_end_more, (
+            case.current(), case.plan.current(view.window),
+            history.source_ready, view.window.follows_tail,
+            view.transcript.dirty, view.transcript.commit_required,
+            history.pages[-1].prepared.page.after, history.page_source.through,
+        )
+        assert history.pages[-1].prepared.page.after.same_position(page.after)
+        await ui.until_shows("AFTER_SOURCE_GAP")
+        assert ui.failure() is None
+
+
+@pytest.mark.parametrize("following", (False, True))
+async def test_closed_same_source_commit_acquires_complete_coverage(workspace, following):
+    import json
+    from dataclasses import replace
+
+    thread = workspace.thread("closed-prefix")
+    journal = write_journal(thread.project_path / "closed.jsonl",
+                            assistant_entry("CLOSED_PREFIX_MUST_SURVIVE", id="before"))
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    async with workspace.app(resume="closed-prefix") as ui:
+        await ui.until_shows("CLOSED_PREFIX_MUST_SURVIVE")
+        view = ui.conversation
+        history = await hold_saved_prefix(ui, "CLOSED_PREFIX_MUST_SURVIVE")
+        history.close()
+        if not following:
+            view.window.release_anchor()
+        pages = tuple(history.pages)
+        fragments = tuple(history.fragments_in_range)
+        position = view.window.reader_position
+        with journal.open("a") as output:
+            output.write(json.dumps(assistant_entry(
+                "CLOSED_PREFIX_SUCCESSOR", id="after", parent="before")) + "\n")
+        view.transcript.dirty = view.transcript.commit_required = True
+        await view.transcript.publish(CommitPublication)
+        if following:
+            await ui.until_shows("CLOSED_PREFIX_SUCCESSOR")
+        else:
+            await ui.step()
+            assert tuple(history.pages) == pages
+            assert all(actual is original for actual, original in
+                       zip(history.fragments_in_range, fragments, strict=True))
+            assert view.window.reader_position == position
+            assert "CLOSED_PREFIX_SUCCESSOR" not in ui.painted(view.window)
+        assert "CLOSED_PREFIX_MUST_SURVIVE" in ui.painted(view.window)
+        assert view.transcript.binding.history is history
+        assert ui.failure() is None
+
+
+@pytest.mark.parametrize("following", (False, True))
+async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(workspace, following):
+    from dataclasses import replace
+    from agent_comms.coordination_errors import TranscriptChanged
+
+    thread = workspace.thread("rewritten-source")
+    journal = write_journal(thread.project_path / "rewritten.jsonl",
+                            assistant_entry("SUPERSEDED_SOURCE_ROW", id="old"))
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    async with workspace.app(resume="rewritten-source") as ui:
+        await ui.until_shows("SUPERSEDED_SOURCE_ROW")
+        view = ui.conversation
+        history = await hold_saved_prefix(ui, "SUPERSEDED_SOURCE_ROW")
+        original = history.page_source.through
+        if not following:
+            view.window.release_anchor()
+        # Reuse the path, but replace its native bytes with a longer record.
+        # Filename/offset containment alone cannot witness this old prefix.
+        write_journal(journal, assistant_entry(
+            "REPLACEMENT_SOURCE_ROW " * 80, id="new"))
+
+        def read_replacement():
+            read = workspace.comms.transcripts.capture_page_read("rewritten-source")
+            with pytest.raises(TranscriptChanged):
+                read.read(position=original.later_page())
+            return read.read()
+
+        replacement = await asyncio.to_thread(read_replacement)
+        assert replacement.after.contains(original)
+        view.transcript.dirty = view.transcript.commit_required = True
+        await view.transcript.publish(CommitPublication)
+        await ui.until_shows("REPLACEMENT_SOURCE_ROW")
+        assert "SUPERSEDED_SOURCE_ROW" not in ui.painted(view.window)
+        assert view.transcript.binding.history is history
+        assert ui.failure() is None
+
+
+@pytest.mark.parametrize("pressure", (False, True))
+async def test_prune_pressure_counts_live_blocks_not_saved_history(workspace, pressure):
+    from dataclasses import replace
+    from toad.preferences import SETTINGS
+
+    thread = workspace.thread("pressure-source")
+    journal = write_journal(thread.project_path / "pressure.jsonl",
+                            assistant_entry("SAVED_PRESSURE_ROW_ONE\n\nSAVED_PRESSURE_ROW_TWO", id="saved"))
+    workspace.comms.registry.declare(replace(
+        thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
+    async with workspace.app(resume="pressure-source") as ui:
+        await ui.until_shows("SAVED_PRESSURE_ROW_TWO")
+        view = ui.conversation
+        await ui.app.coordination_access.stop_observing()
+        await view.post(AgentResponse("\n\n".join(
+            f"Actual live response paragraph {number}" for number in range(128))))
+        await ui.until(lambda: view.contents.virtual_size.height
+                       - view.transcript.binding.history.outer_size.height > 100,
+                       why="the real live response to have its laid-out height")
+        await view.transcript.suspend()
+        history = view.transcript.binding.history
+        live_height = view.contents.virtual_size.height - history.outer_size.height
+        threshold = live_height + 1 - 2 * int(pressure)
+        assert threshold >= 100 and history.outer_size.height > 2
+        assert view.contents.virtual_size.height > threshold
+        ui.app.saved_settings.set(SETTINGS.ui.prune_low_mark, threshold)
+        ui.app.saved_settings.set(SETTINGS.ui.prune_excess, 0)
+        view.transcript.dirty = view.transcript.commit_required = False
+        view._require_check_prune = True
+        await view.check_prune()
+        assert view.transcript.commit_required is pressure
+        assert ui.failure() is None
 
 
 async def test_closing_the_transcript_mid_application_paints_nothing(workspace):

@@ -310,8 +310,27 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         edge = self.pages[-1].prepared
         return NEWER_END.can_extend(edge) or edge.page.has_newer
 
+    async def publish_append(self, through, publication_current: Callable[[], bool]) -> bool:
+        """A commit may retire live blocks only after publishing its destination.
+
+        extend also serves held readers: its True can mean access advanced
+        without new paint. A followed commit must instead finish a known gap
+        through the existing bounded destination owner before reporting success.
+        """
+        if not await self.extend(through, publication_current):
+            return False
+        if not publication_current():
+            return False
+        if self.drawn_end_more:
+            if not await self.jump_latest(
+                LatestViewportRequest(LatestPosition.hold(self.window)), publication_current,
+            ):
+                return False
+        return (publication_current() and not self.drawn_end_more
+                and self.pages[-1].prepared.page.after.same_position(through))
+
     async def extend(self, through, publication_current: Callable[[], bool] = lambda: True) -> bool:
-        """Append to a complete followed tail; a gap uses the bounded latest read."""
+        """Extend source access, preserving held readers that have not drawn its end."""
         if not publication_current():
             return False
         self.page_source.through = through
