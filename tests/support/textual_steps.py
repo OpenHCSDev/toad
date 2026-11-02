@@ -134,7 +134,7 @@ async def wait_for_tool_diff(ui, tool):
     from toad.widgets.tool_content import ToolContent
 
     content = tool.query_one(ToolContent)
-    await ui.until(lambda: content._styled is not None, seconds=10, why="the styled tool rows")
+    await ui.until(lambda: not content._styled.awaits_styling, seconds=10, why="the styled tool rows")
     await ui.step()
     return content
 

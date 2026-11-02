@@ -32,8 +32,8 @@ class AgentThought(
     def __init__(self, thought: str):
         super().__init__(thought)
 
-    def line_blocks(self, text: str, *, complete: bool = True) -> tuple[LineBlock, ...]:
-        return AgentActivityPresentation.thinking(text, complete=complete)
+    def line_blocks(self, text: str) -> tuple[LineBlock, ...]:
+        return AgentActivityPresentation.thinking(text)
 
     def on_click(self) -> None:
         self.focus()

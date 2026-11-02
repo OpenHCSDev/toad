@@ -48,6 +48,7 @@ from toad.core.events import (
     ThreadRowStateChanged,
 )
 from toad.core_event_carrier import CoreEventReceiver
+from toad.no_worker import NoWorker
 from toad.widgets.side_bar import SideBar
 from toad.widgets.sidebar_viewport import SidebarHeader
 
@@ -213,22 +214,6 @@ class KeyedRows[KeyT]:
         if retired or mounted or reordered:
             self.rows_changed()
         return ordered
-
-
-class NoWorker:
-    """No work was scheduled; queries need no absence branch or native task."""
-
-    @property
-    def is_finished(self) -> bool:
-        return True
-
-    @property
-    def is_running(self) -> bool:
-        return False
-
-    @property
-    def error(self) -> None:
-        return None
 
 
 class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):

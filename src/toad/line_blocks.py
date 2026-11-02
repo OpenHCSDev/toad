@@ -371,7 +371,7 @@ class Body(LineBlock):
     def selection_text(self) -> str:
         return self.text
 
-    def presentation(self, *, complete: bool = True) -> tuple[LineBlock, ...]:
+    def presentation(self) -> tuple[LineBlock, ...]:
         """A body used inside another block has no message separator."""
         return (self,)
 
@@ -391,11 +391,10 @@ class MarkdownBody(Body):
 
 
 class MessageBody(Body):
-    """A complete message owns its separator; an unfinished prefix does not."""
+    """A message owns its separator."""
 
-    def presentation(self, *, complete: bool = True) -> tuple[LineBlock, ...]:
-        rows = super().presentation(complete=complete)
-        return (*rows, Gap()) if complete else rows
+    def presentation(self) -> tuple[LineBlock, ...]:
+        return (*super().presentation(), Gap())
 
 
 class MarkdownMessageBody(MessageBody, MarkdownBody):
