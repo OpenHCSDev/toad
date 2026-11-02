@@ -60,6 +60,7 @@ from ui_theme.scheme import (
     TextStyle,
     ThemeColour,
     ToneColour,
+    WarningColour,
 )
 from ui_theme.splash import TextEffect
 from ui_theme.wal import WalFile
@@ -115,6 +116,12 @@ class ChannelAlternateRowToneColour(HueToneColour):
 
     name = "tone-channel-row-alternate"
     amount = 0.2
+
+
+class WarningTextColour(ThemeColour):
+    """The native design system's warning text expression, including auto and alpha."""
+
+    name = f"text-{WarningColour.name}"
 
 
 class ClockCadence:

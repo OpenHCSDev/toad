@@ -3,8 +3,13 @@ from agent_comms.nominal.field_codec import RecordedTimestamp
 
 from textual import containers, getters, on, widgets
 from textual.app import ComposeResult
+from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
+from textual.css.styles import Styles
 from textual.widgets._markdown import MarkdownH1
-from toad.native_layout import NativeLayout
+from ui_theme.scheme import PrimaryColour, WarningColour
+
+from toad.native_layout import NativeLayout, NativeTheme
+from toad.textual_colours import WarningTextColour
 from toad.screens.modal import DismissibleScreen
 
 from toad.db import DB, Session
@@ -25,13 +30,22 @@ class ResumeHelp(widgets.Markdown):
     BLOCKS = widgets.Markdown.BLOCKS | {f"h{ResumeHeading.LEVEL}": ResumeHeading}
 
 
-class ResumeWarning(NativeLayout, widgets.Static):
+class ResumeWarning(NativeTheme, NativeLayout, widgets.Static):
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("round"), Variable(WarningColour.name)),
+        NativeDeclaration.of(Styles.color, Variable(WarningTextColour.name)),
+    )
+
     def apply_native_layout(self) -> None:
         self.styles.padding = (0, 1)
         self.styles.margin = (0, 0, 1, 1)
 
 
-class ResumeFrame(NativeLayout, containers.VerticalGroup):
+class ResumeFrame(NativeTheme, NativeLayout, containers.VerticalGroup):
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("thick"), Variable(PrimaryColour.name), Percent(20)),
+    )
+
     def apply_native_layout(self) -> None:
         self.styles.margin = (2, 4, 1, 4)
         self.styles.padding = (0, 1, 0, 0)
@@ -60,8 +74,6 @@ class ResumeButtons(NativeLayout, containers.HorizontalGroup):
 class SessionResumeModal(NativeLayout, DismissibleScreen[Session]):
     """Dialog to select a session to resume."""
 
-    CSS_PATH = "session_resume_modal.tcss"
-
     session_table = getters.query_one("#sessions", ResumeTable)
 
     def apply_native_layout(self) -> None:
@@ -72,7 +84,6 @@ class SessionResumeModal(NativeLayout, DismissibleScreen[Session]):
             yield ResumeHelp(HELP)
             yield ResumeWarning(
                 "⚠ Not all ACP agents currently support resume",
-                classes="warning",
             )
             with ResumeTableContainer(id="table-container"):
                 yield ResumeTable(id="sessions", cursor_type="row")

@@ -1,9 +1,0 @@
-SessionResumeModal {
-    .warning {
-        border: round $warning;
-        color: $text-warning;
-    }
-    #container {
-        border: thick $primary 20%;
-    }
-}
