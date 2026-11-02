@@ -5,7 +5,7 @@ from support.agents import RecordedEvents
 
 from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.core.events import CoreEvent, Update
-from toad.core_event_carrier import CoreEventMessage, dispatch_publication
+from toad.core_event_carrier import CoreEventMessage
 from toad.live_output import CompleteResponseStream, OutputStream, ResponseStream, ThoughtStream
 from toad.response_delivery import RoutedResponse
 from toad.widgets.agent_response import AgentResponse
@@ -71,8 +71,10 @@ async def test_queued_client_replies_of_one_local_turn_form_one_reply(workspace)
         first = consumed_stream(agent)
         second = consumed_stream(agent)
         view.turns.finish_client()
-        await dispatch_publication(view, CoreEventMessage(Update("text", "Local queued", first), subscription))
-        await dispatch_publication(view, CoreEventMessage(Update("text", " response", second), subscription))
+        await view._post_message_and_wait(
+            CoreEventMessage(Update("text", "Local queued", first), subscription).stop())
+        await view._post_message_and_wait(
+            CoreEventMessage(Update("text", " response", second), subscription).stop())
         local = view.output.streams[ResponseStream].block
         await view.output.finish(ResponseStream)
         assert local.body.text == "Local queued response"
@@ -98,13 +100,17 @@ async def test_an_update_published_by_another_agent_adds_no_block(workspace):
         view.turns.start_client()
         queued = consumed_stream(agent)
         view.turns.finish_client()
-        await dispatch_publication(view, CoreEventMessage(Update("text", "Local queued", queued), subscription))
+        await view._post_message_and_wait(
+            CoreEventMessage(Update("text", "Local queued", queued), subscription).stop())
         await view.output.finish(ResponseStream)
         count = len(view.query(AgentResponse))
         # The view shows `agent`; an update published by any other agent is not its output.
         other = ui.detached_agent(identity="another-agent")
-        foreign = other.events.subscribe(CoreEvent, RecordedEvents().receive)
-        await dispatch_publication(view, CoreEventMessage(Update("text", "Retired source", ResponseStream()), foreign))
+        observer = RecordedEvents()
+        foreign = other.events.subscribe(CoreEvent, observer.receive)
+        assert foreign.active
+        await view._post_message_and_wait(
+            CoreEventMessage(Update("text", "Retired source", ResponseStream()), foreign).stop())
         assert len(view.query(AgentResponse)) == count
 
 
