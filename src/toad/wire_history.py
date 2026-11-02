@@ -55,6 +55,7 @@ from toad.transcript_state import (
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.submission_queue import BusQueueSource
+from toad.queue_capability import QueueView
 from toad.widgets.transcript_fragments import (
     BusMessageFragment,
     MessageShown,
@@ -323,7 +324,7 @@ class WireSource(BusQueueSource):
     tail_limit: int = 8
     page_limit: int = 40
 
-    def capture_queue_service(self, view: Conversation) -> Callable[[], Comms]:
+    def capture_queue_service(self, view: QueueView) -> Callable[[], Comms]:
         return self.queue_service
 
     def queue_service(self) -> Comms:
@@ -331,7 +332,7 @@ class WireSource(BusQueueSource):
             raise RouteChangedError("The queue's original message source retired")
         return self.comms
 
-    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+    def contains_message(self, view: QueueView, root: Path, sent: Message) -> bool:
         return self.comms.root == root and view.contains_user_message(sent)
 
     def begin_submission(self, owner: ConversationSubmissions,

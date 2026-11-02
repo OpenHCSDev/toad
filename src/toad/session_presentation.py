@@ -26,6 +26,7 @@ from toad.conversation_kind import DmConversation
 from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
 from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
+from toad.queue_capability import QueueView
 from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
@@ -186,15 +187,8 @@ class OperationalSessionSources(NativeQueueSource):
 
         return Prompt(project=conversation.project_path, turns=conversation.turns, submissions=conversation.submissions)
 
-    def input_decision(self, conversation: Conversation) -> InputDecision:
-        agent = conversation.agent_binding
-        return agent.readiness_decision.then(
-            lambda: agent.configuration.model.input_decision
-        ).then(
-            lambda: conversation.transcript.binding.thread_scope.owner_decision(
-                conversation.thread_presentation
-            )
-        )
+    def input_decision(self, conversation: QueueView) -> InputDecision:
+        return conversation.native_input_decision
 
     def start_agent(self, conversation: Conversation) -> None:
         conversation.agent_binding.start_agent(self, conversation)
@@ -258,12 +252,12 @@ class OperationalSessionSources(NativeQueueSource):
 class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
 
-    def capture_queue_service(self, view: Conversation) -> Callable[[], Comms]:
-        return partial(view.transcript.binding.thread_scope.queue_service,
+    def capture_queue_service(self, view: QueueView) -> Callable[[], Comms]:
+        return partial(view.transcript_queue_service,
                        super().capture_queue_service(view))
 
-    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
-        return view.transcript.binding.thread_scope.contains_message(view, root, sent)
+    def contains_message(self, view: QueueView, root: Path, sent: Message) -> bool:
+        return view.contains_transcript_message(root, sent)
 
     def activity_row(self, conversation: Conversation):
         return conversation.thread_activity.row

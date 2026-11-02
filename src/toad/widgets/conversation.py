@@ -14,6 +14,8 @@ from acp import schema as acp_protocol
 from toad.widgets.markdown_note import MarkdownNote
 from toad.native_node_meta import NativeNodeMeta
 from agent_comms.channel_targets import CommandTarget
+from agent_comms.comms import Comms
+from agent_comms.messages import Message
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
 from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
@@ -72,7 +74,8 @@ from agent_comms.acp_extension import (
 )
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
-from toad.input_decision import InputSourceUnavailable
+from toad.input_decision import InputDecision, InputSourceUnavailable
+from toad.queue_capability import QueueView
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
 from toad.core import input_events
@@ -107,7 +110,6 @@ from toad.session_scope import SessionScope, TranscriptScope
 from toad.shell import Shell
 from toad.status_thread import StatusThread
 from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
-from toad.app_node import ToadNode
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.comms_menu import ContextMenu
@@ -1045,7 +1047,7 @@ class Conversation(
     SessionLoginTarget,
     NativeMethodKeys,
     PromptTurnTarget,
-    ToadNode, MenuConversation,
+    QueueView, MenuConversation,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
@@ -1314,7 +1316,25 @@ class Conversation(
     def cursor_block(self) -> ConversationEntry | None:
         return self.navigation.current
 
-    def contains_user_message(self, sent) -> bool:
+    @property
+    def native_input_decision(self) -> InputDecision:
+        agent = self.agent_binding
+        return agent.readiness_decision.then(
+            lambda: agent.configuration.model.input_decision
+        ).then(
+            lambda: self.transcript.binding.thread_scope.owner_decision(
+                self.thread_presentation
+            )
+        )
+
+    @property
+    def transcript_queue_service(self) -> Callable[[Callable[[], Comms]], Comms]:
+        return self.transcript.binding.thread_scope.queue_service
+
+    def contains_transcript_message(self, root: Path, sent: Message) -> bool:
+        return self.transcript.binding.thread_scope.contains_message(self, root, sent)
+
+    def contains_user_message(self, sent: Message) -> bool:
         return self.transcript.binding.history.contains_message(sent)
 
     def bind_bus_submission(

@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
@@ -19,10 +19,7 @@ from toad.conversation_submission import PromptInputSubmission, ConversationSubm
 from toad.input_decision import InputAccepted, InputDecision, InputSourceUnavailable
 from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines
-from toad.queue_capability import QueueActions, QueueEvidence
-
-if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
+from toad.queue_capability import QueueActions, QueueEvidence, QueueView
 
 
 class QueueSource(QueueActions):
@@ -30,8 +27,8 @@ class QueueSource(QueueActions):
 
     preview_limit: ClassVar[int] = 3
 
-    def capture_queue_service(self, view: Conversation) -> Callable[[], Comms]:
-        return view.app.coordination_access.observation.queue_service
+    def capture_queue_service(self, view: QueueView) -> Callable[[], Comms]:
+        return view.queue_observation_service
 
     def send_now_available(self, owner: ConversationSubmissions) -> bool:
         return self.queue_actions_available(owner.queue_evidence)
@@ -40,13 +37,13 @@ class QueueSource(QueueActions):
                          submission: PromptInputSubmission) -> SubmissionStart:
         return owner.unbound(submission, InputSourceUnavailable())
 
-    def input_decision(self, view: Conversation) -> InputDecision:
+    def input_decision(self, view: QueueView) -> InputDecision:
         return InputSourceUnavailable()
 
-    def defers_input(self, view: Conversation) -> bool:
+    def defers_input(self, view: QueueView) -> bool:
         return False
 
-    def contains_message(self, view: Conversation, root: Path, sent: Message) -> bool:
+    def contains_message(self, view: QueueView, root: Path, sent: Message) -> bool:
         """Only the original message source can confirm its committed row."""
         return False
 
@@ -97,7 +94,7 @@ class NativeQueueSource(QueueSource):
                          submission: PromptInputSubmission) -> SubmissionStart:
         return owner.view.agent_binding.begin_submission(owner, submission)
 
-    def defers_input(self, view: Conversation) -> bool:
+    def defers_input(self, view: QueueView) -> bool:
         return view.turns.owner.busy and view.agent_binding.presentation.queue_supported
 
     def observed_summary(self, evidence: QueueEvidence) -> str:
@@ -145,7 +142,7 @@ class BusQueueSource(QueueSource):
         # Mailbox also inherits NativeQueueSource; BUS owns this lookup choice.
         return QueueSource.send_now_available(self, owner)
 
-    def input_decision(self, view: Conversation) -> InputDecision:
+    def input_decision(self, view: QueueView) -> InputDecision:
         return InputAccepted()
 
     def queue_scope(self, evidence: QueueEvidence) -> QueueScope:
