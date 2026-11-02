@@ -124,7 +124,7 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
             )
             if self.has_focus:
                 cursor_style = paint.component_style(self, "input--cursor")
-                if self._cursor_visible:
+                if self.cursor_shape.draws_cell(self._cursor_visible):
                     # If the placeholder is empty, there's no characters to stylise
                     # to make the cursor flash, so use a single space character
                     if len(placeholder) == 0:
