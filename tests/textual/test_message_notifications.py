@@ -4,6 +4,8 @@ Painting cases use controlled replies after retiring the shared observer's inter
 The live subscription/return journey is exercised in test_channel_updates_and_returns.
 """
 
+from dataclasses import replace
+
 from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.notification_progress import (
     CompletedProgress, ConsumingProgress, IgnoredProgress, SendingProgress,
@@ -119,9 +121,12 @@ async def test_the_line_follows_typed_state_and_read_errors_without_new_messages
         access = ui.app.coordination_access
         request = access.notification_views[chat.message_history.notification_view]
         error = UnreadableHistory.capture(OSError("fixture busy database"))
+        answered = newest_status(chat)
         access.notifications_unreadable(NotificationsUnreadable(access.revision, request, error), access.observation.observed())
-        await ui.until_shows("▶ Notification status unavailable")
-        assert "fixture busy database" in newest_status(chat).error
+        await ui.step()
+        # A failed read never hides an answer already shown; the next answer replaces it.
+        assert newest_status(chat) == answered
+        await ui.until_shows(answered.title)
         notifications.state = CompletedProgress(ShownToModelProgress(0))
         await notifications.publish(ui, chat)
         await ui.until_shows(newest_status(chat).title)
@@ -194,3 +199,42 @@ async def test_a_status_of_the_same_height_repaints_its_rows_without_measuring_t
         await ui.until(lambda: newest.shown.details_open, why="the details opened")
         await ui.step()
         assert page._fragment_slots is not measured, "a taller status kept the old box"
+
+
+async def test_a_reread_or_resubscribed_message_starts_from_its_known_answer(workspace):
+    """Scrolling re-reads pages and changes the subscribed set. A message whose answer is
+    known keeps showing it: a re-read fragment is built with it and a new subscription is
+    answered from it at once, so "Checking" never replaces a known answer."""
+    from agent_comms.notification_reads import LiveNotificationRead
+    from agent_comms.ui_model.observation import ReadNotifications
+    from toad.notification_status import UncheckedNotifications
+
+    CommsChatView = await open_comms_channel(workspace)
+    notifications = Notifications()
+    async with workspace.app(size=(110, 40)) as ui:
+        await ui.open_channel("#comms", actor="peer")
+        chat = ui.app.screen.query_one(CommsChatView)
+        history = chat.message_history
+        await settled(ui, chat)
+        notifications.state = ConsumingProgress(0)
+        await notifications.publish(ui, chat)
+        newest = history.visible_fragments()[-1]
+        answered = newest.shown.status
+        access = ui.app.coordination_access
+        source = chat.queue_source
+
+        # The scope WireSource.read builds for a re-read page is the view's own scope.
+        scope = ReadNotifications(str(source.comms.root), LiveNotificationRead(()),
+                                  display=newest.notification_identity)
+        assert access.notification_status(scope, newest.notification_references) == answered
+
+        # A subscription for a different visible set is answered from what is known.
+        view = history.notification_view
+        request = access.notification_views[view]
+        shifted = replace(request, operation=replace(
+            request.operation, references=request.operation.references[-1:]))
+        assert access.known_outcomes(shifted), "the known answer was dropped when the set changed"
+        access.show_notifications(view, shifted)
+        await ui.step()
+        assert newest.shown.status == answered
+        assert newest.shown.status != UncheckedNotifications()

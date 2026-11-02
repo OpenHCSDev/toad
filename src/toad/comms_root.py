@@ -14,13 +14,14 @@ from __future__ import annotations
 import asyncio
 import threading
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Mapping
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
+from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.display_references import PendingReferences, UnavailableReferences
@@ -72,6 +73,7 @@ from toad.core.events import (
     ThreadRowsChanged,
 )
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
+from toad.notification_status import CheckedNotifications, NotificationStatus, UncheckedNotifications
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 
 if TYPE_CHECKING:
@@ -158,7 +160,7 @@ class Observation(ABC):
         access.thread_status.clear()
         access.views_interest = None
         access.notification_views.clear()
-        access.notification_outcomes.clear()
+        access.notification_known.clear()
         access.notification_interest = ObserveNotifications(frozenset())
         self.activate(access)
         access.events.publish(ObservedServiceChanged())
@@ -368,7 +370,9 @@ class CoordinationAccess(MroDispatch):
         self.sidebar_current: ObserveSidebar | None = None
         self.views_interest: ObserveViews | None = None
         self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
-        self.notification_outcomes: dict[ReadNotifications, Mapping[tuple[int, str], tuple[MessageNotification, ...]]] = {}
+        # The last answer for each message under each read scope (root, display, source).
+        # A scroll changes which messages a view reads, never what is already known.
+        self.notification_known: dict[tuple[ReadNotifications, tuple[int, str]], tuple[MessageNotification, ...]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
         # Open team pages; the heartbeat's frames are observed only while one is shown.
         self.team_pages: WeakSet[TeamPage] = WeakSet()
@@ -511,9 +515,27 @@ class CoordinationAccess(MroDispatch):
 
     def show_notifications(self, view: HistoryNotifications, read: ReadNotifications) -> None:
         self.notification_views[view] = read
-        if read in self.notification_outcomes:
-            view.notifications_observed(self.notification_outcomes[read])
+        if known := self.known_outcomes(read):
+            view.notifications_observed(known)
         self._request_interest()
+
+    @staticmethod
+    def notification_scope(read: ReadNotifications) -> ReadNotifications:
+        """The read without its messages: root, display cut and source decide an outcome."""
+        return replace(read, operation=replace(read.operation, references=()), request_id=0)
+
+    def known_outcomes(self, read: ReadNotifications) -> dict[tuple[int, str], tuple[MessageNotification, ...]]:
+        scope = self.notification_scope(read)
+        return {key: self.notification_known[scope, key]
+                for key in read.keys if (scope, key) in self.notification_known}
+
+    def notification_status(self, read: ReadNotifications, references: tuple[MessageReference, ...]) -> NotificationStatus:
+        """The last known status of these messages, so a re-read fragment starts from it."""
+        scope = self.notification_scope(read)
+        keys = ((reference.seq, reference.message_id) for reference in references)
+        known = {key: self.notification_known[scope, key]
+                 for key in keys if (scope, key) in self.notification_known}
+        return next(CheckedNotifications.for_references(references, known), UncheckedNotifications())
 
     def stop_notifications(self, view: HistoryNotifications) -> None:
         self.notification_views.pop(view, None)
@@ -521,8 +543,6 @@ class CoordinationAccess(MroDispatch):
 
     def _request_interest(self) -> None:
         wanted = ObserveNotifications(frozenset(self.notification_views.values()))
-        for previous in self.notification_outcomes.keys() - wanted.reads:
-            self.notification_outcomes.pop(previous)
         if wanted != self.notification_interest:
             observed = self.observation.observed()
             self.notification_interest = wanted
@@ -532,14 +552,14 @@ class CoordinationAccess(MroDispatch):
     def notifications_observed(self, result: NotificationsObserved, observed: Observing) -> None:
         if result.request not in self.notification_views.values():
             return
-        self.notification_outcomes[result.request] = result.outcomes
+        scope = self.notification_scope(result.request)
+        self.notification_known.update(((scope, key), rows) for key, rows in result.outcomes.items())
         for view, request in tuple(self.notification_views.items()):
             if result.request == request:
                 view.notifications_observed(result.outcomes)
 
     @handles(NotificationsUnreadable)
     def notifications_unreadable(self, result: NotificationsUnreadable, observed: Observing) -> None:
-        self.notification_outcomes.pop(result.request, None)
         for view, request in tuple(self.notification_views.items()):
             if result.request == request:
                 view.notifications_failed(result.error)

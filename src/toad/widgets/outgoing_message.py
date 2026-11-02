@@ -49,11 +49,14 @@ class OutgoingMessage(MessageRowOwner, MessageRowBlock, CommitParticipant, Conve
 
     async def show_notifications(self, results):
         for status in CheckedNotifications.for_references(self.notification_references, results):
-            await self.show_notification_status(status)
+            if self.is_attached:
+                self.query_one(MessageNotifications).show(status)
 
     async def show_notification_status(self, status: NotificationStatus):
+        """A failed read; an answer already shown stays until a new answer replaces it."""
         if self.is_attached:
-            self.query_one(MessageNotifications).show(status)
+            feedback = self.query_one(MessageNotifications)
+            feedback.show(feedback.status.failed(status))
 
     @property
     def message_category(self):

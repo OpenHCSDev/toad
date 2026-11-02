@@ -29,9 +29,9 @@ async def test_historical_notification_keeps_selected_source_and_lifetime(worksp
                        why="the historical body's notification subscription")
         request = access.notification_views[content]
         assert request.operation == RecordedNotificationRead((message.reference,), source.key)
-        await ui.until(lambda: request in access.notification_outcomes,
+        await ui.until(lambda: bool(access.known_outcomes(request)),
                        why="the archive's actual observation reply")
-        outcomes = access.notification_outcomes[request]
+        outcomes = access.known_outcomes(request)
         assert outcomes[message.seq, message.message_id]
 
         await ui.press("escape")

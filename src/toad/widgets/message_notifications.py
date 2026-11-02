@@ -223,7 +223,7 @@ class SourceNotifications:
             for status in CheckedNotifications.for_references(fragment.notification_references, results)])
 
     async def show_notification_status(self, status):
-        await self._show([(fragment, replace(fragment.shown, status=status))
+        await self._show([(fragment, replace(fragment.shown, status=fragment.shown.status.failed(status)))
                          for fragment in self.visible_fragments() if fragment.notification_references])
 
     def retire_source(self, *, parked: bool = False):

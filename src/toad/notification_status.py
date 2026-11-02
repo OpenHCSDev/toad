@@ -34,6 +34,10 @@ class NotificationStatus:
     working: ClassVar[bool] = False
     unavailable: ClassVar[bool] = False
 
+    def failed(self, failure: NotificationStatus) -> NotificationStatus:
+        """A failed read replaces this status; a known answer stays until a new answer."""
+        return failure
+
     @property
     def title(self) -> str:
         return ""
@@ -100,6 +104,9 @@ class CheckedNotifications(NotificationStatus):
     def from_notifications(cls, notifications: tuple[MessageNotification, ...]) -> CheckedNotifications:
         """Keep a matched empty result distinct from an observed recipient."""
         return cls(notifications) if notifications else EmptyCheckedNotifications()
+
+    def failed(self, failure: NotificationStatus) -> NotificationStatus:
+        return self
 
     @property
     def working(self) -> bool:

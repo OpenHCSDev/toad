@@ -14,6 +14,8 @@ from functools import partial, singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
+from agent_comms.notification_reads import LiveNotificationRead
+from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.display_references import CurrentDisplayReferences
@@ -347,9 +349,15 @@ class WireSource(BusQueueSource):
     def read(self, request: PageRequest[WireCut], through: AfterSequence) -> PreparedTranscriptPage:
         """Read the page a request names, never past `through`, as fragments to draw."""
         page = request.end.wire_page(self, request.cursor, through)
-        shown = MessageShown(style=self.style)
+        # A re-read message starts from its last known notifications, never from
+        # "Checking": the answer that follows then changes nothing it has to redraw.
+        scope = ReadNotifications(str(self.comms.root), LiveNotificationRead(()),
+                                  display=page.selection.notification_identity)
         fragments = tuple(
-            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me, page=page)
+            WireFragment.of(message, shown=MessageShown(
+                style=self.style,
+                status=self.access.notification_status(scope, message.role.notification_references(message))),
+                evidence=evidence, reader=self.me, page=page)
             for message, evidence in page.message_evidence()
         )
         wire = WirePage(
