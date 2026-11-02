@@ -13,7 +13,7 @@ import asyncio
 from functools import cached_property, partial
 from abc import abstractmethod
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
 from agent_comms.comms import Comms
 from agent_comms.cli_result import CliResult
 from agent_comms.importing import ThreadImported
@@ -198,10 +198,12 @@ class Transfers(ThemedApp[TerminalOutcome]):
         selected = access.selected(access.observation.observed().service.root)
         self.push_screen(kind.dialog(selected), callback=partial(self.transfer_submitted, selected))
 
+    @boundary_decoder
     def transfer_submitted(self, selected: RouteSelection, request: Transfer | None) -> None:
+        """Native Screen.dismiss supplies None on cancel; that absence stops here."""
         if request is not None:
-            self.run_worker(partial(request.execute, self, selected),
-                            group=FieldCodec.encode(type(request)), exclusive=True)
+            self.run_worker(request.execute(self, selected),
+                            group=type(request).declared_name, exclusive=True)
 
 
 class TransferDialog(DismissibleScreen[Transfer]):
@@ -219,6 +221,7 @@ class TransferDialog(DismissibleScreen[Transfer]):
         self.query_one("#transfer-error", Static).update(error)
 
     @staticmethod
+    @boundary_decoder
     def require_selection[Value](control: Select[Value]) -> Value:
         """Admit the native optional value once, without a wire encode/decode."""
         value = control.selection
