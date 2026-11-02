@@ -708,7 +708,7 @@ class SidebarModelView(CoreEventReceiver, Widget):
     @handles(ThreadRowStateChanged)
     async def thread_row_state_changed(self, event: ThreadRowStateChanged) -> None:
         """Repaint only the thread rows named by the app event."""
-        self.present(change=ChangedThreads(event.names))
+        self.present(change=ChangedThreads(event.threads))
 
 
 class SearchFollower:

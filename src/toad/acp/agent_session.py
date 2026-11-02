@@ -270,7 +270,7 @@ class AgentSession:
 
     def startup_failed(self, details: str) -> None:
         self.record_failure(
-            LogAgentFail("ACP session startup failed", details=details,
+            LogAgentFail("ACP session startup failed", description=details,
                          log_path=self.agent.presentation.log_path),
             FailedSessionDisposition,
         )

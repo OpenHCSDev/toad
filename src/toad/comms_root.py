@@ -77,6 +77,7 @@ from toad.notification_status import CheckedNotifications, NotificationStatus, U
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 
 if TYPE_CHECKING:
+    from textual.worker import Worker
     from agent_comms.display_order import DisplayOrder
     from agent_comms.display_references import ReferenceContext
     from agent_comms.thread_identity import ThreadIncarnation
@@ -507,7 +508,7 @@ class CoordinationAccess(MroDispatch):
     @handles(ThreadsObserved)
     def threads_observed(self, result: ThreadsObserved, observed: Observing) -> None:
         self.thread_status.observed(result)
-        self.events.publish(ThreadRowsChanged(names=result.changed, root=str(observed.service.root)))
+        self.events.publish(ThreadRowsChanged(threads=result.changed, root=str(observed.service.root)))
 
     @handles(ViewsRetired)
     def views_retired(self, result: ViewsRetired, observed: Observing) -> None:
@@ -642,6 +643,12 @@ class CoordinationAccess(MroDispatch):
             if pending in self.sidebar_waiters:
                 self.sidebar_waiters.remove(pending)
                 self.update_sidebar_interest()
+
+    def request_thread_interest(self) -> Worker[None]:
+        """Schedule this access owner's current thread observation interest."""
+        return self.app.run_worker(
+            self.update_thread_interest, group="thread-interest", exclusive=True
+        )
 
     async def update_thread_interest(self) -> None:
         """Acquire the observer through preparation before sending current-root interest."""
