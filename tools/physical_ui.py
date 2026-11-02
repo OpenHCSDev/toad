@@ -10,6 +10,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import AbstractContextManager, ExitStack, contextmanager
 import ctypes
 from dataclasses import dataclass
+from enum import StrEnum
 from functools import cache
 import itertools
 import json
@@ -51,6 +52,28 @@ from tools.physical_ui_remote import (
 )
 
 
+class DisplaySocket(StrEnum):
+    """X11's external socket spelling, not an application-owned kind."""
+
+    primary = "X0"
+
+
+class DisplayProgram(StrEnum):
+    framebuffer = "Xvfb"
+
+
+class FrontendVariable(StrEnum):
+    """Parent-only external settings excluded from an isolated frontend."""
+
+    python_path = "PYTHONPATH"
+    python_home = "PYTHONHOME"
+    no_color = "NO_COLOR"
+    validation = "TOAD_VALIDATION"
+
+    def remove_from(self, environment: dict[str, str]) -> None:
+        environment.pop(self.value, None)
+
+
 class XvfbDisplay(AbstractContextManager):
     """Own a connection to a local framebuffer, resolving aliases at Xlib.
 
@@ -83,7 +106,8 @@ class XvfbDisplay(AbstractContextManager):
                 pid, uid, _gid = struct.unpack("3i", peer.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
                 address = Path(os.fsdecode(peer.getpeername()).lstrip("\0"))
             process = ProcessIdentity.capture(pid)
-            if address.name == "X0" or uid != os.getuid() or Path(f"/proc/{pid}/exe").resolve().name != "Xvfb":
+            if (address.name == DisplaySocket.primary.value or uid != os.getuid()
+                    or Path(f"/proc/{pid}/exe").resolve().name != DisplayProgram.framebuffer.value):
                 raise ValueError(f"Not an owned isolated Xvfb resource: {name}")
             self.name, self.process = name, process
             self.x11, self.connection = x11, connection
@@ -142,7 +166,7 @@ class OwnedDisplay(XvfbDisplay):
         output.mkdir(parents=True, exist_ok=True)
         self.log = (output / "xvfb.log").open("wb")
         self.server = SpawnedProcess.launch(
-            ("Xvfb", "-displayfd", "1", "-screen", "0", f"{size.width}x{size.height}x24", "-nolisten", "tcp"),
+            (DisplayProgram.framebuffer.value, "-displayfd", "1", "-screen", "0", f"{size.width}x{size.height}x24", "-nolisten", "tcp"),
             stdio=DetachedChildStdio(stdout=subprocess.PIPE, stderr=self.log),
         )
         try:
@@ -267,8 +291,10 @@ class ObservedTerminalApp:
             ConfiguredBinary().configured(environment), target.launch_runtime,
         )
         for key in tuple(environment):
-            if key.startswith("XDG_") or key in ("PYTHONPATH", "PYTHONHOME", "NO_COLOR", "TOAD_VALIDATION"):
+            if key.startswith("XDG_"):
                 del environment[key]
+        for variable in FrontendVariable:
+            variable.remove_from(environment)
         environment.update(
             HOME=str(target.home), DISPLAY=display.name,
             XDG_CONFIG_HOME=str(target.config), XDG_STATE_HOME=str(target.state),
@@ -402,7 +428,7 @@ class ObservedTerminalApp:
     def _packet(self, operation: ObserveOperation) -> Path:
         directory = self.output / "operations" / f"{next(self.operations):06d}"
         directory.mkdir(mode=0o700, parents=True)
-        packet = directory / "request.json"
+        packet = ObserveOperation.packet_path(directory)
         PhysicalOperation.publish(packet, operation)
         return packet
 

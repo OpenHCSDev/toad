@@ -35,6 +35,7 @@ from textual.geometry import Region
 from toad.acp.agent import Agent
 from toad.agent_binding import NoAgentConnection
 from toad.core.projection import MroProjection
+from toad.tab_identity import TabIdentity
 from ui_theme.wal import WalFile
 from agent_comms.store_files import ExclusiveAtomicFile
 
@@ -170,7 +171,7 @@ class RunObservation:
     responses: tuple[CapturedResponse, ...] = ()
     composer_focused: bool = False
     composer_regions: tuple[CapturedRegion, ...] = ()
-    active_mode: str = ""
+    selected_tabs: tuple[TabIdentity, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -366,7 +367,7 @@ class StartOperation(PhysicalOperation):
             packet = FieldCodec.decode(Path, FieldCodec.parse(raw.decode()))
             if (not packet.is_absolute() or packet != packet.resolve(strict=True)
                     or not packet.is_relative_to(output / "operations")
-                    or packet.name != "request.json"):
+                    or packet != ObserveOperation.packet_path(packet.parent)):
                 raise ValueError("Observation packet is outside this startup's operation directory")
             from textual._context import NoActiveAppError
             from toad.app import ToadApp
@@ -448,6 +449,11 @@ class ObserveOperation(PhysicalOperation):
     target: RunResources
     identity: ProcessIdentity
     tools: Path
+
+    @classmethod
+    def packet_path(cls, directory: Path) -> Path:
+        """The read-only observation protocol owns its one packet filename."""
+        return directory / "request.json"
 
     @contextmanager
     def tool_imports(self):
@@ -548,7 +554,10 @@ class ObserveOperation(PhysicalOperation):
                 for editor in screen.query(PromptTextArea)
                 for placement in (published.get(editor),) if placement is not None
             ),
-            active_mode=app.current_mode,
+            selected_tabs=tuple(
+                entry.identity for entry in sessions.members
+                if app.workspace_sessions.source.current(entry.source(sessions))
+            ),
         )
         self.target.require_resources(observed)
         self.publish(directory / "result.json", self.observed_result(observed, directory))

@@ -430,7 +430,7 @@ class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentA
 
     @property
     def preparation_inputs(self) -> object:
-        """Read receipts and coordination activity cannot change prepared content."""
+        """Read marks and coordination activity cannot change prepared content."""
         return FieldCodec.project(self.page, ContentExclude)
 
     def result_size(self, result: PreparedTranscriptPage) -> int:

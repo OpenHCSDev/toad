@@ -8,6 +8,7 @@ from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING
 
+from agent_comms.transcripts import TranscriptCursor
 from textual.await_complete import AwaitComplete
 from textual.worker import Worker, WorkerCancelled
 
@@ -310,7 +311,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         edge = self.pages[-1].prepared
         return NEWER_END.can_extend(edge) or edge.page.has_newer
 
-    async def publish_append(self, through, publication_current: Callable[[], bool]) -> bool:
+    async def publish_append(self, through: TranscriptCursor, publication_current: Callable[[], bool]) -> bool:
         """A commit may retire live blocks only after publishing its destination.
 
         extend also serves held readers: its True can mean access advanced
