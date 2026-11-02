@@ -41,6 +41,7 @@ from textual.document._editing import EditingMode
 from ui_theme.effects import CURSOR_BLINK, Mix
 
 from toad import messages, paths
+from toad.acp.session_disposition import SessionLoginTarget
 from toad.acp.thread_read import NoPendingThreadRead
 from toad.acp.status import PromptTurnTarget, StopReason
 from toad.acp.queue_attachment import QueueActionRefused
@@ -1041,6 +1042,7 @@ class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
 
 class Conversation(
     ConversationEvents,
+    SessionLoginTarget,
     NativeMethodKeys,
     PromptTurnTarget,
     ToadNode, MenuConversation,

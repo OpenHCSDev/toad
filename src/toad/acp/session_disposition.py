@@ -12,6 +12,16 @@ from agent_comms.thread_presentation import SessionDisconnected
 
 from toad.core.events import AgentFail
 from toad.failure_presentation import FailurePresentation
+from toad.live_output import LiveOutput
+
+
+class SessionLoginTarget(ABC):
+    """The rich output that an ordinary login may clear."""
+
+    output: LiveOutput
+
+    @abstractmethod
+    async def prune_window(self, low_mark: int, high_mark: int) -> None: ...
 
 
 class SessionCloseTarget(ABC):

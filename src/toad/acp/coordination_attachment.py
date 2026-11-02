@@ -23,13 +23,13 @@ from pydantic import JsonValue
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.agent_controller import SessionBinding
 from toad.acp.comms_updates import OwnerSnapshotConsumer
+from toad.acp.session_disposition import SessionLoginTarget
 from toad.acp.thread_read import NoPendingThreadRead, PendingThreadRead, ThreadRead
 from toad.acp.tool_source import AssignedToolCallSource, ToolCallSource, UncoordinatedToolCallSource
 from toad.core.events import CoreEventStream, ThreadRowStateChanged
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
-    from toad.widgets.conversation import Conversation
 
 
 class CoordinationAttachment:
@@ -113,7 +113,7 @@ class CoordinationAttachment:
     async def observe_owner(self, agent: Agent, presentation: ThreadPresentation) -> None:
         """No coordinated process can supersede this attachment."""
 
-    async def prepare_login(self, view: Conversation) -> None:
+    async def prepare_login(self, view: SessionLoginTarget) -> None:
         await view.prune_window(0, 0)
         view.output.boundary()
 
@@ -278,5 +278,5 @@ class CoordinatedThread(CoordinationAttachment):
             return
         await presentation.binding.reload_if_superseded(session.load_plan, session.reconnect)
 
-    async def prepare_login(self, view: Conversation) -> None:
+    async def prepare_login(self, view: SessionLoginTarget) -> None:
         """The coordinated source keeps its saved transcript during login."""
