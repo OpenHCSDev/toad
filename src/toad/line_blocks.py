@@ -371,6 +371,10 @@ class Body(LineBlock):
     def selection_text(self) -> str:
         return self.text
 
+    def presentation(self, *, complete: bool = True) -> tuple[LineBlock, ...]:
+        """A body used inside another block has no message separator."""
+        return (self,)
+
     def prepare(self, markdown: Callable[[Body], LineBlock]) -> LineBlock:
         return self
 
@@ -384,3 +388,15 @@ class MarkdownBody(Body):
         """Text drawn as it is written, in a language's colours when the language is known."""
         ticks = "`" * max(3, 1 + max(map(len, re.findall("`+", text)), default=0))
         return cls(f"{ticks}{language}\n{text}\n{ticks}", **shown)
+
+
+class MessageBody(Body):
+    """A complete message owns its separator; an unfinished prefix does not."""
+
+    def presentation(self, *, complete: bool = True) -> tuple[LineBlock, ...]:
+        rows = super().presentation(complete=complete)
+        return (*rows, Gap()) if complete else rows
+
+
+class MarkdownMessageBody(MessageBody, MarkdownBody):
+    """Message separation and Markdown preparation are independent capabilities."""

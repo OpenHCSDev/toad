@@ -4,7 +4,7 @@ from agent_comms.sent_message import PublishedSentMessage
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 
-from toad.block_navigation import CategorizedBlock, ConversationBlock
+from toad.block_navigation import CategorizedBlock, SeparatedBlock
 from toad.message_rows import MessageRow
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
@@ -18,9 +18,7 @@ from toad.notification_status import CheckedNotifications, MessageQueueEntry, No
 from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessageClaim
 
 
-class OutgoingMessage(MessageRowOwner, MessageRowBlock, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
-    DEFAULT_CLASSES = "block"
-
+class OutgoingMessage(MessageRowOwner, MessageRowBlock, CommitParticipant, SeparatedBlock, CategorizedBlock, VerticalGroup):
     def __init__(self, publication: PublishedSentMessage, *, row: MessageRow, binding, request, show_header: bool = True):
         super().__init__()
         self.publication = publication

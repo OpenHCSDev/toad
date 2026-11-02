@@ -45,7 +45,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
 
     def line_blocks(self, text: str, *, complete: bool = True) -> tuple[LineBlock, ...]:
         """Semantic rows for this text; streaming subclasses may add a final row."""
-        return (self.body_type(text, role=self.role, bar=self.bar),)
+        return self.body_type(text, role=self.role, bar=self.bar).presentation(complete=complete)
 
     @property
     def block(self) -> LineBlock:
