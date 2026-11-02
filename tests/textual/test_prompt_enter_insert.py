@@ -173,9 +173,9 @@ async def test_standard_chooser_retires_neovim_and_saved_selection_reopens(works
         await ui.press("ctrl+comma")
         await ui.until(lambda: isinstance(app.screen, SettingsScreen),
                        why="the application settings binding before Neovim")
-        await ui.until(lambda: str(SETTINGS.ui.key_mode) in app.screen.form.values,
+        await ui.until(lambda: str(SETTINGS.ui.key_mode) in app.screen.values,
                        why="the existing declared mode chooser")
-        chooser = app.screen.form.values[str(SETTINGS.ui.key_mode)].editor
+        chooser = app.screen.values[str(SETTINGS.ui.key_mode)].editor
         assert chooser.lists(Standard)
         chooser.value = Standard
         await ui.until(lambda: app.settings.ui.key_mode is Standard and area.key_mode is Standard,
