@@ -128,11 +128,10 @@ class PreparedTranscriptPage:
                 return 0
             for index in batch:
                 fragment = self.fragments[index]
-                lines = (fragment.lines_for(target.line_width, view.app.colours.line_theme)
-                         if fragment.shown_in(selected) else None)
                 take += 1
                 start, stop = min(start, index), max(stop, index + 1)
-                rows += 0 if lines is None else lines.height
+                rows += (fragment.lines_for(target.line_width, view.app.colours.line_theme).height
+                         if fragment.shown_in(selected) else 0)
                 if rows >= rows_needed:
                     break
         self.set_fragment_range(slice(start, stop))

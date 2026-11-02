@@ -445,7 +445,7 @@ class TranscriptFragment:
 
         return link_place()
 
-    def lines_for(self, width: int, theme: LineTheme):
+    def lines_for(self, width: int, theme: LineTheme) -> BlockLines:
         """Cached lookup is geometry-only; source changes use declared invalidation."""
         return self._lines.for_view(width, theme)
 
@@ -470,11 +470,11 @@ class TranscriptFragment:
             return True
         return False
 
-    def stand_in_lines(self, width: int, theme: LineTheme) -> BlockLines | None:
+    def stand_in_lines(self, width: int, theme: LineTheme) -> BlockLines:
         """The styled rows drawn before a status change, rewrapped, until its new rows arrive.
 
-        A fragment never styled has none: its height is its styled rows', so
-        the page styles it before measuring rather than stating a plain height.
+        A fragment never styled has none (NoStyledLines): its height is its styled
+        rows', so the page styles it before measuring rather than stating a plain height.
         """
         return self._plain.for_view(width, theme)
 

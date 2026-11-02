@@ -4,22 +4,33 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
+from functools import cached_property
 
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
 from textual.geometry import Size
 from textual.strip import Strip
+from textual.theme import Theme
+from textual.widget import Widget
 from textual.worker import Worker
 
+from toad.app_node import ToadNode
 from toad.line_blocks import LineBlock
 from toad.markdown_links import LinkContext
+from toad.no_worker import NoWorker
 from toad.widgets.linked_rows import LinkedRows
 from toad.widgets.transcript_lines import (
-    BlockLines, LinePreparation, Lines, PreparedLines, TranscriptLinesRenderTask, link_place,
+    BlockLines,
+    LinePreparation,
+    Lines,
+    NoStyledLines,
+    PreparedLines,
+    TranscriptLinesRenderTask,
+    link_place,
 )
 
 
-class StyledRows(LinkedRows):
+class StyledRows(LinkedRows, ToadNode, Widget):
     """Rows the render worker styled from `styled_blocks()`, wrapped locally to the width.
 
     Styled lines are the block's only height, as they are a transcript fragment's. The worker's
@@ -32,13 +43,12 @@ class StyledRows(LinkedRows):
     """
 
     RESTYLE_INTERVAL = 0.25
-    _prepared: LinePreparation | None = None
-    _styled: BlockLines | None = None
-    _render_worker: Worker[None] | None = None
+    _styled: BlockLines = NoStyledLines()
+    _render_worker: Worker[None] | NoWorker = NoWorker()
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._link_place = link_place()
+    @cached_property
+    def _link_place(self) -> int:
+        return link_place()
 
     @abstractmethod
     def styled_blocks(self) -> tuple[LineBlock, ...]:
@@ -47,8 +57,9 @@ class StyledRows(LinkedRows):
     def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
 
-    def invalidate_lines(self, change=None) -> None:
-        """Restyle for a new theme or link context; the drawn rows stand until then."""
+    def invalidate_lines(self, *theme: Theme) -> None:
+        """Restyle for a new theme (the signal passes it) or link context; the drawn rows stand
+        until then."""
         self._request_render()
 
     def restyle(self) -> None:
@@ -57,12 +68,9 @@ class StyledRows(LinkedRows):
 
     def _lines(self, width: int) -> Lines:
         """The styled rows at this width: the styled source wrapped locally."""
-        prepared = self._prepared
-        if prepared is None or not width:
+        if not width:
             return PreparedLines(width, ())
-        styled = self._styled
-        self._styled = styled = (prepared.wrap(width, self.app.colours.line_renderer)
-                                 if styled is None else styled.rewrap(width))
+        self._styled = styled = self._styled.rewrap(width)
         return styled
 
     @property
@@ -71,7 +79,7 @@ class StyledRows(LinkedRows):
         return (self._lines(width),) if width else ()
 
     def _request_render(self) -> None:
-        if self.is_attached and (self._render_worker is None or self._render_worker.is_finished):
+        if self.is_attached and self._render_worker.is_finished:
             # A widget worker: unmount cancels it and a failure is an app error.
             self._render_worker = self.run_worker(self._render_latest(), group="styled-rows")
 
@@ -88,7 +96,7 @@ class StyledRows(LinkedRows):
                 continue
             width = self.content_size.width
             before = self._lines(width)
-            self._prepared, self._styled = prepared, None
+            self._styled = prepared.wrap(width, self.app.colours.line_renderer)
             after = self._lines(width)
             self.refresh(layout=(before.height, before.content_width) != (after.height, after.content_width))
             if blocks == self.styled_blocks():
@@ -98,7 +106,7 @@ class StyledRows(LinkedRows):
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         # The styled rows at this width; the container's height is never read.
-        if self._prepared is None:
+        if self._styled.awaits_styling:
             self.call_later(self._request_render)
         return self._lines(width).height
 

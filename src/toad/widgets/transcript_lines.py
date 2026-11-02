@@ -12,7 +12,7 @@ from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from itertools import chain, count, zip_longest
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from toad.patch import PatchCell
 
@@ -594,6 +594,9 @@ class BlockSpan:
 class BlockLines(Lines):
     """A viewport retains immutable references to block-owned row snapshots."""
 
+    # Whether these rows are still to come from the render worker.
+    awaits_styling: ClassVar[bool] = False
+
     def __init__(self, width: int, preparation: LinePreparation, renderer: RichLineRenderer) -> None:
         self.width, self.preparation, self.renderer = width, preparation, renderer
 
@@ -623,6 +626,19 @@ class BlockLines(Lines):
         return chain.from_iterable(self.prepared_blocks)
 
 
+class NoStyledLines(BlockLines):
+    """Rows not styled yet: none at any width until the render worker's rows arrive."""
+
+    awaits_styling = True
+    prepared_blocks: tuple[PreparedLines, ...] = ()
+
+    def __init__(self, width: int = 0) -> None:
+        self.width = width
+
+    def rewrap(self, width: int) -> NoStyledLines:
+        return self if self.width == width else NoStyledLines(width)
+
+
 class PlainLines(BlockLines):
     """Unstyled source measurement before its first worker result arrives."""
 
@@ -641,7 +657,7 @@ class RowAcquisition(ABC):
         """These rows, if they can be drawn in this palette; otherwise no rows."""
         return self
 
-    def for_view(self, width: int, theme: LineTheme) -> BlockLines | None:
+    def for_view(self, width: int, theme: LineTheme) -> BlockLines:
         return self.current_for(theme).viewed(width)
 
     def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
@@ -655,7 +671,7 @@ class RowAcquisition(ABC):
         return self.current_for(theme).replaced_at(row, width)
 
     @abstractmethod
-    def viewed(self, width: int) -> BlockLines | None: ...
+    def viewed(self, width: int) -> BlockLines: ...
 
     @abstractmethod
     def holds(self, lines: BlockLines) -> bool: ...
@@ -684,8 +700,8 @@ class NoRows(RowAcquisition):
     def preparation(self) -> NoRows:
         return self
 
-    def viewed(self, width: int) -> None:
-        return None
+    def viewed(self, width: int) -> NoStyledLines:
+        return NoStyledLines(width)
 
     def holds(self, lines: BlockLines) -> bool:
         return False
