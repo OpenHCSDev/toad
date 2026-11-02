@@ -13,8 +13,9 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 
 from test_scroll_down_bounce import RecordedHistoryScreen, recorded_app, wheel
+from support.workspace import Workspace
 from toad.widgets.conversation import Conversation
-from toad.widgets.presentation_window import OLDER_END
+from toad.widgets.presentation_window import OLDER_END, PresentationBudget
 
 
 THOUGHTS = ("Preparing branch notice tests", "Parametrizing rename routing tests",
@@ -275,7 +276,13 @@ class ReaderReturnFrame:
     position: str
 
 
-async def test_returning_to_tab_keeps_the_reader_below_a_live_thought(workspace):
+@pytest.mark.parametrize("budget", (
+    PresentationBudget(),
+    PresentationBudget(minimum_widgets=1, widgets_per_row=0),
+), ids=("warm", "budget-pressure"))
+async def test_returning_to_tab_keeps_the_reader_below_a_live_thought(
+    workspace: Workspace, budget: PresentationBudget,
+) -> None:
     async with workspace.app(size=(63, 40), application=top_row_app) as ui:
         first = ui.selected_tab
         view = ui.conversation
@@ -312,8 +319,12 @@ async def test_returning_to_tab_keeps_the_reader_below_a_live_thought(workspace)
         screen.watching = observe
         try:
             await ui.new_session()
+            # Exercise the actual resource policy with its admitted budget, not
+            # fabricated widget costs or a replacement eviction method.
+            ui.conversation.window.presentation_budget = budget
+            await ui.app.workspace_chrome.native.reconcile(ui.app.selected_session)
             await ui.select_tab(first)
-            assert ui.conversation is view, "This control covers the retained native-tree path"
+            assert ui.conversation is view, "A native reader requires its original tree"
             for _ in range(4):
                 await ui.step()
             visible = [frame for frame in frames if frame.shown]

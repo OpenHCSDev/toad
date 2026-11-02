@@ -23,6 +23,7 @@ from toad.input_decision import InputDecision
 from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
+from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
 
@@ -297,7 +298,7 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
         )
 
 
-class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
+class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresentation):
     """Own the editor and logical transcript independently of native membership."""
 
     def __init__(self) -> None:
@@ -315,6 +316,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             if self.widget is not None
             else self.sources.agent_binding
         )
+
+    def required_presentations(self) -> tuple[NativePresentation, ...]:
+        """A mounted view's native reader cannot outlive the tree it addresses."""
+        assert self.widget is not None, "Only mounted presentations enter the native budget"
+        return self.widget.window.reader_position.required_presentations(self)
 
     @property
     def retained_widget_count(self) -> int:
@@ -503,6 +509,7 @@ class NativeSessionSurface:
                 for owner in candidates.get(self.view.id, ())
                 if owner is not self.view.presentation
             ),
+            *(resource for owner in screens for resource in owner.required_presentations()),
         )
         ordered = dict.fromkeys(
             (

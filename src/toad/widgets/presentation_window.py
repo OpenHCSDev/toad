@@ -28,6 +28,7 @@ if TYPE_CHECKING:
         ProjectedTranscriptSource,
     )
     from toad.transcript_source_preparation import TranscriptSourcePreparation
+    from toad.screens.main import MainScreen
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import LineHistory, TranscriptPageView
     from toad.wire_history import AfterSequence, WireCut, WireSource
@@ -47,6 +48,29 @@ def protected_presentations(items: Iterable["Widget"], endpoints: Iterable["Widg
                 break
             node = node.parent
     return protected
+
+
+class NativePresentation:
+    """Native resource costs and requirements; the default owns no resources."""
+
+    @property
+    def retained_widget_count(self) -> int:
+        return 0
+
+    @property
+    def retained_source_bytes(self) -> int:
+        return 0
+
+    @property
+    def retained_paint_bytes(self) -> int:
+        return 0
+
+    def required_presentations(self) -> tuple["NativePresentation", ...]:
+        """Resources whose actual native identity must survive this budget pass."""
+        return ()
+
+    async def evict(self, screen: "MainScreen") -> None:
+        """An empty native resource has nothing to release."""
 
 
 @dataclass(frozen=True)
@@ -91,7 +115,8 @@ class PresentationBudget:
     def runway_rows(self, viewport_rows: int) -> int:
         return max(1, viewport_rows) * self.buffer_viewports
 
-    def fit(self, candidates, required: "tuple[Widget, ...]", viewport_rows: int, max_bytes: int):
+    def fit(self, candidates: Iterable[NativePresentation], required: tuple[NativePresentation, ...],
+            viewport_rows: int, max_bytes: int) -> set[NativePresentation]:
         """Visible/protected native bodies first, then ordered bounded resources."""
         kept = set(required)
         widgets = source_bytes = 0
