@@ -13,6 +13,11 @@ from typing import TYPE_CHECKING, Literal, Self
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
 from textual._activation import PrimaryActivation
+from textual.view import (
+    AUTO,
+    FocusWithinView,
+    WidgetView,
+)
 from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
@@ -55,7 +60,6 @@ from toad.slash_command import SlashCommand
 from toad.widget_actions import (
     DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
 )
-from toad.widget_view import AUTO, FocusWithinView, WidgetView
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
 from toad.widgets.model_switcher import ModelSwitcher

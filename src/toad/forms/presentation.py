@@ -7,10 +7,14 @@ from textual.css.scalar import Scalar
 from textual.geometry import Spacing
 from textual.layouts.horizontal import HorizontalLayout
 from textual.screen import ModalScreen
+from textual.view import (
+    AUTO,
+    FocusWithinView,
+    WidgetView,
+)
 from textual.widgets._select import SelectCurrent
 from textual.widgets import Checkbox, Input
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
-from toad.widget_view import AUTO, FocusWithinView, WidgetView
 
 
 class FramedControl(FocusWithinView):

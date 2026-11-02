@@ -6,6 +6,11 @@ from rich.style import Style as RichStyle
 from textual import containers, events, getters, widgets
 from textual._activation import PrimaryActivation
 from textual.app import ComposeResult, RenderResult
+from textual.view import (
+    AUTO,
+    FILL,
+    WidgetView,
+)
 from toad.widget_actions import ActivationKeys
 from textual.color import TRANSPARENT
 from textual.content import Content
@@ -32,7 +37,6 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated
 from toad.session_tracker import OpenTab
 from toad.app_node import ToadNode
-from toad.widget_view import AUTO, FILL, WidgetView
 from toad.widgets.selection import ChangingText, ViewLabel
 
 

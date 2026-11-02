@@ -5,6 +5,11 @@ from collections.abc import Callable
 from typing import cast
 
 from textual import events, on
+from textual.view import (
+    AUTO,
+    FILL,
+    WidgetView,
+)
 from toad.widget_actions import HiddenActions
 from textual.color import TRANSPARENT
 from textual.css._style_properties import Edges
@@ -13,7 +18,6 @@ from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour
 from toad.screens.modal import DismissibleScreen
-from toad.widget_view import AUTO, FILL, WidgetView
 
 
 class ContextMenuItem[Choice](Option):

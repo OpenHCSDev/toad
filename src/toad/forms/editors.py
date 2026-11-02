@@ -20,13 +20,13 @@ from textual.reactive import var
 from textual.validation import Function
 from textual.geometry import Spacing
 from textual.css.scalar import Scalar
+from textual.view import WidgetView
 from textual.widget import Widget
 from textual.widgets import Checkbox, Input, Select, TextArea
 from textual.widgets._input import InputType
 
 from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, Multiline, declarations
 from toad.forms.presentation import FormCheckbox, FormInput, FormSelectCurrent, FramedControl
-from toad.widget_view import WidgetView
 from toad.tone_paint import UntintedTonePaint
 
 if TYPE_CHECKING:

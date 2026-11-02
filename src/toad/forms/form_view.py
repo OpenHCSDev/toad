@@ -10,6 +10,11 @@ from objectstate import ObjectState
 from textual import containers, events, lazy, on
 from textual.app import ComposeResult
 from textual.content import Content
+from textual.view import (
+    AUTO,
+    FocusWithinView,
+    WidgetView,
+)
 from textual.widgets import Static
 from textual.css._style_properties import Edges
 from textual.geometry import Spacing
@@ -19,7 +24,6 @@ from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, Mut
 
 from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, FormPage, form_pages
 from toad.forms.editors import ValueEditor
-from toad.widget_view import AUTO, FocusWithinView, WidgetView
 
 
 class FieldTitle(WidgetView, Static):
