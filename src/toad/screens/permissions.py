@@ -1,4 +1,4 @@
-from toad.patch import DiffMode, AutoDiff
+from toad.patch import DiffMode
 from weakref import ref
 import os
 from textual import work, on
@@ -10,6 +10,13 @@ from toad.widget_actions import CyclesFocus, PriorityActions
 from textual.content import Content
 from textual.screen import Screen
 from textual.reactive import var, Initialize
+from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
+from textual.css.styles import Styles
+from textual.view import AUTO, FILL
+from ui_theme.scheme import BackgroundColour, PrimaryColour
+
+from toad.app_node import ToadNode
+from toad.native_layout import NativeLayout, NativeTheme
 
 from textual.widgets import OptionList, Static, Select
 from toad.widgets.footer import ToadFooter
@@ -19,30 +26,119 @@ from toad.answer import Answer
 from toad.widgets.question import Question
 from toad.question_actions import SelectKindAction, QuestionContext, PermissionNavigationAction
 
-from toad.app import ToadApp
+class FillArea(NativeLayout):
+    """Areas sharing the available permission-review space."""
 
-class PermissionsQuestion(Question):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = self.styles.height = FILL
+
+
+class BackgroundArea(NativeTheme):
+    native_theme = (
+        NativeDeclaration.of(Styles.background, Variable(BackgroundColour.name)),
+    )
+
+
+class FaintArea(NativeTheme):
+    native_theme = (
+        NativeDeclaration.of(Styles.background, Keyword("black"), Percent(10)),
+    )
+
+
+class FramedArea(NativeTheme):
+    """One property declaration owns the permission frame's outline."""
+
+    faint_border = NativeDeclaration.of(
+        Styles.border, Keyword("tall"), Keyword("black"), Percent(10)
+    )
+
+    @property
+    def frame_declaration(self) -> NativeDeclaration:
+        return self.faint_border
+
+    def apply_native_theme(self) -> None:
+        super().apply_native_theme()
+        self.styles.merge(self.app.stylesheet.native_styles(self.frame_declaration))
+
+
+class FocusedFrame(FramedArea):
+    focused_border = NativeDeclaration.of(
+        Styles.border, Keyword("tall"), Variable(PrimaryColour.name)
+    )
+
+    @property
+    def frame_declaration(self) -> NativeDeclaration:
+        # Focus changes only this frame's paint value; the control keeps its lifecycle.
+        return self.focused_border if self.has_focus else super().frame_declaration
+
+    def watch_has_focus(self, has_focus: bool) -> None:
+        super().watch_has_focus(has_focus)
+        self.apply_native_theme()
+
+
+class PermissionGrid(FillArea, BackgroundArea, containers.Grid):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.margin = 1
+        self.styles.padding = 0
+        self.styles.grid_size_columns = self.styles.grid_size_rows = 2
+        self.styles.grid_columns = (AUTO, FILL)
+        self.styles.grid_rows = (AUTO, FILL)
+
+
+class PermissionInstructions(FramedArea, FaintArea, NativeLayout, Static):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (0, 2)
+
+
+class PermissionsQuestion(FocusedFrame, FaintArea, NativeLayout, Question):
     BINDING_GROUP_TITLE = "Permissions Options"
 
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = AUTO
+        self.styles.max_width = 32
+        self.styles.expand = "optimal"
+        self.styles.height = AUTO
+        self.styles.margin = (1, 0)
+        self.styles.padding = (0, 2, 0, 1)
 
-class ChangesOptionList(OptionList):
+
+class ChangesOptionList(FillArea, OptionList):
     BINDING_GROUP_TITLE = "Changes list"
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.min_width = 20
+        self.styles.expand = "optimal"
 
 
 class DiffViewSelect(Select):
     BINDING_GROUP_TITLE = "Diff view select"
 
 
-class ToolScroll(containers.VerticalScroll):
+class NavigationArea(NativeLayout, containers.Vertical):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = AUTO
+        self.styles.height = FILL
+
+
+class ToolScroll(FocusedFrame, BackgroundArea, FillArea, containers.VerticalScroll):
     BINDING_GROUP_TITLE = "Changes window"
 
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.margin = (1, 0, 0, 0)
 
-class PermissionsScreen(QuestionContext, PriorityActions, CyclesFocus, Screen[Answer],
+
+class PermissionsScreen(BackgroundArea, ToadNode, QuestionContext, PriorityActions, CyclesFocus, Screen[Answer],
                         actions=(SelectKindAction, PermissionNavigationAction),
                         scopes={PriorityActions: (SelectKindAction,)}):
     BINDING_GROUP_TITLE = "Permissions"
     AUTO_FOCUS = "Question"
-    CSS_PATH = "permissions.tcss"
 
     tool_container = getters.query_one("#tool-container", containers.VerticalScroll)
     navigator = getters.query_one("#navigator", OptionList)
@@ -77,30 +173,26 @@ class PermissionsScreen(QuestionContext, PriorityActions, CyclesFocus, Screen[An
         return self._question
 
     def get_diff_type(self) -> type[DiffMode]:
-        app = self.app
-        diff_type = AutoDiff
-        if isinstance(app, ToadApp):
-            diff_type = app.settings.diff.view
-        return diff_type
+        return self.app.settings.diff.view
 
     diff_type: var[type[DiffMode]] = var(Initialize(get_diff_type))
 
     def compose(self) -> ComposeResult:
-        with containers.Grid(classes="top"):
+        with PermissionGrid():
             yield DiffViewSelect(
                 [(member.choice_label(), member) for member in DiffMode.members_with(DiffMode)],
                 value=self.diff_type,
                 allow_blank=False,
                 id="diff-select",
             )
-            yield Static(
+            yield PermissionInstructions(
                 Content.from_markup(
                     "[b]Approval request[/b] [dim]$name wishes to make the following changes",
                     name=self.agent_name,
                 ),
                 id="instructions",
             )
-            with containers.Vertical(id="nav-container"):
+            with NavigationArea(id="nav-container"):
                 yield self.question
                 yield ChangesOptionList(id="navigator")
             yield ToolScroll(id="tool-container")
@@ -108,10 +200,7 @@ class PermissionsScreen(QuestionContext, PriorityActions, CyclesFocus, Screen[An
         yield ToadFooter()
 
     async def on_mount(self):
-        app = self.app
-        if isinstance(app, ToadApp):
-            diff_view_setting = app.settings.diff.view
-            self.query_one("#diff-select", Select).value = diff_view_setting
+        self.query_one("#diff-select", Select).value = self.get_diff_type()
         self.navigator.highlighted = 0
 
         self._add_diffs()
