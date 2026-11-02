@@ -6,17 +6,14 @@ from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
 from toad.widgets.side_bar import ThreadSidebar
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
+from toad.widgets.presentation_window import NativePresentation
 
 if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionThreadSidebar(ThreadSidebar):
+class SessionThreadSidebar(ThreadSidebar, NativePresentation):
     """Keep warm panels until eviction releases their widgets."""
-
-    # Panels retain widgets, not separate transcript sources or paint assets.
-    retained_source_bytes = 0
-    retained_paint_bytes = 0
 
     def __init__(self, screen: "MainScreen") -> None:
         self._owner = ref(screen)

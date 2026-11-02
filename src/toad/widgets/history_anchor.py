@@ -28,6 +28,7 @@ from toad.widgets.presentation_window import (
     NEWER_END,
     OLDER_END,
     DirectionalPreparation,
+    NativePresentation,
     PresentationBudget,
 )
 
@@ -128,6 +129,10 @@ class ReaderPosition(ABC):
             return FragmentPosition(fragment.key, (y - first - span.first) / span.height,
                                     span.height, block=span.index)
         return BlockPosition.of(window)
+
+    def required_presentations(self, presentation: NativePresentation) -> tuple[NativePresentation, ...]:
+        """Source-addressed positions can be rebuilt without retaining native identity."""
+        return ()
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
         """The widgets layout must place to find this position."""
@@ -307,8 +312,15 @@ class FragmentPosition(OffsetPosition):
         return replace(self, fraction=self.fraction + rows / self.height)
 
 
+class NativeReaderHolder:
+    """This position retains native widgets or pagers, not just a source key."""
+
+    def required_presentations(self, presentation: NativePresentation) -> tuple[NativePresentation, ...]:
+        return (presentation,)
+
+
 @dataclass(frozen=True)
-class BlockPosition(OffsetPosition):
+class BlockPosition(NativeReaderHolder, OffsetPosition):
     """A live block (an answer being written, a tool call, a channel message): `row` is its window row when read."""
 
     block: Widget
@@ -348,7 +360,7 @@ class BlockPosition(OffsetPosition):
 
 
 @dataclass(frozen=True)
-class ArrivalPosition(OffsetPosition):
+class ArrivalPosition(NativeReaderHolder, OffsetPosition):
     """A message that just arrived at the followed end, on the page that draws it.
 
     One that fits in the window follows the tail as before. One taller than
@@ -403,6 +415,9 @@ class UnreachedPosition(ReaderPosition):
     """
 
     position: ReaderPosition
+
+    def required_presentations(self, presentation: NativePresentation) -> tuple[NativePresentation, ...]:
+        return self.position.required_presentations(presentation)
 
     async def prepare(self, history, current, target, selected, rows_needed, limit: int):
         return await self.position.prepare(history, current, target, selected, rows_needed, limit)
@@ -498,7 +513,7 @@ class ParkedPosition(HeldReaderDestination, UnreachedPosition):
 
 
 @dataclass(frozen=True)
-class LatestPosition(HeldReaderDestination, TailPosition):
+class LatestPosition(NativeReaderHolder, HeldReaderDestination, TailPosition):
     """The newest source row, held until the publication that supplies it settles."""
 
     revision: int

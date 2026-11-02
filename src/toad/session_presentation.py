@@ -12,6 +12,7 @@ from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
 from textual.document._editing import EditingMode
+from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
@@ -23,6 +24,7 @@ from toad.input_decision import InputDecision
 from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
+from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
 
@@ -297,7 +299,7 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
         )
 
 
-class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
+class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresentation):
     """Own the editor and logical transcript independently of native membership."""
 
     def __init__(self) -> None:
@@ -315,6 +317,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             if self.widget is not None
             else self.sources.agent_binding
         )
+
+    def required_presentations(self, screen: Screen) -> tuple[NativePresentation, ...]:
+        """A mounted view's native reader cannot outlive the tree it addresses."""
+        conversation = screen.query_one(Conversation)
+        return conversation.window.reader_position.required_presentations(self)
 
     @property
     def retained_widget_count(self) -> int:
@@ -503,6 +510,8 @@ class NativeSessionSurface:
                 for owner in candidates.get(self.view.id, ())
                 if owner is not self.view.presentation
             ),
+            *(resource for owner, screen in screens.items()
+              for resource in owner.required_presentations(screen)),
         )
         ordered = dict.fromkeys(
             (

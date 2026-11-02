@@ -3,6 +3,7 @@
 
 import re
 from collections.abc import Callable
+from dataclasses import dataclass
 from functools import partial
 
 import pytest
@@ -12,8 +13,9 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 
 from test_scroll_down_bounce import RecordedHistoryScreen, recorded_app, wheel
+from support.workspace import Workspace
 from toad.widgets.conversation import Conversation
-from toad.widgets.presentation_window import OLDER_END
+from toad.widgets.presentation_window import OLDER_END, PresentationBudget
 
 
 THOUGHTS = ("Preparing branch notice tests", "Parametrizing rename routing tests",
@@ -264,6 +266,73 @@ THINKING = "\n\n".join((
     "Next: the live thought itself streams while the reader sits on it, so its rows "
     "must not change as more text arrives",
 ))
+
+
+@dataclass(frozen=True)
+class ReaderReturnFrame:
+    shown: bool
+    row: str
+    scroll: float
+    position: str
+
+
+@pytest.mark.parametrize("budget", (
+    PresentationBudget(),
+    PresentationBudget(minimum_widgets=1, widgets_per_row=0),
+), ids=("warm", "budget-pressure"))
+async def test_returning_to_tab_keeps_the_reader_below_a_live_thought(
+    workspace: Workspace, budget: PresentationBudget,
+) -> None:
+    async with workspace.app(size=(63, 40), application=top_row_app) as ui:
+        first = ui.selected_tab
+        view = ui.conversation
+        await view.post(AgentResponse("\n\n".join(f"Earlier paragraph {i}" for i in range(20))))
+        thought = AgentThought(THINKING)
+        await view.post(thought)
+        later = AgentResponse("\n\n".join(f"RETURN_ROW_{i:03d}" for i in range(40)))
+        await view.post(later)
+        await ui.until(lambda: not thought._styled.awaits_styling and not later.body._styled.awaits_styling,
+                       why="both live blocks to have their actual styled rows")
+        window = view.window
+        window.anchor()
+        await ui.until(lambda: window.max_scroll_y > 0 and window.follows_tail,
+                       why="the actual rendered tail before reader input")
+        await wheel(ui, window, events.MouseScrollUp)
+        for _ in range(4):
+            await ui.step()
+            baseline = block_top_row_text(window, later.body)
+            if baseline.strip():
+                break
+            window.action_scroll_up()
+        assert baseline.strip(), "The reader must start on a painted response row"
+        assert later.body.region.y < window.content_region.y < later.body.region.bottom
+        assert thought.region.bottom <= window.content_region.y
+        assert not window.follows_tail
+        frames: list[ReaderReturnFrame] = []
+
+        def observe() -> str:
+            row = block_top_row_text(window, later.body)
+            frames.append(ReaderReturnFrame(window.shown, row, window.scroll_y, repr(window.reader_position)))
+            return row
+
+        screen = ui.app.screen
+        screen.watching = observe
+        try:
+            await ui.new_session()
+            # Exercise the actual resource policy with its admitted budget, not
+            # fabricated widget costs or a replacement eviction method.
+            ui.conversation.window.presentation_budget = budget
+            await ui.app.workspace_chrome.native.reconcile(ui.app.selected_session)
+            await ui.select_tab(first)
+            assert ui.conversation is view, "A native reader requires its original tree"
+            for _ in range(4):
+                await ui.step()
+            visible = [frame for frame in frames if frame.shown]
+            assert visible, "Returning must publish the retained reader"
+            assert all(frame.row == baseline for frame in visible), (baseline, visible)
+            assert ui.failure() is None
+        finally:
+            screen.watching = None
 
 
 async def test_a_live_thought_crossing_the_top_edge_keeps_its_rows_at_phone_width(workspace):
