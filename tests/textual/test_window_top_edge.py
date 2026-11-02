@@ -197,10 +197,10 @@ def block_top_row_text(window, block) -> str:
     return "".join(segment.text for segment in block.render_line(row, block._paint_state))
 
 
-def top_row_app(*, launch_root, **kwargs):
+def top_row_app(*, connection, **kwargs):
     from toad.app import ToadApp
 
-    app = ToadApp(launch_root=launch_root, **kwargs)
+    app = ToadApp(connection=connection, **kwargs)
     app.remove_mode("workspace")
     app.add_mode("workspace", partial(TopRowScreen, id="workspace"))
     return app

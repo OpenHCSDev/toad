@@ -9,13 +9,14 @@ from agent_comms.repo import Checkout
 from agent_comms.root_runtime import RootRuntime, RootRuntimeStore
 
 from toad.app import ToadApp
+from toad.comms_root import LocalCoreConnection
 from toad.application_lifetime import Succeeded
 from toad.session_scope import NoAgent
 
 
 async def relaunched_onto(workspace, publish) -> Succeeded:
     app = ToadApp(agent_binding=NoAgent(), mode="store", project_dir=Checkout(workspace.project),
-                  launch_root=workspace.launch_root)
+                  connection=LocalCoreConnection.from_launch(workspace.launch_root))
     async with app.run_test(size=(140, 48)):
         publish(app.coordination_access.selection.root)
         os.kill(os.getpid(), signal.SIGUSR1)

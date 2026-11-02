@@ -25,6 +25,7 @@ from agent_comms.retained_task_facts import HumanInputTaskFact
 from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
+from toad.comms_root import LocalCoreConnection
 from toad.session_scope import AgentAttached
 
 
@@ -180,7 +181,8 @@ async def _open_actual_s2_ingress(owner, subject, output):
             'accepts_comms_root': True,
         })
         app = ToadApp(agent_binding=AgentAttached(definition), project_dir=subject.worktree,
-                      agent_session_id=subject.name, launch_root=LaunchRoot.from_path(owner._comms.root))
+                      agent_session_id=subject.name,
+                      connection=LocalCoreConnection.from_launch(LaunchRoot.from_path(owner._comms.root)))
         phase('before_actual_toad_run_test')
         async with app.run_test(headless=True, size=(160, 44)) as pilot:
             phase('actual_toad_run_test_yielded_before_saved_view_ready')
