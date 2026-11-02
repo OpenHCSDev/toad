@@ -104,8 +104,7 @@ class ACPAgentPresentation(AgentPresentation):
 
     @property
     def auth_methods(self):
-        response = self.agent.process.initialization
-        return response.auth_methods or () if response is not None else ()
+        return self.agent.process.initialization.auth_methods
 
     @property
     def commands(self):

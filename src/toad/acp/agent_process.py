@@ -23,6 +23,7 @@ from agent_comms.route_selection import RouteSelection
 from pydantic import JsonValue
 
 from toad.acp.agent_session import AgentSession
+from toad.acp.initialization import AgentInitialization
 from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
 from toad.resource_release import AsyncResourceRelease
@@ -39,7 +40,7 @@ class AgentProcess(Client):
         self.runner: asyncio.Task[None] | None = None
         self.retirement: asyncio.Task[None] | None = None
         self.sessions: set[AgentSession] = set()
-        self.initialization: schema.InitializeResponse | None = None
+        self.initialization: AgentInitialization = AgentInitialization()
         self.attachment_lock = asyncio.Lock()
         self._incoming: ContextVar[dict] = ContextVar('acp_incoming')
 
@@ -275,13 +276,10 @@ class ConfiguredAgentProcess(AgentProcess):
 
     def accepts_attachment(self, agent: Agent, env: dict[str, str], cwd: str,
                            selection: RouteSelection) -> bool:
-        response = self.initialization
-        capabilities = response.agent_capabilities if response is not None else None
-        lifecycle = capabilities.session_capabilities if capabilities is not None else None
         return (self.runner is not None and not self.runner.done()
                 and self.retirement is None and self.process is not None
                 and self.process.returncode is None
-                and lifecycle is not None and lifecycle.close is not None
+                and self.initialization.supports_close
                 and self.command == agent.command and self.env == env
                 and self.cwd == cwd and self.route_selection == selection
                 and agent.session_id is not None

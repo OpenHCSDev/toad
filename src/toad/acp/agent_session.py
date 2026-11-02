@@ -8,6 +8,7 @@ import os
 from abc import abstractmethod
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, replace
+from functools import partial
 from typing import TYPE_CHECKING, ClassVar
 
 from acp import ClientSideConnection, schema
@@ -28,6 +29,7 @@ from agent_comms.thread_presentation import SessionDisconnected
 import toad
 from toad import constants
 from toad.acp.client_session import ClientSessionRequest
+from toad.acp.initialization import InitializedAgent
 from toad.core import events as core_events
 from toad.core.events import (
     AgentFail,
@@ -169,9 +171,7 @@ class AgentSession:
 
     @property
     def capabilities(self):
-        response = self.agent.process.initialization
-        return (response.agent_capabilities if response is not None
-                and response.agent_capabilities is not None else schema.AgentCapabilities())
+        return self.agent.process.initialization.capabilities
 
     @property
     def accepts_updates(self):
@@ -392,27 +392,30 @@ class AgentSession:
         authority.require()
         await self.agent.process.rpc.authenticate(method_id)
         authority.require()
-        await self.initialize(force=True)
+        await self._initialize(authority)
         authority.require()
 
 
-    async def initialize(self, *, force: bool=False) -> None:
+    async def initialize(self) -> None:
         """The connection owns its original initialization response."""
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         authority.require()
-        response = self.agent.process.initialization
-        if response is None or force:
-            response = await self.agent.process.rpc.initialize(
-                PROTOCOL_VERSION,
-                schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
-                    read_text_file=True, write_text_file=True), terminal=True,
-                    auth=schema.AuthCapabilities(terminal=os.name != "nt")),
-                schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
-            )
-            authority.require()
-            assert response is not None
-            self.agent.process.initialization = response
+        await self.agent.process.initialization.initialize(
+            partial(self._initialize, authority),
+        )
         authority.require()
+
+    async def _initialize(self, authority: ClientSessionRequest) -> None:
+        response = await self.agent.process.rpc.initialize(
+            PROTOCOL_VERSION,
+            schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
+                read_text_file=True, write_text_file=True), terminal=True,
+                auth=schema.AuthCapabilities(terminal=os.name != "nt")),
+            schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
+        )
+        authority.require()
+        assert response is not None
+        self.agent.process.initialization = InitializedAgent(response)
 
 
     async def new(self) -> None:
