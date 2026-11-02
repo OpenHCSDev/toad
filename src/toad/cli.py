@@ -9,6 +9,7 @@ from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.repo import Checkout
 from toad.session_scope import AgentAttached, AgentBinding, NoAgent
+from toad.comms_root import LocalCoreConnection
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -132,7 +133,6 @@ def run(launch_root: LaunchRoot, project_dir: str, agent: str = "1"):
     import asyncio
 
     from toad.app import ToadApp
-    from toad.comms_root import LocalCoreConnection
 
     binding = asyncio.run(get_agent_binding(agent))
     app = ToadApp(
@@ -196,7 +196,6 @@ def acp(
         "actions": {},
     })
     from toad.app import ToadApp
-    from toad.comms_root import LocalCoreConnection
 
     app = ToadApp(
         agent_binding=AgentAttached(agent_data),
