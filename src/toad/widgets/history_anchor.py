@@ -313,7 +313,7 @@ class FragmentPosition(OffsetPosition):
 
 
 class NativeReaderHolder:
-    """This position names a native object, not a reconstructable source key."""
+    """This position retains native widgets or pagers, not just a source key."""
 
     def required_presentations(self, presentation: NativePresentation) -> tuple[NativePresentation, ...]:
         return (presentation,)
@@ -513,7 +513,7 @@ class ParkedPosition(HeldReaderDestination, UnreachedPosition):
 
 
 @dataclass(frozen=True)
-class LatestPosition(HeldReaderDestination, TailPosition):
+class LatestPosition(NativeReaderHolder, HeldReaderDestination, TailPosition):
     """The newest source row, held until the publication that supplies it settles."""
 
     revision: int
