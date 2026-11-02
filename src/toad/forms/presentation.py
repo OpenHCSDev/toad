@@ -14,7 +14,8 @@ from textual.view import (
     WidgetView,
 )
 from textual.widgets._select import SelectCurrent
-from textual.widgets import Checkbox, Input
+from textual.widgets import Input
+from toad.widgets.checkbox import Checkbox
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
 
 

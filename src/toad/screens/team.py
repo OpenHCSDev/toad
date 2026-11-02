@@ -25,7 +25,8 @@ from textual.containers import HorizontalGroup, Vertical, VerticalGroup, Vertica
 from textual.content import Content
 from textual.message import Message
 from textual.style import Style
-from textual.widgets import Button, Checkbox, Collapsible, Input, Static
+from textual.widgets import Button, Collapsible, Input, Static
+from toad.widgets.checkbox import Checkbox
 from ui_theme.scheme import (
     AccentColour, ErrorColour, MutedColour, SuccessColour, ThemeColour, WarningColour,
 )

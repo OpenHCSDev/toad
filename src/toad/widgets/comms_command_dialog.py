@@ -15,7 +15,8 @@ from python_introspect import AnnotationChoices, FieldLabel
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
-from textual.widgets import Button, Checkbox, Static
+from textual.widgets import Button, Static
+from toad.widgets.checkbox import Checkbox
 from toad.forms.editors import ValueEditor
 from toad.forms.form_view import InlineFormView
 from formbridge.forms.declared_fields import Multiline

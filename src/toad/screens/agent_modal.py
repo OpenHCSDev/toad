@@ -10,6 +10,7 @@ from toad.screens.modal import DismissibleScreen
 from textual import containers
 from textual import widgets
 from toad.widgets.footer import ToadFooter
+from toad.widgets.checkbox import Checkbox
 
 from toad import widget_actions
 from toad.widget_actions import HiddenActions, PriorityActions, Launches
@@ -37,7 +38,7 @@ class AgentModal(
 
 
     action_select = getters.query_one("#action-select", widgets.Select)
-    launcher_checkbox = getters.query_one("#launcher-checkbox", widgets.Checkbox)
+    launcher_checkbox = getters.query_one("#launcher-checkbox", Checkbox)
 
     def __init__(self, agent: AgentDefinition) -> None:
         self.agent = agent
@@ -63,7 +64,7 @@ class AgentModal(
                         classes="acp-warning",
                     )
                 with containers.HorizontalGroup():
-                    yield widgets.Checkbox(
+                    yield Checkbox(
                         "Show in launcher",
                         value=agent.identity in launcher_set,
                         id="launcher-checkbox",

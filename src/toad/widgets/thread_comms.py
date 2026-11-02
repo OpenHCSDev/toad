@@ -19,7 +19,8 @@ from textual import on
 from textual.document._editing import EditingMode
 from textual.content import Content
 from textual.geometry import Offset
-from textual.widgets import Checkbox, Static
+from textual.widgets import Static
+from toad.widgets.checkbox import Checkbox
 
 from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
 from agent_comms.ui_model.message_category import MessageCategory
