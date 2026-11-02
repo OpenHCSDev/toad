@@ -5,7 +5,7 @@ from textual.containers import VerticalGroup
 from textual.widgets import Button, Static
 
 from toad.textual_colours import ThemedApp
-from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
+from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
 
 
 class HeaderApp(ThemedApp, App):
@@ -22,7 +22,7 @@ class HeaderApp(ThemedApp, App):
         with SidebarViewport():
             for index in range(2):
                 with VerticalGroup():
-                    with SidebarHeader():
+                    with ViewportHeader():
                         yield Static(f"Header {index}")
                         yield Button("Menu")
                     yield Static("wide scrolling content", classes="wide")
@@ -32,7 +32,7 @@ def assert_headers_fill_the_visible_width(app):
     viewport = app.query_one(SidebarViewport)
     container = viewport.region.shrink(viewport.styles.gutter)
     child_region = container if viewport.loading else viewport._get_scrollable_region(container)
-    for header in viewport.query(SidebarHeader):
+    for header in viewport.query(ViewportHeader):
         assert header.region.width == child_region.width, (header.region, child_region)
         assert header.region.x == child_region.x, (header.region, child_region)
         assert header.styles.offset.x.value == int(viewport.scroll_x)
@@ -63,7 +63,7 @@ async def test_loading_parks_the_headers_under_a_native_cover_and_restores_them(
         # Loading owns a native cover; parked headers have no visible boxes.
         visible = app.screen._compositor.visible_widgets
         assert viewport._cover_widget in visible
-        assert all(header not in visible for header in viewport.query(SidebarHeader))
+        assert all(header not in visible for header in viewport.query(ViewportHeader))
         viewport.loading = False
         await pilot.pause()
         assert_headers_fill_the_visible_width(app)
