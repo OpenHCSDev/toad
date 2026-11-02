@@ -146,6 +146,7 @@ class Observer:
 @asynccontextmanager
 async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer]:
     from toad.app import ToadApp
+    from toad.comms_root import LocalCoreConnection
     from toad.session_scope import NoAgent
 
     root = Path(artifact_dir).resolve()
@@ -157,7 +158,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
     os.environ.update(env)
     try:
         app = ToadApp(agent_binding=NoAgent(), project_dir=Checkout(root / "project"),
-                      launch_root=LaunchRoot.from_path(root / "wire"))
+                      connection=LocalCoreConnection.from_launch(LaunchRoot.from_path(root / "wire")))
         async with app.run_test(size=(120, 40)) as pilot:
             # Toad starts with no tab open; the observed session is opened here.
             definition = AgentDefinition.decode(AGENT_DATA)

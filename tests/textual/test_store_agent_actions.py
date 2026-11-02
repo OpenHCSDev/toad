@@ -11,6 +11,7 @@ from support.catalog import IDENTITY, private_catalog_entry
 from support.catalog_steps import choose_action, open_agent, run_action
 from toad.agent_schema import ChatAgentKind
 from toad.app import ToadApp
+from toad.comms_root import LocalCoreConnection
 from toad.session_scope import NoAgent
 from toad.catalog_actions import CatalogCommandAction
 from toad.screens.agent_modal import RunAction
@@ -40,7 +41,7 @@ async def test_agent_actions_run_edit_fail_cancel_and_take_input(workspace):
     with private_catalog_entry():
         from agent_comms.repo import Checkout
         app = ToadApp(agent_binding=NoAgent(), mode="store", project_dir=Checkout(workspace.project),
-                      launch_root=workspace.launch_root)  # starts on the Store: no session to wait for
+                      connection=LocalCoreConnection.from_launch(workspace.launch_root))  # starts on the Store
         async with app.run_test(size=(140, 48)) as pilot:
             ui = TextualUi(app, pilot)
             await ui.until(lambda: isinstance(app.screen, StoreScreen), why="the Store")

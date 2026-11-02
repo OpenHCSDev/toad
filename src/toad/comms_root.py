@@ -96,6 +96,24 @@ T = TypeVar("T")
 ROUTE_CHECK_SECONDS = 1.0
 
 
+class CoreConnection(ABC):
+    """The selected Core transport opens its own coordination access."""
+
+    @abstractmethod
+    def open_access(self, app: ToadApp) -> CoordinationAccess: ...
+
+
+class LocalCoreConnection(LaunchRoot, CoreConnection):
+    """A local connection inherits the selected root and its launch behavior."""
+
+    @classmethod
+    def from_launch(cls, root: LaunchRoot) -> LocalCoreConnection:
+        return cls(root.path)
+
+    def open_access(self, app: ToadApp) -> CoordinationAccess:
+        return CoordinationAccess(app, self)
+
+
 @dataclass(frozen=True)
 class UnselectedRoute:
     """Route capture failed before a validated selection existed."""
