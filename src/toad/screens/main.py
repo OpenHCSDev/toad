@@ -14,7 +14,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
-from textual import containers, getters, on
+from textual import getters, on
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode

@@ -5,6 +5,7 @@ from functools import cached_property
 from textual.containers import Center, Vertical
 from textual.view import FILL, WidgetView
 from textual.color import Color
+from textual.layout import Layout
 from ui_theme.scheme import BackgroundColour
 from textual.reactive import reactive
 from contextlib import contextmanager
@@ -175,7 +176,7 @@ class SessionBody(WidgetView, ToadNode, Center):
     align_horizontal = "center"
 
     @property
-    def child_layout(self):
+    def child_layout(self) -> Layout:
         return self.app.workspace_chrome
 
 
