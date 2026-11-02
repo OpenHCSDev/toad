@@ -4,13 +4,13 @@ from agent_comms.repo import Checkout
 import asyncio
 import shlex
 import sys
-from pathlib import Path
+from support.workspace import Workspace
 
 from textual.app import App, ComposeResult
 from textual.widgets import Static
 
 from toad.agent_schema import AgentDefinition
-from toad.db import DB, SessionMeta
+from toad.db import DB, Session, SessionMeta
 from toad.screens.session_resume_modal import SessionResumeModal
 from toad.terminal_execution import Command, TerminalExecution
 from toad.textual_colours import ThemedApp
@@ -41,15 +41,18 @@ async def test_a_command_in_the_pane_sees_the_terminal_environment(tmp_path):
         assert output.read_text() == "1|1|xterm-256color|truecolor|1|1"
 
 
-async def test_the_resume_modal_lists_a_saved_session_and_returns_it_typed(tmp_path: Path) -> None:
-    # The process-owned test roots supply the real state path; use the writer owner.
+async def test_the_resume_modal_lists_a_saved_session_and_returns_it_typed(workspace: Workspace) -> None:
+    # Request the existing process owner before opening the real state writer.
     db = DB()
+    assert db.path.is_relative_to(workspace.roots.attempt)
+    await db.create()
+    project = Checkout(workspace.project)
     saved = AgentDefinition.decode({"identity": "saved-agent", "name": "Agent", "run_command": {"*": "agent"}})
     pk = await db.session_new("Saved session", "Agent", "saved-agent", "saved-session",
-                              meta=SessionMeta(Checkout(tmp_path), saved))
+                              meta=SessionMeta(project, saved))
     app = MountedApp(Command.for_script("true"))
     async with app.run_test(size=(100, 30)) as pilot:
-        resumed = []
+        resumed: list[Session | None] = []
         modal = SessionResumeModal()
         await app.push_screen(modal, resumed.append)
         await pilot.pause()
@@ -57,5 +60,7 @@ async def test_the_resume_modal_lists_a_saved_session_and_returns_it_typed(tmp_p
         assert modal.session_table.get_row(str(pk))[:2] == ["Agent", "Saved session"]
         await modal.dissmiss_with_session(str(pk))
         await pilot.pause()
-        assert resumed[0].meta_json.cwd == Checkout(tmp_path)
-        assert resumed[0].agent_session_id == "saved-session"
+        selected = resumed[0]
+        assert selected is not None
+        assert selected.meta_json.cwd == project
+        assert selected.agent_session_id == "saved-session"
