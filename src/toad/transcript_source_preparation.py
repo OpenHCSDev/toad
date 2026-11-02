@@ -239,8 +239,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         while rows > 0 and limit > 0:
             existing = next((view for view in self.pages
                              if view.prepared.same_source(prepared)), None)
-            if existing is not None:
-                prepared = existing.prepared.for_view()
             rows -= await prepared.prepare_rows(
                 self, current, target=self, selected=self.selected_categories,
                 boundary=len(prepared.fragments), end=OLDER_END,
@@ -280,10 +278,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                             views.appendleft(view)
                         # Keep existing fragments, prepared lines and documents.
                         for prepared, view in destination:
-                            if view is not None and not view.prepared.replace_range(
-                                view, slice(prepared.start, prepared.stop), current,
-                            ):
-                                raise _DrawingStopped
+                            if view is not None:
+                                if not view.prepared.replace_range(
+                                    view, slice(prepared.start, prepared.stop), current,
+                                ):
+                                    raise _DrawingStopped
+                                view.prepared.page = prepared.page
                         previous_source = self.page_source
                         self.page_source, self.pages = source, views
                         source.through = latest.page.after

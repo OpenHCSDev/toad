@@ -16,7 +16,6 @@ from toad.widgets.transcript_history import ProjectedTranscriptHistory
 from toad.transcript_preparation import TranscriptPageRenderTask
 from toad.transcript_state import PreparedReplacementViewportRequest
 from toad.widgets.history_anchor import LatestPosition
-from toad.work_preparation import RenderPreparation
 
 
 async def test_category_change_does_not_restyle_the_whole_conversation(workspace):
@@ -72,7 +71,7 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
             workspace.comms.registry.require("source"), session_file=RegistrySessionLocation.from_path(str(replacement), workspace.comms.root)))
         page = await ui.app.preparation.run_thread(
             lambda: workspace.comms.transcripts.capture_page_read("source").read())
-        prepared = await ui.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+        prepared = await TranscriptPageRenderTask(page).prepared(ui.app.preparation)
         assert await history.show_newest(PreparedReplacementViewportRequest(
             LatestPosition.hold(view.window), prepared))
         assert previous_source.closed

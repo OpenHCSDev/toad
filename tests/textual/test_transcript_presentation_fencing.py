@@ -275,7 +275,6 @@ async def test_closed_same_source_commit_acquires_complete_coverage(workspace, f
 @pytest.mark.parametrize("following", (False, True))
 async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(workspace, following):
     from dataclasses import replace
-    from agent_comms.coordination_errors import TranscriptChanged
 
     thread = workspace.thread("rewritten-source")
     journal = write_journal(thread.project_path / "rewritten.jsonl",
@@ -289,6 +288,7 @@ async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(wor
         await view.transcript.suspend()
         history = view.transcript.binding.history
         original = history.page_source.through
+        original_snapshot = history.pages[0].prepared.page.snapshot
         if not following:
             view.window.release_anchor()
         # Reuse the path, but replace its native bytes with a longer record.
@@ -296,13 +296,11 @@ async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(wor
         write_journal(journal, assistant_entry(
             "REPLACEMENT_SOURCE_ROW " * 80, id="new"))
 
-        def read_replacement():
-            with pytest.raises(TranscriptChanged):
-                workspace.comms.transcripts.capture_page_read(
-                    "rewritten-source", position=original.later_page()).read()
-            return workspace.comms.transcripts.capture_page_read("rewritten-source").read()
-
-        replacement = await asyncio.to_thread(read_replacement)
+        replacement = await asyncio.to_thread(
+            lambda: workspace.comms.transcripts.capture_page_read("rewritten-source").read())
+        # A cursor contains path/offset, not the old bytes' witness. The
+        # snapshot owns prefix certification; stale offsets can land inside JSON.
+        assert not original_snapshot.contains_records_cut(replacement.snapshot)
         assert replacement.after.contains(original)
         view.transcript.dirty = view.transcript.commit_required = True
         await view.transcript.publish(CommitPublication)
@@ -367,7 +365,6 @@ async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage
     from toad.transcript_preparation import ClosedHistory, TranscriptPageRenderTask
     from toad.transcript_state import PreparedReplacementViewportRequest
     from toad.widgets.history_anchor import LatestPosition
-    from toad.work_preparation import RenderPreparation
 
     old = write_journal(workspace.project / "old.jsonl", assistant_entry("OLD_RETAINED_ROWS", id="old"))
     thread = workspace.thread("source")
@@ -384,7 +381,7 @@ async def test_a_closed_history_accepts_a_prepared_replacement_without_a_storage
             () if empty else (assistant_entry("PREPARED_REPLACEMENT", id="new"),)))
         workspace.comms.registry.declare(replace(thread, session_file=RegistrySessionLocation.from_path(str(new), workspace.comms.root)))
         page = workspace.comms.transcripts.capture_page_read("source").read()
-        prepared = await ui.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+        prepared = await TranscriptPageRenderTask(page).prepared(ui.app.preparation)
         assert await history.show_newest(PreparedReplacementViewportRequest(
             LatestPosition.hold(history.window), prepared))
         await ui.step()

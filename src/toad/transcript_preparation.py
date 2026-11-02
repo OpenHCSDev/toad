@@ -184,12 +184,13 @@ class PreparedTranscriptPage:
         return True
 
     def same_source(self, other: PreparedTranscriptPage) -> bool:
-        """Keep a view only when its bounded read came from the same source snapshot."""
-        # A filtered page can share the Core read but draw different members.
-        # The retained worker result shares this immutable tuple with its views;
-        # another projection cannot borrow that view's prepared rows. Each page
-        # type owns equality of its source, traversal and read evidence.
-        return self.fragments is other.fragments and self.page == other.page
+        """Keep original suppliers only when declared page content is unchanged."""
+        # Filtered/restyled results must retain their distinct supplier tuples.
+        # Core's content projection excludes read annotations without discarding
+        # the fresh witness carried by each acquired page.
+        return (self.fragments is other.fragments
+                and FieldCodec.project(self.page, ContentExclude)
+                == FieldCodec.project(other.page, ContentExclude))
 
     def for_view(self) -> PreparedTranscriptPage:
         """An independent view owns its drawing range and loaded source data.
@@ -438,6 +439,11 @@ class TranscriptPageRenderTask(ReusableStorage[PreparedTranscriptPage], ContentA
     def execute(self) -> PreparedTranscriptPage:
         return PreparedTranscriptPage.prepare(self.page)
 
+    async def prepared(self, runtime: PreparationRuntime) -> PreparedTranscriptPage:
+        """Reuse immutable suppliers, never another read's page metadata."""
+        prepared = await runtime.submit(RenderPreparation(self))
+        return replace(prepared, page=self.page)
+
 
 class TranscriptNoProgress(ValueError):
     """A page read returned no new edge while its end still claimed more."""
@@ -475,8 +481,8 @@ class TranscriptPageWork[Cursor = TranscriptCursor](ReusableWork[PreparedTranscr
             raise TranscriptNoProgress(request, self.through, page)
         if self.scope.closed:
             raise asyncio.CancelledError
-        _, prepared = await runtime._prepare(RenderPreparation(TranscriptPageRenderTask(page)))
-        return await runtime.run_thread(self.finish_prepared, key, prepared)
+        prepared = await TranscriptPageRenderTask(page).prepared(runtime)
+        return await runtime.run_thread(self.finish_result, key, prepared)
 
 
 @dataclass(frozen=True)

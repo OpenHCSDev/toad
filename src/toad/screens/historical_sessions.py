@@ -144,9 +144,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
             )
         else:
             from toad.transcript_preparation import SavedHistory, TranscriptPageRenderTask
-            from toad.work_preparation import RenderPreparation
-
-            prepared = await self.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+            prepared = await TranscriptPageRenderTask(page).prepared(self.app.preparation)
             if generation != self._selection_generation or not self.is_attached:
                 return
             history = LineHistory(prepared, SavedHistory(load, page.after, self.app.preparation),

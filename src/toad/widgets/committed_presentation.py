@@ -279,9 +279,8 @@ class PreparedPageCommit(PreparedCommit):
     @classmethod
     async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage, sequences: frozenset[int]) -> Self:
         from toad.transcript_preparation import TranscriptPageRenderTask
-        from toad.work_preparation import RenderPreparation
 
-        prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+        prepared = await TranscriptPageRenderTask(page).prepared(view.app.preparation)
         return cls(history, sequences, prepared)
 
     @property

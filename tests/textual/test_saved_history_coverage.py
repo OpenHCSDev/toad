@@ -80,18 +80,20 @@ async def test_a_live_message_does_not_count_as_saved_history_coverage(workspace
 
 async def test_read_receipts_reuse_original_prepared_suppliers(workspace):
     from toad.transcript_preparation import TranscriptPageRenderTask
-    from toad.work_preparation import RenderPreparation
 
     async with workspace.app(size=(110, 35)) as ui:
         page, _, _ = await saved_history(workspace, ui)
         runtime = ui.app.preparation
-        first = await runtime.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+        first = await TranscriptPageRenderTask(page).prepared(runtime)
         page.snapshot.records_cut.mark_read(
             workspace.comms.bus.reads, "saved", page.snapshot.runtime.read_key, page.after.offset)
         current = workspace.comms.transcripts.capture_page_read("saved").read()
         assert page.snapshot != current.snapshot
         assert page.snapshot.same_content(current.snapshot)
-        second = await runtime.submit(RenderPreparation(TranscriptPageRenderTask(current)))
+        second = await TranscriptPageRenderTask(current).prepared(runtime)
         assert first is not second
+        assert first.page is page
+        assert second.page is current
+        assert first.page.snapshot != second.page.snapshot
         assert first.fragments is second.fragments
         assert first.same_source(second)
