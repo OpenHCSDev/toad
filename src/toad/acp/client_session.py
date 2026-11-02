@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
+from acp.helpers import ContentBlock
 from acp.schema import PromptResponse
+from pydantic import JsonValue
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
@@ -17,6 +20,7 @@ if TYPE_CHECKING:
     from .agent import Agent
     from .agent_session import SessionDisposition
     from .agent_controller import SessionBinding
+    from toad.conversation_submission import SubmissionExecution
 from acp.exceptions import RequestError
 
 
@@ -45,7 +49,10 @@ class ClientSessionRequest:
         if not self.current:
             raise RequestError.invalid_params({'details': 'ACP client request belongs to a retired session'})
 
-    async def prompt(self, content, metadata, require) -> PromptResult:
+    async def prompt(
+        self, content: Sequence[ContentBlock | dict[str, str]],
+        metadata: dict[str, JsonValue], require: Callable[[], None],
+    ) -> PromptResult:
         """Decode once at the captured request's real SDK/write boundary."""
         process = self.agent.process
         try:
@@ -100,7 +107,7 @@ class UnfinishedPromptResult(PromptResult):
                 failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
     @abstractmethod
-    def report_failure(self, agent, event) -> None: ...
+    def report_failure(self, agent: Agent, event: LogAgentFail) -> None: ...
 
     def require_confirmation(self) -> StopReason:
         raise QueueActionRefused(
@@ -111,21 +118,21 @@ class UnfinishedPromptResult(PromptResult):
 class FailedPromptResult(UnfinishedPromptResult):
     """A negative reply preserves the session, not a claim that input was accounted for."""
 
-    def report_failure(self, agent, event) -> None:
+    def report_failure(self, agent: Agent, event: LogAgentFail) -> None:
         agent.events.publish(event)
 
 
 class ResolvedFailurePromptResult(ConfirmedPromptResult, FailedPromptResult):
     """A definite input disposition, including a proved refusal before SDK invocation."""
 
-    def settle_submission(self, execution) -> None:
+    def settle_submission(self, execution: SubmissionExecution) -> None:
         execution.state.response_failed(execution, self.failure.failure)
 
 
 class UnconfirmedPromptResult(UnfinishedPromptResult):
     """The captured request lost its reply or authority; it grants no retry."""
 
-    def report_failure(self, agent, event) -> None:
+    def report_failure(self, agent: Agent, event: LogAgentFail) -> None:
         agent.session.record_failure(event)
 
 
@@ -138,10 +145,10 @@ class QueueSessionRequest(ClientSessionRequest):
 
 
 class ClientRequestOwner:
-    def __init__(self, agent):
+    def __init__(self, agent: Agent):
         self.agent = agent
 
-    def session_request(self, session_id):
+    def session_request(self, session_id: str | None) -> ClientSessionRequest:
         request = ClientSessionRequest(self.agent, session_id)
         request.require()
         return request

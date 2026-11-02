@@ -1,6 +1,7 @@
 """Captured thread reads; settlement belongs to their original attachment."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -11,12 +12,13 @@ if TYPE_CHECKING:
     from toad.acp.client_session import ClientSessionRequest
     from toad.acp.comms_updates import OwnerSnapshotConsumer
     from toad.acp.coordination_attachment import CoordinatedThread
+    from toad.acp.transcript_reader import CoordinationTranscriptReader
 
 
 class ThreadReadOutcome:
     """A status read may publish only while its captured source still holds."""
 
-    def present(self, consumer) -> None:
+    def present(self, consumer: Callable[[ThreadPresentation], object]) -> None:
         """Expired observations leave the newer session's presentation alone."""
 
 
@@ -32,7 +34,7 @@ class ChangedAttachmentRead(ThreadReadOutcome):
 class SettledThreadRead(ThreadReadOutcome):
     presentation: ThreadPresentation
 
-    def present(self, consumer) -> None:
+    def present(self, consumer: Callable[[ThreadPresentation], object]) -> None:
         consumer(self.presentation)
 
 
@@ -42,7 +44,7 @@ class ThreadRead:
     def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
         return SettledThreadRead(presentation)
 
-    async def reconcile(self, transcripts) -> None:
+    async def reconcile(self, transcripts: CoordinationTranscriptReader) -> None:
         """An uncaptured read has no owner snapshot to reconcile."""
 
 
@@ -67,7 +69,7 @@ class PendingThreadRead(ThreadRead):
         self.snapshot.dispatch_sync(presentation)
         return SettledThreadRead(presentation)
 
-    async def reconcile(self, transcripts) -> None:
+    async def reconcile(self, transcripts: CoordinationTranscriptReader) -> None:
         read = await transcripts.thread_presentation(
             self.coordination.update.wire_root, self.coordination.update.thread.name
         )
