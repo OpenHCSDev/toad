@@ -9,6 +9,10 @@ from textual import containers, events
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
+from textual.view import (
+    FILL,
+    WidgetView,
+)
 from textual.widgets import ContentSwitcher, Input, Tab, Tabs
 from toad.widgets.footer import ToadFooter
 from textual.geometry import Spacing
@@ -20,7 +24,6 @@ from toad.forms.form_view import FormView, ValueView
 from toad.forms.presentation import FormInput, FormModal
 from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import PriorityActions
-from toad.widget_view import FILL, WidgetView
 from toad.setting_choices import SchemeName
 from toad.app_node import ToadNode
 

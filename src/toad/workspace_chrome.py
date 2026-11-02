@@ -6,6 +6,11 @@ from textual.containers import Horizontal
 from textual.geometry import Offset, Size, Spacing
 from textual.layout import ArrangeResult, WidgetPlacement
 from textual.layouts.vertical import VerticalLayout
+from textual.view import (
+    AUTO,
+    FILL,
+    WidgetView,
+)
 from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.side_bar import SideBar
@@ -13,7 +18,6 @@ from toad.widgets.footer import ToadFooter
 from toad.widgets.switch_toast import SwitchToast
 from ui_theme.scheme import HeaderToneColour
 from toad.tone_paint import TonePaint
-from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope
 from toad.sidebar_layout import SidebarEdge

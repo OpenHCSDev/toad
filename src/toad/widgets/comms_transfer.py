@@ -1,5 +1,6 @@
 """Inputs for the existing agent-comms export and thread-import operations."""
 
+from textual.view import WidgetView
 from toad.core import events as core_events
 
 from dataclasses import dataclass
@@ -56,7 +57,6 @@ from textual.css.scalar import Scalar, Unit
 from textual.geometry import Spacing
 from ui_theme.scheme import ForegroundColour, PrimaryColour, SurfaceColour
 from toad.app_node import ToadNode
-from toad.widget_view import WidgetView
 
 
 class TransferProgress(WireExportObserver):

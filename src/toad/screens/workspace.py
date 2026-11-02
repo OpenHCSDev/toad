@@ -13,9 +13,9 @@ from textual.box_model import DEFAULT_LAYER
 from textual.events import ScreenResume
 from textual.geometry import Size
 from textual.screen import Screen
+from textual.view import WidgetView
 from textual.widget import Widget
 
-from toad.widget_view import WidgetView
 from toad.widget_actions import WidgetAction, ProfileKeys
 from toad.widgets.comms_transfer import WireExportProgressView
 
