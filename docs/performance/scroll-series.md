@@ -126,6 +126,22 @@ Artifacts: `~/.cache/agent-scratch/pi-ui-performance/closed-prefix-09/` and
 retained by controls10. No provider input or physical frontend was started by
 these source controls.
 
+### Source-trace correction to the known-gap oracle
+
+`CommitPublication.publish_source_page` treats a guarded no-op as completion;
+its True return does not certify a drawn destination. `PreparedPageCommit.draw`
+may decline while the pager owns source work. Retirement occurs only after its
+successful draw and the final current-source checks. Source work finishes through
+`TranscriptSourcePreparation.finish_source_work` → `TranscriptSourceWorkFinished`
+→ `TranscriptPresentation.source_work_finished` → `retry`.
+
+The gap test now checks the reader contract rather than assigning a stronger
+meaning to that return: the known gap blocks visible read acknowledgement,
+the destination becomes visible through native paint, and source settlement
+removes the gap and retains the expected cursor. This corrects the immediate
+assertion above; the earlier failing run remains retained. The corrected case
+has not yet been executed, so this trace is not a new passing-run claim.
+
 ## Historical series
 
 One line per change, from `tools/performance/scroll_scenario.sh` (real `toad` in `st` on display :121, a fork of `perf-base-20261009`, which is a fork of the saved `agent-comms-ux` session; an active response, held PageUp from the input box, wheel bursts with reversal, End, tab return). Frame work is UI-thread time per frame handed to the driver; input-to-paint runs from the driver posting an event to the first frame after its last handler returns. Input-to-paint pairs each input with the first frame after it is handled (fixed 2026-10-09; earlier summaries paired out of order). Raw results are under `~/.cache/agent-scratch/scroll-series/<name>/`.

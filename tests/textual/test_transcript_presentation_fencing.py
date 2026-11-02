@@ -192,7 +192,7 @@ async def test_followed_saved_append_keeps_painted_page_and_fragments(workspace)
         assert ui.failure() is None
 
 
-async def test_followed_commit_publishes_a_known_undrawn_gap_before_settling(workspace):
+async def test_known_source_gap_blocks_read_acknowledgement_until_painted(workspace):
     import json
     from dataclasses import replace
 
@@ -221,13 +221,17 @@ async def test_followed_commit_publishes_a_known_undrawn_gap_before_settling(wor
             page = workspace.comms.transcripts.capture_page_read("gap-source").read()
             history.retain_committed(page.after)
             assert view.window.follows_tail and history.drawn_end_more
+            assert history.blocks_visible_read
         finally:
             release.set()
             await pending
-        # Check the publication contract before a later lookahead can hide it.
+        # Completion includes guarded no-ops. The source-work completion event
+        # retries pending commits; native paint is the observation that settles
+        # this check, not the return of one publication attempt.
+        await ui.until_shows("AFTER_SOURCE_GAP")
+        await ui.until(lambda: not history.blocks_visible_read, why="the painted source to settle")
         assert not history.drawn_end_more
         assert history.pages[-1].prepared.page.after.same_position(page.after)
-        await ui.until_shows("AFTER_SOURCE_GAP")
         assert ui.failure() is None
 
 
