@@ -15,13 +15,12 @@ from agent_comms.input_attempt import NotSentInput
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from toad.core.events import LogAgentFail
 from .queue_attachment import QueueActionRefused
-from .status import ConfirmedPromptResult, PromptResult, StopReason
+from .status import ConfirmedPromptResult, PromptResult, PromptSubmissionOutcome, StopReason
 
 if TYPE_CHECKING:
     from .agent import Agent
     from .agent_session import SessionDisposition
     from .agent_controller import SessionBinding
-    from toad.conversation_submission import SubmissionExecution
 from acp.exceptions import RequestError
 
 
@@ -127,8 +126,8 @@ class FailedPromptResult(UnfinishedPromptResult):
 class ResolvedFailurePromptResult(ConfirmedPromptResult, FailedPromptResult):
     """A definite input disposition, including a proved refusal before SDK invocation."""
 
-    def settle_submission(self, execution: SubmissionExecution) -> None:
-        execution.state.response_failed(execution, self.failure.failure)
+    def settle_submission(self, execution: PromptSubmissionOutcome) -> None:
+        execution.response_failed(self.failure.failure)
 
 
 class UnconfirmedPromptResult(UnfinishedPromptResult):

@@ -42,7 +42,7 @@ from ui_theme.effects import CURSOR_BLINK, Mix
 
 from toad import messages, paths
 from toad.acp.thread_read import NoPendingThreadRead
-from toad.acp.status import StopReason
+from toad.acp.status import PromptTurnTarget, StopReason
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
@@ -1045,6 +1045,7 @@ class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
 class Conversation(
     ConversationEvents,
     NativeMethodKeys,
+    PromptTurnTarget,
     ToadNode, MenuConversation,
     actions=(ConversationAction,),
 ):

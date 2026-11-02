@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 from acp.schema import PromptResponse, ToolCall
 from agent_comms.agent_event_updates import AcpToolAction
+from agent_comms.acp_failure import ACPFailure
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
@@ -25,9 +25,32 @@ from toad.line_blocks import (
 )
 
 
-if TYPE_CHECKING:
-    from toad.conversation_submission import SubmissionExecution
-    from toad.widgets.conversation import Conversation
+from toad.conversation_turn import ConversationTurn
+
+
+class PromptSubmissionOutcome(ABC):
+    """The submission owner applies an answer to its retained transaction state."""
+
+    @abstractmethod
+    def response_finished(self) -> None: ...
+
+    @abstractmethod
+    def response_confirmed(self) -> None: ...
+
+    @abstractmethod
+    def response_failed(self, failure: ACPFailure) -> None: ...
+
+
+class PromptTurnTarget(ABC):
+    """The rich surface owns turn completion and its model-use effects."""
+
+    turns: ConversationTurn
+
+    @abstractmethod
+    async def agent_turn_over(self, stop_reason: StopReason) -> None: ...
+
+    @abstractmethod
+    def record_model_usage(self) -> None: ...
 
 
 class PromptResult(ABC):
@@ -39,10 +62,10 @@ class PromptResult(ABC):
     def publish_failure(self) -> None:
         """A confirmed completion has no failure to publish."""
 
-    def settle_submission(self, execution: SubmissionExecution) -> None:
-        execution.state.response_finished(execution)
+    def settle_submission(self, execution: PromptSubmissionOutcome) -> None:
+        execution.response_finished()
 
-    async def finish_turn(self, view: Conversation) -> None:
+    async def finish_turn(self, view: PromptTurnTarget) -> None:
         """No confirmed completion: release local activity, not a completed turn."""
         view.turns.finish_client()
 
@@ -50,8 +73,8 @@ class PromptResult(ABC):
 class ConfirmedPromptResult(PromptResult):
     """An SDK completion or definite input disposition gives this request a known result."""
 
-    def settle_submission(self, execution: SubmissionExecution) -> None:
-        execution.state.response_confirmed(execution)
+    def settle_submission(self, execution: PromptSubmissionOutcome) -> None:
+        execution.response_confirmed()
 
 
 @dataclass(frozen=True)
@@ -69,15 +92,15 @@ class StopReason(ConfirmedPromptResult, DeclaredFamily, affix='StopReason'):
         """A returned SDK completion confirms a queue mutation."""
         return self
 
-    async def finish_turn(self, view: Conversation) -> None:
+    async def finish_turn(self, view: PromptTurnTarget) -> None:
         await view.agent_turn_over(self)
 
-    def record_model_usage(self, view: Conversation) -> None:
+    def record_model_usage(self, view: PromptTurnTarget) -> None:
         """Only a successful end-turn records recent model use."""
 
 
 class EndTurnStopReason(StopReason):
-    def record_model_usage(self, view: Conversation) -> None:
+    def record_model_usage(self, view: PromptTurnTarget) -> None:
         view.record_model_usage()
 
 

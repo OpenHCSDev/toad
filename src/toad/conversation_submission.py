@@ -29,6 +29,7 @@ from toad import messages
 from agent_comms.acp_failure import ACPFailure
 from toad.command_catalog import CommandCatalog
 from toad.acp.queue_attachment import QueueActionRefused
+from toad.acp.status import PromptSubmissionOutcome
 from toad.queue_capability import QueueActions, QueueEvidence
 from toad.core.input_events import UserInputSubmitted
 from toad.input_decision import InputDecision, InputRefused
@@ -298,7 +299,7 @@ class SendBlocked(RetainedSend):
         return f"Send blocked: {self.description}"
 
 
-class SubmissionExecution(SubmissionStart):
+class SubmissionExecution(SubmissionStart, PromptSubmissionOutcome):
     """Shared history, worker and outcome lifetime over an immutable source binding."""
 
     worker_group = __qualname__
@@ -353,8 +354,17 @@ class SubmissionExecution(SubmissionStart):
         else:
             self.delivery_refused("Message source changed; reopen this view", self.submission.source_text)
 
-    def finish(self) -> None:
+    def response_finished(self) -> None:
         self.state.response_finished(self)
+
+    def response_confirmed(self) -> None:
+        self.state.response_confirmed(self)
+
+    def response_failed(self, failure: ACPFailure) -> None:
+        self.state.response_failed(self, failure)
+
+    def finish(self) -> None:
+        self.response_finished()
         self.owner.finish(self)
 
     def delivery_blocked(self, description: str, body: str) -> None:
