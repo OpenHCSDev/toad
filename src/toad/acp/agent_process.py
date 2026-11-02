@@ -243,11 +243,10 @@ class AgentProcess(Client):
                 if (self.retirement is None and len(self.sessions) > 1
                         and session.disposition.held_by_agent):
                     await session.close_in(self.rpc)
-            except BaseException:
-                if self.runner is not None:
-                    self.runner.cancel()
-                raise
             finally:
+                # A request-local close refusal is not process retirement.
+                # Transport death is owned by communicate/run; the caller
+                # retains this session's actual close error.
                 self.sessions.discard(session)
             if not self.sessions and self.retirement is None and self.runner is not None:
                 self.runner.cancel()

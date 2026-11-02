@@ -200,7 +200,8 @@ class CommsUpdateConsumer(MroDispatch):
         controller = self.agent.controller
         controller.start_operation(
             controller.publish_transcript_snapshot(
-                update, controller.surface, controller.session
+                update, controller.surface, controller.session,
+                destination=self.session_id,
             )
         )
 

@@ -271,6 +271,14 @@ class PreparationRuntime(ThreadScheduler):
     async def run_thread[*Args, Value](
         self, function: Callable[[*Args], Value], *args: *Args
     ) -> Value:
+        task = await self.admit_thread(function, *args)
+        await self.renderer.wait_for_work(task)
+        return task.result()
+
+    async def admit_thread[*Args, Value](
+        self, function: Callable[[*Args], Value], *args: *Args
+    ) -> asyncio.Task[Value]:
+        """Retain the actual accepted operation independently of its UI waiter."""
         if self._closed:
             raise asyncio.CancelledError
         await self._threads.acquire()
@@ -289,8 +297,7 @@ class PreparationRuntime(ThreadScheduler):
             self._threads.release()
 
         task.add_done_callback(finished, context=context)
-        await self.renderer.wait_for_work(task)
-        return task.result()
+        return task
 
     def discard_scope(self, scope: PreparationScope) -> None:
         scope.closed = True
