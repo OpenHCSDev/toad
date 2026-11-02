@@ -238,11 +238,12 @@ async def test_closed_same_source_commit_acquires_complete_coverage(workspace, f
 
     thread = workspace.thread("closed-prefix")
     journal = write_journal(thread.project_path / "closed.jsonl",
-                            assistant_entry("CLOSED_PREFIX_MUST_SURVIVE", id="before"))
+                            assistant_entry("KEPT_ROW", id="before"))
     workspace.comms.registry.declare(replace(
         thread, session_file=RegistrySessionLocation.from_path(str(journal), workspace.comms.root)))
     async with workspace.app(resume="closed-prefix") as ui:
-        await ui.until_shows("CLOSED_PREFIX_MUST_SURVIVE")
+        # Keep the source marker clear of the window's floating jump control.
+        await ui.until_shows("KEPT_ROW")
         view = ui.conversation
         await ui.app.coordination_access.stop_observing()
         await view.transcript.suspend()
@@ -267,7 +268,7 @@ async def test_closed_same_source_commit_acquires_complete_coverage(workspace, f
                        zip(history.fragments_in_range, fragments, strict=True))
             assert view.window.reader_position == position
             assert "CLOSED_PREFIX_SUCCESSOR" not in ui.painted(view.window)
-        assert "CLOSED_PREFIX_MUST_SURVIVE" in ui.painted(view.window)
+        assert "KEPT_ROW" in ui.painted(view.window)
         assert view.transcript.binding.history is history
         assert ui.failure() is None
 
