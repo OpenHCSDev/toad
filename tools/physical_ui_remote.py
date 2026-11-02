@@ -10,6 +10,7 @@ from contextlib import ExitStack, contextmanager
 from functools import partial
 from dataclasses import dataclass
 from importlib.metadata import distribution
+import importlib.machinery
 import json
 from multiprocessing.connection import Connection
 import os
@@ -19,6 +20,11 @@ import sys
 import time
 from threading import Thread
 from typing import ClassVar, Self
+
+# Only a newly launched program adds its frozen dependency directory. An
+# observation packet cannot change import paths inside an existing frontend.
+if __name__ == "__main__":
+    sys.path.insert(0, str(Path(__file__).parent))
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.child_process import ChildOutcome, ProcessIdentity
@@ -401,7 +407,7 @@ class MeasuredStartOperation(StartOperation):
             yield
 
     def measure(self, directory: Path, cleanup: ExitStack, lifetime) -> None:
-        from performance.frame_meter import install
+        from tools.performance.frame_meter import install
 
         # install resolves and validates every target before changing any hook;
         # its returned closer restores them and publishes bounded output.
@@ -448,21 +454,38 @@ class AcpObservationDecoder(MroProjection[AcpObservation]):
 class ObserveOperation(PhysicalOperation):
     target: RunResources
     identity: ProcessIdentity
-    tools: Path
 
     @classmethod
     def packet_path(cls, directory: Path) -> Path:
         """The read-only observation protocol owns its one packet filename."""
         return directory / "request.json"
 
-    @contextmanager
-    def tool_imports(self):
-        previous = sys.path[:]
-        try:
-            sys.path.insert(0, str(self.tools))
-            yield
-        finally:
-            sys.path[:] = previous
+    def require_modules(self) -> int:
+        """Observe foreign ModuleSpec origins through this startup's validator.
+
+        Locations establish provenance, not hashes of already-loaded code.
+        Namespace packages must supply every owned search location.
+        """
+        runtime = self.target.runtime
+        checked = 0
+        for name, module in tuple(sys.modules.items()):
+            if name.split('.', 1)[0] not in ('toad', 'textual', 'agent_comms'):
+                continue
+            spec = getattr(module, '__spec__', None)  # foreign Python module boundary
+            if not isinstance(spec, importlib.machinery.ModuleSpec):
+                raise RuntimeError(f'Loaded package has no ModuleSpec: {name[:160]}')
+            locations = ((spec.origin,) if spec.has_location else
+                         tuple(spec.submodule_search_locations or ()))
+            if not locations:
+                raise RuntimeError(f'Loaded package has no owned locations: {name[:160]}')
+            for location in locations:
+                resolved = Path(location).resolve(strict=True)
+                if not resolved.is_relative_to(runtime):
+                    raise RuntimeError(f'Loaded package outside approved runtime: {name[:160]} {str(resolved)[:384]}')
+            checked += 1
+        if not checked or 'toad.app' not in sys.modules:
+            raise RuntimeError('No loaded Toad runtime to observe')
+        return checked
 
     def observed_result(self, observed: RunObservation, directory: Path) -> PhysicalResult:
         return ObservedResult(observed)
@@ -473,10 +496,6 @@ class ObserveOperation(PhysicalOperation):
             raise ValueError("Observed frontend incarnation changed")
         if Path.home().resolve() != self.target.home:
             raise ValueError("Observed HOME is not private")
-        # The existing reviewed validator remains the single module-location policy.
-        # The temporary tool import path is retired before inspecting application state.
-        with self.tool_imports():
-            from performance.history_capture_remote import require_modules
         import agent_comms
         import textual
         import toad
@@ -494,7 +513,7 @@ class ObserveOperation(PhysicalOperation):
             screen = app.screen
         except (NoActiveAppError, ScreenStackError) as error:
             raise PendingRun("No sole running Toad application with a screen yet") from error
-        checked = require_modules(self.target.runtime)
+        checked = self.require_modules()
         access = app.coordination_access
         root = access.selection.root
         observation = access.observation

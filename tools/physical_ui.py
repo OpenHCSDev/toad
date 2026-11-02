@@ -253,6 +253,23 @@ class OperationProgram:
     path: Path
     source: bytes
 
+    @property
+    def relative_path(self) -> Path:
+        """Retain the source package layout in this startup's frozen inputs."""
+        return self.path.relative_to(Path(__file__).resolve().parents[1])
+
+    def freeze(self, directory: Path) -> None:
+        """Freeze a dependency as an owned package, never a merged namespace."""
+        relative = self.relative_path
+        dependency = directory / relative
+        dependency.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        for package in relative.parents:
+            if package.parts:
+                initializer = directory / package / "__init__.py"
+                if not initializer.exists():
+                    ExclusiveAtomicFile(initializer).write_bytes(b"")
+        ExclusiveAtomicFile(dependency).write_bytes(self.source)
+
     @classmethod
     def capture(cls, path: Path):
         with path.open("rb") as source:
@@ -398,9 +415,7 @@ class ObservedTerminalApp:
         # controller lifetime. Later source edits cannot change a run's wire.
         programs = cls.operation_programs()
         for program in programs[:-1]:
-            package = directory / program.path.parent.name
-            package.mkdir(mode=0o700, exist_ok=True)
-            ExclusiveAtomicFile(package / program.path.name).write_bytes(program.source)
+            program.freeze(directory)
         raw = programs[-1].source
         script = directory / "operation.py"
         # Only startup/shutdown executes a program. Normal Python supplies its
@@ -500,7 +515,7 @@ class ObservedTerminalApp:
         deadline = time.monotonic() + PhysicalOperation.timeout
         while True:
             self.terminal.platform.require(self.frontend)
-            packet = self._packet(operation(self.target, self.frontend, Path(__file__).resolve().parent))
+            packet = self._packet(operation(self.target, self.frontend))
             # Fresh read-only observations may see an ACP which has not yet
             # published its root. No physical input is sent until it does;
             # foreign resources and failed input are never retried here.

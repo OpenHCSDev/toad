@@ -1,11 +1,13 @@
 """Physical frontend observation and admission contracts, using native geometry."""
 from dataclasses import replace
+from importlib.machinery import PathFinder
 from pathlib import Path
 
 import pytest
 from textual.geometry import Region
 
-from tools.physical_ui import ScreenCapture
+from tools.physical_ui import MeasuredTerminalApp, ObservedTerminalApp, ScreenCapture
+from tools.physical_ui_candidate import MeasuredCandidateTerminalApp
 
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.installer.probes.interpreter import InterpreterBuildProbe
@@ -69,9 +71,8 @@ def test_startup_connection_decodes_only_observation_operations(
     physical_target: RunTarget, physical_resources: RunResources,
 ) -> None:
     identity = ProcessIdentity.current()
-    tools = Path(__file__).resolve().parents[2] / "tools"
-    for operation in (ObserveOperation(physical_resources, identity, tools),
-                      AdmitOperation(physical_target, identity, tools)):
+    for operation in (ObserveOperation(physical_resources, identity),
+                      AdmitOperation(physical_target, identity)):
         assert FieldCodec.decode(ObserveOperation, FieldCodec.encode(operation)) == operation
     start = StartOperation(physical_resources, identity, (str(physical_target.runtime / "bin/toad"),), 9)
     strict = StartAdmittedOperation(
@@ -84,6 +85,20 @@ def test_startup_connection_decodes_only_observation_operations(
     for operation in (start, strict, measured, measured_strict, StopRootOperation(physical_resources)):
         with pytest.raises(ValueError):
             FieldCodec.decode(ObserveOperation, FieldCodec.encode(operation))
+
+
+@pytest.mark.parametrize("app_type", (MeasuredTerminalApp, MeasuredCandidateTerminalApp))
+def test_measurement_dependency_resolves_inside_frozen_operation(
+    app_type: type[ObservedTerminalApp], physical_resources: RunResources, tmp_path: Path,
+) -> None:
+    script = app_type.operation_file(StopRootOperation(physical_resources), tmp_path / "operation")
+    tools = PathFinder.find_spec("tools", [str(script.parent)])
+    assert tools is not None and tools.has_location
+    performance = PathFinder.find_spec("tools.performance", tools.submodule_search_locations)
+    assert performance is not None and performance.has_location
+    meter = PathFinder.find_spec("tools.performance.frame_meter", performance.submodule_search_locations)
+    assert meter is not None and meter.origin is not None
+    assert Path(meter.origin).is_relative_to(script.parent)
 
 
 def test_current_observation_cannot_substitute_for_build_admission(

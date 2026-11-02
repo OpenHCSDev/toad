@@ -137,7 +137,12 @@ module stays alive while the distribution entrypoint runs so its declared wire
 types do not acquire a different `__main__` namespace. `AcpObservationDecoder`
 is declared once per module, not rebuilt and registered on every observation.
 
-The startup/shutdown programs retain the bounded immutable source snapshot.
+The startup/shutdown programs retain the bounded immutable source snapshot,
+including the measurement dependency when that capability is selected. Frozen
+dependencies retain their package layout with owned package initializers, so
+Python cannot merge them with another tools namespace. `ObserveOperation` owns
+the module-location validator; observation packets contain resources and process
+identity, not a tools directory or another authority to select imported code.
 Ordinary observations write only typed request/result data, not another copy of
 the program. Closing the controller pipe and the existing child lifetime retires
 this reader. Exceptional exit sends no further observation or physical input.

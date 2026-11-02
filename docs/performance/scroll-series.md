@@ -140,7 +140,9 @@ meaning to that return: the known gap blocks visible read acknowledgement,
 the destination becomes visible through native paint, and source settlement
 removes the gap and retains the expected cursor. This corrects the immediate
 assertion above; the earlier failing run remains retained. The corrected case
-has not yet been executed, so this trace is not a new passing-run claim.
+passed once: 1 passed in16.21s, rc0, with the host lease acquired and released.
+`pi-ui-performance/gap-contract-27/pytest.log` retains that exact execution and
+its source snapshot; it is not a new physical or installed-app result.
 
 ## Historical series
 
