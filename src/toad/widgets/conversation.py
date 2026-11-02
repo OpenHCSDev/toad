@@ -84,6 +84,7 @@ from toad.core.source_events import (
 )
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.delivery_failure_view import DeliveryFailureView
+from toad.failure_presentation import FailurePresentation
 from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
 from toad.input_history import InputHistories
@@ -440,6 +441,7 @@ class AgentWindow(Window):
 
 class ConversationSessionBinding(
     core_events.CommsPublicationTarget,
+    FailurePresentation,
     MroDispatch,
     WorkspaceHosted,
     ThreadStatusOwner,
@@ -449,6 +451,7 @@ class ConversationSessionBinding(
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
+    transcript: TranscriptPresentation
     contents = getters.query_one("#contents", Contents)
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""

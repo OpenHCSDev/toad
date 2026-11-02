@@ -50,6 +50,7 @@ from textual.worker import Worker, WorkerCancelled
 from toad.core.events import CoreEventStream
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
+from toad.failure_presentation import CommitRequirement
 from toad.screens.session_view import SessionView
 from toad.session_scope import (
     NoTranscript,
@@ -765,7 +766,7 @@ class BoundView(ViewBinding):
         self.window.reader_position = TailPosition()
 
 
-class TranscriptPresentation:
+class TranscriptPresentation(CommitRequirement):
     """Owns the transcript document; attached native publishers can be replaced."""
 
     def __init__(self) -> None:

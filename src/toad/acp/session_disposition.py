@@ -11,6 +11,7 @@ from agent_comms.owner_protocol import IncompatibleOwner
 from agent_comms.thread_presentation import SessionDisconnected
 
 from toad.core.events import AgentFail
+from toad.failure_presentation import FailurePresentation
 
 
 class SessionCloseTarget(ABC):
@@ -36,7 +37,7 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
         """Explain this session's refusal without borrowing thread activity."""
         return self.present(self.unready_line, lambda status: status.notice)
 
-    async def present_failure(self, failure: AgentFail, view) -> None:
+    async def present_failure(self, failure: AgentFail, view: FailurePresentation) -> None:
         await failure.present(view)
 
 
@@ -103,7 +104,7 @@ class FailedSessionDisposition(UnavailableSessionDisposition):
             self.failure.message, details=tuple(self.failure.details.splitlines())
         )
 
-    async def present_failure(self, failure: AgentFail, view) -> None:
+    async def present_failure(self, failure: AgentFail, view: FailurePresentation) -> None:
         if failure is self.failure:
             await failure.present_session(view)
         else:

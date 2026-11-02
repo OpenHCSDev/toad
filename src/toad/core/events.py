@@ -19,6 +19,7 @@ from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream, ThoughtStream
+from toad.failure_presentation import FailurePresentation
 from agent_comms.acp_extension import AgentCommsUpdate, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from textual.worker import Worker
@@ -333,11 +334,11 @@ class AgentFail(CoreEvent):
     @abstractmethod
     def details(self) -> str: ...
 
-    async def present_session(self, view) -> None:
+    async def present_session(self, view: FailurePresentation) -> None:
         """Specialized setup/help feedback survives the session's failure label."""
         await self.present(view)
 
-    async def present(self, view) -> None:
+    async def present(self, view: FailurePresentation) -> None:
         from textual.content import Content
         from toad.widgets.note import Note
 
@@ -373,7 +374,7 @@ class HelpAgentFail(TextAgentFail):
     @abstractmethod
     def help_text(self) -> str: ...
 
-    async def present(self, view) -> None:
+    async def present(self, view: FailurePresentation) -> None:
         from toad.widgets.markdown_note import MarkdownNote
 
         await super().present(view)
@@ -400,7 +401,7 @@ class FailureLog:
 
     log_path: Path
 
-    async def show_log(self, view) -> None:
+    async def show_log(self, view: FailurePresentation) -> None:
         from toad.project_link import AcpLogLink
         from toad.widgets.agent_response import AgentResponse
         from agent_comms.ui_model.message_category import OtherCategory
@@ -415,12 +416,12 @@ class FailureLog:
 class LogAgentFail(FailureLog, TextAgentFail):
     log_path: Annotated[Path, PathText] = field(kw_only=True)
 
-    async def present_session(self, view) -> None:
+    async def present_session(self, view: FailurePresentation) -> None:
         # MainScreen presents the current terminal failure. Retain its journal
         # link, not a second error panel that outlives a recovered session.
         await self.show_log(view)
 
-    async def present(self, view) -> None:
+    async def present(self, view: FailurePresentation) -> None:
         await super().present(view)
         await self.show_log(view)
 
@@ -440,7 +441,7 @@ class RequestAgentFail(FailureLog, AgentFail):
     def details(self) -> str:
         return self.update.failure.feedback
 
-    async def present(self, view) -> None:
+    async def present(self, view: FailurePresentation) -> None:
         if not self.update.source.retained_in_history:
             await super().present(view)
             await self.show_log(view)

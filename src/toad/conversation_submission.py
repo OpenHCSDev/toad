@@ -477,7 +477,7 @@ class ConversationSubmissions:
         self.view.refresh_submission_state()
         return execution
 
-    def start_message(self, submission: PromptInputSubmission, root: Path, conversation: ConversationKind,
+    def start_message(self, submission: PromptInputSubmission, root: Path, conversation: MessageDestination,
                       current: Callable[[], bool], present: Callable[[Message], Awaitable[None]]):
         return self.start(MessageSubmissionExecution(self, submission, root, conversation, current, present))
 
