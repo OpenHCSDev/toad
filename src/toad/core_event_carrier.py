@@ -2,7 +2,8 @@
 
 from metaclass_registry.mro_dispatch import MroDispatch
 from textual._callback import invoke
-from textual.message import Message
+from textual import on
+from textual.message import DeclaredMessage, Message
 from textual.dom import DOMNode
 from functools import cached_property, partial
 from dataclasses import InitVar, dataclass, field
@@ -17,7 +18,7 @@ async def dispatch_publication(receiver, message) -> None:
     await receiver.consume_handlers(event, receiver.handlers_for(event), message)
 
 
-class CoreEventMessage(Message):
+class CoreEventMessage(DeclaredMessage):
     """One frontend carrier, independent of the event's nominal case."""
 
     def __init__(self, event: CoreEvent, subscription: Subscription,
@@ -138,7 +139,8 @@ class CoreEventReceiver(MroDispatch, DOMNode):
         message.bubble = False
         return self.post_message(message)
 
-    async def on_core_event_message(self, message: CoreEventMessage) -> None:
+    @on(CoreEventMessage)
+    async def consume_publication(self, message: CoreEventMessage) -> None:
         if not message.subscription.active:
             message.stop()
             return
