@@ -13,10 +13,12 @@ async def bind(ui, workspace, name):
     workspace.thread(name, running=True)
     agent = ui.detached_agent(name)
     ui.attach_agent(agent)
+    assert agent.automatic_titles
     await deliver(agent, carrying(registered_coordination_fact(
         workspace.comms, name, worktree=workspace.project,
         owner=ProcessIdentity.capture(os.getpid()),
     )))
+    assert not agent.automatic_titles
     return agent
 
 

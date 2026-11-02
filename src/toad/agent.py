@@ -46,10 +46,6 @@ class AgentBase(AgentConnection):
     def invalidate_observation(self, observation: SessionObservation) -> None:
         observation.schedule(self)
 
-    @property
-    def automatic_titles(self) -> bool:
-        return self.observed_thread() is None
-
     async def project_changed(self, path: Path) -> None:
         self.project_root_path = path
 

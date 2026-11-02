@@ -51,6 +51,11 @@ class AgentConnection(ABC):
         return False
 
     @property
+    def automatic_titles(self) -> bool:
+        """Local sessions may take their initial title from the first prompt."""
+        return True
+
+    @property
     @abstractmethod
     def presentation(self) -> AgentPresentation: ...
 
@@ -186,8 +191,6 @@ class AgentConnection(ABC):
 
 class NoAgentConnection(AgentConnection):
     """A real saved view before it acquires any native connection."""
-
-    automatic_titles = True
 
     @cached_property
     def presentation(self) -> AgentPresentation:

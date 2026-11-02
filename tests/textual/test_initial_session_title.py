@@ -10,7 +10,7 @@ from agent_comms.child_process import ProcessIdentity
 from support.agents import AppAgents, PEERS, RecordedEvents, command, deliver
 from support.coordination import carrying, registered_coordination_fact
 from toad.acp.agent import Agent
-from toad.core.events import CoreEvent, SessionInfoUpdate
+from toad.core.events import AgentFail, CoreEvent, SessionInfoUpdate
 from toad.db import DB
 
 THREAD = "existing-worker"
@@ -38,8 +38,11 @@ async def start(ui, definition, *, session_id=None, session_pk=None, name=None):
     agent = AppAgents(ui.app).agent(Agent, definition, session_id, session_pk=session_pk)
     agent.session.chosen_name = name
     ui.attach_agent(agent)
-    await agent.start()
-    await ui.until(lambda: agent.ready, why="the actual SDK title handshake")
+    failures = RecordedEvents()
+    with agent.events.subscribe(AgentFail, failures.receive):
+        await agent.start()
+        await ui.until(lambda: agent.ready or bool(failures), why="the actual SDK title handshake")
+    assert agent.ready, tuple(failures)
     return agent
 
 
@@ -104,9 +107,17 @@ async def test_a_name_chosen_before_the_session_exists_is_announced_as_its_title
         assert [event.title for event in updates if isinstance(event, SessionInfoUpdate)] == ["My pending title"]
 
 
-async def test_metadata_without_a_title_gives_the_session_no_coordination_title(workspace):
+@pytest.mark.parametrize("persisted", [False, True], ids=["new-row", "existing-row"])
+async def test_metadata_without_a_title_gives_the_session_no_coordination_title(workspace, persisted):
     definition = response_peer(workspace, NewSessionResponse(sessionId=THREAD))
     async with workspace.app(size=(120, 40)) as ui:
-        agent = await start(ui, definition)
+        pk = (await DB().session_new("New Session", definition.name, definition.identity, None)
+              if persisted else None)
+        agent = await start(ui, definition, session_pk=pk)
         assert not agent.presentation.queue_supported
-        assert (await DB().session_get(agent.session.pk)).title == "New Session"
+        assert agent.automatic_titles
+        saved = await DB().session_get(agent.session.pk)
+        assert saved.title == "New Session"
+        assert saved.agent_session_id == THREAD
+        if persisted:
+            assert agent.session.pk == pk

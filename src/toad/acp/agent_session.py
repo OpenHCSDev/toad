@@ -439,7 +439,7 @@ class AgentSession:
         ).consume_metadata(response.field_meta)
 
         if self.pk is not None:
-            await DB().session_started(self.pk, self.agent.session_id)
+            await DB().session_started(self.pk, response.session_id)
             authority.require()
         elif self.supports_load:
             db = DB()
@@ -452,7 +452,7 @@ class AgentSession:
                 session_name,
                 self.agent.definition.name,
                 self.agent.definition.identity,
-                self.agent.session_id,
+                response.session_id,
                 protocol="acp",
                 meta=SessionMeta(
                     cwd=Checkout(self.agent.project_root_path), agent_data=self.agent.definition
