@@ -34,7 +34,6 @@ from toad.queue_capability import QueueActions, QueueEvidence
 from toad.core.input_events import UserInputSubmitted
 from toad.input_decision import InputDecision, InputRefused
 from toad.input_history import InputHistory
-from toad.agent_presentation import AgentPresentation
 from toad.message_destination import MessageDestination
 
 if TYPE_CHECKING:

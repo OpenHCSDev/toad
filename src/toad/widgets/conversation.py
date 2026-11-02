@@ -8,7 +8,7 @@ from itertools import filterfalse
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time_ns
-from typing import TYPE_CHECKING, Callable
+from typing import Callable
 
 from acp import schema as acp_protocol
 from toad.widgets.markdown_note import MarkdownNote
@@ -134,7 +134,9 @@ from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.terminal import Terminal
 from toad.widgets.terminal_tool import TerminalTool
 from toad.widgets.throbber import AboveThrobber
-from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
+from toad.widgets.transcript_history import JumpToLatest, LineHistory, TranscriptHistory
+from toad.widgets.question import Ask
+from toad.wire_history import WireSource
 from toad.widgets.user_input import UserInput
 
 AUTO_SESSION_TITLE_MAX_LENGTH = 50
@@ -146,13 +148,6 @@ def make_session_title(prompt: str) -> str:
     if len(title) > AUTO_SESSION_TITLE_MAX_LENGTH:
         title = title[: AUTO_SESSION_TITLE_MAX_LENGTH - 1].rstrip() + "…"
     return title
-
-
-if TYPE_CHECKING:
-    from toad.wire_history import WireSource
-    from toad.widgets.question import Ask
-    from toad.widgets.terminal import Terminal
-    from toad.widgets.transcript_history import LineHistory
 
 
 HELP_URL = "https://github.com/batrachianai/toad/discussions"
@@ -225,7 +220,6 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
 
     def line_histories(self):
         """Visit history containers without entering their rich bodies."""
-        from toad.widgets.transcript_history import LineHistory
 
         pending = list(reversed(self.children))
         while pending:
@@ -1696,7 +1690,6 @@ class Conversation(
             options: A list of (ANSWER, ANSWER_ID) tuples.
             callback: Optional callable that will be invoked with the result.
         """
-        from toad.widgets.question import Ask
 
         self.agent_info
 

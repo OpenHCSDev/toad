@@ -61,7 +61,7 @@ class QueueSource(QueueActions):
         return "Queue unavailable"
 
     def queue_details(self, evidence: QueueEvidence) -> DetailLines:
-        lines = [(Span("Submitting is local intent; acceptance is not consumption.", MutedRole),)]
+        lines: list[tuple[Span, ...]] = [(Span("Submitting is local intent; acceptance is not consumption.", MutedRole),)]
         lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),)
                      for text in evidence.delivering)
         if evidence.transport:

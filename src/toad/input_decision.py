@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.content import Content
@@ -12,10 +12,6 @@ from textual.dom import DOMNode
 from toad.acp.session_disposition import SessionDisposition
 
 from toad import messages
-
-if TYPE_CHECKING:
-    from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
-
 
 class InputDecision(DeclaredFamily, ABC):
     allows: ClassVar[bool]
@@ -29,9 +25,6 @@ class InputDecision(DeclaredFamily, ABC):
     @abstractmethod
     def announce(self, editor: DOMNode) -> None: ...
 
-    @abstractmethod
-    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart: ...
-
 
 class InputAccepted(InputDecision):
     allows = True
@@ -44,9 +37,6 @@ class InputAccepted(InputDecision):
 
     def announce(self, editor: DOMNode) -> None:
         """Accepted input needs no refusal feedback."""
-
-    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart:
-        return owner.view.agent_binding.begin_submission(owner, submission)
 
 
 class InputRefused(InputDecision):
@@ -65,9 +55,6 @@ class InputRefused(InputDecision):
     def announce(self, editor: DOMNode) -> None:
         editor.app.bell()
         editor.post_message(messages.Flash(self.message, "error"))
-
-    def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart:
-        return owner.unbound(submission, self)
 
 
 @dataclass(frozen=True)
