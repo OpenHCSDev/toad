@@ -9,7 +9,8 @@ from textual.layouts.horizontal import HorizontalLayout
 from textual.screen import ModalScreen
 from textual.view import (
     AUTO,
-    FocusWithinView,
+    BoxView,
+    FocusWithin,
     WidgetView,
 )
 from textual.widgets._select import SelectCurrent
@@ -17,7 +18,7 @@ from textual.widgets import Checkbox, Input
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
 
 
-class FramedControl(FocusWithinView):
+class FramedControl(FocusWithin, BoxView):
     height = Scalar.from_number(3)
     padding = Spacing(0, 2, 0, 2)
     horizontal_scrollbar_size = 0

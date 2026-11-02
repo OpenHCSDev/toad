@@ -124,6 +124,17 @@ async def test_an_edit_of_each_kind_reaches_the_state():
         assert app.state.to_object().limit is None and not shown["limit"].member.display
 
 
+async def test_a_native_form_frame_preserves_the_checkbox_line_policy():
+    async with open_form() as (_app, pilot, shown):
+        checkbox = shown["flag"]
+        assert checkbox.text_format.line_wrap == "nowrap"
+        assert checkbox.text_format.line_overflow == "ellipsis"
+        checkbox.styles.text_overflow = "clip"
+        await pilot.pause()
+        assert checkbox.text_format.line_overflow == "clip"
+        assert checkbox.get_content_height(checkbox.size, checkbox.size, 8) == 1
+
+
 async def test_a_value_the_declaration_refuses_is_reported_and_the_editor_shows_the_state_again():
     async with open_form() as (app, pilot, shown):
         await leave(pilot, shown["count"], "0")
