@@ -20,7 +20,7 @@ from agent_comms.goal_actions import (
     SetGoalAction,
 )
 from textual.content import Content
-from toad.screens.commander import CommanderPage
+from toad.screens.team import TeamPage
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
@@ -117,20 +117,20 @@ class NoArgumentsCommand(SlashCommand, LocalCommand):
 
 
 @dataclass(frozen=True)
-class CommanderCommand(SlashCommand, LocalCommand):
-    help = "Open the live commander HUD"
-    hint = "[commander-thread]"
-    commander: str = ""
+class TeamCommand(SlashCommand, LocalCommand):
+    help = "Open the live team HUD"
+    hint = "[teammate]"
+    teammate: str = ""
 
     @classmethod
     def parse(cls, arguments: str) -> Self:
         names = shlex.split(arguments)
         if len(names) > 1:
-            raise ValueError("Use /commander [commander-thread].")
+            raise ValueError("Use /team [teammate].")
         return cls(*names)
 
     async def apply(self, conversation: Conversation) -> bool:
-        conversation.app.push_screen(CommanderPage(self.commander))
+        conversation.app.push_screen(TeamPage(self.teammate))
         return True
 
 

@@ -4,7 +4,7 @@ import pytest
 from textual.widgets import DataTable, Input, Static
 from textual.binding import ModeBinding
 
-from toad.application_actions import CommanderAction, KeymapAction
+from toad.application_actions import TeamAction, KeymapAction
 from toad.key_modes import KeyMode, Standard
 from toad.preferences import SETTINGS, SavedSettings
 from toad.screens.keymap import KeymapScreen
@@ -58,7 +58,7 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         document = app.saved_settings.document()
         assert SavedSettings(document).current.ui.keymap == app.settings.ui.keymap
         assert not app.saved_settings.unsaved
-        app.screen.query_one("#keymap-search", Input).value = "Commander"
+        app.screen.query_one("#keymap-search", Input).value = "Team"
         await ui.step()
         app.screen.query_one("#keymap-keys", Input).value = "f6"
         await ui.pilot.click("#keymap-apply")
@@ -69,13 +69,13 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         assert app.screen is app.workspace_screen
         await ui.press("f18")
         await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the remapped menu key")
-        await choose(ui, CommanderAction(), mode)
+        await choose(ui, TeamAction(), mode)
         app.screen.query_one("#keymap-keys", Input).value = "f18"
         await ui.pilot.click("#keymap-apply")
         await ui.until(lambda: "Key conflict" in str(app.screen.query_one("#keymap-status", Static).render()),
                        why="the colliding remap refusal")
         assert app.saved_settings.document() == document
-        assert "Commander" in str(app.screen.query_one("#keymap-status", Static).render())
+        assert "Team" in str(app.screen.query_one("#keymap-status", Static).render())
         assert "Keymap" in str(app.screen.query_one("#keymap-status", Static).render())
     async with workspace.app(size=size) as reopened:
         await reopened.press("f1")

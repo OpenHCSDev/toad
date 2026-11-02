@@ -34,10 +34,10 @@ from agent_comms.route_selection import RouteSelection
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.ui_model.observation import (
     AwaitedRead,
-    CommanderHudObserved,
-    CommanderHudUnreadable,
-    ObserveCommanderHud,
-    StopCommanderHud,
+    TeamHudObserved,
+    TeamHudUnreadable,
+    ObserveTeamHud,
+    StopTeamHud,
     NotificationsObserved,
     NotificationsUnreadable,
     ObservationProcess,
@@ -60,8 +60,8 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 
 from toad.core.events import (
-    CommanderHudChanged,
-    CommanderHudFailed,
+    TeamHudChanged,
+    TeamHudFailed,
     CoordinationObserved,
     CoreEventStream,
     ExternalTranscriptChanged,
@@ -80,7 +80,7 @@ if TYPE_CHECKING:
     from agent_comms.thread_identity import ThreadIncarnation
 
     from toad.app import ToadApp
-    from toad.screens.commander import CommanderPage
+    from toad.screens.team import TeamPage
     from toad.session_entry import SessionEntry
     from toad.session_navigation import SessionNavigation
     from toad.widgets.linked_rows import ReferenceRendering
@@ -154,7 +154,7 @@ class Observation(ABC):
                 waiter.set_exception(RouteChangedError("Comms service changed before the sidebar was read"))
         access.revision = NoRevision()
         access.sidebar_interest = access.sidebar_current = None
-        access.commander_interest = StopCommanderHud()
+        access.team_interest = StopTeamHud()
         access.thread_status.clear()
         access.views_interest = None
         access.notification_views.clear()
@@ -219,8 +219,8 @@ class FailedObservation(Observation):
     def thread_interest(self, access: CoordinationAccess):
         access.app.show_error(self.error, "Thread status unavailable")
 
-    def observe_commander(self, wanted: ObserveCommanderHud | StopCommanderHud):
-        self.access.events.publish(CommanderHudFailed(self.error))
+    def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
+        self.access.events.publish(TeamHudFailed(self.error))
 
 
 @dataclass(frozen=True)
@@ -258,7 +258,7 @@ class Observing(Observation):
     def activate(self, access: CoordinationAccess):
         self.process.start_receiving(self.receive, self.receive_failed)
         access.update_sidebar_interest()
-        access.update_commander_interest()
+        access.update_team_interest()
         self.thread_interest(access)
         self.updates.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
         self.subscriptions.enter_context(self.updates)
@@ -316,7 +316,7 @@ class Observing(Observation):
     def observe_notifications(self, wanted: ObserveNotifications):
         self.process.request(wanted)
 
-    def observe_commander(self, wanted: ObserveCommanderHud | StopCommanderHud):
+    def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
         self.process.request(wanted)
 
 class AnsweringReads(Observing):
@@ -337,7 +337,7 @@ class AnsweringReads(Observing):
     def observe_notifications(self, wanted: ObserveNotifications):
         pass
 
-    def observe_commander(self, wanted: ObserveCommanderHud | StopCommanderHud):
+    def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
         pass
 
 
@@ -370,9 +370,9 @@ class CoordinationAccess(MroDispatch):
         self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
         self.notification_outcomes: dict[ReadNotifications, Mapping[tuple[int, str], tuple[MessageNotification, ...]]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
-        # Open commander pages; the heartbeat's frames are observed only while one is shown.
-        self.commander_pages: WeakSet[CommanderPage] = WeakSet()
-        self.commander_interest: ObserveCommanderHud | StopCommanderHud = StopCommanderHud()
+        # Open team pages; the heartbeat's frames are observed only while one is shown.
+        self.team_pages: WeakSet[TeamPage] = WeakSet()
+        self.team_interest: ObserveTeamHud | StopTeamHud = StopTeamHud()
 
     @property
     def selection(self) -> RouteSelection:
@@ -435,13 +435,13 @@ class CoordinationAccess(MroDispatch):
         if result.revision.changed_since(ExternalTranscriptsView(), previous):
             self.events.publish(ExternalTranscriptChanged())
 
-    @handles(CommanderHudObserved)
-    def commander_hud_observed(self, result: CommanderHudObserved, observed: Observing) -> None:
-        self.events.publish(CommanderHudChanged(result.huds))
+    @handles(TeamHudObserved)
+    def team_hud_observed(self, result: TeamHudObserved, observed: Observing) -> None:
+        self.events.publish(TeamHudChanged(result.huds))
 
-    @handles(CommanderHudUnreadable)
-    def commander_hud_unreadable(self, result: CommanderHudUnreadable, observed: Observing) -> None:
-        self.events.publish(CommanderHudFailed(result.error))
+    @handles(TeamHudUnreadable)
+    def team_hud_unreadable(self, result: TeamHudUnreadable, observed: Observing) -> None:
+        self.events.publish(TeamHudFailed(result.error))
 
     @handles(SidebarObserved)
     def sidebar_observed(self, result: SidebarObserved, observed: Observing) -> None:
@@ -573,19 +573,19 @@ class CoordinationAccess(MroDispatch):
             self.sidebar_interest = wanted
             observed.observe_sidebar(wanted)
 
-    def update_commander_interest(self) -> None:
-        wanted = ObserveCommanderHud() if self.commander_pages else StopCommanderHud()
-        if wanted != self.commander_interest:
-            self.commander_interest = wanted
-            self.observation.observed().observe_commander(wanted)
+    def update_team_interest(self) -> None:
+        wanted = ObserveTeamHud() if self.team_pages else StopTeamHud()
+        if wanted != self.team_interest:
+            self.team_interest = wanted
+            self.observation.observed().observe_team(wanted)
 
-    def show_commander(self, page: CommanderPage, shown: bool) -> None:
-        """A commander page started or stopped showing the heartbeat's frames."""
+    def show_team(self, page: TeamPage, shown: bool) -> None:
+        """A team page started or stopped showing the heartbeat's frames."""
         if shown:
-            self.commander_pages.add(page)
+            self.team_pages.add(page)
         else:
-            self.commander_pages.discard(page)
-        self.update_commander_interest()
+            self.team_pages.discard(page)
+        self.update_team_interest()
 
     def show_sidebar(self, view: SidebarModelView, shown: bool) -> None:
         """A view started or stopped showing the sidebar model."""

@@ -1,7 +1,7 @@
 """Keyboard preferences retain declaration identity and independent modes."""
 import pytest
 
-from toad.application_actions import CommanderAction, HelpQuitAction, KeymapAction
+from toad.application_actions import TeamAction, HelpQuitAction, KeymapAction
 from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.keymap import Keymap, KeymapCatalog, KeymapRow
 from toad.preferences import SETTINGS, SavedSettings
@@ -21,8 +21,8 @@ def test_saved_remaps_keep_modes_independent_and_reset_to_the_declaration():
     assert catalog.effective(normal, loaded) == ("f18",)
     assert catalog.effective(ordinary, loaded) == catalog.defaults(ordinary)
     assert catalog.effective(normal, loaded.reset(normal)) == catalog.defaults(normal)
-    with pytest.raises(ValueError, match="Commander.*Keymap|Keymap.*Commander"):
-        loaded.changed(KeymapRow.of(CommanderAction(), VimNormal), ("f18",))
+    with pytest.raises(ValueError, match="Team.*Keymap|Keymap.*Team"):
+        loaded.changed(KeymapRow.of(TeamAction(), VimNormal), ("f18",))
 
 
 def test_an_empty_override_unbinds_and_survives_saving_until_reset():
@@ -45,7 +45,7 @@ def test_reset_cannot_reintroduce_a_collision_and_duplicate_rows_are_refused():
     catalog = KeymapCatalog.capture(KeyMode.members_with(KeyMode))
     menu = KeymapRow.of(KeymapAction(), Standard)
     keymap = Keymap().changed(menu, ("f18",))
-    keymap = keymap.changed(KeymapRow.of(CommanderAction(), Standard), catalog.defaults(menu))
+    keymap = keymap.changed(KeymapRow.of(TeamAction(), Standard), catalog.defaults(menu))
     with pytest.raises(ValueError, match="Key conflict"):
         keymap.reset(menu)
     with pytest.raises(ValueError, match="only one override"):

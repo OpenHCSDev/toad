@@ -1,22 +1,22 @@
-"""Native views of Core's declaration-owned commander groups and tables."""
+"""Native views of Core's declaration-owned team groups and tables."""
 
 from __future__ import annotations
 
 import time
 from dataclasses import replace
 
-from agent_comms.commander_hud import CommanderHud, CommanderUnit, HudRecord, HudSection
+from agent_comms.team_hud import TeamHud, Teammate, HudRecord, HudSection
 from agent_comms.coordination_errors import DeferredRead
 from agent_comms.disclosure_text import (
     AccentTone, DisclosureEntry, DisclosureKey, DisclosureText, ErrorTone, HudTone,
     MutedTone, RootKey, SuccessTone, ViewTable, WarningTone,
 )
 from agent_comms.errors import RelationViolationError, RouteChangedError, ToolRefusedError
-from agent_comms.task_attachments.commander_pings import AlarmGroup, AlarmSection
+from agent_comms.task_attachments.team_pings import AlarmGroup, AlarmSection
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.order_tools import CommanderUnitRead
+from agent_comms.order_tools import TeammateRead
 from agent_comms.ui_model.observation import ReadOperation, UnreadableHistory
-from agent_comms.ui_model.unit_state import HudGroup
+from agent_comms.ui_model.teammate_state import HudGroup
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on, work
@@ -31,7 +31,7 @@ from ui_theme.scheme import (
 )
 
 from toad.app_node import ToadNode
-from toad.core.events import CommanderHudChanged, CommanderHudFailed
+from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.core_event_carrier import CoreEventReceiver
 from toad.screens.modal import DismissibleScreen
 from toad.widget_actions import DismissAction
@@ -75,7 +75,7 @@ class UnitTone(MroDispatch):
         return ErrorColour
 
 
-class CommanderTable(DeclaredTable[HudRecord]):
+class TeamTable(DeclaredTable[HudRecord]):
     class Selected(Message):
         def __init__(self, selection: TableSelection[HudRecord]) -> None:
             self.selection = selection
@@ -85,10 +85,10 @@ class CommanderTable(DeclaredTable[HudRecord]):
         return UnitTone.of(record.hud_group.tone)
 
     def preferred_selection(self) -> TableSelection[HudRecord]:
-        return self.query_ancestor(CommanderFrameView).selected
+        return self.query_ancestor(TeamFrameView).selected
 
     def selection_changed(self) -> None:
-        frame = self.query_ancestor(CommanderFrameView)
+        frame = self.query_ancestor(TeamFrameView)
         selection = self.selected
         if selection.key == frame.selected.key:
             self.post_message(self.Selected(selection))
@@ -97,7 +97,7 @@ class CommanderTable(DeclaredTable[HudRecord]):
         self.post_message(self.Selected(self.selected))
 
 
-class CommanderGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
+class TeamGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
     """One native band really contains its rows, including ready unheld plan phases."""
 
     def __init__(self, section: HudSection) -> None:
@@ -116,17 +116,17 @@ class CommanderGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
         return self.table_body
 
     @property
-    def rows(self) -> dict[type[HudRecord], CommanderTable]:
-        return {table.source.record: table for table in self.table_body.query_children(CommanderTable)}
+    def rows(self) -> dict[type[HudRecord], TeamTable]:
+        return {table.source.record: table for table in self.table_body.query_children(TeamTable)}
 
     @property
     def sources(self) -> dict[type[HudRecord], ViewTable[HudRecord]]:
         return {table.record: table for table in self.section.tables}
 
-    def create_row(self, key: type[HudRecord]) -> CommanderTable:
-        return CommanderTable(self.sources[key])
+    def create_row(self, key: type[HudRecord]) -> TeamTable:
+        return TeamTable(self.sources[key])
 
-    def update_row(self, key: type[HudRecord], row: CommanderTable) -> None:
+    def update_row(self, key: type[HudRecord], row: TeamTable) -> None:
         source = self.sources[key]
         if row.source != source:
             row.present(source)
@@ -143,11 +143,11 @@ class CommanderGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
         self.reconcile_keys(keys, changed=frozenset(keys))
 
 
-class CommanderAlarm(ToadNode, Collapsible):
+class TeamAlarm(ToadNode, Collapsible):
     """Core's compact section stays visible; expansion reveals every original record."""
 
     DEFAULT_CSS = """
-    CommanderAlarm > CollapsibleTitle { width: 1fr; }
+    TeamAlarm > CollapsibleTitle { width: 1fr; }
     """
 
     def __init__(self, group: type[AlarmGroup]) -> None:
@@ -158,17 +158,17 @@ class CommanderAlarm(ToadNode, Collapsible):
 
     def present(self, section: AlarmSection, now: float) -> None:
         colour = self.app.colours.colour(UnitTone.of(section.group.tone))
-        self.title = Content("\n".join(CommanderHud.alarm_text((section,), now))).stylize(
+        self.title = Content("\n".join(TeamHud.alarm_text((section,), now))).stylize(
             Style(foreground=colour))
-        self.original.update("\n".join(CommanderHud.alarm_detail((section,), now)))
+        self.original.update("\n".join(TeamHud.alarm_detail((section,), now)))
         self.display = True
 
 
-class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup):
+class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup):
     """The selected native record owns its one bounded original-details read."""
 
-    def __init__(self, commander: ThreadIncarnation) -> None:
-        self.commander = commander
+    def __init__(self, teammate: ThreadIncarnation) -> None:
+        self.teammate = teammate
         self.selection: TableSelection[HudRecord] = EmptyTableSelection()
         self.status = Static("", markup=False)
         self.original = VerticalGroup()
@@ -190,7 +190,7 @@ class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Vertical
         self.selection.present_to(self)
 
     def clear_selection(self) -> None:
-        self.workers.cancel_group(self, "commander-detail")
+        self.workers.cancel_group(self, "team-detail")
         self.original.display = False
         self.status.update("No records match the filter.")
 
@@ -206,15 +206,15 @@ class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Vertical
     async def record_detail(self, card: HudRecord) -> object:
         return card
 
-    @handles(CommanderUnit)
-    async def unit_detail(self, card: CommanderUnit) -> object:
+    @handles(Teammate)
+    async def unit_detail(self, card: Teammate) -> object:
         access = self.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
-        return await observed.process.read(ReadOperation(str(observed.service.root), CommanderUnitRead(
-            commander=self.commander, unit=card.unit, orders=card.order_ids,
+        return await observed.process.read(ReadOperation(str(observed.service.root), TeammateRead(
+            commander=self.teammate, unit=card.unit, orders=card.order_ids,
         )))
 
-    @work(exclusive=True, group="commander-detail")
+    @work(exclusive=True, group="team-detail")
     async def read_detail(self, selection: SelectedTableRecord[HudRecord]) -> None:
         self.original.display = False
         card = selection.record
@@ -239,34 +239,34 @@ class CommanderDetails(SelectionView[HudRecord], MroDispatch, ToadNode, Vertical
         self.status.update("Original records; unit activity is bounded by Core.")
 
     def on_unmount(self) -> None:
-        self.workers.cancel_group(self, "commander-detail")
+        self.workers.cancel_group(self, "team-detail")
 
 
-class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
+class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     """Keep native groups, filters, selection and original details across frame replacement."""
 
     DEFAULT_CSS = """
-    CommanderFrameView .hud-filter { height: auto; }
-    CommanderFrameView .hud-filter Input { width: 1fr; }
-    CommanderFrameView .hud-filter Checkbox { width: auto; }
-    CommanderTable { height: auto; max-height: 50vh; }
-    CommanderFrameView .hud-detail { height: auto; }
-    CommanderFrameView .refresh-unit { width: auto; margin: 0; }
-    CommanderGroup { height: auto; }
-    CommanderGroup .hud-group-heading { text-style: bold; }
+    TeamFrameView .hud-filter { height: auto; }
+    TeamFrameView .hud-filter Input { width: 1fr; }
+    TeamFrameView .hud-filter Checkbox { width: auto; }
+    TeamTable { height: auto; max-height: 50vh; }
+    TeamFrameView .hud-detail { height: auto; }
+    TeamFrameView .refresh-unit { width: auto; margin: 0; }
+    TeamGroup { height: auto; }
+    TeamGroup .hud-group-heading { text-style: bold; }
     """
 
-    def __init__(self, hud: CommanderHud) -> None:
+    def __init__(self, hud: TeamHud) -> None:
         self.hud = hud
         self.selected: TableSelection[HudRecord] = EmptyTableSelection()
         self.shown: dict[type[HudGroup], HudSection] = {}
-        self.heading = Static("", markup=False, classes="hud-commander")
+        self.heading = Static("", markup=False, classes="hud-team")
         self.status = Static("", markup=False, classes="hud-load")
         self.groups = VerticalGroup()
-        self.filter = Input(placeholder="Filter commander records")
+        self.filter = Input(placeholder="Filter team records")
         self.needs_hand = Checkbox("Needs hand")
-        self.details = CommanderDetails(hud.commander)
-        self.alarms = {group: CommanderAlarm(group) for group in AlarmGroup.members_with(AlarmGroup)}
+        self.details = TeamDetails(hud.commander)
+        self.alarms = {group: TeamAlarm(group) for group in AlarmGroup.members_with(AlarmGroup)}
         super().__init__()
         self.call_after_refresh(self.render_frame)
 
@@ -298,13 +298,13 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         return self.groups
 
     @property
-    def rows(self) -> dict[type[HudGroup], CommanderGroup]:
-        return {view.section.group: view for view in self.groups.query_children(CommanderGroup)}
+    def rows(self) -> dict[type[HudGroup], TeamGroup]:
+        return {view.section.group: view for view in self.groups.query_children(TeamGroup)}
 
-    def create_row(self, key: type[HudGroup]) -> CommanderGroup:
-        return CommanderGroup(self.shown[key])
+    def create_row(self, key: type[HudGroup]) -> TeamGroup:
+        return TeamGroup(self.shown[key])
 
-    def update_row(self, key: type[HudGroup], row: CommanderGroup) -> None:
+    def update_row(self, key: type[HudGroup], row: TeamGroup) -> None:
         row.present(self.shown[key])
 
     @on(Input.Changed)
@@ -312,26 +312,26 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     def filter_changed(self) -> None:
         self.call_after_refresh(self.render_frame)
 
-    @on(CommanderTable.Selected)
-    def highlight_record(self, event: CommanderTable.Selected) -> None:
+    @on(TeamTable.Selected)
+    def highlight_record(self, event: TeamTable.Selected) -> None:
         event.stop()
         self.selected = event.selection
         self.details.present(self.selected)
 
-    def present(self, hud: CommanderHud) -> None:
+    def present(self, hud: TeamHud) -> None:
         self.hud = hud
         self.call_after_refresh(self.render_frame)
 
     def focus_selection(self) -> None:
-        for table in self.query(CommanderTable):
+        for table in self.query(TeamTable):
             # Focus needs the prepared semantic record, not allocated native row keys.
             if self.selected.key in table.source.entities:
                 table.focus(scroll_visible=False)
                 break
 
     def render_frame(self) -> None:
-        focused = any(table.has_focus for table in self.query(CommanderTable))
-        self.heading.update(f"Commander {self.hud.commander.name}")
+        focused = any(table.has_focus for table in self.query(TeamTable))
+        self.heading.update(f"Team {self.hud.commander.name}")
         now = time.time()
         self.status.update(self.hud.status_strip(now))
         for view in self.alarms.values():
@@ -349,27 +349,27 @@ class CommanderFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
             self.call_after_refresh(self.focus_selection)
 
 
-class CommanderPage(KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None]):
+class TeamPage(KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None]):
     """Current Core frames preserve table selection, focus and the conversation below."""
 
     DEFAULT_CSS = """
-    CommanderPage { align: center middle; background: $background 40%; }
-    CommanderPage > Vertical {
+    TeamPage { align: center middle; background: $background 40%; }
+    TeamPage > Vertical {
         width: 95%; height: 95%; padding: 0 1;
         border: solid $primary; background: $surface;
     }
-    CommanderPage #hud-error { display: none; height: auto; color: $error; }
-    CommanderPage #hud-rows { height: 1fr; scrollbar-gutter: stable; }
-    CommanderPage CommanderFrameView { height: auto; }
-    CommanderPage Static { height: auto; }
-    CommanderPage .hud-commander { text-style: bold reverse; }
-    CommanderPage .hud-load { text-style: bold; }
-    CommanderPage #commander-close { dock: bottom; margin: 0; }
+    TeamPage #hud-error { display: none; height: auto; color: $error; }
+    TeamPage #hud-rows { height: 1fr; scrollbar-gutter: stable; }
+    TeamPage TeamFrameView { height: auto; }
+    TeamPage Static { height: auto; }
+    TeamPage .hud-team { text-style: bold reverse; }
+    TeamPage .hud-load { text-style: bold; }
+    TeamPage #team-close { dock: bottom; margin: 0; }
     """
 
-    def __init__(self, commander: str = "") -> None:
-        self.commander_name = commander
-        self.huds: tuple[CommanderHud, ...] = ()
+    def __init__(self, teammate: str = "") -> None:
+        self.team_name = teammate
+        self.huds: tuple[TeamHud, ...] = ()
         super().__init__()
 
     @property
@@ -377,49 +377,49 @@ class CommanderPage(KeyedRows[ThreadIncarnation], CoreEventReceiver, Dismissible
         return self.query_one("#hud-rows", VerticalScroll)
 
     @property
-    def rows(self) -> dict[ThreadIncarnation, CommanderFrameView]:
-        return {row.hud.commander: row for row in self.member_container.query_children(CommanderFrameView)}
+    def rows(self) -> dict[ThreadIncarnation, TeamFrameView]:
+        return {row.hud.commander: row for row in self.member_container.query_children(TeamFrameView)}
 
     @property
-    def frames(self) -> dict[ThreadIncarnation, CommanderHud]:
+    def frames(self) -> dict[ThreadIncarnation, TeamHud]:
         return {hud.commander: hud for hud in self.huds}
 
-    def create_row(self, key: ThreadIncarnation) -> CommanderFrameView:
-        return CommanderFrameView(self.frames[key])
+    def create_row(self, key: ThreadIncarnation) -> TeamFrameView:
+        return TeamFrameView(self.frames[key])
 
-    def update_row(self, key: ThreadIncarnation, row: CommanderFrameView) -> None:
+    def update_row(self, key: ThreadIncarnation, row: TeamFrameView) -> None:
         row.present(self.frames[key])
 
     def compose(self) -> ComposeResult:
         with Vertical():
             yield Static("", id="hud-error", markup=False)
             with VerticalScroll(id="hud-rows"):
-                yield Static("Waiting for the commander heartbeat.", id="hud-empty", markup=False)
-            yield Button("Close", id="commander-close", compact=True,
+                yield Static("Waiting for the team heartbeat.", id="hud-empty", markup=False)
+            yield Button("Close", id="team-close", compact=True,
                          action=f"screen.{DismissAction.binding_name()}")
 
     def on_mount(self) -> None:
         access = self.app.coordination_access
         self.subscribe_core(access.events)
-        access.show_commander(self, True)
+        access.show_team(self, True)
 
     def on_unmount(self) -> None:
-        self.app.coordination_access.show_commander(self, False)
+        self.app.coordination_access.show_team(self, False)
         self.close_core_events()
 
-    @handles(CommanderHudChanged)
-    async def hud_changed(self, event: CommanderHudChanged) -> None:
+    @handles(TeamHudChanged)
+    async def hud_changed(self, event: TeamHudChanged) -> None:
         error = self.query_one("#hud-error", Static)
         error.update("")
         error.display = False
         self.huds = tuple(hud for hud in event.huds
-                          if not self.commander_name or hud.commander.name == self.commander_name)
+                          if not self.team_name or hud.commander.name == self.team_name)
         keys = tuple(hud.commander for hud in self.huds)
         self.reconcile_keys(keys, changed=frozenset(keys))
         self.query_one("#hud-empty", Static).display = not self.huds
 
-    @handles(CommanderHudFailed)
-    def hud_failed(self, event: CommanderHudFailed) -> None:
+    @handles(TeamHudFailed)
+    def hud_failed(self, event: TeamHudFailed) -> None:
         notice = self.query_one("#hud-error", Static)
-        notice.update(f"Commander rows unavailable: {' '.join(str(event.error).splitlines())}")
+        notice.update(f"Team rows unavailable: {' '.join(str(event.error).splitlines())}")
         notice.display = True

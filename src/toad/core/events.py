@@ -22,7 +22,7 @@ from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
 if TYPE_CHECKING:
-    from agent_comms.commander_hud import CommanderHud
+    from agent_comms.team_hud import TeamHud
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
@@ -180,15 +180,15 @@ class SidebarPresented(CoalescingEvent):
 
 
 @dataclass(frozen=True)
-class CommanderHudChanged(CoalescingEvent):
-    """The commander heartbeat replaced its frames; Core derived every field."""
+class TeamHudChanged(CoalescingEvent):
+    """The team heartbeat replaced its frames; Core derived every field."""
 
-    huds: tuple[CommanderHud, ...]
+    huds: tuple[TeamHud, ...]
 
 
 @dataclass(frozen=True)
-class CommanderHudFailed(CoalescingEvent):
-    """Commander rows are unavailable; the page retains its last good frame."""
+class TeamHudFailed(CoalescingEvent):
+    """Team rows are unavailable; the page retains its last good frame."""
 
     error: Exception
 

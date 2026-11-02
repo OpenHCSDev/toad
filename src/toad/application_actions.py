@@ -84,15 +84,15 @@ class SettingsAction(ApplicationAction):
         await app.saved_settings.save()
 
 
-class CommanderAction(ApplicationAction):
-    """Open the live commander board, including unit orders and original evidence."""
+class TeamAction(ApplicationAction, declared_name="commander"):
+    """Open the live team board, including teammates' orders and original evidence."""
 
     keys = {EditingMode: ("f2",)}
 
     async def apply(self, app: ToadApp) -> None:
-        from toad.screens.commander import CommanderPage
+        from toad.screens.team import TeamPage
 
-        app.push_screen(CommanderPage())
+        app.push_screen(TeamPage())
 
 
 class TransferMenuAction(ApplicationAction):
