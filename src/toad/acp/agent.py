@@ -255,7 +255,10 @@ class Agent(AgentBase):
 
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
-        self.events.publish(core_events.CommsUpdated(CursorPresentation(self._private_cursor.status), self.session_id, self._private_cursor_sequence))
+        self.events.publish(core_events.CommsUpdated(
+            CursorPresentation(self._private_cursor.status, self._private_cursor_sequence),
+            self.session_id,
+        ))
 
     def _invalidate_attachment_views(self) -> None:
         self._private_cursor.invalidate()
