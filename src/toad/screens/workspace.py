@@ -17,6 +17,7 @@ from textual.widget import Widget
 
 from toad.widget_view import WidgetView
 from toad.widget_actions import WidgetAction, ProfileKeys
+from toad.widgets.comms_transfer import WireExportProgressView
 
 
 @dataclass(frozen=True)
@@ -96,7 +97,8 @@ class ShowSidebarAction(ViewAction):
 
 class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
     """Native frame and history layout shared by the workspace and saved-history modal."""
-    layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
+    layer_order = (DEFAULT_LAYER, "comms-sidebar", WireExportProgressView.layer_name,
+                   "_tooltips", "_toastrack")
 
     @classmethod
     def require(cls, screen: Screen) -> WorkspaceFrame:
