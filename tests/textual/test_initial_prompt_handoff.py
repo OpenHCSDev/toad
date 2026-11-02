@@ -51,7 +51,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await asyncio.wait_for(owner.publication.wait(), 12)
         await ui.step()
         view = owner.conversation
-        assert isinstance(view.agent_binding, NoAgentConnection) and not view.submissions.active
+        assert isinstance(view.agent_binding, NoAgentConnection) and not view.pending_submissions
         assert owner._initial_prompt is None and view._initial_prompt is None
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1}
 
@@ -95,7 +95,7 @@ async def test_a_pending_initial_prompt_is_published_once_across_eviction_and_th
         await ui.select_tab(owner.id)
         await ui.step()
         assert owner.inputs == {"INITIAL_LOCAL_UI_EVENT": 1, "NEWEST_PENDING_LOCAL_UI_EVENT": 1}
-        assert isinstance(owner.conversation.agent_binding, NoAgentConnection) and not owner.conversation.submissions.active
+        assert isinstance(owner.conversation.agent_binding, NoAgentConnection) and not owner.conversation.pending_submissions
         await app.session_navigation.close(owner.id)
         assert owner.thread_sidebar is sidebar
         assert not sidebar.presentation_visible

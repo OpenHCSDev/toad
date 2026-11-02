@@ -337,7 +337,7 @@ class WireSource(BusQueueSource):
 
     def begin_submission(self, owner: ConversationSubmissions,
                          submission: PromptInputSubmission) -> SubmissionStart:
-        return owner.view.bind_bus_submission(self, owner, submission)
+        return owner.bind_bus_submission(self, owner, submission)
 
     def references(self) -> CurrentDisplayReferences:
         """Resolve stable destinations through this read's registry cut."""

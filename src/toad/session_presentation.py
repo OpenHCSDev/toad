@@ -176,7 +176,7 @@ class OperationalSessionSources(NativeQueueSource):
     def thread_presented(self, conversation: Conversation) -> None:
         """A native agent reports its configuration through ACP."""
 
-    def external_transcript_changed(self, conversation: Conversation) -> None:
+    def external_transcript_changed(self, conversation: ConversationSubmissions) -> None:
         """Core publishes native and CLI drafts through the same transcript store."""
         from toad.transcript_publication import CanonicalSourcePublication
 
@@ -185,7 +185,7 @@ class OperationalSessionSources(NativeQueueSource):
     def prompt(self, conversation: Conversation):
         from toad.widgets.prompt import Prompt
 
-        return Prompt(project=conversation.project_path, turns=conversation.turns, submissions=conversation.submissions)
+        return Prompt(project=conversation.project_path, turns=conversation.turns, submissions=conversation)
 
     def input_decision(self, conversation: QueueView) -> InputDecision:
         return conversation.native_input_decision
@@ -266,7 +266,7 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
         return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
-        return MailboxPrompt(project=conversation.project_path, submissions=conversation.submissions)
+        return MailboxPrompt(project=conversation.project_path, submissions=conversation)
 
     def thread_presented(self, conversation: Conversation) -> None:
         conversation.run_worker(
@@ -284,7 +284,7 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
 
     def begin_submission(self, owner: ConversationSubmissions,
                          submission: PromptInputSubmission) -> SubmissionStart:
-        view = owner.view
+        view = owner
 
         async def presented(sent):
             view.window.jump_to_latest()
@@ -419,7 +419,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresent
         editor = conversation.prompt.prompt_text_area
         if not await editor.editing_mode.flush(editor):
             return  # Retain the actual view/engine while its modal input is pending.
-        if conversation.submissions.retains_surface:
+        if conversation.retains_surface:
             return  # Eviction cannot discard an unresolved transaction or its draft recovery.
         self.state = RetainedSessionViewState.capture(conversation)
         await self.remove_native_tree(screen)

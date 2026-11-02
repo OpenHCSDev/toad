@@ -50,8 +50,8 @@ async def queue_behind_the_held_turn(native, text="QUEUED_NATIVE_INPUT"):
     await asyncio.wait_for(agent.send_prompt(
         text, request=QueuePromptRequest(text, True)), 10)
     view = ui.conversation
-    await ui.until(lambda: bool(view.submissions.queue_projection.items), seconds=20, why="the queued input")
-    queued = [row.input_id for row in view.submissions.queue_projection.items]
+    await ui.until(lambda: bool(view.queue_projection.items), seconds=20, why="the queued input")
+    queued = [row.input_id for row in view.queue_projection.items]
     assert len(queued) == 1
     assert "QUEUED_NATIVE_INPUT" in view.query_one(QueueSummary).render().plain
     return queued[0]
@@ -64,7 +64,7 @@ async def finish_both_turns(native):
     await ui.until(lambda: not native.executing, seconds=20, why="the owner to finish its turns")
     await ui.step()
     assert len(native.provider.requests) >= 2, "The queued input never reached the provider"
-    assert not ui.conversation.submissions.queue_projection.items
+    assert not ui.conversation.queue_projection.items
     await ui.until(lambda: answered(native, "NATIVE_RESPONSE_2"), seconds=20, why="the second answer on screen")
 
 
@@ -112,9 +112,9 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         await ui.write_draft("unsent local draft")
         queued_text = "QUEUED_NATIVE_INPUT\n" + "日本語 message \n" * 900
         queued = await queue_behind_the_held_turn(native, queued_text)
-        assert view.submissions.queue_projection.status == "available"
-        assert len(view.submissions.queue_projection.items[0].preview) <= 100
-        await view.submissions.send_now().wait()
+        assert view.queue_projection.status == "available"
+        assert len(view.queue_projection.items[0].preview) <= 100
+        await view.send_now().wait()
         await finish_both_turns(native)
         assert ui.draft() == "unsent local draft"
 
@@ -151,9 +151,9 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         await ui.until(lambda: answered(native, "NATIVE_RESPONSE_2"), seconds=20, why="history after reattaching")
         assert comms.registry.require("beta").process_identity == owner_process
         assert len(native.provider.requests) == asked
-        await ui.until(lambda: view.submissions.queue_projection.status == "available", seconds=20,
+        await ui.until(lambda: view.queue_projection.status == "available", seconds=20,
                        why="the queue view after reattaching")
-        assert not view.submissions.queue_projection.items
+        assert not view.queue_projection.items
 
 
 async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace, native_package):
@@ -165,7 +165,7 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
         original = ui.conversation
         process, queue = agent.process.process, agent.queue_attachment
         await ui.new_session()
-        assert original.submissions.retains_surface
+        assert original.retains_surface
         await owner.presentation.evict(owner)
         assert owner.presentation.widget is original, "Eviction discarded a running submission owner"
         assert agent.process.process is process and process.returncode is None
@@ -183,7 +183,7 @@ async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace
         assert view.turns.owner.busy
         assert agent.queue_attachment is queue
         assert agent.process.process is process and process.returncode is None
-        await ui.until(lambda: bool(view.submissions.queue_projection.items), seconds=20,
+        await ui.until(lambda: bool(view.queue_projection.items), seconds=20,
                        why="the queued input in the returned view")
         assert "QUEUED_NATIVE_INPUT" in view.query_one(QueueSummary).render().plain
         assert ui.draft() == "unsent local draft"
@@ -311,7 +311,7 @@ async def test_queue_line_follows_the_owner_after_restart_process(workspace, nat
         app, _pilot = ui.textual
         view = ui.conversation
         await ui.until_agent_ready()
-        await ui.until(lambda: view.submissions.queue_projection.status == "available", seconds=20,
+        await ui.until(lambda: view.queue_projection.status == "available", seconds=20,
                        why="the queue view before the restart")
         first_owner = comms.registry.require("beta").process_identity
 
@@ -322,7 +322,7 @@ async def test_queue_line_follows_the_owner_after_restart_process(workspace, nat
 
         def queue_of_the_new_owner():
             scope = agent.queue_attachment.scope
-            return (view.submissions.queue_projection.status == "available"
+            return (view.queue_projection.status == "available"
                     and scope is not None and scope.owner == restarted)
 
         await ui.until(queue_of_the_new_owner, seconds=30, why="the queue view of the restarted owner")

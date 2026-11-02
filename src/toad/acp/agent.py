@@ -345,7 +345,7 @@ class NativeSubmissionExecution(SubmissionExecution):
 
     @property
     def current(self):
-        view = self.owner.view
+        view = self.owner
         return (view.agent_binding is self.agent and not self.authority.retired
                 and self.agent.queue_attachment.accepts_request(self.scope))
 
@@ -360,7 +360,7 @@ class NativeSubmissionExecution(SubmissionExecution):
             self.state.presented(self, NativeInputPresented(started))
 
     async def deliver(self):
-        view = self.owner.view
+        view = self.owner
         local = not self.agent.presentation.uses_managed_turns
         if local:
             view.turns.start_client()
@@ -372,4 +372,4 @@ class NativeSubmissionExecution(SubmissionExecution):
 
     async def complete(self, outcome: PromptResult):
         if self.current:
-            await outcome.finish_turn(self.owner.view)
+            await outcome.finish_turn(self.owner)

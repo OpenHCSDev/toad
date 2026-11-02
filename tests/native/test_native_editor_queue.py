@@ -29,7 +29,7 @@ async def test_enter_queues_during_a_turn_and_a_tab_click_returns_to_the_same_ed
         await ui.write_draft("NATIVE_EDITOR_QUEUED")
         await ui.press("enter")
         await ui.until(
-            lambda: bool(view.submissions.queue_projection.items),
+            lambda: bool(view.queue_projection.items),
             seconds=20,
             why="the queued input",
         )
@@ -46,7 +46,7 @@ async def test_enter_queues_during_a_turn_and_a_tab_click_returns_to_the_same_ed
             why="the second answer",
         )
         await ui.until(
-            lambda: not view.submissions.queue_projection.items
+            lambda: not view.queue_projection.items
             and view.turns.managed_id is None,
             seconds=20,
             why="an empty queue and no turn",
@@ -122,5 +122,5 @@ async def test_enter_queues_during_a_turn_and_a_tab_click_returns_to_the_same_ed
         )
         assert agent.configuration.thinking.current == "high"
         assert (
-            len(provider.requests) == 2 and not view.submissions.queue_projection.items
+            len(provider.requests) == 2 and not view.queue_projection.items
         )

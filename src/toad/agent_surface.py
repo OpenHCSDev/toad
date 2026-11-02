@@ -108,7 +108,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     def sync_queue(self) -> None:
         if (target := self.target) is not None:
-            target.submissions.publish_pending()
+            target.publish_pending()
 
     def prepare_terminal(self, state: TerminalState) -> None:
         target = self.target

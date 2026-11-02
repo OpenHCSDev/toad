@@ -31,13 +31,13 @@ class QueueInspection(SourceModal):
     def __init__(self, submissions: ConversationSubmissions) -> None:
         super().__init__()
         self.submissions = submissions
-        self.source = submissions.view.queue_source
+        self.source = submissions.queue_source
         self.evidence = submissions.queue_evidence
         self.scope = self.source.queue_scope(self.evidence)
 
     @property
     def source_view(self):
-        return self.submissions.view
+        return self.submissions
 
     def compose(self) -> ComposeResult:
         with Vertical():

@@ -45,7 +45,7 @@ from ui_theme.effects import CURSOR_BLINK, Mix
 from toad import messages, paths
 from toad.acp.session_disposition import SessionLoginTarget
 from toad.acp.thread_read import NoPendingThreadRead
-from toad.acp.status import PromptTurnTarget, StopReason
+from toad.acp.status import StopReason
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
@@ -76,7 +76,6 @@ from agent_comms.acp_extension import (
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
 from toad.input_decision import InputDecision, InputSourceUnavailable
-from toad.queue_capability import QueueView
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
 from toad.core import input_events
@@ -88,7 +87,6 @@ from toad.core.source_events import (
     TranscriptSourceWorkFinished,
 )
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
-from toad.delivery_failure_view import DeliveryFailureView
 from toad.failure_presentation import FailurePresentation
 from toad.frame_presentation import Animated
 from toad.goal_interaction import GoalSession
@@ -443,7 +441,7 @@ class ConversationSessionBinding(
     MroDispatch,
     WorkspaceHosted,
     ThreadStatusOwner,
-    DeliveryFailureView,
+    ConversationSubmissions,
     containers.Vertical,
     metaclass=NativeNodeMeta,
 ):
@@ -659,7 +657,7 @@ class ConversationSessionBinding(
         self._loading: Loading | None = None
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
-        self.submissions = ConversationSubmissions(self)
+        self.initialize_submissions()
         from agent_comms.ui_model.message_category import AgentActivityBoundary
 
         self._agent_activity_boundary = AgentActivityBoundary()
@@ -717,7 +715,7 @@ class ConversationSessionBinding(
         self._source_resources.callback(self.output.retire)
         self._source_resources.push_async_callback(self.transcript.detach, self)
         self._source_resources.callback(self.goal_controls.close)
-        self._source_resources.push_async_callback(self.submissions.close)
+        self._source_resources.push_async_callback(self.close_submissions)
 
     async def _message_loop_exit(self) -> None:
         async with AsyncResourceRelease() as release:
@@ -860,7 +858,7 @@ class ConversationSessionBinding(
         attachments = binding.presentation.attachments
         self.native_history_status = attachments.cursor
         self._private_cursor_sequence = attachments.cursor_sequence
-        self.submissions.publish_pending()
+        self.publish_pending()
         # The observed presentation is Core's answer for this thread, not the
         # agent's; it stays until the next observation replaces it.
         self.arm_thread_read()
@@ -881,13 +879,6 @@ class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
 
     window = getters.query_one(Window)
 
-    @abstractmethod
-    async def post[WidgetType: Widget](
-        self, widget: WidgetType, *, loading: bool = False, new_block: bool = True,
-    ) -> WidgetType:
-        """The rich surface owns mounting; event handling owns what to present."""
-        raise NotImplementedError
-
     async def _clear_mcp_live(self) -> None:
         if self._mcp_live_note is not None:
             await self._mcp_live_note.remove()
@@ -902,7 +893,7 @@ class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
                 await self.post(
                     UserInput(started.text, claim=StartedInputClaim(started))
                 )
-        self.submissions.native_input_presented(started)
+        self.native_input_presented(started)
 
     def accepts(self, message: CoreEventMessage) -> bool:
         return message.event.accepted_by(message, self)
@@ -961,7 +952,7 @@ class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
         async with self.window.preserve_history(root=self.contents):
             for started in update.starts:
                 await self.present_started_input(started)
-            self.submissions.publish_pending()
+            self.publish_pending()
 
     @handles(InputStartedUpdate)
     async def on_input_started(
@@ -969,7 +960,7 @@ class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
     ) -> None:
         async with self.window.preserve_history(root=self.contents):
             await self.present_started_input(update)
-            self.submissions.publish_pending()
+            self.publish_pending()
 
     @handles(InputFailedUpdate)
     def on_input_failed(
@@ -1047,8 +1038,7 @@ class Conversation(
     ConversationEvents,
     SessionLoginTarget,
     NativeMethodKeys,
-    PromptTurnTarget,
-    QueueView, MenuConversation,
+    MenuConversation,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
@@ -1449,7 +1439,7 @@ class Conversation(
                     return
                 while (
                     self.turns.owner.busy
-                    or self.submissions.queue_projection.items
+                    or self.queue_projection.items
                     or agent.presentation.prompt_in_flight
                 ):
                     await asyncio.sleep(0.1)
@@ -1535,7 +1525,7 @@ class Conversation(
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
         """Wire views override the same submission boundary."""
-        await self.submissions.submit(event)
+        await self.submit(event)
 
     def record_model_usage(self) -> None:
         model = self.agent_binding.configuration.model.selected
@@ -1761,6 +1751,23 @@ class Conversation(
         if self.is_attached and source.is_current:
             self.prompt.slash_commands = catalog.commands
 
+    async def execute_command(self, text: str) -> bool:
+        try:
+            catalog = await self.read_command_catalog()
+            name, _, arguments = text.partition(" ")
+            command = next((command for command in catalog.commands
+                            if command.command == name), None)
+            if command is None:
+                return False
+            return await command.parse_arguments(arguments).apply(self)
+        except CommandContextChanged:
+            # A recognized UI command must never fall through to agent input
+            # because its original target disappeared during an awaited read.
+            self.app.notify(
+                "View changed; command was not run. Submit it again.", severity="warning"
+            )
+            return True
+
     async def read_command_catalog(self) -> CommandCatalog:
         source = self.query_ancestor(SessionScope)
         navigation = source.navigation_context
@@ -1876,7 +1883,7 @@ class Conversation(
         self.queue_evidence_changed()
 
     def open_queue_menu(self) -> None:
-        self.app.push_screen(QueueInspection(self.submissions))
+        self.app.push_screen(QueueInspection(self))
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, event: PreferenceChanged) -> None:

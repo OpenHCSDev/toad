@@ -184,7 +184,7 @@ class KnownTranscript(TranscriptScope):
         conversation_type: type[DmConversation],
         presented: Callable[[Message], Awaitable[None]],
     ) -> SubmissionStart:
-        view = owner.view
+        view = owner
         return owner.start_message(
             submission, Path(self.root), self.mailbox_conversation(view, conversation_type),
             lambda: self.shown_by(view), presented,
@@ -205,13 +205,13 @@ class KnownTranscript(TranscriptScope):
         if self.shown_by(view):
             view.thread_status = status
 
-    def shown_by(self, view: Conversation) -> bool:
+    def shown_by(self, view: ConversationSubmissions) -> bool:
         """This transcript is still the one the view is bound to."""
         return view.is_attached and view.transcript.binding.thread_scope == self
 
     @staticmethod
     def mailbox_conversation(
-        view: Conversation, conversation_type: type[DmConversation]
+        view: ConversationSubmissions, conversation_type: type[DmConversation]
     ) -> DmConversation:
         return conversation_type(
             view.query_ancestor(SessionScope).thread_identity.thread_incarnation()

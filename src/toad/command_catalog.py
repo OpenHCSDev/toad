@@ -2,13 +2,9 @@
 
 from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
-from typing import TYPE_CHECKING
 
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
-from toad.target_commands import CommandContextChanged, TargetContext, ThreadCommand
-
-if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
+from toad.target_commands import TargetContext, ThreadCommand
 
 
 @dataclass(frozen=True)
@@ -57,21 +53,3 @@ class CommandCatalog:
     def target_choices(self):
         return tuple(choice for command in self.entries
                      for choice in command.target_choices(self.context))
-
-    @classmethod
-    async def execute(cls, text: str, conversation: Conversation) -> bool:
-        try:
-            catalog = await conversation.read_command_catalog()
-            name, _, arguments = text.partition(" ")
-            command = next((command for command in catalog.commands
-                            if command.command == name), None)
-            if command is None:
-                return False
-            return await command.parse_arguments(arguments).apply(conversation)
-        except CommandContextChanged:
-            # A recognized UI command must never fall through to agent input
-            # because its original target disappeared during an awaited read.
-            conversation.app.notify(
-                "View changed; command was not run. Submit it again.", severity="warning"
-            )
-            return True

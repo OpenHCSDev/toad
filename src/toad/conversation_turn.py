@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
+from textual.widget import Widget
 
 from agent_comms.activity import ActivityState
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -14,11 +15,17 @@ from agent_comms.turn_lease import TurnState
 from agent_comms.ui_model.status import ThreadStatusModel
 
 if TYPE_CHECKING:
-    from textual.widget import Widget
-
     from toad.acp.agent import Agent
     from toad.core_event_carrier import CoreEventMessage
-    from toad.widgets.conversation import Conversation
+
+
+class InputPresentation(ABC):
+    """A turn can post input without depending on the entire conversation."""
+
+    @abstractmethod
+    async def post[WidgetType: Widget](
+        self, widget: WidgetType, *, loading: bool = False, new_block: bool = True,
+    ) -> WidgetType: ...
 
 
 class TurnOwner(DeclaredFamily, affix="Turn"):
@@ -177,7 +184,7 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
     @abstractmethod
     def reset(self) -> None: ...
 
-    async def present_input(self, view: Conversation, text: str) -> None:
+    async def present_input(self, view: InputPresentation, text: str) -> None:
         """Display managed inputs only when the native process reports they started."""
 
     def start_client(self) -> None:
@@ -209,7 +216,7 @@ class LocalTurnBinding(TurnBinding):
     def reset(self):
         self._owner = NoTurn()
 
-    async def present_input(self, view: Conversation, text: str):
+    async def present_input(self, view: InputPresentation, text: str):
         from toad.widgets.user_input import UserInput
 
         await view.post(UserInput(text))

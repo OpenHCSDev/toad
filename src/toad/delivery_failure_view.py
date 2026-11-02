@@ -10,7 +10,6 @@ from textual.reactive import var
 from textual.widget import Widget
 
 from toad.app_node import ToadNode
-from toad.conversation_submission import ConversationSubmissions
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 
@@ -18,7 +17,6 @@ from toad.widgets.prompt import Prompt
 class DeliveryFailureView(ToadNode, Widget):
     """Draw submission state; this widget owns no transport or send lifecycle."""
 
-    submissions: ConversationSubmissions
     prompt = getters.query_one(Prompt)
     feedback = getters.query_one(Flash)
     status: var[str | Content | RichText] = var("")
@@ -32,8 +30,8 @@ class DeliveryFailureView(ToadNode, Widget):
         return False
 
     @property
-    def send_block_reason(self) -> str:
-        return self.submissions.send_block_reason
+    @abstractmethod
+    def send_block_reason(self) -> str: ...
 
     def queue_evidence_changed(self) -> None:
         """The composed surface owns its prompt's queue repaint."""

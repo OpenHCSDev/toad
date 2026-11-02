@@ -97,7 +97,7 @@ class CommsChatView(Conversation):
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation.compose_activity(self)
             yield self.throbber_above
-            yield self.conversation.prompt(self.project_path, submissions=self.submissions).data_bind(
+            yield self.conversation.prompt(self.project_path, submissions=self).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -153,7 +153,7 @@ class CommsChatView(Conversation):
         access = self.app.coordination_access
         if message.publisher is not history:
             return
-        self.submissions.settle_acknowledged()
+        self.settle_acknowledged()
         if (not history.state.accepts_source_work
                 or not source.uses_observation(access.observation.observed())):
             return
@@ -256,7 +256,7 @@ class CommsChatView(Conversation):
             await self.refresh_composer(read_only)
             self._refreshed_from = announced
             # The source may now acknowledge the commit, before viewport paint or mention reads.
-            self.submissions.settle_acknowledged()
+            self.settle_acknowledged()
         except (CoordinationReadUnavailable, StaleRevision):
             raise
         # Composer mentions and DM status read the observer's snapshot
@@ -328,7 +328,7 @@ class CommsChatView(Conversation):
         """Read the conversation's end; composing resumes when its source acknowledges `sent`."""
         self.window.jump_to_latest()
         await self._refresh()
-        self.submissions.settle_acknowledged()
+        self.settle_acknowledged()
 
     def contains_user_message(self, sent) -> bool:
         return self.message_history.contains_message(sent)

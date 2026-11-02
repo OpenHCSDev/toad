@@ -88,11 +88,11 @@ class NoQueueSource(QueueSource):
 
 class NativeQueueSource(QueueSource):
     def send_now_available(self, owner: ConversationSubmissions) -> bool:
-        return self.defers_input(owner.view) and super().send_now_available(owner)
+        return self.defers_input(owner) and super().send_now_available(owner)
 
     def begin_submission(self, owner: ConversationSubmissions,
                          submission: PromptInputSubmission) -> SubmissionStart:
-        return owner.view.agent_binding.begin_submission(owner, submission)
+        return owner.agent_binding.begin_submission(owner, submission)
 
     def defers_input(self, view: QueueView) -> bool:
         return view.turns.owner.busy and view.agent_binding.presentation.queue_supported

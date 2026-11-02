@@ -45,10 +45,10 @@ async def test_bus_sources_keep_publication_draft_and_queue_authority_separate(
         assert sent.body == body
         assert comms.bus.bus.revision() == before + 1
         assert view.contains_user_message(sent)
-        assert not view.submissions.retains_surface
+        assert not view.retains_surface
         assert view.prompt.text == "Keep this different unsent draft"
         assert editor.document is document and editor.history is undo
-        assert not view.queue_source.queue_actions_available(view.submissions.queue_evidence)
+        assert not view.queue_source.queue_actions_available(view.queue_evidence)
         view.open_queue_menu()
         await ui.until(lambda: isinstance(app.screen, QueueInspection), why="original queue inspection")
         inspection = app.screen

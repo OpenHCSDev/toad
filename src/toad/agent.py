@@ -55,7 +55,7 @@ class AgentBase(AgentConnection):
     def refresh_projection(self, view: Conversation) -> None:
         self.refresh_context(view)
         view.turns.bound()
-        view.submissions.publish_pending()
+        view.publish_pending()
         view.delivery_observation.invalidate()
 
     def start_session(self, view: ConversationSessionBinding) -> None:

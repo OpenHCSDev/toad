@@ -48,20 +48,20 @@ async def test_late_answer_to_a_replaced_session_request_changes_neither_session
             await second.started.wait()
             second.result.set_result(response("new-session"))
             await replacing
-            await ui.until(lambda: view.submissions.queue_projection.status == "available",
+            await ui.until(lambda: view.queue_projection.status == "available",
                            why="the newer session's queue")
             assert agent.session_id == "new-session"
         else:
             await agent.stop()
             await ui.step()
-        before = (agent.session_id, agent.queue_attachment.current, view.submissions.queue_projection)
+        before = (agent.session_id, agent.queue_attachment.current, view.queue_projection)
         first.result.set_result(response("old-session"))
         # The replaced request's late answer is refused to its caller and changes nothing.
         with pytest.raises(RequestError) as refused:
             await pending
         assert "retired session" in refused.value.data["details"]
         await ui.step()
-        assert (agent.session_id, agent.queue_attachment.current, view.submissions.queue_projection) == before
+        assert (agent.session_id, agent.queue_attachment.current, view.queue_projection) == before
         assert ui.draft() == "untouched local draft"
         if successor == "new":
             app, _pilot = ui.textual
@@ -69,5 +69,5 @@ async def test_late_answer_to_a_replaced_session_request_changes_neither_session
             assert row in app.screen._compositor.visible_widgets
             assert "Queued (2)" in row.render().plain
         else:
-            assert view.submissions.queue_projection.status != "available"
+            assert view.queue_projection.status != "available"
         await agent.stop()

@@ -19,7 +19,7 @@ async def test_a_view_that_changed_during_send_preflight_keeps_the_draft_editabl
         view = ui.app.selected_session.query_one(CommsChatView)
         messaging = view.message_history.page_source.loader.comms.messaging
         before = messaging.bus.bus.revision()
-        worker = await view.submissions.start_message(
+        worker = await view.start_message(
             OrdinaryInputSubmission("STALE_DRAFT"), workspace.roots.wire,
             view.conversation, lambda: False, view._show_sent,
         ).prepare()
@@ -40,7 +40,7 @@ async def test_an_ambient_root_change_does_not_retarget_the_captured_app_namespa
         before = first.bus.bus.revision(), second.bus.bus.revision()
         body = "CAPTURED_ORIGINAL_NAMESPACE"
         with LaunchRoot.from_path(second.root).selected():
-            worker = await view.submissions.submit(UserInputSubmitted(body))
+            worker = await view.submit(UserInputSubmitted(body))
             await asyncio.wait_for(worker.wait(), 10)
         await ui.until(lambda: not view.prompt.prompt_text_area.disabled,
                        why="source acknowledgement to enable the original composer")

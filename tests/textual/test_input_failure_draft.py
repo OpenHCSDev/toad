@@ -64,22 +64,22 @@ async def test_request_failure_preserves_its_reported_input_disposition(
         error = RequestError.invalid_params(reported.error_data())
         body = script({"error": error.to_error_obj()})
         await ui.write_draft("")
-        worker = await view.submissions.submit(UserInputSubmitted(body))
-        (execution,) = view.submissions.active
+        worker = await view.submit(UserInputSubmitted(body))
+        (execution,) = view.pending_submissions
         await asyncio.wait_for(worker.wait(), 10)
         await ui.until(lambda: ui.draft() == body, why="the failed request's original text back in the draft")
         assert receiver.session.disposition is disposition
         assert receiver.process.process is child and child.returncode is None
         if blocked:
             assert isinstance(execution.state, SendBlocked)
-            assert view.submissions.retains_surface
-            await view.submissions.submit(UserInputSubmitted(body))
+            assert view.retains_surface
+            await view.submit(UserInputSubmitted(body))
             await ui.step()
             assert ui.draft() == body
             assert isinstance(execution.state, SendBlocked)
         else:
             assert not view.send_block_reason
-            assert not view.submissions.retains_surface
+            assert not view.retains_surface
         assert workspace.prompts_received() == [body], "An unconfirmed input was replayed"
         assert {"error": error.to_error_obj()} in workspace.received()
 
@@ -106,7 +106,7 @@ async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_se
         error = RequestError.internal_error({"details": "WebSocket error"})
         body = script({"error": error.to_error_obj()})
         await ui.write_draft("")
-        worker = await view.submissions.submit(UserInputSubmitted(body))
+        worker = await view.submit(UserInputSubmitted(body))
         await asyncio.wait_for(worker.wait(), 10)
         await ui.until(lambda: ui.draft() == body, why="the failed request's original text back in the draft")
         await asyncio.wait_for(receiver.send_prompt(script({"update": {
@@ -117,7 +117,7 @@ async def test_a_provider_error_fails_its_turn_and_keeps_the_thread_and_model_se
         assert receiver.session.disposition is disposition
         assert receiver.process.process is child and child.returncode is None
         assert view.model_selection_available
-        assert view.send_block_reason and view.submissions.retains_surface
+        assert view.send_block_reason and view.retains_surface
         assert {"error": error.to_error_obj()} in workspace.received()
 
 
@@ -147,8 +147,8 @@ async def test_original_native_start_settles_a_failed_request_without_replaying(
         body = script({"wait": "request-error-ready"},
                       {"error": RequestError.internal_error(failure.error_data()).to_error_obj()})
         await ui.write_draft("")
-        worker = await view.submissions.submit(UserInputSubmitted(body))
-        (execution,) = view.submissions.active
+        worker = await view.submit(UserInputSubmitted(body))
+        (execution,) = view.pending_submissions
         await ui.until(lambda: workspace.prompts_received() == [body], why="the captured input at the held SDK peer")
         metadata = next(fact["metadata"] for fact in workspace.received() if fact.get("prompt") == body)
         assert decode_request(**metadata) == execution.request, "The peer received a second request identity"
@@ -158,7 +158,7 @@ async def test_original_native_start_settles_a_failed_request_without_replaying(
         if acknowledge_before_reply:
             await asyncio.wait_for(receiver.send_prompt(acknowledgement), 10)
             await ui.until(lambda: isinstance(execution.state, NativeInputPresented), why="input acknowledged before its error reply")
-            assert not worker.is_finished and execution in view.submissions.active
+            assert not worker.is_finished and execution in view.pending_submissions
         workspace.release("request-error-ready")
         await asyncio.wait_for(worker.wait(), 10)
         if acknowledge_before_reply:
@@ -167,11 +167,11 @@ async def test_original_native_start_settles_a_failed_request_without_replaying(
         else:
             await ui.until(lambda: ui.draft() == body, why="the uncertain input's retained draft")
             assert isinstance(execution.state, SendBlocked)
-            await view.submissions.submit(UserInputSubmitted(body))
+            await view.submit(UserInputSubmitted(body))
             assert workspace.prompts_received().count(body) == 1
             await asyncio.wait_for(receiver.send_prompt(acknowledgement), 10)
             assert ui.draft() == body  # A later observation cannot delete the user's inspection draft.
-        await ui.until(lambda: not view.submissions.retains_surface,
+        await ui.until(lambda: not view.retains_surface,
                        why="the original acknowledgement and completed response to retire their request")
         assert not view.send_block_reason
         assert workspace.prompts_received().count(body) == 1
@@ -185,9 +185,9 @@ async def test_a_lost_held_peer_retains_unknown_and_refuses_retry(workspace):
         receiver = view.agent_binding
         body = script({"wait": "lost-transport"})
         await ui.write_draft("")
-        worker = await view.submissions.submit(UserInputSubmitted(body))
+        worker = await view.submit(UserInputSubmitted(body))
         await ui.until(lambda: workspace.prompts_received() == [body], why="the original request at the actual held peer")
-        (execution,) = view.submissions.active
+        (execution,) = view.pending_submissions
         child = receiver.process.process
         await asyncio.wait_for(child.stop(), 10)
         try:
@@ -196,10 +196,10 @@ async def test_a_lost_held_peer_retains_unknown_and_refuses_retry(workspace):
             pass  # Session retirement may cancel its caller; its shared completion still settles.
         await ui.until(lambda: ui.draft() == body, why="the lost request's body retained for inspection")
         assert isinstance(execution.state, SendBlocked)
-        assert view.submissions.retains_surface
+        assert view.retains_surface
         assert receiver.session.disposition.failure is not None
         assert not receiver.session.connected
-        await view.submissions.submit(UserInputSubmitted(body))
+        await view.submit(UserInputSubmitted(body))
         await ui.step()
         assert workspace.prompts_received() == [body], "The uncertain request was replayed"
         assert ui.draft() == body
@@ -217,10 +217,10 @@ async def test_a_prompt_the_agent_cannot_be_reached_for_is_restored_to_the_compo
         assert receiver.session.disposition.failure is not None
         await ui.write_draft("")
         body = "the local failure prompt"
-        await view.submissions.submit(UserInputSubmitted(body))
+        await view.submit(UserInputSubmitted(body))
         await ui.until(lambda: ui.draft() == body, why="the refused local input back in the draft")
         assert not view.send_block_reason
-        assert not view.submissions.retains_surface
+        assert not view.retains_surface
         assert not workspace.prompts_received()
 
 
@@ -265,14 +265,14 @@ async def test_cancelling_before_worker_start_restores_the_same_editor_without_s
         document, history = editor.document, editor.history
         bus = workspace.comms.bus.bus
         before = bus.revision()
-        worker = await chat.submissions.submit(UserInputSubmitted("CANCELLED_BEFORE_START"))
+        worker = await chat.submit(UserInputSubmitted("CANCELLED_BEFORE_START"))
         worker.cancel()  # No yield between admission and cancellation: the callable never ran.
         with pytest.raises(WorkerCancelled):
             await asyncio.wait_for(worker.wait(), 10)
-        await chat.submissions.close()
+        await chat.close_submissions()
         assert chat.prompt.text == "Different draft\n\nCANCELLED_BEFORE_START"
         assert editor.document is document and editor.history is history
-        assert not chat.submissions.retains_surface
+        assert not chat.retains_surface
         assert not chat.send_block_reason
         assert bus.revision() == before
 
@@ -303,8 +303,8 @@ async def test_cancelled_bus_write_keeps_unknown_and_never_retries_the_publicati
         with closing(sqlite3.connect(bus.path)) as blocker:
             blocker.execute("BEGIN IMMEDIATE")
             try:
-                worker = await chat.submissions.submit(UserInputSubmitted(body))
-                (execution,) = chat.submissions.active
+                worker = await chat.submit(UserInputSubmitted(body))
+                (execution,) = chat.pending_submissions
                 await ui.until(lambda: isinstance(execution.state, SendPending),
                                why="the original write admitted by preparation")
                 publication = execution.publication
@@ -314,10 +314,10 @@ async def test_cancelled_bus_write_keeps_unknown_and_never_retries_the_publicati
                 await asyncio.wait_for(worker.wait(), 10)
                 assert isinstance(execution.state, SendBlocked)
                 assert not publication.done()
-                assert chat.submissions.retains_surface
+                assert chat.retains_surface
                 assert chat.prompt.text == "An unrelated unsent draft\n\n" + body
                 restored = editor.text
-                await chat.submissions.submit(UserInputSubmitted(body))
+                await chat.submit(UserInputSubmitted(body))
                 assert bus.revision() == before
                 if close_app:
                     # Run the application's real close owner, including view
@@ -338,12 +338,12 @@ async def test_cancelled_bus_write_keeps_unknown_and_never_retries_the_publicati
             await asyncio.wait_for(close_task, 15)
             assert isinstance(execution.state, SentAwaitingSource)
             assert execution.state.sent is sent
-            assert chat.submissions.retains_surface, "a closed view has supplied no source ACK"
+            assert chat.retains_surface, "a closed view has supplied no source ACK"
         else:
             await ui.until(lambda: not chat.send_block_reason,
                            why="the exact original publication acknowledged by its source")
             assert chat.contains_user_message(sent)
-            assert not chat.submissions.retains_surface
+            assert not chat.retains_surface
         assert bus.revision() == before + 1
         assert editor.text == restored
         assert editor.document is document and editor.history is history
