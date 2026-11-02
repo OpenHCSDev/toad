@@ -331,14 +331,7 @@ class WireSource(BusQueueSource):
 
     def begin_submission(self, owner: ConversationSubmissions,
                          submission: PromptInputSubmission) -> SubmissionStart:
-        view = owner.view
-        source = view.message_history.page_source
-        return owner.start_message(
-            submission, self.comms.root, self.conversation,
-            lambda: (view.is_attached and source is view.message_history.page_source
-                     and self.conversation == view.conversation),
-            view._show_sent,
-        )
+        return owner.view.bind_bus_submission(self, owner, submission)
 
     @property
     def viewer(self) -> NamedViewer:

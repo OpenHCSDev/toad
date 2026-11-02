@@ -28,6 +28,7 @@ from textual.widgets import Static
 from textual.worker import Worker
 
 from toad.conversation_kind import ConversationKind
+from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
 from toad import messages
 from toad.widgets.conversation import (
     Contents,
@@ -309,6 +310,18 @@ class CommsChatView(Conversation):
 
     async def command_target_context(self):
         return self.message_history.page_source.command_context(self)
+
+    def bind_bus_submission(
+        self, source: WireSource, owner: ConversationSubmissions,
+        submission: PromptInputSubmission,
+    ) -> SubmissionStart:
+        page_source = self.message_history.page_source
+        return owner.start_message(
+            submission, source.comms.root, source.conversation,
+            lambda: (self.is_attached and page_source is self.message_history.page_source
+                     and source.conversation == self.conversation),
+            self._show_sent,
+        )
 
     async def _show_sent(self, sent: WireMessage) -> None:
         """Read the conversation's end; composing resumes when its source acknowledges `sent`."""
