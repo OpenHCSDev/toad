@@ -46,7 +46,7 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
         # before a priority Key event reaches its focused control.
         if not self.is_open:
             return super().check_consume_key(key, character)
-        bindings = self.binding_map(self.screen.active_binding_mode)
+        bindings = self.binding_map(self.binding_mode)
         bindings.apply_keymap(self.app._keymap)
         return key in bindings.key_to_bindings or super().check_consume_key(key, character)
 

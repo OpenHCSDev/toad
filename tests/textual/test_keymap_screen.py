@@ -5,11 +5,11 @@ from textual.widgets import DataTable, Input, Static
 from textual.binding import ModeBinding
 
 from toad.application_actions import TeamAction, KeymapAction
-from toad.key_modes import KeyMode, Standard
+from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.preferences import SETTINGS, SavedSettings
 from toad.screens.keymap import KeymapScreen
 from toad.keymap import KeymapRow
-from toad.widget_actions import ProfileKeys
+from toad.widget_actions import DismissAction, ProfileKeys
 
 
 class CallCounter(ProfileKeys, Static, can_focus=True):
@@ -83,6 +83,44 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         await reopened.press("f18")
         await reopened.until(lambda: isinstance(reopened.app.screen, KeymapScreen),
                              why="the saved menu remap after restarting the app")
+
+
+async def test_screen_remap_keeps_its_profile_with_a_plain_input_focused(workspace):
+    async with workspace.app(size=(140, 45)) as ui:
+        app = ui.app
+        app.saved_settings.set(SETTINGS.ui.key_mode, VimNormal)
+        app.set_keymap({DismissAction.binding_id(VimNormal): "f6"})
+        await ui.press("f1")
+        await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the remapped modal scope")
+        app.screen.query_one("#keymap-search", Input).focus()
+        await ui.press("escape")
+        assert isinstance(app.screen, KeymapScreen)
+        await ui.press("f6")
+        await ui.until(lambda: app.screen is app.workspace_screen, why="the modal remap from plain input")
+
+
+async def test_previous_focus_keeps_application_and_input_invocations_in_their_own_modes(workspace):
+    async with workspace.app(size=(140, 45)) as ui:
+        app = ui.app
+        app.saved_settings.set(SETTINGS.ui.key_mode, VimNormal)
+        sidebar = app.workspace_chrome.channels
+        sidebar.reveal()
+        search = sidebar.query_one(Input)
+        search.value = "keep"
+        search.focus()
+        native_invocation = next(
+            invocation for binding in search.declared_bindings(search.binding_mode)
+            if binding.action is Input.action_select_all
+            for invocation in binding.command_invocations()
+        )
+        expected = {
+            KeymapRow.of(TeamAction(), VimNormal).declaration,
+            KeymapRow.of(native_invocation, Standard).declaration,
+        }
+        await ui.press("f1")
+        await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the mixed-mode keymap menu")
+        assert expected <= set(app.screen.visible_declarations)
+        assert search.value == "keep"
 
 
 async def test_the_menu_discovers_and_remaps_a_native_callable_with_both_aliases(workspace):

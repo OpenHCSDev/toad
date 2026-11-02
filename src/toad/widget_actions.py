@@ -129,7 +129,7 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
     @classmethod
     def configured_bindings(cls, context: Context) -> tuple[Binding, ...]:
         """Declared keys after remapping, also when this control is not focused."""
-        mode = context.screen.active_binding_mode
+        mode = context.binding_mode
         identities = {binding.id for binding in cls.bindings_for(mode)}
         bindings = context.binding_map(mode)
         bindings.apply_keymap(context.app._keymap)
@@ -138,7 +138,7 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
 
     @classmethod
     def active_bindings(cls, context: Context) -> tuple[Binding, ...]:
-        identities = {binding.id for binding in cls.bindings_for(context.screen.active_binding_mode)}
+        identities = {binding.id for binding in cls.bindings_for(context.binding_mode)}
         return tuple(binding for node, bindings in context.screen._binding_chain if node is context
                      for _, binding in bindings if binding.id in identities
                      and binding.state(context.app, context))
