@@ -23,6 +23,7 @@ from textual.content import Content
 from textual.style import Style as NativeStyle
 from textual.selection import Selection
 from textual.visual import RenderOptions
+from textual.text_format import TextFormat, TextFormatSnapshot
 from toad.line_blocks import LineBlock, LineRole, ToolOutputRole, MutedRole
 
 if TYPE_CHECKING:
@@ -132,10 +133,10 @@ class NativeContentSource(RichSource):
             return styles[style] if isinstance(style, str) else style
         width = presentation.options.max_width
         if presentation.auto_width:
-            width = max(1, min(width, content.get_optimal_width(dict(presentation.rules), width)))
+            width = max(1, min(width, content.get_optimal_width(presentation.text_format, width)))
         lines = content.render_strips(
             width, None, presentation.native_style,
-            RenderOptions(get_style, dict(presentation.rules),
+            RenderOptions(get_style, presentation.text_format,
                           None if self.selection is None else Selection(
                               *(None if offset is None else Offset(*offset)
                                 for offset in self.selection)),
@@ -308,7 +309,7 @@ class RichPresentation:
     color_system: RichColorSystem | None
     syntax: SyntaxPalette
     styles: tuple[tuple[str, NativeStyle], ...] = ()
-    rules: tuple[tuple[str, object], ...] = ()
+    text_format: TextFormatSnapshot = TextFormat().snapshot()
     native_style: NativeStyle = NativeStyle()
 
     def styled_links(self, lines: Iterable[Strip]) -> tuple[Strip, ...]:

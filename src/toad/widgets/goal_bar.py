@@ -283,7 +283,7 @@ class GoalBar(VerticalGroup):
             width = document.content_size.width
             height = (
                 sum(
-                    child.visual.get_height(child.styles, width)
+                    child.visual.get_height(child.text_format, width)
                     for child in (self.summary, self.progress)
                     if child.display
                 )

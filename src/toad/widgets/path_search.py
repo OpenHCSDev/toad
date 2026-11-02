@@ -28,6 +28,7 @@ from textual.strip import Strip
 from textual.style import Style
 from textual.widget import Widget
 from textual import widgets
+from textual.text_format import TextFormat, TextFormatSnapshot
 from textual.visual import RenderOptions
 from textual.widgets import OptionList, Input, DirectoryTree
 from textual.widgets.option_list import Option
@@ -51,6 +52,10 @@ if TYPE_CHECKING:
 
 
 class PathContent(Content):
+    _line_format = TextFormatSnapshot("left", "nowrap", "clip", 0)
+
+    def get_text_format(self, supplied: TextFormat) -> TextFormat:
+        return self._line_format
 
     def render_strips(
         self, width: int, height: int | None, style: Style, options: RenderOptions
@@ -82,12 +87,7 @@ class PathContent(Content):
             style,
             replace(
                 options,
-                rules={
-                    "text_wrap": "nowrap",
-                    "text_overflow": "clip",
-                    "text_align": "left",
-                    "line_pad": 0,
-                },
+                text_format=self.get_text_format(options.text_format),
             ),
         )
 
