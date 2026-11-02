@@ -286,7 +286,7 @@ class ConfiguredAgentProcess(AgentProcess):
                 and all(member.agent.session_id != agent.session_id for member in self.sessions))
 
     async def prepare_prompt(self, agent: Agent, require: Callable[[], None]) -> None:
-        """Only this captured launch's route may admit the request."""
+        """Prepare against the route captured before this launch."""
         access = agent.controller.transcripts.access
         await access.preparation.run_thread(partial(access.require, self.route_selection))
         require()

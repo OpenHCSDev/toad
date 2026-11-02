@@ -15,7 +15,9 @@ class AgentInitialization:
         return schema.AgentCapabilities()
 
     @property
-    def auth_methods(self) -> tuple[schema.AuthMethod, ...]:
+    def auth_methods(self) -> tuple[
+        schema.EnvVarAuthMethod | schema.TerminalAuthMethod | schema.AuthMethodAgent, ...
+    ]:
         return ()
 
     @property
@@ -37,7 +39,9 @@ class InitializedAgent(AgentInitialization):
         return self.response.agent_capabilities or super().capabilities
 
     @property
-    def auth_methods(self) -> tuple[schema.AuthMethod, ...]:
+    def auth_methods(self) -> tuple[
+        schema.EnvVarAuthMethod | schema.TerminalAuthMethod | schema.AuthMethodAgent, ...
+    ]:
         return tuple(self.response.auth_methods or ())
 
     @property
