@@ -137,6 +137,14 @@ class FrontendIdentity:
 
 
 @dataclass(frozen=True)
+class CapturedResponse:
+    """An active reply's source text and last published native placement."""
+
+    region: CapturedRegion
+    text: str
+
+
+@dataclass(frozen=True)
 class RunObservation:
     frontend: FrontendIdentity
     started_ns: int
@@ -157,7 +165,8 @@ class RunObservation:
     history_published: bool
     modules_checked: int
     agent_ready: bool = False
-    active_response: bool = False
+    turn_busy: bool = False
+    responses: tuple[CapturedResponse, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -369,7 +378,7 @@ class StartOperation(PhysicalOperation):
 class AcpObservation:
     roots: tuple[Path, ...]
     ready: bool = False
-    active: bool = False
+    busy: bool = False
 
 
 class AcpObservationDecoder(MroProjection[AcpObservation]):
@@ -431,6 +440,8 @@ class ObserveOperation(PhysicalOperation):
         from toad.app import ToadApp
         from textual._context import NoActiveAppError
         from textual.app import ScreenStackError
+        from toad.live_output import ResponseStream
+        from toad.widgets.conversation import Conversation
         from toad.widgets.history_anchor import HistoryWindow
         from xdg_base_dirs import xdg_config_home, xdg_data_home, xdg_state_home
 
@@ -462,6 +473,20 @@ class ObserveOperation(PhysicalOperation):
         histories = tuple(history for window in screen.query(HistoryWindow)
                           if window.published_content_region is not None
                           for history in window.histories)
+        # Decode the installed frontend at this read-only boundary. Only the
+        # current live ResponseStream supplies reply text: not a user-input
+        # echo, a ThoughtStream, a saved row or an earlier completed notice.
+        published = screen._compositor._published_map
+        responses = tuple(
+            CapturedResponse(
+                CapturedRegion(placement.content_region.intersection(placement.clip)),
+                block.body.text,
+            )
+            for view in screen.query(Conversation) if view.turns.owner.busy
+            for stream in (view.output.streams.get(ResponseStream),) if stream is not None
+            for block in (stream.block,) if block is not None
+            for placement in (published.get(block.body),) if placement is not None
+        )
         # The pager's original publication state also supplies the footer's
         # saved-history availability. Agent status is an independent fact.
         history_published = bool(histories) and all(
@@ -477,7 +502,8 @@ class ObserveOperation(PhysicalOperation):
             app.colours.wal_directory.resolve(), root,
             opened, storage_rule, saved, acp, regions, history_published, checked,
             agent_ready=bool(acp_states) and all(state.ready for state in acp_states),
-            active_response=any(state.active for state in acp_states),
+            turn_busy=any(state.busy for state in acp_states),
+            responses=responses,
         )
         self.target.require_resources(observed)
         self.publish(directory / "result.json", self.observed_result(observed, directory))

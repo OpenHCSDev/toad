@@ -19,7 +19,11 @@ Use `LaunchRuntime.installed()` for installed
 bytes. This does not require an interpreter observation in old build metadata.
 Wait for both `screen.observation.history_published` and
 `screen.observation.agent_ready` before the readiness-dependent journey; an active
-capture additionally needs `active_response` and actual response text/focus.
+capture additionally needs `screen.has_active_reply(marker)` and composer focus.
+`turn_busy` only reports the backend phase; it does not prove that an answer exists.
+The reply check requires both the current `ResponseStream`'s source text and matching
+real st cells inside that block's last published region. A user echo, Thinking text,
+a saved row or a completed notice cannot substitute for that live reply.
 
 Entry/final `InstalledOperation` records the actual Python/native executable
 paths and the installed runtime's package-origin answer through its existing

@@ -3,17 +3,21 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from textual.geometry import Region
+
+from tools.physical_ui import ScreenCapture
 
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.installer.probes.interpreter import InterpreterBuildProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution
+from agent_comms.installer.refusals import UpgradeRefused
 from agent_comms.storage_rules import StorageRule
 from agent_comms.nominal.field_codec import FieldCodec
 from tools.physical_ui_admission import (
     AdmitOperation, AdmittedResult, RunTarget, StartAdmittedOperation,
 )
 from tools.physical_ui_remote import (
-    FrontendIdentity, InstalledResult, ObserveOperation,
+    CapturedRegion, CapturedResponse, FrontendIdentity, InstalledResult, ObserveOperation,
     ObservedResult, PendingRun, RunObservation, RunResources, StartOperation, StopRootOperation,
 )
 
@@ -104,7 +108,7 @@ def test_admission_refuses_different_build_and_frontend_birth(
     physical_target: RunTarget, physical_observation: RunObservation, physical_admission: AdmittedResult,
 ) -> None:
     different = physical_target.build.model_copy(update={"core_commit": "b" * 40})
-    with pytest.raises(ValueError):
+    with pytest.raises(UpgradeRefused):
         AdmittedResult(physical_observation, different).admitted(physical_target)
     original = physical_observation.frontend
     replacement = replace(original, process=replace(original.process, pid=original.process.pid + 1))
@@ -152,6 +156,31 @@ def test_actual_source_policy_is_checked_after_admission(
     current = replace(physical_observation, storage_rule=foreign)
     with pytest.raises(ValueError):
         physical_admission.observe(physical_target, current)
+
+
+@pytest.mark.parametrize("busy, source, painted, expected", (
+    (True, None, "Thinking", False),
+    (True, "reply-marker", "Thinking", False),
+    (True, "different reply", "reply-marker", False),
+    (False, "reply-marker", "reply-marker", False),
+    (True, "reply-marker", "reply-marker", True),
+))
+def test_active_reply_needs_its_own_source_and_painted_cells(
+    physical_observation: RunObservation, busy: bool, source: str | None,
+    painted: str, expected: bool,
+) -> None:
+    responses = (() if source is None else (
+        CapturedResponse(CapturedRegion(Region(0, 1, 40, 1)), source),
+    ))
+    observed = replace(physical_observation, turn_busy=busy, responses=responses)
+    # The user's visible echo cannot satisfy the separate reply placement.
+    screen = ScreenCapture("user: reply-marker\n" + painted, observed)
+    assert screen.has_active_reply("reply-marker") is expected
+
+
+def test_active_reply_rejects_an_empty_marker(physical_observation: RunObservation) -> None:
+    with pytest.raises(ValueError, match="nonempty marker"):
+        ScreenCapture("", physical_observation).has_active_reply("")
 
 
 def test_source_readiness_is_current_not_remembered_admission(

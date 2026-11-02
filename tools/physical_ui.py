@@ -182,12 +182,25 @@ class ScreenCapture:
     text: str
     observation: RunObservation
 
-    def message_rows(self):
+    def rows_in(self, regions: tuple[physical_ui_remote.CapturedRegion, ...]):
         lines = self.text.splitlines()
-        for captured in self.observation.history_regions:
+        for captured in regions:
             region = captured.region
             for row in range(max(0, region.y), min(len(lines), region.bottom)):
                 yield row, Strip([Segment(lines[row])]).crop(region.x, region.right).text
+
+    def message_rows(self):
+        return self.rows_in(self.observation.history_regions)
+
+    def has_active_reply(self, marker: str) -> bool:
+        """Require source-owned reply text and matching real st cells, not an echo."""
+        if not marker:
+            raise ValueError("Active reply qualification requires a nonempty marker")
+        return self.observation.turn_busy and any(
+            marker in response.text
+            and marker in "\n".join(text for _, text in self.rows_in((response.region,)))
+            for response in self.observation.responses
+        )
 
     def messages(self):
         message = None
