@@ -297,10 +297,10 @@ async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(wor
             "REPLACEMENT_SOURCE_ROW " * 80, id="new"))
 
         def read_replacement():
-            read = workspace.comms.transcripts.capture_page_read("rewritten-source")
             with pytest.raises(TranscriptChanged):
-                read.read(position=original.later_page())
-            return read.read()
+                workspace.comms.transcripts.capture_page_read(
+                    "rewritten-source", position=original.later_page()).read()
+            return workspace.comms.transcripts.capture_page_read("rewritten-source").read()
 
         replacement = await asyncio.to_thread(read_replacement)
         assert replacement.after.contains(original)
