@@ -57,9 +57,8 @@ class FramedArea(NativeTheme):
     def frame_declaration(self) -> NativeDeclaration:
         return self.faint_border
 
-    def apply_native_theme(self) -> None:
-        super().apply_native_theme()
-        self.styles.merge(self.app.stylesheet.native_styles(self.frame_declaration))
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        return (*super().native_declarations(), self.frame_declaration)
 
 
 class FocusedFrame(FramedArea):
@@ -74,7 +73,7 @@ class FocusedFrame(FramedArea):
 
     def watch_has_focus(self, has_focus: bool) -> None:
         super().watch_has_focus(has_focus)
-        self.apply_native_theme()
+        self.apply_native_styles(self.app.stylesheet)
 
 
 class PermissionGrid(FillArea, BackgroundArea, containers.Grid):

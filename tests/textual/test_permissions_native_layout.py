@@ -1,5 +1,9 @@
 """Permission layout keeps native focus, answers and current theme paint."""
 
+from dataclasses import replace
+
+from textual.color import Color
+
 from toad.answer import Answer
 from toad.screens.permissions import PermissionGrid, PermissionsScreen
 
@@ -37,6 +41,19 @@ async def test_permission_layout_retains_focus_theme_and_answer(workspace):
         assert grid.styles.background == screen.styles.background == tool.styles.background
         assert question.styles.border != tool.styles.border
         app.theme = previous_theme
+        await ui.step()
+        assert question.styles.border == focused_border
+
+        # Palette/variable refresh can run while the theme name stays unchanged.
+        theme = app.current_theme
+        app.register_theme(replace(theme, background="#213243", primary="#aabbee"))
+        app.refresh_css(animate=False)
+        await ui.step()
+        assert app.theme == previous_theme
+        assert grid.styles.background == screen.styles.background == Color.parse("#213243")
+        assert question.styles.border != focused_border
+        app.register_theme(theme)
+        app.refresh_css(animate=False)
         await ui.step()
         assert question.styles.border == focused_border
 
