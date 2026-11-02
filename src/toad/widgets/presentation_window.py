@@ -345,7 +345,7 @@ class PreparationDemand(ABC):
     def rows(self, horizon: float) -> float: ...
 
     def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
-        return MovingPreparation(travel / elapsed)
+        return MovingPreparation(travel, elapsed)
 
     def accepts_result(self, end: PageEnd) -> bool:
         """A running read may finish after input settles; it starts no next read."""
@@ -374,13 +374,25 @@ class StationaryPreparation(PreparationDemand):
 
 @dataclass
 class MovingPreparation(PreparationDemand):
-    velocity: float
+    """One gesture's measured travel: its accumulated rows over its accumulated time.
+
+    Terminal input arrives in clumps (several wheel reports in one read), so the gap
+    between two reports says nothing about speed; the gesture's whole distance over
+    its whole duration does, however the reports were batched.
+    """
+
+    travel: float
+    seconds: float
+
+    @property
+    def velocity(self) -> float:
+        return self.travel / self.seconds
 
     def moved(self, travel: float, elapsed: float) -> PreparationDemand:
-        velocity = travel / elapsed
-        if self.velocity * velocity > 0:
+        if self.travel * travel > 0:
             # Continue measuring this direction; reversal starts a new demand.
-            self.velocity = velocity
+            self.travel += travel
+            self.seconds += elapsed
             return self
         return super().moved(travel, elapsed)
 

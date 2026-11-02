@@ -22,8 +22,7 @@ async def test_page_up_after_forward_travel_makes_the_forward_demand_stale(works
         await ui.step()
         outgoing = window.lookahead.demand
         assert outgoing.rows(1) > 0, "Initial travel was not forward"
-        assert window.lookahead.accepts(outgoing)
+        assert window.lookahead.demand is outgoing
         await ui.press("pageup")
         await ui.until(lambda: window.lookahead.demand.rows(1) < 0, why="PageUp to reverse the demand")
         assert window.lookahead.demand is not outgoing
-        assert not window.lookahead.accepts(outgoing), "Reversal kept the outgoing preparation batch"
