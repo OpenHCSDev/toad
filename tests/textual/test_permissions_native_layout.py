@@ -4,15 +4,16 @@ from dataclasses import replace
 
 from textual.color import Color
 
+from support.workspace import Workspace
 from toad.answer import Answer
 from toad.screens.permissions import PermissionGrid, PermissionsScreen
 
 
-async def test_permission_layout_retains_focus_theme_and_answer(workspace):
+async def test_permission_layout_retains_focus_theme_and_answer(workspace: Workspace) -> None:
     async with workspace.app(size=(100, 34)) as ui:
         app, _pilot = ui.textual
         answer = Answer("Allow this change", "allow", "allow_once")
-        answers = []
+        answers: list[Answer] = []
         screen = PermissionsScreen([answer], diffs=[])
         app.push_screen(screen, answers.append)
         await ui.until(lambda: screen.is_mounted and screen.question.has_focus,
