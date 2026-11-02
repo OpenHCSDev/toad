@@ -46,7 +46,7 @@ from toad.navigation_target import (
     ThreadTarget,
 )
 from toad.screens.mcp_inventory import MCPInventoryScreen
-from toad.screens.session_view import SidebarSessionView
+from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
 from toad.session_presentation import OperationalSessionPresentation
 from toad.session_scope import AgentBinding, NoAgent, ViewSessionOrigin
 from toad.session_tracker import SessionDetails
@@ -438,9 +438,9 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         return SessionThreadSidebar(self)
 
     def compose(self) -> ComposeResult:
-        with containers.Center().set_styles(layout=self.app.workspace_chrome):
+        with SessionBody():
             yield self.thread_sidebar
-            with containers.Vertical(id="session-content"):
+            with SessionContents(id="session-content"):
                 yield self.content.render(self)
                 yield self.presentation.compose_content(self)
 

@@ -2,7 +2,7 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import events as core_events
 from toad.core import session_requests
-from toad.screens.session_view import SidebarSessionView
+from toad.screens.session_view import SessionBody, SessionContents, SidebarSessionView
 from toad.project_path_owner import CheckoutRoot
 import asyncio
 from functools import partial
@@ -82,7 +82,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
-    CSS_PATH = ["main.tcss", "comms.tcss"]
+    CSS_PATH = "main.tcss"
     def __init__(
         self,
         *,
@@ -165,10 +165,10 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
                 Static(f"Opening {self.conversation.initial_label}…", id="comms-opening"),
             )
         )
-        yield containers.Center(
+        yield SessionBody(
             self.thread_sidebar,
-            containers.Vertical(*content, id="comms-content"),
-        ).set_styles(layout=self.app.workspace_chrome)
+            SessionContents(*content, id="comms-content"),
+        )
 
     def create_chat(self) -> CommsChatView:
         """One route-bound conversation factory for compose and lazy hydration."""

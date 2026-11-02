@@ -2,7 +2,10 @@
 
 from abc import abstractmethod
 from functools import cached_property
-from textual.containers import Vertical
+from textual.containers import Center, Vertical
+from textual.view import FILL, WidgetView
+from textual.color import Color
+from ui_theme.scheme import BackgroundColour
 from textual.reactive import reactive
 from contextlib import contextmanager
 from metaclass_registry.mro_dispatch import handles
@@ -12,6 +15,7 @@ from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.navigation_target import NavigationTarget, NoTarget
+from toad.app_node import ToadNode
 from toad.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.widget_actions import DeclaredWidgetActions
@@ -164,13 +168,37 @@ class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, 
         return ()
 
 
-class SidebarSessionView[SidebarT: ThreadSidebar](SessionView):
+class SessionBody(WidgetView, ToadNode, Center):
+    """The shared sidebar/content layout reads its owner directly."""
+
+    width = height = FILL
+    align_horizontal = "center"
+
+    @property
+    def child_layout(self):
+        return self.app.workspace_chrome
+
+
+class SessionContents(WidgetView, Vertical):
+    """The conversation fills the space beside the retained sidebar."""
+
+    width = height = FILL
+
+
+class SidebarSessionView[SidebarT: ThreadSidebar](WidgetView, SessionView):
     """One session-owned sidebar survives construction, mounting and retirement.
 
     Composition mounts this resource; it does not create its identity. Chrome
     may ask for membership before the native tree exists, and close still owns
     the same resource after it has left that tree.
     """
+
+    width = height = FILL
+    layer_order = ("sidebar", "screen", "base")
+
+    @property
+    def paint_background(self) -> Color:
+        return self.app.color_system.color(BackgroundColour.name)
 
     @cached_property
     def _thread_sidebar_state(self) -> SidebarState:
