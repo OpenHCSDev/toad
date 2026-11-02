@@ -403,14 +403,8 @@ class TerminalApp:
                 self._require_starting(deadline)
                 time.sleep(.05)
             self.read_grid()
-            while True:
-                try:
-                    self.admission = self._observe(AdmitOperation).admitted(self.target)
-                    PhysicalOperation.publish(self.output / "build-admitted.json", self.admission)
-                    break
-                except PendingRun:
-                    self._require_starting(deadline)
-                    time.sleep(.1)
+            self.admission = self._observe(AdmitOperation).admitted(self.target)
+            PhysicalOperation.publish(self.output / "build-admitted.json", self.admission)
             # -o enables st's raw printer too. Even these printer keys pass the
             # same source admission as every later physical key/click.
             self.keys("ctrl+Print")
@@ -430,13 +424,21 @@ class TerminalApp:
             time.sleep(.02)
 
     def _observe(self, operation: type[ObserveOperation]):
-        self.terminal.platform.require(self.frontend)
-        packet = self._packet(operation(self.target, self.frontend, Path(__file__).resolve().parent))
-        # Only this new frontend inherited the reader. It decodes this data
-        # packet and applies it through Textual's own main-loop boundary.
-        self.observer.send_bytes(json.dumps(FieldCodec.encode(packet)).encode())
-        self._await_result(packet.parent, time.monotonic() + PhysicalOperation.timeout)
-        result = self.result(packet.parent)
+        deadline = time.monotonic() + PhysicalOperation.timeout
+        while True:
+            self.terminal.platform.require(self.frontend)
+            packet = self._packet(operation(self.target, self.frontend, Path(__file__).resolve().parent))
+            # Fresh read-only observations may see an ACP which has not yet
+            # published its root. No physical input is sent until it does;
+            # foreign resources and failed input are never retried here.
+            self.observer.send_bytes(json.dumps(FieldCodec.encode(packet)).encode())
+            self._await_result(packet.parent, deadline)
+            try:
+                result = self.result(packet.parent)
+                break
+            except PendingRun:
+                self._require_starting(deadline)
+                time.sleep(.1)
         if result.observation().frontend.process != self.frontend:
             raise ValueError("Observation belongs to another frontend incarnation")
         self.terminal.platform.require(self.terminal.identity)
