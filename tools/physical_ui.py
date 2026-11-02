@@ -475,7 +475,9 @@ class TerminalApp:
     def keys(self, *keys: str) -> RunObservation:
         return self.input("key", "--clearmodifiers", *keys)
 
-    def type_text(self, text: str) -> None:
+    def type_prompt(self, text: str) -> None:
+        """Use the prompt's normal-mode `i` action before sending literal text."""
+        self.keys("Escape", "i")
         self.input("type", "--clearmodifiers", "--delay", "1", text)
 
     def capture(self):
