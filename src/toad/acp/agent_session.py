@@ -5,18 +5,16 @@ from agent_comms.repo import Checkout
 
 import asyncio
 import os
-from abc import abstractmethod
-from collections.abc import Callable, Coroutine
-from dataclasses import dataclass, replace
+from collections.abc import Coroutine
+from dataclasses import replace
 from functools import partial
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from acp import ClientSideConnection, schema
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import HistoryOnlyQueueProjection
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.child_process import join_retirement
-from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
@@ -24,12 +22,19 @@ from agent_comms.session_load import (
     EnsuringSessionLoadPlan,
     SessionLoadPlan,
 )
-from agent_comms.thread_presentation import SessionDisconnected
 
 import toad
 from toad import constants
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.initialization import InitializedAgent
+from toad.acp.session_disposition import (
+    ActiveSessionDisposition,
+    FailedSessionDisposition,
+    HistoryOnlySessionDisposition,
+    RefusedSessionDisposition,
+    SessionDisposition,
+    SessionLifetime,
+)
 from toad.core import events as core_events
 from toad.core.events import (
     AgentFail,
@@ -45,98 +50,11 @@ if TYPE_CHECKING:
 PROTOCOL_VERSION = 1
 
 
-class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
-    accepts_updates = False
-    # Whether the agent process may hold this session, so that leaving a
-    # shared process has to ask it to close the session.
-    held_by_agent = True
-    unready_line: ClassVar[str] = "No agent is connected to this tab. Your draft is kept."
-
-    def close(self, agent):
-        return self
-
-    def present[T](self, ordinary: T, show: Callable[[SessionDisconnected], T]) -> T:
-        """One session presentation, projected into a row or an input notice."""
-        return ordinary
-
-    @property
-    def refusal_notice(self) -> str:
-        """Explain this session's refusal without borrowing the thread's activity."""
-        return self.present(self.unready_line, lambda status: status.notice)
-
-    async def present_failure(self, failure: AgentFail, view) -> None:
-        await failure.present(view)
-
-
-class UnopenedSessionDisposition(SessionDisposition):
-    held_by_agent = False
-
-
-class UnavailableSessionDisposition(SessionDisposition):
-    @property
-    @abstractmethod
-    def status(self) -> SessionDisconnected: ...
-
-    def present[T](self, ordinary: T, show: Callable[[SessionDisconnected], T]) -> T:
-        return show(self.status)
-
-
-@dataclass(frozen=True)
-class ActiveSessionDisposition(SessionDisposition):
-    session: AgentSession
-    accepts_updates = True
-    unready_line = "Connecting to agent…"
-
-    def close(self, agent):
-        agent.controller.connection_closed()
-        return ClosedSessionDisposition()
-
-
-class ClosedSessionDisposition(UnavailableSessionDisposition):
-    status = SessionDisconnected("Session closed. Your draft is kept.")
-
-
-@dataclass(frozen=True)
-class HistoryOnlySessionDisposition(UnavailableSessionDisposition, ActiveSessionDisposition):
-    """The thread's owner runs another Core: its history is open, its input refused."""
-
-    owner: IncompatibleOwner
-
-    @property
-    def status(self) -> SessionDisconnected:
-        return SessionDisconnected(self.owner.line())
-
-
-@dataclass(frozen=True)
-class FailedSessionDisposition(UnavailableSessionDisposition):
-    """The session's current terminal failure, retained by its lifecycle owner."""
-
-    failure: AgentFail
-
-    @property
-    def status(self) -> SessionDisconnected:
-        return SessionDisconnected(
-            self.failure.message, details=tuple(self.failure.details.splitlines())
-        )
-
-    async def present_failure(self, failure: AgentFail, view) -> None:
-        if failure is self.failure:
-            await failure.present_session(view)
-        else:
-            await super().present_failure(failure, view)
-
-
-class RefusedSessionDisposition(FailedSessionDisposition):
-    """The agent process answered the handshake with an error; it holds no session."""
-
-    held_by_agent = False
-
-
 class LoginNotReady(ValueError):
     """A terminal login finished, but the session it restarted did not become ready."""
 
 
-class AgentSession:
+class AgentSession(SessionLifetime):
     """Own readiness and durable session effects; binding identity stays on the controller."""
 
     reconnect_timeout_seconds = 30
@@ -173,10 +91,6 @@ class AgentSession:
     def capabilities(self):
         return self.agent.process.initialization.capabilities
 
-    @property
-    def accepts_updates(self):
-        return self.disposition.accepts_updates
-
     def accepts_session(self, session_id: str | None) -> bool:
         """Only this active session may consume work for its current binding."""
         return self.accepts_updates and self.agent.session_id == session_id
@@ -203,7 +117,7 @@ class AgentSession:
         await self._track_operation(connection.close_session(self.agent.session_id))
 
     def close(self) -> None:
-        self.disposition = self.disposition.close(self.agent)
+        self.disposition = self.disposition.close(self.agent.controller)
 
     def reopen(self) -> None:
         self.disposition = ActiveSessionDisposition(self)

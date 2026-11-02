@@ -1851,9 +1851,6 @@ class Conversation(
     def queue_source(self) -> QueueSource:
         return self.operational_sources
 
-    def queue_evidence_changed(self) -> None:
-        self.submissions.publish_pending()
-
     @on(QueueEvidenceChanged)
     def queue_observation_changed(self, event: QueueEvidenceChanged) -> None:
         event.stop()

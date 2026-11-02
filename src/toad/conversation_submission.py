@@ -34,11 +34,10 @@ from toad.queue_capability import QueueActions, QueueEvidence
 from toad.core.input_events import UserInputSubmitted
 from toad.input_decision import InputDecision, InputRefused
 from toad.input_history import InputHistory
-from toad.widgets.prompt import Prompt
+from toad.agent_presentation import AgentPresentation
+from toad.message_destination import MessageDestination
 
 if TYPE_CHECKING:
-    from toad.agent_presentation import AgentPresentation
-    from toad.conversation_kind import ConversationKind
     from toad.widgets.conversation import Conversation
 
 @dataclass(frozen=True)
@@ -383,7 +382,7 @@ class MessageSubmissionExecution(SubmissionExecution):
     """An original Core publication, including a worker whose outcome is UNKNOWN."""
 
     def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission,
-                 root: Path, conversation: ConversationKind, current: Callable[[], bool],
+                 root: Path, conversation: MessageDestination, current: Callable[[], bool],
                  present: Callable[[Message], Awaitable[None]]):
         super().__init__(owner, submission)
         self.root, self.conversation = root, conversation
@@ -531,8 +530,7 @@ class ConversationSubmissions:
             execution.native_input_presented(started)
 
     def publish_pending(self):
-        if (prompt := self.view.query_one_optional(Prompt)) is not None:
-            prompt.sync_queue()
+        self.view.queue_evidence_changed()
 
     def retire(self, execution: SubmissionExecution) -> None:
         if execution in self.active:

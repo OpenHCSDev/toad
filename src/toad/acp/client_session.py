@@ -15,11 +15,11 @@ from agent_comms.input_attempt import NotSentInput
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from toad.core.events import LogAgentFail
 from .queue_attachment import QueueActionRefused
+from .session_disposition import SessionDisposition
 from .status import ConfirmedPromptResult, PromptResult, PromptSubmissionOutcome, StopReason
 
 if TYPE_CHECKING:
     from .agent import Agent
-    from .agent_session import SessionDisposition
     from .agent_controller import SessionBinding
 from acp.exceptions import RequestError
 

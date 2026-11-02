@@ -36,7 +36,9 @@ class DeliveryFailureView(ToadNode, Widget):
         return self.submissions.send_block_reason
 
     def queue_evidence_changed(self) -> None:
-        """An unbound delivery surface has no queue consumer to repaint."""
+        """The composed surface owns its prompt's queue repaint."""
+        if self.is_mounted:
+            self.prompt.sync_queue()
 
     def refresh_submission_state(self) -> None:
         self.queue_evidence_changed()

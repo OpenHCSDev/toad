@@ -32,6 +32,7 @@ from agent_comms.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
 
 from toad.conversation_submission import ConversationSubmissions
+from toad.message_destination import MessageDestination
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
 from toad.status_thread import NoStatusThread, StatusThread
@@ -53,7 +54,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class ConversationKind(DeclaredFamily, affix="Conversation"):
+class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation"):
     history_view: ClassVar[type[ConversationHistoryView]]
 
     @property
@@ -66,9 +67,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @abstractmethod
     def destination(self, references: CurrentDisplayReferences) -> NamedTarget: ...
-
-    @abstractmethod
-    def retained_target(self) -> NamedTarget: ...
 
     def threads_needed(self, snapshot: RegistrySnapshot, me: str):
         return ()
@@ -109,12 +107,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
         return observation.channel_unread(self.destination(references).name)
-
-    def send_target(self) -> NamedTarget:
-        return self.retained_target()
-
-    def read_only(self, comms: Comms) -> bool:
-        return False
 
     @classmethod
     @abstractmethod

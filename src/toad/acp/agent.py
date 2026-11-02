@@ -28,7 +28,8 @@ from toad.acp.agent_configuration import (
 from toad.acp.agent_controller import AgentController
 from toad.acp.agent_log import AgentLog
 from toad.acp.agent_process import AgentProcess
-from toad.acp.agent_session import AgentSession, SessionDisposition
+from toad.acp.agent_session import AgentSession
+from toad.acp.session_disposition import SessionDisposition
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.client_session import ClientSessionRequest

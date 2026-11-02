@@ -30,6 +30,7 @@ from toad.plan import PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
 
 from toad.acp.queue_attachment import QueueActionRefused
+from toad.acp.session_disposition import SessionCloseTarget
 
 from .prompt import build as build_prompt
 from .session_output import SessionOutput
@@ -120,7 +121,7 @@ class ProcessTaskRunner(TaskRunner):
         return await self.processes.submit(task)
 
 
-class AgentController(OperationalTerminalOwner):
+class AgentController(SessionCloseTarget, OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
 
     def __init__(self, agent: Agent, transcripts: CoordinationTranscriptReader) -> None:

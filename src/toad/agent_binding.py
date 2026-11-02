@@ -16,7 +16,7 @@ from agent_comms.nominal.field_codec import AcpSessionId, GoalId
 from textual.content import Content
 
 from toad.acp.agent_configuration import AgentConfiguration
-from toad.acp.agent_session import SessionDisposition, UnopenedSessionDisposition
+from toad.acp.session_disposition import SessionDisposition, UnopenedSessionDisposition
 from toad.acp.thread_read import NoPendingThreadRead, ThreadRead
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.conversation_turn import NoTurn

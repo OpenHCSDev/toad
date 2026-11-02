@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.content import Content
+from textual.dom import DOMNode
+from toad.acp.session_disposition import SessionDisposition
 
 from toad import messages
 
 if TYPE_CHECKING:
-    from toad.acp.agent_session import SessionDisposition
     from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
-    from toad.widgets.prompt import PromptTextArea
 
 
 class InputDecision(DeclaredFamily, ABC):
@@ -27,7 +27,7 @@ class InputDecision(DeclaredFamily, ABC):
     def agent_info_text(self, agent_info: Content) -> Content: ...
 
     @abstractmethod
-    def announce(self, editor: PromptTextArea) -> None: ...
+    def announce(self, editor: DOMNode) -> None: ...
 
     @abstractmethod
     def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart: ...
@@ -42,7 +42,7 @@ class InputAccepted(InputDecision):
     def agent_info_text(self, agent_info: Content) -> Content:
         return agent_info
 
-    def announce(self, editor: PromptTextArea) -> None:
+    def announce(self, editor: DOMNode) -> None:
         """Accepted input needs no refusal feedback."""
 
     def begin_submission(self, owner: ConversationSubmissions, submission: PromptInputSubmission) -> SubmissionStart:
@@ -62,7 +62,7 @@ class InputRefused(InputDecision):
     def agent_info_text(self, agent_info: Content) -> Content:
         return Content(self.message)
 
-    def announce(self, editor: PromptTextArea) -> None:
+    def announce(self, editor: DOMNode) -> None:
         editor.app.bell()
         editor.post_message(messages.Flash(self.message, "error"))
 
