@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Callable
 
 from acp import schema as acp_protocol
 from toad.widgets.markdown_note import MarkdownNote
+from toad.native_node_meta import NativeNodeMeta
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
@@ -444,6 +445,7 @@ class ConversationSessionBinding(
     ThreadStatusOwner,
     DeliveryFailureView,
     containers.Vertical,
+    metaclass=NativeNodeMeta,
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
