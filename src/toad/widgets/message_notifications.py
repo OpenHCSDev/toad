@@ -17,6 +17,7 @@ from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.message_reference import MessageReference
 from toad.app_node import ToadNode
+from toad.native_node_meta import NativeNodeMeta
 from toad.messages import QueueEvidenceChanged
 
 from toad.notification_status import (
@@ -122,8 +123,15 @@ class VisibleReadMarking(ToadNode):
         self.read_visible().start(self)
 
 
-class HistoryNotifications:
+class HistoryNotifications(ToadNode, metaclass=NativeNodeMeta):
     """Visible history rows subscribe to Core; paging never decides when outcomes changed."""
+
+    @property
+    @abstractmethod
+    def can_draw_on_screen(self) -> bool: ...
+
+    @abstractmethod
+    def notification_targets(self) -> tuple[SourceNotifications, ...]: ...
 
     NOTIFICATION_GROUP = "message-notifications"
     notification_operation = LiveNotificationRead

@@ -10,7 +10,6 @@ from acp.schema import PromptResponse
 from toad.acp.status import StopReason
 from support.agents import AppAgents, command
 from toad.acp.agent import Agent
-from toad.command_catalog import CommandCatalog
 from toad.db import DB
 from toad.widgets.prompt import AgentInfo
 from toad.widgets.model_switcher import ClearModelSearchAction
@@ -67,7 +66,7 @@ class Picker:
         return [options.get_option_at_index(i).id for i in range(options.option_count)]
 
     async def open_with_command(self):
-        await CommandCatalog.execute("/model", self.conversation)
+        await self.conversation.execute_command("/model")
         await self.ui.until(lambda: self.widget.is_open, why="the picker to open")
         await self.ui.step()
 

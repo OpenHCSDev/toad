@@ -715,7 +715,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self.sync_queue_separator()
 
     def sync_queue_separator(self) -> None:
-        self.operational_submissions.view.goal_bar._queue_separator_update()
+        from toad.widgets.conversation import Conversation
+
+        self.query_ancestor(Conversation).goal_bar._queue_separator_update()
 
     def sync_queue(self) -> None:
         if self.is_mounted:
