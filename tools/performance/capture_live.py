@@ -1,222 +1,70 @@
-"""Measure an explicitly selected live Toad process on required --display.
+"""Read-only py-spy capture of an explicit live PID on an isolated display.
 
-Input controllers use this same XvfbDisplay.input owner and terminal launch identity.
---profile-seconds  record a py-spy speedscope profile.
---frame-meter N    time UI work per frame and input-to-paint for N seconds (frame_meter.py).
---targets          write where sidebar thread rows and session tabs are (frame_meter.targets).
+In-process observations belong to physical_ui.TerminalApp's startup lifetime.
+This command never injects frame meters, callbacks, heap changes or UI input.
 """
 
 import argparse
-from contextlib import AbstractContextManager, ExitStack
-import ctypes
 import json
-import os
-import socket
-import struct
 from pathlib import Path
 import subprocess
+import sys
 import time
 
-import psutil
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.nominal.field_codec import FieldCodec
 
-
-class XvfbDisplay(AbstractContextManager):
-    """Own a connection to a local framebuffer, resolving X11 aliases at Xlib."""
-
-    def __init__(self, name: str):
-        if not name:
-            raise ValueError("An explicit isolated Xvfb display is required")
-        x11 = ctypes.CDLL('libX11.so.6')
-        x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
-        x11.XOpenDisplay.restype = ctypes.c_void_p
-        x11.XConnectionNumber.argtypes = [ctypes.c_void_p]
-        x11.XConnectionNumber.restype = ctypes.c_int
-        x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
-        x11.XCloseDisplay.restype = ctypes.c_int
-        connection = x11.XOpenDisplay(name.encode())
-        if not connection:
-            raise ValueError(f'Cannot connect to isolated Xvfb display: {name}')
-        with ExitStack() as close_display:
-            close_display.callback(x11.XCloseDisplay, connection)
-            with socket.fromfd(x11.XConnectionNumber(connection), socket.AF_UNIX, socket.SOCK_STREAM) as peer:
-                pid, uid, _gid = struct.unpack('3i', peer.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
-                address = Path(os.fsdecode(peer.getpeername()).lstrip('\0'))
-            if address.name == 'X0' or uid != os.getuid() or Path(psutil.Process(pid).exe()).name != 'Xvfb':
-                raise ValueError(f'Not an owned isolated Xvfb resource: {name}')
-            self.name = name
-            self.close_display = close_display.pop_all()
-
-    @property
-    def environment(self) -> dict[str, str]:
-        return {**os.environ, "DISPLAY": self.name}
-
-    @classmethod
-    def input(cls, frontend: psutil.Process, created: float, window: int, *commands: str) -> None:
-        """Take the display from the actual st frontend, never the controller environment."""
-        if frontend.create_time() != created or not frontend.is_running():
-            raise ValueError("Frontend launch identity changed")
-        with cls(frontend.environ()["DISPLAY"]) as display:
-            env = display.environment
-            owner = subprocess.check_output(
-                ["xprop", "-display", display.name, "-id", str(window), "_NET_WM_PID"],
-                env=env, text=True, timeout=5,
-            )
-            if int(owner.partition("=")[2].strip()) != frontend.pid:
-                raise ValueError("Window does not belong to the frontend on its display")
-            print(json.dumps({"at_ns": time.time_ns(), "monotonic_ns": time.monotonic_ns(),
-                  "input_target": {"display": display.name, "window": window,
-                  "frontend_pid": frontend.pid, "created": created}}), flush=True)
-            subprocess.run(
-                ["xdotool", "windowfocus", "--sync", str(window), *commands],
-                env=env, check=True,
-            )
-
-    def __exit__(self, *exception):
-        return self.close_display.__exit__(*exception)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from physical_ui import XvfbDisplay
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pid", type=int, required=True)
-    parser.add_argument("--display", required=True, help="Explicit isolated Xvfb display shared with the input controller")
+    parser.add_argument("--display", required=True, help="Explicit owned isolated Xvfb display")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--name", default="live-" + time.strftime("%Y%m%d-%H%M%S"))
-    parser.add_argument("--profile-seconds", type=int, default=0)
+    parser.add_argument("--profile-seconds", type=int, required=True)
     parser.add_argument("--rate", type=int, default=100)
     parser.add_argument("--py-spy", default="py-spy")
     parser.add_argument("--gil", action="store_true")
-    parser.add_argument("--idle", action="store_true", help="Include samples of threads blocked in calls")
+    parser.add_argument("--idle", action="store_true")
     parser.add_argument("--native", action="store_true")
-    parser.add_argument("--frame-meter", type=float, default=0)
-    parser.add_argument("--targets", action="store_true")
-    parser.add_argument("--profile-layout", type=int, default=0, help="Profile the next N calls of --profile-target")
-    parser.add_argument("--profile-target", default="textual.screen:Screen._refresh_layout",
-                        help="module:Class.method profiled by --profile-layout")
-    parser.add_argument("--profile-within", default="",
-                        help="Profile --profile-target only inside calls of this module:Class.method (frame_meter.profile_within); "
-                             "'slow' profiles every call and keeps those over --profile-min-ms (frame_meter.profile_slow)")
-    parser.add_argument("--profile-min-ms", type=float, default=0.0,
-                        help="With --profile-within: keep only scopes whose target call took this long (profiled)")
-    parser.add_argument("--trace-calls", default="", help="Comma-separated module:Class.method targets to time")
-    parser.add_argument("--trace-reflows", action="store_true", help="Record each scoped reflow (frame_meter.trace_reflows)")
-    parser.add_argument("--trace-rules", action="store_true", help="Record each style-rule change (frame_meter.trace_rules)")
-    parser.add_argument("--trace-exit", action="store_true", help="Record who asks the app to exit (frame_meter.trace_exit)")
-    parser.add_argument("--trace-posts", action="store_true", help="Messages posted to screens, 40 s (frame_meter.trace_posts)")
-    parser.add_argument("--trace-abc", action="store_true", help="Record who grows ABC caches, 40 s (frame_meter.trace_abc_growth)")
-    parser.add_argument("--freeze-heap", action="store_true", help="Experiment: freeze the heap now (frame_meter.freeze_heap)")
-    parser.add_argument("--heap-census", type=float, default=0,
-                        help="After N seconds count the collector's tracked objects by type (frame_meter.heap_census)")
-    parser.add_argument("--collect-all", type=float, default=0,
-                        help="After N seconds run one full collection, timing its scan and its frees (frame_meter.collect_all)")
-    parser.add_argument("--heap-components", type=float, default=0,
-                        help="After N seconds record how the unfrozen heap hangs together (frame_meter.heap_components)")
-    parser.add_argument("--trace-garbage", action="store_true",
-                        help="Count by type what each large collection found, for 12 s (frame_meter.trace_garbage)")
-    parser.add_argument("--remeasure", type=int, default=0,
-                        help="Arrange the screen at N new widths and time each pass (frame_meter.remeasure)")
-    parser.add_argument("--repaint", type=int, default=0,
-                        help="Repaint the history viewport N times cold and warm, timing each (frame_meter.repaint)")
-    parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for read-only py-spy profiling only")
+    parser.add_argument("--sudo", action="store_true", help="Non-interactive sudo for read-only py-spy only")
     args = parser.parse_args()
-    if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets or args.profile_layout or args.trace_calls
-            or args.trace_reflows or args.trace_rules or args.trace_exit or args.trace_garbage or args.collect_all or args.heap_components or args.heap_census or args.freeze_heap or args.trace_abc or args.trace_posts
-            or args.remeasure or args.repaint):
-        parser.error("Choose --profile-seconds, --frame-meter, --targets or --profile-layout")
+    if args.profile_seconds <= 0 or args.rate <= 0:
+        parser.error("Profile duration and sampling rate must be positive")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
     args.output_dir = args.output_dir.expanduser().resolve()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     prefix = args.output_dir / args.name
     manifest_path = Path(str(prefix) + "-manifest.json")
-    if manifest_path.exists():
+    profile_path = Path(str(prefix) + ".speedscope.json")
+    if manifest_path.exists() or profile_path.exists():
         parser.error("Choose a fresh capture name")
-    process = psutil.Process(args.pid)
-    created = process.create_time()
+    identity = ProcessIdentity.capture(args.pid)
+    manifest = {"process": FieldCodec.encode(identity), "started_ns": time.time_ns(),
+                "executable": str(Path(f"/proc/{identity.pid}/exe").resolve(strict=True))}
     privilege = ["sudo", "-n"] if args.sudo else []
-    manifest = {"pid": args.pid, "created": created, "executable": process.exe(), "started_ns": time.time_ns()}
-    close_display = ExitStack()
-    display = close_display.enter_context(XvfbDisplay(args.display))
-    manifest["display"] = display.name
     try:
-        if args.profile_seconds:
-            result = subprocess.run([*privilege, args.py_spy, "record", "--pid", str(args.pid),
-                "--duration", str(args.profile_seconds), "--rate", str(args.rate), "--format", "speedscope",
-                "--output", str(prefix) + ".speedscope.json", *(["--gil"] if args.gil else []),
-                *(["--idle"] if args.idle else []), *(["--native"] if args.native else [])],
-                timeout=args.profile_seconds + 30)
+        with XvfbDisplay(args.display) as display:
+            manifest["display"] = display.name
+            result = subprocess.run(
+                [*privilege, args.py_spy, "record", "--pid", str(identity.pid),
+                 "--duration", str(args.profile_seconds), "--rate", str(args.rate),
+                 "--format", "speedscope", "--output", str(profile_path),
+                 *(["--gil"] if args.gil else []), *(["--idle"] if args.idle else []),
+                 *(["--native"] if args.native else [])],
+                timeout=args.profile_seconds + 30,
+            )
             manifest["profile_returncode"] = result.returncode
             result.check_returncode()
-        calls = []
-        if args.targets:
-            calls.append((str(prefix) + "-targets", "targets", ""))
-        if args.frame_meter > 0:
-            calls.append((str(prefix) + "-frames", "install", f", seconds={args.frame_meter!r}"))
-        if args.profile_layout and args.profile_within == "slow":
-            calls.append((str(prefix) + "-layout", "profile_slow",
-                          f", calls={args.profile_layout!r}, target={args.profile_target!r}, min_ms={args.profile_min_ms!r}"))
-        elif args.profile_layout and args.profile_within:
-            calls.append((str(prefix) + "-layout", "profile_within",
-                          f", calls={args.profile_layout!r}, target={args.profile_target!r}, within={args.profile_within!r}, min_ms={args.profile_min_ms!r}"))
-        elif args.profile_layout:
-            calls.append((str(prefix) + "-layout", "profile_layout",
-                          f", calls={args.profile_layout!r}, target={args.profile_target!r}"))
-        if args.trace_calls:
-            calls.append((str(prefix) + "-calls", "trace_calls",
-                          f", targets={args.trace_calls.split(',')!r}, seconds={max(args.frame_meter, 40)!r}"))
-        if args.remeasure:
-            calls.append((str(prefix) + "-remeasure", "remeasure", f", iterations={args.remeasure!r}"))
-        if args.repaint:
-            calls.append((str(prefix) + "-repaint", "repaint", f", iterations={args.repaint!r}"))
-        if args.trace_exit:
-            calls.append((str(prefix) + "-exit", "trace_exit", ""))
-        if args.trace_rules:
-            calls.append((str(prefix) + "-rules", "trace_rules", f", seconds={max(args.frame_meter, 40)!r}"))
-        if args.trace_posts:
-            calls.append((str(prefix) + "-posts", "trace_posts", ""))
-        if args.trace_abc:
-            calls.append((str(prefix) + "-abc", "trace_abc_growth", ""))
-        if args.freeze_heap:
-            calls.append((str(prefix) + "-freeze", "freeze_heap", ""))
-        if args.heap_census:
-            calls.append((str(prefix) + "-heap", "heap_census", f", after={args.heap_census!r}"))
-        if args.collect_all:
-            calls.append((str(prefix) + "-collect", "collect_all", f", after={args.collect_all!r}"))
-        if args.heap_components:
-            calls.append((str(prefix) + "-components", "heap_components", f", after={args.heap_components!r}"))
-        if args.trace_garbage:
-            calls.append((str(prefix) + "-garbage", "trace_garbage", ", seconds=150"))
-        if args.trace_reflows:
-            calls.append((str(prefix) + "-reflows", "trace_reflows", f", seconds={max(args.frame_meter, 40)!r}"))
-        if calls:
-            assert process.is_running() and process.create_time() == created, "Target process identity changed"
-            meter = Path(__file__).resolve().with_name("frame_meter.py")
-            entered = str(prefix) + "-remote-entered.json"
-            lines = [
-                "import importlib.util as _spec_util, json as _json, os as _os, sys as _sys, time as _time",
-                # One meter module per process: snapshots record their pauses where the meter reads them.
-                "_meter = _sys.modules.get('frame_meter')",
-                "if _meter is None:",
-                f"    _spec = _spec_util.spec_from_file_location('frame_meter', {str(meter)!r})",
-                "    _meter = _sys.modules['frame_meter'] = _spec_util.module_from_spec(_spec)",
-                "    _spec.loader.exec_module(_meter)",
-                *(f"_meter.{call}(expected_pid={args.pid}, output={output + '.json'!r}{extra})"
-                  for output, call, extra in calls),
-                f"with open({entered!r}, 'w') as _out: _json.dump({{'pid': _os.getpid(), 'entered_ns': _time.time_ns()}}, _out)",
-            ]
-            script = Path(str(prefix) + "-remote.py")
-            script.write_text("\n".join(lines) + "\n")
-            subprocess.run([process.exe(), "-c",
-                f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
-            deadline = time.monotonic() + max(args.frame_meter, 60 if args.profile_layout or args.remeasure or args.repaint else 0) + 20
-            outputs = [output + ".json" for output, _call, _extra in calls]
-            while time.monotonic() < deadline and not all(Path(path).exists() for path in outputs):
-                time.sleep(.1)
-            manifest["outputs"] = {path: Path(path).exists() for path in outputs}
-            manifest["entered"] = Path(entered).exists()
+            if not identity.alive():
+                raise RuntimeError("The selected process birth ended during profiling")
     finally:
-        close_display.close()
         manifest["finished_ns"] = time.time_ns()
-        manifest_path.write_text(json.dumps(manifest, indent=2))
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
         print(manifest_path)
 
 
