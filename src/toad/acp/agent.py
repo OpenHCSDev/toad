@@ -242,14 +242,15 @@ class Agent(AgentBase):
     def detach_surface(self, surface: Conversation) -> None:
         self.controller.detach(surface)
 
-    def receive_coordination(self, update: CoordinationChangedUpdate, session_id: AcpSessionId) -> None:
-        """Consume one original publication and refresh its derived projections."""
+    def receive_coordination(self, update: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
+        """Consume the fact only through its originally captured session authority."""
+        authority.require()
         self.controller.transcripts.access.selected(update.wire_root)
         self.coordination_attachment = CoordinatedThread(update)
         self.project_root_path = update.worktree.path
         self.context_measurement = ContextMeasurement.saved(update.context_usage)
         self.update_status_line()
-        self.coordination_attachment.publish(self, session_id)
+        self.coordination_attachment.publish(self, authority.binding)
         self.session.coordinated_title(update.title)
 
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:

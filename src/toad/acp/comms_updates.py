@@ -65,6 +65,7 @@ class CommsUpdateConsumer(MroDispatch):
     ) -> None:
         self.agent = agent
         self.session_id = session_id
+        self.authority = ClientSessionRequest(agent, session_id)
         self.delivery: ResponseDelivery = UnroutedResponse()
         self.response_type: type[ResponseStream] = ResponseStream
         self.compaction: CompactionReply = CompactionReply()
@@ -74,7 +75,7 @@ class CommsUpdateConsumer(MroDispatch):
     async def consume_metadata(self, metadata) -> None:
         from .sdk_boundary import DecodeCommsMetadataTask
 
-        authority = ClientSessionRequest(self.agent, self.session_id)
+        authority = self.authority
         facts = await self.agent.controller.task_runner.run(
             DecodeCommsMetadataTask(metadata)
         )
@@ -97,7 +98,7 @@ class CommsUpdateConsumer(MroDispatch):
         """Ingress text kind and its original append claim determine the stream."""
         return self.response_type(
             self.delivery,
-            source_claim=self.agent.controller.session.output.assistant,
+            source_claim=self.authority.binding.output.assistant,
         )
 
     @handles(InputFailedUpdate)
@@ -118,7 +119,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(AssistantOutput)
     def assistant_committed(self, output: AssistantOutput, source: NativeCommittedPrefix) -> None:
-        self.agent.controller.session.output.assistant_committed(source)
+        self.authority.binding.output.assistant_committed(source)
 
     @handles(ToolOutput)
     def tool_committed(self, output: ToolOutput, source: NativeCommittedPrefix) -> None:
@@ -126,7 +127,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(NativeRoundCommittedUpdate)
     def native_round_committed(self, update: NativeRoundCommittedUpdate) -> None:
-        self.agent.controller.session.output.round_committed(update.identity)
+        self.authority.binding.output.round_committed(update.identity)
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(TurnChangedUpdate)
@@ -179,7 +180,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CoordinationChangedUpdate)
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
-        self.agent.receive_coordination(update, self.session_id)
+        self.agent.receive_coordination(update, self.authority)
 
     @handles(GoalChangedUpdate)
     def goal_changed(self, update: GoalChangedUpdate) -> None:

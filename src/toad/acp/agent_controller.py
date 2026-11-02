@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from acp.exceptions import RequestError
 from acp.helpers import ContentBlock, text_block
 from agent_comms.acp_extension import (
+    AgentCommsUpdate,
     ClearQueueRequest,
     CommsRequest,
     CompactRequest,
@@ -77,6 +78,9 @@ class SessionBinding:
     def accepts_notification(self, session_id: AcpSessionId) -> bool:
         return False
 
+    def publication(self, update: AgentCommsUpdate) -> core_events.CommsUpdated:
+        return core_events.CommsUpdated(update)
+
     def accepts_snapshot(
         self, identity: TranscriptReadIdentity, coordination: CoordinationAttachment,
         destination: AcpSessionId,
@@ -101,6 +105,9 @@ class BoundSessionBinding(SessionBinding):
 
     def accepts_notification(self, session_id: AcpSessionId) -> bool:
         return self.identity == session_id
+
+    def publication(self, update: AgentCommsUpdate) -> core_events.CommsUpdated:
+        return core_events.CommsUpdated(update, self.identity)
 
 
 class TaskRunner(ABC):
@@ -183,7 +190,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
         agent._post_queue_view()
         agent._post_private_cursor()
         # The conversation owns its history refresh; only report the attachment.
-        agent.coordination_attachment.publish(agent, agent.session_id)
+        agent.coordination_attachment.publish(agent, self.session)
         binding.schedule_terminal_presentation(self)
 
     async def publish_transcript_snapshot(

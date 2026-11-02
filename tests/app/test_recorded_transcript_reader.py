@@ -1,7 +1,6 @@
 """A recorded transcript keeps its selected source through snapshot, refresh and presentation, with no live owner."""
 
 from agent_comms.repo import Checkout
-from agent_comms.nominal.field_codec import AcpSessionId
 import json
 from dataclasses import replace
 
@@ -16,7 +15,6 @@ from agent_comms.threads import Thread
 from agent_comms.ui_model.observation import NotPublished
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
-from toad.acp.comms_updates import OwnerSnapshotConsumer
 from toad.session_scope import KnownTranscript
 
 
@@ -58,12 +56,11 @@ async def test_recorded_snapshot_stays_immutable_when_original_grows_and_rejects
 
 def test_recorded_presentation_does_not_acquire_live_owner(recorded):
     live, source, _native = recorded
-    presentation = live.views.thread_presentations(("reader",)).read("reader")
     identity = live.transcripts.capture_page_read("reader", page_source=RecordedPageSource(source.key)).identity
-    # There is no live agent/controller to acquire: the recorded declaration
-    # cannot publish a turn even when delivered to the ordinary snapshot consumer.
-    consumer = OwnerSnapshotConsumer(None, AcpSessionId("authored"), turn_token=1)
-    consumer.thread_presentation(replace(presentation, read_identity=identity))
+    # The recorded identity owns this refusal; constructing a native consumer
+    # with a fake None agent does not exercise an admitted native session.
+    identity.publish_turn(lambda root, thread: pytest.fail(
+        "Recorded history tried to acquire a live owner"))
     assert TranscriptSnapshotUpdate.capture(live.transcripts, "reader",
                                             page_source=RecordedPageSource(source.key)).identity == identity
 

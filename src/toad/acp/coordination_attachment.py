@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from agent_comms.acp_extension import CoordinationChangedUpdate, PromptRequest, QueueScope
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import NoGoal
-from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.order_tools import InputDeliveryRead, OwnerGoalRead
 from agent_comms.owner_connection import socket_path
 from agent_comms.repo import Checkout
@@ -22,10 +21,11 @@ from agent_comms.ui_model.observation import ReadOwnerOperation
 from pydantic import JsonValue
 
 from toad.acp.client_session import ClientSessionRequest
+from toad.acp.agent_controller import SessionBinding
 from toad.acp.comms_updates import OwnerSnapshotConsumer
 from toad.acp.thread_read import NoPendingThreadRead, PendingThreadRead, ThreadRead
 from toad.acp.tool_source import AssignedToolCallSource, ToolCallSource, UncoordinatedToolCallSource
-from toad.core.events import CommsUpdated, CoreEventStream, ThreadRowStateChanged
+from toad.core.events import CoreEventStream, ThreadRowStateChanged
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
@@ -63,7 +63,7 @@ class CoordinationAttachment:
     def require_source(self, update: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
         raise ValueError(self.retired_notice)
 
-    def publish(self, agent: Agent, session_id: AcpSessionId | None) -> None:
+    def publish(self, agent: Agent, binding: SessionBinding) -> None:
         """No coordination publication exists."""
 
     def publish_row_state(self, events: CoreEventStream) -> None:
@@ -155,8 +155,8 @@ class CoordinatedThread(CoordinationAttachment):
         if not self.matches_source(update):
             raise ValueError(self.changed_notice)
 
-    def publish(self, agent: Agent, session_id: AcpSessionId | None) -> None:
-        agent.events.publish(CommsUpdated(self.update, session_id))
+    def publish(self, agent: Agent, binding: SessionBinding) -> None:
+        agent.events.publish(binding.publication(self.update))
 
     def publish_row_state(self, events: CoreEventStream) -> None:
         events.publish(ThreadRowStateChanged(frozenset((self.update.thread.name,))))
@@ -246,7 +246,7 @@ class CoordinatedThread(CoordinationAttachment):
     def apply_project(self, agent: Agent, project: Checkout) -> None:
         agent.coordination_attachment = replace(self, update=replace(self.update, worktree=project))
         agent.project_root_path = project.path
-        agent.coordination_attachment.publish(agent, agent.session_id)
+        agent.coordination_attachment.publish(agent, agent.controller.session)
 
     async def rename(self, agent: Agent, name: str) -> None:
         if not agent.session.accepts_session(agent.session_id):
@@ -261,7 +261,7 @@ class CoordinatedThread(CoordinationAttachment):
         )
         self.require_current(agent, authority)
         agent.coordination_attachment.apply_name(agent, result.current, name)
-        agent.coordination_attachment.publish(agent, agent.session_id)
+        agent.coordination_attachment.publish(agent, authority.binding)
 
     def apply_name(self, agent: Agent, name: str, title: str) -> None:
         agent.coordination_attachment = replace(self, update=replace(
