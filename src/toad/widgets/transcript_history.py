@@ -279,9 +279,11 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self.prepared: Final[PreparedTranscriptPage] = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size)
-        # Fragments drawn as plain text until their styled lines arrive, by identity.
+        # Fragments drawn with their previous styled rows until new ones arrive, by identity.
         self._pending: dict[int, TranscriptFragment] = {}
         self._render_task: asyncio.Task[None] | None = None
+        # Styling a range's never-styled fragments before the page measures them.
+        self._style_task: asyncio.Task[None] | None = None
         # The rows this page draws are the rows layout last measured: each
         # drawn fragment, its first row and its lines at the measured width.
         # A changed range draws nothing new until layout has given it a box.
@@ -334,6 +336,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def on_unmount(self) -> None:
         if self._render_task is not None:
             self._render_task.cancel()
+        if self._style_task is not None:
+            self._style_task.cancel()
 
     def lines_replaced(self, fragments: Iterable[TranscriptFragment]) -> None:
         """These fragments of this page now hold new lines; each one's rows decide whether they
@@ -362,15 +366,37 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._measured = False
         self.refresh(layout=True)
 
-    def _lines(self, fragment: TranscriptFragment, width: int) -> BlockLines:
+    def _lines(self, fragment: TranscriptFragment, width: int) -> BlockLines | None:
+        """The fragment's styled rows, or the styled rows it drew before a status change."""
         theme = self.app.colours.line_theme
         lines = fragment.lines_for(width, theme)
         if lines is None:
             self._pending[id(fragment)] = fragment
-            lines = fragment.plain_lines(width, self.app.colours.line_renderer)
+            lines = fragment.stand_in_lines(width, theme)
         return lines
 
+    def _style_before_measuring(self, fragments: tuple[TranscriptFragment, ...]) -> None:
+        """Style fragments that have no rows yet, then measure: their height is stated once,
+        by their styled rows, so the reader is never placed against a stand-in height."""
+        if self._style_task is not None and not self._style_task.done():
+            return
+        self._style_task = asyncio.create_task(self._style_then_measure(fragments), eager_start=False)
+
+    async def _style_then_measure(self, fragments: tuple[TranscriptFragment, ...]) -> None:
+        await self.history.prepare_fragments(fragments, lambda: self.is_attached,
+                                             selected=self.visible_categories)
+        if self.is_attached:
+            self.range_changed()
+
     def _measure(self, width: int) -> None:
+        shown = tuple(fragment for fragment in self.prepared.fragments_in_range
+                      if fragment.shown_in(self.visible_categories)) if width > 0 else ()
+        drawn = tuple((fragment, self._lines(fragment, width)) for fragment in shown)
+        unstyled = tuple(fragment for fragment, lines in drawn if lines is None)
+        if unstyled:
+            # The rows drawn stay the measured ones until these have styled rows.
+            self._style_before_measuring(unstyled)
+            return
         if self.is_mounted:
             self.history.window.keep_reader()
         if width != self._width:
@@ -384,13 +410,9 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         layout, starts, y = [], [], 0
         repaint = []
         if width > 0:
-            for fragment in self.prepared.fragments_in_range:
-                if not fragment.shown_in(self.visible_categories):
-                    continue
-                # Geometry belongs to this layout's width, including rows
-                # outside the viewport. RowAcquisition reuses styled source
-                # while rewrapping it; only styling work stays viewport-lazy.
-                lines = self._lines(fragment, width)
+            # Geometry belongs to this layout's width, including rows outside
+            # the viewport, and every fragment measured here has styled rows.
+            for fragment, lines in drawn:
                 if id(fragment) in previous and lines is not previous[id(fragment)]:
                     repaint.append((y, lines.height))
                 layout.append((fragment, y, lines))

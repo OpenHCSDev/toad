@@ -1,13 +1,16 @@
 """Textual-facing: the window's top edge. Upward wheel travel never moves the reader forward, past live thoughts or through saved history; a wrapped message header pins the moment its first row leaves, drawn exactly as the flow draws it."""
 
 
+from functools import partial
+
 import pytest
 from textual import events
 
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 
-from test_scroll_down_bounce import recorded_app, wheel
+from test_scroll_down_bounce import RecordedHistoryScreen, recorded_app, wheel
+from toad.widgets.conversation import Conversation
 from toad.widgets.presentation_window import OLDER_END
 
 
@@ -144,3 +147,84 @@ async def test_wrapped_header_pins_once_its_first_row_leaves_and_matches_the_flo
         assert pinned == flow, f"Pinned header {pinned} differs from the flow's {flow}"
         assert (sticky.region.x, sticky.region.width) == (page.region.x, page.region.width), (
             sticky.region, page.region)
+
+
+class TopRowScreen(RecordedHistoryScreen):
+    """Record the text on the window's top row in every published frame."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.top_rows: list[str] = []
+        self.watching = False
+
+    def _on_frame_published(self):
+        super()._on_frame_published()
+        if self.watching:
+            self.top_rows.append(top_row_text(self.query_one(Conversation).window))
+
+
+def top_row_text(window) -> str:
+    y = window.scroll_y
+    for page, first in window.placements(window.drawn_pages()):
+        if first <= y < first + page.line_count:
+            return "".join(segment.text for segment in page.render_line(int(y - first), page._paint_state))
+    return ""
+
+
+def top_row_app(*, launch_root, **kwargs):
+    from toad.app import ToadApp
+
+    app = ToadApp(launch_root=launch_root, **kwargs)
+    app.remove_mode("workspace")
+    app.add_mode("workspace", partial(TopRowScreen, id="workspace"))
+    return app
+
+
+async def test_rows_without_styling_never_move_the_reader_at_phone_width(workspace):
+    """A fragment's height is its styled rows' alone: when every fragment loses its rows (a
+    theme change, as an older page arriving unstyled does), the reader's top row keeps its text
+    in every frame instead of showing a stand-in wrap and then snapping back."""
+    import gzip
+    from pathlib import Path
+
+    from agent_comms.repo import Checkout
+    from agent_comms.session_file import RegistrySessionLocation
+    from agent_comms.threads import Thread
+    from toad.screens.main import MainScreen
+    from toad.tab_identity.kinds import MailboxTab
+    from toad.widgets.transcript_history import TranscriptHistory
+
+    fixture = Path(__file__).parents[1] / "fixtures" / "laptop_scroll_shape.jsonl.gz"
+    journal = workspace.project / "laptop-history.jsonl"
+    journal.write_bytes(gzip.decompress(fixture.read_bytes()))
+    owner = workspace.comms.registry.declare(Thread(
+        "scroll-reader", frozenset(), Checkout(workspace.project),
+        session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
+    root = str(workspace.comms.root)
+    async with workspace.app(size=(63, 40), session=False, application=top_row_app) as ui:
+        await ui.app.session_navigation.new(
+            MailboxTab(owner.incarnation, root),
+            partial(MainScreen.from_thread, owner.worktree, root, owner.incarnation),
+            original=(root, owner.incarnation))
+        await ui.until(lambda: ui.conversation.transcript.reports_coverage,
+                       why="the retained transcript to load", seconds=60)
+        window = ui.conversation.window
+        history = ui.conversation.contents.query_one(TranscriptHistory)
+        await ui.until(lambda: history.pages and all(page.rows_measured for page in history.pages),
+                       why="the initial retained page to be measured", seconds=60)
+        for _ in range(12):
+            await wheel(ui, window, events.MouseScrollUp)
+        await ui.step()
+        top = top_row_text(window)
+        assert top.strip(), "The reader's top row draws no text to keep"
+        screen = ui.app.screen
+        screen.watching = True
+        ui.app.theme = next(name for name in ui.app.available_themes if name != ui.app.theme)
+        await ui.until(lambda: all(page.rows_measured for page in history.pages),
+                       why="the restyled pages to be measured", seconds=60)
+        for _ in range(4):
+            await ui.step()
+        screen.watching = False
+        moved = [row for row in screen.top_rows if row != top]
+        assert not moved, (f"At width {history.pages[0].size.width} the top row {top!r} "
+                           f"showed {moved[:3]} while styled rows were missing")

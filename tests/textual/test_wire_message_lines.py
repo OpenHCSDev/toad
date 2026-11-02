@@ -115,7 +115,7 @@ def test_a_status_change_keeps_the_drawn_rows_until_the_new_rows_arrive(tmp_path
     status = CheckedNotifications.from_notifications(())
     assert shown.request_show(replace(shown.shown, status=status))
     assert shown.lines_for(80, renderer.theme) is None
-    assert shown.plain_lines(80, renderer) is drawn
+    assert shown.stand_in_lines(80, renderer.theme) is drawn
     assert shown.retains_lines(drawn, renderer.theme)
 
 
