@@ -21,7 +21,6 @@ from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
 from agent_comms.session_load import (
     EnsuringSessionLoadPlan,
-    FailedSessionLoadPlan,
     SessionLoadPlan,
 )
 from agent_comms.thread_presentation import SessionDisconnected
@@ -497,8 +496,7 @@ class AgentSession:
         except RequestError as error:
             authority.require()
             if self.agent.queue_attachment.is_current_request(queue_token):
-                if failed_command := FailedSessionLoadPlan.from_failure(error.data):
-                    self.load_plan = failed_command
+                self.load_plan = SessionLoadPlan.from_failure(error.data)
             raise
         authority.require()
         if (
