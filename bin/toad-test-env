@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # Build or reuse the toad test environment: toad's locked dev group plus the
-# agent-comms checkout beside this one, installed editable, shared by input
-# digest. Print the interpreter line to gate with. Never touches the live stack.
+# agent-comms and Textual checkouts beside this one, installed editable, shared
+# by input digest. Print the interpreter line to gate with. Never touches the
+# live stack.
 set -euo pipefail
 umask 077
-usage='Usage: toad-test-env [--uv PATH] [--python PATH] [--agent-comms DIR] [--cache DIR]'
+usage='Usage: toad-test-env [--uv PATH] [--python PATH] [--agent-comms DIR] [--textual DIR] [--cache DIR]'
 toad_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 uv=uv
 python=python3.14
 agent_comms="$toad_root/../agent-comms"
+textual="$toad_root/../textual"
 cache="$HOME/.cache/toad/test-env"
 while [[ $# -gt 0 ]]; do
     [[ $# -ge 2 ]] || { printf '%s\n' "$usage" >&2; exit 1; }
@@ -16,16 +18,19 @@ while [[ $# -gt 0 ]]; do
         --uv) uv=$2 ;;
         --python) python=$2 ;;
         --agent-comms) agent_comms=$2 ;;
+        --textual) textual=$2 ;;
         --cache) cache=$2 ;;
         *) printf '%s\n' "$usage" >&2; exit 1 ;;
     esac
     shift 2
 done
 agent_comms=$(cd -- "$agent_comms" && pwd)
+textual=$(cd -- "$textual" && pwd)
 mkdir -p -- "$cache"
 cache=$(cd -- "$cache" && pwd)
-# Toad's lock and the agent-comms checkout's declared dependencies decide the environment.
-build_id=$(cat "$toad_root/uv.lock" "$agent_comms/pyproject.toml" <(printf '%s' "$agent_comms") |
+# Toad's lock and the sibling checkouts' declared dependencies decide the environment.
+build_id=$(cat "$toad_root/uv.lock" "$agent_comms/pyproject.toml" "$textual/pyproject.toml" \
+    <(printf '%s\n%s' "$agent_comms" "$textual") |
     sha256sum | cut -c1-16)
 environment="$cache/$build_id"
 
@@ -34,9 +39,14 @@ if [[ ! -e "$environment" ]]; then
     trap 'rm -rf -- "$stage"' EXIT
     "$uv" venv -q --python "$python" "$stage"
     "$uv" export -q --project "$toad_root" --frozen --group dev --no-emit-project \
-        --no-emit-package agent-comms --no-hashes -o "$stage/requirements.txt"
-    "$uv" pip install -q --python "$stage/bin/python" -r "$stage/requirements.txt"
-    "$uv" pip install -q --python "$stage/bin/python" -e "$agent_comms[acp]"
+        --no-emit-package agent-comms --no-emit-package textual --no-hashes \
+        -o "$stage/requirements.txt"
+    # The export is the whole locked closure, so its own declared requirements are not
+    # resolved again: textual-diff-view's textual@main would contest the checkout below.
+    "$uv" pip install -q --python "$stage/bin/python" --no-deps -r "$stage/requirements.txt"
+    # The sibling checkouts own agent-comms and textual; agent-comms' dev extra carries
+    # the tools its tests need.
+    "$uv" pip install -q --python "$stage/bin/python" -e "$textual[syntax]" -e "$agent_comms[dev]"
     # Toad reads its own distribution metadata; its source still comes from src.
     "$uv" pip install -q --python "$stage/bin/python" --no-deps "$toad_root"
     mv -- "$stage" "$environment"
