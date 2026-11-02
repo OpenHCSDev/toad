@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.message_reference import MessageReference
+from agent_comms.nominal.field_codec import MessageId
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.display_references import PendingReferences, UnavailableReferences
@@ -29,6 +30,7 @@ from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
 from metaclass_registry.mro_dispatch import MroDispatch, handles
+from textual.worker import Worker
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
 from agent_comms.route_selection import RouteSelection
@@ -71,13 +73,13 @@ from toad.core.events import (
     OpenTabsChanged,
     SidebarPresented,
     ThreadRowsChanged,
+    ThreadInterest,
 )
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
 from toad.notification_status import CheckedNotifications, NotificationStatus, UncheckedNotifications
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 
 if TYPE_CHECKING:
-    from textual.worker import Worker
     from agent_comms.display_order import DisplayOrder
     from agent_comms.display_references import ReferenceContext
     from agent_comms.thread_identity import ThreadIncarnation
@@ -344,7 +346,7 @@ class AnsweringReads(Observing):
         pass
 
 
-class CoordinationAccess(MroDispatch):
+class CoordinationAccess(MroDispatch, ThreadInterest):
     """A validated Core route owns cached access, observations and UI write checks."""
 
     def __init__(self, app: ToadApp, launch_root: LaunchRoot) -> None:
@@ -357,7 +359,7 @@ class CoordinationAccess(MroDispatch):
         self.events = CoreEventStream(self)
         self.revision: ReadState = NoRevision()
         self.route_task: asyncio.Task[None] | None = None
-        self.timer = None
+        self._route_resources = ResourceRelease()
         self.opening = threading.RLock()
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
@@ -373,7 +375,7 @@ class CoordinationAccess(MroDispatch):
         self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
         # The last answer for each message under each read scope (root, display, source).
         # A scroll changes which messages a view reads, never what is already known.
-        self.notification_known: dict[tuple[ReadNotifications, tuple[int, str]], tuple[MessageNotification, ...]] = {}
+        self.notification_known: dict[tuple[ReadNotifications, tuple[int, MessageId]], tuple[MessageNotification, ...]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
         # Open team pages; the heartbeat's frames are observed only while one is shown.
         self.team_pages: WeakSet[TeamPage] = WeakSet()
@@ -525,7 +527,7 @@ class CoordinationAccess(MroDispatch):
         """The read without its messages: root, display cut and source decide an outcome."""
         return replace(read, operation=replace(read.operation, references=()), request_id=0)
 
-    def known_outcomes(self, read: ReadNotifications) -> dict[tuple[int, str], tuple[MessageNotification, ...]]:
+    def known_outcomes(self, read: ReadNotifications) -> dict[tuple[int, MessageId], tuple[MessageNotification, ...]]:
         scope = self.notification_scope(read)
         return {key: self.notification_known[scope, key]
                 for key in read.keys if (scope, key) in self.notification_known}
@@ -657,14 +659,14 @@ class CoordinationAccess(MroDispatch):
 
     def start(self) -> None:
         """Open the selected service and check the route selection once a second."""
-        self.timer = self.app.set_interval(ROUTE_CHECK_SECONDS, self.check_route)
+        self._route_resources.callback(
+            self.app.set_interval(ROUTE_CHECK_SECONDS, self.check_route).stop
+        )
         self.check_route()
 
     async def stop_observing(self) -> None:
         """End view updates before teardown; outstanding read replies still complete."""
-        if self.timer is not None:
-            self.timer.stop()
-            self.timer = None
+        self._route_resources.close()
         if self.route_task is not None:
             self.route_task.cancel()
             await asyncio.gather(self.route_task, return_exceptions=True)

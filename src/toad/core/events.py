@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Annotated
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.nominal.field_codec import PathText
+from agent_comms.nominal.field_codec import AcpSessionId, PathText
 from agent_comms.presentation import ReadState
 from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem
@@ -20,10 +20,10 @@ from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream, ThoughtStream
 from agent_comms.acp_extension import AgentCommsUpdate, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
+from textual.worker import Worker
 
 if TYPE_CHECKING:
     from agent_comms.team_hud import TeamHud
-    from toad.comms_root import CoordinationAccess
     from toad.core_event_carrier import CoreEventMessage
     from toad.widgets.conversation import Conversation
 
@@ -88,7 +88,7 @@ class CommsUpdated(CoreEvent):
     """The original typed publication retains its emission-time context."""
 
     update: AgentCommsUpdate | QueuePresentation | CursorPresentation
-    session_id: str | None = None
+    session_id: AcpSessionId | None = None
     sequence: int | None = None
 
     def accepted_by(self, message: CoreEventMessage, view: Conversation) -> bool:
@@ -508,8 +508,15 @@ class Subscription[Publisher]:
         self.close()
 
 
+class ThreadInterest(ABC):
+    """The publisher capability needed by a live thread subscription."""
+
+    @abstractmethod
+    def request_thread_interest(self) -> Worker[None]: ...
+
+
 @dataclass(eq=False)
-class ThreadChangeSubscription(Subscription["CoordinationAccess"]):
+class ThreadChangeSubscription(Subscription[ThreadInterest]):
     """One live thread scope owns both delivery and observation interest."""
 
     scope: tuple[str, str] = field(kw_only=True)
