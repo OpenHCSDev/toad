@@ -19,6 +19,7 @@ from toad.patch import PatchCell
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
     from toad.widgets.transcript_fragments import Shown, TranscriptFragment
+    from toad.widgets.transcript_history import LaidOut, RowChange
 
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from rich._wrap import divide_line
@@ -627,13 +628,34 @@ class RowAcquisition(ABC):
     @abstractmethod
     def preparation(self) -> LinePreparation | NoRows: ...
 
-    @abstractmethod
-    def for_view(self, width: int, theme: LineTheme) -> BlockLines | None: ...
+    def current_for(self, theme: LineTheme) -> RowAcquisition:
+        """These rows, if they can be drawn in this palette; otherwise no rows."""
+        return self
 
-    @abstractmethod
-    def retains(self, lines: BlockLines, theme: LineTheme) -> bool: ...
+    def for_view(self, width: int, theme: LineTheme) -> BlockLines | None:
+        return self.current_for(theme).viewed(width)
+
+    def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
+        return self.current_for(theme).holds(lines)
 
     def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> MeasuredRows:
+        return self.current_for(renderer.theme).rewrapped_plain(width, renderer, blocks)
+
+    def replacing(self, row: LaidOut, width: int, theme: LineTheme) -> RowChange:
+        """What these rows ask of the page row they replace."""
+        return self.current_for(theme).replaced_at(row, width)
+
+    @abstractmethod
+    def viewed(self, width: int) -> BlockLines | None: ...
+
+    @abstractmethod
+    def holds(self, lines: BlockLines) -> bool: ...
+
+    @abstractmethod
+    def replaced_at(self, row: LaidOut, width: int) -> RowChange: ...
+
+    def rewrapped_plain(self, width: int, renderer: RichLineRenderer,
+                        blocks: tuple[LineBlock, ...]) -> MeasuredRows:
         lines = PlainLines(width, renderer, blocks)
         return PlainRows(lines.preparation, lines)
 
@@ -649,11 +671,15 @@ class NoRows(RowAcquisition):
     def preparation(self) -> NoRows:
         return self
 
-    def for_view(self, width: int, theme: LineTheme):
+    def viewed(self, width: int) -> None:
         return None
 
-    def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
+    def holds(self, lines: BlockLines) -> bool:
         return False
+
+    def replaced_at(self, row: LaidOut, width: int) -> RowChange:
+        """Nothing drawable yet: the page measures again once rows exist."""
+        return row.measured_again()
 
 
 @dataclass
@@ -665,20 +691,23 @@ class MeasuredRows(RowAcquisition):
     def preparation(self) -> LinePreparation:
         return self.lines.preparation
 
-    def for_view(self, width: int, theme: LineTheme):
-        if self.source.theme is not theme:
-            return None
+    def current_for(self, theme: LineTheme) -> RowAcquisition:
+        return self if self.source.theme is theme else NoRows()
+
+    def viewed(self, width: int) -> BlockLines:
         self.lines = self.lines.rewrap(width)
         return self.lines
 
-    def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
-        return self.source.theme is theme and self.lines.preparation is lines.preparation
+    def holds(self, lines: BlockLines) -> bool:
+        return self.lines.preparation is lines.preparation
 
-    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
-        if self.source.theme is renderer.theme:
-            self.lines = self.lines.rewrap(width)
-            return self
-        return super().plain(width, renderer, blocks)
+    def rewrapped_plain(self, width: int, renderer: RichLineRenderer,
+                        blocks: tuple[LineBlock, ...]) -> MeasuredRows:
+        self.lines = self.lines.rewrap(width)
+        return self
+
+    def replaced_at(self, row: LaidOut, width: int) -> RowChange:
+        return row.replaced_by(self.viewed(width))
 
 
 @dataclass
@@ -704,8 +733,8 @@ class AcquiredRows(MeasuredRows):
 
 
 class PlainRows(MeasuredRows):
-    def retains(self, lines: BlockLines, theme: LineTheme) -> bool:
-        return self.source.theme is theme and self.lines.preparation.blocks is lines.preparation.blocks
+    def holds(self, lines: BlockLines) -> bool:
+        return self.lines.preparation.blocks is lines.preparation.blocks
 
 
 @dataclass(frozen=True)

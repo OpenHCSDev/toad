@@ -7,6 +7,7 @@ from bisect import bisect_right
 from collections import deque
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from math import inf
@@ -98,6 +99,7 @@ from toad.widgets.transcript_fragments import (
     Shown,
     TranscriptFragment,
 )
+from agent_comms.nominal.fold import Absorbs, Accumulates, Fold
 from toad.widgets.transcript_lines import (
     BlockLines,
     BlockSpan,
@@ -168,6 +170,98 @@ class FragmentSpan(BlockSpan, FragmentLocation):
         return window.row_of(self.page) + self.first + (fraction * self.height if self.drawn else 0)
 
 
+class RowChange(Fold):
+    """What new lines ask of the page that draws them: repaint rows in their measured box, or
+    measure the page again. A page folds the changes of every fragment that changed."""
+
+    @abstractmethod
+    def apply(self, page: TranscriptPageView) -> None: ...
+
+
+@dataclass(frozen=True)
+class RepaintRows(Accumulates, RowChange):
+    rows: tuple[tuple[LaidOutRow, BlockLines], ...] = ()
+
+    def including(self, repaint: RepaintRows) -> RepaintRows:
+        return RepaintRows(self.rows + repaint.rows)
+
+    def apply(self, page: TranscriptPageView) -> None:
+        for row, lines in self.rows:
+            page.repaint_row(row.slot, lines)
+
+
+class MeasureAgain(Absorbs, RowChange):
+    """One fragment whose rows cannot keep their box sends the whole page to layout."""
+
+    def apply(self, page: TranscriptPageView) -> None:
+        page.range_changed()
+
+
+class LaidOut(ABC):
+    """A fragment's rows in its page's measured layout, or their absence."""
+
+    def measured_again(self) -> RowChange:
+        return MeasureAgain()
+
+    @abstractmethod
+    def replaced_by(self, lines: BlockLines) -> RowChange: ...
+
+    @abstractmethod
+    def rows(self) -> range | None: ...
+
+    @abstractmethod
+    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentSpan | None: ...
+
+
+class NotLaidOut(LaidOut):
+    """A fragment the last layout drew no rows for."""
+
+    def replaced_by(self, lines: BlockLines) -> RowChange:
+        return self.measured_again()
+
+    def rows(self) -> None:
+        return None
+
+    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> None:
+        return None
+
+
+NOT_LAID_OUT = NotLaidOut()
+
+
+@dataclass(frozen=True, eq=False)
+class LaidOutRow(LaidOut):
+    """One fragment's measured rows; the page's layout holds them, this reads them."""
+
+    page: TranscriptPageView
+    slot: int
+
+    @property
+    def first(self) -> int:
+        return self.page._layout[self.slot][1]
+
+    @property
+    def lines(self) -> BlockLines:
+        return self.page._layout[self.slot][2]
+
+    def replaced_by(self, lines: BlockLines) -> RowChange:
+        """Lines filling the same box repaint in place, so no other message shows through it;
+        lines of another height need layout."""
+        return RepaintRows(((self, lines),)) if lines.height == self.lines.height else MeasureAgain()
+
+    def rows(self) -> range:
+        return range(self.first, self.first + self.lines.height)
+
+    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentSpan | None:
+        same = candidate.key == key
+        wanted = block if same else 0
+        span = self.lines.block_span(lambda span: span.drawn and span.index >= wanted)
+        if span is None:
+            return None
+        placed = FragmentSpan.in_page(self.page, candidate, self.first, span)
+        return replace(placed, drawn=same and span.index == block)
+
+
 class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     """One transcript page, drawn as its loaded fragments' prepared lines.
 
@@ -194,7 +288,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._width = 0
         self._layout: list[tuple[TranscriptFragment, int, BlockLines]] = []
         self._starts: list[int] = []
-        self._fragment_slots: dict[int, int] = {}
+        self._fragment_slots: dict[int, LaidOutRow] = {}
         self._height = 0
         self._measured = False
         super().__init__()
@@ -242,31 +336,21 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             self._render_task.cancel()
 
     def lines_replaced(self, fragments: Iterable[TranscriptFragment]) -> None:
-        """These fragments of this page now hold new lines. Lines of the measured height take
-        their old rows in place and repaint only those rows: the box is unchanged, so no other
-        message can show through it. Any other change hands layout the new rows to measure."""
-        if not self._measured or self._width <= 0:
-            self.range_changed()
-            return
+        """These fragments of this page now hold new lines; each one's rows decide whether they
+        repaint in their measured box or the page measures again."""
         theme = self.app.colours.line_theme
-        replaced = []
+        change: RowChange = RepaintRows()
         for fragment in fragments:
-            slot = self._fragment_slots.get(id(fragment))
-            if slot is None:
-                if fragment.shown_in(self.visible_categories):
-                    self.range_changed()
-                    return
-                continue
-            drawn, first, measured = self._layout[slot]
-            lines = fragment.lines_for(self._width, theme)
-            if lines is None or lines.height != measured.height:
-                self.range_changed()
-                return
-            replaced.append((slot, drawn, first, lines))
-        for slot, drawn, first, lines in replaced:
-            self._layout[slot] = (drawn, first, lines)
-            self._pending.pop(id(drawn), None)
-            self.refresh(Region(0, first, self._width, lines.height))
+            row = self._fragment_slots.get(id(fragment), NOT_LAID_OUT)
+            change = fragment.row_change(row, self._width, theme).joined(change)
+        change.apply(self)
+
+    def repaint_row(self, slot: int, lines: BlockLines) -> None:
+        """New lines of the measured height take that row's place."""
+        fragment, first, _measured = self._layout[slot]
+        self._layout[slot] = (fragment, first, lines)
+        self._pending.pop(id(fragment), None)
+        self.refresh(Region(0, first, self._width, lines.height))
 
     def range_changed(self) -> None:
         """The prepared range, its lines or the filter changed; the next layout measures the new rows.
@@ -315,7 +399,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._layout, self._starts, self._height = layout, starts, y
         for first, height in repaint:
             self.refresh(Region(0, first, width, height))
-        self._fragment_slots = {id(fragment): index for index, (fragment, _first, _lines) in enumerate(layout)}
+        self._fragment_slots = {id(fragment): LaidOutRow(self, index)
+                                for index, (fragment, _first, _lines) in enumerate(layout)}
         if self.is_mounted:
             self.history.request_preparation()
 
@@ -377,14 +462,9 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             if target.key != key:
                 continue
             for candidate in chain(loaded[at:], reversed(loaded[:at])):
-                if (slot := self._fragment_slots.get(id(candidate))) is not None:
-                    _fragment, first, lines = self._layout[slot]
-                    same = candidate.key == key
-                    wanted = block if same else 0
-                    span = lines.block_span(lambda span: span.drawn and span.index >= wanted)
-                    if span is not None:
-                        placed = FragmentSpan.in_page(self, candidate, first, span)
-                        return replace(placed, drawn=same and span.index == block)
+                placed = self._fragment_slots.get(id(candidate), NOT_LAID_OUT).placed(candidate, key, block)
+                if placed is not None:
+                    return placed
         return UnloadedFragment()
 
     @property
@@ -394,15 +474,11 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
 
     def drawn_height(self, fragment: TranscriptFragment) -> int:
         """The rows this page draws for a fragment it draws."""
-        _fragment, _first, lines = self._layout[self._fragment_slots[id(fragment)]]
-        return lines.height
+        return self._fragment_slots[id(fragment)].lines.height
 
     def fragment_rows(self, fragment: TranscriptFragment) -> range | None:
         """The rows of this page that draw a fragment."""
-        if (slot := self._fragment_slots.get(id(fragment))) is None:
-            return None
-        _fragment, first, lines = self._layout[slot]
-        return range(first, first + lines.height)
+        return self._fragment_slots.get(id(fragment), NOT_LAID_OUT).rows()
 
     @property
     def screen_region(self) -> Region | None:
@@ -461,7 +537,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         # Render only visible viewport rows, nearest the reader first.
         for _, offset in window.placements((self,)):
             reader = window.scroll_y - offset
-            pending.sort(key=lambda fragment: abs(self._layout[slots[id(fragment)]][1] - reader))
+            pending.sort(key=lambda fragment: abs(slots[id(fragment)].first - reader))
         return pending[:self.RENDER_BATCH]
 
     async def _render_pending(self) -> None:

@@ -55,6 +55,7 @@ if TYPE_CHECKING:
 
     from toad.tool_output import ToolOutputPart
     from toad.widgets.committed_presentation import CommitClaim
+    from toad.widgets.transcript_history import LaidOut, RowChange
     from toad.widgets.transcript_lines import (
         BlockLines,
         Lines,
@@ -451,6 +452,10 @@ class TranscriptFragment:
 
     def invalidate_lines(self) -> None:
         self._lines = NoRows()
+
+    def row_change(self, row: LaidOut, width: int, theme: LineTheme) -> RowChange:
+        """What this fragment's current lines ask of the page row they replace."""
+        return self._lines.replacing(row, width, theme)
 
     def hold_lines(self, request: TranscriptLinesRenderTask, lines: BlockLines) -> bool:
         """Report whether these rows were retained for the fragment's source."""
