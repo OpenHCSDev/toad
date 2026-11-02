@@ -167,3 +167,30 @@ async def test_markdown_uses_the_same_typed_line_and_an_empty_recorded_result(wo
         await notifications.publish(ui, chat)
         await ui.until_shows(newest_status(chat).title)
         assert newest_status(chat).notifications == ()
+
+
+async def test_a_status_of_the_same_height_repaints_its_rows_without_measuring_the_page(workspace):
+    """Seen, working and answered are one line each: changing between them repaints that
+    line in its measured box. Opening the details changes the height and measures again."""
+    CommsChatView = await open_comms_channel(workspace)
+    notifications = Notifications()
+    async with workspace.app(size=(110, 40)) as ui:
+        await ui.open_channel("#comms", actor="peer")
+        chat = ui.app.screen.query_one(CommsChatView)
+        history = chat.message_history
+        await settled(ui, chat)
+        notifications.state = ConsumingProgress(0)
+        await notifications.publish(ui, chat)
+        newest = history.visible_fragments()[-1]
+        page = history.page_holding(newest.key)
+        measured = page._fragment_slots
+
+        notifications.state = IgnoredProgress(ShownToModelProgress(0))
+        await notifications.publish(ui, chat)
+        await ui.until_shows(newest_status(chat).title)
+        assert page._fragment_slots is measured, "a same-height status measured the page again"
+
+        history.show_details(page, newest, newest.shown.toggled())
+        await ui.until(lambda: newest.shown.details_open, why="the details opened")
+        await ui.step()
+        assert page._fragment_slots is not measured, "a taller status kept the old box"

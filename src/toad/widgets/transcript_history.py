@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from bisect import bisect_right
 from collections import deque
-from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
@@ -241,6 +241,33 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         if self._render_task is not None:
             self._render_task.cancel()
 
+    def lines_replaced(self, fragments: Iterable[TranscriptFragment]) -> None:
+        """These fragments of this page now hold new lines. Lines of the measured height take
+        their old rows in place and repaint only those rows: the box is unchanged, so no other
+        message can show through it. Any other change hands layout the new rows to measure."""
+        if not self._measured or self._width <= 0:
+            self.range_changed()
+            return
+        theme = self.app.colours.line_theme
+        replaced = []
+        for fragment in fragments:
+            slot = self._fragment_slots.get(id(fragment))
+            if slot is None:
+                if fragment.shown_in(self.visible_categories):
+                    self.range_changed()
+                    return
+                continue
+            drawn, first, measured = self._layout[slot]
+            lines = fragment.lines_for(self._width, theme)
+            if lines is None or lines.height != measured.height:
+                self.range_changed()
+                return
+            replaced.append((slot, drawn, first, lines))
+        for slot, drawn, first, lines in replaced:
+            self._layout[slot] = (drawn, first, lines)
+            self._pending.pop(id(drawn), None)
+            self.refresh(Region(0, first, self._width, lines.height))
+
     def range_changed(self) -> None:
         """The prepared range, its lines or the filter changed; the next layout measures the new rows.
 
@@ -460,11 +487,12 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         # Holding rows does not change the page's measured layout. Retain every
         # result before opening a history change: keeping the reader can
         # interrupt an unfinished layout, even without accepted rows.
-        if not any([task.hold(self, fragment, lines) for fragment, task, lines in ready]):
+        held = [fragment for fragment, task, lines in ready if task.hold(self, fragment, lines)]
+        if not held:
             return
         window = self.query_ancestor(HistoryWindow)
         async with window.preserve_history(root=self):
-            self.range_changed()
+            self.lines_replaced(held)
 
     @classmethod
     @asynccontextmanager
@@ -667,8 +695,10 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                 return
             changed = {id(fragment) for fragment, shown, _previous in changes
                        if TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(id(fragment)))}
-            for page in [page for page in self.pages if not changed.isdisjoint(map(id, page.prepared.fragments_in_range))]:
-                page.range_changed()  # A page holding a changed fragment measures again.
+            for page in self.pages:
+                held = [fragment for fragment in page.prepared.fragments_in_range if id(fragment) in changed]
+                if held:
+                    page.lines_replaced(held)
         self.window.check_follow()
 
     def page_holding(self, key: FragmentKey) -> TranscriptPageView:
