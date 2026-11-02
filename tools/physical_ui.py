@@ -25,7 +25,7 @@ import subprocess
 import time
 from typing import get_args, get_type_hints
 
-from agent_comms.active_route import ActiveRoute, active_route_path, route_new_bus
+from agent_comms.active_route import ActiveRoute, active_route_path, route_new_bus, resolve_comms_route
 from agent_comms.bus import Bus
 from agent_comms.check_root import CheckRoot
 from agent_comms.child_process import DetachedChildStdio, ProcessIdentity, SpawnedProcess
@@ -34,6 +34,7 @@ from agent_comms.installer.practice import SuppliedRuntimeHome
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime, ThreadLaunch
 from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.native_arguments import ConfiguredBinary, NativeArguments
 from agent_comms.recorded_bus import RecordedBusIdentity
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.store_files import ExclusiveAtomicFile
@@ -45,7 +46,7 @@ from ui_theme.wal import WalFile
 
 from tools import physical_ui_remote
 from tools.physical_ui_remote import (
-    StartOperation, ObserveOperation, InstalledOperation, PendingRun, PhysicalOperation,
+    StartOperation, MeasuredStartOperation, ObserveOperation, InstalledOperation, PendingRun, PhysicalOperation,
     ProcessRetirement, RunObservation, RunResources, StopRootOperation,
 )
 
@@ -259,6 +260,12 @@ class ObservedTerminalApp:
         self.output = output.expanduser().resolve()
         self.target, self.cwd, self.requested_size = target, cwd, size
         environment = LaunchRoot.environment(ThreadLaunch.strip(dict(os.environ)))
+        # The source controller's absolute launcher is not the target's launch
+        # identity. Retarget through the root's existing owner policy, exactly
+        # as a prepared owner restart does; native validation stays unchanged.
+        environment[NativeArguments.binary_key] = resolve_comms_route(target.root).launch().restart_entrypoint(
+            ConfiguredBinary().configured(environment), target.launch_runtime,
+        )
         for key in tuple(environment):
             if key.startswith("XDG_") or key in ("PYTHONPATH", "PYTHONHOME", "NO_COLOR", "TOAD_VALIDATION"):
                 del environment[key]
@@ -667,3 +674,16 @@ class ObservedTerminalApp:
                 self.terminal.process.wait(timeout=5)
         finally:
             self.close()
+
+
+class MeasuredTerminalApp(ObservedTerminalApp):
+    """The same terminal/source lifetime with an opt-in startup frame meter."""
+
+    start_operation = MeasuredStartOperation
+
+    @classmethod
+    @cache
+    def operation_programs(cls):
+        programs = super().operation_programs()
+        meter = OperationProgram.capture(Path(__file__).parent / "performance/frame_meter.py")
+        return (*programs[:-1], meter, programs[-1])

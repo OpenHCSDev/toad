@@ -19,7 +19,8 @@ Use `LaunchRuntime.installed()` for installed
 bytes. This does not require an interpreter observation in old build metadata.
 Wait for both `screen.observation.history_published` and
 `screen.observation.agent_ready` before the readiness-dependent journey; an active
-capture additionally needs `screen.has_active_reply(marker)` and composer focus.
+capture additionally needs `screen.has_active_reply(marker)` and the actual
+`screen.observation.composer_focused` result, not an assumed click coordinate.
 `turn_busy` only reports the backend phase; it does not prove that an answer exists.
 The reply check requires both the current `ResponseStream`'s source text and matching
 real st cells inside that block's last published region. A user echo, Thinking text,
@@ -43,13 +44,33 @@ Data/source qualification: `observer-installed-06.log` decoded three staged
 requests on the installed interpreter without loading the new candidate probe;
 `observer-candidate-06.log` decoded three strict-member requests on the existing
 immutable0402/3475 interpreter. Neither executes a frontend, build probe or input.
-The source map covers Core src, Toad src/tools and the physical-run consumer:
-971 modules, 8,192 raw classes, 8,184 canonical projections, zero parse omissions.
+The historical context-free source map listed Core src, Toad src/tools and the
+physical-run consumer:971 modules,8,192 raw classes and8,184 projected rows.
+Those counts do not establish canonical binding closure through declared import
+roots; that stronger claim is withdrawn and the rooted reconstruction stays OPEN.
 Dynamic imports/aliases, descriptor/effect behavior, foreign platforms, physical
 movement and mounted readiness remain OPEN. A separate `observer-result-07.log`
 on installed Core038c checks the result codec/origin continuity and changed-
 executable refusal using an explicitly synthetic UI record and the real package
 answer. It is not a mounted observation. No author pytest ran.
+
+## Launch-time frame measurement
+
+`MeasuredTerminalApp(ObservedTerminalApp)` adds the existing bounded frame meter
+through `ApplicationLifetime.observe_next_start` before the saved session opens.
+Its `MeasuredStartOperation` owns the meter until that actual distribution
+entrypoint exits. It snapshots the meter source beside the startup program and
+restores its hooks through the same bounded capture's closer. The read-only
+observation pipe still accepts only `ObserveOperation` descendants; measurement
+cannot be installed by sending an executable packet to a running app.
+
+`MeasuredCandidateTerminalApp(TerminalApp, MeasuredTerminalApp)` composes the same
+measurement with strict candidate admission. It does not create another frontend,
+resource lifetime or admission implementation. Output is `frontend/frame-meter.json`;
+record caps, censored spans and restoration status must be read before reporting
+numbers. Setup/startup records are not the fixed scrolling scenario. Driver-handoff
+measurements are not proof of terminal pixels; retain the physical recording and
+actual response qualification with the input spans.
 
 ## Candidate/build-verifying entry point
 
@@ -85,7 +106,20 @@ retains the copied root, frontend-home, operation receipts, screenshots and
 recording on exit. The caller still owns retiring those retained files after
 acceptance and actual borrower checks.
 
-## Startup observation (current source, not yet run)
+## Startup observation
+
+Fresh qualification10 used published467 observer code with installed Core f03,
+loaded the copied saved history and reached ACP Ready without provider input.
+The new `turn_busy` and response-placement fields decoded in the real frontend;
+its private copy, st and Xvfb retired successfully, controller rc0.
+
+Qualification11 added the launch-time meter on that installed application. It
+recorded83 display handoffs and4 physical input arrivals (3 followed by a handoff),
+restored all10 hooks, dropped/censored no records and retired the private run,
+rc0. Its109,328-byte capture covers startup and three paging keys, **not** the
+fixed active-answer scenario or1408. Evidence is retained under
+`pi-ui-performance/installed-observer-f03-10` and `installed-meter-f03-11` in the
+host scratch owner. No provider prompt was sent in either qualification.
 
 `StartOperation` runs the installed distribution's declared Toad entrypoint in
 the new frontend interpreter. One private inherited pipe belongs to that exact
@@ -226,10 +260,12 @@ visible pixels. Neither an import nor one screenshot proves the whole journey.
 A run with no ACP bindings does not demonstrate the bound/pending/foreign ACP
 cases.
 
-The new admission/resource-lifetime split has written model controls for build
-admission versus ordinary observation, changed build/process/resources/module
-paths, new saved/ACP roots, actual storage policy and source readiness after admission. These controls
-are not yet executed. The source/codec checks and eventual candidate preparation
+The admission/resource-lifetime split has model controls for build admission
+versus ordinary observation, changed build/process/resources/module paths, new
+saved/ACP roots, actual storage policy and readiness after admission. Run14
+executed25/25 Toad cases; run15 executed25/25 after adding measured-startup codec
+round trips and read-only-pipe rejection. These are source-model controls, not
+candidate or physical scenario acceptance. The source/codec checks and eventual candidate preparation
 must not be reported as physical or performance acceptance.
 
 Source-observer work is part of the measurement overhead. For example, one

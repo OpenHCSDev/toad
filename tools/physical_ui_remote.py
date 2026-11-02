@@ -6,7 +6,8 @@ No attachment, debugger permission, code injection or signal handler is used.
 """
 
 from abc import abstractmethod
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
+from functools import partial
 from dataclasses import dataclass
 from importlib.metadata import distribution
 import json
@@ -167,6 +168,9 @@ class RunObservation:
     agent_ready: bool = False
     turn_busy: bool = False
     responses: tuple[CapturedResponse, ...] = ()
+    composer_focused: bool = False
+    composer_regions: tuple[CapturedRegion, ...] = ()
+    active_mode: str = ""
 
 
 @dataclass(frozen=True)
@@ -345,7 +349,13 @@ class StartOperation(PhysicalOperation):
             sys.argv = list(self.arguments)
             # Keep this declaration module alive while the installed entrypoint
             # runs; replacing __main__ would change the codec's type namespace.
-            declared.load()()
+            with self.startup_observed(directory):
+                declared.load()()
+
+    @contextmanager
+    def startup_observed(self, directory: Path):
+        """Optional launch-time instrumentation shares the entrypoint lifetime."""
+        yield
 
     def serve(self, requests: Connection, output: Path) -> None:
         while True:
@@ -372,6 +382,33 @@ class StartOperation(PhysicalOperation):
                 self.publish(packet.parent / "result.json", PendingResult(str(error)[:2048]))
             except Exception as error:
                 self.publish(packet.parent / "error.json", FailedResult(type(error).__name__, str(error)[:2048]))
+
+
+class MeasuredStartOperation(StartOperation):
+    """Frame measurement is installed by the application's one-shot startup hook.
+
+    The same capability composes with installed observation and strict candidate
+    admission. It adds no write operation to the running observation connection.
+    """
+
+    @contextmanager
+    def startup_observed(self, directory: Path):
+        from toad.application_lifetime import ApplicationLifetime
+
+        with super().startup_observed(directory), ExitStack() as cleanup:
+            ApplicationLifetime.observe_next_start(partial(self.measure, directory, cleanup))
+            yield
+
+    def measure(self, directory: Path, cleanup: ExitStack, lifetime) -> None:
+        from performance.frame_meter import install
+
+        # install resolves and validates every target before changing any hook;
+        # its returned closer restores them and publishes bounded output.
+        cleanup.callback(install(
+            expected_pid=os.getpid(), seconds=240,
+            output=directory.parent / "frame-meter.json",
+            max_records=200000, max_bytes=16 << 20,
+        ))
 
 
 @dataclass(frozen=True)
@@ -443,6 +480,7 @@ class ObserveOperation(PhysicalOperation):
         from toad.live_output import ResponseStream
         from toad.widgets.conversation import Conversation
         from toad.widgets.history_anchor import HistoryWindow
+        from toad.widgets.prompt import PromptTextArea
         from xdg_base_dirs import xdg_config_home, xdg_data_home, xdg_state_home
 
         try:
@@ -504,6 +542,13 @@ class ObserveOperation(PhysicalOperation):
             agent_ready=bool(acp_states) and all(state.ready for state in acp_states),
             turn_busy=any(state.busy for state in acp_states),
             responses=responses,
+            composer_focused=any(editor.has_focus for editor in screen.query(PromptTextArea)),
+            composer_regions=tuple(
+                CapturedRegion(placement.content_region.intersection(placement.clip))
+                for editor in screen.query(PromptTextArea)
+                for placement in (published.get(editor),) if placement is not None
+            ),
+            active_mode=app.current_mode,
         )
         self.target.require_resources(observed)
         self.publish(directory / "result.json", self.observed_result(observed, directory))

@@ -13,7 +13,7 @@ from agent_comms.installer.probes.resolution import RuntimeResolutionProbe
 from agent_comms.installer.runtime_resolution import RuntimeResolution
 from tools.physical_ui_remote import (
     ObserveOperation, ObservedResult, PhysicalOperation, PhysicalResult,
-    RunObservation, RunResources, StartOperation,
+    RunObservation, RunResources, StartOperation, MeasuredStartOperation,
 )
 
 
@@ -54,6 +54,11 @@ class AdmittedResult(ObservedResult):
 @dataclass(frozen=True)
 class StartAdmittedOperation(StartOperation):
     target: RunTarget
+
+
+@dataclass(frozen=True)
+class MeasuredStartAdmittedOperation(MeasuredStartOperation, StartAdmittedOperation):
+    """Compose strict candidate startup with the existing frame measurement."""
 
 
 @dataclass(frozen=True)

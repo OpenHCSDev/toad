@@ -15,10 +15,12 @@ from agent_comms.storage_rules import StorageRule
 from agent_comms.nominal.field_codec import FieldCodec
 from tools.physical_ui_admission import (
     AdmitOperation, AdmittedResult, RunTarget, StartAdmittedOperation,
+    MeasuredStartAdmittedOperation,
 )
 from tools.physical_ui_remote import (
     CapturedRegion, CapturedResponse, FrontendIdentity, InstalledResult, ObserveOperation,
     ObservedResult, PendingRun, RunObservation, RunResources, StartOperation, StopRootOperation,
+    MeasuredStartOperation,
 )
 
 
@@ -75,7 +77,11 @@ def test_startup_connection_decodes_only_observation_operations(
     strict = StartAdmittedOperation(
         physical_target, identity, (str(physical_target.runtime / "bin/toad"),), 9,
     )
-    for operation in (start, strict, StopRootOperation(physical_resources)):
+    measured = MeasuredStartOperation(physical_resources, identity, start.arguments, 9)
+    measured_strict = MeasuredStartAdmittedOperation(physical_target, identity, strict.arguments, 9)
+    for operation in (start, strict, measured, measured_strict):
+        assert FieldCodec.decode(StartOperation, FieldCodec.encode(operation)) == operation
+    for operation in (start, strict, measured, measured_strict, StopRootOperation(physical_resources)):
         with pytest.raises(ValueError):
             FieldCodec.decode(ObserveOperation, FieldCodec.encode(operation))
 

@@ -4,8 +4,10 @@ from pathlib import Path
 
 from agent_comms.installer.runtime_resolution import RuntimeResolution
 from tools import physical_ui_admission
-from tools.physical_ui import ObservedTerminalApp, OperationProgram
-from tools.physical_ui_admission import AdmitOperation, RunTarget, StartAdmittedOperation
+from tools.physical_ui import MeasuredTerminalApp, ObservedTerminalApp, OperationProgram
+from tools.physical_ui_admission import (
+    AdmitOperation, RunTarget, StartAdmittedOperation, MeasuredStartAdmittedOperation,
+)
 
 
 class TerminalApp(ObservedTerminalApp):
@@ -29,3 +31,9 @@ class TerminalApp(ObservedTerminalApp):
 
     def check_entry(self, result):
         return result.admitted(self.target)
+
+
+class MeasuredCandidateTerminalApp(TerminalApp, MeasuredTerminalApp):
+    """Candidate admission and measurement share one terminal/resource lifetime."""
+
+    start_operation = MeasuredStartAdmittedOperation
