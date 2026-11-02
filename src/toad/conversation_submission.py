@@ -383,7 +383,7 @@ class MessageSubmissionExecution(SubmissionExecution):
             if not route_current or not self.current:
                 raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
             runtime = view.app.preparation
-            self.publication = await runtime.admit_thread(partial(
+            self.publication = await runtime.start_thread(partial(
                 comms.messaging.send_user_message, self.conversation.send_target(), body,
                 worktree=view.project_path))
             self.enter(SendPending())
