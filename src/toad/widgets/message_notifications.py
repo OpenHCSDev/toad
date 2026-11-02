@@ -32,9 +32,10 @@ class MessageNotifications(Collapsible):
     MessageNotifications {
         height: auto; padding: 0; margin: 0; border: none;
         background: transparent; color: $text-muted;
+        /* One row whatever Core answers: the answer changes text, never height. */
         CollapsibleTitle {
-            padding: 0; width: 1fr; height: auto; min-height: 1;
-            text-wrap: wrap; text-overflow: fold;
+            padding: 0; width: 1fr; height: 1;
+            text-wrap: nowrap; text-overflow: ellipsis;
         }
         Contents { padding: 0; }
     }

@@ -117,3 +117,22 @@ def test_a_status_change_keeps_the_drawn_rows_until_the_new_rows_arrive(tmp_path
     assert shown.lines_for(80, renderer.theme) is None
     assert shown.plain_lines(80, renderer) is drawn
     assert shown.retains_lines(drawn, renderer.theme)
+
+
+def test_every_notification_answer_keeps_a_narrow_message_at_one_height():
+    """Status arrives after layout, only for messages in view: its answer may
+    change the receipt's text but never the message's height, or the rows
+    below jump while the reader scrolls."""
+    from toad.notification_status import UncheckedNotifications, UnavailableNotifications
+
+    statuses = (UncheckedNotifications(), CheckedNotifications.from_notifications(()),
+                UnavailableNotifications("could not reach Core " * 8))
+    renderer = RichLineRenderer(theme())
+    for style in (IrcMessageStyle(), MarkdownMessageStyle()):
+        for width in (24, 36, 80):
+            heights = set()
+            for status in statuses:
+                shown = fragment("#all", style)
+                shown.request_show(MessageShown(style=style, status=status))
+                heights.add(PlainLines(width, renderer, shown.line_blocks).height)
+            assert len(heights) == 1, (style, width, heights)

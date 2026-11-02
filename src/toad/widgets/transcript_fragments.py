@@ -40,8 +40,6 @@ from toad.line_blocks import (
     MarkdownBody,
     MutedRole,
     Span,
-    SpanText,
-    Spans,
     Summary,
     ToggleDetails,
     UserRole,
@@ -220,11 +218,12 @@ class Shown:
     """What a reader chose about one drawn fragment."""
 
     details_open: bool = False
-    summary_type: ClassVar[type[SpanText]] = Summary
 
-    def summary(self, title: str, role: type[LineRole], link: LineLink) -> SpanText:
-        """The disclosure retains the source occurrence supplied by its fragment."""
-        return self.summary_type((Span(("▼ " if self.details_open else "▶ ") + title, role, link),))
+    def summary(self, title: str, role: type[LineRole], link: LineLink) -> Summary:
+        """One clipped row whatever the title: state that arrives after layout
+        (a notification answer) changes this text, never the fragment's height.
+        The full text is behind the disclosure, which only the reader opens."""
+        return Summary((Span(("▼ " if self.details_open else "▶ ") + title, role, link),))
 
     def toggled(self) -> "Shown":
         return replace(self, details_open=not self.details_open)
@@ -234,7 +233,6 @@ class Shown:
 class MessageShown(Shown):
     """Style and Core's feedback for one bus message, in any conversation."""
 
-    summary_type: ClassVar[type[SpanText]] = Spans
     style: WireMessageStyle = field(default_factory=MarkdownMessageStyle)
     status: NotificationStatus = field(default_factory=UncheckedNotifications)
 
