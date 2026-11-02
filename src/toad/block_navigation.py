@@ -20,6 +20,7 @@ from toad.notification_status import MessageQueueEntry
 from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
 
 if TYPE_CHECKING:
+    from textual.app import App
     from agent_comms.message_reference import MessageReference
     from agent_comms.ui_model.message_category import AgentActivityBoundary
     from textual.screen import Screen
@@ -442,8 +443,8 @@ class ConversationBlock(ConversationEntry):
 class SeparatedBlock(ConversationBlock, Widget):
     """Native blocks keep separation outside their borders, not inside body rows."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def _post_register(self, app: App) -> None:
+        super()._post_register(app)
         self.styles.margin = Spacing(0, 1, 1, 0)
 
 

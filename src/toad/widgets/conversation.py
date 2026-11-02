@@ -54,7 +54,6 @@ from toad.conversation_actions import ConversationAction, WindowAction
 from toad.block_navigation import (
     BlockCursor,
     ContentNavigation,
-    ConversationBlock,
     ConversationEntry,
     CursorDirection,
     SeparatedBlock,
