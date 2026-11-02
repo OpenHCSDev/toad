@@ -5,7 +5,8 @@ from __future__ import annotations
 from textual.widgets.text_area import EditingMode, VimMode
 
 from functools import partial
-from typing import TYPE_CHECKING, Literal
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Literal, Self
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from agent_comms.nominal.field_codec import FieldCodec
 from toad.preferences import SETTINGS
@@ -16,7 +17,7 @@ from toad.widget_actions import (
     VimWorkspaceAction,
     YieldingKey,
 )
-from toad.widgets.comms_transfer import TransferRequest
+from toad.widgets.comms_transfer import Transfer, Transfers
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 from toad.core.session_requests import SessionNavigate
@@ -97,24 +98,24 @@ class CommanderAction(ApplicationAction):
 class TransferMenuAction(ApplicationAction):
     """Export wire history or import a thread through Core."""
 
-    def __init__(self, kind: type[TransferRequest]):
+    def __init__(self, kind: type[Transfer]) -> None:
         self.kind = kind
 
     @classmethod
-    def offered(cls, app):
-        yield from (cls(kind) for kind in TransferRequest.members_with(TransferRequest))
+    def offered(cls, app: Transfers) -> Iterator[Self]:
+        yield from (cls(kind) for kind in Transfer.members_with(Transfer))
 
-    def label(self, app: ToadApp) -> str:
+    def label(self, app: Transfers) -> str:
         return self.kind.title
 
     @classmethod
-    def parse(cls, parameters):
+    def parse(cls, parameters: tuple[object, ...]) -> Self:
         if len(parameters) != 1:
             raise ValueError("transfer_menu requires one declared transfer kind")
-        return cls(FieldCodec.decode(type[TransferRequest], parameters[0]))
+        return cls(FieldCodec.decode(type[Transfer], parameters[0]))
 
-    async def apply(self, app: ToadApp) -> None:
-        app.transfers.open(self.kind)
+    async def apply(self, app: Transfers) -> None:
+        app.open_transfer(self.kind)
 
 
 class SetFooterAction(System, ApplicationAction):

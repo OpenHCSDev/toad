@@ -58,7 +58,6 @@ from toad.tab_order import TabOrder
 from toad.thread_navigation import ThreadNavigator
 from toad.session_navigation import SessionNavigation
 from toad.terminal_attention import TerminalAttention
-from toad.textual_colours import ThemedApp
 from toad.application_actions import ApplicationCommands
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 from toad.application_lifetime import ApplicationLifetime, Ended, Succeeded, TerminalOutcome
@@ -130,7 +129,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp[TerminalOutcome], actions=(ApplicationAction,), inherit_bindings=False):
+class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, Transfers, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -183,7 +182,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.session_navigation = SessionNavigation(self)
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
-        self.transfers = Transfers(self)
         self.sidebar_state = SidebarState()
         self.sidebar_layout = SidebarLayout()
         self._mode_switch_lock = asyncio.Lock()
