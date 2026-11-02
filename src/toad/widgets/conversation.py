@@ -69,7 +69,8 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate, TurnChangedUpdate,
 )
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.conversation_submission import ConversationSubmissions
+from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
+from toad.input_decision import InputSourceUnavailable
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
 from toad.core import input_events
@@ -146,6 +147,7 @@ def make_session_title(prompt: str) -> str:
 
 
 if TYPE_CHECKING:
+    from toad.wire_history import WireSource
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
     from toad.widgets.transcript_history import LineHistory
@@ -1276,6 +1278,13 @@ class Conversation(
 
     def contains_user_message(self, sent) -> bool:
         return self.transcript.binding.history.contains_message(sent)
+
+    def bind_bus_submission(
+        self, source: WireSource, owner: ConversationSubmissions,
+        submission: PromptInputSubmission,
+    ) -> SubmissionStart:
+        """An ordinary transcript has no live channel view to bind."""
+        return owner.unbound(submission, InputSourceUnavailable())
 
     async def _apply_session_name(self, name: str) -> None:
         await self.agent_binding.set_session_name(name)
