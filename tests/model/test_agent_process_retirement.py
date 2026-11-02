@@ -5,6 +5,7 @@ from collections.abc import Callable
 
 import pytest
 from acp import text_block
+from acp.exceptions import RequestError
 
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import FieldCodec
@@ -48,9 +49,13 @@ async def test_the_child_and_session_are_retired(workspace: Workspace, how: str)
         await agent.stop()
 
 
-async def test_stopping_one_shared_session_keeps_the_other_usable(workspace: Workspace) -> None:
+@pytest.mark.parametrize("close_refused", (False, True))
+async def test_stopping_one_shared_session_keeps_the_other_usable(
+    workspace: Workspace, close_refused: bool,
+) -> None:
     definition = peer("shared_session", name="Shared sessions", identity="shared-sessions")
-    first = workspace.agents.agent(Agent, definition, "first")
+    first_name = "refuse-close" if close_refused else "first"
+    first = workspace.agents.agent(Agent, definition, first_name)
     second = workspace.agents.agent(Agent, definition, "second")
     try:
         await first.start()
@@ -61,7 +66,13 @@ async def test_stopping_one_shared_session_keeps_the_other_usable(workspace: Wor
         await second.start(first.borrowed_processes)
         await until(lambda: second.ready, "the second loaded session")
         assert second.process is process
-        await first.stop()
+        if close_refused:
+            with pytest.raises(RequestError) as refused:
+                await first.stop()
+            assert refused.value.code == -32602
+            assert refused.value.data["details"] == "Original session close refused"
+        else:
+            await first.stop()
         assert not first.session.accepts_updates
         assert not first.session.responses
         assert second.ready and second.session.accepts_updates
@@ -69,10 +80,16 @@ async def test_stopping_one_shared_session_keeps_the_other_usable(workspace: Wor
         response = await second.process.rpc.prompt("second", [text_block("still-connected")])
         assert response is not None
         assert response.stop_reason == "end_turn"
-        assert {row["closed"] for row in workspace.received() if "closed" in row} == {"first"}
+        receipt = "close_refused" if close_refused else "closed"
+        assert {row[receipt] for row in workspace.received() if receipt in row} == {first_name}
         assert any(row.get("prompt") == "still-connected" for row in workspace.received())
     finally:
         try:
             await first.stop()
+        except RequestError:
+            # Cleanup joins the same failed close; the original refusal was
+            # asserted above and must not prevent releasing the second owner.
+            if not close_refused:
+                raise
         finally:
             await second.stop()
