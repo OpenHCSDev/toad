@@ -13,7 +13,6 @@ from agent_comms.order_tools import InputDeliveryRead, OwnerGoalRead
 from agent_comms.owner_connection import socket_path
 from agent_comms.repo import Checkout
 from agent_comms.runtime import RuntimeConnection
-from agent_comms.session_load import ExistingSessionLoadPlan
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.sent_message import AssignedSourceIdentity
 from agent_comms.transcripts import TranscriptReadIdentity
@@ -243,7 +242,7 @@ class CoordinatedThread(CoordinationAttachment):
         self.require_current(agent, authority)
         comms = await agent.controller.transcripts.service(self.update.wire_root)
         self.require_current(agent, authority)
-        result = await asyncio.to_thread(comms.threads.set_project, self.update.thread.name, path)
+        result = await asyncio.to_thread(comms.threads.set_project, self.update.thread, path)
         self.require_current(agent, authority)
         agent.coordination_attachment.apply_project(agent, Checkout(Path(result.current)))
         return result.current
@@ -281,9 +280,7 @@ class CoordinatedThread(CoordinationAttachment):
         session = agent.session
         if not session.settled.is_set() or session.reconnecting:
             return
-        binding = presentation.binding
-        if session.load_plan.superseded_by(binding):
-            await session.reconnect(ExistingSessionLoadPlan(binding))
+        await presentation.binding.reload_if_superseded(session.load_plan, session.reconnect)
 
     async def prepare_login(self, view: Conversation) -> None:
         """The coordinated source keeps its saved transcript during login."""
