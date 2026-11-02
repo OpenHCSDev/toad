@@ -6,6 +6,8 @@ from contextlib import asynccontextmanager
 import pytest
 
 from support.journals import assistant_entry, write_journal
+from support.ui import TextualUi
+from toad.widgets.transcript_history import TranscriptHistory
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.threads import Thread
 from toad.transcript_publication import CommitPublication, TranscriptPublication
@@ -57,6 +59,17 @@ async def hold_application(view):
         yield
     finally:
         release.set()
+
+
+async def hold_saved_prefix(ui: TextualUi, marker: str) -> TranscriptHistory:
+    """Freeze actual saved paint, not an initial live replay of the same text."""
+    history = ui.conversation.transcript.binding.history
+    await ui.until(lambda: history.source_ready and history.state.reports_coverage
+                   and marker in ui.painted(history),
+                   why="the saved prefix to paint before its source is held")
+    await ui.app.coordination_access.stop_observing()
+    await ui.conversation.transcript.suspend()
+    return history
 
 
 async def stays_waiting(task) -> bool:
@@ -170,9 +183,7 @@ async def test_followed_saved_append_keeps_painted_page_and_fragments(workspace)
     async with workspace.app(resume="append-source") as ui:
         await ui.until_shows("THIRD_RETAINED_ROW")
         view = ui.conversation
-        await ui.app.coordination_access.stop_observing()
-        await view.transcript.suspend()
-        history = view.transcript.binding.history
+        history = await hold_saved_prefix(ui, "THIRD_RETAINED_ROW")
         assert view.window.follows_tail
         pages = tuple(history.pages)
         fragments = tuple(history.fragments_in_range)
@@ -204,16 +215,15 @@ async def test_followed_commit_publishes_a_known_undrawn_gap_before_settling(wor
     async with workspace.app(resume="gap-source") as ui:
         await ui.until_shows("BEFORE_SOURCE_GAP")
         view = ui.conversation
-        await ui.app.coordination_access.stop_observing()
-        await view.transcript.suspend()
-        history = view.transcript.binding.history
-        await ui.until(lambda: history.source_ready, why="the original source work to finish")
+        history = await hold_saved_prefix(ui, "BEFORE_SOURCE_GAP")
         with journal.open("a") as output:
             output.write(json.dumps(assistant_entry(
                 "AFTER_SOURCE_GAP", id="after", parent="before")) + "\n")
         view.transcript.dirty = view.transcript.commit_required = True
         entered, release = asyncio.Event(), asyncio.Event()
-        pending = asyncio.create_task(view.transcript.publish(HeldSourceCase, entered, release))
+        case = view.transcript.binding.capture(view.transcript, HeldSourceCase, entered, release)
+        assert case is not None
+        pending = asyncio.create_task(case.publish())
         try:
             # A successful publication return can also mean a guarded no-op.
             # Hold the existing real read only AFTER the commit was admitted.
@@ -225,7 +235,12 @@ async def test_followed_commit_publishes_a_known_undrawn_gap_before_settling(wor
             release.set()
             await pending
         # Check the publication contract before a later lookahead can hide it.
-        assert not history.drawn_end_more
+        assert not history.drawn_end_more, (
+            case.current(), case.plan.current(view.window),
+            history.source_ready, view.window.follows_tail,
+            view.transcript.dirty, view.transcript.commit_required,
+            history.pages[-1].prepared.page.after, history.page_source.through,
+        )
         assert history.pages[-1].prepared.page.after.same_position(page.after)
         await ui.until_shows("AFTER_SOURCE_GAP")
         assert ui.failure() is None
@@ -244,9 +259,7 @@ async def test_closed_same_source_commit_acquires_complete_coverage(workspace, f
     async with workspace.app(resume="closed-prefix") as ui:
         await ui.until_shows("CLOSED_PREFIX_MUST_SURVIVE")
         view = ui.conversation
-        await ui.app.coordination_access.stop_observing()
-        await view.transcript.suspend()
-        history = view.transcript.binding.history
+        history = await hold_saved_prefix(ui, "CLOSED_PREFIX_MUST_SURVIVE")
         history.close()
         if not following:
             view.window.release_anchor()
@@ -275,7 +288,7 @@ async def test_closed_same_source_commit_acquires_complete_coverage(workspace, f
 @pytest.mark.parametrize("following", (False, True))
 async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(workspace, following):
     from dataclasses import replace
-    from agent_comms.errors import TranscriptChanged
+    from agent_comms.coordination_errors import TranscriptChanged
 
     thread = workspace.thread("rewritten-source")
     journal = write_journal(thread.project_path / "rewritten.jsonl",
@@ -285,9 +298,7 @@ async def test_rewritten_saved_file_replaces_paint_even_when_its_cursor_grew(wor
     async with workspace.app(resume="rewritten-source") as ui:
         await ui.until_shows("SUPERSEDED_SOURCE_ROW")
         view = ui.conversation
-        await ui.app.coordination_access.stop_observing()
-        await view.transcript.suspend()
-        history = view.transcript.binding.history
+        history = await hold_saved_prefix(ui, "SUPERSEDED_SOURCE_ROW")
         original = history.page_source.through
         if not following:
             view.window.release_anchor()
