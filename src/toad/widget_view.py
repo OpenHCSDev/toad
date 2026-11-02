@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 from textual import events
 from textual._paint_state import PaintLayer
 from textual._styles_cache import FramePaint
-from textual.box_model import DEFAULT_LAYER, BoxGeometry
+from textual.box_model import DEFAULT_LAYER, BoxGeometry, Dimension
 from textual.color import TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar, ScalarOffset, Unit
@@ -17,6 +17,7 @@ from textual.geometry import Spacing
 
 AUTO = Scalar(1.0, Unit.AUTO, Unit.AUTO)
 FILL = Scalar(1.0, Unit.FRACTION, Unit.WIDTH)
+_EMPTY_EDGES = Edges(*(("", TRANSPARENT),) * 4)
 
 
 class WorkspaceHosted:
@@ -32,11 +33,14 @@ class WorkspaceHosted:
 class WidgetView(BoxGeometry, PaintLayer, FramePaint):
     """The view supplies native inputs directly, without a CSS declaration mirror."""
 
-    width = None
-    height = AUTO
-    min_width = min_height = max_width = max_height = None
+    width: Dimension = None
+    height: Dimension = AUTO
+    min_width: Dimension = None
+    min_height: Dimension = None
+    max_width: Dimension = None
+    max_height: Dimension = None
     padding = margin = Spacing(0, 0, 0, 0)
-    border = outline = Edges(*(("", TRANSPARENT),) * 4)
+    outline = _EMPTY_EDGES
     box_sizing = "border-box"
     width_policy = "greedy"
     dock = split = "none"
@@ -63,6 +67,10 @@ class WidgetView(BoxGeometry, PaintLayer, FramePaint):
     hatch = None
     border_title_align = "left"
     border_subtitle_align = "right"
+
+    @property
+    def border(self) -> Edges:
+        return _EMPTY_EDGES
 
     @property
     def geometry(self) -> BoxGeometry:
