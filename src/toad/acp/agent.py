@@ -239,7 +239,7 @@ class Agent(AgentBase):
         self.controller.detach(surface)
 
     def receive_coordination(self, update: CoordinationChangedUpdate, session_id: str) -> None:
-        """Admit one original publication and refresh its derived projections."""
+        """Consume one original publication and refresh its derived projections."""
         self.controller.transcripts.access.selected(update.wire_root)
         self.coordination_attachment = CoordinatedThread(update)
         self.project_root_path = update.worktree.path

@@ -200,7 +200,7 @@ class AgentSession:
             task.cancel()
 
     async def close_in(self, connection: ClientSideConnection) -> None:
-        """Closing the remote session is tracked even after input admission closes."""
+        """Closing the remote session is tracked even after input stops."""
         await self._track_operation(connection.close_session(self.agent.session_id))
 
     def close(self) -> None:
