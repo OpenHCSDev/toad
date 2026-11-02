@@ -38,6 +38,7 @@ class CoordinationAttachment:
     """A genuine non-coordinated ACP session, not an optional packet."""
 
     queue_supported = False
+    automatic_titles = True
     retired_notice = "The connected owner session retired; refresh its state."
     changed_notice = "The owner identity changed while preparing the request."
 
@@ -128,6 +129,7 @@ class CoordinatedThread(CoordinationAttachment):
 
     update: CoordinationChangedUpdate
     queue_supported = True
+    automatic_titles = False
 
     @property
     def title(self) -> str:
