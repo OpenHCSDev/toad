@@ -15,8 +15,8 @@ async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(works
     with private_catalog_entry() as definition:
         from toad.app import ToadApp
 
-        def with_catalog_agent(*, launch_root, **arguments):
-            return ToadApp(launch_root=launch_root,
+        def with_catalog_agent(*, connection, **arguments):
+            return ToadApp(connection=connection,
                            **{**arguments, "agent_binding": AgentAttached(definition)})
 
         async with native_session(workspace, application=with_catalog_agent) as native:
