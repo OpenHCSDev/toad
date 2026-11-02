@@ -864,13 +864,33 @@ class ConversationSessionBinding(
 from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 
 
-class Conversation(
-    CoreEventReceiver,
-    NativeMethodKeys,
-    ConversationSessionBinding, ToadNode, MenuConversation,
-    actions=(ConversationAction,),
-):
-    """Holds the agent conversation (input, output, and various controls / information)."""
+class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
+    """Source-bound event behavior shared by every conversation surface."""
+
+    window = getters.query_one(Window)
+
+    @abstractmethod
+    async def post[WidgetType: Widget](
+        self, widget: WidgetType, *, loading: bool = False, new_block: bool = True,
+    ) -> WidgetType:
+        """The rich surface owns mounting; event handling owns what to present."""
+        raise NotImplementedError
+
+    async def _clear_mcp_live(self) -> None:
+        if self._mcp_live_note is not None:
+            await self._mcp_live_note.remove()
+            self._mcp_live_note = None
+
+    async def present_started_input(self, started) -> None:
+        from toad.widgets.committed_presentation import StartedInputClaim
+
+        self.output.boundary()
+        if started.text:
+            if not self.transcript.covers_input(started):
+                await self.post(
+                    UserInput(started.text, claim=StartedInputClaim(started))
+                )
+        self.submissions.native_input_presented(started)
 
     def accepts(self, message: CoreEventMessage) -> bool:
         return message.event.accepted_by(message, self)
@@ -1011,6 +1031,14 @@ class Conversation(
     ) -> None:
         self.transcript.received(update.page)
 
+class Conversation(
+    ConversationEvents,
+    NativeMethodKeys,
+    ToadNode, MenuConversation,
+    actions=(ConversationAction,),
+):
+    """Holds the agent conversation (input, output, and various controls / information)."""
+
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """The conversation owns its persistent reader and composer key targets."""
         return (self, self.window, self.prompt)
@@ -1019,7 +1047,6 @@ class Conversation(
     MAX_LIVE_BLOCKS = 32
     BINDING_GROUP_TITLE = "Conversation"
 
-    window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
 
     def painted_read(self, acknowledge: Callable[[TranscriptCursor], PaintedRead]) -> PaintedRead:
@@ -1552,11 +1579,6 @@ class Conversation(
             )
         )
 
-    async def _clear_mcp_live(self) -> None:
-        if self._mcp_live_note is not None:
-            await self._mcp_live_note.remove()
-            self._mcp_live_note = None
-
     @handles(core_events.McpClientStopped)
     async def on_mcp_client_stopped(self, event: core_events.McpClientStopped) -> None:
         await self._clear_mcp_live()
@@ -1569,17 +1591,6 @@ class Conversation(
         if self.turns.owner.busy:
             self.turns.describe("Writing response…")
         await self.output.append(event.stream, event.text)
-
-    async def present_started_input(self, started) -> None:
-        from toad.widgets.committed_presentation import StartedInputClaim
-
-        self.output.boundary()
-        if started.text:
-            if not self.transcript.covers_input(started):
-                await self.post(
-                    UserInput(started.text, claim=StartedInputClaim(started))
-                )
-        self.submissions.native_input_presented(started)
 
     @handles(TranscriptCoverage)
     async def on_transcript_coverage(self, event: TranscriptCoverage, message: CoreEventMessage) -> None:

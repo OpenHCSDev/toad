@@ -305,9 +305,6 @@ class Agent(AgentBase):
     def automatic_titles(self) -> bool:
         return self.coordination_attachment.automatic_titles
 
-    def observed_thread(self) -> tuple[str, str] | None:
-        return self.coordination_attachment.observed_thread()
-
     def thread_read(self) -> ThreadRead:
         """Capture, before a presentation read, what its result must still match."""
         return self.coordination_attachment.thread_read(self)

@@ -174,9 +174,6 @@ class AgentConnection(ABC):
     async def stop(self) -> None:
         """A connection without a native process has nothing to stop."""
 
-    def observed_thread(self) -> tuple[str, str] | None:
-        return None
-
     goal_control_refusal: ClassVar[str] = "Persistent goals require an agent-comms session"
 
     async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:

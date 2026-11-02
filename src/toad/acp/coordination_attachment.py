@@ -50,9 +50,6 @@ class CoordinationAttachment:
     def tool_scope(self) -> AssignedSourceIdentity | None:
         return None
 
-    def observed_thread(self) -> tuple[str, str] | None:
-        return None
-
     def matches_source(self, update: CoordinationChangedUpdate) -> bool:
         return False
 
@@ -141,9 +138,6 @@ class CoordinatedThread(CoordinationAttachment):
             lambda recorded: AssignedSourceIdentity(self.update.wire_root, recorded),
             lambda: None,
         )
-
-    def observed_thread(self) -> tuple[str, str]:
-        return self.update.wire_root, self.update.thread.name
 
     def matches_source(self, update: CoordinationChangedUpdate) -> bool:
         return self.matches_identity(update.wire_root, update.thread)

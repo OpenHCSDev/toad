@@ -35,16 +35,19 @@ async def test_project_change_publishes_the_real_checkout(workspace):
         assert workspace.comms.registry.require("source").project_path == target
         event, = events
         assert event.update.worktree.path == target
-        assert agent.observed_thread() == (str(workspace.comms.root), "source")
+        assert agent.coordination_attachment.matches_identity(
+            str(workspace.comms.root), workspace.comms.registry.require("source").incarnation,
+        )
 
 
 async def test_rename_keeps_canonical_name_distinct_from_display_title(workspace):
     async with workspace.app() as ui:
         agent = await bind(ui, workspace, "source")
         await agent.set_session_name("A chosen display title")
-        root, name = agent.observed_thread()
-        assert root == str(workspace.comms.root)
-        current = workspace.comms.registry.require(name)
+        source = agent.coordination_attachment.tool_scope
+        assert source is not None
+        assert source.root == str(workspace.comms.root)
+        current = workspace.comms.registry.require(source.recipient.name)
         assert current.title.require("renaming must publish a title") == "A chosen display title"
         assert agent.coordination_attachment.title == "A chosen display title"
         assert current.incarnation == agent.coordination_attachment.tool_scope.recipient
@@ -66,4 +69,6 @@ async def test_captured_attachment_cannot_mutate_a_replacement_thread(workspace)
         assert workspace.comms.registry.require("original").project_path == workspace.project
         assert workspace.comms.registry.require("replacement").project_path == workspace.project
         assert agent.project_root_path == workspace.project
-        assert agent.observed_thread() == (str(workspace.comms.root), "replacement")
+        assert agent.coordination_attachment.matches_identity(
+            str(workspace.comms.root), workspace.comms.registry.require("replacement").incarnation,
+        )
