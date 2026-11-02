@@ -409,8 +409,11 @@ class TranscriptFragment:
             return False
         self.shown = shown
         self.__dict__.pop("line_blocks", None)
+        # The rows drawn now stand in until the new state's rows arrive: a
+        # status change must not redraw the message as plain rows (another
+        # wrap, another height) and then as styled rows again.
+        self._plain = self._lines.standing_in_for(self._plain)
         self.invalidate_lines()
-        self._plain = NoRows()
         return True
 
     @cached_property

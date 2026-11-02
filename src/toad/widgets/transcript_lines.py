@@ -663,6 +663,10 @@ class RowAcquisition(ABC):
     @abstractmethod
     def replaced_at(self, row: LaidOut, width: int) -> RowChange: ...
 
+    @abstractmethod
+    def standing_in_for(self, previous: RowAcquisition) -> RowAcquisition:
+        """What draws in this fragment's place until its next rows arrive."""
+
     def rewrapped_plain(self, width: int, renderer: RichLineRenderer,
                         blocks: tuple[LineBlock, ...]) -> MeasuredRows:
         lines = PlainLines(width, renderer, blocks)
@@ -689,6 +693,9 @@ class NoRows(RowAcquisition):
     def replaced_at(self, row: LaidOut, width: int) -> RowChange:
         """Nothing drawable yet: the page measures again once rows exist."""
         return row.measured_again()
+
+    def standing_in_for(self, previous: RowAcquisition) -> RowAcquisition:
+        return previous
 
 
 @dataclass
@@ -717,6 +724,9 @@ class MeasuredRows(RowAcquisition):
 
     def replaced_at(self, row: LaidOut, width: int) -> RowChange:
         return row.replaced_by(self.viewed(width))
+
+    def standing_in_for(self, previous: RowAcquisition) -> RowAcquisition:
+        return self
 
     def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> MeasuredRows:
         # Synchronous rows depend on style values, including a divider's fade.
