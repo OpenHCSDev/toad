@@ -10,7 +10,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Generic, Literal, Self, TypeVar, cast
 
 from agent_comms.command import Command
-from agent_comms.nominal.declared_family import DeclaredFamily, FamilyMeta
+from agent_comms.nominal.declared_family import DeclaredFamily, FamilyMeta, declared_words
 from agent_comms.nominal.field_codec import FieldCodec, FieldPlan
 from textual.binding import Binding, BindingsMap, CommandBinding, ModeBinding
 from textual import events
@@ -67,7 +67,9 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
 
     @classmethod
     def default_title(cls) -> str:
-        return cls.declared_name.replace("_", " ").capitalize()
+        """The class's own derived name, never its stored key: a declared_name can stay pinned
+        to a stored spelling (TeamAction keeps "commander" for saved remaps) while views say Team."""
+        return declared_words(cls.__name__.removesuffix(cls._family_affix)).replace("_", " ").capitalize()
 
     @classmethod
     def declarations(cls) -> Iterator[type[Self]]:
