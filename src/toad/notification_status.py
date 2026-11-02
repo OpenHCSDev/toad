@@ -55,6 +55,11 @@ class NotificationStatus:
         return self.details
 
     @property
+    def queued_recipients(self) -> tuple[str, ...]:
+        """Recipients whose model has not yet taken this message; an unchecked status knows none."""
+        return ()
+
+    @property
     def disclosure(self) -> SpanColumns:
         return SpanColumns(self.details, indent=2)
 
@@ -107,6 +112,10 @@ class CheckedNotifications(NotificationStatus):
 
     def failed(self, failure: NotificationStatus) -> NotificationStatus:
         return self
+
+    @property
+    def queued_recipients(self) -> tuple[str, ...]:
+        return tuple(item.recipient for item in self.notifications if not item.state.consumed)
 
     @property
     def working(self) -> bool:

@@ -7,7 +7,7 @@ from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
 from toad.wire_history import WireSource
-from toad.submission_queue import QueueSource, ReadOnlyQueueSource
+from toad.submission_queue import NoQueueSource, QueueSource
 from toad.transcript_publication import NoView, ViewBinding
 
 import re
@@ -62,7 +62,7 @@ class HistoryLoading(ConversationBlock, Static):
 class CommsChatView(Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
-    queue_source: QueueSource = ReadOnlyQueueSource()
+    queue_source: QueueSource = NoQueueSource()
 
     def __init__(
         self,
