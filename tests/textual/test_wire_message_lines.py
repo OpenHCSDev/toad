@@ -99,3 +99,21 @@ def test_opening_notification_details_draws_more_rows_than_the_collapsed_message
             opened.request_show(MessageShown(style=style, status=status, details_open=True))
             taller = PlainLines(width, RichLineRenderer(theme()), opened.line_blocks)
             assert taller.height > lines.height
+
+
+def test_a_status_change_keeps_the_drawn_rows_until_the_new_rows_arrive(tmp_path):
+    """Scrolling exposes a message, its notification status arrives, and the
+    reader must not see it rewrap as plain rows before the styled ones return."""
+    context = LinkContext(tmp_path, ProjectReferences())
+    renderer = RichLineRenderer(theme())
+    shown = fragment("#all")
+    request = TranscriptLinesRenderTask(LinePreparation(shown.line_blocks, renderer.theme), context)
+    drawn = request.execute().wrap(80, renderer)
+    assert shown.hold_lines(request, drawn)
+    assert shown.lines_for(80, renderer.theme) is drawn
+
+    status = CheckedNotifications.from_notifications(())
+    assert shown.request_show(replace(shown.shown, status=status))
+    assert shown.lines_for(80, renderer.theme) is None
+    assert shown.plain_lines(80, renderer) is drawn
+    assert shown.retains_lines(drawn, renderer.theme)

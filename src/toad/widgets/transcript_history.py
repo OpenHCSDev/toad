@@ -508,13 +508,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         span = lines.block_span(lambda span: span.contains(row - first))
         return None if span is None else FragmentSpan.in_page(self, fragment, first, span)
 
-    def visible_rows(self, window: HistoryWindow) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
-        """Each loaded fragment in the window's viewport, with its rows that are in view."""
+    def visible_rows(self, window: HistoryWindow, margin: int = 0) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
+        """Each loaded fragment in the window's viewport, widened by `margin` rows each way,
+        with its rows that are in that band."""
         # A page the viewport layout did not place is off screen; computing
         # its offset would rebuild the compositor's whole map.
         for _, offset in window.placements((self,)):
-            top = int(window.scroll_y - offset)
-            bottom = top + window.outer_size.height
+            top = int(window.scroll_y - offset) - margin
+            bottom = top + window.outer_size.height + 2 * margin
             slot = max(0, bisect_right(self._starts, top) - 1)
             for index in range(slot, len(self._layout)):
                 fragment, first, lines = self._layout[index]
@@ -532,9 +533,10 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
 
         window = self.query_ancestor(HistoryWindow)
         slots = self._fragment_slots
-        pending = [fragment for fragment in self.visible_fragments(window)
+        # Style the viewport and one screen each way, nearest the reader
+        # first, so paging rarely exposes plain rows that rewrap on arrival.
+        pending = [fragment for fragment, _rows, _lines in self.visible_rows(window, window.outer_size.height)
                    if id(fragment) in self._pending]
-        # Render only visible viewport rows, nearest the reader first.
         for _, offset in window.placements((self,)):
             reader = window.scroll_y - offset
             pending.sort(key=lambda fragment: abs(slots[id(fragment)].first - reader))
