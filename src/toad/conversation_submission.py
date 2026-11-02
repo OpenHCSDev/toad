@@ -278,7 +278,7 @@ class SentAwaitingSource(RetainedSend):
 
     async def present_written(self, execution: SubmissionExecution) -> None:
         if execution.current:
-            await execution.present(self.sent)
+            await execution.present_message(self.sent)
 
 
 @dataclass(frozen=True)
@@ -324,6 +324,9 @@ class SubmissionExecution(SubmissionStart):
 
     async def feedback(self):
         """Only a source's own acceptance can confirm its input."""
+
+    async def present_message(self, sent: Message) -> None:
+        """A native submission has no independently published BUS message to present."""
 
     async def prepare(self):
         view, submission = self.owner.view, self.submission
@@ -371,12 +374,15 @@ class MessageSubmissionExecution(SubmissionExecution):
                  present: Callable[[Message], Awaitable[None]]):
         super().__init__(owner, submission)
         self.root, self.conversation = root, conversation
-        self.source_current, self.present = current, present
+        self.source_current, self._present = current, present
         self.publication: asyncio.Task[Message] | None = None
 
     @property
     def current(self) -> bool:
         return self.source_current()
+
+    async def present_message(self, sent: Message) -> None:
+        await self._present(sent)
 
     async def deliver(self):
         view, body = self.owner.view, self.submission.source_text
