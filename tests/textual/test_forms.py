@@ -11,6 +11,9 @@ from annotated_types import Ge
 from objectstate import ObjectState
 from python_introspect import AnnotatedDataclassValidationMixin, AnnotationChoices, FieldLabel
 from textual.app import App, ComposeResult
+from textual.geometry import Region
+from textual.widgets import RadioButton
+from toad.widgets.checkbox import Checkbox
 
 import toad.preferences  # noqa: F401  names the process-wide root ObjectState asks for (ObjectState issue #44)
 from toad.forms import editors
@@ -50,6 +53,16 @@ class Everything(AnnotatedDataclassValidationMixin):
     limit: Optional[Annotated[int, Ge(1)]] = None
     inner: Inner = field(default_factory=Inner)
     secret: str = field(default="", metadata={"ui_hidden": True})
+
+
+class ToggleApp(ThemedApp, App[None]):
+    def compose(self) -> ComposeResult:
+        checkbox = Checkbox("one two three four", id="checkbox")
+        checkbox.styles.width = 10
+        yield checkbox
+        radio = RadioButton("one two three four", id="radio")
+        radio.styles.width = 10
+        yield radio
 
 
 class FormApp(ThemedApp, App[None]):
@@ -122,6 +135,37 @@ async def test_an_edit_of_each_kind_reaches_the_state():
         shown["limit"].holds_value.value = False
         await pilot.pause()
         assert app.state.to_object().limit is None and not shown["limit"].member.display
+
+
+async def test_application_checkbox_clips_without_changing_radio_policy_or_input():
+    app = ToggleApp()
+    async with app.run_test() as pilot:
+        checkbox = app.query_one(Checkbox)
+        radio = app.query_one(RadioButton)
+        assert checkbox.text_format.line_wrap == radio.text_format.line_wrap == "nowrap"
+        assert checkbox.text_format.line_overflow == "clip"
+        assert radio.text_format.line_overflow == "ellipsis"
+        assert "…" not in "".join(line.text for line in checkbox.render_lines(
+            Region(0, 0, checkbox.region.width, checkbox.region.height)))
+        assert "…" in "".join(line.text for line in radio.render_lines(
+            Region(0, 0, radio.region.width, radio.region.height)))
+        checkbox.focus()
+        await pilot.press("space")
+        assert checkbox.value
+        radio.focus()
+        await pilot.press("space")
+        assert radio.value
+
+
+async def test_a_native_form_frame_preserves_the_checkbox_line_policy():
+    async with open_form() as (_app, pilot, shown):
+        checkbox = shown["flag"]
+        assert checkbox.text_format.line_wrap == "nowrap"
+        assert checkbox.text_format.line_overflow == "clip"
+        checkbox.styles.text_overflow = "ellipsis"
+        await pilot.pause()
+        assert checkbox.text_format.line_overflow == "ellipsis"
+        assert checkbox.get_content_height(checkbox.size, checkbox.size, 8) == 1
 
 
 async def test_a_value_the_declaration_refuses_is_reported_and_the_editor_shows_the_state_again():

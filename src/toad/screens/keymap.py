@@ -7,7 +7,8 @@ from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Button, Checkbox, DataTable, Input, Static
+from textual.widgets import Button, DataTable, Input, Static
+from toad.widgets.checkbox import Checkbox
 
 from toad.key_modes import KeyMode
 from toad.keymap import KeyInvocationId, Keymap, KeymapCatalog, KeymapRefused, KeymapRow, discover

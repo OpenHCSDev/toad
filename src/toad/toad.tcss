@@ -32,12 +32,6 @@ Throbber {
     display: none;
 }
 
-Checkbox {
-    # TODO: Bug in Textual?
-    text-overflow: clip;    
-}
-
-
 Footer {    
     background: transparent;
     FooterKey {
