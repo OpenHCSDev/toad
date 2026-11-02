@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   nra-gate:
-    name: Debt ratchet
+    name: NRA gate
     timeout-minutes: 5
     runs-on: ubuntu-latest
     permissions:
