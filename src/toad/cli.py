@@ -132,13 +132,14 @@ def run(launch_root: LaunchRoot, project_dir: str, agent: str = "1"):
     import asyncio
 
     from toad.app import ToadApp
+    from toad.comms_root import LocalCoreConnection
 
     binding = asyncio.run(get_agent_binding(agent))
     app = ToadApp(
         mode=binding.startup_mode,
         agent_binding=binding,
         project_dir=project,
-        launch_root=launch_root,
+        connection=LocalCoreConnection.from_launch(launch_root),
     )
     run_terminal(app)
 
@@ -195,11 +196,12 @@ def acp(
         "actions": {},
     })
     from toad.app import ToadApp
+    from toad.comms_root import LocalCoreConnection
 
     app = ToadApp(
         agent_binding=AgentAttached(agent_data),
         project_dir=FieldCodec.decode(Checkout, project_dir).resolved(strict=True),
-        launch_root=launch_root,
+        connection=LocalCoreConnection.from_launch(launch_root),
         agent_session_id=session_id,
     )
     run_terminal(app)
