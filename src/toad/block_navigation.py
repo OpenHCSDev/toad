@@ -12,6 +12,7 @@ from agent_comms.read_basis import DisplayCut, NoDisplaySelection
 from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
 from textual.app import App
 from textual.geometry import Region, Spacing
+from textual.message import Message
 from textual.widget import Widget
 from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 
@@ -435,9 +436,17 @@ class ConversationBlock(ConversationEntry):
 
     text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
 
+    class Mounted(Message):
+        """A live block mounted; the history window around it keeps it as a reader holder."""
+
+        def __init__(self, block: ConversationBlock) -> None:
+            super().__init__()
+            self.block = block
+
     def on_mount(self) -> None:
         for fade in self.text_fades:
             self.run_effect(fade)
+        self.post_message(self.Mounted(self))
 
 
 class SeparatedBlock(ConversationBlock, Widget):

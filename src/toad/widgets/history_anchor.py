@@ -340,10 +340,8 @@ class BlockPosition(NativeReaderHolder, OffsetPosition):
         made, so a block published last frame and not placed now (a CLI draft hidden
         since) is no candidate. Containers of other blocks do not hold the reader.
         """
-        from toad.block_navigation import ConversationBlock
-
-        blocks = [widget for widget in window.screen._compositor.published_widgets
-                  if isinstance(widget, ConversationBlock) and window in widget.ancestors]
+        published = window.screen._compositor.published_widgets
+        blocks = [block for block in window.live_blocks if block in published]
         holders = {ancestor for block in blocks for ancestor in block.ancestors}
         placed = (cls(block, row, window.scroll_y) for block, row in window.placements(
                       window.visible_history_items(block for block in blocks if block not in holders)))
@@ -755,6 +753,15 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         published = self.screen._compositor.published_widgets
         pages = (page for page in self.page_views if page in published)
         return (page for page in self.visible_history_items(pages) if self.displays(page))
+
+    @cached_property
+    def live_blocks(self) -> WeakSet[Widget]:
+        """Every live block mounted inside this window; each announces itself when it mounts."""
+        return WeakSet()
+
+    def on_conversation_block_mounted(self, message) -> None:
+        message.stop()
+        self.live_blocks.add(message.block)
 
     @cached_property
     def page_views(self) -> WeakSet[TranscriptPageView]:
