@@ -21,12 +21,7 @@ from agent_comms.acp_extension import (
     encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
-from agent_comms.owner_connection import socket_path
-from agent_comms.runtime import RuntimeConnection
 from agent_comms.transcripts import TranscriptReadIdentity
-from agent_comms.order_tools import InputDeliveryRead
-from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
-from agent_comms.ui_model.observation import ReadOwnerOperation
 
 from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.status import StopReason
@@ -48,8 +43,6 @@ if TYPE_CHECKING:
 
     from acp.schema import AvailableCommand
     from agent_comms.acp_extension import QueueScope, TranscriptSnapshotUpdate
-    from pydantic import JsonValue
-
     from toad.acp.agent import Agent
     from toad.core.events import AgentFail
     from toad.render_backend import Renderer, RenderTask
@@ -105,7 +98,6 @@ class AgentController(OperationalTerminalOwner):
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
         self.transcripts = transcripts
-        self.coordination = None
         self.session = SessionBinding(None)
         self.commands: list[AvailableCommand] = []
         self.plan_entries: list[PlanItem] | None = None
@@ -165,14 +157,14 @@ class AgentController(OperationalTerminalOwner):
     async def publish_transcript_snapshot(
         self, update: TranscriptSnapshotUpdate, binding: SurfaceBinding, session: SessionBinding
     ) -> None:
-        if binding.target is None or not session.accepts_snapshot(update.identity, self.coordination):
+        if binding.target is None or not session.accepts_snapshot(update.identity, self.agent.coordination):
             return  # No view or matching request owns this publication.
         snapshot = await self.transcripts.publication(update)
         if self.session is not session:
             return
         if self.surface is not binding:
             return
-        if not session.accepts_snapshot(snapshot.identity, self.coordination):
+        if not session.accepts_snapshot(snapshot.identity, self.agent.coordination):
             return
         self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 
@@ -226,7 +218,7 @@ class AgentController(OperationalTerminalOwner):
         self, operation: Callable[[], Awaitable[Result]], authority: ClientSessionRequest
     ) -> Result:
         """Keep the request in flight until its operation ends."""
-        coordination = self.coordination
+        coordination = self.agent.coordination
         self.prompt_in_flight += 1
         try:
             return await operation()
@@ -237,7 +229,7 @@ class AgentController(OperationalTerminalOwner):
 
     async def reconcile_turn(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
         """Release snapshot ordering through a fresh read of the same owner."""
-        self.require_owner(coordination, authority)
+        self.agent.require_owner(coordination, authority)
         await self.agent.thread_read().reconcile(self.transcripts)
 
     def accepts_turn_snapshot(self, sequence: int):
@@ -256,16 +248,16 @@ class AgentController(OperationalTerminalOwner):
         if submission is not None:
             self._deferred_submissions.add(submission)
         try:
-            coordination = self.coordination
+            coordination = self.agent.coordination
             if coordination is not None:
-                self.require_owner(coordination, authority)
+                self.agent.require_owner(coordination, authority)
                 comms = await self.transcripts.service(coordination.wire_root)
                 origin = await asyncio.to_thread(self.agent.queue_attachment.capture_human_input, comms, queue_scope)
-                self.require_owner(coordination, authority)
+                self.agent.require_owner(coordination, authority)
                 command = replace(command, origin=origin)
             content = await asyncio.to_thread(build_prompt, project, prompt)
             if any(block.type == "image" for block in content):
-                coordinated = self.coordination is not None
+                coordinated = self.agent.coordination is not None
                 supported = coordinated or self.agent.session.supports_images
                 if not supported:
                     raise ValueError("This agent owner does not support images yet; refresh it while idle.")
@@ -388,49 +380,3 @@ class AgentController(OperationalTerminalOwner):
         except RequestError:
             return False
         return authority.current
-
-    async def request_owner(self, method: str, **params: JsonValue):
-        if self.coordination is None:
-            raise ValueError("This action requires an agent-comms thread.")
-        coordination = self.coordination
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        self.require_owner(coordination, authority)
-        comms = await self.transcripts.service(coordination.wire_root)
-
-        def resolve():
-            owner = comms.registry.require(coordination.thread.name)
-            if owner.incarnation != coordination.thread:
-                raise ValueError("The owner incarnation changed while preparing the request.")
-            return RuntimeConnection(
-                comms, owner.incarnation, socket_path(comms.root, owner.require_process().pid)
-            )
-
-        proxy = await asyncio.to_thread(resolve)
-        try:
-            self.require_owner(coordination, authority)
-            result = await proxy.request(method, **params)
-            self.require_owner(coordination, authority)
-            return result
-        finally:
-            await proxy.close()
-
-    def require_owner(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest):
-        if authority.retired or self.coordination is None:
-            raise ValueError("The connected owner session retired; refresh its state.")
-        if (self.coordination.wire_root, self.coordination.thread) != (coordination.wire_root, coordination.thread):
-            raise ValueError("The owner identity changed while preparing the request.")
-
-    async def input_delivery(self, *, include_history: bool = False) -> DeliveryView:
-        """The owner's delivery notices, read by the observation service."""
-        coordination = self.coordination
-        if coordination is None:
-            return DeliveryView()
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        overview = await self.transcripts.read(ReadOwnerOperation(
-            coordination.wire_root, coordination.thread, InputDeliveryRead(include_history=include_history),
-        ))
-        self.require_owner(coordination, authority)
-        return ReadDeliveryView(overview)
-
-    async def dismiss_historical_inputs(self):
-        return await self.request_owner("dismiss_historical_inputs")

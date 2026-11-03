@@ -5,18 +5,10 @@ from pathlib import Path
 
 import rich.repr
 from agent_comms.acp_extension import (
-    CoordinationChangedUpdate,
     InputStartedUpdate,
     PromptRequest,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.nominal.field_codec import FieldCodec, GoalId
-from agent_comms.goal_actions import GoalAction
-from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
-from agent_comms.goals import Goal, GoalDeclaration, NoGoal
-from agent_comms.goal_history import RecordedGoalHistory
-from agent_comms.order_tools import OwnerGoalRead
-from agent_comms.ui_model.observation import ReadOwnerOperation
 
 from toad import paths
 from toad.acp.agent_configuration import (
@@ -43,7 +35,7 @@ from toad.acp.queue_attachment import QueueAttachment
 from toad.acp.session_updates import SessionNotificationOwner
 from toad.acp.tool_calls import SessionToolCalls
 from toad.acp.transcript_reader import CoordinationTranscriptReader
-from toad.agent import AgentBase
+from toad.acp.session_agent import SessionAgent
 from toad.agent_presentation import ACPAgentPresentation
 from toad.agent_schema import AgentDefinition
 from toad.core import events as core_events
@@ -76,7 +68,7 @@ def generate_datetime_filename(
 
 
 @rich.repr.auto
-class Agent(AgentBase):
+class Agent(SessionAgent):
     comms_consumer_class = CommsUpdateConsumer
 
     @property
@@ -189,14 +181,6 @@ class Agent(AgentBase):
     def detach_surface(self, surface) -> None:
         self.controller.detach(surface)
 
-    @property
-    def coordination(self) -> CoordinationChangedUpdate | None:
-        return self.controller.coordination
-
-    @coordination.setter
-    def coordination(self, value: CoordinationChangedUpdate | None) -> None:
-        self.controller.coordination = value
-
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
         self.controller.surface.sync_queue()
         if starts:
@@ -229,31 +213,6 @@ class Agent(AgentBase):
 
     async def set_thinking_level(self, level: str) -> str | None:
         return await self.configuration.setting(ThinkingConfigurationSetting).select(self, level)
-
-    async def get_goal_snapshot(self) -> GoalSnapshot:
-        """The owner's goal snapshot, read by the observation service; its turn settles here."""
-        from .comms_updates import OwnerSnapshotConsumer
-        coordination = self.coordination
-        if coordination is None:
-            return GoalSnapshot(NoGoal(), IdleGoalExecution())
-        authority = ClientSessionRequest(self, self.session_id)
-        consumer = OwnerSnapshotConsumer(self, self.session_id, turn_token=self.presentation.turns.sequence)
-        snapshot = await self.controller.transcripts.read(
-            ReadOwnerOperation(coordination.wire_root, coordination.thread, operation=OwnerGoalRead()))
-        self.controller.require_owner(coordination, authority)
-        for fact in snapshot.meta.batch.updates:
-            consumer.dispatch_sync(fact)
-        return snapshot
-
-    async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:
-        result = await self.controller.request_owner("goal_history", goal_id=goal_id)
-        return FieldCodec.decode(RecordedGoalHistory, result)
-
-    async def edit_goal(self, goal: Goal, text: str) -> Goal:
-        result = await self.controller.request_owner(
-            "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
-        )
-        return FieldCodec.decode(Goal, result["goal"])
 
     def observed_thread(self) -> tuple[str, str] | None:
         coordination = self.coordination
@@ -292,13 +251,6 @@ class Agent(AgentBase):
         self.project_root_path = Path(result.current)
         self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
         return result.current
-
-    async def update_goal(self, action: type[GoalAction], text: str = "") -> GoalDeclaration:
-        result = await action.submit_control(
-            self.get_goal_snapshot, self.controller.request_owner, text,
-        )
-        return FieldCodec.decode(GoalDeclaration, result["goal"])
-
 
     async def cancel(self) -> bool:
         """AgentBase cancellation contract."""

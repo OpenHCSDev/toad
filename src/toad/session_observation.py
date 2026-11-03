@@ -124,7 +124,7 @@ class InputDeliveryObservation(SessionObservation):
     errors = (OSError, ValueError, RuntimeError, TimeoutError, KeyError)
 
     async def read(self, agent) -> DeliveryView:
-        return await agent.controller.input_delivery()
+        return await agent.input_delivery()
 
     def publish(self, view, result: DeliveryView):
         view.input_delivery = result
@@ -144,7 +144,7 @@ class InputDeliveryObservation(SessionObservation):
         agent = self.current_owner()
         while True:
             revision = self.revision
-            result = await agent.controller.input_delivery(include_history=True)
+            result = await agent.input_delivery(include_history=True)
             self.require_owner(agent)
             if revision != self.revision:
                 continue
@@ -158,7 +158,7 @@ class InputDeliveryObservation(SessionObservation):
 
     async def dismiss_history(self):
         agent = self.current_owner()
-        await agent.controller.dismiss_historical_inputs()
+        await agent.dismiss_historical_inputs()
         self.require_owner(agent)
         await self.refresh()
         self.require_owner(agent)
