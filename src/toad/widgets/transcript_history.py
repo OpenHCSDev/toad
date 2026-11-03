@@ -90,8 +90,12 @@ from toad.widgets.message_notifications import HistoryNotifications, SourceNotif
 from toad.widgets.presentation_window import (
     NEWER_END,
     OLDER_END,
+    UNPLACED,
     PageEnd,
+    PointerRows,
     PresentationBudget,
+    Unplaced,
+    arranged,
 )
 from toad.widgets.selection import HoverSelection
 from toad.widgets.transcript_fragments import (
@@ -134,6 +138,11 @@ class JumpToLatest(HoverSelection, HistoryEdge):
     class Requested(Message):
         pass
 
+async def settled[Value](value: Value) -> Value:
+    """An awaitable already holding its value, for a branch that has nothing to wait on."""
+    return value
+
+
 @dataclass(frozen=True)
 class FragmentSpan(BlockSpan, FragmentLocation):
     """A block span placed in its page, carrying the message it belongs to."""
@@ -149,6 +158,13 @@ class FragmentSpan(BlockSpan, FragmentLocation):
 
     def location(self) -> FragmentSpan:
         return self
+
+    def tooltip(self) -> str | None:
+        return MessageClock.recorded(self.fragment.timestamp).display()[1]
+
+    def selected_by(self, cursor: FragmentBlockCursor) -> bool:
+        cursor.fragment = self.fragment
+        return True
 
     def bodies(self) -> tuple[Widget, ...]:
         return (self.page,)
@@ -195,24 +211,29 @@ class MeasureAgain(Absorbs, RowChange):
 
 
 class UndrawnFragment:
-    """No loaded page draws this fragment: it has no rows, no region and no window rows."""
+    """No loaded page draws this fragment: it has no rows and the screen shows none."""
 
     draws: ClassVar[bool] = False
     rows = range(0)
 
-    def region(self) -> Region | None:
-        return None
+    @property
+    def placement(self) -> Unplaced:
+        """Where the screen shows the page drawing the fragment."""
+        return UNPLACED
 
-    def window_rows(self, history: LineHistory) -> range | None:
-        return None
+    def region(self) -> Region | None:
+        return self.placement.rows_region(self.rows)
 
     def head_on_screen(self, window: HistoryWindow) -> bool:
         """Whether the fragment's first row is drawn at or below the viewport's top."""
-        return False
+        return self.placement.shows_from(self.rows.start, window.scrollable_content_region.y)
 
     def head_hidden(self, window: HistoryWindow, height: int) -> bool:
         """Whether a message of this height starting here needs its head placed."""
-        return window.message_too_tall(height)
+        return self.placement.head_hidden(self.rows.start, window, height)
+
+    def show(self, history: LineHistory) -> None:
+        """Scroll just far enough that the fragment's rows are on screen; an undrawn one has none."""
 
 
 UNDRAWN = UndrawnFragment()
@@ -226,32 +247,19 @@ class DrawnFragment(UndrawnFragment):
     page: TranscriptPageView
     rows: range
 
-    def region(self) -> Region | None:
-        """Where the screen shows the rows; None while Textual has not placed the page."""
-        region = self.page.screen_region
-        return None if region is None else Region(region.x, region.y + self.rows.start, region.width, len(self.rows))
+    @property
+    def placement(self) -> Unplaced:
+        return self.page.placement
 
-    def head_on_screen(self, window: HistoryWindow) -> bool:
-        region = self.region()
-        return region is not None and region.y >= window.scrollable_content_region.y
-
-    def head_hidden(self, window: HistoryWindow, height: int) -> bool:
-        # Textual has not placed the page: where its head is is unknown, as for an undrawn one.
-        region = self.region()
-        return window.message_too_tall(height) if region is None else window.message_head_hidden(height, region.y)
-
-    def window_rows(self, history: LineHistory) -> range | None:
-        """The rows of the window's content that draw the fragment.
-
-        Layout places only the pages near the screen. Pages follow one another
-        without a gap, so one placed page gives the rows of every other.
-        """
+    def show(self, history: LineHistory) -> None:
+        """Layout places only the pages near the screen. Pages follow one another
+        without a gap, so the first placed page gives the window rows of every other."""
         pages = history.pages
         starts = dict(zip(pages, accumulate((p.line_count for p in pages), initial=0)))
         for placed_page, placed in history.window.placements(pages):
             shift = starts[self.page] + placed - starts[placed_page]
-            return range(self.rows.start + shift, self.rows.stop + shift)
-        return None
+            history.window.show_rows(range(self.rows.start + shift, self.rows.stop + shift))
+            return
 
 
 class LaidOut(ABC):
@@ -312,15 +320,14 @@ class LaidOutRow(LaidOut):
     def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentLocation:
         same = candidate.key == key
         wanted = block if same else 0
-        span = self.lines.block_span(lambda span: span.drawn and span.index >= wanted)
-        if span is None:
-            # No drawn child at or after the wanted one: the candidate places nothing.
-            return UnloadedFragment()
-        placed = FragmentSpan.in_page(self.page, candidate, self.first, span)
-        return replace(placed, drawn=same and span.index == block)
+        # No drawn child at or after the wanted one: the candidate places nothing.
+        return self.lines.block_span(lambda span: span.drawn and span.index >= wanted).placed_by(
+            lambda span: replace(FragmentSpan.in_page(self.page, candidate, self.first, span),
+                                 drawn=same and span.index == block),
+            UnloadedFragment)
 
 
-class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
+class TranscriptPageView(PointerRows[FragmentLocation], ReferenceRendering, HorizontalRows, Widget):
     """One transcript page, drawn as its loaded fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
@@ -558,23 +565,23 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         return self._fragment_slots.get(fragment.key, NOT_LAID_OUT).placement(self)
 
     @property
-    def screen_region(self) -> Region | None:
+    def placement(self) -> Unplaced:
         """Where the screen shows this page, including the part scrolled out of view."""
-        geometry = self.screen._compositor.visible_widgets.get(self)
-        return None if geometry is None else geometry[0]
+        return arranged(self)
 
-    def fragment_under_mouse(self) -> TranscriptFragment | None:
-        if (region := self.screen_region) is None:
-            return None
-        row = self.app.mouse_position.y - region.y
-        found = self.fragment_at(row) if 0 <= row < self._height else UnloadedFragment()
-        return found.location().fragment if found.located else None
+    def shown_row(self, row: int) -> FragmentLocation:
+        return self.fragment_at(row) if 0 <= row < self._height else UnloadedFragment()
+
+    def unshown(self) -> FragmentLocation:
+        return UnloadedFragment()
+
+    def fragment_under_mouse(self) -> FragmentLocation:
+        return self.placement.under(self, self.app.mouse_position.y)
 
     @property
     def tooltip(self) -> str | None:
         """The full time of the message under the pointer."""
-        fragment = self.fragment_under_mouse()
-        return None if fragment is None else MessageClock.recorded(fragment.timestamp).display()[1]
+        return self.fragment_under_mouse().tooltip()
 
     def fragment_at(self, row: int) -> FragmentLocation:
         """The measured child drawn here, with its containing message, or that none is."""
@@ -582,8 +589,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         if slot < 0:
             return UnloadedFragment()
         fragment, first, lines = self._layout[slot]
-        span = lines.block_span(lambda span: span.contains(row - first))
-        return UnloadedFragment() if span is None else FragmentSpan.in_page(self, fragment, first, span)
+        return lines.block_span(lambda span: span.contains(row - first)).placed_by(
+            partial(FragmentSpan.in_page, self, fragment, first), UnloadedFragment)
 
     def visible_rows(self, window: HistoryWindow, margin: int = 0) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
         """Each loaded fragment in the window's viewport, widened by `margin` rows each way,
@@ -867,12 +874,11 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         page.hold_fragment_top(self.window, fragment.key)
         page.run_worker(self._show([(fragment, shown)]), group="message-details")
 
-    def can_expand(self) -> bool | None:
-        fragment = self.block_cursor.current
-        return None if fragment is None or not fragment.has_details else not fragment.shown.details_open
+    def can_expand(self) -> bool:
+        return self.block_cursor.current.expandable()
 
     def is_block_expanded(self) -> bool:
-        return self.can_expand() is False
+        return self.block_cursor.current.expanded()
 
     def _set_selected_details(self, details_open: bool) -> None:
         for fragment in self.block_cursor.selected_fragments:
@@ -898,37 +904,23 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
     def draws_fragment(self, fragment: TranscriptFragment) -> bool:
         return self.fragment_placement(fragment).draws
 
-    def fragment_under_mouse(self, widget: Widget) -> TranscriptFragment | None:
+    def fragment_under_mouse(self, widget: Widget) -> FragmentLocation:
         """The fragment drawn under the pointer, when `widget` is one of this history's pages."""
-        return next((page.fragment_under_mouse() for page in self.pages if page is widget), None)
+        return next((page.fragment_under_mouse() for page in self.pages if page is widget), UnloadedFragment())
 
     def fragment_region(self, fragment: TranscriptFragment) -> Region | None:
         """Where the screen shows a fragment's rows; None while its page is off screen."""
         return self.fragment_placement(fragment).region()
 
-    def fragment_window_rows(self, fragment: TranscriptFragment) -> range | None:
-        """The rows of the window's content that draw a fragment; None while no page is placed."""
-        return self.fragment_placement(fragment).window_rows(self)
-
     def show_fragment(self, fragment: TranscriptFragment) -> None:
         """Scroll just far enough that a fragment's rows are on screen, its first row before its last."""
-        window = self.window
-        if (rows := self.fragment_window_rows(fragment)) is None:
-            return
-        top, height = int(window.scroll_y), window.scrollable_content_region.height
-        if rows.start < top:
-            destination = rows.start
-        elif rows.stop > top + height:
-            destination = min(rows.start, rows.stop - height)
-        else:
-            return
-        window.release_anchor()
-        window.scroll_to(y=destination, animate=False, immediate=True)
+        self.fragment_placement(fragment).show(self)
 
     async def reveal_message_head(
         self, fragment: TranscriptFragment, selected: Callable[[], bool],
-    ) -> TranscriptFragment | None:
-        """Prepare one viewport at the original message's head, not its clicked render part."""
+    ) -> TranscriptFragment:
+        """Prepare one viewport at the original message's head, not its clicked render part.
+        The fragment the cursor rests on after: the head, or the clicked part when the head stays put."""
         page = self.page_holding(fragment.key)
         original = page.prepared
         first = next(index for index, part in enumerate(original.fragments)
@@ -937,7 +929,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         window = self.window
         head_placement = self.fragment_placement(head)
         if head_placement.head_on_screen(window):
-            return None
+            return fragment
         snapshot = self.source_snapshot()
         revision, width = window.scroll_revision, self.line_width
         current = lambda: (snapshot.current(self) and selected()
@@ -951,21 +943,28 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             boundary=first, rows_needed=height + 1, limit=max(self.fragment_limit, height + 1),
         )
         if not current():
-            return None
+            return fragment
         theme = self.app.colours.line_theme
         message_height = sum(part.lines_for(width, theme).height for part in staged.fragments_in_range
                              if part.source_identity == fragment.source_identity)
         if not head_placement.head_hidden(window, message_height):
-            return None
-        lines = head.lines_for(width, theme)
-        if lines is None or (span := lines.block_span(lambda span: span.drawn)) is None:
-            return None
+            return fragment
+        # A head with no drawn child has no row to place the reader on.
+        return await head.lines_for(width, theme).block_span(lambda span: span.drawn).placed_by(
+            partial(self._place_reader_at_head, head, fragment, page, staged, current),
+            partial(settled, fragment))
+
+    async def _place_reader_at_head(self, head: TranscriptFragment, fragment: TranscriptFragment,
+                                    page: TranscriptPageView, staged: PreparedTranscriptPage,
+                                    current: Callable[[], bool], span: BlockSpan) -> TranscriptFragment:
+        """Swap in the staged range and hold the reader on the head's first drawn child."""
+        window = self.window
         async with window.history_lock:
             if not current():
-                return None
+                return fragment
             async with window.preserve_history():
-                if not original.replace_range(page, slice(staged.start, staged.stop), current):
-                    return None
+                if not page.prepared.replace_range(page, slice(staged.start, staged.stop), current):
+                    return fragment
                 window.release_anchor()
                 window.reader_position = FragmentPosition(head.key, 0, span.height, block=span.index)
                 self._update_edges()
@@ -1283,27 +1282,25 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             )
             excess = self.fragment_count - limit
             while (excess > 0 or len(self.pages) > limit) and (self.fragment_count > 1 or len(self.pages) > 1):
-                selected = None
                 for side in end.eviction_order(self):
                     # A visible older projection protects the range between it
                     # and the main pages, just like a visible page.
                     if not side.can_evict(overlay_visible):
                         continue
-                    candidate = side.edge(self.pages)
-                    if candidate in protected_pages:
+                    evicted = side.edge(self.pages)
+                    if evicted in protected_pages:
                         continue
-                    members = tuple(side.eviction_fragments(candidate.prepared))
+                    members = tuple(side.eviction_fragments(evicted.prepared))
                     available = 0
                     for fragment in members:
                         if fragment.key in protected:
                             break
                         available += 1
                     if available or not members:
-                        selected = candidate, side, available
                         break
-                if selected is None:
+                else:
+                    # No side has a page it may evict.
                     break
-                evicted, side, available = selected
                 count = evicted.prepared.stop - evicted.prepared.start
                 remove_count = min(max(0, excess), available, self.fragment_count - 1)
                 if remove_count >= count and len(self.pages) > 1:

@@ -30,8 +30,8 @@ class BlockContent:
     def get_prompt_text(self) -> str | None:
         return self.get_clipboard_text()
 
-    def can_expand(self) -> bool | None:
-        return None
+    def can_expand(self) -> bool:
+        return False
 
     def is_block_expanded(self) -> bool:
         return False

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Annotated, ClassVar, get_args
 
 from agent_comms.message_page import PageBounds
 from agent_comms.transcripts import TranscriptCursor
+from textual.geometry import Region
 from textual.screen import Screen
 from toad.work_preparation import WorkRevision
 
@@ -171,6 +172,103 @@ class Runway(OffScreenRunway):
         # only the demand predicts rows beyond that already-visible need.
         missing = min(viewport.height - occupied.height, -end.rows_toward(self))
         return max(0, missing, preparation.demand.read_rows(preparation, history, end, self))
+
+
+class Unplaced:
+    """A widget Textual's map has no entry for: the screen does not show it."""
+
+    def shown_region(self) -> Region | None:
+        """Where the screen shows the widget; None is the block cursor's answer for a widget it cannot show."""
+        return None
+
+    def rows_region(self, rows: range) -> Region | None:
+        """Where the screen shows some of the widget's rows, as the block cursor answers it."""
+        return None
+
+    def shows_from(self, row: int, top: int) -> bool:
+        """Whether the widget's `row` is drawn at or below screen row `top`."""
+        return False
+
+    def head_hidden(self, row: int, window: HistoryWindow, height: int) -> bool:
+        """Whether a message of this height starting at the widget's `row` needs its head placed.
+        Where an unshown row is is unknown, so only the height decides."""
+        return window.message_too_tall(height)
+
+    def under[Found](self, rows: PointerRows[Found], y: int) -> Found:
+        """What the widget draws at screen row `y`."""
+        return rows.unshown()
+
+    def runway(self, viewport: Unplaced) -> OffScreenRunway:
+        """This widget's rows above and below `viewport`."""
+        return OffScreenRunway()
+
+    def runway_of(self, region: Region) -> OffScreenRunway:
+        """As the viewport: the rows of a widget at `region` above and below it."""
+        return OffScreenRunway()
+
+    def overlaps(self, region: Region) -> bool:
+        return False
+
+    def shows(self, region: Region, clip: Region) -> bool:
+        """As the viewport: whether a widget at `region`, clipped to `clip`, is in view."""
+        return False
+
+
+UNPLACED = Unplaced()
+
+
+@dataclass(frozen=True)
+class Placed(Unplaced):
+    """Where the screen shows the widget, including the part scrolled out of view."""
+
+    region: Region
+
+    def shown_region(self) -> Region | None:
+        return self.region
+
+    def rows_region(self, rows: range) -> Region | None:
+        region = self.region
+        return Region(region.x, region.y + rows.start, region.width, len(rows))
+
+    def shows_from(self, row: int, top: int) -> bool:
+        return self.region.y + row >= top
+
+    def head_hidden(self, row: int, window: HistoryWindow, height: int) -> bool:
+        return window.message_head_hidden(height, self.region.y + row)
+
+    def under[Found](self, rows: PointerRows[Found], y: int) -> Found:
+        return rows.shown_row(y - self.region.y)
+
+    def runway(self, viewport: Unplaced) -> OffScreenRunway:
+        return viewport.runway_of(self.region)
+
+    def runway_of(self, region: Region) -> OffScreenRunway:
+        frame = self.region
+        return Runway(frame.y - region.y, region.bottom - frame.bottom) if region.overlaps(frame) else OffScreenRunway()
+
+    def overlaps(self, region: Region) -> bool:
+        return region.overlaps(self.region)
+
+    def shows(self, region: Region, clip: Region) -> bool:
+        viewport = self.region
+        return region.overlaps(viewport) and region.overlaps(clip) and clip.overlaps(viewport)
+
+
+class PointerRows[Found]:
+    """A widget that answers what it draws at one of its rows, or that it is not shown.
+    A mixin beside Widget, so it declares its methods without ABC's metaclass."""
+
+    @abstractmethod
+    def shown_row(self, row: int) -> Found: ...
+
+    @abstractmethod
+    def unshown(self) -> Found: ...
+
+
+def arranged(widget: Widget) -> Unplaced:
+    """Where the screen's arranged map shows a widget: the one read of that Textual map."""
+    geometry = widget.screen._compositor.visible_widgets.get(widget)
+    return UNPLACED if geometry is None else Placed(geometry[0])
 
 
 class PageEnd(ABC):
@@ -603,14 +701,7 @@ class DirectionalPreparation:
 
     def runway(self, history: LineHistory) -> OffScreenRunway:
         """Published rows above and below this viewport, or that the history is off screen."""
-        window = self.window
-        visible = window.screen._compositor.visible_widgets
-        geometry, viewport = visible.get(history), visible.get(window)
-        # Textual's published map is the boundary: a widget it did not place has no entry.
-        if geometry is None or viewport is None or not geometry[0].overlaps(viewport[0]):
-            return OffScreenRunway()
-        region, frame = geometry[0], viewport[0]
-        return Runway(frame.y - region.y, region.bottom - frame.bottom)
+        return arranged(history).runway(arranged(self.window))
 
     def prepare_source(self, history: LineHistory) -> None:
         """Request the next page from what the screen shows now, not from window state."""

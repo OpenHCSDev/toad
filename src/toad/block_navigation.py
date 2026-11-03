@@ -19,7 +19,8 @@ from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
 from toad.notification_status import MessageQueueEntry
-from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
+from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd, arranged
+from toad.widgets.transcript_fragments import NO_REST, CursorRest
 
 if TYPE_CHECKING:
     from agent_comms.message_reference import MessageReference
@@ -199,8 +200,7 @@ class AtomicBlockCursor(BlockCursor):
 
     @property
     def visible_region(self):
-        geometry = self.block.screen._compositor.visible_widgets.get(self.block)
-        return None if geometry is None else geometry[0]
+        return arranged(self.block).shown_region()
 
     def show_moved_to(self, window: HistoryWindow):
         window.scroll_to_center(self.block, immediate=True)
@@ -222,22 +222,17 @@ class FragmentBlockCursor(BlockCursor):
 
     def __init__(self, block: LineHistory):
         super().__init__(block)
-        self.fragment = None
+        self.fragment: CursorRest = NO_REST
+
+    @property
+    def current(self) -> CursorRest:
+        """Where the cursor rests while this history draws it."""
+        return self.fragment.drawn_in(self.block)
 
     @property
     def selected_fragments(self) -> tuple[TranscriptFragment, ...]:
         """The source occurrence the cursor owns while this history draws it."""
-        fragment = self.fragment
-        return (
-            (fragment,)
-            if fragment is not None and self.block.draws_fragment(fragment)
-            else ()
-        )
-
-    @property
-    def current(self):
-        """The optional scalar view used by block navigation."""
-        return next(iter(self.selected_fragments), None)
+        return self.current.rested
 
     @property
     def selected_widgets(self) -> tuple[Widget, ...]:
@@ -245,7 +240,7 @@ class FragmentBlockCursor(BlockCursor):
 
     @property
     def selected(self):
-        return self.block if self.current is not None else None
+        return self.current.selected_in(self.block)
 
     def enter(self, direction: CursorDirection):
         # The cursor arrives at the reader's side of the screen, not at an
@@ -259,9 +254,7 @@ class FragmentBlockCursor(BlockCursor):
     def move(self, direction: CursorDirection):
         fragments = self.block.drawn_fragments
         current = self.current
-        if current is None or all(
-            current is not seen for seen in self.block.visible_fragments()
-        ):
+        if not any(current is seen for seen in self.block.visible_fragments()):
             # The reader scrolled away from the cursor: it starts again from what they see.
             return self.enter(direction)
         index = (
@@ -276,45 +269,32 @@ class FragmentBlockCursor(BlockCursor):
         return direction.visible_more(self.block)
 
     def select(self, widget: Widget):
-        fragment = self.block.fragment_under_mouse(widget)
-        if fragment is None:
-            return False
-        self.fragment = fragment
-        return True
+        return self.block.fragment_under_mouse(widget).selected_by(self)
 
     def clear(self):
-        self.fragment = None
+        self.fragment = NO_REST
 
     def get_clipboard_text(self):
-        fragment = self.current
-        return None if fragment is None else fragment.clipboard_text
+        return self.current.clipboard_text
 
     def get_block_menu(self):
-        fragment = self.current
-        return () if fragment is None else fragment.block_menu
+        return self.current.block_menu
 
     @property
     def region(self):
-        fragment = self.current
-        return None if fragment is None else self.block.fragment_region(fragment)
+        return self.current.region_in(self.block)
 
     visible_region = region
 
     def show_moved_to(self, window: HistoryWindow):
-        if (fragment := self.current) is not None:
-            self.block.show_fragment(fragment)
+        self.current.show_in(self.block)
 
     def show_clicked(self, window: HistoryWindow):
-        if (fragment := self.current) is not None:
-            self.block.run_worker(
-                self._show_clicked(fragment, window), group="message-heading", exclusive=True,
-            )
+        self.current.show_head(self, window)
 
-    async def _show_clicked(self, fragment, window: HistoryWindow) -> None:
-        head = await self.block.reveal_message_head(
-            fragment, lambda: self.fragment is fragment,
-        )
-        if head is not None and self.fragment is fragment:
+    async def show_clicked_head(self, fragment: TranscriptFragment, window: HistoryWindow) -> None:
+        head = await self.block.reveal_message_head(fragment, lambda: self.fragment is fragment)
+        if head is not fragment and self.fragment is fragment:
             self.fragment = head
             window.refresh(layout=True)
 

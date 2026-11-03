@@ -578,8 +578,19 @@ class LinePreparation:
         return BlockLines(width, self, renderer)
 
 
+class NoBlockSpan:
+    """The walk of a block's measured children accepted none."""
+
+    def placed_by[Placed](self, place: Callable[[BlockSpan], Placed], missing: Callable[[], Placed]) -> Placed:
+        """What the caller makes of the accepted child; `missing` when there is none."""
+        return missing()
+
+
+NO_BLOCK_SPAN = NoBlockSpan()
+
+
 @dataclass(frozen=True)
-class BlockSpan:
+class BlockSpan(NoBlockSpan):
     """One source child's measured rows in its containing lines."""
 
     index: int
@@ -589,6 +600,9 @@ class BlockSpan:
 
     def contains(self, row: int) -> bool:
         return self.first <= row < self.first + self.height
+
+    def placed_by[Placed](self, place: Callable[[BlockSpan], Placed], missing: Callable[[], Placed]) -> Placed:
+        return place(self)
 
 
 class BlockLines(Lines):
@@ -603,7 +617,7 @@ class BlockLines(Lines):
     def rewrap(self, width: int) -> BlockLines:
         return self if self.width == width else self.preparation.wrap(width, self.renderer)
 
-    def block_span(self, accepts: Callable[[BlockSpan], bool]) -> BlockSpan | None:
+    def block_span(self, accepts: Callable[[BlockSpan], bool]) -> NoBlockSpan:
         """Find a requested child in one walk of the block-owned measurements."""
         first = 0
         for index, block in enumerate(self.prepared_blocks):
@@ -611,7 +625,7 @@ class BlockLines(Lines):
             if accepts(span):
                 return span
             first += span.height
-        return None
+        return NO_BLOCK_SPAN
 
     @cached_property
     def prepared_blocks(self) -> tuple[PreparedLines, ...]:
