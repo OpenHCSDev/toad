@@ -41,6 +41,38 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_history import TranscriptPageView
 
 
+@dataclass(frozen=True)
+class NewDestination:
+    """A latest-destination range no mounted page draws yet: a new page is acquired for it."""
+
+    prepared: PreparedTranscriptPage
+
+    async def page_view(self, history, acquisition: AsyncExitStack, views, current, edge) -> TranscriptPageView:
+        return await acquisition.enter_async_context(type(edge).acquire(
+            history, self.prepared, end=OLDER_END, pages=views, current=current,
+        ))
+
+    def keep(self, current: Callable[[], bool]) -> None:
+        """A new page already holds exactly this range."""
+
+
+@dataclass(frozen=True)
+class KeptDestination(NewDestination):
+    """A mounted page already draws this source: it keeps its fragments, prepared lines and documents."""
+
+    view: TranscriptPageView
+
+    async def page_view(self, history, acquisition: AsyncExitStack, views, current, edge) -> TranscriptPageView:
+        return self.view
+
+    def keep(self, current: Callable[[], bool]) -> None:
+        if not self.view.prepared.replace_range(
+            self.view, slice(self.prepared.start, self.prepared.stop), current,
+        ):
+            raise _DrawingStopped
+        self.view.prepared.page = self.prepared.page
+
+
 class _DrawingStopped(Exception):
     """Unwind a source publication that no longer owns its drawing."""
 
@@ -235,10 +267,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
-        destination: list[tuple[PreparedTranscriptPage, TranscriptPageView | None]] = []
+        destination: list[NewDestination] = []
         while rows > 0 and limit > 0:
-            existing = next((view for view in self.pages
-                             if view.prepared.same_source(prepared)), None)
+            existing = next((KeptDestination(prepared, view) for view in self.pages
+                             if view.prepared.same_source(prepared)), NewDestination(prepared))
             rows -= await prepared.prepare_rows(
                 self, current, target=self, selected=self.selected_categories,
                 boundary=len(prepared.fragments), end=OLDER_END,
@@ -248,7 +280,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 return False
             take = prepared.stop - prepared.start
             if take:
-                destination.insert(0, (prepared, existing))
+                destination.insert(0, existing)
             limit -= take
             if rows <= 0:
                 break
@@ -267,23 +299,14 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     # An empty answer is published too: the edge draws nothing,
                     # at its end. `latest` was never ranged by the loop above.
                     latest.set_fragment_range(slice(len(latest.fragments), len(latest.fragments)))
-                    destination.append((latest, None))
+                    destination.append(NewDestination(latest))
                 try:
                     async with AsyncExitStack() as acquisition:
-                        for prepared, view in reversed(destination):
-                            if view is None:
-                                view = await acquisition.enter_async_context(type(edge).acquire(
-                                    self, prepared, end=OLDER_END, pages=views, current=current,
-                                ))
-                            views.appendleft(view)
+                        for page in reversed(destination):
+                            views.appendleft(await page.page_view(self, acquisition, views, current, edge))
                         # Keep existing fragments, prepared lines and documents.
-                        for prepared, view in destination:
-                            if view is not None:
-                                if not view.prepared.replace_range(
-                                    view, slice(prepared.start, prepared.stop), current,
-                                ):
-                                    raise _DrawingStopped
-                                view.prepared.page = prepared.page
+                        for page in destination:
+                            page.keep(current)
                         previous_source = self.page_source
                         self.page_source, self.pages = source, views
                         source.through = latest.page.after
