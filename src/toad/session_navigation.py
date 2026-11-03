@@ -145,12 +145,11 @@ class SessionNavigation:
             observed = self.app.coordination_access.observation.observed()
             if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"Mailbox belongs to another bus: {identity.root}")
-            service = observed.service
-            snapshot = service.registry.snapshot()
+            snapshot = observed.registry()
             name = snapshot.canonical_name(identity.key.name)
             if not identity.key.matches_recorded_name(name, snapshot):
                 raise TabTargetGone(identity, f"Mailbox thread was replaced: {identity.key}")
-            return ThreadNavigationRequest(service, name, self.app.project_dir, ()).read()
+            return ThreadNavigationRequest(observed, name, self.app.project_dir, ()).read()
 
         prepared = await self.app.preparation.run_thread(prepare)
         return self.native_entry(
@@ -165,7 +164,7 @@ class SessionNavigation:
             if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"History belongs to another bus: {identity.root}")
             return identity.key.threads_needed(
-                observed.service.registry.snapshot(), source.thread_identity.thread_name()
+                observed.registry(), source.thread_identity.thread_name()
             )
 
         return HistorySessionEntry(
@@ -186,9 +185,7 @@ class SessionNavigation:
             return
         originals = self.members
         snapshot = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.require(
-                selected
-            ).service.registry.snapshot()
+            lambda: self.app.coordination_access.require(selected).registry()
         )
         for member in originals:
             await member.reconnect(self, selected, snapshot, targets)

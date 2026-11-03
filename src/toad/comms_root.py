@@ -25,7 +25,9 @@ from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
+from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.remote_core import RemoteCoreAccess
+from agent_comms.tools import CommsRegistryTool
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
@@ -357,6 +359,10 @@ class Observing(Observation):
 
     def observes(self, root: str | Path) -> bool:
         return Path(root).expanduser().resolve() == self.root
+
+    def registry(self) -> RegistrySnapshot:
+        """Core's thread registry: names, renames and recorded threads resolve against it."""
+        return self.core.call(CommsRegistryTool()).snapshot
 
     def tab(self, entry: SessionEntry, sessions: SessionNavigation):
         return entry.tab(sessions, self)
