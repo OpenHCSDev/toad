@@ -46,8 +46,7 @@ async def produce(wire_root: Path, project: Path):
                 producer.turns.acquire_turn, turns, SESSION, name, TurnId("a1c2e3f4b5d6e7f8091a2b3c4d5e6f70"), "Authored protocol; no input"))
             await producer.turns.publish_turn_state(consumer)
             await consumer.dispatch(agent_events.CompactionStart())
-            await consumer.dispatch(agent_events.CompactionEnd(
-                summary="Authored phase observation; not a native committed summary"))
+            await consumer.dispatch(agent_events.CompactionEnd())
             before = await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION))
             await Coordination.run_worker(partial(producer._comms.agents.finish_turn, retired_lease))
             assert await Coordination.run_worker(partial(producer.turns.current_turn_update, SESSION)) == before
