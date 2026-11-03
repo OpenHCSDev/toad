@@ -3,7 +3,6 @@
 from __future__ import annotations
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.core import input_events
-from toad.no_worker import NoWorker
 from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
@@ -228,10 +227,10 @@ class CommsChatView(Conversation):
         """Peer status does not grant access to the peer's full transcript."""
         return self.message_history.page_source.status_thread(self.app.coordination_access)
 
-    async def _refresh(self) -> Worker | NoWorker:
+    async def _refresh(self) -> Worker | None:
         history = self.message_history
         if not self.is_attached or not self.query_ancestor(SessionScope).is_current:
-            return NoWorker()
+            return
         return history.page_source.schedule_refresh(self)
 
     def history_loading(self) -> bool:

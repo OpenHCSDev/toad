@@ -20,7 +20,6 @@ from agent_comms.transcripts import (
 )
 from agent_comms.ui_model.message_category import MessageCategory
 
-from toad.no_worker import NoWorker
 from toad.render_backend import ContentAddressedRenderTask
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
@@ -604,8 +603,8 @@ class ClosedHistory(ReplaceablePageSource):
     async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
         view.delivery_refused("Conversation source is not ready", event.body)
 
-    def schedule_refresh(self, view: CommsChatView) -> NoWorker:
-        return NoWorker()
+    def schedule_refresh(self, view: CommsChatView):
+        return None
 
     def painted_read(self, history: WireHistory) -> PaintedRead:
         return NothingToRead()
