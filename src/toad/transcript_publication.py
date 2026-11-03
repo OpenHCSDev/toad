@@ -116,6 +116,10 @@ class BoundFrame:
 class TranscriptPublication(BoundFrame, ABC):
     """Holds the source, resources and generation for one read and publication."""
 
+    def restored(self, owner: TranscriptPresentation, window: HistoryWindow) -> None:
+        """A restored tab publishes its source again."""
+        owner.source_requests.submit(self)
+
     def __init__(
         self, binding: BoundView, owner: TranscriptPresentation, generation: int
     ) -> None:
@@ -323,6 +327,10 @@ class Uncaptured:
 
     async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
         raise ValueError("Transcript paging requires a bound thread")
+
+    def restored(self, owner: TranscriptPresentation, window: HistoryWindow) -> None:
+        """A restored tab with nothing to publish lets its reader's held place go."""
+        window.reader_position.release(window)
 
 
 UNCAPTURED = Uncaptured()
@@ -628,10 +636,7 @@ class BoundView(ViewBinding):
         def refresh(self, publication) -> None:
             if not self.current():
                 return
-            if publication is None:
-                self.binding.window.reader_position.release(self.binding.window)
-            else:
-                self.owner.source_requests.submit(publication)
+            publication.restored(self.owner, self.binding.window)
 
     def __init__(self, view: Conversation) -> None:
         self.view, self.window, self.contents = view, view.window, view.contents
