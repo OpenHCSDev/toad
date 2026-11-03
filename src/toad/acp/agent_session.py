@@ -13,7 +13,7 @@ from acp import ClientSideConnection, schema
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import HistoryOnlyQueueProjection
 from agent_comms.acp_failure import ACPFailure, RequestFailure
-from agent_comms.child_process import join_retirement
+from toad.resource_retirement import RetiresResources
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
@@ -53,7 +53,7 @@ class LoginNotReady(ValueError):
     """A terminal login finished, but the session it restarted did not become ready."""
 
 
-class AgentSession(SessionLifetime):
+class AgentSession(RetiresResources, SessionLifetime):
     """Own readiness and durable session effects; binding identity stays on the controller."""
 
     reconnect_timeout_seconds = 30
@@ -64,7 +64,6 @@ class AgentSession(SessionLifetime):
         self.app_events = app_events
         self.task: asyncio.Task[None] | None = None
         self.responses: set[asyncio.Task[object]] = set()
-        self.retirement: asyncio.Task[None] | None = None
         self._disposition: SessionDisposition = ActiveSessionDisposition(self)
         self.pk = pk
         self.chosen_name: str | None = None
@@ -124,21 +123,14 @@ class AgentSession(SessionLifetime):
 
     def reopen(self) -> None:
         self.disposition = ActiveSessionDisposition(self)
-        self.retirement = None
+        self.reset_retirement()
 
     def start(self) -> None:
         self.task = asyncio.create_task(self.run())
         self.task.add_done_callback(self.session_finished)
 
-    def begin_retirement(self):
-        self.close()
-        if self.retirement is None:
-            self.retirement = asyncio.create_task(self._retire())
-            self.retirement.add_done_callback(self.retirement_finished)
-        return self.retirement
-
-    async def retire(self) -> None:
-        await join_retirement(self.begin_retirement())
+    def retirement_started(self, task: asyncio.Task[None]) -> None:
+        task.add_done_callback(self.retirement_finished)
 
     async def _retire(self) -> None:
         pending = tuple(task for task in (self.task, *self.responses)
