@@ -150,7 +150,7 @@ class ReaderPosition(ABC):
 
     def moved(self, window: "HistoryWindow", rows: float) -> "ReaderPosition":
         """Shift the held message during a change; otherwise read the current viewport."""
-        return self.shifted(rows) if window.history_change is not None else ReaderPosition.of(window)
+        return window.history_change.moved(self, window, rows)
 
     @abstractmethod
     def shifted(self, rows: float) -> ReaderPosition:
@@ -561,6 +561,71 @@ class LatestPosition(NativeReaderHolder, HeldReaderDestination, TailPosition):
         return TailPosition()
 
 
+class NoHistoryChange:
+    """No change is open: the reader's own movement is read from the viewport, and a change opens fresh."""
+
+    layout_requests = 0
+
+    def moved(self, position: ReaderPosition, window: "HistoryWindow", rows: float) -> ReaderPosition:
+        return ReaderPosition.of(window)
+
+    def check_follow(self, window: "HistoryWindow") -> bool:
+        """Keep a following reader on the tail; True when that scrolled the window."""
+        if not window.follows_tail:
+            return False
+        previous = window.scroll_y
+        with window.layout_scroll():
+            window.scroll_y = window.max_scroll_y
+        return previous != window.scroll_y
+
+    def finish_layout(self, answered: int) -> None:
+        """No change waits on a layout."""
+
+    def release(self) -> None:
+        """No change waits on a layout."""
+
+    @asynccontextmanager
+    async def opened(self, window: "HistoryWindow"):
+        """One change and the layout that shows it.
+
+        A body worker owns its own tree change and a nested pager may take
+        history_lock while building that body, so this scope holds neither
+        lock while it waits.
+        """
+        screen = window.screen
+        window.keep_reader()
+        change = window.history_change = HistoryChange()
+        geometry = window._geometry_revision
+        drawn = False
+        try:
+            try:
+                yield
+            finally:
+                # An unchanged page or already-live body needs no other layout.
+                if window._geometry_revision != geometry:
+                    change.request_layout(window)
+            if window._geometry_revision == geometry:
+                # No row moved: a position kept for this change is where the reader is.
+                drawn = True
+                return
+            # Without waiting for the layout that places the reader, the next
+            # change would start from rows that are not laid out yet.
+            if window.is_attached and screen.is_current:
+                await change.wait()
+                drawn = change.laid_out
+        finally:
+            if window.history_change is change:
+                window.history_change = NO_HISTORY_CHANGE
+                # The change is drawn, so the position has done its work and
+                # the next change reads where the reader is then. One that no
+                # layout has placed yet (a covered screen) stays kept.
+                if drawn:
+                    window.place_reader()
+
+
+NO_HISTORY_CHANGE = NoHistoryChange()
+
+
 @dataclass(eq=False)
 class HistoryChange:
     """One change to what a history window draws, and the layout that shows it."""
@@ -595,6 +660,19 @@ class HistoryChange:
 
     async def wait(self) -> None:
         await self.layout_ready.wait()
+
+    def moved(self, position: ReaderPosition, window: "HistoryWindow", rows: float) -> ReaderPosition:
+        """The kept message moves with the reader while the change is open."""
+        return position.shifted(rows)
+
+    def check_follow(self, window: "HistoryWindow") -> bool:
+        """The change's own layout places a following reader."""
+        return False
+
+    @asynccontextmanager
+    async def opened(self, window: "HistoryWindow"):
+        """A change inside another joins it."""
+        yield
 
 
 class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]], VerticalScroll):
@@ -652,7 +730,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     _restoring = False
     reader_position: ReaderPosition = TailPosition()
     """The position held during history changes and across tab returns."""
-    history_change: HistoryChange | None = None
+    history_change: HistoryChange | NoHistoryChange = NO_HISTORY_CHANGE
     _history_mutation_root: Widget | None = None
 
     def action_scroll_end(self) -> None:
@@ -852,8 +930,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     def retire_presentation_wait(self) -> None:
         """Release a change whose scene no longer promises another frame."""
-        if (change := self.history_change) is not None:
-            change.release()
+        self.history_change.release()
 
     def on_mount(self) -> None:
         self.screen.history_windows.add(self)
@@ -998,12 +1075,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         return changed
 
     def check_follow(self) -> bool:
-        if self.history_change is not None or not self.follows_tail:
-            return False
-        previous = self.scroll_y
-        with self.layout_scroll():
-            self.scroll_y = self.max_scroll_y
-        return previous != self.scroll_y
+        return self.history_change.check_follow(self)
 
     @property
     def history_mutation_root(self) -> Widget | None:
@@ -1070,43 +1142,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
                 if not self.lock.is_locked:
                     screen.check_idle()
 
-    @asynccontextmanager
-    async def _history_change(self):
-        """One change and the layout that shows it; a change inside another joins it.
-
-        A body worker owns its own tree change and a nested pager may take
-        history_lock while building that body, so this scope holds neither
-        lock while it waits.
-        """
-        if self.history_change is not None:
-            yield
-            return
-        screen = self.screen
-        self.keep_reader()
-        change = self.history_change = HistoryChange()
-        geometry = self._geometry_revision
-        drawn = False
-        try:
-            try:
-                yield
-            finally:
-                # An unchanged page or already-live body needs no other layout.
-                if self._geometry_revision != geometry:
-                    change.request_layout(self)
-            if self._geometry_revision == geometry:
-                # No row moved: a position kept for this change is where the reader is.
-                drawn = True
-                return
-            # Without waiting for the layout that places the reader, the next
-            # change would start from rows that are not laid out yet.
-            if self.is_attached and screen.is_current:
-                await change.wait()
-                drawn = change.laid_out
-        finally:
-            if self.history_change is change:
-                self.history_change = None
-                # The change is drawn, so the position has done its work and
-                # the next change reads where the reader is then. One that no
-                # layout has placed yet (a covered screen) stays kept.
-                if drawn:
-                    self.place_reader()
+    def _history_change(self):
+        """One change and the layout that shows it; a change inside another joins it."""
+        return self.history_change.opened(self)
