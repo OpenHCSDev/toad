@@ -12,8 +12,10 @@ def assert_actions_visible(dialog: TransferDialog) -> None:
         button = dialog.query_one(identity, Button)
         geometry = dialog.find_widget(button)
         assert geometry.visible_region == geometry.region
-        x, y = geometry.region.center
-        assert dialog.get_widget_at(x, y)[0] is button
+        assert dialog.get_widget_at(
+            geometry.region.x + geometry.region.width // 2,
+            geometry.region.y + geometry.region.height // 2,
+        )[0] is button
 
 
 @pytest.mark.parametrize("transfer", Transfer.members_with(Transfer), ids=lambda kind: kind.declared_name)
@@ -50,7 +52,10 @@ async def test_transfer_actions_survive_short_viewport_and_notice(
             popup = choice.query_one(OptionList)
             visible = app.screen.find_widget(popup).visible_region
             assert visible.area > 0
-            assert app.screen.get_widget_at(*visible.center)[0] is popup
+            assert app.screen.get_widget_at(
+                visible.x + visible.width // 2,
+                visible.y + visible.height // 2,
+            )[0] is popup
             await ui.press("escape")
             await ui.until(lambda: not choice.expanded, why="popup dismissal without closing its dialog")
             assert app.screen is dialog
