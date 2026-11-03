@@ -27,7 +27,6 @@ from toad.transcript_state import (
     WorkingTranscript,
 )
 from toad.widgets.history_anchor import (
-    HeldReaderDestination,
     HistoryWindow,
     LatestPosition,
 )
@@ -339,8 +338,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if edge.prepared.page.after == self.page_source.through:
             return True
         if self.drawn_end_more:
-            destination = HeldReaderDestination.held(self.window)
-            if destination is not None and await destination.source_arrived(self):
+            if await self.window.reader_position.source_arrived(self):
                 return True
             if not edge.prepared.page.has_newer:
                 edge.prepared.page = replace(edge.prepared.page, has_newer=True)
@@ -409,7 +407,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     self.request_preparation()
                 self.latest.prepare(self)
                 self.publish_core(TranscriptSourceWorkFinished())
-                HeldReaderDestination.settle(self.window)
+                if all(history.state.accepts_source_work for history in self.window.histories):
+                    self.window.reader_position.source_settled(self.window)
 
     def retire_source(self, *, parked: bool = False) -> AwaitComplete:
         """Withdraw publication now; join its cancelled work independently."""

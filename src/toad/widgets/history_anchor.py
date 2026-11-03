@@ -211,6 +211,16 @@ class ReaderPosition(ABC):
         """Give a history about to be mounted the page ranges this position needs."""
         history.set_reader_ranges(self.ranges)
 
+    def source_settled(self, window: "HistoryWindow") -> None:
+        """A source publication settled; only a held destination waits for one."""
+
+    async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
+        """Whether this position fetched the newer source itself; only End does."""
+        return False
+
+    def release(self, window: "HistoryWindow") -> None:
+        """Nothing will publish again; only a held destination has anything to let go."""
+
 
 @dataclass(frozen=True)
 class TailPosition(ReaderPosition):
@@ -447,18 +457,6 @@ class HeldReaderDestination:
     source_settlement_scheduled = False
     source_ready = False
 
-    @classmethod
-    def held(cls, window: "HistoryWindow") -> "HeldReaderDestination | None":
-        position = window.reader_position
-        return position if isinstance(position, cls) else None
-
-    @classmethod
-    def settle(cls, window: "HistoryWindow") -> None:
-        destination = cls.held(window)
-        if (destination is not None
-                and all(history.state.accepts_source_work for history in window.histories)):
-            destination.source_settled(window)
-
     def source_settled(self, window: "HistoryWindow") -> None:
         """Wait for a completed source paint before admitting its destination layout."""
         if self.source_settlement_scheduled or self.source_ready:
@@ -477,9 +475,6 @@ class HeldReaderDestination:
         if reached and self.source_ready and measured:
             return self.released()
         return self
-
-    async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
-        return False
 
     def release(self, window: "HistoryWindow") -> None:
         self.source_settled(window)

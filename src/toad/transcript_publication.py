@@ -68,7 +68,6 @@ from toad.widgets.committed_presentation import (
     retirement_candidates,
 )
 from toad.widgets.history_anchor import (
-    HeldReaderDestination,
     HistoryWindow,
     TailPosition,
 )
@@ -120,7 +119,7 @@ class TranscriptPublication(BoundFrame, ABC):
     ) -> None:
         super().__init__(binding, owner, generation)
         self.thread_scope = binding.thread_scope
-        self.destination = HeldReaderDestination.held(binding.window)
+        self.destination = binding.window.reader_position
         self.identity: TranscriptReadIdentity
         self.capture_cohort()
 
@@ -288,7 +287,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
             self.show_draft(snapshot.draft, snapshot.identity)
             if published and bound == snapshot.page.after:
                 self.owner.current_read = Published(snapshot.identity)
-        if published and self.current() and self.destination is not None:
+        if published and self.current():
             self.destination.source_settled(self.binding.window)
         return published
 
@@ -569,10 +568,7 @@ class BoundView(ViewBinding):
             if not self.current():
                 return
             if publication is None:
-                if (
-                    destination := HeldReaderDestination.held(self.binding.window)
-                ) is not None:
-                    destination.release(self.binding.window)
+                self.binding.window.reader_position.release(self.binding.window)
             else:
                 self.owner.source_requests.submit(publication)
 
