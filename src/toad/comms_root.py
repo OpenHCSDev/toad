@@ -36,7 +36,7 @@ from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread
 from agent_comms.tools import (
     CommsHistoricalThreadsTool,
-    CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool,
+    CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool, CommsStoreDisplayOrderTool,
     CommsUserSendTool,
 )
 from agent_comms.transcripts import TranscriptCursor
@@ -343,10 +343,6 @@ class FailedObservation(Observation):
                 and self.error.__reduce__() == other.error.__reduce__())
 
     @property
-    def service(self):
-        raise self.error
-
-    @property
     def core(self) -> CoreAccess:
         raise self.error
 
@@ -397,6 +393,13 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
 
     async def read(self, request: AwaitedRead) -> object:
         return await self.process.read(request)
+
+    async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
+        """Store the chosen order on the Core this observation reaches, local or remote."""
+        if root is not None and not self.observes(root):
+            raise ValueError("Comms route changed before sorting")
+        return await access.preparation.run_thread(
+            self.core.call, CommsStoreDisplayOrderTool(order=order, channel=channel))
 
     @property
     @abstractmethod
@@ -555,12 +558,6 @@ class LocalObserving(Observing):
     @property
     def core(self) -> CoreAccess:
         return LocalCoreAccess(self.service)
-
-    async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
-        if root is not None and not self.observes(root):
-            raise ValueError("Comms route changed before sorting")
-        return await access.preparation.run_thread(
-            access.write, self.selection, order.store_channel_order, self.service.channels, channel)
 
     def require(self, access: CoordinationAccess, selected: RouteSelection):
         return self if self.selection == selected else access.open_selected(selected)
