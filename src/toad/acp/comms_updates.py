@@ -29,6 +29,10 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.native_output import AssistantOutput, ToolOutput
+from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
+from agent_comms.goals import NoGoal
+from agent_comms.order_tools import OwnerGoalRead
+from agent_comms.ui_model.observation import ReadOwnerOperation
 from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresentation
 from agent_comms.transcripts import NativeCommittedPrefix
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -279,7 +283,7 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
     def publish_thread_turn(self, root, thread):
         """Only the live transcript member can supply actual owner settlement."""
         coordination = self.agent.coordination
-        self.agent.controller.require_owner(
+        self.agent.require_owner(
             coordination, ClientSessionRequest(self.agent, self.session_id)
         )
         if root != coordination.wire_root or thread.incarnation != coordination.thread:
@@ -316,6 +320,9 @@ class ThreadRead:
     def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
         return SettledThreadRead(presentation)
 
+    async def goal_snapshot(self, transcripts) -> GoalSnapshot:
+        return GoalSnapshot(NoGoal(), IdleGoalExecution())
+
     async def reconcile(self, transcripts) -> None:
         """An uncaptured read has no owner snapshot to reconcile."""
 
@@ -337,6 +344,14 @@ class PendingThreadRead(ThreadRead):
     coordination: CoordinationChangedUpdate
     authority: ClientSessionRequest
     snapshot: OwnerSnapshotConsumer
+
+    async def goal_snapshot(self, transcripts) -> GoalSnapshot:
+        snapshot = await transcripts.read(ReadOwnerOperation(
+            self.coordination.wire_root, self.coordination.thread, operation=OwnerGoalRead()))
+        self.agent.require_owner(self.coordination, self.authority)
+        for fact in snapshot.meta.batch.updates:
+            self.snapshot.dispatch_sync(fact)
+        return snapshot
 
     def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
         current = self.agent.coordination
