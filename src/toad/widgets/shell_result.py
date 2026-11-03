@@ -29,5 +29,5 @@ class ShellResult(ConversationBlock, CommitBarrier, containers.HorizontalGroup):
         yield NonSelectableLabel("$", id="prompt", markup=False)
         yield Static(highlight(self.source.command, language="sh"))
 
-    def get_clipboard_text(self) -> str | None:
+    def get_clipboard_text(self) -> str:
         return self.source.command

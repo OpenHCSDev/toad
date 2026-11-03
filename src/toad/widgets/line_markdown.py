@@ -37,8 +37,8 @@ class LineMarkdown(StyledRows, ReferenceRendering, BlockContent, Widget):
     def block(self) -> LineBlock:
         return self.line_blocks(self.text)[0]
 
-    def get_clipboard_text(self) -> str | None:
-        return self.text or None
+    def get_clipboard_text(self) -> str:
+        return self.text
 
     def update(self, text: str) -> None:
         """Replace the text; its rows arrive with the next render, without blocking."""

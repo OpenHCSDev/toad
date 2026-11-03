@@ -24,10 +24,11 @@ class BlockContent:
     def get_block_menu(self) -> Iterable[MenuCommand]:
         return ()
 
-    def get_clipboard_text(self) -> str | None:
-        return None
+    def get_clipboard_text(self) -> str:
+        """What copying the block gives; empty when it has nothing to copy."""
+        return ""
 
-    def get_prompt_text(self) -> str | None:
+    def get_prompt_text(self) -> str:
         return self.get_clipboard_text()
 
     def can_expand(self) -> bool:
@@ -70,21 +71,9 @@ class ExpandCommand(ExpansionCommand):
 class MarkdownBlockContent(BlockContent):
     """Declared native blocks share source-copy and menu capabilities."""
 
-    code: str | None = None
-
-    @classmethod
-    def clipboard_source(cls, markdown: str | None, code: str | None) -> str | None:
-        return markdown
-
-    @classmethod
-    def prompt_source(cls, markdown: str | None, code: str | None) -> str | None:
-        return cls.clipboard_source(markdown, code)
-
-    def get_clipboard_text(self) -> str | None:
-        return self.clipboard_source(self.source, self.code)
-
-    def get_prompt_text(self) -> str | None:
-        return self.prompt_source(self.source, self.code)
+    def get_clipboard_text(self) -> str:
+        """The block's Markdown source; Textual answers None for a block it has no range for."""
+        return self.source or ""
 
     @classmethod
     def blocks_for(cls, catalog: dict[str, type]) -> dict[str, type]:
