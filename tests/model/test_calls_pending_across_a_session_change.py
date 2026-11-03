@@ -13,7 +13,7 @@ async def test_pending_session_calls_reject_a_binding_that_was_replaced(app_agen
     calls: tuple[tuple[Callable[[Agent], Coroutine[object, object, str | None]], str], ...] = (
         (lambda agent: agent.session.initialize(), 'initialize'),
         (lambda agent: agent.session.authenticate('terminal'), 'authenticate'),
-        (lambda agent: agent.set_mode('late'), 'set_config_option'),
+        (lambda agent: agent.configuration.mode.select(agent, 'late'), 'set_config_option'),
         (lambda agent: agent.session.new(), 'new_session'),
         (lambda agent: agent.session.load(), 'load_session'),
     )

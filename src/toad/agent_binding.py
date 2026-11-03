@@ -155,11 +155,8 @@ class AgentConnection(ABC):
     def current_turn(self):
         return NoTurn()
 
-    async def set_mode(self, mode_id: str) -> str | None:
-        return "This agent does not support mode selection"
-
-    async def set_model(self, model_id: str) -> str | None:
-        return "This agent does not support model selection"
+    def configuration_refusal(self, label: str) -> str:
+        return f"This agent does not support {label} selection"
 
     async def set_session_name(self, name: str) -> None:
         """A connection without a native session has no remote title to change."""
@@ -213,8 +210,5 @@ class NoAgentConnection(AgentConnection):
     def matches_agent(self, agent: object) -> bool:
         return False
 
-    async def set_model(self, model_id: str) -> str:
-        return "No agent is bound yet"
-
-    async def set_mode(self, mode_id: str) -> str:
+    def configuration_refusal(self, label: str) -> str:
         return "No agent is bound yet"

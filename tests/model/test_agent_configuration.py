@@ -3,7 +3,8 @@ from acp.schema import SetSessionConfigOptionResponse
 from toad.acp.agent_configuration import (AgentConfiguration, ConfigurationSetting,
                                          ModelConfigurationSetting)
 from toad.core.events import ConfigurationChanged
-from support.agents import RecordedEvents
+from support.agents import AppAgents, RecordedEvents
+from toad.agent_binding import NoAgentConnection
 
 
 def test_configuration_owns_typed_groups_replacement_and_new_case(app_agents, tmp_path):
@@ -63,3 +64,17 @@ def test_an_unset_model_beside_advertised_models_runs_the_default(app_agents):
 
     assert not advertise('', 'openai-codex/gpt-5.4').requires_selection
     assert advertise('').requires_selection
+
+
+async def test_selection_refusals_belong_to_the_original_connection(app_agents: AppAgents) -> None:
+    unbound = NoAgentConnection()
+    assert await unbound.configuration.model.select(unbound, "missing") == "No agent is bound yet"
+    assert await unbound.configuration.mode.select(unbound, "missing") == "No agent is bound yet"
+    agent = app_agents.detached_agent("original")
+    try:
+        assert await agent.configuration.model.select(agent, "missing") == (
+            "This agent does not advertise model configuration")
+        assert await agent.configuration.mode.select(agent, "missing") == (
+            "This agent does not advertise mode configuration")
+    finally:
+        await agent.stop()

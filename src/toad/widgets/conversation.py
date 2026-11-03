@@ -1475,7 +1475,7 @@ class Conversation(
         # would ask native SetModel to restore that model's default effort.
         error = None
         if event.model_id != agent.configuration.model.current:
-            error = await agent.set_model(event.model_id)
+            error = await agent.configuration.model.select(agent, event.model_id)
         if agent is not self.agent_binding:
             return
         if error is not None:
@@ -1505,7 +1505,7 @@ class Conversation(
                 )
                 if (
                     level
-                    and (error := await agent.set_thinking_level(level)) is not None
+                    and (error := await agent.configuration.thinking.select(agent, level)) is not None
                 ):
                     self.app.show_error(error, "Set thinking level")
                     return
@@ -1667,7 +1667,7 @@ class Conversation(
         if mode_id is None:
             return
         agent = self.agent_binding
-        error = await agent.set_mode(mode_id)
+        error = await agent.configuration.mode.select(agent, mode_id)
         if agent is not self.agent_binding:
             return
         if error is not None:

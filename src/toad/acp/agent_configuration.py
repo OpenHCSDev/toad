@@ -87,7 +87,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
 
     async def select(self, agent, value: str) -> str | None:
         if self.option is None:
-            return f"This agent does not advertise {self.label} configuration"
+            return agent.configuration_refusal(self.label)
         from toad.acp.client_session import ClientSessionRequest
         authority = ClientSessionRequest(agent, agent.session_id)
         authority.require()

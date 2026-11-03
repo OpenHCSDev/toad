@@ -22,10 +22,6 @@ from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.session_load import ExistingSessionLoadPlan
 
 from toad import paths
-from toad.acp.agent_configuration import (
-    ModelConfigurationSetting,
-    ThinkingConfigurationSetting,
-)
 from toad.acp.agent_controller import AgentController
 from toad.acp.agent_log import AgentLog
 from toad.acp.agent_process import AgentProcess
@@ -273,14 +269,8 @@ class Agent(AgentBase):
         self._post_queue_view()
 
 
-    async def set_mode(self, mode_id: str) -> str | None:
-        return await self.configuration.mode.select(self, mode_id)
-
-    async def set_model(self, model_id: str) -> str | None:
-        return await self.configuration.setting(ModelConfigurationSetting).select(self, model_id)
-
-    async def set_thinking_level(self, level: str) -> str | None:
-        return await self.configuration.setting(ThinkingConfigurationSetting).select(self, level)
+    def configuration_refusal(self, label: str) -> str:
+        return f"This agent does not advertise {label} configuration"
 
     async def get_goal_snapshot(self) -> GoalSnapshot:
         """The owner's goal snapshot, read by the observation service; its turn settles here."""

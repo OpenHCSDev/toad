@@ -5,57 +5,23 @@ import json
 import subprocess
 import sys
 
-from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
 from acp.schema import PromptResponse
 from toad.acp.status import StopReason
-from support.agents import AppAgents, command
-from toad.acp.agent import Agent
+from support.agents import peer
+from support.peers.model_catalogue import GLM, SONNET, GPT
+from toad.session_scope import AgentAttached
 from toad.db import DB
 from toad.widgets.prompt import AgentInfo
 from toad.widgets.model_switcher import ClearModelSearchAction
 from textual.document._editing import EditingMode
 
-GLM = "openrouter/z-ai/glm-5.3-flash"
-SONNET = "openrouter/anthropic/claude-sonnet-4.6"
-GPT = "openrouter/openai/gpt-5.4"
 SCOPE = "picker-test"
 
 
-def catalogue():
-    models = {model.value: model for model in (
-        SessionConfigSelectOption(value=GLM, name="GLM 5.3 Flash", description="Fast coding model"),
-        SessionConfigSelectOption(value=SONNET, name="Claude Sonnet 4.6", description="Balanced coding model"),
-        SessionConfigSelectOption(value=GPT, name="GPT 5.4", description="OpenRouter"),
-        SessionConfigSelectOption(value="openai/gpt-5.4", name="GPT 5.4 direct", description="OpenAI"),
-        SessionConfigSelectOption(value="test/unavailable", name="Unavailable model"),
-    )}
-    models.update({f"test/model-{n:04}": SessionConfigSelectOption(value=f"test/model-{n:04}", name=f"Model {n:04}")
-                   for n in range(1000)})
-    return models
-
-
-class PickerAgent(Agent):
-    """An agent object that advertises the catalogue and answers model changes without a process."""
-
-    def __init__(self, *args, models, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.calls = []
-        self.configuration.receive([SessionConfigOptionSelect(
-            id='model', name='Model', category='model', type='select',
-            current_value=next(iter(models)), options=list(models.values()))])
-
-    async def set_model(self, model_id):
-        self.calls.append(model_id)
-        if model_id == "test/unavailable":
-            return "Model unavailable"
-        self.configuration.receive([self.configuration.model.option.model_copy(
-            update={'current_value': model_id})])
-        return None
-
-
 class Picker:
-    def __init__(self, ui, agent, db):
+    def __init__(self, ui, agent, db, workspace):
         self.ui, self.agent, self.db = ui, agent, db
+        self.workspace = workspace
         self.conversation = ui.conversation
         self.prompt = self.conversation.prompt
         self.widget = self.prompt.model_switcher
@@ -76,20 +42,18 @@ class Picker:
 
 @asynccontextmanager
 async def picker_session(workspace):
-    async with workspace.app(size=(120, 40)) as ui:
-        app, _pilot = ui.textual
-        agent = AppAgents(app).agent(PickerAgent, command("false", name="Picker test", identity="picker-test"),
-                                     "picker", models=catalogue())
-        ui.attach_agent(agent)
+    async with workspace.app(size=(120, 40), binding=AgentAttached(
+        peer("model_picker", name="Picker test", identity="picker-test"))) as ui:
+        await ui.until_agent_ready()
+        agent = ui.conversation.agent_binding
         ui.conversation.model_history_scope = SCOPE
-        agent.configuration.publish()
         await ui.until(lambda: agent.configuration.model.selected is not None, why="the advertised model")
         db = DB()
         await db.record_model_usage(SCOPE, GPT)
         await db.record_model_usage(SCOPE, SONNET)
         await db.record_model_usage(SCOPE, "retired/model")
         await db.record_model_usage("other-agent", GLM)
-        picker = Picker(ui, agent, db)
+        picker = Picker(ui, agent, db, workspace)
         picker.prompt.text = "Keep this unfinished draft"
         yield picker
 
@@ -153,7 +117,7 @@ async def test_typing_filters_models_fuzzily_and_escape_closes_without_a_change(
         await ui.press("f9", *"cldsnt")
         assert picker.ids() == [SONNET]
         await ui.press("f9", *"zzzzzzzzz", "down", "up", "enter")
-        assert not picker.ids() and widget.is_open and not picker.agent.calls
+        assert not picker.ids() and widget.is_open and not picker.workspace.received
         await ui.press("escape")
         assert not widget.is_open and picker.prompt.prompt_text_area.has_focus
         assert await picker.recents() == before
@@ -165,7 +129,7 @@ async def test_choosing_the_current_model_does_not_reapply_it(workspace):
         await picker.ui.press(*"glm")
         assert await picker.pilot.click(picker.widget.option_list, offset=(2, 0))
         await picker.ui.until(lambda: not picker.widget.is_open, why="the picker to close")
-        assert not picker.agent.calls, "Opening the current model must not reapply it"
+        assert not picker.workspace.received, "Opening the current model must not reapply it"
 
 
 async def test_choosing_another_model_applies_it_and_makes_it_the_most_recent(workspace):
@@ -193,8 +157,10 @@ async def test_a_model_the_agent_refuses_is_not_applied_or_recorded(workspace):
         await choose_gpt(picker)
         await picker.open_with_command()
         await picker.ui.press(*"unavailable", "enter")
-        await picker.ui.until(lambda: picker.agent.calls[-1] == "test/unavailable", why="the refused request")
-        await picker.ui.step()
+        await picker.ui.until(lambda: picker.workspace.received and
+                              picker.workspace.received[-1]["value"] == "test/unavailable",
+                              why="the refused SDK request")
+        await picker.ui.until_shows("Model unavailable")
         assert picker.agent.configuration.model.current == GPT
         assert "test/unavailable" not in await picker.recents()
 

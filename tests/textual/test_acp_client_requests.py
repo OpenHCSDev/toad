@@ -17,7 +17,7 @@ async def test_agent_requests_are_served_and_the_reply_is_drawn(workspace):
         try:
             await ui.until(lambda: agent.configuration.mode.selected is not None, why="the advertised modes")
             assert agent.configuration.mode.selected is agent.configuration.mode.choices[0]
-            assert await agent.set_mode("write") is None
+            assert await agent.configuration.mode.select(agent, "write") is None
             await ui.until(lambda: agent.configuration.mode.selected is agent.configuration.mode.choices[1], why="the mode change")
             await view.submit_input(input_events.UserInputSubmitted("SDK_SPECIFICATION_JOURNEY"))
             await ui.until(lambda: isinstance(app.screen, PermissionsScreen), why="the permission dialog")
