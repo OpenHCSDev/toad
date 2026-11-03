@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Never
 
 from agent_comms.channel_targets import ThreadTarget
-from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.errors import RelationViolationError, RouteChangedError
@@ -35,6 +34,7 @@ from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 
 if TYPE_CHECKING:
+    from toad.comms_root import Observing
     from toad.widget_actions import DeclaredWidgetActions
     from agent_comms.message_reference import MessageReference
     from agent_comms.thread_presentation import ThreadPresentation
@@ -97,7 +97,7 @@ class TranscriptScope(ABC):
         position: PagePosition = LatestPage(),
     ) -> ReadTranscriptUpdate: ...
 
-    def queue_service(self, service: Callable[[], Comms]) -> Comms:
+    def queue_observing(self, observing: Callable[[], Observing]) -> Observing:
         raise RouteChangedError("The queue has no original transcript source")
 
     @abstractmethod
@@ -124,11 +124,11 @@ class KnownTranscript(TranscriptScope):
     name: str
     readable = True
 
-    def queue_service(self, service: Callable[[], Comms]) -> Comms:
-        comms = service()
-        if comms.root != Path(self.root):
+    def queue_observing(self, observing: Callable[[], Observing]) -> Observing:
+        observed = observing()
+        if observed.root != Path(self.root):
             raise RouteChangedError("The queue's original transcript root changed")
-        return comms
+        return observed
 
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
         return ExistingOwnerPlan.from_binding(presentation.binding).decision
