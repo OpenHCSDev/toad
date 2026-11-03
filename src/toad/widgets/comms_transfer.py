@@ -15,10 +15,9 @@ from functools import cached_property, partial
 from abc import abstractmethod
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
-from agent_comms.comms import Comms
 from agent_comms.cli_result import CliResult
 from agent_comms.importing import ThreadImported
-from agent_comms.tools import CommsImportThreadTool
+from agent_comms.tools import CommsExportWireTool, CommsImportThreadTool
 from agent_comms.route_selection import RouteSelection
 
 from agent_comms.exporting import (
@@ -137,13 +136,12 @@ class WireExportRequest(TransferRequest[WireExportProvenance]):
     def dialog(cls, selected: RouteSelection) -> WireExportDialog:
         return WireExportDialog(selected.root)
 
-    def apply(self, comms: Comms, observer: TransferProgress) -> WireExportProvenance:
-        return comms.views.export_wire(self.destination, format=self.format, scope=self.scope,
-                                       limit=self.limit, observer=observer)
-
     def perform(self, access: CoordinationAccess, selected: RouteSelection,
                 observer: TransferProgress) -> WireExportProvenance:
-        return self.apply(access.require(selected).service, observer)
+        """Core's host writes the export; its progress and cancel reach this observer."""
+        return access.write(selected, access.observing(selected.root).core.call, CommsExportWireTool(
+            destination=self.destination, format=self.format, scope=self.scope, limit=self.limit,
+        ).observed_by(observer))
 
     @asynccontextmanager
     async def progress(self, app: App[TerminalOutcome]) -> AsyncIterator[TransferProgress]:
