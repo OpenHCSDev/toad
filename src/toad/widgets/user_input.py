@@ -43,5 +43,5 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
         # The same Body block committed history draws for this message.
         yield LineMarkdown(self.content, bar=UserRole, body=MessageBody, id="content")
 
-    def get_clipboard_text(self) -> str | None:
+    def get_clipboard_text(self) -> str:
         return self.content

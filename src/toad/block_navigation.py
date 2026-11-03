@@ -53,9 +53,9 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def __init__(self, block):
         self.block = block
 
-    @property
     @abstractmethod
-    def selected(self) -> Widget | None: ...
+    def accepts(self, owner: Widget) -> bool:
+        """Whether `owner` is the widget this cursor selects."""
 
     @abstractmethod
     def enter(self, direction: CursorDirection) -> bool: ...
@@ -81,16 +81,13 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
         conversation.screen.set_focus(conversation.window)
         conversation.call_after_refresh(conversation._present_block_cursor, self, show)
 
-    def accepts(self, owner: Widget) -> bool:
-        return owner is self.selected
-
     def clear(self) -> None:
         pass
 
-    def get_clipboard_text(self) -> str | None:
-        return None
+    def get_clipboard_text(self) -> str:
+        return ""
 
-    def get_prompt_text(self) -> str | None:
+    def get_prompt_text(self) -> str:
         return self.get_clipboard_text()
 
     def get_block_menu(self):
@@ -131,9 +128,8 @@ class NoBlockCursor(BlockCursor):
     def __init__(self) -> None:
         pass
 
-    @property
-    def selected(self) -> None:
-        return None
+    def accepts(self, owner: Widget) -> bool:
+        return False
 
     selected_widgets = ()
 
@@ -160,9 +156,8 @@ class AtomicBlockCursor(BlockCursor):
     def selected_widgets(self) -> tuple[Widget, ...]:
         return (self.block,)
 
-    @property
-    def selected(self):
-        return self.block
+    def accepts(self, owner: Widget) -> bool:
+        return owner is self.block
 
     def enter(self, direction: CursorDirection):
         return True
@@ -234,9 +229,8 @@ class FragmentBlockCursor(BlockCursor):
     def selected_widgets(self) -> tuple[Widget, ...]:
         return tuple(self.block for _ in self.selected_fragments)
 
-    @property
-    def selected(self):
-        return self.current.selected_in(self.block)
+    def accepts(self, owner: Widget) -> bool:
+        return self.current.selects(owner, self.block)
 
     def enter(self, direction: CursorDirection):
         # The cursor arrives at the reader's side of the screen, not at an
@@ -308,9 +302,8 @@ class ChildBlockCursor(BlockCursor):
     def active(self):
         return self.current.block_cursor.active
 
-    @property
-    def selected(self):
-        return self.active.selected
+    def accepts(self, owner: Widget) -> bool:
+        return self.active.accepts(owner)
 
     @property
     def selected_widgets(self) -> tuple[Widget, ...]:
@@ -481,10 +474,7 @@ class ContentNavigation:
         return self._current if self._current in self.blocks else NO_ENTRY
 
     def accepts_menu_owner(self, owner: Widget) -> bool:
-        for block in self.blocks:
-            if block is self._current:
-                return block.block_cursor.accepts(owner)
-        return False
+        return self.current.block_cursor.accepts(owner)
 
     def clear(self) -> None:
         self._current = NO_ENTRY

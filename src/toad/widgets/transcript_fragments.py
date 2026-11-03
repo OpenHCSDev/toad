@@ -345,13 +345,13 @@ class CursorRest:
         """This rest while `history` draws it; no rest once it does not."""
         return self
 
-    def selected_in(self, history: LineHistory) -> Widget | None:
-        """The widget the block cursor protocol reports as selected."""
-        return None
+    def selects(self, owner: Widget, history: LineHistory) -> bool:
+        """Whether resting here selects `owner`: no rest selects nothing."""
+        return False
 
     @property
-    def clipboard_text(self) -> str | None:
-        return None
+    def clipboard_text(self) -> str:
+        return ""
 
     @property
     def block_menu(self) -> tuple[MenuCommand, ...]:
@@ -496,9 +496,9 @@ class TranscriptFragment(CursorRest):
         return self.events[0].timestamp
 
     @property
-    def clipboard_text(self) -> str | None:
+    def clipboard_text(self) -> str:
         """What copying this fragment gives: its text as written."""
-        return "\n\n".join(text for event in self.events if (text := COPIED_TEXT.project_value(event))) or None
+        return "\n\n".join(text for event in self.events if (text := COPIED_TEXT.project_value(event)))
 
     @property
     def block_menu(self) -> tuple[MenuCommand, ...]:
@@ -512,8 +512,8 @@ class TranscriptFragment(CursorRest):
     def drawn_in(self, history: LineHistory) -> CursorRest:
         return self if history.draws_fragment(self) else NO_REST
 
-    def selected_in(self, history: LineHistory) -> Widget | None:
-        return history
+    def selects(self, owner: Widget, history: LineHistory) -> bool:
+        return owner is history
 
     def placement_in(self, history: LineHistory) -> Unplaced:
         return history.fragment_shown(self)

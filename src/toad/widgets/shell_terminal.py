@@ -33,7 +33,7 @@ class ShellTerminal(Terminal):
             yield InterruptCommand()
             yield FocusBlockCommand(self)
 
-    def get_clipboard_text(self) -> str | None:
+    def get_clipboard_text(self) -> str:
         return "\n".join(line.content.plain for line in self.state.buffer.lines)
 
     def on_mount(self) -> None:
