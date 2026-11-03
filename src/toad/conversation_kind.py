@@ -9,7 +9,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from agent_comms.channel_targets import (
     ChannelTarget,
@@ -22,11 +22,6 @@ from agent_comms.comms import Comms
 from agent_comms.tools import CommsConversationPageTool
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences
-from agent_comms.historical_views import (
-    ChannelDisplayHistory,
-    ConversationHistoryView,
-    DMDisplayHistory,
-)
 from agent_comms.message_page import MessagePage, PageBounds
 from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
@@ -55,8 +50,6 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class ConversationKind(DeclaredFamily, affix="Conversation"):
-    history_view: ClassVar[type[ConversationHistoryView]]
-
     @property
     @abstractmethod
     def initial_label(self) -> str: ...
@@ -160,7 +153,6 @@ class ResolvedConversation:
 @dataclass(frozen=True)
 class ChannelConversation(ConversationKind):
     target: ChannelTarget
-    history_view = ChannelDisplayHistory
 
     @property
     def initial_label(self) -> str:
@@ -234,7 +226,6 @@ class ChannelConversation(ConversationKind):
 @dataclass(frozen=True)
 class DmConversation(ConversationKind):
     peer: ThreadIncarnation
-    history_view = DMDisplayHistory
     initial_label = "Direct messages"
 
     @property

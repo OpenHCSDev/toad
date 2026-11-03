@@ -10,7 +10,7 @@ from itertools import islice
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ReferenceType, ref
 
-from agent_comms.historical_views import ConversationObservation
+from agent_comms.historical_views import ConversationObservation, UnobservedConversation
 from agent_comms.nominal.field_codec import ContentExclude, FieldCodec
 from agent_comms.sent_message import OutgoingMessageReference
 from agent_comms.transcripts import (
@@ -579,7 +579,7 @@ class Unchanged(SourceObservation):
 class ClosedHistory(ReplaceablePageSource):
     """A retained range without a saved reader; its pages remain usable."""
 
-    revision = ConversationObservation()
+    revision = UnobservedConversation()
 
     def __init__(self, through: TranscriptCursor, runtime: PreparationRuntime) -> None:
         super().__init__()

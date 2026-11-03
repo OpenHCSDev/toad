@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from textual.reactive import var
 
 from agent_comms.coordination_errors import StaleRevision
-from agent_comms.historical_views import ConversationObservation
+from agent_comms.historical_views import UnobservedConversation
 
 from toad.session_scope import SessionScope
 from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
@@ -52,7 +52,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
         """Bind the conversation to read; the first refresh draws its newest page."""
         self.page_source.close()
         self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation,
-                                          revision=ConversationObservation())
+                                          revision=UnobservedConversation())
 
     @property
     def undrawn(self) -> bool:
@@ -148,7 +148,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
-                source.revision = ConversationObservation()
+                source.revision = UnobservedConversation()
                 await self.view._refresh()
         finally:
             if self.is_attached:
