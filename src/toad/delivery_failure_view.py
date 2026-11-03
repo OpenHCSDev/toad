@@ -13,7 +13,7 @@ from agent_comms.errors import (
     RelationViolationError,
     RouteChangedError,
 )
-from agent_comms.messages import Message
+from agent_comms.message_reference import MessageReference
 from rich.text import Text as RichText
 from textual import getters
 from textual.content import Content
@@ -46,7 +46,7 @@ class SendPending(SendState):
 @dataclass(frozen=True)
 class SentUndrawn(SendState):
     root: Path
-    sent: Message
+    sent: MessageReference
 
     @property
     def reason(self) -> str:
@@ -77,7 +77,7 @@ class DeliveryFailureView(ToadNode, Widget):
     """Why compose is held: this view's send, or a read-only saved view; empty when open."""
 
     @abstractmethod
-    def draws_user_message(self, message: Message) -> bool: ...
+    def draws_user_message(self, reference: MessageReference) -> bool: ...
 
     async def composer_read_only(self) -> bool:
         return False
@@ -130,8 +130,8 @@ class DeliveryFailureView(ToadNode, Widget):
             self.feedback.flash(self.send_block_reason, style="error")
             return
         try:
-            comms = await self.app.coordination_access.transcripts.service(root)
-            read_only = await self.app.preparation.run_thread(conversation.read_only, comms)
+            observed = await self.app.preparation.run_thread(self.app.coordination_access.observing, root)
+            read_only = await self.app.preparation.run_thread(conversation.read_only, observed.core)
             await self.refresh_composer(read_only)
             if read_only:
                 self.prompt.restore_draft(body)
@@ -143,7 +143,7 @@ class DeliveryFailureView(ToadNode, Widget):
             )
             if not route_current or not current():
                 raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
-            sent = await self.commit_user_message(comms, conversation.send_target(), body)
+            sent = await self.commit_user_message(observed, conversation.send_target(), body)
         except asyncio.CancelledError:
             self.delivery_refused("Cancelled before sending", body)
             raise
@@ -154,9 +154,8 @@ class DeliveryFailureView(ToadNode, Widget):
             return
         await present(sent)
 
-    async def commit_user_message(self, comms, target, body):
-        task = asyncio.create_task(asyncio.to_thread(
-            comms.messaging.send_user_message, target, body, worktree=self.project_path))
+    async def commit_user_message(self, observed, target, body):
+        task = asyncio.create_task(asyncio.to_thread(observed.send_user_message, target, body))
         try:
             sent = await asyncio.shield(task)
         except asyncio.CancelledError:
@@ -164,8 +163,8 @@ class DeliveryFailureView(ToadNode, Widget):
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
             return None
         except CommittedMessageError as error:
-            sent = error.record
-        self._enter_send_state(SentUndrawn(comms.root, sent))
+            sent = error.record.reference
+        self._enter_send_state(SentUndrawn(observed.root, sent))
         return sent
 
     def settle_user_message(self) -> None:

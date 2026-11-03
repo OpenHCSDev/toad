@@ -36,6 +36,7 @@ from agent_comms.transcript_events import IncomingTranscript
 from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
 from toad.core.projection import MroProjection
+from toad.referenced_core import ReferencedCore
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -315,7 +316,7 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
 
 
 @dataclass(frozen=True, eq=False)
-class WireSource(BusQueueSource):
+class WireSource(BusQueueSource, ReferencedCore):
     """One conversation as one viewer reads it from Core, and how its messages are styled.
 
     A page read to the newest messages is short so that it is drawn at once;
@@ -523,13 +524,13 @@ class WirePageBuffer(SavedHistory):
             comms.views.mark_page_read, page, worktree=self.loader.project)
 
     async def read_only(self) -> bool:
-        return await self.runtime.run_thread(self.loader.conversation.read_only, self.loader.comms)
+        return await self.runtime.run_thread(self.loader.conversation.read_only, self.loader.core)
 
     async def update_mentions(self, view: CommsChatView) -> None:
         await self.loader.conversation.update_mentions(view, self.loader.comms)
 
     async def status_text(self, *, read_only):
-        return await self.loader.conversation.status_text(self.loader.comms, read_only=read_only)
+        return await self.loader.conversation.status_text(self.loader, read_only=read_only)
 
     def accepts(self, loader: WireSource, through) -> bool:
         # Earlier wire cuts stay valid while the bus grows.
