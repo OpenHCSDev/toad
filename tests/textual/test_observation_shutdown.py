@@ -13,7 +13,7 @@ from agent_comms.ui_model.observation import (
     ObservationProcess, ObserverDied, ObserveNotifications, ReadNotifications, StopObserving,
     StopSidebar,
 )
-from toad.comms_root import AnsweringReads
+from toad.comms_root import LocalAnsweringReads
 
 
 async def stopped(pid: int) -> None:
@@ -112,7 +112,7 @@ async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(works
                 assert process.reads and not reading.done()
                 await access.stop_observing()
                 answering = access.observation
-                assert type(answering) is AnsweringReads
+                assert type(answering) is LocalAnsweringReads
                 assert answering.process is process
                 assert answering.service is observing.service
                 assert answering.selection is observing.selection
