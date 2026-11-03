@@ -18,7 +18,6 @@ from agent_comms.channel_targets import (
     ThreadTarget,
 )
 from agent_comms.channels import AllChannel
-from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess
 from agent_comms.tools import (
     CommsChannelTool, CommsConversationPageTool, CommsRegistryTool, CommsThreadConfigurationTool,
@@ -119,7 +118,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     @abstractmethod
-    async def update_mentions(cls, view: CommsChatView, comms: Comms) -> None: ...
+    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore) -> None: ...
 
     @abstractmethod
     async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str: ...
@@ -209,16 +208,15 @@ class ChannelConversation(ConversationKind):
         return core.call(CommsChannelTool(name=self.target.name)).read_only
 
     @classmethod
-    async def update_mentions(cls, view: CommsChatView, comms: Comms):
+    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore):
         history = view.message_history
         source = history.source_snapshot()
         conversation = view.conversation
         access = view.app.coordination_access
         answer = await access.current_sidebar()
         snapshot = answer.require_snapshot()
-        observed = access.observation
-        if not observed.uses(comms):
-            raise ValueError("Channel mentions belong to another Comms service")
+        if not access.observation.observes(source.root):
+            raise ValueError("Channel mentions belong to another Core root")
         mentions = await view.app.preparation.run_thread(
             snapshot.mention_candidates,
             conversation.destination(snapshot.references).name,
@@ -269,7 +267,7 @@ class DmConversation(ConversationKind):
         return f"@{self.destination(references).name}"
 
     @classmethod
-    async def update_mentions(cls, view: CommsChatView, comms: Comms) -> None:
+    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore) -> None:
         """Direct-message composers have no channel mention roster."""
 
     @classmethod

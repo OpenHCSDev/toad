@@ -2,10 +2,9 @@
 
 from agent_comms.core_access import CoreAccess
 from agent_comms.display_order import ThreadSort
-from agent_comms.presentation import WireRevision
 from agent_comms.relationships import SortableRelationshipGroup, ThreadCommsSnapshot
 from agent_comms.tools import (
-    CommsRelationshipRevisionTool, CommsSetRelationshipOrderTool, CommsThreadRelationshipsTool,
+    CommsSetRelationshipOrderTool, CommsThreadRelationshipsTool,
 )
 
 
@@ -13,9 +12,6 @@ class RelationshipReads:
     """Relationship reads and ordering through this holder's Core, locally or remotely alike."""
 
     core: CoreAccess
-
-    def relationship_revision(self) -> WireRevision:
-        return self.core.call(CommsRelationshipRevisionTool()).revision
 
     def relationships(self, owner: str) -> ThreadCommsSnapshot:
         return self.core.call(CommsThreadRelationshipsTool(owner=owner)).snapshot

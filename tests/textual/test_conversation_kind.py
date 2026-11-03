@@ -56,7 +56,7 @@ def test_conversation_family_resolves_copied_pages_and_current_labels(
     assert conversation.label(references) == label
     assert HistoryTarget.for_conversation(conversation, references) == route
     page = conversation.page(
-        WireSource(comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
+        WireSource(comms.root, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
                    access=AppAgents.unrun(tmp_path, LaunchRoot.from_path(comms.root)).app.coordination_access,
                       core=LocalCoreAccess(comms)),
         PageBounds(limit=8),
