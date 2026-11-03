@@ -159,22 +159,22 @@ async def test_a_plan_sent_while_no_view_shows_the_agent_is_drawn_when_its_view_
         detached_plan = {"entries": [{"content": "DETACHED_PLAN_ITEM", "priority": "high", "status": "pending"}]}
         advance(workspace, 0)
         await asyncio.wait_for(agent.send_prompt(json.dumps([detached_plan])), 10)
-        await ui.until(lambda: agent.controller.plan_entries is not None
-                       and agent.controller.plan_entries[0].content == "DETACHED_PLAN_ITEM",
+        await ui.until(lambda: bool(agent.controller.plan.entries)
+                       and agent.controller.plan.entries[0].content == "DETACHED_PLAN_ITEM",
                        why="the plan held by the detached agent")
         await ui.select_tab(source.id)
         view = ui.conversation
         # Earlier plans stay in the conversation as history; the current one is the controller's.
-        await ui.until(lambda: any(candidate.entries is agent.controller.plan_entries for candidate in view.query(Plan)),
+        await ui.until(lambda: any(candidate.entries is agent.controller.plan.entries for candidate in view.query(Plan)),
                        why="the current plan in the returned view")
-        restored_plan = next(c for c in view.query(Plan) if c.entries is agent.controller.plan_entries)
+        restored_plan = next(c for c in view.query(Plan) if c.entries is agent.controller.plan.entries)
         assert restored_plan is not plan
         assert plan.entries[0].content == "ACP_pending_ITEM"
         restored_plan.scroll_visible(animate=False, immediate=True)
         await ui.until(lambda: painted_text(restored_plan, "DETACHED_PLAN_ITEM"), why="the returned plan painted")
         sidebar = await reveal(source)
         await ui.until(lambda: painted_text(sidebar.query_one(Plan), "DETACHED_PLAN_ITEM"), why="the sidebar plan painted")
-        assert restored_plan.entries is agent.controller.plan_entries
+        assert restored_plan.entries is agent.controller.plan.entries
         assert sidebar.query_one(Plan).entries is restored_plan.entries
         assert view.agent_binding is agent and agent.process.process is original_process
         assert view.prompt.prompt_text_area.document is original_document

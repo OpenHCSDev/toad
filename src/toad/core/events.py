@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from abc import ABC, abstractmethod
-from dataclasses import InitVar, dataclass, field
+from dataclasses import InitVar, dataclass, field, replace
 from functools import cached_property
 from pathlib import Path
 from typing import Annotated
@@ -105,11 +105,27 @@ class ScopedCommsUpdated(KnownSessionIdentity, CommsUpdated):
     """An original ACP key and payload, without binding resources."""
 
 
+class CurrentPlan(ABC):
+    """The retained source value decides whether there is a plan to restore."""
+
+    entries: Sequence[PlanItem] = ()
+
+    def restore[Publisher](self, stream: CoreEventStream[Publisher]) -> None:
+        """Never receiving a plan emits nothing, rather than clearing one."""
+
+
+class NoCurrentPlan(CurrentPlan):
+    """This source has not received a plan."""
+
+
 @dataclass(frozen=True)
-class Plan(CoreEvent):
+class Plan(CoreEvent, CurrentPlan):
     """An ordered snapshot of the original accepted plan items."""
 
-    entries: list[PlanItem]
+    entries: list[PlanItem] = field()
+
+    def restore[Publisher](self, stream: CoreEventStream[Publisher]) -> None:
+        stream.publish(replace(self))
 
 
 @dataclass(frozen=True)

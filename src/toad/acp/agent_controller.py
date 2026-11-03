@@ -120,7 +120,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
         self.transcripts = transcripts
         self.session = SessionBinding()
         self.commands: list[AvailableCommand] = []
-        self.plan_entries: list[PlanItem] | None = None
+        self.plan: core_events.CurrentPlan = core_events.NoCurrentPlan()
 
     def bind_session(self, session_id: str | None) -> None:
         if session_id != self.session.session_id:
@@ -163,10 +163,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
         agent.configuration.publish()
         agent.update_status_line()
         agent.events.publish(AvailableCommandsUpdate())
-        if self.plan_entries is not None:
-            from toad.core.events import Plan
-
-            agent.events.publish(Plan(self.plan_entries))
+        self.plan.restore(agent.events)
         agent._post_queue_view()
         agent._post_private_cursor()
         # The conversation owns its history refresh; only report the attachment.
@@ -212,8 +209,8 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
         """Keep the latest typed source value while its optional view is absent."""
         from toad.core.events import Plan
 
-        self.plan_entries = entries
-        self.agent.events.publish(Plan(entries))
+        self.plan = Plan(entries)
+        self.agent.events.publish(self.plan)
 
     def publish_commands(self, commands: list[AvailableCommand]) -> None:
         from toad.core.events import AvailableCommandsUpdate
