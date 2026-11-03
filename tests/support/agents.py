@@ -79,7 +79,7 @@ async def deliver(agent, update: dict, *, session_id: str | None = None):
     from acp import schema
 
     notification = schema.SessionNotification.model_validate({
-        "sessionId": session_id or agent.session_id, "update": update})
+        "sessionId": session_id or agent.controller.session.session_id, "update": update})
     await agent.updates.receive(notification, update)
 
 

@@ -193,7 +193,7 @@ async def _open_actual_s2_ingress(owner, subject, output):
             phase('actual_original_view_before_acp_attachment_settlement')
             await until(pilot, view.agent_binding.session.settled.is_set)
             assert view.agent_binding.session.connected
-            await until(pilot, lambda: view.agent_binding.queue_attachment.scope.matches_session(view.agent_binding.session_id))
+            await until(pilot, lambda: view.agent_binding.queue_attachment.scope.matches_session(view.agent_binding.controller.session.session_id))
             observer = ActualS2Ingress(app, pilot, owner._comms, subject, output)
             phase('actual_acp_attached_original_queue_scope')
             observer.persist('same_original_owner_actual_toad_acp_attached')

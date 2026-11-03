@@ -72,7 +72,7 @@ async def test_question_and_permission_actions_leave_the_draft_alone(workspace, 
         await ui.until(lambda: view.prompt._ask is None, why="the question to close")
 
         result = asyncio.create_task(agent.permissions.request_permission(
-            sessionId=agent.session_id,
+            sessionId=agent.controller.session.session_id,
             options=[schema.PermissionOption(option_id="modal-allow", name="Allow actual preview", kind="allow_once")],
             toolCall=schema.ToolCallUpdate(
                 tool_call_id="action-preview", kind="edit", title="Actual preview",

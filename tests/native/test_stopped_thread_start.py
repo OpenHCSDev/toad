@@ -42,7 +42,7 @@ async def test_start_attaches_stopped_saved_tab_and_receives_dm(workspace, nativ
                                and view.agent_binding.ready, seconds=45,
                                why='Start to attach the saved tab')
                 assert ui.conversation is view
-                assert view.agent_binding.session_id == 'stopped'
+                assert view.agent_binding.controller.session.session_id == 'stopped'
                 assert not provider.requests, 'Start must not submit a prompt'
                 before = comms.registry.require('stopped').process_identity
                 # A second successful Start must still nominate this tab for attachment.

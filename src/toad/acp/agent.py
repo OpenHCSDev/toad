@@ -13,7 +13,7 @@ from agent_comms.acp_extension import (
     QueuePromptRequest,
 )
 from agent_comms.context_reading import UnmeasuredContext
-from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, GoalId, InputId
+from agent_comms.nominal.field_codec import FieldCodec, GoalId, InputId
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal, GoalDeclaration
@@ -119,7 +119,7 @@ class Agent(AgentBase, SessionAgent):
         self.coordination_attachment = CoordinationAttachment()
         self.controller = AgentController(self, transcripts)
         self.tools = SessionToolCalls(self)
-        self.session_id = session_id
+        self.controller.bind_session(session_id)
         self.updates = SessionNotificationOwner(self)
         self.files = FileClientRequestOwner(self)
         self.session = AgentSession(self, session_pk, app_events)
@@ -140,7 +140,7 @@ class Agent(AgentBase, SessionAgent):
     def accepts_publication(
         self, message: CoreEventMessage, update: core_events.CommsUpdated
     ) -> bool:
-        return message.publisher is self and self.session_id == update.session_id
+        return message.publisher is self and self.controller.session.session_id == update.session_id
 
     def borrowed_processes(self) -> tuple[AgentProcess, ...]:
         return (self.process,)
@@ -209,14 +209,6 @@ class Agent(AgentBase, SessionAgent):
 
 
     @property
-    def session_id(self) -> AcpSessionId | None:
-        return self.controller.session.session_id
-
-    @session_id.setter
-    def session_id(self, value: str | None) -> None:
-        self.controller.bind_session(value)
-
-    @property
     def ready(self):
         return self.session.ready
 
@@ -249,14 +241,15 @@ class Agent(AgentBase, SessionAgent):
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
         self.controller.surface.sync_queue()
         if starts:
-            self.events.publish(core_events.CommsUpdated(QueuePresentation(starts), self.session_id))
+            publish = self.events.publish
+            update = QueuePresentation(starts)
+            publish(self.controller.session.publication(update))
 
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
-        self.events.publish(core_events.CommsUpdated(
-            CursorPresentation(self._private_cursor.status, self._private_cursor_sequence),
-            self.session_id,
-        ))
+        publish = self.events.publish
+        update = CursorPresentation(self._private_cursor.status, self._private_cursor_sequence)
+        publish(self.controller.session.publication(update))
 
     def _invalidate_attachment_views(self) -> None:
         self._private_cursor.invalidate()

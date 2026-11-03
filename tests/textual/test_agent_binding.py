@@ -47,7 +47,7 @@ async def test_attached_agent_matches_its_live_session_and_relaunch_reuses_the_v
         await ui.until_agent_ready()
         original = app.selected_session
         mode = ui.selected_tab
-        session_id = ui.conversation.agent_binding.session_id
+        session_id = ui.conversation.agent_binding.controller.session.session_id
         assert original.matches_launch(definition.identity, session_id)
         assert not original.matches_launch(definition.identity + "-other", session_id)
         await app.session_navigation.launch(

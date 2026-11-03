@@ -80,13 +80,13 @@ async def exercise_boundaries(agent, view, pilot):
     async def send(*facts, session=None):
         result = await agent.server.call({
             "jsonrpc": "2.0", "method": "session/update", "params": {
-                "sessionId": session or agent.session_id, "update": packet(*facts),
+                "sessionId": session or agent.controller.session.session_id, "update": packet(*facts),
             },
         })
         assert result is None, result
         await pilot.pause()
 
-    session_id = FieldCodec.decode(AcpSessionId, agent.session_id)
+    session_id = FieldCodec.decode(AcpSessionId, agent.controller.session.session_id)
     source_root = agent.project_root_path.parent / "mcp-boundaries"
     async with turn_source(source_root, session_id) as producer:
         name = producer.sessions.require(session_id)

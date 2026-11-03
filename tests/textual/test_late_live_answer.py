@@ -127,7 +127,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                 else:
                     page = await view.transcript.get_transcript_page()
                     agent.events.publish(CommsUpdated(
-                        TranscriptSnapshotUpdate.capture(comms.transcripts, "source"), agent.session_id))
+                        TranscriptSnapshotUpdate.capture(comms.transcripts, "source"), agent.controller.session.session_id))
 
                     async def saved_history_shown():
                         async with asyncio.timeout(8):

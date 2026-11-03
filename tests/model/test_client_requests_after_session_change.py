@@ -11,7 +11,7 @@ async def test_files_and_processes_requested_for_a_replaced_session_are_refused(
     agent = app_agents.detached_agent('before')
     assert agent.files.write_text_file('before', 'owned.txt', 'one\ntwo\nthree') == schema.WriteTextFileResponse()
     assert agent.files.read_text_file('before', 'owned.txt', 2, 1).content == 'two'
-    agent.session_id = 'after'
+    agent.controller.bind_session('after')
     with pytest.raises(RequestError) as refused:
         agent.files.write_text_file('before', 'owned.txt', 'stale overwrite')
     assert refused.value.code == -32602
@@ -40,7 +40,7 @@ async def test_a_terminal_that_starts_after_its_session_was_replaced_is_closed(a
     replaced = agent.controller.terminals
     request = asyncio.create_task(agent.controller.terminal_create('before', 'sh', None, ['-c', 'sleep 30']))
     await entered.wait()
-    agent.session_id = 'after'
+    agent.controller.bind_session('after')
     await replaced.close()
     release.set()
     with pytest.raises(RequestError) as refused:
@@ -68,8 +68,8 @@ async def test_a_terminal_wait_is_refused_when_its_owner_was_replaced_even_if_th
     waiting = asyncio.create_task(agent.controller.terminal_wait_for_exit('before', terminal_id))
     await entered.wait()
     disposition = agent.session.disposition
-    agent.session_id = 'after'
-    agent.session_id = 'before'
+    agent.controller.bind_session('after')
+    agent.controller.bind_session('before')
     assert agent.session.disposition is disposition
     await replaced.close()
     release.set()

@@ -35,8 +35,8 @@ async def test_pending_session_calls_reject_a_binding_that_was_replaced(app_agen
         binding = agent.controller.session
         task = asyncio.create_task(call(agent))
         await entered.wait()
-        agent.session_id = 'replacement'
-        agent.session_id = 'first'
+        agent.controller.bind_session('replacement')
+        agent.controller.bind_session('first')
         assert agent.controller.session is not binding
         release.set()
         try:
@@ -46,7 +46,7 @@ async def test_pending_session_calls_reject_a_binding_that_was_replaced(app_agen
         else:
             # Mode's existing public failure contract returns actionable feedback.
             assert response is not None and 'retired session' in response
-        assert agent.session_id == 'first'
+        assert agent.controller.session.session_id == 'first'
         assert not agent.session.capabilities.load_session
         assert not agent.presentation.auth_methods
         assert not agent.session.ready

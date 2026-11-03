@@ -39,11 +39,11 @@ async def test_started_owner_attaches_original_saved_session_in_place(workspace)
         await ui.until(lambda: {'loaded': 'stopped'} in workspace.received(),
                        why='ACP to load the original saved session')
         assert ui.conversation is view
-        assert view.agent_binding.session_id == 'stopped'
+        assert view.agent_binding.controller.session.session_id == 'stopped'
         assert workspace.received() == [{'loaded': 'stopped'}]
         assert ui.draft() == 'KEEP_MY_DRAFT'
         other = await ui.new_session()
         assert other != tab
         await ui.select_tab(tab)
         assert ui.conversation is view
-        assert view.agent_binding.session_id == 'stopped'
+        assert view.agent_binding.controller.session.session_id == 'stopped'

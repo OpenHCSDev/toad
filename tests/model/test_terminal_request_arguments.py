@@ -9,13 +9,13 @@ async def test_executable_and_arguments_reach_the_process_unchanged(app_agents, 
     argument = "literal # % ' \" spaces"
     agent = app_agents.detached_agent("argv-session")
     try:
-        terminal_id = (await agent.controller.terminal_create(agent.session_id, str(executable),
+        terminal_id = (await agent.controller.terminal_create(agent.controller.session.session_id, str(executable),
                                      None, args=[argument, ""], cwd=str(tmp_path))).terminal_id
         execution = agent.controller.terminals.require(terminal_id)
         process = await execution.operation.process()
-        assert (await agent.controller.terminal_wait_for_exit(agent.session_id, terminal_id)).exit_code == 0
-        assert (await agent.controller.terminal_output(agent.session_id, terminal_id)).output == argument + "|"
-        await agent.controller.terminal_release(agent.session_id, terminal_id)
+        assert (await agent.controller.terminal_wait_for_exit(agent.controller.session.session_id, terminal_id)).exit_code == 0
+        assert (await agent.controller.terminal_output(agent.controller.session.session_id, terminal_id)).output == argument + "|"
+        await agent.controller.terminal_release(agent.controller.session.session_id, terminal_id)
         assert execution.operation.outcome().finished and process.master.closed and process.child.retired
         assert not agent.controller.terminals.executions
     finally:

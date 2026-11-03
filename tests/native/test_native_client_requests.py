@@ -36,26 +36,26 @@ async def test_client_requests_follow_the_session_they_belong_to(workspace, nati
         def reviewing():
             return isinstance(app.screen, PermissionReview)
 
-        await agent.process.write_text_file(agent.session_id, "client.txt", "old client value\nretained line")
-        assert (await agent.process.read_text_file(agent.session_id, "client.txt", line=2, limit=1)).content == "retained line"
+        await agent.process.write_text_file(agent.controller.session.session_id, "client.txt", "old client value\nretained line")
+        assert (await agent.process.read_text_file(agent.controller.session.session_id, "client.txt", line=2, limit=1)).content == "retained line"
         tool = {"toolCallId": "client-edit", "title": "CLIENT_BOUND_PERMISSION", "kind": "edit",
                 "content": [{"type": "diff", "path": str(project / "client.txt"),
                              "oldText": "old client value", "newText": "CLIENT_NEW_VALUE"}]}
         options = [schema.PermissionOption.model_validate(option) for option in (ALLOW, REJECT)]
         await deliver(agent, {"sessionUpdate": "tool_call", **tool, "status": "in_progress"})
         permission = asyncio.create_task(agent.process.request_permission(
-            agent.session_id, schema.ToolCallUpdate(tool_call_id="client-edit"), options))
+            agent.controller.session.session_id, schema.ToolCallUpdate(tool_call_id="client-edit"), options))
         await ui.until(reviewing, why="the permission review")
         await ui.until(lambda: ui.shows("CLIENT_NEW_VALUE") and ui.shows("Allow"), why="the proposed edit and its choices")
         await ui.press("a")
         assert (await permission).outcome == schema.AllowedOutcome(outcome="selected", option_id="allow")
-        await agent.process.write_text_file(agent.session_id, "client.txt", "CLIENT_NEW_VALUE\nretained line")
+        await agent.process.write_text_file(agent.controller.session.session_id, "client.txt", "CLIENT_NEW_VALUE\nretained line")
         assert (project / "client.txt").read_text().startswith("CLIENT_NEW_VALUE")
 
-        terminal_id = (await agent.process.create_terminal(agent.session_id, command="sh",
+        terminal_id = (await agent.process.create_terminal(agent.controller.session.session_id, command="sh",
                                      args=["-c", "printf 'CLIENT_TERMINAL_RETAINED\\n'"])).terminal_id
-        assert (await agent.process.wait_for_terminal_exit(agent.session_id, terminal_id)).exit_code == 0
-        assert "CLIENT_TERMINAL_RETAINED" in (await agent.process.terminal_output(agent.session_id, terminal_id)).output
+        assert (await agent.process.wait_for_terminal_exit(agent.controller.session.session_id, terminal_id)).exit_code == 0
+        assert "CLIENT_TERMINAL_RETAINED" in (await agent.process.terminal_output(agent.controller.session.session_id, terminal_id)).output
         await ui.until_shows("CLIENT_TERMINAL_RETAINED")
         execution = agent.controller.terminals.require(terminal_id)
 
@@ -74,11 +74,11 @@ async def test_client_requests_follow_the_session_they_belong_to(workspace, nati
         assert ui.draft() == "CLIENT_SESSION_UNSENT_DRAFT"
         assert returned.prompt.prompt_text_area.document is document
         assert returned.prompt.prompt_text_area.history is undo
-        await agent.process.release_terminal(agent.session_id, terminal_id)
+        await agent.process.release_terminal(agent.controller.session.session_id, terminal_id)
 
         # A pending permission survives the view being detached and is shown again when it returns.
         pending = asyncio.create_task(agent.process.request_permission(
-            agent.session_id, schema.ToolCallUpdate.model_validate({**tool, "toolCallId": "retained-permission"}), options))
+            agent.controller.session.session_id, schema.ToolCallUpdate.model_validate({**tool, "toolCallId": "retained-permission"}), options))
         await ui.until(reviewing, why="the second permission review")
         owned, = agent.permissions.pending
         agent.detach_surface(returned)
@@ -93,20 +93,20 @@ async def test_client_requests_follow_the_session_they_belong_to(workspace, nati
 
         # Replacing the session cancels its pending permission.
         replaced = asyncio.create_task(agent.process.request_permission(
-            agent.session_id, schema.ToolCallUpdate.model_validate({**tool, "toolCallId": "replaced-permission"}), options[:1]))
+            agent.controller.session.session_id, schema.ToolCallUpdate.model_validate({**tool, "toolCallId": "replaced-permission"}), options[:1]))
         await ui.until(reviewing, why="the third permission review")
-        first_session = agent.session_id
+        first_session = agent.controller.session.session_id
         await agent.session.new()
-        assert agent.session_id != first_session
+        assert agent.controller.session.session_id != first_session
         saved = agent.session.pk
         assert saved is not None and agent.session.ready
-        await agent.set_session_name(agent.session_id)
-        assert (await DB().session_get(saved)).title == agent.session_id
+        await agent.set_session_name(agent.controller.session.session_id)
+        assert (await DB().session_get(saved)).title == agent.controller.session.session_id
         assert (await replaced).outcome == schema.DeniedOutcome(outcome="cancelled")
 
         # Stopping the agent cancels its pending permission and releases its terminals.
         stopped = asyncio.create_task(agent.process.request_permission(
-            agent.session_id, schema.ToolCallUpdate.model_validate({**tool, "toolCallId": "stopped-permission"}), options[:1]))
+            agent.controller.session.session_id, schema.ToolCallUpdate.model_validate({**tool, "toolCallId": "stopped-permission"}), options[:1]))
         await ui.until(reviewing, why="the fourth permission review")
         await agent.stop()
         assert (await stopped).outcome == schema.DeniedOutcome(outcome="cancelled")

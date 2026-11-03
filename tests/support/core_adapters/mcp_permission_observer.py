@@ -52,7 +52,7 @@ class Observer:
             log.write(json.dumps({"agent": self.agent.current_turn.managed_id,
                                  "view": self.view.turns.managed_id,
                                  "notes": notes(self.view)}) + "\n")
-        assert self.agent.session_id == SESSION_ID
+        assert self.agent.controller.session.session_id == SESSION_ID
         for fact in decode_updates(update.get("_meta")):
             if isinstance(fact, McpClientAcknowledgementUpdate):
                 rendered = notes(self.view)
@@ -181,7 +181,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
                 assert not notes(observer.view)
                 assert app._exception is None
                 (root / "toad-evidence.json").write_text(json.dumps({
-                    "case": case, "session": observer.agent.session_id,
+                    "case": case, "session": observer.agent.controller.session.session_id,
                     "renderedReceipts": observer.receipts,
                     "permissionDialogs": observer.permissions,
                     "negativeBoundariesPassed": True, "liveProjectionCleared": True,

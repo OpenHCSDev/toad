@@ -68,8 +68,10 @@ class SessionBinding(SessionIdentity):
     def session_id(self) -> AcpSessionId | None:
         return None
 
-    def publication(self, update: AgentCommsUpdate) -> core_events.CommsUpdated:
-        return core_events.CommsUpdated(update)
+    def publication(
+        self, update: AgentCommsUpdate | core_events.QueuePresentation | core_events.CursorPresentation,
+    ) -> core_events.CommsUpdated:
+        return core_events.CommsUpdated(update, self.session_id)
 
     def accepts_snapshot(
         self, identity: TranscriptReadIdentity, coordination: CoordinationAttachment,
@@ -80,8 +82,7 @@ class SessionBinding(SessionIdentity):
 
 @dataclass(frozen=True)
 class BoundSessionBinding(KnownSessionIdentity, SessionBinding):
-    def publication(self, update: AgentCommsUpdate) -> core_events.CommsUpdated:
-        return core_events.CommsUpdated(update, self.identity)
+    """The key provider and independently owned output share one binding."""
 
 
 class TaskRunner(ABC):

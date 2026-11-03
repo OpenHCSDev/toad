@@ -26,7 +26,7 @@ async def test_real_conversation_discovers_screen_free_scope(workspace):
         await ui.until_shows("PEER_ANSWER session scope journey")
         assert app.workspace_sessions.views[first] is view
         assert view.matches_launch(
-            definition.identity, ui.conversation.agent_binding.session_id
+            definition.identity, ui.conversation.agent_binding.controller.session.session_id
         )
         sidebar = app.workspace_chrome.channels
         if sidebar.collapsed:

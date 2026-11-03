@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC
 from dataclasses import dataclass, field, replace
-from functools import partial, singledispatch
+from functools import singledispatch
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -65,7 +65,6 @@ from toad.widgets.transcript_fragments import (
 if TYPE_CHECKING:
     from toad.comms_root import Observation
     from toad.widgets.comms_chat import CommsChatView
-    from toad.widgets.conversation import Conversation
     from toad.widgets.transcript_lines import Lines
     from toad.widgets.wire_history import WireHistory
 

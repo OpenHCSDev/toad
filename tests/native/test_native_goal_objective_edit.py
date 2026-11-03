@@ -82,7 +82,7 @@ async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(w
         assert conversation.goal_display.snapshot == current
         shown = []
         conversation.watch(conversation, "goal_display", lambda display: shown.append(display.snapshot), init=False)
-        agent.events.publish(CommsUpdated(GoalChangedUpdate(older, before.execution), session_id=agent.session_id))
+        agent.events.publish(CommsUpdated(GoalChangedUpdate(older, before.execution), session_id=agent.controller.session.session_id))
         await ui.step(1)
         assert older not in shown, (
             f"A notice of revision {older.revision} was shown over revision {current.revision}")

@@ -61,12 +61,12 @@ async def test_late_answer_to_a_replaced_session_request_cannot_change_session_o
             second.result.set_result(response("new-session"))
             await replacement
             await ui.until(lambda: view.native_history_status is ProvenCursorStatus, why="the newer session's proof")
-            assert agent.session_id == "new-session"
+            assert agent.controller.session.session_id == "new-session"
         else:
             await agent.stop()
             await ui.step()
         sequence = agent._private_cursor_sequence
-        current_session = agent.session_id
+        current_session = agent.controller.session.session_id
         status = view.native_history_status
         first.result.set_result(response("old-session"))
         # The replaced request's late answer is refused to its caller and changes nothing.
@@ -74,7 +74,7 @@ async def test_late_answer_to_a_replaced_session_request_cannot_change_session_o
             await pending
         assert "retired session" in refused.value.data["details"]
         await ui.step()
-        assert agent.session_id == current_session
+        assert agent.controller.session.session_id == current_session
         assert agent._private_cursor_sequence == sequence
         assert view.native_history_status == status
         if successor == "new":
