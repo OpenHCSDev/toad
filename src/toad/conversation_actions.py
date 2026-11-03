@@ -143,8 +143,7 @@ class ExpandBlockAction(BlockExpansionAction):
     """Expand the block under the cursor."""
 
     def available(self, conversation):
-        block = conversation.cursor_block
-        return False if block is None else block.can_expand()
+        return conversation.cursor_block.can_expand()
 
     async def apply(self, conversation):
         conversation.cursor_block.expand_block()
@@ -156,8 +155,7 @@ class CollapseBlockAction(BlockExpansionAction):
     """Collapse the block under the cursor."""
 
     def available(self, conversation):
-        block = conversation.cursor_block
-        return False if block is None else block.is_block_expanded()
+        return conversation.cursor_block.is_block_expanded()
 
     async def apply(self, conversation):
         conversation.cursor_block.collapse_block()

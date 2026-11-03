@@ -280,10 +280,7 @@ def required_sequences(widgets: Iterable[Widget]) -> frozenset[int]:
     return frozenset(sequence for widget in widgets for sequence in block_claim(widget).required_sequences)
 
 def protected_blocks(view: Conversation, candidates: Iterable[Widget]) -> set[Widget]:
-    endpoints = set(view.screen._interaction_widgets())
-    if view.cursor_block is not None:
-        endpoints.add(view.cursor_block)
-    return protected_presentations(candidates, endpoints)
+    return protected_presentations(candidates, (*view.screen._interaction_widgets(), *view.cursor_block.endpoints))
 
 @dataclass(frozen=True)
 class PreparedCommit:
