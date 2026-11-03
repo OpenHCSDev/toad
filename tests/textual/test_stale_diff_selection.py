@@ -19,8 +19,7 @@ async def test_drag_over_a_removed_diff_widget_is_ignored(workspace):
         tool = await ui.conversation.post(ToolCall(tool_status({
             "toolCallId": "edit", "title": "Edit file.py", "kind": "edit", "status": "completed",
             "content": tool_result_content("edit", "done", ToolDiff(patch_text))})))
-        await wait_for_tool_diff(ui, tool)
-        code = tool.query_one("DiffCode")
+        code = await wait_for_tool_diff(ui, tool)
         await pilot.mouse_down(code, offset=(0, 0))
         x, y = code.region.x, code.region.y
         # Retire the selected node, but have the compositor return the

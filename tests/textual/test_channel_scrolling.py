@@ -36,14 +36,21 @@ async def test_plain_page_keys_scroll_a_quarter_page(workspace):
         editor.focus(scroll_visible=False)
         await ui.step()
         cursor, text = editor.cursor_location, editor.text
-        before = window.scroll_y
+        # Earlier pages load above the reader while it moves, and restoration
+        # keeps the content where it was: travel is measured on the content.
+        fragment = history.visible_fragments()[0]
+
+        def row():
+            return history.fragment_shown(fragment).top(-1)
+
+        before = row()
         distance = max(1, window.scrollable_content_region.height // 4)
         await ui.press("pageup")
-        await ui.until(lambda: window.scroll_y == before - distance,
+        await ui.until(lambda: row() == before + distance,
                        why="PageUp to move a quarter page")
         assert editor.has_focus and editor.cursor_location == cursor and editor.text == text
         await ui.press("pagedown")
-        await ui.until(lambda: window.scroll_y == before,
+        await ui.until(lambda: row() == before,
                        why="PageDown to move back a quarter page")
         assert editor.has_focus and editor.cursor_location == cursor and editor.text == text
 
@@ -76,6 +83,7 @@ async def test_held_paging_and_reversal_never_draw_a_blank_message_area_and_end_
         editor.insert(" with undo")
         document, edit_history = editor.document, editor.history
         newest = messages(history)[-1].seq
+        oldest_loaded = messages(history)[0].seq
         frames, stop = record_blank_frames(app, window)
         try:
             window.focus(scroll_visible=False)
@@ -84,7 +92,9 @@ async def test_held_paging_and_reversal_never_draw_a_blank_message_area_and_end_
                 for _ in range(presses):
                     await ui.press(key)
             await ui.until(lambda: history.state.accepts_source_work, why="paging to settle")
-            assert messages(history)[0].seq < newest - 100, "paging up did not reach earlier pages"
+            # Plain PageUp moves a quarter page (#1256); held, it must still load
+            # pages older than the ones the channel opened with.
+            assert messages(history)[0].seq < oldest_loaded, "paging up did not reach earlier pages"
             assert not window.follows_tail
             await ui.press("end")
             await ui.until(lambda: window.follows_tail and window.scroll_y == window.max_scroll_y

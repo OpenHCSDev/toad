@@ -112,14 +112,14 @@ class ActualS2Ingress:
         source = Path(self.comms.registry.require(self.subject.name).require_saved_session())
         with NativeEntry.open_evidence(source) as reader:
             header, entries = reader.observe()
-        user, = [entry for entry in entries if entry.input_id == terminal.native_id]
+        user, = [entry for entry in entries if terminal.native_id in entry.input_id.present()]
         assert user.message.user
         replies = []
         original_turn_inputs = tuple(row for row in document.rows.values()
             if row.has_started and row.turn_id == terminal.turn_id)
         for entry in entries[entries.index(user) + 1:]:
             if entry.input_boundary and not any(
-                    row.native_id == entry.input_id for row in original_turn_inputs):
+                    row.native_id in entry.input_id.present() for row in original_turn_inputs):
                 break
             if entry.final_reply:
                 replies.append(entry)
