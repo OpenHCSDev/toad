@@ -119,11 +119,8 @@ class ReaderPosition(ABC):
         if window.follows_tail:
             return TailPosition()
         y = window.scroll_y
-        reading = min(((first, page) for page, first in window.placements(window.drawn_pages())
-                       if page.line_count and first + page.line_count > y),
-                      key=lambda placed: max(y, placed[0]), default=None)
-        if reading is not None:
-            first, page = reading
+        if (reading := window.top_page()) is not None:
+            page, first = reading
             span = page.fragment_at(max(0, int(y - first)))
             fragment = span.fragment
             return FragmentPosition(fragment.key, (y - first - span.first) / span.height,
@@ -724,13 +721,13 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """The header of the message drawn on the window's top row, when that header is scrolled
         above it, with the column the flow draws it in."""
         y = self.scroll_y
-        for page, first in self.placements(self.drawn_pages()):
-            # A row inside the page's measured lines always has its fragment (as in ReaderPosition.of).
-            if first <= y < first + page.line_count:
-                row = int(y - first)
-                span = page.fragment_at(row)
-                return PinnedHeader(span.fragment.sticky_header(span.index, row - span.first),
-                                    page.content_region.x - self.content_region.x, page.size.width)
+        if (reading := self.top_page()) is not None and reading[1] <= y:
+            # A row inside the page's measured lines always has its fragment.
+            page, first = reading
+            row = int(y - first)
+            span = page.fragment_at(row)
+            return PinnedHeader(span.fragment.sticky_header(span.index, row - span.first),
+                                page.content_region.x - self.content_region.x, page.size.width)
         messages = (message
                     for widget in self.visible_history_items(self.screen._compositor.published_widgets)
                     for message in self.project_value(widget))
@@ -740,6 +737,13 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
                                     message.content_region.x - self.content_region.x,
                                     message.size.width)
         return PinnedHeader((), 0, 0)
+
+    def top_page(self) -> tuple[TranscriptPageView, int] | None:
+        """The drawn page under the window's top row, else the nearest one below it, with its first row."""
+        y = self.scroll_y
+        return min(((page, first) for page, first in self.placements(self.drawn_pages())
+                    if page.line_count and first + page.line_count > y),
+                   key=lambda placed: max(y, placed[1]), default=None)
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""
