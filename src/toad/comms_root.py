@@ -32,7 +32,7 @@ from agent_comms.threads import Thread
 from agent_comms.remote_core import RemoteCoreAccess
 from agent_comms.channel_targets import NamedTarget
 from agent_comms.message_reference import MessageReference
-from toad.widgets.thread_comms_source import CoreRelationships
+from toad.widgets.thread_comms_source import RelationshipReads
 from agent_comms.tools import (
     CommsMarkThreadViewReadTool, CommsRegistryTool, CommsServedRootTool, CommsSessionThreadTool,
     CommsUserSendTool,
@@ -385,7 +385,7 @@ class FailedObservation(Observation):
 
 
 @dataclass(frozen=True)
-class Observing(Observation, ReferencedCore):
+class Observing(Observation, ReferencedCore, RelationshipReads):
     """An observation answering through its process; where its Core is belongs to the member."""
 
     sidebar: SidebarModel
@@ -411,10 +411,6 @@ class Observing(Observation, ReferencedCore):
     def registry(self) -> RegistrySnapshot:
         """Core's thread registry: names, renames and recorded threads resolve against it."""
         return self.core.call(CommsRegistryTool()).snapshot
-
-    def relationships(self) -> CoreRelationships:
-        """A thread sidebar's relationship reads and ordering, through this observation's Core."""
-        return CoreRelationships(self.core)
 
     @abstractmethod
     def user_identity(self, project: Checkout) -> Thread:

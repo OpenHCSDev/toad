@@ -1,6 +1,4 @@
-"""A thread sidebar's relationships, read from and ordered through Core."""
-
-from dataclasses import dataclass
+"""A thread sidebar's relationship reads: a capability of anything that holds a Core."""
 
 from agent_comms.core_access import CoreAccess
 from agent_comms.display_order import ThreadSort
@@ -11,18 +9,17 @@ from agent_comms.tools import (
 )
 
 
-@dataclass(frozen=True)
-class CoreRelationships:
-    """The relationship reads a sidebar makes, locally or across the connector alike."""
+class RelationshipReads:
+    """Relationship reads and ordering through this holder's Core, locally or remotely alike."""
 
     core: CoreAccess
 
-    def revision(self) -> WireRevision:
+    def relationship_revision(self) -> WireRevision:
         return self.core.call(CommsRelationshipRevisionTool()).revision
 
-    def snapshot(self, owner: str) -> ThreadCommsSnapshot:
+    def relationships(self, owner: str) -> ThreadCommsSnapshot:
         return self.core.call(CommsThreadRelationshipsTool(owner=owner)).snapshot
 
-    def set_order(self, owner: str, group: type[SortableRelationshipGroup],
-                  order: type[ThreadSort]) -> type[ThreadSort]:
+    def set_relationship_order(self, owner: str, group: type[SortableRelationshipGroup],
+                               order: type[ThreadSort]) -> type[ThreadSort]:
         return self.core.call(CommsSetRelationshipOrderTool(owner=owner, group=group, order=order)).order
