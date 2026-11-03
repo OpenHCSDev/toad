@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from agent_comms.tools import CommsRetiredViewsTool
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, cast
 
@@ -566,23 +567,21 @@ class SessionNavigation:
             answers = {}
             for root, (threads, channels) in asked.items():
                 try:
-                    access = self.app.coordination_access
-                    selected = access.selected(root)
-                    service = access.require(selected).service
-                    retired = service.views.retired_views(threads, channels)
-                    access.confirm(selected)
+                    serving = self.app.coordination_access.observing(root)
+                    retired = serving.core.call(CommsRetiredViewsTool(
+                        threads=frozenset(threads), channels=frozenset(channels))).retired
                 except RouteChangedError:
                     continue  # The next observation reads the replacement route.
-                answers[root] = service, retired
+                answers[root] = serving, retired
             return answers
 
         answers = await self.app.preparation.run_thread(read)
-        # A service replaced while the read joined revokes its answer.
+        # An observation replaced while the read joined revokes its answer.
         observed = self.app.coordination_access.observation.observed()
         retired = {
             root: answer
-            for root, (service, answer) in answers.items()
-            if observed.uses(service)
+            for root, (serving, answer) in answers.items()
+            if serving is observed
         }
         removed = tuple(
             member.mode
