@@ -724,11 +724,14 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""
-        from toad.widgets.transcript_history import TranscriptPageView
-
-        pages = (widget for widget in self.screen._compositor.published_widgets
-                 if isinstance(widget, TranscriptPageView))
+        published = self.screen._compositor.published_widgets
+        pages = (page for page in self.page_views if page in published)
         return (page for page in self.visible_history_items(pages) if self.displays(page))
+
+    @cached_property
+    def page_views(self) -> WeakSet[TranscriptPageView]:
+        """Every transcript page mounted in this window; a page adds itself when it mounts."""
+        return WeakSet()
 
     def keep_reader(self) -> None:
         """What this window draws is about to change: layout keeps the reader where they are now."""

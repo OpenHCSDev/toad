@@ -325,6 +325,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
 
     def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
+        self.history.window.page_views.add(self)
 
     def invalidate_lines(self, change=None) -> None:
         for fragment in self.prepared.fragments:
@@ -753,8 +754,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
     def visible_pages(self) -> list[TranscriptPageView]:
         """This history's laid-out pages, in row order, without visiting retained pages."""
         visible = self.screen._compositor.visible_widgets
-        return sorted((page for page in visible
-                       if isinstance(page, TranscriptPageView) and page.parent is self),
+        return sorted((page for page in self.pages if page in visible and page.parent is self),
                       key=lambda page: visible[page][0].y)
 
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
