@@ -278,8 +278,11 @@ class AnimationEffects[FrameT: Frame](TonePaint):
                 animation.stop()
 
     def effect_frame[Shown: Frame](self, effect: Effect[Shown]) -> Shown:
+        # The clock ticks only animation-visible targets, but an unfocused app or a
+        # covered screen still paints them: a frame frozen at the effect's start would
+        # leave an arrival's revealed rows blank and its fade at the background colour.
         animation = self.effects.get(effect)
-        return effect.final if animation is None else animation.frame()
+        return effect.final if animation is None or not self.animation_visible else animation.frame()
 
     def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
         animation = self.effects.get(effect)

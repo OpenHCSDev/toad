@@ -1,6 +1,7 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
 from abc import ABC, abstractmethod
+from collections import Counter
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
@@ -286,10 +287,16 @@ class InnerPart(PartPosition):
 
 @dataclass(frozen=True)
 class EventSourceKey:
-    """One kind of transcript event at its recorded source position."""
+    """One kind of transcript event at its recorded source position.
+
+    One record can hold several events of one kind at one position (a Pi reply's
+    thinking parts around a tool call), so `occurrence` counts the earlier ones.
+    A record never spans two pages, so the count is the same on every read.
+    """
 
     event_type: type[TranscriptEvent]
     position: int | NativeItemId
+    occurrence: int
 
 
 @dataclass(frozen=True)
@@ -314,12 +321,14 @@ class TranscriptFragment:
     part_position: PartPosition = field(default_factory=LastPart, kw_only=True)
     starts_agent_activity: bool = False
     shown: Shown = field(default_factory=Shown, kw_only=True)
+    # Earlier events of this kind at this source position; see EventSourceKey.
+    occurrence: int = field(default=0, kw_only=True)
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
 
     @property
     def source_identity(self) -> EventSourceKey | ToolCallId:
-        return EventSourceKey(type(self.events[0]), self.arrival_position)
+        return EventSourceKey(type(self.events[0]), self.arrival_position, self.occurrence)
 
     @cached_property
     def key(self) -> FragmentKey:
@@ -613,11 +622,19 @@ class TranscriptFragmentConsumer(MroProjection[None]):
         self.reported_messages: dict[int, SentTranscript] = {}
         self.budget = RenderBudget()
         self.boundary = AgentActivityBoundary()
+        self.occurrences: Counter[tuple[type[TranscriptEvent], int | NativeItemId]] = Counter()
+
+    def occurrence(self, event: TranscriptEvent) -> int:
+        """How many events of this kind this page already had at the event's source position."""
+        source = type(event), event.position
+        count = self.occurrences[source]
+        self.occurrences[source] += 1
+        return count
 
     @handles(ContextTranscript)
     def context(self, event: ContextTranscript) -> None:
         # One lazy disclosure owns the full metadata source.
-        self.fragments.append(ContextTranscriptFragment((event,)))
+        self.fragments.append(ContextTranscriptFragment((event,), occurrence=self.occurrence(event)))
 
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript) -> None:
@@ -643,6 +660,7 @@ class TranscriptFragmentConsumer(MroProjection[None]):
         starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
         parts = kind.text_parts(source, self.budget)
+        occurrence = self.occurrence(event)
         self.fragments.extend(
             kind.capture_part(
                 event,
@@ -650,6 +668,7 @@ class TranscriptFragmentConsumer(MroProjection[None]):
                 continuation=index > 0,
                 part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
                 starts_agent_activity=starts_activity and index == 0,
+                occurrence=occurrence,
                 **kwargs,
             )
             for index, part in enumerate(parts)

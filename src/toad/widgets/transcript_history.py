@@ -277,7 +277,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
 
     def __init__(self, prepared: PreparedTranscriptPage, *,
                  batch_size: int = PresentationBudget.batch_items) -> None:
-        self.arrivals: set[int] = set()
+        # Arriving fragments by source key: an id() outlives an evicted fragment and names another.
+        self.arrivals: set[FragmentKey] = set()
         self.prepared: Final[PreparedTranscriptPage] = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size)
@@ -459,7 +460,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             return selection_painted(self, self.blank_row(width, paint), y)
         # Prepared rows span exactly this width (Lines.strips_at).
         strip = lines.strips_at(fragment.link_place)[row]
-        if id(fragment) in self.arrivals:
+        if fragment.key in self.arrivals:
             history = self.history
             if row >= history.revealed_rows:
                 return selection_painted(self, self.blank_row(width, paint), y)
@@ -1138,7 +1139,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             previous = bool(page.arrivals)
             page.arrivals.intersection_update(phase.keeps_arrivals(page.arrivals))
             if positions:
-                page.arrivals.update(id(fragment) for fragment in page.prepared.fragments_in_range
+                page.arrivals.update(fragment.key for fragment in page.prepared.fragments_in_range
                                      if fragment.arrival_position in positions)
             if previous or page.arrivals:
                 page.refresh()
@@ -1376,7 +1377,7 @@ class ConversationHistory[ViewT: "Conversation"](LineHistory):
                           publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Replace the drawn source, retaining the followed tail's active arrivals."""
         retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
-                          if id(fragment) in page.arrivals)
+                          if fragment.key in page.arrivals)
                     if self.follows_source_tail else ())
         self._generation += 1
         published = await self.jump_latest(request, publication_current)
