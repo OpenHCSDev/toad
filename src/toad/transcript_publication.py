@@ -23,6 +23,7 @@ from agent_comms.coordination_errors import (
     TranscriptChanged,
 )
 from agent_comms.external_transcript import DraftRow
+from agent_comms.transcript_sources import NoDraft
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.thread_presentation import ThreadPresentation
@@ -48,6 +49,7 @@ from textual.widget import Widget
 from textual.worker import Worker, WorkerCancelled
 
 from toad.core.events import CoreEventStream
+from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.screens.session_view import SessionView
@@ -75,6 +77,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 if TYPE_CHECKING:
     from toad.live_output import LiveOutput
+    from toad.widgets.cli_draft import CliDraft
     from toad.widgets.conversation import (
         Contents,
         Conversation,
@@ -114,6 +117,21 @@ class BoundFrame:
             view.app.history_displayed()
             view.query_ancestor(SessionView).history_painted()
             view.settle_user_message()
+
+
+class DraftPresentation(MroProjection[None]):
+    """The CLI draft row draws a native draft and clears when Core reports none."""
+
+    @handles(DraftRow)
+    def draft(self, draft: DraftRow, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
+        widget.show(draft, resolve_sent=identity.wire_frontier.resolve_sent_messages)
+
+    @handles(NoDraft)
+    def none(self, draft: NoDraft, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
+        widget.clear()
+
+
+DRAFT_PRESENTATION = DraftPresentation()
 
 
 class TranscriptPublication(BoundFrame, ABC):
@@ -264,17 +282,11 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
             self.owner.current_read = Published(snapshot.identity)
         return True
 
-    def show_draft(self, draft: DraftRow | None, identity: TranscriptReadIdentity) -> None:
+    def show_draft(self, draft: DraftRow | NoDraft, identity: TranscriptReadIdentity) -> None:
         widget = self.binding.view.cli_draft
         if self.binding.contents.children[-1] is not widget:
             self.binding.contents.move_child(widget, after=-1)
-        if draft is None:
-            widget.clear()
-        else:
-            widget.show(
-                draft,
-                resolve_sent=identity.wire_frontier.resolve_sent_messages,
-            )
+        DRAFT_PRESENTATION.project_value(draft, widget, identity)
 
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
