@@ -422,8 +422,9 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             self._style_worker = self.run_worker(self._style_then_measure(fragments), group="style-before-measuring")
 
     async def _style_then_measure(self, fragments: tuple[TranscriptFragment, ...]) -> None:
-        await self.history.prepare_fragments(fragments, lambda: self.is_attached,
-                                             selected=self.visible_categories)
+        history = self.history
+        await history.prepare_fragments(fragments, lambda: self.is_attached,
+                                        selected=self.visible_categories, target=history)
         if self.is_attached:
             self.range_changed()
 
@@ -643,7 +644,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         view.display = False
         # Styled before it is drawn: a page drawn plain first rewraps under
         # the reader as each styled batch arrives.
-        await owner.prepare_fragments(prepared.fragments_in_range, current)
+        await owner.prepare_fragments(prepared.fragments_in_range, current,
+                                      selected=owner.selected_categories, target=owner)
         if not current():
             raise _DrawingStopped
         async with AsyncExitStack() as acquisition:
@@ -739,11 +741,10 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         self.filter.overlay.resume_source()
 
     async def prepare_fragments(self, fragments: tuple[TranscriptFragment, ...],
-                                current: Callable[[], bool], *, selected=None,
-                                target: LineHistory | Contents | None = None) -> None:
+                                current: Callable[[], bool], *,
+                                selected: frozenset[type[MessageCategory]],
+                                target: LineHistory | Contents) -> None:
         """Render against the native destination, including before history is mounted."""
-        target = self if target is None else target
-        selected = self.selected_categories if selected is None else selected
         width, theme = target.line_width, self.app.colours.line_theme
         if width <= 0:
             return
@@ -993,7 +994,8 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                         and all(fragment is member for fragment, member in
                                 zip(page.prepared.fragments_in_range, page_range.members))):
                     continue
-                await self.prepare_fragments(page_range.members, current)
+                await self.prepare_fragments(page_range.members, current,
+                                             selected=self.selected_categories, target=self)
                 if not await page.select_range(slice(page_range.start, page_range.stop), current):
                     return False
         if not await self.filter.overlay.restore_reader_ranges(ranges, current):
