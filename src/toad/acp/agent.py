@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from collections.abc import Container
-from typing import TYPE_CHECKING
 
 import rich.repr
 from agent_comms.acp_extension import (
@@ -46,15 +45,14 @@ from toad.agent_presentation import ACPAgentPresentation
 from toad.agent_schema import AgentDefinition
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventMessage
-from toad.surface_binding import SurfaceBinding
+from toad.surface_binding import SurfaceBinding, SurfaceTarget
+from toad.compaction_view import CompactionView
+from toad.session_start import SessionStartTarget
+from toad.status_view import StatusView
 from toad.conversation_submission import (
     PromptInputSubmission, ConversationSubmissions, NoSend, SendPending, SendState, SubmissionExecution,
 )
 from toad.platform import host
-
-if TYPE_CHECKING:
-    from toad.screens.main import MainScreen
-    from toad.widgets.conversation import Conversation
 
 
 def generate_datetime_filename(
@@ -145,16 +143,16 @@ class Agent(AgentBase):
     def borrowed_processes(self) -> tuple[AgentProcess, ...]:
         return (self.process,)
 
-    async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None:
+    async def reconnect_session(self, source: SessionStartTarget, plan: ExistingSessionLoadPlan) -> None:
         await self.session.reconnect(plan)
 
-    async def change_project(self, view: Conversation, path: Path) -> None:
+    async def change_project(self, view: StatusView, path: Path) -> None:
         from textual.content import Content
 
         project = await self.update_project(str(path))
         view.feedback.flash(Content(f"Project changed to {project}"), style="success")
 
-    def request_compaction(self, view: Conversation, request: CompactRequest) -> None:
+    def request_compaction(self, view: CompactionView, request: CompactRequest) -> None:
         view.compact_context(request)
 
     async def project_changed(self, path: Path) -> None:
@@ -164,7 +162,7 @@ class Agent(AgentBase):
         if (session_pk := self.session.pk) is not None:
             await DB().session_update_project(session_pk, path)
 
-    def refresh_context(self, view: Conversation) -> None:
+    def refresh_context(self, view: StatusView) -> None:
         view.thread_status = self.context_measurement.status()
 
     async def compact_context(self, request: CompactRequest) -> None:
@@ -228,7 +226,7 @@ class Agent(AgentBase):
     def current_turn(self):
         return self.presentation.turns.owner
 
-    async def retire_surface(self, surface: Conversation) -> None:
+    async def retire_surface(self, surface: SurfaceTarget) -> None:
         if self.controller.surface.owns(surface):
             self.detach_surface(surface)
             await self.stop()
@@ -236,7 +234,7 @@ class Agent(AgentBase):
     def attach_surface(self, surface: SurfaceBinding) -> None:
         self.controller.attach(surface)
 
-    def detach_surface(self, surface: Conversation) -> None:
+    def detach_surface(self, surface: SurfaceTarget) -> None:
         self.controller.detach(surface)
 
     def receive_coordination(self, update: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:

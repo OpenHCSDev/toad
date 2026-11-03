@@ -13,6 +13,7 @@ from agent_comms.coordination_errors import DMScopeChanged, Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.repo import Checkout
+from agent_comms.session_load import ExistingSessionLoadPlan
 from agent_comms.transcripts import TranscriptCursor
 from textual import getters, on
 from textual.app import ComposeResult
@@ -61,6 +62,8 @@ from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBar
 from toad.widgets.splash_text import ThreadLoading
 from toad.app_node import ToadNode
+from toad.native_node_meta import NativeNodeMeta
+from toad.session_start import SessionStartTarget
 
 
 class SessionCommands(Provider):
@@ -294,8 +297,8 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SidebarSessionView[SessionThreadSidebar], ToadNode,
-                 scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
+class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SidebarSessionView[SessionThreadSidebar], ToadNode, SessionStartTarget,
+                 metaclass=NativeNodeMeta, scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
@@ -334,6 +337,9 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         self._project_panel: ProjectPanel | None = None
         self.content: ScreenContent = OpeningContent()
         self.presentation = OperationalSessionPresentation()
+
+    def attach_started(self, plan: ExistingSessionLoadPlan) -> None:
+        self.presentation.sources.attach_started(self, plan)
 
     def read_visible(self) -> PaintedRead:
         return self.content.read_visible(self)

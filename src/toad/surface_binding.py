@@ -4,6 +4,10 @@ from abc import abstractmethod
 from agent_comms.nominal.declared_family import DeclaredFamily
 
 
+class SurfaceTarget:
+    """A surface identity; the captured binding owns its resources and operations."""
+
+
 class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     target = None
 

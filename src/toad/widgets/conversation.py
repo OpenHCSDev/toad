@@ -13,6 +13,8 @@ from typing import Callable
 from acp import schema as acp_protocol
 from toad.widgets.markdown_note import MarkdownNote
 from toad.native_node_meta import NativeNodeMeta
+from toad.compaction_view import CompactionView
+from toad.surface_binding import SurfaceTarget
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.comms import Comms
 from agent_comms.messages import Message
@@ -1037,6 +1039,8 @@ class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
 class Conversation(
     ConversationEvents,
     SessionLoginTarget,
+    CompactionView,
+    SurfaceTarget,
     NativeMethodKeys,
     MenuConversation,
     actions=(ConversationAction,),

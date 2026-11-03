@@ -7,20 +7,16 @@ from rich.text import Text as RichText
 from textual import getters
 from textual.content import Content
 from textual.reactive import var
-from textual.widget import Widget
 
-from toad.app_node import ToadNode
-from toad.widgets.flash import Flash
+from toad.status_view import StatusView
 from toad.widgets.prompt import Prompt
 
 
-class DeliveryFailureView(ToadNode, Widget):
+class DeliveryFailureView(StatusView):
     """Draw submission state; this widget owns no transport or send lifecycle."""
 
     prompt = getters.query_one(Prompt)
-    feedback = getters.query_one(Flash)
     status: var[str | Content | RichText] = var("")
-    thread_status: var[str | Content | RichText] = var("")
     composer_block: var[str] = var("")
 
     @abstractmethod

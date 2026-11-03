@@ -21,6 +21,10 @@ from toad.acp.session_disposition import SessionDisposition, UnopenedSessionDisp
 from toad.acp.thread_read import NoPendingThreadRead, ThreadRead
 from toad.agent_presentation import AgentPresentation, LocalAgentPresentation
 from toad.conversation_turn import NoTurn
+from toad.compaction_view import CompactionView
+from toad.session_start import SessionStartTarget
+from toad.status_view import StatusView
+from toad.surface_binding import SurfaceTarget
 from toad.core.events import CommsUpdated
 from toad.input_decision import InputDecision, InputAccepted, NoLiveAgent
 from toad.widgets.committed_presentation import CommitSource
@@ -30,7 +34,6 @@ if TYPE_CHECKING:
     from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
     from toad.conversation_turn import TurnOwner
     from toad.core_event_carrier import CoreEventMessage
-    from toad.screens.main import MainScreen
     from toad.session_observation import SessionObservation
     from toad.session_presentation import OperationalSessionSources
     from toad.widgets.conversation import Conversation, ConversationSessionBinding
@@ -118,19 +121,19 @@ class AgentConnection(ABC):
     def borrowed_processes(self) -> tuple[AgentProcess, ...]:
         return ()
 
-    async def reconnect_session(self, source: MainScreen, plan: ExistingSessionLoadPlan) -> None:
-        source.presentation.sources.attach_started(source, plan)
+    async def reconnect_session(self, source: SessionStartTarget, plan: ExistingSessionLoadPlan) -> None:
+        source.attach_started(plan)
 
-    async def change_project(self, view: Conversation, path: Path) -> None:
+    async def change_project(self, view: StatusView, path: Path) -> None:
         view.feedback.flash("Project changes require an agent-comms session", style="error")
 
     async def project_changed(self, path: Path) -> None:
         """A connection without a native session has no project row to persist."""
 
-    def refresh_context(self, view: Conversation) -> None:
+    def refresh_context(self, view: StatusView) -> None:
         """A connection without native measurements leaves the display unchanged."""
 
-    def request_compaction(self, view: Conversation, request: CompactRequest) -> None:
+    def request_compaction(self, view: CompactionView, request: CompactRequest) -> None:
         view.feedback.flash("Context compaction requires an agent-comms session", style="error")
 
     async def compact_context(self, request: CompactRequest) -> None:
@@ -161,6 +164,12 @@ class AgentConnection(ABC):
     async def set_session_name(self, name: str) -> None:
         """A connection without a native session has no remote title to change."""
 
+    async def retire_surface(self, view: SurfaceTarget) -> None:
+        """A connection without a native surface has no resources to retire."""
+
+    def detach_surface(self, view: SurfaceTarget) -> None:
+        """A connection without a native subscription has nothing to detach."""
+
     async def stop(self) -> None:
         """A connection without a native process has nothing to stop."""
 
@@ -183,9 +192,6 @@ class NoAgentConnection(AgentConnection):
     def presentation(self) -> AgentPresentation:
         return LocalAgentPresentation(self)
 
-    async def retire_surface(self, view: Conversation) -> None:
-        """There is no native surface to retire."""
-
     def attach_view(self, view: Conversation) -> None:
         """There is no event stream to subscribe to."""
 
@@ -203,9 +209,6 @@ class NoAgentConnection(AgentConnection):
 
     def connected(self, view: ConversationSessionBinding) -> None:
         """There is no connected-agent notification."""
-
-    def detach_surface(self, view: Conversation) -> None:
-        """There is no agent subscription to detach."""
 
     def matches_agent(self, agent: object) -> bool:
         return False
