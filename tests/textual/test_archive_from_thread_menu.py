@@ -21,6 +21,9 @@ async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_his
     class RetainAction(ArchiveCliCommand):
         """A command declared here must appear in the menu and run with no other edit."""
 
+        # A CLI command's declared name selects its module (ModuleMembers).
+        __module__ = "retain_action"
+
     commands = CliCommand.members_with(CliCommand)
     assert RetainAction in commands
     assert len({command.declared_name for command in commands}) == len(commands)

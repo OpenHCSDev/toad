@@ -9,6 +9,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from agent_comms.comms import Comms
+from agent_comms.context_store import UNREAD_CONTEXT, ContextManifestPage
 from agent_comms.session_revision import NoSessionObservation
 from agent_comms.thread_identity import RecordedThreadIncarnation, TurnId, TurnIdentity
 from agent_comms.registration import Registration
@@ -51,13 +52,14 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         classifier, (AnswerProbability(RuleSpan, .7), AnswerProbability(CommitmentSpan, .2),
                      AnswerProbability(OtherSpan, .1)), .8, f"authored-answer-{index}", classifier.pin)
         for index, span in enumerate(spans))
-    # This unsealed model only exercises navigation: no request, no captured
-    # public text, no wire message, no native owner and no saved session.
+    # Navigation only: the manifest is captured through the context store the
+    # inspection reads, with no wire message, native owner or saved session.
     manifest = ContextManifest(owner.incarnation,
-        RecordedContextTurn(TurnId("authored-unsealed-navigation"), TurnIdentity(owner.incarnation, 1)),
+        RecordedContextTurn(TurnId.mint(), TurnIdentity(owner.incarnation, 1)),
         (observed,), "authored-navigation")
-    inspection = ContextInspection(owner, (manifest,), NoSessionObservation(),
-                                   Comms(resolve_comms_route(directory / "unused-wire")), labels)
+    comms = Comms(resolve_comms_route(directory / "unused-wire"))
+    page = ContextManifestPage((comms.contexts.record_after(UNREAD_CONTEXT, manifest),))
+    inspection = ContextInspection(owner, page, NoSessionObservation(), comms, labels)
     ((_, (source,), _),) = inspection.working_memory()
     short, long = source.children()
     corrected = HumanLabel.correct(labels[0], RuleSpan, RecordedThreadIncarnation("authored-user", 2.0))

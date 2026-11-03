@@ -25,6 +25,7 @@ from toad.screens.workspace import WorkspaceFrame
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
+from toad.transcript_state import LiveTranscript
 from toad.widgets.transcript_history import LineHistory
 
 
@@ -148,7 +149,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
             if generation != self._selection_generation or not self.is_attached:
                 return
             history = LineHistory(prepared, SavedHistory(load, page.after, self.app.preparation),
-                                  notification_view=content)
+                                  notification_view=content, source_state=LiveTranscript())
             window = self.query_one(HistoryWindow)
             window.anchor()
             await content.prepare_history(

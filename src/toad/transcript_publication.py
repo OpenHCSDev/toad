@@ -606,8 +606,8 @@ class ViewBinding:
     def painted(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
         pass
 
-    def request(self, owner: TranscriptPresentation) -> Worker[bool] | None:
-        return None
+    def request(self, owner: TranscriptPresentation) -> None:
+        """An unbound presentation has nothing to publish."""
 
     def cancel_workers(self):
         return ()
@@ -791,16 +791,15 @@ class BoundView(ViewBinding):
         frame = BoundFrame.capture(self, owner)
         self.view.call_after_refresh(partial(frame.painted, cursor))
 
-    def request(self, owner):
+    def request(self, owner) -> None:
         view = self.view
         if not view.is_attached:
-            return None
+            return
         owner.worker = RunningPublicationWork(view.run_worker(
             partial(owner.publish, CommitPublication),
             group="transcript-window",
             exclusive=True,
         ))
-        return owner.worker
 
     def cancel_workers(self):
         view = self.view
