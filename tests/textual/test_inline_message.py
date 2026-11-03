@@ -2,7 +2,7 @@
 
 from agent_comms.display_references import ProjectReferences
 from toad.inline_spans import inline_spans
-from toad.line_blocks import CodeRole, EmphasisRole, StrongRole, TextRole, UrlRole
+from toad.line_blocks import NO_LINK, CodeRole, EmphasisRole, StrongRole, TextRole, UrlRole
 from toad.markdown_links import LinkContext
 from toad.project_link import ExternalProjectLink
 
@@ -21,6 +21,6 @@ def test_unsafe_links_and_plain_text_stay_literal(tmp_path):
     context = LinkContext(tmp_path, ProjectReferences())
     unsafe = inline_spans("[link](javascript:alert)", context)
     assert "".join(span.text for span in unsafe) == "[link](javascript:alert)"
-    assert all(span.link is None and span.role is TextRole for span in unsafe)
+    assert all(span.link is NO_LINK and span.role is TextRole for span in unsafe)
     plain = inline_spans("snake_case remains\nwrapped text", context)
     assert "".join(span.text for span in plain) == "snake_case remains\nwrapped text"

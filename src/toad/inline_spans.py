@@ -5,22 +5,19 @@ from dataclasses import dataclass, field
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec
 
-from toad.line_blocks import CodeRole, EmphasisRole, Span, StrongRole, TextRole, UrlRole
+from toad.line_blocks import NO_LINK, CodeRole, EmphasisRole, LineLink, Span, StrongRole, TextRole
 from toad.markdown_links import MessageMarkdownParser
 
 
 @dataclass
 class InlineSpans:
     roles: list = field(default_factory=lambda: [TextRole])
-    links: list = field(default_factory=list)
+    links: list[LineLink] = field(default_factory=lambda: [NO_LINK])
     spans: list = field(default_factory=list)
 
     def text(self, text, role=None):
-        link = self.links[-1] if self.links else None
-        role = role or self.roles[-1]
-        if link is not None and role is TextRole:
-            role = UrlRole
-        self.spans.append(Span(text, role, link))
+        link = self.links[-1]
+        self.spans.append(Span(text, link.text_role(role or self.roles[-1]), link))
 
     def consume(self, tokens):
         rules = {FieldCodec.encode(rule): rule for rule in InlineSpanRule.members_with(InlineSpanRule)}

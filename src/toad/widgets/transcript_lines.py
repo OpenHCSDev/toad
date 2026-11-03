@@ -43,12 +43,14 @@ from toad.line_blocks import (
     LineLink,
     LineRole,
     MutedRole,
+    NoLink,
     Span,
     SpanColumns,
     Spans,
     Summary,
     TextRole,
 )
+from toad.core.projection import MroProjection
 from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
 from toad.message_rows import MessageClock, WireBody
@@ -110,9 +112,34 @@ class LineTheme:
         )
 
 
-def link_style(link: LineLink | None) -> Style:
-    """The style that makes text run a link's action when clicked."""
-    return Style.null() if link is None else Style(underline=link.underlined or None, meta={"@click": link.click})
+class LinkStyle(MroProjection[Style]):
+    """The style that makes text run a link's action when clicked; text that leads nowhere is plain."""
+
+    @handles(LineLink)
+    def linked(self, link: LineLink) -> Style:
+        return Style(underline=link.underlined or None, meta={"@click": link.click})
+
+    @handles(NoLink)
+    def plain(self, link: NoLink) -> Style:
+        return Style.null()
+
+
+LINK_STYLE = LinkStyle()
+
+
+class HeadingStyle(MroProjection[Style]):
+    """A heading span keeps its role's style when it leads somewhere; plain text takes the rule's."""
+
+    @handles(LineLink)
+    def linked(self, link: LineLink, rule: Style, role: Style) -> Style:
+        return role
+
+    @handles(NoLink)
+    def plain(self, link: NoLink, rule: Style, role: Style) -> Style:
+        return rule
+
+
+HEADING_STYLE = HeadingStyle()
 
 
 def _fit(text: str, width: int) -> str:
@@ -135,7 +162,7 @@ def _clickable(rows: list[Row]) -> list[Row]:
         style = segment.style
         if style is None or not style.link:
             return segment
-        return Segment(segment.text, style + link_style(style.link.target), segment.control)
+        return Segment(segment.text, style + LINK_STYLE.project_value(style.link.target), segment.control)
 
     return [tuple(map(linked, row)) for row in rows]
 
@@ -325,7 +352,7 @@ class SpanColumnLayout(Columns, PreparedBlock):
         cells = [
             Text.assemble(
                 *(
-                    (span.text, (theme.style(span.role) if theme is not None else Style.null()) + link_style(span.link))
+                    (span.text, (theme.style(span.role) if theme is not None else Style.null()) + LINK_STYLE.project_value(span.link))
                     for span in cell
                 )
             )
@@ -471,8 +498,8 @@ class RichLineRenderer(MroDispatch):
         inset = min(1, (self.width - 1) // 2)
         for spans in groups:
             content = Text.assemble(*(
-                (span.text, (rule if span.link is None else self.theme.style(span.role))
-                 + bold + link_style(span.link))
+                (span.text, HEADING_STYLE.project_value(span.link, rule, self.theme.style(span.role))
+                 + bold + LINK_STYLE.project_value(span.link))
                 for span in spans
             ))
             for row in self.console.render_lines(
@@ -491,14 +518,14 @@ class RichLineRenderer(MroDispatch):
         for span in block.spans:
             text = _fit(span.text, room)
             room -= cell_len(text)
-            row.append(Segment(text, self.theme.style(span.role) + link_style(span.link)))
-        row.extend(Segment(span.text, self.theme.style(span.role) + link_style(span.link)) for span in block.kept)
+            row.append(Segment(text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link)))
+        row.extend(Segment(span.text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link)) for span in block.kept)
         self.output.append(tuple(row))
 
     @handles(Spans)
     def spans(self, block: Spans) -> None:
         content = Text.assemble(*(
-            (span.text, self.theme.style(span.role) + link_style(span.link))
+            (span.text, self.theme.style(span.role) + LINK_STYLE.project_value(span.link))
             for span in block.spans
         ))
         self.output.extend(
@@ -859,7 +886,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
     @handles(Spans)
     def spans(self, block: Spans) -> StyledBody:
         text = Text.assemble(
-            *((span.text, self.preparation.theme.style(span.role) + link_style(span.link)) for span in block.spans),
+            *((span.text, self.preparation.theme.style(span.role) + LINK_STYLE.project_value(span.link)) for span in block.spans),
             tab_size=4,
         )
         return self.rich_text(RichTextBody(text, role=TextRole, bar=None))
