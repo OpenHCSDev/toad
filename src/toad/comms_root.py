@@ -25,7 +25,7 @@ from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
-from agent_comms.registry_document import ProjectThreadSelection, RegistrySnapshot
+from agent_comms.registry_document import ProjectThreadSelection
 from toad.referenced_core import ReferencedCore
 from agent_comms.repo import Checkout
 from agent_comms.threads import Thread
@@ -36,11 +36,11 @@ from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread
 from agent_comms.tools import (
     CommsHistoricalThreadsTool,
-    CommsMarkThreadViewReadTool, CommsRegistryTool, CommsServedRootTool, CommsSessionThreadTool,
+    CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool,
     CommsUserSendTool,
 )
 from agent_comms.transcripts import TranscriptCursor
-from agent_comms.display_references import CurrentDisplayReferences, PendingReferences, UnavailableReferences
+from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
@@ -262,9 +262,6 @@ class Observation(ABC):
             raise RouteChangedError(f"{source} is not the root this UI observes")
         return self
 
-    def uses(self, service: Comms) -> bool:
-        return False
-
     def tab(self, entry: SessionEntry, sessions: SessionNavigation):
         return entry.unobserved_tab()
 
@@ -409,10 +406,6 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
     def observes(self, root: str | Path) -> bool:
         return Path(root).expanduser().resolve() == self.root
 
-    def registry(self) -> RegistrySnapshot:
-        """Core's thread registry: names, renames and recorded threads resolve against it."""
-        return self.core.call(CommsRegistryTool()).snapshot
-
     def historical_threads(self, senders: HistoricalSenders) -> tuple[HistoricalThread, ...]:
         """The preserved identities attached history sources keep, for every sender or one."""
         return self.core.call(CommsHistoricalThreadsTool(senders=senders)).threads
@@ -420,10 +413,6 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
     @abstractmethod
     def user_identity(self, project: Checkout) -> Thread:
         """The one human sender this UI speaks as."""
-
-    def references(self) -> CurrentDisplayReferences:
-        """The destinations Core's registry names, keyed by the root this observation serves."""
-        return CurrentDisplayReferences.from_registry(str(self.root), self.registry())
 
     def session_thread(self, project: Path, preferred: str) -> ProjectThreadSelection:
         """The thread an unbound session at ``project`` names; Core's host resolves the path."""
@@ -446,9 +435,6 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
     def show_sidebar(self, view: SidebarModelView) -> None:
         if self.is_current():
             view.bind_observation(self)
-
-    def uses(self, service: Comms) -> bool:
-        return False
 
     @property
     @abstractmethod
@@ -561,9 +547,6 @@ class LocalObserving(Observing):
 
     def opened_selection(self) -> RouteSelection:
         return self.selection
-
-    def uses(self, service: Comms) -> bool:
-        return self.service is service
 
     def user_identity(self, project: Checkout) -> Thread:
         """In process, the user thread is read, or claimed for this project's checkout."""

@@ -16,12 +16,11 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
-from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess
 from agent_comms.repo import Checkout
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import ConversationObservation, ConversationRevision, HistorySource
-from agent_comms.tools import CommsConversationRevisionTool, CommsLatestSequenceTool
+from agent_comms.tools import CommsConversationRevisionTool, CommsLatestSequenceTool, CommsMarkPageReadTool
 from agent_comms.message_page import MessagePage, MessagePageRequest
 from agent_comms.messages import ConversationRole, Membership, Message, NoHistorySource, NoticeRole
 from metaclass_registry.mro_dispatch import handles
@@ -323,7 +322,7 @@ class WireSource(BusQueueSource, ReferencedCore):
     every other read takes a whole transport page.
     """
 
-    comms: Comms
+    root: Path
     conversation: ConversationKind
     project: Checkout
     me: str
@@ -332,10 +331,6 @@ class WireSource(BusQueueSource, ReferencedCore):
     core: CoreAccess = field(kw_only=True)
     tail_limit: int = 8
     page_limit: int = 40
-
-    def references(self) -> CurrentDisplayReferences:
-        """Resolve stable destinations through this read's registry cut."""
-        return CurrentDisplayReferences.from_registry(str(self.comms.root), self.comms.registry.snapshot())
 
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
@@ -354,7 +349,7 @@ class WireSource(BusQueueSource, ReferencedCore):
         page = request.end.wire_page(self, request.cursor, through)
         # A re-read message starts from its last known notifications, never from
         # "Checking": the answer that follows then changes nothing it has to redraw.
-        scope = ReadNotifications(str(self.comms.root), LiveNotificationRead(()),
+        scope = ReadNotifications(str(self.root), LiveNotificationRead(()),
                                   display=page.selection.notification_identity)
         fragments = tuple(
             WireFragment.of(message, shown=MessageShown(
@@ -450,15 +445,15 @@ class WirePageBuffer(SavedHistory):
         return type(self)(self.loader, through, self.runtime, revision=self.revision)
 
     def uses_observation(self, observation: Observation) -> bool:
-        return observation.uses(self.loader.comms)
+        return observation.observes(self.loader.root)
 
     async def route_is_current(self) -> bool:
         return not self.closed and await self.runtime.run_thread(
-            lambda: self.loader.access.current(self.loader.comms.root)
+            lambda: self.loader.access.current(self.loader.root)
         )
 
     def status_thread(self, access):
-        return self.loader.conversation.status_thread(self.loader.comms.root, access)
+        return self.loader.conversation.status_thread(self.loader.root, access)
 
     def command_context(self, view):
         from toad.session_scope import SessionScope
@@ -469,7 +464,7 @@ class WirePageBuffer(SavedHistory):
         )
         return TargetContext(
             view.app,
-            view.app.coordination_access.observing(self.loader.comms.root),
+            view.app.coordination_access.observing(self.loader.root),
             self.loader.conversation.destination(references),
             self.loader.me,
             self.loader.project,
@@ -482,7 +477,7 @@ class WirePageBuffer(SavedHistory):
             view.is_attached and self is view.message_history.page_source and conversation == view.conversation
         )
         await view.submit_comms_message(
-            self.loader.comms.root, conversation, event.body, current, partial(view._show_sent, body=event.body)
+            self.loader.root, conversation, event.body, current, partial(view._show_sent, body=event.body)
         )
 
     def schedule_refresh(self, view: CommsChatView):
@@ -500,7 +495,7 @@ class WirePageBuffer(SavedHistory):
         )
 
     async def read_revision(self):
-        return await self.runtime.run_thread(self.loader.comms.views.revision)
+        return await self.runtime.run_thread(self.loader.wire_revision)
 
     async def observe_changes(self, revision):
         return await self.runtime.run_thread(self.loader.observe, revision)
@@ -519,15 +514,14 @@ class WirePageBuffer(SavedHistory):
         return self.loader.conversation.seen_page(history, seen)
 
     async def mark_page(self, page: MessagePage) -> None:
-        comms = self.loader.comms
         await asyncio.to_thread(
-            comms.views.mark_page_read, page, worktree=self.loader.project)
+            self.loader.core.call, CommsMarkPageReadTool(page=page, worktree=self.loader.project))
 
     async def read_only(self) -> bool:
         return await self.runtime.run_thread(self.loader.conversation.read_only, self.loader.core)
 
     async def update_mentions(self, view: CommsChatView) -> None:
-        await self.loader.conversation.update_mentions(view, self.loader.comms)
+        await self.loader.conversation.update_mentions(view, self.loader)
 
     async def status_text(self, *, read_only):
         return await self.loader.conversation.status_text(self.loader, read_only=read_only)
