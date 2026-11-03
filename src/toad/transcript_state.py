@@ -5,7 +5,7 @@ from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
-from typing import TYPE_CHECKING, ClassVar, Literal, cast
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
@@ -26,7 +26,6 @@ if TYPE_CHECKING:
         HistorySourceSnapshot,
         TranscriptSourcePreparation,
     )
-    from toad.widgets.committed_presentation import CommitParticipant
     from toad.widgets.history_anchor import HistoryWindow, LatestPosition
     from toad.widgets.transcript_history import (
         ConversationHistory,
@@ -491,7 +490,9 @@ class CommitTranscript(WorkingTranscript):
 
         super().__init__(source, owner)
         self.live_blocks = live_blocks
-        self.claims = tuple(cast("CommitParticipant", block).commit_claim for block in live_blocks)
+        from toad.widgets.committed_presentation import block_claim
+
+        self.claims = tuple(block_claim(block) for block in live_blocks)
         self.retirement = AwaitComplete.nothing()
 
     async def execute[Result](self, owner, work: Callable[[], Awaitable[Result]]) -> Result | Literal[False]:

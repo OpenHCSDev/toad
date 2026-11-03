@@ -59,10 +59,9 @@ from toad.session_scope import (
 )
 from toad.transcript_preparation import PreparedPageSource
 from toad.widgets.committed_presentation import (
-    CommitBarrier,
     CommitEvidence,
     NativeCommitEvidence,
-    CommitParticipant,
+    block_claim,
     commit_plan,
     protected_blocks,
     retirement_candidates,
@@ -131,9 +130,8 @@ class TranscriptPublication(BoundFrame, ABC):
     def native_current(self) -> bool:
         """Each captured presentation must belong to the acquired saved prefix."""
         return self.current() and all(
-            widget.commit_claim.accepts_native(widget, self.captured, self.identity)
+            block_claim(widget).accepts_native(widget, self.captured, self.identity)
             for widget in self.binding.contents.children
-            if isinstance(widget, CommitParticipant)
         )
 
     def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
@@ -391,15 +389,12 @@ class CommitPublication(CanonicalSourcePublication):
             and len(self.binding.contents.children) < view.MAX_LIVE_BLOCKS
         ):
             return False
-        if any(
-            isinstance(child, CommitBarrier) for child in self.binding.contents.children
-        ):
+        if any(block_claim(child).blocks_commit for child in self.binding.contents.children):
             return False
         potential = tuple(
             child
             for child in self.binding.contents.children
-            if child is not self.binding.history
-            and isinstance(child, CommitParticipant)
+            if child is not self.binding.history and block_claim(child).retires
         )
         return self.plan.ready(self.binding.history) and self.plan.permits(
             view, potential
@@ -734,8 +729,7 @@ class BoundView(ViewBinding):
                         frozenset(
                             sequence
                             for child in contents.children
-                            if isinstance(child, CommitParticipant)
-                            for sequence in child.commit_claim.required_sequences
+                            for sequence in block_claim(child).required_sequences
                         )
                     ),
                     history,
