@@ -18,9 +18,11 @@ from textual.widgets.text_area import VimMode
 from toad.widget_actions import NativeMethodKeys
 from textual.containers import VerticalScroll
 from textual.geometry import Size
+from textual.timer import Timer
 from textual.widget import Widget
 
 from toad.core.projection import MroProjection
+from toad.no_worker import NO_TIMER, NoTimer
 from toad.transcript_state import LatestViewportRequest
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.message_row_owner import MessageRowOwner
@@ -977,23 +979,20 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         self.lookahead.destination(self.outer_size.height)
         self.request_preparation()
 
-    _settle_timer = None
+    # Stopping a fired Textual timer does nothing, so the last one set is kept.
+    _settle_timer: Timer | NoTimer = NO_TIMER
 
     def _schedule_settle(self) -> None:
-        if self._settle_timer is not None:
-            self._settle_timer.stop()
+        self._settle_timer.stop()
         self._settle_timer = self.set_timer(self.lookahead.idle_seconds, self._settle)
 
     def _settle(self) -> None:
-        self._settle_timer = None
         self.lookahead.settle()
         self.request_preparation()
 
     def settle_preparation(self) -> None:
         """A hidden or closing window stops predicting travel."""
-        if self._settle_timer is not None:
-            self._settle_timer.stop()
-            self._settle_timer = None
+        self._settle_timer.stop()
         self.lookahead.settle()
 
     @cached_property
