@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
@@ -37,15 +36,11 @@ from agent_comms.thread_presentation import NoThreadPresentation, ThreadPresenta
 from agent_comms.transcripts import NativeCommittedPrefix
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
-from toad.acp.client_session import ClientSessionRequest
+from toad.acp.client_session import ClientSessionRequest, OwnerRequest
 from toad.acp.context_measurement import ContextMeasurement
 from toad.core import events as core_events
 from toad.live_output import CompleteResponseStream, ResponseStream
 from toad.response_delivery import ResponseDelivery, UnroutedResponse
-
-if TYPE_CHECKING:
-    from toad.acp.agent import Agent
-
 
 class CompactionReply:
     """The reply owns whether /compact supplied a committed summary."""
@@ -260,12 +255,17 @@ class CommsUpdateConsumer(MroDispatch):
 class OwnerSnapshotConsumer(CommsUpdateConsumer):
     """Canonical reads reconcile a turn without overtaking this client's request."""
 
-    def __init__(self, agent, session_id, *, turn_token) -> None:
-        super().__init__(agent, session_id)
+    def __init__(self, owner: OwnerRequest, *, turn_token) -> None:
+        super().__init__(owner.authority.agent, owner.authority.session_id)
+        self._owner = owner
         self.turn_token = turn_token
 
+    @property
+    def owner(self) -> OwnerRequest:
+        return self._owner
+
     def accepts_turn(self):
-        return super().accepts_turn() and self.agent.controller.accepts_turn_snapshot(
+        return self.owner.current and self.agent.controller.accepts_turn_snapshot(
             self.turn_token
         )
 
@@ -282,10 +282,7 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
 
     def publish_thread_turn(self, root, thread):
         """Only the live transcript member can supply actual owner settlement."""
-        coordination = self.agent.coordination
-        self.agent.require_owner(
-            coordination, ClientSessionRequest(self.agent, self.session_id)
-        )
+        self.owner.require()
         if not self.agent.matches_source(root, thread.incarnation):
             raise ValueError("Turn snapshot belongs to another original thread source")
         self.turn_changed(TurnChangedUpdate(thread.turn_state))
@@ -331,8 +328,7 @@ class NoPendingThreadRead(ThreadRead):
     """No captured client authority; present the current observation directly."""
 
 
-@dataclass(frozen=True)
-class PendingThreadRead(ThreadRead):
+class PendingThreadRead(OwnerSnapshotConsumer, ThreadRead):
     """One presentation read of an agent's thread, captured before the read.
 
     Whether the read ran here or in Core's observation process, its result
@@ -340,29 +336,26 @@ class PendingThreadRead(ThreadRead):
     requested for still hold.
     """
 
-    agent: Agent
-    coordination: CoordinationChangedUpdate
-    authority: ClientSessionRequest
-    snapshot: OwnerSnapshotConsumer
-
     async def goal_snapshot(self, transcripts) -> GoalSnapshot:
+        coordination = self.owner.coordination
         snapshot = await transcripts.read(ReadOwnerOperation(
-            self.coordination.wire_root, self.coordination.thread, operation=OwnerGoalRead()))
-        self.agent.require_owner(self.coordination, self.authority)
+            coordination.wire_root, coordination.thread, operation=OwnerGoalRead()))
+        self.owner.require()
         for fact in snapshot.meta.batch.updates:
-            self.snapshot.dispatch_sync(fact)
+            self.dispatch_sync(fact)
         return snapshot
 
     def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
-        if not self.agent.matches_source(self.coordination.wire_root, self.coordination.thread):
+        if not self.owner.source_current:
             return ChangedAttachmentRead()
-        if self.authority.retired:
+        if self.owner.authority.retired:
             return EndedSessionRead()
-        self.snapshot.dispatch_sync(presentation)
+        self.dispatch_sync(presentation)
         return SettledThreadRead(presentation)
 
     async def reconcile(self, transcripts) -> None:
+        coordination = self.owner.coordination
         read = await transcripts.thread_presentation(
-            self.coordination.wire_root, self.coordination.thread.name
+            coordination.wire_root, coordination.thread.name
         )
         self.settle(read.raised())

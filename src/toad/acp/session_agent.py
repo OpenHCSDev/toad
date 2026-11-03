@@ -27,7 +27,7 @@ from agent_comms.ui_model.observation import ReadOwnerOperation
 from toad.agent import AgentBase
 from toad.core import events as core_events
 from .agent_controller import AgentController, SourceIdentity
-from .client_session import ClientSessionRequest
+from .client_session import ClientSessionRequest, OwnerRequest
 
 
 class SessionAgent(AgentBase, SourceIdentity):
@@ -73,7 +73,7 @@ class SessionAgent(AgentBase, SourceIdentity):
     async def request_owner(self, method: str, **params: JsonValue):
         raise ValueError("This action requires an agent-comms thread.")
 
-    def require_owner(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest):
+    def capture_owner_request(self, authority: ClientSessionRequest) -> OwnerRequest:
         raise ValueError("The connected owner session retired; refresh its state.")
 
     async def input_delivery(self, *, include_history: bool = False) -> DeliveryView:
@@ -163,18 +163,15 @@ class CoordinationIdentity(SessionAgent):
     def matches_source(self, root: str, thread: ThreadIncarnation) -> bool:
         return (self.coordination.wire_root, self.coordination.thread) == (root, thread)
 
-    def require_owner(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest):
-        if authority.retired:
-            raise ValueError("The connected owner session retired; refresh its state.")
-        if not self.matches_source(coordination.wire_root, coordination.thread):
-            raise ValueError("The owner identity changed while preparing the request.")
+    def capture_owner_request(self, authority: ClientSessionRequest) -> OwnerRequest:
+        return OwnerRequest(self.coordination, authority)
 
 
 class OwnerRequests(CoordinationIdentity):
     async def request_owner(self, method: str, **params: JsonValue):
-        coordination = self.coordination
-        authority = ClientSessionRequest(self, self.session_id)
-        self.require_owner(coordination, authority)
+        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
+        coordination = request.coordination
+        request.require()
         comms = await self.controller.transcripts.service(coordination.wire_root)
 
         def resolve():
@@ -187,9 +184,9 @@ class OwnerRequests(CoordinationIdentity):
 
         proxy = await asyncio.to_thread(resolve)
         try:
-            self.require_owner(coordination, authority)
+            request.require()
             result = await proxy.request(method, **params)
-            self.require_owner(coordination, authority)
+            request.require()
             return result
         finally:
             await proxy.close()
@@ -205,20 +202,20 @@ class OwnerReads(CoordinationIdentity):
             return
         await session.reconnect(ExistingSessionLoadPlan(binding))
 
+    def owner_read(self, request: OwnerRequest):
+        from .comms_updates import PendingThreadRead
+        return PendingThreadRead(request, turn_token=self.presentation.turns.sequence)
+
     def thread_read(self):
-        from .comms_updates import OwnerSnapshotConsumer, PendingThreadRead
-        coordination = self.coordination
-        return PendingThreadRead(self, coordination, ClientSessionRequest(self, self.session_id),
-                                 OwnerSnapshotConsumer(self, self.session_id,
-                                                       turn_token=self.presentation.turns.sequence))
+        return self.owner_read(self.capture_owner_request(ClientSessionRequest(self, self.session_id)))
 
     async def input_delivery(self, *, include_history: bool = False) -> DeliveryView:
-        coordination = self.coordination
-        authority = ClientSessionRequest(self, self.session_id)
+        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
+        coordination = request.coordination
         overview = await self.controller.transcripts.read(ReadOwnerOperation(
             coordination.wire_root, coordination.thread, InputDeliveryRead(include_history=include_history),
         ))
-        self.require_owner(coordination, authority)
+        request.require()
         return ReadDeliveryView(overview)
 
 
@@ -226,34 +223,34 @@ class OwnerPrompts(CoordinationIdentity):
     supports_images = True
 
     async def prepare_command(self, command: PromptRequest, authority: ClientSessionRequest, scope: QueueScope) -> PromptRequest:
-        coordination = self.coordination
-        self.require_owner(coordination, authority)
-        comms = await self.controller.transcripts.service(coordination.wire_root)
+        request = self.capture_owner_request(authority)
+        request.require()
+        comms = await self.controller.transcripts.service(request.coordination.wire_root)
         origin = await asyncio.to_thread(self.queue_attachment.capture_human_input, comms, scope)
-        self.require_owner(coordination, authority)
+        request.require()
         return replace(command, origin=origin)
 
     def prompt_settlement(self, authority: ClientSessionRequest) -> Callable[[], None]:
-        coordination = self.coordination
+        request = self.capture_owner_request(authority)
 
         def settle() -> None:
-            self.controller.start_operation(self.reconcile_turn(coordination, authority))
+            self.controller.start_operation(self.reconcile_turn(request))
 
         return settle
 
-    async def reconcile_turn(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
-        self.require_owner(coordination, authority)
-        await self.thread_read().reconcile(self.controller.transcripts)
+    async def reconcile_turn(self, request: OwnerRequest) -> None:
+        request.require()
+        await self.owner_read(request).reconcile(self.controller.transcripts)
 
 
 class OwnerWrites(CoordinationIdentity):
     async def update_project(self, path: str) -> str:
-        authority = ClientSessionRequest(self, self.session_id)
-        coordination = self.coordination
+        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
+        coordination = request.coordination
         comms = await self.controller.transcripts.service(coordination.wire_root)
-        self.require_owner(coordination, authority)
+        request.require()
         result = await asyncio.to_thread(comms.threads.set_project, coordination.thread, path)
-        self.require_owner(coordination, authority)
+        request.require()
         worktree = Checkout(Path(result.current))
         self.receive_coordination(replace(self.coordination, worktree=worktree))
         self.project_root_path = worktree.path
@@ -263,15 +260,13 @@ class OwnerWrites(CoordinationIdentity):
     async def rename_coordination(self, display_name: str) -> None:
         if not self.session.accepts_session(self.session_id):
             return
-        coordination = self.coordination
-        wire_root = coordination.wire_root
-        authority = ClientSessionRequest(self, self.session_id)
-        owner = coordination.owner
-        comms = await self.controller.transcripts.service(wire_root)
-        self.require_owner(coordination, authority)
+        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
+        coordination = request.coordination
+        comms = await self.controller.transcripts.service(coordination.wire_root)
+        request.require()
         result = await asyncio.to_thread(
-            comms.threads.rename_managed_thread, coordination.thread, display_name, owner=owner)
-        self.require_owner(coordination, authority)
+            comms.threads.rename_managed_thread, coordination.thread, display_name, owner=coordination.owner)
+        request.require()
         self.receive_coordination(replace(
             self.coordination, thread=replace(self.coordination.thread, name=result.current),
             title=display_name))
