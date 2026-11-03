@@ -72,8 +72,11 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
         page = await ui.app.preparation.run_thread(
             lambda: workspace.comms.transcripts.capture_page_read("source").read())
         prepared = await TranscriptPageRenderTask(page).prepared(ui.app.preparation)
-        assert await history.show_newest(PreparedReplacementViewportRequest(
-            LatestPosition.hold(view.window), prepared))
+        # A replacement is source work, as the app's own commit publication runs it: wait until
+        # that operation releases the source, then reserve, so the two reads never overlap.
+        await ui.until(lambda: history.state.accepts_source_work, why="the app's source operation to finish")
+        assert await history.reserve_source_work().execute(history, lambda: history.show_newest(
+            PreparedReplacementViewportRequest(LatestPosition.hold(view.window), prepared)))
         assert previous_source.closed
         assert view.visible_categories == frozenset({UserCategory})
         assert not projection.display
