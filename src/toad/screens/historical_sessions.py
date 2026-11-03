@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import asyncio
 from functools import partial
 from pathlib import Path
 
-from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.notification_reads import RecordedNotificationRead
@@ -26,6 +27,9 @@ from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
 from toad.widgets.transcript_history import LineHistory
+
+if TYPE_CHECKING:
+    from toad.comms_root import Observing
 
 
 class RecordedContents(Contents):
@@ -47,14 +51,14 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
 
     def __init__(
         self,
-        comms: Comms,
+        observed: Observing,
         threads: tuple[HistoricalThread, ...],
         *,
         name: str | None = None,
         source: str | None = None,
     ):
         super().__init__()
-        self.comms = comms
+        self.observed = observed
         self.threads = threads
         self.initial_name = name
         self.initial_source = source
@@ -62,7 +66,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
 
     @property
     def coordination_root(self) -> str:
-        return str(self.comms.root)
+        return str(self.observed.root)
 
     @property
     def project_root(self) -> Path:
@@ -121,7 +125,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
             f"Channels/tags: {', '.join(sorted(item.thread.tags)) or 'none'}\n"
             f"Session: {item.thread.session_file or 'No saved session recorded'} · read only"
         )
-        access, root = self.app.coordination_access, str(self.comms.root)
+        access, root = self.app.coordination_access, str(self.observed.root)
 
         async def load(**kwargs):
             snapshot = await access.transcripts.read(ReadTranscript(root, TranscriptPageRead(
