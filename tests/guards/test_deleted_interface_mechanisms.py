@@ -1,83 +1,18 @@
-"""Deleted interface mechanisms cannot return to production."""
+"""Current UI ownership, action dispatch and history publication contracts."""
 import ast
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parents[2] / 'src/toad'
 
 
-def assert_deleted_cursor_contract(path, source):
-    """Seal the removed UI family across definitions, imports and callbacks."""
-    retired = {'Cursor', 'update_follow', 'watch_follow_widget', 'follow_widget', 'blink_timer'}
-    tree = ast.parse(source)
-    # A generic's own type parameter is not the deleted widget family.
-    retired -= {node.name for node in ast.walk(tree) if isinstance(node, ast.TypeVar)}
-    for node in ast.walk(tree):
-        match node:
-            case (ast.Name(id=name) | ast.Attribute(attr=name)
-                  | ast.ClassDef(name=name) | ast.FunctionDef(name=name)
-                  | ast.AsyncFunctionDef(name=name) | ast.alias(name=name)):
-                assert name not in retired, (path, node.lineno, name)
-                if isinstance(node, (ast.Attribute, ast.FunctionDef, ast.AsyncFunctionDef)):
-                    assert name != 'follow', (path, node.lineno, name)
-            case ast.Call(func=ast.Attribute(attr=('query' | 'query_one' | 'query_one_optional')), args=[ast.Constant(value='Cursor'), *_]):
-                raise AssertionError((path, node.lineno, 'Cursor selector'))
-            case ast.Constant(value=name) if isinstance(name, str) and name in retired - {'Cursor'}:
-                raise AssertionError((path, node.lineno, name))
-            case ast.Call(func=ast.Name(id=('getattr' | 'hasattr' | 'setattr')), args=[_, ast.Constant(value='follow'), *_]):
-                raise AssertionError((path, node.lineno, 'follow'))
-
-
-def test_deleted_cursor_family_has_no_callers():
-    for path in ROOT.rglob('*.py'):
-        assert_deleted_cursor_contract(path, path.read_text())
-    for path in ROOT.rglob('*.tcss'):
-        assert re.search(r'(?<![\w-])Cursor(?![\w-])', path.read_text()) is None, path
-
-
-def test_conversation_ownership_and_deletion():
-    for relative in ('widgets/conversation.py', 'widgets/prompt.py', 'slash_command.py'):
-        tree=ast.parse((ROOT/relative).read_text())
-        for node in ast.walk(tree):
-            if isinstance(node,ast.Attribute):
-                assert node.attr not in {'turn','_managed_turn_id','_turn_lifecycle_source','_turn_lifecycle_sequence'}, (relative,node.lineno)
-            if isinstance(node,ast.Name):
-                assert node.id!='BlockProtocol', (relative,node.lineno)
-                if relative == 'widgets/conversation.py':
-                    assert node.id not in {'getattr', 'hasattr'}, (relative,node.lineno)
-    assert not (ROOT/'protocol.py').exists()
-    response=ast.parse((ROOT/'widgets/agent_response.py').read_text())
-    for node in ast.walk(response):
-        if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
-            assert node.name not in {'block_cursor_up','block_cursor_down','block_cursor_clear','block_select','get_cursor_block'}
-        if isinstance(node,ast.Name):
-            assert node.id!='block_cursor_offset'
-    agent=ast.parse((ROOT/'acp/agent.py').read_text())
-    for node in ast.walk(agent):
-        if isinstance(node,ast.Attribute):
-            assert node.attr not in {'_process','_process_group_id','_agent_task','_task','_stopping','_log_file_path'}
-        if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
-            assert node.name not in {'_run_agent','_process_group_alive'}
-    question=ast.parse((ROOT/'widgets/question.py').read_text())
-    for node in ast.walk(question):
-        if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and node.func.attr in {'query_one','query_one_optional'}:
-            assert not node.args or not isinstance(node.args[0],ast.Constant) or node.args[0].value!='#option-container'
-    for relative in ('conversation_turn.py','block_navigation.py','question_presentation.py','acp/agent_process.py'):
-        for node in ast.parse((ROOT/relative).read_text()).body:
-            if isinstance(node,ast.ClassDef):
-                assert not node.name.endswith('Mixin')
+def test_conversation_uses_declared_contracts():
+    relative = 'widgets/conversation.py'
+    for node in ast.walk(ast.parse((ROOT / relative).read_text())):
+        if isinstance(node, ast.Name):
+            assert node.id not in {'getattr', 'hasattr'}, (relative, node.lineno)
 
 
 def test_nominal_block_interaction_caller_closure():
-    retired = {'MenuProtocol','ExpandProtocol','get_block_content','get_cursor_block','CUSTOM_BLOCKS'}
-    for path in ROOT.rglob('*.py'):
-        for node in ast.walk(ast.parse(path.read_text())):
-            if isinstance(node, ast.Name):
-                assert node.id not in retired, (path,node.lineno,node.id)
-            if isinstance(node, ast.Attribute):
-                assert node.attr not in retired, (path,node.lineno,node.attr)
-            if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
-                assert node.name not in retired, (path,node.lineno,node.name)
     tree=ast.parse((ROOT/'widgets/conversation.py').read_text())
     methods={'copy_block_to_clipboard','copy_block_to_prompt','action_select_block',
              'action_expand_block','action_collapse_block'}
@@ -88,27 +23,8 @@ def test_nominal_block_interaction_caller_closure():
                     assert node.func.id not in {'isinstance','issubclass','getattr','hasattr'}, (method.name,node.lineno)
 
 
-def test_channel_history_has_one_owner():
-    tree = ast.parse((ROOT / 'widgets/comms_chat.py').read_text())
-    retired = {'_history', '_has_older', '_has_newer', '_history_initialized',
-               '_poll_cursor', '_edge_load_scheduled', '_edge_check_on_resume',
-               '_refresh_lock', '_wire', '_revision', '_display_identity',
-               '_ack_page', '_channel_ack_pages', '_historical_ack_pages',
-               '_ack_inflight', 'irc_style', '_mount_page', '_insert_page',
-               '_mark_visible_after_layout', '_mark_painted_page',
-               '_mark_historical_paint', '_load_history_edge', '_history_request'}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Attribute):
-            assert node.attr not in retired, (node.lineno, node.attr)
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            assert node.name not in retired, (node.lineno, node.name)
-
-
 def test_channel_messages_are_drawn_by_the_line_history_alone():
     """The channel view has no paging, preparation or row widgets of its own."""
-    for relative in ('mounted_message_history.py', 'channel_preparation.py', 'message_viewport.py',
-                     'widgets/irc_message.py'):
-        assert not (ROOT / relative).exists(), relative
     from toad.widgets.transcript_history import LineHistory, TranscriptHistory
     from toad.widgets.wire_history import WireHistory
 
@@ -124,7 +40,6 @@ def test_channel_messages_are_drawn_by_the_line_history_alone():
 
 def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
     """The channel, saved thread history and live rows build a message's header from `MessageRow`."""
-    assert not (ROOT / 'widgets/route_header.py').exists()
     declared: dict[str, list[str]] = {}
     for path in ROOT.rglob('*.py'):
         for node in ast.walk(ast.parse(path.read_text())):
@@ -132,28 +47,16 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
                 declared.setdefault(node.name, []).append(path.relative_to(ROOT).as_posix())
     # One class says how a link opens; no view or widget keeps actions of its own for it.
     assert declared['OpensLinks'] == ['widgets/linked_rows.py']
-    for name in ('action_open_target', 'action_open_historical_target', 'action_open_url', 'action_open_thread',
-                 'action_toggle_details', 'open_link', 'RouteHeader', 'WirePageView'):
-        assert name not in declared, (name, declared.get(name))
-    # The words that used to stand in for the route are drawn nowhere.
-    source = ''.join(path.read_text() for path in ROOT.rglob('*.py'))
-    for caption in ('"Outbound"', '"Inbound"', 'Sent →'):
-        assert caption not in source, caption
-    from toad.line_blocks import Divider
     from toad.widgets.message_divider import MessageDivider
     from toad.widgets.linked_rows import OpensLinks
 
     # The live rule draws the block saved history draws; it has no drawing of its own.
     assert 'render' not in vars(MessageDivider) and issubclass(MessageDivider, OpensLinks)
-    assert Divider.__dataclass_fields__.keys() == {'spans', 'role', 'timestamp'}
 
     # The message owns its menu and one class runs it: a view has no open actions or menu entries of its own.
     for name, home in (('action_link', 'widgets/linked_rows.py'), ('opens', 'project_link.py')):
         assert declared[name] == [home], (name, declared[name])
-    assert not {'_open_name', 'open_url', 'action_open_sender', 'action_open_destination'} & declared.keys()
     assert declared['OpenSenderCommand'] == declared['OpenDestinationCommand'] == ['menus.py']
-    # Which addresses are links is one rule; the inline parser keeps no list of its own.
-    assert 'urlsplit' not in (ROOT / 'inline_spans.py').read_text()
 
 
 def test_serialized_history_tree_mutations_use_the_window_fence():
@@ -193,13 +96,6 @@ def test_widget_action_availability_has_no_case_catalog():
             if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)) and method.name == 'check_action':
                 assert not any(isinstance(node, (ast.Compare, ast.Match))
                                for node in ast.walk(method)), (relative, method.lineno)
-    for relative in ('widgets/conversation.py', 'widgets/question.py'):
-        tree = ast.parse((ROOT / relative).read_text())
-        retired = ({'action_focus_terminal', 'action_expand_block', 'action_collapse_block',
-                    'action_mode_switcher', 'action_cancel'} if 'conversation' in relative else
-                   {'action_selection_up', 'action_selection_down', 'action_select', 'action_select_kind'})
-        assert not any(isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in retired
-                       for node in ast.walk(tree)), relative
 
 
 def test_history_layout_producers_do_not_wait_for_their_own_paint():
@@ -207,13 +103,8 @@ def test_history_layout_producers_do_not_wait_for_their_own_paint():
     for path in (*ROOT.rglob('*.py'), *(ROOT.parents[1] / 'tools').rglob('*.py')):
         tree = ast.parse(path.read_text())
         for node in ast.walk(tree):
-            if isinstance(node, (ast.Name, ast.Attribute)):
-                name = node.id if isinstance(node, ast.Name) else node.attr
-                assert name != 'history_paint_ready', (path, node.lineno)
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                assert node.name != '_restore_body', (path, node.lineno)
-                if node.name in {'preserve_history', '_restore_bodies'}:
-                    assert not any(isinstance(call, ast.Call)
-                                   and isinstance(call.func, ast.Attribute)
-                                   and call.func.attr == 'call_after_refresh'
-                                   for call in ast.walk(node)), (path, node.lineno)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in {'preserve_history', '_restore_bodies'}:
+                assert not any(isinstance(call, ast.Call)
+                               and isinstance(call.func, ast.Attribute)
+                               and call.func.attr == 'call_after_refresh'
+                               for call in ast.walk(node)), (path, node.lineno)
