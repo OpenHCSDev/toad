@@ -1048,20 +1048,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             self.older.display, self.newer.display = older, newer
 
     @property
-    def conversation(self) -> Conversation | None:
-        """The conversation whose live blocks these pages stand in for; None in a saved viewer."""
-        from toad.widgets.conversation import Conversation
-
-        return next((ancestor for ancestor in self.ancestors if isinstance(ancestor, Conversation)), None)
-
-    @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:
-        from toad.widgets.conversation import Contents
-
-        # Root containers own selection; nested pagers already inherit their
-        # outer message's category, not the synthetic Markdown fragment role.
-        return (self.parent.selected_categories
-                if self.is_attached and isinstance(self.parent, Contents) else all_categories())
+        """A saved viewer or nested pager shows every category; a conversation's history shows its filter."""
+        return all_categories()
 
     @property
     def drawn_extent(self) -> tuple[int, int]:
@@ -1353,6 +1342,10 @@ class ConversationHistory[ViewT: "Conversation"](LineHistory):
         self.view = view
         super().__init__(*args, **kwargs)
 
+    @property
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
+        return self.view.visible_categories
+
     async def show_newest(self, request: ReplacementViewportRequest, *,
                           arrivals: tuple[TranscriptFragment, ...] = (),
                           publication_current: Callable[[], bool] = lambda: True) -> bool:
@@ -1462,11 +1455,6 @@ class ProjectedTranscriptHistory(CommittedHistory):
     @property
     def state(self) -> TranscriptState:
         return super().state.for_projection(self, self._projection_owner())
-
-    @property
-    def selected_categories(self) -> frozenset[type[MessageCategory]]:
-        # Selection was applied by the source; the view never reinterprets it.
-        return all_categories()
 
     @property
     def follows_source_tail(self) -> bool:

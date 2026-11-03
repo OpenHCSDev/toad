@@ -77,10 +77,6 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
         return (await source.route_is_current()
                 and source is self.page_source and snapshot.current(self))
 
-    @property
-    def selected_categories(self):
-        return self.view.visible_categories
-
     # Reading the source
 
     async def read_changes(self) -> bool:

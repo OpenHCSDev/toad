@@ -1448,7 +1448,8 @@ class Conversation(
 
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
-        self.transcript.source_work_finished(message.publisher)
+        # The event bubbles from a history inside this conversation; the screen stops it.
+        self.transcript.source_work_finished(self)
 
     def on_worker_state_changed(self, message) -> None:
         if message.worker is self.transcript.worker and message.worker.is_finished:

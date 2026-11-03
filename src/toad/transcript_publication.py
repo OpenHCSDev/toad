@@ -908,8 +908,8 @@ class TranscriptPresentation:
         ):
             self.binding.request(self)
 
-    def source_work_finished(self, history) -> None:
-        if self.binding.matches(history.conversation):
+    def source_work_finished(self, view: Conversation) -> None:
+        if self.binding.matches(view):
             self.retry()
 
     async def close(self) -> None:
