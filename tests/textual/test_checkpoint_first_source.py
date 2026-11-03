@@ -31,7 +31,7 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         view = ui.conversation
         agent = ui.detached_agent("checkpoint-first")
         ui.attach_agent(agent)
-        agent.coordination = coordination = CoordinationChangedUpdate(
+        coordination = CoordinationChangedUpdate(
             thread=thread.incarnation, wire_root=str(workspace.roots.wire), owner=ProcessIdentity.capture(os.getpid()),
             worktree=str(workspace.project), model="test-model", thinking_level=None, title=thread.name,
             context_usage=UnmeasuredContext())

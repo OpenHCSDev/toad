@@ -103,7 +103,7 @@ class ACPAgentPresentation(AgentPresentation):
     @property
     def queue_supported(self) -> bool:
         """Advertisement belongs to the original coordination declaration."""
-        return self.agent.coordination is not None
+        return self.agent.supports_queue
 
     @property
     def queue_scope(self) -> QueueScope:
