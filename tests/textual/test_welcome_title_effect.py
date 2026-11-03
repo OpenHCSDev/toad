@@ -9,7 +9,7 @@ async def test_title_effect_and_list_observation_stop_while_the_view_is_hidden(w
         title, entries = app.screen.query_one(WelcomeTitle), app.screen.query_one(WelcomeEntries)
         clock, access = app.colours.clock, app.coordination_access
         await ui.until(lambda: title.played in title.effects, why="the title's effect to start")
-        animation = title.effects[title.played]
+        animation = title.effects[title.played].animation
         assert clock.running.get(animation) is title and animation.effect is title.played
         assert entries in access.sidebar_views
 

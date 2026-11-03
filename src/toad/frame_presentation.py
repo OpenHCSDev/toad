@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from collections.abc import Callable, Iterable
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ref
@@ -201,10 +201,19 @@ class FramePresentation:
 
 
 class EffectPhase:
-    """A running effect; its subclasses are the effect not yet started and finished."""
+    """Where an effect is: running, not yet started or finished. Only a running one moves."""
 
     # Whether the effect is moving now.
-    in_motion: ClassVar[bool] = True
+    in_motion: ClassVar[bool] = False
+
+    def shown[Shown: Frame](self, effect: Effect[Shown], visible: bool) -> Shown:
+        return effect.final
+
+    def now(self) -> EffectPhase:
+        return self
+
+    def stop(self) -> None:
+        """Nothing runs, so nothing stops."""
 
     def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
         return owner.paint_effects(strip, owner.effect_frame(effect))
@@ -216,9 +225,25 @@ class EffectPhase:
         """Arrivals during a running burst join its fade and reveal."""
 
 
-class EffectUnstarted(EffectPhase):
-    in_motion = False
+@dataclass(frozen=True)
+class EffectRunning(EffectPhase):
+    animation: Animation
+    in_motion = True
 
+    def shown[Shown: Frame](self, effect: Effect[Shown], visible: bool) -> Shown:
+        # The clock ticks only animation-visible targets, but an unfocused app or a
+        # covered screen still paints them: a frame frozen at the effect's start would
+        # leave an arrival's revealed rows blank and its fade at the background colour.
+        return self.animation.frame() if visible else effect.final
+
+    def now(self) -> EffectPhase:
+        return EFFECT_FINISHED if self.animation.finished else self
+
+    def stop(self) -> None:
+        self.animation.stop()
+
+
+class EffectUnstarted(EffectPhase):
     def paint(self, owner: AnimationEffects[Mix], effect: Effect[Mix], strip: Strip):
         owner.run_effect(effect)
         return super().paint(owner, effect, strip)
@@ -228,8 +253,6 @@ class EffectUnstarted(EffectPhase):
 
 
 class EffectFinished(EffectPhase):
-    in_motion = False
-
     def keeps_arrivals[Item](self, arrivals: Iterable[Item]) -> Iterable[Item]:
         return ()
 
@@ -240,7 +263,7 @@ class EffectFinished(EffectPhase):
         owner.arrivals_began()
 
 
-EFFECT_UNSTARTED, EFFECT_RUNNING, EFFECT_FINISHED = EffectUnstarted(), EffectPhase(), EffectFinished()
+EFFECT_UNSTARTED, EFFECT_FINISHED = EffectUnstarted(), EffectFinished()
 
 
 class AnimationEffects[FrameT: Frame](TonePaint):
@@ -250,7 +273,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.effects: dict[Effect, Animation] = {}
+        self.effects: dict[Effect, EffectRunning] = {}
         self.wanted: set[Effect] = set()
 
     def run_effect(self, effect: Effect) -> None:
@@ -264,7 +287,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         # A finite effect plays once; a continuous one resumes each time the widget shows.
         for effect in tuple(self.wanted):
             if effect not in self.effects:
-                self.effects[effect] = self.app.colours.clock.start(effect, self)
+                self.effects[effect] = EffectRunning(self.app.colours.clock.start(effect, self))
                 if effect.finite:
                     self.wanted.discard(effect)
 
@@ -274,19 +297,13 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         else:
             self.wanted.clear()
         for effect in effects or tuple(self.effects):
-            if animation := self.effects.pop(effect, None):
-                animation.stop()
+            self.effects.pop(effect, EFFECT_UNSTARTED).stop()
 
     def effect_frame[Shown: Frame](self, effect: Effect[Shown]) -> Shown:
-        # The clock ticks only animation-visible targets, but an unfocused app or a
-        # covered screen still paints them: a frame frozen at the effect's start would
-        # leave an arrival's revealed rows blank and its fade at the background colour.
-        animation = self.effects.get(effect)
-        return effect.final if animation is None or not self.animation_visible else animation.frame()
+        return self.effects.get(effect, EFFECT_UNSTARTED).shown(effect, self.animation_visible)
 
     def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
-        animation = self.effects.get(effect)
-        return EFFECT_UNSTARTED if animation is None else EFFECT_FINISHED if animation.finished else EFFECT_RUNNING
+        return self.effects.get(effect, EFFECT_UNSTARTED).now()
 
     async def on_unmount(self) -> None:
         self.stop_effect()
