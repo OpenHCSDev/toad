@@ -29,7 +29,9 @@ async def test_sdk_selection_preserves_resources_and_rejects_a_replaced_source(w
     await consumer.consume_metadata(encode_updates(update_for(workspace, "first-source")))
     first = agent.coordination
     selected_type = type(agent)
-    agent.require_owner(first, authority)
+    request = agent.capture_owner_request(authority)
+    assert request.coordination is first
+    request.require()
     assert authority.current
     await consumer.consume_metadata(encode_updates(update_for(workspace, "second-source")))
     assert type(agent) is selected_type
@@ -38,9 +40,11 @@ async def test_sdk_selection_preserves_resources_and_rejects_a_replaced_source(w
                agent.controller.session, agent.controller.terminals, agent.queue_attachment,
                agent.session.disposition)
     assert all(before is after for before, after in zip(resources, current, strict=True))
+    assert not request.current
+    assert not agent.owner_read(request).accepts_turn()
     with pytest.raises(ValueError, match="owner identity changed"):
-        agent.require_owner(first, authority)
-    agent.require_owner(agent.coordination, authority)
+        request.require()
+    agent.capture_owner_request(authority).require()
 
 
 async def test_project_change_keeps_the_sdk_worktree_type(workspace: Workspace):
