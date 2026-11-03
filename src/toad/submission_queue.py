@@ -12,6 +12,7 @@ from agent_comms.comms import Comms
 from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.message_reference import MessageReference
 from agent_comms.notification_assignment import NotificationSelection
+from agent_comms.nominal.field_codec import ThreadLookup
 from agent_comms.runtime_requests import ClearQueueRuntimeRequest, QueueActionRuntimeRequest, SendNowRuntimeRequest
 
 from toad.acp.queue_attachment import QueueActionRefused
@@ -43,8 +44,11 @@ class QueueEvidence:
     @cached_property
     def queued_recipients(self) -> tuple[FrozenRecipient, ...]:
         """Each original recipient still holding a visible message, once."""
-        return tuple(dict.fromkeys(recipient for entry in self.entries
-                                   for recipient in entry.status.queued_recipients))
+        recipients: dict[ThreadLookup, FrozenRecipient] = {}
+        for entry in self.entries:
+            for recipient in entry.status.queued_recipients:
+                recipients.setdefault(recipient.lookup, recipient)
+        return tuple(recipients.values())
 
 
 class QueueSource(ABC):
