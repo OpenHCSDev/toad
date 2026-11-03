@@ -1,6 +1,8 @@
-"""A fragment's key names its source occurrence: one Pi reply's thinking parts, which share the
-reply's position, are told apart by the ordinal Core gives each event of a record, so the reader,
-the details toggle and page lookup each find the right one."""
+"""Textual-facing: the frontend's render-sized fragments retain each source occurrence.
+
+One Pi reply's thinking parts share its position; Core's event ordinal distinguishes them
+for the reader, details toggle and page lookup, while split parts keep that source identity.
+"""
 
 from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript
 
