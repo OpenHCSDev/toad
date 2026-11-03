@@ -469,7 +469,7 @@ class WirePageBuffer(SavedHistory):
         )
         return TargetContext(
             view.app,
-            self.loader.comms,
+            view.app.coordination_access.observing(self.loader.comms.root),
             self.loader.conversation.destination(references),
             self.loader.me,
             self.loader.project,

@@ -10,14 +10,15 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING, Self
 
-from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
-from agent_comms.cli_command import CliCommand, TargetAction
+from agent_comms.cli_command import TargetAction
+from agent_comms.tools import CommsTargetActionsTool
 from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
+    from toad.comms_root import Observing
     from toad.app import ToadApp
     from toad.widgets.conversation import Conversation
 
@@ -29,7 +30,7 @@ class CommandContextChanged(CancelledError):
 @dataclass(frozen=True)
 class TargetContext:
     app: ToadApp
-    comms: Comms
+    observed: Observing
     subject: CommandTarget
     actor: str
     project: Checkout
@@ -51,15 +52,14 @@ class TargetContext:
         return ", ".join(names) if names else str(self.project)
 
     def current(self):
-        self.app.coordination_access.selected(self.comms.root)
+        self.app.coordination_access.selected(self.observed.root)
         return self
 
     def available_actions(self):
         access = self.app.coordination_access
-        selected = access.selected(self.comms.root)
-        actions = CliCommand.target_catalog(self.comms,
-            CliCommand.selected_targets(self.selection),
-            self.channel, project=self.project)
+        selected = access.selected(self.observed.root)
+        actions = self.observed.core.call(CommsTargetActionsTool(
+            project=self.project, targets=self.selection, channel=self.channel)).actions
         access.confirm(selected)
         return actions
 
@@ -70,7 +70,7 @@ class TargetContext:
         async def read():
             choices = await self.command_choices()
             if (not sidebar.is_attached or sidebar.app.selected_session is not source
-                    or not sidebar.model_state.serves(self.comms.root.resolve())
+                    or not sidebar.model_state.serves(self.observed.root.resolve())
                     or sidebar.app.screen is not selected_screen):
                 return
             show_target_menu(selected_screen, offset, self.title,
@@ -161,7 +161,7 @@ class DirectMessagesCommand(ViewCommand, declared_name="dm"):
 
     def available(self, ctx: TargetContext) -> bool:
         names = ctx.selected_targets
-        return len(names) == 1 and names[0] in ctx.comms.registry
+        return len(names) == 1 and names[0] in ctx.observed.registry()
 
     def execute(self, ctx: TargetContext) -> None:
         ctx.app.session_navigation.direct_messages(ctx.selected_targets[0])

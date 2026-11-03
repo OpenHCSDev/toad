@@ -52,7 +52,7 @@ class NewThreadAction(ApplicationAction):
         def prepare():
             ctx = TargetContext(
                 app,
-                app.coordination_access.observation.observed().service,
+                app.coordination_access.observation.observed(),
                 ProjectTarget(project),
                 "",
                 project,
