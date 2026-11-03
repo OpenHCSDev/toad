@@ -52,6 +52,7 @@ from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.conversation_actions import ConversationAction, WindowAction
 from toad.block_navigation import (
+    AbsentEntry,
     BlockCursor,
     ContentNavigation,
     ConversationEntry,
@@ -1127,7 +1128,7 @@ class Conversation(
             self.feedback.flash("Command interrupted", style="success")
 
     @property
-    def cursor_block(self) -> ConversationEntry | None:
+    def cursor_block(self) -> ConversationEntry | AbsentEntry:
         return self.navigation.current
 
     def draws_user_message(self, sent) -> bool:

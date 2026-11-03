@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from functools import cached_property
 from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
@@ -34,17 +34,19 @@ if TYPE_CHECKING:
 
 
 class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
-    @property
     @abstractmethod
-    def enters_from_prompt(self) -> bool: ...
+    def from_prompt(self, length: int) -> int:
+        """The block a move from the prompt enters; past the end when it enters none."""
 
 
 class UpCursor(OlderEnd, CursorDirection):
-    enters_from_prompt = True
+    def from_prompt(self, length: int) -> int:
+        return self.entry(length)
 
 
 class DownCursor(NewerEnd, CursorDirection):
-    enters_from_prompt = False
+    def from_prompt(self, length: int) -> int:
+        return length
 
 
 class BlockCursor(DeclaredFamily, affix="BlockCursor"):
@@ -302,15 +304,15 @@ class FragmentBlockCursor(BlockCursor):
 class ChildBlockCursor(BlockCursor):
     def __init__(self, block):
         super().__init__(block)
-        self._child = None
+        self._child: ConversationEntry | AbsentEntry = NO_ENTRY
 
     @property
-    def current(self):
-        return self._child if self._child in self.block.displayed_children else None
+    def current(self) -> ConversationEntry | AbsentEntry:
+        return self._child if self._child in self.block.displayed_children else NO_ENTRY
 
     @property
     def active(self):
-        return self.current.block_cursor.active if self.current is not None else NoBlockCursor()
+        return self.current.block_cursor.active
 
     @property
     def selected(self):
@@ -329,7 +331,7 @@ class ChildBlockCursor(BlockCursor):
             if self._child.block_cursor.enter(direction):
                 return True
             index += direction.step
-        self._child = None
+        self._child = NO_ENTRY
         return False
 
     def enter(self, direction: CursorDirection):
@@ -339,12 +341,7 @@ class ChildBlockCursor(BlockCursor):
 
     def move(self, direction: CursorDirection):
         child = self.current
-        if child is None:
-            return False
-        if child.block_cursor.move(direction):
-            return True
-        index = self.block.displayed_children.index(child) + direction.step
-        return self._enter_from(index, direction)
+        return child.block_cursor.move(direction) or child.enter_next(self, direction)
 
     def select(self, widget: Widget):
         for child in self.block.displayed_children:
@@ -354,9 +351,8 @@ class ChildBlockCursor(BlockCursor):
         return False
 
     def clear(self):
-        if self.current is not None:
-            self.current.block_cursor.clear()
-        self._child = None
+        self.current.block_cursor.clear()
+        self._child = NO_ENTRY
 
 
 class ConversationEntry(AnimationEffects[Mix], BlockContent):
@@ -393,6 +389,41 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     @cached_property
     def block_cursor(self) -> BlockCursor:
         return AtomicBlockCursor(self)
+
+    @property
+    def endpoints(self) -> tuple[Widget, ...]:
+        return (cast(Widget, self),)
+
+    def enter_next(self, cursor: ChildBlockCursor, direction: CursorDirection) -> bool:
+        return cursor._enter_from(cursor.block.displayed_children.index(self) + direction.step, direction)
+
+    def destination(self, blocks: Sequence[ConversationEntry], direction: CursorDirection) -> int:
+        return blocks.index(self) + direction.step
+
+
+class AbsentEntry:
+    """The cursor rests on no conversation entry: it selects, expands and protects nothing."""
+
+    block_cursor: ClassVar[BlockCursor] = NoBlockCursor()
+    # The widgets an interaction rests on, which a commit must not retire.
+    endpoints: ClassVar[tuple[Widget, ...]] = ()
+
+    def can_expand(self) -> bool:
+        return False
+
+    def is_block_expanded(self) -> bool:
+        return False
+
+    def enter_next(self, cursor: ChildBlockCursor, direction: CursorDirection) -> bool:
+        """Enter the child after this one; with no child there is none."""
+        return False
+
+    def destination(self, blocks: Sequence[ConversationEntry], direction: CursorDirection) -> int:
+        """The block a move from here enters: from the prompt, since the cursor rests on none."""
+        return direction.from_prompt(len(blocks))
+
+
+NO_ENTRY = AbsentEntry()
 
 
 class CategorizedBlock(ConversationEntry):
@@ -445,15 +476,15 @@ class SeparatedBlock(ConversationBlock, Widget):
 class ContentNavigation:
     def __init__(self, contents):
         self.contents = contents
-        self._current = None
+        self._current: ConversationEntry | AbsentEntry = NO_ENTRY
 
     @property
     def blocks(self):
         return self.contents.displayed_children
 
     @property
-    def current(self) -> ConversationEntry | None:
-        return self._current if self._current in self.blocks else None
+    def current(self) -> ConversationEntry | AbsentEntry:
+        return self._current if self._current in self.blocks else NO_ENTRY
 
     def accepts_menu_owner(self, owner: Widget) -> bool:
         for block in self.blocks:
@@ -462,11 +493,11 @@ class ContentNavigation:
         return False
 
     def clear(self) -> None:
-        self._current = None
+        self._current = NO_ENTRY
 
     @property
     def cursor(self) -> BlockCursor:
-        return self.current.block_cursor.active if self.current is not None else NoBlockCursor()
+        return self.current.block_cursor.active
 
     def move(self, direction: CursorDirection) -> None:
         blocks = self.blocks
@@ -474,21 +505,16 @@ class ContentNavigation:
             self.clear()
             return
         current = self.current
-        if current is None:
-            if not direction.enters_from_prompt:
-                return
-            destination = direction.entry(len(blocks))
-        else:
-            if current.block_cursor.move(direction):
-                return
-            destination = blocks.index(current) + direction.step
+        if current.block_cursor.move(direction):
+            return
+        destination = current.destination(blocks, direction)
         while 0 <= destination < len(blocks):
             block = blocks[destination]
             if block.block_cursor.enter(direction):
                 self._current = block
                 return
             destination += direction.step
-        if destination < 0 and current is not None:
+        if destination < 0:
             # At the oldest accepted block, Up clamps to its first source
             # root. Entering from Up would wrap back to its last root.
             current.block_cursor.enter(DownCursor())

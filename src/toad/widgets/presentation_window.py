@@ -15,6 +15,7 @@ from agent_comms.message_page import PageBounds
 from agent_comms.transcripts import TranscriptCursor
 from textual.geometry import Region
 from textual.screen import Screen
+from textual.widget import Widget
 from toad.work_preparation import WorkRevision
 
 if TYPE_CHECKING:
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
     from agent_comms.message_page import MessagePage
     from agent_comms.transcripts import TranscriptPage
     from agent_comms.ui_model.message_category import MessageCategory
-    from textual.widget import Widget
 
     from toad.transcript_preparation import (
         PreparedTranscriptPage,
@@ -35,10 +35,8 @@ if TYPE_CHECKING:
     from toad.wire_history import AfterSequence, WireCut, WireSource
 
 
-def protected_presentations(items: Iterable["Widget"], endpoints: Iterable["Widget"]) -> set["Widget"]:
+def protected_presentations(items: Iterable[Widget], endpoints: Iterable[Widget]) -> set[Widget]:
     """Resolve native selection/focus to its owning presentation, without geometry."""
-    from textual.widget import Widget
-
     candidates = set(items)
     protected = set()
     for endpoint in endpoints:
