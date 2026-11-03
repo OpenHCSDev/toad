@@ -1,6 +1,6 @@
 """Inputs for the existing agent-comms export and thread-import operations."""
 
-from textual.view import WidgetView
+from textual.view import FILL, WidgetView
 from toad.core import events as core_events
 
 from dataclasses import dataclass
@@ -43,7 +43,7 @@ from agent_comms.thread_management import ImportDirectory
 from textual import on
 from textual.app import App, ComposeResult
 from textual.message import Message
-from textual.containers import Vertical
+from textual.containers import HorizontalGroup, Vertical, VerticalScroll
 from toad.screens.modal import DismissibleScreen
 from toad.comms_root import CoordinationAccess
 from toad.application_lifetime import TerminalOutcome
@@ -54,8 +54,11 @@ from textual.widgets import Button, Input, Select, Static
 from textual.color import Color
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar, Unit
+from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
+from textual.css.styles import Styles
 from textual.geometry import Spacing
-from ui_theme.scheme import ForegroundColour, PrimaryColour, SurfaceColour
+from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
+from toad.native_layout import NativeLayout, NativeTheme
 from toad.app_node import ToadNode
 
 
@@ -206,17 +209,85 @@ class Transfers(ThemedApp[TerminalOutcome]):
                             group=type(request).declared_name, exclusive=True)
 
 
-class TransferDialog(DismissibleScreen[Transfer]):
-    DEFAULT_CSS = """
-    TransferDialog { align: center middle; background: $background 40%; }
-    TransferDialog #transfer-box {
-        width: 72; max-width: 95%; height: auto; max-height: 95%;
-        padding: 1 2; border: solid $primary; background: $surface;
-    }
-    TransferDialog Input, TransferDialog Select { width: 1fr; margin-bottom: 1; }
-    TransferDialog .transfer-actions { height: auto; width: 1fr; }
-    TransferDialog #transfer-error { color: $error; height: auto; }
-    """
+class TransferPanel(NativeLayout, NativeTheme, Vertical):
+    """One bounded frame; fields may scroll without displacing its actions."""
+
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("solid"), Variable(PrimaryColour.name)),
+        NativeDeclaration.of(Styles.background, Variable(SurfaceColour.name)),
+    )
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = 72
+        self.styles.max_width = Scalar(95, Unit.PERCENT, Unit.WIDTH)
+        self.styles.height = FILL
+        self.styles.max_height = Scalar(95, Unit.PERCENT, Unit.HEIGHT)
+        self.styles.padding = Spacing(1, 2, 1, 2)
+
+
+class TransferFields(VerticalScroll, can_focus=False):
+    """The native scroll viewport retains the actual field widgets and values."""
+
+
+class TransferActions(NativeLayout, HorizontalGroup):
+    """Actions occupy their own bottom row, never the scrolling fields."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.dock = "bottom"
+        self.styles.margin = Spacing(1, 0, 0, 0)
+
+
+class TransferField(NativeLayout):
+    """One field-spacing declaration shared by native text and choice controls."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = FILL
+        self.styles.margin = Spacing(0, 0, 1, 0)
+
+
+class TextField(TransferField, Input):
+    """A transfer's text entry, retaining Input's native editing behavior."""
+
+
+class ChoiceField[Value](TransferField, Select[Value]):
+    """A transfer's choice entry, retaining Select's native popup behavior."""
+
+
+class TransferError(NativeTheme, Static):
+    native_theme = (
+        NativeDeclaration.of(Styles.color, Variable(ErrorColour.name)),
+    )
+
+
+class TransferDialog(NativeLayout, NativeTheme, DismissibleScreen[Transfer]):
+    """Both transfer grammars share their frame, viewport and native dismissal."""
+
+    heading: ClassVar[str]
+    submit_label: ClassVar[str]
+    native_theme = (
+        NativeDeclaration.of(Styles.background, Variable(BackgroundColour.name), Percent(40)),
+    )
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.align = ("center", "middle")
+
+    def compose(self) -> ComposeResult:
+        with TransferPanel(id="transfer-box"):
+            yield Static(self.heading)
+            with TransferFields():
+                yield from self.fields()
+            yield TransferError("", id="transfer-error")
+            with TransferActions():
+                yield Button(self.submit_label, id="submit-transfer")
+                yield Button("Cancel", id="cancel-transfer", action=f"screen.{DismissAction.binding_name()}")
+
+    @abstractmethod
+    def fields(self) -> ComposeResult: ...
+
     def _error(self, error: str) -> None:
         self.query_one("#transfer-error", Static).update(error)
 
@@ -359,6 +430,8 @@ class DmScopeInput(ExportScopeInput):
 class WireExportDialog(TransferDialog):
     """Select destination, representation, scope and an explicit size ceiling."""
 
+    heading = "Export wire history (not a Pi session)"
+    submit_label = "Export"
     default_format: ClassVar[type[ExportFormatInput]] = JsonlFormatInput
     default_scope: ClassVar[type[ExportScopeInput]] = EverythingScopeInput
 
@@ -368,34 +441,29 @@ class WireExportDialog(TransferDialog):
 
     @cached_property
     def destination_input(self) -> Input:
-        return Input(str(self.default_format.destination(self.destination_stem)),
+        return TextField(str(self.default_format.destination(self.destination_stem)),
                      id="export-path", placeholder="Destination path")
 
     @cached_property
     def format_select(self) -> Select[type[ExportFormatInput]]:
-        return Select(
+        return ChoiceField(
             [(choice.label, choice) for choice in ExportFormatInput.members_with(ExportFormatInput)],
             value=self.default_format, id="export-format", allow_blank=False,
         )
 
     @cached_property
     def scope_select(self) -> Select[type[ExportScopeInput]]:
-        return Select(
+        return ChoiceField(
             [(choice.label, choice) for choice in ExportScopeInput.members_with(ExportScopeInput)],
             value=self.default_scope, id="export-scope", allow_blank=False,
         )
 
-    def compose(self) -> ComposeResult:
-        with Vertical(id="transfer-box"):
-            yield Static("Export wire history (not a Pi session)")
-            yield self.destination_input
-            yield self.format_select
-            yield self.scope_select
-            yield Input(id="export-target", placeholder="#channel or first,second (for DM)")
-            yield Input("5242880", id="export-limit", placeholder="Max bytes; empty = full")
-            yield Static("", id="transfer-error")
-            yield Button("Export", id="submit-transfer")
-            yield Button("Cancel", id="cancel-transfer", action=f"screen.{DismissAction.binding_name()}")
+    def fields(self) -> ComposeResult:
+        yield self.destination_input
+        yield self.format_select
+        yield self.scope_select
+        yield TextField(id="export-target", placeholder="#channel or first,second (for DM)")
+        yield TextField("5242880", id="export-limit", placeholder="Max bytes; empty = full")
 
     def on_mount(self) -> None:
         self.destination_input.focus()
@@ -430,25 +498,23 @@ class WireExportDialog(TransferDialog):
 class ThreadImportDialog(TransferDialog):
     """Create one stopped, resumable thread from OpenCode or Codex history."""
 
+    heading = "Thread Import: a stored harness session"
+    submit_label = "Import stopped thread"
+
     @cached_property
     def harness_select(self) -> Select[type[Harness]]:
         harnesses = Harness.members_with(Harness)
-        return Select(
+        return ChoiceField(
             [(harness.declared_name, harness) for harness in harnesses],
             value=harnesses[0], id="import-harness", allow_blank=False,
         )
 
-    def compose(self) -> ComposeResult:
-        with Vertical(id="transfer-box"):
-            yield Static("Thread Import: a stored harness session")
-            yield self.harness_select
-            yield Input(id="import-source", placeholder="Source JSON, database or rollout JSONL")
-            yield Input(id="import-name", placeholder="New thread name")
-            yield Input(id="import-session-id", placeholder="Session ID (OpenCode database only)")
-            yield Input(id="import-worktree", placeholder="Project directory override (optional)")
-            yield Static("", id="transfer-error")
-            yield Button("Import stopped thread", id="submit-transfer")
-            yield Button("Cancel", id="cancel-transfer", action=f"screen.{DismissAction.binding_name()}")
+    def fields(self) -> ComposeResult:
+        yield self.harness_select
+        yield TextField(id="import-source", placeholder="Source JSON, database or rollout JSONL")
+        yield TextField(id="import-name", placeholder="New thread name")
+        yield TextField(id="import-session-id", placeholder="Session ID (OpenCode database only)")
+        yield TextField(id="import-worktree", placeholder="Project directory override (optional)")
 
     def on_mount(self) -> None:
         self.query_one("#import-source", Input).focus()
