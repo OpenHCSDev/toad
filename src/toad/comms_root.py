@@ -15,7 +15,7 @@ import asyncio
 import threading
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, TypeVar
@@ -337,10 +337,11 @@ class ConnectorObservation(FailedObservation):
 
 @dataclass(frozen=True)
 class Observing(Observation):
-    selection: RouteSelection
-    service: Comms = field()
-    sidebar: SidebarModel = field()
+    """An observation answering through its process; where its Core is belongs to the member."""
+
+    sidebar: SidebarModel
     process: ObservationProcess = field(compare=False)
+    answering: ClassVar[type[AnsweringReads]]
 
     def queue_service(self) -> Comms:
         if not self.is_current():
@@ -351,12 +352,12 @@ class Observing(Observation):
         return await self.process.read(request)
 
     @property
+    @abstractmethod
     def root(self) -> Path:
         """The bus root this observation's Core serves; root-keyed requests and views key on it."""
-        return self.selection.root
 
     def observes(self, root: str | Path) -> bool:
-        return self.selection.root_is_current(root)
+        return Path(root).expanduser().resolve() == self.root
 
     def tab(self, entry: SessionEntry, sessions: SessionNavigation):
         return entry.tab(sessions, self)
@@ -366,22 +367,16 @@ class Observing(Observation):
             view.bind_observation(self)
 
     def uses(self, service: Comms) -> bool:
-        return self.service is service
+        return False
 
     @property
+    @abstractmethod
     def core(self) -> CoreAccess:
-        """Where this UI's requests to the observed Core are answered: in this process here;
-        a remote connection answers the same requests through the connector."""
-        return LocalCoreAccess(self.service)
+        """Where this UI's requests to the observed Core are answered."""
 
-    async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
-        if root is not None and not self.observes(root):
-            raise ValueError("Comms route changed before sorting")
-        return await access.preparation.run_thread(
-            access.write, self.selection, order.store_channel_order, self.service.channels, channel)
-
-    def require(self, access: CoordinationAccess, selected: RouteSelection):
-        return self if self.selection == selected else access.open_selected(selected)
+    @abstractmethod
+    def opened_selection(self) -> RouteSelection | UnselectedRoute:
+        """The local route this observation was opened for; a remote one has none."""
 
     def activate(self, access: CoordinationAccess):
         self.process.start_receiving(self.receive, self.receive_failed)
@@ -395,9 +390,7 @@ class Observing(Observation):
     def stop_updates(self) -> AnsweringReads:
         super().stop_updates()
         self.process.request(StopObserving())
-        return AnsweringReads(
-            self.selection, self.service, self.sidebar, self.process,
-            access=self.access, subscriptions=self.subscriptions, updates=self.updates)
+        return self.answering(**{item.name: getattr(self, item.name) for item in fields(self)})
 
     def retire(self, access: CoordinationAccess):
         task = asyncio.create_task(self.process.close())
@@ -410,7 +403,7 @@ class Observing(Observation):
 
     def receive_failed(self, error: Exception):
         if self.is_current():
-            self.failed(error, self.selection)
+            self.failed(error, self.opened_selection())
             self.access.app._handle_exception(error)
 
     def views_changed(self, event=None, subscription=None):
@@ -448,7 +441,12 @@ class Observing(Observation):
         self.process.request(wanted)
 
 class AnsweringReads(Observing):
-    """Interests have ended; acquired reads keep their process and release owners."""
+    """Interests have ended; acquired reads keep their process and release owners. Each
+    location's member declares the observation it answers for once interests stop."""
+
+    def __init_subclass__(cls, *, answers_for: type[Observing], **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        answers_for.answering = cls
 
     def stop_updates(self) -> AnsweringReads:
         return self
@@ -467,6 +465,66 @@ class AnsweringReads(Observing):
 
     def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
         pass
+
+
+@dataclass(frozen=True)
+class LocalObserving(Observing):
+    """Core in this process, opened for one validated route selection."""
+
+    selection: RouteSelection = field(kw_only=True)
+    service: Comms = field(kw_only=True)
+
+    @property
+    def root(self) -> Path:
+        return self.selection.root
+
+    def opened_selection(self) -> RouteSelection:
+        return self.selection
+
+    def uses(self, service: Comms) -> bool:
+        return self.service is service
+
+    @property
+    def core(self) -> CoreAccess:
+        return LocalCoreAccess(self.service)
+
+    async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
+        if root is not None and not self.observes(root):
+            raise ValueError("Comms route changed before sorting")
+        return await access.preparation.run_thread(
+            access.write, self.selection, order.store_channel_order, self.service.channels, channel)
+
+    def require(self, access: CoordinationAccess, selected: RouteSelection):
+        return self if self.selection == selected else access.open_selected(selected)
+
+
+@dataclass(frozen=True)
+class RemoteObserving(Observing):
+    """Core behind the connector: the connection answers requests, its peer carries observation."""
+
+    connection: RemoteCoreConnection = field(kw_only=True, compare=False)
+    served_root: Path = field(kw_only=True)
+
+    @property
+    def root(self) -> Path:
+        return self.served_root
+
+    def opened_selection(self) -> UnselectedRoute:
+        return UnselectedRoute()
+
+    @property
+    def core(self) -> CoreAccess:
+        return self.connection
+
+
+@dataclass(frozen=True)
+class LocalAnsweringReads(AnsweringReads, LocalObserving, answers_for=LocalObserving):
+    pass
+
+
+@dataclass(frozen=True)
+class RemoteAnsweringReads(AnsweringReads, RemoteObserving, answers_for=RemoteObserving):
+    pass
 
 
 class CoordinationAccess(MroDispatch):
@@ -539,17 +597,20 @@ class CoordinationAccess(MroDispatch):
             if service.root.resolve() != selected.root:
                 raise RouteChangedError("Comms route changed while opening the service")
             self.confirm(selected)
-            observed = Observing(
-                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
-                access=self)
-            observed.subscriptions.callback(observed.retire, self)
-            self.observation = observed
-            self.app.running_loop.call_soon_threadsafe(observed.attach, self, previous)
-            return observed
+            return self.adopt(previous, LocalObserving(
+                SidebarModel(self.app.call_next), ObservationProcess(service.route),
+                selection=selected, service=service, access=self))
 
         return RootRuntime.attachment(selected.root, LaunchRuntime.running()).proceed(
             attach, self.app.succeed_onto,
         )
+
+    def adopt[O: Observing](self, previous: Observation, observed: O) -> O:
+        """Make a newly opened observation current; it retires with its subscriptions."""
+        observed.subscriptions.callback(observed.retire, self)
+        self.observation = observed
+        self.app.running_loop.call_soon_threadsafe(observed.attach, self, previous)
+        return observed
 
     @handles(RevisionObserved)
     def revision_observed(self, result: RevisionObserved, observed: Observing) -> None:

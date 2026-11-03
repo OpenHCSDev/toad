@@ -60,10 +60,9 @@ class ThreadNavigator:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         access = app.coordination_access
-        comms = await app.preparation.run_thread(
-            lambda: access.observation.observed().service
-        )
-        requested_root = str(comms.root)
+        observed = await app.preparation.run_thread(access.observation.observed)
+        comms = observed.service
+        requested_root = str(observed.root)
         if not origin.current(self, owner_mode):
             return app.selected_mode
         identity = await app.preparation.run_thread(

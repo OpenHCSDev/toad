@@ -104,12 +104,11 @@ class CommsChatView(Conversation):
         # transcript readers. Its revision-aware caches remain model-owned.
         observed = await self.app.preparation.run_thread(
             lambda: self.app.coordination_access.observation.observed())
-        shared = observed.service
-        if self._bound_root is not None and self._bound_root != shared.root:
+        if self._bound_root is not None and self._bound_root != observed.root:
             raise ValueError(
-                f"Conversation root {self._bound_root} differs from observed root {shared.root}"
+                f"Conversation root {self._bound_root} differs from observed root {observed.root}"
             )
-        comms = shared
+        comms = observed.service
         await self.app.coordination_access.current_sidebar()
         source = WireSource(
             comms, self.conversation, self.project_path, self._me,
