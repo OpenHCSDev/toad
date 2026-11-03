@@ -31,8 +31,8 @@ from agent_comms.repo import Checkout
 from agent_comms.threads import Thread
 from agent_comms.remote_core import RemoteCoreAccess
 from agent_comms.channel_targets import NamedTarget
-from agent_comms.message_reference import MessageReference
 from toad.widgets.thread_comms_source import RelationshipReads
+from toad.core.context_reads import ContextReads
 from agent_comms.tools import (
     CommsMarkThreadViewReadTool, CommsRegistryTool, CommsServedRootTool, CommsSessionThreadTool,
     CommsUserSendTool,
@@ -384,7 +384,7 @@ class FailedObservation(Observation):
 
 
 @dataclass(frozen=True)
-class Observing(Observation, ReferencedCore, RelationshipReads):
+class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
     """An observation answering through its process; where its Core is belongs to the member."""
 
     sidebar: SidebarModel
