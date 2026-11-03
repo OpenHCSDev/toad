@@ -243,8 +243,8 @@ class Observation(ABC):
     def observed(self):
         return self
 
-    def queue_service(self) -> Comms:
-        raise RouteChangedError("The queue's original Comms source is unavailable")
+    def queue_observing(self) -> Observing:
+        raise RouteChangedError("The queue's original Core source is unavailable")
 
     @abstractmethod
     async def read(self, request: AwaitedRead) -> object: ...
@@ -392,10 +392,10 @@ class Observing(Observation, ReferencedCore):
     process: ObservationProcess = field(compare=False)
     answering: ClassVar[type[AnsweringReads]]
 
-    def queue_service(self) -> Comms:
+    def queue_observing(self) -> Observing:
         if not self.is_current():
-            raise RouteChangedError("The queue's original Comms source retired")
-        return self.service
+            raise RouteChangedError("The queue's original Core source retired")
+        return self
 
     async def read(self, request: AwaitedRead) -> object:
         return await self.process.read(request)
