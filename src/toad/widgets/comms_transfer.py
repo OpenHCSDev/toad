@@ -18,6 +18,7 @@ from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
 from agent_comms.comms import Comms
 from agent_comms.cli_result import CliResult
 from agent_comms.importing import ThreadImported
+from agent_comms.tools import CommsImportThreadTool
 from agent_comms.route_selection import RouteSelection
 
 from agent_comms.exporting import (
@@ -37,7 +38,7 @@ from agent_comms.exporting import (
     WireExportLimit,
     WireExportScope,
 )
-from agent_comms.cli_bridges.history import ExpectedSession, OfflineHistory
+from agent_comms.cli_bridges.history import ExpectedSession
 from agent_comms.harness_install import Harness
 from agent_comms.thread_management import ImportDirectory
 from textual import on
@@ -89,12 +90,9 @@ class TransferRequest[Result: CliResult](Transfer):
     cancelled_by: ClassVar[tuple[type[BaseException], ...]] = ()
 
     @abstractmethod
-    def apply(self, comms: Comms, observer: TransferProgress) -> Result: ...
-
     def perform(self, access: CoordinationAccess, selected: RouteSelection,
                 observer: TransferProgress) -> Result:
-        comms = access.require(selected).service
-        return access.write(selected, self.apply, comms, observer)
+        """Run this transfer against the selected route's Core, reporting progress to observer."""
 
     async def execute(self, app: Transfers, selected: RouteSelection) -> None:
         try:
@@ -179,9 +177,11 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
     def dialog(cls, selected: RouteSelection) -> ThreadImportDialog:
         return ThreadImportDialog()
 
-    def apply(self, comms: Comms, observer: TransferProgress) -> ThreadImported:
-        return comms.threads.import_thread(OfflineHistory.stored(self.harness, self.source, self.session),
-                                          name=self.name, worktree=self.worktree)
+    def perform(self, access: CoordinationAccess, selected: RouteSelection,
+                observer: TransferProgress) -> ThreadImported:
+        return access.write(selected, access.observing(selected.root).core.call, CommsImportThreadTool(
+            source=self.source, harness=self.harness, name=self.name, session=self.session,
+            worktree=self.worktree))
 
     def completed(self, app: Transfers, result: ThreadImported) -> None:
         app.events.publish(core_events.ThreadRowStateChanged(frozenset((result.thread,))))
