@@ -5,7 +5,9 @@ import asyncio
 from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated
 
-from agent_comms.cli_command import TargetAction
+from agent_comms.cli_command import PreparedTargetAction
+from agent_comms.core_access import CoreAccess
+from agent_comms.tools import CommsPrepareTargetActionTool
 from agent_comms.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.nominal.field_codec import compile_decoder
@@ -155,9 +157,10 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
     CommandDialog TextArea { height: 5; }
     """
 
-    def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...]):
+    def __init__(self, definition: PreparedTargetAction, target: str, fields: tuple[TargetField, ...],
+                 core: CoreAccess):
         super().__init__()
-        self.definition, self.target = definition, target
+        self.definition, self.target, self.core = definition, target, core
         self.choices = {}
         declarations = []
         for parameter in fields:
@@ -208,8 +211,8 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
     async def refresh_catalogs(self, arguments):
         self.query_one('#command-apply', Button).disabled = True
         edited = self.definition.edited(arguments)
-        fields = await self.app.preparation.run_thread(
-            lambda: asyncio.run(edited.prepare_fields()))
+        fields = (await self.app.preparation.run_thread(
+            lambda: self.core.call(CommsPrepareTargetActionTool(action=edited)))).fields
         if not self.is_attached or arguments != self.arguments():
             return
         for parameter in fields:
