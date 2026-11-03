@@ -946,7 +946,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         if not head_placement.head_hidden(window, message_height):
             return fragment
         lines = head.lines_for(width, theme)
-        if lines is None or (span := lines.block_span(lambda span: span.drawn)) is None:
+        if (span := lines.block_span(lambda span: span.drawn)) is None:
             return fragment
         async with window.history_lock:
             if not current():
