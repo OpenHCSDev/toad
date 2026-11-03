@@ -53,6 +53,7 @@ from toad.conversation_submission import (
     PromptInputSubmission, ConversationSubmissions, NoSend, SendPending, SendState, SubmissionExecution,
 )
 from toad.platform import host
+from toad.acp.session_agent import SessionAgent
 
 
 def generate_datetime_filename(
@@ -81,7 +82,7 @@ def generate_datetime_filename(
 
 
 @rich.repr.auto
-class Agent(AgentBase):
+class Agent(AgentBase, SessionAgent):
     comms_consumer_class = CommsUpdateConsumer
 
     @property
@@ -114,7 +115,7 @@ class Agent(AgentBase):
             log_path = paths.get_log() / log_filename
         self._presentation = ACPAgentPresentation(self, log_path)
         self.permissions = PermissionController(self)
-        self.coordination_attachment: CoordinationAttachment = CoordinationAttachment()
+        self.coordination_attachment = CoordinationAttachment()
         self.controller = AgentController(self, transcripts)
         self.tools = SessionToolCalls(self)
         self.session_id = session_id
@@ -324,7 +325,7 @@ class NativeInputPresented(SendState):
 class NativeSubmissionExecution(SubmissionExecution):
     """ACP owns its captured request and native acknowledgement, not the shared transaction."""
 
-    def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission, agent: Agent):
+    def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission, agent: SessionAgent):
         super().__init__(owner, submission)
         self.agent = agent
         self.authority = ClientSessionRequest(agent, agent.session_id)

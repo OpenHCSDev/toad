@@ -15,7 +15,6 @@ from agent_comms.turn_lease import TurnState
 from agent_comms.ui_model.status import ThreadStatusModel
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Agent
     from toad.core_event_carrier import CoreEventMessage
 
 
@@ -195,7 +194,7 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
 
 
 class LocalTurnBinding(TurnBinding):
-    def __init__(self, agent=None):
+    def __init__(self):
         self._owner = NoTurn()
 
     @property
@@ -231,8 +230,7 @@ class LocalTurnBinding(TurnBinding):
 class ManagedTurnBinding(TurnBinding):
     managed = True
 
-    def __init__(self, agent: Agent):
-        self.agent = agent
+    def __init__(self):
         self._owner = ManagedTurn()
         self.sequence = 0
 

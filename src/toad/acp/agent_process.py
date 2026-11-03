@@ -8,7 +8,7 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from acp import Client, ClientSideConnection, schema
 from acp.connection import StreamDirection, StreamEvent
@@ -28,12 +28,11 @@ from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
 from toad.resource_release import AsyncResourceRelease
 
-if TYPE_CHECKING:
-    from toad.acp.agent import Agent
+from toad.acp import session_agent
 
 
 class AgentProcess(Client):
-    def __init__(self, agent: Agent) -> None:
+    def __init__(self, agent: session_agent.SessionAgent) -> None:
         self.agent = agent
         self.process: AttachedChild | None = None
         self.connection: ClientSideConnection | None = None
@@ -50,12 +49,12 @@ class AgentProcess(Client):
             raise ConnectionError('ACP process is not connected')
         return self.connection
 
-    def accepts_attachment(self, agent: Agent, env: dict[str, str], cwd: str,
+    def accepts_attachment(self, agent: session_agent.SessionAgent, env: dict[str, str], cwd: str,
                            selection: RouteSelection) -> bool:
         """An unconfigured group has no reusable child."""
         return False
 
-    async def start(self, agent: Agent, processes: tuple[AgentProcess, ...]=()) -> AgentProcess:
+    async def start(self, agent: session_agent.SessionAgent, processes: tuple[AgentProcess, ...]=()) -> AgentProcess:
         agent.session.reopen()
         agent.session.starting()
         await asyncio.to_thread(
@@ -83,7 +82,7 @@ class AgentProcess(Client):
         connection.runner = asyncio.create_task(connection.run())
         return connection
 
-    async def prepare_prompt(self, agent: Agent, require: Callable[[], None]) -> None:
+    async def prepare_prompt(self, agent: session_agent.SessionAgent, require: Callable[[], None]) -> None:
         raise ConnectionError('ACP process has no selected launch')
 
     def observe_stream(self, event: StreamEvent) -> None:
@@ -266,7 +265,7 @@ class AgentProcess(Client):
 class ConfiguredAgentProcess(AgentProcess):
     """One original launch, selected before its asynchronous resources arrive."""
 
-    def __init__(self, agent: Agent, env: dict[str, str], cwd: str,
+    def __init__(self, agent: session_agent.SessionAgent, env: dict[str, str], cwd: str,
                  selection: RouteSelection, command: str) -> None:
         super().__init__(agent)
         self.env = env
@@ -274,7 +273,7 @@ class ConfiguredAgentProcess(AgentProcess):
         self.route_selection = selection
         self.command = command
 
-    def accepts_attachment(self, agent: Agent, env: dict[str, str], cwd: str,
+    def accepts_attachment(self, agent: session_agent.SessionAgent, env: dict[str, str], cwd: str,
                            selection: RouteSelection) -> bool:
         return (self.runner is not None and not self.runner.done()
                 and self.retirement is None and self.process is not None
@@ -285,7 +284,7 @@ class ConfiguredAgentProcess(AgentProcess):
                 and agent.session_id is not None
                 and all(member.agent.session_id != agent.session_id for member in self.sessions))
 
-    async def prepare_prompt(self, agent: Agent, require: Callable[[], None]) -> None:
+    async def prepare_prompt(self, agent: session_agent.SessionAgent, require: Callable[[], None]) -> None:
         """Prepare against the route captured before this launch."""
         access = agent.controller.transcripts.access
         await access.preparation.run_thread(partial(access.require, self.route_selection))

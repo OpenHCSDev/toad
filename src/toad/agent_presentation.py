@@ -4,7 +4,6 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.acp_extension import NoQueueScope, PendingQueueProjection, QueueProjection, QueueScope
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
@@ -12,8 +11,7 @@ from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBin
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.slash_command import AgentAdvertisedCommand
 
-if TYPE_CHECKING:
-    from toad.acp.agent import Agent
+from toad.acp import session_agent
 
 
 @dataclass(frozen=True)
@@ -26,7 +24,7 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
     TURN_BINDING: type[TurnBinding]
     def __init__(self, agent):
         self.agent = agent
-        self.turns = self.TURN_BINDING(agent)
+        self.turns = self.TURN_BINDING()
 
     @property
     def log_path(self) -> Path | None:
@@ -91,10 +89,13 @@ class LocalAgentPresentation(AgentPresentation):
         return AgentAttachmentView(HiddenCursorStatus, 0)
 
 
-class ACPAgentPresentation(AgentPresentation):
+class OperationalAgentPresentation(AgentPresentation, declared_name=None):
+    """The process-backed capability; callers need not name its concrete member."""
+
+    agent: session_agent.SessionAgent
     TURN_BINDING = LocalTurnBinding
 
-    def __init__(self, agent: Agent, log_path: Path) -> None:
+    def __init__(self, agent: session_agent.SessionAgent, log_path: Path) -> None:
         super().__init__(agent)
         self._log_path = log_path
 
@@ -148,7 +149,7 @@ class ACPAgentPresentation(AgentPresentation):
 
     def managed_turns(self):
         if not self.turns.managed:
-            self.turns = ManagedTurnBinding(self.agent)
+            self.turns = ManagedTurnBinding()
         return self.turns
 
     @property
@@ -159,3 +160,7 @@ class ACPAgentPresentation(AgentPresentation):
     def attachments(self):
         agent = self.agent
         return AgentAttachmentView(agent._private_cursor.status, agent._private_cursor_sequence)
+
+
+class ACPAgentPresentation(OperationalAgentPresentation):
+    """The ACP member retains its identity and inherits its operational behavior."""

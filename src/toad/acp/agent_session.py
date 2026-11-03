@@ -8,7 +8,6 @@ import os
 from collections.abc import Coroutine
 from dataclasses import replace
 from functools import partial
-from typing import TYPE_CHECKING
 
 from acp import ClientSideConnection, schema
 from acp.exceptions import RequestError
@@ -44,8 +43,7 @@ from toad.core.events import (
 )
 from toad.db import DB, SessionMeta
 
-if TYPE_CHECKING:
-    from toad.acp.agent import Agent
+from toad.acp import session_agent
 
 PROTOCOL_VERSION = 1
 
@@ -59,7 +57,7 @@ class AgentSession(SessionLifetime):
 
     reconnect_timeout_seconds = 30
 
-    def __init__(self, agent: Agent, pk, app_events: core_events.CoreEventStream) -> None:
+    def __init__(self, agent: session_agent.SessionAgent, pk, app_events: core_events.CoreEventStream) -> None:
         self.agent = agent
         # The app's stream: its thread rows show this session's state, attached to a view or not.
         self.app_events = app_events

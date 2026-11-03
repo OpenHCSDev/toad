@@ -39,6 +39,7 @@ from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
 
 if TYPE_CHECKING:
+    from toad.acp import session_agent
     from collections.abc import Awaitable, Callable, Coroutine
     from pathlib import Path
 
@@ -46,7 +47,6 @@ if TYPE_CHECKING:
     from agent_comms.acp_extension import QueueScope, TranscriptSnapshotUpdate
     from pydantic import JsonValue
 
-    from toad.acp.agent import Agent
     from toad.acp.coordination_attachment import CoordinationAttachment
     from toad.render_backend import Renderer, RenderTask
 
@@ -131,7 +131,7 @@ class ProcessTaskRunner(TaskRunner):
 class AgentController(SessionCloseTarget, OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
 
-    def __init__(self, agent: Agent, transcripts: CoordinationTranscriptReader) -> None:
+    def __init__(self, agent: session_agent.SessionAgent, transcripts: CoordinationTranscriptReader) -> None:
         super().__init__(agent)
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.task_runner: TaskRunner = ThreadTaskRunner()

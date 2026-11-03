@@ -34,14 +34,14 @@ from toad.plan import decode_plan
 from toad.project_link import AcpLogLink
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Agent
+    from toad.acp import session_agent
     from toad.acp.comms_updates import CommsUpdateConsumer
 
 
 class SessionUpdateEffect(MroDispatch):
     """Effect registrations consume official SDK declarations, never raw shapes."""
 
-    def __init__(self, agent: Agent, consumer: CommsUpdateConsumer):
+    def __init__(self, agent: session_agent.SessionAgent, consumer: CommsUpdateConsumer):
         self.agent, self.consumer = agent, consumer
 
     def require_supported(self, notification: SessionNotification):
@@ -96,7 +96,7 @@ class SessionUpdateEffect(MroDispatch):
 
 
 class MessageContentEffect(MroDispatch):
-    def __init__(self, agent: Agent):
+    def __init__(self, agent: session_agent.SessionAgent):
         self.agent = agent
 
     @handles(TextContentBlock)
@@ -120,7 +120,7 @@ class ThoughtContentEffect(MessageContentEffect):
 
 
 class AgentContentEffect(MessageContentEffect):
-    def __init__(self, agent: Agent, stream: ResponseStream):
+    def __init__(self, agent: session_agent.SessionAgent, stream: ResponseStream):
         super().__init__(agent)
         self.stream = stream
 
@@ -132,7 +132,7 @@ class AgentContentEffect(MessageContentEffect):
 
 
 class SessionNotificationOwner(ClientRequestOwner):
-    def __init__(self, agent: Agent):
+    def __init__(self, agent: session_agent.SessionAgent):
         super().__init__(agent)
         self.lock = asyncio.Lock()
 

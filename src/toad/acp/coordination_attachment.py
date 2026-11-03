@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, PromptRequest, QueueScope
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
@@ -28,8 +27,7 @@ from toad.acp.thread_read import NoPendingThreadRead, PendingThreadRead, ThreadR
 from toad.acp.tool_source import AssignedToolCallSource, ToolCallSource, UncoordinatedToolCallSource
 from toad.core.events import CoreEventStream, ThreadRowStateChanged
 
-if TYPE_CHECKING:
-    from toad.acp.agent import Agent
+from toad.acp import session_agent
 
 
 class CoordinationAttachment:
@@ -57,60 +55,60 @@ class CoordinationAttachment:
     def accepts_read(self, identity: TranscriptReadIdentity) -> bool:
         return False
 
-    def require_current(self, agent: Agent, authority: ClientSessionRequest) -> None:
+    def require_current(self, agent: session_agent.SessionAgent, authority: ClientSessionRequest) -> None:
         raise ValueError(self.retired_notice)
 
     def require_source(self, update: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
         raise ValueError(self.retired_notice)
 
-    def publish(self, agent: Agent, binding: SessionBinding) -> None:
+    def publish(self, agent: session_agent.SessionAgent, binding: SessionBinding) -> None:
         """No coordination publication exists."""
 
     def publish_row_state(self, events: CoreEventStream) -> None:
         """No coordinated thread row changed."""
 
-    def thread_read(self, agent: Agent) -> ThreadRead:
+    def thread_read(self, agent: session_agent.SessionAgent) -> ThreadRead:
         return NoPendingThreadRead()
 
-    def finish_prompt(self, agent: Agent, authority: ClientSessionRequest) -> None:
+    def finish_prompt(self, agent: session_agent.SessionAgent, authority: ClientSessionRequest) -> None:
         """No coordinated turn needs a canonical read."""
 
-    async def prepare_command(self, agent: Agent, command: PromptRequest,
+    async def prepare_command(self, agent: session_agent.SessionAgent, command: PromptRequest,
                               authority: ClientSessionRequest, scope: QueueScope) -> PromptRequest:
         return command
 
-    def require_input_source(self, agent: Agent, authority: ClientSessionRequest) -> None:
+    def require_input_source(self, agent: session_agent.SessionAgent, authority: ClientSessionRequest) -> None:
         if agent.coordination_attachment is not self:
             raise ValueError(self.changed_notice)
 
-    def supports_images(self, agent: Agent) -> bool:
+    def supports_images(self, agent: session_agent.SessionAgent) -> bool:
         return agent.session.supports_images
 
-    async def request_owner(self, agent: Agent, method: str, **params: JsonValue):
+    async def request_owner(self, agent: session_agent.SessionAgent, method: str, **params: JsonValue):
         raise ValueError("This action requires an agent-comms thread.")
 
-    async def input_delivery(self, agent: Agent, *, include_history: bool = False) -> DeliveryView:
+    async def input_delivery(self, agent: session_agent.SessionAgent, *, include_history: bool = False) -> DeliveryView:
         return DeliveryView()
 
-    async def goal_snapshot(self, agent: Agent) -> GoalSnapshot:
+    async def goal_snapshot(self, agent: session_agent.SessionAgent) -> GoalSnapshot:
         return GoalSnapshot(NoGoal(), IdleGoalExecution())
 
-    async def update_project(self, agent: Agent, path: str) -> str:
+    async def update_project(self, agent: session_agent.SessionAgent, path: str) -> str:
         raise ValueError("Project changes require an agent-comms thread.")
 
-    def apply_project(self, agent: Agent, project: Checkout) -> None:
+    def apply_project(self, agent: session_agent.SessionAgent, project: Checkout) -> None:
         raise ValueError(self.retired_notice)
 
-    async def rename(self, agent: Agent, name: str) -> None:
+    async def rename(self, agent: session_agent.SessionAgent, name: str) -> None:
         """A non-coordinated session has no managed thread to rename."""
 
-    def apply_name(self, agent: Agent, name: str, title: str) -> None:
+    def apply_name(self, agent: session_agent.SessionAgent, name: str, title: str) -> None:
         raise ValueError(self.retired_notice)
 
-    def rename_if_different(self, agent: Agent, name: str) -> None:
+    def rename_if_different(self, agent: session_agent.SessionAgent, name: str) -> None:
         """No coordinated title needs synchronization."""
 
-    async def observe_owner(self, agent: Agent, presentation: ThreadPresentation) -> None:
+    async def observe_owner(self, agent: session_agent.SessionAgent, presentation: ThreadPresentation) -> None:
         """No coordinated process can supersede this attachment."""
 
     async def prepare_login(self, view: SessionLoginTarget) -> None:
@@ -146,7 +144,7 @@ class CoordinatedThread(CoordinationAttachment):
     def accepts_read(self, identity: TranscriptReadIdentity) -> bool:
         return self.matches_identity(identity.root, identity.thread.incarnation)
 
-    def require_current(self, agent: Agent, authority: ClientSessionRequest) -> None:
+    def require_current(self, agent: session_agent.SessionAgent, authority: ClientSessionRequest) -> None:
         agent.coordination_attachment.require_source(self.update, authority)
 
     def require_source(self, update: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
@@ -155,27 +153,27 @@ class CoordinatedThread(CoordinationAttachment):
         if not self.matches_source(update):
             raise ValueError(self.changed_notice)
 
-    def publish(self, agent: Agent, binding: SessionBinding) -> None:
+    def publish(self, agent: session_agent.SessionAgent, binding: SessionBinding) -> None:
         agent.events.publish(binding.publication(self.update))
 
     def publish_row_state(self, events: CoreEventStream) -> None:
         events.publish(ThreadRowStateChanged(frozenset((self.update.thread.name,))))
 
-    def thread_read(self, agent: Agent) -> ThreadRead:
+    def thread_read(self, agent: session_agent.SessionAgent) -> ThreadRead:
         authority = ClientSessionRequest(agent, agent.session_id)
         return PendingThreadRead(
             self, authority,
             OwnerSnapshotConsumer(agent, authority.binding.require_session_id(), turn_token=agent.presentation.turns.sequence),
         )
 
-    def finish_prompt(self, agent: Agent, authority: ClientSessionRequest) -> None:
+    def finish_prompt(self, agent: session_agent.SessionAgent, authority: ClientSessionRequest) -> None:
         agent.controller.start_operation(self.reconcile(agent, authority))
 
-    async def reconcile(self, agent: Agent, authority: ClientSessionRequest) -> None:
+    async def reconcile(self, agent: session_agent.SessionAgent, authority: ClientSessionRequest) -> None:
         self.require_current(agent, authority)
         await agent.thread_read().reconcile(agent.controller.transcripts)
 
-    async def prepare_command(self, agent: Agent, command: PromptRequest,
+    async def prepare_command(self, agent: session_agent.SessionAgent, command: PromptRequest,
                               authority: ClientSessionRequest, scope: QueueScope) -> PromptRequest:
         self.require_current(agent, authority)
         comms = await agent.controller.transcripts.service(self.update.wire_root)
@@ -184,13 +182,13 @@ class CoordinatedThread(CoordinationAttachment):
         self.require_current(agent, authority)
         return replace(command, origin=origin)
 
-    def require_input_source(self, agent: Agent, authority: ClientSessionRequest) -> None:
+    def require_input_source(self, agent: session_agent.SessionAgent, authority: ClientSessionRequest) -> None:
         self.require_current(agent, authority)
 
-    def supports_images(self, agent: Agent) -> bool:
+    def supports_images(self, agent: session_agent.SessionAgent) -> bool:
         return True
 
-    async def request_owner(self, agent: Agent, method: str, **params: JsonValue):
+    async def request_owner(self, agent: session_agent.SessionAgent, method: str, **params: JsonValue):
         authority = ClientSessionRequest(agent, agent.session_id)
         self.require_current(agent, authority)
         comms = await agent.controller.transcripts.service(self.update.wire_root)
@@ -213,7 +211,7 @@ class CoordinatedThread(CoordinationAttachment):
         finally:
             await proxy.close()
 
-    async def input_delivery(self, agent: Agent, *, include_history: bool = False) -> DeliveryView:
+    async def input_delivery(self, agent: session_agent.SessionAgent, *, include_history: bool = False) -> DeliveryView:
         authority = ClientSessionRequest(agent, agent.session_id)
         overview = await agent.controller.transcripts.read(ReadOwnerOperation(
             self.update.wire_root, self.update.thread,
@@ -222,7 +220,7 @@ class CoordinatedThread(CoordinationAttachment):
         self.require_current(agent, authority)
         return ReadDeliveryView(overview)
 
-    async def goal_snapshot(self, agent: Agent) -> GoalSnapshot:
+    async def goal_snapshot(self, agent: session_agent.SessionAgent) -> GoalSnapshot:
         authority = ClientSessionRequest(agent, agent.session_id)
         consumer = OwnerSnapshotConsumer(agent, authority.binding.require_session_id(),
                                          turn_token=agent.presentation.turns.sequence)
@@ -233,7 +231,7 @@ class CoordinatedThread(CoordinationAttachment):
             consumer.dispatch_sync(fact)
         return snapshot
 
-    async def update_project(self, agent: Agent, path: str) -> str:
+    async def update_project(self, agent: session_agent.SessionAgent, path: str) -> str:
         authority = ClientSessionRequest(agent, agent.session_id)
         self.require_current(agent, authority)
         comms = await agent.controller.transcripts.service(self.update.wire_root)
@@ -243,12 +241,12 @@ class CoordinatedThread(CoordinationAttachment):
         agent.coordination_attachment.apply_project(agent, Checkout(Path(result.current)))
         return result.current
 
-    def apply_project(self, agent: Agent, project: Checkout) -> None:
+    def apply_project(self, agent: session_agent.SessionAgent, project: Checkout) -> None:
         agent.coordination_attachment = replace(self, update=replace(self.update, worktree=project))
         agent.project_root_path = project.path
         agent.coordination_attachment.publish(agent, agent.controller.session)
 
-    async def rename(self, agent: Agent, name: str) -> None:
+    async def rename(self, agent: session_agent.SessionAgent, name: str) -> None:
         if not agent.session.accepts_session(agent.session_id):
             return
         authority = ClientSessionRequest(agent, agent.session_id)
@@ -263,16 +261,16 @@ class CoordinatedThread(CoordinationAttachment):
         agent.coordination_attachment.apply_name(agent, result.current, name)
         agent.coordination_attachment.publish(agent, authority.binding)
 
-    def apply_name(self, agent: Agent, name: str, title: str) -> None:
+    def apply_name(self, agent: session_agent.SessionAgent, name: str, title: str) -> None:
         agent.coordination_attachment = replace(self, update=replace(
             self.update, thread=replace(self.update.thread, name=name), title=title,
         ))
 
-    def rename_if_different(self, agent: Agent, name: str) -> None:
+    def rename_if_different(self, agent: session_agent.SessionAgent, name: str) -> None:
         if self.update.title != name:
             agent.session.start_operation(self.rename(agent, name))
 
-    async def observe_owner(self, agent: Agent, presentation: ThreadPresentation) -> None:
+    async def observe_owner(self, agent: session_agent.SessionAgent, presentation: ThreadPresentation) -> None:
         session = agent.session
         if not session.settled.is_set() or session.reconnecting:
             return

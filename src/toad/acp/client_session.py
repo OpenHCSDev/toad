@@ -19,14 +19,14 @@ from .session_disposition import SessionDisposition
 from .status import ConfirmedPromptResult, PromptResult, PromptSubmissionOutcome, StopReason
 
 if TYPE_CHECKING:
-    from .agent import Agent
+    from toad.acp import session_agent
     from .agent_controller import SessionBinding
 from acp.exceptions import RequestError
 
 
 @dataclass(frozen=True)
 class ClientSessionRequest:
-    agent: "Agent"
+    agent: "session_agent.SessionAgent"
     session_id: AcpSessionId | None
     disposition: "SessionDisposition" = field(init=False)
     binding: "SessionBinding" = field(init=False)
@@ -108,7 +108,7 @@ class UnfinishedPromptResult(PromptResult):
                 failure.title, failure.feedback, log_path=agent.presentation.log_path))
 
     @abstractmethod
-    def report_failure(self, agent: Agent, event: LogAgentFail) -> None: ...
+    def report_failure(self, agent: session_agent.SessionAgent, event: LogAgentFail) -> None: ...
 
     def require_confirmation(self) -> StopReason:
         raise QueueActionRefused(
@@ -119,7 +119,7 @@ class UnfinishedPromptResult(PromptResult):
 class FailedPromptResult(UnfinishedPromptResult):
     """A negative reply preserves the session, not a claim that input was accounted for."""
 
-    def report_failure(self, agent: Agent, event: LogAgentFail) -> None:
+    def report_failure(self, agent: session_agent.SessionAgent, event: LogAgentFail) -> None:
         agent.events.publish(event)
 
 
@@ -133,7 +133,7 @@ class ResolvedFailurePromptResult(ConfirmedPromptResult, FailedPromptResult):
 class UnconfirmedPromptResult(UnfinishedPromptResult):
     """The captured request lost its reply or authority; it grants no retry."""
 
-    def report_failure(self, agent: Agent, event: LogAgentFail) -> None:
+    def report_failure(self, agent: session_agent.SessionAgent, event: LogAgentFail) -> None:
         agent.session.record_failure(event)
 
 
@@ -146,7 +146,7 @@ class QueueSessionRequest(ClientSessionRequest):
 
 
 class ClientRequestOwner:
-    def __init__(self, agent: Agent):
+    def __init__(self, agent: session_agent.SessionAgent):
         self.agent = agent
 
     def session_request(self, session_id: str) -> ClientSessionRequest:
