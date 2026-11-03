@@ -1,5 +1,6 @@
 """A fragment's key names its source occurrence: one Pi reply's thinking parts, which share the
-reply's position, are different messages to the reader, the details toggle and page lookup."""
+reply's position, are told apart by the ordinal Core gives each event of a record, so the reader,
+the details toggle and page lookup each find the right one."""
 
 from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript
 
@@ -13,9 +14,9 @@ def fragments(*events):
 def test_thinking_parts_of_one_reply_have_distinct_keys():
     reply = 7
     built = fragments(
-        ThinkingTranscript("First thought", position=reply, timestamp=0.0),
-        AssistantTranscript("Calling a tool", position=reply, timestamp=0.0),
-        ThinkingTranscript("Second thought", position=reply, timestamp=0.0),
+        ThinkingTranscript("First thought", position=reply, timestamp=0.0, ordinal=0),
+        AssistantTranscript("Calling a tool", position=reply, timestamp=0.0, ordinal=1),
+        ThinkingTranscript("Second thought", position=reply, timestamp=0.0, ordinal=2),
     )
     thoughts = [fragment for fragment in built if isinstance(fragment.events[0], ThinkingTranscript)]
     assert [fragment.events[0].text for fragment in thoughts] == ["First thought", "Second thought"]
@@ -27,8 +28,8 @@ def test_every_part_of_one_long_event_shares_its_source_identity():
     paragraphs = "\n\n".join(f"Paragraph {index} " + "word " * 40 for index in range(12))
     reply = 3
     built = fragments(
-        ThinkingTranscript("Short", position=reply, timestamp=0.0),
-        ThinkingTranscript(paragraphs, position=reply, timestamp=0.0),
+        ThinkingTranscript("Short", position=reply, timestamp=0.0, ordinal=0),
+        ThinkingTranscript(paragraphs, position=reply, timestamp=0.0, ordinal=1),
     )
     long_parts = built[1:]
     assert len(long_parts) > 1, "the long thought must split under the render budget"
