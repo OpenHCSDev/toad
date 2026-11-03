@@ -41,7 +41,7 @@ from ui_theme.effects import NEW_TEXT
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
 from toad.message_rows import MessageClock
-from toad.no_worker import NoWorker
+from toad.no_worker import NO_TASK, NoTask, NoWorker
 from toad.session_scope import SessionScope
 from toad.transcript_filter import FilterState
 from toad.transcript_preparation import (
@@ -279,7 +279,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self.prepared.configure(batch_size=batch_size)
         # Fragments drawn with their previous styled rows until new ones arrive, by identity.
         self._pending: dict[FragmentKey, TranscriptFragment] = {}
-        self._render_task: asyncio.Task[None] | None = None
+        self._render_task: asyncio.Task[None] | NoTask = NO_TASK
         # Styling a range's never-styled fragments before the page measures them.
         self._style_worker: Worker[None] | NoWorker = NoWorker()
         # The rows this page draws are the rows layout last measured: each
@@ -333,8 +333,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self.range_changed()
 
     def on_unmount(self) -> None:
-        if self._render_task is not None:
-            self._render_task.cancel()
+        self._render_task.cancel()
 
     def lines_replaced(self, fragments: Iterable[TranscriptFragment]) -> None:
         """These fragments of this page now hold new lines; each one's rows decide whether they
@@ -432,7 +431,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             self.range_changed()
             return
         if (visible and self._pending
-                and (self._render_task is None or self._render_task.done())):
+                and self._render_task.done()):
             self._render_task = asyncio.create_task(self._render_pending(), eager_start=False)
 
     @height_dependency(INDEPENDENT_HEIGHT)
