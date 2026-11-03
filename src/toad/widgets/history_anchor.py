@@ -8,7 +8,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
@@ -411,28 +411,56 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
         return self
 
 
+class Settlement:
+    """Where a held destination's source stands: its paint is admitted once, after a refresh."""
+
+    ready: ClassVar[bool] = False
+
+    def settled(self, hold: HeldReaderDestination, window: "HistoryWindow") -> Settlement:
+        """The source settled; only an unsettled hold waits for the refresh that paints it."""
+        return self
+
+
+class Unsettled(Settlement):
+    def settled(self, hold: HeldReaderDestination, window: "HistoryWindow") -> Settlement:
+        window.call_after_refresh(hold.source_geometry_ready, window)
+        return Scheduled()
+
+
+class Scheduled(Settlement):
+    """A refresh is pending; settling again waits for it."""
+
+
+class Ready(Settlement):
+    ready = True
+
+
+@dataclass(eq=False)
+class HoldProgress:
+    """One hold's settlement: the hold is a value, its progress is the one thing that changes."""
+
+    state: Settlement = field(default_factory=Unsettled)
+
+
+@dataclass(frozen=True, kw_only=True)
 class HeldReaderDestination:
     """A reader destination retained through intermediate source layouts."""
 
-    source_settlement_scheduled = False
-    source_ready = False
+    progress: HoldProgress = field(default_factory=HoldProgress, compare=False, repr=False)
 
     def source_settled(self, window: "HistoryWindow") -> None:
         """Wait for a completed source paint before admitting its destination layout."""
-        if self.source_settlement_scheduled or self.source_ready:
-            return
-        object.__setattr__(self, "source_settlement_scheduled", True)
-        window.call_after_refresh(self.source_geometry_ready, window)
+        self.progress.state = self.progress.state.settled(self, window)
 
     def source_geometry_ready(self, window: "HistoryWindow") -> None:
         if window.reader_position is not self:
             return
-        object.__setattr__(self, "source_ready", True)
+        self.progress.state = Ready()
         window.refresh(layout=True)
 
     def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
         measured = all(page.rows_measured for page in window.drawn_pages())
-        if reached and self.source_ready and measured:
+        if reached and self.progress.state.ready and measured:
             return self.released()
         return self
 
