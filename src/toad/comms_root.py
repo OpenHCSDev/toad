@@ -18,13 +18,14 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
+from agent_comms.remote_core import RemoteCoreAccess
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
@@ -97,10 +98,29 @@ ROUTE_CHECK_SECONDS = 1.0
 
 
 class CoreConnection(ABC):
-    """The selected Core transport opens its own coordination access."""
+    """The selected Core transport: it owns its route selection and opens its observation."""
+
+    @staticmethod
+    def startup(arguments: list[str], published: Callable[[], LaunchRoot]) -> CoreConnection:
+        """Select once at the process boundary; a UI profile selects the remote Core."""
+        if RemoteCoreConnection.argument in arguments:
+            return RemoteCoreConnection.startup(arguments)
+        return LocalCoreConnection.from_launch(LaunchRoot.startup(arguments, published))
+
+    def open_access(self, app: ToadApp) -> CoordinationAccess:
+        return CoordinationAccess(app, self)
+
+    @property
+    @abstractmethod
+    def location(self) -> str:
+        """Where this connection's Core is, as shown to the owner."""
 
     @abstractmethod
-    def open_access(self, app: ToadApp) -> CoordinationAccess: ...
+    def route_selection(self) -> RouteSelection: ...
+
+    @abstractmethod
+    def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
+        """This connection's current observation, or the error that refuses it."""
 
 
 class LocalCoreConnection(LaunchRoot, CoreConnection):
@@ -110,8 +130,56 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
     def from_launch(cls, root: LaunchRoot) -> LocalCoreConnection:
         return cls(root.path)
 
-    def open_access(self, app: ToadApp) -> CoordinationAccess:
-        return CoordinationAccess(app, self)
+    @property
+    def location(self) -> str:
+        return str(self.path)
+
+    def route_selection(self) -> RouteSelection:
+        return RouteSelection.of(self)
+
+    def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
+        """Capture the current route and open its service, or expose the opening error."""
+        selected: RouteSelection | UnselectedRoute = UnselectedRoute()
+        try:
+            selected = self.route_selection()
+            return access.require(selected)
+        except (OSError, ValueError, RuntimeError) as error:
+            return access.observation.failed(error, selected)
+
+
+class RemoteObservationNotServed(RuntimeError):
+    """The connector answers this UI's Core requests but does not yet carry its observation."""
+
+
+@dataclass(frozen=True)
+class RemoteCoreConnection(RemoteCoreAccess, CoreConnection):
+    """The owner's UI profile is the remote connection: Core answers through the connector."""
+
+    argument: ClassVar[str] = "--comms-profile"
+
+    @classmethod
+    def startup(cls, arguments: list[str]) -> RemoteCoreConnection:
+        index = arguments.index(cls.argument)
+        if index + 1 == len(arguments):
+            raise ValueError(f"{cls.argument} requires a UI profile path")
+        connection = cls.read(Path(arguments[index + 1]))
+        del arguments[index : index + 2]
+        return connection
+
+    @property
+    def location(self) -> str:
+        return str(self.endpoint.url)
+
+    def route_selection(self) -> RouteSelection:
+        raise RemoteObservationNotServed(
+            f"{self.endpoint.url} answers Core requests; local route selection does not apply")
+
+    def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
+        return access.observation.adopt(ConnectorObservation(
+            RemoteObservationNotServed(
+                f"{self.endpoint.url} does not yet carry the sidebar, status and notification "
+                "observation; conversation pages are read through its Core requests"),
+            UnselectedRoute(), connection=self, access=access))
 
 
 @dataclass(frozen=True)
@@ -157,12 +225,15 @@ class Observation(ABC):
         return access.reference_context(root)
 
     def failed(self, error: Exception, selected):
-        failed = FailedObservation(error, selected, access=self.access)
-        if failed == self:
+        return self.adopt(FailedObservation(error, selected, access=self.access))
+
+    def adopt[O: Observation](self, observation: O) -> O | Observation:
+        """Make ``observation`` current unless it equals this one."""
+        if observation == self:
             return self
-        self.access.observation = failed
-        self.access.app.running_loop.call_soon_threadsafe(failed.attach, self.access, self)
-        return failed
+        self.access.observation = observation
+        self.access.app.running_loop.call_soon_threadsafe(observation.attach, self.access, self)
+        return observation
 
     def stop_updates(self) -> Observation:
         self.updates.close()
@@ -253,6 +324,18 @@ class FailedObservation(Observation):
 
 
 @dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
+class ConnectorObservation(FailedObservation):
+    """Core answers this UI's requests through the connector. Every observed surface
+    refuses with the declared error until the connector carries the observation."""
+
+    connection: RemoteCoreConnection = field(kw_only=True, compare=False)
+
+    @property
+    def core(self) -> CoreAccess:
+        return self.connection
+
+
 class Observing(Observation):
     selection: RouteSelection
     service: Comms = field()
@@ -384,9 +467,9 @@ class AnsweringReads(Observing):
 class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
 
-    def __init__(self, app: ToadApp, launch_root: LaunchRoot) -> None:
+    def __init__(self, app: ToadApp, connection: CoreConnection) -> None:
         self.app = app
-        self.launch_root = launch_root
+        self.connection = connection
         from toad.acp.transcript_reader import CoordinationTranscriptReader
 
         self.transcripts = CoordinationTranscriptReader(self)
@@ -419,7 +502,7 @@ class CoordinationAccess(MroDispatch):
     @property
     def selection(self) -> RouteSelection:
         """The current route resolved from this app's held launch root."""
-        return RouteSelection.of(self.launch_root)
+        return self.connection.route_selection()
 
     def selected(self, source: str | Path) -> RouteSelection:
         """Select this app's route and refuse a foreign source."""
@@ -430,14 +513,9 @@ class CoordinationAccess(MroDispatch):
         return self.selection.root_is_current(source)
 
     def open_current(self) -> Observing | FailedObservation:
-        """Capture the current route and open its service, or expose the opening error."""
+        """The connection's current observation, or the error that refuses it."""
         with self.opening:
-            selected: RouteSelection | UnselectedRoute = UnselectedRoute()
-            try:
-                selected = self.selection
-                return self.require(selected)
-            except (OSError, ValueError, RuntimeError) as error:
-                return self.observation.failed(error, selected)
+            return self.connection.open_current(self)
 
     def confirm(self, selected: RouteSelection) -> None:
         if self.selection != selected:
