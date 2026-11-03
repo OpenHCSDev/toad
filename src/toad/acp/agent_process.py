@@ -25,6 +25,7 @@ from pydantic import JsonValue
 from toad.acp.agent_session import AgentSession
 from toad.acp.initialization import AgentInitialization
 from toad.acp.shell_command import ShellCommand
+from toad.platform import host
 from toad.core.events import LogAgentFail
 from toad.resource_release import AsyncResourceRelease
 
@@ -71,16 +72,7 @@ class AgentProcess(Client):
                 agent.controller.replace_terminal_session()
                 agent.session.start()
                 return connection
-        command = agent.command
-        if command is None:
-            agent.session.startup_failed('No run command for this OS')
-            return self
-        connection = ConfiguredAgentProcess(agent, env, cwd, selection, command)
-        agent.process = connection
-        connection.sessions.add(agent.session)
-        agent.controller.replace_terminal_session()
-        connection.runner = asyncio.create_task(connection.run())
-        return connection
+        return ConfiguredAgentProcess.from_definition(self, agent, env, cwd, selection)
 
     async def prepare_prompt(self, agent: session_agent.SessionAgent, require: Callable[[], None]) -> None:
         raise ConnectionError('ACP process has no selected launch')
@@ -273,13 +265,30 @@ class ConfiguredAgentProcess(AgentProcess):
         self.route_selection = selection
         self.command = command
 
+    @classmethod
+    def from_definition(
+        cls, previous: AgentProcess, agent: session_agent.SessionAgent,
+        env: dict[str, str], cwd: str, selection: RouteSelection,
+    ) -> AgentProcess:
+        """Acquire a configured process or keep the original failed launch source."""
+        command = host.select(agent.definition.run_command)
+        if command is None:
+            agent.session.startup_failed('No run command for this OS')
+            return previous
+        connection = cls(agent, env, cwd, selection, command)
+        agent.process = connection
+        connection.sessions.add(agent.session)
+        agent.controller.replace_terminal_session()
+        connection.runner = asyncio.create_task(connection.run())
+        return connection
+
     def accepts_attachment(self, agent: session_agent.SessionAgent, env: dict[str, str], cwd: str,
                            selection: RouteSelection) -> bool:
         return (self.runner is not None and not self.runner.done()
                 and self.retirement is None and self.process is not None
                 and self.process.returncode is None
                 and self.initialization.supports_close
-                and self.command == agent.command and self.env == env
+                and self.command == host.select(agent.definition.run_command) and self.env == env
                 and self.cwd == cwd and self.route_selection == selection
                 and agent.session_id is not None
                 and all(member.agent.session_id != agent.session_id for member in self.sessions))

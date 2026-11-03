@@ -52,10 +52,6 @@ class SessionAgent(ABC):
 
     @property
     @abstractmethod
-    def command(self) -> str | None: ...
-
-    @property
-    @abstractmethod
     def ready(self) -> bool: ...
 
     @property

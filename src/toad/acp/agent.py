@@ -170,14 +170,9 @@ class Agent(AgentBase, SessionAgent):
     async def compact_context(self, request: CompactRequest) -> None:
         await self.controller.compact_context(request)
 
-    @property
-    def command(self) -> str | None:
-        """The command used to launch the agent, or `None` if there isn't one."""
-        return host.select(self.definition.run_command)
-
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.project_root_path
-        yield self.command
+        yield host.select(self.definition.run_command)
 
     def log(self, line: str) -> None:
         """Append a line to this agent's log file (written off the UI thread)."""

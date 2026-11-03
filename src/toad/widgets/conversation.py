@@ -113,6 +113,7 @@ from toad.status_thread import StatusThread
 from toad.transcript_publication import BoundView, CanonicalSourcePublication, TranscriptPresentation, ViewBinding
 from toad.transcript_read_scope import TranscriptReadScope
 from toad.widget_view import WorkspaceHosted
+from toad.platform import host
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.flash import Flash
@@ -1404,8 +1405,6 @@ class Conversation(
 
     @work(group="provider-login", exclusive=True)
     async def action_provider_login(self) -> None:
-        import shlex
-
         from textual.geometry import Offset
 
         from toad.agent_schema import Command
@@ -1431,15 +1430,12 @@ class Conversation(
         method = next(method for method in methods if method.id == method_id)
         try:
             if isinstance(method, acp_protocol.TerminalAuthMethod):
-                command = agent.command
-                if not command:
-                    raise ValueError("This agent has no configured login program")
-                arguments = method.args or []
-                command = command + (" " + shlex.join(arguments) if arguments else "")
+                login = Command.for_login(host, agent.definition, method)
+                command = login.command
                 code = await self.app.push_screen_wait(
                     ActionModal(
                         CatalogCommandAction.bind(
-                            "login", Command(method.name, command)
+                            "login", login
                         ),
                         agent.definition,
                         command,

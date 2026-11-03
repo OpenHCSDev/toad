@@ -1,6 +1,8 @@
 """Agent catalog definitions, decoded once from TOML or saved metadata."""
 from __future__ import annotations
 from dataclasses import dataclass, field
+import shlex
+from acp import schema as acp_protocol
 from typing import Annotated, Literal
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec, TextRepresentation, WireName
@@ -49,6 +51,19 @@ class Command:
     description: str
     command: str
     bootstrap_uv: bool = False
+
+    @classmethod
+    def for_login(
+        cls, platform: type[Platform], definition: AgentDefinition,
+        method: acp_protocol.TerminalAuthMethod,
+    ) -> Command:
+        """Acquire the catalog command from the actual terminal-auth declaration."""
+        command = platform.select(definition.run_command)
+        if not command:
+            raise ValueError("This agent has no configured login program")
+        arguments = method.args or []
+        command = command + (" " + shlex.join(arguments) if arguments else "")
+        return cls(method.name, command)
 
 
 @dataclass(frozen=True)
