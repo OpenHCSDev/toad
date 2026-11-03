@@ -179,9 +179,7 @@ class ReaderPosition(ABC):
         A history too short to reach it (its matches or pages are still being
         read) keeps it until one is long enough.
         """
-        if not reached:
-            return UnreachedPosition(self)
-        return self.moved(window, 0)
+        return self.moved(window, 0) if reached else self
 
     def without_holder(self, window: "HistoryWindow") -> "ReaderPosition":
         """Keep an unfinished change's destination; otherwise name the currently drawn message."""
@@ -413,44 +411,6 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
         return self
 
 
-@dataclass(frozen=True)
-class UnreachedPosition(ReaderPosition):
-    """A position no layout has reached yet: the history is still too short, or is not drawn.
-
-    Layout places it until it is reached. The reader moving first chooses a
-    new place instead.
-    """
-
-    position: ReaderPosition
-
-    def required_presentations(self, presentation: NativePresentation) -> tuple[NativePresentation, ...]:
-        return self.position.required_presentations(presentation)
-
-    async def prepare(self, history, current, target, selected, rows_needed, limit: int):
-        return await self.position.prepare(history, current, target, selected, rows_needed, limit)
-
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
-        return self.position.bodies(window)
-
-    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
-        return self.position.for_layout(window, position)
-
-    def laid_out(self, window: "HistoryWindow") -> bool:
-        return self.position.laid_out(window)
-
-    def place(self, window: "HistoryWindow") -> bool:
-        return self.position.place(window)
-
-    def shifted(self, rows: float) -> ReaderPosition:
-        return self.position.shifted(rows)
-
-    def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
-        return self.position.placed(window, reached) if reached else self
-
-    def without_holder(self, window: "HistoryWindow") -> ReaderPosition:
-        return self.position.without_holder(window)
-
-
 class HeldReaderDestination:
     """A reader destination retained through intermediate source layouts."""
 
@@ -484,14 +444,36 @@ class HeldReaderDestination:
 
 
 @dataclass(frozen=True)
-class ParkedPosition(HeldReaderDestination, UnreachedPosition):
+class ParkedPosition(HeldReaderDestination, ReaderPosition):
     """A position the reader left with its tab, waiting for the history to be drawn again.
 
     It carries the page ranges that were loaded, so a rebuilt history loads
-    the same messages.
+    the same messages, and is placed as the position it parks.
     """
 
+    position: ReaderPosition
     ranges: tuple["PageFragmentRange", ...]
+
+    def required_presentations(self, presentation: NativePresentation) -> tuple[NativePresentation, ...]:
+        return self.position.required_presentations(presentation)
+
+    async def prepare(self, history, current, target, selected, rows_needed, limit: int):
+        return await self.position.prepare(history, current, target, selected, rows_needed, limit)
+
+    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+        return self.position.bodies(window)
+
+    def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
+        return self.position.for_layout(window, position)
+
+    def laid_out(self, window: "HistoryWindow") -> bool:
+        return self.position.laid_out(window)
+
+    def place(self, window: "HistoryWindow") -> bool:
+        return self.position.place(window)
+
+    def shifted(self, rows: float) -> ReaderPosition:
+        return self.position.shifted(rows)
 
     def parked(self, window: "HistoryWindow", contents: Contents) -> ParkedPosition:
         return self
