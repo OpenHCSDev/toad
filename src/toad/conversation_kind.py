@@ -84,7 +84,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
         """Every conversation reads its page through the request a remote UI sends too."""
         return source.core.call(CommsConversationPageTool(
-            conversation=self.retained_target(), bounds=bounds))
+            conversation=self.retained_target(), project=source.project, bounds=bounds))
 
     @classmethod
     @abstractmethod
