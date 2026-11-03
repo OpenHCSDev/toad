@@ -1452,7 +1452,7 @@ class Conversation(
         self.transcript.source_work_finished(self)
 
     def on_worker_state_changed(self, message) -> None:
-        if message.worker is self.transcript.worker and message.worker.is_finished:
+        if self.transcript.worker.runs(message.worker) and message.worker.is_finished:
             self.transcript.retry()
 
     @handles(core_events.Thinking)

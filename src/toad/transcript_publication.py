@@ -309,13 +309,62 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         return True
 
 
+class PublicationWork:
+    """No publication is running: nothing to cancel or join, and a commit has nothing to settle."""
+
+    @property
+    def is_finished(self) -> bool:
+        return True
+
+    def runs(self, worker: Worker) -> bool:
+        return False
+
+    def cancel(self) -> None:
+        pass
+
+    async def joined(self) -> None:
+        """Cancel this work and wait until it has stopped."""
+
+    async def settled(self) -> None:
+        """Wait for the commit this work publishes; with none running, the transcript moved on."""
+        raise TranscriptChanged()
+
+
+NO_PUBLICATION_WORK = PublicationWork()
+
+
+@dataclass(frozen=True)
+class RunningPublicationWork(PublicationWork):
+    worker: Worker[None]
+
+    @property
+    def is_finished(self) -> bool:
+        return self.worker.is_finished
+
+    def runs(self, worker: Worker) -> bool:
+        return worker is self.worker
+
+    def cancel(self) -> None:
+        self.worker.cancel()
+
+    async def joined(self) -> None:
+        self.worker.cancel()
+        try:
+            await self.worker.wait()
+        except WorkerCancelled:
+            pass
+
+    async def settled(self) -> None:
+        await self.worker.wait()
+
+
 class SourcePublicationRequests:
     """One running read and one coalesced original request, never model state."""
 
     def __init__(self, owner: TranscriptPresentation) -> None:
         self.owner = owner
         self.pending: deque[TranscriptPublication] = deque(maxlen=1)
-        self.worker: Worker[None] | None = None
+        self.worker: PublicationWork = NO_PUBLICATION_WORK
         self.observation = ResourceRelease()
 
     def request(self, kind: type[TranscriptPublication], *args: ThreadPresentation) -> None:
@@ -345,12 +394,12 @@ class SourcePublicationRequests:
         """Resume kept work only at an existing source/preparation signal."""
         if not self.pending:
             return False
-        if self.worker is None or self.worker.is_finished:
+        if self.worker.is_finished:
             view = self.pending[0].binding.view
             if not view.is_attached:
                 return False
             self.observation.close()
-            self.worker = view.run_worker(self.publish, group="transcript-source")
+            self.worker = RunningPublicationWork(view.run_worker(self.publish, group="transcript-source"))
         return True
 
     async def publish(self) -> None:
@@ -359,13 +408,12 @@ class SourcePublicationRequests:
             if not await publication.publish():
                 return
 
-    def cancel(self) -> Worker[None] | None:
+    def cancel(self) -> PublicationWork:
         self.observation.close()
         self.pending.clear()
-        worker, self.worker = self.worker, None
-        if worker is not None:
-            worker.cancel()
-        return worker
+        work, self.worker = self.worker, NO_PUBLICATION_WORK
+        work.cancel()
+        return work
 
 
 class CommitPublication(CanonicalSourcePublication):
@@ -696,17 +744,17 @@ class BoundView(ViewBinding):
         view = self.view
         if not view.is_attached:
             return None
-        owner.worker = view.run_worker(
+        owner.worker = RunningPublicationWork(view.run_worker(
             partial(owner.publish, CommitPublication),
             group="transcript-window",
             exclusive=True,
-        )
+        ))
         return owner.worker
 
     def cancel_workers(self):
         view = self.view
         return tuple(
-            worker
+            RunningPublicationWork(worker)
             for group in (
                 "transcript-window",
                 "transcript-source",
@@ -767,7 +815,7 @@ class TranscriptPresentation:
         self.commit_required = False
         self.displayed_cursor: TranscriptCursor = UnreadTranscriptCursor()
         self.current_read: TranscriptPublicationState = NotPublished()
-        self.worker: Worker[None] | None = None
+        self.worker: PublicationWork = NO_PUBLICATION_WORK
         self.source_requests = SourcePublicationRequests(self)
         self._thread_observation = ResourceRelease()
         self.events = CoreEventStream(self)
@@ -881,10 +929,7 @@ class TranscriptPresentation:
         frame: BoundFrame | None = self.binding.capture(self, BoundFrame)
         if frame is None:
             raise TranscriptChanged()
-        worker = self.worker
-        if worker is None:
-            raise TranscriptChanged()
-        await worker.wait()
+        await self.worker.settled()
         if not frame.current():
             raise TranscriptChanged()
         ready = asyncio.get_running_loop().create_future()
@@ -899,7 +944,7 @@ class TranscriptPresentation:
     def retry(self) -> None:
         if self.source_requests.resume():
             return
-        if not self.dirty or self.worker is not None and not self.worker.is_finished:
+        if not self.dirty or not self.worker.is_finished:
             return
         publication = self.binding.capture(self, CommitPublication)
         if (
@@ -937,17 +982,9 @@ class TranscriptPresentation:
     async def suspend(self) -> None:
         """Revoke in-flight publications while retaining this source's mounted frontier."""
         self.invalidate_publications()
-        worker, self.worker = self.worker, None
-        workers = [worker, self.source_requests.cancel()]
-        workers.extend(self.binding.cancel_workers())
-        for worker in workers:
-            if worker is None:
-                continue
-            worker.cancel()
-            try:
-                await worker.wait()
-            except WorkerCancelled:
-                pass
+        work, self.worker = self.worker, NO_PUBLICATION_WORK
+        for joined in (work, self.source_requests.cancel(), *self.binding.cancel_workers()):
+            await joined.joined()
 
     def retire_presentations(
         self, contents: Contents, output: LiveOutput, candidates: Sequence[Widget]
@@ -1003,9 +1040,8 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 self._close_documents()
                 self.dirty = self.commit_required = False
                 self.displayed_cursor = UnreadTranscriptCursor()
-                worker, self.worker = self.worker, None
-                if worker is not None:
-                    worker.cancel()
+                work, self.worker = self.worker, NO_PUBLICATION_WORK
+                work.cancel()
                 # A different origin does not authorize reusing these pages.
                 # Withdraw every old source before joining any cancelled work.
                 replacement = self.binding.replace_source()
