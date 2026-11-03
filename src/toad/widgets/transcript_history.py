@@ -1271,27 +1271,25 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             )
             excess = self.fragment_count - limit
             while (excess > 0 or len(self.pages) > limit) and (self.fragment_count > 1 or len(self.pages) > 1):
-                selected = None
                 for side in end.eviction_order(self):
                     # A visible older projection protects the range between it
                     # and the main pages, just like a visible page.
                     if not side.can_evict(overlay_visible):
                         continue
-                    candidate = side.edge(self.pages)
-                    if candidate in protected_pages:
+                    evicted = side.edge(self.pages)
+                    if evicted in protected_pages:
                         continue
-                    members = tuple(side.eviction_fragments(candidate.prepared))
+                    members = tuple(side.eviction_fragments(evicted.prepared))
                     available = 0
                     for fragment in members:
                         if fragment.key in protected:
                             break
                         available += 1
                     if available or not members:
-                        selected = candidate, side, available
                         break
-                if selected is None:
+                else:
+                    # No side has a page it may evict.
                     break
-                evicted, side, available = selected
                 count = evicted.prepared.stop - evicted.prepared.start
                 remove_count = min(max(0, excess), available, self.fragment_count - 1)
                 if remove_count >= count and len(self.pages) > 1:
