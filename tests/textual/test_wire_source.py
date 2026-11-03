@@ -11,11 +11,11 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import TurnId
 from support.roots import installed_wire
 from support.agents import AppAgents
-from agent_comms.historical_views import ConversationObservation
+from agent_comms.historical_views import UnobservedConversation
 from agent_comms.page_traversal import LiveCursor
 from agent_comms.threads import Thread
 
-from toad.conversation_kind import ChannelConversation, DmConversation
+from toad.conversation_kind import ChannelConversation
 from toad.transcript_preparation import PageRequest, Unchanged
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.message_rows import IrcMessageStyle
@@ -35,7 +35,7 @@ def channel_source(comms, target, project):
 
 def observed(source):
     """What a view that just drew the newest page remembers of it."""
-    first = source.observe(ConversationObservation())
+    first = source.observe(UnobservedConversation())
     assert isinstance(first, ReplacedWireObservation)
     newest = source.read(PageRequest(OLDER_END, first.through), first.through)
     return first, newest
@@ -52,7 +52,7 @@ def test_empty_first_read_keeps_its_real_identity_after_the_unread_placeholder(t
     assert not prepared.fragments and not prepared.page.after.requires_read()
     identity = prepared.page.source.selection.notification_identity
     assert identity.viewer == comms.messaging.user_identity(Checkout(comms.root)).incarnation
-    assert placeholder.page.accepts(prepared.page.source, source.conversation.history_view)
+    assert placeholder.page.accepts(prepared.page.source)
     placeholder.advance_empty(prepared, older=True)
     assert not placeholder.page.after.requires_read()
     assert placeholder.page.source.selection.notification_identity == identity
@@ -66,7 +66,7 @@ def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_pat
     before = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
     comms.registry.lease_local_turn("peer", TurnId.mint())
     after = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
-    assert DmConversation.history_view.same_display(after, before)
+    assert after.same_display(before)
 
 
 def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):

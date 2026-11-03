@@ -20,11 +20,8 @@ from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess
 from agent_comms.repo import Checkout
 from agent_comms.display_references import CurrentDisplayReferences
-from agent_comms.historical_views import (
-    ConversationHistoryView,
-    ConversationObservation,
-    ConversationRevision,
-)
+from agent_comms.historical_views import ConversationObservation, ConversationRevision
+from agent_comms.tools import CommsConversationRevisionTool, CommsLatestSequenceTool
 from agent_comms.message_page import MessagePage, MessagePageRequest
 from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
 from agent_comms.page_traversal import (
@@ -105,9 +102,8 @@ class AfterMessage(WireCut):
     bounded = True
     kept = True
 
-    def accepts(self, current: MessagePage, incoming: MessagePage,
-                view: type[ConversationHistoryView]) -> bool:
-        return view.same_display(incoming, current)
+    def accepts(self, current: MessagePage, incoming: MessagePage) -> bool:
+        return incoming.same_display(current)
 
     def advanced_source(self, current: MessagePage, incoming: MessagePage) -> MessagePage:
         return current
@@ -143,8 +139,7 @@ class NothingRead(AfterSequence):
 
     cursor: LiveCursor = field(default_factory=lambda: LiveCursor(0))
 
-    def accepts(self, current: MessagePage, incoming: MessagePage,
-                view: type[ConversationHistoryView]) -> bool:
+    def accepts(self, current: MessagePage, incoming: MessagePage) -> bool:
         return True
 
     def advanced_source(self, current: MessagePage, incoming: MessagePage) -> MessagePage:
@@ -173,9 +168,9 @@ class WirePage:
         """The declared unread cursor carries an empty, unscoped placeholder."""
         return cls((), None, NothingRead(), False, False, MessagePageRequest.empty)
 
-    def accepts(self, page: MessagePage, view: type[ConversationHistoryView]) -> bool:
+    def accepts(self, page: MessagePage) -> bool:
         """An initial placeholder accepts its first scope; Core compares actual pages."""
-        return self.after.accepts(self.source, page, view)
+        return self.after.accepts(self.source, page)
 
     def advanced(self, interval: WirePage, *, older: bool) -> WirePage:
         """An empty interval advances its cut and establishes the first Core page.
@@ -331,12 +326,11 @@ class WireSource(BusQueueSource):
 
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""
-        revision = self.conversation.history_view.revision(
-            self.comms.views, self.conversation.retained_target(), seen, worktree=self.project
-        )
+        revision = self.core.call(CommsConversationRevisionTool(
+            conversation=self.conversation.retained_target(), project=self.project, seen=seen))
         if revision == seen:
             return Unchanged()
-        high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
+        high = AfterSequence(self.core.call(CommsLatestSequenceTool()).cursor)
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
         observation = ReplacedWireObservation if revision.display_changed_since(seen) else GrowingWireObservation
@@ -499,7 +493,7 @@ class WirePageBuffer(SavedHistory):
         return await self.runtime.run_thread(self.loader.observe, revision)
 
     async def accept_page(self, history, edge, prepared) -> bool:
-        if edge.prepared.page.accepts(prepared.page.source, self.loader.conversation.history_view):
+        if edge.prepared.page.accepts(prepared.page.source):
             return True
         prepared.configure(batch_size=len(prepared.fragments))
         await history.show_newest(
