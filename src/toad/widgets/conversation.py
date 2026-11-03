@@ -1237,13 +1237,6 @@ class Conversation(
         if not terminal.is_finalized:
             self._focusable_terminals.append(terminal)
 
-    @on(ShellTerminal.Interrupt)
-    async def on_shell_terminal_terminate(self, event: ShellTerminal.Terminate) -> None:
-        if not event.teminal.is_finalized:
-            await self.shell.interrupt()
-            self.navigation.clear()
-            self.feedback.flash("Command interrupted", style="success")
-
     def check_directory(self) -> None:
         """A finished turn or command may have changed the project's files."""
         self.prompt.project_directory_updated()

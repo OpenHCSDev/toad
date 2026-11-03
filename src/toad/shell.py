@@ -11,7 +11,7 @@ from toad.core.source_events import CurrentWorkingDirectoryChanged
 from toad.shell_read import shell_read
 from toad.terminal_environment import TerminalEnvironment
 from toad import ansi
-from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
+from toad.shell_output import ShellCommandOutput, ShellTerminalOutput, NoCurrentShellOutput
 from toad.shell_source import ShellOperationalSource
 from toad.terminal_execution import Command, PtyProcess, TerminalCompletion
 
@@ -51,9 +51,8 @@ class Shell(ShellOperationalSource):
         await self.wait_for_ready()
         self._terminal_size = width, height
 
-        if self.output is not None:
-            self.output.finalize()
-            self.output = None
+        self.output.finalize()
+        self.output = NoCurrentShellOutput()
         command_output = ShellCommandOutput(command)
         self.outputs.append(command_output)
         await self._present(command_output)
@@ -101,8 +100,7 @@ class Shell(ShellOperationalSource):
             height: Desired height.
         """
         self._terminal_size = width, height
-        if self.output is not None:
-            self.output.state.update_size(width, height)
+        self.output.update_size(width, height)
         self.operation.resize(width, max(height, 1))
 
     async def write(
@@ -117,6 +115,14 @@ class Shell(ShellOperationalSource):
         result = await self.operation.write(text_bytes)
         self._hide_output = hide_output
         return result
+
+    def _new_output(self) -> ShellTerminalOutput:
+        output = ShellTerminalOutput(ansi.TerminalState(
+            self.write, width=self._terminal_size[0], height=self._terminal_size[1]
+        ))
+        self.output = output
+        self.outputs.append(output)
+        return output
 
     async def _run_pty(self, ready):
         current_directory = self.working_directory
@@ -160,12 +166,7 @@ class Shell(ShellOperationalSource):
                         self._hide_echo.discard(string_bytes)
 
                 if line := unicode_decoder.decode(data, final=not data):
-                    if self.output is None or self.output.finalized:
-                        self.output = ShellTerminalOutput(ansi.TerminalState(
-                            self.write, width=self._terminal_size[0], height=self._terminal_size[1]
-                        ))
-                        self.outputs.append(self.output)
-                    output = self.output
+                    output = self.output.for_line(self._new_output)
                     scrollback, alternate = await output.state.write(
                         line, hide_output=self._hide_output
                     )
@@ -182,7 +183,7 @@ class Shell(ShellOperationalSource):
                     if output.finalized and output.state.scrollback_buffer.is_blank:
                         output.finalize()
                         self.outputs.remove(output)
-                        self.output = None
+                        self.output = NoCurrentShellOutput()
 
                 if not data:
                     break

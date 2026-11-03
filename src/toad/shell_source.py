@@ -1,9 +1,10 @@
 """Shared shell process ownership, independent of how commands start."""
 from abc import ABC, abstractmethod
 import asyncio
+import psutil
 from toad.surface_binding import SurfaceBinding, DetachedSurfaceBinding
 from toad.core.events import CoreEventStream
-from toad.shell_output import ShellOutput, ShellTerminalOutput
+from toad.shell_output import ShellOutput, CurrentShellOutput, NoCurrentShellOutput
 from toad.terminal_execution import TerminalOperation, NewTerminalOperation
 
 
@@ -12,7 +13,7 @@ class ShellOperationalSource(ABC):
         self.events = CoreEventStream(self)
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.outputs: list[ShellOutput] = []
-        self.output: ShellTerminalOutput | None = None
+        self.output: CurrentShellOutput = NoCurrentShellOutput()
         self._presentation_lock = asyncio.Lock()
         self._terminal_size = terminal_size
         self.operation: TerminalOperation = NewTerminalOperation()
@@ -28,7 +29,6 @@ class ShellOperationalSource(ABC):
     async def is_busy(self) -> bool:
         """Observe the children of this SAME acquired shell incarnation."""
         process = await self.operation.process()
-        import psutil
 
         def children():
             if not process.child.alive():
@@ -42,8 +42,7 @@ class ShellOperationalSource(ABC):
 
     async def send_input(self, text: str, paste: bool = False) -> None:
         await self.wait_for_ready()
-        if paste and self.output is not None and self.output.state.bracketed_paste:
-            text = f"\x1b[200~{text}\x1b[201~"
+        text = self.output.format_input(text, paste)
         await self.write(f"{text}\n", hide_echo=True)
 
     @property
@@ -54,8 +53,7 @@ class ShellOperationalSource(ABC):
         await self.operation.process()
 
     def focus_output(self) -> None:
-        if self.output is not None:
-            self.output.focus()
+        self.output.focus()
 
     async def attach(self, binding: SurfaceBinding) -> None:
         async with self._presentation_lock:
@@ -84,7 +82,7 @@ class ShellOperationalSource(ABC):
         self.operation = self.operation.retire()
         await self.operation.close()
         self.outputs.clear()
-        self.output = None
+        self.output = NoCurrentShellOutput()
 
     async def run(self, ready):
         try:

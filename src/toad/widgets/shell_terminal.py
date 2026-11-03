@@ -1,9 +1,6 @@
-from dataclasses import dataclass
 from typing import Iterable
 
 from textual.content import Content
-from textual.dom import DOMNode
-from textual.message import Message
 
 from toad.menus import FocusBlockCommand, InterruptCommand, MenuCommand
 from toad.widgets.terminal import Terminal
@@ -11,22 +8,6 @@ from toad.widgets.terminal import Terminal
 
 class ShellTerminal(Terminal):
     """Subclass of Terminal used in the Shell view."""
-
-    @dataclass
-    class Terminate(Message):
-        teminal: ShellTerminal
-
-        @property
-        def control(self) -> DOMNode:
-            return self.terminal
-
-    @dataclass
-    class Interrupt(Message):
-        teminal: ShellTerminal
-
-        @property
-        def control(self) -> DOMNode:
-            return self.terminal
 
     def get_block_menu(self) -> Iterable[MenuCommand]:
         if not self.is_finalized:

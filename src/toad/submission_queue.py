@@ -2,15 +2,12 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
-from pathlib import Path
 
 from acp.exceptions import RequestError
-from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
+from agent_comms.acp_extension import NoQueueScope, QueueScope
 from agent_comms.comms import Comms
 from agent_comms.errors import RelationViolationError, RouteChangedError, UnregisteredThreadError
 from agent_comms.frozen_recipient import FrozenRecipient
-from agent_comms.messages import Message
 from agent_comms.runtime_requests import ClearQueueRuntimeRequest, QueueActionRuntimeRequest, SendNowRuntimeRequest
 
 from toad.acp.queue_attachment import QueueActionRefused
