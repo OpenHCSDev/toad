@@ -6,7 +6,7 @@ from agent_comms.goal_scope import OneGoal
 from support.native_steps import goal_on_real_owner
 from textual.widgets import Static
 
-from toad.core.events import CommsUpdated
+
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_text import GoalText
@@ -82,7 +82,9 @@ async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(w
         assert conversation.goal_display.snapshot == current
         shown = []
         conversation.watch(conversation, "goal_display", lambda display: shown.append(display.snapshot), init=False)
-        agent.events.publish(CommsUpdated(GoalChangedUpdate(older, before.execution), session_id=agent.controller.session.session_id))
+        publish_notice_1 = agent.events.publish
+        notice_update_1 = GoalChangedUpdate(older, before.execution)
+        publish_notice_1(agent.controller.session.publication(notice_update_1))
         await ui.step(1)
         assert older not in shown, (
             f"A notice of revision {older.revision} was shown over revision {current.revision}")

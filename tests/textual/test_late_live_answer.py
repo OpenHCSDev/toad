@@ -15,7 +15,7 @@ from agent_comms.nominal.field_codec import FieldCodec, TurnId
 from agent_comms.turn_lease import ActiveTurn, FinishedTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 
-from toad.core.events import CommsUpdated, Update
+from toad.core.events import Update
 from toad.transcript_publication import CommitPublication
 from support.agents import deliver
 from support.coordination import carrying
@@ -126,8 +126,9 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                     pending.append(asyncio.create_task(view.transcript.publish(CommitPublication)))
                 else:
                     page = await view.transcript.get_transcript_page()
-                    agent.events.publish(CommsUpdated(
-                        TranscriptSnapshotUpdate.capture(comms.transcripts, "source"), agent.controller.session.session_id))
+                    publish_notice_1 = agent.events.publish
+                    notice_update_1 = TranscriptSnapshotUpdate.capture(comms.transcripts, 'source')
+                    publish_notice_1(agent.controller.session.publication(notice_update_1))
 
                     async def saved_history_shown():
                         async with asyncio.timeout(8):

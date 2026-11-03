@@ -140,7 +140,7 @@ class Agent(AgentBase, SessionAgent):
     def accepts_publication(
         self, message: CoreEventMessage, update: core_events.CommsUpdated
     ) -> bool:
-        return message.publisher is self and self.controller.session.session_id == update.session_id
+        return message.publisher is self and update.matches(self.controller.session)
 
     def borrowed_processes(self) -> tuple[AgentProcess, ...]:
         return (self.process,)

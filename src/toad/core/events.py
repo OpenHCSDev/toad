@@ -11,10 +11,11 @@ from typing import Annotated
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.nominal.field_codec import AcpSessionId, PathText
+from agent_comms.nominal.field_codec import PathText
 from agent_comms.presentation import ReadState
 from agent_comms.team_hud import TeamHud
 from toad.acp.tool_source import ToolCallSource, UncoordinatedToolCallSource
+from toad.acp.session_identity import KnownSessionIdentity, SessionIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
@@ -89,15 +90,19 @@ class Update(CoreEvent):
 
 
 @dataclass(frozen=True)
-class CommsUpdated(CoreEvent):
-    """The original typed publication retains its emission-time context."""
+class CommsUpdated(SessionIdentity, CoreEvent):
+    """An unbound publication retains its payload and emission-time sequence."""
 
     update: AgentCommsUpdate | QueuePresentation | CursorPresentation
-    session_id: AcpSessionId | None = None
-    sequence: int | None = None
+    sequence: int | None = field(default=None, kw_only=True)
 
     def accepted_by(self, message: event_carrier.CoreEventMessage, view: CommsPublicationTarget) -> bool:
         return view.accepts_comms_publication(message, self)
+
+
+@dataclass(frozen=True)
+class ScopedCommsUpdated(KnownSessionIdentity, CommsUpdated):
+    """An original ACP key and payload, without binding resources."""
 
 
 @dataclass(frozen=True)

@@ -106,14 +106,12 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(InputFailedUpdate)
     def input_failed(self, update: InputFailedUpdate) -> None:
         self.agent.events.publish(
-            core_events.CommsUpdated(
-                update, session_id=self.session_id
-            )
+            core_events.ScopedCommsUpdated(update, identity=self.session_id)
         )
 
     @handles(TranscriptChangedUpdate)
     def transcript_changed(self, update: TranscriptChangedUpdate) -> None:
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.ScopedCommsUpdated(update, self.session_id))
 
     @handles(NativeOutputCommittedUpdate)
     def native_output_committed(self, update: NativeOutputCommittedUpdate) -> None:
@@ -130,7 +128,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(NativeRoundCommittedUpdate)
     def native_round_committed(self, update: NativeRoundCommittedUpdate) -> None:
         self.authority.binding.output.round_committed(update.identity)
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.ScopedCommsUpdated(update, self.session_id))
 
     @handles(TurnChangedUpdate)
     def turn_changed(self, update: TurnChangedUpdate) -> None:
@@ -141,9 +139,7 @@ class CommsUpdateConsumer(MroDispatch):
         if not binding.receive(update.state):
             return
         agent.events.publish(
-            core_events.CommsUpdated(
-                update, session_id=self.session_id, sequence=binding.sequence
-            )
+            core_events.ScopedCommsUpdated(update, identity=self.session_id, sequence=binding.sequence)
         )
 
     @handles(CursorAdvancedUpdate)
@@ -177,7 +173,7 @@ class CommsUpdateConsumer(MroDispatch):
     def _post_unidentified(self, update: InputStartedUpdate) -> None:
         if self.agent.controller.session.accepts_notification(self.session_id):
             self.agent.events.publish(
-                core_events.CommsUpdated(update, session_id=self.session_id)
+                core_events.ScopedCommsUpdated(update, identity=self.session_id)
             )
 
     @handles(CoordinationChangedUpdate)
@@ -186,13 +182,13 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(GoalChangedUpdate)
     def goal_changed(self, update: GoalChangedUpdate) -> None:
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.ScopedCommsUpdated(update, self.session_id))
 
     @handles(CompactionChangedUpdate)
     def compaction_changed(self, update: CompactionChangedUpdate) -> None:
         self.agent.context_measurement = ContextMeasurement.saved(UnmeasuredContext())
         self.agent.update_status_line()
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.ScopedCommsUpdated(update, self.session_id))
 
     @handles(CompactionCommittedUpdate)
     def compaction_committed(self, update: CompactionCommittedUpdate) -> None:
@@ -224,7 +220,7 @@ class CommsUpdateConsumer(MroDispatch):
                 "[ACP MCP live receipt rejected] receipt is not bound to the active session/turn"
             )
             return
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.ScopedCommsUpdated(update, self.session_id))
 
     @handles(SelectedWriteAcceptedUpdate)
     def selected_write_accepted(self, update) -> None:
@@ -241,7 +237,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(PromptCancelledUpdate)
     def prompt_cancelled(self, update) -> None:
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.ScopedCommsUpdated(update, self.session_id))
 
 
 class OwnerSnapshotConsumer(CommsUpdateConsumer):

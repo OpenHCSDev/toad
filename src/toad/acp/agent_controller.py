@@ -71,7 +71,7 @@ class SessionBinding(SessionIdentity):
     def publication(
         self, update: AgentCommsUpdate | core_events.QueuePresentation | core_events.CursorPresentation,
     ) -> core_events.CommsUpdated:
-        return core_events.CommsUpdated(update, self.session_id)
+        return core_events.CommsUpdated(update)
 
     def accepts_snapshot(
         self, identity: TranscriptReadIdentity, coordination: CoordinationAttachment,
@@ -83,6 +83,11 @@ class SessionBinding(SessionIdentity):
 @dataclass(frozen=True)
 class BoundSessionBinding(KnownSessionIdentity, SessionBinding):
     """The key provider and independently owned output share one binding."""
+
+    def publication(
+        self, update: AgentCommsUpdate | core_events.QueuePresentation | core_events.CursorPresentation,
+    ) -> core_events.CommsUpdated:
+        return core_events.ScopedCommsUpdated(update, self.identity)
 
 
 class TaskRunner(ABC):
@@ -187,7 +192,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
             snapshot.identity, self.agent.coordination_attachment, destination,
         ):
             return
-        self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
+        self.agent.events.publish(session.publication(snapshot))
 
     def connection_closed(self) -> None:
         from toad.core.events import McpClientStopped

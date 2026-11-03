@@ -25,7 +25,7 @@ from textual.widgets import Button, Static
 from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
 from support.agents import RecordedEvents
 from support.textual_steps import channel_roster
-from toad.core.events import CommsUpdated
+
 from toad.navigation_target import SelectTarget
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
@@ -233,12 +233,16 @@ async def test_owner_pushes_replace_and_then_remove_the_goal(workspace):
         owner, view, bar, status = await shown_goal(workspace, ui)
         pushed = replace(owner.goal, text="Backend edited the same goal", revision=6)
         owner.goal = pushed
-        owner.events.publish(CommsUpdated(GoalChangedUpdate(pushed, owner.execution), owner.controller.session.session_id))
+        publish_notice_1 = owner.events.publish
+        notice_update_1 = GoalChangedUpdate(pushed, owner.execution)
+        publish_notice_1(owner.controller.session.publication(notice_update_1))
         await ui.until(lambda: view.goal_display.snapshot == pushed, why="the pushed goal")
         await ui.until(lambda: "Backend edited the same goal" in str(bar.query_one(".goal-summary", Static).render()),
                        why="the pushed text in the bar")
         owner.goal, owner.execution = NoGoal(), IdleGoalExecution()
-        owner.events.publish(CommsUpdated(GoalChangedUpdate(NoGoal(), IdleGoalExecution()), owner.controller.session.session_id))
+        publish_notice_2 = owner.events.publish
+        notice_update_2 = GoalChangedUpdate(NoGoal(), IdleGoalExecution())
+        publish_notice_2(owner.controller.session.publication(notice_update_2))
         await ui.until(lambda: view.goal_display.snapshot == NoGoal() and view.goal_execution == IdleGoalExecution(),
                        why="the goal removed")
         await ui.until(lambda: not bar.display, why="the bar hidden")
