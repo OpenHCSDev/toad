@@ -2,13 +2,16 @@
 
 import pytest
 from textual.widgets import Button, Input, OptionList, Select
+from support.workspace import Workspace
 
 from toad.widgets.comms_transfer import Transfer
 
 
 @pytest.mark.parametrize("transfer", Transfer.members_with(Transfer), ids=lambda kind: kind.declared_name)
 @pytest.mark.parametrize("height", (20, 40))
-async def test_transfer_actions_survive_short_viewport_and_notice(workspace, transfer, height):
+async def test_transfer_actions_survive_short_viewport_and_notice(
+    workspace: Workspace, transfer: type[Transfer], height: int,
+) -> None:
     async with workspace.app(size=(110, height)) as ui:
         app, pilot = ui.textual
         access = app.coordination_access
@@ -19,7 +22,7 @@ async def test_transfer_actions_survive_short_viewport_and_notice(workspace, tra
                    title="Transfer notice", severity="error", timeout=60)
         dialog = transfer.dialog(selected)
         app.push_screen(dialog)
-        await ui.until(lambda: app.screen is dialog and dialog.query(Input),
+        await ui.until(lambda: app.screen is dialog and bool(dialog.query(Input)),
                        why="the transfer's native fields")
         field = dialog.query(Input).first()
         field.value = "unsent field value"
