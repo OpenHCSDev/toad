@@ -6,11 +6,20 @@ packages. This bootstrap key uses only stdlib; it is not an installation proof.
 
 from ctypes.util import dllist
 from dataclasses import dataclass
+from enum import StrEnum
 import hashlib
 import os
 from pathlib import Path
 import sys
 import sysconfig
+from typing import Self
+
+
+class NonFileImage(StrEnum):
+    """Non-file names in the platform loader's external image-name contract."""
+
+    MAIN = ""
+    LINUX_VDSO = "linux-vdso.so.1"
 
 
 def configuration_text(name: str) -> str:
@@ -30,7 +39,7 @@ class ImageRevision:
     changed: int
 
     @classmethod
-    def of(cls, metadata: os.stat_result) -> "ImageRevision":
+    def of(cls, metadata: os.stat_result) -> Self:
         return cls(metadata.st_dev, metadata.st_ino, metadata.st_size,
                    metadata.st_mtime_ns, metadata.st_ctime_ns)
 
@@ -40,7 +49,7 @@ def native_images() -> tuple[Path, ...]:
     for image in dllist():
         # The main image is named separately above. Linux's vDSO has no file;
         # the kernel build is included in the fingerprint instead.
-        if not image or image == "linux-vdso.so.1":
+        if image in NonFileImage:
             continue
         path = Path(image)
         if not path.is_absolute():
