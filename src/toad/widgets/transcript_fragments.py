@@ -1,7 +1,7 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from typing import TYPE_CHECKING, ClassVar
@@ -49,6 +49,7 @@ from toad.markdown_preparation import PreparedMarkdownPart
 from toad.menus import MenuCommand
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import MessageQueueEntry, NotificationStatus, UncheckedNotifications
+from toad.tool_output import SentMessageToolOutputPart, ToolOutput
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
@@ -203,7 +204,6 @@ class FragmentLineConsumer(MroProjection[None]):
 
     @handles(SentTranscript)
     def sent_report(self, event: SentTranscript) -> None:
-        from toad.tool_output import SentMessageToolOutputPart
 
         self.blocks.extend(SentMessageToolOutputPart.capture(event).line_blocks)
 
@@ -628,18 +628,90 @@ class ContextTranscriptFragment(TranscriptFragment):
         return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole) for event in self.events))
 
 
+type ResolvedSent = Mapping[SentTranscript, SentTranscript | PublishedSentMessage]
+
+
+class FragmentSlot:
+    """One place in a page's fragment order, and what it holds once sent reports are resolved."""
+
+    def sent_reports(self) -> tuple[SentTranscript, ...]:
+        """The sent rows whose publication evidence this slot needs."""
+        return ()
+
+    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
+        return self.unresolved()
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        """The fragments as read, before any publication evidence."""
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class BuiltSlot(FragmentSlot):
+    """A fragment built as its event was read."""
+
+    fragment: TranscriptFragment
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        return (self.fragment,)
+
+
+@dataclass(frozen=True)
+class SentSlot(BuiltSlot):
+    """A sent wire row: resolved, it is what its publication evidence builds."""
+
+    report: SentTranscript
+
+    def sent_reports(self) -> tuple[SentTranscript, ...]:
+        return (self.report,)
+
+    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
+        builder = TranscriptFragmentConsumer()
+        builder.project_value(resolved[self.report])
+        return builder.unresolved()
+
+
+@dataclass(eq=False)
+class ToolSlot(FragmentSlot):
+    """One tool call's events, gathered in the place of its first event."""
+
+    starts_activity: bool
+    events: list[ToolTranscript] = field(default_factory=list)
+
+    @cached_property
+    def call(self) -> ToolCallStatus:
+        return ToolCallStatus.from_transcript(tuple(self.events))
+
+    @cached_property
+    def parts(self) -> tuple[ToolOutputPart, ...]:
+        return ToolOutput.capture_recorded(self.call, tuple(self.events))
+
+    def sent_reports(self) -> tuple[SentTranscript, ...]:
+        return tuple(message for part in self.parts for message in part.sent_reports)
+
+    def fragments(self, resolved: ResolvedSent) -> tuple[TranscriptFragment, ...]:
+        parts = self.call.project_output(self.parts, partial(ToolOutput.apply_sent, resolved=resolved))
+        return (ToolTranscriptFragment(tuple(self.events), starts_agent_activity=self.starts_activity,
+                                       tool_call=self.call, output_parts=parts),)
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        return self.fragments({})
+
+
 class TranscriptFragmentConsumer(MroProjection[None]):
     def __init__(self) -> None:
-        self.fragments: list[TranscriptFragment | None] = []
-        self.tools: dict[str, tuple[int, list[ToolTranscript], bool]] = {}
-        self.reported_messages: dict[int, SentTranscript] = {}
+        self.slots: list[FragmentSlot] = []
+        self.tools: dict[str, ToolSlot] = {}
         self.budget = RenderBudget()
         self.boundary = AgentActivityBoundary()
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for slot in self.slots for fragment in slot.unresolved())
 
     @handles(ContextTranscript)
     def context(self, event: ContextTranscript) -> None:
         # One lazy disclosure owns the full metadata source.
-        self.fragments.append(ContextTranscriptFragment((event,)))
+        self.slots.append(BuiltSlot(ContextTranscriptFragment((event,))))
 
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript) -> None:
@@ -647,8 +719,7 @@ class TranscriptFragmentConsumer(MroProjection[None]):
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript) -> None:
-        self.reported_messages[len(self.fragments)] = event
-        self.fragments.append(TranscriptFragment((event,)))
+        self.slots.append(SentSlot(TranscriptFragment((event,)), event))
 
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage) -> None:
@@ -665,74 +736,34 @@ class TranscriptFragmentConsumer(MroProjection[None]):
         starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
         parts = kind.text_parts(source, self.budget)
-        self.fragments.extend(
-            kind.capture_part(
+        self.slots.extend(
+            BuiltSlot(kind.capture_part(
                 event,
                 part.text,
                 continuation=index > 0,
                 part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
                 starts_agent_activity=starts_activity and index == 0,
                 **kwargs,
-            )
+            ))
             for index, part in enumerate(parts)
         )
 
     @handles(ToolTranscript)
     def tool(self, event: ToolTranscript) -> None:
         if event.tool_call_id not in self.tools:
-            self.tools[event.tool_call_id] = (
-                len(self.fragments),
-                [],
-                self.boundary.observe(event.category),
-            )
-            self.fragments.append(None)  # Reserve the call's original position.
-        _, events, _ = self.tools[event.tool_call_id]
-        events.append(event)
+            # The call keeps the place of its first event.
+            self.tools[event.tool_call_id] = slot = ToolSlot(self.boundary.observe(event.category))
+            self.slots.append(slot)
+        self.tools[event.tool_call_id].events.append(event)
 
 
 def transcript_fragments(
     events: tuple[TranscriptEvent, ...],
     *,
-    resolve_sent: Callable[[Iterable[SentTranscript]], dict[int, SentTranscript | PublishedSentMessage]],
+    resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
 ) -> tuple[TranscriptFragment, ...]:
-    from toad.tool_output import ToolOutput
-
     consumer = TranscriptFragmentConsumer()
     for event in events:
         consumer.project_value(event)
-    reports = list(consumer.reported_messages.values())
-    tools = {}
-    for index, pending, starts_activity in consumer.tools.values():
-        tool_events = tuple(pending)
-        call = ToolCallStatus.from_transcript(tool_events)
-        parts = ToolOutput.capture_recorded(call, tool_events)
-        reports.extend(message for part in parts for message in part.sent_reports)
-        tools[index] = (tool_events, starts_activity, call, parts)
-    resolved = resolve_sent(reports)
-    builder = TranscriptFragmentConsumer()
-    canonical = {}
-    for index, report in consumer.reported_messages.items():
-        start = len(builder.fragments)
-        builder.project_value(resolved[id(report)])
-        canonical[index] = tuple(builder.fragments[start:])
-    fragments = []
-    for index, source in enumerate(consumer.fragments):
-        if index in canonical:
-            fragments.extend(canonical[index])
-        elif index in tools:
-            tool_events, starts_activity, call, parts = tools[index]
-            parts = call.project_output(
-                parts,
-                partial(ToolOutput.apply_sent, resolved=resolved),
-            )
-            fragments.append(
-                ToolTranscriptFragment(
-                    tool_events,
-                    starts_agent_activity=starts_activity,
-                    tool_call=call,
-                    output_parts=parts,
-                )
-            )
-        else:
-            fragments.append(source)
-    return tuple(fragments)
+    resolved = resolve_sent(report for slot in consumer.slots for report in slot.sent_reports())
+    return tuple(fragment for slot in consumer.slots for fragment in slot.fragments(resolved))

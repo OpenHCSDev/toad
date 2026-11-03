@@ -201,7 +201,7 @@ class SentMessageToolOutputPart(ToolOutputPart):
 
     def project_messages(self, resolved):
         decoder = ToolContentDecoder(report=self)
-        decoder.dispatch_sync(resolved[id(self.message)])
+        decoder.dispatch_sync(resolved[self.message])
         return decoder.part
 
     @cached_property
