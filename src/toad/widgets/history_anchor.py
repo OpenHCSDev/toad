@@ -93,6 +93,44 @@ class UnloadedFragment(FragmentLocation):
         return self
 
 
+class TopPage:
+    """No drawn page reaches the window's top row or below it: live blocks hold the reader."""
+
+    def reader_position(self, window: HistoryWindow) -> ReaderPosition:
+        return BlockPosition.of(window)
+
+    def pinned_header(self, window: HistoryWindow) -> PinnedHeader:
+        return window.live_message_header()
+
+
+@dataclass(frozen=True)
+class PageBelowTop(TopPage):
+    """The nearest drawn page starts below the top row: the reader is on its first row."""
+
+    page: TranscriptPageView
+    first: int
+
+    def span(self, window: HistoryWindow) -> FragmentSpan:
+        """The measured child drawn on the top row, or the page's first one."""
+        return self.page.fragment_at(max(0, int(window.scroll_y - self.first)))
+
+    def reader_position(self, window: HistoryWindow) -> ReaderPosition:
+        span = self.span(window)
+        return FragmentPosition(span.fragment.key, (window.scroll_y - self.first - span.first) / span.height,
+                                span.height, block=span.index)
+
+
+@dataclass(frozen=True)
+class PageUnderTop(PageBelowTop):
+    """A drawn page holds the top row; its message pins its header in the flow's own column."""
+
+    def pinned_header(self, window: HistoryWindow) -> PinnedHeader:
+        span = self.span(window)
+        row = int(window.scroll_y - self.first)
+        return PinnedHeader(span.fragment.sticky_header(span.index, row - span.first),
+                            self.page.content_region.x - window.content_region.x, self.page.size.width)
+
+
 @dataclass(frozen=True)
 class PinnedHeader:
     """The header to pin over a window's top row and the column its message draws it in (x from
@@ -120,14 +158,7 @@ class ReaderPosition(ABC):
         """Read where the reader is from what the window last laid out."""
         if window.follows_tail:
             return TailPosition()
-        y = window.scroll_y
-        if (reading := window.top_page()) is not None:
-            page, first = reading
-            span = page.fragment_at(max(0, int(y - first)))
-            fragment = span.fragment
-            return FragmentPosition(fragment.key, (y - first - span.first) / span.height,
-                                    span.height, block=span.index)
-        return BlockPosition.of(window)
+        return window.top_page().reader_position(window)
 
     def required_presentations(self, presentation: NativePresentation) -> tuple[NativePresentation, ...]:
         """Source-addressed positions can be rebuilt without retaining native identity."""
@@ -803,14 +834,11 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def top_message_header(self) -> PinnedHeader:
         """The header of the message drawn on the window's top row, when that header is scrolled
         above it, with the column the flow draws it in."""
+        return self.top_page().pinned_header(self)
+
+    def live_message_header(self) -> PinnedHeader:
+        """The header of the live message drawn on the window's top row, or none."""
         y = self.scroll_y
-        if (reading := self.top_page()) is not None and reading[1] <= y:
-            # A row inside the page's measured lines always has its fragment.
-            page, first = reading
-            row = int(y - first)
-            span = page.fragment_at(row)
-            return PinnedHeader(span.fragment.sticky_header(span.index, row - span.first),
-                                page.content_region.x - self.content_region.x, page.size.width)
         messages = (message
                     for widget in self.visible_history_items(self.screen._compositor.published_widgets)
                     for message in self.project_value(widget))
@@ -821,12 +849,13 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
                                     message.size.width)
         return PinnedHeader((), 0, 0)
 
-    def top_page(self) -> tuple[TranscriptPageView, int] | None:
-        """The drawn page under the window's top row, else the nearest one below it, with its first row."""
+    def top_page(self) -> TopPage:
+        """The drawn page under the window's top row, else the nearest one below it, else none."""
         y = self.scroll_y
-        return min(((page, first) for page, first in self.placements(self.drawn_pages())
+        return min(((PageUnderTop if first <= y else PageBelowTop)(page, first)
+                    for page, first in self.placements(self.drawn_pages())
                     if page.line_count and first + page.line_count > y),
-                   key=lambda placed: max(y, placed[1]), default=None)
+                   key=lambda placed: max(y, placed.first), default=TopPage())
 
     def drawn_pages(self):
         """Pages in this window's published viewport, not all loaded history."""
