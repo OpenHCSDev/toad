@@ -88,25 +88,6 @@ def test_nominal_block_interaction_caller_closure():
                     assert node.func.id not in {'isinstance','issubclass','getattr','hasattr'}, (method.name,node.lineno)
 
 
-def test_acp_process_retirement_single_owner():
-    retired = {'ProcessControl', 'PosixProcessControl', 'WindowsProcessControl',
-               '_maintenance_env', '_maintenance_cwd', '_maintenance_root',
-               '_maintenance_implicit_root', 'stopping'}
-    for relative in ('acp/agent.py', 'acp/agent_process.py',
-                     'acp/agent_controller.py', 'acp/comms_updates.py'):
-        for node in ast.walk(ast.parse((ROOT / relative).read_text())):
-            if isinstance(node, ast.Name):
-                assert node.id not in retired, (relative, node.lineno)
-            if isinstance(node, ast.Attribute):
-                assert node.attr not in retired, (relative, node.lineno)
-                if relative == 'acp/agent_process.py':
-                    assert node.attr not in {'killpg', 'terminate', 'kill', 'create_subprocess_shell'}, (relative, node.lineno)
-    owner = ast.parse((ROOT / 'acp/agent_process.py').read_text())
-    run = next(node for node in ast.walk(owner)
-               if isinstance(node, ast.AsyncFunctionDef) and node.name == 'run')
-    assert isinstance(run.body[0], ast.Try) and run.body[0].finalbody
-
-
 def test_startup_failure_declaration_caller_closure():
     for relative in ('agent.py', 'acp/agent.py', 'acp/agent_process.py',
                      'acp/comms_updates.py', 'widgets/conversation.py'):

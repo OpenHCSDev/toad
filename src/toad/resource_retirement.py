@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from agent_comms.child_process import join_retirement
+from toad.scheduled_task import ScheduledTask
 
 
 class Retirement(ABC):
@@ -28,14 +29,9 @@ class NoRetirement(Retirement):
 
 
 @dataclass(frozen=True)
-class StartedRetirement(Retirement):
-    task: asyncio.Task[None]
-
+class StartedRetirement(ScheduledTask, Retirement):
     def allows_attachment(self) -> bool:
         return False
-
-    def done(self) -> bool:
-        return self.task.done()
 
     def begin(self, owner: RetiresResources) -> asyncio.Task[None]:
         return self.task

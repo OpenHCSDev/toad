@@ -40,8 +40,6 @@ async def test_stopping_an_agent_ends_its_process_group(app_agents, tmp_path):
         assert {group, child_pid} <= set(live_members(group))
         agent = app_agents.detached_agent()
         agent.process.process = process
-        agent.session.task = None
-        agent.process.runner = None
         await agent.stop()
         assert process.returncode is not None
         assert not live_members(group), "old ACP descendant survived stop"

@@ -145,7 +145,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
             await ui.step(.5)
             assert ui.painted(view.window).count(TOKEN) == 1
             assert max(copies_drawn, default=0) <= 1, f"a frame drew the answer {max(copies_drawn)} times: {duplicate_frame!r}"
-            assert agent.process.runner is None
+            assert not agent.process.runner.tasks()
         finally:
             release.set()
             read_release.set()

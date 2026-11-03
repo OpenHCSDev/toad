@@ -18,6 +18,7 @@ from agent_comms.child_process import (
     StreamingChildStdio,
 )
 from toad.resource_retirement import RetiresResources
+from toad.background_run import HasBackgroundRun, StartsBackgroundRun
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.route_selection import RouteSelection
 from pydantic import JsonValue
@@ -32,12 +33,11 @@ from toad.resource_release import AsyncResourceRelease
 from toad.acp import session_agent
 
 
-class AgentProcess(RetiresResources, Client):
+class AgentProcess(HasBackgroundRun, RetiresResources, Client):
     def __init__(self, agent: session_agent.SessionAgent) -> None:
         self.agent = agent
         self.process: AttachedChild | None = None
         self.connection: ClientSideConnection | None = None
-        self.runner: asyncio.Task[None] | None = None
         self.sessions: set[AgentSession] = set()
         self.initialization: AgentInitialization = AgentInitialization()
         self.attachment_lock = asyncio.Lock()
@@ -69,7 +69,7 @@ class AgentProcess(RetiresResources, Client):
                 agent.process = connection
                 connection.sessions.add(agent.session)
                 agent.controller.replace_terminal_session()
-                agent.session.start()
+                agent.session.start_runner()
                 return connection
         return ConfiguredAgentProcess.from_definition(self, agent, env, cwd, selection)
 
@@ -236,21 +236,19 @@ class AgentProcess(RetiresResources, Client):
                 # Transport death is owned by communicate/run; the caller
                 # retains this session's actual close error.
                 self.sessions.discard(session)
-            if not self.sessions and self.retirement.allows_attachment() and self.runner is not None:
+            if not self.sessions and self.retirement.allows_attachment():
                 self.runner.cancel()
 
     async def stop(self, agent) -> None:
         agent.session.close()
         await agent.session.retire()
         if not self.sessions:
-            if self.runner is not None and self.runner is not asyncio.current_task():
-                self.runner.cancel()
-                await asyncio.gather(self.runner, return_exceptions=True)
+            await self.runner.cancel_and_join_other()
             await self.retire()
-            self.runner = None
+            self.clear_runner()
 
 
-class ConfiguredAgentProcess(AgentProcess):
+class ConfiguredAgentProcess(StartsBackgroundRun, AgentProcess):
     """One original launch, selected before its asynchronous resources arrive."""
 
     def __init__(self, agent: session_agent.SessionAgent, env: dict[str, str], cwd: str,
@@ -275,12 +273,12 @@ class ConfiguredAgentProcess(AgentProcess):
         agent.process = connection
         connection.sessions.add(agent.session)
         agent.controller.replace_terminal_session()
-        connection.runner = asyncio.create_task(connection.run())
+        connection.start_runner()
         return connection
 
     def accepts_attachment(self, agent: session_agent.SessionAgent, env: dict[str, str], cwd: str,
                            selection: RouteSelection) -> bool:
-        return (self.runner is not None and not self.runner.done()
+        return (self.runner.running()
                 and self.retirement.allows_attachment() and self.process is not None
                 and self.process.returncode is None
                 and self.initialization.supports_close
@@ -321,7 +319,7 @@ class ConfiguredAgentProcess(AgentProcess):
         assert process.stdin is not None
         self.connection = ClientSideConnection(
             self, process.stdin, process.stdout, observers=[self.observe_stream])
-        agent.session.start()
+        agent.session.start_runner()
         outcome = await process.wait()
         fail_details = await process.stderr_tail()
         for session in tuple(self.sessions):

@@ -31,8 +31,7 @@ async def test_the_child_and_session_are_retired(workspace: Workspace, how: str)
     ))
     try:
         await agent.start()
-        runner = agent.process.runner
-        assert runner is not None
+        runner, = agent.process.runner.tasks()
         await until(lambda: bool(workspace.received()), "the actual descendant receipt")
         descendant = FieldCodec.decode(ProcessIdentity, workspace.received()[0]["descendant"])
         if how != "eof":

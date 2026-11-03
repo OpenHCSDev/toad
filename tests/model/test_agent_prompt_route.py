@@ -22,7 +22,8 @@ async def test_the_real_child_receives_the_selected_root_as_arguments_and_drops_
     monkeypatch.setenv("AGENT_COMMS_ROOT", str(tmp_path / "wrong-wire"))
     try:
         await agent.start()
-        await agent.process.runner
+        runner, = agent.process.runner.tasks()
+        await runner
         recorded = json.loads(output.read_text())
         assert recorded == {"argv": list(selected.arguments()), "root_env": None}
         assert agent.process.route_selection.root == selected.path

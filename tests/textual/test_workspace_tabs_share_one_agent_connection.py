@@ -58,6 +58,6 @@ async def test_a_second_tab_reuses_the_first_tabs_agent_process_and_closing_it_k
             assert source.presentation.operational_binding is first
             await ui.close_tab(details.mode_name)
             assert first.ready and connection.sessions == {first.session}
-            assert connection.process is not None and not connection.runner.done()
+            assert connection.process is not None and connection.runner.running()
             assert ui.failure() is None
         assert connection.process is None and not connection.sessions

@@ -14,6 +14,7 @@ from acp.exceptions import RequestError
 from agent_comms.acp_extension import HistoryOnlyQueueProjection
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from toad.resource_retirement import RetiresResources
+from toad.background_run import StartsBackgroundRun
 from agent_comms.errors import RouteChangedError
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
@@ -53,7 +54,7 @@ class LoginNotReady(ValueError):
     """A terminal login finished, but the session it restarted did not become ready."""
 
 
-class AgentSession(RetiresResources, SessionLifetime):
+class AgentSession(StartsBackgroundRun, RetiresResources, SessionLifetime):
     """Own readiness and durable session effects; binding identity stays on the controller."""
 
     reconnect_timeout_seconds = 30
@@ -62,7 +63,6 @@ class AgentSession(RetiresResources, SessionLifetime):
         self.agent = agent
         # The app's stream: its thread rows show this session's state, attached to a view or not.
         self.app_events = app_events
-        self.task: asyncio.Task[None] | None = None
         self.responses: set[asyncio.Task[object]] = set()
         self._disposition: SessionDisposition = ActiveSessionDisposition(self)
         self.pk = pk
@@ -125,23 +125,20 @@ class AgentSession(RetiresResources, SessionLifetime):
         self.disposition = ActiveSessionDisposition(self)
         self.reset_retirement()
 
-    def start(self) -> None:
-        self.task = asyncio.create_task(self.run())
-        self.task.add_done_callback(self.session_finished)
+    def runner_started(self, task: asyncio.Task[None]) -> None:
+        task.add_done_callback(self.session_finished)
 
     def retirement_started(self, task: asyncio.Task[None]) -> None:
         task.add_done_callback(self.retirement_finished)
 
     async def _retire(self) -> None:
-        pending = tuple(task for task in (self.task, *self.responses)
-                        if task is not None)
-        if self.task is not None:
-            self.task.cancel()
+        pending = (*self.runner.tasks(), *self.responses)
+        self.runner.cancel()
         self.cancel_responses()
         if pending:
             await asyncio.gather(*pending, return_exceptions=True)
         self.responses.clear()
-        self.task = None
+        self.clear_runner()
         await self.agent.process.detach(self)
 
     def session_finished(self, task: asyncio.Task[None]) -> None:

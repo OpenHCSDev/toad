@@ -73,7 +73,7 @@ async def test_closing_one_session_leaves_the_others_on_the_shared_process(attac
             async with asyncio.timeout(5):
                 assert (await permissions[1]).outcome.outcome == 'cancelled'
             assert shared.sessions == {beta.session} and beta.ready
-            assert shared.process is child and shared.runner is not None and not shared.runner.done()
+            assert shared.process is child and shared.runner.running()
             with pytest.raises(RequestError):
                 shared.recipient('alpha')
             await owner._runtime.publish_update(session_id='beta', update=AvailableCommandsUpdate(
@@ -120,7 +120,7 @@ async def test_stopping_a_session_the_agent_refused_leaves_the_shared_process(at
             await refused.stop()
 
             assert alpha.ready and shared.sessions == {alpha.session}
-            assert shared.runner is not None and not shared.runner.done()
+            assert shared.runner.running()
     finally:
         for agent in (alpha, refused):
             await agent.stop()

@@ -24,7 +24,7 @@ async def test_failed_sender_does_not_prevent_session_retirement(workspace):
         await process.retire()
         assert process.connection is None
         assert not process.sessions
-        assert agent.session.task is None
+        assert not agent.session.runner.tasks()
         assert not agent.session.accepts_updates
         assert agent.session.retirement.done()
     finally:
