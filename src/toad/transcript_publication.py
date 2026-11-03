@@ -120,6 +120,10 @@ class TranscriptPublication(BoundFrame, ABC):
         """A restored tab publishes its source again."""
         owner.source_requests.submit(self)
 
+    def submit_to(self, requests: SourcePublicationRequests) -> None:
+        """Queued now; whether it is still current is decided when it publishes."""
+        requests.submit(self)
+
     def __init__(
         self, binding: BoundView, owner: TranscriptPresentation, generation: int
     ) -> None:
@@ -332,6 +336,9 @@ class Uncaptured:
         """A restored tab with nothing to publish lets its reader's held place go."""
         window.reader_position.release(window)
 
+    def submit_to(self, requests: SourcePublicationRequests) -> None:
+        """Nothing to publish is never queued."""
+
 
 UNCAPTURED = Uncaptured()
 
@@ -395,9 +402,7 @@ class SourcePublicationRequests:
         self.observation = ResourceRelease()
 
     def request(self, kind: type[TranscriptPublication], *args: ThreadPresentation) -> None:
-        publication = self.owner.binding.capture(self.owner, kind, *args)
-        if publication.current():
-            self.submit(publication)
+        self.owner.binding.capture(self.owner, kind, *args).submit_to(self)
 
     def submit(self, publication: TranscriptPublication) -> None:
         """Keep the original operation when its caller is the native UI pump."""
