@@ -50,7 +50,7 @@ from agent_comms.relationships import (
     RelationshipGroup,
     ThreadCommsSnapshot,
 )
-from toad.widgets.thread_comms_source import RelationshipSource
+from toad.widgets.thread_comms_source import CoreRelationships
 from toad.widget_actions import WidgetAction, OpensSelected
 from toad.worker_group import WorkerGroup
 
@@ -290,21 +290,17 @@ class ThreadCommsSidebar(
     def __init__(
         self,
         *,
-        source: RelationshipSource | None = None,
         states: dict[SessionIdentity, RelationshipTreeState] | None = None,
     ):
         super().__init__()
         self._generation = 0
         self._refresh_task = None
         self._revision = None
-        self._source = None
         self._filter_view = None
         self._filter_controls: dict[Checkbox, type[MessageCategory]] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states = states if states is not None else {}
         self.groups: dict[type[RelationshipGroup], RelationshipRows] = {}
-        if source is not None:
-            self.use_source(source)
 
     @property
     def view_state(self):
@@ -312,20 +308,12 @@ class ThreadCommsSidebar(
             self.thread_view.thread_identity, RelationshipTreeState()
         )
 
-    async def relationship_source(self, identity: ThreadIdentity) -> RelationshipSource:
-        if self._source is not None:
-            return self._source
+    async def relationship_source(self, identity: ThreadIdentity) -> CoreRelationships:
         access = self.app.coordination_access
         return await self.app.preparation.run_thread(
-            lambda: access.require(
-                access.selected(identity.root_path())
-            ).service.relationships
+            lambda: access.observing(identity.root_path()).relationships()
         )
 
-    def use_source(self, source: RelationshipSource) -> None:
-        self._source = source
-        self._reset_relationships()
-        self.refresh_relationships(force=True)
 
     def compose(self):
         yield RelationshipContext(
