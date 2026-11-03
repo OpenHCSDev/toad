@@ -10,7 +10,6 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from math import inf
 from itertools import accumulate, chain, islice
 from typing import TYPE_CHECKING, Final
 from weakref import ref
@@ -37,7 +36,7 @@ from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
 from textual.worker import Worker
-from ui_theme.effects import NEW_TEXT, Amount, Transition
+from ui_theme.effects import NEW_TEXT
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
@@ -117,10 +116,6 @@ if TYPE_CHECKING:
 
     from toad.widgets.conversation import Contents, Conversation
 
-
-# An arriving message is uncovered from its first row down, alongside NEW_TEXT's fade.
-ARRIVAL_REVEAL = Transition(Amount, 0.0, 1.0, duration=NEW_TEXT.duration,
-                            frames_per_second=NEW_TEXT.frames_per_second)
 
 
 class HistoryEdge(Activates, Static, can_focus=True):
@@ -462,8 +457,6 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         strip = lines.strips_at(fragment.link_place)[row]
         if fragment.key in self.arrivals:
             history = self.history
-            if row >= history.revealed_rows:
-                return selection_painted(self, self.blank_row(width, paint), y)
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
@@ -1100,24 +1093,12 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
     def drawn_tail_followed(self) -> bool:
         return not self.drawn_end_more and self.follows_source_tail
 
-    # The window's height when the current burst of arrivals began.
-    reveal_rows = 0
-
-    @property
-    def revealed_rows(self) -> float:
-        """How many rows of each arriving fragment are uncovered: all of them once the sweep ends."""
-        amount = self.effect_frame(ARRIVAL_REVEAL).value
-        return amount * self.reveal_rows if amount < 1.0 else inf
-
     def arrivals_began(self) -> None:
-        """A burst of arrivals uncovers each message from its first row down, one window height in one sweep."""
+        """A burst of arrivals fades in; every row is drawn from the first frame."""
         if not self.is_on_screen:
-            return  # A burst nobody sees has nothing to uncover.
-        self.reveal_rows = self.window.scrollable_content_region.height
-        # The fade starts with the reveal: covered rows never paint it, and
-        # the burst is decided by the fade's phase.
+            return  # A burst nobody sees has nothing to fade.
+        # The burst is decided by the fade's phase.
         self.run_effect(NEW_TEXT)
-        self.run_effect(ARRIVAL_REVEAL)
 
     def hold_arrival(self, arrivals: tuple[TranscriptFragment, ...]) -> None:
         """The first shown arriving message places a following reader: from its head when it is taller than the window."""
