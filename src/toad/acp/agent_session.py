@@ -26,6 +26,7 @@ import toad
 from toad import constants
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.initialization import InitializedAgent
+from toad.acp.session_identity import SessionIdentity
 from toad.acp.session_disposition import (
     ActiveSessionDisposition,
     FailedSessionDisposition,
@@ -89,9 +90,13 @@ class AgentSession(SessionLifetime):
     def capabilities(self):
         return self.agent.process.initialization.capabilities
 
-    def accepts_session(self, session_id: str | None) -> bool:
-        """Only this active session may consume work for its current binding."""
-        return self.accepts_updates and self.agent.session_id == session_id
+    def accepts_session(self, session_id: str) -> bool:
+        """Only this active session may consume foreign SDK work for its binding."""
+        return self.accepts_updates and self.agent.controller.session.session_id == session_id
+
+    def accepts_identity(self, expected: SessionIdentity) -> bool:
+        """Retain the supplied expected key, including a mismatched or unbound key."""
+        return self.accepts_updates and expected.matches(self.agent.controller.session)
 
     def _track_operation[Result](self, operation: Coroutine[None, None, Result]) -> asyncio.Task[Result]:
         task = asyncio.create_task(operation)
@@ -112,7 +117,7 @@ class AgentSession(SessionLifetime):
 
     async def close_in(self, connection: ClientSideConnection) -> None:
         """Closing the remote session is tracked even after input stops."""
-        await self._track_operation(connection.close_session(self.agent.session_id))
+        await self._track_operation(connection.close_session(self.agent.controller.session.session_id))
 
     def close(self) -> None:
         self.disposition = self.disposition.close(self.agent.controller)
@@ -260,7 +265,7 @@ class AgentSession(SessionLifetime):
                 return
         self.settled.set()
         self.publish_thread_row_state()
-        self.agent.events.publish(AgentReady(session_id=self.agent.session_id, reconnected=self.reconnecting))
+        self.agent.events.publish(AgentReady(session_id=self.agent.controller.session.session_id, reconnected=self.reconnecting))
 
 
     async def reconnect(self, plan: SessionLoadPlan | None = None) -> None:
@@ -300,7 +305,7 @@ class AgentSession(SessionLifetime):
             raise LoginNotReady(self.disposition.refusal_notice)
 
     async def authenticate(self, method_id: str) -> None:
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        authority = ClientSessionRequest(self.agent, self.agent.controller.session)
         authority.require()
         await self.agent.process.rpc.authenticate(method_id)
         authority.require()
@@ -310,7 +315,7 @@ class AgentSession(SessionLifetime):
 
     async def initialize(self) -> None:
         """The connection owns its original initialization response."""
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        authority = ClientSessionRequest(self.agent, self.agent.controller.session)
         authority.require()
         await self.agent.process.initialization.initialize(
             partial(self._initialize, authority),
@@ -332,7 +337,7 @@ class AgentSession(SessionLifetime):
 
     async def new(self) -> None:
         """Create a new session."""
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        authority = ClientSessionRequest(self.agent, self.agent.controller.session)
         authority.require()
         cursor_token = self.agent._private_cursor.begin(None)
         queue_token = self.agent.queue_attachment.begin(None)
@@ -344,9 +349,9 @@ class AgentSession(SessionLifetime):
         if not self.agent._private_cursor.is_current_request(cursor_token):
             return
         assert response is not None
-        self.agent.session_id = response.session_id
+        self.agent.controller.bind_session(response.session_id)
         bound_session_id = self.agent.controller.session.require_session_id()
-        authority = ClientSessionRequest(self.agent, bound_session_id)
+        authority = ClientSessionRequest(self.agent, self.agent.controller.session)
         await self.agent.comms_consumer_class(
             self.agent, bound_session_id,
             cursor_token=cursor_token, queue_token=queue_token,
@@ -384,7 +389,7 @@ class AgentSession(SessionLifetime):
 
 
     async def load(self) -> None:
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        authority = ClientSessionRequest(self.agent, self.agent.controller.session)
         authority.require()
         request_session_id = authority.binding.require_session_id()
         cursor_token = self.agent._private_cursor.begin(request_session_id)
@@ -416,7 +421,7 @@ class AgentSession(SessionLifetime):
         authority.require()
         if (
             not self.agent._private_cursor.is_current_request(cursor_token)
-            or self.agent.session_id != request_session_id
+            or not self.agent.controller.session.accepts_notification(request_session_id)
         ):
             return
         assert response is not None

@@ -25,6 +25,7 @@ from agent_comms.ui_model.delivery import DeliveryView
 
 from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.status import PromptResult
+from toad.acp.session_identity import KnownSessionIdentity, SessionIdentity
 from toad.core import events as core_events
 from toad.plan import PlanItem
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
@@ -51,7 +52,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class SessionBinding:
+class SessionBinding(SessionIdentity):
     """Actual ACP binding identity, preserved only until session replacement."""
 
     output: SessionOutput = field(default_factory=SessionOutput, compare=False, kw_only=True)
@@ -67,16 +68,6 @@ class SessionBinding:
     def session_id(self) -> AcpSessionId | None:
         return None
 
-    @property
-    def bound(self) -> bool:
-        return False
-
-    def require_session_id(self) -> AcpSessionId:
-        raise RequestError.invalid_params({'details': 'ACP request has no bound session'})
-
-    def accepts_notification(self, session_id: AcpSessionId) -> bool:
-        return False
-
     def publication(self, update: AgentCommsUpdate) -> core_events.CommsUpdated:
         return core_events.CommsUpdated(update)
 
@@ -88,23 +79,7 @@ class SessionBinding:
 
 
 @dataclass(frozen=True)
-class BoundSessionBinding(SessionBinding):
-    identity: AcpSessionId
-
-    @property
-    def session_id(self) -> AcpSessionId:
-        return self.identity
-
-    @property
-    def bound(self) -> bool:
-        return True
-
-    def require_session_id(self) -> AcpSessionId:
-        return self.identity
-
-    def accepts_notification(self, session_id: AcpSessionId) -> bool:
-        return self.identity == session_id
-
+class BoundSessionBinding(KnownSessionIdentity, SessionBinding):
     def publication(self, update: AgentCommsUpdate) -> core_events.CommsUpdated:
         return core_events.CommsUpdated(update, self.identity)
 
@@ -248,7 +223,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
 
     async def submit(self, prompt: str, *, request: PromptRequest) -> PromptResult:
         agent = self.agent
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = ClientSessionRequest(agent, agent.controller.session)
         return await self.operate(
             self._prompt_operation(
                 partial(
@@ -322,7 +297,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
 
     async def clear_queue(self) -> PromptResult:
         agent = self.agent
-        authority = QueueSessionRequest(agent, agent.session_id)
+        authority = QueueSessionRequest(agent, agent.controller.session)
         return await self.operate(
             self._prompt_operation(
                 partial(self._control_prompt, ClearQueueRequest(), authority, agent.queue_attachment.scope),
@@ -331,7 +306,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
         )
 
     async def send_now(self) -> PromptResult:
-        authority = QueueSessionRequest(self.agent, self.agent.session_id)
+        authority = QueueSessionRequest(self.agent, self.agent.controller.session)
         queue_scope = self.agent.queue_attachment.scope
         if pending := tuple(self._deferred_submissions):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
@@ -343,7 +318,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
         )
 
     async def compact_context(self, request: CompactRequest):
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        authority = ClientSessionRequest(self.agent, self.agent.controller.session)
         return await self.operate(
             self._prompt_operation(partial(self._compact_context, request, authority), authority)
         )
@@ -361,7 +336,7 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
         return consumer.compaction.require()
 
     async def cancel_prompt(self):
-        return await self.operate(self._cancel_prompt(ClientSessionRequest(self.agent, self.agent.session_id)))
+        return await self.operate(self._cancel_prompt(ClientSessionRequest(self.agent, self.agent.controller.session)))
 
     async def _cancel_prompt(self, authority: ClientSessionRequest):
         authority.require()

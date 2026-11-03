@@ -89,10 +89,10 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
         if self.option is None:
             return agent.configuration_refusal(self.label)
         from toad.acp.client_session import ClientSessionRequest
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = ClientSessionRequest(agent, agent.controller.session)
         authority.require()
         try:
-            result = await agent.process.rpc.set_config_option(self.option.id, agent.session_id, value)
+            result = await agent.process.rpc.set_config_option(self.option.id, agent.controller.session.session_id, value)
             authority.require()
         except RequestError as error:
             return RequestFailure.from_error(error).failure.feedback

@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, InputStartedUpdate
-from agent_comms.nominal.field_codec import AcpSessionId
 
 from toad import agent_presentation, agent_schema
 from toad.core import events as core_events
@@ -54,14 +53,6 @@ class SessionAgent(ABC):
     @abstractmethod
     def ready(self) -> bool: ...
 
-    @property
-    @abstractmethod
-    def session_id(self) -> AcpSessionId | None: ...
-
-    @session_id.setter
-    @abstractmethod
-    def session_id(self, value: str | None) -> None: ...
-
     @abstractmethod
     async def start(self, processes: tuple[agent_process.AgentProcess, ...] = ()) -> None: ...
 
@@ -85,6 +76,9 @@ class SessionAgent(ABC):
 
     @abstractmethod
     def update_status_line(self) -> None: ...
+
+    @abstractmethod
+    def configuration_refusal(self, label: str) -> str: ...
 
     @abstractmethod
     def receive_coordination(self, update: CoordinationChangedUpdate,

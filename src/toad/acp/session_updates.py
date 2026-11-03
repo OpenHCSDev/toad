@@ -137,7 +137,7 @@ class SessionNotificationOwner(ClientRequestOwner):
         self.lock = asyncio.Lock()
 
     async def receive(self, notification, raw_update):
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        authority = ClientSessionRequest(self.agent, self.agent.controller.session)
         async with self.lock:
             if authority.retired or not authority.binding.accepts_notification(
                 FieldCodec.decode(AcpSessionId, notification.session_id)

@@ -290,8 +290,8 @@ class ConfiguredAgentProcess(AgentProcess):
                 and self.initialization.supports_close
                 and self.command == host.select(agent.definition.run_command) and self.env == env
                 and self.cwd == cwd and self.route_selection == selection
-                and agent.session_id is not None
-                and all(member.agent.session_id != agent.session_id for member in self.sessions))
+                and agent.controller.session.available_in(
+                    member.agent.controller.session for member in self.sessions))
 
     async def prepare_prompt(self, agent: session_agent.SessionAgent, require: Callable[[], None]) -> None:
         """Prepare against the route captured before this launch."""

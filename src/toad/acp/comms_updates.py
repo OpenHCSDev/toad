@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from toad.acp.session_identity import KnownSessionIdentity
+
 from dataclasses import dataclass
 
 from agent_comms.acp_extension import (
@@ -65,7 +67,7 @@ class CommsUpdateConsumer(MroDispatch):
     ) -> None:
         self.agent = agent
         self.session_id = session_id
-        self.authority = ClientSessionRequest(agent, session_id)
+        self.authority = ClientSessionRequest(agent, KnownSessionIdentity(session_id))
         self.delivery: ResponseDelivery = UnroutedResponse()
         self.response_type: type[ResponseStream] = ResponseStream
         self.compaction: CompactionReply = CompactionReply()
@@ -84,7 +86,7 @@ class CommsUpdateConsumer(MroDispatch):
             self.dispatch_sync(fact)
 
     def accepts_turn(self):
-        return self.agent.session.accepts_session(self.session_id)
+        return self.agent.session.accepts_identity(self.authority.expected)
 
     @handles(TextRouteUpdate)
     def text_route(self, update: TextRouteUpdate) -> None:
@@ -173,7 +175,7 @@ class CommsUpdateConsumer(MroDispatch):
             self.agent._post_queue_view(starts)
 
     def _post_unidentified(self, update: InputStartedUpdate) -> None:
-        if self.session_id == self.agent.session_id:
+        if self.agent.controller.session.accepts_notification(self.session_id):
             self.agent.events.publish(
                 core_events.CommsUpdated(update, session_id=self.session_id)
             )
@@ -215,8 +217,8 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(McpClientAcknowledgementUpdate)
     def mcp_status(self, update: McpClientAcknowledgementUpdate) -> None:
         if (
-            self.session_id != self.agent.session_id
-            or update.turn_id != self.agent.current_turn.managed_id
+            not self.agent.controller.session.accepts_notification(self.session_id)
+            or update.turn_id != self.agent.presentation.turns.owner.managed_id
         ):
             self.agent.log(
                 "[ACP MCP live receipt rejected] receipt is not bound to the active session/turn"
@@ -268,7 +270,7 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
     def publish_thread_turn(self, root, thread):
         """Only the live transcript member can supply actual owner settlement."""
         coordination = self.agent.coordination_attachment
-        coordination.require_current(self.agent, ClientSessionRequest(self.agent, self.session_id))
+        coordination.require_current(self.agent, ClientSessionRequest(self.agent, KnownSessionIdentity(self.session_id)))
         if not coordination.matches_identity(root, thread.incarnation):
             raise ValueError("Turn snapshot belongs to another original thread source")
         self.turn_changed(TurnChangedUpdate(thread.turn_state))

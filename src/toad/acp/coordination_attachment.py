@@ -160,7 +160,7 @@ class CoordinatedThread(CoordinationAttachment):
         events.publish(ThreadRowStateChanged(frozenset((self.update.thread.name,))))
 
     def thread_read(self, agent: session_agent.SessionAgent) -> ThreadRead:
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = ClientSessionRequest(agent, agent.controller.session)
         return PendingThreadRead(
             self, authority,
             OwnerSnapshotConsumer(agent, authority.binding.require_session_id(), turn_token=agent.presentation.turns.sequence),
@@ -189,7 +189,7 @@ class CoordinatedThread(CoordinationAttachment):
         return True
 
     async def request_owner(self, agent: session_agent.SessionAgent, method: str, **params: JsonValue):
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = ClientSessionRequest(agent, agent.controller.session)
         self.require_current(agent, authority)
         comms = await agent.controller.transcripts.service(self.update.wire_root)
         self.require_current(agent, authority)
@@ -212,7 +212,7 @@ class CoordinatedThread(CoordinationAttachment):
             await proxy.close()
 
     async def input_delivery(self, agent: session_agent.SessionAgent, *, include_history: bool = False) -> DeliveryView:
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = ClientSessionRequest(agent, agent.controller.session)
         overview = await agent.controller.transcripts.read(ReadOwnerOperation(
             self.update.wire_root, self.update.thread,
             InputDeliveryRead(include_history=include_history),
@@ -221,7 +221,7 @@ class CoordinatedThread(CoordinationAttachment):
         return ReadDeliveryView(overview)
 
     async def goal_snapshot(self, agent: session_agent.SessionAgent) -> GoalSnapshot:
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = ClientSessionRequest(agent, agent.controller.session)
         consumer = OwnerSnapshotConsumer(agent, authority.binding.require_session_id(),
                                          turn_token=agent.presentation.turns.sequence)
         snapshot = await agent.controller.transcripts.read(ReadOwnerOperation(
@@ -232,7 +232,7 @@ class CoordinatedThread(CoordinationAttachment):
         return snapshot
 
     async def update_project(self, agent: session_agent.SessionAgent, path: str) -> str:
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = ClientSessionRequest(agent, agent.controller.session)
         self.require_current(agent, authority)
         comms = await agent.controller.transcripts.service(self.update.wire_root)
         self.require_current(agent, authority)
@@ -247,9 +247,9 @@ class CoordinatedThread(CoordinationAttachment):
         agent.coordination_attachment.publish(agent, agent.controller.session)
 
     async def rename(self, agent: session_agent.SessionAgent, name: str) -> None:
-        if not agent.session.accepts_session(agent.session_id):
+        if not agent.session.accepts_identity(agent.controller.session):
             return
-        authority = ClientSessionRequest(agent, agent.session_id)
+        authority = ClientSessionRequest(agent, agent.controller.session)
         self.require_current(agent, authority)
         comms = await agent.controller.transcripts.service(self.update.wire_root)
         self.require_current(agent, authority)

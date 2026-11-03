@@ -45,7 +45,7 @@ class SessionToolCalls:
         return self.agent.coordination_attachment.tool_scope
 
     def capture(self, call):
-        return SessionToolCall(call, ClientSessionRequest(self.agent, self.agent.session_id), self.scope)
+        return SessionToolCall(call, ClientSessionRequest(self.agent, self.agent.controller.session), self.scope)
 
     def presentation(self, event):
         current = self.calls.get(event.tool_call.call.tool_call_id)

@@ -16,6 +16,7 @@ from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec
 from toad.core.events import LogAgentFail
 from .queue_attachment import QueueActionRefused
 from .session_disposition import SessionDisposition
+from .session_identity import SessionIdentity
 from .status import ConfirmedPromptResult, PromptResult, PromptSubmissionOutcome, StopReason
 
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ from acp.exceptions import RequestError
 @dataclass(frozen=True)
 class ClientSessionRequest:
     agent: "session_agent.SessionAgent"
-    session_id: AcpSessionId | None
+    expected: SessionIdentity
     disposition: "SessionDisposition" = field(init=False)
     binding: "SessionBinding" = field(init=False)
 
@@ -39,7 +40,7 @@ class ClientSessionRequest:
     def current(self):
         return (self.agent.controller.session is self.binding
                 and self.agent.session.disposition is self.disposition
-                and self.agent.session.accepts_session(self.session_id))
+                and self.agent.session.accepts_identity(self.expected))
 
     @property
     def retired(self):
@@ -151,7 +152,7 @@ class ClientRequestOwner:
 
     def session_request(self, session_id: str) -> ClientSessionRequest:
         """Match foreign SDK spelling, then retain the existing nominal binding."""
-        request = ClientSessionRequest(self.agent, self.agent.session_id)
+        request = ClientSessionRequest(self.agent, self.agent.controller.session)
         request.require()
         if not request.binding.accepts_notification(FieldCodec.decode(AcpSessionId, session_id)):
             raise RequestError.invalid_params({'details': 'ACP client request belongs to a retired session'})

@@ -325,7 +325,7 @@ class NativeSubmissionExecution(SubmissionExecution):
     def __init__(self, owner: ConversationSubmissions, submission: PromptInputSubmission, agent: SessionAgent):
         super().__init__(owner, submission)
         self.agent = agent
-        self.authority = ClientSessionRequest(agent, agent.session_id)
+        self.authority = ClientSessionRequest(agent, agent.controller.session)
         self.scope = agent.queue_attachment.scope
         self.request = submission.request
 
