@@ -170,6 +170,10 @@ class LineLink(DeclaredFamily, affix="Link"):
     async def copy_menu(self, widget, event):
         return False
 
+    def text_role(self, role: type[LineRole]) -> type[LineRole]:
+        """Plain text that leads somewhere is drawn as a link; other roles keep their own."""
+        return UrlRole if role is TextRole else role
+
     @property
     def encoded_href(self) -> str:
         """Encode only for a dependency's string-only action boundary."""
@@ -185,6 +189,18 @@ class LineLink(DeclaredFamily, affix="Link"):
         if not href.startswith("toad-link:"):
             raise ValueError("Expected a resolved Markdown action")
         return FieldCodec.decode(cls, json.loads(unquote(href.removeprefix("toad-link:"))))
+
+
+class NoLink(LineLink):
+    """Text that leads nowhere: a frontend draws it plain and gives it no action."""
+
+    underlined = False
+
+    def text_role(self, role: type[LineRole]) -> type[LineRole]:
+        return role
+
+
+NO_LINK = NoLink()
 
 
 class LinkHref(str):
@@ -245,7 +261,7 @@ class Span:
 
     text: str
     role: type[LineRole] = TextRole
-    link: LineLink | None = None
+    link: LineLink = NO_LINK
 
 
 class LineBlock:

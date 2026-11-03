@@ -5,17 +5,33 @@ from typing import TYPE_CHECKING
 from textual.content import Content
 from textual.style import Style
 
+from metaclass_registry.mro_dispatch import handles
+
+from toad.core.projection import MroProjection
 from toad.inline_spans import inline_spans
+from toad.line_blocks import LineLink, NoLink
 
 if TYPE_CHECKING:
     from toad.textual_colours import TextualColours
 
 
+class InlineLink(MroProjection[Content]):
+    """A span that leads somewhere runs its action when clicked; plain text stays as styled."""
+
+    @handles(LineLink)
+    def linked(self, link: LineLink, part: Content) -> Content:
+        return part.stylize(Style.from_meta({"@click": link.click}))
+
+    @handles(NoLink)
+    def plain(self, link: NoLink, part: Content) -> Content:
+        return part
+
+
+INLINE_LINK = InlineLink()
+
+
 def inline_message(body: str, colours: TextualColours, context) -> Content:
     result = Content("")
     for span in inline_spans(body, context):
-        part = Content.styled(span.text, colours.style(span.role))
-        if span.link is not None:
-            part = part.stylize(Style.from_meta({"@click": span.link.click}))
-        result += part
+        result += INLINE_LINK.project_value(span.link, Content.styled(span.text, colours.style(span.role)))
     return result
