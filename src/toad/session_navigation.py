@@ -142,9 +142,10 @@ class SessionNavigation:
 
     async def mailbox_entry(self, identity: MailboxTab) -> SessionEntry:
         def prepare():
-            service = self.app.coordination_access.observation.observed().service
-            if service.root != Path(identity.root):
+            observed = self.app.coordination_access.observation.observed()
+            if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"Mailbox belongs to another bus: {identity.root}")
+            service = observed.service
             snapshot = service.registry.snapshot()
             name = snapshot.canonical_name(identity.key.name)
             if not identity.key.matches_recorded_name(name, snapshot):
@@ -160,11 +161,11 @@ class SessionNavigation:
 
     async def history_entry(self, identity: HistoryTab, source: ProjectSessionOrigin) -> HistorySessionEntry:
         def participants():
-            service = self.app.coordination_access.observation.observed().service
-            if service.root != Path(identity.root):
+            observed = self.app.coordination_access.observation.observed()
+            if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"History belongs to another bus: {identity.root}")
             return identity.key.threads_needed(
-                service.registry.snapshot(), source.thread_identity.thread_name()
+                observed.service.registry.snapshot(), source.thread_identity.thread_name()
             )
 
         return HistorySessionEntry(
@@ -383,10 +384,9 @@ class SessionNavigation:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            comms = await app.preparation.run_thread(
-                lambda: app.coordination_access.observation.observed().service
-            )
-            requested_root = str(comms.root)
+            observed = await app.preparation.run_thread(app.coordination_access.observation.observed)
+            comms = observed.service
+            requested_root = str(observed.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
             prepared = await app.navigation_reader.read(
