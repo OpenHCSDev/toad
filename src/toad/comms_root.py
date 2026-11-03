@@ -24,6 +24,7 @@ from weakref import WeakKeyDictionary, WeakSet
 from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
+from agent_comms.core_access import CoreAccess, LocalCoreAccess
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
@@ -194,6 +195,10 @@ class FailedObservation(Observation):
         raise self.error
 
     @property
+    def core(self) -> CoreAccess:
+        raise self.error
+
+    @property
     def sidebar(self):
         raise self.error
 
@@ -247,6 +252,12 @@ class Observing(Observation):
 
     def uses(self, service: Comms) -> bool:
         return self.service is service
+
+    @property
+    def core(self) -> CoreAccess:
+        """Where this UI's requests to the observed Core are answered: in this process here;
+        a remote connection answers the same requests through the connector."""
+        return LocalCoreAccess(self.service)
 
     async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
         if root is not None and not self.observes(root):

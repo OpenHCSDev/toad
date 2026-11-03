@@ -109,8 +109,9 @@ class CommsChatView(Conversation):
     async def initialize_view(self) -> None:
         # Reuse the canonical core service already shared by tab sidebars and
         # transcript readers. Its revision-aware caches remain model-owned.
-        shared = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.observation.observed().service)
+        observed = await self.app.preparation.run_thread(
+            lambda: self.app.coordination_access.observation.observed())
+        shared = observed.service
         if self._bound_root is not None and self._bound_root != shared.root:
             raise ValueError(
                 f"Conversation root {self._bound_root} differs from observed root {shared.root}"
@@ -119,7 +120,7 @@ class CommsChatView(Conversation):
         await self.app.coordination_access.current_sidebar()
         source = WireSource(
             comms, self.conversation, self.project_path, self._me,
-            IrcMessageStyle(), access=self.app.coordination_access,
+            IrcMessageStyle(), access=self.app.coordination_access, core=observed.core,
         )
         self.queue_source = source
         self.message_history.initialize_source(source)
