@@ -322,7 +322,6 @@ class FailedObservation(Observation):
         self.access.events.publish(TeamHudFailed(self.error))
 
 
-@dataclass(frozen=True)
 @dataclass(frozen=True, eq=False)
 class ConnectorObservation(FailedObservation):
     """Core answers this UI's requests through the connector. Every observed surface
@@ -335,6 +334,7 @@ class ConnectorObservation(FailedObservation):
         return self.connection
 
 
+@dataclass(frozen=True)
 class Observing(Observation):
     selection: RouteSelection
     service: Comms = field()
