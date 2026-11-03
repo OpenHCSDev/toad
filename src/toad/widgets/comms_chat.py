@@ -108,15 +108,14 @@ class CommsChatView(Conversation):
             raise ValueError(
                 f"Conversation root {self._bound_root} differs from observed root {observed.root}"
             )
-        comms = observed.service
         await self.app.coordination_access.current_sidebar()
         source = WireSource(
-            comms, self.conversation, self.project_path, self._me,
+            observed.root, self.conversation, self.project_path, self._me,
             IrcMessageStyle(), access=self.app.coordination_access, core=observed.core,
         )
         self.queue_source = source
         self.message_history.initialize_source(source)
-        self.refresh_identity(comms.root)
+        self.refresh_identity(observed.root)
         self.prepare_prompt()
         self.window.anchor()
         # CommsScreen has already presented its route before mounting this
@@ -282,7 +281,7 @@ class CommsChatView(Conversation):
                         or not self.query_ancestor(SessionScope).is_current):
                     return
             self.call_after_refresh(history.mark_visible)
-            self.refresh_identity(source.loader.comms.root)
+            self.refresh_identity(source.loader.root)
             if not changed:
                 return
             status = await source.status_text(read_only=read_only)

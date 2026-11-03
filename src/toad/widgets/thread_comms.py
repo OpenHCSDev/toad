@@ -9,6 +9,7 @@ from toad.core import events as core_events
 
 from toad.navigation_target import NavigationTarget, SelectTarget, ThreadTarget
 
+from typing import TYPE_CHECKING
 import asyncio
 from dataclasses import dataclass, field
 
@@ -50,9 +51,11 @@ from agent_comms.relationships import (
     RelationshipGroup,
     ThreadCommsSnapshot,
 )
-from toad.widgets.thread_comms_source import RelationshipReads
 from toad.widget_actions import WidgetAction, OpensSelected
 from toad.worker_group import WorkerGroup
+
+if TYPE_CHECKING:
+    from toad.comms_root import Observing
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
@@ -308,7 +311,7 @@ class ThreadCommsSidebar(
             self.thread_view.thread_identity, RelationshipTreeState()
         )
 
-    async def relationship_source(self, identity: ThreadIdentity) -> RelationshipReads:
+    async def relationship_source(self, identity: ThreadIdentity) -> Observing:
         access = self.app.coordination_access
         return await self.app.preparation.run_thread(lambda: access.observing(identity.root_path()))
 
@@ -456,7 +459,7 @@ class ThreadCommsSidebar(
             if generation != self._generation or not self.is_attached:
                 return
             owner = identity.thread_name()
-            revision = await asyncio.to_thread(service.relationship_revision)
+            revision = await asyncio.to_thread(service.wire_revision)
             if revision == self._revision:
                 return
             snapshot = await asyncio.to_thread(service.relationships, owner)
