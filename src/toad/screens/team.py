@@ -247,7 +247,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
     async def unit_detail(self, card: Teammate) -> object:
         access = self.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
-        return await observed.process.read(ReadOperation(str(observed.service.root), TeammateRead(
+        return await observed.process.read(ReadOperation(str(observed.root), TeammateRead(
             commander=self.teammate, unit=card.unit, orders=card.order_ids,
         )))
 

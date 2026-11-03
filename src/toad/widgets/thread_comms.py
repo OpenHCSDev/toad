@@ -566,7 +566,7 @@ class ThreadCommsSidebar(
         identity = self.thread_view.thread_identity
         if (
             identity.root_path()
-            != self.app.coordination_access.observation.observed().service.root.resolve()
+            != self.app.coordination_access.observation.observed().root
         ):
             self.notify(
                 "This view uses a different wire; open its matching connection to navigate.",

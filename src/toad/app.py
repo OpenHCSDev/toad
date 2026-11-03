@@ -439,23 +439,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         return (self.workspace_sessions.source.identity
                 if self.current_mode == "workspace" else self.current_mode)
 
-
-    def local_coordination_threads(self) -> set[str]:
-        """Authoritative wire identities already represented by local sessions."""
-        threads: set[str] = set()
-        for details in self.session_tracker.ordered_sessions:
-            screen = self.session_navigation.source(details.mode_name)
-            if screen is not None and screen.coordination_root is not None:
-                threads.add(screen.thread_identity.thread_name())
-        return threads
-
-    async def registry_names(self) -> list[str]:
-        """Read peers through the current coordination owner, independent of panels."""
-        registered = await self.preparation.run_thread(
-            lambda: tuple(self.coordination_access.observation.observed().service.registry.active_threads()))
-        local_threads = self.local_coordination_threads()
-        return [name for name in registered if name not in local_threads]
-
     @property
     def running_loop(self) -> asyncio.AbstractEventLoop:
         loop = self._loop

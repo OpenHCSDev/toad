@@ -350,8 +350,13 @@ class Observing(Observation):
     async def read(self, request: AwaitedRead) -> object:
         return await self.process.read(request)
 
+    @property
+    def root(self) -> Path:
+        """The bus root this observation's Core serves; root-keyed requests and views key on it."""
+        return self.selection.root
+
     def observes(self, root: str | Path) -> bool:
-        return self.service.root == Path(root).resolve()
+        return self.selection.root_is_current(root)
 
     def tab(self, entry: SessionEntry, sessions: SessionNavigation):
         return entry.tab(sessions, self)
@@ -409,7 +414,7 @@ class Observing(Observation):
             self.access.app._handle_exception(error)
 
     def views_changed(self, event=None, subscription=None):
-        access, root = self.access, str(self.service.root)
+        access, root = self.access, str(self.root)
         threads: set[ThreadIncarnation] = set()
         channels: set[str] = set()
         for member in access.app.session_navigation.members:
@@ -431,7 +436,7 @@ class Observing(Observation):
         return access.reference_context(root)
 
     def thread_interest(self, access: CoordinationAccess):
-        self.process.request(ObserveThreads(access.events.observed_threads(str(self.service.root))))
+        self.process.request(ObserveThreads(access.events.observed_threads(str(self.root))))
 
     def observe_sidebar(self, wanted):
         self.process.request(wanted if wanted is not None else StopSidebar())
@@ -570,10 +575,10 @@ class CoordinationAccess(MroDispatch):
         app = self.app
         notice = observed.sidebar.observation.read_marker_notice()
         modes = app.tab_order.names
-        previous_references = self.reference_context(str(observed.service.root))
+        previous_references = self.reference_context(str(observed.root))
         observed.sidebar.apply(result.snapshot, result.derived)
         self.present_sidebar()
-        if previous_references != self.reference_context(str(observed.service.root)):
+        if previous_references != self.reference_context(str(observed.root)):
             self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
         result.snapshot.read_marker_notice.notify_if_new(
@@ -623,11 +628,11 @@ class CoordinationAccess(MroDispatch):
     @handles(ThreadsObserved)
     def threads_observed(self, result: ThreadsObserved, observed: Observing) -> None:
         self.thread_status.observed(result)
-        self.events.publish(ThreadRowsChanged(names=result.changed, root=str(observed.service.root)))
+        self.events.publish(ThreadRowsChanged(names=result.changed, root=str(observed.root)))
 
     @handles(ViewsRetired)
     def views_retired(self, result: ViewsRetired, observed: Observing) -> None:
-        self.app.session_navigation.views_retired(observed.service.root, result.retired)
+        self.app.session_navigation.views_retired(observed.root, result.retired)
 
     def show_notifications(self, view: HistoryNotifications, read: ReadNotifications) -> bool:
         """Show `read` in `view`; asking again for the read it already shows changes nothing."""

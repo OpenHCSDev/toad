@@ -204,7 +204,7 @@ class Transfers(ThemedApp[TerminalOutcome]):
 
     def open_transfer(self, kind: type[Transfer]) -> None:
         access = self.coordination_access
-        selected = access.selected(access.observation.observed().service.root)
+        selected = access.selected(access.observation.observed().root)
         self.push_screen(kind.dialog(selected), callback=partial(self.transfer_submitted, selected))
 
     @boundary_decoder
