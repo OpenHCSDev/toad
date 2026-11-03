@@ -100,6 +100,9 @@ class BoundFrame:
             and self.binding.current()
         )
 
+    async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
+        return await self.binding.reader.page(scope, position=position, limit=limit)
+
     def painted(self, cursor: TranscriptCursor) -> None:
         if self.current():
             view = self.binding.view
@@ -309,6 +312,22 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         return True
 
 
+class Uncaptured:
+    """What a view that cannot publish captures: never current, never ready to commit, no reader."""
+
+    def current(self) -> bool:
+        return False
+
+    def ready_to_commit(self) -> bool:
+        return False
+
+    async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
+        raise ValueError("Transcript paging requires a bound thread")
+
+
+UNCAPTURED = Uncaptured()
+
+
 class PublicationWork:
     """No publication is running: nothing to cancel or join, and a commit has nothing to settle."""
 
@@ -369,9 +388,8 @@ class SourcePublicationRequests:
 
     def request(self, kind: type[TranscriptPublication], *args: ThreadPresentation) -> None:
         publication = self.owner.binding.capture(self.owner, kind, *args)
-        if publication is None:
-            return
-        self.submit(publication)
+        if publication.current():
+            self.submit(publication)
 
     def submit(self, publication: TranscriptPublication) -> None:
         """Keep the original operation when its caller is the native UI pump."""
@@ -546,8 +564,8 @@ class ViewBinding:
 
     def capture[FrameT: BoundFrame](
         self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation
-    ):
-        return None
+    ) -> FrameT | Uncaptured:
+        return UNCAPTURED
 
     def painted(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
         pass
@@ -730,10 +748,10 @@ class BoundView(ViewBinding):
 
     def capture[FrameT: BoundFrame](
         self, owner: TranscriptPresentation, kind: type[FrameT], *args: ThreadPresentation
-    ):
+    ) -> FrameT | Uncaptured:
         view = self.view
         if not view.is_attached or view.is_leaving:
-            return None
+            return UNCAPTURED
         return kind.capture(self, owner, *args)
 
     def painted(self, owner: TranscriptPresentation, cursor: TranscriptCursor) -> None:
@@ -849,9 +867,7 @@ class TranscriptPresentation:
     ) -> TranscriptPage:
         frame = self.binding.capture(self, BoundFrame)
         scope = self.binding.thread_scope
-        if frame is None:
-            raise ValueError("Transcript paging requires a bound thread")
-        page = await frame.binding.reader.page(scope, position=position, limit=limit)
+        page = await frame.read_page(scope, position=position, limit=limit)
         if self.binding.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page
@@ -889,7 +905,7 @@ class TranscriptPresentation:
 
     async def publish(self, kind: type[TranscriptPublication], *args: ThreadPresentation) -> bool:
         publication = self.binding.capture(self, kind, *args)
-        if publication is not None and publication.current():
+        if publication.current():
             return await publication.publish()
         return True
 
@@ -926,8 +942,9 @@ class TranscriptPresentation:
     async def refresh_cursor(self) -> TranscriptCursor:
         """Commit and return the cursor from the resulting painted transcript."""
         self.require_commit()
-        frame: BoundFrame | None = self.binding.capture(self, BoundFrame)
-        if frame is None:
+        frame = self.binding.capture(self, BoundFrame)
+        # A frame stops being current only for good: one that is not now never publishes.
+        if not frame.current():
             raise TranscriptChanged()
         await self.worker.settled()
         if not frame.current():
@@ -946,11 +963,7 @@ class TranscriptPresentation:
             return
         if not self.dirty or not self.worker.is_finished:
             return
-        publication = self.binding.capture(self, CommitPublication)
-        if (
-            publication is not None
-            and publication.ready_to_commit()
-        ):
+        if self.binding.capture(self, CommitPublication).ready_to_commit():
             self.binding.request(self)
 
     def source_work_finished(self, view: Conversation) -> None:
