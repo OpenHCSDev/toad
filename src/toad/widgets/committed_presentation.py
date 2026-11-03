@@ -409,7 +409,7 @@ class CommitPlan(ABC):
 
     @asynccontextmanager
     async def publication(self, view: Conversation, prepared: PreparedCommit):
-        async with view.window.preserve_history(root=view.contents):
+        async with view.window.preserve_history():
             yield
 
     def finish(self, view: Conversation, cursor: TranscriptCursor) -> None:

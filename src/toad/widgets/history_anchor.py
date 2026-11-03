@@ -784,7 +784,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     reader_position: ReaderPosition = TailPosition()
     """The position held during history changes and across tab returns."""
     history_change: HistoryChange | NoHistoryChange = NO_HISTORY_CHANGE
-    _history_mutation_root: Widget | None = None
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
@@ -1127,17 +1126,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     def check_follow(self) -> bool:
         return self.history_change.check_follow(self)
 
-    @property
-    def history_mutation_root(self) -> Widget | None:
-        """The subtree owned by the active native publication transaction.
-
-        A direct native window lock still protects the whole window. Scoped
-        history publications name their original mutation owner instead.
-        """
-        if not self.lock.is_locked:
-            return None
-        return self if self._history_mutation_root is None else self._history_mutation_root
-
     def visible_history_items(self, items: Iterable[Widget]):
         """Borrow this window's clipped cohort from the original native scene."""
         compositor = self.screen._compositor
@@ -1159,8 +1147,8 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         return None if placement is None else placement.content_region.intersection(placement.clip)
 
     @asynccontextmanager
-    async def preserve_history(self, *, root: Widget | None = None):
-        """Change what this window draws (inside `root`) with the reader kept on their row.
+    async def preserve_history(self):
+        """Change what this window draws with the reader kept on their row.
 
         The scope holds the window's tree lock for the change, then waits for
         the layout that shows it.
@@ -1171,21 +1159,8 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
                 async with self.lock:
                     # Take the tree lock before joining a change already open:
                     # its layout cannot finish while this one holds the tree.
-                    previous = self._history_mutation_root
-                    mutation = self if root is None else root
-                    if mutation is not self and self not in mutation.ancestors:
-                        raise ValueError("History mutation must belong to its window")
-                    if previous is not None:
-                        if previous is mutation or previous in mutation.ancestors:
-                            mutation = previous
-                        elif mutation not in previous.ancestors:
-                            mutation = Widget.get_common_ancestor(previous, mutation)
-                    self._history_mutation_root = mutation
-                    try:
-                        await shown.enter_async_context(self._history_change())
-                        yield
-                    finally:
-                        self._history_mutation_root = previous
+                    await shown.enter_async_context(self._history_change())
+                    yield
             finally:
                 # Held layout requests become actionable only after the outer
                 # tree lock releases. Wake the screen before waiting for that layout.

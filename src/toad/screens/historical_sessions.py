@@ -157,7 +157,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
             )
             if generation != self._selection_generation or not self.is_attached:
                 return
-            async with window.preserve_history(root=content):
+            async with window.preserve_history():
                 await content.mount(history)
 
     def action_focus_prompt(self) -> None:

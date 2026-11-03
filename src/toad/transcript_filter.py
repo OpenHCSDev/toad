@@ -211,7 +211,7 @@ class SeekingFilter(NoFilter):
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):
                     return False
-                async with snapshot.window.preserve_history(root=owner):
+                async with snapshot.window.preserve_history():
                     with ExitStack() as acquisition:
                         filtered = Filtered(owner, projection)
                         self.transfer_scan(filtered)
@@ -267,7 +267,7 @@ class Filtered(FilterState):
 
     async def _retire(self) -> None:
         async with self.owner.window.history_lock:
-            async with self.owner.window.preserve_history(root=self.owner):
+            async with self.owner.window.preserve_history():
                 self.remove()
         if self.owner.is_attached:
             self.owner.request_preparation()

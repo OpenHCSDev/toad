@@ -586,7 +586,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         if not held:
             return
         window = self.query_ancestor(HistoryWindow)
-        async with window.preserve_history(root=self):
+        async with window.preserve_history():
             self.lines_replaced(held)
 
     @classmethod
@@ -625,7 +625,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         async with window.history_lock:
             if not current():
                 return False
-            async with window.preserve_history(root=self):
+            async with window.preserve_history():
                 return self.prepared.replace_range(self, selected, current)
 
 class DrawsBusMessages:
@@ -784,7 +784,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         if not self.state.can_draw:
             return
         ready = {fragment.key: result for (fragment, _shown, _previous), result in zip(drawn, rendered)}
-        async with self.window.preserve_history(root=self):
+        async with self.window.preserve_history():
             if not self.state.can_draw:
                 return
             changed = {fragment.key for fragment, shown, _previous in changes
@@ -915,7 +915,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         async with window.history_lock:
             if not current():
                 return None
-            async with window.preserve_history(root=self):
+            async with window.preserve_history():
                 if not original.replace_range(page, slice(staged.start, staged.stop), current):
                     return None
                 window.release_anchor()
@@ -1172,7 +1172,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                 if edge.prepared.capture_range() != page_range:
                     return False
                 protected = {fragment.key for fragment in self.visible_fragments()}
-                async with window.preserve_history(root=self):
+                async with window.preserve_history():
                     arrivals = self._source_state.arriving(staged, followed_end)
                     await self._extend_and_trim(edge, end, local, protected, staged, current=current)
                     self._require_can_draw()

@@ -260,7 +260,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         async with window.history_lock:
             if not current() or self.pages[-1] is not edge:
                 return False
-            async with window.preserve_history(root=self):
+            async with window.preserve_history():
                 previous = tuple(self.pages)
                 views = deque()
                 if not destination:
