@@ -19,6 +19,7 @@ from agent_comms.channel_targets import (
 )
 from agent_comms.channels import AllChannel
 from agent_comms.comms import Comms
+from agent_comms.tools import CommsConversationPageTool
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import (
@@ -80,8 +81,10 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def view_identity(cls, key: CommsViewKey):
         return key
 
-    @abstractmethod
-    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage: ...
+    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
+        """Every conversation reads its page through the request a remote UI sends too."""
+        return source.core.call(CommsConversationPageTool(
+            conversation=self.retained_target(), project=source.project, bounds=bounds))
 
     @classmethod
     @abstractmethod
@@ -185,13 +188,6 @@ class ChannelConversation(ConversationKind):
 
         return ChannelViewAddress(key.root, key.conversation)
 
-    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
-        return source.comms.views.channel_display_page(
-            self.target.name,
-            viewer=source.viewer,
-            bounds=bounds,
-        )
-
     @classmethod
     def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:
         snapshot = comms.registry.snapshot()
@@ -266,13 +262,6 @@ class DmConversation(ConversationKind):
 
     def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
         return observation.bus_unread(self.destination(references).name)
-
-    def page(self, source: WireSource, bounds: PageBounds) -> MessagePage:
-        return source.comms.views.dm_display_page(
-            self.retained_target(),
-            worktree=source.project,
-            bounds=bounds,
-        )
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:

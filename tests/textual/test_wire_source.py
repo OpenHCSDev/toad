@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 
+from agent_comms.core_access import LocalCoreAccess
 from agent_comms.repo import Checkout
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.channel_targets import ChannelTarget, ThreadTarget
@@ -28,7 +29,8 @@ def channel_source(comms, target, project):
     project = Checkout(project)
     viewer = comms.messaging.user_identity(project).name
     return WireSource(comms, ChannelConversation(ChannelTarget(target)), project, viewer, IrcMessageStyle(),
-                      access=AppAgents.unrun(project.path, LaunchRoot.from_path(comms.root)).app.coordination_access)
+                      access=AppAgents.unrun(project.path, LaunchRoot.from_path(comms.root)).app.coordination_access,
+                      core=LocalCoreAccess(comms))
 
 
 def observed(source):
@@ -49,7 +51,7 @@ def test_empty_first_read_keeps_its_real_identity_after_the_unread_placeholder(t
     prepared = source.read(PageRequest(OLDER_END, initial), initial)
     assert not prepared.fragments and not prepared.page.after.requires_read()
     identity = prepared.page.source.selection.notification_identity
-    assert identity.viewer == comms.registry.require(source.viewer.name).incarnation
+    assert identity.viewer == comms.messaging.user_identity(Checkout(comms.root)).incarnation
     assert placeholder.page.accepts(prepared.page.source, source.conversation.history_view)
     placeholder.advance_empty(prepared, older=True)
     assert not placeholder.page.after.requires_read()
