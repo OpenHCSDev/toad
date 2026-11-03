@@ -252,7 +252,8 @@ class CommitBarrier:
 class BlockClaims(MroProjection[CommitClaim]):
     """Every block a conversation's contents hold has one commit claim; this is where it is read."""
 
-    @handles(Widget)
+    # object, not Widget: a history's MRO reaches Widget before its CommitParticipant base.
+    @handles(object)
     def retained(self, widget: Widget) -> CommitClaim:
         return RetainedBlockClaim()
 
