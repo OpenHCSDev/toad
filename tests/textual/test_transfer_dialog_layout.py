@@ -27,7 +27,7 @@ async def test_transfer_actions_survive_short_viewport_and_notice(
     async with workspace.app(size=(width, height)) as ui:
         app, pilot = ui.textual
         access = app.coordination_access
-        selected = access.selected(access.observation.observed().service.root)
+        selected = access.selected(access.observation.observed().root)
         # Exercise the actual notification/layout mechanism, not a fake exporter
         # result. The separate physical06 evidence establishes real FileExistsError.
         app.notify("Existing destination was preserved. " * 8,

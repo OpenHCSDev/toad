@@ -169,7 +169,7 @@ async def test_running_export_retires_writer_and_staging(workspace: Workspace, c
         app, _ = ui.textual
         record_notifications(app)
         access = app.coordination_access
-        selected = access.selected(access.observation.observed().service.root)
+        selected = access.selected(access.observation.observed().root)
         app.transfer_submitted(selected, WireExportRequest(
             protected, TextFormat(), EverythingScope(), FullLimit()))
         await ui.until(lambda: any(note.title == "Wire export failed" for note in app._notifications),
