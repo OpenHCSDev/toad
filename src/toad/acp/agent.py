@@ -10,6 +10,7 @@ from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
     InputStartedUpdate,
     PromptRequest,
+    QueuePromptRequest,
 )
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, GoalId, InputId
@@ -207,8 +208,9 @@ class Agent(AgentBase, SessionAgent):
         return owner.start(NativeSubmissionExecution(owner, submission, self))
 
     async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None) -> PromptResult:
-        """Submit through AgentBase's contract; the controller runs the request."""
-        return await self.controller.submit(prompt, request=request)
+        """Decode the public optional request once; the controller requires one."""
+        command = request if request is not None else QueuePromptRequest(prompt)
+        return await self.controller.submit(prompt, request=command)
 
 
     @property
@@ -354,7 +356,7 @@ class NativeSubmissionExecution(SubmissionExecution):
         if local:
             view.turns.start_client()
         self.enter(SendPending())
-        outcome = await self.agent.send_prompt(self.submission.text, request=self.request)
+        outcome = await self.agent.controller.submit(self.submission.text, request=self.request)
         outcome.settle_submission(self)
         if self.current and local:
             view.call_later(self.complete, outcome)

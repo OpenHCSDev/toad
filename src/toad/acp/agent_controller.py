@@ -16,7 +16,6 @@ from agent_comms.acp_extension import (
     CommsRequest,
     CompactRequest,
     PromptRequest,
-    QueuePromptRequest,
     SendNowRequest,
     encode_request,
 )
@@ -247,14 +246,13 @@ class AgentController(SessionCloseTarget, OperationalTerminalOwner):
     async def operate[Result](self, operation: Coroutine[None, None, Result]) -> Result:
         return await asyncio.shield(self.start_operation(operation))
 
-    async def submit(self, prompt: str, *, request: PromptRequest | None = None) -> PromptResult:
+    async def submit(self, prompt: str, *, request: PromptRequest) -> PromptResult:
         agent = self.agent
-        command = request if request is not None else QueuePromptRequest(prompt)
         authority = ClientSessionRequest(agent, agent.session_id)
         return await self.operate(
             self._prompt_operation(
                 partial(
-                    self._submit, prompt, command, authority, agent.queue_attachment.scope, agent.project_root_path
+                    self._submit, prompt, request, authority, agent.queue_attachment.scope, agent.project_root_path
                 ),
                 authority,
             )

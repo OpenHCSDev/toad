@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import ClassVar
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, InputStartedUpdate, PromptRequest
+from agent_comms.acp_extension import CoordinationChangedUpdate, InputStartedUpdate
 from agent_comms.nominal.field_codec import AcpSessionId
 
 from toad import agent_presentation, agent_schema
@@ -18,7 +18,7 @@ from toad.acp import (
     agent_configuration, agent_controller, agent_process, agent_session,
     client_files, client_session, comms_updates, context_measurement as context_usage,
     coordination_attachment as coordination, permission_controller, projection_attachment,
-    queue_attachment as queues, session_updates, status, thread_read as thread_reads, tool_calls,
+    queue_attachment as queues, session_updates, thread_read as thread_reads, tool_calls,
 )
 
 
@@ -93,6 +93,3 @@ class SessionAgent(ABC):
     @abstractmethod
     def receive_coordination(self, update: CoordinationChangedUpdate,
                              authority: client_session.ClientSessionRequest) -> None: ...
-
-    @abstractmethod
-    async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None) -> status.PromptResult: ...
