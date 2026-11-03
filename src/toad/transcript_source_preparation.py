@@ -14,6 +14,7 @@ from textual.worker import Worker, WorkerCancelled
 
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventReceiver
+from toad.no_worker import NoWorker
 from toad.resource_release import ResourceRelease
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.transcript_state import (
@@ -154,10 +155,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_state = operation
         return operation
 
-    def schedule_source_work(self, work) -> Worker | None:
+    def schedule_source_work(self, work) -> Worker | NoWorker:
         """Own source I/O on the pager worker, never its caller's event pump."""
-        if self.state.accepts_source_work:
-            return self.reserve_source_work().schedule(self, work)
+        return self.state.schedule_source_work(self, work)
 
     def source_failed(self, error) -> None:
         self.retire_source()

@@ -12,6 +12,7 @@ from agent_comms.lifecycle import LifecycleState
 from textual.widget import Widget
 
 from toad.resource_release import ResourceRelease
+from toad.no_worker import NoWorker
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
 
 if TYPE_CHECKING:
@@ -40,6 +41,10 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     can_draw: ClassVar[bool] = False
     reports_coverage: ClassVar[bool] = False
     accepts_source_work: ClassVar[bool] = False
+
+    def schedule_source_work(self, owner: TranscriptSourcePreparation, work) -> Worker | NoWorker:
+        """A source that accepts no work schedules none."""
+        return NoWorker()
 
     def source_ready(self, owner: TranscriptSourcePreparation) -> bool:
         """The source accepts work and the filter is not scanning."""
@@ -131,6 +136,9 @@ class LiveTranscript(TranscriptState):
 
     def blocks_visible_read(self, owner: TranscriptSourcePreparation) -> bool:
         return NEWER_END.visible_more(owner) or not self.source_ready(owner)
+
+    def schedule_source_work(self, owner: TranscriptSourcePreparation, work) -> Worker | NoWorker:
+        return owner.reserve_source_work().schedule(owner, work)
 
     def reserve(self, owner, operation=None) -> WorkingTranscript:
         return (operation or WorkingTranscript)(self, owner)
@@ -235,7 +243,7 @@ class LatestViewportRequest(LatestViewportState):
 
     def resume(self, owner: TranscriptSourcePreparation) -> LatestViewportState:
         """Return the request state after this draw's source-work admission."""
-        if not self.current(owner.window) or owner.schedule_source_work(partial(owner.jump_latest, self)):
+        if not self.current(owner.window) or not owner.schedule_source_work(partial(owner.jump_latest, self)).is_finished:
             return NoLatestRequest()
         return self
 
