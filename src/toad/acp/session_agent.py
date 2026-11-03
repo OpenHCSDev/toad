@@ -264,13 +264,13 @@ class OwnerWrites(CoordinationIdentity):
         if not self.session.accepts_session(self.session_id):
             return
         coordination = self.coordination
-        thread, wire_root = coordination.thread.name, coordination.wire_root
+        wire_root = coordination.wire_root
         authority = ClientSessionRequest(self, self.session_id)
         owner = coordination.owner
         comms = await self.controller.transcripts.service(wire_root)
         self.require_owner(coordination, authority)
         result = await asyncio.to_thread(
-            comms.threads.rename_managed_thread, thread, display_name, owner=owner)
+            comms.threads.rename_managed_thread, coordination.thread, display_name, owner=owner)
         self.require_owner(coordination, authority)
         self.receive_coordination(replace(
             self.coordination, thread=replace(self.coordination.thread, name=result.current),
