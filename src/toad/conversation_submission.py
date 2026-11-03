@@ -8,13 +8,14 @@ from collections.abc import Awaitable, Callable, Container
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from textual.worker import Worker
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import (
     InputStartedUpdate,
+    QueueItem,
     QueuePromptRequest,
     QueueScope,
     SteerPromptRequest,
@@ -24,14 +25,18 @@ from agent_comms.nominal.field_codec import InputId
 from agent_comms.delivery_failure import delivery_failure
 from agent_comms.errors import CommittedMessageError, HumanSendError, HumanSendRefusedError, RelationViolationError, RouteChangedError
 from agent_comms.messages import Message
+from agent_comms.comms import Comms
 
 from toad import messages
 from agent_comms.acp_failure import ACPFailure
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.acp.status import PromptSubmissionOutcome, PromptTurnTarget
 from toad.queue_capability import QueueActions, QueueEvidence, QueueView
+from toad.shell_source import ShellOperationalSource
+from toad.line_blocks import MutedRole, Span
+from toad.notification_status import DetailLines
 from toad.core.input_events import UserInputSubmitted
-from toad.input_decision import InputDecision, InputRefused
+from toad.input_decision import InputDecision, InputRefused, InputSourceUnavailable
 from toad.input_history import InputHistory, InputHistories
 from agent_comms.repo import Checkout
 from toad.conversation_turn import InputPresentation
@@ -40,11 +45,17 @@ from toad.widgets.message_notifications import HistoryNotifications
 from toad.message_destination import MessageDestination
 
 if TYPE_CHECKING:
-    from toad.submission_queue import QueueSource
-    from toad.shell import Shell
     from toad.transcript_publication import TranscriptPresentation
     from toad.widgets.history_anchor import HistoryWindow
-    from toad.wire_history import WireSource
+
+
+@dataclass(frozen=True, eq=False)
+class BusSubmissionSource:
+    """The original BUS and destination captured by a message source."""
+
+    comms: Comms
+    conversation: MessageDestination
+
 
 @dataclass(frozen=True)
 class InputSubmission(DeclaredFamily, affix="InputSubmission"):
@@ -465,7 +476,7 @@ class ConversationSubmissions(QueueView, PromptTurnTarget, InputPresentation, De
 
     @property
     @abstractmethod
-    def shell(self) -> Shell: ...
+    def shell(self) -> ShellOperationalSource: ...
 
     @abstractmethod
     async def post_shell(self, command: str) -> None: ...
@@ -481,8 +492,7 @@ class ConversationSubmissions(QueueView, PromptTurnTarget, InputPresentation, De
 
     @abstractmethod
     def bind_bus_submission(
-        self, source: WireSource, owner: ConversationSubmissions,
-        submission: PromptInputSubmission,
+        self, source: BusSubmissionSource, submission: PromptInputSubmission,
     ) -> SubmissionStart: ...
 
     def initialize_submissions(self) -> None:
@@ -597,3 +607,51 @@ class ConversationSubmissions(QueueView, PromptTurnTarget, InputPresentation, De
         except (RequestError, QueueActionRefused) as error:
             self.feedback.flash(f"Send now failed: {error}", style="error")
         self.publish_pending()
+
+
+class QueueSource(QueueActions):
+    """The captured source controls sending, observation and queue changes."""
+
+    preview_limit: ClassVar[int] = 3
+
+    def capture_queue_service(self, view: QueueView) -> Callable[[], Comms]:
+        return view.queue_observation_service
+
+    def send_now_available(self, owner: ConversationSubmissions) -> bool:
+        return self.queue_actions_available(owner.queue_evidence)
+
+    def begin_submission(self, owner: ConversationSubmissions,
+                         submission: PromptInputSubmission) -> SubmissionStart:
+        return owner.unbound(submission, InputSourceUnavailable())
+
+    def input_decision(self, view: QueueView) -> InputDecision:
+        return InputSourceUnavailable()
+
+    def defers_input(self, view: QueueView) -> bool:
+        return False
+
+    def contains_message(self, view: QueueView, root: Path, sent: Message) -> bool:
+        """Only the original message source can confirm its committed row."""
+        return False
+
+    def queue_summary(self, evidence: QueueEvidence) -> str:
+        local = evidence.delivering
+        submitting = (f"Submitting ({len(local)}): " + " · ".join(
+            QueueItem.summarize(text) for text in local[:self.preview_limit])) if local else ""
+        return " | ".join(part for part in (
+            evidence.transport, submitting, self.observed_summary(evidence)) if part)
+
+    def observed_summary(self, evidence: QueueEvidence) -> str:
+        return "Queue unavailable"
+
+    def queue_details(self, evidence: QueueEvidence) -> DetailLines:
+        lines: list[tuple[Span, ...]] = [(Span("Submitting is local intent; acceptance is not consumption.", MutedRole),)]
+        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),)
+                     for text in evidence.delivering)
+        if evidence.transport:
+            lines.append((Span(evidence.transport, MutedRole),))
+        lines.extend(self.observed_details(evidence))
+        return tuple(lines)
+
+    def observed_details(self, evidence: QueueEvidence) -> DetailLines:
+        return ((Span("No queue observation is available for this source.", MutedRole),),)

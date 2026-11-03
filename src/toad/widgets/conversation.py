@@ -52,7 +52,6 @@ from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
 from toad.messages import QueueEvidenceChanged
-from toad.submission_queue import QueueSource
 from toad.screens.queue import QueueInspection
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
@@ -76,7 +75,7 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate, TurnChangedUpdate,
 )
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
+from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart, QueueSource, BusSubmissionSource
 from toad.input_decision import InputDecision, InputSourceUnavailable
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
@@ -140,7 +139,6 @@ from toad.widgets.terminal_tool import TerminalTool
 from toad.widgets.throbber import AboveThrobber
 from toad.widgets.transcript_history import JumpToLatest, LineHistory, TranscriptHistory
 from toad.widgets.question import Ask
-from toad.wire_history import WireSource
 from toad.widgets.user_input import UserInput
 
 AUTO_SESSION_TITLE_MAX_LENGTH = 50
@@ -1333,11 +1331,10 @@ class Conversation(
         return self.transcript.binding.history.contains_message(sent)
 
     def bind_bus_submission(
-        self, source: WireSource, owner: ConversationSubmissions,
-        submission: PromptInputSubmission,
+        self, source: BusSubmissionSource, submission: PromptInputSubmission,
     ) -> SubmissionStart:
         """An ordinary transcript has no live channel view to bind."""
-        return owner.unbound(submission, InputSourceUnavailable())
+        return self.unbound(submission, InputSourceUnavailable())
 
     async def _apply_session_name(self, name: str) -> None:
         await self.agent_binding.set_session_name(name)

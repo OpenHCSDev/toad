@@ -20,6 +20,32 @@ class ShellOperationalSource(ABC):
     @abstractmethod
     async def _run_pty(self, ready): ...
 
+    @abstractmethod
+    async def write(
+        self, text: str | bytes, hide_echo: bool = False, hide_output: bool = False
+    ) -> int: ...
+
+    async def is_busy(self) -> bool:
+        """Observe the children of this SAME acquired shell incarnation."""
+        process = await self.operation.process()
+        import psutil
+
+        def children():
+            if not process.child.alive():
+                return False
+            try:
+                return bool(psutil.Process(process.child.pid).children(recursive=True))
+            except psutil.NoSuchProcess, psutil.AccessDenied:
+                return False
+
+        return await asyncio.to_thread(children)
+
+    async def send_input(self, text: str, paste: bool = False) -> None:
+        await self.wait_for_ready()
+        if paste and self.output is not None and self.output.state.bracketed_paste:
+            text = f"\x1b[200~{text}\x1b[201~"
+        await self.write(f"{text}\n", hide_echo=True)
+
     @property
     def is_finished(self) -> bool:
         return self.operation.outcome().finished

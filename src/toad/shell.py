@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import codecs
 import os
 from contextlib import AsyncExitStack
@@ -48,21 +47,6 @@ class Shell(ShellOperationalSource):
     def pending_directory(self) -> str | None:
         return self._pending_directory
 
-    async def is_busy(self) -> bool:
-        """Observe the children of this SAME acquired shell incarnation."""
-        process = await self.operation.process()
-        import psutil
-
-        def children():
-            if not process.child.alive():
-                return False
-            try:
-                return bool(psutil.Process(process.child.pid).children(recursive=True))
-            except psutil.NoSuchProcess, psutil.AccessDenied:
-                return False
-
-        return await asyncio.to_thread(children)
-
     async def send(self, command: str, width: int, height: int) -> None:
         await self.wait_for_ready()
         self._terminal_size = width, height
@@ -98,12 +82,6 @@ class Shell(ShellOperationalSource):
                 hide_echo=True,
                 hide_output=True,
             )
-
-    async def send_input(self, text: str, paste: bool = False) -> None:
-        await self.wait_for_ready()
-        if paste and self.output is not None and self.output.state.bracketed_paste:
-            text = f"\x1b[200~{text}\x1b[201~"
-        await self.write(f"{text}\n", hide_echo=True)
 
     def start(self, binding: SurfaceBinding) -> None:
         self.surface = binding

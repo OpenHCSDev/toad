@@ -36,7 +36,7 @@ from agent_comms.transcript_events import IncomingTranscript
 
 from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
-from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
+from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart, BusSubmissionSource
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -307,14 +307,13 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
 
 
 @dataclass(frozen=True, eq=False)
-class WireSource(BusQueueSource):
+class WireSource(BusQueueSource, BusSubmissionSource):
     """One conversation as one viewer reads it from Core, and how its messages are styled.
 
     A page read to the newest messages is short so that it is drawn at once;
     every other read takes a whole transport page.
     """
 
-    comms: Comms
     conversation: ConversationKind
     project: Checkout
     me: str
@@ -337,7 +336,7 @@ class WireSource(BusQueueSource):
 
     def begin_submission(self, owner: ConversationSubmissions,
                          submission: PromptInputSubmission) -> SubmissionStart:
-        return owner.bind_bus_submission(self, owner, submission)
+        return owner.bind_bus_submission(self, submission)
 
     def references(self) -> CurrentDisplayReferences:
         """Resolve stable destinations through this read's registry cut."""

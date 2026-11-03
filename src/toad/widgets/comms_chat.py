@@ -6,7 +6,7 @@ from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
 from toad.wire_history import WireSource
-from toad.submission_queue import NoQueueSource, QueueSource
+from toad.submission_queue import NoQueueSource
 from toad.transcript_publication import NoView, ViewBinding
 
 import re
@@ -28,7 +28,7 @@ from textual.widgets import Static
 from textual.worker import Worker
 
 from toad.conversation_kind import ConversationKind
-from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart
+from toad.conversation_submission import PromptInputSubmission, SubmissionStart, QueueSource, BusSubmissionSource
 from toad import messages
 from toad.widgets.conversation import (
     Contents,
@@ -313,11 +313,10 @@ class CommsChatView(Conversation):
         return self.message_history.page_source.command_context(self)
 
     def bind_bus_submission(
-        self, source: WireSource, owner: ConversationSubmissions,
-        submission: PromptInputSubmission,
+        self, source: BusSubmissionSource, submission: PromptInputSubmission,
     ) -> SubmissionStart:
         page_source = self.message_history.page_source
-        return owner.start_message(
+        return self.start_message(
             submission, source.comms.root, source.conversation,
             lambda: (self.is_attached and page_source is self.message_history.page_source
                      and source.conversation == self.conversation),

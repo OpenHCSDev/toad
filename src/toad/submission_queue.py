@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from pathlib import Path
-from typing import ClassVar
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
@@ -15,59 +14,11 @@ from agent_comms.messages import Message
 from agent_comms.runtime_requests import ClearQueueRuntimeRequest, QueueActionRuntimeRequest, SendNowRuntimeRequest
 
 from toad.acp.queue_attachment import QueueActionRefused
-from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart
-from toad.input_decision import InputAccepted, InputDecision, InputSourceUnavailable
+from toad.conversation_submission import PromptInputSubmission, ConversationSubmissions, SubmissionStart, QueueSource
+from toad.input_decision import InputAccepted, InputDecision
 from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines
-from toad.queue_capability import QueueActions, QueueEvidence, QueueView
-
-
-class QueueSource(QueueActions):
-    """The captured source controls sending, observation and queue changes."""
-
-    preview_limit: ClassVar[int] = 3
-
-    def capture_queue_service(self, view: QueueView) -> Callable[[], Comms]:
-        return view.queue_observation_service
-
-    def send_now_available(self, owner: ConversationSubmissions) -> bool:
-        return self.queue_actions_available(owner.queue_evidence)
-
-    def begin_submission(self, owner: ConversationSubmissions,
-                         submission: PromptInputSubmission) -> SubmissionStart:
-        return owner.unbound(submission, InputSourceUnavailable())
-
-    def input_decision(self, view: QueueView) -> InputDecision:
-        return InputSourceUnavailable()
-
-    def defers_input(self, view: QueueView) -> bool:
-        return False
-
-    def contains_message(self, view: QueueView, root: Path, sent: Message) -> bool:
-        """Only the original message source can confirm its committed row."""
-        return False
-
-    def queue_summary(self, evidence: QueueEvidence) -> str:
-        local = evidence.delivering
-        submitting = (f"Submitting ({len(local)}): " + " · ".join(
-            QueueItem.summarize(text) for text in local[:self.preview_limit])) if local else ""
-        return " | ".join(part for part in (
-            evidence.transport, submitting, self.observed_summary(evidence)) if part)
-
-    def observed_summary(self, evidence: QueueEvidence) -> str:
-        return "Queue unavailable"
-
-    def queue_details(self, evidence: QueueEvidence) -> DetailLines:
-        lines: list[tuple[Span, ...]] = [(Span("Submitting is local intent; acceptance is not consumption.", MutedRole),)]
-        lines.extend((Span(f"Submitting: {QueueItem.summarize(text)}", MutedRole),)
-                     for text in evidence.delivering)
-        if evidence.transport:
-            lines.append((Span(evidence.transport, MutedRole),))
-        lines.extend(self.observed_details(evidence))
-        return tuple(lines)
-
-    def observed_details(self, evidence: QueueEvidence) -> DetailLines:
-        return ((Span("No queue observation is available for this source.", MutedRole),),)
+from toad.queue_capability import QueueEvidence, QueueView
 
 
 class NoQueueSource(QueueSource):
