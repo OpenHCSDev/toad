@@ -154,7 +154,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
         window.scroll_to(y=destination, animate=False, immediate=True)
         await ui.step()
         links = []
-        for row in page.fragment_rows(fragment):
+        for row in page.fragment_placement(fragment).rows:
             x = 0
             for segment in page.render_line(row, page._paint_state):
                 if segment.style is not None and segment.style.meta.get("@click") == fragment.details_link.click:

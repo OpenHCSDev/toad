@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from itertools import accumulate, chain, islice
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 from weakref import ref
 
 from agent_comms.acp_extension import InputStartedUpdate
@@ -194,6 +194,49 @@ class MeasureAgain(Absorbs, RowChange):
         page.range_changed()
 
 
+class UndrawnFragment:
+    """No loaded page draws this fragment: it has no rows, no region and no window rows."""
+
+    draws: ClassVar[bool] = False
+    rows = range(0)
+
+    def region(self) -> Region | None:
+        return None
+
+    def window_rows(self, history: LineHistory) -> range | None:
+        return None
+
+
+UNDRAWN = UndrawnFragment()
+
+
+@dataclass(frozen=True)
+class DrawnFragment(UndrawnFragment):
+    """The page that draws a fragment and its rows there."""
+
+    draws = True
+    page: TranscriptPageView
+    rows: range
+
+    def region(self) -> Region | None:
+        """Where the screen shows the rows; None while Textual has not placed the page."""
+        region = self.page.screen_region
+        return None if region is None else Region(region.x, region.y + self.rows.start, region.width, len(self.rows))
+
+    def window_rows(self, history: LineHistory) -> range | None:
+        """The rows of the window's content that draw the fragment.
+
+        Layout places only the pages near the screen. Pages follow one another
+        without a gap, so one placed page gives the rows of every other.
+        """
+        pages = history.pages
+        starts = dict(zip(pages, accumulate((p.line_count for p in pages), initial=0)))
+        for placed_page, placed in history.window.placements(pages):
+            shift = starts[self.page] + placed - starts[placed_page]
+            return range(self.rows.start + shift, self.rows.stop + shift)
+        return None
+
+
 class LaidOut(ABC):
     """A fragment's rows in its page's measured layout, or their absence."""
 
@@ -204,7 +247,7 @@ class LaidOut(ABC):
     def replaced_by(self, lines: BlockLines) -> RowChange: ...
 
     @abstractmethod
-    def rows(self) -> range | None: ...
+    def placement(self, page: TranscriptPageView) -> UndrawnFragment: ...
 
     @abstractmethod
     def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentSpan | None: ...
@@ -216,8 +259,8 @@ class NotLaidOut(LaidOut):
     def replaced_by(self, lines: BlockLines) -> RowChange:
         return self.measured_again()
 
-    def rows(self) -> None:
-        return None
+    def placement(self, page: TranscriptPageView) -> UndrawnFragment:
+        return UNDRAWN
 
     def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> None:
         return None
@@ -246,8 +289,8 @@ class LaidOutRow(LaidOut):
         lines of another height need layout."""
         return RepaintRows(((self, lines),)) if lines.height == self.lines.height else MeasureAgain()
 
-    def rows(self) -> range:
-        return range(self.first, self.first + self.lines.height)
+    def placement(self, page: TranscriptPageView) -> UndrawnFragment:
+        return DrawnFragment(page, range(self.first, self.first + self.lines.height))
 
     def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentSpan | None:
         same = candidate.key == key
@@ -492,9 +535,9 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         """The rows this page draws for a fragment it draws."""
         return self._fragment_slots[fragment.key].lines.height
 
-    def fragment_rows(self, fragment: TranscriptFragment) -> range | None:
-        """The rows of this page that draw a fragment."""
-        return self._fragment_slots.get(fragment.key, NOT_LAID_OUT).rows()
+    def fragment_placement(self, fragment: TranscriptFragment) -> UndrawnFragment:
+        """Where this page draws a fragment, or that it draws none of it."""
+        return self._fragment_slots.get(fragment.key, NOT_LAID_OUT).placement(self)
 
     @property
     def screen_region(self) -> Region | None:
@@ -829,8 +872,13 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         """Every fragment the pages draw rows for, oldest first."""
         return tuple(fragment for page in self.pages for fragment in page.drawn_fragments)
 
+    def fragment_placement(self, fragment: TranscriptFragment) -> UndrawnFragment:
+        """The page that draws a fragment and its rows there, or that none does."""
+        return next((placement for page in self.pages
+                     if (placement := page.fragment_placement(fragment)).draws), UNDRAWN)
+
     def draws_fragment(self, fragment: TranscriptFragment) -> bool:
-        return any(page.fragment_rows(fragment) is not None for page in self.pages)
+        return self.fragment_placement(fragment).draws
 
     def fragment_under_mouse(self, widget: Widget) -> TranscriptFragment | None:
         """The fragment drawn under the pointer, when `widget` is one of this history's pages."""
@@ -838,28 +886,11 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
 
     def fragment_region(self, fragment: TranscriptFragment) -> Region | None:
         """Where the screen shows a fragment's rows; None while its page is off screen."""
-        for page in self.pages:
-            if (rows := page.fragment_rows(fragment)) is not None:
-                if (region := page.screen_region) is None:
-                    return None
-                return Region(region.x, region.y + rows.start, region.width, len(rows))
-        return None
+        return self.fragment_placement(fragment).region()
 
     def fragment_window_rows(self, fragment: TranscriptFragment) -> range | None:
-        """The rows of the window's content that draw a fragment.
-
-        Layout places only the pages near the screen. Pages follow one another
-        without a gap, so one placed page gives the rows of every other.
-        """
-        pages = self.pages
-        starts = dict(zip(pages, accumulate((p.line_count for p in pages), initial=0)))
-        for page in pages:
-            if (within := page.fragment_rows(fragment)) is not None:
-                for placed_page, placed in self.window.placements(pages):
-                    shift = starts[page] + placed - starts[placed_page]
-                    return range(within.start + shift, within.stop + shift)
-                return None
-        return None
+        """The rows of the window's content that draw a fragment; None while no page is placed."""
+        return self.fragment_placement(fragment).window_rows(self)
 
     def show_fragment(self, fragment: TranscriptFragment) -> None:
         """Scroll just far enough that a fragment's rows are on screen, its first row before its last."""
