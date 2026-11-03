@@ -278,7 +278,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size)
         # Fragments drawn with their previous styled rows until new ones arrive, by identity.
-        self._pending: dict[int, TranscriptFragment] = {}
+        self._pending: dict[FragmentKey, TranscriptFragment] = {}
         self._render_task: asyncio.Task[None] | None = None
         # Styling a range's never-styled fragments before the page measures them.
         self._style_worker: Worker[None] | NoWorker = NoWorker()
@@ -288,7 +288,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._width = 0
         self._layout: list[tuple[TranscriptFragment, int, BlockLines]] = []
         self._starts: list[int] = []
-        self._fragment_slots: dict[int, LaidOutRow] = {}
+        self._fragment_slots: dict[FragmentKey, LaidOutRow] = {}
         self._height = 0
         self._measured = False
         super().__init__()
@@ -342,7 +342,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         theme = self.app.colours.line_theme
         change: RowChange = RepaintRows()
         for fragment in fragments:
-            row = self._fragment_slots.get(id(fragment), NOT_LAID_OUT)
+            row = self._fragment_slots.get(fragment.key, NOT_LAID_OUT)
             change = fragment.row_change(row, self._width, theme).joined(change)
         change.apply(self)
 
@@ -350,7 +350,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         """New lines of the measured height take that row's place."""
         fragment, first, _measured = self._layout[slot]
         self._layout[slot] = (fragment, first, lines)
-        self._pending.pop(id(fragment), None)
+        self._pending.pop(fragment.key, None)
         self.refresh(Region(0, first, self._width, lines.height))
 
     def range_changed(self) -> None:
@@ -368,7 +368,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         theme = self.app.colours.line_theme
         lines = fragment.lines_for(width, theme)
         if lines.awaits_styling:
-            self._pending[id(fragment)] = fragment
+            self._pending[fragment.key] = fragment
             lines = fragment.stand_in_lines(width, theme)
         return lines
 
@@ -403,14 +403,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             self._invalidate_layout()
         self._width, self._measured = width, True
         self._pending.clear()
-        previous = {id(fragment): lines for fragment, _first, lines in self._layout}
+        previous = {fragment.key: lines for fragment, _first, lines in self._layout}
         layout, starts, y = [], [], 0
         repaint = []
         if width > 0:
             # Geometry belongs to this layout's width, including rows outside
             # the viewport, and every fragment measured here has styled rows.
             for fragment, lines in drawn:
-                if id(fragment) in previous and lines is not previous[id(fragment)]:
+                if fragment.key in previous and lines is not previous[fragment.key]:
                     repaint.append((y, lines.height))
                 layout.append((fragment, y, lines))
                 starts.append(y)
@@ -418,7 +418,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._layout, self._starts, self._height = layout, starts, y
         for first, height in repaint:
             self.refresh(Region(0, first, width, height))
-        self._fragment_slots = {id(fragment): LaidOutRow(self, index)
+        self._fragment_slots = {fragment.key: LaidOutRow(self, index)
                                 for index, (fragment, _first, _lines) in enumerate(layout)}
         if self.is_mounted:
             self.history.request_preparation()
@@ -479,7 +479,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             if target.key != key:
                 continue
             for candidate in chain(loaded[at:], reversed(loaded[:at])):
-                placed = self._fragment_slots.get(id(candidate), NOT_LAID_OUT).placed(candidate, key, block)
+                placed = self._fragment_slots.get(candidate.key, NOT_LAID_OUT).placed(candidate, key, block)
                 if placed is not None:
                     return placed
         return UnloadedFragment()
@@ -491,11 +491,11 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
 
     def drawn_height(self, fragment: TranscriptFragment) -> int:
         """The rows this page draws for a fragment it draws."""
-        return self._fragment_slots[id(fragment)].lines.height
+        return self._fragment_slots[fragment.key].lines.height
 
     def fragment_rows(self, fragment: TranscriptFragment) -> range | None:
         """The rows of this page that draw a fragment."""
-        return self._fragment_slots.get(id(fragment), NOT_LAID_OUT).rows()
+        return self._fragment_slots.get(fragment.key, NOT_LAID_OUT).rows()
 
     @property
     def screen_region(self) -> Region | None:
@@ -553,10 +553,10 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         # Style the viewport and one screen each way, nearest the reader
         # first, so paging rarely exposes plain rows that rewrap on arrival.
         pending = [fragment for fragment, _rows, _lines in self.visible_rows(window, window.outer_size.height)
-                   if id(fragment) in self._pending]
+                   if fragment.key in self._pending]
         for _, offset in window.placements((self,)):
             reader = window.scroll_y - offset
-            pending.sort(key=lambda fragment: abs(slots[id(fragment)].first - reader))
+            pending.sort(key=lambda fragment: abs(slots[fragment.key].first - reader))
         return pending[:self.RENDER_BATCH]
 
     async def _render_pending(self) -> None:
@@ -565,7 +565,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             if not batch:
                 return
             for fragment in batch:
-                del self._pending[id(fragment)]
+                del self._pending[fragment.key]
             theme = self.app.colours.line_theme
             ready = await TranscriptLinesBatchRenderTask.render_for(self,
                 (LinePreparation(fragment.line_blocks, theme) for fragment in batch))
@@ -775,22 +775,22 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         if not changes:
             return
         width, theme = self.line_width, self.app.colours.line_theme
-        in_range = {id(fragment) for fragment in self.fragments_in_range}
+        in_range = {fragment.key for fragment in self.fragments_in_range}
         drawn = [(fragment, shown, previous) for fragment, shown, previous in changes
-                 if id(fragment) in in_range and width > 0]
+                 if fragment.key in in_range and width > 0]
         rendered = await TranscriptLinesBatchRenderTask.render_for(self,
             (LinePreparation(fragment.line_blocks, theme) for fragment, _shown, _previous in drawn),
             previous=(previous for _fragment, _shown, previous in drawn))
         if not self.state.can_draw:
             return
-        ready = {id(fragment): result for (fragment, _shown, _previous), result in zip(drawn, rendered)}
+        ready = {fragment.key: result for (fragment, _shown, _previous), result in zip(drawn, rendered)}
         async with self.window.preserve_history(root=self):
             if not self.state.can_draw:
                 return
-            changed = {id(fragment) for fragment, shown, _previous in changes
-                       if TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(id(fragment)))}
+            changed = {fragment.key for fragment, shown, _previous in changes
+                       if TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(fragment.key))}
             for page in self.pages:
-                held = [fragment for fragment in page.prepared.fragments_in_range if id(fragment) in changed]
+                held = [fragment for fragment in page.prepared.fragments_in_range if fragment.key in changed]
                 if held:
                     page.lines_replaced(held)
         self.window.check_follow()
@@ -1182,7 +1182,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                     return False
                 if edge.prepared.capture_range() != page_range:
                     return False
-                protected = {id(fragment) for fragment in self.visible_fragments()}
+                protected = {fragment.key for fragment in self.visible_fragments()}
                 async with window.preserve_history(root=self):
                     arrivals = self._source_state.arriving(staged, followed_end)
                     await self._extend_and_trim(edge, end, local, protected, staged, current=current)
@@ -1208,7 +1208,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
 
     async def _extend_and_trim(
         self, edge: TranscriptPageView, end: PageEnd, local: bool,
-        protected: set[int], prepared: PreparedTranscriptPage, *,
+        protected: set[FragmentKey], prepared: PreparedTranscriptPage, *,
         current: Callable[[], bool],
     ) -> None:
         """Load the next range and trim fragments the reader is not seeing.
@@ -1225,12 +1225,12 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                 # not the native tree. No empty page widget or decoded cache.
                 end.advance_empty(edge.prepared, prepared)
             elif local:
-                previous = {id(fragment) for fragment in edge.prepared.fragments_in_range}
+                previous = {fragment.key for fragment in edge.prepared.fragments_in_range}
                 if not await edge.prepared.extend(edge, prepared, current):
                     raise _DrawingStopped
                 self._require_can_draw()
-                protected.update(id(fragment) for fragment in edge.prepared.fragments_in_range
-                                 if id(fragment) not in previous)
+                protected.update(fragment.key for fragment in edge.prepared.fragments_in_range
+                                 if fragment.key not in previous)
             else:
                 page_range = edge.prepared.capture_range()
                 async with TranscriptPageView.acquire(
@@ -1238,7 +1238,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                     current=lambda: current() and edge.prepared.capture_range() == page_range,
                 ) as view:
                     end.append(self.pages, view)
-                protected.update(id(fragment) for fragment in view.prepared.fragments_in_range)
+                protected.update(fragment.key for fragment in view.prepared.fragments_in_range)
                 protected_pages.add(view)
             self._fragment_budget = limit = max(
                 self.budget.item_limit(len(protected)), self._visible_fragment_budget(),
@@ -1257,7 +1257,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                     members = tuple(side.eviction_fragments(candidate.prepared))
                     available = 0
                     for fragment in members:
-                        if id(fragment) in protected:
+                        if fragment.key in protected:
                             break
                         available += 1
                     if available or not members:
