@@ -83,7 +83,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
 
         def rows(arriving: bool) -> str:
             return " ".join(event.text for page in history.pages for fragment in page.prepared.fragments_in_range
-                            if not arriving or id(fragment) in page.arrivals for event in fragment.events)
+                            if not arriving or fragment.key in page.arrivals for event in fragment.events)
 
         # The commit is published once its saved rows replace the live block they cover.
         await ui.until(lambda: PEER in rows(arriving=False) and not live.display, why="the commit's saved rows")
