@@ -43,7 +43,7 @@ from agent_comms.thread_management import ImportDirectory
 from textual import on
 from textual.app import App, ComposeResult
 from textual.message import Message
-from textual.containers import HorizontalGroup, Vertical, VerticalScroll
+from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from toad.screens.modal import DismissibleScreen
 from toad.comms_root import CoordinationAccess
 from toad.application_lifetime import TerminalOutcome
@@ -230,8 +230,8 @@ class TransferFields(VerticalScroll, can_focus=False):
     """The native scroll viewport retains the actual field widgets and values."""
 
 
-class TransferActions(NativeLayout, HorizontalGroup):
-    """Actions occupy their own bottom row, never the scrolling fields."""
+class TransferActions(NativeLayout, VerticalGroup):
+    """Actions retain their vertical order outside the scrolling fields."""
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()

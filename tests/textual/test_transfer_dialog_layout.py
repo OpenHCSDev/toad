@@ -9,10 +9,11 @@ from toad.widgets.comms_transfer import Transfer
 
 @pytest.mark.parametrize("transfer", Transfer.members_with(Transfer), ids=lambda kind: kind.declared_name)
 @pytest.mark.parametrize("height", (20, 40))
+@pytest.mark.parametrize("width", (40, 110))
 async def test_transfer_actions_survive_short_viewport_and_notice(
-    workspace: Workspace, transfer: type[Transfer], height: int,
+    workspace: Workspace, transfer: type[Transfer], height: int, width: int,
 ) -> None:
-    async with workspace.app(size=(110, height)) as ui:
+    async with workspace.app(size=(width, height)) as ui:
         app, pilot = ui.textual
         access = app.coordination_access
         selected = access.selected(access.observation.observed().service.root)
@@ -26,7 +27,7 @@ async def test_transfer_actions_survive_short_viewport_and_notice(
                        why="the transfer's native fields")
         field = dialog.query(Input).first()
         field.value = "unsent field value"
-        await pilot.resize_terminal(110, 20)
+        await pilot.resize_terminal(width, 20)
         await ui.until(lambda: dialog.query_one("#cancel-transfer", Button).region.height > 0,
                        why="the action row after resize")
         for identity in ("#submit-transfer", "#cancel-transfer"):
