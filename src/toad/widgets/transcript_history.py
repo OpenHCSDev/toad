@@ -567,8 +567,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         if (region := self.screen_region) is None:
             return None
         row = self.app.mouse_position.y - region.y
-        found = self.fragment_at(row) if 0 <= row < self._height else None
-        return None if found is None else found.fragment
+        found = self.fragment_at(row) if 0 <= row < self._height else UnloadedFragment()
+        return found.location().fragment if found.located else None
 
     @property
     def tooltip(self) -> str | None:
@@ -576,14 +576,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         fragment = self.fragment_under_mouse()
         return None if fragment is None else MessageClock.recorded(fragment.timestamp).display()[1]
 
-    def fragment_at(self, row: int) -> FragmentSpan | None:
-        """The measured child drawn here, with its containing message."""
+    def fragment_at(self, row: int) -> FragmentLocation:
+        """The measured child drawn here, with its containing message, or that none is."""
         slot = bisect_right(self._starts, row) - 1
         if slot < 0:
-            return None
+            return UnloadedFragment()
         fragment, first, lines = self._layout[slot]
         span = lines.block_span(lambda span: span.contains(row - first))
-        return None if span is None else FragmentSpan.in_page(self, fragment, first, span)
+        return UnloadedFragment() if span is None else FragmentSpan.in_page(self, fragment, first, span)
 
     def visible_rows(self, window: HistoryWindow, margin: int = 0) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
         """Each loaded fragment in the window's viewport, widened by `margin` rows each way,

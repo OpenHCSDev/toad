@@ -436,17 +436,22 @@ class ConversationBlock(ConversationEntry):
 
     text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
 
+    if TYPE_CHECKING:
+        # Every live block is a widget: the host class supplies its message pump.
+        def post_message(self, message: Message) -> bool: ...
+
     class Mounted(Message):
         """A live block mounted; the history window around it keeps it as a reader holder."""
 
-        def __init__(self, block: ConversationBlock) -> None:
+        def __init__(self, block: Widget) -> None:
             super().__init__()
             self.block = block
 
     def on_mount(self) -> None:
         for fade in self.text_fades:
             self.run_effect(fade)
-        self.post_message(self.Mounted(self))
+        # A live block is always mounted as a widget; the mixin cannot say so to the type checker.
+        self.post_message(self.Mounted(cast(Widget, self)))
 
 
 class SeparatedBlock(ConversationBlock, Widget):

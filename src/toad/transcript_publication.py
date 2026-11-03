@@ -103,6 +103,9 @@ class BoundFrame:
     async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
         return await self.binding.reader.page(scope, position=position, limit=limit)
 
+    def after_refresh(self, callback: Callable[[], object]) -> None:
+        self.binding.view.call_after_refresh(callback)
+
     def painted(self, cursor: TranscriptCursor) -> None:
         if self.current():
             view = self.binding.view
@@ -331,6 +334,14 @@ class Uncaptured:
 
     async def read_page(self, scope, *, position: PagePosition, limit: PageLimit) -> TranscriptPage:
         raise ValueError("Transcript paging requires a bound thread")
+
+    async def publish(self) -> bool:
+        """Nothing to publish: the request is done."""
+        return True
+
+    def after_refresh(self, callback: Callable[[], object]) -> None:
+        """No view refreshes; a caller checked currency first and never reaches this."""
+        raise TranscriptChanged()
 
     def restored(self, owner: TranscriptPresentation, window: HistoryWindow) -> None:
         """A restored tab with nothing to publish lets its reader's held place go."""
@@ -960,9 +971,7 @@ class TranscriptPresentation:
         if not frame.current():
             raise TranscriptChanged()
         ready = asyncio.get_running_loop().create_future()
-        frame.binding.view.call_after_refresh(
-            lambda: ready.set_result(self.displayed_cursor)
-        )
+        frame.after_refresh(lambda: ready.set_result(self.displayed_cursor))
         cursor = await ready
         if cursor.requires_commit():
             raise TranscriptChanged()

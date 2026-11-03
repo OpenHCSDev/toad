@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         HistorySourceSnapshot,
         TranscriptSourcePreparation,
     )
+    from toad.widgets.committed_presentation import CommitClaim
     from toad.widgets.history_anchor import HistoryWindow, LatestPosition
     from toad.widgets.transcript_history import (
         ConversationHistory,
@@ -485,14 +486,13 @@ class CommitTranscript(WorkingTranscript):
     row, so no frame shows both copies of the turn, or neither.
     """
 
-    def __init__(self, source: TranscriptState, owner, live_blocks: tuple[Widget, ...]):
+    def __init__(self, source: TranscriptState, owner, live_blocks: tuple[Widget, ...],
+                 claims: tuple[CommitClaim, ...]):
         from textual.await_complete import AwaitComplete
 
         super().__init__(source, owner)
         self.live_blocks = live_blocks
-        from toad.widgets.committed_presentation import block_claim
-
-        self.claims = tuple(block_claim(block) for block in live_blocks)
+        self.claims = claims
         self.retirement = AwaitComplete.nothing()
 
     async def execute[Result](self, owner, work: Callable[[], Awaitable[Result]]) -> Result | Literal[False]:

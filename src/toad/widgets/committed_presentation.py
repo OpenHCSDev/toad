@@ -336,7 +336,8 @@ class PreparedPageCommit(PreparedCommit):
         async with history.window.history_lock:
             if not history.source_ready or not is_current():
                 return False
-            operation = history.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
+            operation = history.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks,
+                                                                   claims=tuple(map(block_claim, live_blocks))))
         return await operation.execute(history, partial(self.publish, cursor, is_current))
 
     async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool:

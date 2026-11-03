@@ -302,11 +302,11 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     destination.append(NewDestination(latest))
                 try:
                     async with AsyncExitStack() as acquisition:
-                        for page in reversed(destination):
-                            views.appendleft(await page.page_view(self, acquisition, views, current, edge))
+                        for target in reversed(destination):
+                            views.appendleft(await target.page_view(self, acquisition, views, current, edge))
                         # Keep existing fragments, prepared lines and documents.
-                        for page in destination:
-                            page.keep(current)
+                        for target in destination:
+                            target.keep(current)
                         previous_source = self.page_source
                         self.page_source, self.pages = source, views
                         source.through = latest.page.after

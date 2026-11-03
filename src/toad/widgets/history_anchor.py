@@ -21,6 +21,7 @@ from textual.geometry import Size
 from textual.timer import Timer
 from textual.widget import Widget
 
+from toad.block_navigation import ConversationBlock
 from toad.core.projection import MroProjection
 from toad.no_worker import NO_TIMER, NoTimer
 from toad.transcript_state import LatestViewportRequest
@@ -117,7 +118,7 @@ class PageBelowTop(TopPage):
 
     def span(self, window: HistoryWindow) -> FragmentSpan:
         """The measured child drawn on the top row, or the page's first one."""
-        return self.page.fragment_at(max(0, int(window.scroll_y - self.first)))
+        return self.page.fragment_at(max(0, int(window.scroll_y - self.first))).location()
 
     def reader_position(self, window: HistoryWindow) -> ReaderPosition:
         span = self.span(window)
@@ -156,10 +157,10 @@ class ReaderPosition(ABC):
     and every layout puts the reader back on it.
     """
 
-    ranges: tuple["PageFragmentRange", ...] = ()
+    ranges: tuple[PageFragmentRange, ...] = ()
 
     @classmethod
-    def of(cls, window: "HistoryWindow") -> "ReaderPosition":
+    def of(cls, window: HistoryWindow) -> ReaderPosition:
         """Read where the reader is from what the window last laid out."""
         if window.follows_tail:
             return TailPosition()
@@ -169,7 +170,7 @@ class ReaderPosition(ABC):
         """Source-addressed positions can be rebuilt without retaining native identity."""
         return ()
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+    def bodies(self, window: HistoryWindow) -> tuple[Widget, ...]:
         """The widgets layout must place to find this position."""
         return ()
 
@@ -177,16 +178,16 @@ class ReaderPosition(ABC):
         """The held position to use in this layout."""
         return position
 
-    def laid_out(self, window: "HistoryWindow") -> bool:
+    def laid_out(self, window: HistoryWindow) -> bool:
         """Whether the layout just made placed what this position is measured from."""
         bodies = self.bodies(window)
         return sum(1 for _ in window.placements(bodies)) == len(bodies)
 
     @abstractmethod
-    def place(self, window: "HistoryWindow") -> bool:
+    def place(self, window: HistoryWindow) -> bool:
         """Scroll the window here in the layout just made; False when the layout is too short to reach it."""
 
-    def moved(self, window: "HistoryWindow", rows: float) -> "ReaderPosition":
+    def moved(self, window: HistoryWindow, rows: float) -> ReaderPosition:
         """Shift the held message during a change; otherwise read the current viewport."""
         return window.history_change.moved(self, window, rows)
 
@@ -194,16 +195,16 @@ class ReaderPosition(ABC):
     def shifted(self, rows: float) -> ReaderPosition:
         """This position displaced by an explicit number of rows."""
 
-    def left_tail(self, window: "HistoryWindow") -> "ReaderPosition":
+    def left_tail(self, window: HistoryWindow) -> ReaderPosition:
         """The position after the reader stopped following the latest message."""
         return ReaderPosition.of(window)
 
-    def parked(self, window: "HistoryWindow", contents: Contents) -> ParkedPosition:
+    def parked(self, window: HistoryWindow, contents: Contents) -> ParkedPosition:
         ranges = tuple(page_range for history in contents.line_histories()
                        for page_range in history.capture_reader_ranges())
         return ParkedPosition(self, ranges)
 
-    def joined_tail(self) -> "ReaderPosition":
+    def joined_tail(self) -> ReaderPosition:
         """The position after the reader chose to follow the latest message."""
         return TailPosition()
 
@@ -211,7 +212,7 @@ class ReaderPosition(ABC):
         """The position after a message arrived at the followed end: only following hands it the reader."""
         return self
 
-    def placed(self, window: "HistoryWindow", reached: bool) -> "ReaderPosition":
+    def placed(self, window: HistoryWindow, reached: bool) -> ReaderPosition:
         """What the window keeps after a layout placed this: itself while the history is still changing.
 
         A history too short to reach it (its matches or pages are still being
@@ -219,7 +220,7 @@ class ReaderPosition(ABC):
         """
         return self.moved(window, 0) if reached else self
 
-    def without_holder(self, window: "HistoryWindow") -> "ReaderPosition":
+    def without_holder(self, window: HistoryWindow) -> ReaderPosition:
         """Keep an unfinished change's destination; otherwise name the currently drawn message."""
         return self.moved(window, 0)
 
@@ -243,21 +244,21 @@ class ReaderPosition(ABC):
                                         max(anchor.stop, earlier.stop)))
         return rows_needed, limit
 
-    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
+    def prepare_history(self, history: TranscriptSourcePreparation) -> None:
         """Give a history about to be mounted the page ranges this position needs."""
         history.set_reader_ranges(self.ranges)
 
-    def source_settled(self, window: "HistoryWindow") -> None:
+    def source_settled(self, window: HistoryWindow) -> None:
         """A source publication settled; only a held destination waits for one."""
 
-    async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
+    async def source_arrived(self, history: TranscriptSourcePreparation) -> bool:
         """Whether this position fetched the newer source itself; only End does."""
         return False
 
-    def release(self, window: "HistoryWindow") -> None:
+    def release(self, window: HistoryWindow) -> None:
         """Nothing will publish again; only a held destination has anything to let go."""
 
-    def placed_by_layout(self, window: "HistoryWindow") -> bool:
+    def placed_by_layout(self, window: HistoryWindow) -> bool:
         """The layout just made puts the reader on the window's kept position."""
         return window.place_reader()
 
@@ -273,7 +274,7 @@ class TailPosition(ReaderPosition):
         return await OLDER_END.walk(history, current, target, selected,
                                   self.preparation_start(history), rows_needed, limit)
 
-    def place(self, window: "HistoryWindow") -> bool:
+    def place(self, window: HistoryWindow) -> bool:
         if not window.follows_tail:
             window.anchor()
         window.scroll_y = window.max_scroll_y
@@ -293,10 +294,10 @@ class OffsetPosition(ReaderPosition):
     """A position inside the history, placed by its destination in the current layout."""
 
     @abstractmethod
-    def destination(self, window: "HistoryWindow") -> float:
+    def destination(self, window: HistoryWindow) -> float:
         """The scroll that shows this position in the layout just made."""
 
-    def place(self, window: "HistoryWindow") -> bool:
+    def place(self, window: HistoryWindow) -> bool:
         destination = self.destination(window)
         if window.follows_tail:
             window.release_anchor()
@@ -313,7 +314,7 @@ class RowPosition(OffsetPosition):
 
     y: float
 
-    def destination(self, window: "HistoryWindow") -> float:
+    def destination(self, window: HistoryWindow) -> float:
         return self.y
 
 
@@ -331,17 +332,17 @@ class FragmentPosition(OffsetPosition):
     height: int
     block: int = field(kw_only=True)
 
-    def page(self, window: "HistoryWindow") -> FragmentLocation:
+    def page(self, window: HistoryWindow) -> FragmentLocation:
         """The drawn location of this occurrence, or its not-loaded state."""
         return UnloadedFragment().find_in(iter(window.drawn_pages()), self)
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+    def bodies(self, window: HistoryWindow) -> tuple[Widget, ...]:
         return self.page(window).bodies()
 
     def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
         return self.page(window).for_layout(window, position)
 
-    def laid_out(self, window: "HistoryWindow") -> bool:
+    def laid_out(self, window: HistoryWindow) -> bool:
         # A page whose messages changed after layout measured it has rows for
         # the earlier ones; the layout that change asked for places this.
         return self.page(window).laid_out(window)
@@ -352,7 +353,7 @@ class FragmentPosition(OffsetPosition):
                      if fragment.key == self.key),
                     super().preparation_start(history))
 
-    def destination(self, window: "HistoryWindow") -> float:
+    def destination(self, window: HistoryWindow) -> float:
         return self.page(window).destination(window, self.fraction)
 
     def shifted(self, rows: float) -> ReaderPosition:
@@ -362,13 +363,13 @@ class FragmentPosition(OffsetPosition):
 class UnshownReader(ReaderPosition):
     """The reader of a window the layout does not draw: nothing is measured from it or placed."""
 
-    def place(self, window: "HistoryWindow") -> bool:
+    def place(self, window: HistoryWindow) -> bool:
         return False
 
     def shifted(self, rows: float) -> ReaderPosition:
         return self
 
-    def placed_by_layout(self, window: "HistoryWindow") -> bool:
+    def placed_by_layout(self, window: HistoryWindow) -> bool:
         return False
 
 
@@ -391,7 +392,7 @@ class BlockPosition(NativeReaderHolder, OffsetPosition):
     y: float
 
     @classmethod
-    def of(cls, window: "HistoryWindow") -> ReaderPosition:
+    def of(cls, window: HistoryWindow) -> ReaderPosition:
         """The topmost live block the last layout placed, else the bare scroll offset.
 
         Candidates come from the published frame but are measured in the layout just
@@ -405,7 +406,7 @@ class BlockPosition(NativeReaderHolder, OffsetPosition):
                       window.visible_history_items(block for block in blocks if block not in holders)))
         return min(placed, key=lambda position: position.row, default=RowPosition(window.scroll_y))
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+    def bodies(self, window: HistoryWindow) -> tuple[Widget, ...]:
         return (self.block,)
 
     def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
@@ -416,7 +417,7 @@ class BlockPosition(NativeReaderHolder, OffsetPosition):
     def laid_out(self, window: HistoryWindow) -> bool:
         return any(window.placements(self.bodies(window)))
 
-    def destination(self, window: "HistoryWindow") -> float:
+    def destination(self, window: HistoryWindow) -> float:
         return window.row_of(self.block) + self.y - self.row
 
 
@@ -468,17 +469,17 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
 
 
 class Settlement:
-    """Where a held destination's source stands: its paint is admitted once, after a refresh."""
+    """Where a held destination's source stands: its layout is placed once, after the source has painted."""
 
     ready: ClassVar[bool] = False
 
-    def settled(self, hold: HeldReaderDestination, window: "HistoryWindow") -> Settlement:
+    def settled(self, hold: HeldReaderDestination, window: HistoryWindow) -> Settlement:
         """The source settled; only an unsettled hold waits for the refresh that paints it."""
         return self
 
 
 class Unsettled(Settlement):
-    def settled(self, hold: HeldReaderDestination, window: "HistoryWindow") -> Settlement:
+    def settled(self, hold: HeldReaderDestination, window: HistoryWindow) -> Settlement:
         window.call_after_refresh(hold.source_geometry_ready, window)
         return Scheduled()
 
@@ -504,23 +505,23 @@ class HeldReaderDestination:
 
     progress: HoldProgress = field(default_factory=HoldProgress, compare=False, repr=False)
 
-    def source_settled(self, window: "HistoryWindow") -> None:
+    def source_settled(self, window: HistoryWindow) -> None:
         """Wait for a completed source paint before admitting its destination layout."""
         self.progress.state = self.progress.state.settled(self, window)
 
-    def source_geometry_ready(self, window: "HistoryWindow") -> None:
+    def source_geometry_ready(self, window: HistoryWindow) -> None:
         if window.reader_position is not self:
             return
         self.progress.state = Ready()
         window.refresh(layout=True)
 
-    def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
+    def placed(self, window: HistoryWindow, reached: bool) -> ReaderPosition:
         measured = all(page.rows_measured for page in window.drawn_pages())
         if reached and self.progress.state.ready and measured:
             return self.released()
         return self
 
-    def release(self, window: "HistoryWindow") -> None:
+    def release(self, window: HistoryWindow) -> None:
         self.source_settled(window)
 
     @abstractmethod
@@ -536,7 +537,7 @@ class ParkedPosition(HeldReaderDestination, ReaderPosition):
     """
 
     position: ReaderPosition
-    ranges: tuple["PageFragmentRange", ...]
+    ranges: tuple[PageFragmentRange, ...]
 
     def required_presentations(self, presentation: NativePresentation) -> tuple[NativePresentation, ...]:
         return self.position.required_presentations(presentation)
@@ -544,25 +545,25 @@ class ParkedPosition(HeldReaderDestination, ReaderPosition):
     async def prepare(self, history, current, target, selected, rows_needed, limit: int):
         return await self.position.prepare(history, current, target, selected, rows_needed, limit)
 
-    def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+    def bodies(self, window: HistoryWindow) -> tuple[Widget, ...]:
         return self.position.bodies(window)
 
     def for_layout(self, window: HistoryWindow, position: ReaderPosition) -> ReaderPosition:
         return self.position.for_layout(window, position)
 
-    def laid_out(self, window: "HistoryWindow") -> bool:
+    def laid_out(self, window: HistoryWindow) -> bool:
         return self.position.laid_out(window)
 
-    def place(self, window: "HistoryWindow") -> bool:
+    def place(self, window: HistoryWindow) -> bool:
         return self.position.place(window)
 
     def shifted(self, rows: float) -> ReaderPosition:
         return self.position.shifted(rows)
 
-    def parked(self, window: "HistoryWindow", contents: Contents) -> ParkedPosition:
+    def parked(self, window: HistoryWindow, contents: Contents) -> ParkedPosition:
         return self
 
-    def without_holder(self, window: "HistoryWindow") -> ReaderPosition:
+    def without_holder(self, window: HistoryWindow) -> ReaderPosition:
         # Its pages are loaded after the tab returns.
         return self
 
@@ -575,11 +576,11 @@ class LatestPosition(NativeReaderHolder, HeldReaderDestination, TailPosition):
     """The newest source row, held until the publication that supplies it settles."""
 
     revision: int
-    sources: tuple[tuple["TranscriptSourcePreparation", object], ...]
+    sources: tuple[tuple[TranscriptSourcePreparation, object], ...]
     awaits_source_advance: bool
 
     @classmethod
-    def hold(cls, window: "HistoryWindow") -> "LatestPosition":
+    def hold(cls, window: HistoryWindow) -> LatestPosition:
         window.anchor()
         sources = tuple((history, history.page_source.through) for history in window.histories)
         latest = cls(
@@ -590,23 +591,23 @@ class LatestPosition(NativeReaderHolder, HeldReaderDestination, TailPosition):
         window.reader_position = latest
         return latest
 
-    def current(self, window: "HistoryWindow") -> bool:
+    def current(self, window: HistoryWindow) -> bool:
         return window.reader_position is self and window.scroll_revision == self.revision
 
-    def restore(self, window: "HistoryWindow") -> None:
+    def restore(self, window: HistoryWindow) -> None:
         if self.current(window):
             window.follow_latest()
 
-    def source_settled(self, window: "HistoryWindow") -> None:
+    def source_settled(self, window: HistoryWindow) -> None:
         if (self.awaits_source_advance
                 and all(history.page_source.through == through for history, through in self.sources)):
             return
         super().source_settled(window)
 
-    async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
+    async def source_arrived(self, history: TranscriptSourcePreparation) -> bool:
         return await history.jump_latest(LatestViewportRequest(self))
 
-    def release(self, window: "HistoryWindow") -> None:
+    def release(self, window: HistoryWindow) -> None:
         if window.reader_position is self:
             window.reader_position = self.released()
             window.place_reader()
@@ -624,10 +625,10 @@ class NoHistoryChange:
 
     layout_requests = 0
 
-    def moved(self, position: ReaderPosition, window: "HistoryWindow", rows: float) -> ReaderPosition:
+    def moved(self, position: ReaderPosition, window: HistoryWindow, rows: float) -> ReaderPosition:
         return ReaderPosition.of(window)
 
-    def check_follow(self, window: "HistoryWindow") -> bool:
+    def check_follow(self, window: HistoryWindow) -> bool:
         """Keep a following reader on the tail; True when that scrolled the window."""
         if not window.follows_tail:
             return False
@@ -643,7 +644,7 @@ class NoHistoryChange:
         """No change waits on a layout."""
 
     @asynccontextmanager
-    async def opened(self, window: "HistoryWindow"):
+    async def opened(self, window: HistoryWindow):
         """One change and the layout that shows it.
 
         A body worker owns its own tree change and a nested pager may take
@@ -694,7 +695,7 @@ class HistoryChange:
     laid_out: bool = field(default=False, init=False)
     """Whether a layout has shown this change's final rows (and put the reader on the kept position)."""
 
-    def request_layout(self, window: "HistoryWindow") -> None:
+    def request_layout(self, window: HistoryWindow) -> None:
         # Layouts during the change do not show its final rows.
         # Arm the event before making that layout actionable.
         self.layout_requests += 1
@@ -719,16 +720,16 @@ class HistoryChange:
     async def wait(self) -> None:
         await self.layout_ready.wait()
 
-    def moved(self, position: ReaderPosition, window: "HistoryWindow", rows: float) -> ReaderPosition:
+    def moved(self, position: ReaderPosition, window: HistoryWindow, rows: float) -> ReaderPosition:
         """The kept message moves with the reader while the change is open."""
         return position.shifted(rows)
 
-    def check_follow(self, window: "HistoryWindow") -> bool:
+    def check_follow(self, window: HistoryWindow) -> bool:
         """The change's own layout places a following reader."""
         return False
 
     @asynccontextmanager
-    async def opened(self, window: "HistoryWindow"):
+    async def opened(self, window: HistoryWindow):
         """A change inside another joins it."""
         yield
 
@@ -892,7 +893,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """Every live block mounted inside this window; each announces itself when it mounts."""
         return WeakSet()
 
-    def on_conversation_block_mounted(self, message) -> None:
+    def on_conversation_block_mounted(self, message: ConversationBlock.Mounted) -> None:
         message.stop()
         self.live_blocks.add(message.block)
 
@@ -913,7 +914,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         self.reader_position = parked
         return parked
 
-    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
+    def prepare_history(self, history: TranscriptSourcePreparation) -> None:
         """A history about to be mounted loads the page ranges the kept position needs."""
         self.reader_position.prepare_history(history)
         if self.follows_tail:
