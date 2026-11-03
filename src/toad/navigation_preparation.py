@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from agent_comms.coordination_errors import Refused
-from agent_comms.comms import Comms
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.session_load import ExistingSessionLoadPlan
@@ -25,6 +24,7 @@ from toad.tab_identity import SessionTabIdentity
 ResultT = TypeVar("ResultT")
 
 if TYPE_CHECKING:
+    from toad.comms_root import Observing
     from toad.comms_root import Observing
     from toad.navigation_target import HistoryRouted
     from toad.thread_navigation import ThreadNavigator, ThreadOrigin
@@ -45,16 +45,15 @@ class CommsNavigation:
 
 @dataclass(frozen=True)
 class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
-    comms: Comms
+    observed: Observing
     owner_mode: str
     me: str
     route: HistoryRouted
     owner_root: str | None
 
     def read(self) -> CommsNavigation:
-        comms = self.comms
-        root = comms.root
-        resolved = self.route.prepare(comms, self.me)
+        root = self.observed.root
+        resolved = self.route.prepare(self.observed.core, self.me)
         owner_root = self.owner_root
         if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
             owner_root = None
@@ -62,7 +61,7 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
             CommsViewKey(str(root), self.owner_mode, resolved.conversation),
             owner_root,
             resolved.conversation.threads_needed(
-                comms.registry.snapshot(), resolved.viewer
+                self.observed.registry(), resolved.viewer
             ),
         )
 

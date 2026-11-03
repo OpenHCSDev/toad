@@ -383,13 +383,12 @@ class SessionNavigation:
         origin = ThreadOrigin.capture(app, source)
         try:
             observed = await app.preparation.run_thread(app.coordination_access.observation.observed)
-            comms = observed.service
             requested_root = str(observed.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
             prepared = await app.navigation_reader.read(
                 CommsNavigationRequest(
-                    comms, owner_mode, me, route, source.coordination_root
+                    observed, owner_mode, me, route, source.coordination_root
                 )
             )
         except (UnknownChannelError, UnregisteredThreadError, RouteChangedError) as error:
