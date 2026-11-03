@@ -50,6 +50,9 @@ class FragmentNotLoaded(LookupError):
 class FragmentLocation(ABC):
     """A source fragment's drawn location, or the declared not-loaded result."""
 
+    # Whether a page draws this occurrence somewhere; only the not-loaded result does not.
+    located: ClassVar[bool] = True
+
     @abstractmethod
     def location(self) -> FragmentSpan: ...
 
@@ -71,6 +74,8 @@ class FragmentLocation(ABC):
 
 class UnloadedFragment(FragmentLocation):
     """No loaded page draws a destination for this fragment occurrence."""
+
+    located = False
 
     def location(self) -> FragmentSpan:
         raise FragmentNotLoaded("The source fragment has no drawn location")

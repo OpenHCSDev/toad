@@ -250,7 +250,7 @@ class LaidOut(ABC):
     def placement(self, page: TranscriptPageView) -> UndrawnFragment: ...
 
     @abstractmethod
-    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentSpan | None: ...
+    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentLocation: ...
 
 
 class NotLaidOut(LaidOut):
@@ -262,8 +262,8 @@ class NotLaidOut(LaidOut):
     def placement(self, page: TranscriptPageView) -> UndrawnFragment:
         return UNDRAWN
 
-    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> None:
-        return None
+    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentLocation:
+        return UnloadedFragment()
 
 
 NOT_LAID_OUT = NotLaidOut()
@@ -292,12 +292,13 @@ class LaidOutRow(LaidOut):
     def placement(self, page: TranscriptPageView) -> UndrawnFragment:
         return DrawnFragment(page, range(self.first, self.first + self.lines.height))
 
-    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentSpan | None:
+    def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentLocation:
         same = candidate.key == key
         wanted = block if same else 0
         span = self.lines.block_span(lambda span: span.drawn and span.index >= wanted)
         if span is None:
-            return None
+            # No drawn child at or after the wanted one: the candidate places nothing.
+            return UnloadedFragment()
         placed = FragmentSpan.in_page(self.page, candidate, self.first, span)
         return replace(placed, drawn=same and span.index == block)
 
@@ -521,10 +522,9 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         for at, target in enumerate(loaded):
             if target.key != key:
                 continue
-            for candidate in chain(loaded[at:], reversed(loaded[:at])):
-                placed = self._fragment_slots.get(candidate.key, NOT_LAID_OUT).placed(candidate, key, block)
-                if placed is not None:
-                    return placed
+            return next((placed for candidate in chain(loaded[at:], reversed(loaded[:at]))
+                         if (placed := self._fragment_slots.get(candidate.key, NOT_LAID_OUT)
+                             .placed(candidate, key, block)).located), UnloadedFragment())
         return UnloadedFragment()
 
     @property
