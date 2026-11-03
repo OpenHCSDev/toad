@@ -12,6 +12,7 @@ from textual import messages
 from textual._compositor import StepDeadline
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.history_anchor import NO_HISTORY_CHANGE, BlockPosition, HistoryChange
+from toad.widgets.presentation_window import Placed
 
 
 def drive(screen):
@@ -85,8 +86,8 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
                     if committed is None and compositor._layout_map is not layout_map:
                         committed = compositor._layout_map
                     assert compositor._published_map is published, pauses
-                    assert window.published_content_region == published[window].content_region.intersection(
-                        published[window].clip)
+                    assert window.published_viewport == Placed(published[window].content_region.intersection(
+                        published[window].clip))
                     assert screen.get_widget_and_offset_at(region.x + 2, region.y + 2) == hit
                     if committed is None:
                         assert [row for _, row in window.placements(placed)] == offsets

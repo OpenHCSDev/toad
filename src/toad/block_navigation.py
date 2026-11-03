@@ -19,7 +19,7 @@ from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
 from toad.notification_status import MessageQueueEntry
-from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd
+from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd, arranged
 
 if TYPE_CHECKING:
     from agent_comms.message_reference import MessageReference
@@ -199,8 +199,7 @@ class AtomicBlockCursor(BlockCursor):
 
     @property
     def visible_region(self):
-        geometry = self.block.screen._compositor.visible_widgets.get(self.block)
-        return None if geometry is None else geometry[0]
+        return arranged(self.block).shown_region()
 
     def show_moved_to(self, window: HistoryWindow):
         window.scroll_to_center(self.block, immediate=True)
@@ -276,11 +275,7 @@ class FragmentBlockCursor(BlockCursor):
         return direction.visible_more(self.block)
 
     def select(self, widget: Widget):
-        fragment = self.block.fragment_under_mouse(widget)
-        if fragment is None:
-            return False
-        self.fragment = fragment
-        return True
+        return self.block.fragment_under_mouse(widget).selected_by(self)
 
     def clear(self):
         self.fragment = None

@@ -453,10 +453,8 @@ class RetainViewportCommit(CommitPlan):
         if not view.screen.is_current:
             return True
         visible = view.screen._compositor.published_widgets
-        viewport = view.window.published_content_region
-        if viewport is None:
-            return True
-        return not any(widget in visible and visible[widget][0].overlaps(viewport)
+        viewport = view.window.published_viewport
+        return not any(widget in visible and viewport.overlaps(visible[widget][0])
                        for widget in candidates)
 
     def commit(self, prepared, cursor) -> None:

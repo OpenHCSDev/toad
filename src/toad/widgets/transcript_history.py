@@ -90,8 +90,12 @@ from toad.widgets.message_notifications import HistoryNotifications, SourceNotif
 from toad.widgets.presentation_window import (
     NEWER_END,
     OLDER_END,
+    UNPLACED,
     PageEnd,
+    PointerRows,
     PresentationBudget,
+    Unplaced,
+    arranged,
 )
 from toad.widgets.selection import HoverSelection
 from toad.widgets.transcript_fragments import (
@@ -150,6 +154,13 @@ class FragmentSpan(BlockSpan, FragmentLocation):
     def location(self) -> FragmentSpan:
         return self
 
+    def tooltip(self) -> str | None:
+        return MessageClock.recorded(self.fragment.timestamp).display()[1]
+
+    def selected_by(self, cursor: FragmentBlockCursor) -> bool:
+        cursor.fragment = self.fragment
+        return True
+
     def bodies(self) -> tuple[Widget, ...]:
         return (self.page,)
 
@@ -195,24 +206,29 @@ class MeasureAgain(Absorbs, RowChange):
 
 
 class UndrawnFragment:
-    """No loaded page draws this fragment: it has no rows, no region and no window rows."""
+    """No loaded page draws this fragment: it has no rows and the screen shows none."""
 
     draws: ClassVar[bool] = False
     rows = range(0)
 
-    def region(self) -> Region | None:
-        return None
+    @property
+    def placement(self) -> Unplaced:
+        """Where the screen shows the page drawing the fragment."""
+        return UNPLACED
 
-    def window_rows(self, history: LineHistory) -> range | None:
-        return None
+    def region(self) -> Region | None:
+        return self.placement.rows_region(self.rows)
 
     def head_on_screen(self, window: HistoryWindow) -> bool:
         """Whether the fragment's first row is drawn at or below the viewport's top."""
-        return False
+        return self.placement.shows_from(self.rows.start, window.scrollable_content_region.y)
 
     def head_hidden(self, window: HistoryWindow, height: int) -> bool:
         """Whether a message of this height starting here needs its head placed."""
-        return window.message_too_tall(height)
+        return self.placement.head_hidden(self.rows.start, window, height)
+
+    def show(self, history: LineHistory) -> None:
+        """Scroll just far enough that the fragment's rows are on screen; an undrawn one has none."""
 
 
 UNDRAWN = UndrawnFragment()
@@ -226,32 +242,19 @@ class DrawnFragment(UndrawnFragment):
     page: TranscriptPageView
     rows: range
 
-    def region(self) -> Region | None:
-        """Where the screen shows the rows; None while Textual has not placed the page."""
-        region = self.page.screen_region
-        return None if region is None else Region(region.x, region.y + self.rows.start, region.width, len(self.rows))
+    @property
+    def placement(self) -> Unplaced:
+        return self.page.placement
 
-    def head_on_screen(self, window: HistoryWindow) -> bool:
-        region = self.region()
-        return region is not None and region.y >= window.scrollable_content_region.y
-
-    def head_hidden(self, window: HistoryWindow, height: int) -> bool:
-        # Textual has not placed the page: where its head is is unknown, as for an undrawn one.
-        region = self.region()
-        return window.message_too_tall(height) if region is None else window.message_head_hidden(height, region.y)
-
-    def window_rows(self, history: LineHistory) -> range | None:
-        """The rows of the window's content that draw the fragment.
-
-        Layout places only the pages near the screen. Pages follow one another
-        without a gap, so one placed page gives the rows of every other.
-        """
+    def show(self, history: LineHistory) -> None:
+        """Layout places only the pages near the screen. Pages follow one another
+        without a gap, so the first placed page gives the window rows of every other."""
         pages = history.pages
         starts = dict(zip(pages, accumulate((p.line_count for p in pages), initial=0)))
         for placed_page, placed in history.window.placements(pages):
             shift = starts[self.page] + placed - starts[placed_page]
-            return range(self.rows.start + shift, self.rows.stop + shift)
-        return None
+            history.window.show_rows(range(self.rows.start + shift, self.rows.stop + shift))
+            return
 
 
 class LaidOut(ABC):
@@ -320,7 +323,7 @@ class LaidOutRow(LaidOut):
         return replace(placed, drawn=same and span.index == block)
 
 
-class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
+class TranscriptPageView(PointerRows[FragmentLocation], ReferenceRendering, HorizontalRows, Widget):
     """One transcript page, drawn as its loaded fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
@@ -558,23 +561,23 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         return self._fragment_slots.get(fragment.key, NOT_LAID_OUT).placement(self)
 
     @property
-    def screen_region(self) -> Region | None:
+    def placement(self) -> Unplaced:
         """Where the screen shows this page, including the part scrolled out of view."""
-        geometry = self.screen._compositor.visible_widgets.get(self)
-        return None if geometry is None else geometry[0]
+        return arranged(self)
 
-    def fragment_under_mouse(self) -> TranscriptFragment | None:
-        if (region := self.screen_region) is None:
-            return None
-        row = self.app.mouse_position.y - region.y
-        found = self.fragment_at(row) if 0 <= row < self._height else UnloadedFragment()
-        return found.location().fragment if found.located else None
+    def shown_row(self, row: int) -> FragmentLocation:
+        return self.fragment_at(row) if 0 <= row < self._height else UnloadedFragment()
+
+    def unshown(self) -> FragmentLocation:
+        return UnloadedFragment()
+
+    def fragment_under_mouse(self) -> FragmentLocation:
+        return self.placement.under(self, self.app.mouse_position.y)
 
     @property
     def tooltip(self) -> str | None:
         """The full time of the message under the pointer."""
-        fragment = self.fragment_under_mouse()
-        return None if fragment is None else MessageClock.recorded(fragment.timestamp).display()[1]
+        return self.fragment_under_mouse().tooltip()
 
     def fragment_at(self, row: int) -> FragmentLocation:
         """The measured child drawn here, with its containing message, or that none is."""
@@ -898,32 +901,17 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
     def draws_fragment(self, fragment: TranscriptFragment) -> bool:
         return self.fragment_placement(fragment).draws
 
-    def fragment_under_mouse(self, widget: Widget) -> TranscriptFragment | None:
+    def fragment_under_mouse(self, widget: Widget) -> FragmentLocation:
         """The fragment drawn under the pointer, when `widget` is one of this history's pages."""
-        return next((page.fragment_under_mouse() for page in self.pages if page is widget), None)
+        return next((page.fragment_under_mouse() for page in self.pages if page is widget), UnloadedFragment())
 
     def fragment_region(self, fragment: TranscriptFragment) -> Region | None:
         """Where the screen shows a fragment's rows; None while its page is off screen."""
         return self.fragment_placement(fragment).region()
 
-    def fragment_window_rows(self, fragment: TranscriptFragment) -> range | None:
-        """The rows of the window's content that draw a fragment; None while no page is placed."""
-        return self.fragment_placement(fragment).window_rows(self)
-
     def show_fragment(self, fragment: TranscriptFragment) -> None:
         """Scroll just far enough that a fragment's rows are on screen, its first row before its last."""
-        window = self.window
-        if (rows := self.fragment_window_rows(fragment)) is None:
-            return
-        top, height = int(window.scroll_y), window.scrollable_content_region.height
-        if rows.start < top:
-            destination = rows.start
-        elif rows.stop > top + height:
-            destination = min(rows.start, rows.stop - height)
-        else:
-            return
-        window.release_anchor()
-        window.scroll_to(y=destination, animate=False, immediate=True)
+        self.fragment_placement(fragment).show(self)
 
     async def reveal_message_head(
         self, fragment: TranscriptFragment, selected: Callable[[], bool],

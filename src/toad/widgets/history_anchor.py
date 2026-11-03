@@ -32,10 +32,14 @@ from toad.widgets.presentation_window import (
     OLDER_END,
     DirectionalPreparation,
     NativePresentation,
+    Placed,
     PresentationBudget,
+    UNPLACED,
+    Unplaced,
 )
 
 if TYPE_CHECKING:
+    from toad.block_navigation import FragmentBlockCursor
     from toad.line_blocks import Divider
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
@@ -56,6 +60,14 @@ class FragmentLocation(ABC):
 
     @abstractmethod
     def location(self) -> FragmentSpan: ...
+
+    @abstractmethod
+    def tooltip(self) -> str | None:
+        """Textual's tooltip for the pointer over this location; None shows none."""
+
+    @abstractmethod
+    def selected_by(self, cursor: FragmentBlockCursor) -> bool:
+        """Rest `cursor` here; whether there was a fragment to rest on."""
 
     @abstractmethod
     def bodies(self) -> tuple[Widget, ...]: ...
@@ -80,6 +92,12 @@ class UnloadedFragment(FragmentLocation):
 
     def location(self) -> FragmentSpan:
         raise FragmentNotLoaded("The source fragment has no drawn location")
+
+    def tooltip(self) -> str | None:
+        return None
+
+    def selected_by(self, cursor: FragmentBlockCursor) -> bool:
+        return False
 
     def bodies(self) -> tuple[Widget, ...]:
         return ()
@@ -1139,21 +1157,28 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """Borrow this window's clipped cohort from the original native scene."""
         compositor = self.screen._compositor
         visible = compositor.published_widgets
-        viewport = self.published_content_region
-        if viewport is None:
-            return
+        viewport = self.published_viewport
         for item in items:
-            if item in visible:
-                region, clip = visible[item]
-                if (region.overlaps(viewport) and region.overlaps(clip)
-                        and clip.overlaps(viewport)):
-                    yield item
+            if item in visible and viewport.shows(*visible[item]):
+                yield item
 
     @property
-    def published_content_region(self):
+    def published_viewport(self) -> Unplaced:
         """This window's actual displayed content, independent of pending layout."""
         placement = self.screen._compositor._published_map.get(self)
-        return None if placement is None else placement.content_region.intersection(placement.clip)
+        return UNPLACED if placement is None else Placed(placement.content_region.intersection(placement.clip))
+
+    def show_rows(self, rows: range) -> None:
+        """Scroll just far enough that these content rows are on screen, the first before the last."""
+        top, height = int(self.scroll_y), self.scrollable_content_region.height
+        if rows.start < top:
+            destination = rows.start
+        elif rows.stop > top + height:
+            destination = min(rows.start, rows.stop - height)
+        else:
+            return
+        self.release_anchor()
+        self.scroll_to(y=destination, animate=False, immediate=True)
 
     @asynccontextmanager
     async def preserve_history(self):
