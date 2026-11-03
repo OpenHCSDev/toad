@@ -138,6 +138,11 @@ class JumpToLatest(HoverSelection, HistoryEdge):
     class Requested(Message):
         pass
 
+async def settled[Value](value: Value) -> Value:
+    """An awaitable already holding its value, for a branch that has nothing to wait on."""
+    return value
+
+
 @dataclass(frozen=True)
 class FragmentSpan(BlockSpan, FragmentLocation):
     """A block span placed in its page, carrying the message it belongs to."""
@@ -315,12 +320,11 @@ class LaidOutRow(LaidOut):
     def placed(self, candidate: TranscriptFragment, key: FragmentKey, block: int) -> FragmentLocation:
         same = candidate.key == key
         wanted = block if same else 0
-        span = self.lines.block_span(lambda span: span.drawn and span.index >= wanted)
-        if span is None:
-            # No drawn child at or after the wanted one: the candidate places nothing.
-            return UnloadedFragment()
-        placed = FragmentSpan.in_page(self.page, candidate, self.first, span)
-        return replace(placed, drawn=same and span.index == block)
+        # No drawn child at or after the wanted one: the candidate places nothing.
+        return self.lines.block_span(lambda span: span.drawn and span.index >= wanted).placed_by(
+            lambda span: replace(FragmentSpan.in_page(self.page, candidate, self.first, span),
+                                 drawn=same and span.index == block),
+            UnloadedFragment)
 
 
 class TranscriptPageView(PointerRows[FragmentLocation], ReferenceRendering, HorizontalRows, Widget):
@@ -585,8 +589,8 @@ class TranscriptPageView(PointerRows[FragmentLocation], ReferenceRendering, Hori
         if slot < 0:
             return UnloadedFragment()
         fragment, first, lines = self._layout[slot]
-        span = lines.block_span(lambda span: span.contains(row - first))
-        return UnloadedFragment() if span is None else FragmentSpan.in_page(self, fragment, first, span)
+        return lines.block_span(lambda span: span.contains(row - first)).placed_by(
+            partial(FragmentSpan.in_page, self, fragment, first), UnloadedFragment)
 
     def visible_rows(self, window: HistoryWindow, margin: int = 0) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
         """Each loaded fragment in the window's viewport, widened by `margin` rows each way,
@@ -945,14 +949,21 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                              if part.source_identity == fragment.source_identity)
         if not head_placement.head_hidden(window, message_height):
             return fragment
-        lines = head.lines_for(width, theme)
-        if (span := lines.block_span(lambda span: span.drawn)) is None:
-            return fragment
+        # A head with no drawn child has no row to place the reader on.
+        return await head.lines_for(width, theme).block_span(lambda span: span.drawn).placed_by(
+            partial(self._place_reader_at_head, head, fragment, page, staged, current),
+            partial(settled, fragment))
+
+    async def _place_reader_at_head(self, head: TranscriptFragment, fragment: TranscriptFragment,
+                                    page: TranscriptPageView, staged: PreparedTranscriptPage,
+                                    current: Callable[[], bool], span: BlockSpan) -> TranscriptFragment:
+        """Swap in the staged range and hold the reader on the head's first drawn child."""
+        window = self.window
         async with window.history_lock:
             if not current():
                 return fragment
             async with window.preserve_history():
-                if not original.replace_range(page, slice(staged.start, staged.stop), current):
+                if not page.prepared.replace_range(page, slice(staged.start, staged.stop), current):
                     return fragment
                 window.release_anchor()
                 window.reader_position = FragmentPosition(head.key, 0, span.height, block=span.index)
