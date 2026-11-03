@@ -25,6 +25,7 @@ from toad.tab_identity import SessionTabIdentity
 ResultT = TypeVar("ResultT")
 
 if TYPE_CHECKING:
+    from toad.comms_root import Observing
     from toad.navigation_target import HistoryRouted
     from toad.thread_navigation import ThreadNavigator, ThreadOrigin
 
@@ -136,17 +137,19 @@ class ExistingThreadNavigation(ThreadNavigation):
 
 @dataclass(frozen=True)
 class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
-    comms: Comms
+    """Open a thread from what the observed Core answers: its root and its registry."""
+
+    observed: Observing
     target: str
     project: Checkout
     open_threads: tuple[OpenThread, ...]
 
     @property
     def root(self) -> str:
-        return str(self.comms.root)
+        return str(self.observed.root)
 
     def read(self) -> ThreadNavigation:
-        snapshot = self.comms.registry.snapshot()
+        snapshot = self.observed.registry()
         thread = snapshot.require(self.target)
         project = thread.worktree
         existing = next(
