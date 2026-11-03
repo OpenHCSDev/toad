@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import ClassVar, TYPE_CHECKING
+from typing import ClassVar
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.comms import Comms
 from agent_comms.frozen_recipient import FrozenRecipient
@@ -19,10 +19,6 @@ from toad.agent_presentation import AgentPresentation
 from toad.block_navigation import ConversationEntry
 from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines, MessageQueueEntry
-
-if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
-
 
 @dataclass(frozen=True)
 class QueueEvidence:
@@ -56,8 +52,11 @@ class QueueSource(ABC):
 
     preview_limit: ClassVar[int] = 3
 
-    def capture_queue_service(self, view: Conversation) -> Callable[[], Comms]:
-        return view.app.coordination_access.observation.queue_service
+    def capture_queue_service(
+        self, transcript: Callable[[Callable[[], Comms]], Comms],
+        service: Callable[[], Comms],
+    ) -> Callable[[], Comms]:
+        return service
 
     @abstractmethod
     def queue_scope(self, evidence: QueueEvidence) -> QueueScope: ...

@@ -261,9 +261,11 @@ class OperationalSessionSources(NativeQueueSource):
 class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
 
-    def capture_queue_service(self, view: Conversation) -> Callable[[], Comms]:
-        return partial(view.transcript.binding.thread_scope.queue_service,
-                       super().capture_queue_service(view))
+    def capture_queue_service(
+        self, transcript: Callable[[Callable[[], Comms]], Comms],
+        service: Callable[[], Comms],
+    ) -> Callable[[], Comms]:
+        return partial(transcript, super().capture_queue_service(transcript, service))
 
     def activity_row(self, conversation: Conversation):
         return conversation.thread_activity.row
