@@ -11,7 +11,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.read_basis import DisplayCut, NoDisplaySelection
 from agent_comms.ui_model.message_category import MessageCategory, OtherCategory
 from textual.app import App
-from textual.geometry import Region, Spacing
+from textual.geometry import Spacing
 from textual.message import Message
 from textual.widget import Widget
 from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
@@ -19,7 +19,7 @@ from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
 from toad.notification_status import MessageQueueEntry
-from toad.widgets.presentation_window import NewerEnd, OlderEnd, PageEnd, arranged
+from toad.widgets.presentation_window import UNPLACED, NewerEnd, OlderEnd, PageEnd, Placed, Unplaced, arranged
 from toad.widgets.transcript_fragments import NO_REST, CursorRest
 
 if TYPE_CHECKING:
@@ -104,28 +104,22 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
         pass
 
     @property
-    def region(self) -> Region | None:
-        return None
+    def region(self) -> Unplaced:
+        return UNPLACED
 
     def owns_source(self, source) -> bool:
         return False
 
     @property
-    def visible_region(self) -> Region | None:
-        return None
+    def visible_region(self) -> Unplaced:
+        return UNPLACED
 
     def show_moved_to(self, window: HistoryWindow) -> None:
         """Scroll for a keyboard move, which can land on a block out of view."""
 
     def show_clicked(self, window: HistoryWindow) -> None:
         """Scroll for a click, which lands on a block that is already in view."""
-        region = self.region
-        if region is not None and window.message_head_hidden(region.height, region.y):
-            window.release_anchor()
-            window.scroll_relative(
-                y=region.y - window.scrollable_content_region.y,
-                animate=False, immediate=True,
-            )
+        self.region.reveal_clicked(window)
 
     def export_to_svg(self, conversation: Conversation) -> None:
         """Only a cursor resting on one drawn block has something to export."""
@@ -198,11 +192,11 @@ class AtomicBlockCursor(BlockCursor):
 
     @property
     def region(self):
-        return self.block.region
+        return Placed(self.block.region)
 
     @property
     def visible_region(self):
-        return arranged(self.block).shown_region()
+        return arranged(self.block)
 
     def show_moved_to(self, window: HistoryWindow):
         window.scroll_to_center(self.block, immediate=True)
@@ -284,7 +278,7 @@ class FragmentBlockCursor(BlockCursor):
 
     @property
     def region(self):
-        return self.current.region_in(self.block)
+        return self.current.placement_in(self.block)
 
     visible_region = region
 

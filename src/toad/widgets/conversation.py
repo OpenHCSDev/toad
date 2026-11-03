@@ -327,17 +327,14 @@ class CursorContainer(Animated[Mix], Static):
         # its current position, including nested and lazily replaced bodies.
         visible = self.screen._compositor.visible_widgets
         cursor = self.query_ancestor(Conversation).navigation.cursor
-        if (region := cursor.visible_region) is not None:
-            origin = visible[self][0].y + crop.y
+        if rows := cursor.visible_region.rows_within(visible[self][0].y + crop.y, crop.height):
             style = self.get_component_rich_style("cursor--selected")
             selected_strip = Strip([Segment("▌", style)], cell_length=1)
             if CURSOR_BLINK in self.effects and self.animation_visible:
                 selected_strip = self.app.colours.paint_mix(
                     self.effect_frame(CURSOR_BLINK), selected_strip
                 )
-            for row in range(
-                max(0, region.y - origin), min(crop.height, region.bottom - origin)
-            ):
+            for row in rows:
                 strips[row] = selected_strip
         return strips
 
@@ -1955,8 +1952,7 @@ class Conversation(
                 commands.append(MaximizeBlockCommand())
             commands.extend(cursor.get_block_menu())
             menu = Menu(self, block, commands, focus_owner=self.window)
-            region = cursor.region
-            menu.offset = Offset(1, region.y if region is not None else self.window.region.y)
+            menu.offset = Offset(1, cursor.region.top(self.window.region.y))
             await self.mount(menu)
             menu.focus()
 

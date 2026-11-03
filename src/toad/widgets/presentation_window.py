@@ -175,13 +175,20 @@ class Runway(OffScreenRunway):
 class Unplaced:
     """A widget Textual's map has no entry for: the screen does not show it."""
 
-    def shown_region(self) -> Region | None:
-        """Where the screen shows the widget; None is the block cursor's answer for a widget it cannot show."""
-        return None
+    def shown_rows(self, rows: range) -> Unplaced:
+        """Where the screen shows some of the widget's rows: nowhere."""
+        return self
 
-    def rows_region(self, rows: range) -> Region | None:
-        """Where the screen shows some of the widget's rows, as the block cursor answers it."""
-        return None
+    def top(self, default: int) -> int:
+        """The screen row the widget starts at, or `default` when it is not shown."""
+        return default
+
+    def rows_within(self, origin: int, height: int) -> range:
+        """The rows of a strip starting at screen row `origin` that the widget covers."""
+        return range(0)
+
+    def reveal_clicked(self, window: HistoryWindow) -> None:
+        """A click cannot land on a widget the screen does not show."""
 
     def shows_from(self, row: int, top: int) -> bool:
         """Whether the widget's `row` is drawn at or below screen row `top`."""
@@ -221,12 +228,25 @@ class Placed(Unplaced):
 
     region: Region
 
-    def shown_region(self) -> Region | None:
-        return self.region
-
-    def rows_region(self, rows: range) -> Region | None:
+    def shown_rows(self, rows: range) -> Placed:
         region = self.region
-        return Region(region.x, region.y + rows.start, region.width, len(rows))
+        return Placed(Region(region.x, region.y + rows.start, region.width, len(rows)))
+
+    def top(self, default: int) -> int:
+        return self.region.y
+
+    def rows_within(self, origin: int, height: int) -> range:
+        return range(max(0, self.region.y - origin), min(height, self.region.bottom - origin))
+
+    def reveal_clicked(self, window: HistoryWindow) -> None:
+        """Scroll a clicked message whose head is above the viewport to its head."""
+        region = self.region
+        if window.message_head_hidden(region.height, region.y):
+            window.release_anchor()
+            window.scroll_relative(
+                y=region.y - window.scrollable_content_region.y,
+                animate=False, immediate=True,
+            )
 
     def shows_from(self, row: int, top: int) -> bool:
         return self.region.y + row >= top
