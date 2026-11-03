@@ -28,7 +28,7 @@ from agent_comms.display_order import ThreadSort
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
-from agent_comms.ui_model.unread import UnreadPresentation
+from agent_comms.ui_model.unread import UnobservedUnread
 from toad.widget_actions import Activates
 from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
@@ -53,16 +53,12 @@ from toad.widgets.side_bar import SideBar
 from toad.widgets.sidebar_viewport import SidebarHeader
 
 
-class UnpaintedUnread(UnreadPresentation):
-    label = " "
-
-
 class UnpaintedChannel(ChannelRowModel):
     """An unobserved channel has no painted fields or known members."""
 
     def __init__(self, name: str) -> None:
         super().__init__(
-            name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort
+            name, "", "", UnobservedUnread(), False, (), frozenset(), ThreadSort
         )
 
 
