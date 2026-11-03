@@ -110,6 +110,9 @@ class Observation(ABC):
     def observed(self):
         return self
 
+    def queue_service(self) -> Comms:
+        raise RouteChangedError("The queue's original Comms source is unavailable")
+
     @abstractmethod
     async def read(self, request: AwaitedRead) -> object: ...
 
@@ -236,6 +239,11 @@ class Observing(Observation):
     service: Comms = field()
     sidebar: SidebarModel = field()
     process: ObservationProcess = field(compare=False)
+
+    def queue_service(self) -> Comms:
+        if not self.is_current():
+            raise RouteChangedError("The queue's original Comms source retired")
+        return self.service
 
     async def read(self, request: AwaitedRead) -> object:
         return await self.process.read(request)

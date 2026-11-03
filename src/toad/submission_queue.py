@@ -6,12 +6,10 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import ClassVar
-
-from acp.exceptions import RequestError
+from typing import ClassVar, TYPE_CHECKING
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.comms import Comms
-from agent_comms.errors import RelationViolationError
+from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.message_reference import MessageReference
 from agent_comms.notification_assignment import NotificationSelection
 from agent_comms.runtime_requests import ClearQueueRuntimeRequest, QueueActionRuntimeRequest, SendNowRuntimeRequest
@@ -21,6 +19,9 @@ from toad.agent_presentation import AgentPresentation
 from toad.block_navigation import ConversationEntry
 from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines, MessageQueueEntry
+
+if TYPE_CHECKING:
+    from toad.widgets.conversation import Conversation
 
 
 @dataclass(frozen=True)
@@ -44,15 +45,19 @@ class QueueEvidence:
         return tuple(entries.values())
 
     @cached_property
-    def queued_recipients(self) -> tuple[str, ...]:
-        """Each recipient still holding one of the visible messages, once."""
-        return tuple(dict.fromkeys(name for entry in self.entries for name in entry.status.queued_recipients))
+    def queued_recipients(self) -> tuple[FrozenRecipient, ...]:
+        """Each original recipient still holding a visible message, once."""
+        return tuple(dict.fromkeys(recipient for entry in self.entries
+                                   for recipient in entry.status.queued_recipients))
 
 
 class QueueSource(ABC):
     """The source selects its capability; the actual presentation owns native facts."""
 
     preview_limit: ClassVar[int] = 3
+
+    def capture_queue_service(self, view: Conversation) -> Callable[[], Comms]:
+        return view.app.coordination_access.observation.queue_service
 
     @abstractmethod
     def queue_scope(self, evidence: QueueEvidence) -> QueueScope: ...
@@ -140,23 +145,23 @@ class BusQueueSource(QueueSource):
         return bool(evidence.queued_recipients)
 
     async def queue_send_now(self, evidence: QueueEvidence, scope: QueueScope) -> None:
-        await self.at_owners(evidence, SendNowRuntimeRequest, "Send now")
+        await self.at_owners(evidence, SendNowRuntimeRequest)
 
     async def queue_clear(self, evidence: QueueEvidence, scope: QueueScope) -> None:
-        await self.at_owners(evidence, ClearQueueRuntimeRequest, "Clear")
+        await self.at_owners(evidence, ClearQueueRuntimeRequest)
 
     @staticmethod
-    async def at_owners(evidence: QueueEvidence, action: type[QueueActionRuntimeRequest], title: str) -> None:
-        """Ask every recipient's owner; name each one that refused."""
-        comms = evidence.service()
-        refused = []
-        for name in evidence.queued_recipients:
-            try:
-                await asyncio.to_thread(action.at_owner, comms.root, comms.registry.require(name))
-            except (RequestError, OSError, RelationViolationError) as error:
-                refused.append(f"{name}: {error}")
-        if refused:
-            raise QueueActionRefused(f"{title} refused by " + "; ".join(refused))
+    def at_original_owner(comms: Comms, recipient: FrozenRecipient,
+                          action: type[QueueActionRuntimeRequest]) -> None:
+        original = comms.registry.snapshot().born(recipient.lookup)
+        action.at_owner(comms.root, original)
+
+    @staticmethod
+    async def at_owners(evidence: QueueEvidence, action: type[QueueActionRuntimeRequest]) -> None:
+        """Act on the original recipients; stop and propagate a failed action."""
+        for recipient in evidence.queued_recipients:
+            comms = evidence.service()
+            await asyncio.to_thread(BusQueueSource.at_original_owner, comms, recipient, action)
 
     def queue_summary(self, evidence: QueueEvidence) -> str:
         entries = evidence.entries
@@ -172,5 +177,6 @@ class BusQueueSource(QueueSource):
             (Span(evidence.transport, MutedRole),),
             (Span(f"Showing up to {self.preview_limit} visible messages and their leading observed recipient.", MutedRole),),
             *(line for entry in evidence.entries[:self.preview_limit] for line in entry.details),
-            (Span("Queued at: " + (", ".join(recipients) if recipients else "no recipient"), MutedRole),),
+            (Span("Queued at: " + (", ".join(recipient.canonical_thread for recipient in recipients)
+                                  if recipients else "no recipient"), MutedRole),),
         )

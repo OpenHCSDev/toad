@@ -286,7 +286,7 @@ class ConversationSubmissions:
         return QueueEvidence(
             self.view.agent_binding.presentation, self.delivering,
             self.view.send_block_reason, self.view.contents.notification_targets,
-            lambda: self.view.app.coordination_access.observation.observed().service)
+            self.view.queue_source.capture_queue_service(self.view))
 
     @property
     def queue_summary(self) -> str:

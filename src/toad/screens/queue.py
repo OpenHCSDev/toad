@@ -5,6 +5,7 @@ from collections.abc import Awaitable, Callable
 
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import QueueScope
+from agent_comms.errors import RelationViolationError, RouteChangedError, UnregisteredThreadError
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical, VerticalScroll
@@ -57,7 +58,8 @@ class QueueInspection(SourceModal):
     async def apply_action(self, action: Callable[[QueueEvidence, QueueScope], Awaitable[None]]) -> None:
         try:
             await action(self.evidence, self.scope)
-        except (QueueActionRefused, RequestError) as error:
+        except (QueueActionRefused, RequestError, RelationViolationError,
+                RouteChangedError, UnregisteredThreadError) as error:
             self.query_one("#queue-error", Static).update(str(error))
             return
         self.submissions.publish_pending()

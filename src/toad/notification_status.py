@@ -6,6 +6,7 @@ from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
 from typing import ClassVar, TYPE_CHECKING
 
+from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.message_reference import MessageReference
 from agent_comms.presentation import MessageNotification
 from toad.line_blocks import LineBlock, LineLink, MutedRole, NameRole, NoticeRole, OpenTarget, Span, SpanColumns, WorkingRole
@@ -55,8 +56,8 @@ class NotificationStatus:
         return self.details
 
     @property
-    def queued_recipients(self) -> tuple[str, ...]:
-        """Recipients whose model has not yet taken this message; an unchecked status knows none."""
+    def queued_recipients(self) -> tuple[FrozenRecipient, ...]:
+        """Original recipients whose model has not yet taken this message."""
         return ()
 
     @property
@@ -114,8 +115,8 @@ class CheckedNotifications(NotificationStatus):
         return self
 
     @property
-    def queued_recipients(self) -> tuple[str, ...]:
-        return tuple(item.recipient for item in self.notifications if not item.state.consumed)
+    def queued_recipients(self) -> tuple[FrozenRecipient, ...]:
+        return tuple(item.recipient_identity for item in self.notifications if not item.state.consumed)
 
     @property
     def working(self) -> bool:
