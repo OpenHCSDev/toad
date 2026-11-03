@@ -28,8 +28,10 @@ agent_comms=$(cd -- "$agent_comms" && pwd)
 textual=$(cd -- "$textual" && pwd)
 mkdir -p -- "$cache"
 cache=$(cd -- "$cache" && pwd)
-# Toad's lock and the sibling checkouts' declared dependencies decide the environment.
-build_id=$(cat "$toad_root/uv.lock" "$agent_comms/pyproject.toml" "$textual/pyproject.toml" \
+# The recipe, lock and sibling declarations decide the environment; a changed
+# builder must not reuse an environment produced by its old installation steps.
+build_id=$(cat "$toad_root/bin/toad-test-env" "$toad_root/uv.lock" \
+    "$agent_comms/pyproject.toml" "$textual/pyproject.toml" \
     <(printf '%s\n%s' "$agent_comms" "$textual") |
     sha256sum | cut -c1-16)
 environment="$cache/$build_id"
