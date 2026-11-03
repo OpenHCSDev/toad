@@ -38,7 +38,7 @@ from agent_comms.relationships import (
     RelationshipGroup,
     ThreadCommsSnapshot,
 )
-from toad.widgets.thread_comms_source import CoreRelationships
+from toad.widgets.thread_comms_source import RelationshipReads
 from toad.widget_actions import WidgetAction, OpensSelected
 
 
@@ -82,7 +82,7 @@ class RelationshipSort(SortControl[ThreadSort]):
             try:
                 for group in groups:
                     await self.app.preparation.run_thread(
-                        service.set_order, identity.thread_name(), type(group), order
+                        service.set_relationship_order, identity.thread_name(), type(group), order
                     )
             finally:
                 if (
@@ -271,11 +271,9 @@ class ThreadCommsSidebar(
             self.thread_view.thread_identity, RelationshipTreeState()
         )
 
-    async def relationship_source(self, identity: ThreadIdentity) -> CoreRelationships:
+    async def relationship_source(self, identity: ThreadIdentity) -> RelationshipReads:
         access = self.app.coordination_access
-        return await self.app.preparation.run_thread(
-            lambda: access.observing(identity.root_path()).relationships()
-        )
+        return await self.app.preparation.run_thread(lambda: access.observing(identity.root_path()))
 
 
     def compose(self):
@@ -423,10 +421,10 @@ class ThreadCommsSidebar(
             if generation != self._generation or not self.is_attached:
                 return
             owner = identity.thread_name()
-            revision = await asyncio.to_thread(service.revision)
+            revision = await asyncio.to_thread(service.relationship_revision)
             if revision == self._revision:
                 return
-            snapshot = await asyncio.to_thread(service.snapshot, owner)
+            snapshot = await asyncio.to_thread(service.relationships, owner)
             # Visibility admits new reads; parking does not revoke work already
             # owned by this retained panel. Identity changes and unmount do.
             if generation != self._generation or not self.is_attached:
@@ -542,7 +540,7 @@ class ThreadCommsSidebar(
             return
         identity = self.thread_view.thread_identity
         service = await self.relationship_source(identity)
-        snapshot = await asyncio.to_thread(service.snapshot, identity.thread_name())
+        snapshot = await asyncio.to_thread(service.relationships, identity.thread_name())
         if (
             generation != self._generation
             or not self.is_attached
