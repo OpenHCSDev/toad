@@ -33,7 +33,9 @@ from agent_comms.remote_core import RemoteCoreAccess
 from agent_comms.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads
 from toad.core.context_reads import ContextReads
+from agent_comms.historical_views import HistoricalSenders, HistoricalThread
 from agent_comms.tools import (
+    CommsHistoricalThreadsTool,
     CommsMarkThreadViewReadTool, CommsRegistryTool, CommsServedRootTool, CommsSessionThreadTool,
     CommsUserSendTool,
 )
@@ -410,6 +412,10 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
     def registry(self) -> RegistrySnapshot:
         """Core's thread registry: names, renames and recorded threads resolve against it."""
         return self.core.call(CommsRegistryTool()).snapshot
+
+    def historical_threads(self, senders: HistoricalSenders) -> tuple[HistoricalThread, ...]:
+        """The preserved identities attached history sources keep, for every sender or one."""
+        return self.core.call(CommsHistoricalThreadsTool(senders=senders)).threads
 
     @abstractmethod
     def user_identity(self, project: Checkout) -> Thread:
