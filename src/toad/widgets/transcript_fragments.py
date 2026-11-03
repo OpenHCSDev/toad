@@ -52,12 +52,12 @@ from toad.notification_status import MessageQueueEntry, NotificationStatus, Unch
 from toad.tool_output import SentMessageToolOutputPart, ToolOutput
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
+from toad.widgets.presentation_window import UNPLACED, Unplaced
 
 if TYPE_CHECKING:
     from agent_comms.messages import Message as BusMessage
 
     from toad.tool_output import ToolOutputPart
-    from textual.geometry import Region
     from textual.widget import Widget
 
     from toad.block_navigation import FragmentBlockCursor
@@ -357,9 +357,9 @@ class CursorRest:
     def block_menu(self) -> tuple[MenuCommand, ...]:
         return ()
 
-    def region_in(self, history: LineHistory) -> Region | None:
-        """Where the screen shows the rest, as the block cursor protocol answers it."""
-        return None
+    def placement_in(self, history: LineHistory) -> Unplaced:
+        """Where the screen shows the rest: nowhere, until a fragment is rested on."""
+        return UNPLACED
 
     def expandable(self) -> bool:
         return False
@@ -515,8 +515,8 @@ class TranscriptFragment(CursorRest):
     def selected_in(self, history: LineHistory) -> Widget | None:
         return history
 
-    def region_in(self, history: LineHistory) -> Region | None:
-        return history.fragment_region(self)
+    def placement_in(self, history: LineHistory) -> Unplaced:
+        return history.fragment_shown(self)
 
     def expandable(self) -> bool:
         return self.has_details and not self.shown.details_open

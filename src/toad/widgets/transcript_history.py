@@ -221,8 +221,8 @@ class UndrawnFragment:
         """Where the screen shows the page drawing the fragment."""
         return UNPLACED
 
-    def region(self) -> Region | None:
-        return self.placement.rows_region(self.rows)
+    def shown(self) -> Unplaced:
+        return self.placement.shown_rows(self.rows)
 
     def head_on_screen(self, window: HistoryWindow) -> bool:
         """Whether the fragment's first row is drawn at or below the viewport's top."""
@@ -908,9 +908,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         """The fragment drawn under the pointer, when `widget` is one of this history's pages."""
         return next((page.fragment_under_mouse() for page in self.pages if page is widget), UnloadedFragment())
 
-    def fragment_region(self, fragment: TranscriptFragment) -> Region | None:
+    def fragment_shown(self, fragment: TranscriptFragment) -> Unplaced:
         """Where the screen shows a fragment's rows; None while its page is off screen."""
-        return self.fragment_placement(fragment).region()
+        return self.fragment_placement(fragment).shown()
 
     def show_fragment(self, fragment: TranscriptFragment) -> None:
         """Scroll just far enough that a fragment's rows are on screen, its first row before its last."""
