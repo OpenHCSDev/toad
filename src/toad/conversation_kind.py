@@ -19,7 +19,8 @@ from agent_comms.channel_targets import (
 )
 from agent_comms.channels import AllChannel
 from agent_comms.comms import Comms
-from agent_comms.tools import CommsConversationPageTool
+from agent_comms.core_access import CoreAccess
+from agent_comms.tools import CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.message_page import MessagePage, PageBounds
@@ -30,6 +31,7 @@ from textual.app import ComposeResult
 from toad.conversation_submission import ConversationSubmissions
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
+from toad.referenced_core import ReferencedCore
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.session_details import ConversationSessionDetails
@@ -109,7 +111,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def send_target(self) -> NamedTarget:
         return self.retained_target()
 
-    def read_only(self, comms: Comms) -> bool:
+    def read_only(self, core: CoreAccess) -> bool:
+        """A conversation takes the owner's input unless its Core says otherwise."""
         return False
 
     @classmethod
@@ -117,7 +120,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     async def update_mentions(cls, view: CommsChatView, comms: Comms) -> None: ...
 
     @abstractmethod
-    async def status_text(self, comms: Comms, *, read_only: bool) -> str: ...
+    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str: ...
 
     def activity_members(self, model: SidebarModel):
         return (self.destination(model.observation.require_snapshot().references).name,)
@@ -190,7 +193,7 @@ class ChannelConversation(ConversationKind):
     def compose_activity(cls, view: CommsChatView) -> ComposeResult:
         yield ChannelActivity(view)
 
-    async def status_text(self, comms: Comms, *, read_only: bool) -> str:
+    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
         return "Read-only saved view" if read_only else ""
 
     @property
@@ -200,8 +203,8 @@ class ChannelConversation(ConversationKind):
     def prompt(self, project: Checkout, *, submissions: ConversationSubmissions):
         return ChannelPrompt(project=project, placeholder=self.initial_placeholder, submissions=submissions)
 
-    def read_only(self, comms: Comms) -> bool:
-        return comms.bus.require_channel(self.target.name).read_only
+    def read_only(self, core: CoreAccess) -> bool:
+        return core.call(CommsChannelTool(name=self.target.name)).read_only
 
     @classmethod
     async def update_mentions(cls, view: CommsChatView, comms: Comms):
@@ -275,12 +278,13 @@ class DmConversation(ConversationKind):
     def prompt(self, project: Checkout, *, submissions: ConversationSubmissions):
         return MessagePrompt(project=project, submissions=submissions)
 
-    async def status_text(self, comms: Comms, *, read_only: bool) -> str:
+    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
+        """Core's configuration answer for the thread this DM names."""
         def read():
-            references = CurrentDisplayReferences.from_registry(str(comms.root), comms.registry.snapshot())
-            return comms.configuration.answer(self.destination(references).name)
+            thread = self.destination(source.references()).name
+            return source.core.call(CommsThreadConfigurationTool(thread=thread)).update.status_label
 
-        return (await asyncio.to_thread(read)).status_label
+        return await asyncio.to_thread(read)
 
 
 class IrcConversation(ChannelConversation):

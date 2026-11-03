@@ -236,7 +236,7 @@ class WelcomeScreen(NativeMethodKeys, TogglesIrc, ProjectSessionOrigin, SessionV
     def read_history_identity(self, project: Checkout) -> ThreadIdentity:
         observed = self.app.coordination_access.observation.observed()
         return ThreadIdentity(
-            observed.service.messaging.user_identity(project).incarnation, str(observed.root)
+            observed.user_identity(project).incarnation, str(observed.root)
         )
 
     async def prepare_history_origin(self) -> None:

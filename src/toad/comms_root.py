@@ -25,10 +25,19 @@ from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
-from agent_comms.registry_document import RegistrySnapshot
+from agent_comms.registry_document import ProjectThreadSelection, RegistrySnapshot
+from toad.referenced_core import ReferencedCore
+from agent_comms.repo import Checkout
+from agent_comms.threads import Thread
 from agent_comms.remote_core import RemoteCoreAccess
-from agent_comms.tools import CommsRegistryTool
-from agent_comms.display_references import PendingReferences, UnavailableReferences
+from agent_comms.channel_targets import NamedTarget
+from agent_comms.message_reference import MessageReference
+from agent_comms.tools import (
+    CommsMarkThreadViewReadTool, CommsRegistryTool, CommsServedRootTool, CommsSessionThreadTool,
+    CommsUserSendTool,
+)
+from agent_comms.transcripts import TranscriptCursor
+from agent_comms.display_references import CurrentDisplayReferences, PendingReferences, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
@@ -123,6 +132,14 @@ class CoreConnection(ABC):
     def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
         """This connection's current observation, or the error that refuses it."""
 
+    @abstractmethod
+    def current(self, access: CoordinationAccess, source: str | Path) -> bool:
+        """Whether ``source`` still belongs to what this connection currently observes."""
+
+    @abstractmethod
+    def observing(self, access: CoordinationAccess, source: str | Path) -> Observing:
+        """The observation serving ``source``, or the refusal that it is not this Core's."""
+
 
 class LocalCoreConnection(LaunchRoot, CoreConnection):
     """A local connection inherits the selected root and its launch behavior."""
@@ -138,6 +155,14 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
     def route_selection(self) -> RouteSelection:
         return RouteSelection.of(self)
 
+    def current(self, access: CoordinationAccess, source: str | Path) -> bool:
+        """The held launch route's root."""
+        return self.route_selection().root_is_current(source)
+
+    def observing(self, access: CoordinationAccess, source: str | Path) -> Observing:
+        """Select this app's route for ``source`` and open its observation."""
+        return access.require(self.route_selection().require_source(source))
+
     def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
         """Capture the current route and open its service, or expose the opening error."""
         selected: RouteSelection | UnselectedRoute = UnselectedRoute()
@@ -148,8 +173,12 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
             return access.observation.failed(error, selected)
 
 
-class RemoteObservationNotServed(RuntimeError):
-    """The connector answers this UI's Core requests but does not yet carry its observation."""
+class RemoteUserMissing(RuntimeError):
+    """The remote Core holds no user thread; only a UI on Core's own machine claims one."""
+
+
+class RemoteRouteNotSelectable(RuntimeError):
+    """A remote Core is observed through the connector; it has no local route to select."""
 
 
 @dataclass(frozen=True)
@@ -172,15 +201,29 @@ class RemoteCoreConnection(RemoteCoreAccess, CoreConnection):
         return str(self.endpoint.url)
 
     def route_selection(self) -> RouteSelection:
-        raise RemoteObservationNotServed(
+        raise RemoteRouteNotSelectable(
             f"{self.endpoint.url} answers Core requests; local route selection does not apply")
 
     def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
-        return access.observation.adopt(ConnectorObservation(
-            RemoteObservationNotServed(
-                f"{self.endpoint.url} does not yet carry the sidebar, status and notification "
-                "observation; conversation pages are read through its Core requests"),
-            UnselectedRoute(), connection=self, access=access))
+        """The current observation through this connector; the observation decides whether
+        it already is one."""
+        return access.observation.through(self, access)
+
+    def current(self, access: CoordinationAccess, source: str | Path) -> bool:
+        """The root the connector's Core serves, as the current observation holds it."""
+        return access.observation.observed().observes(source)
+
+    def observing(self, access: CoordinationAccess, source: str | Path) -> Observing:
+        """The current observation through the connector, when it serves ``source``."""
+        return access.observation.observed().serving(source)
+
+    def observe(self, access: CoordinationAccess) -> Observing | FailedObservation:
+        """Ask the connector's Core which root it serves, then observe it there."""
+        try:
+            served = self.call(CommsServedRootTool())
+        except (OSError, ValueError, RuntimeError) as error:
+            return access.observation.failed(error, UnselectedRoute())
+        return access.observe_remote(self, Path(served.root))
 
 
 @dataclass(frozen=True)
@@ -210,6 +253,12 @@ class Observation(ABC):
     def observes(self, root: str | Path) -> bool:
         return False
 
+    def serving(self, source: str | Path):
+        """This observation, when ``source`` is the root it observes."""
+        if not self.observes(source):
+            raise RouteChangedError(f"{source} is not the root this UI observes")
+        return self
+
     def uses(self, service: Comms) -> bool:
         return False
 
@@ -220,6 +269,10 @@ class Observation(ABC):
         return {entry.identity: self.tab(entry, sessions) for entry in sessions.members}
     def require(self, access: CoordinationAccess, selected: RouteSelection):
         return access.open_selected(selected)
+
+    def through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
+        """No observation through ``connection`` is current yet: open one."""
+        return connection.observe(access)
     def references_for(self, root: str) -> ReferenceContext:
         return PendingReferences(root)
     async def current_references(self, access: CoordinationAccess, root: str):
@@ -229,9 +282,11 @@ class Observation(ABC):
         return self.adopt(FailedObservation(error, selected, access=self.access))
 
     def adopt[O: Observation](self, observation: O) -> O | Observation:
-        """Make ``observation`` current unless it equals this one."""
+        """Make ``observation`` current unless it equals this one; it retires with its
+        subscriptions."""
         if observation == self:
             return self
+        observation.subscriptions.callback(observation.retire, self.access)
         self.access.observation = observation
         self.access.app.running_loop.call_soon_threadsafe(observation.attach, self.access, self)
         return observation
@@ -239,6 +294,9 @@ class Observation(ABC):
     def stop_updates(self) -> Observation:
         self.updates.close()
         return self
+
+    def retire(self, access: CoordinationAccess) -> None:
+        """An observation without a process has nothing to retire."""
 
     def attach(self, access, previous):
         previous.subscriptions.close()
@@ -324,20 +382,8 @@ class FailedObservation(Observation):
         self.access.events.publish(TeamHudFailed(self.error))
 
 
-@dataclass(frozen=True, eq=False)
-class ConnectorObservation(FailedObservation):
-    """Core answers this UI's requests through the connector. Every observed surface
-    refuses with the declared error until the connector carries the observation."""
-
-    connection: RemoteCoreConnection = field(kw_only=True, compare=False)
-
-    @property
-    def core(self) -> CoreAccess:
-        return self.connection
-
-
 @dataclass(frozen=True)
-class Observing(Observation):
+class Observing(Observation, ReferencedCore):
     """An observation answering through its process; where its Core is belongs to the member."""
 
     sidebar: SidebarModel
@@ -363,6 +409,29 @@ class Observing(Observation):
     def registry(self) -> RegistrySnapshot:
         """Core's thread registry: names, renames and recorded threads resolve against it."""
         return self.core.call(CommsRegistryTool()).snapshot
+
+    @abstractmethod
+    def user_identity(self, project: Checkout) -> Thread:
+        """The one human sender this UI speaks as."""
+
+    def references(self) -> CurrentDisplayReferences:
+        """The destinations Core's registry names, keyed by the root this observation serves."""
+        return CurrentDisplayReferences.from_registry(str(self.root), self.registry())
+
+    def session_thread(self, project: Path, preferred: str) -> ProjectThreadSelection:
+        """The thread an unbound session at ``project`` names; Core's host resolves the path."""
+        return self.core.call(CommsSessionThreadTool(project=str(project), preferred=preferred)).selection
+
+    def send_user_message(self, target: NamedTarget, body: str) -> MessageReference:
+        """The owner's input, published by Core under the owner's identity, in process or
+        across the connector; the reference is what the view waits to draw."""
+        return self.core.call(CommsUserSendTool(target=target.name, body=body)).message.source
+
+    def mark_thread_read(self, identity, project: Path, through: TranscriptCursor) -> None:
+        """Acknowledge, as the owner, what this UI displayed of one thread: Core applies it,
+        in process or across the connector."""
+        thread = identity.resolve_thread(self, project)
+        self.core.call(CommsMarkThreadViewReadTool(thread=thread, through=through))
 
     def tab(self, entry: SessionEntry, sessions: SessionNavigation):
         return entry.tab(sessions, self)
@@ -489,6 +558,10 @@ class LocalObserving(Observing):
     def uses(self, service: Comms) -> bool:
         return self.service is service
 
+    def user_identity(self, project: Checkout) -> Thread:
+        """In process, the user thread is read, or claimed for this project's checkout."""
+        return self.service.messaging.user_identity(project)
+
     @property
     def core(self) -> CoreAccess:
         return LocalCoreAccess(self.service)
@@ -513,6 +586,16 @@ class RemoteObserving(Observing):
     @property
     def root(self) -> Path:
         return self.served_root
+
+    def through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
+        """This observation already observes through ``connection``; its failure, not a
+        repeated request, is what replaces it."""
+        return self if self.connection is connection else connection.observe(access)
+
+    def user_identity(self, project: Checkout) -> Thread:
+        """Across the connector the user thread is Core's; this machine's checkout claims nothing."""
+        return self.registry().user_thread().require(RemoteUserMissing(
+            f"{self.connection.location} has no user thread; open a UI on Core's machine first"))
 
     def opened_selection(self) -> UnselectedRoute:
         return UnselectedRoute()
@@ -577,8 +660,12 @@ class CoordinationAccess(MroDispatch):
         return self.selection.require_source(source)
 
     def current(self, source: str | Path) -> bool:
-        """Whether a source still belongs to this app's current route."""
-        return self.selection.root_is_current(source)
+        """Whether a source still belongs to this app's current Core."""
+        return self.connection.current(self, source)
+
+    def observing(self, source: str | Path) -> Observing:
+        """The observation serving ``source``: this app's Core, or a refusal that it is not."""
+        return self.connection.observing(self, source)
 
     def open_current(self) -> Observing | FailedObservation:
         """The connection's current observation, or the error that refuses it."""
@@ -602,7 +689,7 @@ class CoordinationAccess(MroDispatch):
             if service.root.resolve() != selected.root:
                 raise RouteChangedError("Comms route changed while opening the service")
             self.confirm(selected)
-            return self.adopt(previous, LocalObserving(
+            return previous.adopt(LocalObserving(
                 SidebarModel(self.app.call_next), ObservationProcess(service.route),
                 selection=selected, service=service, access=self))
 
@@ -610,12 +697,13 @@ class CoordinationAccess(MroDispatch):
             attach, self.app.succeed_onto,
         )
 
-    def adopt[O: Observing](self, previous: Observation, observed: O) -> O:
-        """Make a newly opened observation current; it retires with its subscriptions."""
-        observed.subscriptions.callback(observed.retire, self)
-        self.observation = observed
-        self.app.running_loop.call_soon_threadsafe(observed.attach, self, previous)
-        return observed
+    def observe_remote(self, connection: RemoteCoreConnection, root: Path) -> RemoteObserving:
+        """Observe the Core behind the connector: its peer carries the observation, and the
+        root it serves keys every root-scoped request."""
+        with self.opening:
+            return self.observation.adopt(RemoteObserving(
+                SidebarModel(self.app.call_next), ObservationProcess(connection),
+                connection=connection, served_root=root, access=self))
 
     @handles(RevisionObserved)
     def revision_observed(self, result: RevisionObserved, observed: Observing) -> None:

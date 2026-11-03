@@ -52,7 +52,7 @@ async def test_closing_the_app_after_the_observation_process_exits_raises_nothin
             "_meta": encode_updates(agent.coordination)})
         await ui.until(lambda: "SAVED_NOTICE" in ui.painted(view.window), why="the saved history")
         assert view.contents.query(TranscriptHistory)
-        observer = ui.app.coordination_access.observation.process.process
+        observer = ui.app.coordination_access.observation.process.peer.process
     # Leaving the block closes the app: the saved history parks and states its last interest,
     # then the observation process exits.
     assert observer.exitcode == 0

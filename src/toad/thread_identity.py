@@ -16,6 +16,7 @@ from toad.session_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
 
 if TYPE_CHECKING:
+    from toad.comms_root import Observing
     from toad.session_tracker import SessionDetails
 
 
@@ -80,11 +81,9 @@ class SessionIdentity(ABC):
     def bind_initial_identity(self, details: SessionDetails) -> None:
         """A session without a thread has no initial thread title."""
 
-    def resolve_thread(self, registry, project: Path) -> str:
+    def resolve_thread(self, observed: Observing, project: Path) -> str:
         """An unbound view asks Core to discover its project's session."""
-        return registry.session_thread(project, self.thread_name()).name_or(
-            self.thread_name()
-        )
+        return observed.session_thread(project, self.thread_name()).name_or(self.thread_name())
 
     def command_target[T](self, target: Callable[[str], T]) -> T:
         """A named session addresses backend commands as its thread."""
@@ -134,9 +133,9 @@ class ThreadIdentity(NamedThreadIdentity):
     def thread_incarnation(self) -> ThreadIncarnation:
         return self.owner
 
-    def resolve_thread(self, registry, project: Path) -> str:
+    def resolve_thread(self, observed: Observing, project: Path) -> str:
         """A bound view requires its original name; it never discovers a replacement."""
-        return registry.require(self.owner.name).name
+        return observed.registry().require(self.owner.name).name
 
     def with_thread(self, thread: str):
         return ThreadIdentity(self.owner.renamed(thread), self.root)

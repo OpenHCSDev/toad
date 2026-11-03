@@ -54,7 +54,6 @@ from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
-    from agent_comms.messages import Message as BusMessage
 
     from toad.tool_output import ToolOutputPart
     from toad.widgets.committed_presentation import CommitClaim
@@ -361,8 +360,9 @@ class TranscriptFragment:
     def queue_entries(self) -> tuple[MessageQueueEntry, ...]:
         return ()
 
-    def draws(self, message: BusMessage) -> bool:
-        """Whether this fragment draws that bus message; only bus-message fragments do."""
+    def draws(self, reference: MessageReference) -> bool:
+        """Whether this fragment draws the bus message ``reference`` names; only bus-message
+        fragments do."""
         return False
 
     @classmethod
@@ -553,8 +553,8 @@ class BusMessageFragment(TranscriptFragment):
         return tuple(MessageQueueEntry(reference, self.shown.status)
                      for reference in self.notification_references)
 
-    def draws(self, message: BusMessage) -> bool:
-        return self.events[0].source == message.reference
+    def draws(self, reference: MessageReference) -> bool:
+        return self.events[0].source == reference
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
         return claim.repeats_received(self)

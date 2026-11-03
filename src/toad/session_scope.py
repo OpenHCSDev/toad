@@ -36,7 +36,7 @@ from toad.status_thread import NoStatusThread, StatusThread
 
 if TYPE_CHECKING:
     from toad.widget_actions import DeclaredWidgetActions
-    from agent_comms.messages import Message
+    from agent_comms.message_reference import MessageReference
     from agent_comms.thread_presentation import ThreadPresentation
     from textual.command import Provider
     from toad.widgets.side_bar import SideBar
@@ -109,7 +109,7 @@ class TranscriptScope(ABC):
         view: Conversation,
         event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
+        presented: Callable[[MessageReference | None], Awaitable[None]],
     ) -> None: ...
 
     @abstractmethod
@@ -139,7 +139,7 @@ class KnownTranscript(TranscriptScope):
         return ((self.root, identity.thread_incarnation()),)
 
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
-        registry = access.require(access.selected(self.root)).registry()
+        registry = access.observing(self.root).registry()
         return registry.canonical_name(session_id) == registry.require(self.name).name
 
     def status_thread(self, access: CoordinationAccess) -> StatusThread:
@@ -197,7 +197,7 @@ class KnownTranscript(TranscriptScope):
         view: Conversation,
         event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
+        presented: Callable[[MessageReference | None], Awaitable[None]],
     ) -> None:
         await view.submit_comms_message(
             self.root,
@@ -212,9 +212,9 @@ class KnownTranscript(TranscriptScope):
     ) -> None:
         """A CLI thread shows the same Core configuration answer a DM shows."""
         try:
-            comms = await view.app.coordination_access.transcripts.service(self.root)
+            observed = await view.app.preparation.run_thread(view.app.coordination_access.observing, self.root)
             status = await self.mailbox_conversation(view, conversation_type).status_text(
-                comms, read_only=False
+                observed, read_only=False
             )
         except (CoordinationReadUnavailable, StaleRevision):
             # The next observed presentation reads the answer again.
@@ -289,7 +289,7 @@ class NoTranscript(TranscriptScope):
         view: Conversation,
         event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
+        presented: Callable[[MessageReference | None], Awaitable[None]],
     ) -> None:
         view.delivery_refused("CLI transcript is not ready", event.body)
 
@@ -418,9 +418,8 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
 
     def resolve_thread(self) -> str:
         identity = self.thread_identity
-        selected = self.app.coordination_access.selected(identity.wire_root())
-        registry = self.app.coordination_access.require(selected).registry()
-        return identity.resolve_thread(registry, self.project_root)
+        observed = self.app.coordination_access.observing(identity.wire_root())
+        return identity.resolve_thread(observed, self.project_root)
 
     def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
         return default
