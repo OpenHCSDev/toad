@@ -1,5 +1,4 @@
 import asyncio
-from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
@@ -21,13 +20,7 @@ from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_session import AgentSession
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.client_files import FileClientRequestOwner
-from toad.acp.client_session import ClientSessionRequest
-from toad.acp.comms_updates import (
-    CommsUpdateConsumer,
-    NoPendingThreadRead,
-    PendingThreadRead,
-    ThreadRead,
-)
+from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.permission_controller import PermissionController
 from toad.acp.projection_attachment import CursorAttachment
@@ -213,44 +206,6 @@ class Agent(SessionAgent):
 
     async def set_thinking_level(self, level: str) -> str | None:
         return await self.configuration.setting(ThinkingConfigurationSetting).select(self, level)
-
-    def observed_thread(self) -> tuple[str, str] | None:
-        coordination = self.coordination
-        if coordination is None or coordination.wire_root is None or coordination.thread.name is None:
-            return None
-        return coordination.wire_root, coordination.thread.name
-
-    def thread_read(self) -> ThreadRead:
-        """Capture, before a presentation read, what its result must still match."""
-        from .comms_updates import OwnerSnapshotConsumer
-
-        coordination = self.coordination
-        if coordination is None:
-            return NoPendingThreadRead()
-        return PendingThreadRead(self, coordination, ClientSessionRequest(self, self.session_id),
-                          OwnerSnapshotConsumer(self, self.session_id,
-                                                turn_token=self.presentation.turns.sequence))
-
-    async def observe_thread_presentation(self, presentation) -> None:
-        await self.session.observe_owner(presentation)
-
-    async def update_project(self, path: str) -> str:
-        if (self.coordination.wire_root if self.coordination else None) is None or (
-            self.coordination.thread.name if self.coordination else None
-        ) is None:
-            raise ValueError("Project changes require an agent-comms thread.")
-        authority = ClientSessionRequest(self, self.session_id)
-        coordination = self.coordination
-        comms = await self.controller.transcripts.service(coordination.wire_root)
-        authority.require()
-        result = await asyncio.to_thread(
-            comms.threads.set_project, coordination.thread.name, path,
-        )
-        authority.require()
-        self.coordination = replace(self.coordination, worktree=result.current)
-        self.project_root_path = Path(result.current)
-        self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
-        return result.current
 
     async def cancel(self) -> bool:
         """AgentBase cancellation contract."""

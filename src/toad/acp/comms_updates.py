@@ -189,7 +189,7 @@ class CommsUpdateConsumer(MroDispatch):
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
         agent = self.agent
         agent.controller.transcripts.access.selected(update.wire_root)
-        agent.coordination = update
+        agent.receive_coordination(update)
         agent.project_root_path = update.worktree.path
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)
         agent.update_status_line()
@@ -286,7 +286,7 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
         self.agent.require_owner(
             coordination, ClientSessionRequest(self.agent, self.session_id)
         )
-        if root != coordination.wire_root or thread.incarnation != coordination.thread:
+        if not self.agent.matches_source(root, thread.incarnation):
             raise ValueError("Turn snapshot belongs to another original thread source")
         self.turn_changed(TurnChangedUpdate(thread.turn_state))
 
@@ -354,11 +354,7 @@ class PendingThreadRead(ThreadRead):
         return snapshot
 
     def settle(self, presentation: ThreadPresentation) -> ThreadReadOutcome:
-        current = self.agent.coordination
-        if current is None or (current.wire_root, current.thread) != (
-            self.coordination.wire_root,
-            self.coordination.thread,
-        ):
+        if not self.agent.matches_source(self.coordination.wire_root, self.coordination.thread):
             return ChangedAttachmentRead()
         if self.authority.retired:
             return EndedSessionRead()

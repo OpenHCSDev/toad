@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING
 
@@ -13,7 +13,6 @@ from agent_comms.acp_extension import (
     ClearQueueRequest,
     CommsRequest,
     CompactRequest,
-    CoordinationChangedUpdate,
     InputFailedUpdate,
     PromptRequest,
     QueuePromptRequest,
@@ -22,6 +21,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
 from agent_comms.transcripts import TranscriptReadIdentity
+from agent_comms.thread_identity import ThreadIncarnation
 
 from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.status import StopReason
@@ -48,6 +48,11 @@ if TYPE_CHECKING:
     from toad.render_backend import Renderer, RenderTask
 
 
+class SourceIdentity:
+    def matches_source(self, root: str, thread: ThreadIncarnation) -> bool:
+        return False
+
+
 @dataclass(frozen=True)
 class SessionBinding:
     """Actual ACP binding identity, preserved only until session replacement."""
@@ -63,11 +68,10 @@ class SessionBinding:
         return self.bound and self.session_id == session_id
 
     def accepts_snapshot(
-        self, identity: TranscriptReadIdentity, coordination: CoordinationChangedUpdate | None
+        self, identity: TranscriptReadIdentity, owner: SourceIdentity
     ) -> bool:
-        if not self.accepts_notification(identity.requested_name) or coordination is None:
-            return False
-        return identity.root == coordination.wire_root and identity.thread.incarnation == coordination.thread
+        return (self.accepts_notification(identity.requested_name)
+                and owner.matches_source(identity.root, identity.thread.incarnation))
 
 
 class TaskRunner(ABC):
@@ -133,7 +137,7 @@ class AgentController(OperationalTerminalOwner):
             self.terminals.detach()
 
     async def restore(self, binding: SurfaceBinding) -> None:
-        from toad.core.events import AvailableCommandsUpdate, CommsUpdated
+        from toad.core.events import AvailableCommandsUpdate
 
         if self.surface is not binding:
             return
@@ -149,22 +153,20 @@ class AgentController(OperationalTerminalOwner):
             agent.events.publish(Plan(self.plan_entries))
         agent._post_queue_view()
         agent._post_private_cursor()
-        if agent.coordination is not None:
-            # The conversation's own refresh reads its history; this only reports the thread.
-            self.agent.events.publish(CommsUpdated(agent.coordination, agent.session_id))
+        agent.publish_coordination(agent.session_id)
         binding.schedule_terminal_presentation(self)
 
     async def publish_transcript_snapshot(
         self, update: TranscriptSnapshotUpdate, binding: SurfaceBinding, session: SessionBinding
     ) -> None:
-        if binding.target is None or not session.accepts_snapshot(update.identity, self.agent.coordination):
+        if binding.target is None or not session.accepts_snapshot(update.identity, self.agent):
             return  # No view or matching request owns this publication.
         snapshot = await self.transcripts.publication(update)
         if self.session is not session:
             return
         if self.surface is not binding:
             return
-        if not session.accepts_snapshot(snapshot.identity, self.agent.coordination):
+        if not session.accepts_snapshot(snapshot.identity, self.agent):
             return
         self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 
@@ -218,19 +220,14 @@ class AgentController(OperationalTerminalOwner):
         self, operation: Callable[[], Awaitable[Result]], authority: ClientSessionRequest
     ) -> Result:
         """Keep the request in flight until its operation ends."""
-        coordination = self.agent.coordination
+        settle = self.agent.prompt_settlement(authority)
         self.prompt_in_flight += 1
         try:
             return await operation()
         finally:
             self.prompt_in_flight -= 1
-            if self.prompt_in_flight == 0 and authority.current and coordination is not None:
-                self.start_operation(self.reconcile_turn(coordination, authority))
-
-    async def reconcile_turn(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest) -> None:
-        """Release snapshot ordering through a fresh read of the same owner."""
-        self.agent.require_owner(coordination, authority)
-        await self.agent.thread_read().reconcile(self.transcripts)
+            if self.prompt_in_flight == 0 and authority.current:
+                settle()
 
     def accepts_turn_snapshot(self, sequence: int):
         """A remote busy turn does not imply an ordered response on this client."""
@@ -248,18 +245,10 @@ class AgentController(OperationalTerminalOwner):
         if submission is not None:
             self._deferred_submissions.add(submission)
         try:
-            coordination = self.agent.coordination
-            if coordination is not None:
-                self.agent.require_owner(coordination, authority)
-                comms = await self.transcripts.service(coordination.wire_root)
-                origin = await asyncio.to_thread(self.agent.queue_attachment.capture_human_input, comms, queue_scope)
-                self.agent.require_owner(coordination, authority)
-                command = replace(command, origin=origin)
+            command = await self.agent.prepare_command(command, authority, queue_scope)
             content = await asyncio.to_thread(build_prompt, project, prompt)
             if any(block.type == "image" for block in content):
-                coordinated = self.agent.coordination is not None
-                supported = coordinated or self.agent.session.supports_images
-                if not supported:
+                if not self.agent.supports_images:
                     raise ValueError("This agent owner does not support images yet; refresh it while idle.")
             return await self._prompt(content, command, authority, queue_scope)
         finally:

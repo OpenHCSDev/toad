@@ -42,6 +42,7 @@ class AgentConnection(ABC):
     presentation: AgentPresentation
     ready: bool
     session_disposition: SessionDisposition
+    automatic_titles = True
 
     @property
     def readiness_refusal(self) -> NoLiveAgent:
@@ -116,7 +117,6 @@ class NoAgentConnection(AgentConnection):
     """A real saved view before it acquires any native connection."""
 
     ready = False
-    automatic_titles = True
     available_modes = ()
     current_mode = None
     session_disposition = UnopenedSessionDisposition()

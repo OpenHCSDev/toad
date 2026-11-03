@@ -58,7 +58,6 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
             coordination_fact(thread.name, workspace.roots.wire, owner=ProcessIdentity.capture(os.getpid()),
                               worktree=project, model="test-model"),
             thread=thread.incarnation)
-        agent.coordination = coordination
         await deliver(agent, carrying(coordination))
         agent.presentation.managed_turns().receive(
             TurnState(ActiveTurn(FIRST_TURN, os.getpid(), phase=PublishingPhase())))
