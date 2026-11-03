@@ -57,7 +57,13 @@ if TYPE_CHECKING:
     from agent_comms.messages import Message as BusMessage
 
     from toad.tool_output import ToolOutputPart
+    from textual.geometry import Region
+    from textual.widget import Widget
+
+    from toad.block_navigation import FragmentBlockCursor
     from toad.widgets.committed_presentation import CommitClaim
+    from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.transcript_history import LineHistory
     from toad.widgets.transcript_history import LaidOut, RowChange
     from toad.widgets.transcript_lines import (
         BlockLines,
@@ -328,8 +334,51 @@ class FragmentDetails(ToggleDetails):
     key: FragmentKey
 
 
+class CursorRest:
+    """Where a history's block cursor rests. This base is resting on no drawn message;
+    a TranscriptFragment is resting on that message."""
+
+    # The messages the cursor owns while the history draws them.
+    rested: tuple[TranscriptFragment, ...] = ()
+
+    def drawn_in(self, history: LineHistory) -> CursorRest:
+        """This rest while `history` draws it; no rest once it does not."""
+        return self
+
+    def selected_in(self, history: LineHistory) -> Widget | None:
+        """The widget the block cursor protocol reports as selected."""
+        return None
+
+    @property
+    def clipboard_text(self) -> str | None:
+        return None
+
+    @property
+    def block_menu(self) -> tuple[MenuCommand, ...]:
+        return ()
+
+    def region_in(self, history: LineHistory) -> Region | None:
+        """Where the screen shows the rest, as the block cursor protocol answers it."""
+        return None
+
+    def expandable(self) -> bool:
+        return False
+
+    def expanded(self) -> bool:
+        return False
+
+    def show_in(self, history: LineHistory) -> None:
+        """Scroll a keyboard move's rest into view; no rest has nothing to show."""
+
+    def show_head(self, cursor: FragmentBlockCursor, window: HistoryWindow) -> None:
+        """Scroll a clicked rest's message head into view."""
+
+
+NO_REST = CursorRest()
+
+
 @dataclass
-class TranscriptFragment:
+class TranscriptFragment(CursorRest):
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
     part_position: PartPosition = field(default_factory=LastPart, kw_only=True)
@@ -455,6 +504,31 @@ class TranscriptFragment:
     def block_menu(self) -> tuple[MenuCommand, ...]:
         """What the cursor's menu offers on this fragment, besides copying."""
         return ()
+
+    @property
+    def rested(self) -> tuple[TranscriptFragment, ...]:
+        return (self,)
+
+    def drawn_in(self, history: LineHistory) -> CursorRest:
+        return self if history.draws_fragment(self) else NO_REST
+
+    def selected_in(self, history: LineHistory) -> Widget | None:
+        return history
+
+    def region_in(self, history: LineHistory) -> Region | None:
+        return history.fragment_region(self)
+
+    def expandable(self) -> bool:
+        return self.has_details and not self.shown.details_open
+
+    def expanded(self) -> bool:
+        return self.has_details and self.shown.details_open
+
+    def show_in(self, history: LineHistory) -> None:
+        history.show_fragment(self)
+
+    def show_head(self, cursor: FragmentBlockCursor, window: HistoryWindow) -> None:
+        cursor.block.run_worker(cursor.show_clicked_head(self, window), group="message-heading", exclusive=True)
 
     def shown_in(self, selected: frozenset[type[MessageCategory]]) -> bool:
         """A fragment shows when a filter selects any of its events' categories."""

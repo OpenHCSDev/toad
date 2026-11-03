@@ -870,12 +870,11 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         page.hold_fragment_top(self.window, fragment.key)
         page.run_worker(self._show([(fragment, shown)]), group="message-details")
 
-    def can_expand(self) -> bool | None:
-        fragment = self.block_cursor.current
-        return None if fragment is None or not fragment.has_details else not fragment.shown.details_open
+    def can_expand(self) -> bool:
+        return self.block_cursor.current.expandable()
 
     def is_block_expanded(self) -> bool:
-        return self.can_expand() is False
+        return self.block_cursor.current.expanded()
 
     def _set_selected_details(self, details_open: bool) -> None:
         for fragment in self.block_cursor.selected_fragments:
@@ -915,8 +914,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
 
     async def reveal_message_head(
         self, fragment: TranscriptFragment, selected: Callable[[], bool],
-    ) -> TranscriptFragment | None:
-        """Prepare one viewport at the original message's head, not its clicked render part."""
+    ) -> TranscriptFragment:
+        """Prepare one viewport at the original message's head, not its clicked render part.
+        The fragment the cursor rests on after: the head, or the clicked part when the head stays put."""
         page = self.page_holding(fragment.key)
         original = page.prepared
         first = next(index for index, part in enumerate(original.fragments)
@@ -925,7 +925,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         window = self.window
         head_placement = self.fragment_placement(head)
         if head_placement.head_on_screen(window):
-            return None
+            return fragment
         snapshot = self.source_snapshot()
         revision, width = window.scroll_revision, self.line_width
         current = lambda: (snapshot.current(self) and selected()
@@ -939,21 +939,21 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             boundary=first, rows_needed=height + 1, limit=max(self.fragment_limit, height + 1),
         )
         if not current():
-            return None
+            return fragment
         theme = self.app.colours.line_theme
         message_height = sum(part.lines_for(width, theme).height for part in staged.fragments_in_range
                              if part.source_identity == fragment.source_identity)
         if not head_placement.head_hidden(window, message_height):
-            return None
+            return fragment
         lines = head.lines_for(width, theme)
         if lines is None or (span := lines.block_span(lambda span: span.drawn)) is None:
-            return None
+            return fragment
         async with window.history_lock:
             if not current():
-                return None
+                return fragment
             async with window.preserve_history():
                 if not original.replace_range(page, slice(staged.start, staged.stop), current):
-                    return None
+                    return fragment
                 window.release_anchor()
                 window.reader_position = FragmentPosition(head.key, 0, span.height, block=span.index)
                 self._update_edges()
