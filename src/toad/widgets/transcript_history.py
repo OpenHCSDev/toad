@@ -732,9 +732,9 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
 
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
                   *, notification_view: HistoryNotifications, budget: PresentationBudget = DEFAULT_BUDGET,
-                  source_state: TranscriptState | None = None) -> None:
+                  source_state: TranscriptState) -> None:
         self.notification_view = notification_view
-        super().__init__(source_state=source_state or LiveTranscript(), page_source=page_source)
+        super().__init__(source_state=source_state, page_source=page_source)
         self.budget = budget
         self.pages = deque([TranscriptPageView(
             prepared, batch_size=self.budget.batch_items,
@@ -1472,7 +1472,7 @@ class ProjectedTranscriptHistory(CommittedHistory):
                  prepared: PreparedTranscriptPage) -> None:
         self._projection_owner = ref(owner)
         super().__init__(prepared, source, budget=owner.budget,
-                         notification_view=owner.notification_view)
+                         notification_view=owner.notification_view, source_state=LiveTranscript())
         self.add_class("filtered-history-results")
 
     @classmethod
