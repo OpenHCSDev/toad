@@ -252,6 +252,10 @@ class ReaderPosition(ABC):
     def release(self, window: "HistoryWindow") -> None:
         """Nothing will publish again; only a held destination has anything to let go."""
 
+    def placed_by_layout(self, window: "HistoryWindow") -> bool:
+        """The layout just made puts the reader on the window's kept position."""
+        return window.place_reader()
+
 
 @dataclass(frozen=True)
 class TailPosition(ReaderPosition):
@@ -348,6 +352,22 @@ class FragmentPosition(OffsetPosition):
 
     def shifted(self, rows: float) -> ReaderPosition:
         return replace(self, fraction=self.fraction + rows / self.height)
+
+
+class UnshownReader(ReaderPosition):
+    """The reader of a window the layout does not draw: nothing is measured from it or placed."""
+
+    def place(self, window: "HistoryWindow") -> bool:
+        return False
+
+    def shifted(self, rows: float) -> ReaderPosition:
+        return self
+
+    def placed_by_layout(self, window: "HistoryWindow") -> bool:
+        return False
+
+
+UNSHOWN_READER = UnshownReader()
 
 
 class NativeReaderHolder:
@@ -902,16 +922,18 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     def history_geometry_targets(self) -> tuple[Widget, ...]:
         """The widgets the kept position is measured from: layout places them even off screen."""
-        position = self.reader_for_layout()
-        return () if position is None else position.bodies(self)
+        return self.reader_for_layout().bodies(self)
 
-    def reader_for_layout(self) -> ReaderPosition | None:
-        """The kept position, when this layout can place it."""
-        position = self.reader_position
+    def reader_for_layout(self) -> ReaderPosition:
+        """The kept position as this layout can place it; a window the layout does not draw places none."""
         if not self.shown:
-            return None
-        self.reader_position = position.for_layout(self, position)
+            return UNSHOWN_READER
+        self.reader_position = self.reader_position.for_layout(self, self.reader_position)
         return self.reader_position
+
+    def place_layout_reader(self) -> bool:
+        """After a layout: put the reader back on the kept position; True when that scrolled."""
+        return self.reader_for_layout().placed_by_layout(self)
 
     def place_reader(self) -> bool:
         """Put the reader on the kept position in the layout just made; True when that scrolled the window.
