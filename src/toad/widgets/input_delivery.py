@@ -16,7 +16,8 @@ from textual.widgets import Button, Static
 
 from agent_comms.input_attempt import HistoricalInput
 from agent_comms.ui_model.delivery import DeliveryView
-from toad.project_link import AcpLogLink
+from toad.log_preview import LogPreview, LogPreviewTarget
+from toad.native_node_meta import NativeNodeMeta
 from toad.widgets.selection import ChangingText, InlineSelection
 from toad.widget_actions import VisibleActions, Activates, DismissAction
 from rich.style import Style as RichStyle
@@ -101,7 +102,7 @@ class ShownHistory(HistoryView):
     load_offered: ClassVar[bool] = False
 
 
-class InputDeliveryDetails(DismissibleScreen[None]):
+class InputDeliveryDetails(LogPreviewTarget, DismissibleScreen[None], metaclass=NativeNodeMeta):
     DEFAULT_CSS = """
     InputDeliveryDetails { align: center middle; background: $background 40%; }
     InputDeliveryDetails > Vertical {
@@ -122,12 +123,12 @@ class InputDeliveryDetails(DismissibleScreen[None]):
     def __init__(
         self,
         *,
-        log_path: Path | None,
+        log_preview: LogPreview,
         load_history: Callable[[], Awaitable[tuple[HistoricalInput, ...]]],
         dismiss_history: Callable[[], Awaitable[None]],
     ):
         super().__init__()
-        self.log_path = log_path
+        self.log_preview = log_preview
         self._load_history = load_history
         self._dismiss_history = dismiss_history
         self._history: HistoryView = HiddenHistory()
@@ -169,8 +170,7 @@ class InputDeliveryDetails(DismissibleScreen[None]):
                 )
                 yield Static(markup=False, id="delivery-historical-records")
             with HorizontalGroup():
-                if self.log_path is not None:
-                    yield Button(AcpLogLink.label, id="delivery-log")
+                yield from self.log_preview.controls()
                 yield Button("Close", id="delivery-close", action=f"screen.{DismissAction.binding_name()}")
 
     def watch_delivery(self, old: DeliveryView, new: DeliveryView) -> None:
@@ -251,7 +251,9 @@ class InputDeliveryDetails(DismissibleScreen[None]):
 
     @on(Button.Pressed, "#delivery-log")
     async def open_log(self) -> None:
-        if self.log_path is not None:
-            app = self.app
-            self.dismiss(None)
-            await app.session_navigation.preview(self.log_path)
+        await self.log_preview.open(self)
+
+    async def open_log_path(self, path: Path) -> None:
+        app = self.app
+        self.dismiss(None)
+        await app.session_navigation.preview(path)

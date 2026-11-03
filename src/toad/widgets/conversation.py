@@ -1845,7 +1845,7 @@ class Conversation(
         event.stop()
         await self.delivery_observation.refresh()
         details = InputDeliveryDetails(
-            log_path=self.agent_binding.presentation.log_path,
+            log_preview=self.agent_binding.presentation.log_preview,
             load_history=self.delivery_observation.history,
             dismiss_history=self.delivery_observation.dismiss_history,
         )

@@ -10,6 +10,7 @@ from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.slash_command import AgentAdvertisedCommand
+from toad.log_preview import FileLogPreview, LogPreview, NoLogPreview
 
 from toad.acp import session_agent
 
@@ -27,9 +28,9 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
         self.turns = self.TURN_BINDING()
 
     @property
-    def log_path(self) -> Path | None:
-        """Sources without an ACP process have no process log."""
-        return None
+    def log_preview(self) -> LogPreview:
+        """Capture absence without making the details view decode it again."""
+        return NoLogPreview()
 
     @property
     def auth_methods(self):
@@ -102,6 +103,10 @@ class OperationalAgentPresentation(AgentPresentation, declared_name=None):
     @property
     def log_path(self) -> Path:
         return self._log_path
+
+    @property
+    def log_preview(self) -> LogPreview:
+        return FileLogPreview(self.log_path)
 
     @property
     def auth_methods(self):
