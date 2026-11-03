@@ -10,9 +10,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Never
 
 from agent_comms.channel_targets import ThreadTarget
+from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
-from agent_comms.errors import RelationViolationError
+from agent_comms.errors import RelationViolationError, RouteChangedError
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
@@ -96,6 +97,9 @@ class TranscriptScope(ABC):
         position: PagePosition = LatestPage(),
     ) -> ReadTranscriptUpdate: ...
 
+    def queue_service(self, service: Callable[[], Comms]) -> Comms:
+        raise RouteChangedError("The queue has no original transcript source")
+
     @abstractmethod
     def mailbox_target(self) -> ThreadTarget: ...
 
@@ -119,6 +123,12 @@ class KnownTranscript(TranscriptScope):
     root: str
     name: str
     readable = True
+
+    def queue_service(self, service: Callable[[], Comms]) -> Comms:
+        comms = service()
+        if comms.root != Path(self.root):
+            raise RouteChangedError("The queue's original transcript root changed")
+        return comms
 
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
         return ExistingOwnerPlan.from_binding(presentation.binding).decision

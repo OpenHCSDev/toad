@@ -2,6 +2,8 @@
 
 import asyncio
 from abc import ABC, abstractmethod
+from collections.abc import Callable
+from functools import partial
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +11,7 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.comms import Comms
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
 from textual.document._editing import EditingMode
@@ -257,6 +260,12 @@ class OperationalSessionSources(NativeQueueSource):
 
 class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
+
+    def capture_queue_service(
+        self, transcript: Callable[[Callable[[], Comms]], Comms],
+        service: Callable[[], Comms],
+    ) -> Callable[[], Comms]:
+        return partial(transcript, super().capture_queue_service(transcript, service))
 
     def activity_row(self, conversation: Conversation):
         return conversation.thread_activity.row
