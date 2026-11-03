@@ -207,7 +207,7 @@ class KnownTranscript(TranscriptScope):
 
     def shown_by(self, view: ConversationSubmissions) -> bool:
         """This transcript is still the one the view is bound to."""
-        return view.is_attached and view.transcript.binding.thread_scope == self
+        return view.shows_transcript(self)
 
     @staticmethod
     def mailbox_conversation(

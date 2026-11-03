@@ -8,7 +8,7 @@ from collections.abc import Awaitable, Callable, Container
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from textual.worker import Worker
 
@@ -43,10 +43,7 @@ from toad.conversation_turn import InputPresentation
 from toad.delivery_failure_view import DeliveryFailureView
 from toad.widgets.message_notifications import HistoryNotifications
 from toad.message_destination import MessageDestination
-
-if TYPE_CHECKING:
-    from toad.transcript_publication import TranscriptPresentation
-    from toad.widgets.history_anchor import HistoryWindow
+from toad.transcript_read_scope import TranscriptReadScope
 
 
 @dataclass(frozen=True, eq=False)
@@ -467,8 +464,6 @@ class ConversationSubmissions(QueueView, PromptTurnTarget, InputPresentation, De
     input_histories: InputHistories
     project_path: Checkout
     contents: HistoryNotifications
-    transcript: TranscriptPresentation
-    window: HistoryWindow
 
     @property
     @abstractmethod
@@ -477,6 +472,17 @@ class ConversationSubmissions(QueueView, PromptTurnTarget, InputPresentation, De
     @property
     @abstractmethod
     def shell(self) -> ShellOperationalSource: ...
+
+    @abstractmethod
+    def request_external_transcript(self) -> None: ...
+
+    @abstractmethod
+    def shows_transcript(self, scope: TranscriptReadScope) -> bool: ...
+
+    @abstractmethod
+    def begin_mailbox_submission(
+        self, submission: PromptInputSubmission, source_changed: Callable[[], None],
+    ) -> SubmissionStart: ...
 
     @abstractmethod
     async def post_shell(self, command: str) -> None: ...

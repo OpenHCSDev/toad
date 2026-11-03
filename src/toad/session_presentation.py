@@ -178,9 +178,7 @@ class OperationalSessionSources(NativeQueueSource):
 
     def external_transcript_changed(self, conversation: ConversationSubmissions) -> None:
         """Core publishes native and CLI drafts through the same transcript store."""
-        from toad.transcript_publication import CanonicalSourcePublication
-
-        conversation.transcript.source_requests.request(CanonicalSourcePublication)
+        conversation.request_external_transcript()
 
     def prompt(self, conversation: Conversation):
         from toad.widgets.prompt import Prompt
@@ -284,14 +282,8 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
 
     def begin_submission(self, owner: ConversationSubmissions,
                          submission: PromptInputSubmission) -> SubmissionStart:
-        view = owner
-
-        async def presented(sent):
-            view.window.jump_to_latest()
-            self.external_transcript_changed(view)
-
-        return view.transcript.binding.thread_scope.bind_submission(
-            owner, submission, DmConversation, presented,
+        return owner.begin_mailbox_submission(
+            submission, lambda: self.external_transcript_changed(owner),
         )
 
 

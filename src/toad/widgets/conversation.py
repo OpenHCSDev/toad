@@ -76,6 +76,7 @@ from agent_comms.acp_extension import (
 )
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.conversation_submission import ConversationSubmissions, PromptInputSubmission, SubmissionStart, QueueSource, BusSubmissionSource
+from toad.conversation_kind import DmConversation
 from toad.input_decision import InputDecision, InputSourceUnavailable
 from toad.conversation_turn import ConversationTurn, TurnOwner
 from toad.core import events as core_events
@@ -109,7 +110,8 @@ from toad.session_observation import (
 from toad.session_scope import SessionScope, TranscriptScope
 from toad.shell import Shell
 from toad.status_thread import StatusThread
-from toad.transcript_publication import BoundView, TranscriptPresentation, ViewBinding
+from toad.transcript_publication import BoundView, CanonicalSourcePublication, TranscriptPresentation, ViewBinding
+from toad.transcript_read_scope import TranscriptReadScope
 from toad.widget_view import WorkspaceHosted
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.comms_menu import ContextMenu
@@ -448,6 +450,7 @@ class ConversationSessionBinding(
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
     transcript: TranscriptPresentation
+    window = getters.query_one(Window)
     contents = getters.query_one("#contents", Contents)
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
@@ -488,6 +491,24 @@ class ConversationSessionBinding(
     def transcript_scope(self) -> TranscriptScope:
         """The native session identity whose canonical transcript this view shows."""
         return self.query_ancestor(SessionScope).origin.transcript_scope()
+
+    def request_external_transcript(self) -> None:
+        """Request the canonical source through this view's original presentation."""
+        self.transcript.source_requests.request(CanonicalSourcePublication)
+
+    def shows_transcript(self, scope: TranscriptReadScope) -> bool:
+        return self.is_attached and self.transcript.binding.thread_scope == scope
+
+    def begin_mailbox_submission(
+        self, submission: PromptInputSubmission, source_changed: Callable[[], None],
+    ) -> SubmissionStart:
+        async def presented(sent: Message) -> None:
+            self.window.jump_to_latest()
+            source_changed()
+
+        return self.transcript.binding.thread_scope.bind_submission(
+            self, submission, DmConversation, presented,
+        )
 
     def status_thread(self) -> StatusThread:
         return self.transcript.binding.thread_scope.status_thread(
@@ -876,8 +897,6 @@ from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 
 class ConversationEvents(CoreEventReceiver, ConversationSessionBinding):
     """Source-bound event behavior shared by every conversation surface."""
-
-    window = getters.query_one(Window)
 
     async def _clear_mcp_live(self) -> None:
         if self._mcp_live_note is not None:
