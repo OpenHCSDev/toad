@@ -36,14 +36,21 @@ async def test_plain_page_keys_scroll_a_quarter_page(workspace):
         editor.focus(scroll_visible=False)
         await ui.step()
         cursor, text = editor.cursor_location, editor.text
-        before = window.scroll_y
+        # Earlier pages load above the reader while it moves, and restoration
+        # keeps the content where it was: travel is measured on the content.
+        fragment = history.visible_fragments()[0]
+
+        def row():
+            return history.fragment_shown(fragment).top(-1)
+
+        before = row()
         distance = max(1, window.scrollable_content_region.height // 4)
         await ui.press("pageup")
-        await ui.until(lambda: window.scroll_y == before - distance,
+        await ui.until(lambda: row() == before + distance,
                        why="PageUp to move a quarter page")
         assert editor.has_focus and editor.cursor_location == cursor and editor.text == text
         await ui.press("pagedown")
-        await ui.until(lambda: window.scroll_y == before,
+        await ui.until(lambda: row() == before,
                        why="PageDown to move back a quarter page")
         assert editor.has_focus and editor.cursor_location == cursor and editor.text == text
 
