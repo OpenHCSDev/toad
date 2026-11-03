@@ -44,7 +44,7 @@ environment="$cache/$build_id"
 if [[ ! -e "$environment" ]]; then
     stage=$(mktemp -d "$environment.stage.XXXXXXXX")
     trap 'rm -rf -- "$stage"' EXIT
-    "$uv" venv -q --python "$python" "$stage"
+    "$uv" venv -q --relocatable --python "$python" "$stage"
     "$uv" export -q --project "$toad_root" --frozen --group dev --no-emit-project \
         --no-emit-package agent-comms --no-emit-package textual --no-hashes \
         -o "$stage/requirements.txt"
