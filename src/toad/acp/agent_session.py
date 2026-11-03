@@ -25,6 +25,7 @@ from agent_comms.session_load import (
     SessionLoadPlan,
 )
 from agent_comms.thread_presentation import SessionDisconnected, ThreadPresentation
+from agent_comms.tools import CommsRenameManagedThreadTool
 
 import toad
 from toad import constants
@@ -531,12 +532,11 @@ class AgentSession:
 
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         owner = self.agent.coordination.owner
-        comms = await self.agent.controller.transcripts.service(wire_root)
+        core = await self.agent.controller.transcripts.core(wire_root)
         authority.require()
-        result = await asyncio.to_thread(
-            comms.threads.rename_managed_thread,
-            thread, display_name, owner=owner,
-        )
+        result = await asyncio.to_thread(core.call, CommsRenameManagedThreadTool(
+            thread=thread, display_name=display_name, owner=owner,
+        ))
         authority.require()
         self.agent.coordination = replace(
             self.agent.coordination,

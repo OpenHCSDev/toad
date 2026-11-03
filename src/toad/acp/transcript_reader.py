@@ -26,7 +26,8 @@ from agent_comms.ui_model.observation import (
     UnreadableHistory,
 )
 
-from toad.owner_preparation import read_thread_presentation
+from agent_comms.core_access import CoreAccess
+from agent_comms.tools import CommsThreadPresentationTool
 from toad.session_scope import TranscriptScope
 
 
@@ -42,19 +43,20 @@ class CoordinationTranscriptReader:
         )
         return await observed.read(request)
 
-    async def service(self, root):
+    async def core(self, root) -> CoreAccess:
+        """The Core serving ``root``, in this process or across the connector."""
         return await self.access.preparation.run_thread(
-            lambda: self.access.require(self.access.selected(root)).service
+            lambda: self.access.observing(root).core
         )
 
     async def thread_presentation(
         self, root: str, thread: str
     ) -> StoredRead[ThreadPresentation]:
         """The stored-read owner classifies failures inside the read worker."""
-        reader = await self.service(root)
+        core = await self.core(root)
         return await asyncio.to_thread(
             UnreadableHistory.outcome,
-            partial(read_thread_presentation, reader, thread),
+            partial(core.call, CommsThreadPresentationTool(thread=thread)),
         )
 
     async def publication(
