@@ -453,7 +453,7 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
 
     def tall(self, window: HistoryWindow) -> bool:
         """Whether the message is taller than the window, in the layout just made."""
-        return window.message_head_hidden(self.page.drawn_height(self.location().location().fragment), None)
+        return window.message_too_tall(self.page.drawn_height(self.location().location().fragment))
 
     def place(self, window: HistoryWindow) -> bool:
         if self.tall(window):
@@ -1094,10 +1094,13 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         # which can silently rejoin at a mounted page edge.
         self.anchor(False)
 
-    def message_head_hidden(self, height: int, head_y: int | None) -> bool:
-        """A tall clicked message needs its head; short and already-headed ones stay put."""
-        viewport = self.scrollable_content_region
-        return height > viewport.height and (head_y is None or head_y < viewport.y)
+    def message_too_tall(self, height: int) -> bool:
+        """A message taller than the viewport needs its head placed; a short one stays put."""
+        return height > self.scrollable_content_region.height
+
+    def message_head_hidden(self, height: int, head_y: int) -> bool:
+        """A tall message whose head row is above the viewport needs its head placed."""
+        return self.message_too_tall(height) and head_y < self.scrollable_content_region.y
 
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)

@@ -206,6 +206,14 @@ class UndrawnFragment:
     def window_rows(self, history: LineHistory) -> range | None:
         return None
 
+    def head_on_screen(self, window: HistoryWindow) -> bool:
+        """Whether the fragment's first row is drawn at or below the viewport's top."""
+        return False
+
+    def head_hidden(self, window: HistoryWindow, height: int) -> bool:
+        """Whether a message of this height starting here needs its head placed."""
+        return window.message_too_tall(height)
+
 
 UNDRAWN = UndrawnFragment()
 
@@ -222,6 +230,15 @@ class DrawnFragment(UndrawnFragment):
         """Where the screen shows the rows; None while Textual has not placed the page."""
         region = self.page.screen_region
         return None if region is None else Region(region.x, region.y + self.rows.start, region.width, len(self.rows))
+
+    def head_on_screen(self, window: HistoryWindow) -> bool:
+        region = self.region()
+        return region is not None and region.y >= window.scrollable_content_region.y
+
+    def head_hidden(self, window: HistoryWindow, height: int) -> bool:
+        # Textual has not placed the page: where its head is is unknown, as for an undrawn one.
+        region = self.region()
+        return window.message_too_tall(height) if region is None else window.message_head_hidden(height, region.y)
 
     def window_rows(self, history: LineHistory) -> range | None:
         """The rows of the window's content that draw the fragment.
@@ -918,8 +935,8 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                      if part.source_identity == fragment.source_identity)
         head = original.fragments[first]
         window = self.window
-        region = self.fragment_region(head)
-        if region is not None and region.y >= window.scrollable_content_region.y:
+        head_placement = self.fragment_placement(head)
+        if head_placement.head_on_screen(window):
             return None
         snapshot = self.source_snapshot()
         revision, width = window.scroll_revision, self.line_width
@@ -938,7 +955,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         theme = self.app.colours.line_theme
         message_height = sum(part.lines_for(width, theme).height for part in staged.fragments_in_range
                              if part.source_identity == fragment.source_identity)
-        if not window.message_head_hidden(message_height, None if region is None else region.y):
+        if not head_placement.head_hidden(window, message_height):
             return None
         lines = head.lines_for(width, theme)
         if lines is None or (span := lines.block_span(lambda span: span.drawn)) is None:
