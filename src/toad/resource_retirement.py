@@ -48,7 +48,7 @@ class RetiresResources(ABC):
 
     @abstractmethod
     def close(self) -> None:
-        """Close this owner's admission before selecting its cleanup task."""
+        """Stop new work before selecting this owner's cleanup task."""
 
     @abstractmethod
     async def _retire(self) -> None: ...
