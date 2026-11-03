@@ -61,13 +61,12 @@ class ThreadNavigator:
         origin = ThreadOrigin.capture(app, source)
         access = app.coordination_access
         observed = await app.preparation.run_thread(access.observation.observed)
-        comms = observed.service
         requested_root = str(observed.root)
         if not origin.current(self, owner_mode):
             return app.selected_mode
         identity = await app.preparation.run_thread(
             lambda: MailboxTab(
-                comms.registry.snapshot().require(target).incarnation, requested_root
+                observed.registry().require(target).incarnation, requested_root
             )
         )
         mounted_root = str(Path(requested_root).expanduser())
@@ -83,7 +82,7 @@ class ThreadNavigator:
             if root is not None:
                 open_threads.append(OpenThread(details.mode_name, root, name))
         request = ThreadNavigationRequest(
-            comms, target, project_path, tuple(open_threads)
+            observed, target, project_path, tuple(open_threads)
         )
         key = owner_mode, request.root, request.target
         if pending := self.pending.get(key):

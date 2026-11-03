@@ -139,11 +139,8 @@ class KnownTranscript(TranscriptScope):
         return ((self.root, identity.thread_incarnation()),)
 
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
-        service = access.require(access.selected(self.root)).service
-        return (
-            service.registry.canonical_name(session_id)
-            == service.registry.require(self.name).name
-        )
+        registry = access.require(access.selected(self.root)).registry()
+        return registry.canonical_name(session_id) == registry.require(self.name).name
 
     def status_thread(self, access: CoordinationAccess) -> StatusThread:
         return StatusThread.for_root(Path(self.root), self.name, access)
@@ -422,8 +419,8 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
     def resolve_thread(self) -> str:
         identity = self.thread_identity
         selected = self.app.coordination_access.selected(identity.wire_root())
-        service = self.app.coordination_access.require(selected).service
-        return identity.resolve_thread(service.registry, self.project_root)
+        registry = self.app.coordination_access.require(selected).registry()
+        return identity.resolve_thread(registry, self.project_root)
 
     def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
         return default
