@@ -11,7 +11,7 @@
 from textual import messages
 from textual._compositor import StepDeadline
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.history_anchor import BlockPosition, HistoryChange
+from toad.widgets.history_anchor import NO_HISTORY_CHANGE, BlockPosition, HistoryChange
 
 
 def drive(screen):
@@ -103,4 +103,4 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         assert scene(screen) == one_shot
         assert not restoration.layout_ready.is_set(), "released by a layout that started before its request"
         await ui.until(restoration.layout_ready.is_set, why="the next layout to answer the request")
-        window.history_change = None
+        window.history_change = NO_HISTORY_CHANGE

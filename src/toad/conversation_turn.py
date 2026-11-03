@@ -61,13 +61,9 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
 
     def captured_snapshot(self, widgets: tuple[Widget, ...]):
         """Each original claim owns capture while this source is active."""
-        from toad.widgets.committed_presentation import CommitParticipant
+        from toad.widgets.committed_presentation import block_claim
 
-        return frozenset(
-            widget
-            for widget in widgets
-            if not isinstance(widget, CommitParticipant) or widget.commit_claim.capture(not self.busy)
-        )
+        return frozenset(widget for widget in widgets if block_claim(widget).capture(not self.busy))
 
     def with_activity(self, activity: str) -> "TurnOwner":
         return ActivityTurn(activity) if activity else self

@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable, Iterable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from functools import partial
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, ClassVar, Self
 
 from agent_comms.acp_extension import InputStartedUpdate
 from agent_comms.coordination_errors import TranscriptChanged
@@ -19,8 +19,10 @@ from agent_comms.transcripts import (
     TranscriptPage,
     TranscriptReadIdentity,
 )
+from metaclass_registry.mro_dispatch import handles
 from textual.widget import Widget
 
+from toad.core.projection import MroProjection
 from toad.transcript_state import CommitTranscript, PreparedReplacementViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
@@ -89,6 +91,10 @@ class NativeCommitSource(CommitSource):
         return (self.original.page_bound.with_frontier(cursor.wire),) if self.accepts(identity) else ()
 
 class CommitClaim(ABC):
+    # Whether a commit may retire the block holding this claim, and whether the block holds every commit back.
+    retires: ClassVar[bool] = True
+    blocks_commit: ClassVar[bool] = False
+
     def capture(self, settled: bool) -> bool:
         return True
 
@@ -209,6 +215,21 @@ class CommitParticipant:
     def commit_claim(self) -> CommitClaim:
         raise NotImplementedError
 
+
+class RetainedBlockClaim(CommitClaim):
+    """A block that declares no claim: a commit never retires it and captures it as it is."""
+
+    retires = False
+
+    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+        return False
+
+
+class CommitBarrierClaim(RetainedBlockClaim):
+    """A local interactive session whose ordering a snapshot cannot replace: commits wait for it."""
+
+    blocks_commit = True
+
 CAPTURED_CLAIM = CapturedClaim()
 RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
@@ -227,13 +248,36 @@ class SnapshotPresentation(CommitParticipant):
 class CommitBarrier:
     """A local interactive session whose ordering cannot be replaced by a snapshot."""
 
+
+class BlockClaims(MroProjection[CommitClaim]):
+    """Every block a conversation's contents hold has one commit claim; this is where it is read."""
+
+    # object, not Widget: a history's MRO reaches Widget before its CommitParticipant base.
+    @handles(object)
+    def retained(self, widget: Widget) -> CommitClaim:
+        return RetainedBlockClaim()
+
+    @handles(CommitParticipant)
+    def participant(self, widget: CommitParticipant) -> CommitClaim:
+        return widget.commit_claim
+
+    @handles(CommitBarrier)
+    def barrier(self, widget: CommitBarrier) -> CommitClaim:
+        return CommitBarrierClaim()
+
+
+BLOCK_CLAIMS = BlockClaims()
+
+
+def block_claim(widget: Widget) -> CommitClaim:
+    return BLOCK_CLAIMS.project_value(widget)
+
+
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
-    return [widget for widget in widgets
-            if isinstance(widget, CommitParticipant) and widget.commit_claim.covered(widget, evidence)]
+    return [widget for widget in widgets if block_claim(widget).covered(widget, evidence)]
 
 def required_sequences(widgets: Iterable[Widget]) -> frozenset[int]:
-    return frozenset(sequence for widget in widgets if isinstance(widget, CommitParticipant)
-                     for sequence in widget.commit_claim.required_sequences)
+    return frozenset(sequence for widget in widgets for sequence in block_claim(widget).required_sequences)
 
 def protected_blocks(view: Conversation, candidates: Iterable[Widget]) -> set[Widget]:
     endpoints = set(view.screen._interaction_widgets())
@@ -292,7 +336,8 @@ class PreparedPageCommit(PreparedCommit):
         async with history.window.history_lock:
             if not history.source_ready or not is_current():
                 return False
-            operation = history.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
+            operation = history.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks,
+                                                                   claims=tuple(map(block_claim, live_blocks))))
         return await operation.execute(history, partial(self.publish, cursor, is_current))
 
     async def publish(self, cursor: TranscriptCursor, is_current: Callable[[], bool]) -> bool:
@@ -366,7 +411,7 @@ class CommitPlan(ABC):
 
     @asynccontextmanager
     async def publication(self, view: Conversation, prepared: PreparedCommit):
-        async with view.window.preserve_history(root=view.contents):
+        async with view.window.preserve_history():
             yield
 
     def finish(self, view: Conversation, cursor: TranscriptCursor) -> None:

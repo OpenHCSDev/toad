@@ -12,7 +12,7 @@ from toad.block_navigation import ConversationBlock
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.history_anchor import (
     BlockPosition, FragmentNotLoaded, FragmentPosition, HistoryWindow, ReaderPosition, RowPosition,
-    TailPosition, UnreachedPosition,
+    TailPosition,
 )
 
 
@@ -105,7 +105,7 @@ async def test_an_unloaded_fragment_cannot_be_placed_or_supply_geometry(workspac
         window.release_anchor()
         fragment = TranscriptFragment((AssistantTranscript("Unloaded", position=123, timestamp=0),))
         position = FragmentPosition(fragment.key, 0, 1, block=0)
-        window.reader_position = UnreachedPosition(position)
+        window.reader_position = position
         with pytest.raises(FragmentNotLoaded):
             position.page(window).location()
         assert not position.laid_out(window)
@@ -136,6 +136,6 @@ async def test_a_live_block_hidden_since_the_last_frame_does_not_hold_the_reader
         assert block in screen._compositor.published_widgets
         assert not tuple(window.placements((block,)))
         assert ReaderPosition.of(window) == RowPosition(window.scroll_y)
-        window.reader_position = UnreachedPosition(BlockPosition(block, 0, window.scroll_y))
+        window.reader_position = BlockPosition(block, 0, window.scroll_y)
         assert not window.place_reader()
         assert window.reader_for_layout() == RowPosition(window.scroll_y)

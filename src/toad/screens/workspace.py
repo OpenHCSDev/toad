@@ -215,9 +215,8 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         self, size: Size | None = None, scroll: bool = False, deadline=None
     ):
         changes = tuple(
-            (change, change.layout_requests)
+            (window.history_change, window.history_change.layout_requests)
             for window in self.history_windows
-            if (change := window.history_change) is not None
         )
         # Capture the old rows before any descendant measures its new width;
         # that layout and reader placement belong to one unpublished frame.
@@ -227,11 +226,7 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
                     window.keep_reader()
             yield from super()._layout_steps(size, scroll, deadline)
             if any(
-                [
-                    window.place_reader()
-                    for window in self.history_windows
-                    if window.reader_for_layout() is not None
-                ]
+                [window.place_layout_reader() for window in self.history_windows]
             ):
                 yield from super()._layout_steps(size, scroll=True)
         for change, answered in changes:

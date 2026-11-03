@@ -64,11 +64,11 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
                 async with view.window.history_lock:
                     async with view.window.lock:
                         pass
-            worker = view.transcript.worker
-            worker.cancel()
+            work = view.transcript.worker
+            work.cancel()
             await ui.step(0.05)
         with pytest.raises(WorkerCancelled):
-            await asyncio.wait_for(worker.wait(), 5)
+            await asyncio.wait_for(work.worker.wait(), 5)
         await ui.step(0.1)
         assert not old.is_attached, "Accepted cancellation abandoned the old history"
         assert old not in view.window.histories, "Accepted cancellation kept two histories"

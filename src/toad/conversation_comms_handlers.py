@@ -90,7 +90,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
     async def on_queue_view_update(
         self, update: QueuePresentation, message: CoreEventMessage
     ) -> None:
-        async with self.window.preserve_history(root=self.contents):
+        async with self.window.preserve_history():
             for started in update.starts:
                 await self.present_started_input(started)
             self.submissions.publish_pending()
@@ -99,7 +99,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
     async def on_input_started(
         self, update: InputStartedUpdate, message: CoreEventMessage
     ) -> None:
-        async with self.window.preserve_history(root=self.contents):
+        async with self.window.preserve_history():
             await self.present_started_input(update)
             self.submissions.publish_pending()
 

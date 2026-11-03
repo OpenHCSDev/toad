@@ -144,12 +144,33 @@ class PresentationBudget:
                 for owner in pair if owner is not None]
 
 
+class OffScreenRunway:
+    """A history the screen does not show: nothing is read ahead for it."""
+
+    on_screen: ClassVar[bool] = False
+
+    def read_rows(self, preparation: DirectionalPreparation, history: LineHistory, end: PageEnd) -> int:
+        return 0
+
+
 @dataclass(frozen=True)
-class Runway:
+class Runway(OffScreenRunway):
     """Published rows of one history above and below the viewport."""
 
+    on_screen = True
     above: int
     below: int
+
+    def read_rows(self, preparation: DirectionalPreparation, history: LineHistory, end: PageEnd) -> int:
+        window = preparation.window
+        viewport = window.scrollable_size
+        occupied = window.arrange(viewport).flow_bounds
+        # Native virtual size includes the viewport's blank alignment space.
+        # Flowing placements retain the actual occupied extent, excluding
+        # overlays and docks. Fill a visible hole even without scroll input;
+        # only the demand predicts rows beyond that already-visible need.
+        missing = min(viewport.height - occupied.height, -end.rows_toward(self))
+        return max(0, missing, preparation.demand.read_rows(preparation, history, end, self))
 
 
 class PageEnd(ABC):
@@ -578,26 +599,16 @@ class DirectionalPreparation:
     def read_rows(self, history: LineHistory, end: PageEnd) -> int:
         if not end.visible_more(history):
             return 0
-        runway = self.runway(history)
-        if runway is None:
-            return 0
-        window = self.window
-        viewport = window.scrollable_size
-        occupied = window.arrange(viewport).flow_bounds
-        # Native virtual size includes the viewport's blank alignment space.
-        # Flowing placements retain the actual occupied extent, excluding
-        # overlays and docks. Fill a visible hole even without scroll input;
-        # only the demand predicts rows beyond that already-visible need.
-        missing = min(viewport.height - occupied.height, -end.rows_toward(runway))
-        return max(0, missing, self.demand.read_rows(self, history, end, runway))
+        return self.runway(history).read_rows(self, history, end)
 
-    def runway(self, history: LineHistory) -> Runway | None:
-        """Published rows above and below this viewport; None while the history is off screen."""
+    def runway(self, history: LineHistory) -> OffScreenRunway:
+        """Published rows above and below this viewport, or that the history is off screen."""
         window = self.window
         visible = window.screen._compositor.visible_widgets
         geometry, viewport = visible.get(history), visible.get(window)
+        # Textual's published map is the boundary: a widget it did not place has no entry.
         if geometry is None or viewport is None or not geometry[0].overlaps(viewport[0]):
-            return None
+            return OffScreenRunway()
         region, frame = geometry[0], viewport[0]
         return Runway(frame.y - region.y, region.bottom - frame.bottom)
 
@@ -605,7 +616,7 @@ class DirectionalPreparation:
         """Request the next page from what the screen shows now, not from window state."""
         window = self.window
         if (not window.screen.is_active or not history.selected_categories
-                or self.runway(history) is None):
+                or not self.runway(history).on_screen):
             return
         if history.follows_source_tail and NEWER_END.visible_more(history):
             window.jump_to_latest()

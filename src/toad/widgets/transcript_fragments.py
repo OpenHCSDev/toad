@@ -214,6 +214,21 @@ class FragmentLineConsumer(MroProjection[None]):
             self.blocks += AgentActivityPresentation.thinking(event.text)
 
 
+class CopiedText(MroProjection[str]):
+    """What one event gives a copy of its fragment: its text, or nothing for an event without any."""
+
+    @handles(TranscriptEvent)
+    def nothing(self, event: TranscriptEvent) -> str:
+        return ""
+
+    @handles(TextTranscript)
+    def text(self, event: TextTranscript) -> str:
+        return event.text
+
+
+COPIED_TEXT = CopiedText()
+
+
 @dataclass(frozen=True, kw_only=True)
 class Shown:
     """What a reader chose about one drawn fragment."""
@@ -436,7 +451,7 @@ class TranscriptFragment:
     @property
     def clipboard_text(self) -> str | None:
         """What copying this fragment gives: its text as written."""
-        return "\n\n".join(event.text for event in self.events if isinstance(event, TextTranscript)) or None
+        return "\n\n".join(text for event in self.events if (text := COPIED_TEXT.project_value(event))) or None
 
     @property
     def block_menu(self) -> tuple[MenuCommand, ...]:

@@ -56,7 +56,7 @@ async def test_filtering_saved_history_paints_an_older_projection_and_returns_to
                        and "FILTER_USER" in ui.painted(view.window),
                        why="the older filtered projection")
         projection = history.filter.overlay
-        assert projection.conversation is view
+        assert view in projection.ancestors
         assert "SAVED_ASSISTANT_299" not in ui.painted(view.window)
 
         await ui.app.coordination_access.stop_observing()

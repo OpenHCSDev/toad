@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from agent_comms.ui_model.message_category import MessageCategory
 from rich.style import Style
@@ -20,7 +20,7 @@ from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.frame_presentation import Animated
 from toad.line_blocks import Divider, Gap, LineBlock
 from toad.message_rows import LiveMessageClock, MessageClock, MessageRow
-from toad.widgets.committed_presentation import CommitParticipant
+from toad.widgets.committed_presentation import CommitParticipant, block_claim
 from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
 from toad.widgets.transcript_lines import (
     BlockLines,
@@ -164,11 +164,11 @@ class AgentActivityDivider(ConversationBlock, CommitParticipant, CategorizedBloc
 
         super().__init__(AgentActivityPresentation.group[0])
         self._category = category
-        self.source = cast(CommitParticipant, source)
+        self.source = source
 
     @property
     def commit_claim(self):
-        return self.source.commit_claim
+        return block_claim(self.source)
 
     @property
     def message_category(self) -> type[MessageCategory]:

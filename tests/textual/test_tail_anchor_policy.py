@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from textual._compositor import ChopsUpdate, LayoutUpdate
 
-from toad.widgets.history_anchor import HistoryWindow
+from toad.widgets.history_anchor import NO_HISTORY_CHANGE, HistoryWindow
 from toad.widgets.note import Note
 
 
@@ -87,4 +87,4 @@ async def test_tail_intent_needs_no_record_geometry_and_reader_intent_keeps_the_
                     await contents.mount(Note("Latest tail record\nsecond line"))
                     await ui.step()
         assert window.follows_tail and window.scroll_y == window.max_scroll_y
-        assert window.history_change is None and not window.history_lock.locked()
+        assert window.history_change is NO_HISTORY_CHANGE and not window.history_lock.locked()
