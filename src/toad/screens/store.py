@@ -520,8 +520,7 @@ class FocusDirectoryAction(StoreAction):
     show = True
 
     async def apply(self, context: StoreScreen) -> None:
-        if (directory_display := context.query_one_optional(DirectoryDisplay)) is not None:
-            directory_display.focus()
+        context.query_one(DirectoryDisplay).focus()
 
 
 class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,

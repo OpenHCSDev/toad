@@ -140,15 +140,13 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         self.app.workspace_sessions.source.focus_sidebar_return()
 
     @property
-    def back_to_bottom_window(self):
+    def back_to_bottom_windows(self) -> tuple:
+        """Drawn history windows that are scrolled away from their latest entry."""
         published = self._compositor.published_widgets
-        return next(
-            (
-                window
-                for window in self.history_windows
-                if window in published and window.can_jump_to_latest
-            ),
-            None,
+        return tuple(
+            window
+            for window in self.history_windows
+            if window in published and window.can_jump_to_latest
         )
 
 
@@ -314,15 +312,13 @@ class BackToBottomAction(ViewAction):
     priority = True
 
     def available(self, context: WorkspaceScreen) -> bool:
-        match context.focused, context.back_to_bottom_window:
-            case Widget(uses_screen_coordinates=True), _:
+        match context.focused:
+            case Widget(uses_screen_coordinates=True):
                 return False
-            case _, None:
-                return False
-        return True
+        return bool(context.back_to_bottom_windows)
 
     def apply(self, context: WorkspaceScreen) -> None:
-        if (window := context.back_to_bottom_window) is not None:
+        for window in context.back_to_bottom_windows[:1]:
             window.jump_to_latest()
 
 
