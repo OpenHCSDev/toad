@@ -11,7 +11,7 @@ from agent_comms.coordination_errors import HistoricalSourceChanged, StaleRevisi
 from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.transcripts import EarlierThan, LaterThan, RecordedPageSource, RecordedTranscriptReadIdentity
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 from agent_comms.ui_model.observation import NotPublished
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
@@ -24,9 +24,9 @@ def recorded(tmp_path, workspace):
 
     old, live = installed_wire(tmp_path / "old"), workspace.comms
     native = write_journal(tmp_path / "authored.jsonl", assistant_entry("recorded answer", id="answer-1"))
-    old.registry.declare(Thread("reader", frozenset(), Checkout(old.root),
+    old.registry.declare(NativeThread("reader", frozenset(), Checkout(old.root),
                                 created_at=10.0, session_file=RegistrySessionLocation.from_path(str(native), old.root)))
-    live.registry.declare(Thread("reader", frozenset(), Checkout(live.root), created_at=20.0))
+    live.registry.declare(NativeThread("reader", frozenset(), Checkout(live.root), created_at=20.0))
     source = live.views.attach_history(old.root)
     return live, source, native
 

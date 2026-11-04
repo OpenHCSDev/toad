@@ -7,7 +7,7 @@ import json
 import os
 from pathlib import Path
 from support.roots import installed_wire
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 
 
 def private_root(path: Path, project: Path, message: str) -> Path:
@@ -16,9 +16,9 @@ def private_root(path: Path, project: Path, message: str) -> Path:
 
     path.mkdir(mode=0o700)
     comms = installed_wire(path)
-    comms.registry.declare(Thread("user", frozenset(), Checkout(project), role=UserThreadRole))
-    comms.registry.declare(Thread("owner", frozenset({"team"}), Checkout(project / "owner-project")))
-    comms.registry.declare(Thread("peer", frozenset({"team"}), Checkout(project / "peer-project")))
+    comms.registry.declare(NativeThread("user", frozenset(), Checkout(project), role=UserThreadRole))
+    comms.registry.declare(NativeThread("owner", frozenset({"team"}), Checkout(project / "owner-project")))
+    comms.registry.declare(NativeThread("peer", frozenset({"team"}), Checkout(project / "peer-project")))
     comms.messaging.send("peer", "#team", message)
     return path
 

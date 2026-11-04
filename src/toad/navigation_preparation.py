@@ -160,7 +160,7 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         )
         if existing is not None:
             return ExistingThreadNavigation(self.root, thread, project, existing)
-        return thread.execution.prepare_conversation(
+        return thread.prepare_conversation(
             ThreadConversationPreparation(self.root, thread, project, snapshot)
         )
 
@@ -176,7 +176,7 @@ class ThreadConversationPreparation(ConversationPreparation):
         return ExternalThreadNavigation(self.root, self.thread, self.project)
 
     def native(self) -> ThreadNavigation:
-        binding = self.thread.execution.owner_binding(self.snapshot, self.thread)
+        binding = self.thread.owner_binding(self.snapshot)
         plan = ExistingOwnerPlan.from_binding(binding)
         if not plan.available:
             return ThreadNavigation(self.root, self.thread, self.project)
