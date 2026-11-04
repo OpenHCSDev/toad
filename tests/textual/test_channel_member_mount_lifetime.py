@@ -36,6 +36,7 @@ async def test_pending_channel_members_stop_when_sidebar_hides_and_resume_when_s
         assert worker.error is None
         assert not group.rows
         sidebar.reveal()
-        await ui.until(lambda: len(group.rows) == 12, why='all members after revealing the sidebar')
+        # A reconciled row joins `rows` before its mount completes.
+        await ui.until(lambda: len(group.rows) == 12 and all(row.is_mounted for row in group.rows.values()),
+                       why='all members mounted after revealing the sidebar')
         assert set(group.rows) == {f'frame-peer-{index}' for index in range(12)}
-        assert all(row.is_mounted for row in group.rows.values())
