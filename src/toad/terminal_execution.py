@@ -199,6 +199,7 @@ class PtyProcess:
     child: AttachedChild
     master: FileIO
     reader: asyncio.StreamReader
+    transport: asyncio.ReadTransport
 
     @classmethod
     async def acquire(
@@ -246,7 +247,7 @@ class PtyProcess:
             await join_retirement(spawn)
             raise
         slave_file.close()
-        return cls(child, master_file, reader)
+        return cls(child, master_file, reader, transport)
 
     def resize(self, width: int, height: int):
         with suppress(OSError, ValueError):
@@ -268,7 +269,13 @@ class PtyProcess:
         self.child.force()
 
     async def close(self):
+        """Hang up the terminal: the launched child stops, then the master closes.
+
+        A process the child left behind (an interactive shell, a background job)
+        can hold the slave open forever; the master's EOF must not wait for it.
+        """
         await self.child.stop()
+        self.transport.close()
 
 
 class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
