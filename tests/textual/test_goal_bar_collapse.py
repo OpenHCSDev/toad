@@ -9,7 +9,7 @@ from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.goals import GoalUnavailable
 
 from toad.screens.goal_details import GoalDetails
-from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
+from toad.widgets.goal_bar import GoalBar, StandbyPulse
 from support.goals import published_goal
 
 GOAL = published_goal("OBJECTIVE " * 150, "goal", progress="PROGRESS", revision=29)
@@ -22,7 +22,7 @@ async def shown_bar(ui):
     view.prompt.text = "Keep this draft"
     await ui.step()
     bar = view.query_one(GoalBar)
-    return view, bar, bar.query_one(goal_control(bar, HistoryInteraction), GoalControl), bar.query_one(goal_control(bar, CollapseInteraction), GoalControl), \
+    return view, bar, goal_control(bar, HistoryInteraction), goal_control(bar, CollapseInteraction), \
         bar.header, bar.controls
 
 

@@ -50,7 +50,12 @@ class FrameApp(ToadApp):
 
 if __name__ == "__main__":
     peer = Path(__file__).with_name("peers") / "first_frame.py"
-    app = FrameApp(project_dir=sys.argv[1], agent_binding=AgentAttached(AgentDefinition.decode({
+    from agent_comms.launch_root import LaunchRoot
+    from agent_comms.repo import Checkout
+
+    launch_root = LaunchRoot.from_path(sys.argv[2])
+    launch_root.install()
+    app = FrameApp(project_dir=Checkout(sys.argv[1]), launch_root=launch_root, agent_binding=AgentAttached(AgentDefinition.decode({
         "name": "Physical frame peer", "identity": "frame-acceptance",
         "short_name": "Frame", "protocol": "acp",
         "run_command": {"*": shlex.join([sys.executable, str(peer)])},

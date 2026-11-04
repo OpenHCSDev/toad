@@ -31,7 +31,7 @@ from toad.navigation_target import SelectTarget
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit, GoalEditButton, GoalEditError, GoalSave
 from toad.command_catalog import CommandCatalog
-from toad.widgets.goal_bar import GoalBar, GoalControl
+from toad.widgets.goal_bar import GoalBar
 
 
 def goal_owner(workspace, app):
@@ -199,7 +199,7 @@ async def test_refused_goal_control_preserves_owner_state_and_composer(workspace
         if command:
             assert await CommandCatalog.execute(command, view)
         else:
-            clear = bar.query_one(goal_control(bar, ClearInteraction), GoalControl)
+            clear = goal_control(bar, ClearInteraction)
             assert await ui.pilot.click(clear), "the real clear control must receive the click"
         await ui.until(lambda: owner.requests == [("update", expected_action)],
                        why="one goal-control request at the scripted owner")

@@ -34,5 +34,9 @@ class ObservedApp(ToadApp):
 if __name__ == "__main__":
     from agent_comms.launch_root import LaunchRoot
 
-    LaunchRoot.from_path(sys.argv[2]).install()
-    run_terminal(ObservedApp(project_dir=sys.argv[1], agent_binding=AgentAttached(peer("echo"))))
+    from agent_comms.repo import Checkout
+
+    launch_root = LaunchRoot.from_path(sys.argv[2])
+    launch_root.install()
+    run_terminal(ObservedApp(project_dir=Checkout(sys.argv[1]), launch_root=launch_root,
+                             agent_binding=AgentAttached(peer("echo"))))
