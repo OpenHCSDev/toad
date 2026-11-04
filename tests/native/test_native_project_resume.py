@@ -26,7 +26,7 @@ async def test_saved_project_and_later_changes_replace_the_launch_directory(work
     without_provider()
     comms = start_private_native_wire(workspace.roots.wire)
     comms.registry.declare(Thread("saved", frozenset({"acp"}), Checkout(launched)))
-    comms.threads.set_project(comms.registry.require("saved").incarnation, str(saved))
+    comms.threads.set_project("saved", str(saved))
     async with attached_app(workspace, comms, "saved", size=(100, 35)) as (ui, agent):
         app, _pilot = ui.textual
         await ui.until_agent_ready()
@@ -50,8 +50,7 @@ async def test_saved_project_and_later_changes_replace_the_launch_directory(work
         assert conversation.project_path == saved
         assert Path(conversation.prompt.current_directory.path) == saved
 
-        await asyncio.to_thread(
-            comms.threads.set_project, comms.registry.require("saved").incarnation, str(launched))
+        await asyncio.to_thread(comms.threads.set_project, "saved", str(launched))
         await ui.until(lambda: session.project_path == launched, seconds=10, why="the project change from the wire")
         await ui.until(lambda: conversation.project_path == launched, why="the conversation's project")
         assert Path(session.query_one(ProjectDirectoryTree).path) == launched
