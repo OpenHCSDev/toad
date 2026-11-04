@@ -70,7 +70,7 @@ class TargetContext:
         async def read():
             choices = await self.command_choices()
             if (not sidebar.is_attached or sidebar.app.selected_session is not source
-                    or not sidebar.model_state.serves(self.observed.root.resolve())
+                    or not sidebar.model_state.serves(self.observed.root)
                     or sidebar.app.screen is not selected_screen):
                 return
             show_target_menu(selected_screen, offset, self.title,
