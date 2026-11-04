@@ -23,6 +23,7 @@ from toad.transcript_state import (
     NoLatestRequest,
     ParkedSourceTranscript,
     RetiredSourceTranscript,
+    SourceWork,
     TranscriptState,
     WorkingTranscript,
 )
@@ -154,10 +155,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_state = operation
         return operation
 
-    def schedule_source_work(self, work) -> Worker | None:
+    def schedule_source_work(self, work) -> SourceWork:
         """Own source I/O on the pager worker, never its caller's event pump."""
-        if self.state.accepts_source_work:
-            return self.reserve_source_work().schedule(self, work)
+        return self.state.schedule_work(self, work)
 
     def source_failed(self, error) -> None:
         self.retire_source()

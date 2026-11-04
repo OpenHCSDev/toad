@@ -45,6 +45,10 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
         """The source accepts work and the filter is not scanning."""
         return self.accepts_source_work and owner.filter.idle
 
+    def schedule_work(self, owner: TranscriptSourcePreparation, work) -> SourceWork:
+        """A source that takes no work defers it; the caller decides whether to retry."""
+        return DEFERRED_WORK
+
     def blocks_visible_read(self, owner: TranscriptSourcePreparation) -> bool:
         """An unpublished source must settle before its cursor is read."""
         return True
@@ -138,6 +142,9 @@ class LiveTranscript(TranscriptState):
     def request_latest(self, owner: TranscriptSourcePreparation, request: LatestViewportRequest) -> None:
         owner.schedule_source_work(partial(owner.jump_latest, request))
 
+    def schedule_work(self, owner: TranscriptSourcePreparation, work) -> SourceWork:
+        return RunningSourceWork(owner.reserve_source_work().schedule(owner, work))
+
     def check_edges(self, owner) -> None:
         if self.source_ready(owner):
             owner.window.lookahead.prepare_source(owner)
@@ -191,6 +198,41 @@ class SuspendedTranscript(TranscriptState):
     def successors(cls): ...
 
 
+class SourceWork(ABC):
+    """What became of work handed to a transcript's source: running on its pager worker, or deferred."""
+
+    @abstractmethod
+    def latest_after(self, request: LatestViewportState) -> LatestViewportState:
+        """The latest-position request left once this work was handed over."""
+
+    @abstractmethod
+    async def waited(self) -> bool:
+        """Wait for running work and answer True; deferred work answers False at once."""
+
+
+@dataclass(frozen=True)
+class RunningSourceWork(SourceWork):
+    worker: Worker
+
+    def latest_after(self, request: LatestViewportState) -> LatestViewportState:
+        return NoLatestRequest()
+
+    async def waited(self) -> bool:
+        await self.worker.wait()
+        return True
+
+
+class DeferredSourceWork(SourceWork):
+    def latest_after(self, request: LatestViewportState) -> LatestViewportState:
+        return request
+
+    async def waited(self) -> bool:
+        return False
+
+
+DEFERRED_WORK = DeferredSourceWork()
+
+
 class LatestViewportState(ABC):
     @abstractmethod
     def resume(self, owner: TranscriptSourcePreparation) -> LatestViewportState: ...
@@ -235,9 +277,9 @@ class LatestViewportRequest(LatestViewportState):
 
     def resume(self, owner: TranscriptSourcePreparation) -> LatestViewportState:
         """Return the request state after this draw's source-work admission."""
-        if not self.current(owner.window) or owner.schedule_source_work(partial(owner.jump_latest, self)):
+        if not self.current(owner.window):
             return NoLatestRequest()
-        return self
+        return owner.schedule_source_work(partial(owner.jump_latest, self)).latest_after(self)
 
 
 @dataclass(frozen=True)
