@@ -246,14 +246,14 @@ class DeclaredWidgetActions(ToadNode):
         ))
 
     @classmethod
-    def action_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def declaration_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
         return declaration.bindings_for(mode)
 
     @classmethod
     def declared_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
         return (*super().declared_bindings(mode),
                 *(binding for declaration in cls.declared_actions()
-                  for binding in cls.action_bindings(declaration, mode)))
+                  for binding in cls.declaration_bindings(declaration, mode)))
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -582,9 +582,9 @@ class ActionPresentation(DeclaredWidgetActions):
         return binding
 
     @classmethod
-    def action_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def declaration_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
         return tuple(cls.present_binding(declaration, binding)
-                     for binding in super().action_bindings(declaration, mode))
+                     for binding in super().declaration_bindings(declaration, mode))
 
 
 class PriorityActions(ActionPresentation,
