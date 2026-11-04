@@ -40,7 +40,7 @@ from agent_comms.tools import (
     CommsUserSendTool,
 )
 from agent_comms.transcripts import TranscriptCursor
-from agent_comms.display_references import PendingReferences, UnavailableReferences
+from agent_comms.display_references import PendingReferences, RegistryReferenceSource, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
@@ -456,7 +456,7 @@ class FailedObservation(Observation):
 
 
 @dataclass(frozen=True)
-class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
+class Observing(Observation, ReferencedCore, RegistryReferenceSource, RelationshipReads, ContextReads):
     """An observation answering through its process; where its Core is belongs to the member."""
 
     sidebar: SidebarModel
