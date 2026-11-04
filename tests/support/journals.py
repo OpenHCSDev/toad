@@ -34,16 +34,17 @@ def user_entry(text: str, *, id: str, parent: str | None = None, input_id: str |
 
 def write_journal(path: Path, *entries: dict) -> Path:
     """Write `entries` as the lines of a session journal and return its path."""
-    from agent_comms.nominal.field_codec import RecordedTimestamp
-    from agent_comms.native_entries import MessageEntry, NativeEntry, SessionEntry
-    from agent_comms.pi_payloads import ReportedText, UnknownMessage
+    from agent_comms.nominal.field_codec import FieldCodec
+    from agent_comms.native_entries import MessageEntry, NativeEntry
+    from agent_comms.pi_payloads import UnknownMessage
 
     for entry in entries:
         decoded = NativeEntry.read(json.dumps(entry).encode())
         if isinstance(decoded, MessageEntry) and isinstance(decoded.message, UnknownMessage):
             raise ValueError(f"Core does not read this journal line as a known message: {entry}")
-    header = SessionEntry(id=PiSessionId.fresh(), version=3, cwd=ReportedText(str(path.parent)),
-                          timestamp=RecordedTimestamp.written(datetime.now(UTC)))
-    path.write_text(json.dumps(header.to_wire()) + "\n"
+    header = {"type": "session", "version": 3, "id": FieldCodec.encode(PiSessionId.fresh()),
+              "timestamp": datetime.now(UTC).isoformat(), "cwd": str(path.parent)}
+    NativeEntry.read(json.dumps(header).encode())  # Core's decoder owns what a valid v3 header is.
+    path.write_text(json.dumps(header) + "\n"
                     + "".join(json.dumps(entry) + "\n" for entry in entries))
     return path
