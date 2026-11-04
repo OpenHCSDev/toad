@@ -14,7 +14,6 @@ from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
 from metaclass_registry.mro_dispatch import handles
 from textual import on, work
-from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
 from textual.containers import Horizontal, Vertical
 from textual.widget import Widget
@@ -32,7 +31,7 @@ from toad.core.context_inspection import (
 from toad.core.events import CoordinationObserved, SessionSelected
 from toad.native_style import AutoHeight, Borderless, FillWidth
 from toad.session_scope import SessionScope
-from toad.widget_actions import NativeMethodKeys
+from toad.widget_actions import Action, NativeMethodKeys
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.process_text_area import ProcessTextArea
 from toad.native_style import MutedText
@@ -411,12 +410,26 @@ class ContextDetail(Borderless, ProcessTextArea):
         self.styles.height = "1fr" if maximized is self else 16
 
 
+class ContextExplorerAction(Action, affix="Action"):
+    """Keys the context explorer answers."""
+
+
+class RefreshContextAction(ContextExplorerAction):
+    """Read the context again from its source."""
+
+    keys = {EditingMode: ("r",)}
+
+    def apply(self, explorer: ContextExplorer) -> None:
+        explorer.refresh_context()
+
+
 class ContextExplorer(
     AutoHeight,
     NativeMethodKeys,
     ShowsThreadIdentity,
     SidebarVisibilityObserver,
     Vertical,
+    actions=(ContextExplorerAction,),
 ):
 
     def __init__(self, *, intents: dict[SessionIdentity, ContextTreeIntent]) -> None:
@@ -503,10 +516,6 @@ class ContextExplorer(
     def refresh_context(self) -> None:
         if self.presentation_visible():
             self.read(force=True)
-
-    MODE_BINDINGS = (
-        ModeBinding("r", refresh_context, "Refresh context", mode=EditingMode),
-    )
 
     def _reading(self, identity: SessionIdentity):
         return (
