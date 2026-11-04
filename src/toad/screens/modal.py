@@ -7,6 +7,7 @@ from ui_theme.scheme import BackgroundColour, PrimaryColour
 
 from toad.native_style import AutoHeight, CenteredChildren, RightPadding, SurfaceBackground
 from toad.widget_actions import DismissibleControl, ProfileKeys
+from textual.view import WidgetView
 from textual.widget import Widget
 
 
@@ -22,6 +23,16 @@ class DismissibleScreen[Result](DismissibleControl, ModalScreen[Result]):
 
 class CenteredScreen(CenteredChildren):
     """A modal whose content sits in the middle of the screen."""
+
+
+class CenteredView(WidgetView):
+    """A native view whose content sits in its middle.
+
+    A view declares its geometry and ignores styles, so CenteredScreen's align never reaches it.
+    """
+
+    align_horizontal = "center"
+    align_vertical = "middle"
 
 
 

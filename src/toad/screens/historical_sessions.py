@@ -18,7 +18,7 @@ from agent_comms.historical_views import HistoricalThread, HistorySourceKey
 from agent_comms.transcripts import RecordedPageSource
 from textual import on, work
 from textual.app import ComposeResult
-from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel
+from toad.screens.modal import CenteredView, DismissibleScreen, ModalPanel
 from textual.widgets import Select, Static
 
 from toad.screens.workspace import WorkspaceFrame
@@ -46,7 +46,7 @@ class SourceLabel(Static):
         self.styles.padding = 1
 
 
-class HistoricalSessions(CenteredScreen, CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):
+class HistoricalSessions(CenteredView, CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):
 
     def __init__(
         self,

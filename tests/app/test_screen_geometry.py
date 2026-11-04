@@ -16,7 +16,7 @@ from toad.screens.keymap import KeymapPanel, KeymapScreen, KeymapStatus, KeymapT
 from toad.screens.command_edit_modal import CommandButtons, CommandEditModal, CommandFrame, CommandText
 from toad.screens.modal import ModalFrame, ModalPanel
 from toad.screens.session_resume_modal import ResumeTable, SessionResumeModal
-from toad.screens.welcome import WelcomeBody, WelcomeColumn
+from toad.screens.welcome import WelcomeColumn, WelcomeScreen
 from toad.screens.queue import QueueActions, QueueInspection, QueuePanel
 from toad.screens.team import HudRows, TeamClose, TeamPage, TeamPanel
 from toad.widgets.history_anchor import HistoryWindow
@@ -112,13 +112,14 @@ async def test_goal_history_is_a_centred_95_percent_panel_with_close_docked_unde
         assert document.region.bottom < close.region.y, facts
 
 
-async def test_welcome_column_is_64_wide_and_centred_in_the_body(workspace):
-    async with workspace.app(size=SIZE, session=False) as ui:
+async def test_welcome_column_is_64_wide_and_centred_beside_the_sidebar(workspace):
+    async with workspace.app(size=(120, 40), session=False) as ui:
         await ui.until_shows("n new session")
-        screen = ui.app.screen
-        body, column = screen.query_one(WelcomeBody), screen.query_one(WelcomeColumn)
-        space, region = body.content_region, column.region
-        facts = {"body": space, "column": region}
+        welcome = ui.app.screen.query_one(WelcomeScreen)
+        column, sidebar = welcome.query_one(WelcomeColumn), ui.app.workspace_chrome.channels
+        space, region = welcome.content_region, column.region
+        facts = {"welcome": space, "column": region, "sidebar": sidebar.region}
+        assert region.x >= sidebar.region.right, facts
         assert region.width == 64, facts
         assert abs((region.x - space.x) - (space.right - region.right)) <= 1, facts
         assert abs((region.y - space.y) - (space.bottom - region.bottom)) <= 1, facts
