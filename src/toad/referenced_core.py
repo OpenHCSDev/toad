@@ -9,7 +9,7 @@ from agent_comms.core_access import CoreAccess
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.presentation import WireRevision
 from agent_comms.registry_document import RegistrySnapshot
-from agent_comms.tools import CommsChannelNamesTool, CommsRegistryTool, CommsWireRevisionTool
+from agent_comms.tools import CommsReferenceNamesTool, CommsRegistryTool, CommsWireRevisionTool
 
 
 class ReferencedCore(ABC):
@@ -25,8 +25,7 @@ class ReferencedCore(ABC):
 
     def references(self) -> CurrentDisplayReferences:
         """The destinations Core's registry names, keyed by the root it serves."""
-        return CurrentDisplayReferences.from_registry(
-            str(self.root), self.registry(), self.core.call(CommsChannelNamesTool()).names)
+        return self.core.call(CommsReferenceNamesTool()).references(str(self.root))
 
     def wire_revision(self) -> WireRevision:
         """What every wire view at this root derives from."""
