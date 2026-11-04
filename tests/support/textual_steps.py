@@ -133,7 +133,9 @@ async def wait_for_tool_diff(ui, tool):
     from toad.widgets.tool_content import ToolContent
 
     content = tool.query_one(ToolContent)
-    await ui.until(lambda: not content._styled.awaits_styling, seconds=10, why="the styled tool rows")
+    # Replaced blocks keep their old rows until the render of the new ones lands, so wait for it.
+    await ui.until(lambda: content._render_worker.is_finished and not content._styled.awaits_styling,
+                   seconds=10, why="the styled tool rows")
     await ui.step()
     return content
 
