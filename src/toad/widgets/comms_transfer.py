@@ -286,7 +286,12 @@ class ImportWorktree(TextField):
 
 
 class ExportFormatChoice(ChoiceField[type["ExportFormatInput"]]):
-    """The export's file format."""
+    """The export's file format; choosing one moves a default destination with it."""
+
+    @on(Select.Changed)
+    def chosen(self, message: Select.Changed) -> None:
+        message.stop()
+        self.query_ancestor(WireExportDialog).format_changed()
 
 
 class ExportScopeChoice(ChoiceField[type["ExportScopeInput"]]):
@@ -512,8 +517,7 @@ class WireExportDialog(TransferDialog):
     def on_mount(self) -> None:
         self.destination_input.focus()
 
-    @on(ExportFormatChoice.Changed)
-    def on_format_changed(self, event: Select.Changed) -> None:
+    def format_changed(self) -> None:
         defaults = (str(choice.destination(self.destination_stem))
                     for choice in ExportFormatInput.members_with(ExportFormatInput))
         if self.destination_input.value in defaults:
