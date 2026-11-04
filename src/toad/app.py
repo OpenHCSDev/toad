@@ -190,7 +190,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
         self.sidebar_state = SidebarState()
-        self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of().layout)
         self._mode_switch_lock = asyncio.Lock()
         self.tab_order = TabOrder(
             lambda identity, index: self.select_session(identity.mode_name, history_index=index),
@@ -203,6 +202,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         from toad.file_kind import FileKind
         FileKind.prepare_terminal()
         super().__init__()
+        # The themed app opened the settings that own this terminal's sidebar arrangement.
+        self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of().layout)
         self._return_value: TerminalOutcome = Ended(self.application.version)
         self.session_navigation.bind_events()
         self.set_reactive(ToadApp.project_dir, project_dir)
