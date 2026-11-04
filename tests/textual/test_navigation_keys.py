@@ -1,5 +1,7 @@
 """Workspace navigation keys operate original tabs; editors retain typed capitals."""
 
+from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.preferences import SETTINGS
 from toad.key_modes import VimInsert
 from textual.command import CommandPalette
@@ -111,8 +113,8 @@ async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
     async with workspace.app(size=(130, 42)) as ui:
         app, pilot = ui.textual
         app.saved_settings.set(SETTINGS.ui.key_mode, VimInsert)
-        channels = app.screen.query_one('#channels-sidebar', SideBar)
-        thread = app.selected_session.query_one('#thread-sidebar', SideBar)
+        channels = app.screen.query_one(ChannelsSidebar)
+        thread = app.selected_session.query_one(ThreadSidebar)
         channels.reveal()
         thread.reveal()
         ui.conversation.prompt.focus()

@@ -1,4 +1,5 @@
 """Textual-facing: a plan sent by an ACP agent is drawn as one Plan widget in the conversation and in the sidebar (status markers, completion strike-through animation, reset, return), and malformed plan updates are rejected with a visible note."""
+from toad.widgets.side_bar import ThreadSidebar
 from toad.session_scope import AgentAttached
 
 import asyncio
@@ -32,7 +33,7 @@ def all_complete(plan: Plan) -> bool:
 
 
 async def reveal(source):
-    sidebar = source.query_one("#thread-sidebar")
+    sidebar = source.query_one(ThreadSidebar)
     sidebar.reveal()
     async with asyncio.timeout(12):
         await sidebar.wait_content_ready()

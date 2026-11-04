@@ -24,10 +24,6 @@ class GoalInteraction(DeclaredFamily, affix="Interaction"):
     label: ClassVar[str]
 
     @classmethod
-    def control_id(cls) -> str:
-        return f"goal-{cls.declared_name}"
-
-    @classmethod
     def enabled(cls, session: GoalSession) -> bool:
         return session.display.can_control
 

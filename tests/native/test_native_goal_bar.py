@@ -1,5 +1,7 @@
 """The goal bar follows the real owner: standby, a long goal that scrolls, edits made elsewhere, pause/resume and clear."""
 
+from toad.goal_interaction import EditInteraction, HistoryInteraction, ToggleInteraction
+from support.goal_controls import goal_control
 from agent_comms.repo import Checkout
 import asyncio
 import json
@@ -84,7 +86,7 @@ async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_
         ui, comms, session = native.ui, native.comms, native.thread
         app, pilot = ui.textual
         conversation = ui.conversation
-        await pilot.click("#goal-history")
+        await pilot.click(goal_control(bar, HistoryInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="goal details")
         details = app.screen
         owner_edit(comms, session, "Changed through owner backend")
@@ -92,7 +94,7 @@ async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_
                        why="the owner's edit in goal details")
         assert "Changed through owner backend" in str(details.query_one(CurrentObjective).render())
         await ui.press("escape")
-        await pilot.click("#goal-edit")
+        await pilot.click(goal_control(bar, EditInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalEdit), why="the goal editor")
         editor = app.screen
         editor.editor.text = "UNSAVED DRAFT"
@@ -144,9 +146,9 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
         await ui.until(lambda: "Blocked" in str(bar.header.render()), seconds=30,
                        why="the unproductive native goal turn settles as failed")
         assert comms.registry.require(session).goal == first
-        await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Retry",
+        await ui.until(lambda: str(goal_control(bar, ToggleInteraction).render()) == "Retry",
                        why="Retry from execution while the stored goal remains active")
-        await pilot.click("#goal-history")
+        await pilot.click(goal_control(bar, HistoryInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the open goal details")
         details = app.screen
         sending = asyncio.create_task(agent.send_prompt("Read proof.txt and report completion"))
@@ -161,7 +163,7 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
         await ui.until(lambda: "Active" in str(details.query_one(CurrentHeading).render()),
                        why="the already-open details following productive settlement")
         await ui.press("escape")
-        await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Pause",
+        await ui.until(lambda: str(goal_control(bar, ToggleInteraction).render()) == "Pause",
                        why="the goal control following the ledger-only change")
         assert view.prompt.text == "Keep the draft across the failed turn"
 

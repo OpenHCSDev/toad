@@ -332,12 +332,11 @@ class TabHistoryButton(HeaderButton, ToadNode):
 
     direction: ClassVar[int]
     label: ClassVar[str]
-    button_id: ClassVar[str]
     available_tooltip: ClassVar[str]
     unavailable_tooltip: ClassVar[str]
 
     def __init__(self) -> None:
-        super().__init__(self.label, id=self.button_id)
+        super().__init__(self.label)
         self.tooltip = self.available_tooltip
 
     def sync(self, tab_order: TabOrder) -> None:
@@ -358,7 +357,6 @@ class TabHistoryButton(HeaderButton, ToadNode):
 class BackTabButton(TabHistoryButton):
     direction = -1
     label = "<──"
-    button_id = "tab-back"
     available_tooltip = "Back through visited tabs"
     unavailable_tooltip = "No earlier visited tab"
 
@@ -366,7 +364,6 @@ class BackTabButton(TabHistoryButton):
 class ForwardTabButton(TabHistoryButton):
     direction = +1
     label = "──>"
-    button_id = "tab-forward"
     available_tooltip = "Forward through visited tabs"
     unavailable_tooltip = "No later visited tab"
 
@@ -764,8 +761,7 @@ class SideBar(
         defer_mount: bool = False,
     ) -> None:
         self._placement_identity = placement_identity
-        super().__init__(name=name, id=placement_identity.native_id(),
-                         classes=classes, disabled=disabled)
+        super().__init__(name=name, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
         self.content_stack = SidebarContentStack()
         self.search_input = SidebarSearch(placeholder="Search", compact=True)

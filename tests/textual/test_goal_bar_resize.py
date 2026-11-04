@@ -1,5 +1,7 @@
 """Textual-facing: dragging the goal bar's separator (mouse capture, regions, bounds)."""
 
+from toad.goal_interaction import CollapseInteraction
+from support.goal_controls import goal_control
 from dataclasses import replace
 
 from agent_comms.goals import NoGoal
@@ -56,9 +58,9 @@ async def test_dragged_height_survives_a_new_revision_and_a_collapse_cycle(works
         view.goal_display = replace(GOAL, revision=8)
         await ui.step()
         assert document.region.height == resized
-        await pilot.click("#goal-collapse")
+        await pilot.click(goal_control(bar, CollapseInteraction))
         await ui.until(lambda: bar.collapsed, why="the bar collapsed")
-        await pilot.click("#goal-collapse")
+        await pilot.click(goal_control(bar, CollapseInteraction))
         await ui.until(lambda: not bar.collapsed, why="the bar expanded")
         assert document.region.height == resized
 

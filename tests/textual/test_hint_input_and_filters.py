@@ -1,4 +1,6 @@
 """Real hint labels reach text entry and the sidebar's native control effects."""
+from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from textual.widgets._collapsible import CollapsibleTitle
 from textual.widgets._hints import HintLabel, HintSession
 
@@ -14,8 +16,8 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
         app, _pilot = ui.textual
         editor = ui.conversation.prompt.prompt_text_area
         await ui.write_draft('keep this draft')
-        left = app.screen.query_one('#channels-sidebar', SideBar)
-        right = app.selected_session.query_one('#thread-sidebar', SideBar)
+        left = app.screen.query_one(ChannelsSidebar)
+        right = app.selected_session.query_one(ThreadSidebar)
         left.reveal()
         right.reveal()
         await left.wait_content_ready()

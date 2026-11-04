@@ -4,6 +4,7 @@ Each takes the ``TextualUi``. App-layer tests do not use these.
 """
 
 from __future__ import annotations
+from toad.widgets.side_bar import ThreadSidebar
 
 import asyncio
 
@@ -13,7 +14,7 @@ async def reveal_project_tree(ui):
     from toad.widgets.project_directory_tree import ProjectDirectoryTree
     from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
-    sidebar = ui.app.screen.query_one("#thread-sidebar", SideBar)
+    sidebar = ui.app.screen.query_one(ThreadSidebar)
     sidebar.reveal()
     await sidebar.wait_content_ready()
     next(panel for panel in sidebar.query(SideBarCollapsible) if panel.title == "Project").collapsed = False

@@ -1,5 +1,7 @@
 """Textual-facing: the goal bar's Retry control is a mounted button that reaches the goal owner."""
 
+from toad.goal_interaction import ToggleInteraction
+from support.goal_controls import goal_control
 from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_presentation import RetryableBlockExecution
 from agent_comms.goal_states import BlockedGoal
@@ -21,5 +23,5 @@ async def test_blocked_goal_offers_retry_and_retry_reaches_the_owner(workspace):
         await ui.click("Retry")
         await ui.until(lambda: owner.requests, why="the retry request at the owner")
         assert owner.requests == [("update", RetryGoalAction)]
-        await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Pause",
+        await ui.until(lambda: str(bar.query_one(goal_control(bar, ToggleInteraction)).render()) == "Pause",
                        why="the owner's runnable reply repaints the control")

@@ -1,5 +1,7 @@
 """Textual-facing: goal bar standby row, goal edit screen and goal details screen as Textual widgets over a scripted goal owner."""
 
+from toad.goal_interaction import ClearInteraction, EditInteraction, HistoryInteraction
+from support.goal_controls import goal_control
 import asyncio
 from dataclasses import replace
 
@@ -122,7 +124,7 @@ async def test_rejected_goal_edit_keeps_the_draft_and_the_retry_is_accepted(work
         app, pilot = ui.textual
         owner, view, bar, status = await shown_goal(workspace, ui)
         await ui.until_shows("Edit")
-        await pilot.click("#goal-edit")
+        await pilot.click(goal_control(bar, EditInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalEdit), why="the goal editor")
         editor = app.screen
         editor.query_one(GoalSave).active_effect_duration = 0
@@ -177,7 +179,7 @@ async def test_goal_history_lists_earlier_revisions(workspace):
         app, pilot = ui.textual
         owner, view, bar, status = await shown_goal(workspace, ui)
         await ui.until_shows("History")
-        await pilot.click("#goal-history")
+        await pilot.click(goal_control(bar, HistoryInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the goal details screen")
         for text in ("HISTORICAL_OBJECTIVE", "baseline", "transition", "observed gap",
                      "Attempt 3 · revision 4 · native child signaled"):
@@ -197,7 +199,7 @@ async def test_refused_goal_control_preserves_owner_state_and_composer(workspace
         if command:
             assert await CommandCatalog.execute(command, view)
         else:
-            clear = bar.query_one("#goal-clear", GoalControl)
+            clear = bar.query_one(goal_control(bar, ClearInteraction), GoalControl)
             assert await ui.pilot.click(clear), "the real clear control must receive the click"
         await ui.until(lambda: owner.requests == [("update", expected_action)],
                        why="one goal-control request at the scripted owner")
