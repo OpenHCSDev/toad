@@ -6,7 +6,6 @@ from toad.markdown_links import LinkContext
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widget import Widget
-from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
 from toad.native_style import AutoHeight
@@ -14,6 +13,30 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
 from toad.widgets.transcript_lines import BlockLines, LinePreparation, TranscriptLinesRenderTask
 from toad.widgets.transcript_fragments import transcript_fragments
+from toad.core.projection import MroProjection
+from toad.worker_group import WorkerGroup
+from metaclass_registry.mro_dispatch import handles
+
+
+class CliDraftRender(WorkerGroup):
+    """Draws the current draft; clearing the draft cancels it."""
+
+    group = "cli-draft"
+
+
+class DraftRender(MroProjection[None]):
+    """A shown draft is drawn; with no draft there is nothing to draw."""
+
+    @handles(DraftRow)
+    def shown(self, draft: DraftRow, widget: "CliDraft") -> None:
+        CliDraftRender.run_on(widget, widget._draw)
+
+    @handles(NoDraft)
+    def absent(self, draft: NoDraft, widget: "CliDraft") -> None:
+        """Nothing to draw."""
+
+
+DRAFT_RENDER = DraftRender()
 
 
 class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Widget):
@@ -26,7 +49,6 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         self._lines: BlockLines | None = None
         self._blocks = ()
         self._width = 0
-        self._render_worker: Worker[None] | None = None
         self.display = False
 
     def on_mount(self) -> None:
@@ -38,6 +60,8 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         self.refresh(layout=True)
 
     def clear(self) -> None:
+        # A render in flight drew the previous draft; it stops before it can show it.
+        CliDraftRender.cancel_all(self)
         self.draft = NoDraft()
         self._blocks = ()
         self._lines = None
@@ -53,11 +77,11 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         self._request_render()
 
     def _request_render(self) -> None:
-        if self.is_attached and (self._render_worker is None or self._render_worker.is_finished):
-            self._render_worker = self.run_worker(self._draw(), group="cli-draft")
+        if self.is_attached and not CliDraftRender.running_on(self):
+            DRAFT_RENDER.project_value(self.draft, self)
 
     async def _draw(self) -> None:
-        while self.is_attached and self.draft is not None:
+        while self.is_attached:
             draft = self.draft
             width = self._width or self.query_ancestor(HistoryWindow).content_size.width
             if width <= 0:
@@ -69,7 +93,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
                 TranscriptLinesRenderTask(LinePreparation(blocks, theme), context))
             if not context.current_for(self):
                 continue
-            if not self.is_attached or self.draft is None:
+            if not self.is_attached:
                 return
             if ((draft.turn_id, draft.item_id) != (self.draft.turn_id, self.draft.item_id)
                     or theme is not self.app.colours.line_theme):
