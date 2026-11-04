@@ -9,7 +9,7 @@ from collections.abc import Callable, Sequence
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, replace
 from functools import partial
-from typing import TYPE_CHECKING, Self, TypeGuard
+from typing import TYPE_CHECKING, ClassVar, Self, TypeGuard
 
 from agent_comms.acp_extension import (
     InputStartedUpdate,
@@ -46,7 +46,7 @@ from agent_comms.ui_model.observation import (
 )
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
-from textual.worker import Worker, WorkerCancelled
+from textual.worker import Worker, WorkerCancelled, get_current_worker
 
 from toad.core.events import CoreEventStream
 from toad.core.projection import MroProjection
@@ -414,6 +414,32 @@ class RunningPublicationWork(PublicationWork):
     async def settled(self) -> None:
         await self.worker.wait()
 
+    # Textual groups a view's workers by name; each kind names its group once.
+    group: ClassVar[str]
+    exclusive: ClassVar[bool] = False
+
+    @classmethod
+    def start(cls, view: Widget, work: Callable[[], object]) -> Self:
+        return cls(view.run_worker(work, group=cls.group, exclusive=cls.exclusive))
+
+    @classmethod
+    def cancel_all(cls, view: Widget) -> tuple[Self, ...]:
+        """Every worker of this kind on the view, including ones a newer start superseded."""
+        return tuple(cls(worker) for worker in view.workers.cancel_group(view, cls.group))
+
+
+class WindowPublicationWork(RunningPublicationWork):
+    """Publishes the window's commits; a newer request supersedes a running one."""
+
+    group = "transcript-window"
+    exclusive = True
+
+
+class SourcePublicationWork(RunningPublicationWork):
+    """Reads the queued source publications in order."""
+
+    group = "transcript-source"
+
 
 class SourcePublicationRequests:
     """One running read and one coalesced original request, never model state."""
@@ -453,7 +479,7 @@ class SourcePublicationRequests:
             if not view.is_attached:
                 return False
             self.observation.close()
-            self.worker = RunningPublicationWork(view.run_worker(self.publish, group="transcript-source"))
+            self.worker = SourcePublicationWork.start(view, self.publish)
         return True
 
     async def publish(self) -> None:
@@ -789,23 +815,11 @@ class BoundView(ViewBinding):
         view = self.view
         if not view.is_attached:
             return
-        owner.worker = RunningPublicationWork(view.run_worker(
-            partial(owner.publish, CommitPublication),
-            group="transcript-window",
-            exclusive=True,
-        ))
+        owner.worker = WindowPublicationWork.start(view, partial(owner.published, view, CommitPublication))
 
     def cancel_workers(self):
         view = self.view
-        return tuple(
-            RunningPublicationWork(worker)
-            for group in (
-                "transcript-window",
-                "transcript-source",
-                "transcript-handling",
-            )
-            for worker in view.workers.cancel_group(view, group)
-        )
+        return (*WindowPublicationWork.cancel_all(view), *SourcePublicationWork.cancel_all(view))
 
     def covered(self, owner: TranscriptPresentation, coverage: CoverageEvent, history: CommittedHistory):
         view = self.view
@@ -969,6 +983,19 @@ class TranscriptPresentation:
     def invalidate_publications(self) -> None:
         """Revoke in-flight view work without forgetting its published source."""
         self.generation += 1
+
+    async def published(self, view: Widget, kind: type[TranscriptPublication]) -> None:
+        """Run one window publication; once its worker has stopped, publish what it left pending."""
+        worker = get_current_worker()
+        try:
+            await self.publish(kind)
+        finally:
+            view.call_later(self.window_work_stopped, worker)
+
+    def window_work_stopped(self, worker: Worker) -> None:
+        # A superseded worker leaves the retry to the one that replaced it.
+        if self.worker.runs(worker):
+            self.retry()
 
     async def publish(self, kind: type[TranscriptPublication], *args: ThreadPresentation) -> bool:
         publication = self.binding.capture(self, kind, *args)
