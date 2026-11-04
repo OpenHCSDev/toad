@@ -1,6 +1,8 @@
 """One captured session authority for ACP client-side effects."""
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NoReturn
+from agent_comms.acp_extension import CoordinationChangedUpdate
+
 from .queue_attachment import QueueActionRefused
 
 if TYPE_CHECKING:
@@ -44,6 +46,29 @@ class QueueSessionRequest(ClientSessionRequest):
 
     def unconfirmed(self, reason: str) -> NoReturn:
         raise QueueActionRefused(f"Queue action not confirmed: {reason}. Inspect the queue before another action.")
+
+
+@dataclass(frozen=True)
+class OwnerRequest:
+    """One original source and its independently captured physical authority."""
+
+    coordination: "CoordinationChangedUpdate"
+    authority: ClientSessionRequest
+
+    @property
+    def source_current(self) -> bool:
+        return self.authority.agent.matches_source(
+            self.coordination.wire_root, self.coordination.thread)
+
+    @property
+    def current(self) -> bool:
+        return self.authority.current and self.source_current
+
+    def require(self) -> None:
+        if self.authority.retired:
+            raise ValueError("The connected owner session retired; refresh its state.")
+        if not self.source_current:
+            raise ValueError("The owner identity changed while preparing the request.")
 
 
 class ClientRequestOwner:

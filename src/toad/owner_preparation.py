@@ -1,16 +1,14 @@
-"""Captured read-side service binding for native owner RPC preparation."""
+"""Core's captured binding supplies a read-only native owner plan."""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 
-from agent_comms.comms import Comms
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.session_load import ExistingSessionLoadPlan
 from agent_comms.thread_presentation import (
     LiveThreadOwnerBinding,
     ThreadOwnerBinding,
-    ThreadPresentation,
 )
 
 from toad.core.projection import MroProjection
@@ -60,9 +58,3 @@ class ExistingOwnerPlan(MroProjection[OwnerPlan]):
     @classmethod
     def from_binding(cls, binding: ThreadOwnerBinding) -> OwnerPlan:
         return cls().project_value(binding)
-
-
-def read_thread_presentation(comms: Comms, name: str) -> ThreadPresentation:
-    """Read the existing core presentation on a worker, without UI dependencies; only its
-    published projection leaves the worker, never the acquired delivery evidence."""
-    return comms.views.thread_presentations((name,)).read(name).published()

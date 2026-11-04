@@ -1,40 +1,44 @@
-"""A prompt still being built is refused, and never sent, when the session changes and returns meanwhile."""
-import asyncio
-import threading
-
+"""Rebinding or reopening never revives a captured prompt or queue authority."""
 import pytest
-from agent_comms.acp_extension import QueuePromptRequest
-from toad.acp import agent_controller
+from acp.exceptions import RequestError
+
+from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.queue_attachment import QueueActionRefused
 
 
-async def test_pending_prompt_build_is_refused_when_the_session_changes_and_returns(app_agents, monkeypatch):
-    agent = app_agents.detached_agent('A', identity='prompt-session')
-    entered, release = threading.Event(), threading.Event()
-    real_build = agent_controller.build_prompt
-    def pending_build(project, text):
-        entered.set()
-        assert release.wait(5), 'Test failed to release resource preparation'
-        return real_build(project, text)
-    dispatched = []
-    monkeypatch.setattr(agent_controller, 'build_prompt', pending_build)
-    async def recorded_prompt(agent, content, metadata, require):
-        require()
-        dispatched.append(content)
-    monkeypatch.setattr(agent.process, 'prompt', recorded_prompt)
-    pending = asyncio.create_task(agent.send_prompt('unchanged local input', request=QueuePromptRequest('unchanged local input', True)))
-    assert await asyncio.to_thread(entered.wait, 5)
-    assert agent.controller.prompt_in_flight == 1
-    sending_now = asyncio.create_task(agent.controller.send_now())
-    await asyncio.sleep(0)
-    agent.session_id = 'B'
-    agent.session_id = 'A'
-    release.set()
-    # The retired prompt's controller refuses it at the write and reports no stop reason.
-    assert await pending is None
-    with pytest.raises(QueueActionRefused):
-        await sending_now
-    assert dispatched == []
-    assert agent.controller.prompt_in_flight == 0
-    assert not agent.controller._deferred_submissions
-    await agent.stop()
+async def test_rebinding_back_to_the_same_name_refuses_captured_requests(app_agents):
+    agent = app_agents.detached_agent("A", identity="prompt-session")
+    prompt = ClientSessionRequest(agent, agent.session_id)
+    queue = QueueSessionRequest(agent, agent.session_id)
+    disposition = agent.session.disposition
+    try:
+        assert prompt.current and queue.current
+        agent.session_id = "B"
+        agent.session_id = "A"
+        assert agent.session.disposition is disposition
+        assert agent.session.accepts_session("A")
+        for request in (prompt, queue):
+            assert request.retired
+            with pytest.raises(RequestError):
+                request.require()
+        assert prompt.unconfirmed("captured session retired") is None
+        with pytest.raises(QueueActionRefused):
+            queue.unconfirmed("captured session retired")
+    finally:
+        await agent.stop()
+
+
+async def test_reopening_the_same_binding_refuses_the_original_disposition(app_agents):
+    agent = app_agents.detached_agent("A", identity="prompt-disposition")
+    request = ClientSessionRequest(agent, agent.session_id)
+    try:
+        assert request.current
+        agent.session.close()
+        agent.session.reopen()
+        assert agent.controller.session is request.binding
+        assert agent.session.accepts_session("A")
+        assert agent.session.disposition is not request.disposition
+        with pytest.raises(RequestError):
+            request.require()
+    finally:
+        await agent.stop()

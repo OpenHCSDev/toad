@@ -42,12 +42,12 @@ async def test_closing_the_app_after_the_observation_process_exits_raises_nothin
         view = ui.conversation
         agent = ui.detached_agent("closing")
         view.bind_agent(agent)
-        agent.coordination = registered_coordination_fact(
+        coordination = registered_coordination_fact(
             comms, "source", owner=ProcessIdentity.capture(os.getpid()), worktree=project, model="test-model")
-        await deliver(agent, carrying(agent.coordination))
+        await deliver(agent, carrying(coordination))
         await ui.until(lambda: "SAVED_NOTICE" in ui.painted(view.window), why="the saved history")
         assert view.contents.query(TranscriptHistory)
-        observer = ui.app.coordination_access.observation.process.process
+        observer = ui.app.coordination_access.observation.process.peer.process
     # Leaving the block closes the app: the saved history parks and states its last interest,
     # then the observation process exits.
     assert observer.exitcode == 0

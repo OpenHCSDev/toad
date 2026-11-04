@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import ClassVar
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
-from agent_comms.comms import Comms
 from agent_comms.frozen_recipient import FrozenRecipient
+from agent_comms.tools import CommsQueueActionTool
 from agent_comms.message_reference import MessageReference
 from agent_comms.notification_assignment import NotificationSelection
 from agent_comms.nominal.field_codec import ThreadLookup
@@ -20,6 +20,8 @@ from toad.agent_presentation import AgentPresentation
 from toad.block_navigation import ConversationEntry
 from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines, MessageQueueEntry
+from toad.comms_root import Observing
+
 
 @dataclass(frozen=True)
 class QueueEvidence:
@@ -29,7 +31,7 @@ class QueueEvidence:
     delivering: tuple[str, ...]
     transport: str
     read_targets: Callable[[], tuple[ConversationEntry, ...]]
-    service: Callable[[], Comms]
+    observing: Callable[[], Observing]
 
     @cached_property
     def entries(self) -> tuple[MessageQueueEntry, ...]:
@@ -56,11 +58,11 @@ class QueueSource(ABC):
 
     preview_limit: ClassVar[int] = 3
 
-    def capture_queue_service(
-        self, transcript: Callable[[Callable[[], Comms]], Comms],
-        service: Callable[[], Comms],
-    ) -> Callable[[], Comms]:
-        return service
+    def capture_queue_observing(
+        self, transcript: Callable[[Callable[[], Observing]], Observing],
+        observing: Callable[[], Observing],
+    ) -> Callable[[], Observing]:
+        return observing
 
     @abstractmethod
     def queue_scope(self, evidence: QueueEvidence) -> QueueScope: ...
@@ -154,17 +156,12 @@ class BusQueueSource(QueueSource):
         await self.at_owners(evidence, ClearQueueRuntimeRequest)
 
     @staticmethod
-    def at_original_owner(comms: Comms, recipient: FrozenRecipient,
-                          action: type[QueueActionRuntimeRequest]) -> None:
-        original = comms.registry.snapshot().born(recipient.lookup)
-        action.at_owner(comms.root, original)
-
-    @staticmethod
     async def at_owners(evidence: QueueEvidence, action: type[QueueActionRuntimeRequest]) -> None:
         """Act on the original recipients; stop and propagate a failed action."""
         for recipient in evidence.queued_recipients:
-            comms = evidence.service()
-            await asyncio.to_thread(BusQueueSource.at_original_owner, comms, recipient, action)
+            observed = evidence.observing()
+            await asyncio.to_thread(
+                observed.core.call, CommsQueueActionTool(lookup=recipient.lookup, action=action))
 
     def queue_summary(self, evidence: QueueEvidence) -> str:
         entries = evidence.entries

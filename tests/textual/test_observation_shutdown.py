@@ -13,7 +13,7 @@ from agent_comms.ui_model.observation import (
     ObservationProcess, ObserverDied, ObserveNotifications, ReadNotifications, StopObserving,
     StopSidebar,
 )
-from toad.comms_root import AnsweringReads
+from toad.comms_root import LocalAnsweringReads
 
 
 async def stopped(pid: int) -> None:
@@ -32,13 +32,13 @@ async def stopped(pid: int) -> None:
 @asynccontextmanager
 async def held(process: ObservationProcess):
     """Hold this test's own observer child; resume it on every path while it lives."""
-    pid = process.process.pid
+    pid = process.peer.process.pid
     os.kill(pid, signal.SIGSTOP)
     try:
         await stopped(pid)
         yield pid
     finally:
-        if process.process.is_alive():
+        if process.peer.process.is_alive():
             os.kill(pid, signal.SIGCONT)
 
 
@@ -84,7 +84,7 @@ async def test_an_observer_dying_during_shutdown_still_releases_its_resources(wo
         _same, other = failures.split(lambda error: error is died)
         assert other is None
     assert process.connection.closed
-    assert not process.process.is_alive()
+    assert not process.peer.process.is_alive()
     assert not access.retiring
 
 
@@ -112,7 +112,7 @@ async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(works
                 assert process.reads and not reading.done()
                 await access.stop_observing()
                 answering = access.observation
-                assert type(answering) is AnsweringReads
+                assert type(answering) is LocalAnsweringReads
                 assert answering.process is process
                 assert answering.service is observing.service
                 assert answering.selection is observing.selection
@@ -145,4 +145,4 @@ async def test_stopping_observation_keeps_reads_but_sends_no_late_interest(works
             if reading is not None:
                 await settled(reading)
         assert set(result.outcomes) == {(message.seq, message.message_id)}
-        assert process.process.is_alive()
+        assert process.peer.process.is_alive()

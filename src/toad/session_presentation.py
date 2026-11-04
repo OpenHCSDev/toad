@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.comms import Comms
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from agent_comms.ui_model.message_category import MessageCategory
 from textual.document._editing import EditingMode
@@ -32,6 +31,7 @@ from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
 from toad.worker_group import InputHistoryRecord
+from toad.comms_root import Observing
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -262,11 +262,11 @@ class OperationalSessionSources(NativeQueueSource):
 class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
 
-    def capture_queue_service(
-        self, transcript: Callable[[Callable[[], Comms]], Comms],
-        service: Callable[[], Comms],
-    ) -> Callable[[], Comms]:
-        return partial(transcript, super().capture_queue_service(transcript, service))
+    def capture_queue_observing(
+        self, transcript: Callable[[Callable[[], Observing]], Observing],
+        observing: Callable[[], Observing],
+    ) -> Callable[[], Observing]:
+        return partial(transcript, super().capture_queue_observing(transcript, observing))
 
     def activity_row(self, conversation: Conversation):
         return conversation.thread_activity.row

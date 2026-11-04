@@ -1304,13 +1304,11 @@ class Conversation(
                 ):
                     await asyncio.sleep(0.1)
                 self.prompt.disabled = True
-                if (
-                    agent.coordination.wire_root
-                    if agent and agent.coordination
-                    else None
-                ) is None:
+                async def prepare_login():
                     await self.prune_window(0, 0)
                     self.output.boundary()
+
+                await agent.prepare_login(prepare_login)
                 await agent.session.reconnect_after_login()
             else:
                 await agent.session.authenticate(method_id)
@@ -1607,14 +1605,12 @@ class Conversation(
 
         screen = self.query_ancestor(MainScreen)
         nav = screen.navigation_context
-        comms = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.observation.observed().service
-        )
+        observed = self.app.coordination_access.observation.observed()
         if not self.is_attached or screen.navigation_context != nav:
             raise CommandContextChanged("Command view changed during discovery")
         return screen.thread_identity.command_target(
             lambda actor: TargetContext(
-                self.app, comms, CommandTarget.named(actor), actor, nav.project_path, nav.owner_mode
+                self.app, observed, CommandTarget.named(actor), actor, nav.project_path, nav.owner_mode
             )
         )
 

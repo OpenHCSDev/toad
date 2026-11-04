@@ -4,7 +4,7 @@ from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
 from dataclasses import replace
 
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from agent_comms.acp_extension import TranscriptSnapshotUpdate, encode_updates
 from agent_comms.threads import Thread
 from toad.acp.agent_controller import SessionBinding
 
@@ -24,13 +24,15 @@ async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
         updates[name] = TranscriptSnapshotUpdate(read.read(), read.identity)
 
     expected = registered_coordination_fact(workspace.comms, "alpha")
+    owner = workspace.agents.detached_agent("alpha")
+    await owner.comms_consumer_class(owner, owner.session_id).consume_metadata(encode_updates(expected))
     identity = updates["alpha"].identity
-    assert SessionBinding("alpha").accepts_snapshot(identity, expected)
-    assert not SessionBinding("beta").accepts_snapshot(identity, expected)
-    assert not SessionBinding("alpha").accepts_snapshot(
-        replace(identity, root=str(workspace.project)), expected)
-    assert not SessionBinding("alpha").accepts_snapshot(replace(
-        identity, thread=replace(identity.thread, created_at=identity.thread.created_at - 0.5)), expected)
+    assert owner.controller.session.accepts_snapshot(identity, owner)
+    assert not SessionBinding("beta").accepts_snapshot(identity, owner)
+    assert not owner.controller.session.accepts_snapshot(
+        replace(identity, root=str(workspace.project)), owner)
+    assert not owner.controller.session.accepts_snapshot(replace(
+        identity, thread=replace(identity.thread, created_at=identity.thread.created_at - 0.5)), owner)
 
     async with workspace.app(size=(110, 38)) as ui:
         alpha_tab = await ui.app.thread_navigation.open(

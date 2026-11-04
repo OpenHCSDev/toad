@@ -1,7 +1,7 @@
 from toad.core import events as core_events
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
-from toad.comms_root import CoordinationAccess
+from toad.comms_root import CoreConnection
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -18,7 +18,6 @@ from time import monotonic
 from typing import TYPE_CHECKING, Callable, Never, TypeVar, cast
 
 from agent_comms.acp_extension import TranscriptChangedUpdate
-from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.repo import Checkout
 from agent_comms.root_runtime import RootRuntime
@@ -158,7 +157,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self,
         agent_binding: AgentBinding,
         project_dir: Checkout,
-        launch_root: LaunchRoot,
+        connection: CoreConnection,
         mode: str | None = None,
         agent_session_id: str | None = None,
     ) -> None:
@@ -167,7 +166,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         Args:
             agent_binding: The agent selected at startup.
             project_dir: Project directory.
-            launch_root: Coordination root selected by the launch owner.
+            connection: Core transport selected by the launch owner.
             mode: Initial mode.
         """
         from toad.render_processes import RenderProcessPool
@@ -198,7 +197,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
             db=DB(),
         )
         self._session_tracker = SessionTracker(self.tab_order)
-        self.coordination_access = CoordinationAccess(self, launch_root)
+        self.coordination_access = connection.open_access(self)
 
         from toad.file_kind import FileKind
         FileKind.prepare_terminal()
@@ -439,23 +438,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def selected_mode(self):
         return (self.workspace_sessions.source.identity
                 if self.current_mode == "workspace" else self.current_mode)
-
-
-    def local_coordination_threads(self) -> set[str]:
-        """Authoritative wire identities already represented by local sessions."""
-        threads: set[str] = set()
-        for details in self.session_tracker.ordered_sessions:
-            screen = self.session_navigation.source(details.mode_name)
-            if screen is not None and screen.coordination_root is not None:
-                threads.add(screen.thread_identity.thread_name())
-        return threads
-
-    async def registry_names(self) -> list[str]:
-        """Read peers through the current coordination owner, independent of panels."""
-        registered = await self.preparation.run_thread(
-            lambda: tuple(self.coordination_access.observation.observed().service.registry.active_threads()))
-        local_threads = self.local_coordination_threads()
-        return [name for name in registered if name not in local_threads]
 
     @property
     def running_loop(self) -> asyncio.AbstractEventLoop:

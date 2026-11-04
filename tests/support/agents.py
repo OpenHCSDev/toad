@@ -57,8 +57,10 @@ class AppAgents:
     def unrun(cls, project: Path, launch_root: LaunchRoot) -> AppAgents:
         """For a test with no app running: agents of an app built on ``project`` and never run."""
         from toad.app import ToadApp
+        from toad.comms_root import LocalCoreConnection
 
-        return cls(ToadApp(agent_binding=NoAgent(), project_dir=Checkout(project), launch_root=launch_root))
+        return cls(ToadApp(agent_binding=NoAgent(), project_dir=Checkout(project),
+                           connection=LocalCoreConnection.from_launch(launch_root)))
 
     def agent[A: Agent](self, kind: type[A], definition: AgentDefinition, session_id: str | None = None,
                         **fields: object) -> A:
