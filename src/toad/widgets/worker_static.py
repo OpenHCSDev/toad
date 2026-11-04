@@ -68,10 +68,10 @@ class WorkerStatic(PreparedPaintSource, Static):
     @classmethod
     def code(cls, text: str, *, filename: str, lexer: str | None = None,
              line_numbers: bool = True,
-             filename_only: bool = False, id: str | None = None) -> WorkerStatic:
+             filename_only: bool = False) -> WorkerStatic:
         """Prepare lexer discovery and native Syntax rendering in the worker."""
         return cls(SyntaxSource(text, filename, lexer=lexer,
-                                line_numbers=line_numbers, filename_only=filename_only), id=id)
+                                line_numbers=line_numbers, filename_only=filename_only))
 
     def on_mount(self) -> None:
         self._closed = False
