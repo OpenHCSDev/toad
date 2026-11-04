@@ -108,21 +108,28 @@ class CommsChatView(Conversation):
             raise ValueError(
                 f"Conversation root {self._bound_root} differs from observed root {observed.root}"
             )
-        await self.app.coordination_access.current_sidebar()
         source = WireSource(
             observed.root, self.conversation, self.project_path, self._me,
             IrcMessageStyle(), access=self.app.coordination_access, core=observed.core,
         )
         self.queue_source = source
         self.message_history.initialize_source(source)
+        # The view hears its history's source work and Core's observations
+        # from before its first read, so no completion arrives unheard.
+        self.observe_core(self.app.coordination_access.events)
+        self.observe_core(self.app.events)
+        # The label shows the conversation's initial name until the sidebar's
+        # references arrive (ReferenceContext), so identity does not wait for them.
         self.refresh_identity(observed.root)
-        self.prepare_prompt()
         self.window.anchor()
         # CommsScreen has already presented its route before mounting this
         # view. Start its asynchronous page read now, overlapping it with the
-        # remaining control mounts rather than waiting for another empty
-        # history frame. The history runs the read as its own source work.
+        # sidebar observation and the remaining control mounts. The history
+        # reads Core directly and runs the read as its own source work.
         await self._refresh()
+        # The composer's commands read the sidebar's references synchronously.
+        await self.app.coordination_access.current_sidebar()
+        self.prepare_prompt()
 
     @handles(core_events.CoordinationObserved)
     async def _command_source_changed(self, event: core_events.CoordinationObserved) -> None:
@@ -182,15 +189,11 @@ class CommsChatView(Conversation):
             if self.is_attached:
                 self.call_after_refresh(self.prepare_prompt)
             return
-        self.observe_core(self.app.coordination_access.events)
-        self.observe_core(self.app.events)
         self.update_slash_commands()
         prompt.agent_info = self.agent_info
         prompt.sync_session()
         prompt.shell_mode = False
         prompt.update_prompt()
-        from toad.session_scope import SessionScope
-
         if self.query_ancestor(SessionScope).is_current:
             prompt.focus()
 
