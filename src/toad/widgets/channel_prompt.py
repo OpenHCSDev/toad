@@ -22,7 +22,7 @@ class MentionList(SpacedBelow, AutoHeight, SelectionOptionList):
 class ChannelTextArea(MessageTextArea):
     prompt: ChannelPrompt
 
-    async def action_tab_complete(self) -> None:
+    async def tab_complete(self) -> None:
         prompt = self.prompt
         prompt.refresh_mentions(force=True)
         prompt.accept_mention()

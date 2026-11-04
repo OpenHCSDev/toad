@@ -4,10 +4,10 @@ import shlex
 import sys
 
 from textual.document._editing import EditingMode
-from textual.keys import KeyDeclaration
 from toad.conversation_actions import InterruptAction
 from support.agents import peer
 from toad.session_scope import AgentAttached
+from toad.prompt_actions import CompleteAction
 from toad.widgets.prompt import Prompt, PromptTextArea
 
 
@@ -33,7 +33,7 @@ async def test_shell_path_completion_remaps_and_cursor_movement_clears_stale_sug
     (workspace.project / "alpine.txt").touch()
     async with workspace.app() as ui:
         app, _ = ui.textual
-        app.set_keymap({KeyDeclaration.binding_id_for(PromptTextArea.action_tab_complete, EditingMode): "f6"})
+        app.set_keymap({CompleteAction.binding_id(EditingMode): "f6"})
         await ui.press("exclamation_mark")
         await ui.type("cat alp")
         editor = ui.conversation.prompt.prompt_text_area

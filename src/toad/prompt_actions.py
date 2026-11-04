@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from toad.widgets.prompt import PromptTextArea
+    from toad.widgets.prompt import Prompt, PromptTextArea
 
 
 class PromptAction(Action, affix="Action"):
@@ -110,6 +110,40 @@ class CopyOrClearInputAction(PromptAction):
         editor.clear()
         editor.editing_mode.resume(editor)
         editor.clear_suggestions()
+
+
+class PromptFrameAction(Action, affix="Action"):
+    """Keys the prompt frame answers, whether or not its editor exists yet."""
+
+
+class EnterInsertAction(PromptFrameAction):
+    """Show the latest prompt, ready for text entry."""
+
+    title = "Focus prompt"
+    keys = {VimMode: ("i",)}
+
+    def apply(self, prompt: Prompt) -> None:
+        prompt.enter_insert()
+
+
+class CompleteAction(PromptAction):
+    """Complete what precedes the cursor: a shell path in a shell prompt, a member in a channel."""
+
+    keys = {EditingMode: ("tab",)}
+    priority = True
+
+    async def apply(self, editor: PromptTextArea) -> None:
+        await editor.tab_complete()
+
+
+class PasteClipboardAction(PromptAction):
+    """Paste clipboard text, or attach a clipboard PNG image."""
+
+    keys = {EditingMode: ("ctrl+v",)}
+    priority = True
+
+    def apply(self, editor: PromptTextArea) -> None:
+        editor.paste_clipboard()
 
 
 class NewlineAction(PromptAction):

@@ -22,8 +22,7 @@ from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
-from textual.binding import ModeBinding
-from textual.widgets.text_area import EditingMode, VimMode
+from textual.widgets.text_area import EditingMode
 from toad.neovim_editing import NeovimUpdated
 from textual.document._editing import EditingFailure
 from textual.content import Content, Span
@@ -72,7 +71,7 @@ from toad.native_style import (
 )
 from toad.tone_paint import TonePaint
 from toad.path_complete import PathComplete
-from toad.prompt_actions import PromptAction, SubmitInputAction, SubmitNowAction
+from toad.prompt_actions import PromptAction, PromptFrameAction, SubmitInputAction, SubmitNowAction
 from toad.prompt_cursor import (
     CommandText,
     HistoryCursor,
@@ -538,7 +537,7 @@ See on-screen instructions for details.
         self.editing_mode.paste(self, text)
 
     @work(group='clipboard-paste', exclusive=True)
-    async def action_paste_clipboard(self) -> None:
+    async def paste_clipboard(self) -> None:
         if self.read_only:
             return
         try:
@@ -562,7 +561,7 @@ See on-screen instructions for details.
         except (OSError, ValueError, TimeoutError) as error:
             self.app.show_error(error, 'Paste failed')
 
-    async def action_tab_complete(self) -> None:
+    async def tab_complete(self) -> None:
         if not self.editing_mode.accepts_text or not self.shell_mode:
             return
         prompt = self.prompt
@@ -599,13 +598,6 @@ See on-screen instructions for details.
         elif self.suggestions:
             self.suggestions_index = (self.suggestions_index + 1) % len(self.suggestions)
             self.suggestion = self.suggestions[self.suggestions_index]
-
-    MODE_BINDINGS = (
-        ModeBinding("ctrl+v", action_paste_clipboard, "Paste clipboard", mode=EditingMode,
-                    priority=True),
-        ModeBinding("tab", action_tab_complete, "Complete shell path", mode=EditingMode,
-                    priority=True),
-    )
 
     async def _submit(self, action: SubmitInputAction, mode: EditingMode) -> None:
         """A refused or superseded transfer consumes no text and retains no intent."""
@@ -695,7 +687,7 @@ class MessageTextArea(PromptTextArea):
 
 
 class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingEffects, TonePaint,
-             containers.VerticalGroup):
+             containers.VerticalGroup, actions=(PromptFrameAction,)):
     tone = PromptToneColour
 
 
@@ -978,10 +970,6 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
         self.prompt_text_area.editing_mode.enter_text(self.prompt_text_area)
         self.query_ancestor(Conversation).focus_prompt()
-
-    MODE_BINDINGS = (
-        ModeBinding("i", enter_insert, "Focus prompt", mode=VimMode, show=False),
-    )
 
     def focus(self, scroll_visible: bool = True) -> Self:
         if self._ask is not None:
