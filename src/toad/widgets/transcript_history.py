@@ -40,7 +40,7 @@ from ui_theme.effects import NEW_TEXT
 
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
-from toad.message_rows import MessageClock
+from toad.message_rows import RecordedMessageClock
 from toad.no_worker import NO_TASK, NoTask, NoWorker
 from toad.session_scope import SessionScope
 from toad.transcript_filter import FilterState
@@ -160,7 +160,7 @@ class FragmentSpan(BlockSpan, FragmentLocation):
         return self
 
     def tooltip(self) -> str | None:
-        return MessageClock.recorded(self.fragment.timestamp).display()[1]
+        return RecordedMessageClock(self.fragment.timestamp).display()[1]
 
     def selected_by(self, cursor: FragmentBlockCursor) -> bool:
         cursor.fragment = self.fragment

@@ -53,7 +53,8 @@ from toad.line_blocks import (
 from toad.core.projection import MroProjection
 from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
-from toad.message_rows import MessageClock, WireBody
+from agent_comms.recorded_time import RecordedEventTime, UnrecordedEventTime
+from toad.message_rows import RecordedMessageClock, WireBody
 from toad.patch import DiffSettings, Patch
 from toad.render_backend import ReusableRenderTask
 from toad.rich_preparation import RichTextBody, SyntaxPalette
@@ -140,6 +141,24 @@ class HeadingStyle(MroProjection[Style]):
 
 
 HEADING_STYLE = HeadingStyle()
+
+
+class DividerTime(MroProjection[tuple[tuple[Span, ...], ...]]):
+    """A recorded divider shows its time beside the title, or below it when they do not fit."""
+
+    @handles(RecordedEventTime)
+    def recorded(self, time: RecordedEventTime, spans: tuple[Span, ...], width: int):
+        shown = RecordedMessageClock(time.at).display()[0]
+        timed = (*spans, Span(f" · {shown}"))
+        return ((spans, (Span(shown),)) if sum(cell_len(span.text) for span in timed) > max(1, width - 8)
+                else (timed,))
+
+    @handles(UnrecordedEventTime)
+    def unrecorded(self, time: UnrecordedEventTime, spans: tuple[Span, ...], width: int):
+        return (spans,)
+
+
+DIVIDER_TIME = DividerTime()
 
 
 def _fit(text: str, width: int) -> str:
@@ -485,13 +504,7 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Divider)
     def divider(self, block: Divider) -> None:
-        groups: tuple[tuple[Span, ...], ...] = (block.spans,)
-        if block.timestamp is not None:
-            timestamp = MessageClock.recorded(block.timestamp).display()[0]
-            timed = (*block.spans, Span(f" · {timestamp}"))
-            groups = ((block.spans, (Span(timestamp),))
-                      if sum(cell_len(span.text) for span in timed) > max(1, self.width - 8)
-                      else (timed,))
+        groups = DIVIDER_TIME.project_value(block.timestamp, block.spans, self.width)
         rule, bold = self.theme.style(block.role), Style(bold=True)
         # Fit actual content, not a guessed phone width. Each semantic span and
         # the complete recorded time survive wrapping, including long names.
