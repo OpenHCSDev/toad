@@ -67,8 +67,7 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
 
     @classmethod
     def default_title(cls) -> str:
-        """The class's own derived name, never its stored key: a declared_name can stay pinned
-        to a stored spelling (TeamAction keeps "commander" for saved remaps) while views say Team."""
+        """The class's own derived name, never its declared_name: views show what a member does."""
         return declared_words(cls.__name__.removesuffix(cls._family_affix)).replace("_", " ").capitalize()
 
     @classmethod
