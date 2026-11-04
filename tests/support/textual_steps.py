@@ -77,12 +77,11 @@ async def command_dialog(ui, *, seconds: float = 20):
 async def refresh_chat(view) -> None:
     """Run the chat view's history read now and wait for it; a view that is not shown reads nothing."""
     history = view.message_history
-    while (worker := await view._refresh()) is None:
+    while not await (await view._refresh()).waited():
         if not history.can_draw_on_screen or history.state.accepts_source_work:
             return
         # Another read is in flight: read once it ends.
         await asyncio.sleep(0.01)
-    await worker.wait()
     # The participants and status lines are read after the history's own read.
     for labels in tuple(view.workers):
         if labels.node is view and labels.group == view.LABELS_GROUP:
