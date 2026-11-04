@@ -14,9 +14,12 @@ from agent_comms.goal_history import RecordedGoalHistory
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.order_tools import InputDeliveryRead
-from agent_comms.owner_connection import socket_path
+from agent_comms.owner_connection import OwnerConnection
 from agent_comms.repo import Checkout
-from agent_comms.runtime import RuntimeConnection
+from agent_comms.runtime_server import RuntimeRequest
+from agent_comms.tools import (
+    CommsMoveThreadProjectTool, CommsOwnerRequestTool, CommsRenameManagedThreadTool,
+)
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.session_load import ExistingSessionLoadPlan
@@ -172,24 +175,15 @@ class OwnerRequests(CoordinationIdentity):
         request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
         coordination = request.coordination
         request.require()
-        comms = await self.controller.transcripts.service(coordination.wire_root)
-
-        def resolve():
-            owner = comms.registry.require(coordination.thread.name)
-            if owner.incarnation != coordination.thread:
-                raise ValueError("The owner incarnation changed while preparing the request.")
-            return RuntimeConnection(
-                comms, owner.incarnation, socket_path(comms.root, owner.require_process().pid)
-            )
-
-        proxy = await asyncio.to_thread(resolve)
-        try:
-            request.require()
-            result = await proxy.request(method, **params)
-            request.require()
-            return result
-        finally:
-            await proxy.close()
+        core = await self.controller.transcripts.core(coordination.wire_root)
+        request.require()
+        answered = await asyncio.to_thread(core.call, CommsOwnerRequestTool(
+            owner=coordination.thread,
+            request=FieldCodec.decode(RuntimeRequest, OwnerConnection.wire_request(
+                method, coordination.thread.name, params)),
+        ))
+        request.require()
+        return answered.payload
 
 
 class OwnerReads(CoordinationIdentity):
@@ -225,8 +219,8 @@ class OwnerPrompts(CoordinationIdentity):
     async def prepare_command(self, command: PromptRequest, authority: ClientSessionRequest, scope: QueueScope) -> PromptRequest:
         request = self.capture_owner_request(authority)
         request.require()
-        comms = await self.controller.transcripts.service(request.coordination.wire_root)
-        origin = await asyncio.to_thread(self.queue_attachment.capture_human_input, comms, scope)
+        core = await self.controller.transcripts.core(request.coordination.wire_root)
+        origin = await asyncio.to_thread(self.queue_attachment.capture_human_input, core, scope)
         request.require()
         return replace(command, origin=origin)
 
@@ -247,9 +241,10 @@ class OwnerWrites(CoordinationIdentity):
     async def update_project(self, path: str) -> str:
         request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
         coordination = request.coordination
-        comms = await self.controller.transcripts.service(coordination.wire_root)
+        core = await self.controller.transcripts.core(coordination.wire_root)
         request.require()
-        result = await asyncio.to_thread(comms.threads.set_project, coordination.thread, path)
+        result = await asyncio.to_thread(
+            core.call, CommsMoveThreadProjectTool(owner=coordination.thread, path=path))
         request.require()
         worktree = Checkout(Path(result.current))
         self.receive_coordination(replace(self.coordination, worktree=worktree))
@@ -262,10 +257,10 @@ class OwnerWrites(CoordinationIdentity):
             return
         request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
         coordination = request.coordination
-        comms = await self.controller.transcripts.service(coordination.wire_root)
+        core = await self.controller.transcripts.core(coordination.wire_root)
         request.require()
-        result = await asyncio.to_thread(
-            comms.threads.rename_managed_thread, coordination.thread, display_name, owner=coordination.owner)
+        result = await asyncio.to_thread(core.call, CommsRenameManagedThreadTool(
+            thread=coordination.thread.name, display_name=display_name, owner=coordination.owner))
         request.require()
         self.receive_coordination(replace(
             self.coordination, thread=replace(self.coordination.thread, name=result.current),
