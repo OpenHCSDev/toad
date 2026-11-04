@@ -14,7 +14,6 @@ tests = [
     "tests/textual/test_file_links_in_agent_text.py::test_right_clicking_a_file_link_offers_to_copy_its_full_path",
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_links_to_a_search_that_opens_the_one_matching_file",
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_found_in_several_places_says_so_instead_of_guessing",
-    "tests/app/test_markdown_file_links.py::test_file_link_in_answer_opens_preview_and_return_keeps_draft",
 ]
 
 [shared-channel-tab]

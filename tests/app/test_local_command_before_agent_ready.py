@@ -10,7 +10,7 @@ class CursorProofCommand(NoArgumentsCommand):
     hint = "DECLARED_CURSOR_HINT"
 
     async def apply(self, conversation):
-        (conversation.project_path / "cursor-command.txt").write_text("Applied actual local declaration")
+        (conversation.project_path.path / "cursor-command.txt").write_text("Applied actual local declaration")
         return True
 
 

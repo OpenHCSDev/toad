@@ -26,6 +26,7 @@ async def test_failure_returns_only_its_text_without_overwriting_a_newer_draft(
         area = view.prompt.prompt_text_area
         document = area.document
         failure.present(view, "the failed message")
-        assert view.prompt.text == (draft or "the failed message")
+        # The failed text is recovered after a newer draft, as an edit of the same document.
+        assert view.prompt.text == (f"{draft}\n\nthe failed message" if draft else "the failed message")
         if draft:
             assert area.document is document

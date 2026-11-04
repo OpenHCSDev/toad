@@ -63,7 +63,7 @@ async def test_a_link_to_a_log_that_was_never_written_opens_the_tab_and_says_the
     missing = workspace.roots.attempt / "state/toad/logs/never-written.txt"
     async with workspace.app(size=(139, 30)) as ui:
         owner = ui.selected_tab
-        await ui.conversation.post(AgentResponse(AcpLogLink(missing).markdown))
+        await ui.conversation.post(AgentResponse(AcpLogLink.markdown(missing)))
         await ui.until(lambda: ui.shows(LINK) and ui.link_at(LINK) is not None, why="the log link drawn as a link")
         await ui.click(LINK)
         await ui.until(lambda: ui.selected_tab != owner, why="the log tab selected")
