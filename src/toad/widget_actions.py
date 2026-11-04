@@ -270,9 +270,16 @@ class DeclaredWidgetActions(ToadNode):
         cls.own_actions = actions
         declarations = cls.declared_actions()
         for declaration in declarations:
+            name = f"action_{declaration.declared_name}"
+            written = next((base for base in cls.__mro__ if name in base.__dict__
+                            and not isinstance(base.__dict__[name], partialmethod)), None)
+            if written is not None and issubclass(written, ToadNode):
+                # Replacing Textual's own action is the declared override (DismissAction);
+                # replacing ours would make a member whose apply calls it call itself.
+                raise TypeError(f"{declaration.__qualname__} would replace {written.__qualname__}.{name}")
             dispatch = (cls._run_declared_async_action if inspect.iscoroutinefunction(declaration.apply)
                         else cls._run_declared_action)
-            setattr(cls, f"action_{declaration.declared_name}", partialmethod(dispatch, declaration))
+            setattr(cls, name, partialmethod(dispatch, declaration))
         super().__init_subclass__(**kwargs)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
