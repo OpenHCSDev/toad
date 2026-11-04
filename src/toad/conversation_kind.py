@@ -186,7 +186,7 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def resolve(cls, core: CoreAccess, me: str, name: str) -> ResolvedConversation:
-        snapshot = core.call(CommsRegistryTool()).snapshot
+        snapshot = core.call(CommsRegistryTool())
         resolved = ChannelTarget(name).resolve(snapshot, lambda channel: core.call(CommsChannelTool(name=channel)))
         return ResolvedConversation(snapshot.canonical_name(me), cls(ChannelTarget(resolved.channel.name)))
 
@@ -259,7 +259,7 @@ class DmConversation(ConversationKind):
 
     @classmethod
     def resolve(cls, core: CoreAccess, me: str, name: str) -> ResolvedConversation:
-        snapshot = core.call(CommsRegistryTool()).snapshot
+        snapshot = core.call(CommsRegistryTool())
         resolved = ThreadTarget(name).resolve(snapshot, lambda channel: core.call(CommsChannelTool(name=channel)))
         return ResolvedConversation(snapshot.require(me).name, cls(resolved.thread.incarnation))
 
@@ -282,7 +282,7 @@ class DmConversation(ConversationKind):
         """Core's configuration answer for the thread this DM names."""
         def read():
             thread = self.destination(source.references()).name
-            return source.core.call(CommsThreadConfigurationTool(thread=thread)).update.status_label
+            return source.core.call(CommsThreadConfigurationTool(thread=thread)).status_label
 
         return await asyncio.to_thread(read)
 
