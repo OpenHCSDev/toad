@@ -52,7 +52,7 @@ class GoalControl(
 
 
     def __init__(self, interaction: type[GoalInteraction]):
-        super().__init__(interaction.label, id=interaction.control_id())
+        super().__init__(interaction.label)
         self.interaction = interaction
 
     def activate(self):

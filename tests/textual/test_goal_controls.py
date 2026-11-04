@@ -1,5 +1,7 @@
 """Textual-facing: the goal bar mounts one control per declared interaction, paints them, and collapses."""
 
+from toad.goal_interaction import CollapseInteraction
+from support.goal_controls import goal_control
 from agent_comms.goal_actions import PausedGoalAction
 from agent_comms.goal_presentation import RunnableExecution
 
@@ -29,9 +31,9 @@ async def test_every_declared_interaction_has_a_control_and_a_new_one_works(work
     async with workspace.app(size=(140, 44)) as ui:
         _, pilot = ui.textual
         view, bar = await show_goal(ui)
-        declared = {control.control_id() for control in GoalInteraction.members_with(GoalInteraction)}
-        assert {control.id for control in bar.query(GoalControl)} == declared
-        await pilot.click("#" + ProbeInteraction.control_id())
+        declared = set(GoalInteraction.members_with(GoalInteraction))
+        assert {control.interaction for control in bar.query(GoalControl)} == declared
+        await pilot.click(goal_control(bar, ProbeInteraction))
         await ui.until(lambda: view.prompt.text == "Declared control exercised", why="the declared control to act")
 
 
@@ -39,7 +41,7 @@ async def test_collapsing_the_goal_bar_paints_expand_and_keeps_controls(workspac
     async with workspace.app(size=(140, 44)) as ui:
         _, pilot = ui.textual
         _, bar = await show_goal(ui)
-        await pilot.click("#goal-collapse")
+        await pilot.click(goal_control(bar, CollapseInteraction))
         await ui.until(lambda: bar.collapsed, why="the goal bar to collapse")
         await ui.until(lambda: ui.shows("Expand") and ui.shows("Probe"), why="Expand and Probe painted")
 

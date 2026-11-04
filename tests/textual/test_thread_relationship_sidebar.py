@@ -1,4 +1,5 @@
 """Textual-facing: the right-hand relationship panel (collapsible side bar, row widgets, menus) follows Core's relationships."""
+from toad.widgets.side_bar import ThreadSidebar
 from pathlib import Path
 
 from agent_comms.repo import Checkout
@@ -25,7 +26,7 @@ async def reveal(ui, session):
     from toad.widgets.side_bar import SideBar, SideBarCollapsible
     from toad.widgets.thread_comms import ThreadCommsSidebar
 
-    sidebar = session.query_one("#thread-sidebar", SideBar)
+    sidebar = session.query_one(ThreadSidebar)
     sidebar.reveal()
     await sidebar.wait_content_ready()
     tree = sidebar.query_one(ThreadCommsSidebar)
@@ -63,7 +64,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         with patch.object(service, "snapshot", wraps=service.snapshot) as read:
             await ui.step()
             assert read.call_count == 0, "Collapsed right panel fetched source data"
-            assert not main.query_one("#thread-sidebar", SideBar)._panels_loaded
+            assert not main.query_one(ThreadSidebar)._panels_loaded
             tree = await reveal(ui, main)
             assert not tree.query_ancestor(SideBarCollapsible).collapsed
             assert read.call_count >= 1

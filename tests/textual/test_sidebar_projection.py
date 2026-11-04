@@ -1,5 +1,7 @@
 """Textual-facing: a hidden view's thread sidebar keeps its styles and layout while the shared channels sidebar changes, and the first frame of an activated view already shows the sidebar as the user left it."""
 
+from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import CommandTarget
 
@@ -19,7 +21,7 @@ class FrameApp(ToadApp):
         result = super()._display(screen, renderable)
         if (self.frames is not None and renderable is not None and not self._batch_count
                 and screen is self.screen):
-            sidebar = screen.query_one_optional("#channels-sidebar", SideBar)
+            sidebar = screen.query_one_optional(ChannelsSidebar)
             if sidebar is not None:
                 self.frames.append((self.selected_mode, sidebar.collapsed, sidebar.size.width,
                                     sidebar.content_stack.display))
@@ -41,8 +43,8 @@ async def test_hidden_sidebars_keep_geometry_and_activated_views_first_frame_mat
         for mode in modes:
             await ui.select_tab(mode)
         await ui.select_tab(first)
-        shared = app.screen.query_one("#channels-sidebar", SideBar)
-        thread_bars = {mode: app.workspace_sessions.require(mode).query_one("#thread-sidebar", SideBar)
+        shared = app.screen.query_one(ChannelsSidebar)
+        thread_bars = {mode: app.workspace_sessions.require(mode).query_one(ThreadSidebar)
                        for mode in modes}
         shared.reveal()
         await ui.step()

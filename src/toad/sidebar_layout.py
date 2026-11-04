@@ -329,10 +329,6 @@ class SidebarPlacement(DeclaredFamily, affix="SidebarPlacement"):
     def initial(cls) -> Self:
         return cls(cls.default_side, 0, cls.default_extent_percent)
 
-    @classmethod
-    def native_id(cls) -> str:
-        return f"{cls.declared_name}-sidebar"
-
 
 class ChannelsSidebarPlacement(SidebarPlacement):
     default_side = LeftSidebarEdge

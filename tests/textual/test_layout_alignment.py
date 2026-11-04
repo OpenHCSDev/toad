@@ -1,5 +1,7 @@
 """Textual-facing: the compositor places the channels sidebar, tab header and conversation edge to edge in the first frame, for collapsed and expanded sidebars, across sessions and resizes."""
 
+from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.workspace_chrome import WorkspaceHeader
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
@@ -9,7 +11,7 @@ WIDTH, HEIGHT = 120, 44
 
 def assert_aligned(ui, expected: int | None = None) -> None:
     screen = ui.app.screen
-    left = screen.query_one("#channels-sidebar", SideBar)
+    left = screen.query_one(ChannelsSidebar)
     tabs = screen.query_one(SessionsTabs)
     conversation = ui.conversation
     assert conversation.region.x == left.region.right, (
@@ -36,14 +38,14 @@ async def test_sidebar_and_tab_header_stay_aligned_across_toggles_resizes_and_se
         await ui.resize(WIDTH, HEIGHT)
         assert_aligned(ui, expanded)
         await ui.write_draft("retain draft")
-        first_right = ui.app.selected_session.query_one("#thread-sidebar", SideBar)
+        first_right = ui.app.selected_session.query_one(ThreadSidebar)
         assert first_right.collapsed
         first_right.toggle()
         await ui.step()
         assert not first_right.collapsed
         assert_aligned(ui)
 
-        left = screen.query_one("#channels-sidebar", SideBar)
+        left = screen.query_one(ChannelsSidebar)
         left.toggle()
         await ui.step()
         assert left.collapsed
@@ -58,17 +60,17 @@ async def test_sidebar_and_tab_header_stay_aligned_across_toggles_resizes_and_se
         second = await ui.new_session()
         assert second != first
         assert_aligned(ui, 3)
-        assert ui.app.selected_session.query_one("#thread-sidebar", SideBar).collapsed
+        assert ui.app.selected_session.query_one(ThreadSidebar).collapsed
         assert not first_right.collapsed  # The right sidebar belongs to its session.
 
         await ui.select_tab(first)
         assert_aligned(ui, 3)  # No stale header padding on the first frame after the switch.
         assert ui.draft() == "retain draft"
-        screen.query_one("#channels-sidebar", SideBar).toggle()
+        screen.query_one(ChannelsSidebar).toggle()
         await ui.step()
         assert_aligned(ui)
         await ui.select_tab(second)
         assert_aligned(ui, expanded)
-        assert ui.app.selected_session.query_one("#thread-sidebar", SideBar).collapsed
+        assert ui.app.selected_session.query_one(ThreadSidebar).collapsed
         await ui.select_tab(first)
         assert_aligned(ui)

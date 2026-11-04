@@ -1,5 +1,7 @@
 """Editing a goal's objective in Toad saves through the real owner and redraws the goal bar; progress stays separate."""
 
+from toad.goal_interaction import EditInteraction, HistoryInteraction
+from support.goal_controls import goal_control
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
 from agent_comms.goal_scope import OneGoal
@@ -30,7 +32,7 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
         conversation = ui.conversation
         current = first
         for objective in ("Short updated goal", "Second short goal"):
-            await pilot.click("#goal-edit")
+            await pilot.click(goal_control(bar, EditInteraction))
             await ui.until(lambda: isinstance(app.screen, GoalEdit), why="the goal editor")
             editor = app.screen
             assert editor.editor.text == comms.registry.require(session).goal.text
@@ -63,7 +65,7 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
         await conversation.goal_observation.refresh()
         await ui.until_shows(f"rev {current.revision}")
         assert not ui.shows("Scroll for full text") and not ui.shows("TAIL_COORDINATOR")
-        await pilot.click("#goal-history")
+        await pilot.click(goal_control(bar, HistoryInteraction))
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="goal details")
         assert "TAIL_COORDINATOR" in app.screen.goal_display.snapshot.text
         await ui.until_shows("Objective: Work on draft PR #17.")

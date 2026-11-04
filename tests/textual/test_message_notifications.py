@@ -4,6 +4,7 @@ Painting cases use controlled replies after retiring the shared observer's inter
 The live subscription/return journey is exercised in test_channel_updates_and_returns.
 """
 
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from dataclasses import replace
 
 from agent_comms.frozen_recipient import FrozenRecipient
@@ -63,7 +64,7 @@ async def settled(ui, chat):
     # The channels sidebar takes 40% of the terminal and ellipsizes the summary's totals;
     # collapse it through its real toggle so the conversation gets the width.
     app, pilot = ui.textual
-    bar = app.screen.query_one("#channels-sidebar", SideBar)
+    bar = app.screen.query_one(ChannelsSidebar)
     assert not bar.collapsed
     assert await pilot.click(bar.query_one(SideBarToggle))
     await ui.until(lambda: bar.collapsed, why="the channels sidebar collapsed")

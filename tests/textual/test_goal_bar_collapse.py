@@ -1,5 +1,7 @@
 """Textual-facing: the goal bar's compact layout, region sizes and click targets when collapsed or narrow."""
 
+from toad.goal_interaction import CollapseInteraction, HistoryInteraction
+from support.goal_controls import goal_control
 from dataclasses import replace
 
 from agent_comms.goal_presentation import GoalWaitTarget, RunnableExecution, StandbyExecution
@@ -20,7 +22,7 @@ async def shown_bar(ui):
     view.prompt.text = "Keep this draft"
     await ui.step()
     bar = view.query_one(GoalBar)
-    return view, bar, bar.query_one("#goal-history", GoalControl), bar.query_one("#goal-collapse", GoalControl), \
+    return view, bar, bar.query_one(goal_control(bar, HistoryInteraction), GoalControl), bar.query_one(goal_control(bar, CollapseInteraction), GoalControl), \
         bar.header, bar.controls
 
 

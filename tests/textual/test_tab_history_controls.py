@@ -1,5 +1,7 @@
 """Textual-facing: the Back, Forward and menu buttons' place in the header, their size, their paint and hover styles."""
 
+from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.workspace_chrome import WorkspaceHeader
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryButton, TabHistoryControls
@@ -15,7 +17,7 @@ async def test_unavailable_buttons_sit_in_the_header_and_still_show_hover(worksp
         app, pilot = ui.textual
         screen = app.screen
         first = ui.selected_tab
-        left = screen.query_one("#channels-sidebar", SideBar)
+        left = screen.query_one(ChannelsSidebar)
         controls = screen.query_one(TabHistoryControls)
         header = screen.query_one(WorkspaceHeader)
         assert controls.parent is header
@@ -34,7 +36,7 @@ async def test_unavailable_buttons_sit_in_the_header_and_still_show_hover(worksp
             unavailable_style, arrow_style(screen, back), back.styles.background, back.pseudo_classes)
         assert await pilot.click(back)
         assert ui.selected_tab == first
-        assert not screen.query_one("#thread-sidebar", SideBar).query(TabHistoryControls)
+        assert not screen.query_one(ThreadSidebar).query(TabHistoryControls)
         assert controls.region.y < left.region.y
         assert controls.region.y < left.query_one("CollapsibleTitle").region.y
         left.collapsed = True
@@ -70,7 +72,7 @@ async def test_available_back_button_paints_its_arrow_and_hover_style(workspace)
         painted_after = arrow_style(screen, back)
         assert painted_after != painted_before
         assert painted_after.bgcolor != painted_before.bgcolor
-        sidebar = screen.query_one("#channels-sidebar", SideBar)
+        sidebar = screen.query_one(ChannelsSidebar)
         sidebar.collapsed = True
         await ui.step()
         assert screen.query_one(TabHistoryControls) in screen._compositor.visible_widgets
