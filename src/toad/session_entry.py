@@ -166,7 +166,7 @@ class NativeSessionEntry(SessionEntry):
             (
                 identity
                 for root, identity in self.original_threads(sessions)
-                if Path(root).resolve() == selected.root
+                if selected.serves(root)
                 and any(
                     identity.matches_recorded_name(target, snapshot)
                     for target in targets

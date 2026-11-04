@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from agent_comms.coordination_errors import Refused
-from agent_comms.comms import Comms
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.session_load import ExistingSessionLoadPlan
@@ -21,6 +20,7 @@ from agent_comms.repo import Checkout
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.session_tracker import CommsViewKey
 from toad.tab_identity import SessionTabIdentity
+from toad.comms_root import Observing
 
 ResultT = TypeVar("ResultT")
 
@@ -44,16 +44,15 @@ class CommsNavigation:
 
 @dataclass(frozen=True)
 class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
-    comms: Comms
+    observed: Observing
     owner_mode: str
     me: str
     route: HistoryRouted
     owner_root: str | None
 
     def read(self) -> CommsNavigation:
-        comms = self.comms
-        root = comms.root
-        resolved = self.route.prepare(comms, self.me)
+        root = self.observed.root
+        resolved = self.route.prepare(self.observed.core, self.me)
         owner_root = self.owner_root
         if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
             owner_root = None
@@ -61,7 +60,7 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
             CommsViewKey(str(root), self.owner_mode, resolved.conversation),
             owner_root,
             resolved.conversation.threads_needed(
-                comms.registry.snapshot(), resolved.viewer
+                self.observed.registry(), resolved.viewer
             ),
         )
 
@@ -136,17 +135,19 @@ class ExistingThreadNavigation(ThreadNavigation):
 
 @dataclass(frozen=True)
 class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
-    comms: Comms
+    """Open a thread from what the observed Core answers: its root and its registry."""
+
+    observed: Observing
     target: str
     project: Checkout
     open_threads: tuple[OpenThread, ...]
 
     @property
     def root(self) -> str:
-        return str(self.comms.root)
+        return str(self.observed.root)
 
     def read(self) -> ThreadNavigation:
-        snapshot = self.comms.registry.snapshot()
+        snapshot = self.observed.registry()
         thread = snapshot.require(self.target)
         project = thread.worktree
         existing = next(

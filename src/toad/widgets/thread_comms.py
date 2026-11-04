@@ -9,6 +9,7 @@ from toad.core import events as core_events
 
 from toad.navigation_target import NavigationTarget, SelectTarget, ThreadTarget
 
+
 import asyncio
 from dataclasses import dataclass, field
 
@@ -50,9 +51,9 @@ from agent_comms.relationships import (
     RelationshipGroup,
     ThreadCommsSnapshot,
 )
-from toad.widgets.thread_comms_source import RelationshipSource
 from toad.widget_actions import WidgetAction, OpensSelected
 from toad.worker_group import WorkerGroup
+from toad.comms_root import Observing
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
@@ -101,7 +102,7 @@ class RelationshipSort(SortControl[ThreadSort]):
             try:
                 for group in groups:
                     await self.app.preparation.run_thread(
-                        service.set_order, identity.thread_name(), type(group), order
+                        service.set_relationship_order, identity.thread_name(), type(group), order
                     )
             finally:
                 if (
@@ -289,21 +290,17 @@ class ThreadCommsSidebar(
     def __init__(
         self,
         *,
-        source: RelationshipSource | None = None,
         states: dict[SessionIdentity, RelationshipTreeState] | None = None,
     ):
         super().__init__()
         self._generation = 0
         self._refresh_task = None
         self._revision = None
-        self._source = None
         self._filter_view = None
         self._filter_controls: dict[Checkbox, type[MessageCategory]] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states = states if states is not None else {}
         self.groups: dict[type[RelationshipGroup], RelationshipRows] = {}
-        if source is not None:
-            self.use_source(source)
 
     @property
     def view_state(self):
@@ -311,20 +308,10 @@ class ThreadCommsSidebar(
             self.thread_view.thread_identity, RelationshipTreeState()
         )
 
-    async def relationship_source(self, identity: ThreadIdentity) -> RelationshipSource:
-        if self._source is not None:
-            return self._source
+    async def relationship_source(self, identity: ThreadIdentity) -> Observing:
         access = self.app.coordination_access
-        return await self.app.preparation.run_thread(
-            lambda: access.require(
-                access.selected(identity.root_path())
-            ).service.relationships
-        )
+        return await self.app.preparation.run_thread(lambda: access.observing(identity.root_path()))
 
-    def use_source(self, source: RelationshipSource) -> None:
-        self._source = source
-        self._reset_relationships()
-        self.refresh_relationships(force=True)
 
     def compose(self):
         yield RelationshipContext(
@@ -469,10 +456,10 @@ class ThreadCommsSidebar(
             if generation != self._generation or not self.is_attached:
                 return
             owner = identity.thread_name()
-            revision = await asyncio.to_thread(service.revision)
+            revision = await asyncio.to_thread(service.wire_revision)
             if revision == self._revision:
                 return
-            snapshot = await asyncio.to_thread(service.snapshot, owner)
+            snapshot = await asyncio.to_thread(service.relationships, owner)
             # Visibility admits new reads; parking does not revoke work already
             # owned by this retained panel. Identity changes and unmount do.
             if generation != self._generation or not self.is_attached:
@@ -565,7 +552,7 @@ class ThreadCommsSidebar(
         identity = self.thread_view.thread_identity
         if (
             identity.root_path()
-            != self.app.coordination_access.observation.observed().service.root.resolve()
+            != self.app.coordination_access.observation.observed().root
         ):
             self.notify(
                 "This view uses a different wire; open its matching connection to navigate.",
@@ -588,7 +575,7 @@ class ThreadCommsSidebar(
             return
         identity = self.thread_view.thread_identity
         service = await self.relationship_source(identity)
-        snapshot = await asyncio.to_thread(service.snapshot, identity.thread_name())
+        snapshot = await asyncio.to_thread(service.relationships, identity.thread_name())
         if (
             generation != self._generation
             or not self.is_attached

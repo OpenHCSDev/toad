@@ -16,10 +16,9 @@ from functools import cached_property, partial
 from abc import abstractmethod
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
-from agent_comms.comms import Comms
 from agent_comms.cli_result import CliResult
 from agent_comms.importing import ThreadImported
-from agent_comms.route_selection import RouteSelection
+from agent_comms.tools import CommsExportWireTool, CommsImportThreadTool
 
 from agent_comms.exporting import (
     CancellableWireExport,
@@ -38,7 +37,7 @@ from agent_comms.exporting import (
     WireExportLimit,
     WireExportScope,
 )
-from agent_comms.cli_bridges.history import ExpectedSession, OfflineHistory
+from agent_comms.cli_bridges.history import ExpectedSession
 from agent_comms.harness_install import Harness
 from agent_comms.thread_management import ImportDirectory
 from textual import on
@@ -46,7 +45,7 @@ from textual.app import App, ComposeResult
 from textual.message import Message
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from toad.screens.modal import DismissibleScreen
-from toad.comms_root import CoordinationAccess
+from toad.comms_root import CapturedSource, CoordinationAccess
 from toad.application_lifetime import TerminalOutcome
 from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime
@@ -82,10 +81,10 @@ class Transfer(DeclaredFamily, affix="Request"):
 
     @classmethod
     @abstractmethod
-    def dialog(cls, selected: RouteSelection) -> TransferDialog: ...
+    def dialog(cls, selected: CapturedSource) -> TransferDialog: ...
 
     @abstractmethod
-    async def execute(self, app: Transfers, selected: RouteSelection) -> None: ...
+    async def execute(self, app: Transfers, selected: CapturedSource) -> None: ...
 
 
 class TransferRequest[Result: CliResult](Transfer):
@@ -95,14 +94,11 @@ class TransferRequest[Result: CliResult](Transfer):
     cancelled_by: ClassVar[tuple[type[BaseException], ...]] = ()
 
     @abstractmethod
-    def apply(self, comms: Comms, observer: TransferProgress) -> Result: ...
-
-    def perform(self, access: CoordinationAccess, selected: RouteSelection,
+    def perform(self, access: CoordinationAccess, selected: CapturedSource,
                 observer: TransferProgress) -> Result:
-        comms = access.require(selected).service
-        return access.write(selected, self.apply, comms, observer)
+        """Run this transfer against the selected route's Core, reporting progress to observer."""
 
-    async def execute(self, app: Transfers, selected: RouteSelection) -> None:
+    async def execute(self, app: Transfers, selected: CapturedSource) -> None:
         try:
             async with self.progress(app) as observer:
                 try:
@@ -142,16 +138,15 @@ class WireExportRequest(TransferRequest[WireExportProvenance]):
     cancelled_by = (WireExportCancelled,)
 
     @classmethod
-    def dialog(cls, selected: RouteSelection) -> WireExportDialog:
+    def dialog(cls, selected: CapturedSource) -> WireExportDialog:
         return WireExportDialog(selected.root)
 
-    def apply(self, comms: Comms, observer: TransferProgress) -> WireExportProvenance:
-        return comms.views.export_wire(self.destination, format=self.format, scope=self.scope,
-                                       limit=self.limit, observer=observer)
-
-    def perform(self, access: CoordinationAccess, selected: RouteSelection,
+    def perform(self, access: CoordinationAccess, selected: CapturedSource,
                 observer: TransferProgress) -> WireExportProvenance:
-        return self.apply(access.require(selected).service, observer)
+        """Core's host writes the export; its progress and cancel reach this observer."""
+        return access.write(selected, access.observing(selected.root).core.call, CommsExportWireTool(
+            destination=self.destination, format=self.format, scope=self.scope, limit=self.limit,
+        ).observed_by(observer))
 
     @asynccontextmanager
     async def progress(self, app: App[TerminalOutcome]) -> AsyncIterator[TransferProgress]:
@@ -182,12 +177,14 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
     title = "Thread Import…"
 
     @classmethod
-    def dialog(cls, selected: RouteSelection) -> ThreadImportDialog:
+    def dialog(cls, selected: CapturedSource) -> ThreadImportDialog:
         return ThreadImportDialog()
 
-    def apply(self, comms: Comms, observer: TransferProgress) -> ThreadImported:
-        return comms.threads.import_thread(OfflineHistory.stored(self.harness, self.source, self.session),
-                                          name=self.name, worktree=self.worktree)
+    def perform(self, access: CoordinationAccess, selected: CapturedSource,
+                observer: TransferProgress) -> ThreadImported:
+        return access.write(selected, access.observing(selected.root).core.call, CommsImportThreadTool(
+            source=self.source, harness=self.harness, name=self.name, session=self.session,
+            worktree=self.worktree))
 
     def completed(self, app: Transfers, result: ThreadImported) -> None:
         app.events.publish(core_events.ThreadRowStateChanged(frozenset((result.thread,))))
@@ -204,11 +201,11 @@ class Transfers(ThemedApp[TerminalOutcome]):
 
     def open_transfer(self, kind: type[Transfer]) -> None:
         access = self.coordination_access
-        selected = access.selected(access.observation.observed().service.root)
+        selected = access.selected(access.observation.observed().root)
         self.push_screen(kind.dialog(selected), callback=partial(self.transfer_submitted, selected))
 
     @boundary_decoder
-    def transfer_submitted(self, selected: RouteSelection, request: Transfer | None) -> None:
+    def transfer_submitted(self, selected: CapturedSource, request: Transfer | None) -> None:
         """Native Screen.dismiss supplies None on cancel; that absence stops here."""
         if request is not None:
             self.run_worker(request.execute(self, selected),

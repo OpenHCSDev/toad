@@ -564,10 +564,10 @@ class BoundSidebar(SidebarModelState):
         return (child is view.unavailable) == self.observed.sidebar.observation.shows_status()
 
     def root(self):
-        return self.observed.service.root
+        return self.observed.root
 
     def serves(self, path) -> bool:
-        return self.observed.service.root.resolve() == path
+        return self.observed.root == path
 
     def observes(self, observed: Observing) -> bool:
         return self.observed is observed

@@ -13,7 +13,6 @@ from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec
-from agent_comms.importing import ImportedSessionMetadata
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.pi_payloads import NativeContextData
 from agent_comms.pi_payloads import PiMessage
@@ -32,16 +31,21 @@ from agent_comms.turn_context import (
     TurnContext,
 )
 from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
-from agent_comms.working_memory_labels import JevClassifier, ModelLabel
+from agent_comms.working_memory_labels import ModelLabel
 from agent_comms.working_memory_questions import SpanAnswer
-from agent_comms.owner_connection import socket_path
-from pydantic import JsonValue
+from agent_comms.repo import Checkout
+from agent_comms.runtime_requests import (
+    ContextAnnotationCorrectionRuntimeRequest, ContextCoreRuntimeRequest, ContextCoreSourceRuntimeRequest,
+    ContextRecordedSegmentRuntimeRequest, ContextReferenceRuntimeRequest, ContextRuntimeRequest,
+    ContextSourceRuntimeRequest,
+)
+from agent_comms.runtime_server import RuntimeRequest
 
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity
+from toad.comms_root import Observing
 
 if TYPE_CHECKING:
-    from agent_comms.comms import Comms
     from agent_comms.context_store import (
         CapturedContext,
         ContextManifestPage,
@@ -518,7 +522,7 @@ class ContextInspection:
     entry: RegistryEntry
     page: ContextManifestPage
     source: SessionObservation
-    service: Comms
+    observed: Observing
     annotations: tuple[ModelLabel, ...] = ()
     imported_sources: tuple[CodexRolloutProvenance, ...] = ()
     core: CoreInspection = field(default_factory=UnavailableCoreInspection)
@@ -529,23 +533,15 @@ class ContextInspection:
 
     @staticmethod
     def read(
-        comms: Comms,
+        observed: Observing,
         owner: str,
         *,
         cursor: ContextManifestCursor = LATEST_CONTEXT,
         previous: tuple[CapturedContext, ...] = (),
     ):
-        entry = comms.registry.entry(owner).entry
-        thread = entry.thread
-        page = comms.contexts.page(owner, comms.registry,
-            cursor=cursor, previous=previous)
-        annotations = WorkingMemoryAnnotations.for_context(
-            comms.registry.store.coordinator_reader,
-            tuple(resource.value for resource in page.resources), JevClassifier.version())
-        imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
-        inspection_type = ThreadInspectionSource().project_value(entry.status)
-        return inspection_type(entry, page, thread.runtime.session_observation(comms.root, thread),
-                               comms, annotations, imported)
+        read = observed.context_inspection(owner, cursor=cursor, previous=previous)
+        inspection_type = ThreadInspectionSource().project_value(read.entry.status)
+        return inspection_type(read.entry, read.page, read.source, observed, read.annotations, read.imported)
 
     async def acquire(self, revision: ReadState):
         return HoldingInspection(await self.acquire_core(), revision)
@@ -573,9 +569,7 @@ class ContextInspection:
             self.imported_source) for source in self.imported_sources)
 
     async def imported_source(self, source: Provenance):
-        return await Coordination.run_worker(partial(
-            ImportedSessionMetadata.public_source_text,
-            self.service.registry, self.owner, source, self.service))
+        return await Coordination.run_worker(partial(self.observed.imported_source, self.owner, source))
 
     def working_memory(self):
         if not self.annotations:
@@ -616,67 +610,50 @@ class ContextInspection:
                     return tuple(matches)
         return tuple(matches)
 
-    async def _request(self, action: str, **parameters: JsonValue | tuple[int, ...]):
-        from agent_comms.runtime import RuntimeConnection
-
-        owner = await Coordination.run_worker(partial(self.service.registry.require, self.owner.name))
-        if owner.incarnation != self.owner.incarnation:
-            raise ValueError("Selected context thread incarnation changed")
-        process = owner.require_process()
-        connection = RuntimeConnection(self.service, owner.incarnation, socket_path(self.service.root, process.pid))
-        try:
-            return await connection.request(action, **parameters)
-        finally:
-            await connection.close()
+    async def _request(self, request: RuntimeRequest):
+        """Core's host asks this inspection's owner incarnation, which it checks is current."""
+        return await Coordination.run_worker(partial(self.observed.owner_request, self.owner.incarnation, request))
 
     async def native(self):
-        payload = await self._request("context")
+        payload = await self._request(ContextRuntimeRequest(thread=self.owner.name))
         context = await Coordination.run_worker(partial(FieldCodec.decode, NativeContextData, payload))
         return context.require_session_file(self.owner.runtime.path)
 
     async def acquire_core(self):
-        payload = await self._request("context_core")
+        payload = await self._request(ContextCoreRuntimeRequest(thread=self.owner.name))
         context = await Coordination.run_worker(partial(FieldCodec.decode, TurnContext, payload))
         if context.thread != self.owner.incarnation:
             raise ValueError("Core context belongs to another thread incarnation")
         return replace(self, core=AcquiredCoreInspection(context))
 
     async def core_source(self, context: TurnContext, position: int, source: Provenance):
-        def request():
-            return dict(owner=FieldCodec.encode(context.thread), segment=position,
-                manifest=FieldCodec.encode(context.segments[position].manifest(0)),
-                source=FieldCodec.encode(source))
-        parameters = await Coordination.run_worker(request)
-        payload = await self._request("context_core_source", **parameters)
+        payload = await self._request(ContextCoreSourceRuntimeRequest(
+            thread=self.owner.name, owner=context.thread, segment=position,
+            manifest=context.segments[position].manifest(0), source=source))
         return await Coordination.run_worker(partial(FieldCodec.decode, ContextSourceText, payload))
 
     async def current_source(self, context: NativeContextData, position: int, source: Provenance):
-        payload = await self._request("context_source",
-            observation=FieldCodec.encode(context.observation()), segment=position,
-            source=FieldCodec.encode(source))
+        payload = await self._request(ContextSourceRuntimeRequest(
+            thread=self.owner.name, observation=context.observation(), segment=position, source=source))
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def recorded_source(self, manifest: ContextManifest, position: int, source: Provenance):
-        payload = await self._request("context_reference",
-            record=FieldCodec.encode(self.page.reference(manifest)),
-            turn=FieldCodec.encode(manifest.turn), request_id=manifest.request_id.require_id(),
-            segment=position, source=FieldCodec.encode(source))
+        payload = await self._request(ContextReferenceRuntimeRequest(
+            thread=self.owner.name, record=self.page.reference(manifest), turn=manifest.turn,
+            request_id=manifest.request_id.require_id(), segment=position, source=source))
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def recorded_segment(self, manifest: ContextManifest, position: int, contributors: tuple[int, ...]=()):
-        payload = await self._request("context_recorded_segment",
-            record=FieldCodec.encode(self.page.reference(manifest)),
-            turn=FieldCodec.encode(manifest.turn), request_id=manifest.request_id.require_id(),
-            segment=position, contributors=contributors)
+        payload = await self._request(ContextRecordedSegmentRuntimeRequest(
+            thread=self.owner.name, record=self.page.reference(manifest), turn=manifest.turn,
+            request_id=manifest.request_id.require_id(), segment=position, contributors=contributors))
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def correct_annotation(self, source: RecordedSegmentNode, label: ModelLabel, answer: type[SpanAnswer], worktree: Path):
-        payload = await self._request("context_annotation_correction",
-            record=FieldCodec.encode(self.page.reference(source.manifest)),
-            turn=FieldCodec.encode(source.manifest.turn),
+        payload = await self._request(ContextAnnotationCorrectionRuntimeRequest(
+            thread=self.owner.name, record=self.page.reference(source.manifest), turn=source.manifest.turn,
             request_id=source.manifest.request_id.require_id(), segment=source.position,
-            contributors=source.contributors, label=FieldCodec.encode(label),
-            answer=FieldCodec.encode(answer), worktree=str(worktree))
+            contributors=source.contributors, label=label, answer=answer, worktree=Checkout(worktree)))
         return FieldCodec.decode(ModelLabel, payload)
 
     def active(self, context: NativeContextData):
@@ -696,19 +673,13 @@ class SavedContextInspection(ContextInspection):
     async def acquire(self, revision: ReadState):
         return SavedInspection(self, revision)
 
-    def saved_manifest(self, manifest):
-        return self.page.reference(manifest).read(
-            self.service.contexts, self.owner.name, self.service.registry)
-
     async def recorded_source(self, manifest: ContextManifest, position: int, source: Provenance):
-        def read():
-            return self.saved_manifest(manifest).public_source_text(self.service, position, source)
-        return await Coordination.run_worker(read)
+        return await Coordination.run_worker(partial(
+            self.observed.saved_source, self.owner.name, self.page.reference(manifest), position, source))
 
     async def recorded_segment(self, manifest: ContextManifest, position: int, contributors: tuple[int, ...]=()):
-        def read():
-            return self.saved_manifest(manifest).selected_segment(position, contributors)
-        segment = await Coordination.run_worker(read)
+        segment = await Coordination.run_worker(partial(
+            self.observed.saved_segment, self.owner.name, self.page.reference(manifest), position, contributors))
 
         async def unavailable(original: SegmentManifest) -> str:
             return "Public SDK text was not retained in this saved record; no live preview is available."
@@ -744,15 +715,15 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
 
     async def acquire(
         self,
-        service: Comms,
+        observed: Observing,
         revision: ReadState,
         identity: ThreadIdentity,
         *,
         cursor: ContextManifestCursor = LATEST_CONTEXT,
     ) -> InspectionState:
-        if str(service.root.resolve()) != identity.root:
+        if not observed.observes(identity.root):
             raise ValueError("Selected context belongs to another wire root")
-        inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
+        inspection = await Coordination.run_worker(partial(ContextInspection.read, observed,
             identity.thread_name(), cursor=cursor, previous=self.manifest_sources))
         return await inspection.acquire(revision)
 
@@ -801,7 +772,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
 class DetachedInspection(InspectionState):
     async def acquire(
         self,
-        service: Comms,
+        observed: Observing,
         revision: ReadState,
         identity: ThreadIdentity,
         *,
@@ -837,7 +808,7 @@ class HoldingInspection(InspectionState):
 
     @property
     def thread_identity(self) -> ThreadIdentity:
-        return ThreadIdentity(self.inspection.owner.incarnation, str(self.inspection.service.root))
+        return ThreadIdentity(self.inspection.owner.incarnation, str(self.inspection.observed.root))
 
     def observed_at(self, revision: ReadState) -> bool:
         return self.revision == revision

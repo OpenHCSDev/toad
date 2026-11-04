@@ -254,9 +254,9 @@ class WelcomeScreen(
         )
 
     def read_history_identity(self, project: Checkout) -> ThreadIdentity:
-        service = self.app.coordination_access.observation.observed().service
+        observed = self.app.coordination_access.observation.observed()
         return ThreadIdentity(
-            service.messaging.user_identity(project).incarnation, str(service.root)
+            observed.user_identity(project).incarnation, str(observed.root)
         )
 
     async def prepare_history_origin(self) -> None:
