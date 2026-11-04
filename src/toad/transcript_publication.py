@@ -467,11 +467,11 @@ class SourcePublicationRequests:
         self.observation.close()
         self.observation.enter_context(
             publication.thread_scope.observe(
-                view, view.app.coordination_access, self.resume
+                view, view.app.coordination_access, lambda _change: self.resume()
             )
         )
 
-    def resume(self, _event=None) -> bool:
+    def resume(self) -> bool:
         """Resume kept work only at an existing source/preparation signal."""
         if not self.pending:
             return False

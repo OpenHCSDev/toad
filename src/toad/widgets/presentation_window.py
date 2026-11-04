@@ -175,6 +175,11 @@ class Runway(OffScreenRunway):
 class Unplaced:
     """A widget Textual's map has no entry for: the screen does not show it."""
 
+    @staticmethod
+    def found[Entry](entry: Entry | None, region: Callable[[Entry], Region]) -> Unplaced:
+        """The one decoder of a Textual compositor map's entry: none means the screen does not show it."""
+        return UNPLACED if entry is None else Placed(region(entry))
+
     def shown_rows(self, rows: range) -> Unplaced:
         """Where the screen shows some of the widget's rows: nowhere."""
         return self
@@ -285,8 +290,7 @@ class PointerRows[Found]:
 
 def arranged(widget: Widget) -> Unplaced:
     """Where the screen's arranged map shows a widget: the one read of that Textual map."""
-    geometry = widget.screen._compositor.visible_widgets.get(widget)
-    return UNPLACED if geometry is None else Placed(geometry[0])
+    return Unplaced.found(widget.screen._compositor.visible_widgets.get(widget), lambda geometry: geometry[0])
 
 
 class PageEnd(ABC):

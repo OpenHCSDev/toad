@@ -32,9 +32,7 @@ from toad.widgets.presentation_window import (
     OLDER_END,
     DirectionalPreparation,
     NativePresentation,
-    Placed,
     PresentationBudget,
-    UNPLACED,
     Unplaced,
 )
 
@@ -1161,8 +1159,8 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     @property
     def published_viewport(self) -> Unplaced:
         """This window's actual displayed content, independent of pending layout."""
-        placement = self.screen._compositor._published_map.get(self)
-        return UNPLACED if placement is None else Placed(placement.content_region.intersection(placement.clip))
+        return Unplaced.found(self.screen._compositor._published_map.get(self),
+                              lambda placement: placement.content_region.intersection(placement.clip))
 
     def show_rows(self, rows: range) -> None:
         """Scroll just far enough that these content rows are on screen, the first before the last."""

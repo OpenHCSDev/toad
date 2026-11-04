@@ -123,22 +123,14 @@ class RenderBudget:
         # Separate widgets always introduce a visual row boundary. Split only
         # between top-level Markdown blocks so rendering never invents a line
         # break at an arbitrary provider-chunk or character boundary.
-        blocks = {
-            token.map[0]: (index, token.type)
-            for index, token in enumerate(source.tokens)
-            if token.level == 0 and token.map is not None
-        }
-        starts = sorted({0, *blocks, len(lines)})
-        parts = [
-            (
-                start,
-                stop,
-                blocks.get(start, (0, None))[0],
-                blocks.get(stop, (len(source.tokens), None))[0],
-                blocks.get(start, (0, None))[1],
-            )
-            for start, stop in zip(starts, starts[1:])
-        ]
+        # Top-level blocks by their first line: markdown-it's own token map, read once.
+        top_level = [(token.map[0], index, token.type) for index, token in enumerate(source.tokens)
+                     if token.level == 0 and token.map is not None]
+        token_at = {0: 0, len(lines): len(source.tokens)} | {line: index for line, index, _ in top_level}
+        tables = {line for line, _, kind in top_level if kind == "table_open"}
+        starts = sorted({0, *token_at, len(lines)})
+        parts = [(start, stop, token_at[start], token_at[stop], start in tables)
+                 for start, stop in zip(starts, starts[1:])]
         pending_first = 0
         pending_stop = 0
         pending_token_first = 0
@@ -149,9 +141,9 @@ class RenderBudget:
         def select(first: int, stop: int, token_first: int, token_stop: int):
             return source.select_blocks(text[offsets[first] : offsets[stop]], first, slice(token_first, token_stop))
 
-        for start, stop, token_first, token_stop, kind in parts:
+        for start, stop, token_first, token_stop, is_table in parts:
             part = text[offsets[start] : offsets[stop]]
-            if kind == "table_open" and (len(part) > self.characters or part.count("\n") > self.lines):
+            if is_table and (len(part) > self.characters or part.count("\n") > self.lines):
                 if pending_characters:
                     yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
                     pending_characters = 0
