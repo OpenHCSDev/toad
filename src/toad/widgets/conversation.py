@@ -1247,10 +1247,10 @@ class Conversation(
     @handles(input_events.ProviderLogin)
     def on_provider_login(self, event: input_events.ProviderLogin, message: CoreEventMessage) -> None:
         message.stop()
-        self.action_provider_login()
+        self.provider_login()
 
     @work(group="provider-login", exclusive=True)
-    async def action_provider_login(self) -> None:
+    async def provider_login(self) -> None:
         import shlex
 
         from textual.geometry import Offset

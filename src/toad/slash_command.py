@@ -138,7 +138,7 @@ class LoginCommand(NoArgumentsCommand):
     help = "Connect a provider using the agent's native login UI"
 
     async def apply(self, conversation: Conversation) -> bool:
-        conversation.action_provider_login()
+        conversation.provider_login()
         return True
 
 
