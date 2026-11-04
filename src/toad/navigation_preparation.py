@@ -13,9 +13,8 @@ from agent_comms.comms import Comms
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.session_load import ExistingSessionLoadPlan
-from agent_comms.thread_execution import ConversationPreparation
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.threads import Thread
+from agent_comms.threads import ConversationPreparation, Thread
 from agent_comms.repo import Checkout
 
 from toad.owner_preparation import ExistingOwnerPlan
