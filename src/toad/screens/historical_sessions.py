@@ -18,10 +18,11 @@ from agent_comms.historical_views import HistoricalThread, HistorySourceKey
 from agent_comms.transcripts import RecordedPageSource
 from textual import on, work
 from textual.app import ComposeResult
-from toad.screens.modal import CenteredView, DismissibleScreen, ModalPanel
+from toad.screens.modal import DismissibleScreen, ModalPanel
 from textual.widgets import Select, Static
 
 from toad.screens.workspace import WorkspaceFrame
+from toad.widget_view import CenteredView
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
