@@ -108,6 +108,25 @@ class UnifiedRows(PatchRows):
 SPLIT_ROWS, UNIFIED_ROWS = SplitRows(), UnifiedRows()
 
 
+class DiffMarks:
+    """The +/− column a diff gutter draws after the line numbers: shown, or not drawn."""
+
+    width: ClassVar[int] = 0
+
+    def prefix(self, role: type[LineRole]) -> str:
+        return ""
+
+
+class ShownDiffMarks(DiffMarks):
+    width = 2
+
+    def prefix(self, role: type[LineRole]) -> str:
+        return role.diff_marker + " "
+
+
+NO_MARKS, SHOWN_MARKS = DiffMarks(), ShownDiffMarks()
+
+
 class DiffMode(DeclaredChoice, affix="Diff"):
     rows: ClassVar[PatchRows] = UNIFIED_ROWS
     auto_split = False
@@ -168,6 +187,11 @@ class DiffSettings(AnnotatedDataclassValidationMixin):
     annotations: Annotated[bool, FieldLabel("Show annotations (+/- symbols)?"), changed] = False
     wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode), changed] = NoWrapMode
     """If wrapping is disabled you can horizontal scroll with the trackpad or the mouse wheel plus shift."""
+
+    @property
+    def marks(self) -> DiffMarks:
+        """The stored yes/no decoded once into what a diff gutter draws."""
+        return (NO_MARKS, SHOWN_MARKS)[self.annotations]
 
 
 

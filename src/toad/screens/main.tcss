@@ -126,13 +126,7 @@ Conversation {
         grid-rows: auto;
         height: auto;                
     }
-
-    #cursor-container {            
-        width: 1;                    
-        color: $foreground 7%;            
-                
-        .cursor--selected { color: $text-accent; }
-    }        
+        
 
 
 

@@ -90,7 +90,7 @@ class CommsChatView(Conversation):
     def compose(self) -> ComposeResult:
         with Window():
             with ContentsGrid():
-                yield CursorContainer(id="cursor-container")
+                yield CursorContainer()
                 with self.message_contents:
                     yield HistoryLoading("Loading messages…", id="history-loading")
                     yield self.message_history
