@@ -432,14 +432,12 @@ class StartedPublicationWork(WorkerGroup, RunningPublicationWork):
 class WindowPublicationWork(StartedPublicationWork):
     """Publishes the window's commits; a newer request supersedes a running one."""
 
-    group = "transcript-window"
     exclusive = True
 
 
 class SourcePublicationWork(StartedPublicationWork):
     """Reads the queued source publications in order."""
 
-    group = "transcript-source"
 
 
 class SourcePublicationRequests:

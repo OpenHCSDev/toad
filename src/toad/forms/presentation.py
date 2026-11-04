@@ -15,6 +15,7 @@ from textual.view import (
 )
 from textual.widgets._select import SelectCurrent
 from textual.widgets import Input
+from toad.app_node import FollowsTheme
 from toad.widgets.checkbox import Checkbox
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
 
@@ -77,7 +78,7 @@ class FormSelectCurrent(FramedControl, SelectCurrent):
         return self.parent.has_focus or self.parent.has_focus_within
 
 
-class FormModal[Result](WidgetView, ModalScreen[Result]):
+class FormModal[Result](FollowsTheme, WidgetView, ModalScreen[Result]):
     """Shared native modal presentation and theme invalidation lifecycle.
 
     The form package knows no app key bindings: an app's own modal mixes in beside it.
@@ -91,9 +92,6 @@ class FormModal[Result](WidgetView, ModalScreen[Result]):
     def paint_background(self) -> Color:
         return self.app.colours.colour(BackgroundColour).multiply_alpha(0.6)
 
-    def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self.theme_changed)
-
-    def theme_changed(self, theme) -> None:
+    def theme_changed(self) -> None:
         # A theme changes the entire visible modal, not each offscreen field.
         self.refresh()

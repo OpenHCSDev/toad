@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from functools import cached_property
+
 from abc import abstractmethod
 from typing import cast
 
@@ -16,6 +18,7 @@ from textual.strip import Strip
 from textual.visual import Visual
 from textual.widget import Widget
 
+from toad.app_node import FollowsTheme
 from toad.block_navigation import ConversationEntry
 from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity
@@ -27,9 +30,19 @@ from toad.message_rows import MessageRow
 from toad.navigation_target import NavigationTarget, SelectTarget
 from toad.project_link import ProjectLink
 from toad.project_path_owner import ProjectPathOwner
-from toad.widgets.transcript_lines import Lines
+from toad.widgets.transcript_lines import Lines, link_place
 
-class ReferenceRendering(CoreEventReceiver):
+class RestylesOnTheme(FollowsTheme):
+    """Rows restyle when the theme changes; each member says how in invalidate_lines."""
+
+    def theme_changed(self) -> None:
+        self.invalidate_lines()
+
+    @abstractmethod
+    def invalidate_lines(self) -> None: ...
+
+
+class ReferenceRendering(RestylesOnTheme, CoreEventReceiver):
     """Borrow the source's observation for exactly this rendering lifetime."""
     def _on_mount(self):
         owner = ProjectPathOwner.containing(self)
@@ -46,9 +59,6 @@ class ReferenceRendering(CoreEventReceiver):
         owner = ProjectPathOwner.containing(self)
         self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
         self.invalidate_lines()
-
-    @abstractmethod
-    def invalidate_lines(self, change=None): ...
 
 
 class OpensLinks(CoreEventReceiver, MroDispatch):
@@ -142,6 +152,11 @@ class LinkedRows(OpensLinks):
     """Draw prepared rows on the native background, using their entry's arrival fade."""
 
     arrival: AnimationEffects = AnimationEffects()
+
+    @cached_property
+    def link_place(self) -> int:
+        """What tells the links these rows draw apart from equal links drawn elsewhere."""
+        return link_place()
 
     def on_mount(self) -> None:
         self.arrival = next((entry for entry in cast(Widget, self).ancestors_with_self

@@ -37,7 +37,6 @@ from toad.worker_group import WorkerGroup
 class ProjectTreeMount(WorkerGroup):
     """Mounts the project's directory tree."""
 
-    group = "project-tree"
 
 
 class ProjectSearchButton(

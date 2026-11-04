@@ -29,7 +29,6 @@ if TYPE_CHECKING:
 class ThreadInterestUpdate(WorkerGroup):
     """Tells Core which threads the open views are interested in; a newer update supersedes one running."""
 
-    group = "thread-interest"
     exclusive = True
 
 

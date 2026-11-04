@@ -79,35 +79,30 @@ class ContextTreeIntent:
 class ContextReadWork(WorkerGroup):
     """Reads the selected thread's recorded context page."""
 
-    group = "context-read"
     exclusive = True
 
 
 class ContextNativeWork(WorkerGroup):
     """Reads the native rendering of the acquired page."""
 
-    group = "context-native"
     exclusive = True
 
 
 class ContextPresentationWork(WorkerGroup):
     """Builds the tree groups for the acquired page."""
 
-    group = "context-presentation"
     exclusive = True
 
 
 class ContextSearchWork(WorkerGroup):
     """Searches the acquired page."""
 
-    group = "context-search"
     exclusive = True
 
 
 class ContextDetailWork(WorkerGroup):
     """Shows the selected node's detail."""
 
-    group = "context-detail"
     exclusive = True
 
 

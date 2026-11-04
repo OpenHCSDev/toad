@@ -12,12 +12,12 @@ from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from itertools import chain, count, zip_longest
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
-    from toad.widgets.transcript_fragments import Shown, TranscriptFragment
+    from toad.widgets.transcript_fragments import TranscriptFragment
     from toad.widgets.transcript_history import LaidOut, RowChange
 
 from metaclass_registry.mro_dispatch import handles
@@ -639,8 +639,16 @@ class BlockSpan(NoBlockSpan):
 class BlockLines(Lines):
     """A viewport retains immutable references to block-owned row snapshots."""
 
-    # Whether these rows are still to come from the render worker.
-    awaits_styling: ClassVar[bool] = False
+    def request_styling(self, request: Callable[[], object]) -> None:
+        """Styled rows need no render."""
+
+    def styled_or(self, unstyled: Callable[[], BlockLines]) -> BlockLines:
+        """These rows, while styled; what stands in for them while their render is to come."""
+        return self
+
+    def unstyled[T](self, value: T) -> tuple[T, ...]:
+        """`value` when these rows still await their render; nothing when they are styled."""
+        return ()
 
     def __init__(self, width: int, preparation: LinePreparation, renderer: RichLineRenderer) -> None:
         self.width, self.preparation, self.renderer = width, preparation, renderer
@@ -674,7 +682,6 @@ class BlockLines(Lines):
 class NoStyledLines(BlockLines):
     """Rows not styled yet: none at any width until the render worker's rows arrive."""
 
-    awaits_styling = True
     prepared_blocks: tuple[PreparedLines, ...] = ()
 
     def __init__(self, width: int = 0) -> None:
@@ -682,6 +689,15 @@ class NoStyledLines(BlockLines):
 
     def rewrap(self, width: int) -> NoStyledLines:
         return self if self.width == width else NoStyledLines(width)
+
+    def request_styling(self, request: Callable[[], object]) -> None:
+        request()
+
+    def styled_or(self, unstyled: Callable[[], BlockLines]) -> BlockLines:
+        return unstyled()
+
+    def unstyled[T](self, value: T) -> tuple[T, ...]:
+        return (value,)
 
 
 class PlainLines(BlockLines):

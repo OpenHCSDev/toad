@@ -18,10 +18,9 @@ class GoalText(ReferenceRendering, OpensLinks, ChangingText):
         super().__init__(text, markup=False, **kwargs)
 
     def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
         self.update_goal_text(self.goal_text)
 
-    def invalidate_lines(self, change=None) -> None:
+    def invalidate_lines(self) -> None:
         self.update_goal_text(self.goal_text)
 
     def update_goal_text(self, text: str) -> None:

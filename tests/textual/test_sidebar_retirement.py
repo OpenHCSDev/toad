@@ -17,7 +17,7 @@ from toad.screens.main import MainScreen
 from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-from toad.widgets.side_bar import SideBarCollapsible
+from toad.widgets.side_bar import PanelHydration, SideBarCollapsible
 from toad.widgets.thread_comms import ThreadCommsSidebar
 
 
@@ -256,7 +256,7 @@ async def test_leaving_a_view_stops_its_sidebar_hydration(workspace):
         workers = tuple(
             worker
             for worker in sidebar.workers
-            if worker.node is sidebar and worker.group == sidebar.PANEL_WORKER_GROUP
+            if worker.node is sidebar and worker.group == PanelHydration.group
         )
         await asyncio.sleep(0)
         await app.session_navigation.new(tab, lambda: MainScreen(app.project_dir))
