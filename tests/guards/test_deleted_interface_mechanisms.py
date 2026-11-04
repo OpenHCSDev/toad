@@ -14,7 +14,7 @@ def test_conversation_uses_declared_contracts():
 
 def test_nominal_block_interaction_caller_closure():
     tree=ast.parse((ROOT/'widgets/conversation.py').read_text())
-    methods={'copy_block_to_clipboard','copy_block_to_prompt','action_select_block',
+    methods={'copy_block_to_clipboard','copy_block_to_prompt','select_block',
              'action_expand_block','action_collapse_block'}
     for method in ast.walk(tree):
         if isinstance(method,(ast.FunctionDef,ast.AsyncFunctionDef)) and method.name in methods:

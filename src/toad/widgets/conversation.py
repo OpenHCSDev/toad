@@ -28,7 +28,6 @@ from rich.style import Style
 from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
-from textual.binding import ModeBinding
 from textual.content import Content
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.query import NoMatches
@@ -1987,7 +1986,7 @@ class Conversation(
         self.transcript.binding.request(self.transcript)
 
 
-    async def action_select_block(self) -> None:
+    async def select_block(self) -> None:
         cursor = self.navigation.cursor
         for block in cursor.selected_widgets:
             commands = [CopyClipboardCommand(), CopyPromptCommand(), ExportSvgCommand()]
@@ -1998,10 +1997,6 @@ class Conversation(
             menu.offset = Offset(1, cursor.region.top(self.window.region.y))
             await self.mount(menu)
             menu.focus()
-
-    MODE_BINDINGS = (
-        ModeBinding("enter", action_select_block, "Select block", mode=EditingMode, show=True),
-    )
 
     def copy_block_to_clipboard(self) -> None:
         cursor = self.navigation.cursor
