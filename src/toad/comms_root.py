@@ -569,11 +569,13 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
         return self.sidebar.observation.references_for(root)
 
     async def current_references(self, access: CoordinationAccess, root: str):
-        try:
-            await access.current_sidebar()
-        except RouteChangedError:
-            return await access.observation.current_references(access, root)
-        return access.reference_context(root)
+        """Draw with the sidebar's answered names; before it answers, read them from Core."""
+        return await access.reference_context(root).settled(self)
+
+    async def registry_references(self, root: str):
+        """The registry's and channel catalog's names, read without waiting for a sidebar capture."""
+        references = await self.access.preparation.run_thread(self.references)
+        return references.at(root)
 
     def thread_interest(self, access: CoordinationAccess):
         self.process.request(ObserveThreads(access.events.observed_threads(str(self.root))))
