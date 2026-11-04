@@ -48,7 +48,7 @@ from textual.await_complete import AwaitComplete
 from textual.widget import Widget
 from textual.worker import Worker, WorkerCancelled, get_current_worker
 
-from toad.core.events import CoreEventStream
+from toad.core.events import CoreEventStream, ThreadRowsChanged
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
@@ -465,9 +465,13 @@ class SourcePublicationRequests:
         self.observation.close()
         self.observation.enter_context(
             publication.thread_scope.observe(
-                view, view.app.coordination_access, lambda _change: self.resume()
+                view, view.app.coordination_access, self.thread_rows_changed
             )
         )
+
+    def thread_rows_changed(self, _change: ThreadRowsChanged) -> None:
+        """A subscription only borrows its callback, so this owner holds it as a bound method."""
+        self.resume()
 
     def resume(self) -> bool:
         """Resume kept work only at an existing source/preparation signal."""

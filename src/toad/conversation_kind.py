@@ -210,7 +210,7 @@ class ChannelConversation(ConversationKind):
     @classmethod
     async def update_mentions(cls, view: CommsChatView, source: ReferencedCore):
         history = view.message_history
-        source = history.source_snapshot()
+        shown = history.source_snapshot()
         conversation = view.conversation
         access = view.app.coordination_access
         answer = await access.current_sidebar()
@@ -221,7 +221,7 @@ class ChannelConversation(ConversationKind):
             snapshot.mention_candidates,
             conversation.destination(snapshot.references).name,
         )
-        if not await history.source_is_current(source) or view.conversation != conversation:
+        if not await history.source_is_current(shown) or view.conversation != conversation:
             return
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
