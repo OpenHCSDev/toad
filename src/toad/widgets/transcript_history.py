@@ -409,10 +409,9 @@ class TranscriptPageView(
         return self._measured
 
     def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
         self.history.window.page_views.add(self)
 
-    def invalidate_lines(self, change=None) -> None:
+    def invalidate_lines(self) -> None:
         for fragment in self.prepared.fragments:
             fragment.invalidate_lines()
         self.range_changed()

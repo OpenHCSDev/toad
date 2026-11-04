@@ -18,6 +18,7 @@ from textual.strip import Strip
 from textual.visual import Visual
 from textual.widget import Widget
 
+from toad.app_node import FollowsTheme
 from toad.block_navigation import ConversationEntry
 from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity
@@ -31,7 +32,17 @@ from toad.project_link import ProjectLink
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.transcript_lines import Lines, link_place
 
-class ReferenceRendering(CoreEventReceiver):
+class RestylesOnTheme(FollowsTheme):
+    """Rows restyle when the theme changes; each member says how in invalidate_lines."""
+
+    def theme_changed(self) -> None:
+        self.invalidate_lines()
+
+    @abstractmethod
+    def invalidate_lines(self) -> None: ...
+
+
+class ReferenceRendering(RestylesOnTheme, CoreEventReceiver):
     """Borrow the source's observation for exactly this rendering lifetime."""
     def _on_mount(self):
         owner = ProjectPathOwner.containing(self)
@@ -48,9 +59,6 @@ class ReferenceRendering(CoreEventReceiver):
         owner = ProjectPathOwner.containing(self)
         self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
         self.invalidate_lines()
-
-    @abstractmethod
-    def invalidate_lines(self, change=None): ...
 
 
 class OpensLinks(CoreEventReceiver, MroDispatch):

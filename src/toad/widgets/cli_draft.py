@@ -53,10 +53,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         self._width = 0
         self.display = False
 
-    def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
-
-    def invalidate_lines(self, change=None) -> None:
+    def invalidate_lines(self) -> None:
         self._lines = NoStyledLines(self._width)
         self._request_render()
         self.refresh(layout=True)
