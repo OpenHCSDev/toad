@@ -322,11 +322,11 @@ class WorkspaceScreen(WorkspaceFrame, actions=(ViewAction,)):
                 return False
         return True
 
-    def action_back_to_bottom(self) -> None:
+    def back_to_bottom(self) -> None:
         if (window := self.back_to_bottom_window) is not None:
             window.jump_to_latest()
 
     MODE_BINDINGS = (
-        ModeBinding("escape", action_back_to_bottom, "Back to bottom", mode=EditingMode,
+        ModeBinding("escape", back_to_bottom, "Back to bottom", mode=EditingMode,
                     available=back_to_bottom_available, priority=True, show=False),
     )

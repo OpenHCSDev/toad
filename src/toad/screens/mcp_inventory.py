@@ -40,7 +40,7 @@ class RefreshInventory(ActingButton):
     """Reads the MCP inventory again."""
 
     async def act(self) -> None:
-        self.query_ancestor(MCPInventoryScreen).action_refresh()
+        self.query_ancestor(MCPInventoryScreen).refresh_inventory()
 
 
 class InventoryPanel(SurfacePanel):
@@ -93,14 +93,14 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
                 yield DismissButton("Close")
 
     def on_mount(self) -> None:
-        self.action_refresh()
+        self.refresh_inventory()
 
     def on_unmount(self) -> None:
         self._generation += 1
         if self._read_task is not None:
             self._read_task.cancel()
 
-    def action_refresh(self) -> None:
+    def refresh_inventory(self) -> None:
         self._generation += 1
         if self._read_task is not None:
             self._read_task.cancel()
@@ -166,5 +166,5 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
             return
         self.app.push_screen(
             MCPDecisionScreen(selection, command),
-            lambda _: self.action_refresh(),
+            lambda _: self.refresh_inventory(),
         )

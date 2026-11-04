@@ -63,11 +63,6 @@ class ChangeDirectory(CoreEvent):
 
 
 @dataclass(frozen=True)
-class OpenAgentDetails(CoreEvent):
-    identity: str
-
-
-@dataclass(frozen=True)
 class SelectHistoricalIdentity(CoreEvent):
     name: str
     source: str

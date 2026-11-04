@@ -101,7 +101,7 @@ class MCPInventoryProvider(SessionCommands):
     def commands(self, session: MainScreen) -> Iterable[SimpleCommand]:
         yield SimpleCommand(
             "Pi MCP inventory",
-            session.action_mcp_inventory,
+            session.open_mcp_inventory,
             "Read-only package snapshot",
         )
 
@@ -505,7 +505,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     def remember_direct_target(self, target: str) -> None:
         self._last_dm_target = target
 
-    def action_mcp_inventory(self) -> None:
+    def open_mcp_inventory(self) -> None:
         """Open an inert package-owned snapshot; never locate a source checkout."""
         self.app.push_screen(
             MCPInventoryScreen(

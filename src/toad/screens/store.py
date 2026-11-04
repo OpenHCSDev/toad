@@ -261,25 +261,6 @@ Your favorite agents.
 """
     BINDING_GROUP_TITLE = "Launcher"
 
-
-    def action_details(self) -> None:
-        if self.highlighted is None:
-            return
-        agent_item = self.children[self.highlighted]
-        assert isinstance(agent_item, LauncherItem)
-        self.publish_core(input_events.OpenAgentDetails(agent_item._agent.identity))
-
-    def action_remove(self) -> None:
-        agents = self.app.settings.launcher.agents.splitlines()
-        if self.highlighted is None:
-            return
-        try:
-            del agents[self.highlighted]
-        except IndexError:
-            pass
-        else:
-            self.app.saved_settings.set(SETTINGS.launcher.agents, "\n".join(agents))
-
     async def launch(self) -> None:
         if self.highlighted is None:
             return
@@ -636,15 +617,6 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
             return
         assert isinstance(event.widget, AgentItem)
         await self.show_agent(event.widget.agent)
-
-    @handles(input_events.OpenAgentDetails)
-    @work
-    async def open_agent_detail(self, event: input_events.OpenAgentDetails) -> None:
-        try:
-            agent = self._agents[event.identity]
-        except KeyError:
-            return
-        await self.show_agent(agent)
 
     @on(GridSelect.Selected, "LauncherGridSelect")
     @work
