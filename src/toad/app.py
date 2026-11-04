@@ -320,11 +320,24 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         asyncio.get_running_loop().add_signal_handler(signal.SIGUSR1, self.relaunch)
         self.preparation.renderer.start()
         self._prewarm_conversation_css()
+        self._prewarm_command_catalog()
         db = await self.get_db()
         await db.create()
         self.saved_settings.ensure_file(self)
         self.colours.start()
         self.saved_settings.apply_all()
+
+    def _prewarm_command_catalog(self) -> None:
+        """Discover Core's command family before the first frame.
+
+        A target's action menu lists every CliCommand member, and the family's
+        registry imports all of agent_comms.cli_verbs on its first listing.
+        Listing it here puts that one-time cost before the first frame, not in
+        the first cold tab, where the imports hold the GIL against input.
+        """
+        from agent_comms.cli_command import CliCommand
+
+        CliCommand.members_with(CliCommand)
 
     def _prewarm_conversation_css(self) -> None:
         """Load known conversation classes' default CSS in one parse.
