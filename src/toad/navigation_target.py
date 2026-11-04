@@ -133,9 +133,9 @@ class HistoryRouted(HistoryTarget, declared_name=None):
         super().__init_subclass__(**kwargs)
         HistoryRoute.routes[cls.history_kind] = cls
 
-    def prepare(self, core, me):
+    def prepare(self, source, me):
         """Resolve opening intent through Core before retaining a stable conversation key."""
-        return self.history_kind.resolve(core, me, self.name)
+        return self.history_kind.resolve(source, me, self.name)
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(

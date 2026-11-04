@@ -20,7 +20,7 @@ from agent_comms.channel_targets import (
 from agent_comms.channels import AllChannel
 from agent_comms.core_access import CoreAccess
 from agent_comms.tools import (
-    CommsChannelTool, CommsConversationPageTool, CommsRegistryTool, CommsThreadConfigurationTool,
+    CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool,
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences
@@ -84,7 +84,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     @abstractmethod
-    def resolve(cls, core: CoreAccess, me: str, name: str) -> ResolvedConversation: ...
+    def resolve(cls, source: ReferencedCore, me: str, name: str) -> ResolvedConversation:
+        """Resolve `name` against the source's registry, the read every opening shares."""
 
     def label(self, references: CurrentDisplayReferences) -> str:
         return self.destination(references).name
@@ -185,9 +186,9 @@ class ChannelConversation(ConversationKind):
         return ChannelViewAddress(key.root, key.conversation)
 
     @classmethod
-    def resolve(cls, core: CoreAccess, me: str, name: str) -> ResolvedConversation:
-        snapshot = core.call(CommsRegistryTool())
-        resolved = ChannelTarget(name).resolve(snapshot, lambda channel: core.call(CommsChannelTool(name=channel)))
+    def resolve(cls, source: ReferencedCore, me: str, name: str) -> ResolvedConversation:
+        snapshot = source.registry()
+        resolved = ChannelTarget(name).resolve(snapshot, lambda channel: source.core.call(CommsChannelTool(name=channel)))
         return ResolvedConversation(snapshot.canonical_name(me), cls(ChannelTarget(resolved.channel.name)))
 
     @classmethod
@@ -258,9 +259,9 @@ class DmConversation(ConversationKind):
         return observation.bus_unread(self.destination(references).name)
 
     @classmethod
-    def resolve(cls, core: CoreAccess, me: str, name: str) -> ResolvedConversation:
-        snapshot = core.call(CommsRegistryTool())
-        resolved = ThreadTarget(name).resolve(snapshot, lambda channel: core.call(CommsChannelTool(name=channel)))
+    def resolve(cls, source: ReferencedCore, me: str, name: str) -> ResolvedConversation:
+        snapshot = source.registry()
+        resolved = ThreadTarget(name).resolve(snapshot, lambda channel: source.core.call(CommsChannelTool(name=channel)))
         return ResolvedConversation(snapshot.require(me).name, cls(resolved.thread.incarnation))
 
     def label(self, references: CurrentDisplayReferences) -> str:
