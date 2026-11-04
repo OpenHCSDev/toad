@@ -7,7 +7,7 @@ from toad.widgets.comms_sidebar import CoordinationStatus
 from toad.plan import PlanItem
 from toad.widgets.plan import Plan
 from toad.widgets.project_panel import ProjectPanel, RestorableProjectPanel
-from toad.widgets.project_tree_intent import ProjectTreeIntent
+from toad.widgets.project_tree_intent import NO_TREE_INTENT, TreeIntent
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget
 from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_comms import RelationshipSort, RelationshipTreeState, ThreadCommsSidebar
@@ -82,15 +82,14 @@ class ProjectSessionPanel(SessionPanel[ProjectPanel]):
     flex = True
 
     def __init__(self) -> None:
-        self.intent: ProjectTreeIntent | None = None
+        self.intent: TreeIntent = NO_TREE_INTENT
 
     def make_widget(self, screen: "MainScreen") -> ProjectPanel:
         screen._project_panel = RestorableProjectPanel(screen.project_path.path, intent=self.intent)
         return screen._project_panel
 
     def capture(self, widget: ProjectPanel) -> None:
-        if intent := widget.capture_intent():
-            self.intent = intent
+        self.intent = widget.capture_intent()
 
 
 class ContextSessionPanel(SessionPanel):

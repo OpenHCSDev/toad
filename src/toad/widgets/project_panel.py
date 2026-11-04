@@ -13,7 +13,7 @@ from textual.message import Message
 from textual.widgets import Static
 
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.project_tree_intent import ProjectTreeIntent
+from toad.widgets.project_tree_intent import NO_TREE_INTENT, ProjectTreeIntent, TreeIntent
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
 from textual.css.native import Keyword, NativeDeclaration, Variable
@@ -72,19 +72,41 @@ class ProjectPanelTree(TransparentBackground, FillHeight, ProjectDirectoryTree):
 
 
 
-class ProjectPanel(SidebarPanelWidget, Vertical):
+class ProjectView:
+    """A session's project panel as its screen sees it; before one is made there is nothing to show."""
+
+    def refresh_if_visible(self) -> None:
+        """No tree is shown."""
+
+    def invalidate(self) -> None:
+        """No tree is shown."""
+
+    def show_project(self, path: Path) -> None:
+        """No tree follows the project."""
+
+
+NO_PROJECT_VIEW = ProjectView()
+
+
+class ProjectPanel(ProjectView, SidebarPanelWidget, Vertical):
     path: reactive[Path] = reactive(Path, init=False)
 
     def __init__(self, path: Path) -> None:
         super().__init__()
-        self.directory_tree: ProjectPanelTree | None = None
-        self.path = path
+        # The tree exists with the panel; it is mounted only once the panel is shown.
+        self.directory_tree = ProjectPanelTree(path)
+        self.directory_tree.guide_depth = 3
+        # The initial path is not a change: watchers run only for later projects.
+        self.set_reactive(ProjectPanel.path, path)
         self._tree_requested = False
 
     def compose(self) -> ComposeResult:
         yield ProjectSearchButton()
-        self.directory_tree = ProjectPanelTree(self.path).data_bind(path=ProjectPanel.path)
-        self.directory_tree.guide_depth = 3
+        # Binding reads the composing parent, so it is made here.
+        self.directory_tree.data_bind(path=ProjectPanel.path)
+
+    def show_project(self, path: Path) -> None:
+        self.path = path
 
     def on_show(self) -> None:
         self.call_after_refresh(self._ensure_tree)
@@ -107,44 +129,38 @@ class ProjectPanel(SidebarPanelWidget, Vertical):
         await self.mount(self.directory_tree)
 
     def invalidate(self) -> None:
-        if self.directory_tree is not None:
-            self.directory_tree.invalidate()
+        self.directory_tree.invalidate()
 
     def refresh_if_visible(self) -> None:
-        if self.directory_tree is not None:
-            self.directory_tree.refresh_if_visible()
+        self.directory_tree.refresh_if_visible()
 
-    def capture_intent(self) -> ProjectTreeIntent | None:
+    def capture_intent(self) -> TreeIntent:
         """Read the completed native projection at this panel's owner."""
-        if self.directory_tree is not None and self.directory_tree.is_mounted:
+        if self.directory_tree.is_mounted:
             return ProjectTreeIntent.capture(self.directory_tree)
-        return None
+        return NO_TREE_INTENT
 
 
 class RestorableProjectPanel(ProjectPanel):
     """A disposable tree restores filesystem intent using the original loader."""
 
-    def __init__(self, path: Path, *, intent: ProjectTreeIntent | None = None) -> None:
+    def __init__(self, path: Path, *, intent: TreeIntent = NO_TREE_INTENT) -> None:
         super().__init__(path)
         self._intent = intent
 
-    def capture_intent(self) -> ProjectTreeIntent | None:
+    def capture_intent(self) -> TreeIntent:
         """An unfinished restore retains its original reader, not a default node."""
-        if self._intent is not None:
-            return self._intent
-        return super().capture_intent()
+        return self._intent.pending_or(super().capture_intent)
 
     def watch_path(self, path: Path) -> None:
-        self._intent = None
-        if self.directory_tree is not None:
-            ProjectTreeMount.cancel_all(self)
+        self._intent = NO_TREE_INTENT
+        ProjectTreeMount.cancel_all(self)
 
     @ProjectTreeMount.work
     async def _mount_tree(self) -> None:
         await super()._mount_tree().wait()
-        if self._intent is not None:
-            await self._intent.restore(self.directory_tree)
-            self._intent = None
+        await self._intent.restore(self.directory_tree)
+        self._intent = NO_TREE_INTENT
 
 
 class PreviewLine(FillWidth, Static):
