@@ -126,7 +126,7 @@ class MessageDivider(Animated[Mix], ConversationLineBlock):
     """
 
     def __init__(self, block: Divider, *, clock: MessageClock = LiveMessageClock()) -> None:
-        super().__init__(replace(block, timestamp=clock.timestamp))
+        super().__init__(replace(block, timestamp=clock.event_time))
         self.fresh = clock.fresh
         self.tooltip = clock.display()[1]
 
