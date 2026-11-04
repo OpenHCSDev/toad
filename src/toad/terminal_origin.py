@@ -1,22 +1,18 @@
-"""Where this Toad's terminal is attached from: each origin keeps its own workspace layout."""
+"""Where this Toad's terminal is attached from: each origin keeps its own sidebar arrangement."""
 
 from __future__ import annotations
 
 import os
 from collections.abc import Mapping
-from typing import ClassVar
+from dataclasses import dataclass
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from formbridge.forms.declared_fields import FieldPath
 
-from toad.preferences import SETTINGS
+from toad.sidebar_placement import SidebarPlacement
 
 
 class TerminalOrigin(DeclaredFamily, affix="Terminal"):
     """The kind of terminal this process draws on, read once from its environment."""
-
-    layout: ClassVar[FieldPath]
-    """The saved sidebar arrangement this origin reads and writes."""
 
     @staticmethod
     def of(environment: Mapping[str, str] = os.environ) -> type[TerminalOrigin]:
@@ -25,8 +21,16 @@ class TerminalOrigin(DeclaredFamily, affix="Terminal"):
 
 
 class LocalTerminal(TerminalOrigin):
-    layout = SETTINGS.layout.local
+    """This machine's own terminal."""
 
 
 class SshTerminal(TerminalOrigin):
-    layout = SETTINGS.layout.ssh
+    """A terminal reaching Toad over SSH, such as a phone."""
+
+
+@dataclass(frozen=True)
+class TerminalLayout:
+    """One terminal origin's saved sidebar placements; a role it lacks keeps its initial placement."""
+
+    origin: type[TerminalOrigin]
+    placements: tuple[SidebarPlacement, ...] = ()

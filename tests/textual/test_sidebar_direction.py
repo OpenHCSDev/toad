@@ -2,7 +2,7 @@
 
 import pytest
 
-from toad.sidebar_layout import SidebarEdge
+from toad.sidebar_placement import SidebarEdge
 from toad.widgets.side_bar import SideBar, SidebarAction
 
 

@@ -143,7 +143,7 @@ async def test_sidebar_keys_follow_actual_edges_after_a_pointer_move(workspace):
         field.value = ''
 
         # Use the existing spatial control to move the right bar to the left.
-        from toad.sidebar_layout import LeftSidebarEdge
+        from toad.sidebar_placement import LeftSidebarEdge
 
         button = thread.query_one('#sidebar-left', SidebarAction)
         assert await pilot.click(button)

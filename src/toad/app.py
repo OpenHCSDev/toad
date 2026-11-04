@@ -203,7 +203,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         FileKind.prepare_terminal()
         super().__init__()
         # The themed app opened the settings that own this terminal's sidebar arrangement.
-        self.sidebar_layout = SidebarLayout(TerminalOrigin.of().layout.bind(self.saved_settings.state))
+        self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of())
         self._return_value: TerminalOutcome = Ended(self.application.version)
         self.session_navigation.bind_events()
         self.set_reactive(ToadApp.project_dir, project_dir)

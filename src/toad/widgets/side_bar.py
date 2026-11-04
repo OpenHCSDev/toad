@@ -55,13 +55,11 @@ from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
     DirectionalSidebarPlacementAction,
     FloatSidebarPlacementAction,
-    SidebarEdge,
     SidebarLayout,
-    SidebarPlacement,
     SidebarPlacementAction,
     SidebarShift,
-    ThreadSidebarPlacement,
 )
+from toad.sidebar_placement import SidebarEdge, SidebarPlacement, ThreadSidebarPlacement
 from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
 from toad.app_node import ToadNode
 

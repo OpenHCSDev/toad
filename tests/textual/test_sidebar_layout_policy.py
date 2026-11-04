@@ -6,9 +6,10 @@ import pytest
 from textual.geometry import Size
 
 from toad.preferences import SavedSettings
-from toad.sidebar_layout import (
+from toad.sidebar_layout import SidebarLayout
+from toad.sidebar_placement import (
     BottomSidebarEdge, ChannelsSidebarPlacement, LeftSidebarEdge, RightSidebarEdge,
-    SidebarEdge, SidebarLayout, ThreadSidebarPlacement, TopSidebarEdge,
+    SidebarEdge, ThreadSidebarPlacement, TopSidebarEdge,
 )
 from toad.terminal_origin import LocalTerminal, SshTerminal, TerminalOrigin
 
@@ -17,7 +18,7 @@ EDGES = SidebarEdge.members_with(SidebarEdge)
 
 
 def layout_for(settings: SavedSettings | None = None, origin: type[TerminalOrigin] = LocalTerminal):
-    return SidebarLayout(origin.layout.bind((SavedSettings() if settings is None else settings).state))
+    return SidebarLayout(SavedSettings() if settings is None else settings, origin)
 
 
 def test_moving_swapping_and_resizing_keep_both_sidebars_and_clamp_extent():

@@ -21,7 +21,7 @@ from agent_comms.nominal.field_codec import FieldCodec, WireName
 from agent_comms.locked_store import FilesRequest
 from agent_comms.typed_table import ExternalStore
 from annotated_types import Ge, MinLen
-from objectstate import DottedFieldPath, ObjectState, set_base_config_type
+from objectstate import DottedFieldPath, ObjectState, mark_ui_hidden_config, set_base_config_type
 from pydantic import JsonValue
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 
@@ -50,7 +50,7 @@ from toad.setting_choices import (
 )
 from toad.setting_declarations import Effect, FamilyChoices
 from toad.setting_widget import PromptSettingEffects
-from toad.sidebar_layout import SidebarPlacement
+from toad.terminal_origin import TerminalLayout
 from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
@@ -223,18 +223,12 @@ class SidebarSettings(AnnotatedDataclassValidationMixin):
     ] = False
 
 
+@mark_ui_hidden_config
 @dataclass(frozen=True)
-class WorkspaceLayoutSettings(AnnotatedDataclassValidationMixin):
-    """Where each sidebar sits and how large it is, kept per kind of terminal.
+class WorkspaceLayout(AnnotatedDataclassValidationMixin):
+    """Where each sidebar sits and how large it is, saved per terminal origin."""
 
-    A role with no record here keeps its own initial placement.
-    """
-
-    local: tuple[SidebarPlacement, ...] = ()
-    """The arrangement on this machine's own terminal."""
-
-    ssh: tuple[SidebarPlacement, ...] = ()
-    """The arrangement when Toad is reached over SSH, such as from a phone."""
+    terminals: tuple[TerminalLayout, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -327,9 +321,7 @@ class ToadSettings(AnnotatedDataclassValidationMixin):
     )
     """Customize how the sidebar is displayed."""
 
-    layout: WorkspaceLayoutSettings = field(
-        default_factory=WorkspaceLayoutSettings, metadata={"ui_hidden": True}
-    )
+    layout: WorkspaceLayout = field(default_factory=WorkspaceLayout)
     """Sidebar placements saved as they are moved and resized."""
 
     agent: Annotated[AgentSettings, FieldLabel("Agent settings"), SESSIONS] = field(
