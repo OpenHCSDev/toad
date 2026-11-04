@@ -8,7 +8,7 @@ from agent_comms.repo import Checkout
 from functools import partial
 
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 from support import journals
 from toad.screens.main import MainScreen
 from toad.tab_identity.kinds import MailboxTab
@@ -23,10 +23,9 @@ async def saved_history(workspace, ui):
                                  "Canonical retained source owns coverage independently of painted resources.",
                                  id=f"a{number}", parent=f"a{number - 1}" if number else None)
         for number in range(8)))
-    owner = workspace.comms.registry.declare(Thread(
+    owner = workspace.comms.registry.declare(NativeThread(
         "saved", frozenset(), Checkout(workspace.project),
-        session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root),
-    ))
+        session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     root = str(workspace.comms.root)
     await ui.app.session_navigation.new(
         MailboxTab(owner.incarnation, root),

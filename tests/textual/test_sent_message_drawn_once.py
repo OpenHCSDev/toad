@@ -11,7 +11,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.nominal.field_codec import InputId
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 from support import agents, journals
 
 from toad.screens.main import MainScreen
@@ -27,7 +27,7 @@ async def test_a_start_notice_after_the_saved_history_draws_the_message_once(wor
         journals.assistant_entry("An earlier answer.", id="earlier"),
         journals.user_entry(TOKEN, id="sent", parent="earlier", input_id=INPUT))
     owner = workspace.comms.registry.declare(
-        Thread("source", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
+        NativeThread("source", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     async with workspace.app(size=(110, 35)) as ui:
         root = str(workspace.comms.root)
         await ui.app.session_navigation.new(

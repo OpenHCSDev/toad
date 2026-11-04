@@ -10,7 +10,7 @@ from textual.pilot import _get_mouse_message_arguments
 
 from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 from toad.app import ToadApp
 from toad.preferences import SETTINGS
 from toad.screens.main import MainScreen
@@ -84,7 +84,7 @@ async def test_scroll_down_through_evicted_pages_never_moves_up(workspace, recor
     fixture = Path(__file__).parents[1] / "fixtures" / "laptop_scroll_shape.jsonl.gz"
     journal = workspace.project / "laptop-history.jsonl"
     journal.write_bytes(gzip.decompress(fixture.read_bytes()))
-    owner = workspace.comms.registry.declare(Thread(
+    owner = workspace.comms.registry.declare(NativeThread(
         "scroll-reader", frozenset(), Checkout(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     root = str(workspace.comms.root)

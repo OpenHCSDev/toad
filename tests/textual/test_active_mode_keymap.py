@@ -33,7 +33,7 @@ async def test_team_remaps_from_sidebar_and_close_button(workspace):
                        why="the remapped modal dismissal")
         await ui.press("f3")
         await ui.until(lambda: isinstance(app.screen, TeamPage),
-                       why="the commander page reopened under the remap")
+                       why="the team page reopened under the remap")
         await ui.pilot.click(TeamClose)
         await ui.until(lambda: app.screen is app.workspace_screen,
                        why="the Close button uses the same dismissal action")
@@ -54,7 +54,7 @@ async def test_application_binding_precedes_real_engine_in_each_profile(workspac
                        why="the real native mode before the application shortcut")
         await ui.press("f2")
         await ui.until(lambda: isinstance(app.screen, TeamPage),
-                       why="the default commander key before engine forwarding")
+                       why="the default team key before engine forwarding")
         await ui.pilot.click(TeamClose)
         await ui.until(lambda: app.screen is app.workspace_screen, why="the original prompt again")
         area.focus()

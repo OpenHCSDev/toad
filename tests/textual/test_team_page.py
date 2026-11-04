@@ -1,4 +1,4 @@
-"""Textual-facing: retain the real commander page across Core frame replacements."""
+"""Textual-facing: retain the real team page across Core frame replacements."""
 
 import json
 from dataclasses import replace
@@ -42,7 +42,7 @@ def published_hud() -> TeamHud:
         PendingClock(1.0, 1.0), (), 1, (), (),
     )
     return TeamHud(
-        commander=RecordedThreadIncarnation("claude-code", 1.0), units=(unit,), phases=(),
+        teammate=RecordedThreadIncarnation("claude-code", 1.0), units=(unit,), phases=(),
         load=OverloadDegradation.from_orders((), 0, 0),
         forks=(RecordedThreadIncarnation("fork-hud", 2.0),),
         usage=CodexUsage(UnreadableUsage(reason="not requested")), open_pings=(),

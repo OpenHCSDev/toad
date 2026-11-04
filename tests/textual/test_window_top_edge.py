@@ -69,7 +69,7 @@ async def test_wheel_up_through_saved_history_never_moves_forward(workspace, siz
 
     from agent_comms.repo import Checkout
     from agent_comms.session_file import RegistrySessionLocation
-    from agent_comms.threads import Thread
+    from agent_comms.threads import NativeThread
     from toad.screens.main import MainScreen
     from toad.tab_identity.kinds import MailboxTab
     from toad.widgets.transcript_history import TranscriptHistory
@@ -77,7 +77,7 @@ async def test_wheel_up_through_saved_history_never_moves_forward(workspace, siz
     fixture = Path(__file__).parents[1] / "fixtures" / "laptop_scroll_shape.jsonl.gz"
     journal = workspace.project / "laptop-history.jsonl"
     journal.write_bytes(gzip.decompress(fixture.read_bytes()))
-    owner = workspace.comms.registry.declare(Thread(
+    owner = workspace.comms.registry.declare(NativeThread(
         "scroll-reader", frozenset(), Checkout(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     root = str(workspace.comms.root)
@@ -114,7 +114,7 @@ async def test_wrapped_header_pins_once_its_first_row_leaves_and_matches_the_flo
 
     from agent_comms.repo import Checkout
     from agent_comms.session_file import RegistrySessionLocation
-    from agent_comms.threads import Thread
+    from agent_comms.threads import NativeThread
     from toad.screens.main import MainScreen
     from toad.tab_identity.kinds import MailboxTab
     from toad.widgets.transcript_history import TranscriptHistory
@@ -122,7 +122,7 @@ async def test_wrapped_header_pins_once_its_first_row_leaves_and_matches_the_flo
     fixture = Path(__file__).parents[1] / "fixtures" / "laptop_scroll_shape.jsonl.gz"
     journal = workspace.project / "laptop-history.jsonl"
     journal.write_bytes(gzip.decompress(fixture.read_bytes()))
-    owner = workspace.comms.registry.declare(Thread(
+    owner = workspace.comms.registry.declare(NativeThread(
         "scroll-reader", frozenset(), Checkout(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     root = str(workspace.comms.root)
@@ -215,7 +215,7 @@ async def test_rows_without_styling_never_move_the_reader_at_phone_width(workspa
 
     from agent_comms.repo import Checkout
     from agent_comms.session_file import RegistrySessionLocation
-    from agent_comms.threads import Thread
+    from agent_comms.threads import NativeThread
     from toad.screens.main import MainScreen
     from toad.tab_identity.kinds import MailboxTab
     from toad.widgets.transcript_history import TranscriptHistory
@@ -223,7 +223,7 @@ async def test_rows_without_styling_never_move_the_reader_at_phone_width(workspa
     fixture = Path(__file__).parents[1] / "fixtures" / "laptop_scroll_shape.jsonl.gz"
     journal = workspace.project / "laptop-history.jsonl"
     journal.write_bytes(gzip.decompress(fixture.read_bytes()))
-    owner = workspace.comms.registry.declare(Thread(
+    owner = workspace.comms.registry.declare(NativeThread(
         "scroll-reader", frozenset(), Checkout(workspace.project),
         session_file=RegistrySessionLocation.from_path(journal, workspace.comms.root)))
     root = str(workspace.comms.root)

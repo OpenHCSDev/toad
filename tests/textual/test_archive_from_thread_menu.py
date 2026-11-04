@@ -10,7 +10,7 @@ from agent_comms.cli_command import CliCommand
 from agent_comms.cli_verbs.archive import ArchiveCliCommand
 from agent_comms.goal_actions import SetGoalAction
 from agent_comms.thread_status import ArchivedThreadStatus, StoppedThreadStatus
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 from textual.geometry import Offset
 
 from toad.db import DB
@@ -32,8 +32,8 @@ async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_his
     project, comms = workspace.project, workspace.comms
     session_file = project / "peer.jsonl"
     session_file.write_text('{"type":"session","id":"retained"}\n')
-    comms.registry.register(Thread("owner", frozenset(), Checkout(project)))
-    comms.registry.register(Thread("peer", frozenset(), Checkout(project), session_file=RegistrySessionLocation.from_path(session_file, workspace.comms.root)),
+    comms.registry.register(NativeThread("owner", frozenset(), Checkout(project)))
+    comms.registry.register(NativeThread("peer", frozenset(), Checkout(project), session_file=RegistrySessionLocation.from_path(session_file, workspace.comms.root)),
                             StoppedThreadStatus())
     comms.messaging.send("peer", "owner", "Retain this archived conversation")
     comms.goals.update_goal("peer", SetGoalAction(text="Retain the goal revisions"))

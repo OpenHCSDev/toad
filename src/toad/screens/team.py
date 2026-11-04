@@ -248,7 +248,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
         access = self.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
         return await observed.process.read(ReadOperation(str(observed.service.root), TeammateRead(
-            commander=self.teammate, unit=card.unit, orders=card.order_ids,
+            frame_owner=self.teammate, unit=card.unit, orders=card.order_ids,
         )))
 
     @TeamDetailRead.work
@@ -305,7 +305,7 @@ class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
         self.groups = VerticalGroup()
         self.filter = TeamFilter(placeholder="Filter team records")
         self.needs_hand = Checkbox("Needs hand")
-        self.details = TeamDetails(hud.commander)
+        self.details = TeamDetails(hud.teammate)
         self.alarms = {group: TeamAlarm(group) for group in AlarmGroup.members_with(AlarmGroup)}
         super().__init__()
         self.call_after_refresh(self.render_frame)
@@ -371,7 +371,7 @@ class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
 
     def render_frame(self) -> None:
         focused = any(table.has_focus for table in self.query(TeamTable))
-        self.heading.update(f"Team {self.hud.commander.name}")
+        self.heading.update(f"Team {self.hud.teammate.name}")
         now = time.time()
         self.status.update(self.hud.status_strip(now))
         for view in self.alarms.values():
@@ -424,11 +424,11 @@ class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreE
 
     @property
     def rows(self) -> dict[ThreadIncarnation, TeamFrameView]:
-        return {row.hud.commander: row for row in self.member_container.query_children(TeamFrameView)}
+        return {row.hud.teammate: row for row in self.member_container.query_children(TeamFrameView)}
 
     @property
     def frames(self) -> dict[ThreadIncarnation, TeamHud]:
-        return {hud.commander: hud for hud in self.huds}
+        return {hud.teammate: hud for hud in self.huds}
 
     def create_row(self, key: ThreadIncarnation) -> TeamFrameView:
         return TeamFrameView(self.frames[key])
@@ -458,8 +458,8 @@ class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreE
         error.update("")
         error.display = False
         self.huds = tuple(hud for hud in event.huds
-                          if not self.team_name or hud.commander.name == self.team_name)
-        keys = tuple(hud.commander for hud in self.huds)
+                          if not self.team_name or hud.teammate.name == self.team_name)
+        keys = tuple(hud.teammate for hud in self.huds)
         self.reconcile_keys(keys, changed=frozenset(keys))
         self.query_one(HudEmpty).display = not self.huds
 

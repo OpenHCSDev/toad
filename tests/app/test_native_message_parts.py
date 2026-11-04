@@ -2,7 +2,7 @@
 
 from agent_comms.repo import Checkout
 from agent_comms.session_file import RegistrySessionLocation
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 from support.journals import assistant_entry, write_journal
 
 
@@ -11,7 +11,7 @@ async def test_saved_message_in_parts_shows_as_one_message(workspace):
     entry = assistant_entry("", id="native-message")
     entry["message"]["content"] = [{"type": "text", "text": part} for part in parts]
     session = write_journal(workspace.project / "native.jsonl", entry)
-    workspace.comms.registry.declare(Thread("worker", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(session, workspace.comms.root)))
+    workspace.comms.registry.declare(NativeThread("worker", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(session, workspace.comms.root)))
     async with workspace.app(size=(110, 38)) as ui:
         await ui.app.thread_navigation.open(
             owner_mode=ui.selected_tab, project_path=ui.app.project_dir, target="worker")
