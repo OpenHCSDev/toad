@@ -46,7 +46,7 @@ class CoordinationTranscriptReader:
     async def core(self, root) -> CoreAccess:
         """The Core serving ``root``, in this process or across the connector."""
         return await self.access.preparation.run_thread(
-            lambda: self.access.observing(root).core
+            lambda: self.access.require(self.access.selected(root)).core
         )
 
     async def thread_presentation(
