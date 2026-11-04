@@ -1,5 +1,7 @@
 """Textual-facing: an error Toad shows keeps its text verbatim; markup brackets in it never crash the app."""
 
+from pathlib import Path
+
 from support.applications import record_notifications
 
 
@@ -12,4 +14,7 @@ async def test_an_error_with_markup_brackets_is_shown_verbatim(workspace):
         # Toad presents notifications through TerminalAttention, which parsed markup and crashed on brackets.
         assert app.is_running
         note = list(app._notifications)[-1]
-        assert (note.title, note.message, note.severity, note.markup) == ("Settings", "bad [bold] value", "error", False)
+        shown, log = note.message.split("\nLog: ")
+        assert (note.title, shown, note.severity, note.markup) == ("Settings", "bad [bold] value", "error", False)
+        # The saved traceback the notice points to holds the same verbatim text.
+        assert "ValueError: bad [bold] value" in Path(log).read_text()

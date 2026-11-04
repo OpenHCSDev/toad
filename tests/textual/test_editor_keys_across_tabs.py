@@ -31,18 +31,16 @@ async def test_editor_keys_work_after_clicks_parking_and_returning_between_tabs(
         first_area = first.conversation.prompt.prompt_text_area
         assert await pilot.click(first_area)
         await edit_keys(ui, first_area)
-        # The logical source releases its native focus before parking.
-        # Hide must not select an unrelated intermediate frame target.
+        # The logical source releases its native focus when it is parked; the
+        # switch hides it only after the departing frame (WorkspaceSessions.select).
         await app.workspace_sessions.retire()
         assert app.workspace_screen.focused is None
-        assert not first.display
         await ui.select_tab(first.id)
         await ui.until(lambda: first_area.has_focus, why="the editor focused on return")
         await ui.press("escape", "tab", "shift+tab")
         assert await pilot.click(first_area)
         await edit_keys(ui, first_area)
-        await app.session_navigation.create_from(first.id)
-        await ui.step()
+        await ui.new_session()
         second = app.selected_session
         for source in (first, second, first):
             tab = app.screen.query_one(f"SessionLabel#{source.id}", SessionLabel)
