@@ -55,7 +55,15 @@ class KeymapKeys(FillWidth, Input):
 
 
 class KeymapSearch(Input):
-    """Filters the keymap's actions."""
+    """Filters the keymap's actions as its text changes.
+
+    It handles its own Changed: KeymapSearch.Changed is Input.Changed, so a
+    screen handler for it would also run when the keys field changes."""
+
+    @on(Input.Changed)
+    def searched(self, message: Input.Changed) -> None:
+        message.stop()
+        self.query_ancestor(KeymapScreen).populate(message.value)
 
 
 class KeymapApply(ActingButton):
@@ -124,10 +132,6 @@ class KeymapScreen(ShadedScreen, CenteredScreen, DismissibleScreen[None]):
             table.add_row(title, *(Text(", ".join(self.catalog.effective(row, keymap)) or "—",
                                             style="bold red" if row.binding_id in conflicts else "")
                                    for mode in self.modes for row in (KeymapRow(declaration, mode),)))
-
-    @on(KeymapSearch.Changed)
-    def searched(self, message: Input.Changed) -> None:
-        self.populate(message.value)
 
     @on(Checkbox.Changed)
     def focus_filter_changed(self) -> None:
