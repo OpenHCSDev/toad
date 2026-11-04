@@ -7,7 +7,7 @@ from typing import ClassVar
 
 from textual import work
 from textual.dom import DOMNode
-from textual.worker import Worker
+from textual.worker import Worker, WorkType
 
 
 class WorkerGroup:
@@ -22,8 +22,8 @@ class WorkerGroup:
     group: ClassVar[str]
     exclusive: ClassVar[bool] = False
 
-    def __init_subclass__(cls, **kwargs) -> None:
-        super().__init_subclass__(**kwargs)
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
         # Textual names groups with a string; the class's own path is that name.
         cls.group = f"{cls.__module__}.{cls.__qualname__}"
 
@@ -33,7 +33,7 @@ class WorkerGroup:
         return work(group=cls.group, exclusive=cls.exclusive)(method)
 
     @classmethod
-    def run_on(cls, node: DOMNode, task: Callable[[], object], **options) -> Worker:
+    def run_on(cls, node: DOMNode, task: WorkType[object], **options) -> Worker:
         return node.run_worker(task, group=cls.group, exclusive=cls.exclusive, **options)
 
     @classmethod
