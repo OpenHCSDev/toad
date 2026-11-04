@@ -188,10 +188,18 @@ class SessionBody(WidgetView, ToadNode, Center):
         return self.app.workspace_chrome
 
 
-class SessionContents(WidgetView, Vertical):
+class SessionContents(WidgetView, ToadNode, Vertical):
     """The conversation fills the space beside the retained sidebar."""
 
     width = height = FILL
+
+    def on_mount(self) -> None:
+        self.apply_column_alignment()
+
+    def apply_column_alignment(self) -> None:
+        """Place a width-constrained conversation where the column alignment setting puts it."""
+        self.align_horizontal = self.app.settings.ui.column_alignment.horizontal
+        self.refresh(layout=True)
 
 
 class SidebarSessionView[SidebarT: ThreadSidebar](WidgetView, SessionView):

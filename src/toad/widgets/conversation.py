@@ -1665,7 +1665,7 @@ class Conversation(
     def apply_layout_preferences(self) -> None:
         """Project the original settings without retaining their semantic values."""
         ui = self.app.settings.ui
-        ui.column_alignment.apply(self, ui.column, ui.column_width)
+        self.styles.max_width = max(10, ui.column_width) if ui.column else None
         self.window.styles.scrollbar_size_vertical = ui.scrollbar.size
 
     async def initialize_view(self) -> None:

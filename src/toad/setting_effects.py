@@ -38,9 +38,12 @@ def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
+    from toad.screens.session_view import SessionContents
     from toad.widgets.conversation import Conversation
     for conversation in Effect.open_widgets(app, Conversation):
         conversation.apply_layout_preferences()
+    for contents in Effect.open_widgets(app, SessionContents):
+        contents.apply_column_alignment()
 
 
 @Effect
