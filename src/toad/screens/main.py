@@ -619,9 +619,6 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         if event.option.id is not None:
             self.conversation.prompt.suggest(event.option.id)
 
-    def action_focus_prompt(self) -> None:
-        self.content.focus_prompt(self)
-
     def focus_sidebar_return(self) -> None:
         self.content.focus_sidebar_return(self)
 
