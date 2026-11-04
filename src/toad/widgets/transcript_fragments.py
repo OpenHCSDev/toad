@@ -513,8 +513,9 @@ class TranscriptFragment(CursorRest):
         """
         return tuple(self.consumed.blocks)
 
-    @cached_property
+    @property
     def line_blocks(self) -> tuple[LineBlock, ...]:
+        """What this fragment draws as shown now; `shown` is the one stored fact."""
         return self.blocks(self.shown)
 
     def request_show(self, shown: Shown) -> bool:
@@ -522,7 +523,6 @@ class TranscriptFragment(CursorRest):
         if shown == self.shown:
             return False
         self.shown = shown
-        self.__dict__.pop("line_blocks", None)
         # The rows drawn now stand in until the new state's rows arrive: a
         # status change must not redraw the message as plain rows (another
         # wrap, another height) and then as styled rows again.
@@ -606,7 +606,7 @@ class TranscriptFragment(CursorRest):
 
     def hold_lines(self, request: TranscriptLinesRenderTask, lines: BlockLines) -> bool:
         """Report whether these rows were retained for the fragment's source."""
-        if request.blocks is self.line_blocks:
+        if request.blocks == self.line_blocks:
             self._lines = AcquiredRows(request.preparation, lines, request.context)
             return True
         return False
