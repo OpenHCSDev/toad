@@ -129,6 +129,10 @@ class CapturedSource(ABC):
     def serves(self, root: str | Path) -> bool:
         """Whether ``root`` names the captured root."""
 
+    @abstractmethod
+    def observed(self, access: CoordinationAccess) -> Observing:
+        """The observation this capture reads through, confirmed still to be it."""
+
 
 @dataclass(frozen=True)
 class SelectedRoute(CapturedSource):
@@ -145,6 +149,9 @@ class SelectedRoute(CapturedSource):
 
     def serves(self, root: str | Path) -> bool:
         return Path(root).expanduser().resolve() == self.root
+
+    def observed(self, access: CoordinationAccess) -> Observing:
+        return access.require(self.selection)
 
 
 @dataclass(frozen=True)
@@ -164,6 +171,10 @@ class CurrentObservation(CapturedSource):
 
     def serves(self, root: str | Path) -> bool:
         return self.observing.observes(root)
+
+    def observed(self, access: CoordinationAccess) -> Observing:
+        self.confirm(access)
+        return self.observing
 
 
 class CoreConnection(ABC):
