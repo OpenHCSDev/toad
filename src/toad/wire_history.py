@@ -20,10 +20,11 @@ from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess
 from agent_comms.repo import Checkout
 from agent_comms.display_references import CurrentDisplayReferences
-from agent_comms.historical_views import ConversationObservation, ConversationRevision
+from agent_comms.historical_views import ConversationObservation, ConversationRevision, HistorySource
 from agent_comms.tools import CommsConversationRevisionTool, CommsLatestSequenceTool
 from agent_comms.message_page import MessagePage, MessagePageRequest
-from agent_comms.messages import ConversationRole, Membership, Message, NoticeRole
+from agent_comms.messages import ConversationRole, Membership, Message, NoHistorySource, NoticeRole
+from metaclass_registry.mro_dispatch import handles
 from agent_comms.page_traversal import (
     LiveCursor,
     NewerTraversal,
@@ -34,6 +35,7 @@ from agent_comms.transcript_events import IncomingTranscript
 
 from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
+from toad.core.projection import MroProjection
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
@@ -229,7 +231,7 @@ class WireFragment(TranscriptFragment):
         return self.events[0].message
 
     @property
-    def timestamp(self) -> float | None:
+    def timestamp(self) -> float:
         return self.message.timestamp
 
     @property
@@ -269,6 +271,26 @@ class MembershipFragment(WireFragment, roles=(Membership,)):
         return (Body("— " + self.message.body, role=MutedRole),)
 
 
+class HistoryLeading(MroProjection[tuple[LineBlock, ...]]):
+    """A message an attached history recorded opens with where it came from; a live one with its header."""
+
+    @handles(NoHistorySource)
+    def live(self, source: NoHistorySource, fragment: MessageFragment, header: tuple[LineBlock, ...]):
+        return header
+
+    @handles(HistorySource)
+    def recorded(self, source: HistorySource, fragment: MessageFragment, header: tuple[LineBlock, ...]):
+        message = fragment.message
+        return (
+            Gap(),
+            Summary.titled(f"History · {source.original_root} · @{message.sender} created {message.sender_created_at}"),
+            fragment.row.header,
+        )
+
+
+HISTORY_LEADING = HistoryLeading()
+
+
 @dataclass(kw_only=True)
 class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole, NoticeRole)):
     """A sent message: its header, text and the state of its notifications."""
@@ -289,17 +311,7 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
 
     @property
     def leading(self):
-        message = self.message
-        source = message.history_source
-        if source is None:
-            return super().leading
-        return (
-            Gap(),
-            Summary.titled(
-                f"History · {source.original_root} · @{message.sender} " f"created {message.sender_created_at}"
-            ),
-            self.row.header,
-        )
+        return HISTORY_LEADING.project_value(self.message.history_source, self, super().leading)
 
 
 @dataclass(frozen=True, eq=False)
