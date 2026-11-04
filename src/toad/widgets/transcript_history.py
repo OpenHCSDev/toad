@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from bisect import bisect_right
 from collections import deque
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
@@ -48,7 +47,7 @@ from toad.native_style import (
     PointerCursor,
     SecondaryText,
 )
-from toad.no_worker import NO_TASK, NoTask, NoWorker
+from toad.no_worker import NoWorker
 from toad.session_scope import SessionScope
 from toad.transcript_filter import FilterState
 from toad.transcript_preparation import (
@@ -344,11 +343,10 @@ class TranscriptPageView(
     """One transcript page, drawn as its loaded fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
-    processes; until they arrive a fragment draws its plain wrapped text.
+    processes. A page styles a range's unstyled fragments before measuring it; after a status
+    change a fragment draws its previous styled rows until its new ones arrive.
     The history marks arriving fragments; only their rows rise out of the background.
     """
-
-    RENDER_BATCH = 8
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
@@ -362,9 +360,6 @@ class TranscriptPageView(
         self.prepared: Final[PreparedTranscriptPage] = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size)
-        # Fragments drawn with their previous styled rows until new ones arrive, by identity.
-        self._pending: dict[FragmentKey, TranscriptFragment] = {}
-        self._render_task: asyncio.Task[None] | NoTask = NO_TASK
         # Styling a range's never-styled fragments before the page measures them.
         self._style_worker: Worker[None] | NoWorker = NoWorker()
         # The rows this page draws are the rows layout last measured: each
@@ -416,9 +411,6 @@ class TranscriptPageView(
             fragment.invalidate_lines()
         self.range_changed()
 
-    def on_unmount(self) -> None:
-        self._render_task.cancel()
-
     def lines_replaced(self, fragments: Iterable[TranscriptFragment]) -> None:
         """These fragments of this page now hold new lines; each one's rows decide whether they
         repaint in their measured box or the page measures again."""
@@ -433,7 +425,6 @@ class TranscriptPageView(
         """New lines of the measured height take that row's place."""
         fragment, first, _measured = self._layout[slot]
         self._layout[slot] = (fragment, first, lines)
-        self._pending.pop(fragment.key, None)
         self.refresh(Region(0, first, self._width, lines.height))
 
     def range_changed(self) -> None:
@@ -449,12 +440,7 @@ class TranscriptPageView(
     def _lines(self, fragment: TranscriptFragment, width: int) -> BlockLines:
         """The fragment's styled rows, or the styled rows it drew before a status change."""
         theme = self.app.colours.line_theme
-        return fragment.lines_for(width, theme).styled_or(partial(self._stand_in, fragment, width, theme))
-
-    def _stand_in(self, fragment: TranscriptFragment, width: int, theme: LineTheme) -> BlockLines:
-        """The rows drawn while the fragment's own render is to come; it is styled next."""
-        self._pending[fragment.key] = fragment
-        return fragment.stand_in_lines(width, theme)
+        return fragment.lines_for(width, theme).styled_or(partial(fragment.stand_in_lines, width, theme))
 
     def _style_before_measuring(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         """Style fragments that have no rows yet, then measure: their height is stated once,
@@ -487,7 +473,6 @@ class TranscriptPageView(
             # retire them when replacing the geometry they were measured from.
             self._invalidate_layout()
         self._width, self._measured = width, True
-        self._pending.clear()
         previous = {fragment.key: lines for fragment, _first, lines in self._layout}
         layout, starts, y = [], [], 0
         repaint = []
@@ -516,9 +501,6 @@ class TranscriptPageView(
                for fragment, _rows, lines in visible):
             self.range_changed()
             return
-        if (visible and self._pending
-                and self._render_task.done()):
-            self._render_task = asyncio.create_task(self._render_pending(), eager_start=False)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container, viewport, width: int) -> int:
@@ -628,50 +610,6 @@ class TranscriptPageView(
     def visible_fragments(self, window: HistoryWindow) -> tuple[TranscriptFragment, ...]:
         """The fragments this page draws inside the window's viewport."""
         return tuple(fragment for fragment, _rows, _lines in self.visible_rows(window))
-
-    def _nearest_pending(self) -> list[TranscriptFragment]:
-        from toad.widgets.history_anchor import HistoryWindow
-
-        window = self.query_ancestor(HistoryWindow)
-        slots = self._fragment_slots
-        # Style the viewport and one screen each way, nearest the reader
-        # first, so paging rarely exposes plain rows that rewrap on arrival.
-        pending = [fragment for fragment, _rows, _lines in self.visible_rows(window, window.outer_size.height)
-                   if fragment.key in self._pending]
-        for _, offset in window.placements((self,)):
-            reader = window.scroll_y - offset
-            pending.sort(key=lambda fragment: abs(slots[fragment.key].first - reader))
-        return pending[:self.RENDER_BATCH]
-
-    async def _render_pending(self) -> None:
-        while self._pending and self.is_attached:
-            batch = self._nearest_pending()
-            if not batch:
-                return
-            for fragment in batch:
-                del self._pending[fragment.key]
-            theme = self.app.colours.line_theme
-            ready = await TranscriptLinesBatchRenderTask.render_for(self,
-                (LinePreparation(fragment.line_blocks, theme) for fragment in batch))
-            await self._publish([(fragment, task, lines)
-                                 for fragment, (task, lines) in zip(batch, ready)])
-
-    async def _publish(self, ready: list[tuple[TranscriptFragment, TranscriptLinesRenderTask, LinePreparation]]) -> None:
-        from toad.widgets.history_anchor import HistoryWindow
-
-        # Native frame completion owns when new row geometry may replace the
-        # measured scene. A worker finishing between layout steps must not keep
-        # a reader and cancel that frame before it has ever been displayed.
-        await self.screen.wait_for_refresh()
-        # Holding rows does not change the page's measured layout. Retain every
-        # result before opening a history change: keeping the reader can
-        # interrupt an unfinished layout, even without accepted rows.
-        held = [fragment for fragment, task, lines in ready if task.hold(self, fragment, lines)]
-        if not held:
-            return
-        window = self.query_ancestor(HistoryWindow)
-        async with window.preserve_history():
-            self.lines_replaced(held)
 
     @classmethod
     @asynccontextmanager
