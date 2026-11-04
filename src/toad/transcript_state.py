@@ -59,7 +59,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
         raise RuntimeError("No transcript source operation is running")
 
     def reserve(
-        self, owner: TranscriptSourcePreparation, operation=None
+        self, owner: TranscriptSourcePreparation, operation: type[WorkingTranscript] | partial[WorkingTranscript]
     ) -> WorkingTranscript:
         raise RuntimeError("The transcript source cannot start another operation")
 
@@ -136,8 +136,8 @@ class LiveTranscript(TranscriptState):
     def blocks_visible_read(self, owner: TranscriptSourcePreparation) -> bool:
         return NEWER_END.visible_more(owner) or not self.source_ready(owner)
 
-    def reserve(self, owner, operation=None) -> WorkingTranscript:
-        return (operation or WorkingTranscript)(self, owner)
+    def reserve(self, owner, operation) -> WorkingTranscript:
+        return operation(self, owner)
 
     def request_latest(self, owner: TranscriptSourcePreparation, request: LatestViewportRequest) -> None:
         owner.schedule_source_work(partial(owner.jump_latest, request))
