@@ -22,6 +22,7 @@ from toad.screens.modal import DismissibleScreen, ModalPanel
 from textual.widgets import Select, Static
 
 from toad.screens.workspace import WorkspaceFrame
+from toad.widget_view import CenteredView
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
@@ -46,7 +47,7 @@ class SourceLabel(Static):
         self.styles.padding = 1
 
 
-class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):
+class HistoricalSessions(CenteredView, CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):
 
     def __init__(
         self,

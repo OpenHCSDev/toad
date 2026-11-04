@@ -26,7 +26,7 @@ from toad.format_path import format_path
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import FeedTarget, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
-from toad.screens.session_view import SessionBody, SessionView
+from toad.screens.session_view import SessionView
 from toad.session_scope import ProjectSessionOrigin
 from toad.tab_identity.history_origin import WelcomeHistoryOrigin
 from toad.thread_identity import ThreadIdentity
@@ -43,6 +43,7 @@ from toad.widgets.splash_text import SplashText
 from toad.app_node import ToadNode
 from toad.native_style import (
     AutoHeight,
+    CenteredChildren,
     FullWidth,
     MutedText,
     NoWrap,
@@ -208,16 +209,11 @@ class WelcomeNote(MutedText, SpacedAbove, Static):
     """The project line and the key hints."""
 
 
-class WelcomeBody(SessionBody):
-    """The welcome column, centred in the space the sidebars leave beside it."""
-
-    align_vertical = "middle"
-
-
 class WelcomeScreen(
     NativeMethodKeys,
     TogglesIrc,
     ProjectSessionOrigin,
+    CenteredChildren,
     SessionView,
     ToadNode,
     can_focus=False,
@@ -240,7 +236,7 @@ class WelcomeScreen(
 
     def compose(self) -> ComposeResult:
         agent = self.app.agent_binding.welcome_prefix
-        with WelcomeBody(), WelcomeColumn(can_focus=False):
+        with WelcomeColumn(can_focus=False):
             yield WelcomeTitle()
             yield WelcomeNote(f"{agent}{format_path(self.project_path.path)}", markup=False)
             yield WelcomeEntries()
