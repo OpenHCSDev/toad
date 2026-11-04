@@ -38,7 +38,7 @@ class RichTextBody(LineBlock):
 
     content: Text
     role: type[LineRole] = ToolOutputRole
-    bar: type[LineRole] | None = MutedRole
+    bar: type[LineRole] = MutedRole
 
     @property
     def selection_text(self) -> str:

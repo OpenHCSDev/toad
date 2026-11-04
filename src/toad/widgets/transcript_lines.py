@@ -43,6 +43,7 @@ from toad.line_blocks import (
     LineLink,
     LineRole,
     MutedRole,
+    NoBar,
     NoLink,
     Span,
     SpanColumns,
@@ -171,7 +172,7 @@ def _fit(text: str, width: int) -> str:
 
 def _text_width(block: Body | RichTextBody, width: int) -> int:
     """The cells a body's text wraps at: the width less its bar."""
-    return max(1, width - (2 if block.bar is not None else 0))
+    return max(1, width - cell_len(block.bar.bar_mark))
 
 
 def _clickable(rows: list[Row]) -> list[Row]:
@@ -366,12 +367,12 @@ class SpanColumnLayout(Columns, PreparedBlock):
     links remain clickable even before styled worker output arrives.
     """
 
-    def __init__(self, block: SpanColumns, theme: LineTheme | None = None) -> None:
+    def __init__(self, block: SpanColumns, theme: LineTheme) -> None:
         self.indent = block.indent
         cells = [
             Text.assemble(
                 *(
-                    (span.text, (theme.style(span.role) if theme is not None else Style.null()) + LINK_STYLE.project_value(span.link))
+                    (span.text, theme.style(span.role) + LINK_STYLE.project_value(span.link))
                     for span in cell
                 )
             )
@@ -597,9 +598,8 @@ class RichLineRenderer(MroDispatch):
         )
 
     def _body_rows(self, block: Body | RichTextBody, rows: list[Row]) -> None:
-        if block.bar is not None:
-            prefix = Segment("▌ ", self.theme.style(block.bar))
-            rows = [(prefix, *row) for row in rows]
+        prefix = Segment(block.bar.bar_mark, self.theme.style(block.bar))
+        rows = [(prefix, *row) for row in rows]
         self.output.extend(rows)
 
 
@@ -902,7 +902,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
             *((span.text, self.preparation.theme.style(span.role) + LINK_STYLE.project_value(span.link)) for span in block.spans),
             tab_size=4,
         )
-        return self.rich_text(RichTextBody(text, role=TextRole, bar=None))
+        return self.rich_text(RichTextBody(text, role=TextRole, bar=NoBar))
 
     @handles(Patch)
     def patch(self, block: Patch) -> StyledPatch:

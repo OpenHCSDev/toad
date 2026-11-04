@@ -33,7 +33,15 @@ class LineRole(DeclaredFamily, affix="Role"):
     bold: ClassVar[bool] = False
     underline: ClassVar[bool] = False
     diff_marker: ClassVar[str] = " "
+    # The mark a block drawn with this role as its bar starts each row with.
+    bar_mark: ClassVar[str] = "▌ "
     background_tint: ClassVar[float] = 0
+
+
+class NoBar(LineRole):
+    """A block drawn without a bar: its rows start with nothing."""
+
+    bar_mark = ""
 
 
 class TextRole(LineRole):
@@ -393,7 +401,7 @@ class Body(LineBlock):
 
     text: str
     role: type[LineRole] = TextRole
-    bar: type[LineRole] | None = None
+    bar: type[LineRole] = NoBar
 
     @property
     def selection_text(self) -> str:

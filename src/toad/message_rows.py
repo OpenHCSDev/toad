@@ -24,7 +24,7 @@ from agent_comms.routing import MessageRoute
 from toad.inline_spans import inline_spans
 from toad.menus import MenuCommand, OpenDestinationCommand, OpenSenderCommand
 from toad.line_blocks import (
-    MarkdownBody, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole,
+    MarkdownBody, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole, NoBar,
     OpenHistoricalTarget, OpenTarget, OutgoingRole, Span, Spans,
 )
 
@@ -138,7 +138,7 @@ class WireBody(LineBlock):
 
     row: MessageRow
     text: str
-    bar = None
+    bar: ClassVar[type[LineRole]] = NoBar
 
     @property
     def selection_text(self):
