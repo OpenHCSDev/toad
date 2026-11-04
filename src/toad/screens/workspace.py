@@ -8,7 +8,6 @@ from functools import cached_property
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.containers import Container
-from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
 from textual.box_model import DEFAULT_LAYER
 from textual.events import ScreenResume
@@ -307,6 +306,26 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         # Native Screen resume updates changed stylesheet sources.
 
 
+class BackToBottomAction(ViewAction):
+    """Jump the shown history back to its latest message."""
+
+    title = "Back to bottom"
+    keys = {EditingMode: ("escape",)}
+    priority = True
+
+    def available(self, context: WorkspaceScreen) -> bool:
+        match context.focused, context.back_to_bottom_window:
+            case Widget(uses_screen_coordinates=True), _:
+                return False
+            case _, None:
+                return False
+        return True
+
+    def apply(self, context: WorkspaceScreen) -> None:
+        if (window := context.back_to_bottom_window) is not None:
+            window.jump_to_latest()
+
+
 class SessionHost(Container):
     """Where the selected session's screen content is mounted."""
 
@@ -314,19 +333,3 @@ class SessionHost(Container):
 class WorkspaceScreen(WorkspaceFrame, actions=(ViewAction,)):
     """The shared live workspace, with its own navigation controls."""
 
-    def back_to_bottom_available(self) -> bool:
-        match self.focused, self.back_to_bottom_window:
-            case Widget(uses_screen_coordinates=True), _:
-                return False
-            case _, None:
-                return False
-        return True
-
-    def action_back_to_bottom(self) -> None:
-        if (window := self.back_to_bottom_window) is not None:
-            window.jump_to_latest()
-
-    MODE_BINDINGS = (
-        ModeBinding("escape", action_back_to_bottom, "Back to bottom", mode=EditingMode,
-                    available=back_to_bottom_available, priority=True, show=False),
-    )
