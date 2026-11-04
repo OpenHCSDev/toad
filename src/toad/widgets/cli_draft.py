@@ -23,18 +23,17 @@ from metaclass_registry.mro_dispatch import handles
 class CliDraftRender(WorkerGroup):
     """Draws the current draft; clearing the draft cancels it."""
 
-    group = "cli-draft"
 
 
 class DraftRender(MroProjection[None]):
     """A shown draft is drawn; with no draft there is nothing to draw."""
 
     @handles(DraftRow)
-    def shown(self, draft: DraftRow, widget: "CliDraft") -> None:
+    def shown(self, draft: DraftRow, widget: CliDraft) -> None:
         CliDraftRender.run_on(widget, widget._draw)
 
     @handles(NoDraft)
-    def absent(self, draft: NoDraft, widget: "CliDraft") -> None:
+    def absent(self, draft: NoDraft, widget: CliDraft) -> None:
         """Nothing to draw."""
 
 

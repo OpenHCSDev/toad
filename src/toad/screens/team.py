@@ -61,7 +61,6 @@ from toad.worker_group import WorkerGroup
 class TeamDetailRead(WorkerGroup):
     """Reads the selected record's original; a newer selection supersedes one running."""
 
-    group = "team-detail"
     exclusive = True
 
 

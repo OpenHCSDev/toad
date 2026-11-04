@@ -13,13 +13,19 @@ from textual.worker import Worker
 class WorkerGroup:
     """Textual groups a node's workers by name; each kind names its group once.
 
-    Members declare `group` (and `exclusive` where a newer start cancels a
-    running one). Callers start, cancel and ask about work through the kind,
-    never by the group's name.
+    The kind is the identity: Textual's group name is derived from the class,
+    so no member writes one. Members declare `exclusive` where a newer start
+    cancels a running one. Callers start, cancel and ask about work through
+    the kind, never by the group's name.
     """
 
     group: ClassVar[str]
     exclusive: ClassVar[bool] = False
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        # Textual names groups with a string; the class's own path is that name.
+        cls.group = f"{cls.__module__}.{cls.__qualname__}"
 
     @classmethod
     def work[F: Callable](cls, method: F) -> F:
@@ -44,4 +50,3 @@ class WorkerGroup:
 class InputHistoryRecord(WorkerGroup):
     """Appends a sent prompt or shell command to its input history."""
 
-    group = "history"

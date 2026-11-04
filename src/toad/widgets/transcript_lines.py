@@ -12,12 +12,12 @@ from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from itertools import chain, count, zip_longest
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
-    from toad.widgets.transcript_fragments import Shown, TranscriptFragment
+    from toad.widgets.transcript_fragments import TranscriptFragment
     from toad.widgets.transcript_history import LaidOut, RowChange
 
 from metaclass_registry.mro_dispatch import handles

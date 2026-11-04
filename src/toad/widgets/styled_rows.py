@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from functools import partial
 from abc import abstractmethod
+from functools import partial
 
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState

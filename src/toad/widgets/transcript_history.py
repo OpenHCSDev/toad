@@ -66,7 +66,6 @@ from toad.transcript_source_preparation import (
     _DrawingStopped,
 )
 from toad.transcript_state import (
-    LatestViewportRequest,
     LiveTranscript,
     ParkedSourceTranscript,
     ReplacementViewportRequest,
@@ -116,10 +115,8 @@ from toad.widgets.transcript_lines import (
     BlockSpan,
     LinePreparation,
     Lines,
-    LineTheme,
     RowAcquisition,
     TranscriptLinesBatchRenderTask,
-    TranscriptLinesRenderTask,
 )
 
 if TYPE_CHECKING:

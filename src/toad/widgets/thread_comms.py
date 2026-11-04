@@ -65,7 +65,6 @@ def entry_target(entry: RelationshipEntry) -> NavigationTarget:
 class RelationshipRowPresentation(WorkerGroup):
     """Presents the selected relationship row; a newer selection supersedes one running."""
 
-    group = "relationship-row"
     exclusive = True
 
 
