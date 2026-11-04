@@ -45,8 +45,9 @@ async def test_channel_menu_toggles_member_activity_and_keeps_unpainted_traffic_
         assert comms.views.viewer_snapshot(Checkout(workspace.project)).channel_unread["#team"] == ExactUnread(count=3)
 
         await ui.open_channel("#team", actor="alice")
-        await ui.until_shows("inbound to member")
-        assert ui.shows("outbound from member") and ui.shows("exact route")
+        # The tab switch's toast covers part of the conversation until it fades.
+        await ui.until(lambda: all(ui.shows(text) for text in ("inbound to member", "outbound from member", "exact route")),
+                       why="every member message on screen")
         await ui.select_tab(owner)
         sidebar = app.screen.query_one(CommsSidebar)
 
