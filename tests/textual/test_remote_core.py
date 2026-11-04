@@ -164,6 +164,8 @@ async def test_a_remote_core_lists_a_target_menu_and_keeps_its_root_spelling(
                                     workspace.viewer, Checkout(workspace.project))
             actions = await asyncio.to_thread(context.available_actions)
             assert actions
+            # A completed thread action reconnects through the same capture.
+            await app.session_navigation.reconnect(captured, ("remote-peer",))
 
             spelled_elsewhere = tmp_path / "served-root-alias"
             spelled_elsewhere.symlink_to(observed.root)
