@@ -1,10 +1,11 @@
 """One captured session authority for ACP client-side effects."""
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NoReturn
+from agent_comms.acp_extension import CoordinationChangedUpdate
+
 from .queue_attachment import QueueActionRefused
 
 if TYPE_CHECKING:
-    from agent_comms.acp_extension import CoordinationChangedUpdate
     from .agent import Agent
     from .agent_session import SessionDisposition
     from .agent_controller import SessionBinding
