@@ -12,7 +12,9 @@ async def long_window(ui):
     view = ui.conversation
     await view.contents.mount(*(AgentResponse(f"## Native runway {i}\n\n" + "\n\n".join(
         f"Paragraph {j} has actual native Markdown geometry." for j in range(4))) for i in range(48)))
-    await ui.until(lambda: view.window.max_scroll_y > 200, why="a long window")
+    # The window keeps PresentationBudget.max_items live blocks, so "long" is measured in viewports.
+    await ui.until(lambda: view.window.max_scroll_y > 4 * view.window.size.height,
+                   why="a window several viewports tall")
     return view.window
 
 
