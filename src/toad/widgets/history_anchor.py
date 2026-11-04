@@ -834,17 +834,12 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
     @property
     def shown(self) -> bool:
         """Whether layout draws this window: its screen is the current one and nothing above it is hidden."""
-        return (self.is_attached and self.screen.is_current
-                and all(node.display for node in self.ancestors_with_self if isinstance(node, Widget)))
+        return self.is_attached and self.screen.is_current and all(node.display for node in self.ancestors_with_self)
 
     def displays(self, widget: Widget) -> bool:
         """Whether a widget inside this window is displayed, with everything between them."""
-        node = widget
-        while node is not self:
-            if not node.display or not isinstance(node.parent, Widget):
-                return False
-            node = node.parent
-        return True
+        chain = widget.ancestors_with_self
+        return self in chain and all(node.display for node in chain[:chain.index(self)])
 
     def placements[Placed: Widget](self, widgets: Iterable[Placed]) -> Iterator[tuple[Placed, int]]:
         """Each widget the last layout placed, with its first row in this window's content.
@@ -854,9 +849,8 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         """
         geometry = self.screen._compositor._layout_map
         for widget in widgets:
-            path = [widget]
-            while path[-1].parent is not self and isinstance(path[-1].parent, Widget):
-                path.append(path[-1].parent)
+            chain = widget.ancestors_with_self
+            path = chain[:chain.index(self)] if self in chain else chain
             if all(node in geometry for node in path):
                 yield widget, sum(geometry[node].virtual_region.y for node in path)
 
