@@ -9,16 +9,16 @@ from textual.widget import Widget
 from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
+from toad.native_style import AutoHeight
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
 from toad.widgets.transcript_lines import BlockLines, LinePreparation, TranscriptLinesRenderTask
 from toad.widgets.transcript_fragments import transcript_fragments
 
 
-class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
+class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Widget):
     """Core's current CLI answer, drawn with the committed transcript renderer."""
 
-    DEFAULT_CSS = "CliDraft { height: auto; }"
 
     def __init__(self):
         super().__init__()

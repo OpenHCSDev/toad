@@ -48,6 +48,7 @@ from toad.core.events import (
     ThreadRowStateChanged,
 )
 from toad.core_event_carrier import CoreEventReceiver
+from toad.native_style import OneRow, PointerCursor
 from toad.no_worker import NoWorker
 from toad.widgets.side_bar import SideBar
 from toad.widgets.sidebar_viewport import SidebarHeader
@@ -69,8 +70,10 @@ class TargetTreeMember(HiddenActions):
     def navigation_tree(self) -> TargetTree:
         return self.query_ancestor(TargetTree)
 
-class SidebarDisclosure(Activates, Static, can_focus=True):
-    DEFAULT_CSS = "SidebarDisclosure { width: 2; height: 1; pointer: pointer; }"
+class SidebarDisclosure(OneRow, PointerCursor, Activates, Static, can_focus=True):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = 2
 
     def render(self):
         return "▾" if self.query_ancestor(SidebarGroup).expanded else "▸"
@@ -86,6 +89,15 @@ class SidebarReaderLayout(VerticalLayout):
         placements = super().arrange(parent, children, size, greedy)
         parent.query_ancestor(TargetTree).preserve_reader(placements)
         return placements
+
+
+class SidebarMembers(VerticalGroup):
+    """A group's member rows, indented under its disclosure."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.layout = SidebarReaderLayout()
+        self.styles.margin = (0, 0, 0, 2)
 
 
 class RowReconciliation:
@@ -218,13 +230,6 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     navigation_header = False
     header_type: type[SidebarHeader] = SidebarHeader
 
-    DEFAULT_CSS = """
-    SidebarGroup { height: auto; }
-    SidebarGroup > .group-header { height: 1; }
-    SidebarGroup > .group-header > .group-title { width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; }
-    SidebarGroup > .group-members { height: auto; margin-left: 2; }
-    """
-
     expanded = reactive(False, init=False)
 
     _rows_pending = False
@@ -245,12 +250,15 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
         super().__init__(**kwargs)
         self.row = row
         self.rows: dict[str, RowT] = {}
-        self.row.add_class("group-title")
+        # The group owns where its title sits: one ellipsized row beside the disclosure.
+        row.styles.width = "1fr"
+        row.styles.height = 1
+        row.styles.text_wrap = "nowrap"
+        row.styles.text_overflow = "ellipsis"
         self.disclosure = disclosure_type()
         self.controls = controls
-        self.header = self.header_type(classes="group-header")
-        self.member_container = VerticalGroup(classes="group-members channel-members")
-        self.member_container.styles.layout = SidebarReaderLayout()
+        self.header = self.header_type()
+        self.member_container = SidebarMembers()
         self.expanded = expanded
 
     def compose(self) -> ComposeResult:

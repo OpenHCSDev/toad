@@ -2,10 +2,7 @@
 
 from textual import widgets
 
-from toad.native_layout import NativeLayout
 
 
-class Checkbox(NativeLayout, widgets.Checkbox):
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.text_overflow = "clip"
+class Checkbox(widgets.Checkbox):
+    """Its look is its bases."""

@@ -19,6 +19,15 @@ from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
 from toad.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
+from toad.native_style import (
+    AutoHeight,
+    Borderless,
+    MutedText,
+    NoMargin,
+    NoPadding,
+    ScrollsVertically,
+    SidePadding,
+)
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
@@ -30,7 +39,41 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
 
 
-class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjection[type[LineRole]]):
+class InspectSession(DetailAction):
+    """Opens the session's delivery details."""
+
+    async def act(self) -> None:
+        from toad.widgets.conversation import Conversation
+
+        await self.query_ancestor(Conversation).inspect_session()
+
+
+class SessionDetailsContents(
+    ScrollsVertically,
+    AutoHeight,
+    SidePadding,
+    Collapsible.Contents,
+):
+    """The disclosed details, bounded to a few scrolling rows."""
+
+    DETAIL_ROWS = 8
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = self.DETAIL_ROWS
+
+
+class SessionDetails(
+    Borderless,
+    MutedText,
+    AutoHeight,
+    NoPadding,
+    NoMargin,
+    TonePaint,
+    Collapsible,
+    ObservedThreadActivity,
+    MroProjection[type[LineRole]],
+):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
@@ -39,20 +82,19 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
     """
 
     tone = TurnBandColour
-    DETAIL_ROWS = 8
     DEFAULT_ID = "session-details"
     overview_text: var[str] = var("")
+    Contents = SessionDetailsContents
 
-    DEFAULT_CSS = """
-    SessionDetails, SessionDetails:ansi {
-        height: auto; padding: 0; margin: 0; border: none;
-        color: $text-muted;
-    }
-    SessionDetails > CollapsibleTitle {
-        width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
-    }
-    SessionDetails > Contents { height: auto; padding: 0 1; overflow-y: auto; }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        # The disclosure owns its one-line status title.
+        title = self._title.styles
+        title.width = "1fr"
+        title.height = 1
+        title.padding = (0, 1)
+        title.text_wrap = "nowrap"
+        title.text_overflow = "ellipsis"
 
     def __init__(
         self, *,
@@ -64,7 +106,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         self.delivery = delivery
         self.notifications = Static("", markup=False)
         super().__init__(
-            DetailAction("Inspect session", markup=False, id="session-inspect"),
+            InspectSession("Inspect session", markup=False),
             self.notifications, history, delivery,
             title="", collapsed=True, id=self.DEFAULT_ID,
         )
@@ -96,7 +138,6 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     def on_mount(self) -> None:
         super().on_mount()
-        self.query_children(self.Contents).first().styles.max_height = self.DETAIL_ROWS
         self.watch(self.history, "status", self._refresh_summary)
         self.watch(self.delivery, "delivery", self._refresh_summary)
         self._refresh_summary()

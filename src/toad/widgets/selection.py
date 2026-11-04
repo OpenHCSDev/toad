@@ -32,9 +32,11 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
     text_fades = (NEW_TEXT,)
 
     def update(self, content: VisualType = "", *, layout: bool | None = None) -> None:
-        text_changed = self.content != content
+        """New content redraws and fades in; the content already shown changes nothing, not even layout."""
+        if self.content == content:
+            return
         super().update(content, layout=layout)
-        if text_changed and self.is_mounted:
+        if self.is_mounted:
             for effect in self.text_fades:
                 self.run_effect(effect)
 

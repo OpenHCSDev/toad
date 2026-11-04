@@ -23,10 +23,8 @@ from agent_comms.threads import Thread
 from rich.cells import cell_len
 from support.native import ControlledProvider, native_session
 from support.native_steps import goal_on_real_owner
-from textual.containers import VerticalScroll
-from textual.widgets import Static
 
-from toad.screens.goal_details import GoalDetails
+from toad.screens.goal_details import CurrentHeading, CurrentObjective, GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
 
@@ -57,12 +55,12 @@ async def test_standby_goal_pulses_and_its_long_text_scrolls_at_every_size(works
         ui = native.ui
         conversation = ui.conversation
         bar = conversation.query_one(GoalBar)
-        await ui.until(lambda: "Standby" in str(bar.query_one(".goal-header", Static).render()),
+        await ui.until(lambda: "Standby" in str(bar.header.render()),
                        why="the owner's standby execution")
         assert conversation.goal_display.snapshot.state.declared_name == "active"
         pulse = bar.query_one(StandbyPulse)
         assert pulse.active
-        document = bar.query_one(".goal-document", VerticalScroll)
+        document = bar.document
         assert document.max_scroll_y > 0
         assert document.size.height <= 7
         assert bar.region.bottom <= conversation.prompt.region.y
@@ -92,7 +90,7 @@ async def test_edits_made_on_the_owner_reach_open_goal_screens_without_touching_
         owner_edit(comms, session, "Changed through owner backend")
         await ui.until(lambda: details.goal_display.snapshot.text == "Changed through owner backend", seconds=6,
                        why="the owner's edit in goal details")
-        assert "Changed through owner backend" in str(details.query_one("#goal-current-objective", Static).render())
+        assert "Changed through owner backend" in str(details.query_one(CurrentObjective).render())
         await ui.press("escape")
         await pilot.click("#goal-edit")
         await ui.until(lambda: isinstance(app.screen, GoalEdit), why="the goal editor")
@@ -160,7 +158,7 @@ async def test_failed_ledger_repaints_retry_then_active_without_rewriting_goal(w
                 sending.cancel()
             await asyncio.gather(sending, return_exceptions=True)
         assert comms.registry.require(session).goal == first
-        await ui.until(lambda: "Active" in str(details.query_one("#goal-current-heading", Static).render()),
+        await ui.until(lambda: "Active" in str(details.query_one(CurrentHeading).render()),
                        why="the already-open details following productive settlement")
         await ui.press("escape")
         await ui.until(lambda: str(bar.query_one("#goal-toggle").render()) == "Pause",

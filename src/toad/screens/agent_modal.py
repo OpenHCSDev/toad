@@ -6,10 +6,24 @@ from textual.app import ComposeResult
 
 from textual import work
 from textual.content import Content
-from toad.screens.modal import DismissibleScreen
+from textual.css.native import NativeDeclaration, Percent, TextVariable, Variable
+from textual.css.styles import Styles
+from textual.widgets._markdown import MarkdownH1
+from ui_theme.scheme import AccentColour, PrimaryColour, SuccessColour
+from toad.widgets.acting_button import ConfirmButton, Confirms
+from toad.native_style import (
+    AutoHeight,
+    FillWidth,
+    NoMargin,
+    RightMargin,
+    SidePadding,
+    TransparentBackground,
+)
+from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalFrame
 from textual import containers
 from textual import widgets
-from toad.widgets.footer import ToadFooter
+from textual.widgets._footer import FooterKeyComponent
+from toad.widgets.footer import ToadFooter, ToadFooterKey
 from toad.widgets.checkbox import Checkbox
 
 from toad import widget_actions
@@ -22,23 +36,95 @@ from toad.platform import host
 from toad.app_node import ToadNode
 
 
-class DescriptionContainer(containers.VerticalScroll):
+class DescriptionContainer(
+    TransparentBackground,
+    AutoHeight,
+    containers.VerticalScroll,
+):
+    """The agent's help; tinted while it has focus."""
+
+    focus_theme = (NativeDeclaration.of(Styles.background, Variable(PrimaryColour.name), Percent(7)),)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.margin = (0, 0, 1, 1)
+        self.styles.max_height = 20
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        return (*super().native_declarations(), *((), self.focus_theme)[self.has_focus])
+
+    def watch_has_focus(self, has_focus: bool) -> None:
+        super().watch_has_focus(has_focus)
+        self.app.update_styles(self)
+
     def allow_focus(self) -> bool:
         """Focus only if it can be scrolled."""
         return self.show_vertical_scrollbar
 
 
+class AgentHelpHeading(MarkdownH1):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.margin = (1, 1, 1, 0)
+
+
+class AgentHelp(SidePadding, widgets.Markdown):
+    BLOCKS = widgets.Markdown.BLOCKS | {f"h{AgentHelpHeading.LEVEL}": AgentHelpHeading}
+
+
+
+class AcpWarning(SidePadding, widgets.Static):
+    native_theme = (NativeDeclaration.of(Styles.color, TextVariable(SuccessColour.name)),)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.margin = (0, 0, 1, 1)
+
+
+class LauncherCheckbox(NoMargin, Checkbox):
+    """Its look is its bases."""
+
+
+class ActionSelect(RightMargin, FillWidth, widgets.Select):
+    """Its look is its bases."""
+
+
+class RunAction(ConfirmButton):
+    """Runs the chosen action."""
+
+
+class AgentModalFooterKey(ToadFooterKey):
+    """Keys are accented over every state the footer paints them in."""
+
+    accent_components = {
+        FooterKeyComponent.KEY: (NativeDeclaration.of(Styles.color, Variable(AccentColour.name)),),
+    }
+
+    def native_component_declarations(self, component: FooterKeyComponent) -> tuple[NativeDeclaration, ...]:
+        return (*super().native_component_declarations(component), *self.accent_components.get(component, ()))
+
+
+class AgentModalFooter(ToadFooter, setting=ToadFooter.visibility_setting):
+    """Fades in once the modal has mounted."""
+
+    key_type = AgentModalFooterKey
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.opacity = 0.0
+
+
 class AgentModal(
-    PriorityActions, HiddenActions, Launches, DismissibleScreen[LaunchAgent | None],
+    Confirms, CenteredScreen, PriorityActions, HiddenActions, Launches, DismissibleScreen[LaunchAgent | None],
     ToadNode,
     scopes={PriorityActions: (widget_actions.LaunchAction,),
             HiddenActions: (widget_actions.DismissAction,)},
 ):
-    AUTO_FOCUS = "Select#action-select"
+    AUTO_FOCUS = "ActionSelect"
 
-
-    action_select = getters.query_one("#action-select", widgets.Select)
-    launcher_checkbox = getters.query_one("#launcher-checkbox", Checkbox)
+    action_select = getters.query_one(ActionSelect)
+    launcher_checkbox = getters.query_one(LauncherCheckbox)
+    run_button = getters.query_one(RunAction)
 
     def __init__(self, agent: AgentDefinition) -> None:
         self.agent = agent
@@ -52,36 +138,29 @@ class AgentModal(
                       for name, command in agent.commands_for(host).items()]
         choices = [*operations, LaunchAction(agent)]
 
-        with containers.Vertical(id="container"):
-            with DescriptionContainer(id="description-container"):
-                yield widgets.Markdown(agent.help, id="description")
+        with ModalFrame():
+            with DescriptionContainer():
+                yield AgentHelp(agent.help)
             with containers.VerticalGroup():
                 for warning in dict.fromkeys(operation.warning(agent.name) for operation in operations):
                     if warning is None:
                         continue
-                    yield widgets.Static(
-                        Content(warning),
-                        classes="acp-warning",
-                    )
+                    yield AcpWarning(Content(warning))
                 with containers.HorizontalGroup():
-                    yield Checkbox(
+                    yield LauncherCheckbox(
                         "Show in launcher",
                         value=agent.identity in launcher_set,
-                        id="launcher-checkbox",
                     )
-                    yield widgets.Select(
+                    yield ActionSelect(
                         [(choice.description, choice) for choice in choices],
                         prompt="Actions",
                         allow_blank=True,
-                        id="action-select",
                     )
-                    yield widgets.Button(
-                        "Go", variant="primary", id="run-action", disabled=True
-                    )
-        yield ToadFooter()
+                    yield RunAction("Go", variant="primary", disabled=True)
+        yield AgentModalFooter()
 
     def on_mount(self) -> None:
-        self.query_one(ToadFooter).styles.animate("opacity", 1.0, duration=500 / 1000)
+        self.query_one(AgentModalFooter).styles.animate("opacity", 1.0, duration=500 / 1000)
 
     @on(widgets.Checkbox.Changed)
     def on_checkbox_changed(self, event: widgets.Checkbox.Changed) -> None:
@@ -95,11 +174,13 @@ class AgentModal(
 
     @on(widgets.Select.Changed)
     def on_select_changed(self, event: widgets.Select.Changed) -> None:
-        self.query_one("#run-action", widgets.Button).disabled = event.value is widgets.Select.NULL
+        self.run_button.disabled = event.value is widgets.Select.NULL
 
-    @on(widgets.Button.Pressed, "#run-action")
+    async def confirm(self) -> None:
+        self.run_selected_action()
+
     @work
-    async def on_run_action(self) -> None:
+    async def run_selected_action(self) -> None:
         action = self.action_select.value
         if action is not widgets.Select.NULL and action.available(self):
             await invoke(action.apply, self)

@@ -6,11 +6,29 @@ from textual.dom import DOMNode
 from textual.message import Message
 
 from toad.menus import FocusBlockCommand, InterruptCommand, MenuCommand
+from toad.native_style import (
+    AutoHeight,
+    FillWidth,
+    NoScrollbars,
+    RightPadding,
+    SpacedAround,
+)
 from toad.widgets.terminal import Terminal
 
 
-class ShellTerminal(Terminal):
+class ShellTerminal(
+    RightPadding,
+    SpacedAround,
+    NoScrollbars,
+    FillWidth,
+    AutoHeight,
+    Terminal,
+):
     """Subclass of Terminal used in the Shell view."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.overflow_x = self.styles.overflow_y = "scroll"
 
     @dataclass
     class Terminate(Message):

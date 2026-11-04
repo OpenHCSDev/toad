@@ -17,8 +17,7 @@ from agent_comms.historical_views import HistoricalThread, HistorySourceKey
 from agent_comms.transcripts import RecordedPageSource
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Vertical
-from toad.screens.modal import DismissibleScreen
+from toad.screens.modal import DismissibleScreen, ModalPanel
 from textual.widgets import Select, Static
 
 from toad.screens.workspace import WorkspaceFrame
@@ -37,14 +36,15 @@ class RecordedContents(Contents):
         super().__init__(**kwargs)
 
 
+class SourceLabel(Static):
+    """Which saved identity the window shows, and where it came from."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = 1
+
+
 class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):
-    DEFAULT_CSS = """
-    HistoricalSessions { align: center middle; background: $background 60%; }
-    HistoricalSessions > Vertical { width: 95%; height: 95%; background: $surface; border: solid $primary; }
-    HistoricalSessions #source-label { height: auto; padding: 1; }
-    HistoricalSessions HistoryWindow { height: 1fr; }
-    HistoricalSessions #saved-content { height: auto; }
-    """
 
     def __init__(
         self,
@@ -67,14 +67,13 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
 
     @property
     def project_root(self) -> Path:
-        index = self.query_one("#saved-identity", Select).value
+        index = self.query_one(Select).value
         return self.threads[index].thread.worktree.path
 
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield Static(
+        with ModalPanel():
+            yield SourceLabel(
                 "Saved sessions · select an original identity · Esc returns to chats",
-                id="source-label",
             )
             options = [
                 (
@@ -98,11 +97,11 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
                 ),
                 0,
             )
-            yield Select(options, allow_blank=False, value=initial, id="saved-identity")
-            with HistoryWindow(id="saved-window"):
-                yield Contents(id="saved-content")
+            yield Select(options, allow_blank=False, value=initial)
+            with HistoryWindow():
+                yield Contents()
 
-    @on(Select.Changed, "#saved-identity")
+    @on(Select.Changed)
     @work(exclusive=True, group="historical-selection")
     async def selected(self, event: Select.Changed) -> None:
         if event.value is Select.BLANK:
@@ -111,12 +110,12 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, Di
         self.workers.cancel_group(self, "historical-handling")
         generation = self._selection_generation
         item = self.threads[event.value]
-        previous = self.query_one("#saved-content", Contents)
-        content = RecordedContents(item.source.key, id="saved-content")
+        previous = self.query_one(Contents)
+        content = RecordedContents(item.source.key)
         with self.app.batch_update():
             await previous.remove()
-            await self.query_one("#saved-window", HistoryWindow).mount(content)
-        self.query_one("#source-label", Static).update(
+            await self.query_one(HistoryWindow).mount(content)
+        self.query_one(SourceLabel).update(
             f"@{item.thread.name} · original incarnation {item.thread.created_at}\n"
             f"Source: {item.source.original_root}\n"
             f"Channels/tags: {', '.join(sorted(item.thread.tags)) or 'none'}\n"

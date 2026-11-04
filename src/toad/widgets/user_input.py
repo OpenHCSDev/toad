@@ -14,13 +14,6 @@ from toad.widgets.committed_presentation import CAPTURED_CLAIM, CommitClaim, Sna
 
 
 class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
-    DEFAULT_CSS = """
-    UserInput {
-        background: transparent;
-        padding: 0;
-    }
-    """
-
     @property
     def message_category(self) -> type[MessageCategory]:
         return UserCategory
@@ -41,7 +34,7 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
         if self.show_divider:
             yield MessageDivider(Divider.titled("User", UserRole), clock=self.clock)
         # The same Body block committed history draws for this message.
-        yield LineMarkdown(self.content, bar=UserRole, body=MessageBody, id="content")
+        yield LineMarkdown(self.content, bar=UserRole, body=MessageBody)
 
     def get_clipboard_text(self) -> str:
         return self.content

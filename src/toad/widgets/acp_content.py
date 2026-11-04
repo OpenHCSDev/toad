@@ -8,12 +8,9 @@ class ACPToolCallContent(containers.VerticalGroup):
     def __init__(
         self,
         content: tuple[ToolOutputPart, ...],
-        *,
-        id: str | None = None,
-        classes: str | None = None,
     ) -> None:
         self.parts = content
-        super().__init__(id=id, classes=classes)
+        super().__init__()
 
     def compose(self) -> ComposeResult:
         from toad.widgets.tool_content import ToolContent

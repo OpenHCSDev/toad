@@ -20,14 +20,26 @@ from textual.document._editing import EditingMode
 from textual.content import Content
 from textual.geometry import Offset
 from textual.widgets import Static
+from toad.native_style import (
+    AutoHeight,
+    Borderless,
+    ClipOverflow,
+    NoMargin,
+    NoPadding,
+    NoWrap,
+    OneRow,
+    TransparentBackground,
+)
 from toad.widgets.checkbox import Checkbox
 
 from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
+from toad.native_style import MutedText
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import (
     SidebarChange,
+    SidebarDisclosure,
     SidebarGroup,
     SidebarModelView,
     SearchFollower,
@@ -165,16 +177,42 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
             return
         tree.request_navigation(self)
 
-class RelationshipRows(SidebarGroup[RelationshipRow]):
-    DEFAULT_CSS = """
-    RelationshipRows > .group-header > SidebarDisclosure { width: 1; }
-    """
+class RelationshipDisclosure(SidebarDisclosure):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = 1
 
+
+class RelationshipEmpty(MutedText, OneRow, Static):
+    """An expanded group's explanation that it lists nobody."""
+
+
+
+class RelationshipContext(ClipOverflow, MutedText, NoWrap, Static):
+    """Whose relationships the panel lists, clipped to one line."""
+
+
+
+class MessageFilter(
+    TransparentBackground,
+    Borderless,
+    OneRow,
+    NoPadding,
+    NoMargin,
+    Checkbox,
+):
+    """One compact category toggle for the conversation's visible messages."""
+
+
+
+
+class RelationshipRows(SidebarGroup[RelationshipRow]):
     def __init__(self, model: RelationshipGroup, expanded: bool):
         self.model = model
         super().__init__(
             Static(model.title),
             expanded=expanded,
+            disclosure_type=RelationshipDisclosure,
             id=f"relationships-{type(model).declared_name}",
         )
 
@@ -226,16 +264,17 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         if not self.member_container.is_attached or not self.accepts_members():
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
-        empty = self.query_one_optional(".relationship-empty")
+        empty = self.query_one_optional(RelationshipEmpty)
         if (self.model.entries or not self.expanded) and empty is not None:
             empty.remove()
         if self.expanded and not self.model.entries and empty is None:
-            self.mount(Static(self.model.empty_text, classes="relationship-empty"))
+            self.mount(RelationshipEmpty(self.model.empty_text))
         self.reconcile_rows(changed=changed)
         tree.apply_selection()
 
 
 class ThreadCommsSidebar(
+    AutoHeight,
     ShowsThreadIdentity,
     SidebarModelView,
     SidebarVisibilityObserver,
@@ -243,12 +282,6 @@ class ThreadCommsSidebar(
     TargetTree,
     OpensSelected,
 ):
-    DEFAULT_CSS = """
-    ThreadCommsSidebar { height: auto; }
-    ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
-    ThreadCommsSidebar .relationship-empty { height: 1; color: $text-muted; }
-    ThreadCommsSidebar > Checkbox { height: 1; border: none; padding: 0; margin: 0; background: transparent; }
-    """
 
     def __init__(
         self,
@@ -291,17 +324,15 @@ class ThreadCommsSidebar(
         self.refresh_relationships(force=True)
 
     def compose(self):
-        yield Static(
+        yield RelationshipContext(
             self.thread_view.thread_identity.display_thread(),
-            classes="relationship-context",
             markup=False,
         )
         self._filter_controls.clear()
         for category in MessageCategory.members_with(MessageCategory):
-            checkbox = Checkbox(
+            checkbox = MessageFilter(
                 category.label,
                 id=f"filter-{category.declared_name}",
-                classes="message-filter",
                 compact=True,
             )
             self._filter_controls[checkbox] = category
@@ -331,7 +362,7 @@ class ThreadCommsSidebar(
         self._reset_relationships()
         selected = self.view_state.selected
         self.selected = selected[1] if selected is not None else None
-        self.query_one(".relationship-context", Static).update(
+        self.query_one(RelationshipContext).update(
             Content(f"For {identity.display_thread()}"), layout=False
         )
         self.refresh_relationships(force=True)
@@ -391,7 +422,7 @@ class ThreadCommsSidebar(
                         self._filter_controls[checkbox] in view.visible_categories
                     )
 
-    @on(Checkbox.Changed, ".message-filter")
+    @on(Checkbox.Changed)
     def filter_changed(self, event):
         event.stop()
         if self._filter_view is not None:
@@ -424,7 +455,7 @@ class ThreadCommsSidebar(
     async def _refresh(self, generation):
         await self.thread_view.thread_identity.inspect_owner(
             lambda identity: self._refresh_owner(identity, generation),
-            lambda text: self.query_one(".relationship-context", Static).update(
+            lambda text: self.query_one(RelationshipContext).update(
                 Content(text), layout=False
             ),
         )
@@ -453,7 +484,7 @@ class ThreadCommsSidebar(
             models = snapshot.groups_by_type
             absent = self.groups.keys() - models.keys()
             self._snapshot, self._revision = snapshot, revision
-            context = self.query_one(".relationship-context", Static)
+            context = self.query_one(RelationshipContext)
             context.update(
                 Content.assemble(
                     (f"For @{snapshot.owner}", "bold"),

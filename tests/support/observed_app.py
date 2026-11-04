@@ -11,11 +11,9 @@ from toad.session_scope import AgentAttached
 from toad.cli import run_terminal
 
 from agents import peer
-from stylesheets import INSTALLED
 
 
 class ObservedApp(ToadApp):
-    CSS_PATH = INSTALLED
 
     async def on_mount(self, event):
         event.prevent_default()

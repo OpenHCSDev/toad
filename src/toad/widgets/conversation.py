@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Callable, ClassVar
 
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
-from toad.widgets.markdown_note import MarkdownNote
+from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
@@ -24,29 +24,46 @@ from agent_comms.ui_model.delivery import DeliveryView
 from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.ui_model.message_category import MessageCategory, all_categories
 from rich.segment import Segment
+from rich.style import Style
 from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.binding import ModeBinding
 from textual.content import Content
+from textual.css.native import NativeDeclaration, Variable
 from textual.css.query import NoMatches
+from textual.css.styles import Styles
 from textual.geometry import Offset, Region, Size
 from textual.layout import WidgetPlacement
 from textual.layouts.grid import GridLayout
 from textual.reactive import Required, var
 from textual.strip import Strip
+from textual.view import AUTO, FILL
 from textual.widget import Widget
 from textual.widgets import Static
 from textual.document._editing import EditingMode
 from ui_theme.effects import CURSOR_BLINK, Mix
-from ui_theme.scheme import BackgroundColour, ForegroundColour
+from ui_theme.scheme import BackgroundColour, ForegroundColour, SurfaceHoverColour
 
 from toad import messages, paths
 from toad.acp.comms_updates import NoPendingThreadRead
 from toad.acp.status import StopReason
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection, NoAgentConnection
-from toad.messages import QueueEvidenceChanged
+from toad.messages import QueueEvidenceOwner
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    CenteredChildren,
+    DockedBottom,
+    FillWidth,
+    PrimaryText,
+    RightPadding,
+    ScreenOverlay,
+    SidePadding,
+    StableGutter,
+    StartsHidden,
+)
 from toad.submission_queue import QueueSource
 from toad.screens.queue import QueueInspection
 from toad.agent_schema import AgentDefinition
@@ -106,7 +123,6 @@ from toad.widgets.flash import Flash
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import (
-    DetailAction,
     InputDeliveryBar,
     InputDeliveryDetails,
 )
@@ -114,7 +130,7 @@ from toad.widgets.menu import Menu
 from toad.widgets.message_divider import StickyHeader
 from toad.widgets.message_notifications import HistoryNotifications, NothingToRead, PaintedRead, SourceNotifications
 from toad.widgets.native_history import NativeHistory
-from toad.widgets.note import Note
+from toad.widgets.note import ErrorNote, Note
 from toad.widgets.observed_thread_activity import (
     ObservedThreadActivity,
     ThreadStatusOwner,
@@ -167,13 +183,9 @@ Ask on {HELP_URL} if you need assistance.
 """
 
 
-class Loading(SeparatedBlock, Static):
+class Loading(PrimaryText, SeparatedBlock, Static):
     """A transient notice inherits native outside-border separation."""
-    DEFAULT_CSS = """
-    Loading {
-        height: auto;        
-    }
-    """
+
 
 
 class CategorizedMount:
@@ -295,8 +307,16 @@ class ConversationContents(CategorizedMount, Contents):
         )
 
 
-class ContentsGrid(containers.Grid):
+class ContentsGrid(AutoHeight, containers.Grid):
+    """The cursor rail's column beside the conversation's rows."""
+
     BLANK = True
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.grid_size_columns = 2
+        self.styles.grid_columns = (1, FILL)
+        self.styles.grid_rows = (AUTO,)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def pre_layout(self, layout) -> None:
@@ -351,7 +371,39 @@ class FocusPromptAction(WindowAction):
         window.query_ancestor(Conversation).focus_prompt()
 
 
-class Window(CoreEventReceiver, HistoryWindow, actions=(WindowAction,)):
+class JumpBar(
+    StartsHidden,
+    ScreenOverlay,
+    DockedBottom,
+    FillWidth,
+    CenteredChildren,
+    containers.Center,
+):
+    """A transparent row floated over the window's foot; only its button shows."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.layer = "float"
+        self.styles.height = 3
+        self.styles.visibility = "hidden"
+
+
+class BackToBottom(PrimaryText, AutoWidth, SidePadding, JumpToLatest):
+    native_theme = (NativeDeclaration.of(Styles.background, Variable(SurfaceHoverColour.name)),)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.visibility = "visible"
+        self.styles.text_style = Style(bold=True)
+
+
+class Window(
+    RightPadding,
+    StableGutter,
+    CoreEventReceiver,
+    HistoryWindow,
+    actions=(WindowAction,),
+):
     HELP = """\
 ## Conversation
 
@@ -365,11 +417,12 @@ This is a view of your conversation with the agent.
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.jump_bar = containers.Center(
-            JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
-            id="back-to-bottom-bar",
-        )
+        self.jump_bar = JumpBar(BackToBottom("↓ Back to bottom · Esc"))
         self.sticky_header = StickyHeader()
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.align = ("left", "bottom")
 
     def compose(self) -> ComposeResult:
         yield self.sticky_header
@@ -435,7 +488,7 @@ class ConversationSessionBinding(
 ):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
-    contents = getters.query_one("#contents", Contents)
+    contents = getters.query_one(Contents)
     thread_presentation: ThreadPresentation = NoThreadPresentation()
     """The agent thread's latest settled presentation."""
 
@@ -847,10 +900,18 @@ class ConversationSessionBinding(
 from toad.widget_actions import DeclaredWidgetActions, NativeMethodKeys
 
 
+class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
+    """The controls docked under the window: activity, goal and prompt."""
+
+
+
 class Conversation(
+    QueueEvidenceOwner,
     ConversationCommsHandlers,
     NativeMethodKeys,
-    ConversationSessionBinding, ToadNode, MenuConversation,
+    ConversationSessionBinding,
+    ToadNode,
+    MenuConversation,
     actions=(ConversationAction,),
 ):
     """Holds the agent conversation (input, output, and various controls / information)."""
@@ -858,6 +919,10 @@ class Conversation(
     def keyboard_scopes(self) -> tuple[DeclaredWidgetActions, ...]:
         """The conversation owns its persistent reader and composer key targets."""
         return (self, self.window, self.prompt)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.layers = ("base", "prompt", "float")
 
     BLANK = True
     MAX_LIVE_BLOCKS = 32
@@ -869,9 +934,8 @@ class Conversation(
     async def submission_request_failed(self, error: RequestError, text: str) -> None:
         self.turns.finish_client()
         self.prompt.restore_draft(text)
-        await self.post(MarkdownNote(
+        await self.post(StopReasonNote(
             INTERNAL_EROR.replace("$ERROR", str(error) or "no details were provided"),
-            classes="-stop-reason",
         ))
 
     def painted_read(self, acknowledge: Callable[[TranscriptCursor], PaintedRead]) -> PaintedRead:
@@ -993,12 +1057,12 @@ class Conversation(
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer()
-                with ConversationContents(id="contents") as contents:
+                with ConversationContents() as contents:
                     yield TranscriptHistory.empty(view=self, notification_view=contents)
                     yield from self._thread_loading
                     yield self.cli_draft
         yield Flash()
-        with containers.Vertical(id="prompt-stack"):
+        with PromptStack():
             self.thread_activity = OperationalSessionDetails(
                 self,
                 transcript=self.transcript,
@@ -1361,11 +1425,10 @@ class Conversation(
         if stop_reason is not None and stop_reason.note:
 
             await self.post(
-                MarkdownNote(
+                StopReasonNote(
                     stop_reason.note.replace(
                         "$AGENT", (self.agent_title or "agent").title()
                     ),
-                    classes="-stop-reason",
                 )
             )
 
@@ -1402,9 +1465,8 @@ class Conversation(
     async def on_rejected_session_update(self, event: core_events.RejectedSessionUpdate) -> None:
         self.output.boundary()
         await self.post(
-            Note(
+            ErrorNote(
                 Content.styled("Invalid ACP update rejected", "$text-error"),
-                classes="-error",
             )
         )
 
@@ -1466,14 +1528,14 @@ class Conversation(
 
     @handles(core_events.Plan)
     async def on_acp_plan(self, event: core_events.Plan) -> None:
-        from toad.widgets.plan import Plan
+        from toad.widgets.plan import ConversationPlan
 
         if self.contents.children and isinstance(
-            (current_plan := self.contents.children[-1]), Plan
+            (current_plan := self.contents.children[-1]), ConversationPlan
         ):
             current_plan.entries = event.entries
         else:
-            await self.post(Plan(event.entries))
+            await self.post(ConversationPlan(event.entries))
 
     @handles(core_events.ToolCall)
     async def on_acp_tool_call_update(
@@ -1610,12 +1672,9 @@ class Conversation(
 
     def apply_layout_preferences(self) -> None:
         """Project the original settings without retaining their semantic values."""
-        from toad.setting_choices import Scrollbar
-
         ui = self.app.settings.ui
         ui.column_alignment.apply(self, ui.column, ui.column_width)
-        for choice in Scrollbar.members_with(Scrollbar):
-            self.set_class(choice is ui.scrollbar, f"-scrollbar-{choice.declared_name}")
+        self.window.styles.scrollbar_size_vertical = ui.scrollbar.size
 
     async def initialize_view(self) -> None:
         """Initialize the agent view, separate from the framework mount event."""
@@ -1639,9 +1698,7 @@ class Conversation(
     async def on_input_dispositions_changed(self, event: core_events.InputDispositionsChanged) -> None:
         self.delivery_observation.invalidate()
 
-    @on(DetailAction.Activated, "#session-inspect")
-    async def inspect_session(self, event: DetailAction.Activated) -> None:
-        event.stop()
+    async def inspect_session(self) -> None:
         await self.delivery_observation.refresh()
         details = InputDeliveryDetails(
             log_path=self.agent_binding.presentation.log_path,
@@ -1683,11 +1740,6 @@ class Conversation(
 
     def queue_evidence_changed(self) -> None:
         self.submissions.publish_pending()
-
-    @on(QueueEvidenceChanged)
-    def queue_observation_changed(self, event: QueueEvidenceChanged) -> None:
-        event.stop()
-        self.queue_evidence_changed()
 
     def open_queue_menu(self) -> None:
         self.app.push_screen(QueueInspection(self.submissions))
@@ -1856,7 +1908,6 @@ class Conversation(
         terminal_width, terminal_height = self.get_terminal_dimensions()
         terminal = ShellTerminal(
             f"terminal #{self._terminal_count}",
-            id=f"shell-terminal-{self._terminal_count}",
             size=(terminal_width, terminal_height),
             get_terminal_dimensions=self.get_terminal_dimensions,
         )

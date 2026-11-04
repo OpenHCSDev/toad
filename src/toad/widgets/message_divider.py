@@ -19,6 +19,13 @@ from toad.block_content import BlockContent
 from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.frame_presentation import Animated
 from toad.line_blocks import Divider, Gap, LineBlock
+from toad.native_style import (
+    AutoHeight,
+    FillWidth,
+    ScreenOverlay,
+    SpacedAbove,
+    StartsHidden,
+)
 from toad.message_rows import LiveMessageClock, MessageClock, MessageRow
 from toad.widgets.committed_presentation import CommitParticipant, block_claim
 from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
@@ -35,10 +42,9 @@ if TYPE_CHECKING:
     from toad.widgets.history_anchor import PinnedHeader
 
 
-class LineBlockRow(LinkedRows, Widget):
+class LineBlockRow(FillWidth, AutoHeight, LinkedRows, Widget):
     """One semantic line block, drawn exactly as transcript history draws it."""
 
-    DEFAULT_CSS = "LineBlockRow { width: 1fr; height: auto; }"
 
     def __init__(self, block: LineBlock) -> None:
         super().__init__()
@@ -83,18 +89,22 @@ class ConversationLineBlock(BlockContent, LineBlockRow):
         return selection.extract(self.block.selection_text), "\n"
 
 
-class StickyHeader(LineBlockRow):
+class StickyHeader(StartsHidden, ScreenOverlay, LineBlockRow):
     """The header of the message under the window's top row, pinned there while its own row
     is scrolled above, so the reader of a long message still sees who sent it to whom, and when.
 
     It is the message's own header block drawn the same way; it keeps no copy of the message.
     """
 
-    DEFAULT_CSS = "StickyHeader { display: none; overlay: screen; dock: top; layer: float; }"
     ALLOW_SELECT = False
 
     def __init__(self) -> None:
         super().__init__(Gap())
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.dock = "top"
+        self.styles.layer = "float"
 
     def pin(self, pinned: PinnedHeader) -> None:
         """Draw the one header the window's top row needs, or none, in the column its message
@@ -109,7 +119,7 @@ class StickyHeader(LineBlockRow):
         self.display = bool(pinned.headers)
 
 
-class MessageDivider(Animated[Mix], ConversationLineBlock):
+class MessageDivider(SpacedAbove, Animated[Mix], ConversationLineBlock):
     """The rule above a live message: the same `Divider` block saved history draws.
 
     A message that has just arrived fades in from the accent colour.
@@ -117,13 +127,6 @@ class MessageDivider(Animated[Mix], ConversationLineBlock):
 
     block: Divider
 
-    DEFAULT_CSS = """
-    MessageDivider {
-        width: 1fr;
-        height: auto;
-        margin: 1 0 0 0;
-    }
-    """
 
     def __init__(self, block: Divider, *, clock: MessageClock = LiveMessageClock()) -> None:
         super().__init__(replace(block, timestamp=clock.event_time))

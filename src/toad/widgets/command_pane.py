@@ -1,24 +1,54 @@
 """Catalog command projection borrows the original terminal operation."""
 import os
+from typing import ClassVar
+
+from textual.css.native import DeclaresTheme, Keyword, NativeDeclaration, Percent, TextVariable, Variable
+from textual.css.styles import Styles
+from ui_theme.scheme import ErrorColour, PrimaryColour, SuccessColour
 
 from toad.core.source_events import CommandComplete
 from toad.core_event_carrier import CoreEventReceiver
 from toad.terminal_environment import TerminalEnvironment
+from toad.native_style import NoScrollbars
 from toad.terminal_execution import Command, TerminalExecution
 from toad.widgets.terminal import Terminal
 
 
-class CommandPane(CoreEventReceiver, Terminal):
-    DEFAULT_CSS = """
-    CommandPane {
-        scrollbar-size: 0 0;
-    }
-    """
+class CommandFrame(DeclaresTheme):
+    """The frame of a catalog command that has not finished."""
 
-    def __init__(self, execution: TerminalExecution, *, name=None, id=None, classes=None):
+    native_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
+        NativeDeclaration.of(Styles.border, Keyword("tab"), Variable(PrimaryColour.name)),
+    )
+
+
+class SucceededCommandFrame(CommandFrame):
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("tab"), TextVariable(SuccessColour.name), Percent(70)),
+    )
+
+
+class FailedCommandFrame(CommandFrame):
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("tab"), TextVariable(ErrorColour.name), Percent(50)),
+    )
+
+
+class CommandPane(NoScrollbars, CoreEventReceiver, Terminal):
+    native_theme = (NativeDeclaration.of(Styles.background, Keyword("black"), Percent(10)),)
+    frame: type[CommandFrame] = CommandFrame
+
+    def __init__(self, execution: TerminalExecution):
         self.execution = execution
-        super().__init__(name=name, id=id, classes=classes)
+        super().__init__()
         self.set_state(execution.state)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (1, 1)
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        return (*super().native_declarations(), *self.frame.declared_theme())
 
     @property
     def return_code(self) -> int | None:
@@ -42,8 +72,8 @@ class CommandPane(CoreEventReceiver, Terminal):
             completion = await execution.operation.wait()
             self.project_state(None, None)
             if final:
-                self.set_class(completion.successful, "-success")
-                self.set_class(not completion.successful, "-fail")
+                self.frame = (FailedCommandFrame, SucceededCommandFrame)[completion.successful]
+                self.app.update_styles(self)
                 self.publish_core(CommandComplete(completion.return_code))
         finally:
             # The native worker may be cancelled before async Unmount runs.
@@ -72,29 +102,6 @@ if __name__ == "__main__":
     COMMAND = "python test_input.py"
 
     class CommandApp(App):
-        CSS = """
-        Screen {
-            align: center middle;
-        }
-        CommandPane {
-            # background: blue 20%;
-            scrollbar-gutter: stable;
-            background: black 10%;
-            max-height: 40;
-            # border: green;
-            border: tab $text-primary;            
-            margin: 0 2;
-        }
-        # CommandPane {
-        #     width: 1fr;
-        #     height: 1fr;
-        #     # background: black 10%;
-        #     # color: white;
-        #     background: ansi_default;
-        #     # color: ansi_default;
-        # }
-        """
-
         def compose(self) -> ComposeResult:
             yield CommandPane(TerminalExecution(Command.for_script(COMMAND)))
 

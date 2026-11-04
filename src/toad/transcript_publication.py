@@ -299,7 +299,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
             return True
         bound = self.source_bound(page.after)
         if bound != page.after:
-            self.owner.dirty = self.owner.commit_required = True
+            self.owner.demand = COMMIT_DEMAND
             page = await self.owner.get_transcript_page(
                 position=snapshot.identity.position.later_only(), limit=Through(bound)
             )
@@ -481,15 +481,10 @@ class CommitPublication(CanonicalSourcePublication):
         return super().current() and self.plan.current(self.binding.window)
 
     def ready_to_commit(self) -> bool:
-        if not self.current() or not self.owner.dirty:
+        if not self.current() or not self.owner.readable:
             return False
         view = self.binding.view
-        if not self.owner.readable:
-            return False
-        if (
-            not self.owner.commit_required
-            and len(self.binding.contents.children) < view.MAX_LIVE_BLOCKS
-        ):
+        if not self.owner.demand.commits(len(self.binding.contents.children), view.MAX_LIVE_BLOCKS):
             return False
         if any(block_claim(child).blocks_commit for child in self.binding.contents.children):
             return False
@@ -556,8 +551,7 @@ class CommitPublication(CanonicalSourcePublication):
         if not window.is_attached or not contents.is_attached:
             return True
         if self.native_current():
-            self.owner.dirty = False
-            self.owner.commit_required = False
+            self.owner.demand = CLEAN_PUBLICATION
         plan.finish(view, page.after)
         if page.has_newer:
             self.owner.require_commit()
@@ -853,6 +847,48 @@ class BoundView(ViewBinding):
         self.window.reader_position = TailPosition()
 
 
+class PublicationDemand:
+    """What the transcript owes its view: nothing, a refresh, or a commit."""
+
+    pending = False
+
+    def changed(self, cursor: TranscriptCursor) -> PublicationDemand:
+        return COMMIT_DEMAND if cursor.requires_commit() else REFRESH_DEMAND
+
+    def commits(self, live_blocks: int, limit: int) -> bool:
+        return False
+
+
+class CleanPublication(PublicationDemand):
+    """The view shows everything the transcript holds."""
+
+
+class RefreshDemand(PublicationDemand):
+    """Changed rows await publication; a commit waits for the live-block limit."""
+
+    pending = True
+
+    def commits(self, live_blocks: int, limit: int) -> bool:
+        return live_blocks >= limit
+
+
+class CommitDemand(PublicationDemand):
+    """Changed rows must be committed at the next publication."""
+
+    pending = True
+
+    def changed(self, cursor: TranscriptCursor) -> PublicationDemand:
+        return self
+
+    def commits(self, live_blocks: int, limit: int) -> bool:
+        return True
+
+
+CLEAN_PUBLICATION = CleanPublication()
+REFRESH_DEMAND = RefreshDemand()
+COMMIT_DEMAND = CommitDemand()
+
+
 class TranscriptPresentation:
     """Owns the transcript document; attached native publishers can be replaced."""
 
@@ -861,8 +897,7 @@ class TranscriptPresentation:
         self.documents: tuple[PreparedPageSource, ...] = ()
         self.closed = False
         self.generation = 0
-        self.dirty = False
-        self.commit_required = False
+        self.demand: PublicationDemand = CLEAN_PUBLICATION
         self.displayed_cursor: TranscriptCursor = UnreadTranscriptCursor()
         self.current_read: TranscriptPublicationState = NotPublished()
         self.worker: PublicationWork = NO_PUBLICATION_WORK
@@ -943,14 +978,12 @@ class TranscriptPresentation:
 
     def changed(self, cursor: TranscriptCursor) -> None:
         self.invalidate_publications()
-        self.dirty = True
-        if cursor.requires_commit():
-            self.commit_required = True
+        self.demand = self.demand.changed(cursor)
         self.binding.request(self)
 
     def require_commit(self) -> None:
         self.invalidate_publications()
-        self.commit_required = self.dirty = True
+        self.demand = COMMIT_DEMAND
         self.binding.request(self)
 
     async def mark_read(
@@ -991,7 +1024,7 @@ class TranscriptPresentation:
     def retry(self) -> None:
         if self.source_requests.resume():
             return
-        if not self.dirty or not self.worker.is_finished:
+        if not self.demand.pending or not self.worker.is_finished:
             return
         if self.binding.capture(self, CommitPublication).ready_to_commit():
             self.binding.request(self)
@@ -1081,7 +1114,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 self.invalidate_publications()
                 self.current_read = NotPublished()
                 self._close_documents()
-                self.dirty = self.commit_required = False
+                self.demand = CLEAN_PUBLICATION
                 self.displayed_cursor = UnreadTranscriptCursor()
                 work, self.worker = self.worker, NO_PUBLICATION_WORK
                 work.cancel()

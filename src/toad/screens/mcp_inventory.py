@@ -4,13 +4,17 @@ from __future__ import annotations
 
 from textual.worker import Worker
 from pathlib import Path
-from typing import cast
 
 from textual import containers, on
 from textual.app import ComposeResult
-from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import DismissAction
-from textual.widgets import Button, OptionList, Static
+from textual.css.native import Keyword, NativeDeclaration, Variable
+from textual.css.styles import Styles
+from ui_theme.scheme import AccentColour
+from toad.widgets.acting_button import ActingButton, DismissButton
+from toad.native_style import AutoHeight
+from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
+
+from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
 
 from toad.mcp_commands import MCPDecision, MCPSelection
@@ -21,26 +25,49 @@ from toad.mcp_inventory import (
 )
 
 
-class MCPDecisionButton(Button):
+class MCPDecisionButton(ActingButton):
+    """Opens its decision for the selected server."""
+
     def __init__(self, command: MCPDecision) -> None:
-        super().__init__(command.label, id=command.button_id, disabled=True)
+        super().__init__(command.label, disabled=True)
         self.command = command
 
+    async def act(self) -> None:
+        self.query_ancestor(MCPInventoryScreen).open_decision(self.command)
 
-class MCPInventoryScreen(DismissibleScreen[None]):
+
+class RefreshInventory(ActingButton):
+    """Reads the MCP inventory again."""
+
+    async def act(self) -> None:
+        self.query_ancestor(MCPInventoryScreen).action_refresh()
+
+
+class InventoryPanel(SurfacePanel):
+    native_theme = (NativeDeclaration.of(Styles.border, Keyword("round"), Variable(AccentColour.name)),)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = self.styles.height = "85%"
+        self.styles.padding = (1, 2)
+
+
+class InventoryStatus(Static):
+    """The package's rendered inventory, or why it is unavailable."""
+
+
+class InventoryRows(OptionList):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 8
+
+
+class InventoryButtons(AutoHeight, containers.Horizontal):
+    """Its look is its bases."""
+
+
+class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
     """The Pi package owns the inventory; this screen never owns decisions."""
-
-    DEFAULT_CSS = """
-    MCPInventoryScreen { align: center middle; }
-    MCPInventoryScreen #mcp-inventory-panel {
-        width: 85%; height: 85%; border: round $accent; background: $surface;
-        padding: 1 2;
-    }
-    MCPInventoryScreen #mcp-inventory-scroll { height: 1fr; }
-    MCPInventoryScreen #mcp-inventory-rows { height: 8; }
-    MCPInventoryScreen #mcp-inventory-controls { height: auto; }
-    MCPInventoryScreen #mcp-inventory-actions { height: auto; }
-    """
 
     def __init__(self, project_root: Path) -> None:
         super().__init__()
@@ -51,20 +78,19 @@ class MCPInventoryScreen(DismissibleScreen[None]):
         self._selected: Declaration | None = None
 
     def compose(self) -> ComposeResult:
-        with containers.Vertical(id="mcp-inventory-panel"):
-            with containers.VerticalScroll(id="mcp-inventory-scroll"):
-                yield Static(
+        with InventoryPanel():
+            with containers.VerticalScroll():
+                yield InventoryStatus(
                     "Loading read-only Pi MCP package inventory…",
-                    id="mcp-inventory-status",
                     markup=False,
                 )
-            yield OptionList(id="mcp-inventory-rows")
-            with containers.Horizontal(id="mcp-inventory-actions"):
+            yield InventoryRows()
+            with InventoryButtons():
                 for member in MCPDecision.members_with(MCPDecision):
                     yield MCPDecisionButton(member())
-            with containers.Horizontal(id="mcp-inventory-controls"):
-                yield Button("Refresh", id="refresh")
-                yield Button("Close", id="close", action=f"screen.{DismissAction.binding_name()}")
+            with InventoryButtons():
+                yield RefreshInventory("Refresh")
+                yield DismissButton("Close")
 
     def on_mount(self) -> None:
         self.action_refresh()
@@ -74,16 +100,15 @@ class MCPInventoryScreen(DismissibleScreen[None]):
         if self._read_task is not None:
             self._read_task.cancel()
 
-    @on(Button.Pressed, "#refresh")
     def action_refresh(self) -> None:
         self._generation += 1
         if self._read_task is not None:
             self._read_task.cancel()
         self._inventory = None
         self._selected = None
-        self.query_one("#mcp-inventory-rows", OptionList).clear_options()
+        self.query_one(InventoryRows).clear_options()
         self._update_actions()
-        self.query_one("#mcp-inventory-status", Static).update(
+        self.query_one(InventoryStatus).update(
             "Loading read-only Pi MCP package inventory…"
         )
         self._read_task = self.run_worker(self._fetch(self._generation))
@@ -93,7 +118,7 @@ class MCPInventoryScreen(DismissibleScreen[None]):
         inventory = await read_inventory(self.project_root)
         if generation == self._generation and self.is_attached:
             self._inventory = inventory
-            self.query_one("#mcp-inventory-status", Static).update(
+            self.query_one(InventoryStatus).update(
                 render_inventory(inventory)
             )
             if inventory is not None:
@@ -104,7 +129,7 @@ class MCPInventoryScreen(DismissibleScreen[None]):
                     )
                     for row in inventory.rows
                 ]
-                self.query_one("#mcp-inventory-rows", OptionList).add_options(options)
+                self.query_one(InventoryRows).add_options(options)
 
     def _selection(self) -> MCPSelection | None:
         if self._inventory is None or self._selected is None:
@@ -116,7 +141,7 @@ class MCPInventoryScreen(DismissibleScreen[None]):
         for button in self.query(MCPDecisionButton):
             button.disabled = selection is None or not button.command.available(selection)
 
-    @on(OptionList.OptionHighlighted, "#mcp-inventory-rows")
+    @on(OptionList.OptionHighlighted)
     def on_row_highlighted(self, event: OptionList.OptionHighlighted) -> None:
         snapshot = self._inventory
         self._selected = (
@@ -133,14 +158,12 @@ class MCPInventoryScreen(DismissibleScreen[None]):
         )
         self._update_actions()
 
-    @on(Button.Pressed, "MCPDecisionButton")
-    def open_decision(self, event: Button.Pressed) -> None:
+    def open_decision(self, command: MCPDecision) -> None:
         from toad.screens.mcp_decision import MCPDecisionScreen
 
         selection = self._selection()
-        if selection is None or event.button.disabled:
+        if selection is None:
             return
-        command = cast(MCPDecisionButton, event.button).command
         self.app.push_screen(
             MCPDecisionScreen(selection, command),
             lambda _: self.action_refresh(),

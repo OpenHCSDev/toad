@@ -35,10 +35,6 @@ class MCPDecision(Command, DeclaredFamily, affix="Command"):
     @abstractmethod
     def permits(self, row: Declaration) -> bool: ...
 
-    @property
-    def button_id(self) -> str:
-        return FieldCodec.encode(type(self))
-
     def available(self, selection: MCPSelection) -> bool:
         if os.name != 'posix' or not selection.eligible():
             return False

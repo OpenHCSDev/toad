@@ -1,8 +1,6 @@
 """Textual-facing: the goal details screen's scroll container and the frame it paints at narrow sizes."""
 
-from textual.containers import VerticalScroll
-
-from toad.screens.goal_details import GoalDetails
+from toad.screens.goal_details import GoalDetails, GoalDocument
 from support.goals import published_goal
 
 
@@ -17,10 +15,10 @@ async def test_long_objective_and_progress_scroll_fully_at_narrow_sizes(workspac
         await ui.until_shows("History")
         await ui.click("History")
         await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the goal details screen")
-        assert app.screen.query_one(VerticalScroll).max_scroll_y > 0
+        assert app.screen.query_one(GoalDocument).max_scroll_y > 0
         for width, height in ((100, 35), (65, 18)):
             await ui.resize(width, height)
-            app.screen.query_one(VerticalScroll).focus()
+            app.screen.query_one(GoalDocument).focus()
             await ui.press("end")
             await ui.until_shows("PROGRESS_END")
             await ui.press("home")

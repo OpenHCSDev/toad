@@ -1,19 +1,34 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, ClassVar
 
 from textual import containers, events, on, widgets
 from textual._activation import PrimaryActivation
 from textual.app import ComposeResult
 from textual.content import Content
+from textual.css.native import DeclaresTheme, Keyword, NativeDeclaration, NativeStyleResolver, Percent, TextVariable, Variable
+from textual.css.styles import Styles
 from textual.message import Message
 from textual.navigation import MovesCursor
 from textual.reactive import reactive, var
 from textual.widget import Widget
 from textual.screen import Screen
+from ui_theme.scheme import AccentColour, BoostColour, MutedColour
 
 from toad.answer import Answer
+from toad.native_style import (
+    FillWidth,
+    MutedText,
+    NoMargin,
+    PrimaryText,
+    RightPadding,
+    ScrollsVertically,
+    SidePadding,
+    SpacedBelow,
+    StartsHidden,
+    TransparentBackground,
+)
 from toad.tone_paint import UntintedTonePaint
 from toad.question_actions import QuestionAction, QuestionContext, SelectKindAction
 from toad.question_presentation import QuestionPresentation
@@ -42,47 +57,101 @@ class OptionMarker(UntintedTonePaint, NonSelectableLabel):
         return 1.0 if self.query_ancestor(Question).has_focus else 0.3
 
 
-class Option(PrimaryActivation, containers.HorizontalGroup):
-    ALLOW_SELECT = False
-    DEFAULT_CSS = """
-    Option {
+class OptionPlace(DeclaresTheme):
+    """Where an option stands against its question's cursor and answer; each place owns its look.
 
-        &:hover {
-            background: $boost;
-        }
-        color: $text-muted;
-        #caret {
-            visibility: hidden;
-            padding: 0 1;
-        }
-        #index {
-            padding-right: 1;
-        }
-        #label {
-            width: 1fr;
-        }
-        &.-active {            
-            color: $text-accent;
-            #caret {
-                visibility: visible;
-            }
-        }
-        &.-selected {
-            opacity: 0.5;
-        }
-        &.-active.-selected {
-            opacity: 1.0;
-            background: transparent;
-            color: $text-accent;            
-            #label {
-                text-style: underline;
-            }
-            #caret {
-                visibility: hidden;
-            }
-        }
-    }
+    Every place declares every property any place changes, so a move replaces the old look.
     """
+
+    native_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
+        NativeDeclaration.of(Styles.color, TextVariable(MutedColour.name)),
+        NativeDeclaration.of(Styles.opacity, Percent(100)),
+    )
+    caret_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
+        NativeDeclaration.of(Styles.visibility, Keyword("hidden")),
+    )
+    label_text_style: ClassVar[str] = "none"
+
+
+class AwayOption(OptionPlace):
+    """Neither under the cursor nor answered."""
+
+
+class CursorOption(OptionPlace):
+    native_theme = (
+        NativeDeclaration.of(Styles.color, TextVariable(AccentColour.name)),
+        NativeDeclaration.of(Styles.opacity, Percent(100)),
+    )
+    caret_theme = (NativeDeclaration.of(Styles.visibility, Keyword("visible")),)
+
+
+class PassedOption(MutedText, OptionPlace):
+    """Another option was the answer."""
+
+    native_theme = (NativeDeclaration.of(Styles.opacity, Percent(50)),)
+
+
+class ChosenOption(TransparentBackground, OptionPlace):
+    """The answer; the pointer no longer highlights it."""
+
+    native_theme = (NativeDeclaration.of(Styles.color, TextVariable(AccentColour.name)), NativeDeclaration.of(Styles.opacity, Percent(100)))
+    label_text_style = "underline"
+
+
+OPTION_PLACES = ((AwayOption, CursorOption), (PassedOption, ChosenOption))
+"""Indexed by whether the question is answered, then whether the option is under the cursor."""
+
+
+class CaretPhase(DeclaresTheme):
+    """The cursor caret's blink phase; each phase owns the caret's opacity."""
+
+    native_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
+        NativeDeclaration.of(Styles.opacity, Percent(100)),
+    )
+
+    @classmethod
+    def toggled(cls) -> type[CaretPhase]:
+        return DimCaret
+
+
+class LitCaret(CaretPhase):
+    pass
+
+
+class DimCaret(CaretPhase):
+    native_theme = (NativeDeclaration.of(Styles.opacity, Percent(20)),)
+
+    @classmethod
+    def toggled(cls) -> type[CaretPhase]:
+        return LitCaret
+
+
+class OptionCaret(SidePadding, OptionMarker):
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        return (*super().native_declarations(),
+                *self.query_ancestor(Option).place.caret_theme,
+                *self.query_ancestor(Question).caret_phase.declared_theme())
+
+
+class OptionKeys(RightPadding, OptionMarker):
+    """Its look is its bases."""
+
+
+class OptionLabel(FillWidth, NonSelectableLabel):
+
+    def apply_native_styles(self, resolver: NativeStyleResolver) -> None:
+        # A native text-style declaration publishes its unparsed flags, which paint cannot add.
+        super().apply_native_styles(resolver)
+        self.styles.text_style = self.query_ancestor(Option).place.label_text_style
+
+
+class Option(PrimaryActivation, TransparentBackground, containers.HorizontalGroup):
+    ALLOW_SELECT = False
+    hover_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
+        NativeDeclaration.of(Styles.background, Variable(BoostColour.name)),
+    )
+    pointer_theme: tuple[NativeDeclaration, ...] = ()
 
     @dataclass
     class Selected(Message):
@@ -92,23 +161,33 @@ class Option(PrimaryActivation, containers.HorizontalGroup):
 
     keys: reactive[tuple[str, ...]] = reactive(())
 
-    selected: reactive[bool] = reactive(False, toggle_class="-selected")
-
-    def __init__(
-        self, index: int, content: Content, keys: tuple[str, ...], classes: str = ""
-    ) -> None:
-        super().__init__(classes=classes)
+    def __init__(self, index: int, content: Content, keys: tuple[str, ...]) -> None:
+        super().__init__()
         self.index = index
         self.content = content
         self.keys = keys
 
+    @property
+    def place(self) -> type[OptionPlace]:
+        question = self.query_ancestor(Question)
+        return OPTION_PLACES[question.selected][self.index == question.selection]
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        return (*super().native_declarations(), *self.pointer_theme, *self.place.declared_theme())
+
+    @on(events.Enter)
+    @on(events.Leave)
+    def pointer_moved(self) -> None:
+        self.pointer_theme = ((), self.hover_theme)[self.is_mouse_over]
+        self.update_node_styles()
+
     def compose(self) -> ComposeResult:
-        yield OptionMarker("❯", id="caret")
-        yield OptionMarker(Content.styled(", ".join(self.keys) or " ", "b"), id="index")
-        yield NonSelectableLabel(self.content, id="label")
+        yield OptionCaret("❯")
+        yield OptionKeys(Content.styled(", ".join(self.keys) or " ", "b"))
+        yield OptionLabel(self.content)
 
     def watch_keys(self, keys: tuple[str, ...]) -> None:
-        for marker in self.query("#index").results(OptionMarker):
+        for marker in self.query(OptionKeys):
             marker.update(Content.styled(", ".join(keys) or " ", "b"))
 
     def on_click(self, event: events.Click) -> None:
@@ -123,40 +202,35 @@ class Option(PrimaryActivation, containers.HorizontalGroup):
         self.post_message(self.Selected(self.index))
 
 
+class QuestionContents(containers.VerticalGroup):
+    """The question's title and any content it shows above the options."""
+
+
+class QuestionTitle(PrimaryText, SpacedBelow, widgets.Label):
+
+    """Its look is its bases."""
+
+
+class QuestionOptions(containers.VerticalGroup):
+    """The question's answers, in order."""
+
+
 class Question(VisibleActions, MovesCursor, QuestionContext, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
     """A text question with a menu of responses."""
 
     BINDING_GROUP_TITLE = "Question"
     ALLOW_SELECT = False
-    DEFAULT_CSS = """
-    Question {
-        width: 1fr;
-        height: auto;
-        padding: 0 1; 
-        background: transparent;
-        #title {
-            margin-bottom: 1;
-            color: $text-primary;
-        }
-        #question-container {
-            margin-bottom: 1;
-        }        
-
-        
-
-        #option-container.-blink Option.-active #caret {
-            opacity: 0.2;
-        }
-
-    }
-    """
+    CONTENTS: ClassVar[type[QuestionContents]] = QuestionContents
+    TITLE: ClassVar[type[QuestionTitle]] = QuestionTitle
+    OPTIONS: ClassVar[type[QuestionOptions]] = QuestionOptions
 
     title: var[str] = var("")
     options: var[Options] = var(list)
 
     selection: reactive[int] = reactive(0, init=False)
-    selected: var[bool] = var(False, toggle_class="-selected")
-    blink: var[bool] = var(False)
+    selected: var[bool] = var(False, init=False)
+    # A reactive calls a callable default; the lambda keeps the member class itself.
+    caret_phase: var[type[CaretPhase]] = var(lambda: LitCaret, init=False)
 
 
     @dataclass
@@ -172,15 +246,12 @@ class Question(VisibleActions, MovesCursor, QuestionContext, containers.Vertical
         title: str = "Ask and you will receive",
         get_content: Callable[[], Widget] | None = None,
         options: Options | None = None,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
         disabled: bool = False,
     ) -> None:
-        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        super().__init__(disabled=disabled)
         self.set_reactive(Question.title, title)
         self.presentation = QuestionPresentation()
-        self._option_view = containers.VerticalGroup(id="option-container")
+        self._option_view = self.OPTIONS()
         self._ask: Ask | None = None
         self._get_content = get_content
         self.set_reactive(Question.options, options or [])
@@ -188,8 +259,7 @@ class Question(VisibleActions, MovesCursor, QuestionContext, containers.Vertical
     def watch_has_focus(self, has_focus: bool) -> None:
         super().watch_has_focus(has_focus)
         self.presentation.mount.focus(has_focus)
-        if not has_focus:
-            self.blink = False
+        self.caret_phase = LitCaret
         for marker in self.query(OptionMarker):
             marker.refresh_paint()
 
@@ -202,7 +272,7 @@ class Question(VisibleActions, MovesCursor, QuestionContext, containers.Vertical
         self.presentation.retire()
 
     def _reset_blink(self) -> None:
-        self.blink = False
+        self.caret_phase = LitCaret
         self.presentation.mount.reset()
 
     def update(self, ask: Ask) -> None:
@@ -218,19 +288,16 @@ class Question(VisibleActions, MovesCursor, QuestionContext, containers.Vertical
 
     def compose(self) -> ComposeResult:
 
-        with containers.VerticalGroup(id="contents"):
+        with self.CONTENTS():
             if self.title:
-                yield widgets.Label(self.title, id="title", markup=False)
+                yield self.TITLE(self.title, markup=False)
             if self._get_content is not None:
                 yield self._get_content()
 
-        self._option_view = containers.VerticalGroup(id="option-container")
+        self._option_view = self.OPTIONS()
         with self._option_view:
             for index, (answer, keys) in enumerate(zip(self.options, self.option_keys())):
-                yield Option(
-                    index, Content(answer.text), keys,
-                    classes="-active" if index == self.selection else "",
-                ).data_bind(Question.selected)
+                yield Option(index, Content(answer.text), keys)
 
     def option_keys(self) -> tuple[tuple[str, ...], ...]:
         candidates = tuple((declaration.kind, binding.key)
@@ -268,14 +335,17 @@ class Question(VisibleActions, MovesCursor, QuestionContext, containers.Vertical
         self._reset_blink()
         self.selection = min(len(self.options) - 1, self.selection + 1)
 
-    def watch_selection(self, old_selection: int, new_selection: int) -> None:
-        self.presentation.mount.select(new_selection)
+    def watch_selection(self) -> None:
+        self.presentation.mount.restyle()
+
+    def watch_selected(self) -> None:
+        self.presentation.mount.restyle()
+
+    def watch_caret_phase(self) -> None:
+        self.presentation.mount.restyle()
 
     async def recompose(self) -> None:
         await self.presentation.recompose(self, super().recompose)
-
-    def watch_blink(self, blink: bool) -> None:
-        self.presentation.mount.blink(blink)
 
     @on(Option.Selected)
     def on_option_selected(self, event: Option.Selected) -> None:
@@ -283,6 +353,40 @@ class Question(VisibleActions, MovesCursor, QuestionContext, containers.Vertical
         self._reset_blink()
         if not self.selected:
             self.selection = event.index
+
+
+class PromptQuestionContents(
+    SpacedBelow,
+    RightPadding,
+    ScrollsVertically,
+    QuestionContents,
+):
+    """Scrolls tall content inside the prompt; holds one row when there is nothing to show."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.overflow_x = "hidden"
+        self.styles.max_height = "50vh"
+        self.styles.min_height = 1
+
+
+class PromptQuestionTitle(FillWidth, NoMargin, QuestionTitle):
+    """Its look is its bases."""
+
+
+class PromptQuestionOptions(QuestionOptions):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.split = "bottom"
+
+
+class PromptQuestion(SidePadding, StartsHidden, Question):
+    """The question the prompt shows in place of its editor."""
+
+    CONTENTS = PromptQuestionContents
+    TITLE = PromptQuestionTitle
+    OPTIONS = PromptQuestionOptions
+
 
 
 if __name__ == "__main__":

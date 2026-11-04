@@ -6,28 +6,58 @@ from collections.abc import Awaitable, Callable
 from acp.exceptions import RequestError
 from agent_comms.acp_extension import QueueScope
 from agent_comms.errors import RelationViolationError, RouteChangedError, UnregisteredThreadError
-from textual import on
 from textual.app import ComposeResult
-from textual.containers import HorizontalGroup, Vertical, VerticalScroll
-from textual.widgets import Button, Static
+from textual.containers import HorizontalGroup, VerticalScroll
+from textual.css.native import NativeDeclaration, Variable
+from textual.css.styles import Styles
+from ui_theme.scheme import ErrorColour
+from textual.widgets import Static
 
+from toad.widgets.acting_button import ActingButton, DismissButton
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.conversation_submission import ConversationSubmissions
 from toad.line_blocks import SpanColumns
+from toad.native_style import AutoHeight
+from toad.screens.modal import CenteredScreen, ShadedScreen, SurfacePanel
 from toad.screens.source_modal import SourceModal
 from toad.submission_queue import QueueEvidence
+
 from toad.widgets.tool_content import ToolContent
 
-class QueueInspection(SourceModal):
-    """One screen captures the source, presentation and scope it actually displays."""
+class QueuePanel(SurfacePanel):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = "85%"
+        self.styles.max_width = 110
+        self.styles.height = "75%"
+        self.styles.padding = (1, 2)
 
-    DEFAULT_CSS = """
-    QueueInspection { align: center middle; background: $background 40%; }
-    QueueInspection > Vertical { width: 85%; max-width: 110; height: 75%; padding: 1 2; background: $surface; }
-    QueueInspection VerticalScroll { height: 1fr; }
-    QueueInspection HorizontalGroup { height: auto; }
-    QueueInspection #queue-error { height: auto; color: $error; }
-    """
+
+class QueueError(AutoHeight, Static):
+    native_theme = (NativeDeclaration.of(Styles.color, Variable(ErrorColour.name)),)
+
+
+
+class QueueActions(AutoHeight, HorizontalGroup):
+    """Its look is its bases."""
+
+
+class QueueSendNow(ActingButton):
+    """Delivers the queued inputs now."""
+
+    async def act(self) -> None:
+        await self.query_ancestor(QueueInspection).send_now()
+
+
+class QueueClear(ActingButton):
+    """Discards the queued inputs."""
+
+    async def act(self) -> None:
+        await self.query_ancestor(QueueInspection).clear_queue()
+
+
+class QueueInspection(ShadedScreen, CenteredScreen, SourceModal):
+    """One screen captures the source, presentation and scope it actually displays."""
 
     def __init__(self, submissions: ConversationSubmissions) -> None:
         super().__init__()
@@ -41,38 +71,32 @@ class QueueInspection(SourceModal):
         return self.submissions.view
 
     def compose(self) -> ComposeResult:
-        with Vertical():
+        with QueuePanel():
             yield Static("Queue and delivery")
             with VerticalScroll():
                 details = ToolContent()
                 details.update((SpanColumns(self.source.queue_details(self.evidence)),))
                 yield details
             yield Static("Individual edit/delete/reorder requires ID-targeted, revision-checked backend support.")
-            yield Static("", id="queue-error")
-            with HorizontalGroup():
+            yield QueueError("")
+            with QueueActions():
                 available = self.source.queue_actions_available(self.evidence)
-                yield Button("Send now", id="queue-send-now", disabled=not available)
-                yield Button("Clear queued inputs", id="queue-clear", disabled=not available)
-                yield Button("Close", id="queue-close")
+                yield QueueSendNow("Send now", disabled=not available)
+                yield QueueClear("Clear queued inputs", disabled=not available)
+                yield DismissButton("Close")
 
     async def apply_action(self, action: Callable[[QueueEvidence, QueueScope], Awaitable[None]]) -> None:
         try:
             await action(self.evidence, self.scope)
         except (QueueActionRefused, RequestError, RelationViolationError,
                 RouteChangedError, UnregisteredThreadError) as error:
-            self.query_one("#queue-error", Static).update(str(error))
+            self.query_one(QueueError).update(str(error))
             return
         self.submissions.publish_pending()
         self.dismiss()
 
-    @on(Button.Pressed, "#queue-send-now")
     async def send_now(self) -> None:
         await self.apply_action(self.source.queue_send_now)
 
-    @on(Button.Pressed, "#queue-clear")
     async def clear_queue(self) -> None:
         await self.apply_action(self.source.queue_clear)
-
-    @on(Button.Pressed, "#queue-close")
-    def close_queue(self) -> None:
-        self.dismiss()

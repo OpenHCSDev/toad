@@ -27,11 +27,19 @@ from toad.widgets.message_notifications import (
 )
 
 
-class SessionView(DeclaredWidgetActions, VisibleReadMarking, CoreEventReceiver, Vertical, SessionScope):
+class SessionView(
+    DeclaredWidgetActions,
+    VisibleReadMarking,
+    CoreEventReceiver,
+    Vertical,
+    SessionScope,
+):
     title = reactive("")
     sub_title = reactive("")
 
-    DEFAULT_CSS = "SessionView { width: 1fr; height: 1fr; }"
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = self.styles.height = FILL
 
     # The absent identity is an immutable value; concrete bindings replace it
     # on the instance. Native construction stays with Vertical/Widget.

@@ -24,6 +24,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import Animated
 from toad.large_text import LargeText
 from toad.app_node import ToadNode
+from toad.native_style import ScreenOverlay
 from toad.widgets.conversation import Conversation
 
 if TYPE_CHECKING:
@@ -59,7 +60,7 @@ class Swell(Effect[Amount]):
 TAB_TOAST = Swell(rise=0.12, hold=0.5, fall=0.35, frames_per_second=30)
 
 
-class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
+class SwitchToast(CoreEventReceiver, ScreenOverlay, Animated[Amount], ToadNode):
     """The chosen tab's name, so the reader sees where they landed without finding the tab.
 
     It never takes focus or pointer input: clicks pass to what is under it.
@@ -73,7 +74,6 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
     few rows.
     """
 
-    DEFAULT_CSS = "SwitchToast { position: absolute; overlay: screen; }"
     can_focus = False
     hit_test_transparent = True
     # Cells around the name, inside the frame.
@@ -89,6 +89,10 @@ class SwitchToast(CoreEventReceiver, Animated[Amount], ToadNode):
         # The session whose messages it was last shown over.
         self.over: tuple[SessionView, ...] = ()
         self.display = False
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.position = "absolute"
 
     def on_mount(self) -> None:
         self.observe_core(self.app.events)

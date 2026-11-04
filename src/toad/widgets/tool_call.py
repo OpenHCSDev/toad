@@ -6,9 +6,13 @@ from typing import Iterable
 from textual.app import ComposeResult
 from textual.await_complete import AwaitComplete
 
+from textual import events
 from textual.reactive import var
+from textual.css.native import DeclaresTheme, Keyword, NativeDeclaration, Variable
 from textual.css.query import NoMatches
+from textual.css.styles import Styles
 from textual import containers
+from ui_theme.scheme import PanelColour
 
 from toad.tool_output import ToolOutput, ToolOutputPart
 from metaclass_registry.mro_dispatch import handles
@@ -24,20 +28,36 @@ from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import ConversationLineBlock
 from toad.widgets.tool_content import ToolContent
 from toad.app_node import ToadNode
+from toad.native_style import PointerCursor, RightMargin
 
 
+class HeaderPointer(DeclaresTheme):
+    """Where the pointer is relative to a tool's header row; each place declares its paint."""
+
+    native_theme: tuple[NativeDeclaration, ...] = (
+        NativeDeclaration.of(Styles.background, Keyword("transparent")),
+    )
 
 
-class ToolCallHeader(ConversationLineBlock):
+class HoveredHeader(HeaderPointer):
+    native_theme = (NativeDeclaration.of(Styles.background, Variable(PanelColour.name)),)
+
+
+class ToolCallHeader(PointerCursor, ConversationLineBlock):
     ALLOW_SELECT = False
-    DEFAULT_CSS = """
-    ToolCallHeader {
-        width: 1fr;
-        &:hover {
-            background: $panel;
-        }
-    }
-    """
+    pointer_place: type[HeaderPointer] = HeaderPointer
+
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        return (*super().native_declarations(), *self.pointer_place.declared_theme())
+
+    def on_enter(self, event: events.Enter) -> None:
+        self.pointer_place = HoveredHeader
+        self.app.update_styles(self)
+
+    def on_leave(self, event: events.Leave) -> None:
+        self.pointer_place = HeaderPointer
+        self.app.update_styles(self)
 
     @handles(ToggleDetails)
     def toggle_details(self, link: ToggleDetails) -> None:
@@ -48,44 +68,28 @@ class ToolCallHeader(ConversationLineBlock):
             self.app.bell()
 
 
+class ToolTitle(LineMarkdown):
+    """The full title, shown with the details while the call is expanded."""
+
+
+class ToolCallContent(RightMargin, ToolContent):
+    """The call's details, shown while it is expanded."""
+
+
+
 class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup, ToadNode):
-    DEFAULT_CSS = """
-    ToolCall {
-        width: 1fr;
-        height: auto;
-
-        #tool-title, #tool-content {
-            display: none;
-        }
-        &.-has-content #tool-content {
-            margin-right: 1;
-        }
-        &.-expanded {
-            #tool-title, #tool-content {
-                display: block;
-            }
-        }
-
-        ToolCallHeader {
-            pointer: pointer;
-        }
-    }
-    """
-
     @property
     def message_category(self) -> type[MessageCategory]:
         return ToolCategory
 
-    has_content: var[bool] = var(False, toggle_class="-has-content")
-    expanded: var[bool] = var(False, toggle_class="-expanded")
+    has_content: var[bool] = var(False)
+    expanded: var[bool] = var(False)
     tool_call: var[ToolCallStatus | None] = var(None)
 
     def __init__(
         self,
         tool_call: ToolCallStatus,
         *,
-        id: str | None = None,
-        classes: str | None = None,
         output_parts: tuple[ToolOutputPart, ...] | None = None,
         binding=None,
         request=None,
@@ -95,7 +99,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.source_claim = source_claim
         self.binding = binding
         self.request = request
-        super().__init__(id=id, classes=classes)
+        super().__init__()
         self.output = ToolOutput(self)
         self.output.replace(tool_call.call, parts=output_parts)
         self._manual_expansion: bool | None = None
@@ -123,7 +127,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.output.replace(tool_call.call, parts=output_parts)
         self._update_metadata()
         self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
-        self.query_one("#tool-title", LineMarkdown).update(self.current_status.title)
+        self.query_one(ToolTitle).update(self.current_status.title)
         return self.output.sync()
 
     def get_block_menu(self) -> Iterable[MenuCommand]:
@@ -162,9 +166,11 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def compose(self) -> ComposeResult:
         self._update_metadata()
         yield ToolCallHeader(self.activity_rows[0]).with_tooltip("Expand to see full title")
-        yield LineMarkdown(self.current_status.title, role=ToolOutputRole,
-                           body=Body, id="tool-title")
-        yield ToolContent(id="tool-content")
+        title = ToolTitle(self.current_status.title, role=ToolOutputRole, body=Body)
+        details = ToolCallContent()
+        title.display = details.display = self.expanded
+        yield title
+        yield details
 
     def on_mount(self) -> None:
         from toad.widgets.conversation import Conversation
@@ -183,7 +189,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.output.sync()
 
     def _update_metadata(self) -> None:
-        self.set_class(self.current_status.failed, "-failed")
         self.has_content = self.output.has_content
         self.check_expand()
 
@@ -220,6 +225,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.output.sync()
         try:
             self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
+            self.query_one(ToolTitle).display = self.query_one(ToolCallContent).display = self.expanded
         except NoMatches:
             pass
         from toad.widgets.conversation import Conversation

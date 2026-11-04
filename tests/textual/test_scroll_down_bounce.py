@@ -3,11 +3,9 @@
 import asyncio
 from functools import partial
 import gzip
-from inspect import getfile
 from pathlib import Path
 
 from textual import events
-from textual._path import _css_path_type_as_list
 from textual.pilot import _get_mouse_message_arguments
 
 from agent_comms.repo import Checkout
@@ -26,8 +24,6 @@ from toad.widgets.transcript_history import TranscriptHistory
 class RecordedHistoryScreen(WorkspaceScreen):
     """Observe the native publication hook without replacing application methods."""
 
-    CSS_PATH = [Path(getfile(WorkspaceScreen)).parent / path
-                for path in _css_path_type_as_list(WorkspaceScreen.CSS_PATH)]
     recording = False
 
     def __init__(self, *args, **kwargs):

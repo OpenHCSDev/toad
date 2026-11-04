@@ -157,19 +157,21 @@ class AlwaysNotification(NotificationPolicy):
 
 
 class Scrollbar(DeclaredChoice, affix="Scrollbar"):
-    """Spelling is the Textual reactive/CSS value, declared once by each member."""
+    """The conversation's vertical scrollbar width, in cells, declared once by each member."""
+
+    size: ClassVar[int]
 
 
 class NormalScrollbar(Scrollbar):
-    pass
+    size = 2
 
 
 class ThinScrollbar(Scrollbar):
-    pass
+    size = 1
 
 
 class HiddenScrollbar(Scrollbar):
-    pass
+    size = 0
 
 
 class InputBox(DeclaredChoice, affix="InputBox"):

@@ -25,7 +25,28 @@ from textual.css.query import NoMatches
 from textual.reactive import reactive
 from textual import containers
 from textual import widgets
-from toad.widgets.footer import ToadFooter
+from textual.css.native import Keyword, NativeDeclaration, Percent, TextVariable, Variable
+from textual.css.styles import Styles
+from textual.view import AUTO, FILL
+from ui_theme.scheme import (
+    ForegroundColour, PanelColour, PrimaryColour, SecondaryColour, SuccessColour, WarningColour,
+)
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    EllipsisOverflow,
+    FullWidth,
+    NoMargin,
+    NoWrap,
+    PointerCursor,
+    RightPadding,
+    SecondaryText,
+    SideMargin,
+    SidePadding,
+    TransparentBackground,
+)
+from textual.widgets._footer import FooterKeyComponent
+from toad.widgets.footer import ToadFooter, ToadFooterKey
 
 import toad
 from toad.app import ToadApp
@@ -35,10 +56,11 @@ from toad.pill import pill
 from toad.widgets.directory_input import DirectoryInput
 from toad.widgets.mandelbrot import Mandelbrot
 from toad.widgets.condensed_path import CondensedPath
-from toad.widgets.grid_select import GridSelect
+from toad.widgets.grid_select import GridCell, GridSelect
 from toad.agent_schema import AgentDefinition
 from toad.agents import AgentReadError, read_agents
 from toad.app_node import ToadNode
+from textual.widget import Widget
 
 
 QR = """\
@@ -57,25 +79,60 @@ QR = """\
 ▀▀▀▀▀▀▀ ▀▀▀  ▀   ▀▀▀▀▀▀▀▀"""
 
 
-class DirectoryDisplay(DismissibleControl, CoreEventReceiver, containers.HorizontalGroup):
 
+class PointerHover(Widget):
+    """While the pointer is anywhere over the widget, children included, its hover look applies.
 
-    DEFAULT_CSS = """
-    DirectoryDisplay {
-        CondensedPath { display: block; }
-        DirectoryInput { display: none; }
-        &.-edit {
-            CondensedPath { display: none}
-            DirectoryInput { display: block; }
-        }
-    }
+    The resting look (in ``native_theme``) declares every property the hover look changes.
     """
 
+    hover_theme: tuple[NativeDeclaration, ...] = ()
+    pointer_theme: tuple[NativeDeclaration, ...] = ()
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        return (*super().native_declarations(), *self.pointer_theme)
+
+    @on(events.Enter)
+    @on(events.Leave)
+    def pointer_moved(self) -> None:
+        self.pointer_theme = ((), self.hover_theme)[self.is_mouse_over]
+        self.app.update_styles(self)
+
+
+class ProjectPath(
+    FullWidth,
+    TransparentBackground,
+    PointerCursor,
+    PointerHover,
+    CondensedPath,
+):
+    native_theme = (NativeDeclaration.of(Styles.color, TextVariable(WarningColour.name)), NativeDeclaration.of(Styles.text_style, Keyword("none")))
+    hover_theme = (
+        NativeDeclaration.of(Styles.background, Variable(ForegroundColour.name), Percent(4)),
+        NativeDeclaration.of(Styles.text_style, Keyword("underline")),
+    )
+
+
+
+class DirectoryDisplay(
+    DismissibleControl,
+    CoreEventReceiver,
+    containers.HorizontalGroup,
+):
+    native_theme = (
+        NativeDeclaration.of(
+            Styles.border_bottom, Keyword("solid"), Variable(ForegroundColour.name), Percent(10)
+        ),
+    )
     path = reactive("")
-    edit = reactive(False, toggle_class="-edit")
+    edit = reactive(False)
 
     directory_input = getters.query_one(DirectoryInput)
-    condensed_path = getters.query_one(CondensedPath)
+    condensed_path = getters.query_one(ProjectPath)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (0, 1, 0, 2)
 
     def on_mount(self) -> None:
         self.watch(self.app, ToadApp.project_dir.name, self.project_changed)
@@ -107,12 +164,14 @@ class DirectoryDisplay(DismissibleControl, CoreEventReceiver, containers.Horizon
         self.directory_input.value = self.path
 
     def watch_edit(self, edit: bool) -> None:
+        self.condensed_path.display = not edit
+        self.directory_input.display = edit
         if not edit and self.directory_input.has_focus:
             self.directory_input.blur()
 
     def compose(self) -> ComposeResult:
         yield widgets.Label("📁 ")
-        yield CondensedPath(self.path, directory=True).data_bind(
+        yield ProjectPath(self.path, directory=True).data_bind(
             path=DirectoryDisplay.path
         ).with_tooltip("Project directory for new agent sessions (click to edit)")
         yield DirectoryInput(self.path, select_on_focus=True, compact=True).data_bind(
@@ -120,7 +179,48 @@ class DirectoryDisplay(DismissibleControl, CoreEventReceiver, containers.Horizon
         )
 
 
-class AgentItem(containers.VerticalGroup):
+class GridItem(
+    GridCell,
+    PointerHover,
+    TransparentBackground,
+    SidePadding,
+    PointerCursor,
+):
+    """A selectable entry in one of the store's grids."""
+
+    native_theme = (NativeDeclaration.of(Styles.border, Keyword("tall"), Keyword("transparent")),)
+    hover_theme = (NativeDeclaration.of(Styles.background, Variable(PanelColour.name)),)
+
+
+
+class AgentItemGrid(AutoHeight, containers.Grid):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.grid_size_columns = 2
+        self.styles.grid_size_rows = 1
+        self.styles.grid_columns = (FILL, AUTO)
+
+
+class AgentKindTag(widgets.Label):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.text_align = "right"
+
+
+class AgentAuthor(SecondaryText, widgets.Label):
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.text_style = "italic"
+
+
+class AgentDescription(widgets.Static):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.text_style = "dim"
+
+
+class AgentItem(GridItem, containers.VerticalGroup):
     """An entry in the agent grid select."""
 
     def __init__(self, agent: AgentDefinition) -> None:
@@ -133,17 +233,17 @@ class AgentItem(containers.VerticalGroup):
 
     def compose(self) -> ComposeResult:
         agent = self._agent
-        with containers.Grid():
-            yield widgets.Label(agent.name, id="name")
+        with AgentItemGrid():
+            yield widgets.Label(agent.name)
             tag = pill(
                 agent.kind.heading,
                 "$primary-muted 50%",
                 "$text-primary",
                 filled=not self.app.native_ansi_color,
             )
-            yield widgets.Label(tag, id="type")
-        yield widgets.Label(agent.author_name, id="author")
-        yield widgets.Static(agent.description, id="description")
+            yield AgentKindTag(tag)
+        yield AgentAuthor(agent.author_name)
+        yield AgentDescription(agent.description)
 
 
 class LauncherGridSelect(Launches, CoreEventReceiver, GridSelect, ToadNode):
@@ -188,8 +288,15 @@ Your favorite agents.
         self.app.session_navigation.events.publish(session_requests.LaunchAgent(child.agent.identity))
 
 
+class NoAgents(widgets.Label):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.text_style = "dim italic"
+        self.styles.padding = (1, 2)
+
+
 class Launcher(containers.VerticalGroup, ToadNode):
-    grid_select = getters.query_one("#launcher-grid-select", LauncherGridSelect)
+    grid_select = getters.query_one(LauncherGridSelect)
     DIGITS = "123456789ABCDEF"
 
     def __init__(
@@ -227,11 +334,8 @@ class Launcher(containers.VerticalGroup, ToadNode):
             )
         )
         agents = self._agents
-        self.set_class(not launcher_agents, "-empty")
         if launcher_agents:
-            with LauncherGridSelect(
-                id="launcher-grid-select", min_column_width=32, max_column_width=32
-            ):
+            with LauncherGridSelect(min_column_width=32, max_column_width=32):
                 for digit, identity in zip_longest(self.DIGITS, launcher_agents):
                     if identity is None:
                         break
@@ -239,13 +343,22 @@ class Launcher(containers.VerticalGroup, ToadNode):
                         yield LauncherItem(digit or "", agents[identity])
 
         if not launcher_agents:
-            yield widgets.Label("Choose your fighter below!", classes="no-agents")
+            yield NoAgents("Choose your fighter below!")
 
     async def launch_highlighted(self) -> None:
         await self.grid_select.launch()
 
 
-class LauncherItem(containers.VerticalGroup):
+class LauncherDigit(RightPadding, AutoWidth, widgets.Digits):
+    native_theme = (NativeDeclaration.of(Styles.color, TextVariable(SuccessColour.name)),)
+
+
+
+class LauncherDescription(NoWrap, EllipsisOverflow, AgentDescription):
+    """Its look is its bases."""
+
+
+class LauncherItem(GridItem, containers.VerticalGroup):
     """An entry in the agent grid select."""
 
     def __init__(self, digit: str, agent: AgentDefinition) -> None:
@@ -261,14 +374,21 @@ class LauncherItem(containers.VerticalGroup):
         agent = self._agent
         with containers.HorizontalGroup():
             if self._digit:
-                yield widgets.Digits(self._digit)
+                yield LauncherDigit(self._digit)
             with containers.VerticalGroup():
-                yield widgets.Label(agent.name, id="name")
-                yield widgets.Label(agent.author_name, id="author")
-                yield widgets.Static(agent.description, id="description")
+                yield widgets.Label(agent.name)
+                yield AgentAuthor(agent.author_name)
+                yield LauncherDescription(agent.description)
 
 
-class AgentGridSelect(Launches, GridSelect):
+class AgentGridSelect(Launches, GridSelect, SideMargin):
+    native_theme = (
+        NativeDeclaration.of(
+            Styles.border, Keyword("round"), Variable(SecondaryColour.name), Percent(50)
+        ),
+    )
+
+
     HELP = """\
 ## Agent select
 
@@ -289,8 +409,60 @@ class AgentGridSelect(Launches, GridSelect):
         self.app.session_navigation.events.publish(session_requests.LaunchAgent(child.agent.identity))
 
 
+class StoreFooterKey(ToadFooterKey):
+    """The store's footer keys sit on the footer itself, without a key background."""
+
+    native_components = {
+        FooterKeyComponent.KEY: (NativeDeclaration.of(Styles.background, Keyword("transparent")),),
+    }
+
+
+class StoreFooter(ToadFooter, setting=ToadFooter.visibility_setting):
+    key_type = StoreFooterKey
+
+
+class StoreHeading(NoMargin, widgets.Static):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (1, 1, 0, 2)
+
+
+class SponsorItem(GridCell, TransparentBackground, SidePadding, widgets.Static):
+    native_theme = (NativeDeclaration.of(Styles.color, Keyword("auto"), Percent(70)), NativeDeclaration.of(Styles.border, Keyword("tall"), Keyword("blank")))
+
+
+
+class TitleContainer(containers.VerticalGroup):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.align = ("center", "top")
+        self.styles.dock = "top"
+
+
+class TitleGrid(SideMargin, AutoHeight, containers.Grid):
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("block"), Keyword("black"), Percent(20)),
+        NativeDeclaration.of(Styles.background, Keyword("black"), Percent(20)),
+    )
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.grid_size_columns = 2
+        self.styles.grid_size_rows = 1
+        self.styles.grid_columns = ("24", "1fr")
+        self.styles.grid_rows = (AUTO,)
+        self.styles.grid_gutter_horizontal = 1
+        self.styles.grid_gutter_vertical = 2
+        self.styles.min_width = 40
+
+
 class Container(containers.VerticalScroll):
     BINDING_GROUP_TITLE = "View"
+    native_theme = (
+        NativeDeclaration.of(
+            Styles.hatch, Keyword("right"), Variable(PrimaryColour.name), Percent(15)
+        ),
+    )
 
     def allow_focus(self) -> bool:
         """Only allow focus when we can scroll."""
@@ -333,31 +505,28 @@ class LaunchSlotAction(WidgetAction):
 
 class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode, actions=(LaunchSlotAction,)):
     BINDING_GROUP_TITLE = "Screen"
-    CSS_PATH = "store.tcss"
 
-    agents_view = getters.query_one("#agents-view", AgentGridSelect)
-    launcher = getters.query_one("#launcher", Launcher)
-    container = getters.query_one("#container", Container)
+    launcher = getters.query_one(Launcher)
+    container = getters.query_one(Container)
 
 
     def __init__(
-        self, name: str | None = None, id: str | None = None, classes: str | None = None
-    ):
+        self):
         self._agents: dict[str, AgentDefinition] = {}
-        super().__init__(name=name, id=id, classes=classes)
+        super().__init__()
 
     @property
     def agents(self) -> dict[str, AgentDefinition]:
         return self._agents
 
     def compose(self) -> ComposeResult:
-        with containers.VerticalGroup(id="title-container"):
-            with containers.Grid(id="title-grid"):
+        with TitleContainer():
+            with TitleGrid():
                 yield Mandelbrot()
-                yield widgets.Label(self.get_info(), id="info")
+                yield widgets.Label(self.get_info())
         yield DirectoryDisplay()
-        yield Container(id="container", can_focus=False)
-        yield ToadFooter()
+        yield Container(can_focus=False)
+        yield StoreFooter()
 
     def get_info(self) -> Content:
         toad_version = toad.get_version()
@@ -401,7 +570,7 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
     def compose_agents(self) -> ComposeResult:
         agents = self._agents
 
-        yield Launcher(agents, id="launcher")
+        yield Launcher(agents)
 
         ordered_agents = sorted(
             agents.values(), key=lambda agent: agent.name.casefold()
@@ -413,17 +582,15 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
         # Shuffle reccomended agents so none has priority
         shuffle(recommended_agents)
         if recommended_agents:
-            with containers.VerticalGroup(id="sponsored-agents", classes="recommended"):
-                yield widgets.Static(
+            with containers.VerticalGroup():
+                yield StoreHeading(
                     "[$text-warning u]Recommended[/] [$text-secondary 100% i]Best of the bunch",
-                    classes="heading",
                 )
-                with AgentGridSelect(classes="agents-picker", min_column_width=40):
+                with AgentGridSelect(min_column_width=40):
                     for agent in recommended_agents:
                         yield AgentItem(agent)
-                    yield widgets.Static(
+                    yield SponsorItem(
                         "[$text-warning]Your agent here[/] — support development of Toad by [@click=screen.url('https://github.com/sponsors/willmcgugan')]sponsoring[/] this project",
-                        classes="sponsor-me",
                     )
 
         from toad.agent_schema import AgentKind
@@ -431,12 +598,11 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
             section_agents = [agent for agent in ordered_agents if agent.kind.section() is section]
             if not section_agents:
                 continue
-            yield widgets.Static(
+            yield StoreHeading(
                 f'[$text-warning u]{section.heading}[/] [$text-secondary i]{section.description}',
-                classes='heading',
             )
             with containers.VerticalGroup():
-                with AgentGridSelect(classes='agents-picker', min_column_width=40):
+                with AgentGridSelect(min_column_width=40):
                     for agent in section_agents:
                         yield AgentItem(agent)
 
@@ -462,7 +628,7 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
         event.stop()
         self.move_focus(+1)
 
-    @on(GridSelect.Selected, ".agents-picker")
+    @on(GridSelect.Selected, "AgentGridSelect")
     @work
     async def on_grid_select_selected(self, event: GridSelect.Selected):
         if not isinstance(event.widget, AgentItem):
@@ -480,7 +646,7 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
             return
         await self.show_agent(agent)
 
-    @on(GridSelect.Selected, "#launcher GridSelect")
+    @on(GridSelect.Selected, "LauncherGridSelect")
     @work
     async def on_launcher_selected(self, event: GridSelect.Selected):
         launcher_item = event.widget

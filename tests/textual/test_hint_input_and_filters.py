@@ -1,11 +1,10 @@
 """Real hint labels reach text entry and the sidebar's native control effects."""
-from textual.widgets import Checkbox
 from textual.widgets._collapsible import CollapsibleTitle
 from textual.widgets._hints import HintLabel, HintSession
 
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup
-from toad.widgets.thread_comms import ThreadCommsSidebar
+from toad.widgets.thread_comms import MessageFilter, ThreadCommsSidebar
 from toad.widgets.prompt import Prompt
 
 
@@ -58,7 +57,7 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
         await choose(title)
         assert not panel.collapsed and editor.has_focus
 
-        checkbox = tree.query_one('.message-filter', Checkbox)
+        checkbox = tree.query_one(MessageFilter)
         category = tree._filter_controls[checkbox]
         before = ui.conversation.visible_categories
         await choose(checkbox)

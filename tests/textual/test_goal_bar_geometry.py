@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 from agent_comms.goals import NoGoal
 from agent_comms.goals import GoalUnavailable
-from textual.containers import VerticalScroll
 
 from toad.widgets.goal_bar import GoalBar
 from support.goals import published_goal
@@ -38,7 +37,7 @@ async def test_shown_collapsed_and_resized_goal_document_stays_bounded(workspace
         view = ui.conversation
         bar = view.query_one(GoalBar)
         view.goal_display = published_goal("Visible wrapped goal text. " * 60, "geometry")
-        document = bar.query_one(".goal-document", VerticalScroll)
+        document = bar.document
         await ui.until(lambda: document.display and document.region.height > 1, why="the goal document laid out")
         assert 1 < document.region.height <= app.size.height // 5
         bar.collapsed = True

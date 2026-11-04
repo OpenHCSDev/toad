@@ -8,11 +8,28 @@ from typing import TYPE_CHECKING, ClassVar, Self
 from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
+from textual.css.native import NativeDeclaration, Number
+from textual.css.styles import Styles
 from textual.reactive import var
+from textual.widget import Widget
+from textual.widgets import Input
+from textual.widgets.option_list import OptionListComponent
 
 from toad.declared_widget import DeclaredWidget
 from toad.messages import Dismiss
+from toad.native_style import (
+    Borderless,
+    EllipsisOverflow,
+    FillHeight,
+    HiddenOverflow,
+    NoPadding,
+    NoWrap,
+    ScreenOverlay,
+    SideMargin,
+    SidePadding,
+)
 from toad.widget_actions import DismissibleControl
+from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
     from toad.prompt_cursor import CursorMovement
@@ -24,8 +41,8 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
 
     requires_completion: ClassVar[bool] = False
 
-    DEFAULT_CSS = "PromptPopup { display: none; } PromptPopup.-open { display: block; }"
-    is_open = var(False, toggle_class="-open")
+    # The popup shows exactly while it is open; display derives from this one fact.
+    is_open = var(False, init=False)
     # Content is built on first use: an unused popup is one widget, not its
     # whole tree, in every conversation's build and layout. The build's own
     # future is its state: absent, running, or done.
@@ -40,6 +57,13 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
     def prompt(self) -> Prompt:
         from toad.widgets.prompt import Prompt
         return self.query_ancestor(Prompt)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.watch_is_open(self.is_open)
+
+    def watch_is_open(self, is_open: bool) -> None:
+        self.display = is_open
 
     def check_consume_key(self, key: str, character: str | None = None) -> bool:
         # The popup's actual declarations outrank ancestor shortcuts, even
@@ -127,8 +151,41 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
             self.is_open = False
 
 
-class CompletionPopup(PromptPopup):
+class CompletionInput(SideMargin, SidePadding, Input):
+    """A completion popup's search field, inset under the popup's edge."""
+
+
+
+class PaddedOptionRows(Widget):
+    """Each option row keeps one cell either side."""
+
+    native_components = {
+        OptionListComponent.OPTION: (NativeDeclaration.of(Styles.padding, Number(0), Number(1)),),
+    }
+
+
+class CompletionOptionList(
+    Borderless,
+    FillHeight,
+    NoPadding,
+    SideMargin,
+    HiddenOverflow,
+    NoWrap,
+    EllipsisOverflow,
+    PaddedOptionRows,
+    SelectionOptionList,
+):
+    """A completion popup's candidates: one clipped line each, filling the popup."""
+
+
+
+class CompletionPopup(ScreenOverlay, PromptPopup):
     """Completion widgets appear above the editor; membership is derived."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.offset = (0, -16)
+        self.styles.height = 16
 
     @classmethod
     def cursor_changed_in(cls, prompt: Prompt, movement: CursorMovement) -> None:

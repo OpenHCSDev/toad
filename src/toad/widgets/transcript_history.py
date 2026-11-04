@@ -41,6 +41,13 @@ from ui_theme.effects import NEW_TEXT
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 from toad.core.source_events import TranscriptCoverage
 from toad.message_rows import RecordedMessageClock
+from toad.native_style import (
+    AutoHeight,
+    MutedText,
+    OneRow,
+    PointerCursor,
+    SecondaryText,
+)
 from toad.no_worker import NO_TASK, NoTask, NoWorker
 from toad.session_scope import SessionScope
 from toad.transcript_filter import FilterState
@@ -122,18 +129,17 @@ if TYPE_CHECKING:
 
 
 
-class HistoryEdge(Activates, Static, can_focus=True):
-    DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
+class HistoryEdge(MutedText, OneRow, PointerCursor, Activates, Static, can_focus=True):
 
     class Requested(Message):
         pass
 
+
     def activate(self) -> None:
         self.post_message(self.Requested())
 
-class JumpToLatest(HoverSelection, HistoryEdge):
+class JumpToLatest(SecondaryText, HoverSelection, HistoryEdge):
     highlighted_text_style = RichStyle(bold=True)
-    DEFAULT_CSS = "JumpToLatest { color: $text-secondary; }"
 
     class Requested(Message):
         pass
@@ -327,7 +333,13 @@ class LaidOutRow(LaidOut):
             UnloadedFragment)
 
 
-class TranscriptPageView(PointerRows[FragmentLocation], ReferenceRendering, HorizontalRows, Widget):
+class TranscriptPageView(
+    AutoHeight,
+    PointerRows[FragmentLocation],
+    ReferenceRendering,
+    HorizontalRows,
+    Widget,
+):
     """One transcript page, drawn as its loaded fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
@@ -335,8 +347,12 @@ class TranscriptPageView(PointerRows[FragmentLocation], ReferenceRendering, Hori
     The history marks arriving fragments; only their rows rise out of the background.
     """
 
-    DEFAULT_CSS = "TranscriptPageView { height: auto; overflow-x: auto; overflow-y: hidden; }"
     RENDER_BATCH = 8
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.overflow_x = "auto"
+        self.styles.overflow_y = "hidden"
 
     def __init__(self, prepared: PreparedTranscriptPage, *,
                  batch_size: int = PresentationBudget.batch_items) -> None:
@@ -719,6 +735,13 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
 
     CACHE_SUBTREE_GEOMETRY = True
     DEFAULT_BUDGET = PresentationBudget(max_items=240)
+
+
+    def owns_projection(self, projection: ProjectedTranscriptHistory) -> bool:
+        return self.filter.owns_projection(projection)
+
+    def draws_projection(self, projection: ProjectedTranscriptHistory) -> bool:
+        return self.state.can_draw and self.owns_projection(projection)
 
     def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.projection_changed()
@@ -1467,6 +1490,19 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
             await self.remove_children(retired)
             self.acquire_document()
 
+class NoProjectionOwner:
+    """The source view a projection outlived: it owns and draws no projection."""
+
+    def owns_projection(self, projection: ProjectedTranscriptHistory) -> bool:
+        return False
+
+    def draws_projection(self, projection: ProjectedTranscriptHistory) -> bool:
+        return False
+
+
+NO_PROJECTION_OWNER = NoProjectionOwner()
+
+
 class ProjectedTranscriptHistory(CommittedHistory):
     """A filtered source view with the ordinary pager's loading and eviction policy."""
 
@@ -1475,7 +1511,10 @@ class ProjectedTranscriptHistory(CommittedHistory):
         self._projection_owner = ref(owner)
         super().__init__(prepared, source, budget=owner.budget,
                          notification_view=owner.notification_view, source_state=LiveTranscript())
-        self.add_class("filtered-history-results")
+
+    def _owner(self) -> LineHistory | NoProjectionOwner:
+        """The weak reference decoded once: the live source view, or none."""
+        return self._projection_owner() or NO_PROJECTION_OWNER
 
     @classmethod
     def from_source(cls, source: ProjectedTranscriptSource, *, owner: LineHistory):
@@ -1502,7 +1541,7 @@ class ProjectedTranscriptHistory(CommittedHistory):
 
     @property
     def state(self) -> TranscriptState:
-        return super().state.for_projection(self, self._projection_owner())
+        return super().state.for_projection(self, self._owner())
 
     @property
     def follows_source_tail(self) -> bool:
@@ -1520,8 +1559,8 @@ class ProjectedTranscriptHistory(CommittedHistory):
         return (event for page in self.pages for fragment in page.prepared.fragments for event in fragment.events)
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
-        owner = self._projection_owner()
-        if owner is not None and owner.filter.owns_projection(self):
+        owner = self._owner()
+        if owner.owns_projection(self):
             await owner._page_added(replace(page, events=tuple(
                 event for fragment in fragments for event in fragment.events
             )), fragments)

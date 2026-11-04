@@ -13,8 +13,9 @@ from toad.agent_schema import ChatAgentKind
 from toad.app import ToadApp
 from toad.session_scope import NoAgent
 from toad.catalog_actions import CatalogCommandAction
-from toad.screens.command_edit_modal import CommandEditModal
-from toad.screens.store import AgentItem, StoreScreen
+from toad.screens.agent_modal import RunAction
+from toad.screens.command_edit_modal import CommandButtons, CommandEditModal
+from toad.screens.store import AgentItem, StoreHeading, StoreScreen
 from support.ui import TextualUi
 from toad.platform import host
 
@@ -23,7 +24,7 @@ class AuditAction(CatalogCommandAction):
     """An action declared here: the dialog must use it for the catalog's ``audit`` command with no other edit."""
 
     def finished(self, modal, return_code):
-        modal.query_one("#run-action", widgets.Button).label = f"AUDIT_{return_code}"
+        modal.query_one(RunAction).label = f"AUDIT_{return_code}"
 
 
 def scrollback(pane) -> str:
@@ -53,7 +54,7 @@ async def test_agent_actions_run_edit_fail_cancel_and_take_input(workspace):
             shown_chat = {entry.agent.identity for entry in store.query(AgentItem)
                           if entry.agent.kind.section() is ChatAgentKind}
             assert shown_chat == expected_chat
-            chat_headings = [heading for heading in store.query(".heading")
+            chat_headings = [heading for heading in store.query(StoreHeading)
                              if ChatAgentKind.heading in str(heading.render())]
             assert len(chat_headings) == bool(expected_chat)
 
@@ -64,7 +65,7 @@ async def test_agent_actions_run_edit_fail_cancel_and_take_input(workspace):
             # Cancelling the editor runs nothing.
             await choose_action(ui, modal, "install")
             await ui.until(lambda: isinstance(app.screen, CommandEditModal), why="the command editor")
-            assert await pilot.click(app.screen.query_one("#cancel", widgets.Button))
+            assert await pilot.click(app.screen.query_one(CommandButtons).query(widgets.Button).last())
             await ui.until(lambda: app.screen is modal, why="the agent dialog again")
             await run_action(ui, "install", expected=7)
             assert not modal.launcher_checkbox.value, "A failed install added the agent to the launcher"

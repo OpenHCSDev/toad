@@ -7,7 +7,7 @@ from textual.binding import ModeBinding
 from toad.application_actions import TeamAction, KeymapAction
 from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.preferences import SETTINGS, SavedSettings
-from toad.screens.keymap import KeymapScreen
+from toad.screens.keymap import KeymapApply, KeymapKeys, KeymapScreen, KeymapSearch, KeymapStatus
 from toad.keymap import KeymapRow
 from toad.widget_actions import DismissAction, ProfileKeys
 
@@ -29,7 +29,7 @@ class CallCounter(ProfileKeys, Static, can_focus=True):
 
 async def choose(ui, invocation, mode=Standard):
     screen = ui.app.screen
-    screen.query_one("#keymap-search", Input).value = invocation.key_title()
+    screen.query_one(KeymapSearch).value = invocation.key_title()
     await ui.step()
     table = screen.query_one(DataTable)
     table.move_cursor(row=screen.visible_declarations.index(KeymapRow.of(invocation, mode).declaration),
@@ -51,17 +51,17 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         table = app.screen.query_one(DataTable)
         assert table.size.height > table.header_height, "The command rows must have visible space"
         await choose(ui, KeymapAction(), mode)
-        app.screen.query_one("#keymap-keys", Input).value = "f18"
-        await ui.pilot.click("#keymap-apply")
+        app.screen.query_one(KeymapKeys).value = "f18"
+        await ui.pilot.click(KeymapApply)
         await ui.until(lambda: KeymapAction.binding_id(mode().binding_mode) in app._keymap,
                        why="the saved menu remap")
         document = app.saved_settings.document()
         assert SavedSettings(document).current.ui.keymap == app.settings.ui.keymap
         assert not app.saved_settings.unsaved
-        app.screen.query_one("#keymap-search", Input).value = "Team"
+        app.screen.query_one(KeymapSearch).value = "Team"
         await ui.step()
-        app.screen.query_one("#keymap-keys", Input).value = "f6"
-        await ui.pilot.click("#keymap-apply")
+        app.screen.query_one(KeymapKeys).value = "f6"
+        await ui.pilot.click(KeymapApply)
         assert app.saved_settings.document() == document, "Filtering must discard the previous cell selection"
         await ui.press("escape")
         await ui.until(lambda: app.screen is app.workspace_screen, why="the keymap menu closed")
@@ -70,13 +70,13 @@ async def test_f1_menu_remaps_itself_saves_and_refuses_a_conflict(workspace, mod
         await ui.press("f18")
         await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the remapped menu key")
         await choose(ui, TeamAction(), mode)
-        app.screen.query_one("#keymap-keys", Input).value = "f18"
-        await ui.pilot.click("#keymap-apply")
-        await ui.until(lambda: "Key conflict" in str(app.screen.query_one("#keymap-status", Static).render()),
+        app.screen.query_one(KeymapKeys).value = "f18"
+        await ui.pilot.click(KeymapApply)
+        await ui.until(lambda: "Key conflict" in str(app.screen.query_one(KeymapStatus).render()),
                        why="the colliding remap refusal")
         assert app.saved_settings.document() == document
-        assert "Team" in str(app.screen.query_one("#keymap-status", Static).render())
-        assert "Keymap" in str(app.screen.query_one("#keymap-status", Static).render())
+        assert "Team" in str(app.screen.query_one(KeymapStatus).render())
+        assert "Keymap" in str(app.screen.query_one(KeymapStatus).render())
     async with workspace.app(size=size) as reopened:
         await reopened.press("f1")
         assert reopened.app.screen is reopened.app.workspace_screen
@@ -92,7 +92,7 @@ async def test_screen_remap_keeps_its_profile_with_a_plain_input_focused(workspa
         app.set_keymap({DismissAction.binding_id(VimNormal): "f6"})
         await ui.press("f1")
         await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the remapped modal scope")
-        app.screen.query_one("#keymap-search", Input).focus()
+        app.screen.query_one(KeymapSearch).focus()
         await ui.press("escape")
         assert isinstance(app.screen, KeymapScreen)
         await ui.press("f6")
@@ -136,8 +136,8 @@ async def test_the_menu_discovers_and_remaps_a_native_callable_with_both_aliases
         assert catalog.defaults(row) == ("f8", "f9")
         assert len(ui.app.screen.modes) == 4
         await choose(ui, invocation)
-        ui.app.screen.query_one("#keymap-keys", Input).value = "f6"
-        await ui.pilot.click("#keymap-apply")
+        ui.app.screen.query_one(KeymapKeys).value = "f6"
+        await ui.pilot.click(KeymapApply)
         await ui.until(lambda: catalog.effective(row, ui.app.settings.ui.keymap) == ("f6",),
                        why="the saved callable remap")
         loaded = SavedSettings(ui.app.saved_settings.document()).current.ui.keymap

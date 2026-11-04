@@ -9,7 +9,7 @@ from toad.application_actions import (
     VimCycleTabAction, VimHistoryAction, VimSidebarAction, VimMoveTabAction,
     VimHistoryBackAction, VimHistoryForwardAction,
 )
-from toad.widgets.side_bar import SideBar, SidebarAction
+from toad.widgets.side_bar import MainMenuButton, SideBar, SidebarAction
 
 
 async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(workspace):
@@ -29,7 +29,7 @@ async def test_history_tab_selection_and_persisted_reorder_keep_original_tabs(wo
         await ui.press('i')
         assert ui.conversation.prompt.prompt_text_area.editing_mode.accepts_text
         # The menu and palette offer configured leaves, not shared family bases.
-        assert await pilot.click('#main-menu')
+        assert await pilot.click(MainMenuButton)
         await ui.until(lambda: isinstance(app.screen, ContextMenu), why='the application menu')
         options = app.screen.options
         actions = [options.get_option_at_index(index).action for index in range(options.option_count)]

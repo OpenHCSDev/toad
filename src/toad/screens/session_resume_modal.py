@@ -3,13 +3,21 @@ from agent_comms.nominal.field_codec import RecordedTimestamp
 
 from textual import containers, getters, on, widgets
 from textual.app import ComposeResult
-from textual.css.native import Keyword, NativeDeclaration, Percent, TextVariable, Variable
+from textual.css.native import Keyword, NativeDeclaration, TextVariable, Variable
 from textual.css.styles import Styles
 from textual.widgets._markdown import MarkdownH1
-from ui_theme.scheme import PrimaryColour, WarningColour
+from ui_theme.scheme import WarningColour
 
-from toad.native_layout import NativeLayout, NativeTheme
-from toad.screens.modal import DismissibleScreen
+from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
+from toad.native_style import (
+    AutoHeight,
+    FillWidth,
+    SidePadding,
+    SpacedAbove,
+    SpacedAround,
+)
+from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalFrame
+
 
 from toad.db import DB, Session
 
@@ -20,77 +28,60 @@ Pick a session to resume.
 """
 
 
-class ResumeHeading(NativeLayout, MarkdownH1):
-    def apply_native_layout(self) -> None:
-        self.styles.margin = (1, 0)
+class ResumeHeading(SpacedAround, MarkdownH1):
+    """Its look is its bases."""
 
 
 class ResumeHelp(widgets.Markdown):
     BLOCKS = widgets.Markdown.BLOCKS | {f"h{ResumeHeading.LEVEL}": ResumeHeading}
 
 
-class ResumeWarning(NativeTheme, NativeLayout, widgets.Static):
+class ResumeWarning(SidePadding, widgets.Static):
     native_theme = (
         NativeDeclaration.of(Styles.border, Keyword("round"), Variable(WarningColour.name)),
         NativeDeclaration.of(Styles.color, TextVariable(WarningColour.name)),
     )
 
     def apply_native_layout(self) -> None:
-        self.styles.padding = (0, 1)
         self.styles.margin = (0, 0, 1, 1)
 
 
-class ResumeFrame(NativeTheme, NativeLayout, containers.VerticalGroup):
-    native_theme = (
-        NativeDeclaration.of(Styles.border, Keyword("thick"), Variable(PrimaryColour.name), Percent(20)),
-    )
-
+class ResumeTableContainer(AutoHeight, containers.Center):
     def apply_native_layout(self) -> None:
-        self.styles.margin = (2, 4, 1, 4)
-        self.styles.padding = (0, 1, 0, 0)
-        self.styles.max_width = 100
-        self.styles.height = "auto"
-
-
-class ResumeTableContainer(NativeLayout, containers.Center):
-    def apply_native_layout(self) -> None:
-        self.styles.height = "auto"
         self.styles.padding = (0, 0, 0, 1)
 
 
-class ResumeTable(NativeLayout, widgets.DataTable):
+class ResumeTable(FillWidth, widgets.DataTable):
     def apply_native_layout(self) -> None:
-        self.styles.width = "1fr"
         self.styles.height = 12
 
 
-class ResumeButtons(NativeLayout, containers.HorizontalGroup):
+class ResumeButtons(SpacedAbove, containers.HorizontalGroup):
     def apply_native_layout(self) -> None:
-        self.styles.margin = (1, 0, 0, 0)
         self.styles.align = ("right", "top")
 
 
-class SessionResumeModal(NativeLayout, DismissibleScreen[Session]):
+class ResumeButton(ConfirmButton):
+    """Resumes the highlighted session."""
+
+
+class SessionResumeModal(Confirms, CenteredScreen, DismissibleScreen[Session]):
     """Dialog to select a session to resume."""
 
-    session_table = getters.query_one("#sessions", ResumeTable)
-
-    def apply_native_layout(self) -> None:
-        self.styles.align = ("center", "middle")
+    session_table = getters.query_one(ResumeTable)
+    resume_button = getters.query_one(ResumeButton)
 
     def compose(self) -> ComposeResult:
-        with ResumeFrame(id="container"):
+        with ModalFrame():
             yield ResumeHelp(HELP)
             yield ResumeWarning(
                 "⚠ Not all ACP agents currently support resume",
             )
-            with ResumeTableContainer(id="table-container"):
-                yield ResumeTable(id="sessions", cursor_type="row")
-            with ResumeButtons(id="buttons"):
-                yield widgets.Button(
-                    "Resume", id="resume", variant="primary", disabled=True
-                )
-                yield widgets.Button("Cancel", id="cancel")
+            with ResumeTableContainer():
+                yield ResumeTable(cursor_type="row")
+            with ResumeButtons():
+                yield ResumeButton("Resume", variant="primary", disabled=True)
+                yield DismissButton("Cancel")
 
     @classmethod
     def friendly_time_ago(cls, past: RecordedTimestamp) -> str:
@@ -137,21 +128,16 @@ class SessionResumeModal(NativeLayout, DismissibleScreen[Session]):
         session = await db.session_get(session_id)
         self.dismiss(session)
 
-    @on(widgets.Button.Pressed, "#resume")
-    async def on_resume_button(self) -> None:
+    async def confirm(self) -> None:
         table = self.session_table
         row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
         if row_key is None or row_key.value is None:
             return
         await self.dissmiss_with_session(row_key.value)
 
-    @on(widgets.Button.Pressed, "#cancel")
-    def on_cancel_button(self) -> None:
-        self.dismiss()
-
     @on(widgets.DataTable.RowHighlighted)
     def on_data_table_row_highlighted(self) -> None:
-        self.query_one("#resume").disabled = False
+        self.resume_button.disabled = False
 
     @on(widgets.DataTable.RowSelected)
     async def on_data_table_row_selected(

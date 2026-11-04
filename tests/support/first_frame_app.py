@@ -3,7 +3,6 @@
 Run as a script by ``terminal/test_first_frame.py``: ``first_frame_app.py PROJECT``.
 """
 import json
-from importlib.resources import files
 from pathlib import Path
 import shlex
 import sys
@@ -19,8 +18,6 @@ from toad.widgets.slash_complete import SlashComplete
 
 
 class FrameApp(ToadApp):
-    # Textual resolves a subclass's relative paths beside the subclass, so name the installed ones.
-    CSS_PATH = [files("toad").joinpath("toad.tcss")]
 
     def _display(self, screen, renderable):
         # Observe the real owner/driver barrier; never replace display, flush,

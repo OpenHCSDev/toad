@@ -46,9 +46,7 @@ class WorkerStatic(PreparedPaintSource, Static):
     class ExtentReady(Message):
         """This source request's final extent has committed to native layout."""
 
-    def __init__(self, content: RenderableType | RichSource | Content = "", *,
-                 name: str | None = None, id: str | None = None,
-                 classes: str | None = None, expand: bool = False,
+    def __init__(self, content: RenderableType | RichSource | Content = "", *, expand: bool = False,
                  shrink: bool = False, markup: bool = False, disabled: bool = False) -> None:
         self._source = self.source_for(content)
         self._generation = 0
@@ -59,8 +57,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         self._ready = asyncio.Event()
         self._closed = False
         self._layout_screen: Screen | None = None
-        super().__init__("Preparing preview…", markup=False, name=name, id=id,
-                         classes=classes, expand=expand, shrink=shrink, disabled=disabled)
+        super().__init__("Preparing preview…", markup=False, expand=expand, shrink=shrink, disabled=disabled)
 
     @staticmethod
     def source_for(content):

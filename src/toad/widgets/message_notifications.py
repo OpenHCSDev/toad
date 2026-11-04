@@ -9,7 +9,10 @@ from typing import TYPE_CHECKING
 
 from textual.app import ComposeResult
 from textual.content import Content
+from textual.css.native import NativeDeclaration, Variable
+from textual.css.styles import Styles
 from textual.widgets import Collapsible
+from textual.widgets._collapsible import CollapsibleTitle
 
 from agent_comms.maintenance_barrier import MaintenanceHeldError
 from agent_comms.notification_reads import LiveNotificationRead
@@ -17,7 +20,17 @@ from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.message_reference import MessageReference
 from toad.app_node import ToadNode
-from toad.messages import QueueEvidenceChanged
+from toad.messages import QueueEvidenceOwner
+from toad.native_style import (
+    Borderless,
+    EllipsisOverflow,
+    FillWidth,
+    MutedText,
+    NoPadding,
+    NoWrap,
+    OneRow,
+    TransparentBackground,
+)
 
 from toad.notification_status import (
     CheckedNotifications, MessageQueueEntry, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
@@ -27,26 +40,42 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import TranscriptFragment
 
 
-class MessageNotifications(Collapsible):
-    DEFAULT_CSS = """
-    MessageNotifications {
-        height: auto; padding: 0; margin: 0; border: none;
-        background: transparent; color: $text-muted;
-        /* One row whatever Core answers: the answer changes text, never height. */
-        CollapsibleTitle {
-            padding: 0; width: 1fr; height: 1;
-            text-wrap: nowrap; text-overflow: ellipsis;
-        }
-        Contents { padding: 0; }
-    }
-    MessageNotifications.-working > CollapsibleTitle { color: $accent; }
-    MessageNotifications.-unavailable > CollapsibleTitle { color: $warning; }
-    """
+class NotificationTitle(
+    NoPadding,
+    FillWidth,
+    OneRow,
+    NoWrap,
+    EllipsisOverflow,
+    CollapsibleTitle,
+):
+    """One row whatever Core answers: the answer changes text and colour, never height."""
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        status = self.query_ancestor(MessageNotifications).status
+        return (*super().native_declarations(),
+                NativeDeclaration.of(Styles.color, Variable(status.role.colour.name)))
+
+
+
+class MessageNotifications(
+    Borderless,
+    TransparentBackground,
+    MutedText,
+    NoPadding,
+    Collapsible,
+):
+
+    class Contents(FillWidth, NoPadding, Collapsible.Contents):
+        """Its look is its bases."""
 
     def __init__(self) -> None:
         self.status: NotificationStatus = UncheckedNotifications()
         self._details: ToolContent | None = None
         super().__init__(title=self.status.title, collapsed=True)
+        title = self._title
+        self._title = NotificationTitle(label=title.label, collapsed_symbol=title.collapsed_symbol,
+                                        expanded_symbol=title.expanded_symbol, collapsed=title.collapsed)
+
 
     def compose(self) -> ComposeResult:
         yield self._title
@@ -78,8 +107,7 @@ class MessageNotifications(Collapsible):
             self.title = title
         if not self.collapsed:
             _ = self.details
-        self.set_class(status.working, "-working")
-        self.set_class(status.unavailable, "-unavailable")
+        self._title.update_node_styles()
 
 
 class PaintedRead(ABC):
@@ -134,8 +162,9 @@ class HistoryNotifications:
         fragments = self.notification_targets() if self.can_draw_on_screen else ()
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
-        self.subscribe_notifications(references)
-        self.post_message(QueueEvidenceChanged())
+        if self.subscribe_notifications(references):
+            # Only a changed set of visible messages changes the queue evidence.
+            self.query_ancestor(QueueEvidenceOwner).queue_evidence_changed()
 
     def notification_read(self, references: Iterable[MessageReference]) -> ReadNotifications:
         from toad.project_path_owner import ProjectPathOwner
@@ -150,12 +179,12 @@ class HistoryNotifications:
                         if wanted.intersection(target.notification_references)), NoDisplaySelection())
         return ReadNotifications(root, self.notification_operation(references), display=display)
 
-    def subscribe_notifications(self, references) -> None:
+    def subscribe_notifications(self, references) -> bool:
+        """Whether the read this view shows changed."""
         access = self.app.coordination_access
         if references:
-            access.show_notifications(self, self.notification_read(references))
-        else:
-            access.stop_notifications(self)
+            return access.show_notifications(self, self.notification_read(references))
+        return access.stop_notifications(self)
 
     def notifications_observed(self, results) -> None:
         if not self.can_draw_on_screen:
@@ -166,7 +195,7 @@ class HistoryNotifications:
     async def _show_notifications(self, results):
         for target in self.notification_targets():
             await target.show_notifications(results)
-        self.post_message(QueueEvidenceChanged())
+        self.query_ancestor(QueueEvidenceOwner).queue_evidence_changed()
 
     def notifications_failed(self, failure: Exception) -> None:
         if self.can_draw_on_screen:
@@ -176,7 +205,7 @@ class HistoryNotifications:
     async def _show_notification_error(self, status):
         for target in self.notification_targets():
             await target.show_notification_status(status)
-        self.post_message(QueueEvidenceChanged())
+        self.query_ancestor(QueueEvidenceOwner).queue_evidence_changed()
 
     def on_mount(self) -> None:
         self.call_after_refresh(self.check_notifications)
@@ -233,4 +262,5 @@ class SourceNotifications:
 
     async def close_source_reader(self) -> None:
         await super().close_source_reader()
-        self.notification_view.check_notifications()
+        # A closing reader leaves its subscriptions; no live view shows queue evidence for it.
+        self.notification_view.subscribe_notifications(())

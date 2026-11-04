@@ -24,15 +24,36 @@ from textual.geometry import Offset
 from textual.message import Message
 from textual.reactive import reactive
 from textual._activation import PrimaryActivation
+from textual.css.native import DeclaresTheme, Keyword, NativeDeclaration, Percent, Variable
+from textual.css.styles import Styles
 from textual.widget import Widget
 
-from ui_theme.scheme import SidebarToneColour, AccentColour, ForegroundColour
+from ui_theme.scheme import SidebarToneColour, AccentColour, ForegroundColour, PrimaryColour, SuccessColour
+
+from toad.core.projection import MroProjection
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    Bold,
+    CenteredContent,
+    FillHeight,
+    FillWidth,
+    HiddenOverflow,
+    MutedText,
+    NoMargin,
+    NoPadding,
+    OneRow,
+    PointerCursor,
+    SidePadding,
+)
 
 from toad.widget_view import WorkspaceHosted
 from toad.tone_paint import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
+    DirectionalSidebarPlacementAction,
+    FloatSidebarPlacementAction,
     SidebarEdge,
     SidebarLayout,
     SidebarPlacement,
@@ -98,6 +119,8 @@ class PresentedBar(BarDisplay):
         return self.presentation != current.presentation
 
 
+
+
 class SidebarPanelWidget(Widget):
     """Every sidebar panel accepts visibility changes; passive panels do nothing."""
 
@@ -116,7 +139,19 @@ class SidebarVisibilityObserver(SidebarPanelWidget):
         self.scroll_container.preserve_reader(placements)
 
 
-class SideBarCollapsible(widgets.Collapsible, inherit_css=False):
+class SidebarPanelContents(AutoHeight, NoPadding, widgets.Collapsible.Contents):
+    """A panel's contents, sized by what it holds and hidden while collapsed."""
+
+
+
+class SideBarCollapsible(
+    FillWidth,
+    AutoHeight,
+    NoPadding,
+    NoMargin,
+    widgets.Collapsible,
+    inherit_css=False,
+):
     # Selection is drawn on the focused row. Inheriting Collapsible's container
     # focus-within tint would restyle the entire channel tree on pointer entry.
     BINDING_GROUP_TITLE = "Sidebar collapsible"
@@ -131,52 +166,30 @@ The Sidebar contains additonal information associated with the conversation.
 - **enter** expand or collapse secions
 """
 
-    DEFAULT_CSS = """
-    SideBarCollapsible, SideBarCollapsible:ansi {
-        width: 1fr;
-        height: auto;
-        min-height: 1;
-        padding: 0;
-        margin: 0;
-        border-top: none;
-        background: transparent;
-    }
-    SideBarCollapsible > CollapsibleTitle {
-        width: 1fr;
-        padding: 0;
-    }
-    SideBarCollapsible > .sidebar-header {
-        height: 1;
-    }
-    SideBarCollapsible > .sidebar-header > CollapsibleTitle {
-        width: 1fr;
-        height: 1;
-        padding: 0;
-    }
-    SideBarCollapsible > Contents {
-        height: auto;
-        padding: 0;
-    }
-    SideBarCollapsible.-flex {
-        height: auto;
-        min-height: 12;
-    }
-    SideBarCollapsible.-flex > Contents {
-        height: auto;
-        overflow: hidden hidden;
-    }
-    SideBarCollapsible.-collapsed {
-        height: auto;
-        min-height: 1;
-    }
-    SideBarCollapsible.-collapsed > Contents { display: none; }
-    """
+    Contents = SidebarPanelContents
+    expanded_min_height = 1
+    """Rows an open panel keeps; a collapsed panel is its one title row."""
 
     def __init__(
         self, *children: Widget, header_control: Widget | None = None, **kwargs
     ):
         super().__init__(*children, **kwargs)
         self.header_control = header_control
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self._title.styles.width = "1fr"
+        self._title.styles.padding = 0
+
+    @cached_property
+    def contents(self) -> SidebarPanelContents:
+        return self.Contents()
+
+    def _update_collapsed(self, collapsed: bool) -> None:
+        super()._update_collapsed(collapsed)
+        # Native collapse is the one fact; the contents and extent follow it.
+        self.contents.display = not collapsed
+        self.styles.min_height = 1 if collapsed else self.expanded_min_height
 
     def watch_collapsed(self, collapsed: bool) -> None:
         if self.is_attached:
@@ -186,13 +199,19 @@ The Sidebar contains additonal information associated with the conversation.
 
     def compose(self) -> ComposeResult:
         if self.header_control is None:
-            yield from super().compose()
+            yield self._title
         else:
-            with ViewportHeader(classes="sidebar-header"):
+            with ViewportHeader():
                 yield self._title
                 yield self.header_control
-            with self.Contents():
-                yield from self._contents_list
+        with self.contents:
+            yield from self._contents_list
+
+
+class FlexSideBarCollapsible(SideBarCollapsible):
+    """A panel whose open contents keep room to grow into."""
+
+    expanded_min_height = 12
 
 
 class ToggleSidebarAction(WidgetAction):
@@ -203,9 +222,24 @@ class ToggleSidebarAction(WidgetAction):
         context.post_message(context.Pressed())
 
 
-class SideBarToggle(HoverSelection, DeclaredWidgetActions, PrimaryActivation, widgets.Static,
-                    actions=(ToggleSidebarAction,)):
+class SideBarToggle(
+    MutedText,
+    CenteredContent,
+    HoverSelection,
+    DeclaredWidgetActions,
+    PrimaryActivation,
+    widgets.Static,
+    actions=(ToggleSidebarAction,),
+):
     """Collapse target spanning the conversation-facing resize edge."""
+
+    native_theme = (
+        NativeDeclaration.of(Styles.background, Variable(PrimaryColour.name), Percent(8)),
+    )
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.layer = "sidebar-toggle"
 
     @property
     def paint_highlighted(self):
@@ -213,15 +247,6 @@ class SideBarToggle(HoverSelection, DeclaredWidgetActions, PrimaryActivation, wi
         return super().paint_highlighted or (bar.collapsed and bar.mouse_hover)
 
     ALLOW_SELECT = False
-
-    DEFAULT_CSS = """
-    SideBarToggle {
-        content-align: center middle;
-        color: $text-muted;
-        background: $primary 8%;
-        layer: sidebar-toggle;
-    }
-    """
 
     can_focus = True
 
@@ -264,23 +289,43 @@ class SideBarToggle(HoverSelection, DeclaredWidgetActions, PrimaryActivation, wi
             self.pointer_toggle()
 
 
-class HeaderButton(ActivationKeys, HoverSelection, widgets.Static, can_focus=True):
+class HeaderButtonLook(DeclaresTheme):
+    """An available header control: full ink and a pointing hand."""
+
+    native_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
+        NativeDeclaration.of(Styles.color, Variable(ForegroundColour.name)),
+        NativeDeclaration.of(Styles.pointer, Keyword("pointer")),
+    )
+
+
+class DisabledHeaderButtonLook(HeaderButtonLook):
+    """A control Textual has disabled fades and stops offering the hand."""
+
+    native_theme = (
+        NativeDeclaration.of(Styles.color, Variable(ForegroundColour.name), Percent(38)),
+        NativeDeclaration.of(Styles.pointer, Keyword("default")),
+    )
+
+
+class HeaderButton(
+    CenteredContent,
+    Bold,
+    ActivationKeys,
+    HoverSelection,
+    widgets.Static,
+    can_focus=True,
+):
     """One compact, keyboard-accessible control in the top bar, on the bar's own tone."""
 
-    DEFAULT_CSS = """
-    HeaderButton {
-        width: 7;
-        height: 3;
-        content-align: center middle;
-        color: $text;
-        text-style: bold;
-        pointer: pointer;
-    }
-    HeaderButton:disabled {
-        color: $text-disabled;
-        pointer: default;
-    }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = 7
+        self.styles.height = 3
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        # Textual's own `disabled` restyles the node; its look follows that one fact.
+        look = (HeaderButtonLook, DisabledHeaderButtonLook)[self.is_disabled]
+        return (*super().native_declarations(), *look.declared_theme())
 
 class TabHistoryButton(HeaderButton, ToadNode):
     """Back or forward through visited tabs."""
@@ -330,7 +375,7 @@ class MainMenuButton(HeaderButton):
     """Own the declared application menu and its full-height hamburger."""
 
     def __init__(self) -> None:
-        super().__init__(id="main-menu")
+        super().__init__()
         self.tooltip = "Main menu"
 
     def render(self):
@@ -358,16 +403,18 @@ class MainMenuButton(HeaderButton):
             await invoke(action.apply, self.app)
 
 
-class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup, ToadNode):
+class TabHistoryControls(
+    AutoWidth,
+    NoMargin,
+    CoreEventReceiver,
+    containers.HorizontalGroup,
+    ToadNode,
+):
     """Left-sidebar controls shared by native thread and channel screens."""
 
-    DEFAULT_CSS = """
-    TabHistoryControls {
-        width: auto;
-        height: 3;
-        margin: 0;
-    }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 3
 
     def compose(self) -> ComposeResult:
         yield MainMenuButton()
@@ -435,14 +482,21 @@ class CapturedDrag:
         self._dragging = False
 
 
-class SidebarSlider(MovesHorizontalCursor, CapturedDrag, ColourSelection, widgets.Static, can_focus=True):
+class SidebarSlider(
+    MutedText,
+    OneRow,
+    FillWidth,
+    PointerCursor,
+    MovesHorizontalCursor,
+    CapturedDrag,
+    ColourSelection,
+    widgets.Static,
+    can_focus=True,
+):
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
 
     highlight_foreground = AccentColour
 
-    DEFAULT_CSS = """
-    SidebarSlider { height: 1; width: 1fr; color: $text-muted; pointer: pointer; }
-    """
 
     @dataclass
     class Changed(Message):
@@ -506,42 +560,75 @@ class SidebarSlider(MovesHorizontalCursor, CapturedDrag, ColourSelection, widget
         self.drag_to(event.screen_offset)
 
 
-class SidebarAction(Activates, HoverSelection, widgets.Static, can_focus=True):
-    """One spatial arrow or float/push action."""
-
-    DEFAULT_CSS = """
-    SidebarAction { height: 1; width: auto; padding: 0 1; color: $text-muted; pointer: pointer; }
-    SidebarAction.-direction { width: 1fr; content-align: center middle; text-style: bold; }
-    """
+class SidebarAction(
+    MutedText,
+    OneRow,
+    AutoWidth,
+    SidePadding,
+    PointerCursor,
+    MroProjection[None],
+    Activates,
+    HoverSelection,
+    widgets.Static,
+    can_focus=True,
+):
+    """One spatial arrow or float/push action; the action's kind owns its cell."""
 
     @dataclass
     class Pressed(Message):
         action: SidebarPlacementAction
 
     def __init__(self, action: SidebarPlacementAction) -> None:
-        super().__init__(action.label, id=f"sidebar-{action.name}", classes=action.classes)
+        super().__init__(action.label, id=f"sidebar-{action.name}")
         self.action = action
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.project_value(self.action)
+
+    @handles(SidebarPlacementAction)
+    def compact_cell(self, action: SidebarPlacementAction) -> None:
+        """A plain action keeps its compact cell."""
+
+    @handles(DirectionalSidebarPlacementAction)
+    def direction_cell(self, action: DirectionalSidebarPlacementAction) -> None:
+        self.styles.width = "1fr"
+        self.styles.content_align = ("center", "middle")
+        self.styles.text_style = "bold"
+
+    @handles(FloatSidebarPlacementAction)
+    def float_cell(self, action: FloatSidebarPlacementAction) -> None:
+        self.styles.column_span = 2
+        self.styles.width = "1fr"
 
     def activate(self) -> None:
         self.post_message(self.Pressed(self.action))
 
 class SidebarResizeHandle(
-    MovesHorizontalCursor, MovesVerticalCursor, CapturedDrag, ColourSelection, widgets.Static, ToadNode, can_focus=True
+    NoPadding,
+    MovesHorizontalCursor,
+    MovesVerticalCursor,
+    CapturedDrag,
+    ColourSelection,
+    widgets.Static,
+    ToadNode,
+    can_focus=True,
 ):
     """Drag the conversation-facing edge; the placement model owns the extent."""
 
     highlight_foreground = ForegroundColour
 
-    DEFAULT_CSS = """
-    SidebarResizeHandle {
-        padding: 0;
-        color: $success;
-    }
-    SidebarResizeHandle:ansi { color: ansi_green; }
-    """
+    theme_ink = NativeDeclaration.of(Styles.color, Variable(SuccessColour.name))
+    ansi_ink = NativeDeclaration.of(Styles.color, Keyword("ansi_green"))
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        # The app's ANSI mode is the one fact; the handle's ink follows it.
+        ink = self.ansi_ink if self.app.native_ansi_color else self.theme_ink
+        return (*super().native_declarations(), ink)
+
 
     def __init__(self, edge: type[SidebarEdge]) -> None:
-        super().__init__(id="sidebar-resize-handle")
+        super().__init__()
         edge.size_handle(self)
         self.styles.dock = edge.opposite().dock
         self.tooltip = "Drag toward the center to expand the sidebar"
@@ -604,46 +691,47 @@ class SidebarContentStack(containers.Vertical):
 
     hit_test_transparent = True
 
-    DEFAULT_CSS = """
-    SidebarContentStack {
-        width: 1fr; height: 1fr; layer: sidebar-content;
-        overflow: hidden hidden;
-    }
-    SidebarContentStack > SidebarViewport {
-        width: 1fr;
-        height: 1fr;
-        overflow: auto auto;
-        scrollbar-size: 1 1;
-        scrollbar-gutter: stable;
-    }
-    SidebarContentStack > #sidebar-controls {
-        width: 1fr;
-        height: auto;
-    }
-    SidebarContentStack #sidebar-layout-actions {
-        height: auto; width: 1fr; overflow: hidden hidden;
-        grid-size: 2; grid-columns: 1fr 1fr; grid-rows: 1;
-    }
-    SidebarContentStack #sidebar-float { column-span: 2; width: 1fr; }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.layer = "sidebar-content"
 
 
-class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
-              containers.Vertical, ToadNode, actions=(SearchSidebarAction,)):
+class SidebarControls(AutoHeight, containers.Vertical):
+    """The extent slider and placement actions under the panels."""
+
+
+
+class SidebarLayoutActions(AutoHeight, FillWidth, HiddenOverflow, containers.Grid):
+    """Placement actions, two to a row."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.grid_size_columns = 2
+        self.styles.grid_columns = "1fr 1fr"
+        self.styles.grid_rows = "1"
+
+
+class SideBar(
+    HiddenOverflow,
+    FillHeight,
+    AutoWidth,
+    DismissibleControl,
+    WorkspaceHosted,
+    TonePaint,
+    CoreEventReceiver,
+    containers.Vertical,
+    ToadNode,
+    actions=(SearchSidebarAction,),
+):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
-    DEFAULT_CSS = """
-    SideBar {
-        layers: sidebar-content sidebar-toggle;
-        dock: none;
-        layer: comms-sidebar;
-        overflow: hidden;
-        scrollbar-size: 0 0;
-        height: 1fr;
-        width: auto;
-        border: none;
-    }
-    """
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.layers = ("sidebar-content", "sidebar-toggle")
+        self.styles.dock = "none"
+        self.styles.layer = "comms-sidebar"
+        self.styles.scrollbar_size_horizontal = self.styles.scrollbar_size_vertical = 0
 
     collapsed = reactive(False)
     search = reactive("")
@@ -682,7 +770,7 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
         self.content_stack = SidebarContentStack()
         self.search_input = SidebarSearch(placeholder="Search", compact=True)
         self.panels_viewport: SidebarViewport = SidebarViewport()
-        self.layout_controls = containers.Vertical(id="sidebar-controls")
+        self.layout_controls = SidebarControls()
         self.hide = hide
         self.extent_slider = SidebarSlider(
             SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
@@ -809,24 +897,23 @@ class SideBar(DismissibleControl, WorkspaceHosted, TonePaint, CoreEventReceiver,
     def _compose_panels(self) -> ComposeResult:
         navigation = self.navigation
         for panel in self.panels:
-            yield SideBarCollapsible(
+            frame = FlexSideBarCollapsible if panel.flex else SideBarCollapsible
+            yield frame(
                 panel.widget,
                 title=panel.title,
                 collapsed=navigation.panels_collapsed.get(panel.title, panel.collapsed),
-                classes="-flex" if panel.flex else "-fixed",
                 id=panel.id,
                 header_control=panel.header_control,
             )
 
     def _compose_controls(self) -> ComposeResult:
         yield self.extent_slider
-        yield containers.Grid(
+        yield SidebarLayoutActions(
             *(
                 SidebarAction(action)
                 for kind in SidebarPlacementAction.members_with(SidebarPlacementAction)
                 for action in kind.offered()
             ),
-            id="sidebar-layout-actions",
         )
 
     def on_show(self) -> None:

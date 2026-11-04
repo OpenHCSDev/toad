@@ -4,12 +4,10 @@ from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
 from agent_comms.goal_scope import OneGoal
 from support.native_steps import goal_on_real_owner
-from textual.widgets import Static
 
 from toad.core.events import CommsUpdated
 from toad.screens.goal_details import GoalDetails
-from toad.screens.goal_edit import GoalEdit
-from toad.widgets.goal_text import GoalText
+from toad.screens.goal_edit import GoalEdit, GoalEditProgress, GoalSave
 
 OBJECTIVE = "Work on draft PR #17 and report remaining gaps. " + "Detailed acceptance criteria. " * 30
 
@@ -38,7 +36,7 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
             assert editor.editor.text == comms.registry.require(session).goal.text
             assert "Renamed parent thread" not in editor.editor.text
             assert "Progress (read-only): Renamed parent thread" in str(
-                editor.query_one(".goal-edit-progress", Static).render())
+                editor.query_one(GoalEditProgress).render())
             editor.editor.prompt_text_area.focus()
             await ui.step()
             editor.editor.prompt_text_area.action_select_all()
@@ -47,13 +45,13 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
             if objective.startswith("Second"):
                 await ui.press("enter")
             else:
-                await pilot.click("#goal-save")
+                await pilot.click(GoalSave)
             await ui.until(lambda: not isinstance(app.screen, GoalEdit), why="the editor to close")
             await ui.until(lambda expected=objective: comms.registry.require(session).goal.text == expected, why="the saved objective")
             current = comms.registry.require(session).goal
             assert current.id == first.id
             await ui.until(lambda expected=current: conversation.goal_display.snapshot == expected, why="the saved goal in the bar")
-            summary = conversation.query_one(".goal-summary", GoalText)
+            summary = conversation.goal_bar.summary
             assert objective in str(summary.render()), str(summary.render())
             assert ui.shows(" ".join(objective.split()[:3])) and ui.shows(objective.split()[-1])
             assert ui.shows("Objective:") and ui.shows("Progress:")

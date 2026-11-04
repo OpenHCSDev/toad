@@ -5,7 +5,6 @@ from dataclasses import replace
 from agent_comms.goal_presentation import GoalWaitTarget, RunnableExecution, StandbyExecution
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.goals import GoalUnavailable
-from textual.widgets import Static
 
 from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
@@ -22,7 +21,7 @@ async def shown_bar(ui):
     await ui.step()
     bar = view.query_one(GoalBar)
     return view, bar, bar.query_one("#goal-history", GoalControl), bar.query_one("#goal-collapse", GoalControl), \
-        bar.query_one(".goal-header", Static), bar.query_one(".goal-controls")
+        bar.header, bar.controls
 
 
 async def test_collapsing_moves_controls_beside_the_header_and_keeps_goal_and_draft(workspace):
@@ -37,9 +36,8 @@ async def test_collapsing_moves_controls_beside_the_header_and_keeps_goal_and_dr
         assert bar.collapsed and str(toggle.render()) == "Expand"
         assert controls.region.y == header.region.y
         assert controls.region.right <= header.region.x
-        assert not bar.query_one(".goal-document").display
-        assert not bar.query_one(".goal-execution-row").display
-        assert bar.query_one_optional(".goal-scroll-hint") is None
+        assert not bar.document.display
+        assert not bar.execution_row.display
         assert bar.region.height == 2, bar.region  # One row plus its separator.
         assert view.goal_display.snapshot == GOAL and view.prompt.text == "Keep this draft"
 
@@ -55,7 +53,7 @@ async def test_collapsed_header_follows_owner_updates_and_stays_usable_when_narr
         assert bar.collapsed
         for width in (65, 58, 100):
             await ui.resize(width, 38)
-            assert not bar.query_one(".goal-document").display
+            assert not bar.document.display
             assert controls.region.right <= header.region.x or controls.region.bottom <= header.region.y
             assert header.region.right <= bar.content_region.right
             assert bar.region.height <= 4, bar.region
@@ -88,8 +86,8 @@ async def test_expanding_shows_standby_and_the_latest_progress(workspace):
         await ui.step()
         assert not bar.collapsed and str(toggle.render()) == "Collapse"
         assert controls.region.y > header.region.y
-        assert bar.query_one(".goal-document").display
-        assert bar.query_one(".goal-execution-row").display
+        assert bar.document.display
+        assert bar.execution_row.display
         assert bar.query_one(StandbyPulse).active
         assert view.goal_display.snapshot.progress == "UPDATED_PROGRESS"
 

@@ -3,7 +3,6 @@
 from dataclasses import replace
 
 from agent_comms.goals import NoGoal
-from textual.containers import VerticalScroll
 
 from toad.widgets.goal_bar import GoalBar
 from support.goals import published_goal
@@ -16,7 +15,7 @@ async def shown_bar(ui):
     view.goal_display = GOAL
     view.prompt.text = "Keep draft while resizing"
     bar = view.query_one(GoalBar)
-    document = bar.query_one(".goal-document", VerticalScroll)
+    document = bar.document
     await ui.until(lambda: document.region.height > 1, why="the goal document")
     return view, bar, document
 

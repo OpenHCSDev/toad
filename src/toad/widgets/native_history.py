@@ -3,14 +3,13 @@
 from textual.reactive import var
 from textual.widgets import Static
 
+from toad.native_style import MutedText, SidePadding
 from toad.private_native_cursor import TOOLTIP, CursorStatus, HiddenCursorStatus
 
 
-class NativeHistory(Static):
-    DEFAULT_CSS = """
-    NativeHistory { height: auto; padding: 0 1; color: $text-muted; }
-    """
+class NativeHistory(MutedText, SidePadding, Static):
     status: var[type[CursorStatus]] = var(lambda: HiddenCursorStatus)
+
 
     def __init__(self) -> None:
         super().__init__("", markup=False)

@@ -7,6 +7,7 @@ internals asks for ``ui.textual`` instead and lives under ``tests/textual``.
 
 from __future__ import annotations
 
+from toad.widgets.side_bar import BackTabButton, ForwardTabButton
 from toad.session_actions import ReturnToViewAction
 
 import asyncio
@@ -395,10 +396,10 @@ class TextualUi(AppAgents, Ui):
         await self.step()
 
     def can_go_back(self) -> bool:
-        return not self.app.screen.query_one("#tab-back").has_class("-unavailable")
+        return not self.app.screen.query_one(BackTabButton).disabled
 
     def can_go_forward(self) -> bool:
-        return not self.app.screen.query_one("#tab-forward").has_class("-unavailable")
+        return not self.app.screen.query_one(ForwardTabButton).disabled
 
     async def open_preview(self, path) -> str:
         identity = await self.app.session_navigation.preview(path)

@@ -15,10 +15,12 @@ from textual import on, work
 from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Button, Input, Static, Tree
+from textual.widget import Widget
+from textual.widgets import Input, Static, Tree
 from textual.widgets._tree import TreeNode
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 
+from toad.widgets.acting_button import ActingButton
 from toad.core.context_inspection import (
     ContextNode,
     DetachedInspection,
@@ -26,16 +28,17 @@ from toad.core.context_inspection import (
     InspectionState,
 )
 from toad.core.events import CoordinationObserved, SessionSelected
+from toad.native_style import AutoHeight, Borderless, FillWidth
 from toad.session_scope import SessionScope
 from toad.widget_actions import NativeMethodKeys
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.process_text_area import ProcessTextArea
+from toad.native_style import MutedText
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.thread_identity import ShowsThreadIdentity
 
 if TYPE_CHECKING:
     from agent_comms.working_memory_questions import SpanAnswer
-    from textual.message import Message
 
 
 @dataclass
@@ -75,11 +78,16 @@ class ContextTreeIntent:
 class ContextTree(Tree[ContextNode]):
     """Native nodes, disclosure and cursor share the Tree's mounted lifetime."""
 
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 12
+        self.styles.min_height = 4
+
     def __init__(self, show_detail: Callable[..., Worker[None]], show_placeholder: Callable[[str], None]) -> None:
         self.show_detail = show_detail
         self.show_placeholder = show_placeholder
         self.context_nodes = {}
-        super().__init__("Context", id="context-tree")
+        super().__init__("Context")
         with self.prevent(Tree.NodeExpanded):
             self.root.expand()
 
@@ -212,13 +220,13 @@ class ContextTree(Tree[ContextNode]):
             self.move_cursor(node, animate=False)
         super()._toggle_node(node)
 
-    @on(Tree.NodeExpanded, "#context-tree")
+    @on(Tree.NodeExpanded)
     def node_expanded(self, event) -> None:
         if self.owns_node(event.node):
             self.intent.expanded.add(event.node.data.key)
             self._expand(event.node)
 
-    @on(Tree.NodeCollapsed, "#context-tree")
+    @on(Tree.NodeCollapsed)
     def node_collapsed(self, event) -> None:
         if self.owns_node(event.node):
             self.intent.expanded.discard(event.node.data.key)
@@ -228,25 +236,106 @@ class ContextTree(Tree[ContextNode]):
         return self.owns_node(node) and node.data is model and self.intent.selected is model
 
 
-class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
-    DEFAULT_CSS = """
-    ContextExplorer { height: auto; }
-    ContextExplorer > .context-status { height: auto; color: $text-muted; }
-    ContextExplorer > Tree { height: 12; min-height: 4; }
-    ContextExplorer > TextArea { height: 16; min-height: 6; border: none; }
-    ContextExplorer > .context-controls { height: 3; }
-    ContextExplorer > .context-controls Button { width: 1fr; min-width: 6; }
-    ContextExplorer > Input { height: 3; }
-    ContextExplorer > TextArea.-maximized { height: 1fr; width: 1fr; }
-    """
+class ContextStatus(MutedText, Static):
+    """What the explorer is reading, or why it cannot."""
+
+
+class ContextControls(Horizontal):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 3
+
+
+class ContextButton(FillWidth, ActingButton):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.min_width = 6
+
+
+class ContextSearchButton(ContextButton):
+    async def act(self) -> None:
+        self.query_ancestor(ContextExplorer).action_search()
+
+
+class ContextReadFull(ContextButton):
+    async def act(self) -> None:
+        self.query_ancestor(ContextExplorer).action_read_full()
+
+
+class ContextCopy(ContextButton):
+    async def act(self) -> None:
+        self.query_ancestor(ContextExplorer).action_copy()
+
+
+class ContextCorrect(ContextButton):
+    async def act(self) -> None:
+        self.query_ancestor(ContextExplorer).action_correct(self)
+
+
+class ContextNewer(ContextButton):
+    async def act(self) -> None:
+        self.query_ancestor(ContextExplorer).newer_requests()
+
+
+class ContextOlder(ContextButton):
+    async def act(self) -> None:
+        self.query_ancestor(ContextExplorer).older_requests()
+
+
+class ContextExport(ActingButton):
+    async def act(self) -> None:
+        self.query_ancestor(ContextExplorer).action_export()
+
+
+class ContextSearch(Input):
+    """The explorer's query; Enter searches."""
+
+    @on(Input.Changed)
+    def query_changed(self, event: Input.Changed) -> None:
+        event.stop()
+        self.query_ancestor(ContextExplorer).intent.query = event.value
+
+    @on(Input.Submitted)
+    def submitted(self, event: Input.Submitted) -> None:
+        event.stop()
+        self.query_ancestor(ContextExplorer).action_search()
+
+
+class ContextExportPath(Input):
+    """Where an export of the selected text is written."""
+
+
+class ContextDetail(Borderless, ProcessTextArea):
+    """The selected segment's text; maximizing it gives it the screen's full extent."""
+
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.min_height = 6
+        self.maximized_changed(None)
+
+    def on_mount(self) -> None:
+        self.watch(self.screen, "maximized", self.maximized_changed, init=False)
+
+    def maximized_changed(self, maximized: Widget | None) -> None:
+        # The screen's maximized widget is the one fact; this extent follows it.
+        self.styles.height = "1fr" if maximized is self else 16
+
+
+class ContextExplorer(
+    AutoHeight,
+    NativeMethodKeys,
+    ShowsThreadIdentity,
+    SidebarVisibilityObserver,
+    Vertical,
+):
 
     def __init__(self, *, intents: dict[SessionIdentity, ContextTreeIntent]) -> None:
         super().__init__()
         self.state: InspectionState = DetachedInspection()
         self._intents = intents
-        self.search_field = Input(
+        self.search_field = ContextSearch(
             placeholder="Search current context or selected recorded request · Enter",
-            id="context-search",
         )
 
     @property
@@ -254,30 +343,28 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
         return self._intents.setdefault(self.thread_view.thread_identity, ContextTreeIntent())
 
     def compose(self):
-        yield Static(
+        yield ContextStatus(
             "Context · select a segment to inspect",
             markup=False,
-            classes="context-status",
         )
         self.search_field.value = self.intent.query
         yield self.search_field
-        with Horizontal(classes="context-controls"):
-            yield Button("Search", id="context-find")
-            yield Button("Read full", id="context-read-full")
-            yield Button("Copy", id="context-copy")
-            yield Button("Correct", id="context-correct")
-        with Horizontal(classes="context-controls"):
-            yield Button("Newer requests", id="context-newer", disabled=True)
-            yield Button("Older requests", id="context-older", disabled=True)
+        with ContextControls():
+            yield ContextSearchButton("Search")
+            yield ContextReadFull("Read full")
+            yield ContextCopy("Copy")
+            yield ContextCorrect("Correct")
+        with ContextControls():
+            yield ContextNewer("Newer requests", disabled=True)
+            yield ContextOlder("Older requests", disabled=True)
         yield ContextTree(self._show_detail, self._show_placeholder)
-        yield ProcessTextArea(
+        yield ContextDetail(
             "No context selected.",
             soft_wrap=True,
             show_line_numbers=False,
-            id="context-detail",
         )
-        yield Input(placeholder="Export to a new text file · path", id="context-export-path")
-        yield Button("Export selected text + source", id="context-export")
+        yield ContextExportPath(placeholder="Export to a new text file · path")
+        yield ContextExport("Export selected text + source")
 
     def on_mount(self) -> None:
         self.observe_core(self.app.coordination_access.events)
@@ -325,7 +412,7 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
         self.state = identity.inspection_state()
         self.search_field.value = self.intent.query
         self.query_one(ContextTree).clear()
-        self.query_one(".context-status", Static).update(f"Context · {identity.display_thread()}")
+        self.query_one(ContextStatus).update(f"Context · {identity.display_thread()}")
         self._show_placeholder("No context selected.")
         self.refresh_context()
 
@@ -349,11 +436,11 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
     async def _read(self, *, force: bool = False) -> None:
         await self.thread_view.thread_identity.inspect_owner(
             lambda identity: self._read_owner(identity, force=force),
-            self.query_one(".context-status", Static).update,
+            self.query_one(ContextStatus).update,
         )
 
     async def _read_owner(self, identity: ThreadIdentity, *, force: bool = False):
-        status = self.query_one(".context-status", Static)
+        status = self.query_one(ContextStatus)
         access = self.app.coordination_access
         previous = self.state
         self.state = previous.observe(access.revision)
@@ -373,8 +460,8 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
             raise
 
     def _inspection_acquired(self, previous: InspectionState, current: HoldingInspection, force: bool) -> None:
-        self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older()
-        self.query_one("#context-newer", Button).disabled = not current.inspection.page.has_newer()
+        self.query_one(ContextOlder).disabled = not current.inspection.page.has_older()
+        self.query_one(ContextNewer).disabled = not current.inspection.page.has_newer()
         if previous.inspection_differs(current.inspection):
             current.present_acquired(previous, self._present)
         if previous.needs_native(current.inspection, force):
@@ -382,7 +469,7 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
             if source_changed:
                 self.workers.cancel_group(self, "context-native")
             if force or source_changed or not self._working("context-native"):
-                self.query_one(".context-status", Static).update(current.status)
+                self.query_one(ContextStatus).update(current.status)
                 current.prepare_native(self._read_native)
 
     @work(group="context-native", exclusive=True)
@@ -402,19 +489,17 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
         if updated is not self.state:
             self.state = updated
             updated.present(self._present)
-        self.query_one(".context-status", Static).update(updated.status)
+        self.query_one(ContextStatus).update(updated.status)
 
     def _show_placeholder(self, placeholder: str) -> None:
         detail = self.query_one(ProcessTextArea)
         detail.load_text_prepared(placeholder)
 
-    @on(Button.Pressed, "#context-correct")
-    def action_correct(self, event: Button.Pressed) -> None:
+    def action_correct(self, button: ContextCorrect) -> None:
         from functools import partial
 
         from toad.widgets.comms_menu import show_target_menu
 
-        event.stop()
         node = self.query_one(ContextTree).cursor_node
         if not self.query_one(ContextTree).owns_node(node):
             return
@@ -425,7 +510,7 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
             return
         show_target_menu(
             self.screen,
-            event.button.region.offset,
+            button.region.offset,
             "Correct original answer",
             [(answer.declared_name, answer.public_title()) for answer in answers],
             {answer.declared_name: partial(self._correct_annotation, model, answer) for answer in answers},
@@ -461,18 +546,14 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
         ):
             self.query_one(ContextTree).present(groups)
 
-    @on(Button.Pressed, "#context-older")
-    def older_requests(self, event: Button.Pressed) -> None:
-        event.stop()
+    def older_requests(self) -> None:
         self.state.present(self._older_requests)
 
     def _older_requests(self, current: HoldingInspection) -> None:
         self.intent.select_page(current.inspection.page.older)
         self._change_page()
 
-    @on(Button.Pressed, "#context-newer")
-    def newer_requests(self, event: Button.Pressed) -> None:
-        event.stop()
+    def newer_requests(self) -> None:
         self.state.present(self._newer_requests)
 
     def _newer_requests(self, current: HoldingInspection) -> None:
@@ -488,26 +569,18 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
         self.workers.cancel_group(self, "context-native")
         self.workers.cancel_group(self, "context-search")
         self.workers.cancel_group(self, "context-detail")
-        self.query_one("#context-older", Button).disabled = True
-        self.query_one("#context-newer", Button).disabled = True
+        self.query_one(ContextOlder).disabled = True
+        self.query_one(ContextNewer).disabled = True
         self.query_one(ContextTree).clear()
         self._show_placeholder("Loading recorded request page…")
         self._read()
 
-    @on(Input.Changed, "#context-search")
-    def query_changed(self, event: Input.Changed) -> None:
-        event.stop()
-        self.intent.query = event.value
-
-    @on(Input.Submitted, "#context-search")
-    @on(Button.Pressed, "#context-find")
-    def action_search(self, event: Message) -> None:
-        event.stop()
+    def action_search(self) -> None:
         self.state.present(self._present)
 
     @work(group="context-search", exclusive=True)
     async def _search(self, captured: HoldingInspection, query: str, selected: ContextNode | None) -> None:
-        status = self.query_one(".context-status", Static)
+        status = self.query_one(ContextStatus)
         status.update("Searching original public context…")
         matches = await captured.find(query, selected)
         if not self._searching(captured, query, selected):
@@ -523,7 +596,6 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
             and self.intent.search_current(query, selected)
         )
 
-    @on(Button.Pressed, "#context-read-full")
     @work(group="context-full-read", exclusive=True)
     async def action_read_full(self) -> None:
         node = self.query_one(ContextTree).cursor_node
@@ -540,7 +612,6 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
         self.screen.maximize(detail, container=False)
         detail.focus()
 
-    @on(Button.Pressed, "#context-copy")
     @work(group="context-copy", exclusive=True)
     async def action_copy(self) -> None:
         node = self.query_one(ContextTree).cursor_node
@@ -551,14 +622,13 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
                 self.app.copy_to_clipboard(detail)
                 self.notify("Complete selected public text and source copied")
 
-    @on(Button.Pressed, "#context-export")
     @work(group="context-export", exclusive=True)
     async def action_export(self) -> None:
         node = self.query_one(ContextTree).cursor_node
         if not self.query_one(ContextTree).owns_node(node):
             return
         model = node.data
-        destination = self.query_one("#context-export-path", Input).value.strip()
+        destination = self.query_one(ContextExportPath).value.strip()
         if not destination:
             self.notify("Choose a new output file path", severity="warning")
             return
@@ -566,7 +636,7 @@ class ContextExplorer(NativeMethodKeys, ShowsThreadIdentity, SidebarVisibilityOb
         if self.is_attached:
             self.notify(f"Exported selected public text and source to {destination}")
 
-    @on(Tree.NodeHighlighted, "#context-tree")
+    @on(Tree.NodeHighlighted)
     def node_highlighted(self, event: Tree.NodeHighlighted[ContextNode]) -> None:
         event.stop()
         if self.query_one(ContextTree).owns_node(event.node):

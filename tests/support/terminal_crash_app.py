@@ -8,12 +8,10 @@ import sys
 from toad.app import ToadApp
 from toad.cli import run_terminal
 
-from stylesheets import INSTALLED
 from agents import peer
 
 
 class TerminalCrashApp(ToadApp):
-    CSS_PATH = INSTALLED
 
     async def on_mount(self, event):
         event.prevent_default()

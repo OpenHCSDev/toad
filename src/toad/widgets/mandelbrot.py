@@ -11,9 +11,10 @@ from textual.geometry import NULL_SIZE, Offset
 from textual.reactive import reactive, var
 from textual._paint_state import PaintState
 from textual.strip import Strip
-from textual.app import App, ComposeResult
 from textual.widget import Widget
 from textual.timer import Timer
+
+from toad.native_style import ClipOverflow, HiddenOverflow, NoWrap
 
 
 COLORS = [
@@ -78,16 +79,10 @@ class MandelbrotRegion(NamedTuple):
         return MandelbrotRegion(new_x_min, new_x_max, new_y_min, new_y_max)
 
 
-class Mandelbrot(Widget):
+class Mandelbrot(ClipOverflow, NoWrap, HiddenOverflow, Widget):
+    """The store title's animated set: it fills its title-grid cell without a frame."""
+
     ALLOW_SELECT = False
-    DEFAULT_CSS = """
-    Mandelbrot {        
-        border: block black 20%;
-        text-wrap: nowrap;
-        text-overflow: clip;
-        overflow: hidden;
-    }
-    """
 
     set_region = reactive(MandelbrotRegion(-2, 1.0, -1.0, 1.0), init=False)
     max_iterations = var(64)
@@ -113,12 +108,13 @@ class Mandelbrot(Widget):
 
     def __init__(
         self,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
     ) -> None:
         self._strip_cache: dict[int, Strip] = {}
-        super().__init__(name=name, id=id, classes=classes)
+        super().__init__()
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = "100%"
 
     @staticmethod
     def mandelbrot(c_real: float, c_imag: float, max_iterations: int):
@@ -271,25 +267,3 @@ class Mandelbrot(Widget):
         self._strip_cache[y] = strip
         return strip
 
-
-if __name__ == "__main__":
-
-    class MApp(App):
-        CSS = """
-        Screen {
-            align: center middle;
-            background: $panel;
-            Mandelbrot {
-                background: black 20%;                
-                width: 40;
-                height: 16;
-            }
-        }
-
-        """
-
-        def compose(self) -> ComposeResult:
-            yield Mandelbrot()
-
-    app = MApp()
-    app.run()

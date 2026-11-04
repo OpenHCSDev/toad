@@ -1,7 +1,6 @@
 """Textual-facing: the channels sidebar's expansion, scroll position and range anchor survive switching between views, painted identically from its first ready frame."""
 
 from agent_comms.repo import Checkout
-from support.stylesheets import INSTALLED
 from support.textual_steps import channel_roster
 
 from toad.app import ToadApp
@@ -14,7 +13,6 @@ from toad.tab_identity.kinds import MailboxTab
 class FrameApp(ToadApp):
     """Records the sidebar panel text of every frame drawn while `panel_frames` is a list."""
 
-    CSS_PATH = INSTALLED
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -158,7 +156,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         expected_scroll = sidebar.scroll_container.scroll_y
         member.open_selected()
         # Opening a row makes it the range anchor; it does not select it (TargetTree.remember_row).
-        assert not any(row.has_class("-selected") for row in sidebar.rows)
+        assert not any(row.selected for row in sidebar.rows)
         expected_frame = app.panel_text(app.screen)
         app.panel_frames = []
         await ui.until(
@@ -185,7 +183,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         assert app.sidebar_state.selected == SidebarSelection("#channel-28", "worker")
         member = group(current, "#channel-28").rows["worker"]
         assert member.current
-        assert not any(row.has_class("-selected") for row in current.rows)
+        assert not any(row.selected for row in current.rows)
         await pilot.hover(member)
         assert "hover" in member.pseudo_classes and not member.has_focus, (
             member.region,

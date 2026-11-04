@@ -4,12 +4,13 @@ import pytest
 from textual.widgets import Button, Input, OptionList, Select
 from support.workspace import Workspace
 
+from toad.widgets.acting_button import ConfirmButton, DismissButton
 from toad.widgets.comms_transfer import Transfer, TransferDialog
 
 
 def assert_actions_visible(dialog: TransferDialog) -> None:
-    for identity in ("#submit-transfer", "#cancel-transfer"):
-        button = dialog.query_one(identity, Button)
+    for kind in (ConfirmButton, DismissButton):
+        button = dialog.query_one(kind)
         geometry = dialog.find_widget(button)
         assert geometry.visible_region == geometry.region
         assert dialog.get_widget_at(
@@ -41,7 +42,7 @@ async def test_transfer_actions_survive_short_viewport_and_notice(
         field = dialog.query(Input).first()
         field.value = "unsent field value"
         await pilot.resize_terminal(width, 20)
-        await ui.until(lambda: dialog.query_one("#cancel-transfer", Button).region.height > 0,
+        await ui.until(lambda: dialog.query_one(DismissButton).region.height > 0,
                        why="the action row after resize")
         assert_actions_visible(dialog)
         for choice in dialog.query(Select):

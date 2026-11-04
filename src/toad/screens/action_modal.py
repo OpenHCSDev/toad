@@ -1,14 +1,14 @@
 import shutil
 
 from textual.app import ComposeResult
-from textual import on, work
+from textual import work
 from textual import containers
 from textual import getters
 from textual.content import Content
-from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import DismissAction
-from textual import widgets
-from textual.widget import Widget
+from toad.widgets.acting_button import DismissButton
+from toad.native_style import FillHeight, FillWidth
+from toad.screens.modal import CenteredScreen, DismissibleScreen
+
 
 from toad.widgets.command_pane import CommandPane
 from toad.terminal_execution import Command, TerminalExecution
@@ -22,14 +22,26 @@ from toad.app_node import ToadNode
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 
-class ActionModal(CoreEventReceiver, DismissibleScreen[int], ToadNode):
+class ActionFrame(FillHeight, containers.VerticalGroup):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.margin = (3, 6)
+        self.styles.max_height = 48
+
+
+class ActionButton(FillWidth, DismissButton):
+    """Its look is its bases."""
+
+
+class OkButton(ActionButton):
+    """Closes the modal with the command's return code once it has finished."""
+
+
+class ActionModal(CenteredScreen, CoreEventReceiver, DismissibleScreen[int], ToadNode):
     """Executes an action command."""
 
-    CSS_PATH = "store.tcss"
-
     command_pane = getters.query_one(CommandPane)
-    ok_button = getters.query_one("#ok", widgets.Button)
-
+    ok_button = getters.query_one(OkButton)
 
     def __init__(
         self,
@@ -39,26 +51,20 @@ class ActionModal(CoreEventReceiver, DismissibleScreen[int], ToadNode):
         *,
         env: dict[str, str] | None = None,
         cwd: str | None = None,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
     ) -> None:
         self.operation = action
         self.agent = agent
         self.command = Command.for_script(command, env=env, cwd=cwd)
-        super().__init__(name=name, id=id, classes=classes)
-
-    def get_loading_widget(self) -> Widget:
-        return widgets.LoadingIndicator()
+        super().__init__()
 
     def compose(self) -> ComposeResult:
-        with containers.VerticalGroup(id="container"):
+        with ActionFrame():
             yield CommandPane(TerminalExecution(
                 self.command
             ))
-            with containers.HorizontalGroup(id="action-buttons"):
-                yield widgets.Button("Cancel", id="cancel")
-                yield widgets.Button("OK", id="ok", disabled=True, action=f"screen.{DismissAction.binding_name()}")
+            with containers.HorizontalGroup():
+                yield ActionButton("Cancel")
+                yield OkButton("OK", disabled=True)
 
     def enable_button(self) -> None:
         self.ok_button.loading = False
@@ -98,10 +104,6 @@ class ActionModal(CoreEventReceiver, DismissibleScreen[int], ToadNode):
             fail=self.command_pane.return_code != 0,
         )
 
-    @on(widgets.Button.Pressed, "#cancel")
-    async def cancel_command(self, event: widgets.Button.Pressed) -> None:
-        await self.command_pane.cancel_command()
-        self.dismiss(None)
 
     def dismiss_control(self) -> None:
         self.dismiss(self.command_pane.return_code)

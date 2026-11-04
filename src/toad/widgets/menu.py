@@ -8,13 +8,27 @@ from textual.document._editing import EditingMode
 
 from textual import on
 from textual.app import ComposeResult
+from textual.css.native import Keyword, NativeDeclaration, Variable
+from textual.css.styles import Styles
 from toad.widget_actions import DismissibleControl
 from textual.message import Message
 from textual.widgets import ListView, Label
 from textual.widget import Widget
 from textual.layouts.horizontal import HorizontalLayout
 
+from ui_theme.scheme import AccentColour, ForegroundColour
+
 from toad.app_node import ToadNode
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    Bold,
+    FillWidth,
+    RightPadding,
+    ScreenOverlay,
+    SidePadding,
+    TransparentBackground,
+)
 from toad.menus import MenuCommand, MenuConversation, MenuOwner
 from toad.keymap import KeymapCatalog
 from toad.widgets.selection import SelectionListItem
@@ -25,7 +39,15 @@ class NonSelectableLabel(Label):
     ALLOW_SELECT = False
 
 
-class MenuOption(SelectionListItem, ToadNode):
+class MenuKey(RightPadding, Bold, NonSelectableLabel):
+    """Its look is its bases."""
+
+
+class MenuDescription(FillWidth, NonSelectableLabel):
+    """Its look is its bases."""
+
+
+class MenuOption(FillWidth, SidePadding, AutoHeight, SelectionListItem, ToadNode):
     ALLOW_SELECT = False
     DEFAULT_LAYOUT = HorizontalLayout
 
@@ -33,52 +55,41 @@ class MenuOption(SelectionListItem, ToadNode):
         self.command = command
         super().__init__()
 
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.overflow_x = self.styles.overflow_y = "auto"
+        self.styles.expand = "optimal"
+
     def compose(self) -> ComposeResult:
-        yield NonSelectableLabel(" ", id="key")
-        yield NonSelectableLabel(self.command.description, id="description")
+        yield MenuKey(" ")
+        yield MenuDescription(self.command.description)
 
     def refresh_key(self) -> None:
         keys = KeymapCatalog.menu_keys(self.command, self.app.settings.ui.key_mode,
                                       self.app.settings.ui.keymap)
-        self.query_one("#key", NonSelectableLabel).update(", ".join(keys) or " ")
-        self.set_class(bool(keys), "-has-key")
-        self.set_class(not keys, "-no_key")
+        self.query_one(MenuKey).update(", ".join(keys) or " ")
 
 
-class Menu(DismissibleControl, UntintedTonePaint, ListView, MenuOwner, can_focus=True):
+class Menu(
+    DismissibleControl,
+    UntintedTonePaint,
+    TransparentBackground,
+    AutoWidth,
+    AutoHeight,
+    ScreenOverlay,
+    ListView,
+    MenuOwner,
+    can_focus=True,
+):
 
-    DEFAULT_CSS = """
-    Menu {
-        margin: 1 1;
-        width: auto;
-        height: auto;        
-        max-width: 100%;
-        overlay: screen;  
-        position: absolute;
-        color: $foreground;
-        background: $panel;
-        border: block $panel;
-        constrain: inside inside;
-   
-        & > MenuOption {         
-            
-            width: 1fr;            
-            padding: 0 1;
-            height: auto !important;
-            overflow: auto;
-            expand: optimal;            
-            #description {                        
-                width: 1fr;                    
-            }
-            #key {                
-                padding-right: 1;                
-                text-style: bold;
-            }                            
-           
-        }
+    native_theme = (NativeDeclaration.of(Styles.color, Variable(ForegroundColour.name)), NativeDeclaration.of(Styles.border, Keyword("round"), Variable(AccentColour.name)))
 
-    }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.margin = (1, 1)
+        self.styles.max_width = "100%"
+        self.styles.position = "absolute"
+        self.styles.constrain_x = self.styles.constrain_y = "inside"
 
     @dataclass
     class OptionSelected(Message):

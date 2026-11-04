@@ -15,15 +15,14 @@ from textual.widgets.option_list import Option
 
 from toad.slash_command_results import SlashCommandResults
 from toad.slash_command import SlashCommand
-from toad.widgets.selection import SelectionOptionList
-from toad.widgets.prompt_popup import CompletionPopup
+from toad.widgets.prompt_popup import CompletionInput, CompletionOptionList, CompletionPopup
 
 
 if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
 
 
-class SlashCompleteInput(widgets.Input):
+class SlashCompleteInput(CompletionInput):
     BINDING_GROUP_TITLE = "Fuzzy search slash commands"
     HELP = """\
 ## Slash command fuzzy search
@@ -41,15 +40,6 @@ class SlashComplete(PriorityActions, VisibleActions, MovesCursor, Submits, Compl
 
     requires_completion = True
 
-
-    DEFAULT_CSS = """
-    SlashComplete {
-        OptionList {
-            height: auto;
-        }
-    }
-    """
-
     input = getters.query_one(widgets.Input)
     option_list = getters.query_one(widgets.OptionList)
 
@@ -62,10 +52,8 @@ class SlashComplete(PriorityActions, VisibleActions, MovesCursor, Submits, Compl
     def __init__(
         self,
         slash_commands: Iterable[SlashCommand] | None = None,
-        id: str | None = None,
-        classes: str | None = None,
     ) -> None:
-        super().__init__(id=id, classes=classes)
+        super().__init__()
         self.slash_commands = list(slash_commands) if slash_commands else []
 
 
@@ -91,7 +79,7 @@ class SlashComplete(PriorityActions, VisibleActions, MovesCursor, Submits, Compl
 
     def compose_content(self) -> ComposeResult:
         yield SlashCompleteInput(compact=True, placeholder="fuzzy search")
-        yield SelectionOptionList()
+        yield CompletionOptionList()
 
     def focus_content(self, scroll_visible: bool) -> None:
         self.refresh_commands()

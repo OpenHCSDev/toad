@@ -21,7 +21,7 @@ from textual.content import Content
 from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.widgets.note import Note
-from toad.widgets.markdown_note import MarkdownNote
+from toad.widgets.markdown_note import StopReasonNote
 from typing import TYPE_CHECKING
 from agent_comms.acp_extension import NativeRoundCommittedUpdate
 
@@ -145,9 +145,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
         self, update: PromptCancelledUpdate, message: CoreEventMessage
     ) -> None:
         await self.post(
-            MarkdownNote(
-                f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"
-            )
+            StopReasonNote(f"## Turn cancelled\n\n{update.feedback}")
         )
 
     @handles(TranscriptChangedUpdate)

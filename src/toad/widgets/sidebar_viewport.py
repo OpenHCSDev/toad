@@ -8,11 +8,12 @@ from textual.box_model import BoxModel
 from textual.containers import HorizontalGroup, VerticalScroll
 from textual.geometry import Size
 
+from toad.native_style import FullWidth, OneRow, StableGutter
 
-class SidebarHeader(HorizontalGroup):
-    """Shared header presentation, valid with or without a sidebar scrollport."""
 
-    DEFAULT_CSS = "SidebarHeader { width: 100%; }"
+class SidebarHeader(FullWidth, OneRow, HorizontalGroup):
+    """Shared one-row header presentation, valid with or without a sidebar scrollport."""
+
 
 
 class ViewportHeader(SidebarHeader):
@@ -35,10 +36,15 @@ class ViewportHeader(SidebarHeader):
         self.query_ancestor(SidebarViewport).align_header(self)
 
 
-class SidebarViewport(VerticalScroll):
+class SidebarViewport(StableGutter, VerticalScroll):
     """Own scrollbar geometry and the horizontal position of sidebar headers."""
 
     CACHE_SUBTREE_GEOMETRY = True
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.overflow_x = self.styles.overflow_y = "auto"
+        self.styles.scrollbar_size_horizontal = self.styles.scrollbar_size_vertical = 1
 
     def preserve_reader(self, placements) -> None:
         placement = next((p for p in placements if self.scroll_y

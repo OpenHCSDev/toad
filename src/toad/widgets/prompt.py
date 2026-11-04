@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from types import FunctionType
 from agent_comms.repo import Checkout
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, ClassVar, Literal, Self
 
 
 from rich.text import Text as RichText
@@ -27,15 +27,17 @@ from textual.widgets.text_area import EditingMode, VimMode
 from toad.neovim_editing import NeovimUpdated
 from textual.document._editing import EditingFailure
 from textual.content import Content, Span
+from textual.css.native import DeclaresTheme, NativeDeclaration, Percent, TextVariable, Variable
 from textual.css.scalar import Scalar
+from textual.css.styles import Styles
 from textual.geometry import Spacing
 from textual.reactive import Initialize, Required, var
 from textual.strip import Strip
 from textual.style import Style
 from textual.widgets import Label, OptionList, TextArea
-from textual.widgets.option_list import Option
-from textual.widgets.text_area import Selection
-from ui_theme.scheme import MutedColour, PrimaryColour, PromptToneColour
+from textual.widgets.option_list import Option, OptionListComponent
+from textual.widgets.text_area import Selection, TextAreaComponent
+from ui_theme.scheme import ErrorColour, MutedColour, PrimaryColour, PromptToneColour, SecondaryColour
 
 from toad import messages
 from toad.clipboard_image import read_clipboard_png, save_clipboard_png
@@ -45,6 +47,29 @@ from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.input_decision import InputAccepted, InputDecision
 from toad.key_modes import Standard
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    Borderless,
+    EllipsisOverflow,
+    FillWidth,
+    HiddenOverflow,
+    MutedText,
+    NoMargin,
+    NoPadding,
+    NoWrap,
+    OneRow,
+    PointerCursor,
+    RightMargin,
+    RightPadding,
+    ScreenOverlay,
+    SecondaryText,
+    SideMargin,
+    SidePadding,
+    SpacedAround,
+    StartsHidden,
+    TransparentBackground,
+)
 from toad.tone_paint import TonePaint
 from toad.path_complete import PathComplete
 from toad.prompt_actions import PromptAction, SubmitInputAction, SubmitNowAction
@@ -64,8 +89,8 @@ from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
 from toad.widgets.model_switcher import ModelSwitcher
 from toad.widgets.path_search import PathSearch
-from toad.widgets.prompt_popup import CompletionPopup, InfoPopup, PromptPopup
-from toad.widgets.question import Ask, Question
+from toad.widgets.prompt_popup import CompletionPopup, InfoPopup, PaddedOptionRows, PromptPopup
+from toad.widgets.question import Ask, PromptQuestion, Question
 from toad.widgets.selection import ChangingText, InlineSelection, SelectionOptionList
 from toad.widgets.slash_complete import SlashComplete
 
@@ -73,7 +98,34 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ModeSwitcher(DismissibleControl, CoreEventReceiver, SelectionOptionList):
+class ModeSwitcher(
+    SpacedAround,
+    DismissibleControl,
+    CoreEventReceiver,
+    Borderless,
+    StartsHidden,
+    NoPadding,
+    AutoWidth,
+    AutoHeight,
+    ScreenOverlay,
+    HiddenOverflow,
+    PaddedOptionRows,
+    SelectionOptionList,
+):
+    """Shown only while focused: it opens on focus and closes on blur."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.min_width = 12
+        self.styles.max_width = 100
+        self.styles.max_height = "50vh"
+        self.styles.constrain_x = "inside"
+        self.styles.constrain_y = "inflect"
+
+    def watch_has_focus(self, has_focus: bool) -> None:
+        super().watch_has_focus(has_focus)
+        self.display = has_focus
+
     def _get_option_render(
         self, option: Option, style: Style, paint: PaintState
     ) -> list[Strip]:
@@ -85,7 +137,7 @@ class ModeSwitcher(DismissibleControl, CoreEventReceiver, SelectionOptionList):
             background = paint.background + self.app.colours.colour(
                 PrimaryColour
             ).with_alpha(0.3).multiply_alpha(paint.opacity)
-            base = paint.component_style(self, "option-list--option")
+            base = paint.component_style(self, OptionListComponent.OPTION)
             style = replace(
                 base, foreground=style.foreground, background=background, bold=False
             )
@@ -119,34 +171,139 @@ class AgentInfo(
         return self.query_ancestor(Prompt).on_agent_info_click
 
 
-class SendNow(InlineSelection, Activates, Label, can_focus=True):
+class SendNow(
+    InlineSelection,
+    Activates,
+    SecondaryText,
+    PointerCursor,
+    Label,
+    can_focus=True,
+):
+
 
     def activate(self):
         self.post_message(messages.SendPromptNow())
 
-class ModeInfo(PrimaryActivation, Label):
+class ModeInfo(
+    InlineSelection,
+    PrimaryActivation,
+    SecondaryText,
+    StartsHidden,
+    SidePadding,
+    NoMargin,
+    PointerCursor,
+    Label,
+):
+    """Shown while the agent has a current mode; hover underlines it."""
+
+    native_theme = (NativeDeclaration.of(Styles.background, Variable(SecondaryColour.name), Percent(10)),)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.dock = "right"
+
     @property
     def primary_activation(self):
         return self.query_ancestor(Prompt).on_mode_info_click
 
 
-class StatusLine(SettingVisibility, ChangingText, Label, setting="ui.status_line"):
+class StatusLine(
+    SettingVisibility,
+    ChangingText,
+    SecondaryText,
+    SideMargin,
+    AutoWidth,
+    OneRow,
+    NoWrap,
+    EllipsisOverflow,
+    Label,
+    setting='ui.status_line',
+):
     status: var[str | Content | RichText] = var("")
 
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.text_align = "right"
+
     def watch_status(self, status: str | Content | RichText) -> None:
-        self.set_class(not bool(status), "-hidden")
         self.update(status)
         self.tooltip = status
 
 
-class QueueSummary(Activates, ChangingText, Label, can_focus=True):
-    """Shows the remote queue; activation reports available control support."""
+class QueueSummary(
+    Activates,
+    ChangingText,
+    MutedText,
+    StartsHidden,
+    AutoHeight,
+    Label,
+    can_focus=True,
+):
+    """Shows the remote queue while it has one; activation reports available control support."""
 
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = 3
 
     def activate(self) -> None:
         from toad.widgets.conversation import Conversation
 
         self.query_ancestor(Conversation).open_queue_menu()
+
+
+class DeliveryControls(StartsHidden, OneRow, containers.HorizontalGroup):
+    """Shown while Enter queues behind a running turn."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (0, 0, 0, 1)
+
+
+class EditingModeLabel(AutoWidth, OneRow, SidePadding, NoWrap, Label):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.dock = "right"
+        self.styles.text_style = "reverse"
+
+
+class DirectoryBounds(DeclaresTheme):
+    """Where the shown directory lies relative to the project; each member owns its ink."""
+
+    native_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
+        NativeDeclaration.of(Styles.color, TextVariable(SecondaryColour.name)),
+    )
+
+    @classmethod
+    def entered(cls, prompt: Prompt) -> None:
+        """Staying inside the project needs no notice."""
+
+
+class InsideProject(DirectoryBounds):
+    pass
+
+
+class OutsideProject(DirectoryBounds):
+    native_theme = (NativeDeclaration.of(Styles.color, TextVariable(ErrorColour.name)),)
+
+    @classmethod
+    def entered(cls, prompt: Prompt) -> None:
+        prompt.post_message(
+            messages.Flash(
+                "You have navigated away from the project directory",
+                style="error",
+                duration=5,
+            )
+        )
+
+
+class PromptPath(RightMargin, FillWidth, NoWrap, CondensedPath):
+    """The info bar's directory, inked by where it lies relative to the project."""
+
+    def native_declarations(self) -> tuple[NativeDeclaration, ...]:
+        """The ink of the prompt's own directory bounds; the prompt owns that state."""
+        return (*super().native_declarations(), *self.query_ancestor(Prompt).directory_bounds.declared_theme())
+
 
 class InfoBar(
     SettingVisibility, WidgetView, containers.HorizontalGroup, setting="ui.info_bar"
@@ -186,6 +343,10 @@ class PromptContainer(FocusWithinView, containers.HorizontalGroup):
 
     def on_mouse_down(self, event: events.MouseUp) -> None:
         self.query_ancestor(Prompt).focus()
+
+
+class TextPrompt(containers.HorizontalGroup):
+    """The label and editor; hidden while the prompt asks a question."""
 
 
 class PromptSubmissionState:
@@ -238,7 +399,13 @@ class PromptSubmission(HighlightedTextArea):
 
 
 class PromptTextArea(
-    CoreEventReceiver, LocalMethodKeys, PromptSubmission,
+    RightPadding,
+    CoreEventReceiver,
+    LocalMethodKeys,
+    TransparentBackground,
+    Borderless,
+    AutoHeight,
+    PromptSubmission,
     actions=(PromptAction,),
 ):
     HELP = """\
@@ -253,6 +420,10 @@ See on-screen instructions for details.
 """
 
     BINDING_GROUP_TITLE = "Prompt"
+
+    native_components = {
+        TextAreaComponent.PLACEHOLDER: (NativeDeclaration.of(Styles.color, TextVariable(MutedColour.name)),),
+    }
 
     app: ToadApp
 
@@ -274,6 +445,10 @@ See on-screen instructions for details.
         self.prompt = prompt
         self.set_reactive(TextArea.editing_mode, prompt.initial_editing_mode)
         self.set_reactive(PromptTextArea.project_path, prompt.project_path)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = "50vh"
 
     @property
     def agent_busy(self) -> bool:
@@ -523,23 +698,13 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
              containers.VerticalGroup):
     tone = PromptToneColour
 
-    DEFAULT_CSS = """
-    Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }
-    Prompt.-has-queue .queue-summary { display: block; }
-    Prompt .delivery-controls { display: none; height: 1; padding-left: 1; }
-    Prompt.-queue-mode .delivery-controls { display: block; }
-    Prompt SendNow { color: $text-secondary; pointer: pointer; }
-    Prompt #editing-mode { dock: right; width: auto; height: 1; padding: 0 1; text-wrap: nowrap; text-style: reverse; }
-    """
-
 
     TEXT_AREA_CLASS = PromptTextArea
 
     prompt_container = getters.query_one(PromptContainer)
     prompt_text_area = getters.query_one(PromptTextArea)
     prompt_label = getters.query_one(PromptLabel)
-    editing_mode_label = getters.query_one("#editing-mode", Label)
-    current_directory = getters.query_one(CondensedPath)
+    editing_mode_label = getters.query_one(EditingModeLabel)
     path_search = getters.query_one(PathSearch)
     slash_complete = getters.query_one(SlashComplete)
     question = getters.query_one(Question)
@@ -551,6 +716,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     project_path = var[Checkout](Required(), init=False)
     working_directory = var("")
     display_directory = var("")
+    directory_bounds: var[type[DirectoryBounds]] = var(lambda: InsideProject, init=False)
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
     agent_binding = var(NoAgentConnection)
@@ -563,14 +729,11 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         self,
         *,
         project: Checkout,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
         disabled: bool = False,
         turns: ConversationTurn | None = None,
         submissions=None,
     ):
-        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        super().__init__(disabled=disabled)
         self.set_reactive(Prompt.project_path, project)
         self.ask_queue: list[Ask] = []
         self.initial_editing_mode: EditingMode = EditingMode()
@@ -633,8 +796,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         """Render the original operational owners; no accepted selection lives here."""
         agent = self.agent_binding
         mode = agent.current_mode
-        self.set_class(mode is not None, "-has-mode")
         info = self.query_one(ModeInfo)
+        info.display = mode is not None
         info.update(mode.name if mode is not None else "")
         info.tooltip = (
             Content.from_markup(
@@ -645,8 +808,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             else None
         )
         model = agent.configuration.model.selected
-        self.set_class(model is not None, "-has-model")
-        self.query_one(AgentInfo).tooltip = (
+        agent_info = self.query_one(AgentInfo)
+        agent_info.styles.pointer = "pointer" if model is not None else "default"
+        agent_info.tooltip = (
             Content.from_markup(
                 "[b]$description[/]\n\n[dim](click to search models)",
                 description=model.description or model.value,
@@ -710,15 +874,16 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         if not self.is_mounted:
             return
         editor = self.prompt_text_area
-        self.set_class(SubmitNowAction().available(editor), "-queue-mode")
+        self.query_one(DeliveryControls).display = SubmitNowAction().available(editor)
         editor.refresh_bindings()
         from toad.widgets.conversation import Conversation
 
         self.query_ancestor(Conversation).goal_bar._queue_separator_update()
 
     def sync_queue(self) -> None:
+        """A queue change moves the turn's controls and the summary; the agent it talks to is unchanged."""
         if self.is_mounted:
-            self.sync_session()
+            self.sync_turn()
             self._update_queue_summary()
 
     def on_mount(self) -> None:
@@ -728,8 +893,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
     def _update_queue_summary(self) -> None:
         text = self.operational_submissions.queue_summary
-        self.set_class(bool(text), "-has-queue")
-        summary = self.query_one(".queue-summary", Label)
+        summary = self.query_one(QueueSummary)
+        summary.display = bool(text)
         summary.tooltip = "Inspect this source's actual queue or visible message delivery evidence. Acceptance is not consumption; unsupported actions remain unavailable."
         summary.update(Content(text))
 
@@ -744,7 +909,6 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     def sync_session(self) -> None:
         if not self.is_mounted:
             return
-        self.set_class(not self.agent_ready, "-not-ready")
         self.watch_agent_info(self.agent_info)
         self.sync_turn()
 
@@ -764,27 +928,22 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     def watch_working_directory(self, working_directory: str) -> None:
         if not working_directory:
             return
-        out_of_bounds = self.shell_mode and not Path(working_directory).is_relative_to(
-            self.project_path.path
+        self.directory_bounds = (
+            OutsideProject
+            if self.shell_mode and not Path(working_directory).is_relative_to(self.project_path.path)
+            else InsideProject
         )
-        if out_of_bounds and not self.has_class("-working-directory-out-of-bounds"):
-            self.post_message(
-                messages.Flash(
-                    "You have navigated away from the project directory",
-                    style="error",
-                    duration=5,
-                )
-            )
-        self.set_class(
-            out_of_bounds,
-            "-working-directory-out-of-bounds",
-        )
+
+    def watch_directory_bounds(self, bounds: type[DirectoryBounds]) -> None:
+        bounds.entered(self)
+        self.query_one(PromptPath).update_node_styles()
 
     def on_unmount(self) -> None:
         self.app.terminal_attention.release(self)
 
     def watch__ask(self, ask: Ask | None) -> None:
-        self.set_class(ask is not None, "-mode-ask")
+        self.question.display = ask is not None
+        self.query_one(TextPrompt).display = ask is None
         self.refresh(layout=True)
         if ask is None:
             self.app.terminal_attention.release(self)
@@ -876,8 +1035,9 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
                 yield popup
 
     def compose_delivery_controls(self) -> ComposeResult:
-        yield QueueSummary("", classes="queue-summary", markup=False)
-        with containers.HorizontalGroup(classes="delivery-controls"):
+        yield QueueSummary("", markup=False)
+        # goal_bar still finds these controls by this class name.
+        with DeliveryControls():
             yield Label("Enter queues · ")
             yield SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
 
@@ -888,7 +1048,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
     def compose_agent_info(self) -> ComposeResult:
         yield AgentInfo()
-        yield CondensedPath().data_bind(path=Prompt.display_directory)
+        yield PromptPath().data_bind(path=Prompt.display_directory)
 
     def compose_mode_controls(self) -> ComposeResult:
         yield ModeSwitcher()
@@ -897,10 +1057,10 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
     def compose(self) -> ComposeResult:
         yield from self.compose_completions()
         yield from self.compose_delivery_controls()
-        with PromptContainer(id="prompt-container"):
-            yield Question()
-            with containers.HorizontalGroup(id="text-prompt"):
-                yield PromptLabel(id="prompt", markup=False)
+        with PromptContainer():
+            yield PromptQuestion()
+            with TextPrompt():
+                yield PromptLabel(markup=False)
                 yield self.TEXT_AREA_CLASS(prompt=self).data_bind(
                     shell_mode=Prompt.shell_mode,
                     project_path=Prompt.project_path,
@@ -908,8 +1068,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
                     slash_commands=Prompt.slash_commands,
                 )
         yield from self.compose_info_popups()
-        with InfoBar(id="info-container"):
-            yield Label("", id="editing-mode", markup=False)
+        with InfoBar():
+            yield EditingModeLabel("", markup=False)
             yield from self.compose_agent_info()
             yield StatusLine(markup=False).data_bind(status=Prompt.status)
             yield from self.compose_mode_controls()
@@ -950,6 +1110,9 @@ class MessagePrompt(Prompt):
         # Message composers have no delivery controls or operational turn.
         pass
 
+    def sync_queue(self) -> None:
+        """A message composer draws no queue summary or delivery controls."""
+
     def sync_configuration(self) -> None:
         pass
 
@@ -988,4 +1151,4 @@ class MailboxPrompt(MessagePrompt):
     """A CLI thread's composer shows its project; Core's status line names the model, read-only."""
 
     def compose_agent_info(self) -> ComposeResult:
-        yield CondensedPath().data_bind(path=Prompt.display_directory)
+        yield PromptPath().data_bind(path=Prompt.display_directory)

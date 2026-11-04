@@ -7,7 +7,8 @@ import json
 from textual.widgets import Button, TextArea
 
 from toad.file_kind import FileKind
-from toad.widgets.acp_log import AcpLogPreview
+from toad.acp.log_records import LogView
+from toad.widgets.acp_log import AcpLogPreview, LogButton, LogEarlierButton, LogLatestButton, LogViewButton, LogWrapButton
 from toad.widgets.project_panel import FilePreview
 from toad.widgets.worker_static import WorkerStatic
 
@@ -44,6 +45,11 @@ async def open_log(ui, log):
     return view
 
 
+def view_button(view, name):
+    """The log's button for one view kind."""
+    return next(button for button in view.query(LogViewButton) if button.kind is LogView.member_named(name))
+
+
 async def reread(ui, view, button):
     _app, pilot = ui.textual
     assert await pilot.click(button)
@@ -61,13 +67,13 @@ async def test_log_views_wrap_keyboard_resize_and_latest_read_the_physical_log(w
         assert "Unsettled owner input; compaction not dispatched" in area.text
         assert "The usage limit has been reached" in area.text
         assert area.soft_wrap and area.read_only
-        assert await pilot.click("#log-events")
+        assert await pilot.click(view_button(view, "events"))
         await ui.step()
         assert "session/update" in area.text and "response" in area.text
-        assert await pilot.click("#log-raw")
+        assert await pilot.click(view_button(view, "raw"))
         await ui.step()
         assert area.text == log.read_bytes().decode("utf-8", errors="replace")
-        assert await pilot.click("#log-wrap")
+        assert await pilot.click(LogWrapButton)
         await ui.step()
         assert not area.soft_wrap
         # Keyboard reaches the final column rather than clipping it.
@@ -81,19 +87,18 @@ async def test_log_views_wrap_keyboard_resize_and_latest_read_the_physical_log(w
         assert area.selected_text == line
         # Resizing the real app retains controls and selectable source.
         await ui.resize(50, 24)
-        for selector in ["#log-errors", "#log-events", "#log-raw", "#log-wrap", "#log-earlier", "#log-latest"]:
-            button = view.query_one(selector)
-            assert button.region.right <= app.screen.size.width, (selector, button.region)
-        assert await pilot.click("#log-wrap")
+        for button in view.query(LogButton):
+            assert button.region.right <= app.screen.size.width, (button, button.region)
+        assert await pilot.click(LogWrapButton)
         await ui.step()
         assert area.soft_wrap
-        assert await pilot.click("#log-errors")
+        assert await pilot.click(view_button(view, "errors"))
         await ui.step()
         assert "Provider usage limit reached" in area.text
         assert area.region.height >= 5
         with log.open("a") as stream:
             stream.write("backend stderr: appended local diagnostic\n")
-        await reread(ui, view, "#log-latest")
+        await reread(ui, view, LogLatestButton)
         assert "appended local diagnostic" in area.text
         area.focus()
         await ui.press("ctrl+w")
@@ -112,21 +117,21 @@ async def test_earlier_and_latest_page_through_a_log_larger_than_one_page_and_re
         padding = ("[agent] " + json.dumps({"jsonrpc": "2.0", "id": 8, "result": "z" * 1024}) + "\n").encode()
         with log.open("ab") as stream:
             stream.write(padding * (FileKind.MAX_BYTES // len(padding) + 1))
-        await reread(ui, view, "#log-latest")
+        await reread(ui, view, LogLatestButton)
         assert view.page.start > 0 and len(view.page.raw) <= FileKind.MAX_BYTES
-        await reread(ui, view, "#log-earlier")
+        await reread(ui, view, LogEarlierButton)
         assert view.page.start == 0
         assert "Unsettled owner input; compaction not dispatched" in area.text
         # A real filesystem failure must be visible, and recovery must reread the file.
         log.unlink()
-        await reread(ui, view, "#log-latest")
+        await reread(ui, view, LogLatestButton)
         assert "Unable to read log" in area.text
-        assert view.page is None and view.query_one("#log-earlier", Button).disabled
+        assert view.page is None and view.query_one(LogEarlierButton).disabled
         log.write_bytes(original)
         # Textual ignores another click during its active effect; wait for the control to accept it.
-        await ui.until(lambda: not view.query_one("#log-latest", Button).has_class("-active"),
+        await ui.until(lambda: not view.query_one(LogLatestButton).has_class("-active"),
                        why="the Latest button to accept a click")
-        await reread(ui, view, "#log-latest")
+        await reread(ui, view, LogLatestButton)
         assert "The usage limit has been reached" in area.text
         assert ui.failure() is None
 
@@ -139,7 +144,7 @@ async def test_a_full_raw_page_is_drawn_exactly_and_follows_new_lines_only_while
     async with workspace.app(size=(100, 32)) as ui:
         view = await open_log(ui, log)
         area = view.query_one(TextArea)
-        await reread(ui, view, "#log-raw")
+        await reread(ui, view, view_button(view, "raw"))
         # The page enters the text area in slices; together they are the page.
         assert len(view.page.raw) > 100 * view.SLICE
         assert area.text == view.page.raw.decode("utf-8", errors="replace")
@@ -157,7 +162,7 @@ async def test_a_full_raw_page_is_drawn_exactly_and_follows_new_lines_only_while
             stream.write("backend stderr: written while reading earlier lines\n")
         await ui.step(3 * view.FOLLOW_INTERVAL)
         assert "written while reading earlier lines" not in area.text and area.scroll_y == 0
-        await reread(ui, view, "#log-latest")
+        await reread(ui, view, LogLatestButton)
         assert area.text.endswith("written while reading earlier lines\n")
         assert ui.failure() is None
 

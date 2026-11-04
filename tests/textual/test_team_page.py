@@ -21,7 +21,7 @@ from textual.widgets import Button, Static
 from toad.comms_root import FailedObservation, UnselectedRoute
 from toad.core.events import TeamHudChanged
 from toad.screens.team import (
-    TeamAlarm, TeamFrameView, TeamGroup, TeamPage, TeamTable,
+    HudError, HudRows, TeamAlarm, TeamFrameView, TeamGroup, TeamPage, TeamTable,
 )
 from toad.widgets.declared_disclosure import DeclaredDisclosure
 from toad.widgets.declared_table import EmptyTableSelection, SelectedTableRecord
@@ -61,10 +61,10 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
         app, pilot = ui.textual
         page = TeamPage()
         await app.push_screen(page)
-        notice = page.query_one("#hud-error", Static)
+        notice = page.query_one(HudError)
         await ui.until(lambda: notice.display, why="the unreadable frame to reach the page")
         assert "field_from_a_newer_build" in str(notice.render())
-        rows = page.query_one("#hud-rows")
+        rows = page.query_one(HudRows)
         assert [str(row.render()) for row in rows.query(Static)] == [
             "Waiting for the team heartbeat.",
         ]
@@ -159,7 +159,7 @@ async def test_a_heartbeat_with_no_frames_still_says_it_is_waiting(workspace: Wo
         await ui.step()
         app.coordination_access.events.publish(TeamHudChanged(()))
         await ui.step()
-        rows = page.query_one("#hud-rows").query(Static)
+        rows = page.query_one(HudRows).query(Static)
         assert [str(row.render()) for row in rows] == ["Waiting for the team heartbeat."]
 
 

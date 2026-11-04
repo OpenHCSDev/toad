@@ -6,25 +6,46 @@ import asyncio
 
 from textual import containers, events
 from textual.app import ComposeResult
-from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import DismissAction, PriorityActions
-from textual.widgets import Button, Static
+from textual.css.native import Keyword, NativeDeclaration, Variable
+from textual.css.styles import Styles
+from ui_theme.scheme import AccentColour, WarningColour
+from toad.widgets.acting_button import DismissButton
+from toad.native_style import AutoHeight, FillHeight
+from toad.screens.modal import CenteredScreen, DismissibleScreen, SurfacePanel
+from toad.widget_actions import PriorityActions
+from textual.widgets import Static
 
 from toad.mcp_decision import LocalDecisionPTY
 from toad.mcp_commands import MCPDecision, MCPSelection
-from toad.widgets.terminal import ControlledTerminal, Terminal
+from toad.widgets.terminal import ControlledTerminal
 
 
-class MCPDecisionScreen(PriorityActions, DismissibleScreen[None]):
-    DEFAULT_CSS = """
-    MCPDecisionScreen { align: center middle; }
-    MCPDecisionScreen #mcp-decision-panel {
-        width: 90%; height: 85%; border: round $warning; background: $surface;
-        padding: 1 2;
-    }
-    MCPDecisionScreen #mcp-decision-terminal { height: 1fr; border: round $accent; }
-    MCPDecisionScreen #mcp-decision-controls { height: auto; }
-    """
+class DecisionPanel(SurfacePanel):
+    native_theme = (NativeDeclaration.of(Styles.border, Keyword("round"), Variable(WarningColour.name)),)
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = "90%"
+        self.styles.height = "85%"
+        self.styles.padding = (1, 2)
+
+
+class DecisionStatus(Static):
+    """What the package decision is doing, or how it ended."""
+
+
+class DecisionTerminal(ControlledTerminal, FillHeight):
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("round"), Variable(AccentColour.name)),
+    )
+
+
+
+class DecisionControls(AutoHeight, containers.Horizontal):
+    """Its look is its bases."""
+
+
+class MCPDecisionScreen(CenteredScreen, PriorityActions, DismissibleScreen[None]):
 
     def __init__(
         self,
@@ -38,7 +59,7 @@ class MCPDecisionScreen(PriorityActions, DismissibleScreen[None]):
         self._running = False
 
     def compose(self) -> ComposeResult:
-        with containers.Vertical(id="mcp-decision-panel"):
+        with DecisionPanel():
             yield Static(
                 "Only the installed Pi MCP package may make this decision. "
                 "Inspect its complete display; type its challenge yourself. "
@@ -46,18 +67,17 @@ class MCPDecisionScreen(PriorityActions, DismissibleScreen[None]):
                 "undo a package decision already committed; refresh inventory.",
                 markup=False,
             )
-            yield Static(
+            yield DecisionStatus(
                 "Rechecking the package inventory before launch…",
-                id="mcp-decision-status",
                 markup=False,
             )
-            yield ControlledTerminal(id="mcp-decision-terminal")
-            with containers.Horizontal(id="mcp-decision-controls"):
-                yield Button("Cancel / close", id="cancel", action=f"screen.{DismissAction.binding_name()}")
+            yield DecisionTerminal()
+            with DecisionControls():
+                yield DismissButton("Cancel / close")
 
     def on_mount(self) -> None:
         self._running = True
-        terminal = self.query_one("#mcp-decision-terminal", Terminal)
+        terminal = self.query_one(DecisionTerminal)
         terminal.set_write_to_stdin(self._pty.write_user_input)
         terminal.focus()
         self._runner = asyncio.create_task(self._run_local_action())
@@ -69,7 +89,7 @@ class MCPDecisionScreen(PriorityActions, DismissibleScreen[None]):
     def _on_screen_resume(self, event: events.ScreenResume) -> None:
         super()._on_screen_resume(event)
         if self._runner is not None and not self._running:
-            self.query_one("#mcp-decision-status", Static).update(
+            self.query_one(DecisionStatus).update(
                 "Controller hidden; child stopped. A prior package write may have committed. Close and refresh."
             )
 
@@ -84,7 +104,7 @@ class MCPDecisionScreen(PriorityActions, DismissibleScreen[None]):
         self._pty.stop()
 
     async def _run_local_action(self) -> None:
-        terminal = self.query_one("#mcp-decision-terminal", Terminal)
+        terminal = self.query_one(DecisionTerminal)
 
         async def show(text: str) -> None:
             if text and self._controller_visible():
@@ -103,7 +123,7 @@ class MCPDecisionScreen(PriorityActions, DismissibleScreen[None]):
         finally:
             terminal.finalize()
         if self._controller_visible():
-            self.query_one("#mcp-decision-status", Static).update(outcome.message)
+            self.query_one(DecisionStatus).update(outcome.message)
 
     def _controller_visible(self) -> bool:
         return self._running and self.is_attached and self.app.screen is self

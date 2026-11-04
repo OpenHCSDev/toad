@@ -1,7 +1,9 @@
-from textual import on
+from textual.widget import Widget
 from textual.app import ComposeResult
-from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import DismissAction, WidgetAction
+from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
+from toad.native_style import FillWidth, PrimaryText
+from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalFrame
+from toad.widget_actions import WidgetAction
 from textual.document._editing import EditingMode
 from textual import widgets
 from toad.widgets.footer import ToadFooter
@@ -20,43 +22,69 @@ class CopyCommandAction(WidgetAction):
         context.notify("Command copied to clipboard", title=self.title)
 
 
-class CommandEditModal(DismissibleScreen[str | None], actions=(CopyCommandAction,)):
+class CommandFrame(ModalFrame):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (1, 1, 0, 1)
+        self.styles.margin = (3, 6)
+        self.styles.max_width = 80
+
+
+class InstructionText(PrimaryText, Widget):
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (0, 1, 1, 1)
+
+
+class CommandTitle(InstructionText, widgets.Label):
+    """The dialog's centred title."""
+
+
+class CommandHelp(InstructionText, widgets.Static):
+    """What the dialog will do with the command."""
+
+
+class CommandText(widgets.TextArea):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 6
+
+
+class CommandButtons(FillWidth, containers.HorizontalGroup):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (1, 1, 0, 1)
+        self.styles.align = ("right", "top")
+
+
+class CommandEditModal(Confirms, CenteredScreen, DismissibleScreen[str | None], actions=(CopyCommandAction,)):
     AUTO_FOCUS = "Button"
 
-    text_area = getters.query_one(widgets.TextArea)
+    text_area = getters.query_one(CommandText)
 
     def __init__(
         self,
         command: str,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
     ):
         self.command = command
-        super().__init__(name=name, id=id, classes=classes)
+        super().__init__()
 
     def compose(self) -> ComposeResult:
-        with containers.VerticalGroup(id="container"):
+        with CommandFrame():
             with containers.Center():
-                yield widgets.Label(
-                    "[b]Run command",
-                    classes="instructions",
-                )
-            yield widgets.Static(
-                "Toad will run the following command (edit if you need to).",
-                classes="instructions",
-            )
-            yield widgets.TextArea(
+                yield CommandTitle("[b]Run command")
+            yield CommandHelp("Toad will run the following command (edit if you need to).")
+            yield CommandText(
                 self.command,
                 language="bash",
                 highlight_cursor_line=False,
                 soft_wrap=False,
             )
-            with containers.HorizontalGroup(id="button-container"):
-                yield widgets.Button("OK", variant="primary", id="ok")
-                yield widgets.Button("Cancel", id="cancel", action=f"screen.{DismissAction.binding_name()}")
+            with CommandButtons():
+                yield ConfirmButton("OK", variant="primary")
+                yield DismissButton("Cancel")
         yield ToadFooter()
 
-    @on(widgets.Button.Pressed, "#ok")
-    def on_ok_pressed(self, event: widgets.Button.Pressed) -> None:
+    async def confirm(self) -> None:
         self.dismiss(self.text_area.text)

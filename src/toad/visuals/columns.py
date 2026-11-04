@@ -260,14 +260,9 @@ if __name__ == "__main__":
     columns.add_row("Foo", "Hello, World! " * 20)
 
     class CApp(App):
-        DEFAULT_CSS = """
-        .row1 {
-            background: blue;
-           
-        }
-        """
-
         def compose(self) -> ComposeResult:
-            yield Static(columns[0], classes="row1")
+            row = Static(columns[0])
+            row.styles.background = "blue"
+            yield row
 
     CApp().run()
