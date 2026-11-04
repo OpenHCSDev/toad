@@ -36,7 +36,7 @@ from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread
 from agent_comms.tools import (
     CommsHistoricalThreadsTool,
-    CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool, CommsStoreDisplayOrderTool,
+    CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool,
     CommsUserSendTool,
 )
 from agent_comms.transcripts import TranscriptCursor
@@ -93,7 +93,7 @@ from toad.notification_status import CheckedNotifications, NotificationStatus, U
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 
 if TYPE_CHECKING:
-    from agent_comms.display_order import DisplayOrder
+    from agent_comms.tool_request import ToolRequest
     from agent_comms.display_references import ReferenceContext
     from agent_comms.thread_identity import ThreadIncarnation
 
@@ -350,7 +350,7 @@ class FailedObservation(Observation):
     def sidebar(self):
         raise self.error
 
-    async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
+    async def write_order(self, access: CoordinationAccess, root, request: ToolRequest):
         raise self.error
 
     def references_for(self, root: str) -> ReferenceContext:
@@ -394,12 +394,11 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
     async def read(self, request: AwaitedRead) -> object:
         return await self.process.read(request)
 
-    async def write_order(self, access: CoordinationAccess, root, channel, order: type[DisplayOrder]):
+    async def write_order(self, access: CoordinationAccess, root, request: ToolRequest):
         """Store the chosen order on the Core this observation reaches, local or remote."""
         if root is not None and not self.observes(root):
             raise ValueError("Comms route changed before sorting")
-        return await access.preparation.run_thread(
-            self.core.call, CommsStoreDisplayOrderTool(order=order, channel=channel))
+        return await access.preparation.run_thread(self.core.call, request)
 
     @property
     @abstractmethod
