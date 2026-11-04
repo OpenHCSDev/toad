@@ -210,17 +210,18 @@ class ChannelConversation(ConversationKind):
     @classmethod
     async def update_mentions(cls, view: CommsChatView, source: ReferencedCore):
         history = view.message_history
-        drawn = history.source_snapshot()
+        shown = history.source_snapshot()
         conversation = view.conversation
         access = view.app.coordination_access
-        snapshot = (await access.current_sidebar()).require_snapshot()
+        answer = await access.current_sidebar()
+        snapshot = answer.require_snapshot()
         if not access.observation.observes(source.root):
             raise ValueError("Channel mentions belong to another Core root")
         mentions = await view.app.preparation.run_thread(
             snapshot.mention_candidates,
             conversation.destination(snapshot.references).name,
         )
-        if not await history.source_is_current(drawn) or view.conversation != conversation:
+        if not await history.source_is_current(shown) or view.conversation != conversation:
             return
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
