@@ -2044,9 +2044,7 @@ class Conversation(
         svg_filename = generate_datetime_filename("Toad", ".svg", None)
         svg_path = os.path.expanduser(os.path.join(path, svg_filename))
         console.save_svg(svg_path)
-        import webbrowser
-
-        webbrowser.open(f"file:///{svg_path}")
+        self.app.open_url(f"file:///{svg_path}")
 
     def refresh_block_cursor(self, show: Callable[[BlockCursor], None]) -> None:
         """Paint the cursor's new block; `show` scrolls for how the cursor got there."""

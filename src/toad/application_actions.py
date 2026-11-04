@@ -119,6 +119,23 @@ class TransferMenuAction(ApplicationAction):
         app.open_transfer(self.kind)
 
 
+class OpenUrlAction(System, ApplicationAction):
+    """Open a link in the user's browser, through the terminal driver like every other link."""
+
+    def __init__(self, url: str) -> None:
+        self.url = url
+
+    @classmethod
+    def parse(cls, parameters: tuple[object, ...]) -> OpenUrlAction:
+        match parameters:
+            case (str() as url,):
+                return cls(url)
+        raise ValueError("open_url requires one URL")
+
+    def apply(self, app: ToadApp) -> None:
+        app.open_url(self.url)
+
+
 class SetFooterAction(System, ApplicationAction):
     def __init__(self, visible: bool) -> None:
         self.visible = visible

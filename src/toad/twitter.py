@@ -1,8 +1,7 @@
-import webbrowser
 from urllib.parse import urlencode
 
 
-def open_tweet_intent(
+def tweet_intent_url(
     text: str,
     *,
     url: str | None = None,
@@ -10,7 +9,7 @@ def open_tweet_intent(
     via: str | None = None,
     in_reply_to: str | None = None,
 ) -> str:
-    """Open a pre-filled Twitter/X tweet intent in the default browser.
+    """A pre-filled Twitter/X tweet intent URL.
 
     Args:
         text: The pre-filled tweet text.
@@ -20,7 +19,7 @@ def open_tweet_intent(
         in_reply_to: An optional tweet ID to reply to.
 
     Returns:
-        The full tweet intent URL that was opened.
+        The full tweet intent URL.
     """
     params: dict[str, str] = {"text": text}
 
@@ -33,6 +32,4 @@ def open_tweet_intent(
     if in_reply_to is not None:
         params["in_reply_to"] = in_reply_to
 
-    tweet_url = f"https://twitter.com/intent/tweet?{urlencode(params)}"
-    webbrowser.open(tweet_url)
-    return tweet_url
+    return f"https://twitter.com/intent/tweet?{urlencode(params)}"

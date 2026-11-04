@@ -85,9 +85,9 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
 
     @property
     def primary_activation(self):
-        return self.action_select_session
+        return self.select_session
 
-    def action_select_session(self) -> None:
+    def select_session(self) -> None:
         if self.id is not None:
             self.app.select_session(self.id)
 
@@ -101,7 +101,7 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
                 # full-layout timer run ahead of the user's tab click. The
                 # ordinary app mode-switch boundary already captures sidebar
                 # navigation and queues its serialized transition.
-                self.action_select_session()
+                self.select_session()
 
 
 class SessionTabClose(WidgetView, ActivationKeys, widgets.Static, can_focus=True):

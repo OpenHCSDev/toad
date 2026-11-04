@@ -88,7 +88,7 @@ class ModeBindings(KeymapMeasure):
 class ActionMethods(KeymapMeasure):
     """`def action_*`: behaviour Textual finds by string name. A method MovesCursor declares is
     a required contract its key family calls, so its implementers are not this."""
-    ceiling = 11
+    ceiling = 9
 
     @classmethod
     def lines(cls, tree):

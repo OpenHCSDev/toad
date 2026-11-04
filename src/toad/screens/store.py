@@ -575,19 +575,14 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
             "\n\n",
             (
                 Content.from_markup(
-                    "[dim]Code: [@click=screen.url('https://github.com/batrachianai/toad')]Repository[/] • "
-                    "Bugs: [@click=screen.url('https://github.com/batrachianai/toad/discussions')]Discussions[/] • "
-                    "Sponsor: [@click=screen.url('https://github.com/sponsors/willmcgugan')]@willmcgugan[/]"
+                    "[dim]Code: [@click=app.open_url('https://github.com/batrachianai/toad')]Repository[/] • "
+                    "Bugs: [@click=app.open_url('https://github.com/batrachianai/toad/discussions')]Discussions[/] • "
+                    "Sponsor: [@click=app.open_url('https://github.com/sponsors/willmcgugan')]@willmcgugan[/]"
                 )
             ),
         )
 
         return content
-
-    def action_url(self, url: str) -> None:
-        import webbrowser
-
-        webbrowser.open(url)
 
     def compose_agents(self) -> ComposeResult:
         agents = self._agents
@@ -612,7 +607,7 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
                     for agent in recommended_agents:
                         yield AgentItem(agent)
                     yield SponsorItem(
-                        "[$text-warning]Your agent here[/] — support development of Toad by [@click=screen.url('https://github.com/sponsors/willmcgugan')]sponsoring[/] this project",
+                        "[$text-warning]Your agent here[/] — support development of Toad by [@click=app.open_url('https://github.com/sponsors/willmcgugan')]sponsoring[/] this project",
                     )
 
         from toad.agent_schema import AgentKind
