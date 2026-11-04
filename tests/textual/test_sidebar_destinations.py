@@ -19,8 +19,10 @@ async def test_new_destination_uses_existing_row(workspace):
         if sidebar.collapsed:
             sidebar.toggle()
         tree = sidebar.query_one(CommsSidebar)
+        # A group is registered before it is mounted; rows go into its mounted container.
         await ui.until(
-            lambda: "#team" in tree.groups, why="the real sidebar's channel group"
+            lambda: "#team" in tree.groups and tree.groups["#team"].member_container.is_mounted,
+            why="the real sidebar's mounted channel group",
         )
         group = tree.groups["#team"]
         absent = app.workspace_sessions.visible_target(None)

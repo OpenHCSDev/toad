@@ -132,6 +132,9 @@ def test_sshd_sessions_read_the_ssh_arrangement():
 
 @pytest.mark.parametrize("edge", (TopSidebarEdge, BottomSidebarEdge))
 def test_a_collapsed_top_or_bottom_bar_is_two_rows_with_its_arrow_on_both(edge):
-    assert edge.collapsed_extent == 2
+    layout = layout_for()
+    layout.move(ChannelsSidebarPlacement, edge)
+    resolved = layout.resolve(Size(60, 30), {ChannelsSidebarPlacement: True, ThreadSidebarPlacement: True})
+    assert resolved.bars[ChannelsSidebarPlacement].height == 2
     for collapsed in (False, True):
         assert edge.toggle_text(collapsed).split("\n") == [edge.toggle_symbol(collapsed)] * 2
