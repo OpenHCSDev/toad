@@ -18,7 +18,7 @@ from textual.containers import Horizontal, Vertical
 from textual.widget import Widget
 from textual.widgets import Input, Static, Tree
 from textual.widgets._tree import TreeNode
-from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
+from textual.worker import Worker, WorkerCancelled, get_current_worker
 
 from toad.widgets.acting_button import ActingButton
 from toad.core.context_inspection import (
@@ -36,6 +36,7 @@ from toad.widgets.process_text_area import ProcessTextArea
 from toad.native_style import MutedText
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.thread_identity import ShowsThreadIdentity
+from toad.worker_group import WorkerGroup
 
 if TYPE_CHECKING:
     from agent_comms.working_memory_questions import SpanAnswer
@@ -73,6 +74,41 @@ class ContextTreeIntent:
         self.selected = node.data
         show_detail(self.selected)
         return True
+
+
+class ContextReadWork(WorkerGroup):
+    """Reads the selected thread's recorded context page."""
+
+    group = "context-read"
+    exclusive = True
+
+
+class ContextNativeWork(WorkerGroup):
+    """Reads the native rendering of the acquired page."""
+
+    group = "context-native"
+    exclusive = True
+
+
+class ContextPresentationWork(WorkerGroup):
+    """Builds the tree groups for the acquired page."""
+
+    group = "context-presentation"
+    exclusive = True
+
+
+class ContextSearchWork(WorkerGroup):
+    """Searches the acquired page."""
+
+    group = "context-search"
+    exclusive = True
+
+
+class ContextDetailWork(WorkerGroup):
+    """Shows the selected node's detail."""
+
+    group = "context-detail"
+    exclusive = True
 
 
 class ContextTree(Tree[ContextNode]):
@@ -393,16 +429,11 @@ class ContextExplorer(
         if not self.presentation_visible():
             return
         # Invalidation does not replace an original read still in flight.
-        if self._working("context-read"):
+        if ContextReadWork.running_on(self):
             return
         access = self.app.coordination_access
         if not self.state.observed_at(access.revision):
             self._read()
-
-    @on(Worker.StateChanged)
-    def context_read_finished(self, event: Worker.StateChanged) -> None:
-        if event.worker.node is self and event.worker.group == "context-read" and event.state == WorkerState.SUCCESS:
-            self._observed()
 
     def on_unmount(self) -> None:
         self.state = DetachedInspection()
@@ -429,15 +460,14 @@ class ContextExplorer(
             self.is_attached and not get_current_worker().is_cancelled and self.thread_view.thread_identity == identity
         )
 
-    def _working(self, group: str):
-        return any(worker.node is self and worker.group == group and not worker.is_finished for worker in self.workers)
-
-    @work(group="context-read", exclusive=True)
+    @ContextReadWork.work
     async def _read(self, *, force: bool = False) -> None:
         await self.thread_view.thread_identity.inspect_owner(
             lambda identity: self._read_owner(identity, force=force),
             self.query_one(ContextStatus).update,
         )
+        # Once this read has stopped, observe again: the revision may have moved while it ran.
+        self.call_later(self._observed)
 
     async def _read_owner(self, identity: ThreadIdentity, *, force: bool = False):
         status = self.query_one(ContextStatus)
@@ -467,12 +497,12 @@ class ContextExplorer(
         if previous.needs_native(current.inspection, force):
             source_changed = not previous.same_source(current.inspection)
             if source_changed:
-                self.workers.cancel_group(self, "context-native")
-            if force or source_changed or not self._working("context-native"):
+                ContextNativeWork.cancel_all(self)
+            if force or source_changed or not ContextNativeWork.running_on(self):
                 self.query_one(ContextStatus).update(current.status)
                 current.prepare_native(self._read_native)
 
-    @work(group="context-native", exclusive=True)
+    @ContextNativeWork.work
     async def _read_native(self, captured: HoldingInspection):
         try:
             native = await captured.inspection.native()
@@ -526,12 +556,12 @@ class ContextExplorer(
             self.notify("Original human correction recorded")
             self._read()
 
-    @work(group="context-presentation", exclusive=True)
+    @ContextPresentationWork.work
     async def _present(self, captured: HoldingInspection) -> None:
         if self.intent.query:
             self._search(captured, self.intent.query, self.intent.selected)
             return
-        self.workers.cancel_group(self, "context-search")
+        ContextSearchWork.cancel_all(self)
         # The acquired inspection owns its source projection. Building all
         # recorded segments and annotation relationships is preparation, not
         # a native Tree operation; keep it off the application's input loop.
@@ -565,10 +595,10 @@ class ContextExplorer(
         # when the replacement read finishes. Unacquired inspection states
         # cannot publish old groups, searches or native results.
         self.state = self.thread_view.thread_identity.inspection_state()
-        self.workers.cancel_group(self, "context-presentation")
-        self.workers.cancel_group(self, "context-native")
-        self.workers.cancel_group(self, "context-search")
-        self.workers.cancel_group(self, "context-detail")
+        ContextPresentationWork.cancel_all(self)
+        ContextNativeWork.cancel_all(self)
+        ContextSearchWork.cancel_all(self)
+        ContextDetailWork.cancel_all(self)
         self.query_one(ContextOlder).disabled = True
         self.query_one(ContextNewer).disabled = True
         self.query_one(ContextTree).clear()
@@ -578,7 +608,7 @@ class ContextExplorer(
     def action_search(self) -> None:
         self.state.present(self._present)
 
-    @work(group="context-search", exclusive=True)
+    @ContextSearchWork.work
     async def _search(self, captured: HoldingInspection, query: str, selected: ContextNode | None) -> None:
         status = self.query_one(ContextStatus)
         status.update("Searching original public context…")
@@ -641,14 +671,14 @@ class ContextExplorer(
         event.stop()
         if self.query_one(ContextTree).owns_node(event.node):
             if self.intent.selected is not event.node.data:
-                self.workers.cancel_group(self, "context-search")
+                ContextSearchWork.cancel_all(self)
             self.intent.selected = event.node.data
             self._show_detail(event.node.data)
 
     def _selected(self, model):
         return self.query_one(ContextTree).selected(model) if self.is_attached else False
 
-    @work(group="context-detail", exclusive=True)
+    @ContextDetailWork.work
     async def _show_detail(self, model: ContextNode) -> None:
         # Publication belongs to this exact selected original tree model, not
         # a reusable string key shared by another thread or context snapshot.

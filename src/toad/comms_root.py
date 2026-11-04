@@ -62,6 +62,7 @@ from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 
 from toad.core.events import (
+    ThreadInterestUpdate,
     TeamHudChanged,
     TeamHudFailed,
     CoordinationObserved,
@@ -689,7 +690,7 @@ class CoordinationAccess(MroDispatch):
             await asyncio.gather(self.route_task, return_exceptions=True)
             self.route_task = None
         self.events.close_threads()
-        self.app.workers.cancel_group(self.app, "thread-interest")
+        ThreadInterestUpdate.cancel_all(self.app)
         self.observation = self.observation.stop_updates()
 
     async def close(self) -> None:

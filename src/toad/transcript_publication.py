@@ -9,7 +9,7 @@ from collections.abc import Callable, Sequence
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, replace
 from functools import partial
-from typing import TYPE_CHECKING, ClassVar, Self, TypeGuard
+from typing import TYPE_CHECKING, Self, TypeGuard
 
 from agent_comms.acp_extension import (
     InputStartedUpdate,
@@ -52,6 +52,7 @@ from toad.core.events import CoreEventStream
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
+from toad.worker_group import WorkerGroup
 from toad.screens.session_view import SessionView
 from toad.session_scope import (
     NoTranscript,
@@ -414,28 +415,28 @@ class RunningPublicationWork(PublicationWork):
     async def settled(self) -> None:
         await self.worker.wait()
 
-    # Textual groups a view's workers by name; each kind names its group once.
-    group: ClassVar[str]
-    exclusive: ClassVar[bool] = False
+
+
+class StartedPublicationWork(WorkerGroup, RunningPublicationWork):
+    """A publication worker of one kind, started and joined through that kind."""
 
     @classmethod
-    def start(cls, view: Widget, work: Callable[[], object]) -> Self:
-        return cls(view.run_worker(work, group=cls.group, exclusive=cls.exclusive))
+    def start(cls, view: Widget, task: Callable[[], object]) -> Self:
+        return cls(cls.run_on(view, task))
 
     @classmethod
-    def cancel_all(cls, view: Widget) -> tuple[Self, ...]:
-        """Every worker of this kind on the view, including ones a newer start superseded."""
-        return tuple(cls(worker) for worker in view.workers.cancel_group(view, cls.group))
+    def cancelled_work(cls, view: Widget) -> tuple[Self, ...]:
+        return tuple(map(cls, cls.cancel_all(view)))
 
 
-class WindowPublicationWork(RunningPublicationWork):
+class WindowPublicationWork(StartedPublicationWork):
     """Publishes the window's commits; a newer request supersedes a running one."""
 
     group = "transcript-window"
     exclusive = True
 
 
-class SourcePublicationWork(RunningPublicationWork):
+class SourcePublicationWork(StartedPublicationWork):
     """Reads the queued source publications in order."""
 
     group = "transcript-source"
@@ -819,7 +820,7 @@ class BoundView(ViewBinding):
 
     def cancel_workers(self):
         view = self.view
-        return (*WindowPublicationWork.cancel_all(view), *SourcePublicationWork.cancel_all(view))
+        return (*WindowPublicationWork.cancelled_work(view), *SourcePublicationWork.cancelled_work(view))
 
     def covered(self, owner: TranscriptPresentation, coverage: CoverageEvent, history: CommittedHistory):
         view = self.view
