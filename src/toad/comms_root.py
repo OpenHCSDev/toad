@@ -57,6 +57,7 @@ from agent_comms.ui_model.observation import (
     StopTeamHud,
     NotificationsObserved,
     NotificationsUnreadable,
+    LocalRouteObservation,
     ObservationProcess,
     Observed,
     ObserveNotifications,
@@ -677,7 +678,7 @@ class CoordinationAccess(MroDispatch):
                 raise RouteChangedError("Comms route changed while opening the service")
             self.confirm(selected)
             return previous.adopt(LocalObserving(
-                SidebarModel(self.app.call_next), ObservationProcess(service.route),
+                SidebarModel(self.app.call_next), ObservationProcess(LocalRouteObservation(service.route)),
                 selection=selected, service=service, access=self))
 
         return RootRuntime.attachment(selected.root, LaunchRuntime.running()).proceed(
