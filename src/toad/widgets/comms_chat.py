@@ -126,9 +126,9 @@ class CommsChatView(Conversation):
         # view. Start its asynchronous page read now, overlapping it with the
         # sidebar observation and the remaining control mounts. The history
         # reads Core directly and runs the read as its own source work.
+        # Nothing here waits for the sidebar: the composer's commands load
+        # when its references are current (referenced_identity).
         await self._refresh()
-        # The composer's commands read the sidebar's references synchronously.
-        await self.app.coordination_access.current_sidebar()
         self.prepare_prompt()
 
     @handles(core_events.CoordinationObserved)
@@ -140,8 +140,14 @@ class CommsChatView(Conversation):
     @handles(core_events.SessionSelected)
     async def _selected_source_changed(self, event: core_events.SessionSelected) -> None:
         """A retained view reads current source after its tab opens."""
-        self.update_slash_commands()
+        self.refresh_identity(self.queue_source.root)
         await self._refresh()
+
+    @handles(core_events.LinkContextChanged)
+    async def _command_source_changed(self, event: core_events.LinkContextChanged) -> None:
+        """The sidebar's references changed: the label and commands follow them."""
+        await super()._command_source_changed(event)
+        self.refresh_identity(self.queue_source.root)
 
     @handles(TranscriptSourceWorkFinished)
     async def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
@@ -189,7 +195,7 @@ class CommsChatView(Conversation):
             if self.is_attached:
                 self.call_after_refresh(self.prepare_prompt)
             return
-        self.update_slash_commands()
+        self.refresh_identity(self.queue_source.root)
         prompt.agent_info = self.agent_info
         prompt.sync_session()
         prompt.shell_mode = False
@@ -209,8 +215,10 @@ class CommsChatView(Conversation):
 
     @handles(CurrentDisplayReferences)
     def referenced_identity(self, references) -> object:
+        # Composer commands read these references (command_target_context).
         self.agent_info = Content(self.conversation.label(references))
         self.refresh_thread_status()
+        self.update_slash_commands()
         return self.DISCARD
 
     def transcript_scope(self) -> NoTranscript:
@@ -284,7 +292,6 @@ class CommsChatView(Conversation):
                         or not self.query_ancestor(SessionScope).is_current):
                     return
             self.call_after_refresh(history.mark_visible)
-            self.refresh_identity(source.loader.root)
             if not changed:
                 return
             status = await source.status_text(read_only=read_only)
