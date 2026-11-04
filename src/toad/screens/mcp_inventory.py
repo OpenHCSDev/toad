@@ -96,14 +96,16 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
         self.refresh_inventory()
 
     def on_unmount(self) -> None:
+        self._stop_reading()
+
+    def _stop_reading(self) -> None:
+        """A read started for an older generation never lands."""
         self._generation += 1
         if self._read_task is not None:
             self._read_task.cancel()
 
     def refresh_inventory(self) -> None:
-        self._generation += 1
-        if self._read_task is not None:
-            self._read_task.cancel()
+        self._stop_reading()
         self._inventory = None
         self._selected = None
         self.query_one(InventoryRows).clear_options()
