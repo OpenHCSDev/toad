@@ -18,7 +18,6 @@ from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.core_access import CoreAccess
 from agent_comms.repo import Checkout
-from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.historical_views import ConversationObservation, ConversationRevision, HistorySource
 from agent_comms.tools import CommsConversationRevisionTool, CommsLatestSequenceTool, CommsMarkPageReadTool
 from agent_comms.message_page import MessagePage, MessagePageRequest
