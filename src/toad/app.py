@@ -320,24 +320,25 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         asyncio.get_running_loop().add_signal_handler(signal.SIGUSR1, self.relaunch)
         self.preparation.renderer.start()
         self._prewarm_conversation_css()
-        self._prewarm_command_catalog()
+        self._prewarm_core_modules()
         db = await self.get_db()
         await db.create()
         self.saved_settings.ensure_file(self)
         self.colours.start()
         self.saved_settings.apply_all()
 
-    def _prewarm_command_catalog(self) -> None:
-        """Discover Core's command family before the first frame.
+    def _prewarm_core_modules(self) -> None:
+        """Import Core's modules before the first frame, through Core's own once-per-process owner.
 
-        A target's action menu lists every CliCommand member, and the family's
-        registry imports all of agent_comms.cli_verbs on its first listing.
-        Listing it here puts that one-time cost before the first frame, not in
-        the first cold tab, where the imports hold the GIL against input.
+        A cold tab's first wire revision and its first action menu each walk
+        agent_comms and import every module of it (RootFile.load_declarations,
+        and CliCommand's lazy registry over agent_comms.cli_verbs). Those
+        imports hold the GIL and the import lock against input, so they belong
+        before the first frame, not in the first cold tab.
         """
-        from agent_comms.cli_command import CliCommand
+        from agent_comms.locked_store import RootFile
 
-        CliCommand.members_with(CliCommand)
+        RootFile.load_declarations()
 
     def _prewarm_conversation_css(self) -> None:
         """Load known conversation classes' default CSS in one parse.
