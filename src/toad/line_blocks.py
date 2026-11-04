@@ -16,6 +16,7 @@ from urllib.parse import quote, unquote
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import DisplayReference
 from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.recorded_time import EventTime, UnrecordedEventTime
 
 from typing import ClassVar, Self
 
@@ -301,10 +302,10 @@ class Divider(LineBlock):
 
     spans: tuple[Span, ...]
     role: type[LineRole]
-    timestamp: float | None = None
+    timestamp: EventTime = UnrecordedEventTime()
 
     @classmethod
-    def titled(cls, title: str, role: type[LineRole], timestamp: float | None = None) -> Divider:
+    def titled(cls, title: str, role: type[LineRole], timestamp: EventTime = UnrecordedEventTime()) -> Divider:
         return cls((Span(title),), role, timestamp)
 
     @property

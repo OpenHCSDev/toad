@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.nominal.field_codec import ToolCallId
 from agent_comms.message_reference import MessageReference
+from agent_comms.recorded_time import EventTime
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection
 from agent_comms.turn_item import NativeItemId
 from metaclass_registry.mro_dispatch import handles
@@ -186,9 +187,9 @@ class FragmentLineConsumer(MroProjection[None]):
         # The blocks up to and including a drawn header; a continuation draws none.
         self.header_end = 0
 
-    def divider(self, label: str, timestamp: float | None, role: type[LineRole]) -> None:
+    def divider(self, label: str, timestamp: float, role: type[LineRole]) -> None:
         """The first event's divider is the fragment's message header, drawn or not."""
-        divider = Divider.titled(label, role, timestamp)
+        divider = Divider.titled(label, role, EventTime.capture(timestamp))
         self.header = self.header or (divider,)
         if self.show_divider:
             self.blocks.append(divider)
@@ -491,7 +492,7 @@ class TranscriptFragment(CursorRest):
         return frozenset(event.category for event in self.events)
 
     @property
-    def timestamp(self) -> float | None:
+    def timestamp(self) -> float:
         """When this fragment's first event happened."""
         return self.events[0].timestamp
 

@@ -18,6 +18,7 @@ from agent_comms.channel_targets import CommandTarget, ChannelTarget, ThreadTarg
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.messages import Message
+from agent_comms.recorded_time import EventTime
 from agent_comms.routing import MessageRoute
 
 from toad.inline_spans import inline_spans
@@ -32,18 +33,12 @@ class MessageClock:
     """When a displayed message happened, independent of its native divider."""
 
     fresh: ClassVar[bool] = False
-    timestamp: float | None
+    timestamp: float
 
-    def display(self) -> tuple[str, str | None]:
-        timestamp = self.timestamp
-        if timestamp is None:
-            return "time unknown", None
-        local = time.localtime(timestamp)
+    def display(self) -> tuple[str, str]:
+        """The time as drawn, and the time with its zone for a tooltip."""
+        local = time.localtime(self.timestamp)
         return time.strftime("%Y-%m-%d %H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
-
-    @classmethod
-    def recorded(cls, timestamp: float | None) -> MessageClock:
-        return UnknownMessageClock() if timestamp is None else RecordedMessageClock(timestamp)
 
 
 class LiveMessageClock(MessageClock):
@@ -57,10 +52,6 @@ class LiveMessageClock(MessageClock):
 @dataclass(frozen=True)
 class RecordedMessageClock(MessageClock):
     timestamp: float
-
-
-class UnknownMessageClock(MessageClock):
-    timestamp = None
 
 
 @dataclass(frozen=True)
@@ -138,7 +129,7 @@ class MessageRow(MroDispatch):
             spans = sender + (Span(" ──> ", self.role),) + tuple(targets)
         else:
             spans = tuple(targets) + (Span(" <── ", self.role),) + sender
-        return Divider(spans, self.role, self.timestamp)
+        return Divider(spans, self.role, EventTime.capture(self.timestamp))
 
 
 @dataclass(frozen=True)
