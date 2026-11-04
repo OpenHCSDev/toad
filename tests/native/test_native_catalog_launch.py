@@ -70,7 +70,7 @@ async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(works
             await ui.until(lambda: isinstance(app.screen, StoreScreen), why="the Store again")
             grid = store.query_one(LauncherGridSelect)
             grid.focus()
-            await grid.run_action("details")
+            await ui.press("enter")
             await ui.until(lambda: isinstance(app.screen, AgentModal), why="the agent dialog from the launcher")
             assert app.screen.agent is store.agents[IDENTITY]
             await ui.press("escape")
