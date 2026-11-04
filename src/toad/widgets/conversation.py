@@ -573,7 +573,6 @@ class ConversationSessionBinding(
         if not self.is_current_session:
             return
         self.refresh_thread_status()
-        self.goal_observation.invalidate()
         self.dispatch_sync(self._unpublished_presentation)
 
     @handles(core_events.ObservedServiceChanged)
