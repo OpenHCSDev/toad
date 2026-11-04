@@ -268,7 +268,7 @@ class SideBarToggle(
         edge.size_toggle(self)
         self.styles.dock = edge.opposite().dock
         self.offset = edge.control_offset(0 if collapsed else 1)
-        text = edge.toggle_symbol(collapsed)
+        text = edge.toggle_text(collapsed)
         if self.content != text:
             self.update(text, layout=False)
         tooltip = "Expand sidebar" if collapsed else "Collapse sidebar"
@@ -956,7 +956,13 @@ class SideBar(
 
     def resize_to(self, percentage: int) -> None:
         if self.app.sidebar_layout.resize(self.placement_identity, percentage):
-            self.app.workspace_chrome.refresh_layout()
+            self.arranged()
+
+    def arranged(self) -> None:
+        """Lay the workspace out again and save the arrangement for the next start."""
+        app = self.app
+        app.workspace_chrome.refresh_layout()
+        self.run_worker(app.saved_settings.save(), group="sidebar-layout", exclusive=True)
 
     @on(SidebarSlider.Changed)
     def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
@@ -968,7 +974,7 @@ class SideBar(
         event.stop()
         app = self.app
         event.action.apply(app.sidebar_layout, self.placement_identity)
-        app.workspace_chrome.refresh_layout()
+        self.arranged()
 
     def restore_navigation(self) -> bool:
         changed = self._presented_collapsed != self.collapsed

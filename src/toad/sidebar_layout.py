@@ -5,13 +5,17 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterator
 from dataclasses import dataclass, replace
-from typing import ClassVar, Self
+from typing import TYPE_CHECKING, ClassVar, Self
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.css.types import DockEdge
 from textual.geometry import Offset, Region, Size, Spacing
 from textual.widget import Widget
 from textual.widgets import Static
+
+if TYPE_CHECKING:
+    from formbridge.forms.declared_fields import FieldPath
+    from toad.preferences import SavedSettings
 
 
 class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
@@ -22,8 +26,8 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
     sign: ClassVar[int]
     minimum: ClassVar[int]
     conversation_minimum: ClassVar[int]
-    collapsed_extent: ClassVar[int] = 3
-    """The collapsed bar is three cells thick on every edge."""
+    collapsed_extent: ClassVar[int]
+    """How many cells thick the collapsed bar is, across its edge."""
 
     @classmethod
     @abstractmethod
@@ -60,6 +64,10 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
     @classmethod
     @abstractmethod
     def handle_text(cls, size: Size) -> str: ...
+
+    @classmethod
+    @abstractmethod
+    def toggle_text(cls, collapsed: bool) -> str: ...
 
     @classmethod
     @abstractmethod
@@ -101,6 +109,7 @@ class TrailingSidebarEdge:
 class WidthSidebarEdge(SidebarEdge):
     minimum = 18
     conversation_minimum = 24
+    collapsed_extent = 3
 
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
@@ -133,6 +142,10 @@ class WidthSidebarEdge(SidebarEdge):
         return "\n".join("│" for _ in range(size.height))
 
     @classmethod
+    def toggle_text(cls, collapsed: bool) -> str:
+        return cls.toggle_symbol(collapsed)
+
+    @classmethod
     def control_offset(cls, distance: int) -> Offset:
         return Offset(-cls.sign * distance, 0)
 
@@ -140,6 +153,7 @@ class WidthSidebarEdge(SidebarEdge):
 class HeightSidebarEdge(SidebarEdge):
     minimum = 9
     conversation_minimum = 8
+    collapsed_extent = 2
 
     @classmethod
     def axis(cls) -> type[SidebarEdge]:
@@ -169,6 +183,11 @@ class HeightSidebarEdge(SidebarEdge):
     @classmethod
     def handle_text(cls, size: Size) -> str:
         return "─" * size.width
+
+    @classmethod
+    def toggle_text(cls, collapsed: bool) -> str:
+        """One symbol on every row, so a two-row bar reads centred."""
+        return "\n".join(cls.toggle_symbol(collapsed) for _ in range(cls.collapsed_extent))
 
     @classmethod
     def control_offset(cls, distance: int) -> Offset:
@@ -353,43 +372,58 @@ class ResolvedSidebarLayout:
 
 
 class SidebarLayout:
-    """Placement only; sidebar content and thread navigation retain their owners."""
+    """Placement policy over the arrangement saved for this terminal.
+
+    The settings own the placements: each role's saved record, or the role's
+    own initial placement until the user moves or resizes it.
+    """
 
     minimum_percent = 15
     maximum_percent = 50
 
-    def __init__(self) -> None:
-        self.placements: dict[type[SidebarPlacement], SidebarPlacement] = {
-            role: role.initial() for role in SidebarPlacement.members_with(SidebarPlacement)
-        }
+    def __init__(self, settings: SavedSettings, saved: FieldPath) -> None:
+        self.settings, self.saved = settings, saved
+
+    @property
+    def placements(self) -> dict[type[SidebarPlacement], SidebarPlacement]:
+        saved = {type(placement): placement for placement in self.saved.bind(self.settings.state).value}
+        return {role: saved.get(role, role.initial()) for role in SidebarPlacement.members_with(SidebarPlacement)}
+
+    def _store(self, placements: dict[type[SidebarPlacement], SidebarPlacement]) -> None:
+        self.settings.set(self.saved, tuple(placements.values()))
 
     def get(self, identity: type[SidebarPlacement]) -> SidebarPlacement:
         return self.placements[identity]
 
     def move(self, identity: type[SidebarPlacement], side: type[SidebarEdge]) -> bool:
-        current = self.get(identity)
+        placements = self.placements
+        current = placements[identity]
         if current.side is side:
             return False
-        peers = [key for key, placement in self.placements.items()
+        peers = [key for key, placement in placements.items()
                  if key != identity and placement.side is side]
-        self.placements[identity] = replace(current, side=side, order=len(peers))
-        self._renumber(current.side)
+        placements[identity] = replace(current, side=side, order=len(peers))
+        self._renumber(placements, current.side)
+        self._store(placements)
         return True
 
     def swap(self, identity: type[SidebarPlacement]) -> bool:
-        current = self.get(identity)
-        peers = [key for key, placement in self.placements.items()
+        placements = self.placements
+        current = placements[identity]
+        peers = [key for key, placement in placements.items()
                  if key != identity and placement.side is current.side]
         if not peers:
             return False
         other = peers[0]
-        self.placements[identity] = replace(current, order=self.placements[other].order)
-        self.placements[other] = replace(self.placements[other], order=current.order)
+        placements[identity] = replace(current, order=placements[other].order)
+        placements[other] = replace(placements[other], order=current.order)
+        self._store(placements)
         return True
 
     def directions(self, identity: type[SidebarPlacement]) -> dict[type[SidebarEdge], SidebarShift]:
         """Each spatial arrow swaps a neighbor, crosses the center or stops at a wall."""
-        current = self.get(identity)
+        placements = self.placements
+        current = placements[identity]
         actions: dict[type[SidebarEdge], SidebarShift] = {}
         for direction in SidebarEdge.members_with(SidebarEdge):
             if direction.axis() is not current.side.axis():
@@ -398,7 +432,7 @@ class SidebarLayout:
             inward = direction is not current.side
             neighbor_order = current.order + (1 if inward else -1)
             if any(key != identity and peer.side is current.side and peer.order == neighbor_order
-                   for key, peer in self.placements.items()):
+                   for key, peer in placements.items()):
                 actions[direction] = SwapSidebarShift()
             elif inward:
                 actions[direction] = MoveSidebarShift()
@@ -410,17 +444,21 @@ class SidebarLayout:
         return self.directions(identity)[direction].apply(self, identity, direction)
 
     def resize(self, identity: type[SidebarPlacement], percentage: int) -> bool:
-        current = self.get(identity)
+        placements = self.placements
+        current = placements[identity]
         percentage = max(self.minimum_percent, min(self.maximum_percent, percentage))
         if current.extent_percent == percentage:
             return False
-        self.placements[identity] = replace(current, extent_percent=percentage)
+        placements[identity] = replace(current, extent_percent=percentage)
+        self._store(placements)
         return True
 
     def float_mode(self, identity: type[SidebarPlacement]) -> bool:
-        current = self.get(identity)
-        self.placements[identity] = replace(current, floating=not current.floating)
-        return self.placements[identity].floating
+        placements = self.placements
+        current = placements[identity]
+        placements[identity] = replace(current, floating=not current.floating)
+        self._store(placements)
+        return placements[identity].floating
 
     def resolve(self, viewport: Size, collapsed: dict[type[SidebarPlacement], bool]) -> ResolvedSidebarLayout:
         """Pack each axis once; top/bottom surfaces own the corners.
@@ -428,6 +466,7 @@ class SidebarLayout:
         Float changes only conversation clearance. A pushed inner peer clears
         its floating outer peer too; collapsed handles always reserve space.
         """
+        placements = self.placements
         spans: dict[type[SidebarPlacement], SidebarGeometry] = {}
         occupied = gutter = Spacing()
         edges = SidebarEdge.members_with(SidebarEdge)
@@ -435,7 +474,7 @@ class SidebarLayout:
             total = max(0, axis.extent(viewport))
             extents = {
                 key: axis.collapsed_extent if collapsed[key] else max(axis.minimum, total * placement.extent_percent // 100)
-                for key, placement in self.placements.items()
+                for key, placement in placements.items()
                 if key in collapsed and placement.side.axis() is axis
             }
             handles = sum(extent for key, extent in extents.items() if collapsed[key])
@@ -457,28 +496,31 @@ class SidebarLayout:
                     extents[key] = total * extents[key] // handles
             for side in SidebarEdge.members_with(axis):
                 offset = clearance = 0
-                for key in sorted((key for key in extents if self.get(key).side is side),
-                                  key=lambda key: self.get(key).order):
+                for key in sorted((key for key in extents if placements[key].side is side),
+                                  key=lambda key: placements[key].order):
                     extent = extents[key]
                     spans[key] = SidebarGeometry(offset, extent)
                     offset += extent
-                    if collapsed[key] or not self.get(key).floating:
+                    if collapsed[key] or not placements[key].floating:
                         clearance = offset
                 occupied += side.gutter(offset)
                 gutter += side.gutter(clearance)
         return ResolvedSidebarLayout(
-            {key: self.get(key).side.region(viewport, span, occupied) for key, span in spans.items()},
+            {key: placements[key].side.region(viewport, span, occupied) for key, span in spans.items()},
             gutter,
         )
 
-    def _renumber(self, side: type[SidebarEdge]) -> None:
-        names = sorted((key for key, placement in self.placements.items()
-                        if placement.side is side), key=lambda key: self.placements[key].order)
+    @staticmethod
+    def _renumber(placements: dict[type[SidebarPlacement], SidebarPlacement],
+                  side: type[SidebarEdge]) -> None:
+        names = sorted((key for key, placement in placements.items()
+                        if placement.side is side), key=lambda key: placements[key].order)
         for index, key in enumerate(names):
-            self.placements[key] = replace(self.placements[key], order=index)
+            placements[key] = replace(placements[key], order=index)
 
     def ordered(self) -> tuple[type[SidebarPlacement], ...]:
         edges = SidebarEdge.members_with(SidebarEdge)
-        return tuple(sorted(self.placements, key=lambda key:
-                            (edges.index(self.get(key).side),
-                             self.get(key).side.order_key(self.get(key).order))))
+        placements = self.placements
+        return tuple(sorted(placements, key=lambda key:
+                            (edges.index(placements[key].side),
+                             placements[key].side.order_key(placements[key].order))))

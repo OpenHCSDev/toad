@@ -53,6 +53,7 @@ from toad.session_tracker import (
     SidebarState,
 )
 from toad.sidebar_layout import SidebarLayout
+from toad.terminal_origin import TerminalOrigin
 from toad.clipboard import Clipboard
 from toad.constants import WELCOME
 from toad.tab_order import TabOrder
@@ -189,7 +190,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
         self.sidebar_state = SidebarState()
-        self.sidebar_layout = SidebarLayout()
+        self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of().layout)
         self._mode_switch_lock = asyncio.Lock()
         self.tab_order = TabOrder(
             lambda identity, index: self.select_session(identity.mode_name, history_index=index),

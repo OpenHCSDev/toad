@@ -50,6 +50,7 @@ from toad.setting_choices import (
 )
 from toad.setting_declarations import Effect, FamilyChoices
 from toad.setting_widget import PromptSettingEffects
+from toad.sidebar_layout import SidebarPlacement
 from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
@@ -223,6 +224,20 @@ class SidebarSettings(AnnotatedDataclassValidationMixin):
 
 
 @dataclass(frozen=True)
+class WorkspaceLayoutSettings(AnnotatedDataclassValidationMixin):
+    """Where each sidebar sits and how large it is, kept per kind of terminal.
+
+    A role with no record here keeps its own initial placement.
+    """
+
+    local: tuple[SidebarPlacement, ...] = ()
+    """The arrangement on this machine's own terminal."""
+
+    ssh: tuple[SidebarPlacement, ...] = ()
+    """The arrangement when Toad is reached over SSH, such as from a phone."""
+
+
+@dataclass(frozen=True)
 class AgentSettings(AnnotatedDataclassValidationMixin):
     thoughts: Annotated[bool, FieldLabel("Agent thoughts"), effects.visibility] = True
     """Show agent's 'thoughts' in the conversation?"""
@@ -311,6 +326,11 @@ class ToadSettings(AnnotatedDataclassValidationMixin):
         default_factory=SidebarSettings
     )
     """Customize how the sidebar is displayed."""
+
+    layout: WorkspaceLayoutSettings = field(
+        default_factory=WorkspaceLayoutSettings, metadata={"ui_hidden": True}
+    )
+    """Sidebar placements saved as they are moved and resized."""
 
     agent: Annotated[AgentSettings, FieldLabel("Agent settings"), SESSIONS] = field(
         default_factory=AgentSettings
