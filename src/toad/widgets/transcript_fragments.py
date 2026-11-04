@@ -289,9 +289,11 @@ class PartPosition(ABC):
 
     @staticmethod
     def sequence(count: int) -> tuple[PartPosition, ...]:
-        """The positions of a source split into `count` parts, head first and status-bearing last."""
-        if count == 1:
-            return (OnlyPart(index=0),)
+        """The positions of a source split into `count` parts, head first and status-bearing last.
+
+        An empty source has no parts and so no positions."""
+        if count < 2:
+            return (OnlyPart(index=0),)[:count]
         return (HeadInnerPart(index=0), *(LaterInnerPart(index=index) for index in range(1, count - 1)),
                 LaterLastPart(index=count - 1))
 
