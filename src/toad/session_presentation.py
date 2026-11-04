@@ -31,9 +31,9 @@ from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
 from toad.worker_group import InputHistoryRecord
+from toad.comms_root import Observing
 
 if TYPE_CHECKING:
-    from toad.comms_root import Observing
     from toad.app import ToadApp
     from toad.screens.main import MainScreen
 

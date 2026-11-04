@@ -17,7 +17,7 @@ from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, Annotated, ClassVar
+from typing import Annotated, ClassVar
 
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
@@ -32,11 +32,8 @@ from toad.widgets.comms_menu import ContextMenu
 from formbridge.forms.declared_fields import FieldPath, Placeholder
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
-
-if TYPE_CHECKING:
-    from agent_comms.tool_request import ToolRequest
-
-    from toad.comms_root import CoordinationAccess, Observing
+from agent_comms.tool_request import ToolRequest
+from toad.comms_root import CoordinationAccess, Observing
 
 
 @dataclass(frozen=True)

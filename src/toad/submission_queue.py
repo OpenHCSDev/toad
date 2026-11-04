@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.tools import CommsQueueActionTool
@@ -20,9 +20,7 @@ from toad.agent_presentation import AgentPresentation
 from toad.block_navigation import ConversationEntry
 from toad.line_blocks import MutedRole, Span
 from toad.notification_status import DetailLines, MessageQueueEntry
-
-if TYPE_CHECKING:
-    from toad.comms_root import Observing
+from toad.comms_root import Observing
 
 
 @dataclass(frozen=True)

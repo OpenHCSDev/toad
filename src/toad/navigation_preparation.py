@@ -20,12 +20,11 @@ from agent_comms.repo import Checkout
 from toad.owner_preparation import ExistingOwnerPlan
 from toad.session_tracker import CommsViewKey
 from toad.tab_identity import SessionTabIdentity
+from toad.comms_root import Observing
 
 ResultT = TypeVar("ResultT")
 
 if TYPE_CHECKING:
-    from toad.comms_root import Observing
-    from toad.comms_root import Observing
     from toad.navigation_target import HistoryRouted
     from toad.thread_navigation import ThreadNavigator, ThreadOrigin
 

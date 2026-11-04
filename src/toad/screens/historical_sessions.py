@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+
 
 import asyncio
 from functools import partial
@@ -27,9 +27,7 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
 from toad.transcript_state import LiveTranscript
 from toad.widgets.transcript_history import LineHistory
-
-if TYPE_CHECKING:
-    from toad.comms_root import Observing
+from toad.comms_root import Observing
 
 
 class RecordedContents(Contents):

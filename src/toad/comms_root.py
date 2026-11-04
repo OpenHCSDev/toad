@@ -93,9 +93,9 @@ from toad.core.events import (
 from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
 from toad.notification_status import CheckedNotifications, NotificationStatus, UncheckedNotifications
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
+from agent_comms.tool_request import ToolRequest
 
 if TYPE_CHECKING:
-    from agent_comms.tool_request import ToolRequest
     from agent_comms.display_references import ReferenceContext
     from agent_comms.thread_identity import ThreadIncarnation
 

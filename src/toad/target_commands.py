@@ -16,9 +16,9 @@ from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_command import TargetAction
 from agent_comms.tools import CommsTargetActionsTool
 from toad.thread_actions import ThreadAction
+from toad.comms_root import Observing
 
 if TYPE_CHECKING:
-    from toad.comms_root import Observing
     from toad.app import ToadApp
     from toad.widgets.conversation import Conversation
 

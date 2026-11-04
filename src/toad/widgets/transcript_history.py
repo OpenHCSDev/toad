@@ -121,9 +121,9 @@ from toad.widgets.transcript_lines import (
     TranscriptLinesBatchRenderTask,
     TranscriptLinesRenderTask,
 )
+from agent_comms.message_reference import MessageReference
 
 if TYPE_CHECKING:
-    from agent_comms.message_reference import MessageReference
 
     from toad.widgets.conversation import Contents, Conversation
 

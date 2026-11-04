@@ -14,9 +14,9 @@ from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncar
 from toad.format_path import format_path
 from toad.session_scope import KnownTranscript, NoTranscript, TranscriptScope
 from toad.transcript_state import UnboundTranscript, UnreadTranscript
+from toad.comms_root import Observing
 
 if TYPE_CHECKING:
-    from toad.comms_root import Observing
     from toad.session_tracker import SessionDetails
 
 

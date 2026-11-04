@@ -43,9 +43,9 @@ from agent_comms.runtime_server import RuntimeRequest
 
 from toad.core.projection import MroProjection
 from toad.thread_identity import ThreadIdentity
+from toad.comms_root import Observing
 
 if TYPE_CHECKING:
-    from toad.comms_root import Observing
     from agent_comms.context_store import (
         CapturedContext,
         ContextManifestPage,

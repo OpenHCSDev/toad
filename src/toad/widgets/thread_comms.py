@@ -9,7 +9,7 @@ from toad.core import events as core_events
 
 from toad.navigation_target import NavigationTarget, SelectTarget, ThreadTarget
 
-from typing import TYPE_CHECKING
+
 import asyncio
 from dataclasses import dataclass, field
 
@@ -53,9 +53,7 @@ from agent_comms.relationships import (
 )
 from toad.widget_actions import WidgetAction, OpensSelected
 from toad.worker_group import WorkerGroup
-
-if TYPE_CHECKING:
-    from toad.comms_root import Observing
+from toad.comms_root import Observing
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:

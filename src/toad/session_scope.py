@@ -32,11 +32,11 @@ from toad.owner_preparation import ExistingOwnerPlan
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
+from agent_comms.message_reference import MessageReference
+from toad.comms_root import Observing
 
 if TYPE_CHECKING:
-    from toad.comms_root import Observing
     from toad.widget_actions import DeclaredWidgetActions
-    from agent_comms.message_reference import MessageReference
     from agent_comms.thread_presentation import ThreadPresentation
     from textual.command import Provider
     from toad.widgets.side_bar import SideBar
