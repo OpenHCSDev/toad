@@ -568,7 +568,7 @@ class SessionNavigation:
                 try:
                     serving = self.app.coordination_access.observing(root)
                     retired = serving.core.call(CommsRetiredViewsTool(
-                        threads=frozenset(threads), channels=frozenset(channels))).retired
+                        threads=frozenset(threads), channels=frozenset(channels)))
                 except RouteChangedError:
                     continue  # The next observation reads the replacement route.
                 answers[root] = serving, retired

@@ -418,7 +418,7 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
 
     def session_thread(self, project: Path, preferred: str) -> ProjectThreadSelection:
         """The thread an unbound session at ``project`` names; Core's host resolves the path."""
-        return self.core.call(CommsSessionThreadTool(project=str(project), preferred=preferred)).selection
+        return self.core.call(CommsSessionThreadTool(project=str(project), preferred=preferred))
 
     def send_user_message(self, target: NamedTarget, body: str) -> MessageReference:
         """The owner's input, published by Core under the owner's identity, in process or
