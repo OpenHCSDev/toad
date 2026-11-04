@@ -23,5 +23,5 @@ async def test_blocked_goal_offers_retry_and_retry_reaches_the_owner(workspace):
         await ui.click("Retry")
         await ui.until(lambda: owner.requests, why="the retry request at the owner")
         assert owner.requests == [("update", RetryGoalAction)]
-        await ui.until(lambda: str(bar.query_one(goal_control(bar, ToggleInteraction)).render()) == "Pause",
+        await ui.until(lambda: str(goal_control(bar, ToggleInteraction).render()) == "Pause",
                        why="the owner's runnable reply repaints the control")
