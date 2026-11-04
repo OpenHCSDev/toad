@@ -56,7 +56,7 @@ from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, ReadWork
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
+from toad.widgets.project_panel import NO_PROJECT_VIEW, ProjectSearchButton, ProjectView
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBar
 from toad.widgets.splash_text import ThreadLoading
@@ -333,7 +333,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         self._identity = binding.initial_identity(NoThreadIdentity())
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
-        self._project_panel: ProjectPanel | None = None
+        self._project_panel: ProjectView = NO_PROJECT_VIEW
         self.content: ScreenContent = OpeningContent()
         self.presentation = OperationalSessionPresentation()
 
@@ -433,8 +433,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         # The identity is updated by ACP's coordination notification and
         # cached on this screen. Resolving it through the wire here can
         # block the first frame of every navigation on store I/O.
-        if self._project_panel is not None:
-            self.call_after_refresh(self._project_panel.refresh_if_visible)
+        self.call_after_refresh(self._project_panel.refresh_if_visible)
 
     def make_thread_sidebar(self) -> SessionThreadSidebar:
         return SessionThreadSidebar(self)
@@ -473,8 +472,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         """The accepted source and later coordination updates use one project owner."""
         if project != self.project_path:
             self.project_path = project
-            if self._project_panel is not None:
-                self._project_panel.path = project.path
+            self._project_panel.show_project(project.path)
             if self.id is not None:
                 self.app.session_navigation.sync_project(self.id, project)
             self.update_title()
@@ -555,8 +553,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
     @handles(input_events.ProjectDirectoryUpdated)
     async def on_project_directory_update(self) -> None:
-        if self._project_panel is not None:
-            self._project_panel.invalidate()
+        self._project_panel.invalidate()
 
     @on(DirectoryTree.FileSelected, "ProjectDirectoryTree")
     async def on_project_directory_tree_selected(self, event: Tree.NodeSelected):

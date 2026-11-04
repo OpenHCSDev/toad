@@ -7,6 +7,7 @@ from toad.plan import PlanItem
 from toad.widgets.side_bar import PanelHydration, ThreadSidebar
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
 from toad.widgets.presentation_window import NativePresentation
+from toad.widgets.project_panel import NO_PROJECT_VIEW
 
 if TYPE_CHECKING:
     from toad.screens.main import MainScreen
@@ -85,7 +86,7 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
     def capture_panels(self, screen: "MainScreen") -> None:
         for owner, panel in zip(self._panel_owners, self.panels):
             owner.capture(panel.widget)
-        screen._project_panel = None
+        screen._project_panel = NO_PROJECT_VIEW
 
     def _compose_panels(self) -> ComposeResult:
         if not self.panels:
