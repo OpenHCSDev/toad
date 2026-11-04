@@ -22,7 +22,6 @@ from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage
 from agent_comms.messages import Message as WireMessage
-from textual import containers
 from textual.app import ComposeResult
 from textual.content import Content
 
@@ -32,6 +31,7 @@ from toad.widgets.conversation import (
     ContentsGrid,
     Conversation,
     CursorContainer,
+    PromptStack,
     Window,
 )
 from toad.status_thread import StatusThread
@@ -88,7 +88,7 @@ class CommsChatView(Conversation):
                     yield HistoryLoading("Loading messages…")
                     yield self.message_history
         yield Flash()
-        with containers.Vertical():
+        with PromptStack():
             yield from self.conversation.compose_activity(self)
             yield self.throbber_above
             yield self.conversation.prompt(self.project_path, submissions=self.submissions).data_bind(
