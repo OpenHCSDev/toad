@@ -12,9 +12,8 @@ from agent_comms.coordination_errors import Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.session_load import ExistingSessionLoadPlan
-from agent_comms.thread_execution import ConversationPreparation
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.threads import Thread
+from agent_comms.threads import ConversationPreparation, Thread
 from agent_comms.repo import Checkout
 
 from toad.owner_preparation import ExistingOwnerPlan
@@ -161,7 +160,7 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         )
         if existing is not None:
             return ExistingThreadNavigation(self.root, thread, project, existing)
-        return thread.execution.prepare_conversation(
+        return thread.prepare_conversation(
             ThreadConversationPreparation(self.root, thread, project, snapshot)
         )
 
@@ -177,7 +176,7 @@ class ThreadConversationPreparation(ConversationPreparation):
         return ExternalThreadNavigation(self.root, self.thread, self.project)
 
     def native(self) -> ThreadNavigation:
-        binding = self.thread.execution.owner_binding(self.snapshot, self.thread)
+        binding = self.thread.owner_binding(self.snapshot)
         plan = ExistingOwnerPlan.from_binding(binding)
         if not plan.available:
             return ThreadNavigation(self.root, self.thread, self.project)

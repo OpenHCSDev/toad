@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 from support.agents import AppAgents
 from support.roots import Roots, installed_wire
 from support.ui import TextualUi
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 from toad.session_scope import AgentBinding, NoAgent
 
 if TYPE_CHECKING:
@@ -46,7 +46,7 @@ class Workspace:
 
         comms = self.comms if root is None else installed_wire(root)
         identity = ProcessIdentity.capture(os.getpid()) if running else NoProcess()
-        comms.registry.declare(Thread(
+        comms.registry.declare(NativeThread(
             name, frozenset(tags), Checkout(self.project), title=ThreadText.external(title), process_identity=identity))
         return comms.registry.require(name)
 

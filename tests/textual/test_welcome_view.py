@@ -5,7 +5,7 @@ from toad.session_scope import AgentAttached
 from support.agents import peer
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.read_basis import NamedViewer
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 
 HINT = "n new session"
 # The view's own lists (the sidebar's panel is headed differently).
@@ -52,15 +52,13 @@ async def test_opening_a_channel_opens_its_tab_in_place_of_the_view(workspace):
 async def test_opening_a_thread_run_elsewhere_opens_its_history_read_as_the_user(
     workspace,
 ):
-    from agent_comms.thread_execution import ExternalThreadExecution
+    from agent_comms.threads import ExternalThread
 
     workspace.comms.registry.declare(
-        Thread(
+        ExternalThread(
             "scribe",
             frozenset({"team"}),
-            Checkout(workspace.project),
-            execution=ExternalThreadExecution,
-        )
+            Checkout(workspace.project))
     )
     async with workspace.app(session=False) as ui:
         await ui.until_shows(THREADS)
@@ -123,7 +121,7 @@ async def test_a_thread_row_tooltip_names_its_model_by_text(workspace):
     from agent_comms.thread_model import DeclaredModel
     from toad.widgets.comms_sidebar import ThreadStatusRow
 
-    thread = Thread("alpha", frozenset({"team"}), Checkout(workspace.project))
+    thread = NativeThread("alpha", frozenset({"team"}), Checkout(workspace.project))
     workspace.comms.registry.declare(replace(thread, model=DeclaredModel("openai-codex/gpt-6.1-sol")))
     async with workspace.app(session=False) as ui:
         await ui.until_shows(THREADS)

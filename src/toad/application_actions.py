@@ -85,7 +85,7 @@ class SettingsAction(ApplicationAction):
         await app.saved_settings.save()
 
 
-class TeamAction(ApplicationAction, declared_name="commander"):
+class TeamAction(ApplicationAction, declared_name="team"):
     """Open the live team board, including teammates' orders and original evidence."""
 
     keys = {EditingMode: ("f2",)}

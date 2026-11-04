@@ -25,7 +25,7 @@ import threading
 from agent_comms.pi_vocabulary import OffThinkingLevel
 from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.thread_model import DeclaredModel
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 
 from support.roots import installed_wire
 
@@ -269,7 +269,7 @@ async def native_session(workspace, *, provider: ControlledProvider | None = Non
     with provider.serving() as base_url:
         comms = start_private_native_wire(workspace.roots.wire)
         configure_provider(base_url, settings=settings, input_types=provider.input_types)
-        comms.registry.declare(Thread(NativeSession.thread, frozenset({"team"}), Checkout(workspace.project),
+        comms.registry.declare(NativeThread(NativeSession.thread, frozenset({"team"}), Checkout(workspace.project),
                                       model=MODEL, thinking_level=OffThinkingLevel))
         try:
             if prepare is not None:

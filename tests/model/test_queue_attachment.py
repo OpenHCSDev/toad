@@ -9,7 +9,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import AcpSessionId
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 
 from support.roots import installed_wire
 
@@ -19,7 +19,7 @@ from toad.acp.queue_attachment import QueueAttachment
 def declared_scope(tmp_path):
     comms = installed_wire(tmp_path / "wire")
     owner = ProcessIdentity.capture(os.getpid())
-    comms.registry.declare(Thread("source", frozenset(), Checkout(tmp_path),
+    comms.registry.declare(NativeThread("source", frozenset(), Checkout(tmp_path),
                                   process_identity=owner))
     return comms, LiveQueueScope(
         session_id=AcpSessionId("source"), claimed_identity=comms.registry.snapshot().claimed_identity("source"), owner=owner,

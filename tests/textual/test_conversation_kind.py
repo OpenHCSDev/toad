@@ -15,7 +15,7 @@ from support.agents import AppAgents
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.installer.backup import StoreBackup
 from agent_comms.message_page import PageBounds
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 
 from toad.constants import ALL_COMMS_TARGET
 from toad.conversation_kind import ChannelConversation, ConversationKind, IrcConversation
@@ -31,7 +31,7 @@ from toad.wire_history import WireSource
 def copied_conversations(tmp_path):
     original = installed_wire(tmp_path / "original")
     original.registry.declare(
-        Thread("peer", frozenset({"team"}), Checkout(tmp_path))
+        NativeThread("peer", frozenset({"team"}), Checkout(tmp_path))
     )
     viewer = original.messaging.user_identity(Checkout(tmp_path)).name
     original.messaging.send("peer", "#team", "channel body")
@@ -133,7 +133,7 @@ def test_recreated_name_cannot_resolve_the_retired_dm(copied_conversations):
     direct = DirectTarget("peer").prepare(LocalCoreAccess(comms), viewer).conversation
     comms.registry.unregister("peer")
     comms.threads.delete("peer")
-    comms.registry.declare(Thread("peer", frozenset(), Checkout(comms.root.parent)))
+    comms.registry.declare(NativeThread("peer", frozenset(), Checkout(comms.root.parent)))
     recreated = DirectTarget("peer").prepare(LocalCoreAccess(comms), viewer).conversation
     references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert recreated != direct

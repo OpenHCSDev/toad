@@ -177,7 +177,7 @@ class NativeSessionEntry(SessionEntry):
         if original is None:
             return
         thread = snapshot.require(snapshot.canonical_name(original.name))
-        binding = thread.execution.owner_binding(snapshot, thread)
+        binding = thread.owner_binding(snapshot)
         plan = ExistingOwnerPlan.from_binding(binding)
         if not plan.available:
             return

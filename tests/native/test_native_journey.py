@@ -20,7 +20,7 @@ from agent_comms.input_disposition import InputDispositions
 from agent_comms.input_key import AcpInputKey
 from agent_comms.input_attempt import StartedInput
 from agent_comms.pi_vocabulary import OffThinkingLevel
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 
 from support.native import ControlledProvider, native_session
 from support.native_steps import channel_message_feedback, direct_reply_feedback
@@ -333,7 +333,7 @@ async def test_a_second_thread_opened_from_the_app_answers_its_first_message(wor
     from support.native import MODEL
 
     async def declare_second(comms, project, _provider):
-        comms.registry.declare(Thread("gamma", frozenset({"team"}), Checkout(project), model=MODEL, thinking_level=OffThinkingLevel))
+        comms.registry.declare(NativeThread("gamma", frozenset({"team"}), Checkout(project), model=MODEL, thinking_level=OffThinkingLevel))
 
     async with native_session(workspace, prepare=declare_second) as native:
         ui, provider = native.ui, native.provider

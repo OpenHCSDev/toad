@@ -22,8 +22,7 @@ from agent_comms.connector_profile import HttpsMcpEndpoint
 from agent_comms.connector_store import ConnectorStore, UiAccess, UiGrantAccess, UiReadAccess
 from agent_comms.read_basis import NamedViewer
 from agent_comms.repo import Checkout
-from agent_comms.thread_execution import ExternalThreadExecution
-from agent_comms.threads import Thread
+from agent_comms.threads import ExternalThread
 
 from toad.comms_root import RemoteCoreConnection, RemoteObserving
 from toad.widgets.comms_sidebar import CommsSidebar
@@ -106,9 +105,8 @@ async def test_a_remote_core_shows_its_sidebar_through_the_connector(workspace, 
 async def test_a_remote_core_opens_a_thread_and_sends_to_it_through_the_connector(
         workspace, tmp_path, monkeypatch):
     # A thread run elsewhere: its mailbox takes the owner's input, as from the sidebar locally.
-    workspace.comms.registry.declare(Thread(
-        "remote-peer", frozenset({"team"}), Checkout(workspace.project),
-        execution=ExternalThreadExecution))
+    workspace.comms.registry.declare(ExternalThread(
+        "remote-peer", frozenset({"team"}), Checkout(workspace.project)))
 
     def sent():
         return tuple(message for message in workspace.comms.views.history_page(

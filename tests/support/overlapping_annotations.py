@@ -21,7 +21,7 @@ from agent_comms.working_memory_labels import (
     AnswerProbability, HumanLabel, JevClassifier, ModelLabel, QuestionVersion,
 )
 from agent_comms.working_memory_questions import CommitmentSpan, KindQuestion, OtherSpan, RuleSpan
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 from toad.core.context_inspection import ContextInspection
 
 
@@ -39,7 +39,7 @@ class OverlappingAnnotations:
 
 def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
     """A short and a long annotation over one segment, as an inspection shows them, and the same after correcting the short one."""
-    owner = Thread(
+    owner = NativeThread(
         "authored-navigation", frozenset(), Checkout(directory), created_at=1.0)
     segment = UserInputSegment(content="Keep the original instruction.",
                                provenance=(UnattributedProvenance(),))

@@ -9,7 +9,7 @@ import psutil
 from support.native import attached_app, start_private_native_wire, without_provider
 from support.textual_steps import reveal_project_tree
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 
 
 async def project_applied(ui, project) -> None:
@@ -25,7 +25,7 @@ async def test_saved_project_and_later_changes_replace_the_launch_directory(work
     saved.mkdir()
     without_provider()
     comms = start_private_native_wire(workspace.roots.wire)
-    comms.registry.declare(Thread("saved", frozenset({"acp"}), Checkout(launched)))
+    comms.registry.declare(NativeThread("saved", frozenset({"acp"}), Checkout(launched)))
     comms.threads.set_project("saved", str(saved))
     async with attached_app(workspace, comms, "saved", size=(100, 35)) as (ui, agent):
         app, _pilot = ui.textual
@@ -64,7 +64,7 @@ async def test_a_project_change_reported_by_the_agent_moves_the_session(workspac
     moved.mkdir()
     without_provider()
     comms = start_private_native_wire(workspace.roots.wire)
-    comms.registry.declare(Thread("saved", frozenset({"acp"}), Checkout(workspace.project)))
+    comms.registry.declare(NativeThread("saved", frozenset({"acp"}), Checkout(workspace.project)))
     async with attached_app(workspace, comms, "saved", size=(100, 35)) as (ui, agent):
         app, _pilot = ui.textual
         await ui.until_agent_ready()

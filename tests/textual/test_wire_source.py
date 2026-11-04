@@ -13,7 +13,7 @@ from support.roots import installed_wire
 from support.agents import AppAgents
 from agent_comms.historical_views import UnobservedConversation
 from agent_comms.page_traversal import LiveCursor
-from agent_comms.threads import Thread
+from agent_comms.threads import NativeThread
 
 from toad.conversation_kind import ChannelConversation
 from toad.transcript_preparation import PageRequest, Unchanged
@@ -43,7 +43,7 @@ def observed(source):
 
 def test_empty_first_read_keeps_its_real_identity_after_the_unread_placeholder(tmp_path: Path) -> None:
     comms = installed_wire(tmp_path / 'wire')
-    comms.registry.declare(Thread('peer', frozenset({'team'}), Checkout(tmp_path)))
+    comms.registry.declare(NativeThread('peer', frozenset({'team'}), Checkout(tmp_path)))
     source = channel_source(comms, '#team', tmp_path)
     placeholder = PreparedWirePage.empty(WirePage.unread())
     assert placeholder.page.after.requires_read() and not placeholder.page.source.selection.has_evidence
@@ -60,7 +60,7 @@ def test_empty_first_read_keeps_its_real_identity_after_the_unread_placeholder(t
 
 def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_path):
     comms = installed_wire(tmp_path / "wire")
-    comms.registry.declare(Thread("peer", frozenset(), Checkout(tmp_path), process_identity=ProcessIdentity.capture(os.getpid())))
+    comms.registry.declare(NativeThread("peer", frozenset(), Checkout(tmp_path), process_identity=ProcessIdentity.capture(os.getpid())))
     viewer = comms.messaging.user_identity(Checkout(tmp_path)).name
     comms.messaging.send("peer", viewer, "shown across turn claim")
     before = comms.views.dm_display_page(ThreadTarget("peer"), worktree=Checkout(tmp_path))
@@ -71,7 +71,7 @@ def test_a_turn_claim_on_the_peer_keeps_the_direct_message_page_identity(tmp_pat
 
 def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
     comms = installed_wire(tmp_path / "wire")
-    comms.registry.declare(Thread("sender", frozenset({"one", "two"}), Checkout(tmp_path)))
+    comms.registry.declare(NativeThread("sender", frozenset({"one", "two"}), Checkout(tmp_path)))
     for index in range(60):
         comms.messaging.send("sender", "#one", f"Message {index}")
         comms.messaging.send("sender", "#two", f"Elsewhere {index}")
@@ -111,9 +111,9 @@ def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
 
 def test_any_mode_expansion_replaces_the_reading_without_new_bus_rows(tmp_path):
     comms = installed_wire(tmp_path / "wire")
-    comms.registry.declare(Thread("alice", frozenset({"team"}), Checkout(tmp_path)))
-    comms.registry.declare(Thread("carol", frozenset({"team"}), Checkout(tmp_path)))
-    comms.registry.declare(Thread("dave", frozenset(), Checkout(tmp_path)))
+    comms.registry.declare(NativeThread("alice", frozenset({"team"}), Checkout(tmp_path)))
+    comms.registry.declare(NativeThread("carol", frozenset({"team"}), Checkout(tmp_path)))
+    comms.registry.declare(NativeThread("dave", frozenset(), Checkout(tmp_path)))
     comms.messaging.send("carol", "dave", "older DM")
     comms.messaging.send("alice", "#team", "channel message")
     source = channel_source(comms, "#team", tmp_path)
@@ -131,7 +131,7 @@ def test_attaching_or_detaching_history_replaces_the_reading_without_new_live_me
     old = installed_wire(tmp_path / "old")
     comms = installed_wire(tmp_path / "live")
     for bus in (old, comms):
-        bus.registry.declare(Thread("alice", frozenset({"team"}), Checkout(tmp_path)))
+        bus.registry.declare(NativeThread("alice", frozenset({"team"}), Checkout(tmp_path)))
         bus.messaging.send("alice", "#team", bus.root.name)
     source = channel_source(comms, "#team", tmp_path)
     first, _newest = observed(source)
