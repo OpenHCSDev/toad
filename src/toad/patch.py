@@ -1,12 +1,13 @@
 """Reported patch hunks shared by live tools, saved tools and display styles."""
 
+from abc import abstractmethod
 from dataclasses import dataclass
-from collections.abc import Iterator
-from itertools import zip_longest
+from collections.abc import Iterable, Iterator
+from itertools import chain, zip_longest
 import re
 
 from rich.text import Text
-from typing import Annotated
+from typing import Annotated, ClassVar
 from agent_comms.declared_choice import DeclaredChoice, TitledChoice
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 from toad.setting_declarations import Effect, FamilyChoices
@@ -16,13 +17,104 @@ from toad.line_blocks import LineBlock, LineRole, TextRole, AddedCodeRole, Remov
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
-class DiffMode(DeclaredChoice, affix="Diff"):
+class PatchSide:
+    """One side of a diff row: a numbered line, or no line on that side."""
+
+    label = ""
+
+    def selected(self) -> str:
+        """The text copied from this side; a side with no line copies nothing."""
+        return ""
+
+    def otherwise(self, other: "PatchSide") -> "PatchSide":
+        """The line a unified row shows: this side when it has one."""
+        return self
+
+
+@dataclass(frozen=True)
+class PatchCell(PatchSide):
+    """A numbered line with its displayed code, styled when the patch was."""
+
+    number: int
+    text: str
+    code: Text
+    role: type[LineRole] = TextRole
+
+    @property
+    def label(self) -> str:
+        return str(self.number)
+
+    def selected(self) -> str:
+        return self.text
+
+
+class NoPatchCell(PatchSide):
+    """The side of a row where the other side's line was added or removed."""
+
+    def otherwise(self, other: PatchSide) -> PatchSide:
+        return other
+
+
+NO_PATCH_CELL = NoPatchCell()
+
+
+class PatchRows:
+    """How a diff lays out its lines: before and after side by side, or one column."""
+
+    split: ClassVar[bool]
+
+    @abstractmethod
+    def changed(self, before: tuple[PatchCell, ...], after: tuple[PatchCell, ...]) -> Iterable[tuple[PatchSide, PatchSide]]:
+        """The rows of one changed run."""
+
+    @abstractmethod
+    def pane_width(self, width: int) -> int: ...
+
+    @abstractmethod
+    def number_columns(self, number_width: int) -> int:
+        """Cells the line numbers take before the code."""
+
+
+class SplitRows(PatchRows):
+    """Removed lines beside the lines that replaced them."""
+
+    split = True
+
+    def changed(self, before, after):
+        return zip_longest(before, after, fillvalue=NO_PATCH_CELL)
+
+    def pane_width(self, width: int) -> int:
+        return max(1, (width - 3) // 2)
+
+    def number_columns(self, number_width: int) -> int:
+        return number_width + 1
+
+
+class UnifiedRows(PatchRows):
+    """Removed lines above added ones, each row numbered for both files."""
+
     split = False
+
+    def changed(self, before, after):
+        return chain(((cell, NO_PATCH_CELL) for cell in before), ((NO_PATCH_CELL, cell) for cell in after))
+
+    def pane_width(self, width: int) -> int:
+        return max(1, width)
+
+    def number_columns(self, number_width: int) -> int:
+        return 2 * number_width + 2
+
+
+SPLIT_ROWS, UNIFIED_ROWS = SplitRows(), UnifiedRows()
+
+
+class DiffMode(DeclaredChoice, affix="Diff"):
+    rows: ClassVar[PatchRows] = UNIFIED_ROWS
     auto_split = False
 
     @classmethod
-    def use_split(cls, width: int, required: int) -> bool:
-        return cls.split
+    def rows_at(cls, width: int, required: int) -> PatchRows:
+        return cls.rows
 
 
 class UnifiedDiff(DiffMode):
@@ -30,7 +122,7 @@ class UnifiedDiff(DiffMode):
 
 
 class SplitDiff(DiffMode):
-    split = True
+    rows = SPLIT_ROWS
 
 
 class AutoDiff(TitledChoice, DiffMode):
@@ -38,8 +130,8 @@ class AutoDiff(TitledChoice, DiffMode):
     auto_split = True
 
     @classmethod
-    def use_split(cls, width: int, required: int) -> bool:
-        return width >= required
+    def rows_at(cls, width: int, required: int) -> PatchRows:
+        return SPLIT_ROWS if width >= required else UNIFIED_ROWS
 
 
 class WrapMode(DeclaredChoice, affix="Mode"):
@@ -78,11 +170,6 @@ class DiffSettings(AnnotatedDataclassValidationMixin):
     """If wrapping is disabled you can horizontal scroll with the trackpad or the mouse wheel plus shift."""
 
 
-@dataclass(frozen=True)
-class PatchCell:
-    number: int
-    text: str
-    role: type[LineRole] = TextRole
 
 
 @dataclass
@@ -110,32 +197,32 @@ class Patch(LineBlock):
 
     @property
     def selection_text(self) -> str:
-        return "\n".join((before or after).text for before, after in self.rows(False))
+        return "\n".join(before.otherwise(after).selected() for before, after in self.rows(UNIFIED_ROWS))
 
     @property
     def number_width(self) -> int:
         return len(str(max((*self.before, *self.after), default=0) + 1))
 
-    def rows(self, split: bool) -> Iterator[tuple[PatchCell | None, PatchCell | None]]:
-        for group in self.row_groups(split):
+    def rows(self, layout: PatchRows) -> Iterator[tuple[PatchSide, PatchSide]]:
+        for group in self.row_groups(layout):
             yield from group
 
-    def row_groups(self, split: bool) -> Iterator[tuple[tuple[PatchCell | None, PatchCell | None], ...]]:
+    def row_groups(self, layout: PatchRows) -> Iterator[tuple[tuple[PatchSide, PatchSide], ...]]:
         """Interpret the native diff opcodes in one place, preserving absolute lines."""
+        before_code, after_code = self.before_text, self.after_text
         for group in self.groups:
             rows = []
             for tag, i1, i2, j1, j2 in group:
                 if tag == "equal":
-                    rows.extend((PatchCell(i + 1, self.before[i]), PatchCell(j + 1, self.after[j]))
+                    rows.extend((PatchCell(i + 1, self.before[i], before_code[i]),
+                                 PatchCell(j + 1, self.after[j], after_code[j]))
                                 for i, j in zip(range(i1, i2), range(j1, j2)))
                 else:
-                    before = tuple(PatchCell(i + 1, self.before[i], RemovedCodeRole) for i in range(i1, i2))
-                    after = tuple(PatchCell(j + 1, self.after[j], AddedCodeRole) for j in range(j1, j2))
-                    if split:
-                        rows.extend(zip_longest(before, after))
-                    else:
-                        rows.extend((cell, None) for cell in before)
-                        rows.extend((None, cell) for cell in after)
+                    before = tuple(PatchCell(i + 1, self.before[i], before_code[i], RemovedCodeRole)
+                                   for i in range(i1, i2))
+                    after = tuple(PatchCell(j + 1, self.after[j], after_code[j], AddedCodeRole)
+                                  for j in range(j1, j2))
+                    rows.extend(layout.changed(before, after))
             yield tuple(rows)
 
     @property

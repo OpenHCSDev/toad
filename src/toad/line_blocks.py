@@ -37,6 +37,11 @@ class LineRole(DeclaredFamily, affix="Role"):
     bar_mark: ClassVar[str] = "▌ "
     background_tint: ClassVar[float] = 0
 
+    @classmethod
+    def gutter(cls) -> type[LineRole]:
+        """The role a diff line's numbers are drawn in: a changed line's own."""
+        return cls
+
 
 class NoBar(LineRole):
     """A block drawn without a bar: its rows start with nothing."""
@@ -46,6 +51,10 @@ class NoBar(LineRole):
 
 class TextRole(LineRole):
     """Ordinary message text."""
+
+    @classmethod
+    def gutter(cls) -> type[LineRole]:
+        return MutedRole
 
 
 class MutedRole(LineRole):
