@@ -24,7 +24,7 @@ from agent_comms.session_load import (
     FailedSessionLoadPlan,
     SessionLoadPlan,
 )
-from agent_comms.thread_presentation import SessionDisconnected, ThreadPresentation
+from agent_comms.thread_presentation import SessionDisconnected
 
 import toad
 from toad import constants
@@ -150,11 +150,6 @@ class AgentSession:
         self.load_plan: SessionLoadPlan = EnsuringSessionLoadPlan()
         self.settled = asyncio.Event()
 
-    def publish_thread_row_state(self) -> None:
-        if coordination := self.agent.coordination:
-            self.app_events.publish(core_events.ThreadRowStateChanged(
-                frozenset((coordination.thread.name,))))
-
     @property
     def disposition(self) -> SessionDisposition:
         return self._disposition
@@ -163,7 +158,7 @@ class AgentSession:
     def disposition(self, state: SessionDisposition) -> None:
         if state is not self._disposition:
             self._disposition = state
-            self.publish_thread_row_state()
+            self.agent.publish_thread_row_state()
 
     @property
     def capabilities(self):
@@ -294,9 +289,7 @@ class AgentSession:
         from toad.core.events import SessionInfoUpdate, SessionThreadTitle
         self.agent.events.publish(SessionInfoUpdate(self.chosen_name or title))
         if self.chosen_name is not None:
-            coordination = self.agent.coordination
-            if coordination is not None and coordination.title != self.chosen_name:
-                self.start_operation(self.rename_coordination(self.chosen_name))
+            self.agent.rename_chosen_title(self.chosen_name)
             return
         if title:
             self.agent.events.publish(SessionThreadTitle(title))
@@ -333,25 +326,9 @@ class AgentSession:
                 self.session_failed(failure)
                 return
         self.settled.set()
-        self.publish_thread_row_state()
+        self.agent.publish_thread_row_state()
         self.agent.events.publish(AgentReady(session_id=self.agent.session_id, reconnected=self.reconnecting))
 
-
-    async def observe_owner(self, presentation: ThreadPresentation) -> None:
-        """Load again when Core shows a newer owner process than the one this session loaded.
-
-        A restarted owner answers through the still-open connection, but the queue
-        and cursor views are bound to the process named in the load response and
-        refuse the new one's updates until a new load binds them.
-        """
-        if not self.settled.is_set() or self.reconnecting:
-            return
-        if self.agent.coordination is None:
-            return
-        binding = presentation.binding
-        if not self.load_plan.superseded_by(binding):
-            return
-        await self.reconnect(ExistingSessionLoadPlan(binding))
 
     async def reconnect(self, plan: SessionLoadPlan | None = None) -> None:
         """Reattach the existing view after login or an explicit owner start."""
@@ -446,7 +423,7 @@ class AgentSession:
             session_name = (
                 self.chosen_name
                 if self.chosen_name is not None
-                else (self.agent.coordination.title if self.agent.coordination else "New Session")
+                else self.agent.source_title
             )
             session_pk = await db.session_new(
                 session_name,
@@ -521,31 +498,6 @@ class AgentSession:
         self.publish_configuration(response)
 
 
-    async def rename_coordination(self, display_name: str) -> None:
-        if not self.accepts_session(self.agent.session_id):
-            return
-        thread = self.agent.coordination.thread.name if self.agent.coordination else None
-        wire_root = self.agent.coordination.wire_root if self.agent.coordination else None
-        if thread is None or wire_root is None:
-            return
-
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        owner = self.agent.coordination.owner
-        comms = await self.agent.controller.transcripts.service(wire_root)
-        authority.require()
-        result = await asyncio.to_thread(
-            comms.threads.rename_managed_thread,
-            thread, display_name, owner=owner,
-        )
-        authority.require()
-        self.agent.coordination = replace(
-            self.agent.coordination,
-            thread=replace(self.agent.coordination.thread, name=result.current),
-            title=display_name,
-        )
-        self.agent.events.publish(core_events.CommsUpdated(self.agent.coordination, self.agent.session_id))
-
-
     async def set_name(self, name: str) -> None:
         """The user or agent process named this session.
 
@@ -555,7 +507,7 @@ class AgentSession:
         if self.chosen_name == name:
             return
         self.chosen_name = name or None
-        await self.rename_coordination(name)
+        await self.agent.rename_coordination(name)
         if self.pk is None:
             return
         db = DB()

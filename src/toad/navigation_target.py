@@ -45,7 +45,7 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
 
     def menu_context(self, sidebar, *, channel: ChannelSelection, mode_name=None):
         from toad.target_commands import TargetContext
-        return TargetContext(sidebar.app, sidebar.model_state.observed.service, CommandTarget.named(self.name),
+        return TargetContext(sidebar.app, sidebar.model_state.observed, CommandTarget.named(self.name),
                              sidebar.app.workspace_sessions.source.view.navigation_context.actor,
                              sidebar.app.project_dir, mode_name, channel)
 
@@ -133,9 +133,9 @@ class HistoryRouted(HistoryTarget, declared_name=None):
         super().__init_subclass__(**kwargs)
         HistoryRoute.routes[cls.history_kind] = cls
 
-    def prepare(self, comms, me):
-        """Resolve opening intent before retaining a stable conversation key."""
-        return self.history_kind.resolve(comms, me, self.name)
+    def prepare(self, core, me):
+        """Resolve opening intent through Core before retaining a stable conversation key."""
+        return self.history_kind.resolve(core, me, self.name)
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
@@ -149,7 +149,7 @@ class ChannelLike:
 
     def menu_context(self, sidebar, **kwargs):
         from toad.target_commands import TargetContext
-        return TargetContext(sidebar.app, sidebar.model_state.observed.service, CommandTarget.named(self.name),
+        return TargetContext(sidebar.app, sidebar.model_state.observed, CommandTarget.named(self.name),
                               sidebar.app.workspace_sessions.source.view.navigation_context.actor,
                               sidebar.app.project_dir)
 

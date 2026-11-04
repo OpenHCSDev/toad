@@ -22,6 +22,7 @@ from typing import Annotated, ClassVar
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
+from agent_comms.tools import CommsSortChannelTool, CommsSortChannelsTool
 from python_introspect import FieldLabel
 from textual.widgets import Static
 from toad.widget_actions import Activates
@@ -31,6 +32,8 @@ from toad.widgets.comms_menu import ContextMenu
 from formbridge.forms.declared_fields import FieldPath, Placeholder
 from toad.preferences import SETTINGS
 from toad.setting_declarations import FamilyChoices
+from agent_comms.tool_request import ToolRequest
+from toad.comms_root import CoordinationAccess, Observing
 
 
 @dataclass(frozen=True)
@@ -145,26 +148,36 @@ class SortControl[Order: DisplayOrder](
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...
 
 class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
-    """Both channel controls write through the route that supplies their observed rows."""
+    """Both channel controls write through the Core that supplies their observed rows; each
+    names the request its own order is stored by."""
 
-    def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str, *, channel: str | None = None):
-        self.channel = channel
-        super().__init__(form_type, scope)
+    @abstractmethod
+    def order_request(self, order: type[Order]) -> ToolRequest: ...
 
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
         access = self.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
-        return partial(observed.write_order, access, self.screen.coordination_root, self.channel)
+        return partial(self.write_order, observed, access)
+
+    async def write_order(self, observed: Observing, access: CoordinationAccess, order: type[Order]) -> object:
+        return await observed.write_order(access, self.screen.coordination_root, self.order_request(order))
 
 
 class SessionSort(CommsSortControl[ThreadSort]):
     def __init__(self, channel: str):
-        super().__init__(ThreadSortForm, channel, channel=channel)
+        self.channel = channel
+        super().__init__(ThreadSortForm, channel)
+
+    def order_request(self, order: type[ThreadSort]) -> CommsSortChannelTool:
+        return CommsSortChannelTool(name=self.channel, order=order)
 
 
 class ChannelListSort(CommsSortControl[ChannelSort]):
     def __init__(self):
         super().__init__(ChannelSortForm, "channels")
+
+    def order_request(self, order: type[ChannelSort]) -> CommsSortChannelsTool:
+        return CommsSortChannelsTool(order=order)
 
     def visibility_fields(self) -> tuple[FieldPath, ...]:
         return SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived

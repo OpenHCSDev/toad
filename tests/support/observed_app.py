@@ -27,7 +27,7 @@ class ObservedApp(ToadApp):
             return
         self.noting.stop()
         pending = Path(self.project_dir) / "observer-pid.new"
-        pending.write_text(str(access.observation.process.process.pid))
+        pending.write_text(str(access.observation.process.peer.process.pid))
         pending.replace(Path(self.project_dir) / "observer-pid")
 
 

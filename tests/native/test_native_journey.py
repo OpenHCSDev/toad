@@ -75,7 +75,9 @@ async def test_owner_is_attached_and_navigable(workspace, native_package):
         owner = native.comms.registry.require("beta")
         assert owner.process_identity is not None and owner.process_alive
         navigation = await asyncio.to_thread(
-            ThreadNavigationRequest(native.comms, "beta", native.ui.app.project_dir, ()).read)
+            ThreadNavigationRequest(
+                native.ui.app.coordination_access.observation.observed(), "beta",
+                native.ui.app.project_dir, ()).read)
         assert navigation.attachable and navigation.thread.process_alive
 
 

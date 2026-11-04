@@ -118,9 +118,9 @@ from toad.widgets.transcript_lines import (
     RowAcquisition,
     TranscriptLinesBatchRenderTask,
 )
+from agent_comms.message_reference import MessageReference
 
 if TYPE_CHECKING:
-    from agent_comms.messages import Message as BusMessage
 
     from toad.widgets.conversation import Contents, Conversation
 
@@ -657,8 +657,8 @@ class DrawsBusMessages:
     def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range)
 
-    def draws(self, message: BusMessage) -> bool:
-        return any(fragment.draws(message) for fragment in reversed(self.fragments_in_range))
+    def draws(self, reference: MessageReference) -> bool:
+        return any(fragment.draws(reference) for fragment in reversed(self.fragments_in_range))
 
 
 class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptSourcePreparation, ConversationEntry, VerticalGroup):

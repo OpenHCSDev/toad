@@ -15,7 +15,7 @@ from agent_comms.threads import NativeThread
 from agent_comms.ui_model.observation import NotPublished
 from support.roots import installed_wire
 from support.journals import assistant_entry, write_journal
-from toad.acp.comms_updates import OwnerSnapshotConsumer
+from support.coordination import registered_coordination_fact
 from toad.session_scope import KnownTranscript
 
 
@@ -55,16 +55,24 @@ async def test_recorded_snapshot_stays_immutable_when_original_grows_and_rejects
             await reader.publication(refreshed)
 
 
-def test_recorded_presentation_does_not_acquire_live_owner(recorded):
+async def test_recorded_presentation_does_not_acquire_live_owner(recorded, workspace):
     live, source, _native = recorded
     presentation = live.views.thread_presentations(("reader",)).read("reader")
     identity = live.transcripts.capture_page_read("reader", page_source=RecordedPageSource(source.key)).identity
-    # There is no live agent/controller to acquire: the recorded declaration
-    # cannot publish a turn even when delivered to the ordinary snapshot consumer.
-    consumer = OwnerSnapshotConsumer(None, "authored", turn_token=1)
-    consumer.thread_presentation(replace(presentation, read_identity=identity))
-    assert TranscriptSnapshotUpdate.capture(live.transcripts, "reader",
-                                            page_source=RecordedPageSource(source.key)).identity == identity
+    agent = workspace.agents.detached_agent("authored")
+    try:
+        await agent.comms_consumer_class(agent, agent.session_id).consume_metadata(
+            encode_updates(registered_coordination_fact(live, "reader", worktree=workspace.project)))
+        consumer = agent.thread_read()
+        assert consumer.owner.authority.current
+        assert consumer.owner.coordination.thread != identity.thread.incarnation
+        shown = []
+        consumer.settle(replace(presentation, read_identity=identity)).present(shown.append)
+        assert len(shown) == 1 and shown[0].read_identity == identity
+        assert TranscriptSnapshotUpdate.capture(live.transcripts, "reader",
+                                                page_source=RecordedPageSource(source.key)).identity == identity
+    finally:
+        await agent.stop()
 
 
 def test_known_transcript_requests_carry_the_page_operation_and_keep_root_at_the_envelope(recorded):

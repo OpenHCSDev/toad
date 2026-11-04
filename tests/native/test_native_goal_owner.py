@@ -47,9 +47,8 @@ async def test_input_delivery_is_read_from_the_live_native_owner_queue(workspace
     DeliveryView and the unobserved projection never carry it."""
     async with native_session(workspace) as native:
         await native.ui.until_agent_ready()
-        controller = native.agent.controller
-        for delivery in (await controller.input_delivery(),
-                         await controller.input_delivery(include_history=True)):
+        for delivery in (await native.agent.input_delivery(),
+                         await native.agent.input_delivery(include_history=True)):
             assert type(delivery) is ReadDeliveryView
             overview = delivery.overview
             assert overview.current_scope is OwnerQueueInputDeliveryScope

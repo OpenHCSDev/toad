@@ -182,7 +182,7 @@ class ApplicationLifetime:
     def launch_navigation(self):
         from toad.navigation_preparation import ThreadNavigationRequest
 
-        request = ThreadNavigationRequest(self.app.coordination_access.observation.observed().service,
+        request = ThreadNavigationRequest(self.app.coordination_access.observation.observed(),
                                           self.resumed_session, self.app.project_dir, ())
         return request.read()
 

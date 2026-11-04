@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Never
 
 from agent_comms.channel_targets import ThreadTarget
-from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.errors import RelationViolationError, RouteChangedError
@@ -33,10 +32,11 @@ from toad.owner_preparation import ExistingOwnerPlan
 from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
+from agent_comms.message_reference import MessageReference
+from toad.comms_root import Observing
 
 if TYPE_CHECKING:
     from toad.widget_actions import DeclaredWidgetActions
-    from agent_comms.messages import Message
     from agent_comms.thread_presentation import ThreadPresentation
     from textual.command import Provider
     from toad.widgets.side_bar import SideBar
@@ -97,7 +97,7 @@ class TranscriptScope(ABC):
         position: PagePosition = LatestPage(),
     ) -> ReadTranscriptUpdate: ...
 
-    def queue_service(self, service: Callable[[], Comms]) -> Comms:
+    def queue_observing(self, observing: Callable[[], Observing]) -> Observing:
         raise RouteChangedError("The queue has no original transcript source")
 
     @abstractmethod
@@ -109,7 +109,7 @@ class TranscriptScope(ABC):
         view: Conversation,
         event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
+        presented: Callable[[MessageReference | None], Awaitable[None]],
     ) -> None: ...
 
     @abstractmethod
@@ -124,11 +124,11 @@ class KnownTranscript(TranscriptScope):
     name: str
     readable = True
 
-    def queue_service(self, service: Callable[[], Comms]) -> Comms:
-        comms = service()
-        if comms.root != Path(self.root):
+    def queue_observing(self, observing: Callable[[], Observing]) -> Observing:
+        observed = observing()
+        if observed.root != Path(self.root):
             raise RouteChangedError("The queue's original transcript root changed")
-        return comms
+        return observed
 
     def owner_decision(self, presentation: ThreadPresentation) -> InputDecision:
         return ExistingOwnerPlan.from_binding(presentation.binding).decision
@@ -139,11 +139,8 @@ class KnownTranscript(TranscriptScope):
         return ((self.root, identity.thread_incarnation()),)
 
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
-        service = access.require(access.selected(self.root)).service
-        return (
-            service.registry.canonical_name(session_id)
-            == service.registry.require(self.name).name
-        )
+        registry = access.observing(self.root).registry()
+        return registry.canonical_name(session_id) == registry.require(self.name).name
 
     def status_thread(self, access: CoordinationAccess) -> StatusThread:
         return StatusThread.for_root(Path(self.root), self.name, access)
@@ -200,7 +197,7 @@ class KnownTranscript(TranscriptScope):
         view: Conversation,
         event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
+        presented: Callable[[MessageReference | None], Awaitable[None]],
     ) -> None:
         await view.submit_comms_message(
             self.root,
@@ -215,9 +212,9 @@ class KnownTranscript(TranscriptScope):
     ) -> None:
         """A CLI thread shows the same Core configuration answer a DM shows."""
         try:
-            comms = await view.app.coordination_access.transcripts.service(self.root)
+            observed = await view.app.preparation.run_thread(view.app.coordination_access.observing, self.root)
             status = await self.mailbox_conversation(view, conversation_type).status_text(
-                comms, read_only=False
+                observed, read_only=False
             )
         except (CoordinationReadUnavailable, StaleRevision):
             # The next observed presentation reads the answer again.
@@ -292,7 +289,7 @@ class NoTranscript(TranscriptScope):
         view: Conversation,
         event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[Message | None], Awaitable[None]],
+        presented: Callable[[MessageReference | None], Awaitable[None]],
     ) -> None:
         view.delivery_refused("CLI transcript is not ready", event.body)
 
@@ -421,9 +418,8 @@ class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
 
     def resolve_thread(self) -> str:
         identity = self.thread_identity
-        selected = self.app.coordination_access.selected(identity.wire_root())
-        service = self.app.coordination_access.require(selected).service
-        return identity.resolve_thread(service.registry, self.project_root)
+        observed = self.app.coordination_access.observing(identity.wire_root())
+        return identity.resolve_thread(observed, self.project_root)
 
     def agent_for_opening(self, default: AgentBinding) -> AgentBinding:
         return default

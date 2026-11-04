@@ -438,7 +438,7 @@ class CommsSidebar(
         self.screen.start_sidebar_navigation(self)
 
     def bind_observation(self, observed) -> None:
-        if not self.screen.belongs_to_wire(observed.service.root):
+        if not self.screen.belongs_to_wire(observed.root):
             self.display = False
             return
         super().bind_observation(observed)

@@ -104,20 +104,18 @@ class CommsChatView(Conversation):
         # transcript readers. Its revision-aware caches remain model-owned.
         observed = await self.app.preparation.run_thread(
             lambda: self.app.coordination_access.observation.observed())
-        shared = observed.service
-        if self._bound_root is not None and self._bound_root != shared.root:
+        if self._bound_root is not None and self._bound_root != observed.root:
             raise ValueError(
-                f"Conversation root {self._bound_root} differs from observed root {shared.root}"
+                f"Conversation root {self._bound_root} differs from observed root {observed.root}"
             )
-        comms = shared
         await self.app.coordination_access.current_sidebar()
         source = WireSource(
-            comms, self.conversation, self.project_path, self._me,
+            observed.root, self.conversation, self.project_path, self._me,
             IrcMessageStyle(), access=self.app.coordination_access, core=observed.core,
         )
         self.queue_source = source
         self.message_history.initialize_source(source)
-        self.refresh_identity(comms.root)
+        self.refresh_identity(observed.root)
         self.prepare_prompt()
         self.window.anchor()
         # CommsScreen has already presented its route before mounting this
@@ -283,7 +281,7 @@ class CommsChatView(Conversation):
                         or not self.query_ancestor(SessionScope).is_current):
                     return
             self.call_after_refresh(history.mark_visible)
-            self.refresh_identity(source.loader.comms.root)
+            self.refresh_identity(source.loader.root)
             if not changed:
                 return
             status = await source.status_text(read_only=read_only)

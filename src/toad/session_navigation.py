@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from agent_comms.tools import CommsRetiredViewsTool
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, cast
 
@@ -142,14 +143,14 @@ class SessionNavigation:
 
     async def mailbox_entry(self, identity: MailboxTab) -> SessionEntry:
         def prepare():
-            service = self.app.coordination_access.observation.observed().service
-            if service.root != Path(identity.root):
+            observed = self.app.coordination_access.observation.observed()
+            if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"Mailbox belongs to another bus: {identity.root}")
-            snapshot = service.registry.snapshot()
+            snapshot = observed.registry()
             name = snapshot.canonical_name(identity.key.name)
             if not identity.key.matches_recorded_name(name, snapshot):
                 raise TabTargetGone(identity, f"Mailbox thread was replaced: {identity.key}")
-            return ThreadNavigationRequest(service, name, self.app.project_dir, ()).read()
+            return ThreadNavigationRequest(observed, name, self.app.project_dir, ()).read()
 
         prepared = await self.app.preparation.run_thread(prepare)
         return self.native_entry(
@@ -160,11 +161,11 @@ class SessionNavigation:
 
     async def history_entry(self, identity: HistoryTab, source: ProjectSessionOrigin) -> HistorySessionEntry:
         def participants():
-            service = self.app.coordination_access.observation.observed().service
-            if service.root != Path(identity.root):
+            observed = self.app.coordination_access.observation.observed()
+            if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"History belongs to another bus: {identity.root}")
             return identity.key.threads_needed(
-                service.registry.snapshot(), source.thread_identity.thread_name()
+                observed.registry(), source.thread_identity.thread_name()
             )
 
         return HistorySessionEntry(
@@ -185,9 +186,7 @@ class SessionNavigation:
             return
         originals = self.members
         snapshot = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.require(
-                selected
-            ).service.registry.snapshot()
+            lambda: selected.observed(self.app.coordination_access).registry()
         )
         for member in originals:
             await member.reconnect(self, selected, snapshot, targets)
@@ -383,15 +382,13 @@ class SessionNavigation:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            comms = await app.preparation.run_thread(
-                lambda: app.coordination_access.observation.observed().service
-            )
-            requested_root = str(comms.root)
+            observed = await app.preparation.run_thread(app.coordination_access.observation.observed)
+            requested_root = str(observed.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
             prepared = await app.navigation_reader.read(
                 CommsNavigationRequest(
-                    comms, owner_mode, me, route, source.coordination_root
+                    observed, owner_mode, me, route, source.coordination_root
                 )
             )
         except (UnknownChannelError, UnregisteredThreadError, RouteChangedError) as error:
@@ -569,23 +566,21 @@ class SessionNavigation:
             answers = {}
             for root, (threads, channels) in asked.items():
                 try:
-                    access = self.app.coordination_access
-                    selected = access.selected(root)
-                    service = access.require(selected).service
-                    retired = service.views.retired_views(threads, channels)
-                    access.confirm(selected)
+                    serving = self.app.coordination_access.observing(root)
+                    retired = serving.core.call(CommsRetiredViewsTool(
+                        threads=frozenset(threads), channels=frozenset(channels)))
                 except RouteChangedError:
                     continue  # The next observation reads the replacement route.
-                answers[root] = service, retired
+                answers[root] = serving, retired
             return answers
 
         answers = await self.app.preparation.run_thread(read)
-        # A service replaced while the read joined revokes its answer.
+        # An observation replaced while the read joined revokes its answer.
         observed = self.app.coordination_access.observation.observed()
         retired = {
             root: answer
-            for root, (service, answer) in answers.items()
-            if observed.uses(service)
+            for root, (serving, answer) in answers.items()
+            if serving is observed
         }
         removed = tuple(
             member.mode

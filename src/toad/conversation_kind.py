@@ -18,8 +18,10 @@ from agent_comms.channel_targets import (
     ThreadTarget,
 )
 from agent_comms.channels import AllChannel
-from agent_comms.comms import Comms
-from agent_comms.tools import CommsConversationPageTool
+from agent_comms.core_access import CoreAccess
+from agent_comms.tools import (
+    CommsChannelTool, CommsConversationPageTool, CommsRegistryTool, CommsThreadConfigurationTool,
+)
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.message_page import MessagePage, PageBounds
@@ -30,6 +32,7 @@ from textual.app import ComposeResult
 from toad.conversation_submission import ConversationSubmissions
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
+from toad.referenced_core import ReferencedCore
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.channel_activity import ChannelActivity
 from toad.widgets.session_details import ConversationSessionDetails
@@ -81,7 +84,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     @abstractmethod
-    def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation: ...
+    def resolve(cls, core: CoreAccess, me: str, name: str) -> ResolvedConversation: ...
 
     def label(self, references: CurrentDisplayReferences) -> str:
         return self.destination(references).name
@@ -109,15 +112,16 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def send_target(self) -> NamedTarget:
         return self.retained_target()
 
-    def read_only(self, comms: Comms) -> bool:
+    def read_only(self, core: CoreAccess) -> bool:
+        """A conversation takes the owner's input unless its Core says otherwise."""
         return False
 
     @classmethod
     @abstractmethod
-    async def update_mentions(cls, view: CommsChatView, comms: Comms) -> None: ...
+    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore) -> None: ...
 
     @abstractmethod
-    async def status_text(self, comms: Comms, *, read_only: bool) -> str: ...
+    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str: ...
 
     def activity_members(self, model: SidebarModel):
         return (self.destination(model.observation.require_snapshot().references).name,)
@@ -181,16 +185,16 @@ class ChannelConversation(ConversationKind):
         return ChannelViewAddress(key.root, key.conversation)
 
     @classmethod
-    def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:
-        snapshot = comms.registry.snapshot()
-        resolved = ChannelTarget(name).resolve(snapshot, comms.bus.require_channel)
+    def resolve(cls, core: CoreAccess, me: str, name: str) -> ResolvedConversation:
+        snapshot = core.call(CommsRegistryTool())
+        resolved = ChannelTarget(name).resolve(snapshot, lambda channel: core.call(CommsChannelTool(name=channel)))
         return ResolvedConversation(snapshot.canonical_name(me), cls(ChannelTarget(resolved.channel.name)))
 
     @classmethod
     def compose_activity(cls, view: CommsChatView) -> ComposeResult:
         yield ChannelActivity(view)
 
-    async def status_text(self, comms: Comms, *, read_only: bool) -> str:
+    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
         return "Read-only saved view" if read_only else ""
 
     @property
@@ -200,20 +204,19 @@ class ChannelConversation(ConversationKind):
     def prompt(self, project: Checkout, *, submissions: ConversationSubmissions):
         return ChannelPrompt(project=project, placeholder=self.initial_placeholder, submissions=submissions)
 
-    def read_only(self, comms: Comms) -> bool:
-        return comms.bus.require_channel(self.target.name).read_only
+    def read_only(self, core: CoreAccess) -> bool:
+        return core.call(CommsChannelTool(name=self.target.name)).read_only
 
     @classmethod
-    async def update_mentions(cls, view: CommsChatView, comms: Comms):
+    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore):
         history = view.message_history
         source = history.source_snapshot()
         conversation = view.conversation
         access = view.app.coordination_access
         answer = await access.current_sidebar()
         snapshot = answer.require_snapshot()
-        observed = access.observation
-        if not observed.uses(comms):
-            raise ValueError("Channel mentions belong to another Comms service")
+        if not access.observation.observes(source.root):
+            raise ValueError("Channel mentions belong to another Core root")
         mentions = await view.app.preparation.run_thread(
             snapshot.mention_candidates,
             conversation.destination(snapshot.references).name,
@@ -255,16 +258,16 @@ class DmConversation(ConversationKind):
         return observation.bus_unread(self.destination(references).name)
 
     @classmethod
-    def resolve(cls, comms: Comms, me: str, name: str) -> ResolvedConversation:
-        snapshot = comms.registry.snapshot()
-        resolved = ThreadTarget(name).resolve(snapshot, comms.bus.require_channel)
+    def resolve(cls, core: CoreAccess, me: str, name: str) -> ResolvedConversation:
+        snapshot = core.call(CommsRegistryTool())
+        resolved = ThreadTarget(name).resolve(snapshot, lambda channel: core.call(CommsChannelTool(name=channel)))
         return ResolvedConversation(snapshot.require(me).name, cls(resolved.thread.incarnation))
 
     def label(self, references: CurrentDisplayReferences) -> str:
         return f"@{self.destination(references).name}"
 
     @classmethod
-    async def update_mentions(cls, view: CommsChatView, comms: Comms) -> None:
+    async def update_mentions(cls, view: CommsChatView, source: ReferencedCore) -> None:
         """Direct-message composers have no channel mention roster."""
 
     @classmethod
@@ -275,12 +278,13 @@ class DmConversation(ConversationKind):
     def prompt(self, project: Checkout, *, submissions: ConversationSubmissions):
         return MessagePrompt(project=project, submissions=submissions)
 
-    async def status_text(self, comms: Comms, *, read_only: bool) -> str:
+    async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str:
+        """Core's configuration answer for the thread this DM names."""
         def read():
-            references = CurrentDisplayReferences.from_registry(str(comms.root), comms.registry.snapshot())
-            return comms.configuration.answer(self.destination(references).name)
+            thread = self.destination(source.references()).name
+            return source.core.call(CommsThreadConfigurationTool(thread=thread)).status_label
 
-        return (await asyncio.to_thread(read)).status_label
+        return await asyncio.to_thread(read)
 
 
 class IrcConversation(ChannelConversation):

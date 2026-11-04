@@ -5,11 +5,15 @@ from __future__ import annotations
 from agent_comms.acp_extension import (
     IdentifiedInputStarted,
     InputStartedUpdate,
+    LiveAttachmentScope,
+    QueueScope,
     NoQueueScope,
     PendingQueueProjection,
     QueueChangedUpdate,
     UnavailableQueueProjection,
 )
+
+from agent_comms.thread_identity import ClaimedIdentity
 
 from .projection_attachment import ProjectionAttachment
 
@@ -43,15 +47,14 @@ class QueueAttachment(ProjectionAttachment):
         """A request's original queue authority must still own this attachment."""
         return self.scope.same_request(scope) and scope.accepts_request(self.projection)
 
-    def _acquire_input_scope(self, scope):
+    def _acquire_input_scope(self, scope: QueueScope) -> LiveAttachmentScope:
         if not self.scope.same_request(scope):
             raise ValueError('The original input attachment changed before capture.')
         return scope.require_live()
 
-    def capture_human_input(self, comms, scope):
-        """Certify the original captured request through its current observation."""
-        return self.projection.capture_human_input(
-            comms, lambda: self._acquire_input_scope(scope))
+    def input_identity(self, scope: QueueScope) -> ClaimedIdentity:
+        """Authorize only the original captured request through its current observation."""
+        return self.projection.input_identity(lambda: self._acquire_input_scope(scope))
 
     def begin(self, session_id):
         self._pending_starts.clear()

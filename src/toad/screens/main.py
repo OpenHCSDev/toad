@@ -239,19 +239,9 @@ class ReadyContent(ScreenContent):
         identity = screen.thread_identity
         project = screen.project_path
         source_root = identity.wire_root()
-        worktree = app.project_dir
 
         def acknowledge(cursor) -> None:
-            selected = access.selected(source_root)
-            comms = access.require(selected).service
-
-            def mark() -> None:
-                resolved = identity.resolve_thread(comms.registry, project)
-                comms.views.mark_thread_view_read(
-                    resolved, worktree=worktree, through=cursor
-                )
-
-            access.write(selected, mark)
+            access.observing(source_root).mark_thread_read(identity, project, cursor)
 
         async def mark():
             try:

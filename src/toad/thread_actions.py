@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.cli_command import TargetAction, TargetEdit
+from agent_comms.tools import CommsPrepareTargetActionTool, CommsTargetEditTool
 from agent_comms.cli_failures import CLI_FAILURES
 from agent_comms.cli_result import CliResult
 from agent_comms.errors import RouteChangedError
@@ -64,9 +65,9 @@ class ThreadActionExecution:
         self.task = owner.app.run_worker(self.run(), name="thread-action")
 
     def apply(self):
-        access = self.owner.app.coordination_access
-        comms = access.require(self.selected).service
-        return access.write(self.selected, self.action.request.apply, comms)
+        return self.owner.app.coordination_access.write(
+            self.selected, self.action.context.observed.core.call,
+            CommsTargetEditTool(edit=self.action.request))
 
     async def run(self):
         app = self.owner.app
@@ -128,20 +129,21 @@ class ThreadAction:
                     channel=definition.channels, project=ctx.project)
             request = await ctx.app.preparation.run_thread(prepare)
             ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,
-                                         source_root=ctx.comms.root)
+                                         source_root=ctx.observed.root)
 
         async def prepare():
             if definition.editable_fields or definition.confirmation:
                 screen = ctx.app.screen
                 try:
-                    fields = await ctx.app.preparation.run_thread(
-                        lambda: asyncio.run(definition.prepare_fields()))
+                    prepared = await ctx.app.preparation.run_thread(
+                        lambda: ctx.observed.core.call(CommsPrepareTargetActionTool(action=definition)))
                     ctx.current()
                 except (NativePiUnavailable, RouteChangedError) as error:
                     ctx.app.show_error(error, definition.label)
                     return
                 if ctx.app.screen is screen:
-                    ctx.app.push_screen(CommandDialog(definition, ctx.title, fields), accepted)
+                    ctx.app.push_screen(
+                        CommandDialog(prepared, ctx.title, prepared.fields, ctx.observed.core), accepted)
             else:
                 await accepted({})
         ctx.app.run_worker(prepare, name='command-fields')

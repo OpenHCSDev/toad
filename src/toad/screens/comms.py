@@ -1,4 +1,5 @@
 from metaclass_registry.mro_dispatch import handles
+from agent_comms.historical_views import AllHistoricalSenders, NamedHistoricalSender
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import events as core_events
 from toad.core import session_requests
@@ -51,14 +52,14 @@ class SavedSessionsAction(ViewAction):
     async def apply(self, context: CommsScreen) -> None:
         from toad.screens.historical_sessions import HistoricalSessions
 
-        comms = context.app.coordination_access.observation.observed().service
-        threads = await asyncio.to_thread(comms.views.historical_threads)
+        observed = context.app.coordination_access.observation.observed()
+        threads = await asyncio.to_thread(observed.historical_threads, AllHistoricalSenders())
         if not threads:
             context.notify("No preserved history sources are attached yet.")
             return
         context.app.push_screen(
             context.conversation.historical_sessions(
-                partial(HistoricalSessions, comms, threads),
+                partial(HistoricalSessions, observed, threads),
                 context.app.coordination_access.observation.observed()
                 .sidebar.observation.require_snapshot().references,
             )
@@ -189,16 +190,16 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
         message.stop()
         from toad.screens.historical_sessions import HistoricalSessions
 
-        comms = self.app.coordination_access.observation.observed().service
+        observed = self.app.coordination_access.observation.observed()
         threads = await asyncio.to_thread(
-            comms.views.historical_threads, event.name
+            observed.historical_threads, NamedHistoricalSender(event.name)
         )
         if not threads:
             self.notify("This sender has no preserved identity declaration.")
             return
         self.app.push_screen(
             HistoricalSessions(
-                comms, threads, name=event.name, source=event.source
+                observed, threads, name=event.name, source=event.source
             )
         )
 

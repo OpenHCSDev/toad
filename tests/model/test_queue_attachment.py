@@ -1,15 +1,14 @@
-"""A queue attachment captures human input only from the scope it is currently bound to."""
+"""A queue attachment authorizes human input only from its original bound scope."""
 
 from agent_comms.repo import Checkout
 import os
 
 import pytest
 from agent_comms.acp_extension import (
-    AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, LiveQueueScope,
+    AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, LiveQueueScope, NoQueueScope,
 )
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.nominal.field_codec import AcpSessionId
-from agent_comms.input_origin import HumanInputOrigin
 from agent_comms.threads import NativeThread
 
 from support.roots import installed_wire
@@ -27,10 +26,9 @@ def declared_scope(tmp_path):
     )
 
 
-def test_capture_before_binding_is_refused(tmp_path):
-    comms, scope = declared_scope(tmp_path)
+def test_capture_before_binding_is_refused():
     with pytest.raises(ValueError, match="queue"):
-        QueueAttachment().capture_human_input(comms, None)
+        QueueAttachment().input_identity(NoQueueScope())
 
 
 def test_prebinding_receipt_keeps_first_observation_pending(tmp_path):
@@ -46,7 +44,7 @@ def test_capture_after_binding_names_the_bound_scope(tmp_path):
     attachment = QueueAttachment()
     token = attachment.begin("source")
     attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
-    assert attachment.capture_human_input(comms, scope) == HumanInputOrigin.capture(comms, scope.claimed_identity)
+    assert attachment.input_identity(scope) == scope.claimed_identity
 
 
 def test_capture_after_a_replacement_begins_is_refused(tmp_path):
@@ -56,7 +54,7 @@ def test_capture_after_a_replacement_begins_is_refused(tmp_path):
     attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
     attachment.begin("source")  # keeps the old observed scope behind a pending projection
     with pytest.raises(ValueError, match="Checking input queue"):
-        attachment.capture_human_input(comms, scope)
+        attachment.input_identity(scope)
 
 
 def test_input_start_members_dispatch_before_queue_revision_checks(tmp_path):

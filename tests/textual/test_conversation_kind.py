@@ -49,14 +49,14 @@ def test_conversation_family_resolves_copied_pages_and_current_labels(
     copied_conversations, tmp_path, route, label, body,
 ):
     comms, viewer = copied_conversations
-    resolved = route.prepare(comms, viewer)
+    resolved = route.prepare(LocalCoreAccess(comms), viewer)
     conversation = resolved.conversation
     references = comms.views.viewer_snapshot(Checkout(tmp_path)).references
     assert resolved.viewer == viewer
     assert conversation.label(references) == label
     assert HistoryTarget.for_conversation(conversation, references) == route
     page = conversation.page(
-        WireSource(comms, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
+        WireSource(comms.root, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
                    access=AppAgents.unrun(tmp_path, LaunchRoot.from_path(comms.root)).app.coordination_access,
                       core=LocalCoreAccess(comms)),
         PageBounds(limit=8),
@@ -72,7 +72,7 @@ def test_new_channel_kind_inherits_destination_resolution(copied_conversations):
         pass
 
     comms, viewer = copied_conversations
-    conversation = TeamConversation.resolve(comms, viewer, "#team").conversation
+    conversation = TeamConversation.resolve(LocalCoreAccess(comms), viewer, "#team").conversation
     references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert ConversationKind.member_named("team") is TeamConversation
     assert conversation == TeamConversation(ChannelTarget("#team"))
@@ -101,7 +101,7 @@ def test_kind_and_owner_are_part_of_identity_but_channel_address_is_shared(copie
     key = CommsViewKey(str(comms.root), "owner", conversation)
     assert key == CommsViewKey(str(comms.root), "owner", ChannelConversation(ChannelTarget("#team")))
     assert key != CommsViewKey(str(comms.root), "owner", IrcConversation(ChannelTarget("#team")))
-    direct = DirectTarget("peer").prepare(comms, viewer).conversation
+    direct = DirectTarget("peer").prepare(LocalCoreAccess(comms), viewer).conversation
     assert key != CommsViewKey(str(comms.root), "owner", direct)
     assert len({key, CommsViewKey(str(comms.root), "owner", conversation)}) == 1
     assert conversation.view_identity(key) == conversation.view_identity(
@@ -114,11 +114,11 @@ def test_kind_and_owner_are_part_of_identity_but_channel_address_is_shared(copie
 
 def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copied_conversations):
     comms, viewer = copied_conversations
-    direct = DirectTarget("peer").prepare(comms, viewer).conversation
+    direct = DirectTarget("peer").prepare(LocalCoreAccess(comms), viewer).conversation
     key = CommsViewKey(str(comms.root), "owner", direct)
     scope = direct.input_scope
     comms.registry.rename("peer", "renamed")
-    reopened = DirectTarget("renamed").prepare(comms, viewer).conversation
+    reopened = DirectTarget("renamed").prepare(LocalCoreAccess(comms), viewer).conversation
     references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert direct == reopened
     assert key == CommsViewKey(str(comms.root), "owner", reopened)
@@ -130,11 +130,11 @@ def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copie
 
 def test_recreated_name_cannot_resolve_the_retired_dm(copied_conversations):
     comms, viewer = copied_conversations
-    direct = DirectTarget("peer").prepare(comms, viewer).conversation
+    direct = DirectTarget("peer").prepare(LocalCoreAccess(comms), viewer).conversation
     comms.registry.unregister("peer")
     comms.threads.delete("peer")
     comms.registry.declare(NativeThread("peer", frozenset(), Checkout(comms.root.parent)))
-    recreated = DirectTarget("peer").prepare(comms, viewer).conversation
+    recreated = DirectTarget("peer").prepare(LocalCoreAccess(comms), viewer).conversation
     references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert recreated != direct
     assert CommsViewKey(str(comms.root), "owner", recreated) != CommsViewKey(str(comms.root), "owner", direct)
@@ -150,7 +150,7 @@ def test_history_picker_and_channel_status_use_the_same_declared_value(copied_co
     references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     create_view = partial(HistoricalSessions, comms, ())
     channel = ChannelConversation(ChannelTarget("#team"))
-    direct = DirectTarget("peer").prepare(comms, viewer).conversation
+    direct = DirectTarget("peer").prepare(LocalCoreAccess(comms), viewer).conversation
     assert channel.historical_sessions(create_view, references).initial_name is None
     assert direct.historical_sessions(create_view, references).initial_name == "peer"
     assert isinstance(channel.status_thread(comms.root, object()), NoStatusThread)
