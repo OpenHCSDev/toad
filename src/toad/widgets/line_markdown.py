@@ -9,7 +9,7 @@ from textual.selection import Selection
 from textual.widget import Widget
 
 from toad.block_content import BlockContent
-from toad.line_blocks import Body, MarkdownBody, LineBlock, LineRole, TextRole
+from toad.line_blocks import Body, MarkdownBody, LineBlock, LineRole, NoBar, TextRole
 from toad.widgets.linked_rows import ReferenceRendering
 from toad.widgets.styled_rows import StyledRows
 
@@ -20,7 +20,7 @@ class LineMarkdown(StyledRows, ReferenceRendering, BlockContent, Widget):
     DEFAULT_CSS = "LineMarkdown { height: auto; }"
 
     def __init__(self, text: str = "", *, role: type[LineRole] = TextRole,
-                 bar: type[LineRole] | None = None, body: type[Body] = MarkdownBody,
+                 bar: type[LineRole] = NoBar, body: type[Body] = MarkdownBody,
                  id: str | None = None, classes: str | None = None) -> None:
         super().__init__(id=id, classes=classes)
         self.text = text
