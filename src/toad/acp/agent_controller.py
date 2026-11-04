@@ -21,9 +21,8 @@ from agent_comms.acp_extension import (
     encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, RequestFailure
-from agent_comms.runtime_requests import DismissHistoricalInputsRuntimeRequest
-from agent_comms.runtime_server import RuntimeRequest
-from agent_comms.tools import CommsOwnerRequestTool
+from agent_comms.owner_connection import socket_path
+from agent_comms.runtime import RuntimeConnection
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.order_tools import InputDeliveryRead
 from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
@@ -260,8 +259,8 @@ class AgentController(OperationalTerminalOwner):
             coordination = self.coordination
             if coordination is not None:
                 self.require_owner(coordination, authority)
-                core = await self.transcripts.core(coordination.wire_root)
-                origin = await asyncio.to_thread(self.agent.queue_attachment.capture_human_input, core, queue_scope)
+                comms = await self.transcripts.service(coordination.wire_root)
+                origin = await asyncio.to_thread(self.agent.queue_attachment.capture_human_input, comms, queue_scope)
                 self.require_owner(coordination, authority)
                 command = replace(command, origin=origin)
             content = await asyncio.to_thread(build_prompt, project, prompt)
@@ -390,20 +389,30 @@ class AgentController(OperationalTerminalOwner):
             return False
         return authority.current
 
-    async def request_owner(self, request: type[RuntimeRequest], **fields: object) -> JsonValue:
-        """Ask the attached owner incarnation one declared runtime request; Core's host reaches
-        its socket and refuses a later occupant of the name."""
+    async def request_owner(self, method: str, **params: JsonValue):
         if self.coordination is None:
             raise ValueError("This action requires an agent-comms thread.")
         coordination = self.coordination
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         self.require_owner(coordination, authority)
-        core = await self.transcripts.core(coordination.wire_root)
-        self.require_owner(coordination, authority)
-        answered = await asyncio.to_thread(core.call, CommsOwnerRequestTool(
-            owner=coordination.thread, request=request(thread=coordination.thread.name, **fields)))
-        self.require_owner(coordination, authority)
-        return answered.payload
+        comms = await self.transcripts.service(coordination.wire_root)
+
+        def resolve():
+            owner = comms.registry.require(coordination.thread.name)
+            if owner.incarnation != coordination.thread:
+                raise ValueError("The owner incarnation changed while preparing the request.")
+            return RuntimeConnection(
+                comms, owner.incarnation, socket_path(comms.root, owner.require_process().pid)
+            )
+
+        proxy = await asyncio.to_thread(resolve)
+        try:
+            self.require_owner(coordination, authority)
+            result = await proxy.request(method, **params)
+            self.require_owner(coordination, authority)
+            return result
+        finally:
+            await proxy.close()
 
     def require_owner(self, coordination: CoordinationChangedUpdate, authority: ClientSessionRequest):
         if authority.retired or self.coordination is None:
@@ -424,4 +433,4 @@ class AgentController(OperationalTerminalOwner):
         return ReadDeliveryView(overview)
 
     async def dismiss_historical_inputs(self):
-        return await self.request_owner(DismissHistoricalInputsRuntimeRequest)
+        return await self.request_owner("dismiss_historical_inputs")
