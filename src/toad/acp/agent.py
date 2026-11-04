@@ -6,7 +6,6 @@ from pathlib import Path
 import rich.repr
 from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
-    GoalSnapshotReply,
     InputStartedUpdate,
     PromptRequest,
 )
@@ -17,9 +16,6 @@ from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import Goal, GoalDeclaration, NoGoal
 from agent_comms.goal_history import RecordedGoalHistory
 from agent_comms.order_tools import OwnerGoalRead
-from agent_comms.goal_scope import OneGoal
-from agent_comms.runtime_requests import EditGoalRuntimeRequest, GoalHistoryRuntimeRequest
-from agent_comms.tools import CommsMoveThreadProjectTool
 from agent_comms.ui_model.observation import ReadOwnerOperation
 
 from toad import paths
@@ -250,14 +246,14 @@ class Agent(AgentBase):
         return snapshot
 
     async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:
-        result = await self.controller.request_owner(GoalHistoryRuntimeRequest, goal_id=OneGoal(goal_id))
+        result = await self.controller.request_owner("goal_history", goal_id=goal_id)
         return FieldCodec.decode(RecordedGoalHistory, result)
 
     async def edit_goal(self, goal: Goal, text: str) -> Goal:
         result = await self.controller.request_owner(
-            EditGoalRuntimeRequest, goal_id=goal.id, expected_revision=goal.revision, text=text
+            "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
         )
-        return FieldCodec.decode(GoalSnapshotReply, result).goal
+        return FieldCodec.decode(Goal, result["goal"])
 
     def observed_thread(self) -> tuple[str, str] | None:
         coordination = self.coordination
@@ -286,10 +282,10 @@ class Agent(AgentBase):
             raise ValueError("Project changes require an agent-comms thread.")
         authority = ClientSessionRequest(self, self.session_id)
         coordination = self.coordination
-        core = await self.controller.transcripts.core(coordination.wire_root)
+        comms = await self.controller.transcripts.service(coordination.wire_root)
         authority.require()
         result = await asyncio.to_thread(
-            core.call, CommsMoveThreadProjectTool(owner=coordination.thread, path=path),
+            comms.threads.set_project, coordination.thread.name, path,
         )
         authority.require()
         self.coordination = replace(self.coordination, worktree=result.current)

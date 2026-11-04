@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from agent_comms.core_access import CoreAccess
-from agent_comms.input_origin import HumanInputOrigin
-from agent_comms.tools import CommsCaptureHumanInputTool
 from agent_comms.acp_extension import (
     IdentifiedInputStarted,
     InputStartedUpdate,
@@ -51,11 +48,10 @@ class QueueAttachment(ProjectionAttachment):
             raise ValueError('The original input attachment changed before capture.')
         return scope.require_live()
 
-    def capture_human_input(self, core: CoreAccess, scope) -> HumanInputOrigin:
-        """Certify the original captured request through its current observation; Core's
-        host captures the author witness for the identity it claims."""
-        return core.call(CommsCaptureHumanInputTool(claimed_identity=self.projection.input_identity(
-            lambda: self._acquire_input_scope(scope))))
+    def capture_human_input(self, comms, scope):
+        """Certify the original captured request through its current observation."""
+        return self.projection.capture_human_input(
+            comms, lambda: self._acquire_input_scope(scope))
 
     def begin(self, session_id):
         self._pending_starts.clear()
