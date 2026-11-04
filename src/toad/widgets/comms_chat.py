@@ -132,7 +132,7 @@ class CommsChatView(Conversation):
         self.prepare_prompt()
 
     @handles(core_events.CoordinationObserved)
-    async def _command_source_changed(self, event: core_events.CoordinationObserved) -> None:
+    async def _coordination_observed(self, event: core_events.CoordinationObserved) -> None:
         """One canonical observation invalidates commands and the mounted source."""
         self.prompt.slash_complete.refresh_commands()
         await self._refresh()
