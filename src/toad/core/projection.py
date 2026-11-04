@@ -6,4 +6,7 @@ class MroProjection[Result](MroDispatch):
     """A leaf returns projection data rather than replacing its original value."""
 
     def project_value(self, value, *args, **kwargs) -> Result:
-        return next(self.handlers_for(value))(value, *args, **kwargs)
+        for handler in self.handlers_for(value):
+            return handler(value, *args, **kwargs)
+        # A missing handler is a declaration gap; StopIteration would vanish inside a caller's generator.
+        raise TypeError(f"{type(self).__name__} declares no projection for {type(value).__name__}")

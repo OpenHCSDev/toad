@@ -35,6 +35,11 @@ class MessageClock:
     fresh: ClassVar[bool] = False
     timestamp: float
 
+    @property
+    def event_time(self) -> EventTime:
+        """The time a divider records for this message."""
+        return EventTime.capture(self.timestamp)
+
     def display(self) -> tuple[str, str]:
         """The time as drawn, and the time with its zone for a tooltip."""
         local = time.localtime(self.timestamp)
