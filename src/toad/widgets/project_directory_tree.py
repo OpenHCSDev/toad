@@ -137,11 +137,17 @@ This shows the files in your project directory.
         await self.reload()
         self.notify("Project directory has been refreshed", title="Directory Tree")
 
+    @property
+    def cursor_path(self) -> Path:
+        """The path under the cursor; the root's when no entry is under it."""
+        node = self.cursor_node
+        # Textual's cursor and its node data are optional: decoded once, here.
+        return node.data.path if node is not None and node.data is not None else Path(self.path)
+
     def insert_selected(self) -> None:
-        if self.cursor_node is not None and self.cursor_node.data is not None:
-            path = self.cursor_node.data.path
-            if path.is_file():
-                self.post_message(self.InsertSelected(path))
+        path = self.cursor_path
+        if path.is_file():
+            self.post_message(self.InsertSelected(path))
 
     MODE_BINDINGS = (
         ModeBinding("ctrl+r", refresh_directory, "Refresh", mode=EditingMode,

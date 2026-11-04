@@ -1,4 +1,6 @@
 """Filesystem identities survive a disposable DirectoryTree's nodes."""
+from __future__ import annotations
+
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -13,10 +15,10 @@ if TYPE_CHECKING:
 class TreeIntent:
     """What a reader left in a project tree; the family answers every reader without absence tests."""
 
-    async def restore(self, tree: "ProjectDirectoryTree") -> None:
+    async def restore(self, tree: ProjectDirectoryTree) -> None:
         """Nothing was left to restore."""
 
-    def pending_or(self, capture: Callable[[], "TreeIntent"]) -> "TreeIntent":
+    def pending_or(self, capture: Callable[[], TreeIntent]) -> TreeIntent:
         """An intent still to restore answers for the tree; without one, read the tree now."""
         return capture()
 
@@ -36,7 +38,7 @@ class ProjectTreeIntent(TreeIntent):
         return self
 
     @classmethod
-    def capture(cls, tree: "ProjectDirectoryTree") -> "ProjectTreeIntent":
+    def capture(cls, tree: ProjectDirectoryTree) -> ProjectTreeIntent:
         expanded: set[Path] = set()
         nodes = [tree.root]
         while nodes:
@@ -44,12 +46,9 @@ class ProjectTreeIntent(TreeIntent):
             if node.data is not None and node.is_expanded:
                 expanded.add(node.data.path)
                 nodes.extend(node.children)
-        cursor = tree.cursor_node
-        # Textual's cursor and node data are optional: decoded once, here.
-        selected = cursor.data.path if cursor is not None and cursor.data is not None else Path(tree.path)
-        return cls(Path(tree.path), frozenset(expanded), selected, tree.scroll_offset)
+        return cls(Path(tree.path), frozenset(expanded), tree.cursor_path, tree.scroll_offset)
 
-    async def restore(self, tree: "ProjectDirectoryTree") -> None:
+    async def restore(self, tree: ProjectDirectoryTree) -> None:
         if Path(tree.path) != self.path:
             return
         # The original async path watcher resets/reloads its tree after mount.
