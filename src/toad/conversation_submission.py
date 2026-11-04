@@ -28,6 +28,7 @@ from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventMessage
 from toad.input_decision import InputDecision, InputRefused
 from toad.widgets.prompt import Prompt
+from toad.worker_group import InputHistoryRecord
 
 @dataclass(frozen=True)
 class InputSubmission(DeclaredFamily, affix="InputSubmission"):
@@ -95,7 +96,7 @@ class ShellInputSubmission(InputSubmission):
             shell.focus_output()
             await shell.send_input(self.source_text, paste=True)
         else:
-            view.run_worker(partial(view.input_histories.shell.record, self.source_text), group="history")
+            InputHistoryRecord.run_on(view, partial(view.input_histories.shell.record, self.source_text))
             await view.post_shell(self.source_text)
         view.jump_to_latest()
 
@@ -204,7 +205,7 @@ class SubmissionExecution(SubmissionStart):
         owner, submission = self.owner, self.submission
         view = owner.view
         owner.publish_pending()
-        view.run_worker(partial(view.input_histories.prompt.record, submission.source_text), group="history")
+        InputHistoryRecord.run_on(view, partial(view.input_histories.prompt.record, submission.source_text))
         try:
             await submission.feedback(self)
             if self.current:

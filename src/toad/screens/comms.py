@@ -30,6 +30,13 @@ from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.app_node import ToadNode
+from toad.worker_group import WorkerGroup
+
+
+class CommsContentLoad(WorkerGroup):
+    """Loads the conversation content once a route frame is written."""
+
+    group = "comms-content"
 
 
 class ViewAction(WidgetAction, affix="Action"):
@@ -206,7 +213,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
     def _start_hydration(self) -> None:
         """Only a written route frame may start conversation composition."""
         if not self._content_loaded:
-            self.run_worker(self._load_content, group="comms-content")
+            CommsContentLoad.run_on(self, self._load_content)
 
     def _prepare_content(self) -> None:
         self.observe_core(self.app.events)
@@ -246,7 +253,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
 
     async def close_presentation(self) -> None:
         """Join hydration before its controls or input pump are pruned."""
-        for worker in self.workers.cancel_group(self, "comms-content"):
+        for worker in CommsContentLoad.cancel_all(self):
             try:
                 await worker.wait()
             except WorkerCancelled as error:

@@ -31,6 +31,7 @@ from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.prompt import MailboxPrompt
 from toad.submission_queue import BusQueueSource, NativeQueueSource
+from toad.worker_group import InputHistoryRecord
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -294,9 +295,7 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
         view = owner.view
 
         async def presented(sent):
-            view.run_worker(
-                view.input_histories.prompt.record(event.body), group="history"
-            )
+            InputHistoryRecord.run_on(view, view.input_histories.prompt.record(event.body))
             view.window.jump_to_latest()
             self.external_transcript_changed(view)
 

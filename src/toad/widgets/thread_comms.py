@@ -52,6 +52,7 @@ from agent_comms.relationships import (
 )
 from toad.widgets.thread_comms_source import RelationshipSource
 from toad.widget_actions import WidgetAction, OpensSelected
+from toad.worker_group import WorkerGroup
 
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
@@ -59,6 +60,13 @@ def entry_target(entry: RelationshipEntry) -> NavigationTarget:
     if person is None:
         return NavigationTarget.named(entry.target)
     return ThreadTarget(person.thread.name)
+
+
+class RelationshipRowPresentation(WorkerGroup):
+    """Presents the selected relationship row; a newer selection supersedes one running."""
+
+    group = "relationship-row"
+    exclusive = True
 
 
 @dataclass
@@ -136,14 +144,10 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
                 model is not None
                 and model.incarnation == entry.person.thread.incarnation
             ):
-                self.workers.cancel_group(self, "relationship-row")
+                RelationshipRowPresentation.cancel_all(self)
                 self._show_person(entry, model)
             elif previous != entry:
-                self.run_worker(
-                    self._present_person(entry),
-                    group="relationship-row",
-                    exclusive=True,
-                )
+                RelationshipRowPresentation.run_on(self, self._present_person(entry))
         elif previous != entry:
             self.set_label(entry.target)
         if entry.person is None:

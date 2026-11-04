@@ -1511,10 +1511,6 @@ class Conversation(
         # The event bubbles from a history inside this conversation; the screen stops it.
         self.transcript.source_work_finished(self)
 
-    def on_worker_state_changed(self, message) -> None:
-        if self.transcript.worker.runs(message.worker) and message.worker.is_finished:
-            self.transcript.retry()
-
     @handles(core_events.Thinking)
     async def on_acp_agent_thinking(self, event: core_events.Thinking) -> None:
         self.turns.describe("Thinking…")

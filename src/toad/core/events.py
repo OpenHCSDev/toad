@@ -20,9 +20,17 @@ from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream, ThoughtStream
 from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
+from toad.worker_group import WorkerGroup
 
 if TYPE_CHECKING:
     from agent_comms.team_hud import TeamHud
+
+
+class ThreadInterestUpdate(WorkerGroup):
+    """Tells Core which threads the open views are interested in; a newer update supersedes one running."""
+
+    group = "thread-interest"
+    exclusive = True
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
@@ -494,8 +502,7 @@ class ThreadChangeSubscription(Subscription):
 
     def bucket_opened(self) -> None:
         publisher = self.stream.publisher
-        publisher.app.run_worker(publisher.update_thread_interest,
-                                 group="thread-interest", exclusive=True)
+        ThreadInterestUpdate.run_on(publisher.app, publisher.update_thread_interest)
 
     def bucket_emptied(self) -> None:
         self.bucket_opened()

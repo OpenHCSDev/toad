@@ -30,7 +30,14 @@ from toad.native_style import (
     SpacedBelow,
     TransparentBackground,
 )
+from toad.worker_group import WorkerGroup
 
+
+
+class ProjectTreeMount(WorkerGroup):
+    """Mounts the project's directory tree."""
+
+    group = "project-tree"
 
 
 class ProjectSearchButton(
@@ -96,7 +103,7 @@ class ProjectPanel(SidebarPanelWidget, Vertical):
             self._tree_requested = True
             self._mount_tree()
 
-    @work(group="project-tree")
+    @ProjectTreeMount.work
     async def _mount_tree(self) -> None:
         await self.mount(self.directory_tree)
 
@@ -131,9 +138,9 @@ class RestorableProjectPanel(ProjectPanel):
     def watch_path(self, path: Path) -> None:
         self._intent = None
         if self.directory_tree is not None:
-            self.workers.cancel_group(self, "project-tree")
+            ProjectTreeMount.cancel_all(self)
 
-    @work(group="project-tree")
+    @ProjectTreeMount.work
     async def _mount_tree(self) -> None:
         await super()._mount_tree().wait()
         if self._intent is not None:

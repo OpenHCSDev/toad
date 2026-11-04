@@ -19,7 +19,7 @@ from agent_comms.ui_model.observation import ReadOperation, UnreadableHistory
 from agent_comms.ui_model.teammate_state import HudGroup
 from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
-from textual import on, work
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.content import Content
@@ -55,6 +55,14 @@ from toad.widgets.declared_table import (
     DeclaredTable, EmptyTableSelection, SelectedTableRecord, SelectionView, TableSelection,
 )
 from toad.widgets.sidebar_tree import KeyedRows
+from toad.worker_group import WorkerGroup
+
+
+class TeamDetailRead(WorkerGroup):
+    """Reads the selected record's original; a newer selection supersedes one running."""
+
+    group = "team-detail"
+    exclusive = True
 
 
 class UnitTone(MroDispatch):
@@ -221,7 +229,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
         self.selection.present_to(self)
 
     def clear_selection(self) -> None:
-        self.workers.cancel_group(self, "team-detail")
+        TeamDetailRead.cancel_all(self)
         self.original.display = False
         self.status.update("No records match the filter.")
 
@@ -243,7 +251,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
             commander=self.teammate, unit=card.unit, orders=card.order_ids,
         )))
 
-    @work(exclusive=True, group="team-detail")
+    @TeamDetailRead.work
     async def read_detail(self, selection: SelectedTableRecord[HudRecord]) -> None:
         self.original.display = False
         card = selection.record
@@ -268,7 +276,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
         self.status.update("Original records; unit activity is bounded by Core.")
 
     def on_unmount(self) -> None:
-        self.workers.cancel_group(self, "team-detail")
+        TeamDetailRead.cancel_all(self)
 
 
 class TeamHeading(Static):

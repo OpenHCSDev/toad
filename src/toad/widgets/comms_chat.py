@@ -39,6 +39,7 @@ from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.session_scope import NoTranscript, SessionScope
 from toad.command_catalog import CommandCatalog
+from toad.worker_group import InputHistoryRecord
 
 
 def session_thread_name(project_path) -> str:
@@ -314,7 +315,7 @@ class CommsChatView(Conversation):
 
     async def _show_sent(self, sent: WireMessage, body: str) -> None:
         """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
-        self.run_worker(partial(self.input_histories.prompt.record, body), group="history")
+        InputHistoryRecord.run_on(self, partial(self.input_histories.prompt.record, body))
         self.window.jump_to_latest()
         await self._refresh()
         self.settle_user_message()
