@@ -6,8 +6,8 @@ currency check, message notifications and those owner reads are requests to
 the observation process (``agent_comms.ui_model.observation``) that
 ``CoordinationAccess`` owns; the answer arrives decoded (a finished page and
 its witness, an owner snapshot), or as the exception the read raised. The
-in-process service binding remains for the work that has not moved: the owner
-presentation that settles turns, owner actions and input capture.
+route's existing Core client supplies owner presentation, actions and input capture;
+the UI retains its captured session, source and queue authority around those calls.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from agent_comms.ui_model.observation import (
     UnreadableHistory,
 )
 
-from toad.owner_preparation import read_thread_presentation
+from agent_comms.tools import CommsThreadPresentationTool
 from toad.session_scope import TranscriptScope
 
 
@@ -42,19 +42,19 @@ class CoordinationTranscriptReader:
         )
         return await observed.read(request)
 
-    async def service(self, root):
+    async def core(self, root):
         return await self.access.preparation.run_thread(
-            lambda: self.access.observing(root).service
+            lambda: self.access.observing(root).core
         )
 
     async def thread_presentation(
         self, root: str, thread: str
     ) -> StoredRead[ThreadPresentation]:
         """The stored-read owner classifies failures inside the read worker."""
-        reader = await self.service(root)
+        core = await self.core(root)
         return await asyncio.to_thread(
             UnreadableHistory.outcome,
-            partial(read_thread_presentation, reader, thread),
+            partial(core.call, CommsThreadPresentationTool(thread=thread)),
         )
 
     async def publication(

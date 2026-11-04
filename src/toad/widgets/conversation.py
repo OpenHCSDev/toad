@@ -1304,13 +1304,11 @@ class Conversation(
                 ):
                     await asyncio.sleep(0.1)
                 self.prompt.disabled = True
-                if (
-                    agent.coordination.wire_root
-                    if agent and agent.coordination
-                    else None
-                ) is None:
+                async def prepare_login():
                     await self.prune_window(0, 0)
                     self.output.boundary()
+
+                await agent.prepare_login(prepare_login)
                 await agent.session.reconnect_after_login()
             else:
                 await agent.session.authenticate(method_id)
