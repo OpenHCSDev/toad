@@ -3,20 +3,27 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from functools import cache
+from functools import cache, partial
 from dataclasses import replace
 from pathlib import Path
 from pydantic import JsonValue
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, PromptRequest, QueueScope
+from agent_comms.acp_extension import CoordinationChangedUpdate, GoalSnapshotReply, PromptRequest, QueueScope
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_history import RecordedGoalHistory
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal, GoalDeclaration
 from agent_comms.order_tools import InputDeliveryRead
-from agent_comms.owner_connection import socket_path
+from agent_comms.goal_scope import OneGoal
 from agent_comms.repo import Checkout
-from agent_comms.runtime import RuntimeConnection
+from agent_comms.runtime_server import AttachedRuntimeRequest
+from agent_comms.runtime_requests import (
+    DismissHistoricalInputsRuntimeRequest, EditGoalRuntimeRequest, GoalHistoryRuntimeRequest,
+)
+from agent_comms.tools import (
+    CommsCaptureHumanInputTool, CommsMoveThreadProjectTool,
+    CommsOwnerRequestTool, CommsRenameManagedThreadTool,
+)
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.session_load import ExistingSessionLoadPlan
@@ -70,7 +77,7 @@ class SessionAgent(AgentBase, SourceIdentity):
         self._coordination = update
         self.__class__ = self._coordinated_type()
 
-    async def request_owner(self, method: str, **params: JsonValue):
+    async def request_owner(self, captured: OwnerRequest, operation: AttachedRuntimeRequest) -> JsonValue:
         raise ValueError("This action requires an agent-comms thread.")
 
     def capture_owner_request(self, authority: ClientSessionRequest) -> OwnerRequest:
@@ -99,24 +106,39 @@ class SessionAgent(AgentBase, SourceIdentity):
         """An uncoordinated session has no native thread to rename."""
 
     async def dismiss_historical_inputs(self):
-        return await self.request_owner("dismiss_historical_inputs")
+        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
+        return await self.request_owner(request, DismissHistoricalInputsRuntimeRequest(
+            thread=request.coordination.thread.name,
+        ))
 
     async def get_goal_snapshot(self) -> GoalSnapshot:
         return await self.thread_read().goal_snapshot(self.controller.transcripts)
 
     async def get_goal_history(self, goal_id: GoalId) -> RecordedGoalHistory:
-        result = await self.request_owner("goal_history", goal_id=goal_id)
+        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
+        result = await self.request_owner(request, GoalHistoryRuntimeRequest(
+            thread=request.coordination.thread.name, goal_id=OneGoal(goal_id),
+        ))
         return FieldCodec.decode(RecordedGoalHistory, result)
 
     async def edit_goal(self, goal: Goal, text: str) -> Goal:
-        result = await self.request_owner(
-            "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
-        )
-        return FieldCodec.decode(Goal, result["goal"])
+        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
+        result = await self.request_owner(request, EditGoalRuntimeRequest(
+            thread=request.coordination.thread.name, goal_id=goal.id,
+            expected_revision=goal.revision, text=text,
+        ))
+        return FieldCodec.decode(GoalSnapshotReply, result).goal.require()
 
     async def update_goal(self, action: type[GoalAction], text: str = "") -> GoalDeclaration:
-        result = await action.submit_control(self.get_goal_snapshot, self.request_owner, text)
-        return FieldCodec.decode(GoalDeclaration, result["goal"])
+        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
+        request.require()
+        result = await action.submit_control(
+            request.coordination.thread,
+            partial(self.owner_read(request).goal_snapshot, self.controller.transcripts),
+            partial(self.request_owner, request), text,
+        )
+        request.require()
+        return result
 
 
 class CoordinationIdentity(SessionAgent):
@@ -168,28 +190,16 @@ class CoordinationIdentity(SessionAgent):
 
 
 class OwnerRequests(CoordinationIdentity):
-    async def request_owner(self, method: str, **params: JsonValue):
-        request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
-        coordination = request.coordination
-        request.require()
-        comms = await self.controller.transcripts.service(coordination.wire_root)
-
-        def resolve():
-            owner = comms.registry.require(coordination.thread.name)
-            if owner.incarnation != coordination.thread:
-                raise ValueError("The owner incarnation changed while preparing the request.")
-            return RuntimeConnection(
-                comms, owner.incarnation, socket_path(comms.root, owner.require_process().pid)
-            )
-
-        proxy = await asyncio.to_thread(resolve)
-        try:
-            request.require()
-            result = await proxy.request(method, **params)
-            request.require()
-            return result
-        finally:
-            await proxy.close()
+    async def request_owner(self, captured: OwnerRequest, operation: AttachedRuntimeRequest) -> JsonValue:
+        captured.require()
+        coordination = captured.coordination
+        core = await self.controller.transcripts.core(coordination.wire_root)
+        captured.require()
+        result = await asyncio.to_thread(core.call, CommsOwnerRequestTool(
+            owner=coordination.thread, request=operation,
+        ))
+        captured.require()
+        return result.payload
 
 
 class OwnerReads(CoordinationIdentity):
@@ -225,9 +235,14 @@ class OwnerPrompts(CoordinationIdentity):
     async def prepare_command(self, command: PromptRequest, authority: ClientSessionRequest, scope: QueueScope) -> PromptRequest:
         request = self.capture_owner_request(authority)
         request.require()
-        comms = await self.controller.transcripts.service(request.coordination.wire_root)
-        origin = await asyncio.to_thread(self.queue_attachment.capture_human_input, comms, scope)
+        core = await self.controller.transcripts.core(request.coordination.wire_root)
         request.require()
+        captured_scope = self.queue_attachment.input_scope(scope)
+        origin = await asyncio.to_thread(core.call, CommsCaptureHumanInputTool(
+            claimed_identity=captured_scope.claimed_identity,
+        ))
+        request.require()
+        self.queue_attachment.input_scope(scope)
         return replace(command, origin=origin)
 
     def prompt_settlement(self, authority: ClientSessionRequest) -> Callable[[], None]:
@@ -247,9 +262,12 @@ class OwnerWrites(CoordinationIdentity):
     async def update_project(self, path: str) -> str:
         request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
         coordination = request.coordination
-        comms = await self.controller.transcripts.service(coordination.wire_root)
         request.require()
-        result = await asyncio.to_thread(comms.threads.set_project, coordination.thread, path)
+        core = await self.controller.transcripts.core(coordination.wire_root)
+        request.require()
+        result = await asyncio.to_thread(core.call, CommsMoveThreadProjectTool(
+            owner=coordination.thread, path=path,
+        ))
         request.require()
         worktree = Checkout(Path(result.current))
         self.receive_coordination(replace(self.coordination, worktree=worktree))
@@ -262,10 +280,12 @@ class OwnerWrites(CoordinationIdentity):
             return
         request = self.capture_owner_request(ClientSessionRequest(self, self.session_id))
         coordination = request.coordination
-        comms = await self.controller.transcripts.service(coordination.wire_root)
         request.require()
-        result = await asyncio.to_thread(
-            comms.threads.rename_managed_thread, coordination.thread, display_name, owner=coordination.owner)
+        core = await self.controller.transcripts.core(coordination.wire_root)
+        request.require()
+        result = await asyncio.to_thread(core.call, CommsRenameManagedThreadTool(
+            thread=coordination.thread, display_name=display_name, owner=coordination.owner,
+        ))
         request.require()
         self.receive_coordination(replace(
             self.coordination, thread=replace(self.coordination.thread, name=result.current),
