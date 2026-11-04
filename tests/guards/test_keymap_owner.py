@@ -72,6 +72,19 @@ class HandBindings(KeymapMeasure):
                     yield node.lineno
 
 
+class ModeBindings(KeymapMeasure):
+    """`ModeBinding(key, method)`: a key tied to a method object, whose qualified name is the binding
+    id and whose subclass overrides never run. Each one becomes an Action member."""
+    ceiling = 17
+
+    @classmethod
+    def lines(cls, tree):
+        for node in ast.walk(tree):
+            match node:
+                case ast.Call(func=ast.Name(id='ModeBinding') | ast.Attribute(attr='ModeBinding')):
+                    yield node.lineno
+
+
 class ActionMethods(KeymapMeasure):
     """`def action_*`: behaviour Textual finds by string name. A method MovesCursor declares is
     a required contract its key family calls, so its implementers are not this."""
