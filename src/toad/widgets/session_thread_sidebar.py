@@ -4,7 +4,7 @@ from weakref import ref
 from textual.app import ComposeResult
 from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
-from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.side_bar import PanelHydration, ThreadSidebar
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
 from toad.widgets.presentation_window import NativePresentation
 
@@ -43,7 +43,7 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
         self.schedule_hydration()
 
     async def _cancel_panel_workers(self) -> None:
-        for worker in self.workers.cancel_group(self, self.PANEL_WORKER_GROUP):
+        for worker in PanelHydration.cancel_all(self):
             try:
                 await worker.wait()
             except WorkerCancelled:
