@@ -850,12 +850,14 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
             previous=(previous for _fragment, _shown, previous in drawn))
         if not self.state.can_draw:
             return
-        ready = {fragment.key: result for (fragment, _shown, _previous), result in zip(drawn, rendered)}
         async with self.window.preserve_history():
             if not self.state.can_draw:
                 return
-            changed = {fragment.key for fragment, shown, _previous in changes
-                       if TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(fragment.key))}
+            # A fragment still showing the requested state changes; a drawn one also holds its rows.
+            undrawn = {fragment.key for fragment, shown, _previous in changes
+                       if fragment.shown is shown} - {fragment.key for fragment, _shown, _previous in drawn}
+            changed = undrawn | {fragment.key for (fragment, shown, _previous), (request, lines) in zip(drawn, rendered)
+                                 if fragment.shown is shown and request.hold(self, fragment, lines)}
             for page in self.pages:
                 held = [fragment for fragment in page.prepared.fragments_in_range if fragment.key in changed]
                 if held:
@@ -909,7 +911,7 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         return next((page.fragment_under_mouse() for page in self.pages if page is widget), UnloadedFragment())
 
     def fragment_shown(self, fragment: TranscriptFragment) -> Unplaced:
-        """Where the screen shows a fragment's rows; None while its page is off screen."""
+        """Where the screen shows a fragment's rows; unplaced while its page is off screen."""
         return self.fragment_placement(fragment).shown()
 
     def show_fragment(self, fragment: TranscriptFragment) -> None:

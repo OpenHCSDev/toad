@@ -259,7 +259,7 @@ class PermissionsScreen(BackgroundArea, QuestionContext, PriorityActions, Cycles
 
         for diff_view in self.query(DiffView):
             diff_view.auto_split = diff_type.auto_split
-            diff_view.split = diff_type.split
+            diff_view.split = diff_type.rows.split
 
 
 

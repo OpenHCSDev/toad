@@ -14,14 +14,13 @@ from functools import cached_property
 from itertools import chain, count, zip_longest
 from typing import TYPE_CHECKING, ClassVar
 
-from toad.patch import PatchCell
 
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
     from toad.widgets.transcript_fragments import Shown, TranscriptFragment
     from toad.widgets.transcript_history import LaidOut, RowChange
 
-from metaclass_registry.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import handles
 from rich._wrap import divide_line
 from rich.cells import cell_len, set_cell_size
 from rich.columns import Columns
@@ -56,7 +55,7 @@ from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
 from agent_comms.recorded_time import RecordedEventTime, UnrecordedEventTime
 from toad.message_rows import RecordedMessageClock, WireBody
-from toad.patch import DiffSettings, Patch
+from toad.patch import DiffSettings, NoPatchCell, Patch, PatchCell, PatchSide, SplitRows, UnifiedRows
 from toad.render_backend import ReusableRenderTask
 from toad.rich_preparation import RichTextBody, SyntaxPalette
 
@@ -243,16 +242,56 @@ class PatchLayout:
         longest = max(
             (cell_len(line.expandtabs(4)) for line in (*patch.before.values(), *patch.after.values())), default=0
         )
-        self.split = settings.view.use_split(width, 2 * (longest + self.number_width + 4) + 3)
-        self.pane_width = max(1, (width - 3) // 2 if self.split else width)
-        self.prefix_width = (self.number_width + 1 if self.split else 2 * self.number_width + 2) + (
-            2 if settings.annotations else 0
-        )
+        self.rows = settings.view.rows_at(width, 2 * (longest + self.number_width + 4) + 3)
+        self.pane_width = self.rows.pane_width(width)
+        self.prefix_width = self.rows.number_columns(self.number_width) + (2 if settings.annotations else 0)
         self.pane_width = settings.wrap.fitted_width(self.pane_width, longest + self.prefix_width)
         self.code_width = max(1, self.pane_width - self.prefix_width)
 
     def breaks(self, text: str) -> list[int]:
         return divide_line(text, self.code_width, fold=True) if self.settings.wrap.enabled else []
+
+
+class PatchPainter(MroProjection[list[Text]]):
+    """Paint one diff row: a numbered line with its gutter, or a blank pane where a side has no line."""
+
+    def __init__(self, layout: PatchLayout, theme: LineTheme) -> None:
+        self.layout, self.theme = layout, theme
+
+    def row(self, old: PatchSide, new: PatchSide) -> list[Text]:
+        return self.project_value(self.layout.rows, old, new)
+
+    @handles(SplitRows)
+    def beside(self, rows: SplitRows, old: PatchSide, new: PatchSide) -> list[Text]:
+        width = self.layout.number_width
+        left = self.project_value(old, f"{old.label:>{width}} ")
+        right = self.project_value(new, f"{new.label:>{width}} ")
+        blank, divider = Text(" " * self.layout.pane_width), Text(" │ ", style=self.theme.style(MutedRole))
+        return [a + divider + b for a, b in zip_longest(left, right, fillvalue=blank)]
+
+    @handles(UnifiedRows)
+    def column(self, rows: UnifiedRows, old: PatchSide, new: PatchSide) -> list[Text]:
+        width = self.layout.number_width
+        return self.project_value(old.otherwise(new), f"{old.label:>{width}} {new.label:>{width}} ")
+
+    @handles(PatchCell)
+    def line(self, cell: PatchCell, prefix: str) -> list[Text]:
+        layout = self.layout
+        tint = Style(bgcolor=self.theme.style(cell.role).bgcolor)
+        if layout.settings.annotations:
+            prefix += cell.role.diff_marker + " "
+        gutter_style = self.theme.style(cell.role.gutter())
+        text = cell.code.copy()
+        rows = []
+        for index, chunk in enumerate(text.divide(layout.breaks(text.plain))):
+            chunk.truncate(layout.code_width, overflow="crop", pad=True)
+            chunk.stylize(tint)
+            rows.append(Text(prefix if index == 0 else " " * layout.prefix_width, style=gutter_style) + chunk)
+        return rows
+
+    @handles(NoPatchCell)
+    def absent(self, cell: NoPatchCell, prefix: str) -> list[Text]:
+        return [Text(" " * self.layout.pane_width)]
 
 
 class Lines(ABC):
@@ -401,7 +440,7 @@ class StyledPatch(Patch, PreparedBlock):
     after_text: dict[int, Text] = field()
 
 
-class RichLineRenderer(MroDispatch):
+class RichLineRenderer(MroProjection[None]):
     """Paint each primitive through its most-specific declared renderer."""
 
     def __init__(self, theme: LineTheme, width: int = 1) -> None:
@@ -428,68 +467,25 @@ class RichLineRenderer(MroDispatch):
     def rows(self, blocks: tuple[LineBlock, ...]) -> tuple[Row, ...]:
         self.output = []
         for block in blocks:
-            next(self.handlers_for(block))(block)
+            self.project_value(block)
         return tuple(self.output)
 
     @handles(Patch)
     def patch(self, patch: Patch) -> None:
-        before, after = patch.before_text, patch.after_text
-        settings = self.theme.diff
-        layout = PatchLayout(patch, self.width, settings)
-        number_width, split = layout.number_width, layout.split
-        pane_width, prefix_width, code_width = layout.pane_width, layout.prefix_width, layout.code_width
-        console = self.console
-
-        def paint(cell: PatchCell | None, source: dict[int, Text], old: str, new: str):
-            if cell is None:
-                return [Text(" " * pane_width)]
-            style = self.theme.style(cell.role)
-            tint = Style(bgcolor=style.bgcolor)
-            if split:
-                prefix = f"{cell.number:>{number_width}} "
-            else:
-                prefix = f"{old:>{number_width}} {new:>{number_width}} "
-            if settings.annotations:
-                prefix += cell.role.diff_marker + " "
-            text = source[cell.number - 1].copy()
-            chunks = text.divide(layout.breaks(text.plain))
-            result = []
-            for index, chunk in enumerate(chunks):
-                chunk.truncate(code_width, overflow="crop", pad=True)
-                chunk.stylize(tint)
-                gutter = Text(
-                    prefix if index == 0 else " " * prefix_width,
-                    style=style + tint if cell.role is not TextRole else self.theme.style(MutedRole),
-                )
-                result.append(gutter + chunk)
-            return result
-
+        layout = PatchLayout(patch, self.width, self.theme.diff)
+        painter = PatchPainter(layout, self.theme)
+        console, muted = self.console, self.theme.style(MutedRole)
         title = patch.after_path or patch.before_path or "Edit"
         if patch.before_path != patch.after_path:
             title = f"{patch.before_path} → {patch.after_path}"
         self.output.append(
-            (
-                Segment(
-                    _fit(f"{title} (+{patch.additions}, −{patch.deletions})", self.width), self.theme.style(MutedRole)
-                ),
-            )
+            (Segment(_fit(f"{title} (+{patch.additions}, −{patch.deletions})", self.width), muted),)
         )
-        for group_index, group in enumerate(patch.row_groups(split)):
+        for group_index, group in enumerate(patch.row_groups(layout.rows)):
             if group_index:
-                self.output.append((Segment("…", self.theme.style(MutedRole)),))
+                self.output.append((Segment("…", muted),))
             for old, new in group:
-                if split:
-                    left, right = paint(old, before, "", ""), paint(new, after, "", "")
-                    blank = Text(" " * pane_width)
-                    for a, b in zip_longest(left, right, fillvalue=blank):
-                        self.output.append(
-                            tuple((a + Text(" │ ", style=self.theme.style(MutedRole)) + b).render(console))
-                        )
-                else:
-                    cell = old or new
-                    source = before if old is not None else after
-                    for row in paint(cell, source, str(old.number) if old else "", str(new.number) if new else ""):
-                        self.output.append(tuple(row.render(console)))
+                self.output.extend(tuple(row.render(console)) for row in painter.row(old, new))
 
     @handles(RichTextBody)
     def rich_text(self, block: RichTextBody) -> None:
@@ -834,7 +830,7 @@ class PlainRows(MeasuredRows):
 
 
 @dataclass(frozen=True)
-class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]):
+class TranscriptLinesRenderTask(MroProjection[LineBlock], ReusableRenderTask[LinePreparation]):
     def result_size(self, result: LinePreparation) -> int:
         return result.retained_bytes
 
@@ -856,19 +852,10 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
             self, lines.wrap(view.line_width, view.app.colours.line_renderer)
         )
 
-    @staticmethod
-    def show(view, fragment: TranscriptFragment, shown: Shown, rendered) -> bool:
-        """Publish only the still-requested state, retaining rows through its request."""
-        if fragment.shown is not shown:
-            return False
-        if rendered is not None:
-            request, lines = rendered
-            return request.hold(view, fragment, lines)
-        return True
 
     def execute(self) -> LinePreparation:
         return LinePreparation(
-            tuple(next(self.handlers_for(block))(block) for block in self.blocks), self.preparation.theme
+            tuple(self.project_value(block) for block in self.blocks), self.preparation.theme
         )
 
     @handles(LineBlock)
@@ -886,7 +873,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
     @handles(WireBody)
     def wire_body(self, block: WireBody) -> LineBlock:
         prepared = block.prepare(self.context.for_source(block.row.message.history_source))
-        return next(self.handlers_for(prepared))(prepared)
+        return self.project_value(prepared)
 
     @handles(RichTextBody)
     def rich_text(self, block: RichTextBody) -> StyledBody:

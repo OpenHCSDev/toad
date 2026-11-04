@@ -150,7 +150,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def source_ready(self) -> bool:
         return self.state.source_ready(self)
 
-    def reserve_source_work(self, operation=None) -> WorkingTranscript:
+    def reserve_source_work(
+        self, operation: type[WorkingTranscript] | partial[WorkingTranscript] = WorkingTranscript
+    ) -> WorkingTranscript:
         operation = self._source_state.reserve(self, operation)
         self._source_state = operation
         return operation

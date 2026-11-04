@@ -1,11 +1,14 @@
 """The shared Markdown tokens laid out inline instead of as block Markdown."""
-from abc import abstractmethod
+from __future__ import annotations
+
 from dataclasses import dataclass, field
+from functools import cache
+from typing import ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec
 
-from toad.line_blocks import NO_LINK, CodeRole, EmphasisRole, LineLink, Span, StrongRole, TextRole
+from toad.line_blocks import NO_LINK, CodeRole, EmphasisRole, LineLink, LineRole, Span, StrongRole, TextRole
 from toad.markdown_links import MessageMarkdownParser
 
 
@@ -15,23 +18,32 @@ class InlineSpans:
     links: list[LineLink] = field(default_factory=lambda: [NO_LINK])
     spans: list = field(default_factory=list)
 
-    def text(self, text, role=None):
+    def text(self, text):
+        """Text in the surrounding emphasis."""
+        self.styled(text, self.roles[-1])
+
+    def styled(self, text, role: type[LineRole]):
         link = self.links[-1]
-        self.spans.append(Span(text, link.text_role(role or self.roles[-1]), link))
+        self.spans.append(Span(text, link.text_role(role), link))
 
     def consume(self, tokens):
-        rules = {FieldCodec.encode(rule): rule for rule in InlineSpanRule.members_with(InlineSpanRule)}
         for token in tokens:
             if token.children:
                 self.consume(token.children)
-            elif (rule := rules.get(token.type)) is not None:
-                rule.apply(token, self)
+            else:
+                InlineSpanRule.for_token(token.type).apply(token, self)
 
 
 class InlineSpanRule(DeclaredFamily, affix="SpanRule"):
     @classmethod
-    @abstractmethod
-    def apply(cls, token, state): ...
+    def apply(cls, token, state):
+        """A token kind with no rule of its own adds nothing to the line."""
+
+    @classmethod
+    @cache
+    def for_token(cls, token_type: str) -> type[InlineSpanRule]:
+        """Decode a parser token kind once: its declared rule, or the family's do-nothing default."""
+        return {FieldCodec.encode(rule): rule for rule in cls.members_with(cls)}.get(token_type, cls)
 
 
 class TextSpanRule(InlineSpanRule):
@@ -43,7 +55,7 @@ class TextSpanRule(InlineSpanRule):
 class CodeInlineSpanRule(InlineSpanRule):
     @classmethod
     def apply(cls, token, state):
-        state.text(token.content, CodeRole)
+        state.styled(token.content, CodeRole)
 
 
 class LinkOpenSpanRule(InlineSpanRule):
@@ -58,8 +70,8 @@ class LinkCloseSpanRule(InlineSpanRule):
         state.links.pop()
 
 
-class StyleOpenSpanRule(InlineSpanRule):
-    role = None
+class StyleOpenSpanRule(InlineSpanRule, declared_name=None):
+    role: ClassVar[type[LineRole]]
 
     @classmethod
     def apply(cls, token, state):

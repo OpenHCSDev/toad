@@ -15,7 +15,8 @@ import time
 from typing import ClassVar
 
 from agent_comms.channel_targets import CommandTarget, ChannelTarget, ThreadTarget
-from metaclass_registry.mro_dispatch import MroDispatch, handles
+from metaclass_registry.mro_dispatch import handles
+from toad.core.projection import MroProjection
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.messages import Message
 from agent_comms.recorded_time import EventTime
@@ -60,7 +61,7 @@ class RecordedMessageClock(MessageClock):
 
 
 @dataclass(frozen=True)
-class MessageRow(MroDispatch):
+class MessageRow(MroProjection[LineLink]):
     """One message: who sent it to whom, when, its text, and whether the reader's thread sent it."""
 
     message: Message
@@ -94,7 +95,7 @@ class MessageRow(MroDispatch):
     def name(self, target: str, role: type[LineRole] = NameRole) -> Span:
         """A thread or channel name that opens what it names."""
         identity = CommandTarget.named(target)
-        return Span(target, role, next(self.handlers_for(identity))(identity))
+        return Span(target, role, self.project_value(identity))
 
     @handles(ThreadTarget)
     def thread_link(self, target: ThreadTarget) -> LineLink:
