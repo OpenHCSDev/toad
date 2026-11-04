@@ -185,7 +185,6 @@ class GoalBar(SidePadding, VerticalGroup):
         self.styles.border_bottom = (
             self.styles.border_top if queue_visible else None
         )
-        self._update_goal_text()
 
     def compose(self) -> ComposeResult:
         yield self.header
@@ -199,30 +198,29 @@ class GoalBar(SidePadding, VerticalGroup):
             control.styles.margin = (0, 1 if self.collapsed else 2, 0, 0)
         if self.collapsed:
             self._end_resize()
-        if self.is_attached:
-            self._update_goal_text()
+        self._show_state()
 
     def watch_goal_display(self) -> None:
+        """The goal's own text is parsed here only: an execution or collapse change never re-reads it."""
         goal = self.goal_display.snapshot
-        progress_text = goal.progress
         self.display = self.goal_display.visible
         if not self.goal_display.visible:
             self._end_resize()
-        self._update_goal_text()
         if self.is_attached:
-            self.progress.update_goal_text(f"Progress: {progress_text}")
+            self.summary.update_goal_text(f"Objective: {goal.objective}")
+            self.progress.update_goal_text(f"Progress: {goal.progress}")
             self.progress.display = goal.shows_progress
-            self._update_control_layout()
+        self._show_state()
 
     def watch_execution(self) -> None:
-        self._update_goal_text()
+        self._show_state()
 
-    def _update_goal_text(self) -> None:
+    def _show_state(self) -> None:
+        """What depends on the goal, its execution and the collapse together; the goal's text does not."""
         if not self.is_attached:
             return
         state = self.goal_display
         goal = state.snapshot
-        objective = goal.objective
         execution = self.execution
         self.header.update(state.heading(execution))
         session = self._source().goal_controls
@@ -232,7 +230,6 @@ class GoalBar(SidePadding, VerticalGroup):
             control.display = action.visible(session)
             control.update(action.caption(session, self.collapsed))
         self.document.display = goal.shows_document and not self.collapsed
-        self.summary.update_goal_text(f"Objective: {objective}")
         standby = state.standby(execution)
         self.execution_row.display = standby and not self.collapsed
         self.pulse.active = standby and not self.collapsed
