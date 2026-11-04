@@ -18,7 +18,6 @@ from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
 from agent_comms.cli_result import CliResult
 from agent_comms.importing import ThreadImported
 from agent_comms.tools import CommsExportWireTool, CommsImportThreadTool
-from agent_comms.route_selection import RouteSelection
 
 from agent_comms.exporting import (
     CancellableWireExport,
@@ -45,7 +44,7 @@ from textual.app import App, ComposeResult
 from textual.message import Message
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from toad.screens.modal import DismissibleScreen
-from toad.comms_root import CoordinationAccess
+from toad.comms_root import CapturedSource, CoordinationAccess
 from toad.application_lifetime import TerminalOutcome
 from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime
@@ -76,10 +75,10 @@ class Transfer(DeclaredFamily, affix="Request"):
 
     @classmethod
     @abstractmethod
-    def dialog(cls, selected: RouteSelection) -> TransferDialog: ...
+    def dialog(cls, selected: CapturedSource) -> TransferDialog: ...
 
     @abstractmethod
-    async def execute(self, app: Transfers, selected: RouteSelection) -> None: ...
+    async def execute(self, app: Transfers, selected: CapturedSource) -> None: ...
 
 
 class TransferRequest[Result: CliResult](Transfer):
@@ -89,11 +88,11 @@ class TransferRequest[Result: CliResult](Transfer):
     cancelled_by: ClassVar[tuple[type[BaseException], ...]] = ()
 
     @abstractmethod
-    def perform(self, access: CoordinationAccess, selected: RouteSelection,
+    def perform(self, access: CoordinationAccess, selected: CapturedSource,
                 observer: TransferProgress) -> Result:
         """Run this transfer against the selected route's Core, reporting progress to observer."""
 
-    async def execute(self, app: Transfers, selected: RouteSelection) -> None:
+    async def execute(self, app: Transfers, selected: CapturedSource) -> None:
         try:
             async with self.progress(app) as observer:
                 try:
@@ -133,10 +132,10 @@ class WireExportRequest(TransferRequest[WireExportProvenance]):
     cancelled_by = (WireExportCancelled,)
 
     @classmethod
-    def dialog(cls, selected: RouteSelection) -> WireExportDialog:
+    def dialog(cls, selected: CapturedSource) -> WireExportDialog:
         return WireExportDialog(selected.root)
 
-    def perform(self, access: CoordinationAccess, selected: RouteSelection,
+    def perform(self, access: CoordinationAccess, selected: CapturedSource,
                 observer: TransferProgress) -> WireExportProvenance:
         """Core's host writes the export; its progress and cancel reach this observer."""
         return access.write(selected, access.observing(selected.root).core.call, CommsExportWireTool(
@@ -172,10 +171,10 @@ class ThreadImportRequest(TransferRequest[ThreadImported]):
     title = "Thread Import…"
 
     @classmethod
-    def dialog(cls, selected: RouteSelection) -> ThreadImportDialog:
+    def dialog(cls, selected: CapturedSource) -> ThreadImportDialog:
         return ThreadImportDialog()
 
-    def perform(self, access: CoordinationAccess, selected: RouteSelection,
+    def perform(self, access: CoordinationAccess, selected: CapturedSource,
                 observer: TransferProgress) -> ThreadImported:
         return access.write(selected, access.observing(selected.root).core.call, CommsImportThreadTool(
             source=self.source, harness=self.harness, name=self.name, session=self.session,
@@ -200,7 +199,7 @@ class Transfers(ThemedApp[TerminalOutcome]):
         self.push_screen(kind.dialog(selected), callback=partial(self.transfer_submitted, selected))
 
     @boundary_decoder
-    def transfer_submitted(self, selected: RouteSelection, request: Transfer | None) -> None:
+    def transfer_submitted(self, selected: CapturedSource, request: Transfer | None) -> None:
         """Native Screen.dismiss supplies None on cancel; that absence stops here."""
         if request is not None:
             self.run_worker(request.execute(self, selected),

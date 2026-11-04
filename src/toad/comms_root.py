@@ -111,6 +111,60 @@ T = TypeVar("T")
 ROUTE_CHECK_SECONDS = 1.0
 
 
+class CapturedSource(ABC):
+    """The Core a UI action read its source from, held until the action writes or redraws.
+    Each connection captures it its own way; the action only confirms it."""
+
+    @property
+    @abstractmethod
+    def root(self) -> Path:
+        """The root Core serves, as this capture holds it."""
+
+    @abstractmethod
+    def confirm(self, access: CoordinationAccess) -> None:
+        """Refuse when what was captured is no longer what this UI observes."""
+
+    @abstractmethod
+    def serves(self, root: str | Path) -> bool:
+        """Whether ``root`` names the captured root."""
+
+
+@dataclass(frozen=True)
+class SelectedRoute(CapturedSource):
+    """In process: the route selection the action read under, resolved on this machine."""
+
+    selection: RouteSelection
+
+    @property
+    def root(self) -> Path:
+        return self.selection.root
+
+    def confirm(self, access: CoordinationAccess) -> None:
+        access.confirm_route(self.selection)
+
+    def serves(self, root: str | Path) -> bool:
+        return Path(root).expanduser().resolve() == self.root
+
+
+@dataclass(frozen=True)
+class CurrentObservation(CapturedSource):
+    """Across the connector: the observation the action read through. It is still the
+    capture while it is the current one; its root is Core's spelling, never this machine's."""
+
+    observing: Observing
+
+    @property
+    def root(self) -> Path:
+        return self.observing.root
+
+    def confirm(self, access: CoordinationAccess) -> None:
+        if not self.observing.is_current():
+            raise RouteChangedError("The connector's observation changed before the operation")
+
+    def serves(self, root: str | Path) -> bool:
+        return self.observing.observes(root)
+
+
 class CoreConnection(ABC):
     """The selected Core transport: it owns its route selection and opens its observation."""
 
@@ -131,6 +185,10 @@ class CoreConnection(ABC):
 
     @abstractmethod
     def route_selection(self) -> RouteSelection: ...
+
+    @abstractmethod
+    def capture(self, access: CoordinationAccess, source: str | Path) -> CapturedSource:
+        """The source a UI action reads under, refused when it is not this Core's."""
 
     @abstractmethod
     def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
@@ -158,6 +216,9 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
 
     def route_selection(self) -> RouteSelection:
         return RouteSelection.of(self)
+
+    def capture(self, access: CoordinationAccess, source: str | Path) -> SelectedRoute:
+        return SelectedRoute(self.route_selection().require_source(source))
 
     def current(self, access: CoordinationAccess, source: str | Path) -> bool:
         """The held launch route's root."""
@@ -207,6 +268,9 @@ class RemoteCoreConnection(RemoteCoreAccess, CoreConnection):
     def route_selection(self) -> RouteSelection:
         raise RemoteRouteNotSelectable(
             f"{self.endpoint.url} answers Core requests; local route selection does not apply")
+
+    def capture(self, access: CoordinationAccess, source: str | Path) -> CurrentObservation:
+        return CurrentObservation(self.observing(access, source))
 
     def open_current(self, access: CoordinationAccess) -> Observing | FailedObservation:
         """The current observation through this connector; the observation decides whether
@@ -407,7 +471,8 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
         """The bus root this observation's Core serves; root-keyed requests and views key on it."""
 
     def observes(self, root: str | Path) -> bool:
-        return Path(root).expanduser().resolve() == self.root
+        """Core's served root as Core spells it; a local member resolves on this machine."""
+        return Path(root) == self.root
 
     def historical_threads(self, senders: HistoricalSenders) -> tuple[HistoricalThread, ...]:
         """The preserved identities attached history sources keep, for every sender or one."""
@@ -548,6 +613,9 @@ class LocalObserving(Observing):
     def root(self) -> Path:
         return self.selection.root
 
+    def observes(self, root: str | Path) -> bool:
+        return Path(root).expanduser().resolve() == self.root
+
     def opened_selection(self) -> RouteSelection:
         return self.selection
 
@@ -642,9 +710,9 @@ class CoordinationAccess(MroDispatch):
         """The current route resolved from this app's held launch root."""
         return self.connection.route_selection()
 
-    def selected(self, source: str | Path) -> RouteSelection:
-        """Select this app's route and refuse a foreign source."""
-        return self.selection.require_source(source)
+    def selected(self, source: str | Path) -> CapturedSource:
+        """Capture the source an action reads under and refuse a foreign one."""
+        return self.connection.capture(self, source)
 
     def current(self, source: str | Path) -> bool:
         """Whether a source still belongs to this app's current Core."""
@@ -659,13 +727,16 @@ class CoordinationAccess(MroDispatch):
         with self.opening:
             return self.connection.open_current(self)
 
-    def confirm(self, selected: RouteSelection) -> None:
+    def confirm(self, captured: CapturedSource) -> None:
+        captured.confirm(self)
+
+    def confirm_route(self, selected: RouteSelection) -> None:
         if self.selection != selected:
             raise RouteChangedError("Comms route changed before the operation")
 
     def require(self, selected: RouteSelection) -> Observing:
         """The service for ``selected``; a new selection opens it and starts its observation."""
-        self.confirm(selected)
+        self.confirm_route(selected)
         with self.opening:
             return self.observation.require(self, selected)
 
@@ -675,7 +746,7 @@ class CoordinationAccess(MroDispatch):
             service = Comms(selected.route)
             if service.root.resolve() != selected.root:
                 raise RouteChangedError("Comms route changed while opening the service")
-            self.confirm(selected)
+            self.confirm_route(selected)
             return previous.adopt(LocalObserving(
                 SidebarModel(self.app.call_next), ObservationProcess(LocalRouteObservation(service.route)),
                 selection=selected, service=service, access=self))
@@ -954,7 +1025,7 @@ class CoordinationAccess(MroDispatch):
         if await self.route_changed():
             self.events.publish(CoordinationObserved(self.revision))
 
-    def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
+    def write(self, selected: CapturedSource, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. No route lock: the
         # store refuses a write an install holds, inside its own write transaction.
         self.confirm(selected)

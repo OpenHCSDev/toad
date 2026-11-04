@@ -44,7 +44,7 @@ class CoordinationTranscriptReader:
 
     async def service(self, root):
         return await self.access.preparation.run_thread(
-            lambda: self.access.require(self.access.selected(root)).service
+            lambda: self.access.observing(root).service
         )
 
     async def thread_presentation(

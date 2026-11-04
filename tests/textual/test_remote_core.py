@@ -138,3 +138,34 @@ async def test_a_remote_core_opens_a_thread_and_sends_to_it_through_the_connecto
             await ui.press("enter")
             await ui.until(sent, why="the message on the wire")
             assert sent()[0].sender == workspace.viewer
+
+
+async def test_a_remote_core_lists_a_target_menu_and_keeps_its_root_spelling(
+        workspace, tmp_path, monkeypatch):
+    """The menu captures its source through the connector's observation, not a local route
+    selection; and Core's served root is compared as Core spells it, never resolved here."""
+    from toad.comms_root import CurrentObservation
+    from toad.target_commands import TargetContext
+
+    workspace.thread("remote-peer", "team")
+    with remote_core(workspace, tmp_path, monkeypatch) as connection:
+        async with workspace.app(session=False, connect=lambda _: connection) as ui:
+            app, _ = ui.textual
+            sidebar = app.workspace_chrome.channels
+            if sidebar.collapsed:
+                sidebar.toggle()
+            tree = sidebar.query_one(CommsSidebar)
+            await ui.until(lambda: "#team" in tree.groups, seconds=REMOTE_FIRST_ANSWER,
+                           why="the remote Core's channel group")
+            observed = app.coordination_access.observation
+            captured = app.coordination_access.selected(observed.root)
+            assert captured == CurrentObservation(observed)
+            context = TargetContext(app, observed, CommandTarget.named("remote-peer"),
+                                    workspace.viewer, Checkout(workspace.project))
+            actions = await asyncio.to_thread(context.available_actions)
+            assert actions
+
+            spelled_elsewhere = tmp_path / "served-root-alias"
+            spelled_elsewhere.symlink_to(observed.root)
+            assert observed.observes(observed.root)
+            assert not observed.observes(spelled_elsewhere)
