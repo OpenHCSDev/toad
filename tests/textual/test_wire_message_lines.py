@@ -17,6 +17,7 @@ from toad.widgets.transcript_lines import LinePreparation, NoRows, PlainLines, R
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.widgets.transcript_fragments import MessageShown
 from toad.wire_history import WireFragment
+from support.styling import awaits_styling
 
 
 class MessageApp(ThemedApp, App):
@@ -114,7 +115,7 @@ def test_a_status_change_keeps_the_drawn_rows_until_the_new_rows_arrive(tmp_path
 
     status = CheckedNotifications.from_notifications(())
     assert shown.request_show(replace(shown.shown, status=status))
-    assert shown.lines_for(80, renderer.theme).awaits_styling
+    assert awaits_styling(shown.lines_for(80, renderer.theme))
     assert shown.stand_in_lines(80, renderer.theme) is drawn
     assert shown.retains_lines(drawn, renderer.theme)
 

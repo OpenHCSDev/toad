@@ -16,6 +16,7 @@ from test_scroll_down_bounce import RecordedHistoryScreen, recorded_app, wheel
 from support.workspace import Workspace
 from toad.widgets.conversation import Conversation
 from toad.widgets.presentation_window import OLDER_END, PresentationBudget
+from support.styling import awaits_styling
 
 
 THOUGHTS = ("Preparing branch notice tests", "Parametrizing rename routing tests",
@@ -291,7 +292,7 @@ async def test_returning_to_tab_keeps_the_reader_below_a_live_thought(
         await view.post(thought)
         later = AgentResponse("\n\n".join(f"RETURN_ROW_{i:03d}" for i in range(40)))
         await view.post(later)
-        await ui.until(lambda: not thought._styled.awaits_styling and not later.body._styled.awaits_styling,
+        await ui.until(lambda: not awaits_styling(thought._styled) and not awaits_styling(later.body._styled),
                        why="both live blocks to have their actual styled rows")
         window = view.window
         window.anchor()
@@ -345,7 +346,7 @@ async def test_a_live_thought_crossing_the_top_edge_keeps_its_rows_at_phone_widt
         thought = AgentThought(THINKING)
         await view.post(thought)
         await view.post(AgentResponse("\n\n".join(f"Later paragraph {i}" for i in range(20))))
-        await ui.until(lambda: not thought._styled.awaits_styling, why="the thought's styled rows")
+        await ui.until(lambda: not awaits_styling(thought._styled), why="the thought's styled rows")
         window = view.window
         window.anchor()
         await ui.until(lambda: window.max_scroll_y > 0 and window.follows_tail, why="a scrollable tail")

@@ -6,6 +6,7 @@ from textual._callback import invoke
 
 from metaclass_registry.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver
+from toad.worker_group import WorkerGroup
 from toad.core import events as core_events
 from textual.content import Content
 from toad.widget_actions import ApplicationAction, ActivationKeys, Activates, DismissibleControl, WidgetAction, DeclaredWidgetActions, MovesHorizontalCursor, MovesVerticalCursor
@@ -92,6 +93,10 @@ class BarPresentation:
             tuple(type(action) for action in directions.values()),
         )
 
+
+
+class PanelHydration(WorkerGroup):
+    """Loads a sidebar's panels once it is shown; leaving the view cancels it."""
 
 class BarDisplay:
     """Whether native controls already show a requested sidebar projection."""
@@ -731,7 +736,6 @@ class SideBar(
 
     collapsed = reactive(False)
     search = reactive("")
-    PANEL_WORKER_GROUP = "panels"
 
     class Dismiss(Message):
         pass
@@ -846,7 +850,7 @@ class SideBar(
         ):
             return
         self._panels_loading = True
-        self.run_worker(self._hydrate_panels(), group=self.PANEL_WORKER_GROUP)
+        PanelHydration.run_on(self, self._hydrate_panels())
 
     async def _hydrate_panels(self) -> None:
         try:

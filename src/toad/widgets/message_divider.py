@@ -35,7 +35,6 @@ from toad.widgets.transcript_lines import (
     NoRows,
     RowAcquisition,
     RichLineRenderer,
-    link_place,
 )
 
 if TYPE_CHECKING:
@@ -49,7 +48,6 @@ class LineBlockRow(FillWidth, AutoHeight, LinkedRows, Widget):
     def __init__(self, block: LineBlock) -> None:
         super().__init__()
         self.block = block
-        self._link_place = link_place()
         self._lines: RowAcquisition = NoRows()
 
     @property
@@ -75,7 +73,7 @@ class LineBlockRow(FillWidth, AutoHeight, LinkedRows, Widget):
         lines = self.prepared_lines(width)
         if y >= lines.height:
             return self.blank_row(width, paint)
-        return self.on_background(lines.strips_at(self._link_place)[y], paint, y)
+        return self.on_background(lines.strips_at(self.link_place)[y], paint, y)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:

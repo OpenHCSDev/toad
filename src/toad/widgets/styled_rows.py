@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
-from functools import cached_property
+from functools import partial
 
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
 from textual.geometry import Size
 from textual.strip import Strip
-from textual.theme import Theme
 from textual.widget import Widget
 from textual.worker import Worker
 
@@ -18,7 +17,7 @@ from toad.app_node import ToadNode
 from toad.line_blocks import LineBlock
 from toad.markdown_links import LinkContext
 from toad.no_worker import NoWorker
-from toad.widgets.linked_rows import LinkedRows
+from toad.widgets.linked_rows import LinkedRows, RestylesOnTheme
 from toad.widgets.transcript_lines import (
     BlockLines,
     LinePreparation,
@@ -26,11 +25,10 @@ from toad.widgets.transcript_lines import (
     NoStyledLines,
     PreparedLines,
     TranscriptLinesRenderTask,
-    link_place,
 )
 
 
-class StyledRows(LinkedRows, ToadNode, Widget):
+class StyledRows(RestylesOnTheme, LinkedRows, ToadNode, Widget):
     """Rows the render worker styled from `styled_blocks()`, wrapped locally to the width.
 
     Styled lines are the block's only height, as they are a transcript fragment's. The worker's
@@ -46,20 +44,12 @@ class StyledRows(LinkedRows, ToadNode, Widget):
     _styled: BlockLines = NoStyledLines()
     _render_worker: Worker[None] | NoWorker = NoWorker()
 
-    @cached_property
-    def _link_place(self) -> int:
-        return link_place()
-
     @abstractmethod
     def styled_blocks(self) -> tuple[LineBlock, ...]:
         """The semantic rows the next render styles."""
 
-    def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
-
-    def invalidate_lines(self, *theme: Theme) -> None:
-        """Restyle for a new theme (the signal passes it) or link context; the drawn rows stand
-        until then."""
+    def invalidate_lines(self) -> None:
+        """Restyle for a new theme or link context; the drawn rows stand until then."""
         self._request_render()
 
     def restyle(self) -> None:
@@ -106,8 +96,7 @@ class StyledRows(LinkedRows, ToadNode, Widget):
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         # The styled rows at this width; the container's height is never read.
-        if self._styled.awaits_styling:
-            self.call_later(self._request_render)
+        self._styled.request_styling(partial(self.call_later, self._request_render))
         return self._lines(width).height
 
     def painted_row(self, strip: Strip, y: int) -> Strip:
@@ -115,7 +104,7 @@ class StyledRows(LinkedRows, ToadNode, Widget):
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         width = self.content_size.width
-        strips = self._lines(width).strips_at(self._link_place) if width else ()
+        strips = self._lines(width).strips_at(self.link_place) if width else ()
         if y >= len(strips):
             return self.blank_row(width, paint)
         # Prepared rows span exactly this width (Lines.strips_at).

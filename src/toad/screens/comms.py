@@ -36,7 +36,6 @@ from toad.worker_group import WorkerGroup
 class CommsContentLoad(WorkerGroup):
     """Loads the conversation content once a route frame is written."""
 
-    group = "comms-content"
 
 
 class ViewAction(WidgetAction, affix="Action"):

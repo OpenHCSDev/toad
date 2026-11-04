@@ -11,6 +11,7 @@ from toad.navigation_context import NavigationContext
 from toad.navigation_target import DirectTarget, FeedTarget, channel_target
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.channel_activity import ChannelActivity
+from support.styling import awaits_styling
 
 
 async def test_channel_dm_and_feed_keep_typed_destinations_through_open_send_and_return(
@@ -141,14 +142,14 @@ async def test_renamed_dm_reopens_the_same_tab_and_sends_to_the_current_name(wor
             and history.page_source.revision.selection.peer.name == "renamed"
             and history.page_source.revision.selection.peer == peer.incarnation
             and "BEFORE_RENAME" in ui.painted(window)
-            and not any(fragment.lines_for(history.line_width, app.colours.line_theme).awaits_styling
+            and not any(awaits_styling(fragment.lines_for(history.line_width, app.colours.line_theme))
                         for fragment in history.fragments_in_range),
             why="the renamed conversation's captured source and painted message and its styled rows",
         )
         fragments = history.fragments_in_range
         width, theme = history.line_width, app.colours.line_theme
         lines = tuple(fragment.lines_for(width, theme) for fragment in fragments)
-        assert lines and not any(value.awaits_styling for value in lines)
+        assert lines and not any(awaits_styling(value) for value in lines)
         await ui.select_tab(owner)
         assert await ui.open_direct("renamed", actor=viewer, owner=owner) == mode
         assert app.session_navigation.get(mode) is entry

@@ -27,16 +27,3 @@ class NoTimer:
 
 
 NO_TIMER = NoTimer()
-
-
-class NoTask:
-    """No task was started: it is already done, and cancelling it does nothing."""
-
-    def done(self) -> bool:
-        return True
-
-    def cancel(self) -> bool:
-        return False
-
-
-NO_TASK = NoTask()
