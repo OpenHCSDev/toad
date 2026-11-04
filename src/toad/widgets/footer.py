@@ -49,11 +49,9 @@ class ToadFooterKey(FooterKey):
     ansi_hover_components: ClassVar[Components] = dict.fromkeys(FooterKeyComponent, ANSI_REVERSE)
 
     def native_component_declarations(self, component: FooterKeyComponent) -> tuple[NativeDeclaration, ...]:
-        # Footer.compact publishes its class before its value; restyling reads the class.
-        compact = any(isinstance(node, Footer) and node.has_class("-compact") for node in self.ancestors)
         ansi = self.app.native_ansi_color
         layers = (
-            self.compact_components if compact else {},
+            self.compact_components if self.query_ancestor(Footer).compact else {},
             self.disabled_components if self._disabled else {},
             self.ansi_components if ansi else {},
             self.ansi_hover_components if ansi and self.mouse_hover else {},
