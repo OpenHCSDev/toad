@@ -28,7 +28,7 @@ def declared_scope(tmp_path):
 
 def test_capture_before_binding_is_refused():
     with pytest.raises(ValueError, match="queue"):
-        QueueAttachment().input_scope(NoQueueScope())
+        QueueAttachment().input_identity(NoQueueScope())
 
 
 def test_prebinding_receipt_keeps_first_observation_pending(tmp_path):
@@ -44,7 +44,7 @@ def test_capture_after_binding_names_the_bound_scope(tmp_path):
     attachment = QueueAttachment()
     token = attachment.begin("source")
     attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
-    assert attachment.input_scope(scope) is scope
+    assert attachment.input_identity(scope) == scope.claimed_identity
 
 
 def test_capture_after_a_replacement_begins_is_refused(tmp_path):
@@ -54,7 +54,7 @@ def test_capture_after_a_replacement_begins_is_refused(tmp_path):
     attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
     attachment.begin("source")  # keeps the old observed scope behind a pending projection
     with pytest.raises(ValueError, match="Checking input queue"):
-        attachment.input_scope(scope)
+        attachment.input_identity(scope)
 
 
 def test_input_start_members_dispatch_before_queue_revision_checks(tmp_path):

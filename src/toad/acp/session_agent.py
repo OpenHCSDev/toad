@@ -237,12 +237,12 @@ class OwnerPrompts(CoordinationIdentity):
         request.require()
         core = await self.controller.transcripts.core(request.coordination.wire_root)
         request.require()
-        captured_scope = self.queue_attachment.input_scope(scope)
+        claimed_identity = self.queue_attachment.input_identity(scope)
         origin = await asyncio.to_thread(core.call, CommsCaptureHumanInputTool(
-            claimed_identity=captured_scope.claimed_identity,
+            claimed_identity=claimed_identity,
         ))
         request.require()
-        self.queue_attachment.input_scope(scope)
+        self.queue_attachment.input_identity(scope)
         return replace(command, origin=origin)
 
     def prompt_settlement(self, authority: ClientSessionRequest) -> Callable[[], None]:

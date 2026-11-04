@@ -48,11 +48,15 @@ async def test_sdk_selection_preserves_resources_and_rejects_a_replaced_source(w
 
 
 async def test_project_change_keeps_the_sdk_worktree_type(workspace: Workspace):
-    agent = workspace.agents.detached_agent("project-selection")
-    await agent.comms_consumer_class(agent, agent.session_id).consume_metadata(
-        encode_updates(update_for(workspace, "project-owner")))
-    target = workspace.project / "selected-project"
-    target.mkdir()
-    assert await agent.update_project(str(target)) == str(target)
-    assert agent.coordination.worktree.path == target
-    assert agent.project_root_path == target
+    async with workspace.app(session=False) as ui:
+        agent = ui.detached_agent("project-selection")
+        try:
+            await agent.comms_consumer_class(agent, agent.session_id).consume_metadata(
+                encode_updates(update_for(workspace, "project-owner")))
+            target = workspace.project / "selected-project"
+            target.mkdir()
+            assert await agent.update_project(str(target)) == str(target)
+            assert agent.coordination.worktree.path == target
+            assert agent.project_root_path == target
+        finally:
+            await agent.stop()

@@ -13,6 +13,8 @@ from agent_comms.acp_extension import (
     UnavailableQueueProjection,
 )
 
+from agent_comms.thread_identity import ClaimedIdentity
+
 from .projection_attachment import ProjectionAttachment
 
 
@@ -50,9 +52,9 @@ class QueueAttachment(ProjectionAttachment):
             raise ValueError('The original input attachment changed before capture.')
         return scope.require_live()
 
-    def input_scope(self, scope: QueueScope) -> LiveAttachmentScope:
+    def input_identity(self, scope: QueueScope) -> ClaimedIdentity:
         """Authorize only the original captured request through its current observation."""
-        return self.projection.input_scope(lambda: self._acquire_input_scope(scope))
+        return self.projection.input_identity(lambda: self._acquire_input_scope(scope))
 
     def begin(self, session_id):
         self._pending_starts.clear()
