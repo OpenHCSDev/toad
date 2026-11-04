@@ -42,6 +42,11 @@ class LineRole(DeclaredFamily, affix="Role"):
         """The role a diff line's numbers are drawn in: a changed line's own."""
         return cls
 
+    @classmethod
+    def linked(cls) -> type[LineRole]:
+        """The role text in this role is drawn in when it leads somewhere: its own."""
+        return cls
+
 
 class NoBar(LineRole):
     """A block drawn without a bar: its rows start with nothing."""
@@ -55,6 +60,10 @@ class TextRole(LineRole):
     @classmethod
     def gutter(cls) -> type[LineRole]:
         return MutedRole
+
+    @classmethod
+    def linked(cls) -> type[LineRole]:
+        return UrlRole
 
 
 class MutedRole(LineRole):
@@ -189,8 +198,8 @@ class LineLink(DeclaredFamily, affix="Link"):
         return False
 
     def text_role(self, role: type[LineRole]) -> type[LineRole]:
-        """Plain text that leads somewhere is drawn as a link; other roles keep their own."""
-        return UrlRole if role is TextRole else role
+        """Text that leads somewhere is drawn in its role's linked form."""
+        return role.linked()
 
     def otherwise(self, fallback: Callable[[], LineLink]) -> LineLink:
         """A link found stands; text that leads nowhere takes the fallback."""

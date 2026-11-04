@@ -244,7 +244,7 @@ class PatchLayout:
         )
         self.rows = settings.view.rows_at(width, 2 * (longest + self.number_width + 4) + 3)
         self.pane_width = self.rows.pane_width(width)
-        self.prefix_width = self.rows.number_columns(self.number_width) + (2 if settings.annotations else 0)
+        self.prefix_width = self.rows.number_columns(self.number_width) + settings.marks.width
         self.pane_width = settings.wrap.fitted_width(self.pane_width, longest + self.prefix_width)
         self.code_width = max(1, self.pane_width - self.prefix_width)
 
@@ -278,8 +278,7 @@ class PatchPainter(MroProjection[list[Text]]):
     def line(self, cell: PatchCell, prefix: str) -> list[Text]:
         layout = self.layout
         tint = Style(bgcolor=self.theme.style(cell.role).bgcolor)
-        if layout.settings.annotations:
-            prefix += cell.role.diff_marker + " "
+        prefix += layout.settings.marks.prefix(cell.role)
         gutter_style = self.theme.style(cell.role.gutter())
         text = cell.code.copy()
         rows = []

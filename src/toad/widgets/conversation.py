@@ -8,7 +8,7 @@ from itertools import filterfalse
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time_ns
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, ClassVar
 
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
@@ -39,6 +39,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 from textual.document._editing import EditingMode
 from ui_theme.effects import CURSOR_BLINK, Mix
+from ui_theme.scheme import BackgroundColour, ForegroundColour
 
 from toad import messages, paths
 from toad.acp.comms_updates import NoPendingThreadRead
@@ -304,9 +305,16 @@ class ContentsGrid(containers.Grid):
 
 
 class CursorContainer(Animated[Mix], Static):
-    """Paint navigation over content geometry without authoring document extent."""
+    """Paint navigation over content geometry without authoring document extent.
 
-    COMPONENT_CLASSES = {"cursor--selected"}
+    One column: a faint rail, and the blinking accent bar beside the rows the cursor rests on.
+    """
+
+    RAIL: ClassVar[Mix] = Mix(BackgroundColour, ForegroundColour, 0.07)
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.styles.width = 1
 
     def on_mount(self) -> None:
         self.watch(
@@ -319,26 +327,18 @@ class CursorContainer(Animated[Mix], Static):
         return super().animation_visible and self.query_ancestor(Window).has_focus
 
     def render_lines(self, crop: Region) -> list[Strip]:
-        rich_style = self.visual_style.rich_style
-        strips = [Strip([Segment("▌", rich_style)], cell_length=1)] * crop.height
+        colours = self.app.colours
+        strips = [colours.paint_mix(self.RAIL, Strip([Segment("▌")], cell_length=1))] * crop.height
         if crop.y == 0 and strips:
-            strips[0] = Strip([Segment(" ", rich_style)], cell_length=1)
+            strips[0] = Strip([Segment(" ")], cell_length=1)
         # Selection belongs to ContentNavigation. The published scene supplies
         # its current position, including nested and lazily replaced bodies.
         visible = self.screen._compositor.visible_widgets
         cursor = self.query_ancestor(Conversation).navigation.cursor
-        if rows := cursor.visible_region.rows_within(visible[self][0].y + crop.y, crop.height):
-            style = self.get_component_rich_style("cursor--selected")
-            selected_strip = Strip([Segment("▌", style)], cell_length=1)
-            if CURSOR_BLINK in self.effects and self.animation_visible:
-                selected_strip = self.app.colours.paint_mix(
-                    self.effect_frame(CURSOR_BLINK), selected_strip
-                )
-            for row in rows:
-                strips[row] = selected_strip
+        selected = colours.paint_mix(self.effect_frame(CURSOR_BLINK), Strip([Segment("▌")], cell_length=1))
+        for row in cursor.visible_region.rows_within(visible[self][0].y + crop.y, crop.height):
+            strips[row] = selected
         return strips
-
-
 
 
 class FocusPromptAction(WindowAction):
@@ -992,7 +992,7 @@ class Conversation(
     def compose(self) -> ComposeResult:
         with AgentWindow():
             with ContentsGrid():
-                yield CursorContainer(id="cursor-container")
+                yield CursorContainer()
                 with ConversationContents(id="contents") as contents:
                     yield TranscriptHistory.empty(view=self, notification_view=contents)
                     yield from self._thread_loading
