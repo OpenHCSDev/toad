@@ -225,7 +225,7 @@ class SidebarSettings(AnnotatedDataclassValidationMixin):
 
 @mark_ui_hidden_config
 @dataclass(frozen=True)
-class WorkspaceLayout(AnnotatedDataclassValidationMixin):
+class SidebarArrangements(AnnotatedDataclassValidationMixin):
     """Where each sidebar sits and how large it is, saved per terminal origin."""
 
     terminals: tuple[TerminalLayout, ...] = ()
@@ -321,7 +321,7 @@ class ToadSettings(AnnotatedDataclassValidationMixin):
     )
     """Customize how the sidebar is displayed."""
 
-    layout: WorkspaceLayout = field(default_factory=WorkspaceLayout)
+    layout: SidebarArrangements = field(default_factory=SidebarArrangements)
     """Sidebar placements saved as they are moved and resized."""
 
     agent: Annotated[AgentSettings, FieldLabel("Agent settings"), SESSIONS] = field(
