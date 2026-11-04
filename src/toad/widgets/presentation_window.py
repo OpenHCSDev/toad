@@ -5,7 +5,6 @@ from collections import deque
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, fields, replace
 from functools import partial
-from itertools import zip_longest
 from math import ceil
 from operator import ge, gt
 from time import get_clock_info, monotonic
@@ -139,8 +138,9 @@ class PresentationBudget:
                 rows += max(1, owner.measured_rows)
                 if rows >= self.runway_rows(viewport_rows):
                     break
-        return [owner for pair in zip_longest(before, after)
-                for owner in pair if owner is not None]
+        # Nearest first on both sides; a side that has run out contributes nothing.
+        return [owner for index in range(max(len(before), len(after)))
+                for owner in (*before[index:index + 1], *after[index:index + 1])]
 
 
 class OffScreenRunway:
