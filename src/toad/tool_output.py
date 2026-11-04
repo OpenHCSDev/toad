@@ -7,6 +7,7 @@ earlier dictionary or changes Read's filename without changing its text.
 
 from __future__ import annotations
 
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from difflib import unified_diff
@@ -362,8 +363,7 @@ class ToolOutput:
         reports = tuple(message for part in parts for message in part.sent_reports)
         if scope is None or not reports:
             return parts
-        resolved = dict(zip(map(id, reports), AssignedTranscriptSource.open(scope).resolve_sent(reports)))
-        return ToolOutput.apply_sent(parts, resolved)
+        return ToolOutput.apply_sent(parts, AssignedTranscriptSource.open(scope).resolve_sent_messages(reports))
 
     @staticmethod
     def apply_sent(parts, resolved):
@@ -404,9 +404,10 @@ class ToolOutput:
         )
 
     def sync(self) -> AwaitComplete:
+
         from toad.widgets.tool_content import ToolContent
 
-        body = self.view.query_one_optional("#tool-content", ToolContent)
+        body = self.view.query_one_optional(ToolContent)
         if body is None:
             return AwaitComplete()
         body.update(self.line_blocks if self.view.expanded else ())

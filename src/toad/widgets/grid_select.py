@@ -1,15 +1,40 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Literal, Self
+from typing import ClassVar, Literal, Self
 
 from textual import containers
 from textual import events
+from textual.css.native import ThemeState, DeclaresTheme, Keyword, NativeDeclaration, Variable
+from textual.css.styles import Styles
 from textual.message import Message
 from textual.reactive import reactive
 from textual.layouts.grid import GridLayout
 from textual.widget import Widget
 from textual.navigation import MovesCursor
+from ui_theme.scheme import PanelColour, PrimaryColour
+
 from toad.widget_actions import MovesHorizontalCursor, Selects, VisibleActions
+
+
+class GridCellLook(DeclaresTheme):
+    """A cell the grid's cursor is not on keeps its own resting look."""
+
+    native_theme: ClassVar[tuple[NativeDeclaration, ...]] = ()
+
+
+class HighlightedGridCellLook(GridCellLook):
+    """The cell under the grid's cursor."""
+
+    native_theme = (
+        NativeDeclaration.of(Styles.background, Variable(PanelColour.name)),
+        NativeDeclaration.of(Styles.border, Keyword("tall"), Variable(PrimaryColour.name)),
+    )
+
+
+class GridCell(Widget):
+    """A GridSelect child; its resting look declares every property the highlight changes."""
+
+    look = ThemeState(GridCellLook)
 
 
 class GridSelect(
@@ -52,16 +77,10 @@ class GridSelect(
 
     def __init__(
         self,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
         min_column_width: int = 30,
         max_column_width: int | None = None,
     ):
         super().__init__(
-            name=name,
-            id=id,
-            classes=classes,
             min_column_width=min_column_width,
             max_column_width=max_column_width,
         )
@@ -107,13 +126,13 @@ class GridSelect(
     ) -> None:
         if old_highlighted is not None:
             try:
-                self.children[old_highlighted].remove_class("-highlight")
+                self.children[old_highlighted].look = GridCellLook
             except IndexError:
                 pass
         if highlighted is not None:
             try:
                 highlighted_widget = self.children[highlighted]
-                highlighted_widget.add_class("-highlight")
+                highlighted_widget.look = HighlightedGridCellLook
                 self.post_message(self.Highlighted(self, highlighted_widget))
             except IndexError:
                 pass
@@ -185,37 +204,3 @@ class GridSelect(
             else:
                 self.post_message(self.Selected(self, highlighted_widget))
 
-
-if __name__ == "__main__":
-    from textual.app import App, ComposeResult
-    from textual import widgets
-
-    class GridApp(App):
-        CSS = """
-        .grid-item {
-            width: 1fr;
-            padding: 0 1;
-            # background: blue 20%;        
-            border: blank;
-
-            &:hover {
-                background: $panel;
-            }
-
-            &.-highlight {
-                border: tall $primary;
-                background: $panel;
-            }
-        }
-        """
-
-        def compose(self) -> ComposeResult:
-            yield widgets.Footer()
-            with GridSelect():
-                for n in range(50):
-                    yield widgets.Label(
-                        f"#{n} Where there is a Will, there is a Way!",
-                        classes="grid-item",
-                    )
-
-    GridApp().run()

@@ -6,7 +6,7 @@ import json
 import subprocess
 
 from textual import events
-from textual.widgets import Button, OptionList, Static
+from textual.widgets import Button, OptionList
 
 from support.native import start_private_native_wire
 from support.native_mcp import declare_fixture_server
@@ -16,8 +16,8 @@ from toad.mcp_decision import LocalDecisionPTY
 from toad.mcp_declarations import AllowPolicy, ApprovedStatus, AskPolicy, DeniedStatus
 from toad.mcp_inventory import UnsupportedInventory, installed_mcp_command, parse_inventory
 from toad.mcp_outcomes import StaleSnapshotOutcome
-from toad.screens.mcp_decision import MCPDecisionScreen
-from toad.screens.mcp_inventory import MCPDecisionButton, MCPInventoryScreen
+from toad.screens.mcp_decision import DecisionControls, DecisionStatus, MCPDecisionScreen
+from toad.screens.mcp_inventory import MCPDecisionButton, MCPInventoryScreen, RefreshInventory
 from toad.widgets.terminal import Terminal
 
 
@@ -28,6 +28,11 @@ class ApproveAgainCommand(ProjectTrustDecision):
 
     def arguments(self):
         return "trust", "approve"
+
+
+def decision_button(screen, kind) -> MCPDecisionButton:
+    """The inventory's button for one decision kind."""
+    return next(button for button in screen.query(MCPDecisionButton) if type(button.command) is kind)
 
 
 def package_inventory(project) -> bytes:
@@ -101,7 +106,7 @@ async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace
 
         async def apply(command, row):
             """Click the decision, type the challenge the package asks for, and wait for it to be applied."""
-            assert await pilot.click(f"#{command.button_id}")
+            assert await pilot.click(decision_button(app.screen, type(command)))
             await ui.until(lambda: isinstance(app.screen, MCPDecisionScreen), why="the decision dialog")
             modal = app.screen
             terminal = modal.query_one(Terminal)
@@ -113,11 +118,11 @@ async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace
             app._driver.send_message(events.Paste(f"{command.arguments()[1]}:{row.id}:{row.digest}"))
             await ui.step()
             await ui.press("enter")
-            await ui.until(lambda: "CLI exited zero" in viewport_text(modal.query_one("#mcp-decision-status", Static)),
+            await ui.until(lambda: "CLI exited zero" in viewport_text(modal.query_one(DecisionStatus)),
                            why="the package command to succeed")
             process = await modal._pty.process()
             assert process.master.closed and process.child.retired
-            assert await pilot.click("#cancel")
+            assert await pilot.click(modal.query_one(DecisionControls).query_one(Button))
             await refreshed()
             return terminal
 
@@ -128,12 +133,12 @@ async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace
         assert "HIDDEN_ARGUMENT" not in viewport_text(screen)
 
         declare_fixture_server(native_package, project, agent_dir, trusted=True)
-        assert await pilot.click("#refresh")
+        assert await pilot.click(RefreshInventory)
         await ui.until(lambda: screen._inventory is not None and screen._inventory.project_trusted_saved,
                        why="the trusted project's inventory")
         await select_project_row()
-        assert not screen.query_one("#approve", Button).disabled
-        assert screen.query_one("#allow", Button).disabled
+        assert not decision_button(screen, MCPDecision.member_named("approve")).disabled
+        assert decision_button(screen, MCPDecision.member_named("allow")).disabled
         assert "shadowed" in viewport_text(listing)
         assert "Approve again" in viewport_text(screen)
 
@@ -141,7 +146,7 @@ async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace
         for member in MCPDecision.members_with(MCPDecision):
             command = member()
             await select_project_row()
-            assert not screen.query_one(f"#{command.button_id}", Button).disabled
+            assert not decision_button(screen, type(command)).disabled
             terminal = await apply(command, project_row(screen._inventory))
             changed = project_row(screen._inventory)
             expected = {"approve": ApprovedStatus, "deny": DeniedStatus}.get(command.declared_name)
@@ -150,8 +155,7 @@ async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace
             if changed.status is DeniedStatus:
                 # Approve again so the call-policy decisions that follow are available.
                 await select_project_row()
-                approve = next(member() for member in MCPDecision.members_with(MCPDecision)
-                               if member().button_id == "approve")
+                approve = MCPDecision.member_named("approve")()
                 await apply(approve, changed)
             if command.declared_name == "ask":
                 assert changed.call_policy is AskPolicy
@@ -173,7 +177,7 @@ async def test_trust_decisions_are_applied_through_the_terminal_dialog(workspace
 
         # Escape in the terminal after a resize cancels the command and changes nothing.
         declare_fixture_server(native_package, project, agent_dir, trusted=True)
-        await pilot.click("#refresh")
+        await pilot.click(RefreshInventory)
         await refreshed()
         await select_project_row()
         await pilot.click("#deny")

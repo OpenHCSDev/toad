@@ -228,7 +228,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
 
     ALLOW_SELECT = False
 
-    title_container = getters.query_one("#title-container", Widget)
+    title_container = getters.query_one(SessionTitles)
 
     _last_tabs: dict[str, OpenTab] | None = None
 
@@ -302,7 +302,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
         tabs = self.app.open_tabs
         self._last_tabs = {tab.mode_name: tab for tab in tabs}
         with TabCells():
-            with SessionTitles(id="title-container"):
+            with SessionTitles():
                 for session in tabs:
                     yield SessionLabel(session, id=session.mode_name)
                     yield SessionTabClose(session.mode_name)

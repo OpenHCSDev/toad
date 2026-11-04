@@ -22,16 +22,19 @@ from textual import events
 from textual.actions import SkipAction
 
 from textual.reactive import var
+from textual.widget import Widget
 from textual.content import Content, Span
+from textual.css.native import NativeDeclaration, Percent, Variable
+from textual.css.styles import Styles
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.style import Style
-from textual.widget import Widget
 from textual import widgets
 from textual.text_format import TextFormat, TextFormatSnapshot
 from textual.visual import RenderOptions
 from textual.widgets import OptionList, Input, DirectoryTree
 from textual.widgets.option_list import Option
+from textual.widgets.input import InputComponent
 
 from metaclass_registry.mro_dispatch import handles
 
@@ -42,9 +45,11 @@ from toad.project_path_owner import ProjectPathOwner
 from toad.path_search_ranking import PathSearchRanking
 from toad.messages import Dismiss, InsertPath, PromptSuggestion
 from toad.path_filter import PathFilter
+from ui_theme.scheme import ForegroundColour
+
+from toad.native_style import MutedText, SideMargin, SidePadding
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.selection import SelectionOptionList
-from toad.widgets.prompt_popup import CompletionPopup
+from toad.widgets.prompt_popup import CompletionInput, CompletionOptionList, CompletionPopup
 
 
 if TYPE_CHECKING:
@@ -92,16 +97,14 @@ class PathContent(Content):
         )
 
 
-class FuzzyPathOptionList(SelectionOptionList):
-    """Option list with loading indicator override."""
+class FuzzyPathOptionList(CompletionOptionList):
+    """The fuzzy matches; a small list loads with the app's plain indicator, not the screen's."""
 
     def get_loading_widget(self) -> Widget:
-        from textual.widgets import LoadingIndicator
-
-        return LoadingIndicator()
+        return self.app.get_loading_widget()
 
 
-class FuzzyInput(Input):
+class FuzzyInput(CompletionInput):
     """Adds a Content placeholder to fuzzy input.
 
     TODO: Add this ability to Textual.
@@ -120,10 +123,10 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
             placeholder = Content.from_markup(self.placeholder).expand_tabs()
             placeholder = placeholder.stylize(paint.visual_style)
             placeholder = placeholder.stylize(
-                paint.component_style(self, "input--placeholder")
+                paint.component_style(self, InputComponent.PLACEHOLDER)
             )
             if self.has_focus:
-                cursor_style = paint.component_style(self, "input--cursor")
+                cursor_style = paint.component_style(self, InputComponent.CURSOR)
                 if self.cursor_shape.draws_cell(self._cursor_visible):
                     # If the placeholder is empty, there's no characters to stylise
                     # to make the cursor flash, so use a single space character
@@ -135,6 +138,29 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
             return strip
 
         return super().render_line(y, paint)
+
+
+class FuzzyPane(containers.VerticalGroup):
+    """Fuzzy search over the project's paths."""
+
+
+class TreePane(containers.VerticalGroup):
+    """The project's directory tree."""
+
+
+class PathSearchTree(SideMargin, ProjectDirectoryTree):
+    """The project tree as a path picker, inset under the popup's edge."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (0, 0, 0, 1)
+
+
+class PathSearchMessage(MutedText, SideMargin, SidePadding, widgets.Static):
+    """The popup's one-line instruction band."""
+
+    native_theme = (NativeDeclaration.of(Styles.background, Variable(ForegroundColour.name), Percent(8)),)
+
 
 
 class SwitchPathPickerAction(WidgetAction):
@@ -205,34 +231,29 @@ class PathSearch(
         area.insert(path)
 
     def compose_content(self) -> ComposeResult:
-        with widgets.ContentSwitcher(
-            initial="path-search-tree" if self.show_tree_picker else "path-search-fuzzy"
-        ):
-            with containers.VerticalGroup(id="path-search-fuzzy"):
+        with containers.VerticalGroup():
+            with FuzzyPane():
                 yield FuzzyInput(
                     compact=True, placeholder="fuzzy search \t[r]▌tab▐[/r] tree view"
                 )
                 yield FuzzyPathOptionList()
-            with containers.VerticalGroup(id="path-search-tree"):
-                yield widgets.Static(
+            with TreePane():
+                yield PathSearchMessage(
                     Content.from_markup(
                         "tree view \t[r]▌tab▐[/] fuzzy search"
                     ).expand_tabs(),
-                    classes="message",
                 )
 
     async def watch_show_tree_picker(self, show_tree_picker: bool) -> None:
-        content_switcher = self.query_one(widgets.ContentSwitcher)
-        content_switcher.current = (
-            "path-search-tree" if show_tree_picker else "path-search-fuzzy"
-        )
+        self.query_one(FuzzyPane).display = not show_tree_picker
+        self.query_one(TreePane).display = show_tree_picker
         if show_tree_picker:
             async with self._tree_mount_lock:
                 if self.query_one_optional(ProjectDirectoryTree) is None:
-                    tree = ProjectDirectoryTree(self.root)
+                    tree = PathSearchTree(self.root)
                     tree.guide_depth = 2
                     tree.center_scroll = True
-                    await self.query_one("#path-search-tree").mount(tree)
+                    await self.query_one(TreePane).mount(tree)
             if self.show_tree_picker:
                 self.tree_view.focus()
 

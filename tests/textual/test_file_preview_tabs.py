@@ -3,7 +3,7 @@
 from toad.widgets.line_markdown import LineMarkdown
 from toad.session_actions import ReturnToViewAction
 from textual.document._editing import EditingMode
-from toad.widgets.project_panel import FilePreview
+from toad.widgets.project_panel import FilePreview, PreviewPath
 from toad.widgets.session_tabs import SessionTabClose
 
 
@@ -34,7 +34,7 @@ async def test_opening_a_file_adds_a_tab_named_for_it_and_opening_it_again_selec
         assert [tab.identity for tab in ui.tabs()][:2] == [owner, mode]
         assert widget.path == path.resolve()
         assert app.selected_session.project_root == path.parent
-        assert str(path.resolve()) in widget.query_one(".file-preview-path").render().plain
+        assert str(path.resolve()) in widget.query_one(PreviewPath).render().plain
         assert "Previewed plan" in widget.query_one(LineMarkdown).text
         assert next(tab.title for tab in ui.tabs() if tab.identity == mode) == path.name
         assert app.screen.query_one(f"#close-{mode}", SessionTabClose)

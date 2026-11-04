@@ -14,6 +14,11 @@ from support.applications import record_notifications
 from toad.widget_actions import ApplicationAction
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.comms_transfer import (
+    ExportPath,
+    ExportScopeChoice,
+    ImportName,
+    ImportSource,
+    CancelExportButton,
     ChannelScopeInput, EverythingScopeInput, JsonlFormatInput, TextFormatInput,
     ThreadImportDialog, WireExportDialog, WireExportProgressView, WireExportRequest,
 )
@@ -62,17 +67,17 @@ async def test_main_menu_exports_the_wire_as_jsonl(workspace):
         # export operation resolves the channel and refuses an unknown one.
         await choose(ui, await open_main_menu(ui), "Export wire history…")
         await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
-        app.screen.query_one("#export-scope", Select).value = ChannelScopeInput
-        app.screen.action_submit()
+        app.screen.query_one(ExportScopeChoice).value = ChannelScopeInput
+        await app.screen.confirm()
         await ui.until(lambda: any(note.title == "Wire export failed" and "Unknown channel" in note.message
                                    for note in app._notifications), why="the export refusal")
         assert not app.screen.query(WireExportProgressView), "the failed export must remove its progress resource"
         await choose(ui, await open_main_menu(ui), "Export wire history…")
         await ui.until(lambda: isinstance(app.screen, WireExportDialog), why="the export dialog")
         dialog = app.screen
-        dialog.query_one("#export-scope", Select).value = EverythingScopeInput
-        dialog.query_one("#export-path", Input).value = str(destination)
-        dialog.action_submit()
+        dialog.query_one(ExportScopeChoice).value = EverythingScopeInput
+        dialog.query_one(ExportPath).value = str(destination)
+        await dialog.confirm()
         await ui.until(destination.exists, seconds=10, why="the export file")
         rows = [json.loads(line) for line in destination.read_text().splitlines()]
         assert rows[0]["record"] == "header"
@@ -99,10 +104,10 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
         await ui.until(lambda: isinstance(ui.textual[0].screen, ThreadImportDialog), why="the import dialog")
         dialog = ui.textual[0].screen
         # 23331e21 replaced the deleted ImportFormat with Core's Harness family on purpose.
-        dialog.query_one("#import-harness", Select).value = OpenCodeHarness
-        dialog.query_one("#import-source", Input).value = str(source)
-        dialog.query_one("#import-name", Input).value = "imported"
-        dialog.action_submit()
+        dialog.harness_select.value = OpenCodeHarness
+        dialog.query_one(ImportSource).value = str(source)
+        dialog.query_one(ImportName).value = "imported"
+        await dialog.confirm()
         await ui.until(lambda: comms.registry.snapshot().taken("imported"), seconds=10, why="the imported thread")
         thread = comms.registry.require("imported")
         assert comms.registry.status(thread.name).stopped
@@ -142,7 +147,7 @@ async def test_export_progress_presents_counters_and_native_cancel(workspace):
             await ui.until_shows("7 messages · 4,096 bytes written")
             await ui.click("Cancel export")
             await ui.until(progress.cancelled, why="the exporter's actual cancellation event")
-            assert progress.query_one("#cancel-export", Button).disabled
+            assert progress.query_one(CancelExportButton).disabled
             with pytest.raises(WireExportCancelled):
                 observer.check()
         assert progress.parent is None, "the actual mounted resource must be detached"
@@ -200,7 +205,7 @@ async def test_running_export_retires_writer_and_staging(workspace: Workspace, c
         else:
             # The separate view case checks the pointer path; this invokes the
             # same native Button activation while the actual writer is alive.
-            progress.query_one("#cancel-export", Button).press()
+            progress.query_one(CancelExportButton).press()
             await ui.until(lambda: worker.is_finished, why="the real cancelled writer to finish")
             assert progress.cancelled()
             await ui.until(lambda: any(note.message == "Wire export cancelled"

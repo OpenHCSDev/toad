@@ -79,18 +79,12 @@ Tap escape *twice* to exit.
 
     def __init__(
         self,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
         disabled: bool = False,
         minimum_terminal_width: int = 0,
         size: tuple[int, int] | None = None,
         get_terminal_dimensions: Callable[[], tuple[int, int]] | None = None,
     ):
         super().__init__(
-            name=name,
-            id=id,
-            classes=classes,
             disabled=disabled,
         )
         self.set_reactive(Terminal.auto_links, False)
@@ -172,7 +166,6 @@ Tap escape *twice* to exit.
                 self._long_running_timer.stop()
             self._finalized = True
             self.state.show_cursor = False
-            self.add_class("-finalized")
             self._terminal_render_cache.clear()
             self.refresh()
             self.blur()

@@ -1,5 +1,6 @@
 """Logical session membership; Textual owns only the persistent native frame."""
 
+from toad.screens.workspace import SessionHost
 from abc import abstractmethod
 from collections.abc import Callable
 from pathlib import Path
@@ -7,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from textual._time import after_input
-from textual.containers import Container
 
 from toad.constants import WELCOME
 from toad.navigation_target import NavigationTarget, NoTarget
@@ -199,7 +199,7 @@ class WorkspaceSessions:
         view.id = identity
         view.display = False
         self.views[identity] = view
-        host = self.app.workspace_screen.query_one("#workspace-session-host", Container)
+        host = self.app.workspace_screen.query_one(SessionHost)
         await host.mount(view)
         if identity not in self.views:
             raise SessionStartFailed(identity)

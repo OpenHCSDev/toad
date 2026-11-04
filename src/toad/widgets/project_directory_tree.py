@@ -37,9 +37,6 @@ This shows the files in your project directory.
         self,
         path: str | Path,
         *,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
         disabled: bool = False,
     ) -> None:
         self._path_ready = asyncio.Event()
@@ -47,7 +44,7 @@ This shows the files in your project directory.
         self._directory_dirty = False
         self._refresh_scheduled = False
         path = Path(path).resolve() if isinstance(path, str) else path.resolve()
-        super().__init__(path, name=name, id=id, classes=classes, disabled=disabled)
+        super().__init__(path, disabled=disabled)
 
     async def watch_path(self) -> None:
         """Watch for changes to the `path` of the directory tree.

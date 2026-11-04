@@ -8,6 +8,8 @@ from textual.reactive import reactive
 from textual.content import Content
 from textual.widget import Widget
 
+from toad.native_style import OneRow
+
 
 def radiate_range(total: int) -> Iterable[tuple[int, int]]:
     """Generate pairs of indexes, gradually growing from the center.
@@ -66,25 +68,18 @@ def condense_path(path: str, width: int, *, prefix: str = "") -> str:
     return candidate
 
 
-class CondensedPath(Widget):
+class CondensedPath(OneRow, Widget):
     path = reactive("")
     display_path = reactive("")
 
-    DEFAULT_CSS = """
-    CondensedPath {
-        height: 1;
-    }
-    """
 
     def __init__(
         self,
         path: str = "",
         *,
         directory: bool = False,
-        id: str | None = None,
-        classes: str | None = None,
     ) -> None:
-        super().__init__(id=id, classes=classes)
+        super().__init__()
         self.set_reactive(CondensedPath.path, path)
         self._directory = directory
 

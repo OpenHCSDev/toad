@@ -24,6 +24,7 @@ from toad.agent_surface import AttachedSurfaceBinding
 from toad.conversation_kind import DmConversation
 from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
+from toad.native_style import StartsHidden
 from toad.resource_release import AsyncResourceRelease
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
@@ -36,10 +37,9 @@ if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionSurfaceSlot(Widget):
+class SessionSurfaceSlot(StartsHidden, Widget):
     """The session's stable placement for its accepted native presentation."""
 
-    DEFAULT_CSS = "SessionSurfaceSlot { display: none; }"
 
 
 class NativeEditorSelection:

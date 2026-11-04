@@ -1,70 +1,72 @@
-from typing import Literal
+from typing import ClassVar
 
+from agent_comms.nominal.declared_family import DeclaredFamily
 from textual.content import Content
+from textual.css.native import DeclaresTheme, ThemeState, NativeDeclaration, Percent, TextVariable, Variable
+from textual.css.styles import Styles
 from textual.reactive import var
 from textual.widgets import Static
 from textual.timer import Timer
-
+from ui_theme.scheme import ErrorColour, PrimaryColour, SuccessColour, ThemeColour, WarningColour
 
 from toad.app_node import ToadNode
+from toad.native_style import EllipsisOverflow, FillWidth, NoWrap, OneRow
 
 
-class Flash(Static, ToadNode):
-    DEFAULT_CSS = """
-    Flash {
-        height: 1;
-        width: 1fr;
-        background: $success 10%;
-        color: $text-success;
-        text-align: center;
-        text-wrap: nowrap;
-        text-overflow: ellipsis;     
-        &.-default {
-            background: $primary 10%;
-            color: $text-primary;
-        }
-        
-        &.-success {
-            background: $success 10%;
-            color: $text-success;
-        }
-        
-        
-        &.-warning {
-            background: $warning 10%;
-            color: $text-warning;
-        }
+class FlashKind(DeclaresTheme, DeclaredFamily, affix="Flash"):
+    """A flash's semantic kind owns its tint and ink; callers select it by name."""
 
-        &.-error {
-            background: $error 10%;
-            color: $text-error;
-        }
-        &:ansi {
-            background: ansi_bright_white;
-            color: ansi_black;
-            text-style: bold;
-        }
-    }
-    """
+    colour: ClassVar[type[ThemeColour]]
+
+    def __init_subclass__(cls, **keywords: object) -> None:
+        super().__init_subclass__(**keywords)
+        cls.native_theme = (
+            NativeDeclaration.of(Styles.background, Variable(cls.colour.name), Percent(10)),
+            NativeDeclaration.of(Styles.color, TextVariable(cls.colour.name)),
+        )
+
+
+class DefaultFlash(FlashKind):
+    colour = PrimaryColour
+
+
+class SuccessFlash(FlashKind):
+    colour = SuccessColour
+
+
+class WarningFlash(FlashKind):
+    colour = WarningColour
+
+
+class ErrorFlash(FlashKind):
+    colour = ErrorColour
+
+
+class Flash(OneRow, FillWidth, NoWrap, EllipsisOverflow, Static, ToadNode):
     flash_timer: var[Timer | None] = var(None)
+    kind = ThemeState(SuccessFlash)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.display = False
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.text_align = "center"
 
     def flash(
         self,
         content: str | Content,
         *,
         duration: float | None = None,
-        style: Literal["default", "success", "warning", "error"] = "default",
+        style: str = DefaultFlash.declared_name,
     ) -> None:
         """Flash the content for a brief period.
 
         Args:
             content: Content to show.
             duration: Duration in seconds to show content.
-            style: A semantic style.
+            style: The declared name of a `FlashKind` member.
         """
         if self.flash_timer is not None:
             self.flash_timer.stop()
@@ -75,8 +77,7 @@ class Flash(Static, ToadNode):
             self.display = False
 
         self.update(content)
-        self.remove_class("-default", "-success", "-warning", "-error", update=False)
-        self.add_class(f"-{style}")
+        self.kind = FlashKind.member_named(style)
         self.display = True
 
         if duration is None:

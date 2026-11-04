@@ -5,7 +5,7 @@ from textual._callback import invoke
 from textual import on
 from textual.message import DeclaredMessage, Message
 from textual.dom import DOMNode
-from functools import cached_property, partial
+from functools import cache, cached_property, partial
 from dataclasses import InitVar, dataclass, field
 
 from toad.core.events import CoreEvent, CoreEventStream, Subscription, ThreadChangeSubscription
@@ -65,7 +65,17 @@ class CoreEventReceiver(MroDispatch, DOMNode):
 
     def __init__(self, *args, **kwargs) -> None:
         self._core_subscriptions: set[Subscription] = set()
+        # The streams this receiver observes, with the subscription per consumed event type.
+        self._observations: dict[CoreEventStream, tuple[Subscription, ...]] = {}
         super().__init__(*args, **kwargs)
+
+    @classmethod
+    @cache
+    def consumed_core_events(cls) -> tuple[type[CoreEvent], ...]:
+        """The Core events this receiver declares a handler for: an observed stream sends it only these.
+        The declarations are decoded once per class (a handler may also name a non-Core value)."""
+        return tuple(dict.fromkeys(event for _name, classes in cls._handler_declarations
+                                   for event in classes if issubclass(event, CoreEvent)))
 
     def subscribe_core(self, stream: CoreEventStream) -> Subscription:
         subscription = stream.subscribe(CoreEvent, self.post_core_event)
@@ -92,21 +102,19 @@ class CoreEventReceiver(MroDispatch, DOMNode):
             await invoke(partial(handler, **kwargs), event, *args)
         return event
 
-    def observe_core(self, stream: CoreEventStream) -> Subscription:
-        """Broadcast observations terminate at their original native recipient."""
-        for subscription in self._core_subscriptions:
-            if (subscription.stream is stream and subscription.event_type is CoreEvent
-                    and subscription.active):
-                return subscription
-        subscription = stream.subscribe(CoreEvent, self.post_core_observation)
-        self._core_subscriptions.add(subscription)
-        return subscription
+    def observe_core(self, stream: CoreEventStream) -> None:
+        """Observe the events this receiver handles; observing a stream again keeps its subscriptions.
+        Broadcast observations terminate at their original native recipient."""
+        self._observations.setdefault(stream, tuple(
+            stream.subscribe(event, self.post_core_observation) for event in self.consumed_core_events()))
 
     def retire_core(self, subscription: Subscription) -> None:
         subscription.close()
         self._core_subscriptions.discard(subscription)
 
     def retire_core_observations(self, stream: CoreEventStream) -> None:
+        for subscription in self._observations.pop(stream, ()):
+            subscription.close()
         for subscription in tuple(self._core_subscriptions):
             if subscription.stream is stream:
                 self.retire_core(subscription)
@@ -151,6 +159,9 @@ class CoreEventReceiver(MroDispatch, DOMNode):
 
     def close_core_events(self) -> None:
         """End this receiver's subscriptions before its logical source disappears."""
+        while self._observations:
+            for subscription in self._observations.popitem()[1]:
+                subscription.close()
         while self._core_subscriptions:
             self._core_subscriptions.pop().close()
 

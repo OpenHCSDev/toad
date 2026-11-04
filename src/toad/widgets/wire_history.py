@@ -1,6 +1,9 @@
 """A channel or direct conversation drawn by the line history, with its read marks."""
 
 from __future__ import annotations
+from textual.widgets import Static
+
+from toad.block_navigation import ConversationBlock
 
 from typing import TYPE_CHECKING
 
@@ -23,6 +26,10 @@ from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSo
 if TYPE_CHECKING:
     from toad.widgets.comms_chat import CommsChatView
 
+
+
+class HistoryLoading(ConversationBlock, Static):
+    """Channel history loading is an atomic conversation block."""
 
 class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[ViewT]):
     """The line history of a channel or direct conversation.
@@ -98,7 +105,7 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
 
     def rows_published(self) -> None:
         super().rows_published()
-        if not self.undrawn and (placeholder := self.view.query_one_optional("#history-loading")):
+        if not self.undrawn and (placeholder := self.view.query_one_optional(HistoryLoading)):
             placeholder.remove()
 
     async def toggle_style(self) -> None:

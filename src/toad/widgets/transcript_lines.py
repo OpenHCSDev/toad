@@ -311,13 +311,13 @@ class Lines(ABC):
 
     def strips_at(self, place: Hashable) -> tuple[Strip, ...] | JoinedStrips:
         """Link placement decorates this view's paint, never shared preparation."""
-        strips = self.__dict__.get("strips")
-        if strips is None:
+        placed = self.__dict__.setdefault("placed_strips", {})
+        if place not in placed:
             width = self.width
-            strips = self.__dict__["strips"] = tuple(
+            placed[place] = tuple(
                 Strip(row).extend_cell_length(width) for row in _each_link_apart(self, place)
             )
-        return strips
+        return placed[place]
 
 
 @dataclass(frozen=True, slots=True)

@@ -14,6 +14,8 @@ class PlanStatus(DeclaredFamily, affix="PlanStatus"):
     """ACP status names select their behavior once, when accepting a plan."""
 
     complete: ClassVar[bool] = False
+    # How strongly an entry with this status shows, from 0 (invisible) to 1.
+    opacity: ClassVar[float] = 1.0
 
     @classmethod
     @abstractmethod
@@ -21,6 +23,8 @@ class PlanStatus(DeclaredFamily, affix="PlanStatus"):
 
 
 class PendingPlanStatus(PlanStatus):
+    opacity = 0.6
+
     @classmethod
     def marker(cls) -> str:
         return " • "

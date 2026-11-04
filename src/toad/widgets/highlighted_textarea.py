@@ -63,9 +63,6 @@ class HighlightedTextArea(TextArea):
         self,
         text: str = "",
         *,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
         disabled: bool = False,
         placeholder: str | Content = "",
     ):
@@ -73,9 +70,6 @@ class HighlightedTextArea(TextArea):
         self._highlight_lines: list[Content] | None = None
         super().__init__(
             text,
-            name=name,
-            id=id,
-            classes=classes,
             disabled=disabled,
             highlight_cursor_line=False,
             placeholder=placeholder,

@@ -1,5 +1,6 @@
 """Visible controls for the server-owned persistent thread goal."""
 
+from typing import ClassVar
 from weakref import ref
 
 from rich.cells import cell_len
@@ -11,8 +12,11 @@ from textual.layouts.horizontal import HorizontalLayout
 from textual.layouts.grid import GridLayout
 from textual.reactive import var
 from textual._paint_state import PaintState
+from textual.css.native import ThemeState, DeclaresTheme, Keyword, NativeDeclaration, Variable
+from textual.css.styles import Styles
 from textual.strip import Strip
 from ui_theme.effects import STANDBY_PULSE, Mix
+from ui_theme.scheme import ForegroundColour, SecondaryColour
 from textual.widgets import Static
 
 from toad.goal_interaction import GoalInteraction
@@ -20,10 +24,24 @@ from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.goal_text import GoalText
 from toad.frame_presentation import Animated
+from toad.native_style import (
+    AutoWidth,
+    FillWidth,
+    MutedText,
+    OneRow,
+    PointerCursor,
+    SecondaryText,
+    SidePadding,
+    StableGutter,
+)
 from toad.widgets.selection import ChangingText, InlineSelection
 
 
 class GoalControl(
+    SecondaryText,
+    AutoWidth,
+    OneRow,
+    PointerCursor,
     VisibleActions,
     Activates,
     InlineSelection,
@@ -31,9 +49,7 @@ class GoalControl(
     Static,
     can_focus=True,
 ):
-    DEFAULT_CSS = """
-    GoalControl { width: auto; height: 1; margin-right: 2; color: $text-secondary; pointer: pointer; }
-    """
+
 
     def __init__(self, interaction: type[GoalInteraction]):
         super().__init__(interaction.label, id=interaction.control_id())
@@ -43,10 +59,12 @@ class GoalControl(
         if not self.disabled:
             self.publish_core(GoalControlActivated(self.interaction))
 
-class StandbyPulse(Animated[Mix], Static):
+class StandbyPulse(OneRow, Animated[Mix], Static):
     """A goal's standby marker; its existing clock owns time and visibility."""
 
-    DEFAULT_CSS = "StandbyPulse { width: 2; height: 1; }"
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = 2
     active: var[bool] = var(False)
 
     def on_mount(self) -> None:
@@ -68,23 +86,51 @@ class StandbyPulse(Animated[Mix], Static):
         return strip
 
 
-class GoalBar(VerticalGroup):
-    DEFAULT_CSS = """
-    GoalBar { height: auto; padding: 0 1; border-top: solid $secondary; }
-    GoalBar .goal-header { height: auto; }
-    GoalBar .goal-document { height: 1; max-height: 50vh; scrollbar-gutter: stable; }
-    GoalBar .goal-summary { height: auto; }
-    GoalBar .goal-progress { height: auto; color: $text-muted; }
-    GoalBar .goal-execution-row { height: auto; }
-    GoalBar .goal-execution { width: 1fr; height: auto; }
-    GoalBar .goal-controls { height: 1; grid-rows: 1; }
-    GoalBar.-collapsed GoalControl { margin-right: 1; }
-    GoalBar.-resize-hover, GoalBar.-resizing { border-top: solid $foreground; pointer: ns-resize; }
-    """
+class GoalProgress(MutedText, GoalText):
+    """Its look is its bases."""
+
+
+class GoalExecutionText(FillWidth, GoalText):
+    """Its look is its bases."""
+
+
+class GoalDocument(StableGutter, OneRow, VerticalScroll):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = "50vh"
+
+
+class GoalControls(OneRow, HorizontalGroup):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.grid_rows = "1"
+
+
+class GoalEdge(DeclaresTheme):
+    """The bar's top edge at rest: the separator above the goal."""
+
+    native_theme: ClassVar[tuple[NativeDeclaration, ...]] = (
+        NativeDeclaration.of(Styles.border_top, Keyword("solid"), Variable(SecondaryColour.name)),
+        NativeDeclaration.of(Styles.pointer, Keyword("default")),
+    )
+
+
+class GrabbedGoalEdge(GoalEdge):
+    """The edge under the pointer or being dragged resizes the goal document."""
+
+    native_theme = (
+        NativeDeclaration.of(Styles.border_top, Keyword("solid"), Variable(ForegroundColour.name)),
+        NativeDeclaration.of(Styles.pointer, Keyword("ns-resize")),
+    )
+
+
+class GoalBar(SidePadding, VerticalGroup):
     collapsed: var[bool] = var(False)
+    edge = ThemeState(GoalEdge)
     _separator_update_pending = False
     _document_height: int | None = None
     _resize_origin: tuple[int, int] | None = None
+
 
     def __init__(self, source, *, prompt):
         super().__init__()
@@ -92,21 +138,17 @@ class GoalBar(VerticalGroup):
         self._prompt = prompt
         self._horizontal_layout = HorizontalLayout()
         self._grid_layout = GridLayout()
-        self.header: ChangingText = ChangingText("", markup=False, classes="goal-header")
+        self.header: ChangingText = ChangingText("", markup=False)
         self.pulse: StandbyPulse = StandbyPulse()
-        self.execution_text: GoalText = GoalText(classes="goal-execution")
-        self.execution_row: HorizontalGroup = HorizontalGroup(
-            self.pulse, self.execution_text, classes="goal-execution-row"
-        )
-        self.summary: GoalText = GoalText(classes="goal-summary")
-        self.progress: GoalText = GoalText(classes="goal-progress")
-        self.document: VerticalScroll = VerticalScroll(
-            self.summary, self.progress, classes="goal-document"
-        )
+        self.execution_text: GoalText = GoalExecutionText()
+        self.execution_row: HorizontalGroup = HorizontalGroup(self.pulse, self.execution_text)
+        self.summary: GoalText = GoalText()
+        self.progress: GoalText = GoalProgress()
+        self.document: VerticalScroll = GoalDocument(self.summary, self.progress)
         self.actions: tuple[GoalControl, ...] = tuple(
             GoalControl(action) for action in GoalInteraction.members_with(GoalInteraction)
         )
-        self.controls: HorizontalGroup = HorizontalGroup(*self.actions, classes="goal-controls")
+        self.controls: HorizontalGroup = GoalControls(*self.actions)
 
     @property
     def goal_display(self):
@@ -129,17 +171,19 @@ class GoalBar(VerticalGroup):
     def _queue_separator_update(self) -> None:
         if not self._separator_update_pending:
             self._separator_update_pending = True
-            # Prompt's own watchers first resolve the delivery-controls CSS.
+            # Prompt's own watchers first resolve the delivery controls' display.
             # Coalesce state changes in this message turn; no timing delay.
             self.call_later(self._update_separators)
 
     def _update_separators(self) -> None:
         self._separator_update_pending = False
-        controls = self._prompt.query_one_optional(".delivery-controls")
+        from toad.widgets.prompt import DeliveryControls
+
+        controls = self._prompt.query_one_optional(DeliveryControls)
         queue_visible = controls is not None and controls.display and controls.visible
         # Reuse the theme-resolved separator; only this local box edge changes.
         self.styles.border_bottom = (
-            self.styles.base.border_top if queue_visible else None
+            self.styles.border_top if queue_visible else None
         )
         self._update_goal_text()
 
@@ -150,7 +194,9 @@ class GoalBar(VerticalGroup):
         yield self.controls
 
     def watch_collapsed(self) -> None:
-        self.set_class(self.collapsed, "-collapsed")
+        # A collapsed bar packs its controls closer; the bar's state owns their gap.
+        for control in self.actions:
+            control.styles.margin = (0, 1 if self.collapsed else 2, 0, 0)
         if self.collapsed:
             self._end_resize()
         if self.is_attached:
@@ -206,7 +252,7 @@ class GoalBar(VerticalGroup):
         if bool(self.styles.border_top[0]) and event.screen_y == self.region.y:
             event.stop()
             self._resize_origin = (event.screen_y, self.document.region.height)
-            self.set_class(True, "-resizing")
+            self.edge = GrabbedGoalEdge
             self.capture_mouse()
 
     def _drag_resize(self, screen_y: int) -> None:
@@ -222,11 +268,10 @@ class GoalBar(VerticalGroup):
             event.stop()
             self._drag_resize(event.screen_y)
         else:
-            self.set_class(
+            self.edge = (GoalEdge, GrabbedGoalEdge)[
                 not self.collapsed and self.goal_display.snapshot.shows_document
-                and bool(self.styles.border_top[0]) and event.screen_y == self.region.y,
-                "-resize-hover",
-            )
+                and bool(self.styles.border_top[0]) and event.screen_y == self.region.y
+            ]
 
     def on_mouse_up(self, event: events.MouseUp) -> None:
         if event.button == 1 and self._resize_origin is not None:
@@ -235,7 +280,7 @@ class GoalBar(VerticalGroup):
             self._end_resize()
 
     def on_leave(self) -> None:
-        self.remove_class("-resize-hover")
+        self.edge = (GoalEdge, GrabbedGoalEdge)[self._resize_origin is not None]
 
     def on_unmount(self) -> None:
         self._end_resize()
@@ -244,7 +289,7 @@ class GoalBar(VerticalGroup):
         if self._resize_origin is not None:
             self._resize_origin = None
             self.release_mouse()
-        self.remove_class("-resize-hover", "-resizing")
+        self.edge = GoalEdge
 
     def _update_control_layout(self) -> None:
         if not self.is_attached or not self.goal_display.visible or not self.content_size.width:

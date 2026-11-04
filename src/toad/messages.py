@@ -7,8 +7,12 @@ from textual.widget import Widget
 from textual.message import Message
 
 
-class QueueEvidenceChanged(Message):
-    """Repaint the local queue after its existing evidence changes."""
+class QueueEvidenceOwner:
+    """The widget that owns a queue's evidence; a view inside it reports changes to it directly."""
+
+    def queue_evidence_changed(self) -> None:
+        """Repaint the local queue after its existing evidence changes."""
+        raise NotImplementedError
 
 
 class SendPromptNow(Message):

@@ -7,7 +7,7 @@ import pytest
 from acp import schema
 from textual.worker import NoActiveWorker, get_current_worker
 
-from toad.screens.permissions import PermissionsScreen
+from toad.screens.permissions import ChangesOptionList, PermissionsScreen
 
 
 def permission_call(request_id, tool_call_id, *, kind, title, content, option):
@@ -54,7 +54,7 @@ async def test_j_and_k_step_through_the_changes_from_the_question(workspace):
         task = asyncio.create_task(agent.permissions.request_permission(
             call.session_id, call.options, call.tool_call, call.field_meta))
         await ui.until(lambda: isinstance(app.screen, PermissionsScreen), why="the review screen")
-        await ui.until(lambda: app.screen.query("#navigator") and app.screen.navigator.option_count == 2,
+        await ui.until(lambda: app.screen.query(ChangesOptionList) and app.screen.navigator.option_count == 2,
                        why="both changes listed")
         navigator = app.screen.navigator
         assert not navigator.has_focus

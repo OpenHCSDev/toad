@@ -32,6 +32,8 @@ from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
 from textual.reactive import Required, var
 from textual.screen import Screen
+from textual.widget import Widget
+from textual.widgets import LoadingIndicator
 
 from toad import messages
 from toad.core import session_requests
@@ -62,6 +64,7 @@ from toad.application_actions import ApplicationCommands
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 from toad.application_lifetime import ApplicationLifetime, Ended, Succeeded, TerminalOutcome
 from toad.resource_release import AsyncResourceRelease
+from toad.native_style import TransparentBackground
 
 if TYPE_CHECKING:
     from toad.db import DB
@@ -76,7 +79,7 @@ RenderResultT = TypeVar("RenderResultT")
 
 def get_workspace_screen():
     from toad.screens.workspace import WorkspaceScreen
-    return WorkspaceScreen(id="workspace")
+    return WorkspaceScreen()
 
 
 def get_store_screen() -> StoreScreen:
@@ -110,6 +113,11 @@ class HeapFrozen:
         pass
 
 
+class ToadLoadingIndicator(TransparentBackground, LoadingIndicator):
+    """Loading shows over the widget it replaces without a tinted backdrop."""
+
+
+
 class ApplicationNotRunningError(RuntimeError):
     """The application has no event loop to accept cross-thread work."""
 
@@ -132,7 +140,6 @@ class ScreenWidth(IntEnum):
 class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, Transfers, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
-    CSS_PATH = "toad.tcss"
     COMMANDS = {ApplicationCommands}
     MODES = {"store": get_store_screen, "workspace": get_workspace_screen}
     BINDING_GROUP_TITLE = "System"
@@ -296,6 +303,9 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
     def on_notify(self, event: Notify) -> None:
         self.terminal_attention.notification(event.notification)
+
+    def get_loading_widget(self) -> Widget:
+        return ToadLoadingIndicator()
 
     def _handle_exception(self, error: Exception) -> bool:
         """The mounted application owns escaped handler and worker errors."""

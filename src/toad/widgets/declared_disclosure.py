@@ -9,18 +9,39 @@ from textual.containers import VerticalGroup
 from textual.content import Content
 from textual.widgets import Collapsible, Static
 
+from toad.native_style import AutoHeight, Borderless, NoMargin, NoPadding
 from toad.widgets.sidebar_tree import KeyedRows
 
 
-class DeclaredDisclosure(KeyedRows[DisclosureKey], MroDispatch, Collapsible):
+class DisclosureContents(AutoHeight, Collapsible.Contents):
+    """A disclosure's members indent under its title without Collapsible's gap."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (0, 0, 0, 2)
+
+
+class DeclaredDisclosure(
+    KeyedRows[DisclosureKey],
+    MroDispatch,
+    Borderless,
+    AutoHeight,
+    NoPadding,
+    NoMargin,
+    Collapsible,
+):
     """Core owns children and identity; native widgets own expansion and focus."""
 
-    DEFAULT_CSS = """
-    DeclaredDisclosure { height: auto; border: none; padding: 0; margin: 0; }
-    DeclaredDisclosure > CollapsibleTitle { height: 1; padding: 0; text-wrap: nowrap; text-overflow: ellipsis; }
-    DeclaredDisclosure > Contents { height: auto; padding: 0 0 0 2; }
-    DeclaredDisclosure Static { height: auto; }
-    """
+    Contents = DisclosureContents
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        # Collapsible constructs its title itself; the disclosure owns its one-line form.
+        title = self._title.styles
+        title.height = 1
+        title.padding = 0
+        title.text_wrap = "nowrap"
+        title.text_overflow = "ellipsis"
 
     def __init__(self, entry: DisclosureEntry) -> None:
         self.entry = entry

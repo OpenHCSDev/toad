@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Literal
 from agent_comms.repo import Checkout
 
-from textual import containers, on
+from textual import on
 from textual.app import ComposeResult
 from textual.document._editing import EditingMode
 from toad.session_actions import ReturnToViewAction, CloseViewAction
@@ -82,7 +82,6 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
-    CSS_PATH = "main.tcss"
     def __init__(
         self,
         *,
@@ -162,12 +161,12 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
             (self.create_chat(),)
             if self._content_loaded
             else (
-                Static(f"Opening {self.conversation.initial_label}…", id="comms-opening"),
+                Static(f"Opening {self.conversation.initial_label}…"),
             )
         )
         yield SessionBody(
             self.thread_sidebar,
-            SessionContents(*content, id="comms-content"),
+            SessionContents(*content),
         )
 
     def create_chat(self) -> CommsChatView:
@@ -226,7 +225,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
             # The navigation/sidebar shell is already visible in its chosen
             # state. Hydrate only the conversation; retain those exact controls
             # and their scroll position throughout the opening transition.
-            content = self.query_one("#comms-content", containers.Vertical)
+            content = self.query_one(SessionContents)
             await content.remove_children()
             await content.mount(self.create_chat())
             if self.is_attached:

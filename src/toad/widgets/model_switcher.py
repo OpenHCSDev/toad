@@ -6,7 +6,7 @@ from toad.core_event_carrier import CoreEventReceiver
 
 from abc import abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Self, Protocol, cast
+from typing import TYPE_CHECKING, Self, Protocol
 
 from textual import getters, on, work
 from textual.app import ComposeResult
@@ -15,15 +15,36 @@ from textual.navigation import MovesCursor
 from toad.widget_actions import WidgetAction, PriorityActions, Submits, DismissibleControl
 from textual.content import Content
 from textual.containers import VerticalGroup
+from textual.css.native import Keyword, NativeDeclaration, Variable
+from textual.css.styles import Styles
 from textual.reactive import var
 from textual.widgets import Input, OptionList, Select, Static
 from toad.widget_actions import Activates
-from textual.widgets.option_list import Option
+from textual.widgets.option_list import Option, OptionListComponent
 
-from toad import messages
 from toad.acp.agent_configuration import ConfigurationSetting, ModelConfigurationSetting
 from toad.widgets.selection import SelectionOptionList, InlineSelection
-from toad.widgets.prompt_popup import InfoPopup
+from toad.widgets.prompt_popup import InfoPopup, PaddedOptionRows
+from ui_theme.scheme import (
+    BackgroundColour,
+    BlockCursorBackgroundColour,
+    BlockCursorForegroundColour,
+    BlockCursorTextStyle,
+    PrimaryColour,
+)
+
+from toad.native_style import (
+    AutoHeight,
+    Borderless,
+    MutedText,
+    NoPadding,
+    OneRow,
+    PointerCursor,
+    ScreenOverlay,
+    SecondaryText,
+    SidePadding,
+    SpacedAround,
+)
 
 if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
@@ -33,12 +54,18 @@ class ConnectProvider(
     InlineSelection,
     Activates,
     CoreEventReceiver,
+    SecondaryText,
+    OneRow,
+    SidePadding,
+    PointerCursor,
     Static,
     can_focus=True,
 ):
 
+
     def __init__(self):
         super().__init__("Connect a provider…", markup=False)
+
 
     def activate(self):
         self.query_ancestor(ModelSelection).connect_provider()
@@ -82,39 +109,44 @@ class ClearModelSearchAction(WidgetAction):
         context.search_input.clear()
 
 
-class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, CoreEventReceiver, VerticalGroup,
-                     actions=(ClearModelSearchAction,),
-                     scopes={PriorityActions: (ClearModelSearchAction,)}):
+class ModelCount(MutedText, OneRow, SidePadding, Static):
+
+    """Its look is its bases."""
+
+
+class ModelOptionList(Borderless, AutoHeight, NoPadding, PaddedOptionRows, SelectionOptionList):
+    native_components = {
+        OptionListComponent.OPTION_HIGHLIGHTED: (
+            NativeDeclaration.of(Styles.background, Variable(BlockCursorBackgroundColour.name)),
+            NativeDeclaration.of(Styles.color, Variable(BlockCursorForegroundColour.name)),
+            NativeDeclaration.of(Styles.text_style, Variable(BlockCursorTextStyle.name)),
+        ),
+    }
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = "45vh"
+
+
+class ModelSelection(
+    SpacedAround,
+    PriorityActions,
+    MovesCursor,
+    Submits,
+    DismissibleControl,
+    CoreEventReceiver,
+    AutoHeight,
+    NoPadding,
+    VerticalGroup,
+    actions=(ClearModelSearchAction,),
+    scopes={PriorityActions: (ClearModelSearchAction,)},
+):
     """Search, recents and provider connection shared by prompt and creation views."""
     BINDING_GROUP_TITLE = "Model search"
-    DEFAULT_CSS = """
-    ModelSelection {
-        constrain: inside inflect;
-        width: 80;
-        max-width: 100%;
-        height: auto;
-        max-height: 80vh;
-        border: round $primary;
-        background: $background;
-        padding: 0;
-        margin: 1 0;
-    }
-    ModelSelection Input { height: 1; border: none; padding: 0 1; }
-    ModelSelection .model-count { height: 1; padding: 0 1; color: $text-muted; }
-    ModelSelection ConnectProvider { height: 1; padding: 0 1; color: $text-secondary; pointer: pointer; }
-    ModelSelection OptionList {
-        height: auto;
-        max-height: 45vh;
-        border: none;
-        padding: 0;
-        & > .option-list--option { padding: 0 1; }
-    }
-    ModelSelection OptionList > .option-list--option-highlighted {
-        background: $block-cursor-background;
-        color: $block-cursor-foreground;
-        text-style: $block-cursor-text-style;
-    }
-    """
+    native_theme = (
+        NativeDeclaration.of(Styles.border, Keyword("round"), Variable(PrimaryColour.name)),
+        NativeDeclaration.of(Styles.background, Variable(BackgroundColour.name)),
+    )
 
     search_input = getters.query_one(Input)
     option_list = getters.query_one(SelectionOptionList)
@@ -126,6 +158,14 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
         self.recent_ids: list[str] = []
         self._open_generation = 0
         self._selection_moved = False
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.constrain_x = "inside"
+        self.styles.constrain_y = "inflect"
+        self.styles.width = 80
+        self.styles.max_width = "100%"
+        self.styles.max_height = "80vh"
 
     @property
     @abstractmethod
@@ -147,8 +187,8 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
 
     def compose_content(self) -> ComposeResult:
         yield Input(placeholder=f"Search {self.choice_name} or providers…", compact=True)
-        yield Static("", classes="model-count", markup=False)
-        options = SelectionOptionList()
+        yield ModelCount("", markup=False)
+        options = ModelOptionList()
         options.can_focus = False
         yield options
         yield ConnectProvider()
@@ -227,7 +267,7 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
             )
         else:
             self.option_list.highlighted = None
-        self.query_one(".model-count", Static).update(
+        self.query_one(ModelCount).update(
             f"{len(options)} / {len(models)} {self.choice_name} · {'best matches' if terms else 'recent first' if recent else 'current first'}"
             if options
             else f"No matching {self.choice_name}"
@@ -276,22 +316,30 @@ class ModelSelection(PriorityActions, MovesCursor, Submits, DismissibleControl, 
             if option.id is not None:
                 self.select_model(option.id)
 
-class ModelSwitcher(ModelSelection, InfoPopup):
-    DEFAULT_CSS = """
-    ModelSwitcher { display: none; overlay: screen; }
-    ModelSwitcher.-open { display: block; }
-    """
+
+class ConfigurationKind(Select[type[ConfigurationSetting]]):
+    """Which configuration setting the switcher picks among."""
+
+    @on(Select.Changed)
+    def chosen(self, event: Select.Changed) -> None:
+        event.stop()
+        # The nonblank Select owns validation of its advertised nominal values.
+        if event.value is not Select.NULL:
+            self.query_ancestor(ModelSwitcher).setting_chosen(event.value)
+
+class ModelSwitcher(ScreenOverlay, ModelSelection, InfoPopup):
 
     setting_kind: type[ConfigurationSetting] = ModelConfigurationSetting
+
 
     @property
     def setting(self) -> ConfigurationSetting:
         return self.prompt.agent_binding.configuration.setting(self.setting_kind)
 
     def compose_content(self) -> ComposeResult:
-        yield Select(
+        yield ConfigurationKind(
             [(self.setting_kind.label.title(), self.setting_kind)], allow_blank=False,
-            value=self.setting_kind, classes="configuration-kind", compact=True,
+            value=self.setting_kind, compact=True,
         )
         yield from super().compose_content()
 
@@ -302,7 +350,7 @@ class ModelSwitcher(ModelSelection, InfoPopup):
         ]
         if self.setting_kind not in {kind for _, kind in choices}:
             self.setting_kind = type(self).setting_kind
-        selector = self.query_one(".configuration-kind", Select)
+        selector = self.query_one(ConfigurationKind)
         with selector.prevent(Select.Changed):
             selector.set_options(choices)
             selector.value = self.setting_kind
@@ -319,13 +367,8 @@ class ModelSwitcher(ModelSelection, InfoPopup):
         self.sync_picker()
         super().focus_content(scroll_visible)
 
-    @on(Select.Changed, ".configuration-kind")
-    def on_setting_changed(self, event: Select.Changed) -> None:
-        event.stop()
-        # The nonblank Select owns validation of its advertised nominal values.
-        if event.value is Select.NULL:
-            return
-        self.setting_kind = cast(type[ConfigurationSetting], event.value)
+    def setting_chosen(self, kind: type[ConfigurationSetting]) -> None:
+        self.setting_kind = kind
         self.focus_content(False)
 
     @classmethod

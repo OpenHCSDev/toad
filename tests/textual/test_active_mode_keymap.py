@@ -7,7 +7,7 @@ from toad.application_actions import TeamAction
 from toad.key_modes import KeyMode, Standard, VimNormal
 from toad.neovim_editing import NeovimEditing
 from toad.preferences import SETTINGS
-from toad.screens.team import TeamPage
+from toad.screens.team import TeamClose, TeamPage
 from toad.widgets.side_bar import SideBar
 from toad.widget_actions import DismissAction
 
@@ -34,7 +34,7 @@ async def test_team_remaps_from_sidebar_and_close_button(workspace):
         await ui.press("f3")
         await ui.until(lambda: isinstance(app.screen, TeamPage),
                        why="the commander page reopened under the remap")
-        await ui.pilot.click("#team-close")
+        await ui.pilot.click(TeamClose)
         await ui.until(lambda: app.screen is app.workspace_screen,
                        why="the Close button uses the same dismissal action")
 
@@ -55,7 +55,7 @@ async def test_application_binding_precedes_real_engine_in_each_profile(workspac
         await ui.press("f2")
         await ui.until(lambda: isinstance(app.screen, TeamPage),
                        why="the default commander key before engine forwarding")
-        await ui.pilot.click("#team-close")
+        await ui.pilot.click(TeamClose)
         await ui.until(lambda: app.screen is app.workspace_screen, why="the original prompt again")
         area.focus()
         assert area.text == "keep draft"
@@ -63,6 +63,6 @@ async def test_application_binding_precedes_real_engine_in_each_profile(workspac
         await ui.press("f3")
         await ui.until(lambda: isinstance(app.screen, TeamPage),
                        why="the configured application key through the same binding owner")
-        await ui.pilot.click("#team-close")
+        await ui.pilot.click(TeamClose)
         await ui.until(lambda: app.screen is app.workspace_screen, why="the retained prompt")
         assert area.text == "keep draft"

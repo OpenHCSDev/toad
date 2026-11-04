@@ -110,11 +110,6 @@ class ToolCall(CoreEvent):
             return scope is None
         return scope is not None and scope.same_publication_source(self.scope)
 
-    @property
-    def tool_id(self) -> str:
-        from toad.acp.encode_tool_call_id import encode_tool_call_id
-        return encode_tool_call_id(self.tool_call.call.tool_call_id)
-
 
 @dataclass(frozen=True)
 class SessionChangedEvent(CoreEvent):
@@ -328,7 +323,7 @@ class AgentFail(CoreEvent):
 
     async def present(self, view) -> None:
         from textual.content import Content
-        from toad.widgets.note import Note
+        from toad.widgets.note import ErrorNote
 
         if self.message:
             error = Content.assemble(
@@ -338,7 +333,7 @@ class AgentFail(CoreEvent):
             )
         else:
             error = Content(self.details.strip()).stylize("$text-error")
-        await view.post(Note(error, classes="-error"))
+        await view.post(ErrorNote(error))
 
 
 @dataclass(frozen=True)
@@ -388,7 +383,6 @@ class FailureLog:
 
         link = AgentResponse(AcpLogLink.markdown(self.log_path),
                              show_divider=False, category=OtherCategory)
-        link.add_class("-error-log-link")
         await view.post(link)
 
 

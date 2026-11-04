@@ -2,7 +2,6 @@
 
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import CommandTarget
-from support.stylesheets import INSTALLED
 
 from toad.app import ToadApp
 from toad.widgets.side_bar import SideBar
@@ -11,7 +10,6 @@ from toad.widgets.side_bar import SideBar
 class FrameApp(ToadApp):
     """Records the channels sidebar's collapsed state, width and panel visibility of every frame drawn while `frames` is a list."""
 
-    CSS_PATH = INSTALLED
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

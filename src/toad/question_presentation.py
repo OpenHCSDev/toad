@@ -14,10 +14,8 @@ class QuestionMount(DeclaredFamily, affix="QuestionMount"):
         return DetachedQuestionMount()
 
     @abstractmethod
-    def select(self, index: int) -> None: ...
-
-    @abstractmethod
-    def blink(self, value: bool) -> None: ...
+    def restyle(self) -> None:
+        """The cursor, answer or caret phase changed; the options repaint their places."""
 
     @abstractmethod
     def focus(self, focused: bool) -> None: ...
@@ -30,10 +28,7 @@ class QuestionMount(DeclaredFamily, affix="QuestionMount"):
 
 
 class DetachedQuestionMount(QuestionMount):
-    def select(self, index):
-        pass
-
-    def blink(self, value):
+    def restyle(self):
         pass
 
     def focus(self, focused: bool) -> None:
@@ -51,13 +46,8 @@ class ActiveQuestionMount(QuestionMount):
     container: object
     timer: object
 
-    def select(self, index):
-        self.container.query(".-active").remove_class("-active")
-        if index >= 0:
-            self.container.children[index].add_class("-active")
-
-    def blink(self, value):
-        self.container.set_class(value, "-blink")
+    def restyle(self):
+        self.container.update_node_styles()
 
     def focus(self, focused: bool) -> None:
         if focused:
@@ -100,7 +90,7 @@ class QuestionPresentation:
 
     def start(self, question, container):
         def toggle_blink():
-            question.blink = not question.blink
+            question.caret_phase = question.caret_phase.toggled()
 
         self.attach(container, question.set_interval(0.5, toggle_blink, pause=True))
         self.mount.focus(question.has_focus)

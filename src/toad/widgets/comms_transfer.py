@@ -1,6 +1,7 @@
 """Inputs for the existing agent-comms export and thread-import operations."""
 
 from textual.view import FILL, WidgetView
+from toad.widgets.acting_button import ActingButton, ConfirmButton, Confirms, DismissButton
 from toad.core import events as core_events
 
 from dataclasses import dataclass
@@ -49,8 +50,8 @@ from toad.comms_root import CoordinationAccess
 from toad.application_lifetime import TerminalOutcome
 from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime
-from toad.widget_actions import DismissAction
-from textual.widgets import Button, Input, Select, Static
+
+from textual.widgets import Input, Select, Static
 from textual.color import Color
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar, Unit
@@ -58,7 +59,12 @@ from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
 from textual.css.styles import Styles
 from textual.geometry import Spacing
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
-from toad.native_layout import NativeLayout, NativeTheme
+from toad.native_style import (
+    CenteredChildren,
+    DockedBottom,
+    FillWidth,
+    SurfaceBackground,
+)
 from toad.app_node import ToadNode
 
 
@@ -209,13 +215,10 @@ class Transfers(ThemedApp[TerminalOutcome]):
                             group=type(request).declared_name, exclusive=True)
 
 
-class TransferPanel(NativeLayout, NativeTheme, Vertical):
+class TransferPanel(SurfaceBackground, Vertical):
     """One bounded frame; fields may scroll without displacing its actions."""
 
-    native_theme = (
-        NativeDeclaration.of(Styles.border, Keyword("solid"), Variable(PrimaryColour.name)),
-        NativeDeclaration.of(Styles.background, Variable(SurfaceColour.name)),
-    )
+    native_theme = (NativeDeclaration.of(Styles.border, Keyword("solid"), Variable(PrimaryColour.name)),)
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
@@ -230,21 +233,19 @@ class TransferFields(VerticalScroll, can_focus=False):
     """The native scroll viewport retains the actual field widgets and values."""
 
 
-class TransferActions(NativeLayout, VerticalGroup):
+class TransferActions(DockedBottom, VerticalGroup):
     """Actions retain their vertical order outside the scrolling fields."""
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
-        self.styles.dock = "bottom"
         self.styles.margin = Spacing(1, 0, 0, 0)
 
 
-class TransferField(NativeLayout):
+class TransferField(FillWidth):
     """One field-spacing declaration shared by native text and choice controls."""
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
-        self.styles.width = FILL
         self.styles.margin = Spacing(0, 0, 1, 0)
 
 
@@ -256,13 +257,53 @@ class ChoiceField[Value](TransferField, Select[Value]):
     """A transfer's choice entry, retaining Select's native popup behavior."""
 
 
-class TransferError(NativeTheme, Static):
+class ExportPath(TextField):
+    """Where the export is written."""
+
+
+class ExportTarget(TextField):
+    """The channel or DM peers an export reads."""
+
+
+class ExportLimit(TextField):
+    """The export's byte budget."""
+
+
+class ImportSource(TextField):
+    """The transcript an import reads."""
+
+
+class ImportName(TextField):
+    """The imported thread's new name."""
+
+
+class ImportSessionId(TextField):
+    """The OpenCode session an import selects."""
+
+
+class ImportWorktree(TextField):
+    """The imported thread's project directory."""
+
+
+class ExportFormatChoice(ChoiceField[type["ExportFormatInput"]]):
+    """The export's file format."""
+
+
+class ExportScopeChoice(ChoiceField[type["ExportScopeInput"]]):
+    """What the export reads."""
+
+
+class ExportProgress(Static):
+    """How much the running export has written."""
+
+
+class TransferError(Static):
     native_theme = (
         NativeDeclaration.of(Styles.color, Variable(ErrorColour.name)),
     )
 
 
-class TransferDialog(NativeLayout, NativeTheme, DismissibleScreen[Transfer]):
+class TransferDialog(Confirms, CenteredChildren, DismissibleScreen[Transfer]):
     """Both transfer grammars share their frame, viewport and native dismissal."""
 
     heading: ClassVar[str]
@@ -271,25 +312,22 @@ class TransferDialog(NativeLayout, NativeTheme, DismissibleScreen[Transfer]):
         NativeDeclaration.of(Styles.background, Variable(BackgroundColour.name), Percent(40)),
     )
 
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.align = ("center", "middle")
 
     def compose(self) -> ComposeResult:
-        with TransferPanel(id="transfer-box"):
+        with TransferPanel():
             yield Static(self.heading)
             with TransferFields():
                 yield from self.fields()
-            yield TransferError("", id="transfer-error")
+            yield TransferError("")
             with TransferActions():
-                yield Button(self.submit_label, id="submit-transfer")
-                yield Button("Cancel", id="cancel-transfer", action=f"screen.{DismissAction.binding_name()}")
+                yield ConfirmButton(self.submit_label)
+                yield DismissButton("Cancel")
 
     @abstractmethod
     def fields(self) -> ComposeResult: ...
 
     def _error(self, error: str) -> None:
-        self.query_one("#transfer-error", Static).update(error)
+        self.query_one(TransferError).update(error)
 
     @staticmethod
     @boundary_decoder
@@ -299,6 +337,13 @@ class TransferDialog(NativeLayout, NativeTheme, DismissibleScreen[Transfer]):
         if value is None:
             raise ValueError("Choose an option.")
         return value
+
+
+class CancelExportButton(ActingButton):
+    """Stops the running export."""
+
+    async def act(self) -> None:
+        self.query_ancestor(WireExportProgressView).cancel_export()
 
 
 class WireExportProgressView(CancellableWireExport, TransferProgress, WidgetView, ToadNode, Vertical):
@@ -333,8 +378,8 @@ class WireExportProgressView(CancellableWireExport, TransferProgress, WidgetView
 
     def compose(self) -> ComposeResult:
         yield Static("Exporting wire history")
-        yield Static("0 messages · 0 bytes written", id="export-progress")
-        yield Button("Cancel export", id="cancel-export")
+        yield ExportProgress("0 messages · 0 bytes written")
+        yield CancelExportButton("Cancel export")
 
     def advanced(self, progress: WireExportProgress) -> None:
         now = monotonic()
@@ -345,13 +390,12 @@ class WireExportProgressView(CancellableWireExport, TransferProgress, WidgetView
     @on(Updated)
     def update_progress(self, event: Updated) -> None:
         progress = event.progress
-        self.query_one("#export-progress", Static).update(
+        self.query_one(ExportProgress).update(
             f"{progress.messages_written:,} messages · {progress.bytes_written:,} bytes written")
 
-    @on(Button.Pressed, "#cancel-export")
     def cancel_export(self) -> None:
         self.cancel()
-        button = self.query_one("#cancel-export", Button)
+        button = self.query_one(CancelExportButton)
         button.label = "Cancelling…"
         button.disabled = True
 
@@ -441,34 +485,34 @@ class WireExportDialog(TransferDialog):
 
     @cached_property
     def destination_input(self) -> Input:
-        return TextField(str(self.default_format.destination(self.destination_stem)),
-                     id="export-path", placeholder="Destination path")
+        return ExportPath(str(self.default_format.destination(self.destination_stem)),
+                          placeholder="Destination path")
 
     @cached_property
     def format_select(self) -> Select[type[ExportFormatInput]]:
-        return ChoiceField(
+        return ExportFormatChoice(
             [(choice.label, choice) for choice in ExportFormatInput.members_with(ExportFormatInput)],
-            value=self.default_format, id="export-format", allow_blank=False,
+            value=self.default_format, allow_blank=False,
         )
 
     @cached_property
     def scope_select(self) -> Select[type[ExportScopeInput]]:
-        return ChoiceField(
+        return ExportScopeChoice(
             [(choice.label, choice) for choice in ExportScopeInput.members_with(ExportScopeInput)],
-            value=self.default_scope, id="export-scope", allow_blank=False,
+            value=self.default_scope, allow_blank=False,
         )
 
     def fields(self) -> ComposeResult:
         yield self.destination_input
         yield self.format_select
         yield self.scope_select
-        yield TextField(id="export-target", placeholder="#channel or first,second (for DM)")
-        yield TextField("5242880", id="export-limit", placeholder="Max bytes; empty = full")
+        yield ExportTarget(placeholder="#channel or first,second (for DM)")
+        yield ExportLimit("5242880", placeholder="Max bytes; empty = full")
 
     def on_mount(self) -> None:
         self.destination_input.focus()
 
-    @on(Select.Changed, "#export-format")
+    @on(ExportFormatChoice.Changed)
     def on_format_changed(self, event: Select.Changed) -> None:
         defaults = (str(choice.destination(self.destination_stem))
                     for choice in ExportFormatInput.members_with(ExportFormatInput))
@@ -476,15 +520,14 @@ class WireExportDialog(TransferDialog):
             chosen = self.require_selection(self.format_select)
             self.destination_input.value = str(chosen.destination(self.destination_stem))
 
-    @on(Button.Pressed, "#submit-transfer")
-    def action_submit(self) -> None:
+    async def confirm(self) -> None:
         try:
             path = self.destination_input.value.strip()
             if not path:
                 raise ValueError("Choose an output path.")
-            target = self.query_one("#export-target", Input).value.strip()
+            target = self.query_one(ExportTarget).value.strip()
             scope = self.require_selection(self.scope_select).parse(target)
-            value = self.query_one("#export-limit", Input).value.strip()
+            value = self.query_one(ExportLimit).value.strip()
             limit = MaxBytesLimit(int(value)) if value else FullLimit()
             request = WireExportRequest(
                 Path(path).expanduser(), self.require_selection(self.format_select).format(), scope, limit,
@@ -506,23 +549,22 @@ class ThreadImportDialog(TransferDialog):
         harnesses = Harness.members_with(Harness)
         return ChoiceField(
             [(harness.declared_name, harness) for harness in harnesses],
-            value=harnesses[0], id="import-harness", allow_blank=False,
+            value=harnesses[0], allow_blank=False,
         )
 
     def fields(self) -> ComposeResult:
         yield self.harness_select
-        yield TextField(id="import-source", placeholder="Source JSON, database or rollout JSONL")
-        yield TextField(id="import-name", placeholder="New thread name")
-        yield TextField(id="import-session-id", placeholder="Session ID (OpenCode database only)")
-        yield TextField(id="import-worktree", placeholder="Project directory override (optional)")
+        yield ImportSource(placeholder="Source JSON, database or rollout JSONL")
+        yield ImportName(placeholder="New thread name")
+        yield ImportSessionId(placeholder="Session ID (OpenCode database only)")
+        yield ImportWorktree(placeholder="Project directory override (optional)")
 
     def on_mount(self) -> None:
-        self.query_one("#import-source", Input).focus()
+        self.query_one(ImportSource).focus()
 
-    @on(Button.Pressed, "#submit-transfer")
-    def action_submit(self) -> None:
-        source = self.query_one("#import-source", Input).value.strip()
-        name = self.query_one("#import-name", Input).value.strip()
+    async def confirm(self) -> None:
+        source = self.query_one(ImportSource).value.strip()
+        name = self.query_one(ImportName).value.strip()
         if not source or not name:
             self._error("A source and a new thread name are required.")
             return
@@ -530,6 +572,6 @@ class ThreadImportDialog(TransferDialog):
             Path(source).expanduser(),
             self.require_selection(self.harness_select),
             name,
-            FieldCodec.decode(ExpectedSession, self.query_one("#import-session-id", Input).value.strip() or None),
-            FieldCodec.decode(ImportDirectory, self.query_one("#import-worktree", Input).value.strip() or None),
+            FieldCodec.decode(ExpectedSession, self.query_one(ImportSessionId).value.strip() or None),
+            FieldCodec.decode(ImportDirectory, self.query_one(ImportWorktree).value.strip() or None),
         ))

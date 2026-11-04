@@ -29,7 +29,24 @@ class PreparationScope:
     """A snapshot lifetime token; never holds its widget or application owner."""
 
     def __init__(self) -> None:
-        self.closed = False
+        self._closed = False
+
+    @property
+    def closed(self) -> bool:
+        return self._closed
+
+    def close(self) -> None:
+        self._closed = True
+
+
+class Unscoped(PreparationScope):
+    """Work no snapshot lifetime bounds: it never closes."""
+
+    def close(self) -> None:
+        """Nothing owns unscoped work's lifetime."""
+
+
+UNSCOPED = Unscoped()
 
 
 class WorkRevision(ABC):
@@ -54,7 +71,7 @@ class ContentRevision(WorkRevision):
 class WorkKey:
     kind: type
     revision: WorkRevision
-    scope: PreparationScope | None = None
+    scope: PreparationScope = UNSCOPED
 
 
 class PreparedValue(ABC, Generic[ResultT]):
@@ -222,7 +239,7 @@ class RendererWork(PreparationWork[ResultT]):
 @dataclass(frozen=True)
 class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     task: RenderTask[ResultT]
-    scope: PreparationScope | None = None
+    scope: PreparationScope = UNSCOPED
 
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
         return await self.task.preparation_identity(self, runtime)
@@ -293,7 +310,7 @@ class PreparationRuntime(ThreadScheduler):
         return task.result()
 
     def discard_scope(self, scope: PreparationScope) -> None:
-        scope.closed = True
+        scope.close()
         for key in tuple(self._ready):
             if key.scope is scope:
                 _, size = self._ready.pop(key)
@@ -315,7 +332,7 @@ class PreparationRuntime(ThreadScheduler):
             raise asyncio.CancelledError
         key = await work.identity(self)
         while True:
-            if self._closed or key.scope is not None and key.scope.closed:
+            if self._abandoned(key):
                 raise asyncio.CancelledError
             if cached := self._ready.get(key):
                 self._ready.move_to_end(key)
@@ -345,23 +362,27 @@ class PreparationRuntime(ThreadScheduler):
             await self._changed.wait()
         await self.renderer.wait_for_work(pending)
         result = pending.result()
-        if self._closed or key.scope is not None and key.scope.closed:
+        if self._abandoned(key):
             raise asyncio.CancelledError
         return key, result
 
+    def _abandoned(self, key: WorkKey) -> bool:
+        """The runtime closed, or the snapshot that scoped this work did."""
+        return self._closed or key.scope.closed
+
     async def _deliver(self, key: WorkKey, result: PreparedValue[ResultT]) -> ResultT:
         """Validate at the final delivery boundary, including the worker-copy await."""
-        if self._closed or key.scope is not None and key.scope.closed:
+        if self._abandoned(key):
             raise asyncio.CancelledError
         copied = await self.run_thread(result.materialize)
-        if self._closed or key.scope is not None and key.scope.closed:
+        if self._abandoned(key):
             raise asyncio.CancelledError
         return copied
 
     async def _execute(self, key: WorkKey, work: PreparationWork[ResultT]) -> PreparedValue[ResultT]:
         prepared, size, storage = await work.execute(self, key)
         if storage.retain_result:
-            if not self._closed and (key.scope is None or not key.scope.closed) and size <= self.max_bytes:
+            if not self._abandoned(key) and size <= self.max_bytes:
                 while self._ready and (len(self._ready) >= self.max_entries
                                        or self.retained_bytes + size > self.max_bytes):
                     _, (_, old_size) = self._ready.popitem(last=False)

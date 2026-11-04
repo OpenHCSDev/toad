@@ -27,7 +27,7 @@ from support.native_steps import channel_message_feedback, direct_reply_feedback
 from support.textual_steps import request_target_command
 from toad.agent import AgentBase
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
+from toad.widgets.comms_sidebar import CommsSidebar, ThreadRow
 from toad.widgets.prompt import QueueSummary
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -87,16 +87,16 @@ async def test_busy_owner_is_shown_busy_in_the_sidebar_at_any_width(workspace, n
         sidebar = app.screen.query_one(CommsSidebar)
 
         def beta_row():
-            return next((row for row in sidebar.query(CommsRow) if row.target_name == "beta"), None)
+            return next((row for row in sidebar.query(ThreadRow) if row.target_name == "beta"), None)
 
-        await ui.until(lambda: beta_row() is not None and beta_row().has_class("-busy"), seconds=20,
+        await ui.until(lambda: beta_row() is not None and beta_row().busy, seconds=20,
                        why="the busy owner's sidebar row")
         for width in (96, 120):
             await ui.resize(width, 44)
             await ui.until(lambda: beta_row() is not None and beta_row().region.height == 2,
                            why="the two-row sidebar entry after resize")
             row = beta_row()
-            assert row.has_class("-busy"), (row.render(), row.region)
+            assert row.busy, (row.render(), row.region)
             assert "provider/" not in row.render().plain
         native.provider.release()
         await ui.until(lambda: not native.executing, seconds=20, why="the owner to finish")

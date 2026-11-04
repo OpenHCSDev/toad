@@ -532,11 +532,15 @@ class CoordinationAccess(MroDispatch):
     def views_retired(self, result: ViewsRetired, observed: Observing) -> None:
         self.app.session_navigation.views_retired(observed.service.root, result.retired)
 
-    def show_notifications(self, view: HistoryNotifications, read: ReadNotifications) -> None:
+    def show_notifications(self, view: HistoryNotifications, read: ReadNotifications) -> bool:
+        """Show `read` in `view`; asking again for the read it already shows changes nothing."""
+        if self.notification_views.get(view) == read:
+            return False
         self.notification_views[view] = read
         if known := self.known_outcomes(read):
             view.notifications_observed(known)
         self._request_interest()
+        return True
 
     @staticmethod
     def notification_scope(read: ReadNotifications) -> ReadNotifications:
@@ -556,9 +560,12 @@ class CoordinationAccess(MroDispatch):
                  for key in keys if (scope, key) in self.notification_known}
         return next(CheckedNotifications.for_references(references, known), UncheckedNotifications())
 
-    def stop_notifications(self, view: HistoryNotifications) -> None:
+    def stop_notifications(self, view: HistoryNotifications) -> bool:
+        """Whether `view` was showing a read."""
+        shown = view in self.notification_views
         self.notification_views.pop(view, None)
         self._request_interest()
+        return shown
 
     def _request_interest(self) -> None:
         wanted = ObserveNotifications(frozenset(self.notification_views.values()))

@@ -1,5 +1,6 @@
 """The shared Channels view, including during a destination's loading frame."""
 
+from toad.native_style import StartsHidden
 from toad.sidebar_layout import ChannelsSidebarPlacement
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_sort import ChannelListSort
@@ -22,7 +23,6 @@ class ChannelsSidebar(SideBar):
         )
 
 
-class ChannelsSlot(Widget):
+class ChannelsSlot(StartsHidden, Widget):
     """A tab declares where shared navigation belongs; it owns no channel rows."""
 
-    DEFAULT_CSS = "ChannelsSlot { display: none; }"

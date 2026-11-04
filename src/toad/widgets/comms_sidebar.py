@@ -49,16 +49,30 @@ from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 from toad.app_node import ToadNode
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    FillWidth,
+    MutedText,
+    NoPadding,
+    OneRow,
+    PointerCursor,
+)
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
 
 
-
-
-class ChannelUnread(PrimaryActivation, ChangingText):
-    DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $text-muted; pointer: pointer; }"
+class ChannelUnread(
+    MutedText,
+    AutoWidth,
+    OneRow,
+    PointerCursor,
+    PrimaryActivation,
+    ChangingText,
+):
     text_fades = (NEW_MESSAGE,)
+
 
     def on_click(self, event) -> None:
         if event.button == 1:
@@ -248,10 +262,8 @@ class ChannelRow(ListedRow):
     row_tones = (ChannelRowToneColour, ChannelAlternateRowToneColour)
 
 
-class ThreadStatusRow(ListedRow, ToadNode):
+class ThreadStatusRow(MutedText, ListedRow, ToadNode):
     """Thread rows show activity through their glyph and summary, not held ink."""
-
-    DEFAULT_CSS = "ThreadStatusRow { color: $text-muted; }"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -313,18 +325,19 @@ class ThreadRow(ThreadStatusRow):
             super().open_selected()
 
 
-class NewSessionButton(HoverSelection, ActivationKeys, TargetTreeMember, Static):
+class NewSessionButton(
+    MutedText,
+    FillWidth,
+    OneRow,
+    NoPadding,
+    PointerCursor,
+    HoverSelection,
+    ActivationKeys,
+    TargetTreeMember,
+    Static,
+):
     """Create another agent session for the current project."""
 
-    DEFAULT_CSS = """
-    NewSessionButton {
-        width: 1fr;
-        height: 1;
-        padding: 0;
-        color: $text-muted;
-        pointer: pointer;
-    }
-    """
 
     can_focus = True
 
@@ -338,16 +351,15 @@ class NewSessionButton(HoverSelection, ActivationKeys, TargetTreeMember, Static)
     async def create(self) -> None:
         await NewThreadAction().apply(self.app)
 
-class CoordinationStatus(ShowsThreadIdentity, SidebarPanelWidget, Static):
+class CoordinationStatus(
+    MutedText,
+    NoPadding,
+    ShowsThreadIdentity,
+    SidebarPanelWidget,
+    Static,
+):
     """Compact diagnostics for the persistent coordination wire."""
 
-    DEFAULT_CSS = """
-    CoordinationStatus {
-        height: auto;
-        padding: 0;
-        color: $text-muted;
-    }
-    """
 
     def identity_changed(self, identity: SessionIdentity) -> None:
         root = identity.display_root()
@@ -373,19 +385,24 @@ class CoordinationStatus(ShowsThreadIdentity, SidebarPanelWidget, Static):
 
 
 
-class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, TargetTree, OpensSelected):
+class CommsSidebar(
+    AutoHeight,
+    SidebarModelView,
+    SidebarVisibilityObserver,
+    SearchFollower,
+    TargetTree,
+    OpensSelected,
+):
     """The view of the observed service's sidebar model: channel groups and their threads.
 
     It mounts or removes groups and rows only for added and removed keys,
     repaints only changed rows and reorders on a changed order. Which tab has a
     thread open and pending thread actions are this view's own UI state.
     """
-    DEFAULT_CSS = """
-    CommsSidebar { height: auto; padding: 0 0 1 0; }
-    CommsSidebar .section { color: $text-muted; padding: 1 0 0 0; }
-    CommsSidebar .row-name { color: $text; }
-    CommsSidebar .row-detail { color: $text-muted; }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.padding = (0, 0, 1, 0)
+
     GROUP_MOUNT = "sidebar-groups"
     selected: reactive[str] = reactive("", init=False)
     def __init__(self, *, observe: bool = True, **kwargs):

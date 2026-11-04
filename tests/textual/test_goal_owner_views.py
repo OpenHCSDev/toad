@@ -20,7 +20,6 @@ from agent_comms.goals import Goal, NoGoal
 from agent_comms.repo import Checkout
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.turn_failure import NativeChildSignaled
-from textual.widgets import Button, Static
 
 from support.goals import ScriptedGoalOwner, bound_mentions, published_goal
 from support.agents import RecordedEvents
@@ -28,7 +27,7 @@ from support.textual_steps import channel_roster
 from toad.core.events import CommsUpdated
 from toad.navigation_target import SelectTarget
 from toad.screens.goal_details import GoalDetails
-from toad.screens.goal_edit import GoalEdit
+from toad.screens.goal_edit import GoalEdit, GoalEditButton, GoalEditError, GoalSave
 from toad.command_catalog import CommandCatalog
 from toad.widgets.goal_bar import GoalBar, GoalControl
 
@@ -68,7 +67,7 @@ async def shown_goal(workspace, ui):
     view.goal_execution = owner.execution
     view.prompt.text = "Composer draft stays"
     bar = view.query_one(GoalBar)
-    status = bar.query_one(".goal-execution", Static)
+    status = bar.execution_text
     await ui.until(lambda: status.display, why="the standby row")
     return owner, view, bar, status
 
@@ -126,7 +125,7 @@ async def test_rejected_goal_edit_keeps_the_draft_and_the_retry_is_accepted(work
         await pilot.click("#goal-edit")
         await ui.until(lambda: isinstance(app.screen, GoalEdit), why="the goal editor")
         editor = app.screen
-        editor.query_one("#goal-save", Button).active_effect_duration = 0
+        editor.query_one(GoalSave).active_effect_duration = 0
         editor.editor.text = "Ask @pe"
         editor.editor.prompt_text_area.move_cursor((0, 7))
         editor.editor.refresh_mentions(force=True)
@@ -134,14 +133,14 @@ async def test_rejected_goal_edit_keeps_the_draft_and_the_retry_is_accepted(work
         editor.editor.accept_mention()
         assert editor.editor.text == "Ask @peer "
         await ui.step()
-        await pilot.click("#goal-save")
-        await ui.until(lambda: "Goal changed" in str(editor.query_one("#goal-edit-error", Static).render()),
+        await pilot.click(GoalSave)
+        await ui.until(lambda: "Goal changed" in str(editor.query_one(GoalEditError).render()),
                        why="the rejection message in the editor")
         assert app.screen is editor
         assert view.goal_display.snapshot.text == "Coordinate with @peer"
         assert editor.editor.text == "Ask @peer ", "Rejected edit keeps user's draft"
         owner.reject = False
-        await pilot.click("#goal-save")
+        await pilot.click(GoalSave)
         await ui.until(lambda: not isinstance(app.screen, GoalEdit), why="the editor closed after acceptance")
         await ui.until(lambda: view.goal_display.snapshot.revision == 5, why="the edited goal shown")
         assert view.goal_display.snapshot.id == "stable-goal"
@@ -164,7 +163,7 @@ async def test_goal_editor_cannot_close_while_its_save_is_in_flight(workspace):
         await started.wait()
         await ui.press("escape")
         assert ui.app.screen is editor and editor.saving
-        await ui.pilot.click("#goal-cancel")
+        await ui.pilot.click(next(button for button in editor.query(GoalEditButton) if not isinstance(button, GoalSave)))
         await ui.step()
         assert ui.app.screen is editor and editor.saving
         release.set()
@@ -236,7 +235,7 @@ async def test_owner_pushes_replace_and_then_remove_the_goal(workspace):
         owner.goal = pushed
         owner.events.publish(CommsUpdated(GoalChangedUpdate(pushed, owner.execution), owner.session_id))
         await ui.until(lambda: view.goal_display.snapshot == pushed, why="the pushed goal")
-        await ui.until(lambda: "Backend edited the same goal" in str(bar.query_one(".goal-summary", Static).render()),
+        await ui.until(lambda: "Backend edited the same goal" in str(bar.summary.render()),
                        why="the pushed text in the bar")
         owner.goal, owner.execution = NoGoal(), IdleGoalExecution()
         owner.events.publish(CommsUpdated(GoalChangedUpdate(NoGoal(), IdleGoalExecution()), owner.session_id))

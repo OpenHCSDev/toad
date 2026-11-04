@@ -12,16 +12,19 @@ from agent_comms.nominal.field_codec import compile_decoder
 from agent_comms.login import run_login
 from objectstate import ObjectState
 from python_introspect import AnnotationChoices, FieldLabel
-from textual import on, work
+from textual import work
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.containers import Horizontal, VerticalScroll
+from textual.css.scalar import Scalar
 from textual.widgets import Button, Static
+from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
 from toad.widgets.checkbox import Checkbox
-from toad.forms.editors import ValueEditor
+from toad.forms.editors import MultilineEditor, ValueEditor
 from toad.forms.form_view import InlineFormView
 from formbridge.forms.declared_fields import Multiline
-from toad.screens.modal import ModalScreen, DismissibleScreen
-from toad.widget_actions import DismissAction, WidgetAction
+from toad.native_style import AutoWidth, EllipsisOverflow, SideMargin
+from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, ModalScreen, ShadedScreen
+from toad.widget_actions import WidgetAction
 from textual.document._editing import EditingMode
 from toad.widgets.model_switcher import ModelSelection
 
@@ -41,6 +44,15 @@ class PreparedChoices(AnnotationChoices):
 ValueEditor.shown_by[PreparedChoices] = lambda field: ValueEditor.showing(
     (*field.metadata(PreparedChoices).parameter.editor_declarations, AnnotationChoices)
 )(field)
+
+
+class CommandText(Multiline):
+    """A command parameter of several lines; the command form shows it five rows tall."""
+
+
+class CommandTextEditor(MultilineEditor):
+    shows = (CommandText,)
+    height = Scalar.from_number(5)
 
 
 class CatalogField(ValueEditor, Button):
@@ -109,9 +121,7 @@ class CatalogFieldSelection(ModelSelection):
             self.search_input.focus()
 
 
-class CatalogChoiceDialog(ModalScreen[str]):
-    DEFAULT_CSS = 'CatalogChoiceDialog { align: center middle; background: $background 40%; }'
-
+class CatalogChoiceDialog(ShadedScreen, CenteredScreen, ModalScreen[str]):
     def __init__(self, editor: CatalogField):
         super().__init__()
         self.editor = editor
@@ -130,31 +140,63 @@ class ApplyCommandAction(ViewAction):
     show = True
 
     async def apply(self, context: CommandDialog) -> None:
-        context.form.finish()
-        if context.query_one('#command-apply', Button).disabled:
+        await context.confirm()
+        if context.query_one(ApplyCommandButton).disabled:
             return
         arguments = context.arguments()
-        confirmed = context.query_one('#command-confirmed', Checkbox).value
-        context.query_one('#command-apply', Button).disabled = True
+        confirmed = context.query_one(CommandConfirmed).value
+        context.query_one(ApplyCommandButton).disabled = True
         await context.app.preparation.run_thread(
             lambda: context.definition.edited(arguments).with_confirmation(confirmed))
         if context.is_attached and arguments == context.arguments():
             context.dismiss(arguments)
 
 
-class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyCommandAction,)):
-    DEFAULT_CSS = """
-    CommandDialog { align: center middle; background: $background 40%; }
-    CommandDialog #command-box { width: 68; max-width: 95%; height: 90%;
-        background: $surface; border: solid $primary; padding: 1 2; }
-    CommandDialog #command-body { height: 1fr; }
-    CommandDialog #command-buttons { height: 3; align-horizontal: center; }
-    CommandDialog #command-buttons Button { width: auto; min-width: 12; margin: 0 1; }
-    CommandDialog #command-fields { height: auto; }
-    CommandDialog #command-title { max-height: 3; text-overflow: ellipsis; }
-    CommandDialog TextArea { height: 5; }
-    """
+class CommandBox(ModalPanel):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = 68
+        self.styles.max_width = "95%"
+        self.styles.height = "90%"
+        self.styles.padding = (1, 2)
 
+
+class CommandTitle(EllipsisOverflow, Static):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = 3
+
+
+class CommandButtons(Horizontal):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 3
+        self.styles.align_horizontal = "center"
+
+
+class CommandButton(AutoWidth, SideMargin, Button):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.min_width = 12
+
+
+class ApplyCommandButton(ConfirmButton, CommandButton):
+    """Applies the confirmed command."""
+
+
+class CancelCommandButton(DismissButton, CommandButton):
+    """Closes the dialog without applying."""
+
+
+class CommandConfirmation(Static):
+    """What applying the command will do."""
+
+
+class CommandConfirmed(Checkbox):
+    """The user's confirmation of that operation."""
+
+
+class CommandDialog(Confirms, ShadedScreen, CenteredScreen, DismissibleScreen[dict[str, str | None]], actions=(ApplyCommandAction,)):
     def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...]):
         super().__init__()
         self.definition, self.target = definition, target
@@ -165,23 +207,25 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
             hints.extend(parameter.editor_hints(
                 lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:
-                hints.append(Multiline())
+                hints.append(CommandText())
             declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
                                  field(default=parameter.editor_default)))
         self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
         self.form = InlineFormView.whole(self.state)
-        self.form.id = 'command-fields'
 
     def compose(self) -> ComposeResult:
-        with Vertical(id='command-box'):
-            yield Static(f"{self.definition.label} — {self.target}", markup=False, id='command-title')
-            with VerticalScroll(id='command-body'):
-                yield Static('', markup=False, id='command-confirmation')
+        with CommandBox():
+            yield CommandTitle(f"{self.definition.label} — {self.target}", markup=False)
+            with VerticalScroll():
+                yield CommandConfirmation('', markup=False)
                 yield self.form
-            yield Checkbox('I confirm this operation', id='command-confirmed')
-            with Horizontal(id='command-buttons'):
-                yield Button('Apply', id='command-apply', variant='primary')
-                yield Button('Cancel', id='command-cancel', action=f"screen.{DismissAction.binding_name()}")
+            yield CommandConfirmed('I confirm this operation')
+            with CommandButtons():
+                yield ApplyCommandButton('Apply', variant='primary')
+                yield CancelCommandButton('Cancel')
+
+    async def confirm(self) -> None:
+        self.form.finish()
 
     def on_mount(self):
         self.state.on_resolved_changed(self.draft_changed)
@@ -196,17 +240,13 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
             self.run_worker(self.refresh_catalogs(self.arguments()),
                             group='command-catalogs', exclusive=True)
 
-    @on(Button.Pressed, '#command-apply')
-    async def apply_clicked(self, event: Button.Pressed):
-        event.stop()
-        await ApplyCommandAction().apply(self)
 
 
     def arguments(self):
         return {name: self.state.get_resolved_value(name) for name in self.form.values}
 
     async def refresh_catalogs(self, arguments):
-        self.query_one('#command-apply', Button).disabled = True
+        self.query_one(ApplyCommandButton).disabled = True
         edited = self.definition.edited(arguments)
         fields = await self.app.preparation.run_thread(
             lambda: asyncio.run(edited.prepare_fields()))
@@ -219,9 +259,9 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
         self.update_confirmation()
 
     def update_confirmation(self):
-        confirmed = self.query_one('#command-confirmed', Checkbox)
+        confirmed = self.query_one(CommandConfirmed)
         confirmed.value = False
-        self.query_one('#command-apply', Button).disabled = True
+        self.query_one(ApplyCommandButton).disabled = True
         arguments = self.arguments()
         async def prepare():
             def read():
@@ -232,9 +272,9 @@ class CommandDialog(DismissibleScreen[dict[str, str | None]], actions=(ApplyComm
             confirmation, valid = await self.app.preparation.run_thread(read)
             if not self.is_attached or arguments != self.arguments():
                 return
-            self.query_one('#command-confirmation', Static).update(confirmation)
+            self.query_one(CommandConfirmation).update(confirmation)
             confirmed.display = valid and bool(confirmation)
-            self.query_one('#command-apply', Button).disabled = not valid or any(
+            self.query_one(ApplyCommandButton).disabled = not valid or any(
                 arguments[name] != choices.parameter.editor_default
                 for name, choices in self.choices.items())
         self.run_worker(prepare, group='command-confirmation', exclusive=True)

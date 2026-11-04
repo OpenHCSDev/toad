@@ -6,11 +6,18 @@ from agent_comms.coordination_errors import Refused
 from agent_comms.goals import Goal
 from agent_comms.mentions import MentionCandidate
 from agent_comms.repo import Checkout
-from textual import on
 from textual.app import ComposeResult
-from textual.containers import HorizontalGroup, Vertical
-from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import DismissAction
+from textual.containers import HorizontalGroup
+from toad.widgets.acting_button import ConfirmButton, Confirms, DismissButton
+from toad.native_style import (
+    AutoHeight,
+    MutedText,
+    RightMargin,
+    SpacedAround,
+    SpacedBelow,
+)
+from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, ShadedScreen
+
 from textual.widgets import Button, Static
 
 from toad.core.input_events import UserInputSubmitted
@@ -19,17 +26,50 @@ from metaclass_registry.mro_dispatch import handles
 from toad.widgets.channel_prompt import DraftPrompt
 
 
-class GoalEdit(CoreEventReceiver, DismissibleScreen[None]):
+class GoalEditPanel(AutoHeight, ModalPanel):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = "85%"
+        self.styles.max_height = "90%"
+        self.styles.padding = 1
+
+
+class GoalEditor(SpacedAround, DraftPrompt, AutoHeight):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.dock = "none"
+        self.styles.max_height = 20
+
+
+class GoalEditProgress(SpacedBelow, MutedText, AutoHeight, Static):
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = 3
+
+
+class GoalEditError(Static):
+    """Why the backend refused the edit."""
+
+
+class GoalEditButtons(AutoHeight, HorizontalGroup):
+    """Its look is its bases."""
+
+
+class GoalEditButton(RightMargin, Button):
+    """Its look is its bases."""
+
+
+class GoalSave(ConfirmButton, GoalEditButton):
+    """Saves the edited objective."""
+
+
+class GoalCancel(DismissButton, GoalEditButton):
+    """Leaves the objective as it was."""
+
+
+class GoalEdit(Confirms, ShadedScreen, CenteredScreen, CoreEventReceiver, DismissibleScreen[None]):
     AUTO_FOCUS = "ChannelTextArea"
-    DEFAULT_CSS = """
-    GoalEdit { align: center middle; background: $background 40%; }
-    GoalEdit > Vertical { width: 85%; height: auto; max-height: 90%; padding: 1;
-        border: solid $primary; background: $surface; }
-    GoalEdit ChannelPrompt { dock: none; height: auto; max-height: 20; margin: 1 0; }
-    GoalEdit .goal-edit-progress { height: auto; max-height: 3; color: $text-muted; margin-bottom: 1; }
-    GoalEdit HorizontalGroup { height: auto; }
-    GoalEdit Button { margin-right: 1; }
-    """
 
     def __init__(
         self,
@@ -43,26 +83,25 @@ class GoalEdit(CoreEventReceiver, DismissibleScreen[None]):
         self.goal = goal
         self.on_save = on_save
         self.saving = False
-        self.editor = DraftPrompt(project=project)
+        self.editor = GoalEditor(project=project)
         self.editor.set_mention_candidates(candidates)
 
     def compose(self) -> ComposeResult:
-        with Vertical():
+        with GoalEditPanel():
             yield Static(
                 "Edit objective · @ mentions · Tab completes · Enter saves",
                 markup=False,
             )
             yield self.editor
             if self.goal.progress:
-                yield Static(
+                yield GoalEditProgress(
                     f"Progress (read-only): {self.goal.progress}",
                     markup=False,
-                    classes="goal-edit-progress",
                 )
-            yield Static("", markup=False, id="goal-edit-error")
-            with HorizontalGroup():
-                yield Button("Save", id="goal-save", variant="primary")
-                yield Button("Cancel", id="goal-cancel", action=f"screen.{DismissAction.binding_name()}")
+            yield GoalEditError("", markup=False)
+            with GoalEditButtons():
+                yield GoalSave("Save", variant="primary")
+                yield GoalCancel("Cancel")
 
     def on_mount(self) -> None:
         self.editor.text = self.goal.text
@@ -76,20 +115,19 @@ class GoalEdit(CoreEventReceiver, DismissibleScreen[None]):
         if not text.strip() or self.saving:
             return
         self.saving = True
-        save_button = self.query_one("#goal-save", Button)
+        save_button = self.query_one(GoalSave)
         save_button.disabled = True
         try:
             await self.on_save(text.strip())
         except Refused as error:
-            self.query_one("#goal-edit-error", Static).update(str(error))
+            self.query_one(GoalEditError).update(str(error))
         else:
             self.dismiss()
         finally:
             self.saving = False
             save_button.disabled = False
 
-    @on(Button.Pressed, "#goal-save")
-    async def save_clicked(self) -> None:
+    async def confirm(self) -> None:
         await self.save(self.editor.text)
 
     def dismiss_control(self) -> None:

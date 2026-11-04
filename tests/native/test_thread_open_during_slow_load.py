@@ -12,7 +12,6 @@ import os
 
 from support.agents import peer
 from support.native import start_private_native_wire
-from support.stylesheets import INSTALLED
 from support.textual_steps import channel_roster
 from toad.app import ToadApp
 from toad.widgets.channels_sidebar import ChannelsSidebar
@@ -21,7 +20,6 @@ from toad.widgets.conversation import ThreadLoading
 
 
 class TabFramesApp(ToadApp):
-    CSS_PATH = INSTALLED
 
     def __init__(self, **arguments):
         self.tab_sets_drawn = []

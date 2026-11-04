@@ -10,21 +10,20 @@ from textual.widget import Widget
 
 from toad.block_content import BlockContent
 from toad.line_blocks import Body, MarkdownBody, LineBlock, LineRole, NoBar, TextRole
+from toad.native_style import AutoHeight
 from toad.widgets.linked_rows import ReferenceRendering
 from toad.widgets.styled_rows import StyledRows
 
 
-class LineMarkdown(StyledRows, ReferenceRendering, BlockContent, Widget):
+class LineMarkdown(AutoHeight, StyledRows, ReferenceRendering, BlockContent, Widget):
     """Draw the declared body; selection copies the original source text."""
 
-    DEFAULT_CSS = "LineMarkdown { height: auto; }"
-
     def __init__(self, text: str = "", *, role: type[LineRole] = TextRole,
-                 bar: type[LineRole] = NoBar, body: type[Body] = MarkdownBody,
-                 id: str | None = None, classes: str | None = None) -> None:
-        super().__init__(id=id, classes=classes)
+                 bar: type[LineRole] = NoBar, body: type[Body] = MarkdownBody) -> None:
+        super().__init__()
         self.text = text
         self.role, self.bar, self.body_type = role, bar, body
+
 
     def line_blocks(self, text: str) -> tuple[LineBlock, ...]:
         """Semantic rows for this text; subclasses may add a final row."""

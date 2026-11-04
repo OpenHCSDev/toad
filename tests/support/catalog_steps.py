@@ -9,12 +9,12 @@ from toad.platform import host
 async def open_agent(ui, item) -> None:
     """Open the agent dialog for a Store grid item."""
     from toad.screens.agent_modal import AgentModal
-    from toad.screens.store import StoreScreen
+    from toad.screens.store import AgentItemGrid, StoreScreen
 
     app, pilot = ui.textual
     item.scroll_visible(immediate=True)
     await ui.step()
-    assert await pilot.click(item.query_one("#name", widgets.Label))
+    assert await pilot.click(item.query_one(AgentItemGrid).query_one(widgets.Label))
     await ui.step()
     if isinstance(app.screen, StoreScreen):
         await ui.press("enter")
@@ -23,6 +23,7 @@ async def open_agent(ui, item) -> None:
 
 async def choose_action(ui, modal, name: str | None) -> None:
     """Pick action `name` in the agent dialog (None: the launch entry after the actions) and run it."""
+    from toad.screens.agent_modal import RunAction
 
     _app, pilot = ui.textual
     order = list(modal.agent.commands_for(host))
@@ -33,7 +34,7 @@ async def choose_action(ui, modal, name: str | None) -> None:
         chosen = modal.action_select.value
         assert chosen.name == name, (name, chosen)
         assert chosen.command is modal.agent.commands_for(host)[name]
-    assert await pilot.click(modal.query_one("#run-action", widgets.Button))
+    assert await pilot.click(modal.query_one(RunAction))
 
 
 async def run_action(ui, name: str, *, edited: str | None = None, cancel: bool = False, expected: int = 0,
@@ -42,9 +43,9 @@ async def run_action(ui, name: str, *, edited: str | None = None, cancel: bool =
 
     Returns the terminal pane once the dialog has closed and its process is gone.
     """
-    from toad.screens.action_modal import ActionModal
+    from toad.screens.action_modal import ActionButton, ActionModal, OkButton
     from toad.screens.agent_modal import AgentModal
-    from toad.screens.command_edit_modal import CommandEditModal
+    from toad.screens.command_edit_modal import CommandButtons, CommandEditModal
 
     app, pilot = ui.textual
     modal = app.screen
@@ -56,7 +57,7 @@ async def run_action(ui, name: str, *, edited: str | None = None, cancel: bool =
         editor.text_area.focus()
         await ui.press("f7", *list(edited))
         assert editor.text_area.text == edited, editor.text_area.text
-    assert await pilot.click(editor.query_one("#ok", widgets.Button))
+    assert await pilot.click(editor.query_one(CommandButtons).query_one(widgets.Button))
     if name == "login" and expected == 0:
         await ui.until(lambda: isinstance(app.screen, AgentModal), why="a successful login to close by itself")
         return None
@@ -70,7 +71,7 @@ async def run_action(ui, name: str, *, edited: str | None = None, cancel: bool =
         await ui.press(*list(typed), "enter")
     if cancel:
         await ui.until(lambda: ui.visible_text().count("CMD_HELD") >= 2, why="the held command's output")
-        assert await pilot.click(runner.query_one("#cancel", widgets.Button))
+        assert await pilot.click(next(button for button in runner.query(ActionButton) if not isinstance(button, OkButton)))
     else:
         await ui.until(lambda: not runner.ok_button.disabled, seconds=20, why="the command to finish")
         assert runner.command_pane.return_code == expected

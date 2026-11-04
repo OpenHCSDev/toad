@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+from toad.native_style import (
+    AutoWidth,
+    EllipsisOverflow,
+    MutedText,
+    NoWrap,
+    OneRow,
+    PointerCursor,
+)
 from toad.widgets.selection import InlineSelection
 from ui_theme.scheme import ForegroundColour
 
@@ -44,6 +52,12 @@ class ChannelSortForm:
 
 
 class SortControl[Order: DisplayOrder](
+    MutedText,
+    AutoWidth,
+    OneRow,
+    NoWrap,
+    EllipsisOverflow,
+    PointerCursor,
     InlineSelection,
     Activates,
     Static,
@@ -51,18 +65,10 @@ class SortControl[Order: DisplayOrder](
 ):
     highlight_foreground = ForegroundColour
 
-    DEFAULT_CSS = """
-    SortControl {
-        width: auto;
-        max-width: 60%;
-        height: 1;
-        margin-left: 1;
-        text-wrap: nowrap;
-        text-overflow: ellipsis;
-        color: $text-muted;
-        pointer: pointer;
-    }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_width = "60%"
+        self.styles.margin = (0, 0, 0, 1)
 
     def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str):
         super().__init__()

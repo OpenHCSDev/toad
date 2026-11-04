@@ -1,5 +1,6 @@
 """Textual-facing: the Back, Forward and menu buttons' place in the header, their size, their paint and hover styles."""
 
+from toad.workspace_chrome import WorkspaceHeader
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryButton, TabHistoryControls
 
@@ -16,7 +17,7 @@ async def test_unavailable_buttons_sit_in_the_header_and_still_show_hover(worksp
         first = ui.selected_tab
         left = screen.query_one("#channels-sidebar", SideBar)
         controls = screen.query_one(TabHistoryControls)
-        header = screen.query_one("#tab-navigation-header")
+        header = screen.query_one(WorkspaceHeader)
         assert controls.parent is header
         assert screen.query_one(SessionsTabs).parent is header
         assert controls.region.y == screen.query_one(SessionsTabs).region.y == 0

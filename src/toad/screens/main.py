@@ -106,6 +106,10 @@ class MCPInventoryProvider(SessionCommands):
         )
 
 
+class SessionOpening(Static):
+    """The line shown while the session's content opens, or why it could not."""
+
+
 class ScreenContent(DeclaredFamily, affix="Content"):
     """Content state owns its label, preparation slot and completion."""
 
@@ -157,9 +161,9 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         self.render(screen)
 
     def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
-        label = screen.query_one_optional("#session-opening", Static)
+        label = screen.query_one_optional(SessionOpening)
         if label is None:
-            label = Static(id="session-opening", markup=False)
+            label = SessionOpening(markup=False)
         label.update(text)
         label.display = visible
         return label
@@ -300,8 +304,6 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
 
-    CSS_PATH = "main.tcss"
-
     COMMANDS = {ModeProvider, MCPInventoryProvider}
 
     BINDING_GROUP_TITLE = "Screen"
@@ -440,7 +442,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     def compose(self) -> ComposeResult:
         with SessionBody():
             yield self.thread_sidebar
-            with SessionContents(id="session-content"):
+            with SessionContents():
                 yield self.content.render(self)
                 yield self.presentation.compose_content(self)
 

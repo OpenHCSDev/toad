@@ -5,14 +5,83 @@ from collections.abc import Callable
 from functools import partial
 from pathlib import Path
 
-from textual import on, work
+from textual import work
 from textual.app import ComposeResult
 from textual.containers import ItemGrid, Vertical
-from textual.widgets import Button, Static, TextArea
+from textual.widgets import Static, TextArea
 from textual.worker import Worker, get_current_worker
 
+from toad.widgets.acting_button import ActingButton
 from toad.acp.log_records import ErrorsLogView, LogPage, LogView
 from toad.file_kind import FileKind
+from toad.native_style import (
+    AutoHeight,
+    Borderless,
+    EllipsisOverflow,
+    FillWidth,
+    MutedText,
+    NoWrap,
+    OneRow,
+)
+
+
+class LogLine(MutedText, OneRow, NoWrap, EllipsisOverflow, Static):
+    """One muted, single-row line above or below the log."""
+
+
+
+
+class LogStatus(LogLine):
+    """What the shown page holds, or why it could not be read."""
+
+
+class LogControls(AutoHeight, ItemGrid):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.grid_rows = "3"
+
+
+class LogButton(FillWidth, ActingButton):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.min_width = 0
+
+
+class LogViewButton(LogButton):
+    """Shows the log through its view kind."""
+
+    def __init__(self, kind: type[LogView]) -> None:
+        super().__init__(kind.label())
+        self.kind = kind
+
+    async def act(self) -> None:
+        self.query_ancestor(AcpLogPreview).select_view(self.kind)
+
+
+class LogWrapButton(LogButton):
+    """Switches soft wrap."""
+
+    async def act(self) -> None:
+        self.query_ancestor(AcpLogPreview).toggle_wrap(self)
+
+
+class LogEarlierButton(LogButton):
+    """Reads the page before the shown one."""
+
+    async def act(self) -> None:
+        self.query_ancestor(AcpLogPreview).earlier()
+
+
+class LogLatestButton(LogButton):
+    """Reads the newest page again."""
+
+    async def act(self) -> None:
+        self.query_ancestor(AcpLogPreview).latest()
+        self.styles.height = 3
+
+
+class LogText(Borderless, TextArea):
+    """Its look is its bases."""
 
 
 class AcpLogPreview(Vertical):
@@ -22,20 +91,12 @@ class AcpLogPreview(Vertical):
     loop turn, so a full page never holds a frame.
     """
 
-    DEFAULT_CSS = """
-    AcpLogPreview { height: 1fr; }
-    AcpLogPreview > .log-path { height: 1; text-wrap: nowrap; text-overflow: ellipsis; color: $text-muted; }
-    AcpLogPreview > .log-controls { height: auto; grid-rows: 3; }
-    AcpLogPreview Button { min-width: 0; width: 1fr; height: 3; }
-    AcpLogPreview > TextArea { height: 1fr; border: none; }
-    AcpLogPreview > .log-status { height: 1; text-wrap: nowrap; text-overflow: ellipsis; color: $text-muted; }
-    """
     # Characters drawn per loop turn (about 2 ms of wrapping).
     SLICE = 8 * 1024
     FOLLOW_INTERVAL = 1.0
 
-    def __init__(self, path: Path, *, id: str) -> None:
-        super().__init__(id=id)
+    def __init__(self, path: Path) -> None:
+        super().__init__()
         self.path = path
         self.page: LogPage | None = None
         self.view: LogView = ErrorsLogView()
@@ -45,23 +106,22 @@ class AcpLogPreview(Vertical):
         self._read_worker: Worker[None] | None = None
 
     def compose(self) -> ComposeResult:
-        path = Static(str(self.path), classes="log-path", markup=False)
+        path = LogLine(str(self.path), markup=False)
         path.tooltip = str(self.path)
         yield path
-        with ItemGrid(classes="log-controls", min_column_width=12, regular=True):
+        with LogControls(min_column_width=12, regular=True):
             for kind in LogView.members_with(LogView):
-                yield Button(kind.label(), id=f"log-{kind.declared_name}", classes="log-view")
-            yield Button("Wrap: on", id="log-wrap")
-            yield Button("Earlier", id="log-earlier")
-            yield Button("Latest ↻", id="log-latest")
-        yield TextArea(
+                yield LogViewButton(kind)
+            yield LogWrapButton("Wrap: on")
+            yield LogEarlierButton("Earlier")
+            yield LogLatestButton("Latest ↻")
+        yield LogText(
             "Loading log…",
             read_only=True,
             soft_wrap=True,
-            id="log-text",
             tooltip="Select text to copy. Wrap off: Home/End, arrows or horizontal scrollbar.",
         )
-        yield Static("", classes="log-status", markup=False)
+        yield LogStatus("", markup=False)
 
     def on_mount(self) -> None:
         self.load_page()
@@ -80,7 +140,7 @@ class AcpLogPreview(Vertical):
             position.reveal(self.query_one(TextArea))
 
     def load_page(self, before: int | None = None) -> None:
-        self.query_one(".log-status", Static).update("Reading log…")
+        self.query_one(LogStatus).update("Reading log…")
         self._present(partial(LogPage.read, self.path, FileKind.MAX_BYTES, before))
 
     def read_new_lines(self) -> None:
@@ -105,8 +165,8 @@ class AcpLogPreview(Vertical):
             if self.is_attached:
                 self.page, self._drawn = None, ""
                 self.query_one(TextArea).load_text(f"Unable to read log: {error}")
-                self.query_one(".log-status", Static).update("Log read failed. Select Latest to try reading again.")
-                self.query_one("#log-earlier", Button).disabled = True
+                self.query_one(LogStatus).update("Log read failed. Select Latest to try reading again.")
+                self.query_one(LogEarlierButton).disabled = True
         finally:
             if get_current_worker() is self._read_worker:
                 self._ready.set()
@@ -121,13 +181,13 @@ class AcpLogPreview(Vertical):
         else:
             area.load_text(text[:self.SLICE])
             rest = text[self.SLICE:]
-        self.query_one(".log-status", Static).update(
+        self.query_one(LogStatus).update(
             f"{self.view.label()} · bytes {page.start:,}–{page.end:,} of {page.total:,} · "
             "Select text to copy. Wrap off: Home/End, arrows or horizontal scrollbar."
         )
-        self.query_one("#log-earlier", Button).disabled = page.start == 0
-        for button in self.query(".log-view").results(Button):
-            button.variant = "primary" if button.id == f"log-{self.view.declared_name}" else "default"
+        self.query_one(LogEarlierButton).disabled = page.start == 0
+        for button in self.query(LogViewButton):
+            button.variant = ("default", "primary")[button.kind is type(self.view)]
         for start in range(0, len(rest), self.SLICE):
             # Other work, input and paint run between slices.
             await asyncio.sleep(0)
@@ -145,29 +205,21 @@ class AcpLogPreview(Vertical):
         area = self.query_one(TextArea)
         return area.scroll_y <= 0 if self.view.newest_first else area.scroll_y >= area.max_scroll_y
 
-    @on(Button.Pressed, ".log-view")
-    def select_view(self, event: Button.Pressed) -> None:
-        event.stop()
-        self.view = LogView.member_named(event.button.id.removeprefix("log-"))()
+    def select_view(self, kind: type[LogView]) -> None:
+        self.view = kind()
         if self.page is not None:
             self._present(None)
         self.query_one(TextArea).focus()
 
-    @on(Button.Pressed, "#log-wrap")
-    def toggle_wrap(self, event: Button.Pressed) -> None:
-        event.stop()
+    def toggle_wrap(self, button: LogWrapButton) -> None:
         text = self.query_one(TextArea)
         text.soft_wrap = not text.soft_wrap
-        event.button.label = "Wrap: on" if text.soft_wrap else "Wrap: off"
+        button.label = "Wrap: on" if text.soft_wrap else "Wrap: off"
         text.focus()
 
-    @on(Button.Pressed, "#log-earlier")
-    def earlier(self, event: Button.Pressed) -> None:
-        event.stop()
+    def earlier(self) -> None:
         if self.page is not None:
             self.load_page(self.page.start)
 
-    @on(Button.Pressed, "#log-latest")
-    def latest(self, event: Button.Pressed) -> None:
-        event.stop()
+    def latest(self) -> None:
         self.load_page()

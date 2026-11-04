@@ -90,19 +90,21 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
                         return
             if not self.owns_publication(message, target):
                 return
-            tool = target.contents.query_one_optional(f"#{event.tool_id}", ToolCall)
-            if tool is not None and (tool.binding is not self or tool.request is not request):
-                await target.transcript.retire_presentations(target.contents, target.output, [tool])
-                tool = None
+            shown = [tool for tool in target.contents.query(ToolCall)
+                     if tool.tool_call.call.tool_call_id == event.tool_call.call.tool_call_id]
+            stale = [tool for tool in shown if tool.binding is not self or tool.request is not request]
+            if stale:
+                await target.transcript.retire_presentations(target.contents, target.output, stale)
             if not self.owns_publication(message, target):
                 return
-            if tool is None:
-                tool = ToolCall(status, id=event.tool_id, output_parts=parts, binding=self, request=request,
+            current = [tool for tool in shown if tool not in stale]
+            for tool in current:
+                tool.update_tool_call(status, output_parts=parts)
+            if not current:
+                tool = ToolCall(status, output_parts=parts, binding=self, request=request,
                                 source_claim=message.publisher.tools.presentation(event).source_claim)
                 if not await self._post_native(message, target, tool, retirement):
                     return
-            else:
-                tool.update_tool_call(status, output_parts=parts)
             if self.owns_publication(message, target):
                 retirement.pop_all()
 
@@ -240,14 +242,15 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             return
         from toad.widgets.terminal_tool import TerminalTool
 
-        if existing := target.query_one_optional(f"#{projection.terminal_id}", TerminalTool):
+        shown = [tool for tool in target.query(TerminalTool) if tool.terminal_id == projection.terminal_id]
+        for existing in shown:
             if existing.execution is projection.execution:
                 projection.execution.attach(existing)
                 return  # Reuse the original bounded rendering resource.
             await existing.remove()  # A replaced ACP controller may reuse its address.
-            if not self.owns_terminal(projection, target):
-                return
-        terminal = TerminalTool(projection.execution, id=projection.terminal_id)
+        if not self.owns_terminal(projection, target):
+            return
+        terminal = TerminalTool(projection.execution, terminal_id=projection.terminal_id)
         await target.post(terminal)
         if not self.owns_terminal(projection, target):
             await terminal.remove()

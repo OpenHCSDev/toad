@@ -8,12 +8,15 @@ from textual.widgets import OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 
+from toad.native_style import AutoHeight, SpacedBelow
 from toad.widgets.prompt import MessagePrompt, MessageTextArea
 from toad.widgets.selection import SelectionOptionList
 
 
-class MentionList(SelectionOptionList):
-    DEFAULT_CSS = "MentionList { height: auto; max-height: 7; margin-bottom: 1; }"
+class MentionList(SpacedBelow, AutoHeight, SelectionOptionList):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = 7
 
 
 class ChannelTextArea(MessageTextArea):

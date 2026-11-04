@@ -345,7 +345,7 @@ class PreviewSessionEntry(SessionEntry):
     def content(self):
         from toad.widgets.project_panel import FilePreview
 
-        return FilePreview(self.path, id="file-preview")
+        return FilePreview(self.path)
 
     @property
     def title(self) -> str:
@@ -378,7 +378,7 @@ class AcpLogSessionEntry(PreviewSessionEntry):
     def content(self):
         from toad.widgets.acp_log import AcpLogPreview
 
-        return AcpLogPreview(self.path, id="file-preview")
+        return AcpLogPreview(self.path)
 
     @property
     def title(self) -> str:

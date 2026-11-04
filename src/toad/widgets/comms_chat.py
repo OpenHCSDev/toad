@@ -4,7 +4,7 @@ from __future__ import annotations
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.core import input_events
 from functools import partial
-from toad.widgets.wire_history import WireHistory
+from toad.widgets.wire_history import HistoryLoading, WireHistory
 from toad.message_rows import IrcMessageStyle
 from toad.transcript_state import DEFERRED_WORK, SourceWork
 from toad.wire_history import WireSource
@@ -14,7 +14,6 @@ from toad.transcript_publication import NoView, ViewBinding
 import re
 from pathlib import Path
 
-from agent_comms.comms import Comms
 from agent_comms.repo import Checkout
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.display_references import CurrentDisplayReferences, ReferenceContext
@@ -23,13 +22,11 @@ from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage
 from agent_comms.messages import Message as WireMessage
-from textual import containers, work
+from textual import containers
 from textual.app import ComposeResult
 from textual.content import Content
-from textual.widgets import Static
 
 from toad.conversation_kind import ConversationKind
-from toad import messages
 from toad.widgets.conversation import (
     Contents,
     ContentsGrid,
@@ -52,11 +49,6 @@ def session_thread_name(project_path) -> str:
     )
 
 
-from toad.block_navigation import ConversationBlock
-
-
-class HistoryLoading(ConversationBlock, Static):
-    """Channel history loading is an atomic conversation block."""
 
 
 class CommsChatView(Conversation):
@@ -80,7 +72,7 @@ class CommsChatView(Conversation):
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(type(conversation))}:{conversation.input_scope}")
-        self.message_contents = Contents(id="contents")
+        self.message_contents = Contents()
         self.message_history = WireHistory.empty(view=self, notification_view=self.message_contents)
 
     def transcript_binding(self) -> ViewBinding:
@@ -92,10 +84,10 @@ class CommsChatView(Conversation):
             with ContentsGrid():
                 yield CursorContainer()
                 with self.message_contents:
-                    yield HistoryLoading("Loading messages…", id="history-loading")
+                    yield HistoryLoading("Loading messages…")
                     yield self.message_history
         yield Flash()
-        with containers.Vertical(id="prompt-stack"):
+        with containers.Vertical():
             yield from self.conversation.compose_activity(self)
             yield self.throbber_above
             yield self.conversation.prompt(self.project_path, submissions=self.submissions).data_bind(

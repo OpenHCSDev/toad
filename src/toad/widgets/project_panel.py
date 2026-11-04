@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from textual import events, work
+from textual import work
 from textual.reactive import reactive
 from textual.app import ComposeResult
 from toad.widget_actions import ActivationKeys
@@ -14,24 +14,38 @@ from textual.widgets import Static
 
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_tree_intent import ProjectTreeIntent
-from toad.widgets.worker_static import WorkerStatic
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
-from ui_theme.scheme import ForegroundColour, SurfaceHoverColour
+from textual.css.native import Keyword, NativeDeclaration, Variable
+from textual.css.styles import Styles
+from ui_theme.scheme import ForegroundColour, PanelColour, SurfaceHoverColour
+
+from toad.native_style import (
+    MutedText,
+    FillHeight,
+    FillWidth,
+    OneRow,
+    PointerCursor,
+    SidePadding,
+    SpacedBelow,
+    TransparentBackground,
+)
 
 
-class ProjectSearchButton(HoverSelection, ActivationKeys, Static, can_focus=True):
+
+class ProjectSearchButton(
+    MutedText,
+    OneRow,
+    PointerCursor,
+    HoverSelection,
+    ActivationKeys,
+    Static,
+    can_focus=True,
+):
     highlight_foreground = ForegroundColour
     highlight_background = SurfaceHoverColour
     highlighted_text_style = RichStyle(bold=True)
 
-    DEFAULT_CSS = """
-    ProjectSearchButton {
-        height: 1;
-        color: $text-muted;
-        pointer: pointer;
-    }
-    """
 
     class Requested(Message):
         pass
@@ -46,26 +60,24 @@ class ProjectSearchButton(HoverSelection, ActivationKeys, Static, can_focus=True
     def request_search(self) -> None:
         self.post_message(self.Requested())
 
+class ProjectPanelTree(TransparentBackground, FillHeight, ProjectDirectoryTree):
+    """The project's files, filling the panel on the sidebar's own surface."""
+
+
+
+
 class ProjectPanel(SidebarPanelWidget, Vertical):
     path: reactive[Path] = reactive(Path, init=False)
-    DEFAULT_CSS = """
-    ProjectPanel {
-        height: 1fr;
-    }
-    ProjectPanel ProjectDirectoryTree {
-        height: 1fr;
-    }
-    """
 
     def __init__(self, path: Path) -> None:
         super().__init__()
-        self.directory_tree: ProjectDirectoryTree | None = None
+        self.directory_tree: ProjectPanelTree | None = None
         self.path = path
         self._tree_requested = False
 
     def compose(self) -> ComposeResult:
         yield ProjectSearchButton()
-        self.directory_tree = ProjectDirectoryTree(self.path).data_bind(path=ProjectPanel.path)
+        self.directory_tree = ProjectPanelTree(self.path).data_bind(path=ProjectPanel.path)
         self.directory_tree.guide_depth = 3
 
     def on_show(self) -> None:
@@ -129,38 +141,28 @@ class RestorableProjectPanel(ProjectPanel):
             self._intent = None
 
 
-class FilePreview(Vertical):
+class PreviewLine(FillWidth, Static):
+    """Its look is its bases."""
+
+
+class PreviewPath(MutedText, SpacedBelow, PreviewLine):
+    native_theme = (NativeDeclaration.of(Styles.border_bottom, Keyword("solid"), Variable(PanelColour.name)),)
+
+
+
+class FilePreview(SidePadding, Vertical):
     """Bounded, read-only preview for one project file."""
 
-    DEFAULT_CSS = """
-    FilePreview {
-        height: 1fr;
-        padding: 0 1;
-    }
-    FilePreview > Static {
-        width: 1fr;
-        height: auto;
-    }
-    FilePreview > .file-preview-path {
-        width: 1fr;
-        color: $text-muted;
-        border-bottom: solid $panel;
-        margin-bottom: 1;
-    }
-    FilePreview > Markdown {
-        width: 1fr;
-        height: auto;
-    }
-    """
-    def __init__(self, path: Path, *, id: str) -> None:
-        super().__init__(id=id)
+
+    def __init__(self, path: Path) -> None:
+        super().__init__()
         self.path = path
         self._ready = asyncio.Event()
-        self.loading_label = Static("Loading file…")
+        self.loading_label = PreviewLine("Loading file…")
         self.body = VerticalScroll()
 
     def compose(self) -> ComposeResult:
-        yield Static(str(self.path), classes="file-preview-path", markup=False)
+        yield PreviewPath(str(self.path), markup=False)
         yield self.loading_label
         yield self.body
 

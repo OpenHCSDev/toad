@@ -1,5 +1,6 @@
 """Textual-facing: the compositor places the channels sidebar, tab header and conversation edge to edge in the first frame, for collapsed and expanded sidebars, across sessions and resizes."""
 
+from toad.workspace_chrome import WorkspaceHeader
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
 
@@ -13,7 +14,7 @@ def assert_aligned(ui, expected: int | None = None) -> None:
     conversation = ui.conversation
     assert conversation.region.x == left.region.right, (
         tabs.region, conversation.region, left.region, left.collapsed, left.styles.width,
-        screen.query_one("#tab-navigation-header").styles.padding)
+        screen.query_one(WorkspaceHeader).styles.padding)
     if expected is not None:
         assert left.region.width == expected, (left.region, expected)
     else:

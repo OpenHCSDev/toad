@@ -42,9 +42,9 @@ class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
 class WorkspaceChrome(VerticalLayout):
     def __init__(self, app: "ToadApp") -> None:
         self.app = app
-        self.navigation = WorkspaceHeader(id="tab-navigation-header")
+        self.navigation = WorkspaceHeader()
         self.channels = ChannelsSidebar()
-        self.footer = ToadFooter(id="workspace-footer")
+        self.footer = ToadFooter()
         self.switch_toast = SwitchToast()
         self.native = NativeSessionSurface(app)
 

@@ -257,7 +257,7 @@ class AboutCommand(NoArgumentsCommand, declared_name="toad:about"):
         from toad.widgets.markdown_note import MarkdownNote
 
         markdown = about.render(conversation.app.coordination_access.selection.root)
-        await conversation.post(MarkdownNote(markdown, classes="about"))
+        await conversation.post(MarkdownNote(markdown))
         conversation.app.copy_to_clipboard(markdown)
         conversation.notify(
             "A copy of /toad:about has been placed in your clipboard",

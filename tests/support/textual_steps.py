@@ -63,8 +63,9 @@ async def command_dialog(ui, *, seconds: float = 20):
         dialog = ui.app.screen
         if not (isinstance(dialog, CommandDialog) and dialog.is_mounted and dialog.is_attached):
             return False
-        entry = dialog.query_one_optional("#command-field-name", Input)
-        return (entry is not None and entry.is_mounted and entry.is_attached
+        field = dialog.form.values.get("name")
+        entry = field.editor if field is not None else None
+        return (isinstance(entry, Input) and entry.is_mounted and entry.is_attached
                 and dialog.focused is entry and ui.app.focused is entry
                 and entry.region.width > 0 and entry.region.height > 0
                 and entry.region.offset in dialog.size.region

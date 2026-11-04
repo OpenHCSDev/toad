@@ -10,20 +10,21 @@ from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from agent_comms.ui_model.message_category import MessageCategory
+from toad.native_style import FillWidth
 
 
 class AgentThought(
+    FillWidth,
     SettingVisibility,
     ConversationBlock,
     SnapshotPresentation,
     CategorizedBlock,
     LineMarkdown,
     can_focus=True,
-    setting="agent.thoughts",
+    setting='agent.thoughts',
 ):
     """A live thought drawn from the same semantic rows as saved thinking."""
 
-    DEFAULT_CSS = "AgentThought { width: 1fr; height: auto; }"
 
     @property
     def message_category(self) -> type[MessageCategory]:

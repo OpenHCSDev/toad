@@ -28,5 +28,5 @@ class FilePreviewScreen(SessionView, can_focus=False, actions=(ReturnToViewActio
         return self.project_path
 
     def compose(self) -> ComposeResult:
-        with Vertical(id="file-preview-content"):
+        with Vertical():
             yield self.preview

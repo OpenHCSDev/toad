@@ -4,6 +4,7 @@ from functools import cached_property
 
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
+from toad.native_style import RightMargin
 from toad.line_blocks import AgentRole, Divider, MarkdownMessageBody
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
@@ -14,21 +15,22 @@ from agent_comms.ui_model.message_category import (
     MessageCategory,
 )
 
-class AgentResponse(ConversationBlock, SnapshotPresentation, CategorizedBlock, VerticalGroup):
+class AgentResponse(
+    RightMargin,
+    ConversationBlock,
+    SnapshotPresentation,
+    CategorizedBlock,
+    VerticalGroup,
+):
     """An agent's message: its headers, then its text drawn as prepared lines.
 
     Saved history that covers it replaces it (`SnapshotPresentation`).
     """
 
-    DEFAULT_CSS = """
-    AgentResponse {
-        height: auto;
-        min-height: 1;
-        padding: 0 0 0 0;
-    }
-    """
-
-    DEFAULT_CLASSES = "block"
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.min_height = 1
+        # Live message width keeps the right gutter history rows draw with.
 
     @property
     def message_category(self) -> type[MessageCategory]:

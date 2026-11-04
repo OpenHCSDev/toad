@@ -4,7 +4,7 @@ from __future__ import annotations
 import inspect
 from abc import abstractmethod
 from collections.abc import Callable, Iterator, Mapping
-from functools import partialmethod
+from functools import lru_cache, partialmethod
 from operator import or_
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Generic, Literal, Self, TypeVar, cast
@@ -255,6 +255,17 @@ class DeclaredWidgetActions(ToadNode):
         return (*super().declared_bindings(mode),
                 *(binding for declaration in cls.declared_actions()
                   for binding in cls.action_bindings(declaration, mode)))
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def _scope_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
+        """What this class answers as a keyboard scope outside the focus chain: each declared binding's
+        fallbacks. Immutable and per (class, mode), like Textual's own `_binding_defaults`."""
+        return tuple(scoped for binding in cls.declared_bindings(mode) for scoped in binding.fallback_bindings())
+
+    def scope_bindings(self) -> BindingsMap:
+        """A fresh map over this scope's frozen bindings for the current mode."""
+        return BindingsMap(self._scope_bindings(self.binding_mode))
 
     def __init_subclass__(cls, actions: tuple[type[Action], ...] = (), **kwargs):
         cls.own_actions = actions

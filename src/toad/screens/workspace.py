@@ -7,7 +7,8 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 
 from agent_comms.nominal.declared_family import DeclaredFamily
-from textual.binding import BindingsMap, ModeBinding
+from textual.containers import Container
+from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
 from textual.box_model import DEFAULT_LAYER
 from textual.events import ScreenResume
@@ -115,25 +116,19 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
     def coordination_root(self):
         return self.app.workspace_sessions.source.coordination_root()
 
-    CSS_PATH = "main.tcss"
-
     def compose(self):
-        from textual.containers import Container, Horizontal
+        from textual.containers import Horizontal
 
         chrome = self.app.workspace_chrome
         yield chrome.navigation
-        with Horizontal(id="workspace-body").set_styles(layout=chrome):
+        with Horizontal().set_styles(layout=chrome):
             yield chrome.channels
-            yield Container(id="workspace-session-host")
+            yield SessionHost()
         yield chrome.footer
         yield chrome.switch_toast
 
     def binding_scopes(self):
-        return tuple(
-            (node, BindingsMap(scoped for binding in node.declared_bindings(node.binding_mode)
-                               for scoped in binding.fallback_bindings()))
-            for node in self.app.workspace_sessions.source.keyboard_scopes()
-        )
+        return tuple((node, node.scope_bindings()) for node in self.app.workspace_sessions.source.keyboard_scopes())
 
     def belongs_to_wire(self, root) -> bool:
         """Shared workspace chrome follows the observed wire, not a retained tab."""
@@ -310,6 +305,10 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
     def _on_screen_resume(self, event: ScreenResume) -> None:
         self.frame_presentation.resume()
         # Native Screen resume updates changed stylesheet sources.
+
+
+class SessionHost(Container):
+    """Where the selected session's screen content is mounted."""
 
 
 class WorkspaceScreen(WorkspaceFrame, actions=(ViewAction,)):

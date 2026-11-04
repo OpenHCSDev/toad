@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field, replace
-from functools import cached_property
+from functools import cached_property, partial
 from typing import TYPE_CHECKING, ClassVar
 from weakref import WeakSet
 
@@ -790,7 +790,9 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     def scroll_page_fraction(self, direction: int, divisor: int) -> None:
         distance = direction * max(1, self.scrollable_content_region.height // divisor)
-        self._scroll_or_prepare(distance, self.scroll_relative, None, distance)
+        # One update per press: a held key replaces each glide half-way, so animating only adds
+        # frames that move scroll_y and run layout (140 frames for 60 held presses, measured).
+        self._scroll_or_prepare(distance, partial(self.scroll_relative, None, distance, animate=False))
 
     def _on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
         event.prevent_default()

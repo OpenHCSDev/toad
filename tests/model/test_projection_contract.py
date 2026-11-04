@@ -64,8 +64,8 @@ def test_projection_preserves_a_none_result_from_a_side_effect_handler() -> None
     assert selected == ["recorded"]
 
 
-def test_projection_without_a_declared_handler_raises_stop_iteration() -> None:
-    with pytest.raises(StopIteration):
+def test_projection_without_a_declared_handler_fails_loud() -> None:
+    with pytest.raises(TypeError, match="declares no projection"):
         MroProjection[Rendering]().project_value(Value("unhandled"))
 
 

@@ -9,7 +9,6 @@ from agent_comms.relationships import (
     AddRelationshipEdit,
     CollaboratingRelationshipGroup,
 )
-from support.stylesheets import INSTALLED
 from support.ui import saved_tab
 
 from toad.app import HeapFrozen, ToadApp
@@ -20,10 +19,6 @@ from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBarCollapsible
 from toad.widgets.thread_comms import ThreadCommsSidebar
-
-
-class InstalledApp(ToadApp):
-    CSS_PATH = INSTALLED
 
 
 def viewport_text(widget):
@@ -204,7 +199,7 @@ async def test_panels_restore_selection_scroll_and_plan_after_release_and_collec
     workspace,
 ):
     project_with_files(workspace)
-    async with workspace.app(size=(130, 44), application=InstalledApp) as ui:
+    async with workspace.app(size=(130, 44), application=ToadApp) as ui:
         screen = await started(workspace, ui)
         for _ in range(3):
             await exercise(ui, screen, workspace.project)
@@ -212,7 +207,7 @@ async def test_panels_restore_selection_scroll_and_plan_after_release_and_collec
 
 async def test_panels_rebuild_after_eviction_while_collapsed(workspace):
     project_with_files(workspace)
-    async with workspace.app(size=(130, 44), application=InstalledApp) as ui:
+    async with workspace.app(size=(130, 44), application=ToadApp) as ui:
         screen = await started(workspace, ui)
         sidebar = screen.query_one(SessionThreadSidebar)
         await sidebar.evict(screen)
@@ -229,7 +224,7 @@ async def test_panels_show_the_current_project_after_the_source_project_changes_
     workspace,
 ):
     project_with_files(workspace)
-    async with workspace.app(size=(130, 44), application=InstalledApp) as ui:
+    async with workspace.app(size=(130, 44), application=ToadApp) as ui:
         screen = await started(workspace, ui)
         sidebar = await reveal(ui, screen)
         await sidebar.evict(screen)
@@ -249,7 +244,7 @@ async def test_panels_show_the_current_project_after_the_source_project_changes_
 
 async def test_leaving_a_view_stops_its_sidebar_hydration(workspace):
     project_with_files(workspace)
-    async with workspace.app(size=(130, 44), application=InstalledApp) as ui:
+    async with workspace.app(size=(130, 44), application=ToadApp) as ui:
         app, _ = ui.textual
         screen = await started(workspace, ui)
         sidebar = await reveal(ui, screen)

@@ -21,11 +21,14 @@ from agent_comms.work_branches import WorkBranchError
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import HorizontalGroup, Vertical, VerticalGroup, VerticalScroll
+from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.content import Content
+from textual.css.native import NativeDeclaration, Variable
+from textual.css.styles import Styles
 from textual.message import Message
 from textual.style import Style
-from textual.widgets import Button, Collapsible, Input, Static
+from textual.widgets import Collapsible, Input, Static
+from toad.widgets.acting_button import ActingButton, DismissButton
 from toad.widgets.checkbox import Checkbox
 from ui_theme.scheme import (
     AccentColour, ErrorColour, MutedColour, SuccessColour, ThemeColour, WarningColour,
@@ -34,8 +37,19 @@ from ui_theme.scheme import (
 from toad.app_node import ToadNode
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.core_event_carrier import CoreEventReceiver
-from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import DismissAction
+from toad.native_style import (
+    AutoHeight,
+    AutoWidth,
+    Bold,
+    DockedBottom,
+    FillWidth,
+    NoMargin,
+    SidePadding,
+    StableGutter,
+    StartsHidden,
+)
+from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalPanel, ShadedScreen
+
 from toad.widgets.declared_disclosure import DeclaredDisclosure
 from toad.widgets.declared_table import (
     DeclaredTable, EmptyTableSelection, SelectedTableRecord, SelectionView, TableSelection,
@@ -76,7 +90,11 @@ class UnitTone(MroDispatch):
         return ErrorColour
 
 
-class TeamTable(DeclaredTable[HudRecord]):
+class TeamTable(DeclaredTable[HudRecord], AutoHeight):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_height = "50vh"
+
     class Selected(Message):
         def __init__(self, selection: TableSelection[HudRecord]) -> None:
             self.selection = selection
@@ -98,12 +116,16 @@ class TeamTable(DeclaredTable[HudRecord]):
         self.post_message(self.Selected(self.selected))
 
 
+class GroupHeading(Bold, Static):
+    """A team group's heading, coloured by the group's tone."""
+
+
 class TeamGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
     """One native band really contains its rows, including ready unheld plan phases."""
 
     def __init__(self, section: HudSection) -> None:
         self.section = section
-        self.heading = Static("", markup=False, classes="hud-group-heading")
+        self.heading = GroupHeading("", markup=False)
         self.table_body = VerticalGroup()
         super().__init__()
         self.call_after_refresh(self.render_section)
@@ -147,9 +169,10 @@ class TeamGroup(KeyedRows[type[HudRecord]], ToadNode, VerticalGroup):
 class TeamAlarm(ToadNode, Collapsible):
     """Core's compact section stays visible; expansion reveals every original record."""
 
-    DEFAULT_CSS = """
-    TeamAlarm > CollapsibleTitle { width: 1fr; }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        # The alarm owns its one-line title's width.
+        self._title.styles.width = "1fr"
 
     def __init__(self, group: type[AlarmGroup]) -> None:
         self.group = group
@@ -165,6 +188,13 @@ class TeamAlarm(ToadNode, Collapsible):
         self.display = True
 
 
+class RefreshDetail(AutoWidth, NoMargin, ActingButton):
+    """Reads the selected record's detail again."""
+
+    async def act(self) -> None:
+        self.query_ancestor(TeamDetails).refresh_detail()
+
+
 class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup):
     """The selected native record owns its one bounded original-details read."""
 
@@ -174,11 +204,11 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
         self.status = Static("", markup=False)
         self.original = VerticalGroup()
         self.original.display = False
-        super().__init__(classes="hud-detail")
+        super().__init__()
 
     def compose(self) -> ComposeResult:
         yield self.status
-        yield Button("Refresh original details", classes="refresh-unit", compact=True)
+        yield RefreshDetail("Refresh original details", compact=True)
         yield self.original
 
     def present(self, selection: TableSelection[HudRecord]) -> None:
@@ -198,9 +228,7 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
     def show_selection(self, key: DisclosureKey, record: HudRecord) -> None:
         self.read_detail(SelectedTableRecord(key, record))
 
-    @on(Button.Pressed, ".refresh-unit")
-    def refresh_detail(self, event: Button.Pressed) -> None:
-        event.stop()
+    def refresh_detail(self) -> None:
         self.selection.present_to(self)
 
     @handles(HudRecord)
@@ -243,28 +271,31 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
         self.workers.cancel_group(self, "team-detail")
 
 
+class TeamHeading(Static):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.text_style = "bold reverse"
+
+
+class TeamLoad(Bold, Static):
+    """The team's status strip."""
+
+
+class TeamFilter(FillWidth, Input):
+    """Its look is its bases."""
+
+
 class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     """Keep native groups, filters, selection and original details across frame replacement."""
-
-    DEFAULT_CSS = """
-    TeamFrameView .hud-filter { height: auto; }
-    TeamFrameView .hud-filter Input { width: 1fr; }
-    TeamFrameView .hud-filter Checkbox { width: auto; }
-    TeamTable { height: auto; max-height: 50vh; }
-    TeamFrameView .hud-detail { height: auto; }
-    TeamFrameView .refresh-unit { width: auto; margin: 0; }
-    TeamGroup { height: auto; }
-    TeamGroup .hud-group-heading { text-style: bold; }
-    """
 
     def __init__(self, hud: TeamHud) -> None:
         self.hud = hud
         self.selected: TableSelection[HudRecord] = EmptyTableSelection()
         self.shown: dict[type[HudGroup], HudSection] = {}
-        self.heading = Static("", markup=False, classes="hud-team")
-        self.status = Static("", markup=False, classes="hud-load")
+        self.heading = TeamHeading("", markup=False)
+        self.status = TeamLoad("", markup=False)
         self.groups = VerticalGroup()
-        self.filter = Input(placeholder="Filter team records")
+        self.filter = TeamFilter(placeholder="Filter team records")
         self.needs_hand = Checkbox("Needs hand")
         self.details = TeamDetails(hud.commander)
         self.alarms = {group: TeamAlarm(group) for group in AlarmGroup.members_with(AlarmGroup)}
@@ -274,7 +305,7 @@ class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
     def compose(self) -> ComposeResult:
         yield self.heading
         yield self.status
-        with HorizontalGroup(classes="hud-filter"):
+        with HorizontalGroup():
             yield self.filter
             yield self.needs_hand
         yield self.groups
@@ -350,23 +381,29 @@ class TeamFrameView(KeyedRows[type[HudGroup]], ToadNode, VerticalGroup):
             self.call_after_refresh(self.focus_selection)
 
 
-class TeamPage(KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None]):
-    """Current Core frames preserve table selection, focus and the conversation below."""
+class TeamPanel(SidePadding, ModalPanel):
+    """Its look is its bases."""
 
-    DEFAULT_CSS = """
-    TeamPage { align: center middle; background: $background 40%; }
-    TeamPage > Vertical {
-        width: 95%; height: 95%; padding: 0 1;
-        border: solid $primary; background: $surface;
-    }
-    TeamPage #hud-error { display: none; height: auto; color: $error; }
-    TeamPage #hud-rows { height: 1fr; scrollbar-gutter: stable; }
-    TeamPage TeamFrameView { height: auto; }
-    TeamPage Static { height: auto; }
-    TeamPage .hud-team { text-style: bold reverse; }
-    TeamPage .hud-load { text-style: bold; }
-    TeamPage #team-close { dock: bottom; margin: 0; }
-    """
+
+class HudError(StartsHidden, Static):
+    native_theme = (NativeDeclaration.of(Styles.color, Variable(ErrorColour.name)),)
+
+
+
+class HudRows(StableGutter, VerticalScroll):
+    """Its look is its bases."""
+
+
+class HudEmpty(Static):
+    """Shown until the first team frame arrives."""
+
+
+class TeamClose(DockedBottom, NoMargin, DismissButton):
+    """Its look is its bases."""
+
+
+class TeamPage(ShadedScreen, CenteredScreen, KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScreen[None]):
+    """Current Core frames preserve table selection, focus and the conversation below."""
 
     def __init__(self, teammate: str = "") -> None:
         self.team_name = teammate
@@ -374,8 +411,8 @@ class TeamPage(KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScree
         super().__init__()
 
     @property
-    def member_container(self) -> VerticalScroll:
-        return self.query_one("#hud-rows", VerticalScroll)
+    def member_container(self) -> HudRows:
+        return self.query_one(HudRows)
 
     @property
     def rows(self) -> dict[ThreadIncarnation, TeamFrameView]:
@@ -392,12 +429,11 @@ class TeamPage(KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScree
         row.present(self.frames[key])
 
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield Static("", id="hud-error", markup=False)
-            with VerticalScroll(id="hud-rows"):
-                yield Static("Waiting for the team heartbeat.", id="hud-empty", markup=False)
-            yield Button("Close", id="team-close", compact=True,
-                         action=f"screen.{DismissAction.binding_name()}")
+        with TeamPanel():
+            yield HudError("", markup=False)
+            with HudRows():
+                yield HudEmpty("Waiting for the team heartbeat.", markup=False)
+            yield TeamClose("Close", compact=True)
 
     def on_mount(self) -> None:
         access = self.app.coordination_access
@@ -410,17 +446,17 @@ class TeamPage(KeyedRows[ThreadIncarnation], CoreEventReceiver, DismissibleScree
 
     @handles(TeamHudChanged)
     async def hud_changed(self, event: TeamHudChanged) -> None:
-        error = self.query_one("#hud-error", Static)
+        error = self.query_one(HudError)
         error.update("")
         error.display = False
         self.huds = tuple(hud for hud in event.huds
                           if not self.team_name or hud.commander.name == self.team_name)
         keys = tuple(hud.commander for hud in self.huds)
         self.reconcile_keys(keys, changed=frozenset(keys))
-        self.query_one("#hud-empty", Static).display = not self.huds
+        self.query_one(HudEmpty).display = not self.huds
 
     @handles(TeamHudFailed)
     def hud_failed(self, event: TeamHudFailed) -> None:
-        notice = self.query_one("#hud-error", Static)
+        notice = self.query_one(HudError)
         notice.update(f"Team rows unavailable: {' '.join(str(event.error).splitlines())}")
         notice.display = True

@@ -41,9 +41,19 @@ from toad.widgets.sidebar_tree import (
 )
 from toad.widgets.splash_text import SplashText
 from toad.app_node import ToadNode
+from toad.native_style import (
+    AutoHeight,
+    CenteredChildren,
+    FullWidth,
+    MutedText,
+    NoWrap,
+    SpacedAbove,
+)
 
-class WelcomeTitle(SplashText):
+
+class WelcomeTitle(SplashText, MutedText, NoWrap):
     """The app's name, swept into the theme's colours each time the view shows."""
+
 
     TEXT = "\n".join(
         (
@@ -56,9 +66,9 @@ class WelcomeTitle(SplashText):
         )
     )
 
-    DEFAULT_CSS = """
-    WelcomeTitle { width: auto; height: auto; color: $text-muted; text-wrap: nowrap; }
-    """
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = self.styles.height = "auto"
 
     def on_mount(self) -> None:
         self.watch(self.app, "app_focus", self.focus_changed, init=False)
@@ -75,19 +85,18 @@ class WelcomeTitle(SplashText):
             self.refresh()
 
 
-class WelcomeSection(SidebarGroup[ListedRow]):
+class WelcomeSectionTitle(MutedText, Static):
+    """A welcome section's title."""
+
+
+class WelcomeSection(SpacedAbove, SidebarGroup[ListedRow]):
     """Some of the sidebar model's rows under a title."""
 
     TITLE = ""
     LIMIT = 8
 
-    DEFAULT_CSS = """
-    WelcomeSection { margin: 1 0 0 0; }
-    WelcomeSection .section { color: $text-muted; }
-    """
-
     def __init__(self) -> None:
-        super().__init__(Static(self.TITLE, classes="section"), expanded=True)
+        super().__init__(WelcomeSectionTitle(self.TITLE), expanded=True)
         # Shown once the model lists something for it.
         self.display = False
 
@@ -153,12 +162,9 @@ class WelcomeThreads(WelcomeSection):
         row.show(thread)
 
 
-class WelcomeEntries(SidebarModelView, TargetTree):
+class WelcomeEntries(FullWidth, AutoHeight, SpacedAbove, SidebarModelView, TargetTree):
     """New session, channels and threads: the sidebar model's rows, opened as the sidebar opens them."""
 
-    DEFAULT_CSS = """
-    WelcomeEntries { width: 100%; height: auto; margin: 1 0 0 0; }
-    """
 
     def __init__(self) -> None:
         super().__init__()
@@ -191,15 +197,29 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         self.present()
 
 
-class WelcomeScreen(NativeMethodKeys, TogglesIrc, ProjectSessionOrigin, SessionView, ToadNode, can_focus=False):
+class WelcomeColumn(AutoHeight, VerticalScroll):
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.width = 64
+        self.styles.max_width = "100%"
+        self.styles.max_height = "100%"
+
+
+class WelcomeNote(MutedText, SpacedAbove, Static):
+    """The project line and the key hints."""
+
+
+class WelcomeScreen(
+    CenteredChildren,
+    NativeMethodKeys,
+    TogglesIrc,
+    ProjectSessionOrigin,
+    SessionView,
+    ToadNode,
+    can_focus=False,
+):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
 
-    DEFAULT_CSS = """
-    WelcomeScreen { align: center middle; }
-    WelcomeScreen > VerticalScroll { width: 64; max-width: 100%; height: auto; max-height: 100%; }
-    WelcomeScreen .subtitle { color: $text-muted; margin: 1 0 0 0; }
-    WelcomeScreen .hints { color: $text-muted; margin: 1 0 0 0; }
-    """
 
     HINTS = (
         "[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
@@ -216,15 +236,11 @@ class WelcomeScreen(NativeMethodKeys, TogglesIrc, ProjectSessionOrigin, SessionV
 
     def compose(self) -> ComposeResult:
         agent = self.app.agent_binding.welcome_prefix
-        with VerticalScroll(can_focus=False):
+        with WelcomeColumn(can_focus=False):
             yield WelcomeTitle()
-            yield Static(
-                f"{agent}{format_path(self.project_path.path)}",
-                classes="subtitle",
-                markup=False,
-            )
+            yield WelcomeNote(f"{agent}{format_path(self.project_path.path)}", markup=False)
             yield WelcomeEntries()
-            yield Static(self.HINTS, classes="hints")
+            yield WelcomeNote(self.HINTS)
 
     @property
     def navigation_context(self) -> NavigationContext:
