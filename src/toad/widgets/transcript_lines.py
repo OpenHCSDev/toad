@@ -32,7 +32,7 @@ from rich.style import Style
 from rich.syntax import Syntax
 from rich.text import Text
 from textual.strip import Strip
-from ui_theme.scheme import ForegroundColour, MutedColour, ThemeColour
+from ui_theme.scheme import MutedColour, ThemeColour
 
 from toad.line_blocks import (
     Body,
@@ -93,11 +93,7 @@ class LineTheme:
     @classmethod
     def of(cls, colours: TextualColours) -> LineTheme:
         # Native ANSI text retains its distinct dim attribute rather than a palette guess.
-        muted = (
-            Style(dim=True)
-            if colours.colour(ForegroundColour).ansi is not None
-            else Style(color=colours.colour(MutedColour).rich_color)
-        )
+        muted = colours.ink.muted(colours.colour(MutedColour))
         return cls(
             {
                 role: cls._style(

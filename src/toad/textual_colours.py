@@ -68,6 +68,7 @@ from watchdog.observers import Observer
 from watchdog.observers.api import BaseObserver
 
 from toad import paths
+from toad.colour_ink import ColourInk
 from toad.line_blocks import LineRole
 from toad.preferences import SavedSettings, ToadSettings
 from toad.render_tasks import TextEffectRenderTask
@@ -416,11 +417,11 @@ class TextualColours(Backend[Theme, Color, Strip | Content, Strip], TerminalBack
         return self.schemes[self.app.theme].palette.rich_style(self.line_theme.style(role))
 
     def mixed(self, start: type[ThemeColour], end: type[ThemeColour], amount: float) -> Color:
-        first, last = self.colour(start), self.colour(end)
-        # Terminal colours cannot be blended; they step.
-        if first.ansi is not None or last.ansi is not None:
-            return first if amount < 0.5 else last
-        return first.blend(last, amount)
+        return self.ink.mixed(self.colour(start), self.colour(end), amount)
+
+    @property
+    def ink(self) -> ColourInk:
+        return ColourInk.of(self.app)
 
     def resolved(self, colour: RichColor, *, foreground: bool) -> Color:
         """Resolve palette ink or background against the active terminal theme."""

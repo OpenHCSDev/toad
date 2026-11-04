@@ -24,6 +24,7 @@ from textual.style import Style as NativeStyle
 from textual.selection import Selection
 from textual.visual import RenderOptions
 from textual.text_format import TextFormat, TextFormatSnapshot
+from toad.colour_ink import ColourInk
 from toad.line_blocks import LineBlock, LineRole, ToolOutputRole, MutedRole
 
 if TYPE_CHECKING:
@@ -199,13 +200,13 @@ class SyntaxPalette:
     palette under true-colour themes (pywal's palette under `wal`).
     """
 
-    ansi: bool
+    ink: ColourInk
     dark: bool
 
     @classmethod
     def of(cls, app: App) -> SyntaxPalette:
-        """The palette under any Textual app's current theme: ANSI as `:ansi` answers it."""
-        return cls(app.native_ansi_color, app.current_theme.dark)
+        """The palette under any Textual app's current theme; its ink keys prepared syntax."""
+        return cls(ColourInk.of(app), app.current_theme.dark)
 
     @property
     def pygments_theme(self) -> str:
