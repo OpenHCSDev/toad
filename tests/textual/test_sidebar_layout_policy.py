@@ -17,7 +17,7 @@ EDGES = SidebarEdge.members_with(SidebarEdge)
 
 
 def layout_for(settings: SavedSettings | None = None, origin: type[TerminalOrigin] = LocalTerminal):
-    return SidebarLayout(SavedSettings() if settings is None else settings, origin.layout)
+    return SidebarLayout(origin.layout.bind((SavedSettings() if settings is None else settings).state))
 
 
 def test_moving_swapping_and_resizing_keep_both_sidebars_and_clamp_extent():

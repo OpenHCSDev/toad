@@ -5,17 +5,14 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterator
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, ClassVar, Self
+from typing import ClassVar, Self
 
 from agent_comms.nominal.declared_family import DeclaredFamily
+from formbridge.forms.declared_fields import DeclaredField
 from textual.css.types import DockEdge
 from textual.geometry import Offset, Region, Size, Spacing
 from textual.widget import Widget
 from textual.widgets import Static
-
-if TYPE_CHECKING:
-    from formbridge.forms.declared_fields import FieldPath
-    from toad.preferences import SavedSettings
 
 
 class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
@@ -374,23 +371,23 @@ class ResolvedSidebarLayout:
 class SidebarLayout:
     """Placement policy over the arrangement saved for this terminal.
 
-    The settings own the placements: each role's saved record, or the role's
-    own initial placement until the user moves or resizes it.
+    The saved setting owns the placements: each role's saved record, or the
+    role's own initial placement until the user moves or resizes it.
     """
 
     minimum_percent = 15
     maximum_percent = 50
 
-    def __init__(self, settings: SavedSettings, saved: FieldPath) -> None:
-        self.settings, self.saved = settings, saved
+    def __init__(self, saved: DeclaredField) -> None:
+        self.saved = saved
 
     @property
     def placements(self) -> dict[type[SidebarPlacement], SidebarPlacement]:
-        saved = {type(placement): placement for placement in self.saved.bind(self.settings.state).value}
+        saved = {type(placement): placement for placement in self.saved.value}
         return {role: saved.get(role, role.initial()) for role in SidebarPlacement.members_with(SidebarPlacement)}
 
     def _store(self, placements: dict[type[SidebarPlacement], SidebarPlacement]) -> None:
-        self.settings.set(self.saved, tuple(placements.values()))
+        self.saved.edit(tuple(placements.values()))
 
     def get(self, identity: type[SidebarPlacement]) -> SidebarPlacement:
         return self.placements[identity]
