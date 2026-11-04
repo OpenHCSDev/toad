@@ -117,6 +117,7 @@ from toad.widgets.transcript_lines import (
     BlockSpan,
     LinePreparation,
     Lines,
+    LineTheme,
     RowAcquisition,
     TranscriptLinesBatchRenderTask,
     TranscriptLinesRenderTask,
@@ -449,11 +450,12 @@ class TranscriptPageView(
     def _lines(self, fragment: TranscriptFragment, width: int) -> BlockLines:
         """The fragment's styled rows, or the styled rows it drew before a status change."""
         theme = self.app.colours.line_theme
-        lines = fragment.lines_for(width, theme)
-        if lines.awaits_styling:
-            self._pending[fragment.key] = fragment
-            lines = fragment.stand_in_lines(width, theme)
-        return lines
+        return fragment.lines_for(width, theme).styled_or(partial(self._stand_in, fragment, width, theme))
+
+    def _stand_in(self, fragment: TranscriptFragment, width: int, theme: LineTheme) -> BlockLines:
+        """The rows drawn while the fragment's own render is to come; it is styled next."""
+        self._pending[fragment.key] = fragment
+        return fragment.stand_in_lines(width, theme)
 
     def _style_before_measuring(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         """Style fragments that have no rows yet, then measure: their height is stated once,
@@ -473,7 +475,7 @@ class TranscriptPageView(
         shown = tuple(fragment for fragment in self.prepared.fragments_in_range
                       if fragment.shown_in(self.visible_categories)) if width > 0 else ()
         drawn = tuple((fragment, self._lines(fragment, width)) for fragment in shown)
-        unstyled = tuple(fragment for fragment, lines in drawn if lines.awaits_styling)
+        unstyled = tuple(waiting for fragment, lines in drawn for waiting in lines.unstyled(fragment))
         if unstyled:
             # The rows drawn stay the measured ones until these have styled rows.
             self._style_before_measuring(unstyled)
@@ -795,8 +797,8 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
         width, theme = target.line_width, self.app.colours.line_theme
         if width <= 0:
             return
-        pending = (fragment for fragment in fragments
-                   if fragment.shown_in(selected) and fragment.lines_for(width, theme).awaits_styling)
+        pending = (waiting for fragment in fragments if fragment.shown_in(selected)
+                   for waiting in fragment.lines_for(width, theme).unstyled(fragment))
         while current():
             batch = tuple(islice(pending, self.budget.batch_items))
             if not batch:

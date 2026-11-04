@@ -1,5 +1,7 @@
 """The current external CLI item, drawn beside finished history."""
 
+from functools import partial
+
 from agent_comms.external_transcript import DraftRow
 from agent_comms.transcript_sources import NoDraft
 from toad.markdown_links import LinkContext
@@ -11,7 +13,7 @@ from toad.block_navigation import ConversationBlock
 from toad.native_style import AutoHeight
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
-from toad.widgets.transcript_lines import BlockLines, LinePreparation, TranscriptLinesRenderTask
+from toad.widgets.transcript_lines import BlockLines, LinePreparation, NoStyledLines, TranscriptLinesRenderTask
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.core.projection import MroProjection
 from toad.worker_group import WorkerGroup
@@ -46,7 +48,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
     def __init__(self):
         super().__init__()
         self.draft: DraftRow | NoDraft = NoDraft()
-        self._lines: BlockLines | None = None
+        self._lines: BlockLines = NoStyledLines()
         self._blocks = ()
         self._width = 0
         self.display = False
@@ -55,7 +57,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
 
     def invalidate_lines(self, change=None) -> None:
-        self._lines = None
+        self._lines = NoStyledLines(self._width)
         self._request_render()
         self.refresh(layout=True)
 
@@ -64,7 +66,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         CliDraftRender.cancel_all(self)
         self.draft = NoDraft()
         self._blocks = ()
-        self._lines = None
+        self._lines = NoStyledLines(self._width)
         self.display = False
 
     def show(self, draft: DraftRow, *, resolve_sent) -> None:
@@ -112,19 +114,17 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
     def get_content_height(self, container, viewport, width: int) -> int:
         if width != self._width:
             self._width = width
-            if self._lines is not None:
-                self._lines = self._lines.rewrap(width)
-            else:
-                self.call_later(self._request_render)
-        return self._lines.height if self._lines is not None else 0
+            self._lines = self._lines.rewrap(width)
+            self._lines.request_styling(partial(self.call_later, self._request_render))
+        return self._lines.height
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         lines = self._lines
-        if lines is None or y >= lines.height:
+        if y >= lines.height:
             return self.blank_row(self._width, paint)
-        return self.on_background(lines.strips_at(id(self))[y], paint, y)
+        return self.on_background(lines.strips_at(self.link_place)[y], paint, y)
 
     @property
     def line_sets(self) -> tuple[BlockLines, ...]:
-        return (self._lines,) if self._lines is not None else ()
+        return (self._lines,)
 

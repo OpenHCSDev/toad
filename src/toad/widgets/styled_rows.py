@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 from abc import abstractmethod
-from functools import cached_property
 
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
@@ -26,7 +26,6 @@ from toad.widgets.transcript_lines import (
     NoStyledLines,
     PreparedLines,
     TranscriptLinesRenderTask,
-    link_place,
 )
 
 
@@ -45,10 +44,6 @@ class StyledRows(LinkedRows, ToadNode, Widget):
     RESTYLE_INTERVAL = 0.25
     _styled: BlockLines = NoStyledLines()
     _render_worker: Worker[None] | NoWorker = NoWorker()
-
-    @cached_property
-    def _link_place(self) -> int:
-        return link_place()
 
     @abstractmethod
     def styled_blocks(self) -> tuple[LineBlock, ...]:
@@ -106,8 +101,7 @@ class StyledRows(LinkedRows, ToadNode, Widget):
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         # The styled rows at this width; the container's height is never read.
-        if self._styled.awaits_styling:
-            self.call_later(self._request_render)
+        self._styled.request_styling(partial(self.call_later, self._request_render))
         return self._lines(width).height
 
     def painted_row(self, strip: Strip, y: int) -> Strip:
@@ -115,7 +109,7 @@ class StyledRows(LinkedRows, ToadNode, Widget):
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         width = self.content_size.width
-        strips = self._lines(width).strips_at(self._link_place) if width else ()
+        strips = self._lines(width).strips_at(self.link_place) if width else ()
         if y >= len(strips):
             return self.blank_row(width, paint)
         # Prepared rows span exactly this width (Lines.strips_at).

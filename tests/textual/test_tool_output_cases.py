@@ -9,6 +9,7 @@ from toad.acp.status import ToolCallStatus
 from toad.tool_output import SpecificTextToolOutputPart, ToolOutputPart
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.tool_content import ToolContent
+from support.styling import awaits_styling
 
 
 class InspectionToolOutputPart(SpecificTextToolOutputPart):
@@ -37,7 +38,7 @@ async def test_a_declared_part_is_adopted_and_painted_without_catalog_edits(work
         assert InspectionToolOutputPart in ToolOutputPart.members_with(SpecificTextToolOutputPart)
         assert type(tool.output.parts[0]) is InspectionToolOutputPart
         assert tool.query_one(ToolContent).get_clipboard_text() == "case owns: DECLARED_NEW_OUTPUT"
-        await ui.until(lambda: not tool.query_one(ToolContent)._styled.awaits_styling, why="prepared output")
+        await ui.until(lambda: not awaits_styling(tool.query_one(ToolContent)._styled), why="prepared output")
         await ui.until_shows("case owns: DECLARED_NEW_OUTPUT")
 
 
