@@ -75,7 +75,7 @@ class HandBindings(KeymapMeasure):
 class ModeBindings(KeymapMeasure):
     """`ModeBinding(key, method)`: a key tied to a method object, whose qualified name is the binding
     id and whose subclass overrides never run. Each one becomes an Action member."""
-    ceiling = 16
+    ceiling = 15
 
     @classmethod
     def lines(cls, tree):
