@@ -140,9 +140,10 @@ This shows the files in your project directory.
     @property
     def cursor_path(self) -> Path:
         """The path under the cursor; the root's when no entry is under it."""
-        node = self.cursor_node
         # Textual's cursor and its node data are optional: decoded once, here.
-        return node.data.path if node is not None and node.data is not None else Path(self.path)
+        if self.cursor_node is not None and self.cursor_node.data is not None:
+            return self.cursor_node.data.path
+        return Path(self.path)
 
     def insert_selected(self) -> None:
         path = self.cursor_path
