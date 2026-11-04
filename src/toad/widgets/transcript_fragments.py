@@ -180,20 +180,18 @@ class RenderBudget:
 class FragmentLineConsumer(MroProjection[None]):
     """Turn a fragment's events into line blocks, one handler per event family."""
 
-    def __init__(self, *, show_divider: bool) -> None:
-        self.show_divider = show_divider
+    def __init__(self, *, part: PartPosition) -> None:
+        self.part = part
         self.blocks: list[LineBlock] = []
         self.header: tuple[Divider, ...] = ()
-        # The blocks up to and including a drawn header; a continuation draws none.
+        # The blocks up to and including a drawn header; a later part draws none.
         self.header_end = 0
 
     def divider(self, label: str, timestamp: float, role: type[LineRole]) -> None:
         """The first event's divider is the fragment's message header, drawn or not."""
         divider = Divider.titled(label, role, EventTime.capture(timestamp))
         self.header = self.header or (divider,)
-        if self.show_divider:
-            self.blocks.append(divider)
-            self.header_end = self.header_end or len(self.blocks)
+        self.part.draw_divider(self, divider)
 
     @handles(TranscriptEvent)
     def other(self, event: TranscriptEvent) -> None:
@@ -277,6 +275,41 @@ class PartPosition(ABC):
     @abstractmethod
     def outgoing_sources(self, publication: PublishedSentMessage): ...
 
+    def draw_divider(self, consumer: FragmentLineConsumer, divider: Divider) -> None:
+        """A message's first part draws its header; later parts draw none."""
+        consumer.blocks.append(divider)
+        consumer.header_end = consumer.header_end or len(consumer.blocks)
+
+    def leading(self, header: Divider) -> tuple[LineBlock, ...]:
+        return (Gap(), header)
+
+    def starts_activity(self, observed: bool) -> bool:
+        """Only a message's first part opens the agent activity it starts."""
+        return observed
+
+    @staticmethod
+    def sequence(count: int) -> tuple[PartPosition, ...]:
+        """The positions of a source split into `count` parts, head first and status-bearing last."""
+        if count == 1:
+            return (OnlyPart(index=0),)
+        return (HeadInnerPart(index=0), *(LaterInnerPart(index=index) for index in range(1, count - 1)),
+                LaterLastPart(index=count - 1))
+
+
+class LaterPart(PartPosition):
+    """A part after the first: the header was drawn above it, so it draws none and starts nothing."""
+
+    __slots__ = ()
+
+    def draw_divider(self, consumer: FragmentLineConsumer, divider: Divider) -> None:
+        pass
+
+    def leading(self, header: Divider) -> tuple[LineBlock, ...]:
+        return ()
+
+    def starts_activity(self, observed: bool) -> bool:
+        return False
+
 
 class LastPart(PartPosition):
     __slots__ = ()
@@ -304,6 +337,24 @@ class InnerPart(PartPosition):
 
     def outgoing_sources(self, publication: PublishedSentMessage):
         return ()
+
+
+class OnlyPart(LastPart):
+    """A message in one part: it draws the header and carries the status."""
+
+    __slots__ = ()
+
+
+class HeadInnerPart(InnerPart):
+    __slots__ = ()
+
+
+class LaterInnerPart(LaterPart, InnerPart):
+    __slots__ = ()
+
+
+class LaterLastPart(LaterPart, LastPart):
+    __slots__ = ()
 
 
 @dataclass(frozen=True)
@@ -381,8 +432,7 @@ NO_REST = CursorRest()
 @dataclass
 class TranscriptFragment(CursorRest):
     events: tuple[TranscriptEvent, ...]
-    continuation: bool = False
-    part_position: PartPosition = field(default_factory=LastPart, kw_only=True)
+    part_position: PartPosition = field(default_factory=OnlyPart, kw_only=True)
     starts_agent_activity: bool = False
     shown: Shown = field(default_factory=Shown, kw_only=True)
     # Whether the fragment has details a reader can show and hide.
@@ -447,15 +497,15 @@ class TranscriptFragment(CursorRest):
     def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
         """The header to pin over the window's top row, which is `row` of block `block`: a user
         or agent message pins its divider once the divider's first row is above the top row,
-        and a continuation, which draws none, always pins it."""
+        and a later part, which draws none, always pins it."""
         consumed = self.consumed
         return consumed.header if (block, row) > (consumed.header_end - 1, 0) else ()
 
     @cached_property
     def consumed(self) -> FragmentLineConsumer:
         """This fragment's events projected once; the blocks do not depend on how it is shown."""
-        consumer = FragmentLineConsumer(show_divider=not self.continuation)
-        if self.starts_agent_activity and not self.continuation:
+        consumer = FragmentLineConsumer(part=self.part_position)
+        if self.starts_agent_activity:
             consumer.blocks.extend(AgentActivityPresentation.group)
         for event in self.events:
             consumer.project_value(event)
@@ -464,7 +514,7 @@ class TranscriptFragment(CursorRest):
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """What this fragment draws in committed history when shown so, one block per visual part.
 
-        A continuation of the previous fragment has no divider. The blocks do
+        A later part of a message has no divider. The blocks do
         not depend on the width: each width's lines are built from them.
         """
         return tuple(self.consumed.blocks)
@@ -657,11 +707,11 @@ class BusMessageFragment(TranscriptFragment):
 
     @property
     def leading(self):
-        return () if self.continuation else (Gap(), self.row.header)
+        return self.part_position.leading(self.row.header)
 
     def sticky_header(self, block: int, row: int) -> tuple[Divider, ...]:
         """Every part of a message pins its header once the header's first row is above the top
-        row, which is `row` of block `block`; a continuation part draws no header, so it always
+        row, which is `row` of block `block`; a later part draws no header, so it always
         pins it."""
         return (self.row.header,) if (block, row) > (len(self.leading) - 1, 0) else ()
 
@@ -673,7 +723,7 @@ class BusMessageFragment(TranscriptFragment):
         return shown.style.body(self.row, self.body_text)
 
     def trailing(self, shown):
-        return self.part_position.status_blocks(shown, self.details_link) if self.notification_references else ()
+        return self.part_position.status_blocks(shown, self.details_link)
 
     def blocks(self, shown):
         return (*self.leading, *self.text(shown), *self.trailing(shown))
@@ -815,12 +865,11 @@ class TranscriptFragmentConsumer(MroProjection[None]):
             BuiltSlot(kind.capture_part(
                 event,
                 part.text,
-                continuation=index > 0,
-                part_position=LastPart(index=index) if index == len(parts) - 1 else InnerPart(index=index),
-                starts_agent_activity=starts_activity and index == 0,
+                part_position=position,
+                starts_agent_activity=position.starts_activity(starts_activity),
                 **kwargs,
             ))
-            for index, part in enumerate(parts)
+            for part, position in zip(parts, PartPosition.sequence(len(parts)), strict=True)
         )
 
     @handles(ToolTranscript)
