@@ -71,6 +71,16 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ANSWER}})
         await ui.until(lambda: ANSWER in ui.painted(view.window), why="the live answer")
         live = view.contents.query_one(AgentResponse)
+        # Every frame published across the commit, as the terminal received it.
+        screen = ui.app.screen
+        published = screen._on_frame_published
+        frames: list[str] = []
+
+        def recording() -> None:
+            published()
+            frames.append(ui.painted(view.window))
+
+        screen._on_frame_published = recording
         # The answer is saved and the turn ends; another sender's message lands in the same append.
         saved.write_text(prompt + json.dumps({"type": "message", "id": "first-assistant",
             "parentId": "first-user", "timestamp": "2026-10-22T00:00:01Z", "message": {
@@ -87,4 +97,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         await ui.until(lambda: PEER in rows(arriving=False) and not live.display, why="the commit's saved rows")
         assert PEER in rows(arriving=True)
         assert ANSWER not in rows(arriving=True)
-        assert ui.painted(view.window).count(ANSWER) == 1
+        await ui.until(lambda: any(PEER in frame for frame in frames), why="a published frame with the saved rows")
+        screen._on_frame_published = published
+        # The live block leaves in the frame that draws its saved rows: no frame shows both, or neither.
+        assert [frame.count(ANSWER) for frame in frames] == [1] * len(frames)
