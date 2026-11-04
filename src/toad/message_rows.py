@@ -18,7 +18,8 @@ from agent_comms.channel_targets import CommandTarget, ChannelTarget, ThreadTarg
 from metaclass_registry.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.messages import Message
+from agent_comms.historical_views import HistorySource
+from agent_comms.messages import Message, NoHistorySource
 from agent_comms.recorded_time import EventTime
 from agent_comms.routing import MessageRoute
 
@@ -60,6 +61,21 @@ class RecordedMessageClock(MessageClock):
     timestamp: float
 
 
+class ThreadLink(MroProjection[LineLink]):
+    """A thread name opens the live thread, or the thread as the history that recorded the message."""
+
+    @handles(NoHistorySource)
+    def live(self, source: NoHistorySource, name: str) -> LineLink:
+        return OpenTarget(name)
+
+    @handles(HistorySource)
+    def recorded(self, source: HistorySource, name: str) -> LineLink:
+        return OpenHistoricalTarget(name, source.key)
+
+
+THREAD_LINK = ThreadLink()
+
+
 @dataclass(frozen=True)
 class MessageRow(MroProjection[LineLink]):
     """One message: who sent it to whom, when, its text, and whether the reader's thread sent it."""
@@ -84,11 +100,6 @@ class MessageRow(MroProjection[LineLink]):
         return self.message.sender == self.reader
 
     @property
-    def history(self) -> str | None:
-        source = self.message.history_source
-        return source.key if source is not None else None
-
-    @property
     def role(self) -> type[LineRole]:
         return OutgoingRole if self.outgoing else IncomingRole
 
@@ -99,8 +110,7 @@ class MessageRow(MroProjection[LineLink]):
 
     @handles(ThreadTarget)
     def thread_link(self, target: ThreadTarget) -> LineLink:
-        return (OpenHistoricalTarget(target.name, self.history)
-                if self.history is not None else OpenTarget(target.name))
+        return THREAD_LINK.project_value(self.message.history_source, target.name)
 
     @handles(ChannelTarget)
     def channel_link(self, target: ChannelTarget) -> LineLink:
