@@ -68,10 +68,8 @@ class LinkContext:
         # The composer and ACP builder own the @file grammar. Preserve the
         # complete quoted spelling, including spaces, when linking it here.
         for path, start, end in extract_paths_from_prompt(text):
-            link = ProjectLink.file_spelling(self.root, path, search=False)
-            if link is not None:
-                content = Token("text", "", 0, content=text[start:end])
-                candidates.append((start, end, link.inline_tokens(content)))
+            content = Token("text", "", 0, content=text[start:end])
+            candidates.append((start, end, ProjectLink.file_spelling(self.root, path, search=False).inline_tokens(content)))
         for match in _PATH_PATTERN.finditer(text):
             link = ProjectLink.from_path(self.root, match.group())
             tokens = link.inline_tokens(Token("text", "", 0, content=match.group()))

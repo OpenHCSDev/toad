@@ -15,7 +15,7 @@ from agent_comms.nominal.field_codec import PathText
 from urllib.parse import SplitResult, quote, unquote, urlsplit
 
 from markdown_it.token import Token
-from toad.line_blocks import LineLink
+from toad.line_blocks import NO_LINK, LineLink
 from toad.file_position import FilePosition
 
 
@@ -83,21 +83,19 @@ class ProjectLink(LineLink):
             return ExternalProjectLink(href)
         root = project_root()
         value = unquote(uri.path)
-        link = cls.file_spelling(root, value, position=FilePosition.from_fragment(uri.fragment),
-                                 search=not (uri.scheme or uri.query or uri.fragment))
-        if link is not None:
-            return link
-        if Path(uri.path).suffix:
-            return MissingProjectFileLink(href, original_root=root)
-        return ExternalProjectLink(href)
+        return cls.file_spelling(
+            root, value, position=FilePosition.from_fragment(uri.fragment),
+            search=not (uri.scheme or uri.query or uri.fragment),
+        ).otherwise(lambda: MissingProjectFileLink(href, original_root=root) if Path(uri.path).suffix
+                    else ExternalProjectLink(href))
 
     @classmethod
     def from_path(cls, root: Path, value: str) -> ProjectLink:
         """Plain token paths are filesystem spellings, never URI-decoded twice."""
-        return cls.file_spelling(root, value) or ExternalProjectLink(value)
+        return cls.file_spelling(root, value).otherwise(lambda: ExternalProjectLink(value))
 
     @classmethod
-    def file_spelling(cls, root, value, *, position=None, search=True):
+    def file_spelling(cls, root, value, *, position=None, search=True) -> LineLink:
         spelling, suffix = FilePosition.split(value)
         if suffix is not None:
             # Colons may belong to a real POSIX filename; don't erase that identity.
@@ -110,7 +108,7 @@ class ProjectLink(LineLink):
         except ProjectLinkProblem:
             if search and SearchProjectFileLink.accepts(value):
                 return SearchProjectFileLink(value, original_root=root, position=position)
-        return None
+        return NO_LINK
 
     @staticmethod
     def existing_file(root: Path, value: str) -> Path:

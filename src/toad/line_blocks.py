@@ -174,6 +174,10 @@ class LineLink(DeclaredFamily, affix="Link"):
         """Plain text that leads somewhere is drawn as a link; other roles keep their own."""
         return UrlRole if role is TextRole else role
 
+    def otherwise(self, fallback: Callable[[], LineLink]) -> LineLink:
+        """A link found stands; text that leads nowhere takes the fallback."""
+        return self
+
     @property
     def encoded_href(self) -> str:
         """Encode only for a dependency's string-only action boundary."""
@@ -198,6 +202,13 @@ class NoLink(LineLink):
 
     def text_role(self, role: type[LineRole]) -> type[LineRole]:
         return role
+
+    def otherwise(self, fallback: Callable[[], LineLink]) -> LineLink:
+        return fallback()
+
+    def inline_tokens(self, content):
+        """Text that leads nowhere contributes no Markdown link."""
+        return ()
 
 
 NO_LINK = NoLink()
