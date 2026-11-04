@@ -11,7 +11,6 @@ from itertools import zip_longest
 from random import shuffle
 from typing import Literal, Self
 
-from textual.binding import ModeBinding
 from toad.widget_actions import DismissibleControl, CyclesFocus, Launches, WidgetAction, ProfileKeys
 from textual.document._editing import EditingMode, VimMode
 from textual.screen import Screen
@@ -484,7 +483,49 @@ class LaunchSlotAction(WidgetAction):
         await launcher.launch_highlighted()
 
 
-class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode, actions=(LaunchSlotAction,)):
+class StoreAction(WidgetAction, affix="Action"):
+    """What the store does on its own keys."""
+
+
+class ResumeAction(StoreAction):
+    """Resume a previous session"""
+
+    title = "Resume"
+    keys = {EditingMode: ("ctrl+r",)}
+    show = True
+
+    def apply(self, context: StoreScreen) -> None:
+        # Waiting on a dismissal needs a worker; the store owns its lifetime.
+        context.run_worker(self.choose(context), group="resume", exclusive=True)
+
+    async def choose(self, context: StoreScreen) -> None:
+        from toad.screens.session_resume_modal import SessionResumeModal
+
+        session = await context.app.push_screen_wait(SessionResumeModal())
+        if session is not None:
+            context.app.session_navigation.events.publish(
+                session_requests.LaunchAgent(
+                    session.agent_identity,
+                    session.agent_session_id,
+                    pk=session.id,
+                )
+            )
+
+
+class FocusDirectoryAction(StoreAction):
+    """Change project directory"""
+
+    title = "Directory"
+    keys = {EditingMode: ("ctrl+d",)}
+    show = True
+
+    async def apply(self, context: StoreScreen) -> None:
+        if (directory_display := context.query_one_optional(DirectoryDisplay)) is not None:
+            directory_display.focus()
+
+
+class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
+                  actions=(LaunchSlotAction, StoreAction)):
     BINDING_GROUP_TITLE = "Screen"
 
     launcher = getters.query_one(Launcher)
@@ -656,28 +697,3 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
                 self.screen.query(GridSelect).focus()
 
             self.call_later(focus_screen)
-
-    @work
-    async def resume(self) -> None:
-        from toad.screens.session_resume_modal import SessionResumeModal
-
-        session = await self.app.push_screen_wait(SessionResumeModal())
-        if session is not None:
-            self.app.session_navigation.events.publish(
-                session_requests.LaunchAgent(
-                    session.agent_identity,
-                    session.agent_session_id,
-                    pk=session.id,
-                )
-            )
-
-    async def focus_directory(self) -> None:
-        if (directory_display := self.query_one_optional(DirectoryDisplay)) is not None:
-            directory_display.focus()
-
-    MODE_BINDINGS = (
-        ModeBinding("ctrl+r", resume, "Resume", mode=EditingMode,
-                    tooltip="Resume a previous session"),
-        ModeBinding("ctrl+d", focus_directory, "Directory", mode=EditingMode,
-                    tooltip="Change project directory"),
-    )
