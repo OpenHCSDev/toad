@@ -14,7 +14,7 @@ class RelationshipReads:
     core: CoreAccess
 
     def relationships(self, owner: str) -> ThreadCommsSnapshot:
-        return self.core.call(CommsThreadRelationshipsTool(owner=owner)).snapshot
+        return self.core.call(CommsThreadRelationshipsTool(owner=owner))
 
     def set_relationship_order(self, owner: str, group: type[SortableRelationshipGroup],
                                order: type[ThreadSort]) -> type[ThreadSort]:

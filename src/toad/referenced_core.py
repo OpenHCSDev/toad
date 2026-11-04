@@ -21,7 +21,7 @@ class ReferencedCore(ABC):
 
     def registry(self) -> RegistrySnapshot:
         """Core's thread registry: names, renames and recorded threads resolve against it."""
-        return self.core.call(CommsRegistryTool()).snapshot
+        return self.core.call(CommsRegistryTool())
 
     def references(self) -> CurrentDisplayReferences:
         """The destinations Core's registry names, keyed by the root it serves."""
@@ -29,4 +29,4 @@ class ReferencedCore(ABC):
 
     def wire_revision(self) -> WireRevision:
         """What every wire view at this root derives from."""
-        return self.core.call(CommsWireRevisionTool()).revision
+        return self.core.call(CommsWireRevisionTool())
