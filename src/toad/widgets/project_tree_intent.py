@@ -1,5 +1,6 @@
 """Filesystem identities survive a disposable DirectoryTree's nodes."""
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -9,12 +10,30 @@ if TYPE_CHECKING:
     from toad.widgets.project_directory_tree import ProjectDirectoryTree
 
 
+class TreeIntent:
+    """What a reader left in a project tree; the family answers every reader without absence tests."""
+
+    async def restore(self, tree: "ProjectDirectoryTree") -> None:
+        """Nothing was left to restore."""
+
+    def pending_or(self, capture: Callable[[], "TreeIntent"]) -> "TreeIntent":
+        """An intent still to restore answers for the tree; without one, read the tree now."""
+        return capture()
+
+
+NO_TREE_INTENT = TreeIntent()
+
+
 @dataclass(frozen=True)
-class ProjectTreeIntent:
+class ProjectTreeIntent(TreeIntent):
     path: Path
     expanded: frozenset[Path]
-    selected: Path | None
+    # The cursor's path; the root's when the reader moved no cursor (restore starts at root).
+    selected: Path
     scroll: Offset
+
+    def pending_or(self, capture: Callable[[], TreeIntent]) -> TreeIntent:
+        return self
 
     @classmethod
     def capture(cls, tree: "ProjectDirectoryTree") -> "ProjectTreeIntent":
@@ -25,10 +44,10 @@ class ProjectTreeIntent:
             if node.data is not None and node.is_expanded:
                 expanded.add(node.data.path)
                 nodes.extend(node.children)
-        selected = tree.cursor_node
-        return cls(Path(tree.path), frozenset(expanded),
-                   selected.data.path if selected is not None and selected.data is not None else None,
-                   tree.scroll_offset)
+        cursor = tree.cursor_node
+        # Textual's cursor and node data are optional: decoded once, here.
+        selected = cursor.data.path if cursor is not None and cursor.data is not None else Path(tree.path)
+        return cls(Path(tree.path), frozenset(expanded), selected, tree.scroll_offset)
 
     async def restore(self, tree: "ProjectDirectoryTree") -> None:
         if Path(tree.path) != self.path:
@@ -50,7 +69,7 @@ class ProjectTreeIntent:
             if node.data is None:
                 continue
             path = node.data.path
-            if self.selected is not None and self.selected.is_relative_to(path):
+            if self.selected.is_relative_to(path):
                 selection = node
             if path in self.expanded:
                 node.expand()

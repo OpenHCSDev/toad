@@ -19,6 +19,8 @@ from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import PanelHydration, SideBarCollapsible
 from toad.widgets.thread_comms import ThreadCommsSidebar
+from toad.widgets.project_panel import NO_PROJECT_VIEW
+from toad.widgets.project_tree_intent import NO_TREE_INTENT
 
 
 def viewport_text(widget):
@@ -138,7 +140,7 @@ async def exercise(ui, screen, root):
     assert tree_ref() is sidebar.query_one(ProjectDirectoryTree)
     await sidebar.evict(screen)
     assert not sidebar.panels and not sidebar._panels_loaded
-    assert screen._project_panel is None
+    assert screen._project_panel is NO_PROJECT_VIEW
     assert not tuple(viewport.children)
     assert not sidebar.query(Plan) and not sidebar.query(ThreadCommsSidebar)
     del relationships, tree, row, group, selected, folder, deep
@@ -174,7 +176,7 @@ async def exercise(ui, screen, root):
         why="the project tree cursor to be restored",
     )
     await ui.until(
-        lambda: screen._project_panel._intent is None,
+        lambda: screen._project_panel._intent is NO_TREE_INTENT,
         seconds=12,
         why="the project panel to settle",
     )
