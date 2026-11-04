@@ -85,10 +85,11 @@ class WorkspaceChrome(VerticalLayout):
         layout = self.app.sidebar_layout
         bars = self.presented_sidebars()
         resolved = layout.resolve(size, {bar.placement_identity: bar.collapsed for bar in bars})
-        # The outer host stays full width. Its session's own native layout
-        # clears both gutters, including the shared channel surface.
+        # A session-owned sidebar means its SessionBody clears both gutters.
+        # Textual arranges one layer at a time: children is only that layer,
+        # not the parent's complete set of sidebar resources.
         nested = self.channels in parent.children and any(
-            bar not in children for bar in bars
+            bar not in parent.children for bar in bars
         )
         gutter = Spacing() if nested else resolved.gutter
         placements = [
