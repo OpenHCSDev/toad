@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from toad.acp.status import ToolCallStatus
-from toad.line_blocks import Body, MarkdownMessageBody, LineBlock, LineLink, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
+from toad.line_blocks import NO_LINK, Body, MarkdownMessageBody, LineBlock, LineLink, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
 
 
 class AgentActivityPresentation:
@@ -31,7 +31,7 @@ class AgentActivityPresentation:
     ) -> tuple[LineBlock, ...]:
         title = status.title
         marker = ("▼ " if details_open else "▶ ") if has_details else "· "
-        link = details_link if has_details else None
+        link = details_link if has_details else NO_LINK
         source = status.summary
         summary = Summary((Span(f"{marker}🔧 ", status.summary_role, link),
                            *(replace(span, link=link) for span in source.spans)),
