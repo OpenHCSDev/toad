@@ -25,7 +25,7 @@ from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
-from agent_comms.registry_document import ProjectThreadSelection
+from agent_comms.registry_document import ProjectThreadSelection, RegistrySnapshot
 from toad.referenced_core import ReferencedCore
 from agent_comms.repo import Checkout
 from agent_comms.threads import Thread
@@ -35,6 +35,7 @@ from toad.widgets.thread_comms_source import RelationshipReads
 from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread
 from agent_comms.tools import (
+    CommsRegistryTool,
     CommsHistoricalThreadsTool,
     CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool,
     CommsUserSendTool,
@@ -46,7 +47,7 @@ from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
-from agent_comms.revision_views import ExternalTranscriptsView, StatusView
+from agent_comms.revision_views import ExternalTranscriptsView, RegistrationsView, StatusView
 from agent_comms.route_selection import RouteSelection
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.ui_model.observation import (
@@ -455,13 +456,57 @@ class FailedObservation(Observation):
         self.access.events.publish(TeamHudFailed(self.error))
 
 
+class RegistryRead:
+    """No registry read yet: the first caller reads it."""
+
+    def current_at(self, revision: ReadState) -> bool:
+        return False
+
+
+@dataclass(frozen=True)
+class RegistryReadAt(RegistryRead):
+    """The registry as Core answered it while the observer announced ``revision``."""
+
+    revision: ReadState
+    snapshot: RegistrySnapshot
+
+    def current_at(self, revision: ReadState) -> bool:
+        # No announcement since this read, or one whose registrations did not change.
+        return revision is self.revision or not revision.changed_since(RegistrationsView(), self.revision)
+
+
+class RegistryReads:
+    """One observation's registry: read again only when the observer announces new registrations.
+
+    Every view, navigation and command asks the observation for the registry. Over a
+    remote connection each read is the whole registry (megabytes), so repeating it per
+    caller is the cost, not the server's answer.
+    """
+
+    def __init__(self) -> None:
+        self.read: RegistryRead = RegistryRead()
+
+    def snapshot(self, observation: Observing) -> RegistrySnapshot:
+        revision = observation.access.revision
+        read = self.read
+        if read.current_at(revision):
+            return read.snapshot
+        snapshot = observation.core.call(CommsRegistryTool())
+        self.read = RegistryReadAt(revision, snapshot)
+        return snapshot
+
+
 @dataclass(frozen=True)
 class Observing(Observation, ReferencedCore, RegistryReferenceSource, RelationshipReads, ContextReads):
     """An observation answering through its process; where its Core is belongs to the member."""
 
     sidebar: SidebarModel
     process: ObservationProcess = field(compare=False)
+    registry_reads: RegistryReads = field(default_factory=RegistryReads, compare=False)
     answering: ClassVar[type[AnsweringReads]]
+
+    def registry(self) -> RegistrySnapshot:
+        return self.registry_reads.snapshot(self)
 
     def queue_observing(self) -> Observing:
         if not self.is_current():
