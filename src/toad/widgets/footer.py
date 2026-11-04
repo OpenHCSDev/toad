@@ -49,12 +49,12 @@ class ToadFooterKey(FooterKey):
     ansi_hover_components: ClassVar[Components] = dict.fromkeys(FooterKeyComponent, ANSI_REVERSE)
 
     def native_component_declarations(self, component: FooterKeyComponent) -> tuple[NativeDeclaration, ...]:
-        ansi = self.app.native_ansi_color
+        ink = self.app.colours.ink
         layers = (
             self.compact_components if self.query_ancestor(Footer).compact else {},
             self.disabled_components if self._disabled else {},
-            self.ansi_components if ansi else {},
-            self.ansi_hover_components if ansi and self.mouse_hover else {},
+            ink.choose(true_colour={}, ansi=self.ansi_components),
+            ink.choose(true_colour={}, ansi=self.ansi_hover_components) if self.mouse_hover else {},
         )
         return (
             *super().native_component_declarations(component),

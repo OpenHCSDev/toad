@@ -239,7 +239,7 @@ class AgentItem(GridItem, containers.VerticalGroup):
                 agent.kind.heading,
                 "$primary-muted 50%",
                 "$text-primary",
-                filled=not self.app.native_ansi_color,
+                filled=self.app.colours.ink.fills_pills,
             )
             yield AgentKindTag(tag)
         yield AgentAuthor(agent.author_name)
@@ -534,7 +534,7 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
             f"v{toad_version}",
             "$primary-muted",
             "$text-primary",
-            filled=not self.app.native_ansi_color,
+            filled=self.app.colours.ink.fills_pills,
         )
         content = Content.assemble(
             Content.from_markup("🐸 Toad"),

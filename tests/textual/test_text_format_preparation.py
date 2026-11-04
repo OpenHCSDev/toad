@@ -11,6 +11,7 @@ from textual.style import Style
 from textual.text_format import TextFormatSnapshot
 from textual.visual import RenderOptions
 
+from toad.colour_ink import TRUE_COLOUR_INK
 from toad.widgets.path_search import PathContent
 from toad.render_tasks import RichRenderTask
 from toad.rich_preparation import ContentSource, RichPresentation, SyntaxPalette
@@ -28,7 +29,7 @@ def test_detached_native_task_retains_formatting(
     content = Content("one two three 界\nsecond source line")
     presentation = RichPresentation(
         Console(width=8).options, RichStyle(), None, auto_width,
-        None, "truecolor", SyntaxPalette(False, True), text_format=formatting,
+        None, "truecolor", SyntaxPalette(TRUE_COLOUR_INK, True), text_format=formatting,
     )
     task = pickle.loads(pickle.dumps(RichRenderTask(ContentSource(content), presentation)))
     prepared = task.execute()

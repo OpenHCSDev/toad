@@ -619,8 +619,7 @@ class SidebarResizeHandle(
     ansi_ink = NativeDeclaration.of(Styles.color, Keyword("ansi_green"))
 
     def native_declarations(self) -> tuple[NativeDeclaration, ...]:
-        # The app's ANSI mode is the one fact; the handle's ink follows it.
-        ink = self.ansi_ink if self.app.native_ansi_color else self.theme_ink
+        ink = self.app.colours.ink.choose(true_colour=self.theme_ink, ansi=self.ansi_ink)
         return (*super().native_declarations(), ink)
 
 
