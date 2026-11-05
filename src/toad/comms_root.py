@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
+from concurrent.futures import Future
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, field, fields, replace
@@ -457,44 +458,95 @@ class FailedObservation(Observation):
 
 
 class RegistryRead:
-    """No registry read yet: the first caller reads it."""
+    """No registry read yet: the first caller starts one."""
 
-    def snapshot(self, reads: RegistryReads, observation: Observing, revision: ReadState) -> RegistrySnapshot:
-        return reads.read(observation, revision)
+    def claim(self, reads: RegistryReads, revision: ReadState) -> RegistryRead:
+        return reads.start(revision)
+
+    def answer(self, observation: Observing) -> RegistrySnapshot:
+        raise TypeError("An unread registry has no answer; claim a read first")
 
 
 @dataclass(frozen=True)
-class RegistryReadAt(RegistryRead):
-    """The registry as Core answered it while the observer announced ``revision``."""
+class RegistryReadFor(RegistryRead):
+    """A read for the registrations the observer announced at ``revision``."""
 
     revision: ReadState
-    registry: RegistrySnapshot
 
-    def snapshot(self, reads: RegistryReads, observation: Observing, revision: ReadState) -> RegistrySnapshot:
+    def claim(self, reads: RegistryReads, revision: ReadState) -> RegistryRead:
         # No announcement since this read, or one whose registrations did not change.
         if revision is self.revision or not revision.changed_since(RegistrationsView(), self.revision):
-            return self.registry
-        return super().snapshot(reads, observation, revision)
+            return self
+        return super().claim(reads, revision)
+
+
+@dataclass(frozen=True)
+class RegistryReading(RegistryReadFor):
+    """A read in flight: every caller for the same registrations waits on this one."""
+
+    answered: Future[RegistrySnapshot] = field(compare=False)
+
+    def answer(self, observation: Observing) -> RegistrySnapshot:
+        return self.answered.result()
+
+
+@dataclass(frozen=True)
+class StartedRegistryRead(RegistryRead):
+    """The caller that started ``reading`` asks Core, then answers everyone waiting on it."""
+
+    reading: RegistryReading
+    reads: RegistryReads
+
+    def answer(self, observation: Observing) -> RegistrySnapshot:
+        try:
+            snapshot = observation.core.call(CommsRegistryTool())
+        except BaseException as error:
+            self.reads.settle(self.reading, RegistryRead())
+            self.reading.answered.set_exception(error)
+            raise
+        self.reads.settle(self.reading, RegistryReadAt(self.reading.revision, snapshot))
+        self.reading.answered.set_result(snapshot)
+        return snapshot
+
+
+@dataclass(frozen=True)
+class RegistryReadAt(RegistryReadFor):
+    """The registry as Core answered it while the observer announced ``revision``."""
+
+    registry: RegistrySnapshot
+
+    def answer(self, observation: Observing) -> RegistrySnapshot:
+        return self.registry
 
 
 class RegistryReads:
-    """One observation's registry: read again only when the observer announces new registrations.
+    """One observation's registry: one read per announced set of registrations.
 
     Every view, navigation and command asks the observation for the registry. Over a
-    remote connection each read is the whole registry (megabytes), so repeating it per
-    caller is the cost, not the server's answer.
+    remote connection each read is the whole registry (megabytes, seconds), so a caller
+    arriving while a read is in flight waits for it instead of starting another.
     """
 
     def __init__(self) -> None:
         self.latest: RegistryRead = RegistryRead()
+        self.lock = threading.Lock()
 
     def snapshot(self, observation: Observing) -> RegistrySnapshot:
-        return self.latest.snapshot(self, observation, observation.access.revision)
+        with self.lock:
+            claimed = self.latest.claim(self, observation.access.revision)
+        return claimed.answer(observation)
 
-    def read(self, observation: Observing, revision: ReadState) -> RegistrySnapshot:
-        snapshot = observation.core.call(CommsRegistryTool())
-        self.latest = RegistryReadAt(revision, snapshot)
-        return snapshot
+    def start(self, revision: ReadState) -> StartedRegistryRead:
+        """Called under the lock: later callers for ``revision`` wait on this read."""
+        reading = RegistryReading(revision, Future())
+        self.latest = reading
+        return StartedRegistryRead(reading, self)
+
+    def settle(self, reading: RegistryReading, settled: RegistryRead) -> None:
+        """A finished read replaces itself; a newer read already started keeps its place."""
+        with self.lock:
+            if self.latest is reading:
+                self.latest = settled
 
 
 @dataclass(frozen=True)
