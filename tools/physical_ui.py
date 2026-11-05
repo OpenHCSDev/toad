@@ -713,7 +713,9 @@ class ObservedTerminalApp:
                 PhysicalOperation.publish(self.output / self.final_record, final)
                 self.keys("ctrl+q")
                 self.observer.close()
-                self.terminal.process.wait(timeout=5)
+                # close() owns the child's retirement: one bounded stop with a recorded
+                # outcome. A second wait here raised TimeoutExpired before the result the
+                # run had already measured could be printed.
         finally:
             self.close()
 
