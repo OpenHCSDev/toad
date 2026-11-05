@@ -4,7 +4,6 @@ from typing import Sequence
 
 from rich.text import Text
 
-from textual import on
 from textual.reactive import reactive
 from textual.content import Content
 from textual.highlight import highlight, HighlightTheme, TokenType
@@ -143,9 +142,17 @@ class HighlightedTextArea(TextArea):
         content = highlight(text, language="sh")
         return content
 
-    @on(TextArea.Changed)
-    def _on_changed(self) -> None:
+    def _build_highlight_map(self) -> None:
+        # TextArea rebuilds its derived rows here, in the same call as every load, edit,
+        # undo and redo. A Changed message arrives after a paint may already have
+        # cached the previous text's line under a key that never changes again.
         self._clear_caches()
+        super()._build_highlight_map()
+
+    def invalidate_engine_regions(self, regions) -> None:
+        # Engine edits to an editor without a syntax query skip the rebuild above.
+        self._clear_caches()
+        super().invalidate_engine_regions(regions)
 
     def get_line(self, line_index: int) -> Text:
         if (cached_line := self._text_cache.get(line_index)) is not None:
