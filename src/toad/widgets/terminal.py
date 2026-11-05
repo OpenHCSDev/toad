@@ -79,12 +79,15 @@ Tap escape *twice* to exit.
 
     def __init__(
         self,
+        *,
+        name: str | None = None,
         disabled: bool = False,
         minimum_terminal_width: int = 0,
         size: tuple[int, int] | None = None,
         get_terminal_dimensions: Callable[[], tuple[int, int]] | None = None,
     ):
         super().__init__(
+            name=name,
             disabled=disabled,
         )
         self.set_reactive(Terminal.auto_links, False)

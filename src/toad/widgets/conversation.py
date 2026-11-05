@@ -1899,7 +1899,7 @@ class Conversation(
 
         terminal_width, terminal_height = self.get_terminal_dimensions()
         terminal = ShellTerminal(
-            f"terminal #{self._terminal_count}",
+            name=f"terminal #{self._terminal_count}",
             size=(terminal_width, terminal_height),
             get_terminal_dimensions=self.get_terminal_dimensions,
         )
