@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING
 
 from agent_comms.ui_model.sidebar import ChannelRowModel
 from toad.widget_actions import ActivationKeys
-from textual._cells import cell_len
 from textual.content import Content
 from textual.geometry import Offset
 from textual.reactive import reactive
@@ -38,20 +37,18 @@ from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
-from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
+from toad.widgets.selection import HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widget_actions import HiddenActions, OpenSelectedAction, OpensSelected
-from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
+from toad.widgets.session_sort import ChannelListSort, ThreadSortChoice
+from toad.widgets.sidebar_tree import ActiveSegment, GroupHeaderLine, HeaderSegment, SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.tone_paint import AlternatingTone
 from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
-from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 from toad.app_node import ToadNode
 from toad.native_style import (
     AutoHeight,
-    AutoWidth,
     FillWidth,
     MutedText,
     NoPadding,
@@ -63,53 +60,44 @@ if TYPE_CHECKING:
     from agent_comms.comms import Comms
 
 
-class ChannelUnread(
-    MutedText,
-    AutoWidth,
-    OneRow,
-    PointerCursor,
-    PrimaryActivation,
-    ChangingText,
-):
-    text_fades = (NEW_MESSAGE,)
+class ChannelUnreadSegment(HeaderSegment):
+    """The channel's unread count, beside its title; a click opens the channel like the title."""
+
+    def content(self, group: ChannelGroup) -> Content:
+        label = group.channel.unread.label
+        return Content.styled(f" {label}", "$text-muted") if label else Content("")
 
 
-    def on_click(self, event) -> None:
-        if event.button == 1:
-            event.stop()
-            self.primary_activation()
+class ChannelSortSegment(ActiveSegment):
+    """The channel's member order; a click opens its menu under this stretch."""
 
-    @property
-    def primary_activation(self):
-        return self.query_ancestor(ChannelGroup).row.open_selected
+    def content(self, group: ChannelGroup) -> Content:
+        return Content.styled(f" {group.sort_choice.sort_label}", "$text-muted")
+
+    async def activate(self, row: GroupHeaderLine) -> None:
+        await row.header_group.open_sort()
 
 
-class ChannelHeader(AlternatingTone, SidebarHeader):
-    """A channel's header row, across its disclosure, name and controls.
-
-    Channels alternate on their own hue-stepped pair, so the channel list and
-    the thread rows under it read as two families.
-    """
-
-    row_tones = (ChannelRowToneColour, ChannelAlternateRowToneColour)
+CHANNEL_SORT = ChannelSortSegment()
 
 
 class ChannelGroup(SidebarGroup["ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
-    header_type = ChannelHeader
-    header: ChannelHeader
-    def __init__(self, row: CommsRow, *, expanded: bool):
+    trailing_segments = (ChannelUnreadSegment(), CHANNEL_SORT)
+
+    def __init__(self, row: ChannelHeaderRow, *, expanded: bool):
         self.channel: ChannelRowModel = UnpaintedChannel(row.target_name)
-        self.sort_control = SessionSort(channel=row.target_name)
-        self.unread_badge = ChannelUnread(markup=False)
-        self.unread_badge.display = False
-        super().__init__(row, expanded=expanded,
-                         controls=(self.unread_badge, self.sort_control))
+        self.sort_choice = ThreadSortChoice(row.target_name)
+        super().__init__(row, expanded=expanded)
 
     @property
     def sidebar(self) -> CommsSidebar:
         return self.query_ancestor(CommsSidebar)
+
+    async def open_sort(self) -> None:
+        """The member-order menu, under the header line's order stretch."""
+        await self.sort_choice.open_sort(self.row, self.row.segment_region(CHANNEL_SORT))
 
     def present(self, channel: ChannelRowModel) -> frozenset[str]:
         """Paint the header and return members whose channel pin changed."""
@@ -120,13 +108,10 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         row.tooltip = channel.tooltip
         if row.is_mounted and (previous.active != channel.active or previous.unread != channel.unread):
             row.run_effect(NEW_MESSAGE)
-        if previous.unread != channel.unread:
-            label = channel.unread.label
-            # Equal-width badges need paint only; visibility owns its layout.
-            width_changed = cell_len(label) != cell_len(previous.unread.label)
-            self.unread_badge.update(label, layout=width_changed)
-            self.unread_badge.display = bool(label)
-        self.sort_control.update_order(channel.order)
+        self.sort_choice.update_order(channel.order)
+        if previous.unread != channel.unread or previous.order is not channel.order:
+            # The badge and the order are stretches of the header line: paint only.
+            row.refresh(layout=False)
         return previous.pinned_members ^ channel.pinned_members
 
     def toggle_members(self) -> None:
@@ -229,6 +214,9 @@ class CommsRow(
     def set_label(self, label: str) -> None:
         self.update(Content(label))
 
+    def expand_members(self, expanded: bool) -> None:
+        """A member row lists nobody; a group's header line overrides this."""
+
     @property
     def primary_activation(self):
         return self.open_selected
@@ -257,9 +245,14 @@ class ListedRow(CommsRow, AlternatingTone):
 
 
 class ChannelRow(ListedRow):
-    """A channel listed as a row (not a group header): channels alternate on their hue pair."""
+    """A channel's row. Channels alternate on their own hue-stepped pair, so the channel
+    list and the thread rows under it read as two families."""
 
     row_tones = (ChannelRowToneColour, ChannelAlternateRowToneColour)
+
+
+class ChannelHeaderRow(GroupHeaderLine, ChannelRow):
+    """A channel group's header line: disclosure, the channel's name, unread and order."""
 
 
 class ThreadStatusRow(MutedText, ListedRow, ToadNode):
@@ -505,7 +498,7 @@ class CommsSidebar(
                 rows = self.model_state.shown.channels.rows
                 if key not in rows or key in self.groups or not self.is_attached:
                     continue  # Removed or mounted while the previous group mounted.
-                row = CommsRow(channel_target(key), key)
+                row = ChannelHeaderRow(channel_target(key), key)
                 group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
                     key, row.target.expanded_by_default))
                 group.present(rows[key])  # Its members sync once it is mounted.

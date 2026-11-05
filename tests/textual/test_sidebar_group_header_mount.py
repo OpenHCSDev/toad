@@ -1,11 +1,9 @@
-"""Group headers paint in ordinary flow, without a sidebar scrollport lifetime."""
+"""Panel headers paint in ordinary flow, without a sidebar scrollport lifetime."""
 
-import pytest
 from textual.app import App, ComposeResult
 from textual.widgets import Static
 
 from toad.textual_colours import ThemedApp
-from toad.widgets.comms_sidebar import ChannelHeader
 from toad.widgets.sidebar_viewport import SidebarHeader
 
 
@@ -20,12 +18,9 @@ class GroupHeaderApp(ThemedApp, App):
         yield self.header
 
 
-@pytest.mark.parametrize("header_type", (SidebarHeader, ChannelHeader))
-async def test_group_header_paints_without_a_sidebar_viewport(
-    header_type: type[SidebarHeader],
-):
+async def test_header_paints_without_a_sidebar_viewport():
     label = Static("Channel group")
-    header = header_type(label, classes="group-header")
+    header = SidebarHeader(label, classes="group-header")
     app = GroupHeaderApp(header)
     async with app.run_test(size=(80, 20)) as pilot:
         await pilot.pause()

@@ -5,7 +5,7 @@ from textual.widgets._collapsible import CollapsibleTitle
 from textual.widgets._hints import HintLabel, HintSession
 
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
-from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup
+from toad.widgets.sidebar_tree import GroupTitle
 from toad.widgets.thread_comms import MessageFilter, ThreadCommsSidebar
 from toad.widgets.prompt import Prompt
 
@@ -68,11 +68,11 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
         await choose(checkbox)
         assert ui.conversation.visible_categories == before
 
-        disclosure = next(control for control in app.screen.query(SidebarDisclosure)
-                          if control.visible and control.region.height and control.region.width)
-        group = disclosure.query_ancestor(SidebarGroup)
+        title = next(control for control in app.screen.query(GroupTitle)
+                     if control.visible and control.region.height and control.region.width)
+        group = title.header_group
         expanded = group.expanded
-        await choose(disclosure)
+        await choose(title)
         assert group.expanded != expanded
         assert editor.has_focus and editor.text == 'keep this draft'
         await ui.open_channel('#hints', actor=workspace.viewer)

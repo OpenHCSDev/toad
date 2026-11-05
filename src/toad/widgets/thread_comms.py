@@ -40,7 +40,8 @@ from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import (
     SidebarChange,
-    SidebarDisclosure,
+    Disclosure,
+    GroupTitle,
     SidebarGroup,
     SidebarModelView,
     SearchFollower,
@@ -84,7 +85,7 @@ class RelationshipSort(SortControl[ThreadSort]):
         orders = {group.order for group in groups}
         self.update_order(next(iter(orders)) if len(orders) == 1 else None)
 
-    async def order_writer(self):
+    async def order_writer(self, host):
         tree = self.query_ancestor(SideBarCollapsible).query_one(ThreadCommsSidebar)
         identity, generation = tree.thread_view.thread_identity, tree._generation
         snapshot = tree._snapshot
@@ -181,12 +182,6 @@ class RelationshipRow(ThreadStatusRow, actions=(CopyIdentityAction,)):
             return
         tree.request_navigation(self)
 
-class RelationshipDisclosure(SidebarDisclosure):
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.width = 1
-
-
 class RelationshipEmpty(MutedText, OneRow, Static):
     """An expanded group's explanation that it lists nobody."""
 
@@ -211,12 +206,13 @@ class MessageFilter(
 
 
 class RelationshipRows(SidebarGroup[RelationshipRow]):
+    leading_segments = (Disclosure(1),)
+
     def __init__(self, model: RelationshipGroup, expanded: bool):
         self.model = model
         super().__init__(
-            Static(model.title),
+            GroupTitle(Content(model.title)),
             expanded=expanded,
-            disclosure_type=RelationshipDisclosure,
             id=f"relationships-{type(model).declared_name}",
         )
 
