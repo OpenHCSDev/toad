@@ -10,8 +10,8 @@ from textual.app import App, ComposeResult
 from textual.widgets import Static
 
 from toad.agent_schema import AgentDefinition
-from toad.db import DB, Session, SessionMeta
-from toad.screens.session_resume_modal import SessionResumeModal
+from toad.db import DB, SessionMeta
+from toad.screens.session_resume_modal import ResumeSession, SessionResumeModal
 from toad.terminal_execution import Command, TerminalExecution
 from toad.textual_colours import ThemedApp
 from toad.widgets.command_pane import CommandPane
@@ -52,15 +52,14 @@ async def test_the_resume_modal_lists_a_saved_session_and_returns_it_typed(works
                               meta=SessionMeta(project, saved))
     app = MountedApp(Command.for_script("true"))
     async with app.run_test(size=(100, 30)) as pilot:
-        resumed: list[Session | None] = []
+        resumed: list[ResumeSession] = []
         modal = SessionResumeModal()
         await app.push_screen(modal, resumed.append)
         await pilot.pause()
         assert modal.session_table.row_count == 1
         assert modal.session_table.get_row(str(pk))[:2] == ["Agent", "Saved session"]
-        await modal.dissmiss_with_session(str(pk))
+        modal.choose_session(str(pk))
         await pilot.pause()
-        selected = resumed[0]
-        assert selected is not None
+        selected = resumed[0].session
         assert selected.meta_json.cwd == project
         assert selected.agent_session_id == "saved-session"

@@ -501,15 +501,8 @@ class ResumeAction(StoreAction):
     async def choose(self, context: StoreScreen) -> None:
         from toad.screens.session_resume_modal import SessionResumeModal
 
-        session = await context.app.push_screen_wait(SessionResumeModal())
-        if session is not None:
-            context.app.session_navigation.events.publish(
-                session_requests.LaunchAgent(
-                    session.agent_identity,
-                    session.agent_session_id,
-                    pk=session.id,
-                )
-            )
+        choice = await context.app.push_screen_wait(SessionResumeModal())
+        choice.resume(context.app)
 
 
 class FocusDirectoryAction(StoreAction):
