@@ -224,7 +224,7 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
         view.refresh_block_cursor(lambda cursor: cursor.show_moved_to(view.window))
         await copied(extra, "DECLARED_COPY café 界")
         assert ui.shows("DECLARED_ACTION_PAINT")
-        assert view.check_action("expand_block", ()) is None
+        assert view.check_action("expand_block", ()) is False
         assert view.check_action("collapse_block", ()) is False
         view.navigation.clear()
         view.refresh_block_cursor(lambda cursor: cursor.show_moved_to(view.window))
