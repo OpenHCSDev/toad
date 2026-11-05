@@ -142,8 +142,10 @@ class Shell(ShellOperationalSource):
 
     async def _run_pty(self, ready):
         current_directory = self.working_directory
+        # exec: the interactive shell IS the terminal's child, so is_busy sees
+        # only what the user started, not a wrapping `sh -c` that stays behind.
         command = Command.for_script(
-            self.shell or TerminalEnvironment.login_shell(os.environ),
+            f"exec {self.shell or TerminalEnvironment.login_shell(os.environ)}",
             cwd=current_directory,
         )
         # Existing typed child initialization performs TTY acquisition AFTER
