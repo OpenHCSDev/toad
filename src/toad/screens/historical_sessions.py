@@ -8,7 +8,7 @@ import asyncio
 from functools import partial
 from pathlib import Path
 
-from agent_comms.coordination.errors import StaleRevision
+from agent_comms.coordination.errors import ReadAgain
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.notification_reads import RecordedNotificationRead
 from agent_comms.order_tools import TranscriptPageRead
@@ -133,7 +133,7 @@ class HistoricalSessions(CenteredView, CoreEventReceiver, ProjectPathOwner, Work
 
         try:
             page = await load()
-        except StaleRevision as error:
+        except ReadAgain as error:
             if generation == self._selection_generation:
                 await content.mount(
                     Static(f"Could not read this saved session: {error}", markup=False)

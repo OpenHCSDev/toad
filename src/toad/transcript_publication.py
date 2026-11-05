@@ -19,6 +19,7 @@ from agent_comms.acp_extension import (
 from agent_comms.child_process import join_retirement
 from agent_comms.coordination.errors import (
     CoordinationReadUnavailable,
+    ReloadRequired,
     StaleRevision,
     TranscriptChanged,
 )
@@ -219,6 +220,13 @@ class TranscriptPublication(BoundFrame, ABC):
             # mounted history and work slot unchanged until a new observation
             # or the existing preparation completion resumes source work.
             if self.current():
+                self.owner.source_requests.defer(self)
+                return False
+        except ReloadRequired:
+            # The published witness names a source that is gone, so resending it never
+            # answers: the resumed operation reads from fresh bounds.
+            if self.current():
+                self.owner.current_read = NotPublished()
                 self.owner.source_requests.defer(self)
                 return False
         return True

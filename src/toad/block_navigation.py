@@ -369,6 +369,9 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
         """Live entries have no captured BUS display cut; source rows override with theirs."""
         return NoDisplaySelection()
 
+    async def reload_notification_source(self) -> None:
+        """Live entries read no page, so no display cut of theirs can go stale."""
+
     def queue_entries(self) -> Iterable[MessageQueueEntry]:
         """Live entries supply no captured BUS delivery rows; source rows override with theirs."""
         return ()

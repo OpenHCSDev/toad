@@ -13,7 +13,8 @@ from agent_comms.notification_progress import (
     ShownToModelProgress, UnrecordedProgress,
 )
 from agent_comms.presentation import MessageNotification
-from agent_comms.ui_model.observation import NotificationsObserved, NotificationsUnreadable, UnreadableHistory
+from agent_comms.coordination.errors import ReloadRequired
+from agent_comms.ui_model.observation import NotificationsObserved, NotificationsReload, NotificationsUnreadable, UnreadableHistory
 from toad.notification_status import CheckedNotifications
 from toad.widgets.side_bar import SideBar, SideBarToggle
 
@@ -102,6 +103,30 @@ async def test_visible_references_are_bounded_and_typed_outcomes_paint_their_det
         assert opened.details_open
         assert opened.status.details[0][0].text == "active"
         assert opened.status.details[0][1].text.startswith(": Sent")
+
+
+async def test_a_read_whose_display_cut_is_gone_reads_its_page_again(workspace):
+    CommsChatView = await open_comms_channel(workspace)
+    notifications = Notifications()
+    async with workspace.app(size=(110, 40)) as ui:
+        await ui.open_channel("#comms", actor="peer")
+        chat = ui.app.screen.query_one(CommsChatView)
+        await settled(ui, chat)
+        notifications.state = ConsumingProgress(0)
+        await notifications.publish(ui, chat)
+        await ui.until_shows(newest_status(chat).title)
+        answered = newest_status(chat)
+        access = ui.app.coordination_access
+        history = chat.message_history
+        request = access.notification_views[history.notification_view]
+        observed_before = history.page_source.revision
+        access.notifications_reload(
+            NotificationsReload(access.revision, request, ReloadRequired("the display cut is gone")),
+            access.observation.observed())
+        await ui.until(lambda: history.page_source.revision is not observed_before,
+                       why="the page was read afresh")
+        # What it already showed stays on screen meanwhile.
+        assert newest_status(chat) == answered
 
 
 async def test_the_line_follows_typed_state_and_read_errors_without_new_messages(workspace):

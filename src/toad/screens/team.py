@@ -6,7 +6,7 @@ import time
 from dataclasses import replace
 
 from agent_comms.team_hud import TeamHud, Teammate, HudRecord, HudSection
-from agent_comms.coordination.errors import DeferredRead
+from agent_comms.coordination.errors import DeferredRead, ReadAgain
 from agent_comms.disclosure_text import (
     AccentTone, DisclosureEntry, DisclosureKey, DisclosureText, ErrorTone, HudTone,
     MutedTone, RootKey, SuccessTone, ViewTable, WarningTone,
@@ -268,8 +268,8 @@ class TeamDetails(SelectionView[HudRecord], MroDispatch, ToadNode, VerticalGroup
         self.status.update(f"Reading original records for {label}…")
         try:
             detail = await type(self).handler_for(type(card))(self, card)
-        except (DeferredRead, RelationViolationError, RouteChangedError, ToolRefusedError,
-                UnreadableHistory, WorkBranchError) as error:
+        except (DeferredRead, ReadAgain, RelationViolationError, RouteChangedError,
+                ToolRefusedError, UnreadableHistory, WorkBranchError) as error:
             if self.is_attached and self.selection == selection:
                 self.status.update(f"Original details unavailable: {error}")
             return

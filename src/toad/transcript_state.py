@@ -418,7 +418,7 @@ class WorkingTranscript(SuspendedTranscript):
     async def execute[Result](self, owner, work: Callable[[], Awaitable[Result]]) -> Result | Literal[False]:
         from agent_comms.coordination.errors import (
             CoordinationReadUnavailable,
-            StaleRevision,
+            ReadAgain,
         )
 
         with ExitStack() as completion:
@@ -438,7 +438,7 @@ class WorkingTranscript(SuspendedTranscript):
                 self.defer_source_work(owner, work)
                 completion.pop_all()
                 return False
-            except StaleRevision:
+            except ReadAgain:
                 # This update could not use its original read. Keep the
                 # committed source; a new request owns any later advance.
                 return False
