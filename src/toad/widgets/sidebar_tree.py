@@ -160,7 +160,8 @@ class GroupHeaderLine(PointerCursor, Static):
 
     def segment_region(self, segment: HeaderSegment) -> Region:
         start, end = self.segment_span(segment)
-        return Region(self.region.x + start, self.region.y, end - start, 1)
+        content = self.content_region
+        return Region(content.x + start, content.y, end - start, 1)
 
     def emphasize(self, line: Strip, style: Style) -> Strip:
         """Only the title carries the row's emphasis; the arrow and controls keep their ink."""
@@ -169,7 +170,8 @@ class GroupHeaderLine(PointerCursor, Static):
                            line.crop(end, line.cell_length)))
 
     async def on_click(self, event: events.Click) -> None:
-        await self.segment_at(event.x).click(self, event)
+        # Segments are measured from the painted content, not the row's padding.
+        await self.segment_at(event.x - self.gutter.left).click(self, event)
 
     def expand_members(self, expanded: bool) -> None:
         group = self.header_group
