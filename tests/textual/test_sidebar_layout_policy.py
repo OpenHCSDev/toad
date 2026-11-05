@@ -51,19 +51,21 @@ def test_moving_swapping_and_resizing_keep_both_sidebars_and_clamp_extent():
 
 
 @pytest.mark.parametrize("side", EDGES)
-def test_two_sidebars_on_one_edge_swap_inward_then_cross(side):
+def test_two_sidebars_on_one_edge_swap_onward_then_move_there(side):
+    """Toward the neighbour (inward for columns, rightward along a band) the first arrow
+    swaps, the next moves the bar to that edge, and its own wall then stops it."""
     pair = layout_for()
     pair.move(ChannelsSidebarPlacement, side)
     pair.move(ThreadSidebarPlacement, side)
-    outer, inner = sorted(pair.placements, key=lambda key: pair.get(key).order)
-    inward = side.opposite()
+    first, second = sorted(pair.placements, key=lambda key: pair.get(key).order)
+    onward = side.onward()
     before = dict(pair.placements)
-    assert not pair.shift(outer, side) and pair.placements == before
-    assert pair.shift(outer, inward)
-    assert pair.get(outer).side is pair.get(inner).side is side
-    assert pair.get(outer).order == 1 and pair.get(inner).order == 0
-    assert pair.shift(outer, inward) and pair.get(outer).side is inward
-    assert not pair.shift(outer, inward)
+    assert not pair.shift(first, side) and pair.placements == before
+    assert pair.shift(first, onward)
+    assert pair.get(first).side is pair.get(second).side is side
+    assert pair.get(first).order == 1 and pair.get(second).order == 0
+    assert pair.shift(first, onward) and pair.get(first).side is onward
+    assert not pair.shift(first, onward)
 
 
 @pytest.mark.parametrize(

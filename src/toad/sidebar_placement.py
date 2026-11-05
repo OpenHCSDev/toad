@@ -60,6 +60,11 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
     @classmethod
     @abstractmethod
+    def onward(cls) -> type[SidebarEdge]:
+        """The arrow pointing from a bar on this edge toward the next one in order."""
+
+    @classmethod
+    @abstractmethod
     def gutter(cls, extent: int) -> Spacing: ...
 
     @classmethod
@@ -149,6 +154,11 @@ class WidthSidebarEdge(SidebarEdge):
         return tuple((key,) for key in keys)
 
     @classmethod
+    def onward(cls) -> type[SidebarEdge]:
+        """Columns stack inward from the wall, so the next one lies toward the centre."""
+        return cls.opposite()
+
+    @classmethod
     def size_toggle(cls, toggle: Widget) -> None:
         toggle.styles.width, toggle.styles.height = cls.collapsed_extent, "1fr"
 
@@ -213,6 +223,11 @@ class HeightSidebarEdge(SidebarEdge):
     def slots[K](cls, keys: Sequence[K]) -> tuple[tuple[K, ...], ...]:
         """The band is one slot: its open bars are as tall as each other."""
         return (tuple(keys),) if keys else ()
+
+    @classmethod
+    def onward(cls) -> type[SidebarEdge]:
+        """A band packs its bars left to right, so the next one lies to the right."""
+        return RightSidebarEdge
 
     @classmethod
     def size_toggle(cls, toggle: Widget) -> None:

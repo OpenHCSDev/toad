@@ -208,23 +208,23 @@ class SidebarLayout:
         return True
 
     def directions(self, identity: type[SidebarPlacement]) -> dict[type[SidebarEdge], SidebarShift]:
-        """Each spatial arrow swaps a neighbor, crosses the center or stops at a wall."""
+        """Each spatial arrow swaps the neighbour that lies that way, stops at the bar's own
+        wall, or moves the bar to that edge. Where a neighbour lies is its edge's `onward`:
+        inward for left and right columns, rightward along a top or bottom band."""
         placements = self.placements
         current = placements[identity]
+        onward = current.side.onward()
+        steps = {onward: 1, onward.opposite(): -1}
+        orders = {peer.order for key, peer in placements.items()
+                  if key != identity and peer.side is current.side}
         actions: dict[type[SidebarEdge], SidebarShift] = {}
         for direction in SidebarEdge.members_with(SidebarEdge):
-            if direction.axis() is not current.side.axis():
-                actions[direction] = MoveSidebarShift()
-                continue
-            inward = direction is not current.side
-            neighbor_order = current.order + (1 if inward else -1)
-            if any(key != identity and peer.side is current.side and peer.order == neighbor_order
-                   for key, peer in placements.items()):
+            if direction in steps and current.order + steps[direction] in orders:
                 actions[direction] = SwapSidebarShift()
-            elif inward:
-                actions[direction] = MoveSidebarShift()
-            else:
+            elif direction is current.side:
                 actions[direction] = BlockedSidebarShift()
+            else:
+                actions[direction] = MoveSidebarShift()
         return actions
 
     def shift(self, identity: type[SidebarPlacement], direction: type[SidebarEdge]) -> bool:
