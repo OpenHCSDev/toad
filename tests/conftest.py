@@ -9,7 +9,6 @@ import json
 import os
 from pathlib import Path
 import shutil
-import sys
 import warnings
 
 import pytest
@@ -21,6 +20,7 @@ from support.workspace import Workspace
 
 RESULT = "TOAD_TEST_RESULT"
 OPEN_DEFECTS = Path(__file__).with_name("open_defects.toml")
+TEMPLATE = pytest.StashKey["AppTestTemplate"]()
 
 
 class OrphanDefect(pytest.PytestWarning):
@@ -73,31 +73,25 @@ class OwnProcessTest(pytest.Item):
     """
 
     def runtest(self):
-        from agent_comms.child_process import BoundedRun
         from support.processes import stop_test_children
+        from support.template import AppTestTemplate
 
         roots = Roots.create()
         result = roots.attempt / "result.jsonl"
         env = roots.environment(dict(os.environ)) | {RESULT: str(result)}
-        command = (sys.executable, "-m", "pytest", self.nodeid, "-p", "no:cacheprovider",
-                   "-q", "--no-header", "--tb=short", "--color=no")
-
-        async def run():
-            try:
-                return await BoundedRun.run(command, timeout=self.config.getoption("--test-timeout"),
-                                            cwd=self.config.rootpath, env=env)
-            finally:
-                # Closing the app leaves owners and helpers running; stop the ones this test started.
-                await stop_test_children(str(roots.attempt))
-
-        child = asyncio.run(run())
+        config = self.config
+        if (template := config.stash.get(TEMPLATE, None)) is None:
+            template = config.stash[TEMPLATE] = AppTestTemplate(config.rootpath)
+        try:
+            child = template.run(self.nodeid, env=env, attempt=roots.attempt,
+                                 timeout=config.getoption("--test-timeout"))
+        finally:
+            # Closing the app leaves owners and helpers running; stop the ones this test started.
+            asyncio.run(stop_test_children(str(roots.attempt)))
         reports = [json.loads(line) for line in result.read_text().splitlines()] if result.exists() else []
         output = child.stdout.decode(errors="replace")[-12000:] + child.stderr.decode(errors="replace")[-4000:]
-        failed = not child.outcome.successful or not reports
-        if failed:
-            (roots.attempt / "stdout.log").write_bytes(child.stdout)
-            (roots.attempt / "stderr.log").write_bytes(child.stderr)
-            pytest.fail(f"{child.outcome!r}\n{output}\nRoots kept: {roots.attempt}", pytrace=False)
+        if not child.successful or not reports:
+            pytest.fail(f"{child!r}\n{output}\nRoots kept: {roots.attempt}", pytrace=False)
         shutil.rmtree(roots.attempt)
         for report in reports:
             if report["outcome"] == "skipped":
@@ -124,6 +118,8 @@ def pytest_collection_modifyitems(config, items):
 def pytest_unconfigure(config):
     """Helpers inherit this process's pipes; the runner reads until they close, so a test
     whose close failed would otherwise run out its whole timeout after it already reported."""
+    if (template := config.stash.get(TEMPLATE, None)) is not None:
+        template.stop()
     if (attempt := os.environ.get(ATTEMPT)) is not None:
         from support.processes import stop_test_children
 
