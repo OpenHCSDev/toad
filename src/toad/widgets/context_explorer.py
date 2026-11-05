@@ -336,7 +336,7 @@ class ContextCorrect(SelectedSourceButton):
             return
         show_target_menu(
             self.screen,
-            self.region.offset,
+            self.region,
             "Correct original answer",
             [(answer.declared_name, answer.public_title()) for answer in answers],
             {answer.declared_name: partial(self._correct, explorer, model, answer) for answer in answers},

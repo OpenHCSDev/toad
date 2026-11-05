@@ -13,7 +13,7 @@ from textual.view import (
 from toad.widget_actions import HiddenActions
 from textual.color import TRANSPARENT
 from textual.css._style_properties import Edges
-from textual.geometry import Offset
+from textual.geometry import Region, Spacing
 from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 from ui_theme.scheme import BackgroundColour, ForegroundColour, PrimaryColour
@@ -32,15 +32,18 @@ class ContextMenuOptions[Choice](WidgetView, OptionList):
     width = height = AUTO
     position = "absolute"
     overlay = "screen"
-    # A menu that does not fit below its anchor opens above it rather than sliding over it.
     constrain_x = "inside"
     constrain_y = "inflect"
     vertical_scrollbar_size = horizontal_scrollbar_size = 0
 
-    def __init__(self, menu_offset: Offset, title: str, items) -> None:
+    def __init__(self, anchor: Region, title: str, items) -> None:
         super().__init__(*(ContextMenuItem(action, label) for action, label in items))
         self.border_title = title
-        self.absolute_offset = menu_offset
+        # The menu opens just below what opened it, or just above when it does not fit:
+        # it starts at the anchor with the anchor's height as its top margin, and an
+        # inflected placement steps back over that margin.
+        self.absolute_offset = anchor.offset
+        self.margin = Spacing(anchor.height, 0, 0, 0)
         self.highlighted = 0 if self.option_count else None
 
     @property
@@ -62,22 +65,23 @@ class ContextMenu[Choice](HiddenActions, WidgetView, DismissibleScreen[Choice]):
     width = height = FILL
     paint_background = TRANSPARENT
 
-    def __init__(self, menu_offset: Offset, title: str, items) -> None:
+    def __init__(self, anchor: Region, title: str, items) -> None:
+        """`anchor` is what opened the menu: a button's region, or a zero-size region at a pointer."""
         super().__init__()
-        self.options = ContextMenuOptions[Choice](menu_offset, title, items)
+        self.options = ContextMenuOptions[Choice](anchor, title, items)
 
     def compose(self):
         yield self.options
 
     @classmethod
-    def show(cls, screen, menu_offset: Offset, title: str, items, *, callback):
-        menu = cls(menu_offset, title, items)
+    def show(cls, screen, anchor: Region, title: str, items, *, callback):
+        menu = cls(anchor, title, items)
         screen.app.push_screen(menu, callback)
         return menu
 
     @classmethod
-    async def choose(cls, screen, menu_offset: Offset, title: str, items):
-        return await screen.app.push_screen_wait(cls(menu_offset, title, items))
+    async def choose(cls, screen, anchor: Region, title: str, items):
+        return await screen.app.push_screen_wait(cls(anchor, title, items))
 
     @on(OptionList.OptionSelected)
     def item_selected(self, event: OptionList.OptionSelected) -> None:
@@ -92,7 +96,7 @@ class ContextMenu[Choice](HiddenActions, WidgetView, DismissibleScreen[Choice]):
 
 def show_target_menu(
     screen,
-    menu_offset: Offset,
+    anchor: Region,
     title: str,
     items: list[tuple[str, str]],
     actions: dict[str, Callable[[], None]],
@@ -102,4 +106,4 @@ def show_target_menu(
         if choice and choice in actions:
             actions[choice]()
 
-    ContextMenu.show(screen, menu_offset, title, items, callback=handle)
+    ContextMenu.show(screen, anchor, title, items, callback=handle)

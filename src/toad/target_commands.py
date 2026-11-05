@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import TYPE_CHECKING, Self
 
+from textual.geometry import Region
+
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
@@ -73,7 +75,7 @@ class TargetContext:
                     or not sidebar.model_state.serves(self.observed.root)
                     or sidebar.app.screen is not selected_screen):
                 return
-            show_target_menu(selected_screen, offset, self.title,
+            show_target_menu(selected_screen, Region.from_offset(offset, (0, 0)), self.title,
                 [(command.command.removeprefix('/'), command.label(self)) for command in choices],
                 {command.command.removeprefix('/'): partial(self.execute_menu, sidebar, command)
                  for command in choices})

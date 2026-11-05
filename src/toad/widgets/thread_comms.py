@@ -19,7 +19,7 @@ from agent_comms.ui_model.unread import UnobservedUnread
 from textual import on
 from textual.document._editing import EditingMode
 from textual.content import Content
-from textual.geometry import Offset
+from textual.geometry import Offset, Region
 from textual.widgets import Static
 from toad.native_style import (
     AutoHeight,
@@ -608,7 +608,7 @@ class ThreadCommsSidebar(
         items.append(("copy", "Copy name"))
         show_target_menu(
             self.screen,
-            offset,
+            Region.from_offset(offset, (0, 0)),
             target,
             items,
             {"open": open_selected, "copy": lambda: self.app.copy_to_clipboard(target)},
