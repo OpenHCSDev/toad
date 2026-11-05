@@ -188,7 +188,7 @@ class SortMembersCommand(ViewCommand, declared_name="sort"):
 
     def execute(self, ctx: TargetContext) -> None:
         group = ctx.app.workspace_chrome.channels.roster.groups[ctx.selected_targets[0]]
-        ctx.app.run_worker(group.open_sort(), group="sort-order")
+        ctx.app.run_worker(group.sort_choice.open_sort(), group="sort-order")
 
 
 class CloseViewCommand(ViewCommand, declared_name="close_view"):

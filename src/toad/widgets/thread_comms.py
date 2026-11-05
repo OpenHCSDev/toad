@@ -85,7 +85,7 @@ class RelationshipSort(SortControl[ThreadSort]):
         orders = {group.order for group in groups}
         self.update_order(next(iter(orders)) if len(orders) == 1 else None)
 
-    async def order_writer(self, host):
+    async def order_writer(self):
         tree = self.query_ancestor(SideBarCollapsible).query_one(ThreadCommsSidebar)
         identity, generation = tree.thread_view.thread_identity, tree._generation
         snapshot = tree._snapshot

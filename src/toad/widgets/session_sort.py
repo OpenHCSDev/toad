@@ -22,7 +22,7 @@ from typing import Annotated, ClassVar
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
-from agent_comms.tools import CommsSortChannelTool, CommsSortChannelsTool
+from agent_comms.tools import CommsSortChannelsTool
 from python_introspect import FieldLabel
 from textual.geometry import Region
 from textual.widget import Widget
@@ -89,48 +89,59 @@ class SortChoice[Order: DisplayOrder]:
         return (f"Sort {self.scope} by {order.label().lower()}" if order is not None
                 else f"Choose how to sort {self.scope}")
 
-    async def open_sort(self, host: Widget, region: Region) -> None:
-        """Open the choice's menu under `region`, in `host`'s screen."""
+    @property
+    @abstractmethod
+    def sort_host(self) -> Widget:
+        """The widget presenting this choice: its app, screen and workers run the menu."""
+
+    @property
+    @abstractmethod
+    def sort_anchor(self) -> Region:
+        """Where the presenter shows this choice; the menu opens under it."""
+
+    async def open_sort(self) -> None:
+        """Open the choice's menu under its anchor."""
+        host = self.sort_host
         form = self.form
         if form is None:
             host.notify("Ordering is not available yet", title="Sort", severity="warning")
             return
-        write = await self.order_writer(host)
+        write = await self.order_writer()
 
         choices = form.choices
         orders = tuple(choices.choices())
-        items = [(partial(self._choose_order, host, order, write), choices.label(order))
+        items = [(partial(self._choose_order, order, write), choices.label(order))
                  for order in orders]
         for path in self.visibility_fields():
             field = path.bind(host.app.saved_settings.state)
-            items.append((partial(self._toggle_visibility, host, path),
+            items.append((partial(self._toggle_visibility, path),
                           f"{'✓' if field.value else '○'} {field.label}"))
 
         def choose(action):
             if action:
                 action()
 
-        menu = ContextMenu.show(host.screen, region, "Sort", items, callback=choose)
+        menu = ContextMenu.show(host.screen, self.sort_anchor, "Sort", items, callback=choose)
         for index, order in enumerate(orders):
             if order is self.order:
                 menu.options.highlighted = index
 
-    def _choose_order(self, host: Widget, order: type[Order],
+    def _choose_order(self, order: type[Order],
                       write: Callable[[type[Order]], Awaitable[object]]) -> None:
         if order is not self.order:
             # Only the backend observation updates the displayed order.
-            host.run_worker(write(order), group="sort-order")
+            self.sort_host.run_worker(write(order), group="sort-order")
 
-    def _toggle_visibility(self, host: Widget, path: FieldPath) -> None:
-        settings = host.app.saved_settings
+    def _toggle_visibility(self, path: FieldPath) -> None:
+        settings = self.sort_host.app.saved_settings
         settings.toggle(path)
-        host.run_worker(settings.save(), group="channel-visibility")
+        self.sort_host.run_worker(settings.save(), group="channel-visibility")
 
     def visibility_fields(self) -> tuple[FieldPath, ...]:
         return ()
 
     @abstractmethod
-    async def order_writer(self, host: Widget) -> Callable[[type[Order]], Awaitable[object]]: ...
+    async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...
 
 
 class SortControl[Order: DisplayOrder](
@@ -164,8 +175,16 @@ class SortControl[Order: DisplayOrder](
         if self.tooltip != (tooltip := self.sort_tooltip):
             self.tooltip = tooltip
 
+    @property
+    def sort_host(self) -> Widget:
+        return self
+
+    @property
+    def sort_anchor(self) -> Region:
+        return self.region
+
     async def activate(self):
-        await self.open_sort(self, self.region)
+        await self.open_sort()
 
 
 class CommsSortChoice[Order: DisplayOrder](SortChoice[Order]):
@@ -175,7 +194,8 @@ class CommsSortChoice[Order: DisplayOrder](SortChoice[Order]):
     @abstractmethod
     def order_request(self, order: type[Order]) -> ToolRequest: ...
 
-    async def order_writer(self, host: Widget) -> Callable[[type[Order]], Awaitable[object]]:
+    async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
+        host = self.sort_host
         access = host.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
         return partial(self.write_order, observed, access, host.screen.coordination_root)
@@ -183,17 +203,6 @@ class CommsSortChoice[Order: DisplayOrder](SortChoice[Order]):
     async def write_order(self, observed: Observing, access: CoordinationAccess, root,
                           order: type[Order]) -> object:
         return await observed.write_order(access, root, self.order_request(order))
-
-
-class ThreadSortChoice(CommsSortChoice[ThreadSort]):
-    """A channel's member order, presented by its header line."""
-
-    def __init__(self, channel: str):
-        self.channel = channel
-        super().__init__(ThreadSortForm, channel)
-
-    def order_request(self, order: type[ThreadSort]) -> CommsSortChannelTool:
-        return CommsSortChannelTool(name=self.channel, order=order)
 
 
 class ChannelListSort(CommsSortChoice[ChannelSort], SortControl[ChannelSort]):

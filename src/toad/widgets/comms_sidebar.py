@@ -22,7 +22,10 @@ from typing import TYPE_CHECKING
 from agent_comms.ui_model.sidebar import ChannelRowModel
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
-from textual.geometry import Offset
+from agent_comms.display_order import ThreadSort
+from agent_comms.tools import CommsSortChannelTool
+from textual.geometry import Offset, Region
+from textual.widget import Widget
 from textual.reactive import reactive
 from ui_theme.effects import NEW_MESSAGE
 from textual.widgets import Static
@@ -40,7 +43,7 @@ from toad.session_tracker import SidebarSelection
 from toad.widgets.selection import HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widget_actions import HiddenActions, OpenSelectedAction, OpensSelected
-from toad.widgets.session_sort import ChannelListSort, ThreadSortChoice
+from toad.widgets.session_sort import ChannelListSort, CommsSortChoice, ThreadSortForm
 from toad.widgets.sidebar_tree import ActiveSegment, GroupHeaderLine, HeaderSegment, SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.tone_paint import AlternatingTone
 from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
@@ -75,10 +78,29 @@ class ChannelSortSegment(ActiveSegment):
         return Content.styled(f" {group.sort_choice.sort_label}", "$text-muted")
 
     async def activate(self, row: GroupHeaderLine) -> None:
-        await row.header_group.open_sort()
+        await row.header_group.sort_choice.open_sort()
 
 
 CHANNEL_SORT = ChannelSortSegment()
+
+
+class ChannelSortChoice(CommsSortChoice[ThreadSort]):
+    """A channel's member order, presented by its header line's order stretch."""
+
+    def __init__(self, row: ChannelHeaderRow):
+        self.row = row
+        super().__init__(ThreadSortForm, row.target_name)
+
+    @property
+    def sort_host(self) -> Widget:
+        return self.row
+
+    @property
+    def sort_anchor(self) -> Region:
+        return self.row.segment_region(CHANNEL_SORT)
+
+    def order_request(self, order: type[ThreadSort]) -> CommsSortChannelTool:
+        return CommsSortChannelTool(name=self.row.target_name, order=order)
 
 
 class ChannelGroup(SidebarGroup["ThreadRow"]):
@@ -88,16 +110,12 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
 
     def __init__(self, row: ChannelHeaderRow, *, expanded: bool):
         self.channel: ChannelRowModel = UnpaintedChannel(row.target_name)
-        self.sort_choice = ThreadSortChoice(row.target_name)
+        self.sort_choice = ChannelSortChoice(row)
         super().__init__(row, expanded=expanded)
 
     @property
     def sidebar(self) -> CommsSidebar:
         return self.query_ancestor(CommsSidebar)
-
-    async def open_sort(self) -> None:
-        """The member-order menu, under the header line's order stretch."""
-        await self.sort_choice.open_sort(self.row, self.row.segment_region(CHANNEL_SORT))
 
     def present(self, channel: ChannelRowModel) -> frozenset[str]:
         """Paint the header and return members whose channel pin changed."""
