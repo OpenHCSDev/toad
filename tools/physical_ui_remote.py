@@ -44,7 +44,7 @@ from toad.agent_binding import NoAgentConnection
 from toad.core.projection import MroProjection
 from toad.tab_identity import TabIdentity
 from ui_theme.wal import WalFile
-from agent_comms.store_files import ExclusiveAtomicFile
+from agent_comms.storage.store_files import ExclusiveAtomicFile
 
 
 class PendingRun(RuntimeError):

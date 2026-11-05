@@ -1,5 +1,5 @@
 from toad.core import events as core_events
-from agent_comms.locked_store import RootFile
+from agent_comms.storage.locked_store import RootFile
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoreConnection
