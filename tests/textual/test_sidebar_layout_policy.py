@@ -160,3 +160,28 @@ def test_resizing_either_bar_in_a_band_resizes_the_whole_band(side, resized, per
     bars = layout.resolve(Size(80, 40), {key: False for key in layout.placements}).bars
     assert side_by_side(*bars.values()), bars
     assert {side.extent(bar.size) for bar in bars.values()} == {40 * percent // 100}, bars
+
+
+@pytest.mark.parametrize("side", SidebarEdge.members_with(HeightSidebarEdge))
+def test_a_band_split_shares_the_width_survives_other_changes_and_keeps_both_bars_usable(side):
+    layout = layout_for()
+    layout.move(ChannelsSidebarPlacement, side)
+    layout.move(ThreadSidebarPlacement, side)
+    open_bars = {key: False for key in layout.placements}
+
+    def widths() -> list[int]:
+        bars = layout.resolve(Size(80, 40), open_bars).bars
+        assert side_by_side(*bars.values()), bars
+        return [bar.width for bar in sorted(bars.values(), key=lambda bar: bar.x)]
+
+    assert widths() == [40, 40]
+    assert layout.set_split(side, 70)
+    assert widths() == [56, 24]
+    layout.resize(ThreadSidebarPlacement, 30)
+    layout.swap(ThreadSidebarPlacement)
+    assert layout.split(side) == 70 and widths() == [56, 24], "Placement changes keep the split"
+    assert layout.set_split(side, 0)
+    assert widths() == [HeightSidebarEdge.cross_minimum, 80 - HeightSidebarEdge.cross_minimum]
+    assert layout.splits_after(layout.ordered()[0]) != layout.splits_after(layout.ordered()[1])
+    reloaded = layout_for(SavedSettings(layout.settings.document()))
+    assert reloaded.split(side) == 0 and reloaded.placements == layout.placements, "The split is saved"

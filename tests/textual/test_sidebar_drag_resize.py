@@ -6,7 +6,7 @@ from toad.key_modes import Standard
 from toad.keymap import KeymapRow
 from toad.preferences import SETTINGS
 from textual.keys import RightKey
-from toad.sidebar_placement import SidebarEdge, WidthSidebarEdge
+from toad.sidebar_placement import HeightSidebarEdge, SidebarEdge, WidthSidebarEdge
 from toad.widgets.side_bar import (
     SideBarToggle, SidebarAction, SidebarResizeHandle, SidebarSlider, TabHistoryControls,
 )
@@ -114,3 +114,49 @@ async def test_zero_motion_resize_keeps_requested_percentage_on_every_edge(works
         assert bar.placement.extent_percent == 40
         assert bar.region == before
         assert not handle._dragging and app.mouse_captured is None
+
+
+@pytest.mark.parametrize("side", SidebarEdge.members_with(HeightSidebarEdge))
+async def test_dragging_the_band_splitter_shares_the_band_and_only_the_first_bar_carries_it(workspace, side):
+    async with workspace.app(size=(120, 40)) as ui:
+        app, pilot = ui.textual
+        channels = app.workspace_chrome.channels
+        thread = app.selected_session.thread_sidebar
+        channels.reveal()
+        thread.reveal()
+        app.sidebar_layout.move(channels.placement_identity, side)
+        app.sidebar_layout.move(thread.placement_identity, side)
+        app.workspace_chrome.refresh_layout()
+        await ui.step()
+        first, second = sorted((channels, thread), key=lambda bar: bar.region.x)
+        handle = first.split_handle
+        assert handle.display and not second.split_handle.display
+        assert handle.region.right == first.region.right == second.region.x, (handle.region, first.region, second.region)
+        x, y = handle.region.x, handle.region.y + 2
+        assert await pilot.mouse_down(handle, offset=(0, 2))
+        assert not app.screen._selecting, "The splitter started a text selection"
+        await pilot.hover(offset=(x + 12, y))
+        await pilot.mouse_up(offset=(x + 12, y))
+        await ui.step()
+        assert app.sidebar_layout.split(side) == 60
+        assert first.region.width == 72 and second.region.x == 72, (first.region, second.region)
+        assert not handle._dragging and app.mouse_captured is None
+        handle.focus()
+        await ui.press("left")
+        assert app.sidebar_layout.split(side) == 59
+        # Past the narrowest bar the store keeps "as small as it goes"; the next move
+        # starts from the drawn bar, so the handle answers at once, with no dead zone.
+        app.sidebar_layout.set_split(side, 0)
+        app.workspace_chrome.refresh_layout()
+        await ui.step()
+        assert first.region.width == HeightSidebarEdge.cross_minimum
+        x = handle.region.x
+        assert await pilot.mouse_down(handle, offset=(0, 2))
+        await pilot.hover(offset=(x + 12, y))
+        await pilot.mouse_up(offset=(x + 12, y))
+        await ui.step()
+        assert first.region.width == HeightSidebarEdge.cross_minimum + 12, first.region
+        app.sidebar_layout.move(thread.placement_identity, side.opposite())
+        app.workspace_chrome.refresh_layout()
+        await ui.step()
+        assert not channels.split_handle.display and not thread.split_handle.display

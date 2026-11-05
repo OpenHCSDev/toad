@@ -11,7 +11,7 @@ from textual.geometry import Region, Size, Spacing
 from textual.widgets import Static
 
 from toad.preferences import SETTINGS, SavedSettings
-from toad.sidebar_placement import SidebarEdge, SidebarGeometry, SidebarPlacement
+from toad.sidebar_placement import BandSplit, SidebarEdge, SidebarGeometry, SidebarPlacement
 from toad.terminal_origin import TerminalLayout, TerminalOrigin
 
 
@@ -137,17 +137,42 @@ class SidebarLayout:
         self.settings, self.origin = settings, origin
 
     @property
+    def terminal(self) -> TerminalLayout:
+        """This origin's saved arrangement, or an empty one until something is saved."""
+        saved = (terminal for terminal in self.settings.current.layout.terminals
+                 if terminal.origin is self.origin)
+        return next(saved, TerminalLayout(self.origin))
+
+    @property
     def placements(self) -> dict[type[SidebarPlacement], SidebarPlacement]:
-        saved = {type(placement): placement
-                 for terminal in self.settings.current.layout.terminals if terminal.origin is self.origin
-                 for placement in terminal.placements}
+        saved = {type(placement): placement for placement in self.terminal.placements}
         return {role: saved.get(role, role.initial()) for role in SidebarPlacement.members_with(SidebarPlacement)}
 
+    def split(self, side: type[SidebarEdge]) -> int:
+        """The first bar's share of the band on this edge."""
+        saved = {split.side: split for split in self.terminal.splits}
+        return saved.get(side, BandSplit(side)).percent
+
+    def set_split(self, side: type[SidebarEdge], percent: int) -> bool:
+        percent = max(0, min(100, percent))
+        if self.split(side) == percent:
+            return False
+        others = tuple(split for split in self.terminal.splits if split.side is not side)
+        self._save(replace(self.terminal, splits=(*others, BandSplit(side, percent))))
+        return True
+
+    def splits_after(self, identity: type[SidebarPlacement]) -> bool:
+        """Whether another bar follows this one in the room it shares: its splitter shows."""
+        slot = self._slot(self.placements, identity)
+        return slot.index(identity) < len(slot) - 1
+
     def _store(self, placements: dict[type[SidebarPlacement], SidebarPlacement]) -> None:
-        others = tuple(terminal for terminal in self.settings.current.layout.terminals
-                       if terminal.origin is not self.origin)
-        self.settings.set(SETTINGS.layout.terminals,
-                          (*others, TerminalLayout(self.origin, tuple(placements.values()))))
+        self._save(replace(self.terminal, placements=tuple(placements.values())))
+
+    def _save(self, terminal: TerminalLayout) -> None:
+        others = tuple(saved for saved in self.settings.current.layout.terminals
+                       if saved.origin is not self.origin)
+        self.settings.set(SETTINGS.layout.terminals, (*others, terminal))
 
     def get(self, identity: type[SidebarPlacement]) -> SidebarPlacement:
         return self.placements[identity]
@@ -272,7 +297,7 @@ class SidebarLayout:
             for side, keys in sides.items():
                 sized = {key: axis.collapsed_extent if collapsed[key] and not folded[slot] else extents[slot]
                          for slot in side.slots(keys) for key in slot}
-                packed = dict(zip(keys, side.pack([sized[key] for key in keys], viewport)))
+                packed = dict(zip(keys, side.pack([sized[key] for key in keys], viewport, self.split(side))))
                 spans.update(packed)
                 reach = {key: span.offset + span.extent for key, span in packed.items()}
                 occupied += side.gutter(max(reach.values(), default=0))
