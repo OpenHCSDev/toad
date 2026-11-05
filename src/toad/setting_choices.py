@@ -7,7 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from random import choice
 from threading import Lock
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from agent_comms.declared_choice import DeclaredChoice, TitledChoice
 from textual.color import TRANSPARENT, Color
@@ -15,13 +15,11 @@ from textual.content import Content
 from textual.css._style_properties import Edges
 from textual.css.types import AlignHorizontal
 from textual.geometry import Spacing
+from textual.widget import Widget
 
 from toad.acp.status import ToolCallStatus
 from toad.platform import DesktopService, host
 from toad.widgets.future_text import FutureText
-
-if TYPE_CHECKING:
-    from textual.widget import Widget
 
 
 @dataclass(frozen=True)
