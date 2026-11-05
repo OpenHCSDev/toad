@@ -689,24 +689,33 @@ class BandSplitHandle(
     def render(self) -> str:
         return "\n".join("│" for _ in range(self.size.height))
 
+    @property
+    def drawn_percent(self) -> int:
+        """The split as the band draws it: the stored split may ask for less than a bar's
+        minimum width, and a move starts from what the user sees."""
+        bar = self.query_ancestor(SideBar)
+        return round(100 * bar.region.width / max(1, self.band_width))
+
+    @property
+    def band_width(self) -> int:
+        return self.query_ancestor(SideBar).query_ancestor(Widget).content_size.width
+
     def split_to(self, percent: int) -> None:
         bar = self.query_ancestor(SideBar)
         if self.app.sidebar_layout.set_split(bar.placement.side, percent):
             bar.arranged()
 
     def drag_start(self, event: events.MouseDown) -> None:
-        bar = self.query_ancestor(SideBar)
         self._start_point = event.screen_offset
-        self._start_percent = self.app.sidebar_layout.split(bar.placement.side)
-        self._drag_width = bar.query_ancestor(Widget).content_size.width
+        self._start_percent = self.drawn_percent
+        self._drag_width = self.band_width
 
     def drag_to(self, position: Offset) -> None:
         delta = position.x - self._start_point.x
         self.split_to(self._start_percent + round(100 * delta / max(1, self._drag_width)))
 
     def cursor_horizontal(self, direction: int) -> None:
-        bar = self.query_ancestor(SideBar)
-        self.split_to(self.app.sidebar_layout.split(bar.placement.side) + direction)
+        self.split_to(self.drawn_percent + direction)
 
 
 class ClearSidebarSearchAction(WidgetAction):

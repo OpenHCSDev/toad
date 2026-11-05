@@ -144,6 +144,18 @@ async def test_dragging_the_band_splitter_shares_the_band_and_only_the_first_bar
         handle.focus()
         await ui.press("left")
         assert app.sidebar_layout.split(side) == 59
+        # Past the narrowest bar the store keeps "as small as it goes"; the next move
+        # starts from the drawn bar, so the handle answers at once, with no dead zone.
+        app.sidebar_layout.set_split(side, 0)
+        app.workspace_chrome.refresh_layout()
+        await ui.step()
+        assert first.region.width == HeightSidebarEdge.cross_minimum
+        x = handle.region.x
+        assert await pilot.mouse_down(handle, offset=(0, 2))
+        await pilot.hover(offset=(x + 12, y))
+        await pilot.mouse_up(offset=(x + 12, y))
+        await ui.step()
+        assert first.region.width == HeightSidebarEdge.cross_minimum + 12, first.region
         app.sidebar_layout.move(thread.placement_identity, side.opposite())
         app.workspace_chrome.refresh_layout()
         await ui.step()
