@@ -11,7 +11,6 @@ from itertools import zip_longest
 from random import shuffle
 from typing import Literal, Self
 
-from textual.binding import ModeBinding
 from toad.widget_actions import DismissibleControl, CyclesFocus, Launches, WidgetAction, ProfileKeys
 from textual.document._editing import EditingMode, VimMode
 from textual.screen import Screen
@@ -261,25 +260,6 @@ Your favorite agents.
 """
     BINDING_GROUP_TITLE = "Launcher"
 
-
-    def action_details(self) -> None:
-        if self.highlighted is None:
-            return
-        agent_item = self.children[self.highlighted]
-        assert isinstance(agent_item, LauncherItem)
-        self.publish_core(input_events.OpenAgentDetails(agent_item._agent.identity))
-
-    def action_remove(self) -> None:
-        agents = self.app.settings.launcher.agents.splitlines()
-        if self.highlighted is None:
-            return
-        try:
-            del agents[self.highlighted]
-        except IndexError:
-            pass
-        else:
-            self.app.saved_settings.set(SETTINGS.launcher.agents, "\n".join(agents))
-
     async def launch(self) -> None:
         if self.highlighted is None:
             return
@@ -503,7 +483,41 @@ class LaunchSlotAction(WidgetAction):
         await launcher.launch_highlighted()
 
 
-class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode, actions=(LaunchSlotAction,)):
+class StoreAction(WidgetAction, affix="Action"):
+    """What the store does on its own keys."""
+
+
+class ResumeAction(StoreAction):
+    """Resume a previous session"""
+
+    title = "Resume"
+    keys = {EditingMode: ("ctrl+r",)}
+    show = True
+
+    def apply(self, context: StoreScreen) -> None:
+        # Waiting on a dismissal needs a worker; the store owns its lifetime.
+        context.run_worker(self.choose(context), group="resume", exclusive=True)
+
+    async def choose(self, context: StoreScreen) -> None:
+        from toad.screens.session_resume_modal import SessionResumeModal
+
+        choice = await context.app.push_screen_wait(SessionResumeModal())
+        choice.resume(context.app)
+
+
+class FocusDirectoryAction(StoreAction):
+    """Change project directory"""
+
+    title = "Directory"
+    keys = {EditingMode: ("ctrl+d",)}
+    show = True
+
+    async def apply(self, context: StoreScreen) -> None:
+        context.query_one(DirectoryDisplay).focus()
+
+
+class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
+                  actions=(LaunchSlotAction, StoreAction)):
     BINDING_GROUP_TITLE = "Screen"
 
     launcher = getters.query_one(Launcher)
@@ -553,19 +567,14 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
             "\n\n",
             (
                 Content.from_markup(
-                    "[dim]Code: [@click=screen.url('https://github.com/batrachianai/toad')]Repository[/] • "
-                    "Bugs: [@click=screen.url('https://github.com/batrachianai/toad/discussions')]Discussions[/] • "
-                    "Sponsor: [@click=screen.url('https://github.com/sponsors/willmcgugan')]@willmcgugan[/]"
+                    "[dim]Code: [@click=app.open_url('https://github.com/batrachianai/toad')]Repository[/] • "
+                    "Bugs: [@click=app.open_url('https://github.com/batrachianai/toad/discussions')]Discussions[/] • "
+                    "Sponsor: [@click=app.open_url('https://github.com/sponsors/willmcgugan')]@willmcgugan[/]"
                 )
             ),
         )
 
         return content
-
-    def action_url(self, url: str) -> None:
-        import webbrowser
-
-        webbrowser.open(url)
 
     def compose_agents(self) -> ComposeResult:
         agents = self._agents
@@ -590,7 +599,7 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
                     for agent in recommended_agents:
                         yield AgentItem(agent)
                     yield SponsorItem(
-                        "[$text-warning]Your agent here[/] — support development of Toad by [@click=screen.url('https://github.com/sponsors/willmcgugan')]sponsoring[/] this project",
+                        "[$text-warning]Your agent here[/] — support development of Toad by [@click=app.open_url('https://github.com/sponsors/willmcgugan')]sponsoring[/] this project",
                     )
 
         from toad.agent_schema import AgentKind
@@ -637,15 +646,6 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
         assert isinstance(event.widget, AgentItem)
         await self.show_agent(event.widget.agent)
 
-    @handles(input_events.OpenAgentDetails)
-    @work
-    async def open_agent_detail(self, event: input_events.OpenAgentDetails) -> None:
-        try:
-            agent = self._agents[event.identity]
-        except KeyError:
-            return
-        await self.show_agent(agent)
-
     @on(GridSelect.Selected, "LauncherGridSelect")
     @work
     async def on_launcher_selected(self, event: GridSelect.Selected):
@@ -684,28 +684,3 @@ class StoreScreen(ProfileKeys, CyclesFocus, CoreEventReceiver, Screen, ToadNode,
                 self.screen.query(GridSelect).focus()
 
             self.call_later(focus_screen)
-
-    @work
-    async def resume(self) -> None:
-        from toad.screens.session_resume_modal import SessionResumeModal
-
-        session = await self.app.push_screen_wait(SessionResumeModal())
-        if session is not None:
-            self.app.session_navigation.events.publish(
-                session_requests.LaunchAgent(
-                    session.agent_identity,
-                    session.agent_session_id,
-                    pk=session.id,
-                )
-            )
-
-    async def focus_directory(self) -> None:
-        if (directory_display := self.query_one_optional(DirectoryDisplay)) is not None:
-            directory_display.focus()
-
-    MODE_BINDINGS = (
-        ModeBinding("ctrl+r", resume, "Resume", mode=EditingMode,
-                    tooltip="Resume a previous session"),
-        ModeBinding("ctrl+d", focus_directory, "Directory", mode=EditingMode,
-                    tooltip="Change project directory"),
-    )

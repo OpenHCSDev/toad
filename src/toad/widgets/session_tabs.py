@@ -48,7 +48,7 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
 
     @property
     def current(self) -> bool:
-        return self.id == self.app.selected_mode
+        return self.mode_name == self.app.selected_mode
 
     @property
     def paint_text_style(self):
@@ -59,8 +59,9 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
         return (self.app.colours.colour(ForegroundColour).multiply_alpha(0.1)
                 if self.mouse_hover else TRANSPARENT)
 
-    def __init__(self, tab: OpenTab, **kwargs):
-        super().__init__(Content(), **kwargs)
+    def __init__(self, tab: OpenTab):
+        super().__init__(Content(), id=tab.mode_name)
+        self.mode_name = tab.mode_name
         self.present(tab)
 
     def present(self, tab: OpenTab) -> bool:
@@ -85,23 +86,21 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, ChangingText, widge
 
     @property
     def primary_activation(self):
-        return self.action_select_session
+        return self.select_session
 
-    def action_select_session(self) -> None:
-        if self.id is not None:
-            self.app.select_session(self.id)
+    def select_session(self) -> None:
+        self.app.select_session(self.mode_name)
 
     def on_click(self, event: events.Click) -> None:
-        if self.id is not None:
-            if event.button == 2:
-                event.stop()
-                self.app.session_navigation.events.publish(session_requests.SessionClose(self.id))
-            elif event.button == 1:
-                # A second message-pump hop lets the old screen's pending
-                # full-layout timer run ahead of the user's tab click. The
-                # ordinary app mode-switch boundary already captures sidebar
-                # navigation and queues its serialized transition.
-                self.action_select_session()
+        if event.button == 2:
+            event.stop()
+            self.app.session_navigation.events.publish(session_requests.SessionClose(self.mode_name))
+        elif event.button == 1:
+            # A second message-pump hop lets the old screen's pending
+            # full-layout timer run ahead of the user's tab click. The
+            # ordinary app mode-switch boundary already captures sidebar
+            # navigation and queues its serialized transition.
+            self.select_session()
 
 
 class SessionTabClose(WidgetView, ActivationKeys, widgets.Static, can_focus=True):
@@ -304,7 +303,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
         with TabCells():
             with SessionTitles():
                 for session in tabs:
-                    yield SessionLabel(session, id=session.mode_name)
+                    yield SessionLabel(session)
                     yield SessionTabClose(session.mode_name)
             yield Underline()
 
@@ -381,7 +380,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
                     if previous_tabs.get(tab.mode_name) != tab:
                         geometry_changed |= label.present(tab)
                 else:
-                    new_widgets.extend((SessionLabel(tab, id=tab.mode_name), SessionTabClose(tab.mode_name)))
+                    new_widgets.extend((SessionLabel(tab), SessionTabClose(tab.mode_name)))
                     geometry_changed = True
             if new_widgets:
                 await self.title_container.mount(*new_widgets)

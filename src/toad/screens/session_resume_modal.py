@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from agent_comms.nominal.field_codec import RecordedTimestamp
 
@@ -19,6 +23,8 @@ from toad.native_style import (
 from toad.screens.modal import CenteredScreen, DismissibleScreen, ModalFrame
 
 
+from toad.app import ToadApp
+from toad.core import session_requests
 from toad.db import DB, Session
 
 HELP = """\
@@ -65,7 +71,35 @@ class ResumeButton(ConfirmButton):
     """Resumes the highlighted session."""
 
 
-class SessionResumeModal(Confirms, CenteredScreen, DismissibleScreen[Session]):
+class ResumeChoice(ABC):
+    """What closing the resume dialog asks the app to do."""
+
+    @abstractmethod
+    def resume(self, app: ToadApp) -> None: ...
+
+
+@dataclass(frozen=True)
+class ResumeSession(ResumeChoice):
+    session: Session
+
+    def resume(self, app: ToadApp) -> None:
+        app.session_navigation.events.publish(
+            session_requests.LaunchAgent(
+                self.session.agent_identity,
+                self.session.agent_session_id,
+                pk=self.session.id,
+            )
+        )
+
+
+class NoResume(ResumeChoice):
+    """The dialog was cancelled."""
+
+    def resume(self, app: ToadApp) -> None:
+        pass
+
+
+class SessionResumeModal(Confirms, CenteredScreen, DismissibleScreen[ResumeChoice]):
     """Dialog to select a session to resume."""
 
     session_table = getters.query_one(ResumeTable)
@@ -110,6 +144,8 @@ class SessionResumeModal(Confirms, CenteredScreen, DismissibleScreen[Session]):
         table.add_columns("Agent", "Session", "Created", "Last Used", "Path")
         db = DB()
         sessions = await db.session_get_recent()
+        # The rows are these sessions; choosing one needs no second read.
+        self._sessions = {str(session.id): session for session in sessions}
         for session in sessions:
             cwd = "".join(map(str, session.meta_json.cwd.present()))
 
@@ -122,18 +158,18 @@ class SessionResumeModal(Confirms, CenteredScreen, DismissibleScreen[Session]):
                 key=str(session.id),
             )
 
-    async def dissmiss_with_session(self, row_key_value: str) -> Session | None:
-        session_id = int(row_key_value)
-        db = DB()
-        session = await db.session_get(session_id)
-        self.dismiss(session)
+    def dismiss_control(self) -> None:
+        self.dismiss(NoResume())
+
+    def choose_session(self, row_key_value: str) -> None:
+        self.dismiss(ResumeSession(self._sessions[row_key_value]))
 
     async def confirm(self) -> None:
         table = self.session_table
         row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
         if row_key is None or row_key.value is None:
             return
-        await self.dissmiss_with_session(row_key.value)
+        self.choose_session(row_key.value)
 
     @on(widgets.DataTable.RowHighlighted)
     def on_data_table_row_highlighted(self) -> None:
@@ -145,7 +181,7 @@ class SessionResumeModal(Confirms, CenteredScreen, DismissibleScreen[Session]):
     ) -> None:
         if event.row_key is None or event.row_key.value is None:
             return
-        await self.dissmiss_with_session(event.row_key.value)
+        self.choose_session(event.row_key.value)
 
 
 if __name__ == "__main__":

@@ -13,9 +13,8 @@ from agent_comms.channel_targets import NoChannel
 from agent_comms.repo import Checkout
 from agent_comms.ui_model.sidebar import SidebarModel
 from textual.app import ComposeResult
-from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
-from toad.widget_actions import NativeMethodKeys, TogglesIrc
+from toad.widget_actions import NativeMethodKeys, TogglesIrc, WidgetAction
 from textual.containers import VerticalScroll
 from textual.geometry import Offset
 from textual.widgets import Static
@@ -209,6 +208,21 @@ class WelcomeNote(MutedText, SpacedAbove, Static):
     """The project line and the key hints."""
 
 
+class WelcomeAction(WidgetAction, affix="Action"):
+    """What the welcome view does on its own keys."""
+
+
+class NewSessionAction(WelcomeAction):
+    """Start a thread in the selected project, as the app's NewThreadAction does."""
+
+    title = "New session"
+    keys = {EditingMode: ("n",)}
+    show = True
+
+    async def apply(self, context: WelcomeScreen) -> None:
+        await NewThreadAction().apply(context.app)
+
+
 class WelcomeScreen(
     NativeMethodKeys,
     TogglesIrc,
@@ -216,6 +230,7 @@ class WelcomeScreen(
     CenteredChildren,
     SessionView,
     ToadNode,
+    actions=(WelcomeAction,),
     can_focus=False,
 ):
     AUTO_FOCUS = "WelcomeEntries NewSessionButton"
@@ -275,12 +290,6 @@ class WelcomeScreen(
         self.query_one(WelcomeTitle).stop_effect()
         await super().retire_presentation()
 
-    async def action_new_session(self) -> None:
-        await NewThreadAction().apply(self.app)
-
-    MODE_BINDINGS = (
-        ModeBinding("n", action_new_session, "New session", mode=EditingMode),
-    )
 
     async def toggle_irc(self) -> None:
         await self.open_sidebar_target(FeedTarget())

@@ -7,7 +7,6 @@ from collections.abc import Iterable
 
 from textual import containers, events
 from textual.app import ComposeResult
-from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
 from textual.view import (
     FILL,
@@ -23,7 +22,7 @@ from toad.forms.editors import SelectEditor
 from toad.forms.form_view import FormView, ValueView
 from toad.forms.presentation import FormInput, FormModal
 from toad.screens.modal import DismissibleScreen
-from toad.widget_actions import PriorityActions
+from toad.widget_actions import DismissAction, PriorityActions, WidgetAction
 from toad.setting_choices import SchemeName
 from toad.app_node import ToadNode
 
@@ -62,7 +61,37 @@ class SettingsPages(WidgetView, ContentSwitcher):
     height = FILL
 
 
-class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None], ToadNode):
+class SettingsAction(WidgetAction, affix="Action"):
+    """What the settings screen does on its own keys."""
+
+
+class FocusSearchAction(SettingsAction):
+    """Move to the settings search; hidden while the search already has focus."""
+
+    title = "Focus search"
+    keys = {EditingMode: ("ctrl+s",)}
+    show = True
+
+    def available(self, context: SettingsScreen) -> bool:
+        return not context.search.has_focus
+
+    def apply(self, context: SettingsScreen) -> None:
+        context.search.focus()
+
+
+class DiscardAction(SettingsAction):
+    """Throw away the edits not yet saved."""
+
+    title = "Discard changes"
+    keys = {EditingMode: ("ctrl+r",)}
+    show = True
+
+    def apply(self, context: SettingsScreen) -> None:
+        context.app.saved_settings.discard()
+
+
+class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None], ToadNode,
+                     actions=(SettingsAction,), scopes={PriorityActions: (DismissAction,)}):
     align_horizontal = "right"
     align_vertical = "top"
 
@@ -116,16 +145,3 @@ class SettingsScreen(PriorityActions, FormModal[None], DismissibleScreen[None], 
         self.finish()
         super().dismiss_control()
 
-    def focus_search(self) -> None:
-        self.search.focus()
-
-    def search_wanted(self) -> bool | None:
-        return None if self.search.has_focus else True
-
-    def discard(self) -> None:
-        self.app.saved_settings.discard()
-
-    MODE_BINDINGS = (
-        ModeBinding("ctrl+s", focus_search, "Focus search", mode=EditingMode, available=search_wanted),
-        ModeBinding("ctrl+r", discard, "Discard changes", mode=EditingMode),
-    )

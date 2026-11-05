@@ -29,7 +29,6 @@ from rich.style import Style
 from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
-from textual.binding import ModeBinding
 from textual.content import Content
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.query import NoMatches
@@ -137,7 +136,7 @@ from toad.widgets.observed_thread_activity import (
     ThreadStatusOwner,
 )
 from toad.widgets.prompt import Prompt
-from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
+from toad.widgets.session_details import OperationalSessionDetails
 from toad.widgets.shell_terminal import ShellTerminal
 from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.terminal import Terminal
@@ -853,7 +852,7 @@ class ConversationSessionBinding(
     @handles(core_events.ConfigurationChanged)
     async def on_acp_configuration_changed(self, event: core_events.ConfigurationChanged) -> None:
         self._update_model_info()
-        if (prompt := self.query_one_optional(Prompt)) is not None:
+        for prompt in self.query(Prompt):
             prompt.sync_configuration()
             prompt.sync_session()
         if self._initial_prompt is not None and self.agent_binding.ready:
@@ -1022,9 +1021,9 @@ class Conversation(
 
     def _turn_changed(self, owner: TurnOwner) -> None:
         self.sync_working()
-        if (prompt := self.query_one_optional(Prompt)) is not None:
+        for prompt in self.query(Prompt):
             prompt.sync_turn()
-        if (details := self.query_one_optional(SessionDetails)) is not None:
+        for details in self.query(OperationalSessionDetails):
             details.sync_turn()
         self.refresh_bindings()
 
@@ -1032,7 +1031,7 @@ class Conversation(
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
         self.sync_working()
-        if (prompt := self.query_one_optional(Prompt)) is not None:
+        for prompt in self.query(Prompt):
             prompt.sync_session()
 
     @on(events.Key)
@@ -1224,7 +1223,7 @@ class Conversation(
         self.turns.finish_client()
         self._agent_fail = True
         self.prompt.sync_session()
-        if (details := self.query_one_optional(SessionDetails)) is not None:
+        for details in self.query(OperationalSessionDetails):
             details.sync_turn()
         self.app.notify(event.message, title="Agent failure", severity="error", markup=False)
 
@@ -1248,10 +1247,10 @@ class Conversation(
     @handles(input_events.ProviderLogin)
     def on_provider_login(self, event: input_events.ProviderLogin, message: CoreEventMessage) -> None:
         message.stop()
-        self.action_provider_login()
+        self.provider_login()
 
     @work(group="provider-login", exclusive=True)
-    async def action_provider_login(self) -> None:
+    async def provider_login(self) -> None:
         import shlex
 
         from textual.geometry import Offset
@@ -1317,7 +1316,7 @@ class Conversation(
                 "Provider login finished; model catalogue refreshed", style="success"
             )
         finally:
-            if (prompt := self.query_one_optional(Prompt)) is not None:
+            for prompt in self.query(Prompt):
                 prompt.disabled = False
                 prompt.focus()
 
@@ -1700,14 +1699,14 @@ class Conversation(
         )
         # A modal remains a view of the same backend snapshot, including later starts.
         details.delivery = self.input_delivery
-        session_details = self.query_one_optional(SessionDetails)
-        if session_details is not None:
+        shown = tuple(self.query(OperationalSessionDetails))
+        for session_details in shown:
             details.overview_text = session_details.overview_text
         self.app.push_screen(details)
         details.watch(
             self, "input_delivery", lambda state: setattr(details, "delivery", state)
         )
-        if session_details is not None:
+        for session_details in shown:
             details.watch(
                 session_details,
                 "overview_text",
@@ -1988,7 +1987,7 @@ class Conversation(
         self.transcript.binding.request(self.transcript)
 
 
-    async def action_select_block(self) -> None:
+    async def select_block(self) -> None:
         cursor = self.navigation.cursor
         for block in cursor.selected_widgets:
             commands = [CopyClipboardCommand(), CopyPromptCommand(), ExportSvgCommand()]
@@ -1999,10 +1998,6 @@ class Conversation(
             menu.offset = Offset(1, cursor.region.top(self.window.region.y))
             await self.mount(menu)
             menu.focus()
-
-    MODE_BINDINGS = (
-        ModeBinding("enter", action_select_block, "Select block", mode=EditingMode, show=True),
-    )
 
     def copy_block_to_clipboard(self) -> None:
         cursor = self.navigation.cursor
@@ -2050,9 +2045,7 @@ class Conversation(
         svg_filename = generate_datetime_filename("Toad", ".svg", None)
         svg_path = os.path.expanduser(os.path.join(path, svg_filename))
         console.save_svg(svg_path)
-        import webbrowser
-
-        webbrowser.open(f"file:///{svg_path}")
+        self.app.open_url(f"file:///{svg_path}")
 
     def refresh_block_cursor(self, show: Callable[[BlockCursor], None]) -> None:
         """Paint the cursor's new block; `show` scrolls for how the cursor got there."""

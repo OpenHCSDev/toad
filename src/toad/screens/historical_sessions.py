@@ -162,6 +162,3 @@ class HistoricalSessions(CenteredView, CoreEventReceiver, ProjectPathOwner, Work
                 return
             async with window.preserve_history():
                 await content.mount(history)
-
-    def action_focus_prompt(self) -> None:
-        self.query_one(HistoryWindow).jump_to_latest()

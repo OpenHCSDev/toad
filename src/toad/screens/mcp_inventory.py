@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from textual.worker import Worker
 from pathlib import Path
 
 from textual import containers, on
@@ -40,7 +39,7 @@ class RefreshInventory(ActingButton):
     """Reads the MCP inventory again."""
 
     async def act(self) -> None:
-        self.query_ancestor(MCPInventoryScreen).action_refresh()
+        self.query_ancestor(MCPInventoryScreen).refresh_inventory()
 
 
 class InventoryPanel(SurfacePanel):
@@ -72,8 +71,6 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
     def __init__(self, project_root: Path) -> None:
         super().__init__()
         self.project_root = project_root
-        self._read_task: Worker[None] | None = None
-        self._generation = 0
         self._inventory: Inventory | None = None
         self._selected: Declaration | None = None
 
@@ -93,17 +90,9 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
                 yield DismissButton("Close")
 
     def on_mount(self) -> None:
-        self.action_refresh()
+        self.refresh_inventory()
 
-    def on_unmount(self) -> None:
-        self._generation += 1
-        if self._read_task is not None:
-            self._read_task.cancel()
-
-    def action_refresh(self) -> None:
-        self._generation += 1
-        if self._read_task is not None:
-            self._read_task.cancel()
+    def refresh_inventory(self) -> None:
         self._inventory = None
         self._selected = None
         self.query_one(InventoryRows).clear_options()
@@ -111,12 +100,13 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
         self.query_one(InventoryStatus).update(
             "Loading read-only Pi MCP package inventory…"
         )
-        self._read_task = self.run_worker(self._fetch(self._generation))
+        # Exclusive: a newer read cancels the older one; unmount cancels the screen's workers.
+        self.run_worker(self._fetch(), group="inventory", exclusive=True)
 
-    async def _fetch(self, generation: int) -> None:
+    async def _fetch(self) -> None:
         # read_inventory owns the unavailable state (None) for its typed failures.
         inventory = await read_inventory(self.project_root)
-        if generation == self._generation and self.is_attached:
+        if self.is_attached:
             self._inventory = inventory
             self.query_one(InventoryStatus).update(
                 render_inventory(inventory)
@@ -166,5 +156,5 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
             return
         self.app.push_screen(
             MCPDecisionScreen(selection, command),
-            lambda _: self.action_refresh(),
+            lambda _: self.refresh_inventory(),
         )

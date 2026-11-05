@@ -36,6 +36,16 @@ class BlockCursorDownAction(BlockCursorAction):
     direction = DownCursor
 
 
+class SelectBlockAction(ConversationAction):
+    """Open the menu for the block under the cursor."""
+
+    keys = {EditingMode: ("enter",)}
+    show = True
+
+    async def apply(self, conversation: Conversation) -> None:
+        await conversation.select_block()
+
+
 class InterruptAction(ConversationAction):
     """Interrupt the running shell command."""
 

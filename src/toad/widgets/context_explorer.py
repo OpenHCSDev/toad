@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from abc import abstractmethod
+from functools import partial
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
@@ -12,7 +14,6 @@ from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
 from agent_comms.coordinator import Coordination
 from metaclass_registry.mro_dispatch import handles
 from textual import on, work
-from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
 from textual.containers import Horizontal, Vertical
 from textual.widget import Widget
@@ -30,7 +31,7 @@ from toad.core.context_inspection import (
 from toad.core.events import CoordinationObserved, SessionSelected
 from toad.native_style import AutoHeight, Borderless, FillWidth
 from toad.session_scope import SessionScope
-from toad.widget_actions import NativeMethodKeys
+from toad.widget_actions import Action, NativeMethodKeys
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.process_text_area import ProcessTextArea
 from toad.native_style import MutedText
@@ -285,22 +286,71 @@ class ContextButton(FillWidth, ActingButton):
 
 class ContextSearchButton(ContextButton):
     async def act(self) -> None:
-        self.query_ancestor(ContextExplorer).action_search()
+        self.query_ancestor(ContextExplorer).present_results()
 
 
-class ContextReadFull(ContextButton):
+class SelectedSourceButton(ContextButton):
+    """Acts on the source the explorer's tree has selected; with none selected, a press does nothing."""
+
     async def act(self) -> None:
-        self.query_ancestor(ContextExplorer).action_read_full()
+        explorer = self.query_ancestor(ContextExplorer)
+        tree = explorer.query_one(ContextTree)
+        node = tree.cursor_node
+        if tree.owns_node(node):
+            self.apply(explorer, node.data)
+
+    @abstractmethod
+    def apply(self, explorer: ContextExplorer, model: ContextNode) -> object: ...
 
 
-class ContextCopy(ContextButton):
-    async def act(self) -> None:
-        self.query_ancestor(ContextExplorer).action_copy()
+class ContextReadFull(SelectedSourceButton):
+    @work(group="context-full-read", exclusive=True)
+    async def apply(self, explorer: ContextExplorer, model: ContextNode) -> None:
+        try:
+            await explorer.show_detail(model).wait()
+        except WorkerCancelled:
+            return
+        if not explorer.selected(model):
+            return
+        detail = explorer.query_one(ProcessTextArea)
+        self.screen.maximize(detail, container=False)
+        detail.focus()
 
 
-class ContextCorrect(ContextButton):
-    async def act(self) -> None:
-        self.query_ancestor(ContextExplorer).action_correct(self)
+class ContextCopy(SelectedSourceButton):
+    @work(group="context-copy", exclusive=True)
+    async def apply(self, explorer: ContextExplorer, model: ContextNode) -> None:
+        detail = await model.read()
+        if explorer.selected(model):
+            self.app.copy_to_clipboard(detail)
+            self.notify("Complete selected public text and source copied")
+
+
+class ContextCorrect(SelectedSourceButton):
+    def apply(self, explorer: ContextExplorer, model: ContextNode) -> None:
+        from toad.widgets.comms_menu import show_target_menu
+
+        answers = model.correction_answers()
+        if not answers:
+            self.notify("Select an original annotation to correct", severity="warning")
+            return
+        show_target_menu(
+            self.screen,
+            self.region.offset,
+            "Correct original answer",
+            [(answer.declared_name, answer.public_title()) for answer in answers],
+            {answer.declared_name: partial(self._correct, explorer, model, answer) for answer in answers},
+        )
+
+    @work(group="context-correction", exclusive=True)
+    async def _correct(self, explorer: ContextExplorer, model: ContextNode, answer: type[SpanAnswer]) -> None:
+        if not explorer.selected(model):
+            return
+        worktree = explorer.query_ancestor(SessionScope).project_root
+        await model.correct(answer, worktree)
+        if explorer.selected(model):
+            self.notify("Original human correction recorded")
+            explorer.read()
 
 
 class ContextNewer(ContextButton):
@@ -313,9 +363,16 @@ class ContextOlder(ContextButton):
         self.query_ancestor(ContextExplorer).older_requests()
 
 
-class ContextExport(ActingButton):
-    async def act(self) -> None:
-        self.query_ancestor(ContextExplorer).action_export()
+class ContextExport(SelectedSourceButton):
+    @work(group="context-export", exclusive=True)
+    async def apply(self, explorer: ContextExplorer, model: ContextNode) -> None:
+        destination = explorer.query_one(ContextExportPath).value.strip()
+        if not destination:
+            self.notify("Choose a new output file path", severity="warning")
+            return
+        await model.export(Path(destination).expanduser())
+        if self.is_attached:
+            self.notify(f"Exported selected public text and source to {destination}")
 
 
 class ContextSearch(Input):
@@ -329,7 +386,7 @@ class ContextSearch(Input):
     @on(Input.Submitted)
     def submitted(self, event: Input.Submitted) -> None:
         event.stop()
-        self.query_ancestor(ContextExplorer).action_search()
+        self.query_ancestor(ContextExplorer).present_results()
 
 
 class ContextExportPath(Input):
@@ -353,12 +410,26 @@ class ContextDetail(Borderless, ProcessTextArea):
         self.styles.height = "1fr" if maximized is self else 16
 
 
+class ContextExplorerAction(Action, affix="Action"):
+    """Keys the context explorer answers."""
+
+
+class RefreshContextAction(ContextExplorerAction):
+    """Read the context again from its source."""
+
+    keys = {EditingMode: ("r",)}
+
+    def apply(self, explorer: ContextExplorer) -> None:
+        explorer.refresh_context()
+
+
 class ContextExplorer(
     AutoHeight,
     NativeMethodKeys,
     ShowsThreadIdentity,
     SidebarVisibilityObserver,
     Vertical,
+    actions=(ContextExplorerAction,),
 ):
 
     def __init__(self, *, intents: dict[SessionIdentity, ContextTreeIntent]) -> None:
@@ -388,7 +459,7 @@ class ContextExplorer(
         with ContextControls():
             yield ContextNewer("Newer requests", disabled=True)
             yield ContextOlder("Older requests", disabled=True)
-        yield ContextTree(self._show_detail, self._show_placeholder)
+        yield ContextTree(self.show_detail, self._show_placeholder)
         yield ContextDetail(
             "No context selected.",
             soft_wrap=True,
@@ -428,7 +499,7 @@ class ContextExplorer(
             return
         access = self.app.coordination_access
         if not self.state.observed_at(access.revision):
-            self._read()
+            self.read()
 
     def on_unmount(self) -> None:
         self.state = DetachedInspection()
@@ -444,11 +515,7 @@ class ContextExplorer(
 
     def refresh_context(self) -> None:
         if self.presentation_visible():
-            self._read(force=True)
-
-    MODE_BINDINGS = (
-        ModeBinding("r", refresh_context, "Refresh context", mode=EditingMode),
-    )
+            self.read(force=True)
 
     def _reading(self, identity: SessionIdentity):
         return (
@@ -456,7 +523,7 @@ class ContextExplorer(
         )
 
     @ContextReadWork.work
-    async def _read(self, *, force: bool = False) -> None:
+    async def read(self, *, force: bool = False) -> None:
         await self.thread_view.thread_identity.inspect_owner(
             lambda identity: self._read_owner(identity, force=force),
             self.query_one(ContextStatus).update,
@@ -518,37 +585,6 @@ class ContextExplorer(
         detail = self.query_one(ProcessTextArea)
         detail.load_text_prepared(placeholder)
 
-    def action_correct(self, button: ContextCorrect) -> None:
-        from functools import partial
-
-        from toad.widgets.comms_menu import show_target_menu
-
-        node = self.query_one(ContextTree).cursor_node
-        if not self.query_one(ContextTree).owns_node(node):
-            return
-        model = node.data
-        answers = model.correction_answers()
-        if not answers:
-            self.notify("Select an original annotation to correct", severity="warning")
-            return
-        show_target_menu(
-            self.screen,
-            button.region.offset,
-            "Correct original answer",
-            [(answer.declared_name, answer.public_title()) for answer in answers],
-            {answer.declared_name: partial(self._correct_annotation, model, answer) for answer in answers},
-        )
-
-    @work(group="context-correction", exclusive=True)
-    async def _correct_annotation(self, model: ContextNode, answer: type[SpanAnswer]) -> None:
-        if not self._selected(model):
-            return
-        worktree = self.query_ancestor(SessionScope).project_root
-        await model.correct(answer, worktree)
-        if self._selected(model):
-            self.notify("Original human correction recorded")
-            self._read()
-
     @ContextPresentationWork.work
     async def _present(self, captured: HoldingInspection) -> None:
         if self.intent.query:
@@ -596,9 +632,9 @@ class ContextExplorer(
         self.query_one(ContextNewer).disabled = True
         self.query_one(ContextTree).clear()
         self._show_placeholder("Loading recorded request page…")
-        self._read()
+        self.read()
 
-    def action_search(self) -> None:
+    def present_results(self) -> None:
         self.state.present(self._present)
 
     @ContextSearchWork.work
@@ -619,46 +655,6 @@ class ContextExplorer(
             and self.intent.search_current(query, selected)
         )
 
-    @work(group="context-full-read", exclusive=True)
-    async def action_read_full(self) -> None:
-        node = self.query_one(ContextTree).cursor_node
-        if not self.query_one(ContextTree).owns_node(node):
-            return
-        model = node.data
-        try:
-            await self._show_detail(model).wait()
-        except WorkerCancelled:
-            return
-        if not self._selected(model):
-            return
-        detail = self.query_one(ProcessTextArea)
-        self.screen.maximize(detail, container=False)
-        detail.focus()
-
-    @work(group="context-copy", exclusive=True)
-    async def action_copy(self) -> None:
-        node = self.query_one(ContextTree).cursor_node
-        if self.query_one(ContextTree).owns_node(node):
-            model = node.data
-            detail = await model.read()
-            if self._selected(model):
-                self.app.copy_to_clipboard(detail)
-                self.notify("Complete selected public text and source copied")
-
-    @work(group="context-export", exclusive=True)
-    async def action_export(self) -> None:
-        node = self.query_one(ContextTree).cursor_node
-        if not self.query_one(ContextTree).owns_node(node):
-            return
-        model = node.data
-        destination = self.query_one(ContextExportPath).value.strip()
-        if not destination:
-            self.notify("Choose a new output file path", severity="warning")
-            return
-        await model.export(Path(destination).expanduser())
-        if self.is_attached:
-            self.notify(f"Exported selected public text and source to {destination}")
-
     @on(Tree.NodeHighlighted)
     def node_highlighted(self, event: Tree.NodeHighlighted[ContextNode]) -> None:
         event.stop()
@@ -666,22 +662,22 @@ class ContextExplorer(
             if self.intent.selected is not event.node.data:
                 ContextSearchWork.cancel_all(self)
             self.intent.selected = event.node.data
-            self._show_detail(event.node.data)
+            self.show_detail(event.node.data)
 
-    def _selected(self, model):
+    def selected(self, model):
         return self.query_one(ContextTree).selected(model) if self.is_attached else False
 
     @ContextDetailWork.work
-    async def _show_detail(self, model: ContextNode) -> None:
+    async def show_detail(self, model: ContextNode) -> None:
         # Publication belongs to this exact selected original tree model, not
         # a reusable string key shared by another thread or context snapshot.
-        if not self._selected(model):
+        if not self.selected(model):
             return
         area = self.query_one(ProcessTextArea)
         # A read borrows the native document; it does not replace the reader's
         # selection and scroll with a temporary one-line document.
         detail = await model.read()
-        if self._selected(model):
+        if self.selected(model):
             # A new authenticated node may supply identical displayed text.
             # Its source is still read above; unchanged native answers need
             # neither document reconstruction nor a cursor/reader reset.

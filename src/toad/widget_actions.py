@@ -149,6 +149,13 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
         return cls()
 
     @classmethod
+    def require_unwritten(cls, name: str, writers: tuple[type, ...]) -> None:
+        """A generated dispatcher may not replace an action a class wrote: a member whose apply
+        calls that action would then call itself."""
+        if writers:
+            raise TypeError(f"{cls.__qualname__} would replace {writers[0].__qualname__}.{name}")
+
+    @classmethod
     def offered(cls, context: Context) -> Iterator[Self]:
         """What the menu and the palette offer for this member: itself, where it is available."""
         command = cls()
@@ -246,14 +253,14 @@ class DeclaredWidgetActions(ToadNode):
         ))
 
     @classmethod
-    def action_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def declaration_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
         return declaration.bindings_for(mode)
 
     @classmethod
     def declared_bindings(cls, mode: type[EditingMode]) -> tuple[Binding, ...]:
         return (*super().declared_bindings(mode),
                 *(binding for declaration in cls.declared_actions()
-                  for binding in cls.action_bindings(declaration, mode)))
+                  for binding in cls.declaration_bindings(declaration, mode)))
 
     @classmethod
     @lru_cache(maxsize=None)
@@ -270,9 +277,13 @@ class DeclaredWidgetActions(ToadNode):
         cls.own_actions = actions
         declarations = cls.declared_actions()
         for declaration in declarations:
+            name = f"action_{declaration.declared_name}"
+            declaration.require_unwritten(name, tuple(
+                base for base in cls.__mro__
+                if name in base.__dict__ and not isinstance(base.__dict__[name], partialmethod)))
             dispatch = (cls._run_declared_async_action if inspect.iscoroutinefunction(declaration.apply)
                         else cls._run_declared_action)
-            setattr(cls, f"action_{declaration.declared_name}", partialmethod(dispatch, declaration))
+            setattr(cls, name, partialmethod(dispatch, declaration))
         super().__init_subclass__(**kwargs)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
@@ -327,7 +338,16 @@ class VisibleAction(WidgetAction):
     show = True
 
 
-class DismissAction(VisibleAction):
+class ReplacesFrameworkAction:
+    """A member declared to stand in for one of Textual's own actions (Screen.action_dismiss,
+    App.action_quit): replacing that written action is its purpose."""
+
+    @classmethod
+    def require_unwritten(cls, name: str, writers: tuple[type, ...]) -> None:
+        pass
+
+
+class DismissAction(ReplacesFrameworkAction, VisibleAction):
     """Close the current control."""
     keys = {EditingMode: ("escape",)}
 
@@ -582,9 +602,9 @@ class ActionPresentation(DeclaredWidgetActions):
         return binding
 
     @classmethod
-    def action_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
+    def declaration_bindings(cls, declaration: type[Action], mode: type[EditingMode]) -> tuple[Binding, ...]:
         return tuple(cls.present_binding(declaration, binding)
-                     for binding in super().action_bindings(declaration, mode))
+                     for binding in super().declaration_bindings(declaration, mode))
 
 
 class PriorityActions(ActionPresentation,

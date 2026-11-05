@@ -4,9 +4,8 @@ from typing import Iterable
 import asyncio
 
 from textual import work
-from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
-from toad.widget_actions import NativeMethodKeys
+from toad.widget_actions import Action, NativeMethodKeys
 from textual.message import Message
 from textual.widgets import DirectoryTree
 from textual.widgets.directory_tree import DirEntry
@@ -15,7 +14,31 @@ from toad.path_filter import PathFilter
 from toad.tone_paint import UntintedTonePaint
 
 
-class ProjectDirectoryTree(NativeMethodKeys, UntintedTonePaint, DirectoryTree):
+class ProjectTreeAction(Action, affix="Action"):
+    """Keys the project directory tree answers."""
+
+
+class RefreshAction(ProjectTreeAction):
+    """Refresh file view."""
+
+    keys = {EditingMode: ("ctrl+r",)}
+    show = True
+
+    def apply(self, tree: ProjectDirectoryTree) -> None:
+        tree.refresh_directory()
+
+
+class InsertPathAction(ProjectTreeAction):
+    """Insert selected path in prompt."""
+
+    keys = {EditingMode: ("shift+enter",)}
+
+    def apply(self, tree: ProjectDirectoryTree) -> None:
+        tree.insert_selected()
+
+
+class ProjectDirectoryTree(NativeMethodKeys, UntintedTonePaint, DirectoryTree,
+                           actions=(ProjectTreeAction,)):
     BINDING_GROUP_TITLE = "Tree view"
     HELP = """\
 ## Project files
@@ -141,10 +164,3 @@ This shows the files in your project directory.
         path = self.cursor_path
         if path.is_file():
             self.post_message(self.InsertSelected(path))
-
-    MODE_BINDINGS = (
-        ModeBinding("ctrl+r", refresh_directory, "Refresh", mode=EditingMode,
-                    tooltip="Refresh file view", show=True),
-        ModeBinding("shift+enter", insert_selected, "Insert path", mode=EditingMode,
-                    tooltip="Insert selected path in prompt", show=False),
-    )

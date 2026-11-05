@@ -112,6 +112,26 @@ class CopyOrClearInputAction(PromptAction):
         editor.clear_suggestions()
 
 
+class CompleteAction(PromptAction):
+    """Complete what precedes the cursor: a shell path in a shell prompt, a member in a channel."""
+
+    keys = {EditingMode: ("tab",)}
+    priority = True
+
+    async def apply(self, editor: PromptTextArea) -> None:
+        await editor.tab_complete()
+
+
+class PasteClipboardAction(PromptAction):
+    """Paste clipboard text, or attach a clipboard PNG image."""
+
+    keys = {EditingMode: ("ctrl+v",)}
+    priority = True
+
+    def apply(self, editor: PromptTextArea) -> None:
+        editor.paste_clipboard()
+
+
 class NewlineAction(PromptAction):
     """Insert a new line in the prompt."""
     title = "New line"

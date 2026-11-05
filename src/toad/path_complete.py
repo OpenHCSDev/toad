@@ -1,8 +1,10 @@
 import asyncio
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from itertools import islice
 import os
 from pathlib import Path
-from typing import Iterable, Literal, Sequence
+from typing import Iterable, Sequence
 
 
 def longest_common_prefix(strings: list[str]) -> str:
@@ -67,6 +69,68 @@ class DirectoryReadTask:
         return self.directory_listing
 
 
+class PathKinds(ABC):
+    """Which listing entries a completion may offer: the shell command decides."""
+
+    @abstractmethod
+    def keeps(self, path: Path) -> bool: ...
+
+
+class AnyPath(PathKinds):
+    def keeps(self, path: Path) -> bool:
+        return True
+
+
+class FilesOnly(PathKinds):
+    def keeps(self, path: Path) -> bool:
+        return not path.is_dir()
+
+
+class DirectoriesOnly(PathKinds):
+    def keeps(self, path: Path) -> bool:
+        return path.is_dir()
+
+
+class CompletingEditor:
+    """What a path completion needs from the editor whose last shell token it completes."""
+
+    @abstractmethod
+    def replace_text(self, text: str) -> None: ...
+
+    @abstractmethod
+    def offer(self, options: list[str]) -> None:
+        """Show these options, or cycle them when they are already shown; none clears them."""
+
+
+class PathCompletion(ABC):
+    """What one Tab press does to a shell prompt's last token."""
+
+    @abstractmethod
+    def apply(self, editor: CompletingEditor, working_directory: Path, tokens: list[str], after: str) -> None: ...
+
+
+@dataclass(frozen=True)
+class ExtendedPath(PathCompletion):
+    """The token has one longest completion: append it, and a space after a finished file name."""
+
+    suffix: str
+
+    def apply(self, editor: CompletingEditor, working_directory: Path, tokens: list[str], after: str) -> None:
+        tokens = [*tokens[:-1], tokens[-1] + self.suffix]
+        spacing = " " if (working_directory / tokens[-1]).is_file() else ""
+        editor.replace_text(" ".join(token.replace(" ", "\\ ") for token in tokens) + after + spacing)
+
+
+@dataclass(frozen=True)
+class PathOptions(PathCompletion):
+    """Several entries match, or none: the editor offers them."""
+
+    options: tuple[str, ...]
+
+    def apply(self, editor: CompletingEditor, working_directory: Path, tokens: list[str], after: str) -> None:
+        editor.offer(list(self.options))
+
+
 class PathComplete:
     """Auto completes paths."""
 
@@ -103,17 +167,17 @@ class PathComplete:
         current_working_directory: Path,
         path: str,
         *,
-        exclude_type: Literal["file"] | Literal["dir"] | None = None,
-    ) -> tuple[str | None, list[str] | None]:
+        kinds: PathKinds = AnyPath(),
+    ) -> PathCompletion:
         """Attempt to auto-complete a path.
 
         Args:
             current_working_directory: Current working directory (to resolve relative paths).
             path: String potentially containing path to auto-complete.
-            exclude_type: May be `"file"` to exclude files, `"dir"` to exclude directories, or `None` not to exclude anything.
+            kinds: Which entries may be offered.
 
         Returns:
-            A pair of the recommend auto complete (or `None`), and a list of options (or `None`).
+            What the Tab press does: extend the token, or offer the matching options.
         """
 
         current_working_directory = (
@@ -134,7 +198,7 @@ class PathComplete:
 
         def check_completions(
             listing: list[Path],
-        ) -> tuple[str | None, list[str] | None]:
+        ) -> PathCompletion:
             """Check completions from a listing (run in a thread)
 
             Args:
@@ -143,27 +207,15 @@ class PathComplete:
             Returns:
                 Completions.
             """
-            if exclude_type is not None:
-                if exclude_type == "dir":
-                    listing = [
-                        listing_path
-                        for listing_path in listing
-                        if not listing_path.is_dir()
-                    ]
-                else:
-                    listing = [
-                        listing_path
-                        for listing_path in listing
-                        if listing_path.is_dir()
-                    ]
+            listing = [listing_path for listing_path in listing if kinds.keeps(listing_path)]
 
             if not node:
-                return None, self.decorate_listing(listing)
+                return PathOptions(tuple(self.decorate_listing(listing)))
 
             node_name = Path(node).name
 
             if not node_name or path.endswith("/"):
-                return None, self.decorate_listing(listing)
+                return PathOptions(tuple(self.decorate_listing(listing)))
             matching_nodes = [
                 listing_path
                 for listing_path in listing
@@ -172,14 +224,14 @@ class PathComplete:
 
             if not (matching_nodes):
                 # Nothing matches
-                return None, None
+                return PathOptions(())
 
             if not (
                 prefix := longest_common_prefix(
                     [node_path.name for node_path in matching_nodes]
                 )
             ):
-                return None, None
+                return PathOptions(())
 
             picked_path = directory_path / prefix
 
@@ -196,12 +248,14 @@ class PathComplete:
             ]
 
             if len(path_options) > 1:
-                return None, path_options
+                return PathOptions(tuple(path_options))
 
             if picked_path.is_dir() and len(path_options) <= 1:
                 completed_prefix += os.sep
 
-            return completed_prefix or None, path_options
+            if completed_prefix:
+                return ExtendedPath(completed_prefix)
+            return PathOptions(tuple(path_options))
 
         return await asyncio.to_thread(check_completions, listing)
 

@@ -16,11 +16,10 @@ from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
 from textual import getters, on
 from textual.app import ComposeResult
-from textual.binding import ModeBinding
 from textual.document._editing import EditingMode
 from toad.widget_actions import (
     TogglesIrc, CyclesSessions, HiddenActions, SessionNavigationAction, DeclaredWidgetActions,
-    NativeMethodKeys,
+    NativeMethodKeys, WidgetAction,
 )
 from textual.command import DiscoveryHit, Hit, Hits, Provider, SimpleCommand
 from textual.reactive import Required, var
@@ -101,7 +100,7 @@ class MCPInventoryProvider(SessionCommands):
     def commands(self, session: MainScreen) -> Iterable[SimpleCommand]:
         yield SimpleCommand(
             "Pi MCP inventory",
-            session.action_mcp_inventory,
+            session.open_mcp_inventory,
             "Read-only package snapshot",
         )
 
@@ -288,8 +287,22 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
+class MainAction(WidgetAction, affix="Action"):
+    """What an agent session's screen does on its own keys."""
+
+
+class GoHomeAction(MainAction):
+    """Open the store, Toad's home view."""
+
+    title = "Home"
+    keys = {EditingMode: ("ctrl+h",)}
+
+    async def apply(self, context: MainScreen) -> None:
+        await context.app.select_session("store")
+
+
 class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, ViewSessionOrigin, SidebarSessionView[SessionThreadSidebar], ToadNode,
-                 scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
+                 actions=(MainAction,), scopes={HiddenActions: (SessionNavigationAction,)}, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
@@ -505,7 +518,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     def remember_direct_target(self, target: str) -> None:
         self._last_dm_target = target
 
-    def action_mcp_inventory(self) -> None:
+    def open_mcp_inventory(self) -> None:
         """Open an inert package-owned snapshot; never locate a source checkout."""
         self.app.push_screen(
             MCPInventoryScreen(
@@ -619,18 +632,9 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         if event.option.id is not None:
             self.conversation.prompt.suggest(event.option.id)
 
-    def action_focus_prompt(self) -> None:
-        self.content.focus_prompt(self)
-
     def focus_sidebar_return(self) -> None:
         self.content.focus_sidebar_return(self)
 
-    async def go_home(self) -> None:
-        await self.app.select_session("store")
-
-    MODE_BINDINGS = (
-        ModeBinding("ctrl+h", go_home, "Home", mode=EditingMode, show=False),
-    )
 
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, message: SideBar.Dismiss):

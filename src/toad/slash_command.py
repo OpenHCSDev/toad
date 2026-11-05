@@ -138,7 +138,7 @@ class LoginCommand(NoArgumentsCommand):
     help = "Connect a provider using the agent's native login UI"
 
     async def apply(self, conversation: Conversation) -> bool:
-        conversation.action_provider_login()
+        conversation.provider_login()
         return True
 
 
@@ -349,17 +349,17 @@ class TestimonialCommand(SlashCommand, LocalCommand, declared_name="toad:testimo
         return cls(arguments)
 
     async def apply(self, conversation: Conversation) -> bool:
-        from toad.twitter import open_tweet_intent
+        from toad.twitter import tweet_intent_url
 
         default = (
             f"I'm running {conversation.agent_title} in the terminal with Toad."
             if conversation.agent_title is not None
             else "Try Toad, the universal interface for AI in your terminal"
         )
-        open_tweet_intent(
+        conversation.app.open_url(tweet_intent_url(
             self.text or default,
             url="https://github.com/textualize/toad",
             via="willmcgugan",
             hashtags=["ai"],
-        )
+        ))
         return True

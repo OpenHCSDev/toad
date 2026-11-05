@@ -13,9 +13,8 @@ from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
 from textual import events
-from textual.binding import ModeBinding
 from textual.widgets.text_area import VimMode
-from toad.widget_actions import NativeMethodKeys
+from toad.widget_actions import Action, NativeMethodKeys
 from textual.containers import VerticalScroll
 from textual.geometry import Size
 from textual.timer import Timer
@@ -750,7 +749,39 @@ class HistoryChange:
         yield
 
 
-class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]], VerticalScroll):
+class ReaderAction(Action, affix="Action"):
+    """Vim reader keys every history window answers."""
+
+
+class PageDownAction(ReaderAction, declared_name="reader_page_down"):
+    """Move the reader one page toward the latest message."""
+
+    keys = {VimMode: ("ctrl+d",)}
+
+    def apply(self, window: HistoryWindow) -> None:
+        window.action_page_down()
+
+
+class PageUpAction(ReaderAction, declared_name="reader_page_up"):
+    """Move the reader one page toward older history."""
+
+    keys = {VimMode: ("ctrl+u",)}
+
+    def apply(self, window: HistoryWindow) -> None:
+        window.action_page_up()
+
+
+class LatestAction(ReaderAction):
+    """Follow the source tail, including pages outside the mounted window."""
+
+    keys = {VimMode: ("G",)}
+
+    def apply(self, window: HistoryWindow) -> None:
+        window.jump_to_latest()
+
+
+class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]], VerticalScroll,
+                    actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
@@ -819,12 +850,6 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
         for history in tuple(self.histories):
             if NEWER_END.visible_more(history):
                 history.request_latest(latest)
-
-    MODE_BINDINGS = (
-        ModeBinding("ctrl+d", action_page_down, "Page down", mode=VimMode, show=False),
-        ModeBinding("ctrl+u", action_page_up, "Page up", mode=VimMode, show=False),
-        ModeBinding("G", jump_to_latest, "Latest", mode=VimMode, show=False),
-    )
 
     def tail_follow_changed(self) -> None:
         """Project the canonical tail-follow state in a specialized window."""
