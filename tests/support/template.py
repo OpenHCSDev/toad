@@ -56,7 +56,10 @@ class AppTestTemplate:
              f"import sys; sys.path[:0] = [{str(tests)!r}, {str(rootpath / 'src')!r}]; "
              "from support.template import serve; serve()"),
             cwd=rootpath, env=self.roots.environment(dict(os.environ)),
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.log.open("wb"))
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.log.open("wb"),
+            # Unbuffered: each reply is read only after select sees it, so a fast test's
+            # pid and exit replies can never sit unseen together in a Python buffer.
+            bufsize=0)
 
     def run(self, nodeid: str, *, env: dict[str, str], attempt: Path, timeout: float) -> ForkedRun:
         stdout, stderr = attempt / "stdout.log", attempt / "stderr.log"
