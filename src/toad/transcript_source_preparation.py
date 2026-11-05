@@ -219,10 +219,17 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         return end.can_extend(page) or self.page_source.has_more(end, page.page)
 
     async def _prepare_edge(self, end) -> None:
-        """Keep one preparation slot while committed publications request more rows."""
+        """Load one source range per pass, so a catch-up forms across frames.
+
+        Looping here until the edge is satisfied loads the whole missed run in one
+        worker pass, without returning to the event pump until it is done: a reader
+        who comes back sees nothing, then everything. Asking the next frame for the
+        rest lets the messages form as they arrive, and the same total number of
+        pages is read either way.
+        """
         snapshot = self.source_snapshot()
-        while snapshot.current(self) and await self._load_page(end):
-            pass
+        if snapshot.current(self) and await self._load_page(end):
+            self.request_preparation()
 
     async def _load_page(self, end) -> bool:
         """Publish one source range; return whether this edge still needs rows."""
