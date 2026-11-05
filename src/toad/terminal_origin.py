@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 
-from toad.sidebar_placement import SidebarPlacement
+from toad.sidebar_placement import BandSplit, SidebarPlacement
 
 
 class TerminalOrigin(DeclaredFamily, affix="Terminal"):
@@ -30,7 +30,9 @@ class SshTerminal(TerminalOrigin):
 
 @dataclass(frozen=True)
 class TerminalLayout:
-    """One terminal origin's saved sidebar placements; a role it lacks keeps its initial placement."""
+    """One terminal origin's saved sidebar placements and band splits; a role it lacks keeps
+    its initial placement, and an edge it lacks splits its band evenly."""
 
     origin: type[TerminalOrigin]
     placements: tuple[SidebarPlacement, ...] = ()
+    splits: tuple[BandSplit, ...] = ()

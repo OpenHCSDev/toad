@@ -47,9 +47,10 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
 
     @classmethod
     @abstractmethod
-    def pack(cls, extents: Sequence[int], viewport: Size) -> tuple[SidebarGeometry, ...]:
-        """Where this side's bars go, in their order, given each one's extent: how bars
-        sharing an edge share its room."""
+    def pack(cls, extents: Sequence[int], viewport: Size, split: int) -> tuple[SidebarGeometry, ...]:
+        """Where this side's bars go, in their order, given each one's extent and the
+        first bar's share of a shared band (BandSplit.percent): how bars sharing an edge
+        share its room."""
 
     @classmethod
     @abstractmethod
@@ -137,7 +138,7 @@ class WidthSidebarEdge(SidebarEdge):
                       span.extent, max(0, size.height - occupied.height))
 
     @classmethod
-    def pack(cls, extents: Sequence[int], viewport: Size) -> tuple[SidebarGeometry, ...]:
+    def pack(cls, extents: Sequence[int], viewport: Size, split: int) -> tuple[SidebarGeometry, ...]:
         """Bars on a left or right edge stand next to each other, each its own column."""
         return tuple(SidebarGeometry(offset, extent)
                      for offset, extent in zip(accumulate((0, *extents)), extents))
@@ -187,7 +188,9 @@ class HeightSidebarEdge(SidebarEdge):
         return point.y
 
     splitter = 1
-    """Columns between bars that share a top or bottom band."""
+    """Columns of the handle on a band's first bar that drags the split between its bars."""
+    cross_minimum = WidthSidebarEdge.minimum
+    """The narrowest a bar in a band gets, as wide as the narrowest left or right bar."""
 
     @classmethod
     def region(cls, size: Size, span: SidebarGeometry, occupied: Spacing) -> Region:
@@ -195,16 +198,16 @@ class HeightSidebarEdge(SidebarEdge):
                       span.cross_extent, span.extent)
 
     @classmethod
-    def pack(cls, extents: Sequence[int], viewport: Size) -> tuple[SidebarGeometry, ...]:
+    def pack(cls, extents: Sequence[int], viewport: Size, split: int) -> tuple[SidebarGeometry, ...]:
         """Bars on a top or bottom edge sit side by side in one band, splitting its width,
-        rather than stacking one above the other."""
-        count = len(extents)
-        room = max(0, viewport.width - cls.splitter * (count - 1))
-        starts = [room * index // max(count, 1) for index in range(count + 1)]
-        return tuple(
-            SidebarGeometry(0, extent, start + cls.splitter * index, end - start)
-            for index, (extent, start, end) in enumerate(zip(extents, starts, starts[1:]))
-        )
+        rather than stacking one above the other. The first bar takes `split` percent and
+        ends in the splitter handle; the rest share what remains."""
+        count, width = len(extents), viewport.width
+        cut = max(0, min(max(width * split // 100, cls.cross_minimum),
+                         width - cls.cross_minimum * (count - 1)))
+        cuts = [0, *(cut + (width - cut) * index // max(count - 1, 1) for index in range(count - 1)), width]
+        return tuple(SidebarGeometry(0, extent, start, end - start)
+                     for extent, start, end in zip(extents, cuts, cuts[1:]))
 
     @classmethod
     def slots[K](cls, keys: Sequence[K]) -> tuple[tuple[K, ...], ...]:
@@ -299,6 +302,15 @@ class ThreadSidebarPlacement(SidebarPlacement):
     default_side = RightSidebarEdge
     default_extent_percent = 34
     scope = "this"
+
+
+@dataclass(frozen=True)
+class BandSplit:
+    """How the top or bottom band on one edge divides its width between its bars."""
+
+    side: type[SidebarEdge]
+    percent: int = 50
+    """The first bar's share of the band's width."""
 
 
 @dataclass(frozen=True, slots=True)

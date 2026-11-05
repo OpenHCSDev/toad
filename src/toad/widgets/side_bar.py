@@ -59,7 +59,7 @@ from toad.sidebar_layout import (
     SidebarPlacementAction,
     SidebarShift,
 )
-from toad.sidebar_placement import SidebarEdge, SidebarPlacement, ThreadSidebarPlacement
+from toad.sidebar_placement import HeightSidebarEdge, SidebarEdge, SidebarPlacement, ThreadSidebarPlacement
 from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
 from toad.app_node import ToadNode
 
@@ -74,6 +74,8 @@ class BarPresentation:
     floating: bool
     collapsed: bool
     directions: tuple[type[SidebarShift], ...]
+    leads_band: bool
+    """Another bar follows this one in its band, so this bar carries the splitter."""
 
     @classmethod
     def from_placement(
@@ -82,6 +84,7 @@ class BarPresentation:
         *,
         collapsed: bool,
         directions: dict[type[SidebarEdge], SidebarShift],
+        leads_band: bool,
     ) -> BarPresentation:
         return cls(
             placement.side,
@@ -89,6 +92,7 @@ class BarPresentation:
             placement.floating,
             collapsed,
             tuple(type(action) for action in directions.values()),
+            leads_band,
         )
 
 
@@ -661,6 +665,50 @@ class SidebarResizeHandle(
         self._drag_viewport = self._drag_edge.extent(bar.query_ancestor(Widget).content_size)
 
 
+class BandSplitHandle(
+    NoPadding,
+    MovesHorizontalCursor,
+    CapturedDrag,
+    ColourSelection,
+    widgets.Static,
+    ToadNode,
+    can_focus=True,
+):
+    """Drag the line between two bars sharing a top or bottom band; the layout owns the split."""
+
+    highlight_foreground = ForegroundColour
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.styles.width, self.styles.height = HeightSidebarEdge.splitter, "1fr"
+        self.styles.dock = "right"
+        self.styles.pointer = "ew-resize"
+        self.tooltip = "Drag to share the band between the two sidebars"
+        self.display = False
+
+    def render(self) -> str:
+        return "\n".join("│" for _ in range(self.size.height))
+
+    def split_to(self, percent: int) -> None:
+        bar = self.query_ancestor(SideBar)
+        if self.app.sidebar_layout.set_split(bar.placement.side, percent):
+            bar.arranged()
+
+    def drag_start(self, event: events.MouseDown) -> None:
+        bar = self.query_ancestor(SideBar)
+        self._start_point = event.screen_offset
+        self._start_percent = self.app.sidebar_layout.split(bar.placement.side)
+        self._drag_width = bar.query_ancestor(Widget).content_size.width
+
+    def drag_to(self, position: Offset) -> None:
+        delta = position.x - self._start_point.x
+        self.split_to(self._start_percent + round(100 * delta / max(1, self._drag_width)))
+
+    def cursor_horizontal(self, direction: int) -> None:
+        bar = self.query_ancestor(SideBar)
+        self.split_to(self.app.sidebar_layout.split(bar.placement.side) + direction)
+
+
 class ClearSidebarSearchAction(WidgetAction):
     """Clear the sidebar search text."""
     keys = {EditingMode: ("escape",)}
@@ -794,6 +842,10 @@ class SideBar(
     def resize_handle(self) -> SidebarResizeHandle:
         return SidebarResizeHandle(self.placement.side)
 
+    @cached_property
+    def split_handle(self) -> BandSplitHandle:
+        return BandSplitHandle()
+
     @property
     def placement(self) -> SidebarPlacement:
         return self.app.sidebar_layout.get(self.placement_identity)
@@ -880,6 +932,7 @@ class SideBar(
     def compose(self) -> ComposeResult:
         yield self.toggle_control
         yield self.resize_handle
+        yield self.split_handle
         with self.content_stack:
             yield SidebarScope(self.placement_identity.scope)
             yield self.search_input
@@ -929,7 +982,8 @@ class SideBar(
         directions = self.app.sidebar_layout.directions(self.placement_identity)
         current = PresentedBar(
             presentation=BarPresentation.from_placement(
-                placement, collapsed=self.collapsed, directions=directions
+                placement, collapsed=self.collapsed, directions=directions,
+                leads_band=self.app.sidebar_layout.splits_after(self.placement_identity),
             ),
             extent_percent=placement.extent_percent,
         )
@@ -946,6 +1000,7 @@ class SideBar(
             edge.size_handle(handle)
             handle.styles.dock = edge.opposite().dock
             handle.display = not self.collapsed
+            self.split_handle.display = current.presentation.leads_band and not self.collapsed
             if self._panels_loaded:
                 slider.reversed = edge.sign < 0
                 slider.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
