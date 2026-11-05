@@ -75,6 +75,8 @@ def main() -> None:
     parser.add_argument("--burst", type=int, default=BURST,
                         help="Messages to send; keep it small enough that every one fits "
                              "on the painted screen, or the count measures the viewport")
+    parser.add_argument("--settle-seconds", type=float, default=15.0,
+                        help="Wait this long for the transcript to paint a row before sending")
     parser.add_argument("--runtime", type=Path, required=True, help="The runtime's bin directory")
     parser.add_argument("--thread", required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -115,6 +117,13 @@ def main() -> None:
         with TerminalApp(command, display, args.output / "comms", target, target.home) as app:
             app.wait("welcome", lambda screen: args.thread in screen.text)
             app.click(args.channel)
+            # The bug only shows on a view that has already settled: the run that
+            # dropped two messages had 20 rows painted before the first send, and
+            # the run that dropped none had an empty transcript still loading its
+            # first page. Send from a settled view or the sample is not the bug.
+            settled_by = time.monotonic() + args.settle_seconds
+            while time.monotonic() < settled_by and not list(app.capture().message_rows()):
+                time.sleep(0.2)
             app.screenshot("shown")
             shown = list(app.capture().message_rows())
             before = len(shown)
@@ -148,6 +157,7 @@ def main() -> None:
 
             measured = dict(
                 rows_before=before,
+                rows_before_zero=before == 0,
                 rows_while_unfocused=painted_while_unfocused,
                 rows_immediately_after_return=immediate,
                 rows_after_settling=settled,
