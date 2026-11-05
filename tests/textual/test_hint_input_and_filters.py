@@ -20,8 +20,8 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
         right = app.selected_session.query_one(ThreadSidebar)
         left.reveal()
         right.reveal()
-        await left.wait_content_ready()
-        await right.wait_content_ready()
+        await ui.panels_loaded(left)
+        await ui.panels_loaded(right)
         tree = right.query_one(ThreadCommsSidebar)
         panel = tree.query_ancestor(SideBarCollapsible)
         panel.collapsed = False

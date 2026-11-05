@@ -67,8 +67,7 @@ async def test_sidebar_expansion_scroll_and_anchor_survive_view_changes(workspac
         workspace.comms.channels.create_tag(name)
     async with workspace.app(size=(100, 30), application=FrameApp) as ui:
         app, pilot = ui.textual
-        app.workspace_chrome.channels.reveal()
-        await app.workspace_chrome.channels.wait_content_ready()
+        await ui.revealed(app.workspace_chrome.channels)
         await ui.step()
         owner = ui.selected_tab
         worker = await app.session_navigation.new(

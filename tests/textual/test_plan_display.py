@@ -32,12 +32,8 @@ def all_complete(plan: Plan) -> bool:
     return bool(plan.entries) and all(entry.status.complete for entry in plan.entries)
 
 
-async def reveal(source):
-    sidebar = source.query_one(ThreadSidebar)
-    sidebar.reveal()
-    async with asyncio.timeout(12):
-        await sidebar.wait_content_ready()
-    return sidebar
+async def reveal(ui, source):
+    return await ui.revealed(source.query_one(ThreadSidebar))
 
 
 @asynccontextmanager
@@ -50,7 +46,7 @@ async def planning_session(workspace, *plans):
         await ui.until(agent.session.settled.is_set, why="the agent session")
         assert agent.session.connected, "Real ACP startup/initialize/newSession failed"
         assert agent.process.process.returncode is None
-        sidebar = await reveal(ui.textual[0].selected_session)
+        sidebar = await reveal(ui, ui.textual[0].selected_session)
         sending = asyncio.create_task(agent.send_prompt(json.dumps(list(plans))))
         try:
             yield ui, view, agent, sidebar, sending
@@ -118,7 +114,7 @@ async def test_an_empty_plan_resets_the_view_and_a_retired_sidebar_shows_later_p
         await ui.until(lambda: not plan.entries and not all_complete(plan), why="the plan to reset")
         await ui.until(lambda: painted_text(plan, "No plan yet"), why="the empty plan painted")
         await sidebar.prepare_presentation()
-        await reveal(ui.textual[0].selected_session)
+        await reveal(ui, ui.textual[0].selected_session)
         restored = sidebar.query_one(Plan)
         assert restored.entries is plan.entries
         await ui.until(lambda: painted_text(restored, "No plan yet"), why="the empty plan in the sidebar")
@@ -177,7 +173,7 @@ async def test_a_plan_sent_while_no_view_shows_the_agent_is_drawn_when_its_view_
         assert plan.entries[0].content == "ACP_pending_ITEM"
         restored_plan.scroll_visible(animate=False, immediate=True)
         await ui.until(lambda: painted_text(restored_plan, "DETACHED_PLAN_ITEM"), why="the returned plan painted")
-        sidebar = await reveal(source)
+        sidebar = await reveal(ui, source)
         await ui.until(lambda: painted_text(sidebar.query_one(Plan), "DETACHED_PLAN_ITEM"), why="the sidebar plan painted")
         assert restored_plan.entries is agent.controller.plan_entries
         assert sidebar.query_one(Plan).entries is restored_plan.entries

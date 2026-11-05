@@ -16,7 +16,6 @@ from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
 from dataclasses import dataclass
 from agent_comms.nominal.declared_family import DeclaredFamily
-import asyncio
 from typing import TYPE_CHECKING, ClassVar
 
 from textual import containers, events, on, widgets
@@ -113,12 +112,6 @@ class SidebarPanels(DeclaredFamily, affix="Panels"):
     def start(self, bar: SideBar) -> None:
         """Panels already loaded or loading are not started again."""
 
-    async def wait(self) -> None:
-        """Nothing is in flight, so a content waiter proceeds."""
-
-    def settle(self) -> None:
-        """Nothing is in flight, so nobody is waiting."""
-
 
 class AbsentPanels(SidebarPanels):
     """Nothing is mounted: the sidebar has not been shown, or eviction released it."""
@@ -131,32 +124,18 @@ class AbsentPanels(SidebarPanels):
         ScheduledPanels().start(bar)
 
 
-class LoadingPanels(SidebarPanels, declared_name=None):
-    """A load is on its way; its waiters wake when it ends, however it ends."""
-
-    def __init__(self, settled: asyncio.Event | None = None) -> None:
-        self.settled = settled or asyncio.Event()
-
-    async def wait(self) -> None:
-        await self.settled.wait()
-
-    def settle(self) -> None:
-        self.settled.set()
-
-
-class ScheduledPanels(LoadingPanels):
+class ScheduledPanels(SidebarPanels):
     """The load waits for the sidebar's frame to be written."""
 
     def start(self, bar: SideBar) -> None:
         if bar.wants_panels:
-            hydrating = bar.panel_state = HydratingPanels(self.settled)
-            PanelHydration.run_on(bar, bar._hydrate_panels(hydrating))
+            bar.panel_state = HydratingPanels()
+            PanelHydration.run_on(bar, bar._hydrate_panels())
         else:
             bar.panel_state = AbsentPanels()
-            self.settle()
 
 
-class HydratingPanels(LoadingPanels):
+class HydratingPanels(SidebarPanels):
     """Panels and controls are being mounted. Only leaving the view stops it, and eviction then discards the partial mount."""
 
 
@@ -973,28 +952,19 @@ class SideBar(
     def _start_hydration(self) -> None:
         self.panel_state.start(self)
 
-    async def _hydrate_panels(self, hydrating: HydratingPanels) -> None:
+    async def _hydrate_panels(self) -> None:
         # A screen covering the workspace, or a hidden ancestor, does not stop a load
         # it finds midway: stopping left panels mounted without their controls and no
         # state that would ever finish them. Leaving the view cancels this worker.
-        try:
-            await self.panels_viewport.mount_all(self._compose_panels())
-            await self.layout_controls.mount_all(self._compose_controls())
-            self.panel_state = LoadedPanels()
-            self.invalidate_controls()
-            await self.panels_hydrated()
-            self.restore_navigation()
-        finally:
-            hydrating.settle()
+        await self.panels_viewport.mount_all(self._compose_panels())
+        await self.layout_controls.mount_all(self._compose_controls())
+        self.panel_state = LoadedPanels()
+        self.invalidate_controls()
+        await self.panels_hydrated()
+        self.restore_navigation()
 
     async def panels_hydrated(self) -> None:
         """The sidebar declaration completes its panel preparation."""
-
-    async def wait_content_ready(self) -> None:
-        await self.panel_state.wait()
-
-    def on_unmount(self) -> None:
-        self.panel_state.settle()
 
     def compose(self) -> ComposeResult:
         yield self.toggle_control

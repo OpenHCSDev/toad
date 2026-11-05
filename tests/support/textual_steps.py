@@ -15,9 +15,7 @@ async def reveal_project_tree(ui):
     from toad.widgets.project_directory_tree import ProjectDirectoryTree
     from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
-    sidebar = ui.app.screen.query_one(ThreadSidebar)
-    sidebar.reveal()
-    await sidebar.wait_content_ready()
+    sidebar = await ui.revealed(ui.app.screen.query_one(ThreadSidebar))
     next(panel for panel in sidebar.query(SideBarCollapsible) if panel.title == "Project").collapsed = False
 
     def loaded():

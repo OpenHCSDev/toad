@@ -26,9 +26,7 @@ async def reveal(ui, session):
     from toad.widgets.side_bar import SideBar, SideBarCollapsible
     from toad.widgets.thread_comms import ThreadCommsSidebar
 
-    sidebar = session.query_one(ThreadSidebar)
-    sidebar.reveal()
-    await sidebar.wait_content_ready()
+    sidebar = await ui.revealed(session.query_one(ThreadSidebar))
     tree = sidebar.query_one(ThreadCommsSidebar)
     tree.query_ancestor(SideBarCollapsible).collapsed = False
     await ui.step()

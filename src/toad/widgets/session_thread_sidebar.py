@@ -58,9 +58,8 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
         await self.panels_viewport.remove_children()
         await self.layout_controls.remove_children()
         self.panels.clear()
-        released, self.panel_state = self.panel_state, AbsentPanels()
+        self.panel_state = AbsentPanels()
         self.invalidate_controls()
-        released.settle()
 
     async def panels_hydrated(self) -> None:
         screen = self._owner()
