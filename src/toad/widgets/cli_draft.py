@@ -4,7 +4,6 @@ from functools import partial
 
 from agent_comms.external_transcript import DraftRow
 from agent_comms.transcript_sources import NoDraft
-from toad.markdown_links import LinkContext
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widget import Widget
@@ -13,8 +12,16 @@ from toad.block_navigation import ConversationBlock
 from toad.native_style import AutoHeight
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
-from toad.widgets.transcript_lines import BlockLines, LinePreparation, NoStyledLines
-from toad.widgets.transcript_fragments import DraftLinesRenderTask, FragmentPlan
+from toad.widgets.transcript_lines import (
+    AcquiredRows,
+    BlockLines,
+    LinePreparation,
+    NoRows,
+    NoStyledLines,
+    RowAcquisition,
+    TranscriptLinesBatchRenderTask,
+)
+from toad.widgets.transcript_fragments import DraftBlocksRenderTask, FragmentPlan
 from toad.core.projection import MroProjection
 from toad.worker_group import WorkerGroup
 from metaclass_registry.mro_dispatch import handles
@@ -49,6 +56,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         self.draft: DraftRow | NoDraft = NoDraft()
         self._lines: BlockLines = NoStyledLines()
         self._plan = FragmentPlan()
+        self._rows: RowAcquisition = NoRows()
         self._width = 0
         self.display = False
 
@@ -62,6 +70,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         CliDraftRender.cancel_all(self)
         self.draft = NoDraft()
         self._plan = FragmentPlan()
+        self._rows = NoRows()
         self._lines = NoStyledLines(self._width)
         self.display = False
 
@@ -83,11 +92,12 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
             if width <= 0:
                 return
             theme = self.app.colours.line_theme
-            plan = self._plan
-            context = await LinkContext.acquire(self)
-            source = await self.app.render_processes.submit(
-                DraftLinesRenderTask(LinePreparation((), theme), context, plan))
-            if not context.current_for(self):
+            blocks = await self.app.render_processes.submit(DraftBlocksRenderTask(self._plan))
+            source = LinePreparation(blocks, theme)
+            # A growing draft changes at its end: what it already drew keeps its rows.
+            ((request, prepared),) = await TranscriptLinesBatchRenderTask.render_for(
+                self, (source,), previous=(self._rows,))
+            if not request.context.current_for(self):
                 continue
             if not self.is_attached:
                 return
@@ -96,7 +106,8 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
                 continue
             window = self.query_ancestor(HistoryWindow)
             window.keep_reader()
-            self._lines = source.wrap(self._width or width, self.app.colours.line_renderer)
+            self._lines = prepared.wrap(self._width or width, self.app.colours.line_renderer)
+            self._rows = AcquiredRows(source, self._lines, request.context)
             self.display = True
             self.refresh(layout=True)
             if window.follows_tail:

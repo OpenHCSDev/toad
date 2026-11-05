@@ -52,12 +52,8 @@ from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import MessageQueueEntry, NotificationStatus, UncheckedNotifications
 from toad.tool_output import SentMessageToolOutputPart, ToolOutput
 from toad.widgets.agent_activity import AgentActivityPresentation
-from toad.widgets.transcript_lines import (
-    AcquiredRows,
-    NoRows,
-    RowAcquisition,
-    TranscriptLinesRenderTask,
-)
+from toad.render_backend import ReusableRenderTask
+from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 from toad.widgets.presentation_window import UNPLACED, Unplaced
 
 if TYPE_CHECKING:
@@ -74,6 +70,7 @@ if TYPE_CHECKING:
         BlockLines,
         Lines,
         LineTheme,
+        TranscriptLinesRenderTask,
     )
 
 
@@ -929,11 +926,13 @@ class FragmentPlan:
 
 
 @dataclass(frozen=True)
-class DraftLinesRenderTask(TranscriptLinesRenderTask):
-    """A draft's rows from its plan: it grows with every chunk, so the worker parses it too."""
+class DraftBlocksRenderTask(ReusableRenderTask[tuple[LineBlock, ...]]):
+    """A draft's source blocks: it grows with every chunk, so the worker parses it."""
 
     plan: FragmentPlan
 
-    @property
-    def blocks(self) -> tuple[LineBlock, ...]:
+    def result_size(self, result: tuple[LineBlock, ...]) -> int:
+        return 64 + sum(block.retained_bytes for block in result)
+
+    def execute(self) -> tuple[LineBlock, ...]:
         return tuple(block for fragment in self.plan.fragments() for block in fragment.line_blocks)

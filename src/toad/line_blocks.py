@@ -237,8 +237,12 @@ class LineLink(DeclaredFamily, affix="Link"):
         return NoLink()
 
 
+@dataclass(frozen=True)
 class NoLink(LineLink):
-    """Text that leads nowhere: a frontend draws it plain and gives it no action."""
+    """Text that leads nowhere: a frontend draws it plain and gives it no action.
+
+    Two of them mean the same thing, including copies a render worker sends back.
+    """
 
     underlined = False
 
