@@ -5,7 +5,7 @@ from dataclasses import replace
 
 from agent_comms.team.vibe_check import OverloadDegradation
 from agent_comms.team_hud import (
-    TeamFrame, TeamHud, Teammate, CodexUsage, HudRecord, UnreadableUsage,
+    TeamFrame, TeamHud, TeamPlan, Teammate, CodexUsage, HudRecord, UnreadableUsage,
 )
 from agent_comms.disclosure_text import DisclosureEntry, DisclosureText, FieldKey, RootKey, StructuredText
 from agent_comms.recorded_time import RecordedEventTime
@@ -52,7 +52,7 @@ def published_hud() -> TeamHud:
 async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Workspace) -> None:
     hud = published_hud()
     unit, = hud.units
-    TeamFrame.replace_all(workspace.comms.root, (hud,))
+    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
     frame, = TeamFrame.matching_in(workspace.comms.root)
     written = json.loads(frame.read_text())
     unreadable = json.dumps({**written, "field_from_a_newer_build": []})
@@ -69,7 +69,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
             "Waiting for the team heartbeat.",
         ]
 
-        TeamFrame.replace_all(workspace.comms.root, (hud,))
+        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
         await ui.until_shows("Team claude-code")
         assert not notice.display
         last_good = tuple(rows.children)
@@ -119,7 +119,7 @@ async def test_team_page_survives_unreadable_frames_and_recovers(workspace: Work
             hud, units=(replace(unit, strikes=2),),
             forks=(RecordedThreadIncarnation("recovered", 3.0),),
         )
-        TeamFrame.replace_all(workspace.comms.root, (repaired,))
+        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (repaired,))
         await ui.until(lambda: view.details.selection == selected(repaired.units[0]),
                        why="changed strikes to invalidate the real selected card")
         await ui.until(lambda: len([event for event in events if event.state is WorkerState.PENDING]) == 1,
@@ -168,7 +168,7 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
     first, = hud.units
     second = replace(first, unit=RecordedThreadIncarnation("second-worker", 3.0))
     hud = replace(hud, units=(first, second))
-    TeamFrame.replace_all(workspace.comms.root, (hud,))
+    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
     async with workspace.app() as ui:
         app, _pilot = ui.textual
         page = TeamPage()
@@ -209,7 +209,7 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         table.move_cursor(row=1, animate=False)
         await ui.until(lambda: view.selected == selected(second), why="the second semantic identity to be selected again")
         moved = replace(second, state=Moving)
-        TeamFrame.replace_all(workspace.comms.root, (replace(hud, units=(first, moved)),))
+        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=(first, moved)),))
         await ui.until(lambda: view.selected == selected(moved), why="the original selection to move between groups")
         await ui.until(lambda: any(native.selected == selected(moved) for native in view.query(TeamTable)),
                        why="the target group to resolve the same semantic key")
@@ -219,9 +219,9 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
                        why="native focus to follow its selected semantic record")
         assert view.details.selection == selected(moved)
         assert all(row_maps_cohere(native) for native in view.query(TeamTable))
-        TeamFrame.replace_all(workspace.comms.root, (replace(hud, units=()),))
+        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=()),))
         await ui.until(lambda: view.selected == EmptyTableSelection(), why="an actually empty frame")
-        TeamFrame.replace_all(workspace.comms.root, (hud,))
+        TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (hud,))
         await ui.until(lambda: view.selected == selected(first), why="a later frame to refill the original records")
 
 
