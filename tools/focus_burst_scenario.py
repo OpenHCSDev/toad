@@ -77,6 +77,11 @@ def main() -> None:
                              "on the painted screen, or the count measures the viewport")
     parser.add_argument("--settle-seconds", type=float, default=15.0,
                         help="Wait this long for the transcript to paint a row before sending")
+    parser.add_argument("--prime", type=int, default=3,
+                        help="Messages sent before the measured burst so the channel view "
+                             "has content to settle on; a fresh copy paints nothing until one exists")
+    parser.add_argument("--prime-settle-seconds", type=float, default=3.0,
+                        help="Let the primed rows paint before the burst is measured")
     parser.add_argument("--runtime", type=Path, required=True, help="The runtime's bin directory")
     parser.add_argument("--thread", required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -119,11 +124,17 @@ def main() -> None:
             app.click(args.channel)
             # The bug only shows on a view that has already settled: the run that
             # dropped two messages had 20 rows painted before the first send, and
-            # the run that dropped none had an empty transcript still loading its
-            # first page. Send from a settled view or the sample is not the bug.
+            # every run that dropped none started on an empty channel view. A fresh
+            # copy's channel paints nothing until a message exists, so prime it,
+            # then wait for the paint. Send from a settled view or the sample is
+            # not the bug.
+            for index in range(args.prime):
+                comms.messaging.send(args.from_thread, args.channel, f"PRIMED {index:02d}")
+                time.sleep(0.25)
             settled_by = time.monotonic() + args.settle_seconds
             while time.monotonic() < settled_by and not list(app.capture().message_rows()):
                 time.sleep(0.2)
+            time.sleep(args.prime_settle_seconds)
             app.screenshot("shown")
             shown = list(app.capture().message_rows())
             before = len(shown)
@@ -162,6 +173,7 @@ def main() -> None:
                 rows_immediately_after_return=immediate,
                 rows_after_settling=settled,
                 markers_before=markers_before,
+                primed=args.prime,
                 markers_while_unfocused=markers_while_unfocused,
                 markers_immediately_after_return=markers_immediately_after_return,
                 markers_after_settling=marker_rows(settled_rows),
