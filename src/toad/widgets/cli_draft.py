@@ -13,8 +13,8 @@ from toad.block_navigation import ConversationBlock
 from toad.native_style import AutoHeight
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
-from toad.widgets.transcript_lines import BlockLines, LinePreparation, NoStyledLines, TranscriptLinesRenderTask
-from toad.widgets.transcript_fragments import transcript_fragments
+from toad.widgets.transcript_lines import BlockLines, LinePreparation, NoStyledLines
+from toad.widgets.transcript_fragments import DraftLinesRenderTask, FragmentPlan
 from toad.core.projection import MroProjection
 from toad.worker_group import WorkerGroup
 from metaclass_registry.mro_dispatch import handles
@@ -48,7 +48,7 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         super().__init__()
         self.draft: DraftRow | NoDraft = NoDraft()
         self._lines: BlockLines = NoStyledLines()
-        self._blocks = ()
+        self._plan = FragmentPlan()
         self._width = 0
         self.display = False
 
@@ -61,16 +61,14 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
         # A render in flight drew the previous draft; it stops before it can show it.
         CliDraftRender.cancel_all(self)
         self.draft = NoDraft()
-        self._blocks = ()
+        self._plan = FragmentPlan()
         self._lines = NoStyledLines(self._width)
         self.display = False
 
     def show(self, draft: DraftRow, *, resolve_sent) -> None:
         if draft == self.draft:
             return
-        self._blocks = tuple(block for fragment in transcript_fragments(
-            draft.events, resolve_sent=resolve_sent,
-        ) for block in fragment.line_blocks)
+        self._plan = FragmentPlan.read(draft.events, resolve_sent=resolve_sent)
         self.draft = draft
         self._request_render()
 
@@ -85,10 +83,10 @@ class CliDraft(AutoHeight, ReferenceRendering, ConversationBlock, LinkedRows, Wi
             if width <= 0:
                 return
             theme = self.app.colours.line_theme
-            blocks = self._blocks
+            plan = self._plan
             context = await LinkContext.acquire(self)
             source = await self.app.render_processes.submit(
-                TranscriptLinesRenderTask(LinePreparation(blocks, theme), context))
+                DraftLinesRenderTask(LinePreparation((), theme), context, plan))
             if not context.current_for(self):
                 continue
             if not self.is_attached:

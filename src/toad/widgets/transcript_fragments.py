@@ -52,7 +52,12 @@ from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import MessageQueueEntry, NotificationStatus, UncheckedNotifications
 from toad.tool_output import SentMessageToolOutputPart, ToolOutput
 from toad.widgets.agent_activity import AgentActivityPresentation
-from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
+from toad.widgets.transcript_lines import (
+    AcquiredRows,
+    NoRows,
+    RowAcquisition,
+    TranscriptLinesRenderTask,
+)
 from toad.widgets.presentation_window import UNPLACED, Unplaced
 
 if TYPE_CHECKING:
@@ -69,7 +74,6 @@ if TYPE_CHECKING:
         BlockLines,
         Lines,
         LineTheme,
-        TranscriptLinesRenderTask,
     )
 
 
@@ -790,6 +794,34 @@ class SentSlot(BuiltSlot):
         return builder.unresolved()
 
 
+@dataclass(frozen=True)
+class TextSlot(FragmentSlot):
+    """A text event, parsed and split only when its fragments are asked for.
+
+    Reading events stays cheap whatever their length, so a draft that is read again on every
+    streamed chunk can leave the parse to the worker that styles it.
+    """
+
+    event: TextTranscript
+    kind: type[TranscriptFragment]
+    budget: RenderBudget
+    starts_activity: bool
+    options: Mapping[str, object]
+
+    def unresolved(self) -> tuple[TranscriptFragment, ...]:
+        parts = self.kind.text_parts(PreparedMarkdownPart.capture(self.event.text), self.budget)
+        return tuple(
+            self.kind.capture_part(
+                self.event,
+                part.text,
+                part_position=position,
+                starts_agent_activity=position.starts_activity(self.starts_activity),
+                **self.options,
+            )
+            for part, position in zip(parts, PartPosition.sequence(len(parts)), strict=True)
+        )
+
+
 @dataclass(eq=False)
 class ToolSlot(FragmentSlot):
     """One tool call's events, gathered in the place of its first event."""
@@ -853,18 +885,7 @@ class TranscriptFragmentConsumer(MroProjection[None]):
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs) -> None:
         starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
-        source = PreparedMarkdownPart.capture(event.text)
-        parts = kind.text_parts(source, self.budget)
-        self.slots.extend(
-            BuiltSlot(kind.capture_part(
-                event,
-                part.text,
-                part_position=position,
-                starts_agent_activity=position.starts_activity(starts_activity),
-                **kwargs,
-            ))
-            for part, position in zip(parts, PartPosition.sequence(len(parts)), strict=True)
-        )
+        self.slots.append(TextSlot(event, kind, self.budget, starts_activity, kwargs))
 
     @handles(ToolTranscript)
     def tool(self, event: ToolTranscript) -> None:
@@ -880,8 +901,39 @@ def transcript_fragments(
     *,
     resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
 ) -> tuple[TranscriptFragment, ...]:
-    consumer = TranscriptFragmentConsumer()
-    for event in events:
-        consumer.project_value(event)
-    resolved = resolve_sent(report for slot in consumer.slots for report in slot.sent_reports())
-    return tuple(fragment for slot in consumer.slots for fragment in slot.fragments(resolved))
+    return FragmentPlan.read(events, resolve_sent=resolve_sent).fragments()
+
+
+@dataclass(frozen=True)
+class FragmentPlan:
+    """Events read into their slots with their sent reports resolved, before any markdown parse."""
+
+    slots: tuple[FragmentSlot, ...] = ()
+    resolved: ResolvedSent = field(default_factory=dict)
+
+    @classmethod
+    def read(
+        cls,
+        events: tuple[TranscriptEvent, ...],
+        *,
+        resolve_sent: Callable[[Iterable[SentTranscript]], ResolvedSent],
+    ) -> FragmentPlan:
+        consumer = TranscriptFragmentConsumer()
+        for event in events:
+            consumer.project_value(event)
+        resolved = resolve_sent(report for slot in consumer.slots for report in slot.sent_reports())
+        return cls(tuple(consumer.slots), resolved)
+
+    def fragments(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for slot in self.slots for fragment in slot.fragments(self.resolved))
+
+
+@dataclass(frozen=True)
+class DraftLinesRenderTask(TranscriptLinesRenderTask):
+    """A draft's rows from its plan: it grows with every chunk, so the worker parses it too."""
+
+    plan: FragmentPlan
+
+    @property
+    def blocks(self) -> tuple[LineBlock, ...]:
+        return tuple(block for fragment in self.plan.fragments() for block in fragment.line_blocks)
