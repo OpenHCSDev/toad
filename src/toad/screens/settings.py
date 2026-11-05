@@ -72,8 +72,8 @@ class FocusSearchAction(SettingsAction):
     keys = {EditingMode: ("ctrl+s",)}
     show = True
 
-    def available(self, context: SettingsScreen) -> bool | None:
-        return None if context.search.has_focus else True
+    def available(self, context: SettingsScreen) -> bool:
+        return not context.search.has_focus
 
     def apply(self, context: SettingsScreen) -> None:
         context.search.focus()
