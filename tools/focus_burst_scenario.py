@@ -30,6 +30,18 @@ from tools.physical_ui import OwnedDisplay
 from tools.physical_ui_candidate import TerminalApp
 
 BURST = 12
+MARKER = "WHILE_UNFOCUSED"
+
+
+def marker_rows(captured: list[tuple[str, str]]) -> int:
+    """How many painted rows carry one of this run's own sent bodies.
+
+    Total row count is the wrong instrument here: the copied session's read basis is a
+    MemberActivityDisplayScope digest, whose status row collapses every missed message
+    into one "N recent" line (ui_model/status.py:72). Counting the marker counts
+    delivered messages instead of digest summaries.
+    """
+    return sum(1 for _, text in captured if MARKER in text)
 
 
 def window_of(environment: dict[str, str], pid: int) -> str:
@@ -61,8 +73,12 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--root", required=True,
                         help="The private root check-root substituted for {root}")
-    parser.add_argument("--channel", default="#comms")
+    parser.add_argument("--channel", default="#comms", help="A channel tab to open")
+    parser.add_argument("--from-thread", default="comms-teammate",
+                        help="A carried thread that sends to the open tab")
     parser.add_argument("--unfocused-seconds", type=float, default=20.0)
+    parser.add_argument("--focused", action="store_true",
+                        help="Control run: send while the window keeps focus")
     # The parent CLI owns --comms-root, so the root arrives as --root and the launch
     # is started here. Passing --comms-root in a check-root command makes the parent
     # parse it and resolve the wrong root, which surfaces as a thread-registration
@@ -76,46 +92,63 @@ def main() -> None:
 
     comms = wire()
     target = TerminalApp.prepare_target(comms.root, LaunchRuntime.at_prefix(args.runtime.parent))
-    base = (str(args.runtime / "toad"), "--comms-root", str(comms.root))  # toad [OPTIONS] COMMAND
-    command = (*base, "acp", shlex.quote(str(args.runtime / "agent-comms-acp")),
-               str(comms.registry.require(args.thread).worktree),
-               "--session", args.thread, "--title", "Agent Comms")
+    # "toad --comms" is our fork; a bare "toad" is the original application
+    # with a different UI and a "Toad" splash.
+    # The comms UI is the ACP surface the toad-comms wrapper builds; a bare
+    # "toad" is the original application and never shows comms traffic.
+    project = str(comms.registry.require(args.thread).worktree)
+    base = (str(args.runtime / "toad"), "--comms-root", str(comms.root), "acp",
+            f"{args.runtime}/python -m agent_comms.acp", project,
+            "--title", "Agent Comms", "--session", args.thread)
+    command = base
 
     measured: dict[str, object] = {}
     with OwnedDisplay(args.output) as display:
         comms.owners.start_many((args.thread,))[0]
         with TerminalApp(command, display, args.output / "comms", target, target.home) as app:
             app.wait("welcome", lambda screen: args.thread in screen.text)
-            app.click(args.thread)
+            app.click(args.channel)
             app.screenshot("shown")
-            before = len(list(app.capture().message_rows()))
+            shown = list(app.capture().message_rows())
+            before = len(shown)
+            markers_before = marker_rows(shown)
 
-            holder, holder_window = hold_focus_elsewhere(app.environment)
+            holder, holder_window = ((None, None) if args.focused
+                                     else hold_focus_elsewhere(app.environment))
             try:
-                focus(app.environment, holder_window)
+                if holder_window is not None:
+                    focus(app.environment, holder_window)
                 for index in range(BURST):
-                    comms.messaging.send(args.thread, args.channel, f"WHILE_UNFOCUSED {index:02d}")
+                    comms.messaging.send(args.from_thread, args.channel, f"WHILE_UNFOCUSED {index:02d}")
                     time.sleep(0.25)
                 time.sleep(args.unfocused_seconds)
-                painted_while_unfocused = len(list(app.capture().message_rows()))
+                painted = list(app.capture().message_rows())
+                painted_while_unfocused = len(painted)
+                markers_while_unfocused = marker_rows(painted)
                 focus(app.environment, str(app.window))
                 time.sleep(0.4)
-                immediate = len(list(app.capture().message_rows()))
+                returned = list(app.capture().message_rows())
+                immediate = len(returned)
+                markers_immediately_after_return = marker_rows(returned)
                 app.screenshot("returned")
                 time.sleep(3.0)
-                settled = len(list(app.capture().message_rows()))
+                settled_rows = list(app.capture().message_rows())
+                settled = len(settled_rows)
             finally:
-                holder.terminate()
-                holder.wait(timeout=10)
+                if holder is not None:
+                    holder.terminate()
+                    holder.wait(timeout=10)
 
             measured = dict(
                 rows_before=before,
                 rows_while_unfocused=painted_while_unfocused,
                 rows_immediately_after_return=immediate,
                 rows_after_settling=settled,
-                burst_visible_in_window=any(
-                    "WHILE_UNFOCUSED" in text for _, text in app.capture().message_rows()
-                ),
+                markers_before=markers_before,
+                markers_while_unfocused=markers_while_unfocused,
+                markers_immediately_after_return=markers_immediately_after_return,
+                markers_after_settling=marker_rows(settled_rows),
+                burst_size=BURST,
             )
     print(json.dumps(dict(measured, evidence=str(args.output))), file=protocol)
 
