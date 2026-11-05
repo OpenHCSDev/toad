@@ -223,6 +223,10 @@ class Unplaced:
         """As the viewport: whether a widget at `region`, clipped to `clip`, is in view."""
         return False
 
+    def regions(self) -> tuple[Region, ...]:
+        """The screen regions the widget is shown in."""
+        return ()
+
 
 UNPLACED = Unplaced()
 
@@ -232,6 +236,9 @@ class Placed(Unplaced):
     """Where the screen shows the widget, including the part scrolled out of view."""
 
     region: Region
+
+    def regions(self) -> tuple[Region, ...]:
+        return (self.region,)
 
     def shown_rows(self, rows: range) -> Placed:
         region = self.region

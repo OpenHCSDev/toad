@@ -88,6 +88,7 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
                     assert compositor._published_map is published, pauses
                     assert window.published_viewport == Placed(published[window].content_region.intersection(
                         published[window].clip))
+                    assert window.published_viewport.regions() == (window.published_viewport.region,)
                     assert screen.get_widget_and_offset_at(region.x + 2, region.y + 2) == hit
                     if committed is None:
                         assert [row for _, row in window.placements(placed)] == offsets

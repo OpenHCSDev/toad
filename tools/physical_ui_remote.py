@@ -534,9 +534,9 @@ class ObserveOperation(PhysicalOperation):
         # This is geometry of actually published history windows, not a guess
         # from sidebar separators that may also occur inside a user's message.
         regions = tuple(CapturedRegion(region) for window in screen.query(HistoryWindow)
-                        for region in (window.published_content_region,) if region is not None)
+                        for region in window.published_viewport.regions())
         histories = tuple(history for window in screen.query(HistoryWindow)
-                          if window.published_content_region is not None
+                          for _shown in window.published_viewport.regions()
                           for history in window.histories)
         # Decode the installed frontend at this read-only boundary. Only the
         # current live ResponseStream supplies reply text: not a user-input
