@@ -29,7 +29,7 @@ from agent_comms.launch_runtime import LaunchRuntime
 from tools.physical_ui import OwnedDisplay
 from tools.physical_ui_candidate import TerminalApp
 
-BURST = 12
+BURST = 4
 MARKER = "WHILE_UNFOCUSED"
 
 
@@ -40,6 +40,10 @@ def marker_rows(captured: list[tuple[str, str]]) -> int:
     MemberActivityDisplayScope digest, whose status row collapses every missed message
     into one "N recent" line (ui_model/status.py:72). Counting the marker counts
     delivered messages instead of digest summaries.
+
+    It counts rows that are painted, so --burst must stay small enough that every
+    message fits on screen. A twelve-message burst leaves five markers visible and
+    measures the viewport, not the delivery.
     """
     return sum(1 for _, text in captured if MARKER in text)
 
@@ -68,6 +72,9 @@ def focus(environment: dict[str, str], window: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--burst", type=int, default=BURST,
+                        help="Messages to send; keep it small enough that every one fits "
+                             "on the painted screen, or the count measures the viewport")
     parser.add_argument("--runtime", type=Path, required=True, help="The runtime's bin directory")
     parser.add_argument("--thread", required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -118,7 +125,7 @@ def main() -> None:
             try:
                 if holder_window is not None:
                     focus(app.environment, holder_window)
-                for index in range(BURST):
+                for index in range(args.burst):
                     comms.messaging.send(args.from_thread, args.channel, f"WHILE_UNFOCUSED {index:02d}")
                     time.sleep(0.25)
                 time.sleep(args.unfocused_seconds)
@@ -148,7 +155,7 @@ def main() -> None:
                 markers_while_unfocused=markers_while_unfocused,
                 markers_immediately_after_return=markers_immediately_after_return,
                 markers_after_settling=marker_rows(settled_rows),
-                burst_size=BURST,
+                burst_size=args.burst,
             )
     print(json.dumps(dict(measured, evidence=str(args.output))), file=protocol)
 
