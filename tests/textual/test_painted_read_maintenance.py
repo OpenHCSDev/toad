@@ -2,7 +2,7 @@
 
 import asyncio
 
-from agent_comms.maintenance_barrier import MaintenanceOperator, NoMaintenanceHolder
+from agent_comms.storage.maintenance_barrier import MaintenanceOperator, NoMaintenanceHolder
 from agent_comms.read_ledger import ReadLedger
 
 from toad.widgets.message_notifications import ReadWork

@@ -14,7 +14,7 @@ from textual.css.styles import Styles
 from textual.widgets import Collapsible
 from textual.widgets._collapsible import CollapsibleTitle
 
-from agent_comms.maintenance_barrier import MaintenanceHeldError
+from agent_comms.storage.maintenance_barrier import MaintenanceHeldError
 from agent_comms.notification_reads import LiveNotificationRead
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.read_basis import DisplayIdentity, NoDisplaySelection

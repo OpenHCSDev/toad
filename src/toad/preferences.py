@@ -18,8 +18,8 @@ from typing import TYPE_CHECKING, Annotated
 from uuid import uuid4
 
 from agent_comms.nominal.field_codec import FieldCodec, WireName
-from agent_comms.locked_store import FilesRequest
-from agent_comms.typed_table import ExternalStore
+from agent_comms.storage.locked_store import FilesRequest
+from agent_comms.storage.typed_table import ExternalStore
 from annotated_types import Ge, MinLen
 from objectstate import DottedFieldPath, ObjectState, mark_ui_hidden_config, set_base_config_type
 from pydantic import JsonValue

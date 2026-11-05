@@ -38,7 +38,7 @@ from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.native_arguments import ConfiguredBinary, NativeArguments
 from agent_comms.recorded_bus import RecordedBusIdentity
 from agent_comms.root_runtime import RootRuntime
-from agent_comms.store_files import ExclusiveAtomicFile
+from agent_comms.storage.store_files import ExclusiveAtomicFile
 from rich.cells import cell_len
 from rich.segment import Segment
 from textual.geometry import Region, Size

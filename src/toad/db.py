@@ -11,8 +11,8 @@ from typing import Annotated, Self
 
 from agent_comms.nominal.field_codec import NullMember, RecordedTimestamp, TimestampText
 from agent_comms.repo import Checkout
-from agent_comms.store_files import DEFAULT_ISOLATION
-from agent_comms.typed_table import (
+from agent_comms.storage.store_files import DEFAULT_ISOLATION
+from agent_comms.storage.typed_table import (
     Column, DurableTables, SharedFileTables, TableSchema, TextStorage, TypedTable,
     WriterOwnedFile, WriterOwnedStore,
 )
