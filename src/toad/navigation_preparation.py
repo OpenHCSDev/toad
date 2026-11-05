@@ -58,9 +58,7 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
         return CommsNavigation(
             CommsViewKey(str(root), self.owner_mode, resolved.conversation),
             owner_root,
-            resolved.conversation.threads_needed(
-                self.observed.registry(), resolved.viewer
-            ),
+            resolved.conversation.threads_needed(self.observed, resolved.viewer),
         )
 
 
@@ -146,7 +144,8 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         return str(self.observed.root)
 
     def read(self) -> ThreadNavigation:
-        snapshot = self.observed.registry()
+        snapshot = self.observed.registry_for(
+            self.target, *(view.name for view in self.open_threads if view.root == self.root))
         thread = snapshot.require(self.target)
         project = thread.worktree
         existing = next(

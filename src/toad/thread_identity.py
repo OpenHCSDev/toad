@@ -135,7 +135,7 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def resolve_thread(self, observed: Observing, project: Path) -> str:
         """A bound view requires its original name; it never discovers a replacement."""
-        return observed.registry().require(self.owner.name).name
+        return observed.registry_for(self.owner.name).require(self.owner.name).name
 
     def with_thread(self, thread: str):
         return ThreadIdentity(self.owner.renamed(thread), self.root)

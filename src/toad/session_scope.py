@@ -139,7 +139,7 @@ class KnownTranscript(TranscriptScope):
         return ((self.root, identity.thread_incarnation()),)
 
     def matches_session(self, access: CoordinationAccess, session_id: str) -> bool:
-        registry = access.observing(self.root).registry()
+        registry = access.observing(self.root).registry_for(session_id, self.name)
         return registry.canonical_name(session_id) == registry.require(self.name).name
 
     def status_thread(self, access: CoordinationAccess) -> StatusThread:
