@@ -18,6 +18,7 @@ from toad.widgets.footer import ToadFooter
 from toad.widgets.switch_toast import SwitchToast
 from ui_theme.scheme import HeaderToneColour
 from toad.tone_paint import TonePaint
+from toad.layout_preferences import FollowsLayoutPreferences
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope
 from toad.sidebar_placement import SidebarEdge
@@ -26,10 +27,14 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
+class WorkspaceHeader(FollowsLayoutPreferences, TonePaint, WidgetView, Horizontal):
     tone = HeaderToneColour
     width = FILL
     height = AUTO
+
+    def apply_layout_preferences(self) -> None:
+        """The navigation bar setting moves this bar above or below the conversation row."""
+        self.app.settings.ui.navigation_bar.place(self, self.screen.query_one(WorkspaceBody))
 
     def compose(self) -> ComposeResult:
         from toad.widgets.session_tabs import SessionsTabs
@@ -37,6 +42,10 @@ class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
 
         yield TabHistoryControls()
         yield SessionsTabs()
+
+
+class WorkspaceBody(Horizontal):
+    """The row the sidebars and the session share, between the navigation bar and the footer."""
 
 
 class WorkspaceChrome(VerticalLayout):

@@ -41,12 +41,14 @@ from toad.setting_choices import (
     FailExpansion,
     LoadingStyle,
     LeftColumnAlignment,
+    NavigationBarPosition,
     NormalScrollbar,
     NotificationPolicy,
     PulseLoading,
     SchemeName,
     Scrollbar,
     SessionBar,
+    TopNavigationBar,
 )
 from toad.setting_declarations import Effect, FamilyChoices
 from toad.setting_widget import PromptSettingEffects
@@ -162,6 +164,13 @@ class UiSettings(AnnotatedDataclassValidationMixin):
         WireName("column-alignment"),
     ] = LeftColumnAlignment
     """Place the conversation column on the left, in the center, or on the right."""
+
+    navigation_bar: Annotated[
+        type[NavigationBarPosition], FieldLabel("Navigation bar"),
+        FamilyChoices(NavigationBarPosition), effects.conversation_layout,
+        WireName("navigation-bar"),
+    ] = TopNavigationBar
+    """Show the menu, history arrows and tabs above the conversation or below it."""
 
     scrollbar: Annotated[
         type[Scrollbar],
