@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, ClassVar, Never
 
 from agent_comms.channel_targets import ThreadTarget
 from agent_comms.repo import Checkout
-from agent_comms.coordination.errors import CoordinationReadUnavailable, StaleRevision
+from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
 from agent_comms.errors import RelationViolationError, RouteChangedError
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.order_tools import TranscriptPageRead
@@ -216,7 +216,7 @@ class KnownTranscript(TranscriptScope):
             status = await self.mailbox_conversation(view, conversation_type).status_text(
                 observed, read_only=False
             )
-        except (CoordinationReadUnavailable, StaleRevision):
+        except (CoordinationReadUnavailable, ReadAgain):
             # The next observed presentation reads the answer again.
             return
         if self.shown_by(view):

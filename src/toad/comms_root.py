@@ -58,6 +58,7 @@ from agent_comms.ui_model.observation import (
     ObserveTeamHud,
     StopTeamHud,
     NotificationsObserved,
+    NotificationsReload,
     NotificationsUnreadable,
     LocalRouteObservation,
     ObservationProcess,
@@ -1020,6 +1021,12 @@ class CoordinationAccess(MroDispatch):
         for view, request in tuple(self.notification_views.items()):
             if result.request == request:
                 view.notifications_failed(result.error)
+
+    @handles(NotificationsReload)
+    def notifications_reload(self, result: NotificationsReload, observed: Observing) -> None:
+        for view, request in tuple(self.notification_views.items()):
+            if result.request == request:
+                view.notifications_reload()
 
     def sidebar_request(self) -> ObserveSidebar:
         sidebar = self.app.saved_settings.current.sidebar

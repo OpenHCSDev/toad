@@ -207,6 +207,17 @@ class HistoryNotifications:
             await target.show_notification_status(status)
         self.query_ancestor(QueueEvidenceOwner).queue_evidence_changed()
 
+    def notifications_reload(self) -> None:
+        """Core answered this read's display cut is gone: its page is read again, and the
+        rows it draws carry the fresh cut the next read asks with."""
+        if self.can_draw_on_screen:
+            self.run_worker(self._reload_notification_sources(),
+                            group=self.NOTIFICATION_GROUP, exclusive=True)
+
+    async def _reload_notification_sources(self):
+        for target in self.notification_targets():
+            await target.reload_notification_source()
+
     def on_mount(self) -> None:
         self.call_after_refresh(self.check_notifications)
 

@@ -7,7 +7,7 @@ from dataclasses import replace
 import pytest
 
 from agent_comms.acp_extension import TranscriptSnapshotUpdate, decode_updates, encode_updates
-from agent_comms.coordination.errors import HistoricalSourceChanged, StaleRevision
+from agent_comms.coordination.errors import HistoricalSourceChanged, ReloadRequired
 from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.transcripts import EarlierThan, LaterThan, RecordedPageSource, RecordedTranscriptReadIdentity
@@ -47,7 +47,7 @@ async def test_recorded_snapshot_stays_immutable_when_original_grows_and_rejects
         assert refreshed.identity.thread.incarnation == source.provenance.threads["reader"].incarnation
         assert [event.text for event in refreshed.page.events] == ["recorded answer"]
         assert refreshed == update
-        with pytest.raises(StaleRevision, match="another recorded source"):
+        with pytest.raises(ReloadRequired, match="another recorded source"):
             await reader.publication(replace(refreshed, identity=replace(
                 refreshed.identity, source=replace(source, original_root="another-source"))))
         live.bus.history.path.write_text("[]")

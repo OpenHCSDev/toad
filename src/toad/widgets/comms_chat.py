@@ -242,28 +242,23 @@ class CommsChatView(Conversation):
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
-        from agent_comms.coordination.errors import CoordinationReadUnavailable, StaleRevision
-
-        try:
-            history = self.message_history
-            announced = self.app.coordination_access.revision
-            newly_announced = announced != self._refreshed_from
-            changed = await history.read_changes()
-            # Source observation and its pending first page belong to the
-            # history, even before this tab is drawable. Composer work follows.
-            source = history.page_source
-            snapshot = history.source_snapshot()
-            if not await history.source_is_current(snapshot):
-                return
-            read_only = await source.read_only()
-            if not await history.source_is_current(snapshot):
-                return
-            await self.refresh_composer(read_only)
-            self._refreshed_from = announced
-            # A sent message may now be drawn: composing resumes before mentions are read.
-            self.settle_user_message()
-        except (CoordinationReadUnavailable, StaleRevision):
-            raise
+        history = self.message_history
+        announced = self.app.coordination_access.revision
+        newly_announced = announced != self._refreshed_from
+        changed = await history.read_changes()
+        # Source observation and its pending first page belong to the
+        # history, even before this tab is drawable. Composer work follows.
+        source = history.page_source
+        snapshot = history.source_snapshot()
+        if not await history.source_is_current(snapshot):
+            return
+        read_only = await source.read_only()
+        if not await history.source_is_current(snapshot):
+            return
+        await self.refresh_composer(read_only)
+        self._refreshed_from = announced
+        # A sent message may now be drawn: composing resumes before mentions are read.
+        self.settle_user_message()
         # Composer mentions and DM status read the observer's snapshot
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
@@ -275,7 +270,7 @@ class CommsChatView(Conversation):
 
     async def _refresh_labels(self, source, changed: bool, newly_announced: bool, read_only: bool) -> None:
         """Refresh composer mentions and status for the history as it is drawn now."""
-        from agent_comms.coordination.errors import CoordinationReadUnavailable, StaleRevision
+        from agent_comms.coordination.errors import CoordinationReadUnavailable, ReadAgain
 
         history = self.message_history
         snapshot = history.source_snapshot()
@@ -297,7 +292,7 @@ class CommsChatView(Conversation):
             if not changed:
                 return
             status = await source.status_text(read_only=read_only)
-        except (CoordinationReadUnavailable, StaleRevision):
+        except (CoordinationReadUnavailable, ReadAgain):
             # The coordination store is busy or moved on: the observer's next
             # announcement refreshes this view and reads the labels again.
             return

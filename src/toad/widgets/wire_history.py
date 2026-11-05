@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from textual.reactive import var
 
-from agent_comms.coordination.errors import StaleRevision
+from agent_comms.coordination.errors import ReadAgain
 from agent_comms.historical_views import UnobservedConversation
 
 from toad.session_scope import SessionScope
@@ -147,12 +147,16 @@ class WireHistory[ViewT: CommsChatView](VisibleReadMarking, ConversationHistory[
             if snapshot.current(self):
                 for fragment in marked:
                     fragment.evidence = None
-        except StaleRevision:
+        except ReadAgain:
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
-                source.revision = UnobservedConversation()
-                await self.view._refresh()
+                await self.reload_notification_source()
         finally:
             if self.is_attached:
                 self.view.call_after_refresh(self.mark_visible)
+
+    async def reload_notification_source(self) -> None:
+        """Forget what was observed, so the next refresh reads the page and its cut afresh."""
+        self.page_source.revision = UnobservedConversation()
+        await self.view._refresh()
