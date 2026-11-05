@@ -207,9 +207,9 @@ class CommsChatView(Conversation):
         """A message composer has no operational agent projection."""
 
     def refresh_identity(self) -> None:
-        """Dispatch the observed root's references: the root this view was opened on."""
-        access = self.app.coordination_access
-        self.dispatch_sync(access.reference_context(str(access.observation.observed().root)))
+        """Dispatch the references of this view's own root: the source it was opened on."""
+        root = self.message_history.page_source.loader.root
+        self.dispatch_sync(self.app.coordination_access.reference_context(str(root)))
 
     @handles(ReferenceContext)
     def preparing_identity(self, references) -> None:
