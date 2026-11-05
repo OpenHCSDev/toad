@@ -181,6 +181,12 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
     def on_screen_resume(self) -> None:
         for window in tuple(self.history_windows):
             window.request_preparation()
+        # While covered, sidebars were hidden: a load asked for then was refused, and
+        # controls a finished load mounted were never presented. Do both now.
+        chrome = self.app.workspace_chrome
+        for bar in chrome.presented_sidebars():
+            bar.schedule_hydration()
+        chrome.refresh_layout()
 
     async def _message_loop_exit(self) -> None:
         self.frame_presentation.close()

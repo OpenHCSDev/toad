@@ -4,7 +4,7 @@ from weakref import ref
 from textual.app import ComposeResult
 from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
-from toad.widgets.side_bar import PanelHydration, ThreadSidebar
+from toad.widgets.side_bar import AbsentPanels, PanelHydration, ThreadSidebar
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
 from toad.widgets.presentation_window import NativePresentation
 from toad.widgets.project_panel import NO_PROJECT_VIEW
@@ -26,19 +26,10 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
     def retained_widget_count(self) -> int:
         return 1 + self.descendant_count if self.panels_loaded else 0
 
-    def schedule_hydration(self) -> None:
-        if not self.collapsed:
-            if not self.panels_loaded:
-                self._panels_ready.clear()
-            super().schedule_hydration()
-        else:
-            self._panels_ready.set()
-
-    def _start_hydration(self) -> None:
-        if not self.collapsed:
-            super()._start_hydration()
-        else:
-            self._panels_ready.set()
+    @property
+    def wants_panels(self) -> bool:
+        """A collapsed session sidebar keeps its panels released until it opens."""
+        return super().wants_panels and not self.collapsed
 
     async def prepare_presentation(self) -> None:
         self.schedule_hydration()
@@ -67,9 +58,9 @@ class SessionThreadSidebar(ThreadSidebar, NativePresentation):
         await self.panels_viewport.remove_children()
         await self.layout_controls.remove_children()
         self.panels.clear()
-        self._panels_loaded = self._panels_loading = False
+        released, self.panel_state = self.panel_state, AbsentPanels()
         self.invalidate_controls()
-        self._panels_ready.set()
+        released.settle()
 
     async def panels_hydrated(self) -> None:
         screen = self._owner()
