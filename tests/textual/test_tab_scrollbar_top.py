@@ -10,7 +10,8 @@ async def open_peers(ui, count: int) -> list[str]:
     peers = []
     for index in range(count):
         identity = await ui.new_session()
-        ui.app.session_tracker.name_session(identity, f"thread-{index}-long-title")
+        ui.app.session_tracker.name_session(
+            ui.app.session_navigation.get(identity).identity, f"thread-{index}-long-title")
         peers.append(identity)
     await ui.step()
     await ui.pilot.wait_for_scheduled_animations()
@@ -23,7 +24,7 @@ def underline_is_painted(ui, tabs, underline, x_from=None, x_to=None):
     visible = underline.region.intersection(clip)
     painted = ui.app.screen._compositor.render_strips()[visible.y].crop(
         visible.x if x_from is None else x_from, visible.right if x_to is None else x_to)
-    color = underline.get_component_rich_style("underline--bar").color
+    color = underline.bar_style.color
     return visible, any(segment.style is not None and segment.style.color == color
                         and "━" in segment.text for segment in painted), tuple(painted)
 
@@ -140,7 +141,7 @@ async def test_overflow_appearing_on_a_mounted_strip_keeps_the_underline_painted
                 for index, session in enumerate(app.session_tracker.ordered_sessions):
                     title = (f"pr17-standby-liveness-owner-{index} working on active goal"
                              if long_titles else str(index))
-                    app.session_tracker.name_session(session.mode_name, title)
+                    app.session_tracker.name_session(session.identity, title)
                 await ui.step()
                 await ui.pilot.wait_for_scheduled_animations()
                 assert tabs.show_horizontal_scrollbar == long_titles

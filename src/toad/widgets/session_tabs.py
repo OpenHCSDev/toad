@@ -175,6 +175,11 @@ class Underline(WidgetView, Animated[Amount]):
         start, end = self.query_ancestor(SessionsTabs).selected_span
         return float(start), float(end)
 
+    @property
+    def bar_style(self) -> RichStyle:
+        """The paint of the selected tab's cells."""
+        return RichStyle.from_color(self.app.colours.colour(AccentColour).rich_color)
+
     def render(self) -> RenderResult:
         """Render the bar."""
         colours = self.app.colours
@@ -185,7 +190,7 @@ class Underline(WidgetView, Animated[Amount]):
                        from_end + (to_end - from_end) * amount)
         return Bar(
             highlight_range=self._drawn,
-            highlight_style=RichStyle.from_color(colours.colour(AccentColour).rich_color),
+            highlight_style=self.bar_style,
             background_style=RichStyle.from_color(background.rich_color),
         )
 
