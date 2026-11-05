@@ -149,6 +149,13 @@ class Action(KeyDeclaration[Context], Command, DeclaredFamily, Generic[Context],
         return cls()
 
     @classmethod
+    def require_unwritten(cls, name: str, writers: tuple[type, ...]) -> None:
+        """A generated dispatcher may not replace an action a class wrote: a member whose apply
+        calls that action would then call itself."""
+        if writers:
+            raise TypeError(f"{cls.__qualname__} would replace {writers[0].__qualname__}.{name}")
+
+    @classmethod
     def offered(cls, context: Context) -> Iterator[Self]:
         """What the menu and the palette offer for this member: itself, where it is available."""
         command = cls()
@@ -271,12 +278,9 @@ class DeclaredWidgetActions(ToadNode):
         declarations = cls.declared_actions()
         for declaration in declarations:
             name = f"action_{declaration.declared_name}"
-            written = next((base for base in cls.__mro__ if name in base.__dict__
-                            and not isinstance(base.__dict__[name], partialmethod)), None)
-            if written is not None and issubclass(written, ToadNode):
-                # Replacing Textual's own action is the declared override (DismissAction);
-                # replacing ours would make a member whose apply calls it call itself.
-                raise TypeError(f"{declaration.__qualname__} would replace {written.__qualname__}.{name}")
+            declaration.require_unwritten(name, tuple(
+                base for base in cls.__mro__
+                if name in base.__dict__ and not isinstance(base.__dict__[name], partialmethod)))
             dispatch = (cls._run_declared_async_action if inspect.iscoroutinefunction(declaration.apply)
                         else cls._run_declared_action)
             setattr(cls, name, partialmethod(dispatch, declaration))
@@ -334,7 +338,16 @@ class VisibleAction(WidgetAction):
     show = True
 
 
-class DismissAction(VisibleAction):
+class ReplacesFrameworkAction:
+    """A member declared to stand in for one of Textual's own actions (Screen.action_dismiss,
+    App.action_quit): replacing that written action is its purpose."""
+
+    @classmethod
+    def require_unwritten(cls, name: str, writers: tuple[type, ...]) -> None:
+        pass
+
+
+class DismissAction(ReplacesFrameworkAction, VisibleAction):
     """Close the current control."""
     keys = {EditingMode: ("escape",)}
 

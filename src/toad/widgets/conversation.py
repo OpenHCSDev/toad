@@ -135,7 +135,7 @@ from toad.widgets.observed_thread_activity import (
     ThreadStatusOwner,
 )
 from toad.widgets.prompt import Prompt
-from toad.widgets.session_details import OperationalSessionDetails, SessionDetails
+from toad.widgets.session_details import OperationalSessionDetails
 from toad.widgets.shell_terminal import ShellTerminal
 from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.terminal import Terminal
@@ -852,7 +852,7 @@ class ConversationSessionBinding(
     @handles(core_events.ConfigurationChanged)
     async def on_acp_configuration_changed(self, event: core_events.ConfigurationChanged) -> None:
         self._update_model_info()
-        if (prompt := self.query_one_optional(Prompt)) is not None:
+        for prompt in self.query(Prompt):
             prompt.sync_configuration()
             prompt.sync_session()
         if self._initial_prompt is not None and self.agent_binding.ready:
@@ -1020,9 +1020,9 @@ class Conversation(
 
     def _turn_changed(self, owner: TurnOwner) -> None:
         self.sync_working()
-        if (prompt := self.query_one_optional(Prompt)) is not None:
+        for prompt in self.query(Prompt):
             prompt.sync_turn()
-        if (details := self.query_one_optional(SessionDetails)) is not None:
+        for details in self.query(OperationalSessionDetails):
             details.sync_turn()
         self.refresh_bindings()
 
@@ -1030,7 +1030,7 @@ class Conversation(
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
         self.sync_working()
-        if (prompt := self.query_one_optional(Prompt)) is not None:
+        for prompt in self.query(Prompt):
             prompt.sync_session()
 
     @on(events.Key)
@@ -1222,7 +1222,7 @@ class Conversation(
         self.turns.finish_client()
         self._agent_fail = True
         self.prompt.sync_session()
-        if (details := self.query_one_optional(SessionDetails)) is not None:
+        for details in self.query(OperationalSessionDetails):
             details.sync_turn()
         self.app.notify(event.message, title="Agent failure", severity="error", markup=False)
 
@@ -1315,7 +1315,7 @@ class Conversation(
                 "Provider login finished; model catalogue refreshed", style="success"
             )
         finally:
-            if (prompt := self.query_one_optional(Prompt)) is not None:
+            for prompt in self.query(Prompt):
                 prompt.disabled = False
                 prompt.focus()
 
@@ -1698,14 +1698,14 @@ class Conversation(
         )
         # A modal remains a view of the same backend snapshot, including later starts.
         details.delivery = self.input_delivery
-        session_details = self.query_one_optional(SessionDetails)
-        if session_details is not None:
+        shown = tuple(self.query(OperationalSessionDetails))
+        for session_details in shown:
             details.overview_text = session_details.overview_text
         self.app.push_screen(details)
         details.watch(
             self, "input_delivery", lambda state: setattr(details, "delivery", state)
         )
-        if session_details is not None:
+        for session_details in shown:
             details.watch(
                 session_details,
                 "overview_text",

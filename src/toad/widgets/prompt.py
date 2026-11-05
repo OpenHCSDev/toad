@@ -22,7 +22,7 @@ from toad.widget_actions import Activates
 from textual._paint_state import PaintState
 from textual.actions import SkipAction
 from textual.app import ComposeResult
-from textual.widgets.text_area import EditingMode
+from textual.widgets.text_area import EditingMode, VimMode
 from toad.neovim_editing import NeovimUpdated
 from textual.document._editing import EditingFailure
 from textual.content import Content, Span
@@ -39,7 +39,7 @@ from textual.widgets.text_area import Selection, TextAreaComponent
 from ui_theme.scheme import ErrorColour, MutedColour, PrimaryColour, PromptToneColour, SecondaryColour
 
 from toad import messages
-from toad.clipboard_image import read_clipboard_png, save_clipboard_png
+from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard_png
 from toad.agent_binding import NoAgentConnection
 from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
@@ -70,8 +70,8 @@ from toad.native_style import (
     TransparentBackground,
 )
 from toad.tone_paint import TonePaint
-from toad.path_complete import PathComplete
-from toad.prompt_actions import PromptAction, PromptFrameAction, SubmitInputAction, SubmitNowAction
+from toad.path_complete import AnyPath, CompletingEditor, DirectoriesOnly, FilesOnly, PathComplete
+from toad.prompt_actions import PromptAction, SubmitInputAction, SubmitNowAction
 from toad.prompt_cursor import (
     CommandText,
     HistoryCursor,
@@ -82,7 +82,7 @@ from toad.prompt_cursor import (
 from toad.setting_widget import PromptSettingEffects, SettingVisibility
 from toad.slash_command import SlashCommand
 from toad.widget_actions import (
-    DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
+    Action, DismissibleControl, HiddenActions, LocalMethodKeys, NativeMethodKeys,
 )
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
@@ -398,6 +398,8 @@ class PromptSubmission(HighlightedTextArea):
 
 
 class PromptTextArea(
+    CompletingEditor,
+    PastesClipboard,
     RightPadding,
     CoreEventReceiver,
     LocalMethodKeys,
@@ -541,25 +543,27 @@ See on-screen instructions for details.
         if self.read_only:
             return
         try:
-            image = await read_clipboard_png()
-            if not self.is_attached:
-                return
-            if image is not None:
-                if self.shell_mode:
-                    self.notify('Leave shell mode to attach an image to a message.', title='Image attachment', severity='warning')
-                    return
-                path = await asyncio.to_thread(save_clipboard_png, image)
-                reference = f'@"{path}"' if any((char.isspace() for char in str(path))) else f'@{path}'
-                self._paste_clipboard_text(' ' + reference + ' ')
-                self.notify(f'PNG attached ({len(image):,} bytes). Enter sends it with your prompt.', title='Image attachment')
-                return
-            text = (await self.app.clipboard_transport.paste(self.app)).text
-            if text:
-                self._paste_clipboard_text(text)
-            else:
-                self.notify('No text or supported image in the clipboard', title='Paste')
+            content = await read_clipboard()
+            if self.is_attached:
+                await content.paste_into(self)
         except (OSError, ValueError, TimeoutError) as error:
             self.app.show_error(error, 'Paste failed')
+
+    async def attach_png(self, data: bytes) -> None:
+        if self.shell_mode:
+            self.notify('Leave shell mode to attach an image to a message.', title='Image attachment', severity='warning')
+            return
+        path = await asyncio.to_thread(save_clipboard_png, data)
+        reference = f'@"{path}"' if any((char.isspace() for char in str(path))) else f'@{path}'
+        self._paste_clipboard_text(' ' + reference + ' ')
+        self.notify(f'PNG attached ({len(data):,} bytes). Enter sends it with your prompt.', title='Image attachment')
+
+    async def paste_clipboard_text(self) -> None:
+        text = (await self.app.clipboard_transport.paste(self.app)).text
+        if text:
+            self._paste_clipboard_text(text)
+        else:
+            self.notify('No text or supported image in the clipboard', title='Paste')
 
     async def tab_complete(self) -> None:
         if not self.editing_mode.accepts_text or not self.shell_mode:
@@ -574,30 +578,28 @@ See on-screen instructions for details.
         if not shlex_tokens:
             return
         command = shlex_tokens[0]
-        exclude_node_type: Literal['file'] | Literal['dir'] | None = None
-        if command in self.app.settings.shell.directory_commands.splitlines():
-            exclude_node_type = 'file'
-        elif command in self.app.settings.shell.file_commands.splitlines():
-            exclude_node_type = 'dir'
-        tab_complete, suggestions = await self.path_complete(Path(prompt.working_directory), shlex_tokens[-1], exclude_type=exclude_node_type)
-        if tab_complete is not None:
-            shlex_tokens = shlex_tokens[:-1] + [shlex_tokens[-1] + tab_complete]
-            path_component = Path(prompt.working_directory) / shlex_tokens[-1]
-            if path_component.is_file():
-                spaces = ' '
-            else:
-                spaces = ''
-            self.clear()
-            self.insert(' '.join((token.replace(' ', '\\ ') for token in shlex_tokens)) + post_complete + spaces)
-            self.suggestions = None
-        elif suggestions != self.suggestions:
-            self.suggestions = suggestions or None
+        shell = self.app.settings.shell
+        kinds = (DirectoriesOnly() if command in shell.directory_commands.splitlines()
+                 else FilesOnly() if command in shell.file_commands.splitlines() else AnyPath())
+        working_directory = Path(prompt.working_directory)
+        completion = await self.path_complete(working_directory, shlex_tokens[-1], kinds=kinds)
+        completion.apply(self, working_directory, shlex_tokens, post_complete)
+
+    def replace_text(self, text: str) -> None:
+        self.clear()
+        self.insert(text)
+        self.clear_suggestions()
+
+    def offer(self, options: list[str]) -> None:
+        if not options:
+            self.clear_suggestions()
+        elif options != self.suggestions:
+            self.suggestions = options
             self.suggestions_index = 0
-            if suggestions:
-                self.suggestion = suggestions[0]
-        elif self.suggestions:
-            self.suggestions_index = (self.suggestions_index + 1) % len(self.suggestions)
-            self.suggestion = self.suggestions[self.suggestions_index]
+            self.suggestion = options[0]
+        else:
+            self.suggestions_index = (self.suggestions_index + 1) % len(options)
+            self.suggestion = options[self.suggestions_index]
 
     async def _submit(self, action: SubmitInputAction, mode: EditingMode) -> None:
         """A refused or superseded transfer consumes no text and retains no intent."""
@@ -684,6 +686,20 @@ class MessageTextArea(PromptTextArea):
     @property
     def can_enter_shell(self) -> bool:
         return False
+
+
+class PromptFrameAction(Action, affix="Action"):
+    """Keys the prompt frame answers, whether or not its editor exists yet."""
+
+
+class EnterInsertAction(PromptFrameAction):
+    """Show the latest prompt, ready for text entry."""
+
+    title = "Focus prompt"
+    keys = {VimMode: ("i",)}
+
+    def apply(self, prompt: Prompt) -> None:
+        prompt.enter_insert()
 
 
 class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingEffects, TonePaint,

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from toad.widgets.prompt import Prompt, PromptTextArea
+    from toad.widgets.prompt import PromptTextArea
 
 
 class PromptAction(Action, affix="Action"):
@@ -110,20 +110,6 @@ class CopyOrClearInputAction(PromptAction):
         editor.clear()
         editor.editing_mode.resume(editor)
         editor.clear_suggestions()
-
-
-class PromptFrameAction(Action, affix="Action"):
-    """Keys the prompt frame answers, whether or not its editor exists yet."""
-
-
-class EnterInsertAction(PromptFrameAction):
-    """Show the latest prompt, ready for text entry."""
-
-    title = "Focus prompt"
-    keys = {VimMode: ("i",)}
-
-    def apply(self, prompt: Prompt) -> None:
-        prompt.enter_insert()
 
 
 class CompleteAction(PromptAction):

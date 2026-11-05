@@ -14,6 +14,7 @@ from toad.screens.keymap import KeymapScreen
 from toad.keymap import KeyInvocationId
 from toad.widget_actions import (
     ApplicationAction,
+    ReplacesFrameworkAction,
     System,
     VimWorkspaceAction,
     YieldingKey,
@@ -174,7 +175,7 @@ class ToggleFooterAction(ApplicationAction):
         await SetFooterAction(not app.settings.ui.footer).apply(app)
 
 
-class HelpQuitAction(System, YieldingKey, ApplicationAction):
+class HelpQuitAction(ReplacesFrameworkAction, System, YieldingKey, ApplicationAction):
     keys = {EditingMode: ("ctrl+c",)}
 
     async def apply(self, app: ToadApp) -> None:
@@ -293,7 +294,7 @@ class VimMoveTabRightAction(VimMoveTabAction):
     direction = +1
 
 
-class QuitAction(ApplicationAction):
+class QuitAction(ReplacesFrameworkAction, ApplicationAction):
     """Save preferences and quit the application."""
 
     keys = {EditingMode: ("ctrl+q",)}

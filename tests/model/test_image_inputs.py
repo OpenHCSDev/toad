@@ -56,10 +56,10 @@ async def test_clipboard_image_read_returns_the_bytes_and_stops_at_the_size_boun
     monkeypatch.setenv("WAYLAND_DISPLAY", "")
     with patch("toad.clipboard_image.shutil.which", return_value="/usr/bin/xclip"), patch(
             "toad.clipboard_image.asyncio.create_subprocess_exec", spawn):
-        assert await clipboard_image.read_clipboard_png() == data
+        assert await clipboard_image.read_clipboard() == clipboard_image.ClipboardPng(data)
         assert not process.killed
         process = ClipboardProcess(data)
         with patch("toad.clipboard_image.MAX_IMAGE_BYTES", 128):
             with pytest.raises(ValueError):
-                await clipboard_image.read_clipboard_png()
+                await clipboard_image.read_clipboard()
             assert process.killed and process.returncode == -9
