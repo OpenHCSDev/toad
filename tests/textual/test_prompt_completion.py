@@ -121,9 +121,7 @@ async def test_channel_composer_completes_a_mention_with_tab_and_keeps_focus(wor
 
 
 async def search_button(workspace, ui, prompt):
-    sidebar = ui.app.selected_session.query_one(SessionThreadSidebar)
-    sidebar.reveal()
-    await sidebar.wait_content_ready()
+    sidebar = await ui.revealed(ui.app.selected_session.query_one(SessionThreadSidebar))
     await ui.step()
     sidebar.query_one("#project-panel", SideBarCollapsible).collapsed = False
     await ui.until(lambda: sidebar.query_one_optional(ProjectSearchButton) is not None, why="the search button")

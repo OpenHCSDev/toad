@@ -11,9 +11,7 @@ from support.overlapping_annotations import overlapping_annotations
 
 async def reveal_context(ui) -> ContextExplorer:
     """Open the session's Context panel and return its explorer."""
-    sidebar = ui.app.screen.query_one(ThreadSidebar)
-    sidebar.reveal()
-    await sidebar.wait_content_ready()
+    sidebar = await ui.revealed(ui.app.screen.query_one(ThreadSidebar))
     explorer = sidebar.query_one(ContextExplorer)
     explorer.query_ancestor(SideBarCollapsible).collapsed = False
     await ui.step()

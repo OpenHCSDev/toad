@@ -61,10 +61,7 @@ async def started(workspace, ui):
 
 
 async def reveal(ui, screen):
-    sidebar = screen.query_one(SessionThreadSidebar)
-    sidebar.reveal()
-    async with asyncio.timeout(12):
-        await sidebar.wait_content_ready()
+    sidebar = await ui.revealed(screen.query_one(SessionThreadSidebar))
     await ui.step(0.02)
     return sidebar
 
@@ -154,8 +151,7 @@ async def exercise(ui, screen, root):
     latest = [PlanItem("Latest while absent", "high", InProgressPlanStatus)]
     sidebar.update_plan(latest)
     await sidebar.prepare_presentation()
-    async with asyncio.timeout(12):
-        await sidebar.wait_content_ready()
+    await ui.panels_loaded(sidebar)
     await ui.step(0.02)
     assert sidebar.query_one(Plan).entries is latest
     relationships = sidebar.query_one(ThreadCommsSidebar)
@@ -219,7 +215,7 @@ async def test_panels_rebuild_after_eviction_while_collapsed(workspace):
         await ui.step(0.05)
         assert not sidebar.panels
         sidebar.reveal()
-        await sidebar.wait_content_ready()
+        await ui.panels_loaded(sidebar)
         assert len(sidebar.panels) == len(sidebar._panel_owners)
 
 
@@ -236,7 +232,7 @@ async def test_panels_show_the_current_project_after_the_source_project_changes_
         (replacement / "new-source.txt").write_text("Current filesystem")
         screen.project_path = Checkout(replacement)
         await sidebar.prepare_presentation()
-        await sidebar.wait_content_ready()
+        await ui.panels_loaded(sidebar)
         tree = await prepare_project(ui, sidebar)
         assert tree.path == replacement or str(tree.path) == str(replacement)
         assert not any(node.data.path.name == "folder" for node in tree.root.children)
@@ -270,7 +266,7 @@ async def test_leaving_a_view_stops_its_sidebar_hydration(workspace):
         assert sidebar.panels_loaded == bool(sidebar.panels)
         assert all(worker.is_finished for worker in workers)
         await app.select_session(screen.id)
-        await sidebar.wait_content_ready()
+        await ui.panels_loaded(sidebar)
         assert len(sidebar.panels) == len(sidebar._panel_owners)
 
 
@@ -295,8 +291,7 @@ async def test_an_opaque_screen_over_a_loading_sidebar_leaves_it_whole(workspace
             why="the load to run its course under the covering screen",
         )
         app.pop_screen()
-        async with asyncio.timeout(12):
-            await sidebar.wait_content_ready()
+        await ui.panels_loaded(sidebar)
         await ui.step(0.02)
         assert sidebar.panels_loaded
         assert len(sidebar.panels) == len(sidebar._panel_owners)
@@ -317,7 +312,6 @@ async def test_a_sidebar_asked_to_load_under_an_opaque_screen_loads_once_uncover
         assert not sidebar.panels
         app.pop_screen()
         await ui.step(0.05)
-        async with asyncio.timeout(12):
-            await sidebar.wait_content_ready()
+        await ui.panels_loaded(sidebar)
         assert sidebar.panels_loaded
         assert tuple(sidebar.layout_controls.children)

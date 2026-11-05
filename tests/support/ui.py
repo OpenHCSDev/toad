@@ -413,6 +413,16 @@ class TextualUi(AppAgents, Ui):
     async def step(self, seconds: float | None = None) -> None:
         await self.pilot.pause(seconds)
 
+    async def revealed(self, sidebar):
+        """Show a sidebar and return it once its panels are mounted."""
+        sidebar.reveal()
+        await self.panels_loaded(sidebar)
+        return sidebar
+
+    async def panels_loaded(self, sidebar) -> None:
+        """Wait until a sidebar's panels are mounted."""
+        await self.until(lambda: sidebar.panels_loaded, seconds=12, why="the sidebar's panels")
+
     @property
     def core_service(self):
         return self.app.coordination_access.observation.observed().service
