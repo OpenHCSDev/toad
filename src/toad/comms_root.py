@@ -25,7 +25,7 @@ from agent_comms.message_reference import MessageReference
 from agent_comms.child_process import join_retirement
 from agent_comms.comms import Comms
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
-from agent_comms.registry_document import ProjectThreadSelection
+from agent_comms.registry_document import ProjectThreadSelection, RegistrySnapshot
 from toad.referenced_core import ReferencedCore
 from agent_comms.repo import Checkout
 from agent_comms.threads import Thread
@@ -35,18 +35,19 @@ from toad.widgets.thread_comms_source import RelationshipReads
 from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread
 from agent_comms.tools import (
+    CommsRegistryTool,
     CommsHistoricalThreadsTool,
     CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool,
     CommsUserSendTool,
 )
 from agent_comms.transcripts import TranscriptCursor
-from agent_comms.display_references import PendingReferences, UnavailableReferences
+from agent_comms.display_references import PendingReferences, RegistryReferenceSource, UnavailableReferences
 from agent_comms.errors import RouteChangedError
 from agent_comms.launch_root import LaunchRoot
 from agent_comms.launch_runtime import LaunchRuntime
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
-from agent_comms.revision_views import ExternalTranscriptsView, StatusView
+from agent_comms.revision_views import ExternalTranscriptsView, RegistrationsView, StatusView
 from agent_comms.route_selection import RouteSelection
 from agent_comms.root_runtime import RootRuntime
 from agent_comms.ui_model.observation import (
@@ -455,13 +456,58 @@ class FailedObservation(Observation):
         self.access.events.publish(TeamHudFailed(self.error))
 
 
+class RegistryRead:
+    """No registry read yet: the first caller reads it."""
+
+    def snapshot(self, reads: RegistryReads, observation: Observing, revision: ReadState) -> RegistrySnapshot:
+        return reads.read(observation, revision)
+
+
 @dataclass(frozen=True)
-class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
+class RegistryReadAt(RegistryRead):
+    """The registry as Core answered it while the observer announced ``revision``."""
+
+    revision: ReadState
+    registry: RegistrySnapshot
+
+    def snapshot(self, reads: RegistryReads, observation: Observing, revision: ReadState) -> RegistrySnapshot:
+        # No announcement since this read, or one whose registrations did not change.
+        if revision is self.revision or not revision.changed_since(RegistrationsView(), self.revision):
+            return self.registry
+        return super().snapshot(reads, observation, revision)
+
+
+class RegistryReads:
+    """One observation's registry: read again only when the observer announces new registrations.
+
+    Every view, navigation and command asks the observation for the registry. Over a
+    remote connection each read is the whole registry (megabytes), so repeating it per
+    caller is the cost, not the server's answer.
+    """
+
+    def __init__(self) -> None:
+        self.latest: RegistryRead = RegistryRead()
+
+    def snapshot(self, observation: Observing) -> RegistrySnapshot:
+        return self.latest.snapshot(self, observation, observation.access.revision)
+
+    def read(self, observation: Observing, revision: ReadState) -> RegistrySnapshot:
+        snapshot = observation.core.call(CommsRegistryTool())
+        self.latest = RegistryReadAt(revision, snapshot)
+        return snapshot
+
+
+@dataclass(frozen=True)
+class Observing(Observation, ReferencedCore, RegistryReferenceSource, RelationshipReads, ContextReads):
     """An observation answering through its process; where its Core is belongs to the member."""
 
     sidebar: SidebarModel
     process: ObservationProcess = field(compare=False)
+    registry_reads: RegistryReads = field(default_factory=RegistryReads, compare=False)
     answering: ClassVar[type[AnsweringReads]]
+
+    def registry(self) -> RegistrySnapshot:
+        return self.registry_reads.snapshot(self)
 
     def queue_observing(self) -> Observing:
         if not self.is_current():
@@ -569,11 +615,13 @@ class Observing(Observation, ReferencedCore, RelationshipReads, ContextReads):
         return self.sidebar.observation.references_for(root)
 
     async def current_references(self, access: CoordinationAccess, root: str):
-        try:
-            await access.current_sidebar()
-        except RouteChangedError:
-            return await access.observation.current_references(access, root)
-        return access.reference_context(root)
+        """Draw with the sidebar's answered names; before it answers, read them from Core."""
+        return await access.reference_context(root).settled(self)
+
+    async def registry_references(self, root: str):
+        """The registry's and channel catalog's names, read without waiting for a sidebar capture."""
+        references = await self.access.preparation.run_thread(self.references)
+        return references.at(root)
 
     def thread_interest(self, access: CoordinationAccess):
         self.process.request(ObserveThreads(access.events.observed_threads(str(self.root))))

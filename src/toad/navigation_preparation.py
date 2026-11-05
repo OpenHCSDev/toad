@@ -51,7 +51,7 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
 
     def read(self) -> CommsNavigation:
         root = self.observed.root
-        resolved = self.route.prepare(self.observed.core, self.me)
+        resolved = self.route.prepare(self.observed, self.me)
         owner_root = self.owner_root
         if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
             owner_root = None

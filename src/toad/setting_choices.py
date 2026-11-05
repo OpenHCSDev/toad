@@ -7,7 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from random import choice
 from threading import Lock
-from typing import ClassVar, cast
+from typing import ClassVar
 
 from agent_comms.declared_choice import DeclaredChoice, TitledChoice
 from textual.color import TRANSPARENT, Color
@@ -15,7 +15,6 @@ from textual.content import Content
 from textual.css._style_properties import Edges
 from textual.css.types import AlignHorizontal
 from textual.geometry import Spacing
-from textual.widget import Widget
 
 from toad.acp.status import ToolCallStatus
 from toad.platform import DesktopService, host
@@ -230,26 +229,22 @@ class FlushInputBox(TitledChoice, InputBox):
 
 
 class ColumnAlignment(DeclaredChoice, affix="ColumnAlignment"):
-    """Place a width-constrained conversation using Textual's container layout."""
+    """Where a width-constrained conversation sits in its session's contents."""
 
-    @classmethod
-    def apply(cls, conversation: Widget, enabled: bool, width: int) -> None:
-        container = conversation.parent
-        assert isinstance(container, Widget), "Column layout requires a mounted conversation"
-        conversation.styles.max_width = max(10, width) if enabled else None
-        container.styles.align_horizontal = cast(AlignHorizontal, cls.declared_name)
+    horizontal: ClassVar[AlignHorizontal]
+    """The session contents declare this alignment for the conversation column."""
 
 
 class LeftColumnAlignment(ColumnAlignment):
-    pass
+    horizontal = "left"
 
 
 class CenterColumnAlignment(ColumnAlignment):
-    pass
+    horizontal = "center"
 
 
 class RightColumnAlignment(ColumnAlignment):
-    pass
+    horizontal = "right"
 
 
 class LoadingStyle(DeclaredChoice, affix="Loading"):

@@ -22,7 +22,7 @@ from toad.widgets.comms_transfer import Transfer, Transfers
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
 from toad.core.session_requests import SessionNavigate
-from toad.sidebar_layout import LeftSidebarEdge, RightSidebarEdge, SidebarEdge
+from toad.sidebar_placement import LeftSidebarEdge, RightSidebarEdge, SidebarEdge
 from agent_comms.errors import RelationViolationError
 from agent_comms.cli_verbs.new import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget

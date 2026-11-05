@@ -1,4 +1,5 @@
 from toad.core import events as core_events
+from agent_comms.locked_store import RootFile
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoreConnection
@@ -53,6 +54,7 @@ from toad.session_tracker import (
     SidebarState,
 )
 from toad.sidebar_layout import SidebarLayout
+from toad.terminal_origin import TerminalOrigin
 from toad.clipboard import Clipboard
 from toad.constants import WELCOME
 from toad.tab_order import TabOrder
@@ -189,7 +191,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
         self.sidebar_state = SidebarState()
-        self.sidebar_layout = SidebarLayout()
         self._mode_switch_lock = asyncio.Lock()
         self.tab_order = TabOrder(
             lambda identity, index: self.select_session(identity.mode_name, history_index=index),
@@ -202,6 +203,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         from toad.file_kind import FileKind
         FileKind.prepare_terminal()
         super().__init__()
+        # The themed app opened the settings that own this terminal's sidebar arrangement.
+        self.sidebar_layout = SidebarLayout(self.saved_settings, TerminalOrigin.of())
         self._return_value: TerminalOutcome = Ended(self.application.version)
         self.session_navigation.bind_events()
         self.set_reactive(ToadApp.project_dir, project_dir)
@@ -318,11 +321,23 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         asyncio.get_running_loop().add_signal_handler(signal.SIGUSR1, self.relaunch)
         self.preparation.renderer.start()
         self._prewarm_conversation_css()
+        self._prewarm_core_modules()
         db = await self.get_db()
         await db.create()
         self.saved_settings.ensure_file(self)
         self.colours.start()
         self.saved_settings.apply_all()
+
+    def _prewarm_core_modules(self) -> None:
+        """Import Core's modules before the first frame, through Core's own once-per-process owner.
+
+        A cold tab's first wire revision and its first action menu each walk
+        agent_comms and import every module of it (RootFile.load_declarations,
+        and CliCommand's lazy registry over agent_comms.cli_verbs). Those
+        imports hold the GIL and the import lock against input, so they belong
+        before the first frame, not in the first cold tab.
+        """
+        RootFile.load_declarations()
 
     def _prewarm_conversation_css(self) -> None:
         """Load known conversation classes' default CSS in one parse.

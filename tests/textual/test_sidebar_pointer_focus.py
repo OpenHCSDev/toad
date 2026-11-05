@@ -1,7 +1,7 @@
 """Textual-facing: pointer toggles preserve editor/footer resources; keyboard toggles enter the pane."""
 
 from textual.widgets import Footer
-from toad.sidebar_layout import SidebarPlacement
+from toad.sidebar_placement import SidebarPlacement
 from toad.widgets.side_bar import SideBarToggle
 
 

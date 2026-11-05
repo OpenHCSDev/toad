@@ -1,7 +1,7 @@
 """The shared Channels view, including during a destination's loading frame."""
 
 from toad.native_style import StartsHidden
-from toad.sidebar_layout import ChannelsSidebarPlacement
+from toad.sidebar_placement import ChannelsSidebarPlacement
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_sort import ChannelListSort
 from toad.widgets.side_bar import SideBar

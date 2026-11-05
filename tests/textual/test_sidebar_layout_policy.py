@@ -5,17 +5,24 @@ from itertools import product
 import pytest
 from textual.geometry import Size
 
-from toad.sidebar_layout import (
-    ChannelsSidebarPlacement, LeftSidebarEdge, RightSidebarEdge,
-    SidebarEdge, SidebarLayout, ThreadSidebarPlacement,
+from toad.preferences import SavedSettings
+from toad.sidebar_layout import SidebarLayout
+from toad.sidebar_placement import (
+    BottomSidebarEdge, ChannelsSidebarPlacement, LeftSidebarEdge, RightSidebarEdge,
+    SidebarEdge, ThreadSidebarPlacement, TopSidebarEdge,
 )
+from toad.terminal_origin import LocalTerminal, SshTerminal, TerminalOrigin
 
 
 EDGES = SidebarEdge.members_with(SidebarEdge)
 
 
+def layout_for(settings: SavedSettings | None = None, origin: type[TerminalOrigin] = LocalTerminal):
+    return SidebarLayout(SavedSettings() if settings is None else settings, origin)
+
+
 def test_moving_swapping_and_resizing_keep_both_sidebars_and_clamp_extent():
-    layout = SidebarLayout()
+    layout = layout_for()
     assert layout.ordered() == (ChannelsSidebarPlacement, ThreadSidebarPlacement)
     assert layout.move(ChannelsSidebarPlacement, RightSidebarEdge)
     assert layout.get(ThreadSidebarPlacement).order == 0
@@ -38,7 +45,7 @@ def test_moving_swapping_and_resizing_keep_both_sidebars_and_clamp_extent():
 
 @pytest.mark.parametrize("side", EDGES)
 def test_two_sidebars_on_one_edge_swap_inward_then_cross(side):
-    pair = SidebarLayout()
+    pair = layout_for()
     pair.move(ChannelsSidebarPlacement, side)
     pair.move(ThreadSidebarPlacement, side)
     outer, inner = sorted(pair.placements, key=lambda key: pair.get(key).order)
@@ -57,7 +64,7 @@ def test_two_sidebars_on_one_edge_swap_inward_then_cross(side):
     list(product(EDGES, (Size(76, 40), Size(120, 70)), (False, True), (False, True))),
 )
 def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels, hide_thread):
-    pair = SidebarLayout()
+    pair = layout_for()
     pair.move(ChannelsSidebarPlacement, side)
     pair.move(ThreadSidebarPlacement, side)
     collapsed = {ChannelsSidebarPlacement: hide_channels, ThreadSidebarPlacement: hide_thread}
@@ -83,7 +90,7 @@ def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels,
 
 @pytest.mark.parametrize("side, viewport", list(product(EDGES, (Size(51, 27), Size(36, 18)))))
 def test_shrinking_preserves_each_axis_minimum_when_both_controls_fit(side, viewport):
-    layout = SidebarLayout()
+    layout = layout_for()
     layout.move(ChannelsSidebarPlacement, side)
     layout.move(ThreadSidebarPlacement, side.opposite())
     layout.resize(ChannelsSidebarPlacement, layout.maximum_percent)
@@ -94,7 +101,7 @@ def test_shrinking_preserves_each_axis_minimum_when_both_controls_fit(side, view
 
 @pytest.mark.parametrize("channels_edge, thread_edge", list(product(EDGES, repeat=2)))
 def test_every_edge_combination_stays_inside_native_viewport(channels_edge, thread_edge):
-    layout = SidebarLayout()
+    layout = layout_for()
     layout.move(ChannelsSidebarPlacement, channels_edge)
     layout.move(ThreadSidebarPlacement, thread_edge)
     viewport = Size(52, 70)
@@ -104,3 +111,31 @@ def test_every_edge_combination_stays_inside_native_viewport(channels_edge, thre
     assert not bars[0].overlaps(bars[1])
     assert resolved.gutter.width < viewport.width
     assert resolved.gutter.height < viewport.height
+
+
+def test_an_arrangement_survives_a_restart_and_each_terminal_keeps_its_own():
+    settings = SavedSettings()
+    phone = layout_for(settings, SshTerminal)
+    assert phone.move(ChannelsSidebarPlacement, BottomSidebarEdge)
+    assert phone.resize(ChannelsSidebarPlacement, 22)
+    desk = layout_for(settings, LocalTerminal)
+    assert desk.get(ChannelsSidebarPlacement) == ChannelsSidebarPlacement.initial()
+    restarted = SavedSettings(settings.document())
+    for origin, layout in ((SshTerminal, phone), (LocalTerminal, desk)):
+        assert layout_for(restarted, origin).placements == layout.placements
+    assert layout_for(restarted, SshTerminal).get(ChannelsSidebarPlacement).side is BottomSidebarEdge
+
+
+def test_sshd_sessions_read_the_ssh_arrangement():
+    assert TerminalOrigin.of({"SSH_CONNECTION": "10.0.0.2 51234 10.0.0.1 22"}) is SshTerminal
+    assert TerminalOrigin.of({}) is LocalTerminal
+
+
+@pytest.mark.parametrize("edge", (TopSidebarEdge, BottomSidebarEdge))
+def test_a_collapsed_top_or_bottom_bar_is_two_rows_with_its_arrow_on_both(edge):
+    layout = layout_for()
+    layout.move(ChannelsSidebarPlacement, edge)
+    resolved = layout.resolve(Size(60, 30), {ChannelsSidebarPlacement: True, ThreadSidebarPlacement: True})
+    assert resolved.bars[ChannelsSidebarPlacement].height == 2
+    for collapsed in (False, True):
+        assert edge.toggle_text(collapsed).split("\n") == [edge.toggle_symbol(collapsed)] * 2

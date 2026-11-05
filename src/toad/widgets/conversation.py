@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Callable, ClassVar
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
+from toad.layout_preferences import FollowsLayoutPreferences
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
@@ -573,7 +574,6 @@ class ConversationSessionBinding(
         if not self.is_current_session:
             return
         self.refresh_thread_status()
-        self.goal_observation.invalidate()
         self.dispatch_sync(self._unpublished_presentation)
 
     @handles(core_events.ObservedServiceChanged)
@@ -906,6 +906,7 @@ class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
 
 
 class Conversation(
+    FollowsLayoutPreferences,
     QueueEvidenceOwner,
     ConversationCommsHandlers,
     NativeMethodKeys,
@@ -1665,7 +1666,7 @@ class Conversation(
     def apply_layout_preferences(self) -> None:
         """Project the original settings without retaining their semantic values."""
         ui = self.app.settings.ui
-        ui.column_alignment.apply(self, ui.column, ui.column_width)
+        self.styles.max_width = max(10, ui.column_width) if ui.column else None
         self.window.styles.scrollbar_size_vertical = ui.scrollbar.size
 
     async def initialize_view(self) -> None:

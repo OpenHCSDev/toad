@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from formbridge.forms.declared_fields import DeclaredField
 from toad.setting_widget import SettingVisibility
 from toad.widgets.history_anchor import HistoryWindow
+from toad.layout_preferences import FollowsLayoutPreferences
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -38,9 +39,8 @@ def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
-    from toad.widgets.conversation import Conversation
-    for conversation in Effect.open_widgets(app, Conversation):
-        conversation.apply_layout_preferences()
+    for widget in Effect.open_widgets(app, FollowsLayoutPreferences):
+        widget.apply_layout_preferences()
 
 
 @Effect

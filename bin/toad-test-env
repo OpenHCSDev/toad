@@ -56,6 +56,9 @@ if [[ ! -e "$environment" ]]; then
     "$uv" pip install -q --python "$stage/bin/python" -e "$textual[syntax]" -e "$agent_comms[dev]"
     # Toad reads its own distribution metadata; its source still comes from src.
     "$uv" pip install -q --python "$stage/bin/python" --no-deps "$toad_root"
+    # Vim key modes run a real Neovim; its verified release lives under the
+    # environment's own prefix, exactly as the installed runtime carries it.
+    "$stage/bin/python" -c 'from toad.neovim_runtime import Neovim; Neovim().prepare()'
     mv -- "$stage" "$environment"
     trap - EXIT
 fi

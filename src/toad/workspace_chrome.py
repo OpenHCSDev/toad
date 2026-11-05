@@ -20,7 +20,7 @@ from ui_theme.scheme import HeaderToneColour
 from toad.tone_paint import TonePaint
 from toad.session_presentation import NativeSessionSurface
 from toad.session_scope import SessionScope
-from toad.sidebar_layout import SidebarEdge
+from toad.sidebar_placement import SidebarEdge
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
