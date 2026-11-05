@@ -9,7 +9,7 @@ from agent_comms.core_access import CoreAccess
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.presentation import WireRevision
 from agent_comms.registry_document import RegistrySnapshot
-from agent_comms.tools import (CommsReferenceNamesTool, CommsRegistryCutTool, CommsRegistryTool,
+from agent_comms.tools import (CommsReferenceNamesTool, CommsRegistrySliceTool, CommsRegistryTool,
                                CommsWireRevisionTool)
 
 
@@ -27,7 +27,7 @@ class ReferencedCore(ABC):
     def registry_for(self, *names: str) -> RegistrySnapshot:
         """The registry facts a caller reading ``names`` needs: their rows, aliases, statuses
         and owner generations, beside the fields every thread shares, not every thread's rows."""
-        return self.core.call(CommsRegistryCutTool(threads=names))
+        return self.core.call(CommsRegistrySliceTool(threads=names))
 
     def references(self) -> CurrentDisplayReferences:
         """The destinations Core's registry names, keyed by the root it serves."""
