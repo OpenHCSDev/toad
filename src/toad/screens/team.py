@@ -111,7 +111,17 @@ class TeamTable(DeclaredTable[HudRecord], AutoHeight):
         return UnitTone.of(record.hud_group.tone)
 
     def preferred_selection(self) -> TableSelection[HudRecord]:
+        """A focused cursor outranks the frame's selection, which trails it by two messages."""
+        if self.has_focus and self.selected.key in self.source.entities:
+            return self.selected
         return self.query_ancestor(TeamFrameView).selected
+
+    def reconcile_source(self) -> None:
+        """A table mounted for a moved record is the one focus was waiting for."""
+        super().reconcile_source()
+        frame = self.query_ancestor(TeamFrameView)
+        if any(table.has_focus for table in frame.query(TeamTable)):
+            frame.focus_selection()
 
     def selection_changed(self) -> None:
         frame = self.query_ancestor(TeamFrameView)

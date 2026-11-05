@@ -163,6 +163,28 @@ async def test_a_heartbeat_with_no_frames_still_says_it_is_waiting(workspace: Wo
         assert [str(row.render()) for row in rows] == ["Waiting for the team heartbeat."]
 
 
+async def test_a_refresh_right_after_a_key_keeps_the_key(workspace: Workspace) -> None:
+    hud = published_hud()
+    first, = hud.units
+    second = replace(first, unit=RecordedThreadIncarnation("second-worker", 3.0))
+    TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=(first, second)),))
+    async with workspace.app() as ui:
+        app, _pilot = ui.textual
+        page = TeamPage()
+        await app.push_screen(page)
+        await ui.until(lambda: bool(page.query(TeamTable)), why="the native table to mount")
+        view = page.query_one(TeamFrameView)
+        table = view.query_one(TeamTable)
+        await ui.until(lambda: table.row_count == 2, why="both records to acquire native rows")
+        await ui.step()
+        table.focus()
+        await ui.until(lambda: table.has_focus, why="the table to take focus")
+        table.move_cursor(row=1, animate=False)
+        table.reconcile_source()  # Before the highlight reaches the frame, as a heartbeat can.
+        await ui.until(lambda: view.selected == selected(second), why="the key's record to stay selected")
+        assert table.selected == selected(second)
+
+
 async def test_selection_survives_filter_clear_refill_group_move_and_resize(workspace: Workspace) -> None:
     hud = published_hud()
     first, = hud.units
@@ -206,6 +228,7 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         view.filter.value = ""
         await ui.until(lambda: view.selected == selected(first), why="clear-and-refill to choose the first visible record")
         await ui.until(lambda: table.row_count == 2, why="the public native rows to refill")
+        await ui.step()  # The same queued reconcile as above, after the refill.
         table.focus()
         table.move_cursor(row=1, animate=False)
         await ui.until(lambda: view.selected == selected(second), why="the second semantic identity to be selected again")
@@ -217,7 +240,7 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         assert view.selected.key == semantic
         await ui.until(lambda: any(native.has_focus and native.selected == selected(moved)
                                    for native in view.query(TeamTable)),
-                       why="native focus to follow its selected semantic record")
+                       why="native focus to follow its selected semantic record", seconds=2)
         assert view.details.selection == selected(moved)
         assert all(row_maps_cohere(native) for native in view.query(TeamTable))
         TeamFrame.replace_all(workspace.comms.root, TeamPlan(), (replace(hud, units=()),))
