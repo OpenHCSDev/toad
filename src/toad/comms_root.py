@@ -459,8 +459,8 @@ class FailedObservation(Observation):
 class RegistryRead:
     """No registry read yet: the first caller reads it."""
 
-    def current_at(self, revision: ReadState) -> bool:
-        return False
+    def snapshot(self, reads: RegistryReads, observation: Observing, revision: ReadState) -> RegistrySnapshot:
+        return reads.read(observation, revision)
 
 
 @dataclass(frozen=True)
@@ -468,11 +468,13 @@ class RegistryReadAt(RegistryRead):
     """The registry as Core answered it while the observer announced ``revision``."""
 
     revision: ReadState
-    snapshot: RegistrySnapshot
+    registry: RegistrySnapshot
 
-    def current_at(self, revision: ReadState) -> bool:
+    def snapshot(self, reads: RegistryReads, observation: Observing, revision: ReadState) -> RegistrySnapshot:
         # No announcement since this read, or one whose registrations did not change.
-        return revision is self.revision or not revision.changed_since(RegistrationsView(), self.revision)
+        if revision is self.revision or not revision.changed_since(RegistrationsView(), self.revision):
+            return self.registry
+        return super().snapshot(reads, observation, revision)
 
 
 class RegistryReads:
@@ -484,15 +486,14 @@ class RegistryReads:
     """
 
     def __init__(self) -> None:
-        self.read: RegistryRead = RegistryRead()
+        self.latest: RegistryRead = RegistryRead()
 
     def snapshot(self, observation: Observing) -> RegistrySnapshot:
-        revision = observation.access.revision
-        read = self.read
-        if read.current_at(revision):
-            return read.snapshot
+        return self.latest.snapshot(self, observation, observation.access.revision)
+
+    def read(self, observation: Observing, revision: ReadState) -> RegistrySnapshot:
         snapshot = observation.core.call(CommsRegistryTool())
-        self.read = RegistryReadAt(revision, snapshot)
+        self.latest = RegistryReadAt(revision, snapshot)
         return snapshot
 
 

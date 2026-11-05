@@ -1,4 +1,5 @@
 from toad.core import events as core_events
+from agent_comms.locked_store import RootFile
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoreConnection
@@ -336,8 +337,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         imports hold the GIL and the import lock against input, so they belong
         before the first frame, not in the first cold tab.
         """
-        from agent_comms.locked_store import RootFile
-
         RootFile.load_declarations()
 
     def _prewarm_conversation_css(self) -> None:

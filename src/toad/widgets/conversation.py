@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Callable, ClassVar
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
 from toad.widgets.markdown_note import MarkdownNote, StopReasonNote
+from toad.layout_preferences import FollowsLayoutPreferences
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.repo import Checkout
 from agent_comms.transcripts import TranscriptCursor
@@ -905,6 +906,7 @@ class PromptStack(DockedBottom, AutoHeight, containers.Vertical):
 
 
 class Conversation(
+    FollowsLayoutPreferences,
     QueueEvidenceOwner,
     ConversationCommsHandlers,
     NativeMethodKeys,

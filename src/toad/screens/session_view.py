@@ -11,6 +11,7 @@ from textual.reactive import reactive
 from contextlib import contextmanager
 from metaclass_registry.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
+from toad.layout_preferences import FollowsLayoutPreferences
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
@@ -188,15 +189,15 @@ class SessionBody(WidgetView, ToadNode, Center):
         return self.app.workspace_chrome
 
 
-class SessionContents(WidgetView, ToadNode, Vertical):
+class SessionContents(WidgetView, FollowsLayoutPreferences, ToadNode, Vertical):
     """The conversation fills the space beside the retained sidebar."""
 
     width = height = FILL
 
     def on_mount(self) -> None:
-        self.apply_column_alignment()
+        self.apply_layout_preferences()
 
-    def apply_column_alignment(self) -> None:
+    def apply_layout_preferences(self) -> None:
         """Place a width-constrained conversation where the column alignment setting puts it."""
         self.align_horizontal = self.app.settings.ui.column_alignment.horizontal
         self.refresh(layout=True)

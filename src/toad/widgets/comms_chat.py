@@ -120,7 +120,7 @@ class CommsChatView(Conversation):
         self.observe_core(self.app.events)
         # The label shows the conversation's initial name until the sidebar's
         # references arrive (ReferenceContext), so identity does not wait for them.
-        self.refresh_identity(observed.root)
+        self.refresh_identity()
         self.window.anchor()
         # CommsScreen has already presented its route before mounting this
         # view. Start its asynchronous page read now, overlapping it with the
@@ -140,14 +140,14 @@ class CommsChatView(Conversation):
     @handles(core_events.SessionSelected)
     async def _selected_source_changed(self, event: core_events.SessionSelected) -> None:
         """A retained view reads current source after its tab opens."""
-        self.refresh_identity(self.queue_source.root)
+        self.refresh_identity()
         await self._refresh()
 
     @handles(core_events.LinkContextChanged)
     async def _command_source_changed(self, event: core_events.LinkContextChanged) -> None:
         """The sidebar's references changed: the label and commands follow them."""
         await super()._command_source_changed(event)
-        self.refresh_identity(self.queue_source.root)
+        self.refresh_identity()
 
     @handles(TranscriptSourceWorkFinished)
     async def on_transcript_source_work_finished(self, event: TranscriptSourceWorkFinished, message: CoreEventMessage) -> None:
@@ -195,7 +195,7 @@ class CommsChatView(Conversation):
             if self.is_attached:
                 self.call_after_refresh(self.prepare_prompt)
             return
-        self.refresh_identity(self.queue_source.root)
+        self.refresh_identity()
         prompt.agent_info = self.agent_info
         prompt.sync_session()
         prompt.shell_mode = False
@@ -206,8 +206,10 @@ class CommsChatView(Conversation):
     def watch_agent_binding(self, agent) -> None:
         """A message composer has no operational agent projection."""
 
-    def refresh_identity(self, root) -> None:
-        self.dispatch_sync(self.app.coordination_access.reference_context(str(root)))
+    def refresh_identity(self) -> None:
+        """Dispatch the observed root's references: the root this view was opened on."""
+        access = self.app.coordination_access
+        self.dispatch_sync(access.reference_context(str(access.observation.observed().root)))
 
     @handles(ReferenceContext)
     def preparing_identity(self, references) -> None:
