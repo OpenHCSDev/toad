@@ -23,7 +23,7 @@ from agent_comms.tools import (
     CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool,
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.display_references import CurrentDisplayReferences, ThreadNames
+from agent_comms.display_references import ThreadNames
 from agent_comms.message_page import MessagePage, PageBounds
 from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
@@ -86,7 +86,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def resolve(cls, source: ReferencedCore, me: str, name: str) -> ResolvedConversation:
         """Resolve `name` against the source's registry, the read every opening shares."""
 
-    def label(self, references: CurrentDisplayReferences) -> str:
+    def label(self, references: ThreadNames) -> str:
         return self.destination(references).name
 
     def status_thread(self, root: Path, access: CoordinationAccess) -> StatusThread:
@@ -106,7 +106,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         await ReturnToViewAction().apply(screen)
         screen.app.session_navigation.direct_messages()
 
-    def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
+    def unread(self, observation: SidebarObservation, references: ThreadNames):
         return observation.channel_unread(self.destination(references).name)
 
     def send_target(self) -> NamedTarget:
@@ -254,7 +254,7 @@ class DmConversation(ConversationKind):
     def threads_needed(self, source: ReferencedCore, me: str):
         return source.registry_for(me).require(me).incarnation, self.peer
 
-    def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
+    def unread(self, observation: SidebarObservation, references: ThreadNames):
         return observation.bus_unread(self.destination(references).name)
 
     @classmethod
@@ -263,7 +263,7 @@ class DmConversation(ConversationKind):
         resolved = ThreadTarget(name).resolve(snapshot, lambda channel: source.core.call(CommsChannelTool(name=channel)))
         return ResolvedConversation(snapshot.require(me).name, cls(resolved.thread.incarnation))
 
-    def label(self, references: CurrentDisplayReferences) -> str:
+    def label(self, references: ThreadNames) -> str:
         return f"@{self.destination(references).name}"
 
     @classmethod
@@ -292,7 +292,7 @@ class IrcConversation(ChannelConversation):
     async def toggle_irc(cls, screen: CommsScreen) -> None:
         await ReturnToViewAction().apply(screen)
 
-    def label(self, references: CurrentDisplayReferences) -> str:
+    def label(self, references: ThreadNames) -> str:
         return f"{self.target.name} · all comms"
 
     initial_placeholder = "Message #all (broadcast)"

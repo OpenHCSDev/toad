@@ -22,7 +22,7 @@ from toad.conversation_kind import (
 )
 
 if TYPE_CHECKING:
-    from agent_comms.display_references import CurrentDisplayReferences
+    from agent_comms.display_references import ThreadNames
 
     from toad.widgets.comms_sidebar import CommsRow, ListedRow
     from toad.widgets.sidebar_tree import SidebarGroup
@@ -118,7 +118,7 @@ class HistoryTarget(HistoryRoute, NavigationTarget):
 
     @classmethod
     def for_conversation(cls, conversation: ConversationKind,
-                         references: CurrentDisplayReferences) -> HistoryTarget:
+                         references: ThreadNames) -> HistoryTarget:
         return HistoryRoute.routes[type(conversation)].for_name(conversation.destination(references).name)
 
 
