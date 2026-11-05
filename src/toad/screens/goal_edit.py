@@ -2,7 +2,7 @@
 
 from collections.abc import Awaitable, Callable
 
-from agent_comms.coordination_errors import Refused
+from agent_comms.coordination.errors import Refused
 from agent_comms.goals import Goal
 from agent_comms.mentions import MentionCandidate
 from agent_comms.repo import Checkout

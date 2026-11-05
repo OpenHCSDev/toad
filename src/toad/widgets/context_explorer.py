@@ -9,9 +9,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-from agent_comms.coordination_errors import Refused
+from agent_comms.coordination.errors import Refused
 from agent_comms.context_store import LATEST_CONTEXT, ContextManifestCursor
-from agent_comms.coordinator import Coordination
+from agent_comms.coordination.coordinator import Coordination
 from metaclass_registry.mro_dispatch import handles
 from textual import on, work
 from textual.document._editing import EditingMode

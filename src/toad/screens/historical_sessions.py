@@ -8,7 +8,7 @@ import asyncio
 from functools import partial
 from pathlib import Path
 
-from agent_comms.coordination_errors import StaleRevision
+from agent_comms.coordination.errors import StaleRevision
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.notification_reads import RecordedNotificationRead
 from agent_comms.order_tools import TranscriptPageRead

@@ -6,7 +6,7 @@ import sys
 
 from agent_comms.acp_extension import CompactionChangedUpdate, GoalChangedUpdate, TurnChangedUpdate, decode_updates
 from agent_comms.child_process import SpawnedProcess
-from agent_comms.coordinator import Coordination
+from agent_comms.coordination.coordinator import Coordination
 from agent_comms.goal_presentation import IdleGoalExecution
 from agent_comms.goals import NoGoal
 from agent_comms.native_build_inputs import DetachedChildStdio

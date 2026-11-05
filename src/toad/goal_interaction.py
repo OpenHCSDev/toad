@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ReferenceType, ref
 
-from agent_comms.coordination_errors import Refused
+from agent_comms.coordination.errors import Refused
 from agent_comms.errors import GoalRefused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction

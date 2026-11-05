@@ -1,7 +1,7 @@
 """Goal requests reach the managed native owner through Toad's real controller."""
 
 import pytest
-from agent_comms.coordination_errors import Refused
+from agent_comms.coordination.errors import Refused
 from agent_comms.goal_actions import SetGoalAction
 from agent_comms.goal_history import RecordedGoalHistory
 from agent_comms.input_attempt import OwnerQueueInputDeliveryScope

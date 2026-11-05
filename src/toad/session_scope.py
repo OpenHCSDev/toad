@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, ClassVar, Never
 
 from agent_comms.channel_targets import ThreadTarget
 from agent_comms.repo import Checkout
-from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+from agent_comms.coordination.errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.errors import RelationViolationError, RouteChangedError
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.order_tools import TranscriptPageRead
