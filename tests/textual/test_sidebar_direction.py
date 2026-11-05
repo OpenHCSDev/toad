@@ -38,22 +38,24 @@ async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
         def check_adjacent() -> None:
             assert side_by_side(channels.region, thread.region), (side, channels.region, thread.region)
 
-        # The wall is blocked, the inward arrow swaps, then crosses the centre.
+        # The arrow toward the neighbour (inward for columns, rightward along a band)
+        # swaps; past the last bar it moves the bar to that edge; the own wall is blocked.
         assert channels.placement.order == 0 and thread.placement.order == 1
         check_controls(channels)
         check_controls(thread)
         check_adjacent()
-        inward = side.opposite()
-        await click(channels, inward)
+        onward = side.onward()
+        assert not app.sidebar_layout.directions(channels.placement_identity)[side].available, "the own wall is blocked"
+        await click(channels, onward)
         assert channels.placement.side is thread.placement.side is side
         assert thread.placement.order == 0 and channels.placement.order == 1
         check_adjacent()
-        await click(channels, side)
+        await click(channels, onward.opposite())
         assert channels.placement.order == 0 and thread.placement.order == 1
-        await click(thread, inward)
-        assert thread.placement.side is inward and channels.placement.side is side
-        await click(channels, inward)
-        assert channels.placement.side is thread.placement.side is inward
+        await click(thread, onward)
+        assert thread.placement.side is onward and channels.placement.side is side
+        await click(channels, onward)
+        assert channels.placement.side is thread.placement.side is onward
         check_controls(channels)
         check_controls(thread)
         check_adjacent()
@@ -63,8 +65,8 @@ async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
         channels.toggle(focus=False)
         await ui.step()
         check_controls(thread)
-        await click(thread, side)
-        assert thread.placement.side is channels.placement.side is inward
+        await click(thread, onward.onward())
+        assert thread.placement.side is channels.placement.side is onward
         channels.reveal()
         await ui.step()
         check_controls(channels)
