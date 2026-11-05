@@ -512,7 +512,7 @@ class CommsSidebar(
         """Order the groups admitted by sync; removed channels retire before member work."""
         groups = tuple(self.groups[key] for key in self.model_state.shown.channels.rows if key in self.groups)
         for index, group in enumerate(groups):
-            group.header.place(index)
+            group.row.place(index)
         ordered = (self.new_session, *groups)
         live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:
