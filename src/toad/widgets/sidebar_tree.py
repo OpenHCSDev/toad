@@ -36,6 +36,7 @@ from textual.navigation import CursorCommand, MovesCursor, MovesHorizontalCursor
 from toad.widget_actions import HiddenActions, VisibleActions
 from textual.containers import Vertical, VerticalGroup
 from textual import events
+from textual._activation import CallbackTarget
 from rich.style import Style
 from textual.content import Content
 from textual.strip import Strip
@@ -82,9 +83,16 @@ class HeaderSegment(ABC):
     async def click(self, row: GroupHeaderLine, event: events.Click) -> None:
         """A passive stretch leaves the click to the row's own handler."""
 
+    def activation_targets(self, row: GroupHeaderLine, region: Region):
+        """A hint over a passive stretch reaches the row's own effect."""
+        return row.row_activation_targets(region)
+
 
 class ActiveSegment(HeaderSegment):
     """A stretch whose click is its own action, not the row's."""
+
+    def activation_targets(self, row: GroupHeaderLine, region: Region):
+        return (CallbackTarget(row, row.segment_region(self), self.activate, arguments=(row,)),)
 
     async def click(self, row: GroupHeaderLine, event: events.Click) -> None:
         if event.button == 1:
@@ -168,6 +176,13 @@ class GroupHeaderLine(PointerCursor, Static):
         start, end = self.segment_span(TITLE)
         return Strip.join((line.crop(0, start), line.crop(start, end).apply_style(style),
                            line.crop(end, line.cell_length)))
+
+    def primary_activation_targets(self, region: Region):
+        """Each painted cell offers its own segment's effect, so hints reach every stretch."""
+        return self.segment_at(region.x - self.content_region.x).activation_targets(self, region)
+
+    def row_activation_targets(self, region: Region):
+        return super().primary_activation_targets(region)
 
     async def on_click(self, event: events.Click) -> None:
         # Segments are measured from the painted content, not the row's padding.
