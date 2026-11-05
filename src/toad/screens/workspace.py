@@ -297,8 +297,6 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         # `on_screen_resume` from a class, never both, so a second one never ran.
         self.frame_presentation.resume()
         # Native Screen resume updates changed stylesheet sources.
-        for window in tuple(self.history_windows):
-            window.request_preparation()
         # While covered, sidebars were hidden: a load asked for then was refused, and
         # controls a finished load mounted were never presented. Do both now.
         chrome = self.app.workspace_chrome
