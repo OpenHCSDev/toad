@@ -17,6 +17,7 @@ from textual.view import WidgetView
 from textual.widget import Widget
 
 from toad.widget_actions import WidgetAction, ProfileKeys
+from toad.workspace_chrome import WorkspaceBody
 from toad.widgets.comms_transfer import WireExportProgressView
 
 
@@ -116,13 +117,9 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         return self.app.workspace_sessions.source.coordination_root()
 
     def compose(self):
-        from textual.containers import Horizontal
-
         chrome = self.app.workspace_chrome
-        yield chrome.navigation
-        with Horizontal().set_styles(layout=chrome):
-            yield chrome.channels
-            yield SessionHost()
+        body = WorkspaceBody(chrome.channels, SessionHost()).set_styles(layout=chrome)
+        yield from self.app.settings.ui.navigation_bar.around(chrome.navigation, body)
         yield chrome.footer
         yield chrome.switch_toast
 

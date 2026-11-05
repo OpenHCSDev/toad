@@ -7,7 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from random import choice
 from threading import Lock
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.declared_choice import DeclaredChoice, TitledChoice
 from textual.color import TRANSPARENT, Color
@@ -19,6 +19,9 @@ from textual.geometry import Spacing
 from toad.acp.status import ToolCallStatus
 from toad.platform import DesktopService, host
 from toad.widgets.future_text import FutureText
+
+if TYPE_CHECKING:
+    from textual.widget import Widget
 
 
 @dataclass(frozen=True)
@@ -245,6 +248,33 @@ class CenterColumnAlignment(ColumnAlignment):
 
 class RightColumnAlignment(ColumnAlignment):
     horizontal = "right"
+
+
+class NavigationBarPosition(DeclaredChoice, affix="NavigationBar"):
+    """Where the workspace's navigation bar (menu, history arrows and tabs) sits."""
+
+    @classmethod
+    @abstractmethod
+    def around(cls, navigation: Widget, body: Widget) -> tuple[Widget, Widget]:
+        """The navigation bar and the conversation row, top to bottom."""
+
+    @classmethod
+    def place(cls, navigation: Widget, body: Widget) -> None:
+        """Move an open navigation bar to this side of its conversation row."""
+        upper, lower = cls.around(navigation, body)
+        navigation.screen.move_child(lower, after=upper)
+
+
+class TopNavigationBar(NavigationBarPosition):
+    @classmethod
+    def around(cls, navigation: Widget, body: Widget) -> tuple[Widget, Widget]:
+        return navigation, body
+
+
+class BottomNavigationBar(NavigationBarPosition):
+    @classmethod
+    def around(cls, navigation: Widget, body: Widget) -> tuple[Widget, Widget]:
+        return body, navigation
 
 
 class LoadingStyle(DeclaredChoice, affix="Loading"):
