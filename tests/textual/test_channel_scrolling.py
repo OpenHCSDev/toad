@@ -2,7 +2,7 @@
 
 from support.textual_steps import refresh_chat
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.presentation_window import NEWER_END
+from toad.widgets.presentation_window import NEWER_END, OLDER_END
 
 
 def messages(history):
@@ -87,8 +87,16 @@ async def test_held_paging_and_reversal_never_draw_a_blank_message_area_and_end_
         frames, stop = record_blank_frames(app, window)
         try:
             window.focus(scroll_visible=False)
-            # Held PageUp far past the first pages, PageDown, and a reversal part of the way.
-            for key, presses in (("pageup", 40), ("pagedown", 12), ("pageup", 12)):
+            # Held PageUp until the window needs an older page than it opened with. A quarter
+            # page per press (#1256) can travel a long way inside what is already loaded, so a
+            # fixed count asked for a load the reader never needed. The travel left bounds it.
+            while messages(history)[0].seq >= oldest_loaded and (
+                    window.scroll_y > 0 or history.has_more(OLDER_END)):
+                before = window.scroll_y, messages(history)[0].seq
+                await ui.press("pageup")
+                assert (window.scroll_y, messages(history)[0].seq) != before, "PageUp stopped moving"
+            # PageDown, then a reversal part of the way.
+            for key, presses in (("pagedown", 12), ("pageup", 12)):
                 for _ in range(presses):
                     await ui.press(key)
             await ui.until(lambda: history.state.accepts_source_work, why="paging to settle")
