@@ -459,7 +459,7 @@ class WirePageBuffer(SavedHistory):
         from toad.target_commands import TargetContext
 
         references = (
-            view.app.coordination_access.observation.observed().sidebar.observation.require_snapshot().references
+            view.app.coordination_access.observation.observed().sidebar.observation.thread_names()
         )
         return TargetContext(
             view.app,

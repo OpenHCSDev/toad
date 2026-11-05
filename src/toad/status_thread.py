@@ -75,8 +75,7 @@ class LocalStatusThread(RoutedStatusThread):
     def conversation(cls, root: Path, conversation, access) -> LocalStatusThread:
         references = (
             access.observation.observed()
-            .sidebar.observation.require_snapshot()
-            .references
+            .sidebar.observation.thread_names()
         )
         return cls(root, conversation.destination(references).name)
 

@@ -23,7 +23,7 @@ from agent_comms.tools import (
     CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool,
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.display_references import CurrentDisplayReferences
+from agent_comms.display_references import CurrentDisplayReferences, ThreadNames
 from agent_comms.message_page import MessagePage, PageBounds
 from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
@@ -61,7 +61,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def input_scope(self) -> str: ...
 
     @abstractmethod
-    def destination(self, references: CurrentDisplayReferences) -> NamedTarget: ...
+    def destination(self, references: ThreadNames) -> NamedTarget: ...
 
     @abstractmethod
     def retained_target(self) -> NamedTarget: ...
@@ -92,7 +92,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def status_thread(self, root: Path, access: CoordinationAccess) -> StatusThread:
         return NoStatusThread()
 
-    def historical_sessions(self, create_view: partial[HistoricalSessions], references: CurrentDisplayReferences):
+    def historical_sessions(self, create_view: partial[HistoricalSessions], references: ThreadNames):
         return create_view()
 
     @classmethod
@@ -124,7 +124,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     async def status_text(self, source: ReferencedCore, *, read_only: bool) -> str: ...
 
     def activity_members(self, model: SidebarModel):
-        return (self.destination(model.observation.require_snapshot().references).name,)
+        return (self.destination(model.observation.thread_names()).name,)
 
     def active_members(self, model: SidebarModel):
         return tuple(
@@ -166,7 +166,7 @@ class ChannelConversation(ConversationKind):
     def input_scope(self) -> str:
         return self.target.name
 
-    def destination(self, references: CurrentDisplayReferences) -> ChannelTarget:
+    def destination(self, references: ThreadNames) -> ChannelTarget:
         return self.target
 
     def retained_target(self) -> ChannelTarget:
@@ -235,7 +235,7 @@ class DmConversation(ConversationKind):
     def input_scope(self) -> str:
         return self.peer.require_recorded().lookup
 
-    def destination(self, references: CurrentDisplayReferences) -> ThreadTarget:
+    def destination(self, references: ThreadNames) -> ThreadTarget:
         return ThreadTarget(references.thread(self.peer).name)
 
     def retained_target(self) -> IncarnationThreadTarget:
@@ -244,7 +244,7 @@ class DmConversation(ConversationKind):
     def status_thread(self, root: Path, access: CoordinationAccess) -> StatusThread:
         return StatusThread.for_conversation(root, self, access)
 
-    def historical_sessions(self, create_view: partial[HistoricalSessions], references: CurrentDisplayReferences):
+    def historical_sessions(self, create_view: partial[HistoricalSessions], references: ThreadNames):
         return create_view(name=self.destination(references).name)
 
     @classmethod
