@@ -15,6 +15,7 @@ from agent_comms.nominal.field_codec import PathText
 from urllib.parse import SplitResult, quote, unquote, urlsplit
 
 from markdown_it.token import Token
+from textual.geometry import Region
 from toad.line_blocks import NO_LINK, LineLink
 from toad.file_position import FilePosition
 
@@ -181,7 +182,7 @@ class ProjectFileLink(ProjectLink):
 
         full_path = str(path)
         event.prevent_default()
-        show_target_menu(widget.screen, event.screen_offset, full_path,
+        show_target_menu(widget.screen, Region.from_offset(event.screen_offset, (0, 0)), full_path,
                          [("copy_path", "Copy full path")],
                          {"copy_path": partial(widget.app.copy_to_clipboard, full_path)})
 

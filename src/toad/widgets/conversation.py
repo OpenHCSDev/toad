@@ -1253,8 +1253,6 @@ class Conversation(
     async def provider_login(self) -> None:
         import shlex
 
-        from textual.geometry import Offset
-
         from toad.agent_schema import Command
         from toad.catalog_actions import CatalogCommandAction
         from toad.screens.action_modal import ActionModal
@@ -1266,9 +1264,7 @@ class Conversation(
             return
         method_id = await ContextMenu.choose(
             self.screen,
-            Offset(
-                self.prompt.region.x, max(0, self.prompt.region.y - len(methods) - 4)
-            ),
+            self.prompt.region,
             "Connect a provider",
             [(method.id, method.name) for method in methods],
         )
@@ -1345,8 +1341,6 @@ class Conversation(
         if error is not None:
             self.app.show_error(error, "Set Model")
         elif (model := agent.configuration.model.selected) is not None:
-            from textual.geometry import Offset
-
             from toad.db import DB
 
             # Recent-model persistence is optional metadata, not a prerequisite
@@ -1360,10 +1354,7 @@ class Conversation(
             if len(levels) > 1:
                 level = await ContextMenu.choose(
                     self.screen,
-                    Offset(
-                        self.prompt.region.x,
-                        max(0, self.prompt.region.y - len(levels) - 4),
-                    ),
+                    self.prompt.region,
                     f"Thinking level for {model.name}",
                     [(value, value.title()) for value in levels],
                 )

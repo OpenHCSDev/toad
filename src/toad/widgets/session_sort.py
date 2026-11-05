@@ -26,7 +26,6 @@ from agent_comms.tools import CommsSortChannelTool, CommsSortChannelsTool
 from python_introspect import FieldLabel
 from textual.widgets import Static
 from toad.widget_actions import Activates
-from textual.geometry import Offset
 
 from toad.widgets.comms_menu import ContextMenu
 from formbridge.forms.declared_fields import FieldPath, Placeholder
@@ -124,7 +123,7 @@ class SortControl[Order: DisplayOrder](
                 action()
 
         menu = ContextMenu.show(
-            self.screen, Offset(self.region.x, self.region.bottom), "Sort", items,
+            self.screen, self.region, "Sort", items,
             callback=choose,
         )
         for index, order in enumerate(orders):

@@ -14,7 +14,7 @@ from textual.color import TRANSPARENT, Color
 from textual.content import Content
 from textual.css._style_properties import Edges
 from textual.css.types import AlignHorizontal
-from textual.geometry import Offset, Region, Spacing
+from textual.geometry import Spacing
 from textual.widget import Widget
 
 from toad.acp.status import ToolCallStatus
@@ -262,31 +262,17 @@ class NavigationBarPosition(DeclaredChoice, affix="NavigationBar"):
         upper, lower = cls.around(navigation, body)
         navigation.screen.move_child(lower, after=upper)
 
-    @classmethod
-    @abstractmethod
-    def menu_anchor(cls, button: Region) -> Offset:
-        """Where a menu opened from a button in this bar starts: on the edge facing the conversation."""
-
 
 class TopNavigationBar(NavigationBarPosition):
     @classmethod
     def around(cls, navigation: Widget, body: Widget) -> tuple[Widget, Widget]:
         return navigation, body
 
-    @classmethod
-    def menu_anchor(cls, button: Region) -> Offset:
-        return Offset(button.x, button.bottom)
-
 
 class BottomNavigationBar(NavigationBarPosition):
     @classmethod
     def around(cls, navigation: Widget, body: Widget) -> tuple[Widget, Widget]:
         return body, navigation
-
-    @classmethod
-    def menu_anchor(cls, button: Region) -> Offset:
-        """No room below the last rows, so the menu inflects upward from the button's top edge."""
-        return Offset(button.x, button.y)
 
 
 class LoadingStyle(DeclaredChoice, affix="Loading"):
