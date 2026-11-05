@@ -392,7 +392,7 @@ class MainMenuButton(HeaderButton):
     def open_menu(self) -> None:
         ContextMenu.show(
             self.screen,
-            Offset(self.region.x, self.region.bottom),
+            self.app.settings.ui.navigation_bar.menu_anchor(self.region),
             "Toad",
             ApplicationAction.menu(self.app),
             callback=self.chosen,

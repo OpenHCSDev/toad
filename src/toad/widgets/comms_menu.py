@@ -32,7 +32,9 @@ class ContextMenuOptions[Choice](WidgetView, OptionList):
     width = height = AUTO
     position = "absolute"
     overlay = "screen"
-    constrain_x = constrain_y = "inside"
+    # A menu that does not fit below its anchor opens above it rather than sliding over it.
+    constrain_x = "inside"
+    constrain_y = "inflect"
     vertical_scrollbar_size = horizontal_scrollbar_size = 0
 
     def __init__(self, menu_offset: Offset, title: str, items) -> None:
