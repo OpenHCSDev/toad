@@ -182,7 +182,7 @@ class CoreConnection(ABC):
     """The selected Core transport: it owns its route selection and opens its observation."""
 
     @staticmethod
-    def startup(arguments: list[str], published: Callable[[], LaunchRoot]) -> CoreConnection:
+    def select(arguments: list[str], published: Callable[[], LaunchRoot]) -> CoreConnection:
         """Select once at the process boundary; a UI profile selects the remote Core."""
         if RemoteCoreConnection.argument in arguments:
             return RemoteCoreConnection.startup(arguments)
@@ -208,7 +208,7 @@ class CoreConnection(ABC):
         """This connection's current observation, or the error that refuses it."""
 
     @abstractmethod
-    def current(self, access: CoordinationAccess, source: str | Path) -> bool:
+    def holds(self, access: CoordinationAccess, source: str | Path) -> bool:
         """Whether ``source`` still belongs to what this connection currently observes."""
 
     @abstractmethod
@@ -233,7 +233,7 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
     def capture(self, access: CoordinationAccess, source: str | Path) -> SelectedRoute:
         return SelectedRoute(self.route_selection().require_source(source))
 
-    def current(self, access: CoordinationAccess, source: str | Path) -> bool:
+    def holds(self, access: CoordinationAccess, source: str | Path) -> bool:
         """The held launch route's root."""
         return self.route_selection().root_is_current(source)
 
@@ -290,7 +290,7 @@ class RemoteCoreConnection(RemoteCoreAccess, CoreConnection):
         it already is one."""
         return access.observation.through(self, access)
 
-    def current(self, access: CoordinationAccess, source: str | Path) -> bool:
+    def holds(self, access: CoordinationAccess, source: str | Path) -> bool:
         """The root the connector's Core serves, as the current observation holds it."""
         return access.observation.observed().observes(source)
 
@@ -776,7 +776,7 @@ class CoordinationAccess(MroDispatch):
 
     def current(self, source: str | Path) -> bool:
         """Whether a source still belongs to this app's current Core."""
-        return self.connection.current(self, source)
+        return self.connection.holds(self, source)
 
     def observing(self, source: str | Path) -> Observing:
         """The observation serving ``source``: this app's Core, or a refusal that it is not."""
