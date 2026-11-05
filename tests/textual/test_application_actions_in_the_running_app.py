@@ -12,6 +12,7 @@ from support.agents import peer
 from support.completion_record import completion_prompts
 from toad.application_actions import ApplicationAction
 from toad.preferences import SETTINGS
+from toad.screens.keymap import KeymapScreen
 from toad.screens.settings import SettingsScreen
 from toad.widgets.comms_sidebar import CommsSidebar, NewSessionButton
 from toad.widgets.footer import ToadFooter
@@ -79,9 +80,9 @@ async def test_help_and_a_settings_edit_saved_on_leaving_keep_the_session_and_dr
         await ui.type('retained action draft')
         draft = ui.draft()
         await ui.press('f1')
-        await ui.until(lambda: bool(app.screen.query('HelpPanel')), why="the help panel")
-        await ui.press('f1')
-        await ui.until(lambda: not app.screen.query('HelpPanel'), why="the help panel to close")
+        await ui.until(lambda: isinstance(app.screen, KeymapScreen), why="the keymap screen")
+        await ui.press('escape')
+        await ui.until(lambda: app.screen is app.workspace_screen, why="the keymap screen to close")
         assert ui.draft() == draft and prompt.prompt_text_area.document is document
         await open_column_width_editor(ui, app)
         await ui.press('home', 'shift+end', '1', '2', '3', 'escape')
