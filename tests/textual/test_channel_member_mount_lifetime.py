@@ -28,13 +28,16 @@ async def test_pending_channel_members_stop_when_sidebar_hides_and_resume_when_s
             worker = group._row_mounting
             group.sync_members(frozenset())
             assert group._row_mounting is worker
+            # Every step mounts at least one row, even with no budget left.
+            hidden = set(group.rows)
+            assert 0 < len(hidden) < 12
             sidebar.collapsed = True
             assert not tree.model_state.shows_model()
         finally:
             screen.LAYOUT_STEP_NS = budget
         await ui.until(lambda: worker.is_finished, why='hidden member work to finish')
         assert worker.error is None
-        assert not group.rows
+        assert set(group.rows) == hidden, 'no member mounts while the sidebar is hidden'
         sidebar.reveal()
         # A reconciled row joins `rows` before its mount completes.
         await ui.until(lambda: len(group.rows) == 12 and all(row.is_mounted for row in group.rows.values()),

@@ -354,6 +354,7 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     expanded = reactive(False, init=False)
 
     _rows_pending = False
+    _step_full = False
     """A reconciliation ran out of its step and left rows unmounted."""
 
     _row_mounting: Worker[None] | NoWorker = NoWorker()
@@ -447,9 +448,11 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
             return True
         if not self.members_visible:
             return False
-        if perf_counter_ns() >= self._row_deadline:
+        if self._step_full:
             self._rows_pending = True
             return False
+        # A step always mounts the row it reached, so every step makes progress.
+        self._step_full = perf_counter_ns() >= self._row_deadline
         return True
 
     def new_row(self, key: str):
@@ -499,6 +502,7 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
         self.set_display_constraint("sidebar-search", bool(keys) or not tree.search)
         self.member_container.set_display_constraint("members", self.members_visible)
         self._rows_pending = False
+        self._step_full = False
         self._row_deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
         ordered = self.reconcile_keys(keys, changed=changed)
         if self._rows_pending and self._row_mounting.is_finished:
