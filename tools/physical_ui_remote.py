@@ -365,6 +365,10 @@ class StartOperation(PhysicalOperation):
         """Optional launch-time instrumentation shares the entrypoint lifetime."""
         yield
 
+    def answer_observation(self, packet: Path) -> None:
+        """Runs on the frontend's message loop, called by this startup's request reader."""
+        ObserveOperation.execute_file(packet)
+
     def serve(self, requests: Connection, output: Path) -> None:
         while True:
             try:
@@ -385,7 +389,7 @@ class StartOperation(PhysicalOperation):
                     raise PendingRun("The frontend message loop has not started")
                 # The existing decoder admits only ObserveOperation descendants;
                 # a stop/start packet cannot execute through this read-only pipe.
-                app.call_from_thread(ObserveOperation.execute_file, packet)
+                app.call_from_thread(self.answer_observation, packet)
             except (NoActiveAppError, PendingRun) as error:
                 self.publish(packet.parent / "result.json", PendingResult(str(error)[:2048]))
             except Exception as error:
@@ -406,6 +410,17 @@ class MeasuredStartOperation(StartOperation):
         with super().startup_observed(directory), ExitStack() as cleanup:
             ApplicationLifetime.observe_next_start(partial(self.measure, directory, cleanup))
             yield
+
+    def answer_observation(self, packet: Path) -> None:
+        """An observation is this tool's work on the frontend's loop, never a frame of Toad's.
+
+        The pause opens on the loop, so time a real callback holds the loop while the request
+        queues behind it stays measured.
+        """
+        from tools.performance.frame_meter import measuring_pause
+
+        with measuring_pause():
+            super().answer_observation(packet)
 
     def measure(self, directory: Path, cleanup: ExitStack, lifetime) -> None:
         from tools.performance.frame_meter import install
