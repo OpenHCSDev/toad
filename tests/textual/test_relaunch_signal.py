@@ -38,7 +38,7 @@ async def test_relaunch_moves_to_the_runtime_that_owns_its_root(workspace, tmp_p
     owner = LaunchRuntime.at_prefix(tmp_path / "installed")
 
     def publish(root) -> None:
-        RootRuntimeStore.at(root).retire_host(lambda process: True)
+        RootRuntimeStore.at(root).retire_host()
         RootRuntime.publish(root, owner)
 
     assert await relaunched_onto(workspace, publish) == Succeeded(owner)
