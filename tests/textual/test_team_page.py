@@ -177,6 +177,7 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         view = page.query_one(TeamFrameView)
         table = view.query_one(TeamTable)
         await ui.until(lambda: table.row_count == 2, why="both original records to acquire native rows")
+        await ui.step()  # The mount's resize reconcile restores the frame's selection over an earlier move.
         table.focus()
         table.move_cursor(row=1, animate=False)
         await ui.until(lambda: view.selected == selected(second), why="the highlighted second record")
@@ -184,7 +185,7 @@ async def test_selection_survives_filter_clear_refill_group_move_and_resize(work
         before_keys = tuple(table.entity_keys.values())
         assert set(table.records) == set(before_keys) and row_maps_cohere(table)
 
-        await ui.resize(60, 40)
+        await ui.resize(sum(table.source.minimums), 40)  # A terminal narrower than the columns' own minimums.
         await ui.until(lambda: not table.show_header, why="the narrow stacked layout")
         assert table.selected.key == semantic
         assert table.selected == selected(second)
