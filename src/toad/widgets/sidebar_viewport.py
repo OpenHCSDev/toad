@@ -66,10 +66,12 @@ class SidebarViewport(StableGutter, VerticalScroll):
         self._align_headers()
 
     def on_resize(self) -> None:
-        # Native resize commits the scrollport, including its scrollbar gutter.
-        # Invalidate only dependent headers; never store a second pixel width.
+        # Native resize commits the scrollport, including its scrollbar gutter. A header
+        # measured in the same pass read the width before that commit, and its auto-width
+        # group keeps that arrangement while its own size holds, so the group lays its
+        # header out again. Never store a second pixel width.
         for header in self.query(ViewportHeader):
-            header.refresh(repaint=False, layout=True)
+            header.parent.refresh(repaint=False, layout=True)
 
     def align_header(self, header: ViewportHeader) -> None:
         # The content still owns its full intrinsic width. Counter only its

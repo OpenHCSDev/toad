@@ -71,3 +71,36 @@ async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
         await ui.step()
         check_controls(channels)
         check_controls(thread)
+
+
+async def test_panel_headers_follow_their_bar_through_band_swaps(workspace):
+    """a-toad's installed run: after a swap in a split top band, each panel header kept the
+    other bar's width, stranding its Sort control. Every swap re-measures each header to
+    its own scrollport, however the first arrangement after the resize was timed."""
+    from toad.sidebar_placement import TopSidebarEdge
+    from toad.widgets.sidebar_viewport import SidebarViewport, ViewportHeader
+
+    async with workspace.app(size=(140, 40)) as ui:
+        app, _ = ui.textual
+        channels = app.workspace_chrome.channels
+        thread = app.selected_session.thread_sidebar
+        channels.reveal()
+        thread.reveal()
+        layout = app.sidebar_layout
+        layout.move(channels.placement_identity, TopSidebarEdge)
+        layout.move(thread.placement_identity, TopSidebarEdge)
+        layout.set_split(TopSidebarEdge, 70)
+        app.workspace_chrome.refresh_layout()
+        await ui.until(lambda: all(bar.query(ViewportHeader) for bar in (channels, thread)), why="panel headers")
+
+        def stranded() -> list:
+            return [(bar.id, header.region, header.query_ancestor(SidebarViewport).scrollable_content_region)
+                    for bar in (channels, thread) for header in bar.query(ViewportHeader)
+                    if header.region.width != header.query_ancestor(SidebarViewport).scrollable_content_region.width]
+
+        for _ in range(6):
+            layout.swap(channels.placement_identity)
+            app.workspace_chrome.refresh_layout()
+            await ui.step()
+            await ui.step()
+            assert not stranded(), stranded()
