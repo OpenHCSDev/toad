@@ -685,6 +685,10 @@ class SearchSidebarAction(WidgetAction):
         sidebar.search_input.focus()
 
 
+class SidebarScope(Bold, MutedText, widgets.Static):
+    """The bar's one-word header, "this" or "all", from its placement."""
+
+
 class SidebarContentStack(containers.Vertical):
     """One padded flow for content; padding never intercepts the outer handles."""
 
@@ -877,6 +881,7 @@ class SideBar(
         yield self.toggle_control
         yield self.resize_handle
         with self.content_stack:
+            yield SidebarScope(self.placement_identity.scope)
             yield self.search_input
             with self.panels_viewport:
                 if self._panels_loaded:

@@ -5,6 +5,8 @@ import pytest
 from toad.sidebar_placement import SidebarEdge
 from toad.widgets.side_bar import SideBar, SidebarAction
 
+from test_sidebar_layout_policy import side_by_side
+
 
 @pytest.mark.parametrize("side", SidebarEdge.members_with(SidebarEdge))
 async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
@@ -34,8 +36,7 @@ async def test_arrow_clicks_follow_spatial_neighbours(workspace, side):
                 assert button.display == shift.available
 
         def check_adjacent() -> None:
-            regions = sorted((channels.region, thread.region), key=lambda region: side.coordinate(region.offset))
-            assert side.coordinate(regions[0].offset) + side.extent(regions[0].size) == side.coordinate(regions[1].offset)
+            assert side_by_side(channels.region, thread.region), (side, channels.region, thread.region)
 
         # The wall is blocked, the inward arrow swaps, then crosses the centre.
         assert channels.placement.order == 0 and thread.placement.order == 1
