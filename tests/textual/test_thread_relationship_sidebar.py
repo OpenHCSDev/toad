@@ -64,7 +64,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         with patch.object(service, "snapshot", wraps=service.snapshot) as read:
             await ui.step()
             assert read.call_count == 0, "Collapsed right panel fetched source data"
-            assert not main.query_one(ThreadSidebar)._panels_loaded
+            assert not main.query_one(ThreadSidebar).panels_loaded
             tree = await reveal(ui, main)
             assert not tree.query_ancestor(SideBarCollapsible).collapsed
             assert read.call_count >= 1

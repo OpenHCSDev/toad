@@ -178,10 +178,6 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         for window in tuple(self.history_windows):
             window.retire_presentation_wait()
 
-    def on_screen_resume(self) -> None:
-        for window in tuple(self.history_windows):
-            window.request_preparation()
-
     async def _message_loop_exit(self) -> None:
         self.frame_presentation.close()
         await super()._message_loop_exit()
@@ -297,8 +293,16 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         )
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
+        # One resume handler: Textual dispatches `_on_screen_resume` or
+        # `on_screen_resume` from a class, never both, so a second one never ran.
         self.frame_presentation.resume()
         # Native Screen resume updates changed stylesheet sources.
+        # While covered, sidebars were hidden: a load asked for then was refused, and
+        # controls a finished load mounted were never presented. Do both now.
+        chrome = self.app.workspace_chrome
+        for bar in chrome.presented_sidebars():
+            bar.schedule_hydration()
+        chrome.refresh_layout()
 
 
 class BackToBottomAction(ViewAction):

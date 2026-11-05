@@ -10,6 +10,7 @@ from agent_comms.relationships import (
     CollaboratingRelationshipGroup,
 )
 from support.ui import saved_tab
+from textual.screen import Screen
 
 from toad.app import HeapFrozen, ToadApp
 from toad.plan import InProgressPlanStatus, PlanItem
@@ -139,7 +140,7 @@ async def exercise(ui, screen, root):
     await sidebar.prepare_presentation()
     assert tree_ref() is sidebar.query_one(ProjectDirectoryTree)
     await sidebar.evict(screen)
-    assert not sidebar.panels and not sidebar._panels_loaded
+    assert not sidebar.panels and not sidebar.panels_loaded
     assert screen._project_panel is NO_PROJECT_VIEW
     assert not tuple(viewport.children)
     assert not sidebar.query(Plan) and not sidebar.query(ThreadCommsSidebar)
@@ -254,17 +255,69 @@ async def test_leaving_a_view_stops_its_sidebar_hydration(workspace):
         tab = await saved_tab(app)
         await sidebar.evict(screen)
         sidebar._start_hydration()
-        assert sidebar._panels_loading
         workers = tuple(
             worker
             for worker in sidebar.workers
             if worker.node is sidebar and worker.group == PanelHydration.group
         )
+        assert workers
         await asyncio.sleep(0)
         await app.session_navigation.new(tab, lambda: MainScreen(app.project_dir))
         await ui.step(0.02)
-        assert not sidebar.panels and not sidebar._panels_loading
+        # Retirement either keeps a load that finished or releases one that didn't
+        # (session_thread_sidebar.retire_presentation); it never keeps half of one.
+        assert len(sidebar.panels) in (0, len(sidebar._panel_owners))
+        assert sidebar.panels_loaded == bool(sidebar.panels)
         assert all(worker.is_finished for worker in workers)
         await app.select_session(screen.id)
         await sidebar.wait_content_ready()
         assert len(sidebar.panels) == len(sidebar._panel_owners)
+
+
+async def test_an_opaque_screen_over_a_loading_sidebar_leaves_it_whole(workspace):
+    """Covering the workspace mid-load must not strand panels without their controls."""
+    project_with_files(workspace)
+    async with workspace.app(size=(130, 44), application=ToadApp) as ui:
+        app, _ = ui.textual
+        screen = await started(workspace, ui)
+        sidebar = await reveal(ui, screen)
+        await sidebar.evict(screen)
+        sidebar._start_hydration()
+        workers = tuple(
+            worker
+            for worker in sidebar.workers
+            if worker.node is sidebar and worker.group == PanelHydration.group
+        )
+        await app.push_screen(Screen())
+        await ui.until(
+            lambda: all(worker.is_finished for worker in workers),
+            seconds=12,
+            why="the load to run its course under the covering screen",
+        )
+        app.pop_screen()
+        async with asyncio.timeout(12):
+            await sidebar.wait_content_ready()
+        await ui.step(0.02)
+        assert sidebar.panels_loaded
+        assert len(sidebar.panels) == len(sidebar._panel_owners)
+        assert tuple(sidebar.layout_controls.children)
+        assert not sidebar.present_controls(), "its controls were never presented for its placement"
+
+
+async def test_a_sidebar_asked_to_load_under_an_opaque_screen_loads_once_uncovered(workspace):
+    project_with_files(workspace)
+    async with workspace.app(size=(130, 44), application=ToadApp) as ui:
+        app, _ = ui.textual
+        screen = await started(workspace, ui)
+        sidebar = await reveal(ui, screen)
+        await sidebar.evict(screen)
+        await app.push_screen(Screen())
+        await sidebar.prepare_presentation()
+        await ui.step(0.05)
+        assert not sidebar.panels
+        app.pop_screen()
+        await ui.step(0.05)
+        async with asyncio.timeout(12):
+            await sidebar.wait_content_ready()
+        assert sidebar.panels_loaded
+        assert tuple(sidebar.layout_controls.children)

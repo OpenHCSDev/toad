@@ -15,6 +15,7 @@ from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
 from dataclasses import dataclass
+from agent_comms.nominal.declared_family import DeclaredFamily
 import asyncio
 from typing import TYPE_CHECKING, ClassVar
 
@@ -99,6 +100,70 @@ class BarPresentation:
 
 class PanelHydration(WorkerGroup):
     """Loads a sidebar's panels once it is shown; leaving the view cancels it."""
+
+
+class SidebarPanels(DeclaredFamily, affix="Panels"):
+    """How far a sidebar's panels are mounted. One state, so "loading" and "loaded" can't both be true."""
+
+    loaded: ClassVar[bool] = False
+
+    def schedule(self, bar: SideBar) -> None:
+        """Panels already loaded or on their way need no second load."""
+
+    def start(self, bar: SideBar) -> None:
+        """Panels already loaded or loading are not started again."""
+
+    async def wait(self) -> None:
+        """Nothing is in flight, so a content waiter proceeds."""
+
+    def settle(self) -> None:
+        """Nothing is in flight, so nobody is waiting."""
+
+
+class AbsentPanels(SidebarPanels):
+    """Nothing is mounted: the sidebar has not been shown, or eviction released it."""
+
+    def schedule(self, bar: SideBar) -> None:
+        bar.panel_state = ScheduledPanels()
+        bar.screen.frame_presentation.defer(bar, bar._start_hydration)
+
+    def start(self, bar: SideBar) -> None:
+        ScheduledPanels().start(bar)
+
+
+class LoadingPanels(SidebarPanels, declared_name=None):
+    """A load is on its way; its waiters wake when it ends, however it ends."""
+
+    def __init__(self, settled: asyncio.Event | None = None) -> None:
+        self.settled = settled or asyncio.Event()
+
+    async def wait(self) -> None:
+        await self.settled.wait()
+
+    def settle(self) -> None:
+        self.settled.set()
+
+
+class ScheduledPanels(LoadingPanels):
+    """The load waits for the sidebar's frame to be written."""
+
+    def start(self, bar: SideBar) -> None:
+        if bar.wants_panels:
+            hydrating = bar.panel_state = HydratingPanels(self.settled)
+            PanelHydration.run_on(bar, bar._hydrate_panels(hydrating))
+        else:
+            bar.panel_state = AbsentPanels()
+            self.settle()
+
+
+class HydratingPanels(LoadingPanels):
+    """Panels and controls are being mounted. Only leaving the view stops it, and eviction then discards the partial mount."""
+
+
+class LoadedPanels(SidebarPanels):
+    """Every panel and control is mounted."""
+
+    loaded = True
 
 class BarDisplay:
     """Whether native controls already show a requested sidebar projection."""
@@ -834,9 +899,7 @@ class SideBar(
             SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
             SidebarLayout.minimum_percent,
         )
-        self._panels_loaded = not defer_mount
-        self._panels_loading = False
-        self._panels_ready = asyncio.Event()
+        self.panel_state: SidebarPanels = AbsentPanels() if defer_mount else LoadedPanels()
         self._presented_collapsed: bool | None = None
         self._presented_layout: BarDisplay = UnpresentedBar()
 
@@ -861,7 +924,7 @@ class SideBar(
 
     @property
     def panels_loaded(self) -> bool:
-        return self._panels_loaded
+        return self.panel_state.loaded
 
     @property
     def navigation(self) -> SidebarState:
@@ -881,14 +944,16 @@ class SideBar(
         self.trap_focus()
         self.mount_collapse()
         self.watch_collapsed(self.collapsed)
-        if self._panels_loaded:
-            self._panels_ready.set()
-        else:
-            self.schedule_hydration()
+        self.schedule_hydration()
 
     def schedule_hydration(self) -> None:
-        if not self._panels_loaded and not self._panels_loading and self.presentation_visible:
-            self.screen.frame_presentation.defer(self, self._start_hydration)
+        if self.wants_panels:
+            self.panel_state.schedule(self)
+
+    @property
+    def wants_panels(self) -> bool:
+        """A shown sidebar loads its panels."""
+        return self.presentation_visible
 
     @property
     def presentation_visible(self) -> bool:
@@ -906,37 +971,30 @@ class SideBar(
         )
 
     def _start_hydration(self) -> None:
-        if (
-            self._panels_loaded
-            or self._panels_loading
-            or not self.presentation_visible
-        ):
-            return
-        self._panels_loading = True
-        PanelHydration.run_on(self, self._hydrate_panels())
+        self.panel_state.start(self)
 
-    async def _hydrate_panels(self) -> None:
+    async def _hydrate_panels(self, hydrating: HydratingPanels) -> None:
+        # A screen covering the workspace, or a hidden ancestor, does not stop a load
+        # it finds midway: stopping left panels mounted without their controls and no
+        # state that would ever finish them. Leaving the view cancels this worker.
         try:
             await self.panels_viewport.mount_all(self._compose_panels())
-            if not self.presentation_visible:
-                return
             await self.layout_controls.mount_all(self._compose_controls())
-            if self.presentation_visible:
-                self._panels_loaded = True
-                self.invalidate_controls()
-                await self.panels_hydrated()
-                self.restore_navigation()
+            self.panel_state = LoadedPanels()
+            self.invalidate_controls()
+            await self.panels_hydrated()
+            self.restore_navigation()
         finally:
-            self._panels_ready.set()
+            hydrating.settle()
 
     async def panels_hydrated(self) -> None:
         """The sidebar declaration completes its panel preparation."""
 
     async def wait_content_ready(self) -> None:
-        await self._panels_ready.wait()
+        await self.panel_state.wait()
 
     def on_unmount(self) -> None:
-        self._panels_ready.set()
+        self.panel_state.settle()
 
     def compose(self) -> ComposeResult:
         yield self.toggle_control
@@ -946,10 +1004,10 @@ class SideBar(
             yield SidebarScope(self.placement_identity.scope)
             yield self.search_input
             with self.panels_viewport:
-                if self._panels_loaded:
+                if self.panels_loaded:
                     yield from self._compose_panels()
             with self.layout_controls:
-                if self._panels_loaded:
+                if self.panels_loaded:
                     yield from self._compose_controls()
 
     @on(widgets.Input.Changed)
@@ -1010,7 +1068,7 @@ class SideBar(
             handle.styles.dock = edge.opposite().dock
             handle.display = not self.collapsed
             self.split_handle.display = current.presentation.leads_band and not self.collapsed
-            if self._panels_loaded:
+            if self.panels_loaded:
                 slider.reversed = edge.sign < 0
                 slider.set_range(SidebarLayout.minimum_percent, SidebarLayout.maximum_percent,
                                  placement.extent_percent)
