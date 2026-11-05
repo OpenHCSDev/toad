@@ -279,26 +279,17 @@ class AgentSession:
         if self.pk is not None:
             await DB().session_update_last_used(self.pk)
 
-    def coordinated_title(self, title) -> None:
-        """A coordination update presents the thread's title.
+    def coordinated_title(self, title: str) -> None:
+        """Present the thread's title; the saved session title stays the tab's own.
 
-        A name the user chose wins: it is announced as the session's title
-        and carried to the wire when the wire does not already carry it.
-        Otherwise the saved title and the tab follow the thread's title.
+        The session row was written with its title when the session was created,
+        and renaming a tab rewrites it. Nothing on the wire rewrites it: adopting
+        the thread's title here renamed a tab the reader had already labelled,
+        which is what they saw as the name changing once Toad connected.
         """
-        from toad.core.events import SessionInfoUpdate, SessionThreadTitle
-        self.agent.events.publish(SessionInfoUpdate(self.chosen_name or title))
+        self.agent.events.publish(core_events.SessionInfoUpdate(self.chosen_name or title))
         if self.chosen_name is not None:
             self.agent.rename_chosen_title(self.chosen_name)
-            return
-        if title:
-            self.agent.events.publish(SessionThreadTitle(title))
-            if self.pk is not None:
-                self.start_operation(self._adopt_thread_title(title))
-
-    async def _adopt_thread_title(self, title) -> None:
-        """A session without a chosen name keeps its saved title following the thread."""
-        await DB().session_update_title(self.pk, title)
 
     async def run(self) -> None:
         """The main logic of the Agent."""
