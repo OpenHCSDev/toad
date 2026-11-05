@@ -27,7 +27,7 @@ class ReferencedCore(ABC):
     def registry_for(self, *names: str) -> RegistrySnapshot:
         """The registry facts a caller reading ``names`` needs: their rows, aliases, statuses
         and owner generations, beside the fields every thread shares, not every thread's rows."""
-        return self.core.call(CommsRegistryCutTool(names=names))
+        return self.core.call(CommsRegistryCutTool(threads=names))
 
     def references(self) -> CurrentDisplayReferences:
         """The destinations Core's registry names, keyed by the root it serves."""
