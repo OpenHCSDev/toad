@@ -82,6 +82,10 @@ def main() -> None:
                              "has content to settle on; a fresh copy paints nothing until one exists")
     parser.add_argument("--prime-settle-seconds", type=float, default=3.0,
                         help="Let the primed rows paint before the burst is measured")
+    parser.add_argument("--no-owner", action="store_true",
+                        help="Do not start a live agent owner. A real owner runs a model turn "
+                             "per message, and its error rows fill the transcript and push the "
+                             "measured rows out of the painted viewport")
     parser.add_argument("--runtime", type=Path, required=True, help="The runtime's bin directory")
     parser.add_argument("--thread", required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -118,7 +122,8 @@ def main() -> None:
 
     measured: dict[str, object] = {}
     with OwnedDisplay(args.output) as display:
-        comms.owners.start_many((args.thread,))[0]
+        if not args.no_owner:
+            comms.owners.start_many((args.thread,))[0]
         with TerminalApp(command, display, args.output / "comms", target, target.home) as app:
             app.wait("welcome", lambda screen: args.thread in screen.text)
             app.click(args.channel)
