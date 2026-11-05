@@ -354,8 +354,10 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     expanded = reactive(False, init=False)
 
     _rows_pending = False
-    _step_full = False
     """A reconciliation ran out of its step and left rows unmounted."""
+
+    _step_full = False
+    """The step used up its budget, so the row it just reached is its last."""
 
     _row_mounting: Worker[None] | NoWorker = NoWorker()
     """The pending-row worker, or unscheduled work answering the same queries."""
