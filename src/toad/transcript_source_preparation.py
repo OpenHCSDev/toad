@@ -88,8 +88,12 @@ class HistorySourceSnapshot:
     source: object
 
     def current(self, owner: TranscriptSourcePreparation) -> bool:
-        if not owner.can_draw_on_screen:
-            return False
+        """Whether the source this read started from is still the one the view holds.
+
+        Being on screen decides whether rows can be drawn, not whether the read may
+        finish: requiring it here discarded every read a tab started while it was
+        not visible, so the whole missed run loaded in one burst on return.
+        """
         return self == owner.source_snapshot()
 
 

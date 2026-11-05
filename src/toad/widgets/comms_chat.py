@@ -233,7 +233,7 @@ class CommsChatView(Conversation):
 
     async def _refresh(self) -> SourceWork:
         history = self.message_history
-        if not self.is_attached or not self.query_ancestor(SessionScope).is_current:
+        if not self.is_attached:
             return DEFERRED_WORK
         return history.page_source.schedule_refresh(self)
 
