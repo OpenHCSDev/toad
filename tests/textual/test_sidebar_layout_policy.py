@@ -8,13 +8,20 @@ from textual.geometry import Size
 from toad.preferences import SavedSettings
 from toad.sidebar_layout import SidebarLayout
 from toad.sidebar_placement import (
-    BottomSidebarEdge, ChannelsSidebarPlacement, LeftSidebarEdge, RightSidebarEdge,
+    BottomSidebarEdge, ChannelsSidebarPlacement, HeightSidebarEdge, LeftSidebarEdge, RightSidebarEdge,
     SidebarEdge, ThreadSidebarPlacement, TopSidebarEdge,
 )
 from toad.terminal_origin import LocalTerminal, SshTerminal, TerminalOrigin
 
 
 EDGES = SidebarEdge.members_with(SidebarEdge)
+
+
+def side_by_side(first, second) -> bool:
+    """Two bars on one edge sit next to each other across the screen, never on top of each
+    other: left and right bars touch, top and bottom bars share a band split by a splitter."""
+    left, right = sorted((first, second), key=lambda region: region.x)
+    return not left.overlaps(right) and 0 <= right.x - left.right <= HeightSidebarEdge.splitter
 
 
 def layout_for(settings: SavedSettings | None = None, origin: type[TerminalOrigin] = LocalTerminal):
@@ -74,10 +81,8 @@ def test_float_keeps_order_and_swap_keeps_extents(side, viewport, hide_channels,
         pair.float_mode(name)
         assert pair.ordered() == order, "Float must not reorder sidebars"
         assert pair.resolve(viewport, collapsed).bars == before.bars
-    physical = sorted(before.bars.values(), key=lambda bar: side.coordinate(bar.offset))
-    assert side.coordinate(physical[0].offset) + side.extent(physical[0].size) == side.coordinate(physical[1].offset)
-    assert side.coordinate(physical[0].offset) >= 0
-    assert side.coordinate(physical[1].offset) + side.extent(physical[1].size) <= side.extent(viewport)
+    assert side_by_side(*before.bars.values()), before.bars
+    assert all(viewport.region.contains_region(bar) for bar in before.bars.values())
     for name, hidden in collapsed.items():
         if hidden:
             assert side.extent(before.bars[name].size) == side.collapsed_extent
@@ -139,3 +144,19 @@ def test_a_collapsed_top_or_bottom_bar_is_two_rows_with_its_arrow_on_both(edge):
     assert resolved.bars[ChannelsSidebarPlacement].height == 2
     for collapsed in (False, True):
         assert edge.toggle_text(collapsed).split("\n") == [edge.toggle_symbol(collapsed)] * 2
+
+
+@pytest.mark.parametrize("side, resized, percent", list(product(
+    SidebarEdge.members_with(HeightSidebarEdge), (ChannelsSidebarPlacement, ThreadSidebarPlacement),
+    (25, SidebarLayout.maximum_percent),
+)))
+def test_resizing_either_bar_in_a_band_resizes_the_whole_band(side, resized, percent):
+    """The band takes one height: the largest band is not shrunk as if its bars stacked."""
+    layout = layout_for()
+    layout.move(ChannelsSidebarPlacement, side)
+    layout.move(ThreadSidebarPlacement, side)
+    assert len({placement.extent_percent for placement in layout.placements.values()}) == 1
+    assert layout.resize(resized, percent)
+    bars = layout.resolve(Size(80, 40), {key: False for key in layout.placements}).bars
+    assert side_by_side(*bars.values()), bars
+    assert {side.extent(bar.size) for bar in bars.values()} == {40 * percent // 100}, bars

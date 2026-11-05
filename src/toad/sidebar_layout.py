@@ -161,6 +161,11 @@ class SidebarLayout:
                  if key != identity and placement.side is side]
         placements[identity] = replace(current, side=side, order=len(peers))
         self._renumber(placements, current.side)
+        # Joining bars that share its room adopts one extent: the largest among them.
+        slot = self._slot(placements, identity)
+        extent = max(placements[key].extent_percent for key in slot)
+        for key in slot:
+            placements[key] = replace(placements[key], extent_percent=extent)
         self._store(placements)
         return True
 
@@ -202,11 +207,12 @@ class SidebarLayout:
 
     def resize(self, identity: type[SidebarPlacement], percentage: int) -> bool:
         placements = self.placements
-        current = placements[identity]
         percentage = max(self.minimum_percent, min(self.maximum_percent, percentage))
-        if current.extent_percent == percentage:
+        resized = self._slot(placements, identity)
+        if all(placements[key].extent_percent == percentage for key in resized):
             return False
-        placements[identity] = replace(current, extent_percent=percentage)
+        for key in resized:
+            placements[key] = replace(placements[key], extent_percent=percentage)
         self._store(placements)
         return True
 
@@ -229,43 +235,64 @@ class SidebarLayout:
         edges = SidebarEdge.members_with(SidebarEdge)
         for axis in dict.fromkeys(edge.axis() for edge in edges):
             total = max(0, axis.extent(viewport))
-            extents = {
-                key: axis.collapsed_extent if collapsed[key] else max(axis.minimum, total * placement.extent_percent // 100)
-                for key, placement in placements.items()
-                if key in collapsed and placement.side.axis() is axis
+            sides = {
+                side: sorted((key for key, placement in placements.items()
+                              if key in collapsed and placement.side is side),
+                             key=lambda key: placements[key].order)
+                for side in SidebarEdge.members_with(axis)
             }
-            handles = sum(extent for key, extent in extents.items() if collapsed[key])
-            expanded = [key for key in extents if not collapsed[key]]
+            slots = [slot for side, keys in sides.items() for slot in side.slots(keys)]
+            folded = {slot: all(collapsed[key] for key in slot) for slot in slots}
+            extents = {
+                slot: axis.collapsed_extent if folded[slot] else max(
+                    max(axis.minimum, total * placements[key].extent_percent // 100)
+                    for key in slot if not collapsed[key])
+                for slot in slots
+            }
+            handles = sum(extent for slot, extent in extents.items() if folded[slot])
+            # Rounding goes in the placements' fixed order, so a swap keeps every extent.
+            rank = {key: index for index, key in enumerate(placements)}
+            expanded = sorted((slot for slot in extents if not folded[slot]),
+                              key=lambda slot: min(rank[key] for key in slot))
             budget = max(total - axis.conversation_minimum,
                          min(total, handles + axis.minimum * len(expanded)))
-            wanted = sum(extents[key] for key in expanded)
+            wanted = sum(extents[slot] for slot in expanded)
             available = max(0, budget - handles)
             if wanted > available:
                 minimum = min(axis.minimum, available // len(expanded))
                 surplus = available - minimum * len(expanded)
                 demand = wanted - minimum * len(expanded)
-                for key in expanded:
-                    extents[key] = minimum + surplus * (extents[key] - minimum) // demand
-                for key in expanded[:available - sum(extents[key] for key in expanded)]:
-                    extents[key] += 1
+                for slot in expanded:
+                    extents[slot] = minimum + surplus * (extents[slot] - minimum) // demand
+                for slot in expanded[:available - sum(extents[slot] for slot in expanded)]:
+                    extents[slot] += 1
             if handles > total:
-                for key in extents:
-                    extents[key] = total * extents[key] // handles
-            for side in SidebarEdge.members_with(axis):
-                offset = clearance = 0
-                for key in sorted((key for key in extents if placements[key].side is side),
-                                  key=lambda key: placements[key].order):
-                    extent = extents[key]
-                    spans[key] = SidebarGeometry(offset, extent)
-                    offset += extent
-                    if collapsed[key] or not placements[key].floating:
-                        clearance = offset
-                occupied += side.gutter(offset)
-                gutter += side.gutter(clearance)
+                for slot in extents:
+                    extents[slot] = total * extents[slot] // handles
+            for side, keys in sides.items():
+                sized = {key: axis.collapsed_extent if collapsed[key] and not folded[slot] else extents[slot]
+                         for slot in side.slots(keys) for key in slot}
+                packed = dict(zip(keys, side.pack([sized[key] for key in keys], viewport)))
+                spans.update(packed)
+                reach = {key: span.offset + span.extent for key, span in packed.items()}
+                occupied += side.gutter(max(reach.values(), default=0))
+                gutter += side.gutter(max((reach[key] for key in keys
+                                           if collapsed[key] or not placements[key].floating),
+                                          default=0))
         return ResolvedSidebarLayout(
             {key: placements[key].side.region(viewport, span, occupied) for key, span in spans.items()},
             gutter,
         )
+
+    @staticmethod
+    def _slot(placements: dict[type[SidebarPlacement], SidebarPlacement],
+              identity: type[SidebarPlacement]) -> tuple[type[SidebarPlacement], ...]:
+        """The bars sharing identity's room on its edge, identity included."""
+        side = placements[identity].side
+        keys = sorted((key for key, placement in placements.items() if placement.side is side),
+                      key=lambda key: placements[key].order)
+        slot, = (slot for slot in side.slots(keys) if identity in slot)
+        return slot
 
     @staticmethod
     def _renumber(placements: dict[type[SidebarPlacement], SidebarPlacement],
