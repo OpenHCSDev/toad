@@ -585,7 +585,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
     @handles(SessionChangedEvent)
     def on_session_details_changed(self, event: SessionChangedEvent) -> None:
-        if event.mode_name == self.id:
+        if event.identity is self.session_details.identity:
             self.update_title()
 
     @handles(core_events.ThreadRowsChanged)
@@ -603,7 +603,9 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         """The thread presented a title; an authored name keeps the tab's label."""
         if (details := self.app.session_tracker.get_session(self.session_details.identity)) is not None:
             if details.update_thread_title(event.title):
-                self.app.session_tracker.events.publish(SessionChangedEvent(self.id))
+                self.app.session_tracker.events.publish(
+                    SessionChangedEvent(self.session_details.identity)
+                )
 
     @handles(core_events.SessionSubtitleChanged)
     def on_session_subtitle_changed(self, event: core_events.SessionSubtitleChanged) -> None:

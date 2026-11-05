@@ -24,6 +24,7 @@ from toad.worker_group import WorkerGroup
 
 if TYPE_CHECKING:
     from agent_comms.team_hud import TeamHud
+    from toad.tab_identity import TabIdentity
 
 
 class ThreadInterestUpdate(WorkerGroup):
@@ -122,7 +123,7 @@ class ToolCall(CoreEvent):
 class SessionChangedEvent(CoreEvent):
     """Invalidate a session projection; SessionTracker owns the current details."""
 
-    mode_name: str
+    identity: TabIdentity
 
 
 @dataclass(frozen=True)
