@@ -217,13 +217,13 @@ class SessionTracker:
     def new_session(self, identity: SessionTabIdentity, *, title: str = "New Session") -> SessionDetails:
         details = SessionDetails(identity=identity, name=ThreadSessionName(title))
         self.sessions[identity] = details
-        self.events.publish(SessionChangedEvent(identity.mode_name))
+        self.events.publish(SessionChangedEvent(identity))
         return details
 
     def close_session(self, identity: TabIdentity) -> None:
         if identity in self.sessions:
             del self.sessions[identity]
-            self.events.publish(SessionClosedEvent(identity.mode_name))
+            self.events.publish(SessionClosedEvent(identity))
 
     def bind_identity(self, identity: TabIdentity, previous: str, current: str) -> None:
         """The thread's name arrives: the user's name keeps the tab's label."""
@@ -231,7 +231,7 @@ class SessionTracker:
         adopted = details.name.adopt_identity(previous, current)
         if adopted != details.name:
             details.name = adopted
-            self.events.publish(SessionChangedEvent(identity.mode_name))
+            self.events.publish(SessionChangedEvent(identity))
 
     def get_session(self, identity: TabIdentity) -> SessionDetails | None:
         return self.sessions.get(identity)
@@ -242,7 +242,7 @@ class SessionTracker:
         before = session_details.name.display
         session_details.name_session(name)
         if session_details.name.display != before:
-            self.events.publish(SessionChangedEvent(identity.mode_name))
+            self.events.publish(SessionChangedEvent(identity))
         return session_details
 
     def update_session(
@@ -267,7 +267,7 @@ class SessionTracker:
             session_details.path,
         )
         if after != before:
-            self.events.publish(SessionChangedEvent(identity.mode_name))
+            self.events.publish(SessionChangedEvent(identity))
         return session_details
 
     @property
