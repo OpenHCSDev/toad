@@ -4,6 +4,8 @@ import pytest
 
 from toad.preferences import SETTINGS
 from toad.setting_choices import NavigationBarPosition
+from toad.widgets.comms_menu import ContextMenuOptions
+from toad.widgets.side_bar import MainMenuButton
 from toad.workspace_chrome import WorkspaceBody
 
 
@@ -34,3 +36,17 @@ async def test_the_navigation_bar_moves_when_its_setting_changes_and_opens_where
         navigation, body = regions(app)
         assert app.settings.ui.navigation_bar is position
         assert placed(position, navigation, body), (position, navigation, body)
+
+
+@pytest.mark.parametrize("position", NavigationBarPosition.members_with(NavigationBarPosition))
+async def test_the_main_menu_opens_toward_the_conversation_without_covering_its_button(workspace, position):
+    async with workspace.app(size=(120, 32)) as ui:
+        app, pilot = ui.textual
+        app.saved_settings.set(SETTINGS.ui.navigation_bar, position)
+        await ui.step()
+        button = app.screen.query_one(MainMenuButton)
+        button.open_menu()
+        await ui.step()
+        menu = app.screen.query_one(ContextMenuOptions).region
+        # The conversation side of the button: below a top bar, above a bottom one.
+        assert placed(position, button.region, menu), (position, button.region, menu)
