@@ -137,3 +137,28 @@ def test_every_notification_answer_keeps_a_narrow_message_at_one_height():
                 shown.request_show(MessageShown(style=style, status=status))
                 heights.add(PlainLines(width, renderer, shown.line_blocks).height)
             assert len(heights) == 1, (style, width, heights)
+
+
+def test_the_bar_marks_the_start_of_every_row_and_never_a_wrap_point(tmp_path):
+    """A wrapped body must break at the bar, not splice the next bar into the text.
+
+    A reader saw "He's     \u258cduring well" - the following row's bar landing inside a
+    soft-wrapped visual line - and the rest of the body never painted. Both symptoms
+    are what an over-wide row does: the terminal wraps it and the next row's prefix
+    lands mid-line, while the overflow pushes the remainder out of the painted region.
+    """
+    context = LinkContext(tmp_path, ProjectReferences())
+    renderer = RichLineRenderer(theme())
+    shown = fragment("#all")
+    prepared = TranscriptLinesRenderTask(LinePreparation(shown.line_blocks, renderer.theme), context).execute()
+    for width in (36, 44, 80, 120):
+        lines = prepared.wrap(width, renderer)
+        rows = tuple(lines)
+        bar = next(block.bar.bar_mark for block in shown.line_blocks if hasattr(block, "bar"))
+        text = ["".join(segment.text for segment in row) for row in rows]
+        body = [text[index] for index in shown.text_rows(lines)]
+        if bar:
+            for line in body:
+                assert line.startswith(bar), (width, line)
+                assert bar not in line[len(bar):], (width, line)
+        assert all(len(line) <= width for line in text), (width, text)
