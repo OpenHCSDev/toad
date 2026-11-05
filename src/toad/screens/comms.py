@@ -61,7 +61,7 @@ class SavedSessionsAction(ViewAction):
             context.conversation.historical_sessions(
                 partial(HistoricalSessions, observed, threads),
                 context.app.coordination_access.observation.observed()
-                .sidebar.observation.require_snapshot().references,
+                .sidebar.observation.thread_names(),
             )
         )
 
@@ -125,7 +125,7 @@ class CommsScreen(TogglesIrc, CyclesSessions, CheckoutRoot, SidebarSessionView[T
         return HistoryTarget.for_conversation(
             self.conversation,
             self.app.coordination_access.observation.observed()
-            .sidebar.observation.require_snapshot().references,
+            .sidebar.observation.thread_names(),
         )
 
     def rebind_identity(self, identity: str) -> None:
