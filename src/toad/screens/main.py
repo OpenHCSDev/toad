@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Literal
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.coordination_errors import DMScopeChanged, Refused
+from agent_comms.coordination.errors import DMScopeChanged, Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.repo import Checkout

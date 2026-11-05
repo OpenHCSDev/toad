@@ -416,7 +416,7 @@ class WorkingTranscript(SuspendedTranscript):
         owner._source_observation.enter_context(waiting.observe())
 
     async def execute[Result](self, owner, work: Callable[[], Awaitable[Result]]) -> Result | Literal[False]:
-        from agent_comms.coordination_errors import (
+        from agent_comms.coordination.errors import (
             CoordinationReadUnavailable,
             StaleRevision,
         )

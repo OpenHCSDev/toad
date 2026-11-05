@@ -7,7 +7,7 @@ from dataclasses import replace
 import pytest
 
 from agent_comms.acp_extension import TranscriptSnapshotUpdate, decode_updates, encode_updates
-from agent_comms.coordination_errors import HistoricalSourceChanged, StaleRevision
+from agent_comms.coordination.errors import HistoricalSourceChanged, StaleRevision
 from agent_comms.order_tools import TranscriptPageRead
 from agent_comms.session_file import RegistrySessionLocation
 from agent_comms.transcripts import EarlierThan, LaterThan, RecordedPageSource, RecordedTranscriptReadIdentity

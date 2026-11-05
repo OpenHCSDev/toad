@@ -10,7 +10,7 @@ from functools import partial
 from typing import TYPE_CHECKING, ClassVar, Self
 
 from agent_comms.acp_extension import InputStartedUpdate
-from agent_comms.coordination_errors import TranscriptChanged
+from agent_comms.coordination.errors import TranscriptChanged
 from agent_comms.sent_message import OutgoingMessageReference, PublishedSentMessage
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.transcripts import (

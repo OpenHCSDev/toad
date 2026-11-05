@@ -242,7 +242,7 @@ class CommsChatView(Conversation):
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+        from agent_comms.coordination.errors import CoordinationReadUnavailable, StaleRevision
 
         try:
             history = self.message_history
@@ -275,7 +275,7 @@ class CommsChatView(Conversation):
 
     async def _refresh_labels(self, source, changed: bool, newly_announced: bool, read_only: bool) -> None:
         """Refresh composer mentions and status for the history as it is drawn now."""
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+        from agent_comms.coordination.errors import CoordinationReadUnavailable, StaleRevision
 
         history = self.message_history
         snapshot = history.source_snapshot()

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
-from agent_comms.coordination_errors import Refused
+from agent_comms.coordination.errors import Refused
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.session_load import ExistingSessionLoadPlan

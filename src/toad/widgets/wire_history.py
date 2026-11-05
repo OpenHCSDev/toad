@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from textual.reactive import var
 
-from agent_comms.coordination_errors import StaleRevision
+from agent_comms.coordination.errors import StaleRevision
 from agent_comms.historical_views import UnobservedConversation
 
 from toad.session_scope import SessionScope

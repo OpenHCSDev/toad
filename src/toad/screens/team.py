@@ -6,7 +6,7 @@ import time
 from dataclasses import replace
 
 from agent_comms.team_hud import TeamHud, Teammate, HudRecord, HudSection
-from agent_comms.coordination_errors import DeferredRead
+from agent_comms.coordination.errors import DeferredRead
 from agent_comms.disclosure_text import (
     AccentTone, DisclosureEntry, DisclosureKey, DisclosureText, ErrorTone, HudTone,
     MutedTone, RootKey, SuccessTone, ViewTable, WarningTone,

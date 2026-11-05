@@ -15,7 +15,7 @@ from agent_comms.acp_extension import (
     McpClientAcknowledgementUpdate, TurnChangedUpdate, encode_updates,
 )
 from agent_comms.comms import wire
-from agent_comms.coordinator import Coordination
+from agent_comms.coordination.coordinator import Coordination
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, TurnId
 from agent_comms.launch_runtime import ThreadLaunch
 from agent_comms.pi_wire import McpLiveAcknowledgement, McpServerReceipt
