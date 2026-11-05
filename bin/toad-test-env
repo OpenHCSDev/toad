@@ -28,6 +28,10 @@ agent_comms=$(cd -- "$agent_comms" && pwd)
 textual=$(cd -- "$textual" && pwd)
 mkdir -p -- "$cache"
 cache=$(cd -- "$cache" && pwd)
+command -v -- "$uv" >/dev/null || {
+    printf 'toad-test-env: %s is not on PATH; pass --uv PATH\n' "$uv" >&2
+    exit 1
+}
 uv=$(command -v -- "$uv")
 uv=$(readlink -f -- "$uv")
 python=$("$uv" python find "$python")
