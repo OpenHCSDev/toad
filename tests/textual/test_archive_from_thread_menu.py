@@ -2,6 +2,12 @@
 choosing Archive archives the thread on the wire while keeping its messages, goal history, session file
 and saved session."""
 
+import json
+from datetime import UTC, datetime
+from importlib import import_module
+
+from agent_comms import cli_verbs
+from agent_comms.native_entries import SessionEntry
 from agent_comms.repo import Checkout
 from agent_comms.channel_targets import CommandTarget
 from agent_comms.read_basis import NamedViewer
@@ -17,12 +23,16 @@ from toad.db import DB
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 
 
-async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_history(workspace):
-    class RetainAction(ArchiveCliCommand):
-        """A command declared here must appear in the menu and run with no other edit."""
-
-        # A CLI command's declared name selects its module (ModuleMembers).
-        __module__ = "retain_action"
+async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_history(workspace, tmp_path, monkeypatch):
+    # A declared verb is a module in the verbs package (ModuleMembers), so the new one is a new file.
+    (tmp_path / "retain_action.py").write_text(
+        '"""Retain the thread."""\n'
+        "from agent_comms.cli_verbs.archive import ArchiveCliCommand\n"
+        "class RetainAction(ArchiveCliCommand):\n"
+        '    """A command declared here must appear in the menu and run with no other edit."""\n'
+    )
+    monkeypatch.setattr(cli_verbs, "__path__", [*cli_verbs.__path__, str(tmp_path)])
+    RetainAction = import_module("agent_comms.cli_verbs.retain_action").RetainAction
 
     commands = CliCommand.members_with(CliCommand)
     assert RetainAction in commands
@@ -31,7 +41,7 @@ async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_his
 
     project, comms = workspace.project, workspace.comms
     session_file = project / "peer.jsonl"
-    session_file.write_text('{"type":"session","id":"retained"}\n')
+    session_file.write_text(json.dumps(SessionEntry.fresh(project, datetime.now(UTC)).to_wire()) + "\n")
     comms.registry.register(NativeThread("owner", frozenset(), Checkout(project)))
     comms.registry.register(NativeThread("peer", frozenset(), Checkout(project), session_file=RegistrySessionLocation.from_path(session_file, workspace.comms.root)),
                             StoppedThreadStatus())
