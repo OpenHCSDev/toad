@@ -71,8 +71,9 @@ async def settled(ui, chat):
     await ui.until(lambda: bar.collapsed, why="the channels sidebar collapsed")
     await ui.step()
     history = chat.message_history
-    await ui.until(lambda: not history.undrawn and history.state.accepts_source_work,
-                   why="the channel's history read")
+    await ui.until(lambda: not history.undrawn and history.state.accepts_source_work
+                   and history.visible_fragments(),
+                   why="the channel's history read and on screen")
     await ui.step()
     await ui.until(lambda: history.notification_view in ui.app.coordination_access.notification_views,
                    why="the visible references subscribed to Core")
@@ -250,7 +251,7 @@ async def test_a_reread_or_resubscribed_message_starts_from_its_known_answer(wor
         source = chat.queue_source
 
         # The scope WireSource.read builds for a re-read page is the view's own scope.
-        scope = ReadNotifications(str(source.comms.root), LiveNotificationRead(()),
+        scope = ReadNotifications(str(source.root), LiveNotificationRead(()),
                                   display=newest.notification_identity)
         assert access.notification_status(scope, newest.notification_references) == answered
 
