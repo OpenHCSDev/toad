@@ -507,13 +507,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         """Right-click adds its menu to the original decoded link action."""
         if isinstance(event, events.Click) and event.button == 3:
             from toad.line_blocks import LineLink
-            link = None
-            match handler.action:
-                case ("", "open", (LineLink() as target,)):
-                    link = target
-                case ("", "link", (str() as href,)) if href.startswith("toad-link:"):
-                    link = LineLink.from_href(href)
-            if link is not None and await link.copy_menu(default_namespace, event):
+            if await LineLink.from_action(handler.action).copy_menu(default_namespace, event):
                 return True
         return await super().dispatch_style_action(handler, event, default_namespace)
 
