@@ -146,7 +146,7 @@ class SessionNavigation:
             observed = self.app.coordination_access.observation.observed()
             if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"Mailbox belongs to another bus: {identity.root}")
-            snapshot = observed.registry()
+            snapshot = observed.registry_for(identity.key.name)
             name = snapshot.canonical_name(identity.key.name)
             if not identity.key.matches_recorded_name(name, snapshot):
                 raise TabTargetGone(identity, f"Mailbox thread was replaced: {identity.key}")
@@ -164,9 +164,7 @@ class SessionNavigation:
             observed = self.app.coordination_access.observation.observed()
             if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"History belongs to another bus: {identity.root}")
-            return identity.key.threads_needed(
-                observed.registry(), source.thread_identity.thread_name()
-            )
+            return identity.key.threads_needed(observed, source.thread_identity.thread_name())
 
         return HistorySessionEntry(
             identity,

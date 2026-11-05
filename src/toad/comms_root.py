@@ -731,6 +731,11 @@ class LocalObserving(Observing):
     def opened_selection(self) -> RouteSelection:
         return self.selection
 
+    def registry_for(self, *names: str) -> RegistrySnapshot:
+        """In process nothing is transferred: the registry this observation already read
+        answers every name."""
+        return self.registry()
+
     def user_identity(self, project: Checkout) -> Thread:
         """In process, the user thread is read, or claimed for this project's checkout."""
         return self.service.messaging.user_identity(project)

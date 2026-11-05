@@ -39,7 +39,6 @@ from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.sidebar_tree import UnpaintedChannel
 
 if TYPE_CHECKING:
-    from agent_comms.registry_document import RegistrySnapshot
     from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 
     from toad.comms_root import CoordinationAccess
@@ -67,7 +66,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @abstractmethod
     def retained_target(self) -> NamedTarget: ...
 
-    def threads_needed(self, snapshot: RegistrySnapshot, me: str):
+    def threads_needed(self, source: ReferencedCore, me: str):
         return ()
 
     def channels_needed(self, root: str):
@@ -252,15 +251,15 @@ class DmConversation(ConversationKind):
     async def toggle_dm(cls, screen: CommsScreen) -> None:
         await ReturnToViewAction().apply(screen)
 
-    def threads_needed(self, snapshot: RegistrySnapshot, me: str):
-        return snapshot.require(me).incarnation, self.peer
+    def threads_needed(self, source: ReferencedCore, me: str):
+        return source.registry_for(me).require(me).incarnation, self.peer
 
     def unread(self, observation: SidebarObservation, references: CurrentDisplayReferences):
         return observation.bus_unread(self.destination(references).name)
 
     @classmethod
     def resolve(cls, source: ReferencedCore, me: str, name: str) -> ResolvedConversation:
-        snapshot = source.registry()
+        snapshot = source.registry_for(me, name)
         resolved = ThreadTarget(name).resolve(snapshot, lambda channel: source.core.call(CommsChannelTool(name=channel)))
         return ResolvedConversation(snapshot.require(me).name, cls(resolved.thread.incarnation))
 

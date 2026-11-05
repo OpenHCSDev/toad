@@ -66,7 +66,7 @@ class ThreadNavigator:
             return app.selected_mode
         identity = await app.preparation.run_thread(
             lambda: MailboxTab(
-                observed.registry().require(target).incarnation, requested_root
+                observed.registry_for(target).require(target).incarnation, requested_root
             )
         )
         mounted_root = str(Path(requested_root).expanduser())
