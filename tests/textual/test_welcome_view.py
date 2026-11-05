@@ -42,12 +42,15 @@ async def welcome_entries(ui: TextualUi, *threads: str) -> WelcomeEntries:
 async def focus_row(ui: TextualUi, row: CommsRow) -> None:
     """Reach this welcome row with keys, preserving the real navigation path."""
     app, _ = ui.textual
-    entries = row.query_ancestor(WelcomeEntries)
-    for _ in range(len(entries.rows) + 1):
+
+    # Rows mount a step per frame, so the list can still grow while the cursor walks it.
+    async def reached() -> bool:
         if app.focused is row:
-            return
+            return True
         await ui.press("down")
-    raise AssertionError(f"welcome row {row.target_name!r} is unreachable:\n{ui.visible_text()}")
+        return False
+
+    await ui.until(reached, why=f"welcome row {row.target_name!r} reached with Down")
 
 
 async def test_starting_opens_no_tab_and_starts_no_agent(workspace):

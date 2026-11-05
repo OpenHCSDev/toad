@@ -5,7 +5,7 @@ from textual.widgets._collapsible import CollapsibleTitle
 from textual.widgets._hints import HintLabel, HintSession
 
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
-from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup
+from toad.widgets.comms_sidebar import ChannelHeaderRow
 from toad.widgets.thread_comms import MessageFilter, ThreadCommsSidebar
 from toad.widgets.prompt import Prompt
 
@@ -28,14 +28,17 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
         await ui.step()
 
         async def choose(widget):
-            await ui.until(lambda: any(target.widget is widget for target in
+            await choose_target(lambda target: target.widget is widget, widget)
+
+        async def choose_target(matches, described):
+            await ui.until(lambda: any(matches(target) for target in
                                       app.screen._compositor.activation_targets()),
-                           why=f'{widget} to be an exposed published hint target')
+                           why=f'{described} to be an exposed published hint target')
             await app.screen.action_show_hints()
             await ui.step()
             labels = [label for label in app.screen.query_children(HintLabel)
-                      if label.target.widget is widget and label.display]
-            assert len(labels) == 1, (widget, labels)
+                      if matches(label.target) and label.display]
+            assert len(labels) == 1, (described, labels)
             await ui.press(*labels[0].text)
             await ui.until(lambda: not app.screen.query_children(HintSession),
                            why='the chosen hint to retire')
@@ -68,11 +71,13 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
         await choose(checkbox)
         assert ui.conversation.visible_categories == before
 
-        disclosure = next(control for control in app.screen.query(SidebarDisclosure)
-                          if control.visible and control.region.height and control.region.width)
-        group = disclosure.query_ancestor(SidebarGroup)
+        # A group's disclosure is a painted stretch of its header line, with a hint of its own.
+        row = next(row for row in left.query(ChannelHeaderRow)
+                   if row.visible and row.region.height and row.region.width)
+        group = row.header_group
+        disclosure = group.leading_segments[0]
         expanded = group.expanded
-        await choose(disclosure)
+        await choose_target(lambda target: target.identity == (row, disclosure.activate), disclosure)
         assert group.expanded != expanded
         assert editor.has_focus and editor.text == 'keep this draft'
         await ui.open_channel('#hints', actor=workspace.viewer)

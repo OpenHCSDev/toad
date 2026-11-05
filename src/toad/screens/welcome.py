@@ -17,6 +17,7 @@ from textual.document._editing import EditingMode
 from toad.widget_actions import NativeMethodKeys, TogglesIrc, WidgetAction
 from textual.containers import VerticalScroll
 from textual.geometry import Offset
+from textual.content import Content
 from textual.widgets import Static
 
 from toad.constants import ALL_COMMS_TARGET
@@ -37,6 +38,7 @@ from toad.widgets.sidebar_tree import (
     SidebarGroup,
     SidebarModelView,
     TargetTree,
+    GroupTitle,
 )
 from toad.widgets.splash_text import SplashText
 from toad.app_node import ToadNode
@@ -84,8 +86,8 @@ class WelcomeTitle(SplashText, MutedText, NoWrap):
             self.refresh()
 
 
-class WelcomeSectionTitle(MutedText, Static):
-    """A welcome section's title."""
+class WelcomeSectionTitle(MutedText, GroupTitle):
+    """A welcome section's title line."""
 
 
 class WelcomeSection(SpacedAbove, SidebarGroup[ListedRow]):
@@ -95,7 +97,7 @@ class WelcomeSection(SpacedAbove, SidebarGroup[ListedRow]):
     LIMIT = 8
 
     def __init__(self) -> None:
-        super().__init__(WelcomeSectionTitle(self.TITLE), expanded=True)
+        super().__init__(WelcomeSectionTitle(Content(self.TITLE)), expanded=True)
         # Shown once the model lists something for it.
         self.display = False
 

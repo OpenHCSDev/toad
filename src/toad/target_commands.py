@@ -179,6 +179,18 @@ class CopyCommand(ViewCommand, declared_name="copy"):
         ctx.app.copy_to_clipboard("\n".join(ctx.selected_targets))
 
 
+class SortMembersCommand(ViewCommand, declared_name="sort"):
+    help = "Sort members"
+
+    def available(self, ctx: TargetContext) -> bool:
+        names = ctx.selected_targets
+        return len(names) == 1 and names[0] in ctx.app.workspace_chrome.channels.roster.groups
+
+    def execute(self, ctx: TargetContext) -> None:
+        group = ctx.app.workspace_chrome.channels.roster.groups[ctx.selected_targets[0]]
+        ctx.app.run_worker(group.sort_choice.open_sort(), group="sort-order")
+
+
 class CloseViewCommand(ViewCommand, declared_name="close_view"):
     help = "Close view"
 

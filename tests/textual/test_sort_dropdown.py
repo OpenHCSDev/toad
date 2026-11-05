@@ -6,6 +6,7 @@ from agent_comms.comms import wire
 from agent_comms.display_order import CreatedThreadSort
 from support.textual_steps import channel_roster
 from toad.widgets.comms_menu import ContextMenu
+from toad.widgets.comms_sidebar import CHANNEL_SORT
 from toad.widgets.session_sort import ChannelListSort
 
 
@@ -14,13 +15,14 @@ async def test_sort_dropdown_is_anchored_persists_and_dismisses(workspace):
     async with workspace.app(size=(120, 40)) as ui:
         app, pilot = ui.textual
         tree = await channel_roster(ui, '#sorting')
-        control = tree.groups['#sorting'].sort_control
-        control.scroll_visible(animate=False)
-        control.focus()
+        group = tree.groups['#sorting']
+        row = group.row
+        row.scroll_visible(animate=False)
         await ui.step()
-        anchor = control.region
-        before = control.order
-        assert await pilot.click(control)
+        anchor = row.segment_region(CHANNEL_SORT)
+        assert anchor.width and row.region.contains_region(anchor)
+        before = group.sort_choice.order
+        assert await pilot.click(offset=anchor.offset)
         await ui.until(lambda: isinstance(app.screen, ContextMenu), why='the sort dropdown')
         menu = app.screen
         await ui.step()
@@ -30,22 +32,29 @@ async def test_sort_dropdown_is_anchored_persists_and_dismisses(workspace):
             'Sent', 'Created', 'Active']
         await pilot.press('escape')
         await ui.until(lambda: app.screen is not menu, why='Escape dismissal')
-        assert control.order is before
-        assert control.has_focus
+        assert group.sort_choice.order is before
 
-        await pilot.press('enter')
-        await ui.until(lambda: isinstance(app.screen, ContextMenu), why='keyboard-opened sort dropdown')
+        # The row's own menu reaches the same choice without a pointer on the order.
+        tree.show_row_menu(row, row.region.offset)
+        await ui.until(lambda: isinstance(app.screen, ContextMenu), why="the row's menu")
         menu = app.screen
+        sort = next(i for i in range(menu.options.option_count)
+                    if 'Sort members' in str(menu.options.get_option_at_index(i).prompt))
+        menu.options.highlighted = sort
+        await pilot.press('enter')
+        await ui.until(lambda: isinstance(app.screen, ContextMenu) and app.screen is not menu,
+                       why='the sort dropdown from the row menu')
         await pilot.press('home', 'down', 'enter')
-        await ui.until(lambda: control.order is CreatedThreadSort, why='the observed saved order')
+        await ui.until(lambda: group.sort_choice.order is CreatedThreadSort, why='the observed saved order')
         assert wire(workspace.roots.wire).bus.require_channel('#sorting').order is CreatedThreadSort
+        assert 'Created ▾' in row.render().plain
 
-        assert await pilot.click(control)
+        assert await pilot.click(offset=row.segment_region(CHANNEL_SORT).offset)
         await ui.until(lambda: isinstance(app.screen, ContextMenu), why='dropdown before outside click')
         menu = app.screen
         await pilot.click(offset=(110, 38))
         await ui.until(lambda: app.screen is not menu, why='outside-click dismissal')
-        assert control.order is CreatedThreadSort
+        assert group.sort_choice.order is CreatedThreadSort
 
         filters = app.workspace_chrome.channels.query_one(ChannelListSort)
         filters.scroll_visible(animate=False)

@@ -32,10 +32,15 @@ from agent_comms.ui_model.unread import UnobservedUnread
 from toad.widget_actions import Activates
 from textual._measurement import FLOW_HEIGHT, height_dependency
 from textual.app import ComposeResult
-from textual.navigation import CursorCommand, MovesCursor
+from textual.navigation import CursorCommand, MovesCursor, MovesHorizontalCursor
 from toad.widget_actions import HiddenActions, VisibleActions
 from textual.containers import Vertical, VerticalGroup
-from textual.geometry import Offset, Size
+from textual import events
+from textual._activation import CallbackTarget
+from rich.style import Style
+from textual.content import Content
+from textual.strip import Strip
+from textual.geometry import Offset, Region, Size
 from textual.layouts.vertical import VerticalLayout
 from textual.reactive import reactive
 from textual.widget import Widget
@@ -48,10 +53,9 @@ from toad.core.events import (
     ThreadRowStateChanged,
 )
 from toad.core_event_carrier import CoreEventReceiver
-from toad.native_style import OneRow, PointerCursor
+from toad.native_style import PointerCursor
 from toad.no_worker import NoWorker
 from toad.widgets.side_bar import SideBar
-from toad.widgets.sidebar_viewport import SidebarHeader
 
 
 class UnpaintedChannel(ChannelRowModel):
@@ -70,16 +74,132 @@ class TargetTreeMember(HiddenActions):
     def navigation_tree(self) -> TargetTree:
         return self.query_ancestor(TargetTree)
 
-class SidebarDisclosure(OneRow, PointerCursor, Activates, Static, can_focus=True):
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.width = 2
+class HeaderSegment(ABC):
+    """One stretch of a group's header line, painted from its group."""
 
-    def render(self):
-        return "▾" if self.query_ancestor(SidebarGroup).expanded else "▸"
+    @abstractmethod
+    def content(self, group: SidebarGroup) -> Content: ...
+
+    async def click(self, row: GroupHeaderLine, event: events.Click) -> None:
+        """A passive stretch leaves the click to the row's own handler."""
+
+    def activation_targets(self, row: GroupHeaderLine, region: Region):
+        """A hint over a passive stretch reaches the row's own effect."""
+        return row.row_activation_targets(region)
+
+
+class ActiveSegment(HeaderSegment):
+    """A stretch whose click is its own action, not the row's."""
+
+    def activation_targets(self, row: GroupHeaderLine, region: Region):
+        return (CallbackTarget(row, row.segment_region(self), self.activate, arguments=(row,)),)
+
+    async def click(self, row: GroupHeaderLine, event: events.Click) -> None:
+        if event.button == 1:
+            event.stop()
+            event.prevent_default()
+            await self.activate(row)
+
+    @abstractmethod
+    async def activate(self, row: GroupHeaderLine) -> None: ...
+
+
+class Disclosure(ActiveSegment):
+    """The group's expanded/collapsed arrow; a click toggles its members."""
+
+    def __init__(self, width: int) -> None:
+        self.width = width
+
+    def content(self, group: SidebarGroup) -> Content:
+        return Content(("▾" if group.expanded else "▸").ljust(self.width))
+
+    async def activate(self, row: GroupHeaderLine) -> None:
+        row.header_group.toggle_members()
+
+
+class TitleSegment(HeaderSegment):
+    """The row's own title, truncated into the room the other segments leave."""
+
+    def content(self, group: SidebarGroup) -> Content:
+        return group.row.content
+
+
+TITLE = TitleSegment()
+
+
+class GroupHeaderLine(PointerCursor, Static):
+    """A group's whole header line as one widget: its segments around the row's title.
+
+    The line is the group's row, so a disclosure, a badge or a control costs a
+    painted stretch, not a mounted widget.
+    """
+
+    content: Content
+    _segment_ends: tuple[tuple[int, HeaderSegment], ...] = ()
+
+    @property
+    def header_group(self) -> SidebarGroup:
+        return self.query_ancestor(SidebarGroup)
+
+    def render(self) -> Content:
+        group = self.header_group
+        leading = [(segment, segment.content(group)) for segment in group.leading_segments]
+        trailing = [(segment, segment.content(group)) for segment in group.trailing_segments]
+        fixed = sum(content.cell_length for _, content in (*leading, *trailing))
+        title = self.content.truncate(max(0, self.size.width - fixed), ellipsis=True, pad=True)
+        pieces = (*leading, (TITLE, title), *trailing)
+        ends, end = [], 0
+        for segment, content in pieces:
+            end += content.cell_length
+            ends.append((end, segment))
+        self._segment_ends = tuple(ends)
+        return Content.assemble(*(content for _, content in pieces))
+
+    def segment_at(self, x: int) -> HeaderSegment:
+        return next((segment for end, segment in self._segment_ends if x < end), TITLE)
+
+    def segment_span(self, segment: HeaderSegment) -> tuple[int, int]:
+        start = 0
+        for end, candidate in self._segment_ends:
+            if candidate is segment:
+                return start, end
+            start = end
+        return 0, self.size.width
+
+    def segment_region(self, segment: HeaderSegment) -> Region:
+        start, end = self.segment_span(segment)
+        content = self.content_region
+        return Region(content.x + start, content.y, end - start, 1)
+
+    def emphasize(self, line: Strip, style: Style) -> Strip:
+        """Only the title carries the row's emphasis; the arrow and controls keep their ink."""
+        start, end = self.segment_span(TITLE)
+        return Strip.join((line.crop(0, start), line.crop(start, end).apply_style(style),
+                           line.crop(end, line.cell_length)))
+
+    def primary_activation_targets(self, region: Region):
+        """Each painted cell offers its own segment's effect, so hints reach every stretch."""
+        return self.segment_at(region.x - self.content_region.x).activation_targets(self, region)
+
+    def row_activation_targets(self, region: Region):
+        return super().primary_activation_targets(region)
+
+    async def on_click(self, event: events.Click) -> None:
+        # Segments are measured from the painted content, not the row's padding.
+        await self.segment_at(event.x - self.gutter.left).click(self, event)
+
+    def expand_members(self, expanded: bool) -> None:
+        group = self.header_group
+        if group.expanded != expanded:
+            group.toggle_members()
+
+
+class GroupTitle(Activates, GroupHeaderLine, can_focus=True):
+    """A group's title line that only names its members: activating it toggles them."""
 
     def activate(self) -> None:
-        self.query_ancestor(SidebarGroup).toggle_members()
+        self.header_group.toggle_members()
+
 
 class SidebarReaderLayout(VerticalLayout):
     """Native flow, preserving the viewport's reader before placements change."""
@@ -228,44 +348,39 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False
-    header_type: type[SidebarHeader] = SidebarHeader
+    leading_segments: tuple[HeaderSegment, ...] = (Disclosure(2),)
+    trailing_segments: tuple[HeaderSegment, ...] = ()
 
     expanded = reactive(False, init=False)
 
     _rows_pending = False
     """A reconciliation ran out of its step and left rows unmounted."""
 
+    _step_full = False
+    """The step used up its budget, so the row it just reached is its last."""
+
     _row_mounting: Worker[None] | NoWorker = NoWorker()
     """The pending-row worker, or unscheduled work answering the same queries."""
 
     def __init__(
         self,
-        row,
+        row: GroupHeaderLine,
         *,
         expanded: bool,
-        controls: Iterable[Widget]=(),
-        disclosure_type: type[SidebarDisclosure]=SidebarDisclosure,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.row = row
         self.rows: dict[str, RowT] = {}
-        # The group owns where its title sits: one ellipsized row beside the disclosure.
+        # The row is the group's whole header line, one row high across the group.
         row.styles.width = "1fr"
         row.styles.height = 1
         row.styles.text_wrap = "nowrap"
-        row.styles.text_overflow = "ellipsis"
-        self.disclosure = disclosure_type()
-        self.controls = controls
-        self.header = self.header_type()
         self.member_container = SidebarMembers()
         self.expanded = expanded
 
     def compose(self) -> ComposeResult:
-        with self.header:
-            yield self.disclosure
-            yield self.row
-            yield from self.controls
+        yield self.row
         yield self.member_container
 
     def on_mount(self) -> None:
@@ -281,7 +396,7 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
         """Reconcile model-owned member rows and repaint the named members."""
 
     def watch_expanded(self, previous: bool, expanded: bool) -> None:
-        self.disclosure.refresh(layout=False)
+        self.row.refresh(layout=False)
         if self.is_mounted:
             self.member_container.set_display_constraint(
                 "members", self.members_visible
@@ -335,9 +450,11 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
             return True
         if not self.members_visible:
             return False
-        if perf_counter_ns() >= self._row_deadline:
+        if self._step_full:
             self._rows_pending = True
             return False
+        # A step always mounts the row it reached, so every step makes progress.
+        self._step_full = perf_counter_ns() >= self._row_deadline
         return True
 
     def new_row(self, key: str):
@@ -387,6 +504,7 @@ class SidebarGroup[RowT: "ListedRow"](KeyedRows[str], VerticalGroup):
         self.set_display_constraint("sidebar-search", bool(keys) or not tree.search)
         self.member_container.set_display_constraint("members", self.members_visible)
         self._rows_pending = False
+        self._step_full = False
         self._row_deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
         ordered = self.reconcile_keys(keys, changed=changed)
         if self._rows_pending and self._row_mounting.is_finished:
@@ -728,7 +846,7 @@ class SearchFollower:
                 group.sync_members(frozenset(group.member_keys))
 
 
-class TargetTree(HiddenActions, VisibleActions, MovesCursor, Vertical,
+class TargetTree(HiddenActions, VisibleActions, MovesCursor, MovesHorizontalCursor, Vertical,
                  scopes={HiddenActions: (CursorCommand,)}):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
@@ -908,6 +1026,16 @@ class TargetTree(HiddenActions, VisibleActions, MovesCursor, Vertical,
 
     def action_cursor_down(self) -> None:
         self.move_cursor(1)
+
+    def action_cursor_right(self) -> None:
+        """Right expands the focused header's members, as in any tree."""
+        if (row := self.app.focused) in self.rows:
+            row.expand_members(True)
+
+    def action_cursor_left(self) -> None:
+        """Left collapses them."""
+        if (row := self.app.focused) in self.rows:
+            row.expand_members(False)
 
     def move_cursor(self, direction: int) -> None:
         rows = self.rows

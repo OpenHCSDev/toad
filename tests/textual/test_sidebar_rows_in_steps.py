@@ -1,5 +1,6 @@
 """Textual-facing: a long sidebar list is mounted a layout step at a time, top first, a step's worth per frame by the screen's stepped layout."""
 
+import asyncio
 import unittest
 
 from textual.app import App, ComposeResult
@@ -72,8 +73,10 @@ class SidebarRowsInSteps(unittest.IsolatedAsyncioTestCase):
             self.assertGreater(first, 0)
             self.assertLess(first, app.count, "the first step mounts only part of the list")
             await pilot.pause()
-            while not group._row_mounting.is_finished:
-                await pilot.pause()
+            # Every step mounts at least one row, so 400 rows finish in at most 400 steps.
+            async with asyncio.timeout(30):
+                while not group._row_mounting.is_finished:
+                    await pilot.pause()
             await pilot.pause()
             children = list(group.member_container.children)
             self.assertEqual([str(row.render()) for row in children], list(group.keys))

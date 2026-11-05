@@ -22,8 +22,10 @@ from typing import Annotated, ClassVar
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
-from agent_comms.tools import CommsSortChannelTool, CommsSortChannelsTool
+from agent_comms.tools import CommsSortChannelsTool
 from python_introspect import FieldLabel
+from textual.geometry import Region
+from textual.widget import Widget
 from textual.widgets import Static
 from toad.widget_actions import Activates
 
@@ -53,27 +55,11 @@ class ChannelSortForm:
     ]
 
 
-class SortControl[Order: DisplayOrder](
-    MutedText,
-    AutoWidth,
-    OneRow,
-    NoWrap,
-    EllipsisOverflow,
-    PointerCursor,
-    InlineSelection,
-    Activates,
-    Static,
-    can_focus=True,
-):
-    highlight_foreground = ForegroundColour
+class SortChoice[Order: DisplayOrder]:
+    """One ordering choice and its anchored menu. A widget or a header segment presents it."""
 
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.max_width = "60%"
-        self.styles.margin = (0, 0, 0, 1)
-
-    def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str):
-        super().__init__()
+    def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str, **kwargs):
+        super().__init__(**kwargs)
         self.scope = scope
         self.form_type = form_type
         self.form: ThreadSortForm | ChannelSortForm | None = None
@@ -85,27 +71,40 @@ class SortControl[Order: DisplayOrder](
     def update_order(self, order: type[Order] | None) -> None:
         if self.form is None or order is not self.order:
             self.form = self.form_type(order)
-            self._update_label()
+            self.sort_changed()
 
-    def on_mount(self):
-        self._update_label()
+    def sort_changed(self) -> None:
+        """The presenter repaints what sort_label and sort_tooltip now answer."""
 
-    def _update_label(self) -> None:
+    @property
+    def sort_label(self) -> str:
         order = self.order
         text = (order.label() if order is not None else
                 self.form.placeholder.text if self.form is not None else "Sort")
-        label = f"{text} ▾"
-        tooltip = (f"Sort {self.scope} by {order.label().lower()}" if order is not None
-                   else f"Choose how to sort {self.scope}")
-        if self.content != label:
-            self.update(label)
-        if self.tooltip != tooltip:
-            self.tooltip = tooltip
+        return f"{text} ▾"
 
-    async def activate(self):
+    @property
+    def sort_tooltip(self) -> str:
+        order = self.order
+        return (f"Sort {self.scope} by {order.label().lower()}" if order is not None
+                else f"Choose how to sort {self.scope}")
+
+    @property
+    @abstractmethod
+    def sort_host(self) -> Widget:
+        """The widget presenting this choice: its app, screen and workers run the menu."""
+
+    @property
+    @abstractmethod
+    def sort_anchor(self) -> Region:
+        """Where the presenter shows this choice; the menu opens under it."""
+
+    async def open_sort(self) -> None:
+        """Open the choice's menu under its anchor."""
+        host = self.sort_host
         form = self.form
         if form is None:
-            self.notify("Ordering is not available yet", title="Sort", severity="warning")
+            host.notify("Ordering is not available yet", title="Sort", severity="warning")
             return
         write = await self.order_writer()
 
@@ -114,7 +113,7 @@ class SortControl[Order: DisplayOrder](
         items = [(partial(self._choose_order, order, write), choices.label(order))
                  for order in orders]
         for path in self.visibility_fields():
-            field = path.bind(self.app.saved_settings.state)
+            field = path.bind(host.app.saved_settings.state)
             items.append((partial(self._toggle_visibility, path),
                           f"{'✓' if field.value else '○'} {field.label}"))
 
@@ -122,23 +121,21 @@ class SortControl[Order: DisplayOrder](
             if action:
                 action()
 
-        menu = ContextMenu.show(
-            self.screen, self.region, "Sort", items,
-            callback=choose,
-        )
+        menu = ContextMenu.show(host.screen, self.sort_anchor, "Sort", items, callback=choose)
         for index, order in enumerate(orders):
             if order is self.order:
                 menu.options.highlighted = index
 
-    def _choose_order(self, order: type[Order], write: Callable[[type[Order]], Awaitable[object]]) -> None:
+    def _choose_order(self, order: type[Order],
+                      write: Callable[[type[Order]], Awaitable[object]]) -> None:
         if order is not self.order:
             # Only the backend observation updates the displayed order.
-            self.run_worker(write(order), group="sort-order")
+            self.sort_host.run_worker(write(order), group="sort-order")
 
     def _toggle_visibility(self, path: FieldPath) -> None:
-        settings = self.app.saved_settings
+        settings = self.sort_host.app.saved_settings
         settings.toggle(path)
-        self.run_worker(settings.save(), group="channel-visibility")
+        self.sort_host.run_worker(settings.save(), group="channel-visibility")
 
     def visibility_fields(self) -> tuple[FieldPath, ...]:
         return ()
@@ -146,7 +143,51 @@ class SortControl[Order: DisplayOrder](
     @abstractmethod
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...
 
-class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
+
+class SortControl[Order: DisplayOrder](
+    SortChoice[Order],
+    MutedText,
+    AutoWidth,
+    OneRow,
+    NoWrap,
+    EllipsisOverflow,
+    PointerCursor,
+    InlineSelection,
+    Activates,
+    Static,
+    can_focus=True,
+):
+    """A sort choice presented as its own control, in a panel header."""
+
+    highlight_foreground = ForegroundColour
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.max_width = "60%"
+        self.styles.margin = (0, 0, 0, 1)
+
+    def on_mount(self):
+        self.sort_changed()
+
+    def sort_changed(self) -> None:
+        if self.content != (label := self.sort_label):
+            self.update(label)
+        if self.tooltip != (tooltip := self.sort_tooltip):
+            self.tooltip = tooltip
+
+    @property
+    def sort_host(self) -> Widget:
+        return self
+
+    @property
+    def sort_anchor(self) -> Region:
+        return self.region
+
+    async def activate(self):
+        await self.open_sort()
+
+
+class CommsSortChoice[Order: DisplayOrder](SortChoice[Order]):
     """Both channel controls write through the Core that supplies their observed rows; each
     names the request its own order is stored by."""
 
@@ -154,24 +195,17 @@ class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
     def order_request(self, order: type[Order]) -> ToolRequest: ...
 
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
-        access = self.app.coordination_access
+        host = self.sort_host
+        access = host.app.coordination_access
         observed = await access.preparation.run_thread(access.observation.observed)
-        return partial(self.write_order, observed, access)
+        return partial(self.write_order, observed, access, host.screen.coordination_root)
 
-    async def write_order(self, observed: Observing, access: CoordinationAccess, order: type[Order]) -> object:
-        return await observed.write_order(access, self.screen.coordination_root, self.order_request(order))
-
-
-class SessionSort(CommsSortControl[ThreadSort]):
-    def __init__(self, channel: str):
-        self.channel = channel
-        super().__init__(ThreadSortForm, channel)
-
-    def order_request(self, order: type[ThreadSort]) -> CommsSortChannelTool:
-        return CommsSortChannelTool(name=self.channel, order=order)
+    async def write_order(self, observed: Observing, access: CoordinationAccess, root,
+                          order: type[Order]) -> object:
+        return await observed.write_order(access, root, self.order_request(order))
 
 
-class ChannelListSort(CommsSortControl[ChannelSort]):
+class ChannelListSort(CommsSortChoice[ChannelSort], SortControl[ChannelSort]):
     def __init__(self):
         super().__init__(ChannelSortForm, "channels")
 
