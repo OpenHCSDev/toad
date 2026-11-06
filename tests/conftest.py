@@ -116,14 +116,9 @@ def pytest_collection_modifyitems(config, items):
 
 
 def pytest_unconfigure(config):
-    """Helpers inherit this process's pipes; the runner reads until they close, so a test
-    whose close failed would otherwise run out its whole timeout after it already reported."""
+    """The runner stops its template; what a test started is stopped by OwnProcessTest.runtest."""
     if (template := config.stash.get(TEMPLATE, None)) is not None:
         template.stop()
-    if (attempt := os.environ.get(ATTEMPT)) is not None:
-        from support.processes import stop_test_children
-
-        asyncio.run(stop_test_children(attempt))
 
 
 def pytest_runtest_logreport(report):
