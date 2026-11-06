@@ -18,7 +18,7 @@ from agent_comms.channel_targets import (
     ThreadTarget,
 )
 from agent_comms.channels import AllChannel
-from agent_comms.core_access import CoreAccess
+from agent_comms.transport.request import CoreAccess
 from agent_comms.tools import (
     CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool,
 )

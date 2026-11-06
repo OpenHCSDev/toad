@@ -1,6 +1,6 @@
 """A thread sidebar's relationship reads: a capability of anything that holds a Core."""
 
-from agent_comms.core_access import CoreAccess
+from agent_comms.transport.request import CoreAccess
 from agent_comms.display_order import ThreadSort
 from agent_comms.relationships import SortableRelationshipGroup, ThreadCommsSnapshot
 from agent_comms.tools import (

@@ -7,7 +7,7 @@ from pydantic import JsonValue
 from agent_comms.context_store import (
     LATEST_CONTEXT, CapturedContext, ContextManifestCursor, ContextManifestReference,
 )
-from agent_comms.core_access import CoreAccess
+from agent_comms.transport.request import CoreAccess
 from agent_comms.runtime_server import RuntimeRequest
 from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.threads import Thread
