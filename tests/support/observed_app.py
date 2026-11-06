@@ -35,8 +35,9 @@ if __name__ == "__main__":
     from agent_comms.launch_root import LaunchRoot
 
     from agent_comms.repo import Checkout
+    from toad.comms_root import LocalCoreConnection
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()
-    run_terminal(ObservedApp(project_dir=Checkout(sys.argv[1]), launch_root=launch_root,
+    run_terminal(ObservedApp(project_dir=Checkout(Path(sys.argv[1])), connection=LocalCoreConnection.from_launch(launch_root),
                              agent_binding=AgentAttached(peer("echo"))))

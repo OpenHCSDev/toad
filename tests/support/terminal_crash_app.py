@@ -3,6 +3,7 @@
 Run as a script by ``terminal/test_terminal_crash.py``: ``terminal_crash_app.py PROJECT WIRE_ROOT``.
 """
 
+from pathlib import Path
 import sys
 
 from toad.app import ToadApp
@@ -26,9 +27,10 @@ if __name__ == "__main__":
     from agent_comms.launch_root import LaunchRoot
 
     from agent_comms.repo import Checkout
+    from toad.comms_root import LocalCoreConnection
     from toad.session_scope import AgentAttached
 
     launch_root = LaunchRoot.from_path(sys.argv[2])
     launch_root.install()
-    run_terminal(TerminalCrashApp(project_dir=Checkout(sys.argv[1]), launch_root=launch_root,
+    run_terminal(TerminalCrashApp(project_dir=Checkout(Path(sys.argv[1])), connection=LocalCoreConnection.from_launch(launch_root),
                                   agent_binding=AgentAttached(peer("echo"))))

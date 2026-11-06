@@ -31,12 +31,34 @@ class NotShown(AssertionError):
     """The terminal never showed what the test waited for; carries the last screen."""
 
 
+def answering_screen(emulator):
+    """pyte's screen, sending its reports (device attributes, cursor position) back to the
+    process as a real terminal does. pyte computes them and hands them to
+    write_process_input, which does nothing by default, so a probe such as textual_image's
+    primary device-attributes query waited out its timeout and logged a traceback."""
+
+    class AnsweringScreen(emulator.Screen):
+        def __init__(self, terminal: Terminal, columns: int, rows: int) -> None:
+            super().__init__(columns, rows)
+            self.terminal = terminal
+
+        def write_process_input(self, data: str) -> None:
+            os.write(self.terminal.master, data.encode())
+
+    return AnsweringScreen
+
+
 class Terminal:
     """One process on a pseudo-terminal of a fixed size."""
 
+    @property
+    def master(self) -> int:
+        assert self._master is not None, "the terminal answers only a started process"
+        return self._master
+
     def __init__(self, emulator, workspace, rows: int, columns: int) -> None:
         self.workspace = workspace
-        self.screen = emulator.Screen(columns, rows)
+        self.screen = answering_screen(emulator)(self, columns, rows)
         self._stream = emulator.Stream(self.screen)
         self.rows, self.columns = rows, columns
         self.output = b""
