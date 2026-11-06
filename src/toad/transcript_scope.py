@@ -23,6 +23,7 @@ from textual.content import Content
 
 from agent_comms.transcripts import AtFrontier, LatestPage, LivePageSource, PageLimit, PagePosition, PageSource
 
+from toad.app_node import ToadNode
 from toad.bus_submission import BusDestination, SubmissionOwner, SubmissionStart, SubmittedText
 from toad.comms_root import CoordinationAccess, Observing
 from toad.conversation_kind import DmConversation
@@ -34,7 +35,7 @@ from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 
 
-class TranscriptView(CoreEventReceiver):
+class TranscriptView(CoreEventReceiver, ToadNode):
     """A view that shows one transcript scope: its scope observes core events through it and
     gives its thread status to it."""
 
