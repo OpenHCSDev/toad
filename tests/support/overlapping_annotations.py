@@ -58,8 +58,10 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         RecordedContextTurn(TurnId.mint(), TurnIdentity(owner.incarnation, 1)),
         (observed,), "authored-navigation")
     comms = Comms(resolve_comms_route(directory / "unused-wire"))
+    comms.registry.declare(owner)
     page = ContextManifestPage((comms.contexts.record_after(UNREAD_CONTEXT, manifest),))
-    inspection = ContextInspection(owner, page, NoSessionObservation(), comms, labels)
+    inspection = ContextInspection(comms.registry.entry(owner.name).entry, page,
+                                   NoSessionObservation(), comms, labels)
     ((_, (source,), _),) = inspection.working_memory()
     short, long = source.children()
     corrected = HumanLabel.correct(labels[0], RuleSpan, RecordedThreadIncarnation("authored-user", 2.0))

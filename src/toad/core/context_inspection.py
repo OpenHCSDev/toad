@@ -19,7 +19,7 @@ from agent_comms.pi_payloads import PiMessage
 from agent_comms.presentation import ReadState
 from agent_comms.registry_document import RegistryEntry
 from agent_comms.session_revision import SessionObservation
-from agent_comms.thread_status import ActiveThreadPresence, ThreadStatus
+from agent_comms.thread_status import ActiveThreadPresence, HeartbeatThreadStatus, ThreadStatus
 from agent_comms.turn_context import (
     CodexRolloutProvenance,
     ContextManifest,
@@ -698,6 +698,11 @@ class ThreadInspectionSource(MroProjection[type[ContextInspection]]):
     @handles(ActiveThreadPresence)
     def live(self, status: ActiveThreadPresence) -> type[ContextInspection]:
         return ContextInspection
+
+    @handles(HeartbeatThreadStatus)
+    def heartbeat(self, status: HeartbeatThreadStatus) -> type[ContextInspection]:
+        """Seen only by heartbeat, with no owner process to answer for a live core."""
+        return SavedContextInspection
 
 
 class InspectionState(DeclaredFamily, affix="Inspection"):
