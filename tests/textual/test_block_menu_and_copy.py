@@ -9,6 +9,7 @@ import subprocess
 import pytest
 from textual.widgets import Static
 
+from toad.link_click import OpenLineLink
 from toad.block_content import BlockContent
 from toad.block_navigation import ConversationBlock
 from toad.widgets.conversation import FocusPromptAction
@@ -113,7 +114,7 @@ async def test_clipboard_image_sends_to_channel_and_dm_and_opens_its_preview(
             )
             await ui.until_shows("clipboard-")
             expected = DirectProjectFileLink(path, original_root=workspace.project)
-            await ui.until(lambda: ui.link_at("clipboard-") == expected.click,
+            await ui.until(lambda: ui.link_at("clipboard-") == OpenLineLink(expected),
                            why="the complete quoted attachment rendered as a file link")
             await ui.click("clipboard-")
             await ui.until(lambda: ui.selected_tab != tab, why="the image preview tab")

@@ -72,7 +72,7 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
         await ui.until(lambda: "fresh-peer" in group.members, why="the channel's members")
         tabs_before = tuple(app.tab_order.names)
 
-        open_peer = partial(app.thread_navigation.open, owner_mode=owner, project_path=project, target="fresh-peer")
+        open_peer = partial(app.thread_navigation.open_named, owner_mode=owner, project_path=project, name="fresh-peer")
         assert await pilot.click(group.members["fresh-peer"])
         opening = asyncio.create_task(open_peer())
         duplicate = asyncio.create_task(open_peer())

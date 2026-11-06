@@ -1,4 +1,5 @@
 """A file named in an agent answer is a link to the project file; clicking it opens the file's preview and returning keeps the draft."""
+from toad.link_click import OpenLineLink
 from toad.session_scope import AgentAttached
 
 from support.agents import peer
@@ -25,7 +26,7 @@ async def test_file_link_in_answer_opens_preview_and_return_keeps_draft(workspac
         await ui.until_shows("PEER_ANSWER")
         await ui.write_draft("KEEP_MARKDOWN_DRAFT")
         links = file_links(ui, "file.md")
-        opens_file = DirectProjectFileLink(target, original_root=workspace.project).click
+        opens_file = OpenLineLink(DirectProjectFileLink(target, original_root=workspace.project))
         assert sum(link == opens_file for link in links) == 2, links
         assert any("https://example.com" in str(link) for link in file_links(ui, "website")), ui.visible_text()
         drawn = [i for i, line in enumerate(line for line in ui.visible_lines() if "file.md" in line)]

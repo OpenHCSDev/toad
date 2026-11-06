@@ -13,8 +13,8 @@ async def test_saved_message_in_parts_shows_as_one_message(workspace):
     session = write_journal(workspace.project / "native.jsonl", entry)
     workspace.comms.registry.declare(NativeThread("worker", frozenset(), Checkout(workspace.project), session_file=RegistrySessionLocation.from_path(session, workspace.comms.root)))
     async with workspace.app(size=(110, 38)) as ui:
-        await ui.app.thread_navigation.open(
-            owner_mode=ui.selected_tab, project_path=ui.app.project_dir, target="worker")
+        await ui.app.thread_navigation.open_named(
+            owner_mode=ui.selected_tab, project_path=ui.app.project_dir, name="worker")
         await ui.step()
         await ui.until(lambda: ui.shows("value = 123") and not ui.shows("## Plan"), why="the styled message")
         lines = [line.strip(" │▌").strip() for line in ui.visible_lines()]

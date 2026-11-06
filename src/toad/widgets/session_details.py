@@ -217,6 +217,6 @@ class ConversationSessionDetails(SessionDetails):
         event.prevent_default()
         event.stop()
         context = self.query_ancestor(SessionScope).navigation_owner.navigation_context
-        await self.app.thread_navigation.open(
+        await self.app.thread_navigation.open_named(
             owner_mode=context.owner_mode, project_path=context.project_path,
-            target=self.label)
+            name=self.label)
