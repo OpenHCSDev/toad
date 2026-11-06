@@ -12,7 +12,7 @@ from agent_comms.thread_presentation import (
 )
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.core.projection import MroProjection
-from toad.session_scope import SessionScope
+from toad.navigation_context import NavigationScope
 from toad.tone_paint import TonePaint
 from ui_theme.scheme import TurnBandColour
 from textual.content import Content
@@ -216,7 +216,7 @@ class ConversationSessionDetails(SessionDetails):
     async def _on_collapsible_title_toggle(self, event) -> None:
         event.prevent_default()
         event.stop()
-        context = self.query_ancestor(SessionScope).navigation_owner.navigation_context
+        context = self.query_ancestor(NavigationScope).navigation_owner.navigation_context
         await self.app.thread_navigation.open_named(
             owner_mode=context.owner_mode, project_path=context.project_path,
             name=self.label)
