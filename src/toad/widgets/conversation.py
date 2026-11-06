@@ -473,12 +473,11 @@ This is a view of your conversation with the agent.
             if not conversation.starts_typing(event):
                 return
             conversation.start_typing()
-        focused = self.screen.focused
-        if focused is None or self in focused.ancestors_with_self:
+        elif self.has_focus_within:
             return
         event.stop()
         event.prevent_default()
-        focused.post_message(events.Key(event.key, event.character))
+        conversation.prompt.typing_target.post_message(events.Key(event.key, event.character))
 
     @on(JumpToLatest.Requested)
     def on_back_to_bottom(self, event: JumpToLatest.Requested) -> None:
@@ -1051,11 +1050,11 @@ class Conversation(
 
     def starts_typing(self, event: events.Key) -> bool:
         """A key typed in the window that starts a prompt."""
+        character = event.character or ""
         return (
             not self.prompt.prompt_text_area.editing_mode.modal
-            and event.character is not None
             and event.is_printable
-            and (event.character.isalnum() or event.character in "$/!")
+            and (character.isalnum() or character in "$/!")
         )
 
     def start_typing(self) -> None:

@@ -374,7 +374,7 @@ class SessionNavigation(StartsSessions):
     def open_thread_form(self, project: Checkout) -> None:
         app = self.app
         app.run_worker(
-            partial(self.collect_thread_form, app.selected_mode, project),
+            self.collect_thread_form(app.selected_mode, project),
             group="new-session",
             exclusive=True,
         )

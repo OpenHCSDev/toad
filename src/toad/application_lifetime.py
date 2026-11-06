@@ -1,7 +1,6 @@
 """Application startup, graceful exit and optional reporting own their lifetime."""
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from functools import cached_property, partial
 from importlib import import_module

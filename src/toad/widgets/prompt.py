@@ -990,8 +990,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
 
     @property
     def typing_target(self) -> Widget:
-        """The control typed text belongs to: an open question, else the editor."""
-        return self.question if self._ask is not None else self.prompt_text_area
+        """The control typed text belongs to: the question watch__ask shows, else the editor."""
+        return self.question if self.question.display else self.prompt_text_area
 
     def focus(self, scroll_visible: bool = True) -> Self:
         self.typing_target.focus(scroll_visible=scroll_visible)

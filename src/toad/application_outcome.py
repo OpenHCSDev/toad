@@ -1,14 +1,16 @@
 """What the application does when its terminal session ends: print a notice, or exec the runtime
 it switched to. Its own module, so a widget typing an App's return value imports this family and
 not the application lifetime that opens screens."""
+
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import os
 import sys
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from agent_comms.launch_runtime import LaunchRuntime
+
 from toad.version import VersionMonitor
 
 
@@ -32,4 +34,8 @@ class Succeeded(ApplicationOutcome):
     def finish(self) -> None:
         self.runtime.require_available()
         executable = str(self.runtime.interpreter.with_name("toad"))
-        os.execve(executable, [executable, *sys.argv[1:]], self.runtime.environment(os.environ))
+        os.execve(
+            executable,
+            [executable, *sys.argv[1:]],
+            self.runtime.environment(os.environ),
+        )

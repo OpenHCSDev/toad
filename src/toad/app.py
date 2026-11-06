@@ -65,6 +65,7 @@ from toad.terminal_attention import TerminalAttention
 from toad.application_actions import ApplicationCommands
 from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 from toad.application_lifetime import ApplicationLifetime
+from agent_comms.nominal.field_codec import boundary_decoder
 from toad.application_outcome import ApplicationOutcome, Ended, Succeeded
 from toad.resource_release import AsyncResourceRelease
 from toad.native_style import TransparentBackground
@@ -216,6 +217,7 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def return_value(self) -> ApplicationOutcome:
         return self._return_value
 
+    @boundary_decoder
     def exit(
         self, result: ApplicationOutcome | None = None, return_code: int = 0,
         message: RenderableType | None = None,
