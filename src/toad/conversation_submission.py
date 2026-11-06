@@ -249,6 +249,8 @@ class SubmissionExecution(SubmissionStart):
 class AgentSubmissionExecution(SubmissionExecution):
     """A prompt for this view's ACP agent."""
 
+    submission: AgentInputSubmission
+
     def __init__(self, owner: ConversationSubmissions, submission: AgentInputSubmission, agent: Agent):
         super().__init__(owner, submission)
         self.agent = agent
