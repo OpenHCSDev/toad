@@ -92,7 +92,7 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         """Back to the tab selected before this one; the visit history owns that."""
-        await sessions.app.select_session(sessions.came_from(self.identity))
+        await sessions.app.select_session(sessions.app.tab_order.came_from(self.identity))
 
     def forget(self, sessions: SessionNavigation) -> None:
         """End the view's observations before forgetting its logical membership."""
@@ -202,7 +202,7 @@ class NativeSessionEntry(SessionEntry):
             if details.identity != self.identity
         ]
         await app.select_session(
-            sessions.previous(self.identity, eligible=remaining or None)
+            app.tab_order.previous(self.identity, eligible=remaining or None)
         )
 
     def forget(self, sessions: SessionNavigation) -> None:

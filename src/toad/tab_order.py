@@ -80,11 +80,11 @@ class TabOrder:
 
     def previous(
         self, current: TabIdentity, *, eligible: Collection[TabIdentity] | None = None
-    ) -> TabIdentity | None:
-        """The previous tab, or no tab when the roster is empty."""
+    ) -> str:
+        """The previous tab's mode, or home when the roster is empty."""
         opened = self.names
         if not opened:
-            return None
+            return self.home
         candidates = [
             mode
             for mode in opened
@@ -96,7 +96,7 @@ class TabOrder:
         return next(
             (mode for mode in reversed(preceding) if mode in candidates),
             candidates[0] if candidates else current if current in self else opened[-1],
-        )
+        ).mode_name
 
     def history_target(self, direction: int) -> tuple[int, TabIdentity] | None:
         index = self._cursor + direction
@@ -112,10 +112,13 @@ class TabOrder:
             else:
                 self._focus(mode, index)
 
-    def came_from(self, current: TabIdentity) -> TabIdentity | None:
+    def came_from(self, current: TabIdentity) -> str:
         """The tab selected before ``current``: the newest other visit, then the open tabs;
-        with no other tab, back stays where it is."""
-        return next((mode for mode in self.recent if mode != current), current if current in self else None)
+        with no other tab, back stays where it is, and with none open it goes home."""
+        return next(
+            (mode.mode_name for mode in self.recent if mode != current),
+            current.mode_name if current in self else self.home,
+        )
 
     def record_visit(self, mode: TabIdentity, history_index: int | None = None) -> None:
         if mode not in self:

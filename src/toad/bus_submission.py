@@ -4,7 +4,6 @@ transcript scope or page source can start a bus send without importing ACP."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -43,13 +42,18 @@ class MessageDestination(ABC):
 
 
 @dataclass(frozen=True)
-class BusDestination:
-    """Where a channel, inbox or CLI thread's message goes, as its message source names it."""
+class BusDestination(ABC):
+    """Where a channel, inbox or CLI thread's message goes; the message source that builds
+    it answers whether its view still shows it and what follows a delivered send."""
 
     root: str | Path
     conversation: MessageDestination
-    shown: Callable[[], bool]
-    presented: Callable[[MessageReference], Awaitable[None]]
+
+    @abstractmethod
+    def shown(self) -> bool: ...
+
+    @abstractmethod
+    async def presented(self, sent: MessageReference) -> None: ...
 
 
 class SubmissionOwner(ABC):

@@ -18,9 +18,12 @@ from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
+from agent_comms.message_reference import MessageReference
+
 from toad.agent_binding import NoAgentConnection
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.conversation_kind import DmConversation
+from toad.session_scope import MailboxSent
 from toad.input_history import InputHistories
 from toad.input_decision import InputDecision
 from toad.native_style import StartsHidden
@@ -257,7 +260,7 @@ class OperationalSessionSources(NativeQueueSource):
             release.push_async_callback(agent.stop)
 
 
-class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
+class MailboxSessionSources(MailboxSent, BusQueueSource, OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
 
     def capture_queue_observing(
@@ -292,12 +295,12 @@ class MailboxSessionSources(BusQueueSource, OperationalSessionSources):
     def begin_submission(self, owner, submission):
         """A CLI thread's input is a message to its inbox, queued like a prompt."""
         view = owner.view
+        return view.transcript.binding.thread_scope.begin_mailbox(owner, submission, view, DmConversation, self)
 
-        async def presented(sent):
-            view.window.jump_to_latest()
-            self.external_transcript_changed(view)
-
-        return view.transcript.binding.thread_scope.begin_mailbox(owner, submission, view, DmConversation, presented)
+    async def mailbox_sent(self, view: Conversation, sent: MessageReference) -> None:
+        """Follow the transcript's end; the inbox message shows once the thread records it."""
+        view.window.jump_to_latest()
+        self.external_transcript_changed(view)
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime, NativePresentation):

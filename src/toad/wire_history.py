@@ -21,6 +21,7 @@ from agent_comms.repo import Checkout
 from agent_comms.historical_views import ConversationObservation, ConversationRevision, HistorySource
 from agent_comms.transport.tools.sidebar import CommsConversationRevisionTool, CommsLatestSequenceTool, CommsMarkPageReadTool
 from agent_comms.message_page import MessagePage, MessagePageRequest
+from agent_comms.message_reference import MessageReference
 from agent_comms.messages import ConversationRole, Membership, Message, NoHistorySource, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.page_traversal import (
@@ -436,6 +437,22 @@ class WirePageWork(TranscriptPageWork[WireCut]):
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 
+@dataclass(frozen=True)
+class ChannelDestination(BusDestination):
+    """A channel or inbox page: shown while its view still reads this conversation from this source."""
+
+    source: WirePageBuffer
+    view: CommsChatView
+
+    def shown(self) -> bool:
+        view = self.view
+        return view.is_attached and self.source is view.message_history.page_source and (
+            self.conversation == view.conversation)
+
+    async def presented(self, sent: MessageReference) -> None:
+        await self.view.show_sent(sent)
+
+
 class WirePageBuffer(SavedHistory):
     """The line history's page reader over a wire source."""
 
@@ -483,11 +500,7 @@ class WirePageBuffer(SavedHistory):
         self, view: CommsChatView, owner: SubmissionOwner, submission: SubmittedText
     ) -> SubmissionStart:
         """A channel or inbox message queues behind the view's earlier ones; compose stays open."""
-        conversation = self.loader.conversation
-        current = lambda: (
-            view.is_attached and self is view.message_history.page_source and conversation == view.conversation
-        )
-        return owner.start_bus(submission, BusDestination(self.loader.root, conversation, current, view.show_sent))
+        return owner.start_bus(submission, ChannelDestination(self.loader.root, self.loader.conversation, self, view))
 
     def schedule_refresh(self, view: CommsChatView):
         history = view.message_history

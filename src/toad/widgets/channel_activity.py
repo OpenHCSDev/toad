@@ -1,33 +1,34 @@
 """Live channel members use the sidebar's keyed widget reconciliation."""
 
+from dataclasses import dataclass
+from pathlib import Path
+
 from agent_comms.thread_identity import ThreadIncarnation
 from textual import widgets
 from textual.containers import VerticalGroup
 from textual.content import Content
 
 from toad.session_scope import SessionScope
-from agent_comms.display_references import RetiredThreadReference, ThreadDisplayReference
-from metaclass_registry.mro_dispatch import handles
+from agent_comms.display_references import RetiredThreadReference, ThreadDisplayReference, ThreadReferenceReader
 
-from toad.core.projection import MroProjection
+from toad.comms_root import CoordinationAccess
 from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
 
 
-class PeerStatus(MroProjection[StatusThread]):
+@dataclass(frozen=True)
+class PeerStatus(ThreadReferenceReader[StatusThread]):
     """A member row's status is its current thread's; a retired birth has none to show."""
 
-    @handles(ThreadDisplayReference)
-    def current(self, reference: ThreadDisplayReference, root, access) -> StatusThread:
-        return StatusThread.for_root(root, reference.name, access)
+    root: Path
+    access: CoordinationAccess
 
-    @handles(RetiredThreadReference)
-    def retired(self, reference: RetiredThreadReference, root, access) -> StatusThread:
+    def current(self, reference: ThreadDisplayReference) -> StatusThread:
+        return StatusThread.for_root(self.root, reference.name, self.access)
+
+    def retired(self, reference: RetiredThreadReference) -> StatusThread:
         return NoStatusThread()
-
-
-PEER_STATUS = PeerStatus()
 
 
 class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGroup):
@@ -81,9 +82,8 @@ class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGr
 
     def update_row(self, peer: ThreadIncarnation, row) -> None:
         references = self.model_state.shown.observation.require_snapshot().references
-        row.bind(PEER_STATUS.project_value(
-            references.thread(peer), self.model_state.root(), self.app.coordination_access,
-        ))
+        row.bind(references.thread(peer).read(
+            PeerStatus(self.model_state.root(), self.app.coordination_access)))
 
     def changed_keys(self, names: frozenset[str]) -> frozenset[ThreadIncarnation]:
         return frozenset(

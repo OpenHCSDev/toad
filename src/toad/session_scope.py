@@ -57,6 +57,28 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
 
 
+class MailboxSent(ABC):
+    """What a CLI thread's sources do once its inbox message is delivered."""
+
+    @abstractmethod
+    async def mailbox_sent(self, view: Conversation, sent: MessageReference) -> None: ...
+
+
+@dataclass(frozen=True)
+class MailboxDestination(BusDestination):
+    """A CLI thread's inbox: shown while its view stays bound to this transcript."""
+
+    scope: KnownTranscript
+    view: Conversation
+    sources: MailboxSent
+
+    def shown(self) -> bool:
+        return self.scope.shown_by(self.view)
+
+    async def presented(self, sent: MessageReference) -> None:
+        await self.sources.mailbox_sent(self.view, sent)
+
+
 class TranscriptScope(ABC):
     """A transcript address owns its reads, observations and absent behavior."""
 
@@ -116,7 +138,7 @@ class TranscriptScope(ABC):
         submission: SubmittedText,
         view: Conversation,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference], Awaitable[None]],
+        sources: MailboxSent,
     ) -> SubmissionStart: ...
 
     @abstractmethod
@@ -205,12 +227,10 @@ class KnownTranscript(TranscriptScope):
         submission: SubmittedText,
         view: Conversation,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference], Awaitable[None]],
+        sources: MailboxSent,
     ) -> SubmissionStart:
-        return owner.start_bus(submission, BusDestination(
-            self.root, self.mailbox_conversation(view, conversation_type),
-            lambda: self.shown_by(view), presented,
-        ))
+        return owner.start_bus(submission, MailboxDestination(
+            self.root, self.mailbox_conversation(view, conversation_type), self, view, sources))
 
     async def show_mailbox_status(
         self, view: Conversation, conversation_type: type[DmConversation]
@@ -295,7 +315,7 @@ class NoTranscript(TranscriptScope):
         submission: SubmittedText,
         view: Conversation,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference], Awaitable[None]],
+        sources: MailboxSent,
     ) -> SubmissionStart:
         return owner.unbound(submission, InputRefused("CLI transcript is not ready"))
 

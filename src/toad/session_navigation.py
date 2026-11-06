@@ -33,7 +33,7 @@ from toad.session_entry import (
 )
 from toad.session_scope import AgentAttached, AgentBinding, AgentSession, SessionScope, StartsSessions
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
-from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
+from toad.tab_identity import SessionTabIdentity, TabTargetGone
 from toad.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
 from toad.db import SessionMeta
 from toad.target_commands import TargetContext
@@ -138,14 +138,6 @@ class SessionNavigation(StartsSessions):
     def session_details(self, mode: str | None) -> SessionDetails | None:
         entry = self.get(mode)
         return self.app.session_tracker.get_session(entry.identity) if entry else None
-
-    def came_from(self, current: TabIdentity) -> str:
-        identity = self.app.tab_order.came_from(current)
-        return identity.mode_name if identity is not None else self.app.tab_order.home
-
-    def previous(self, current: TabIdentity, *, eligible=None) -> str:
-        identity = self.app.tab_order.previous(current, eligible=eligible)
-        return identity.mode_name if identity is not None else self.app.tab_order.home
 
     async def mailbox_entry(self, identity: MailboxTab) -> SessionEntry:
         def prepare():
