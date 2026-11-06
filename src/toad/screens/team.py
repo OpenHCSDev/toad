@@ -5,7 +5,8 @@ from __future__ import annotations
 import time
 from dataclasses import replace
 
-from agent_comms.team_hud import TeamHud, Teammate, HudRecord, HudSection
+from agent_comms.team_hud import TeamHud
+from agent_comms.team_hud_records import HudRecord, HudSection, Teammate
 from agent_comms.coordination.errors import DeferredRead, ReadAgain
 from agent_comms.disclosure_text import (
     AccentTone, DisclosureEntry, DisclosureKey, DisclosureText, ErrorTone, HudTone,
