@@ -23,8 +23,9 @@ from typing import TYPE_CHECKING, ClassVar, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.message_reference import MessageReference
-from agent_comms.child_process import join_retirement
+from agent_comms.child_process import HelperStart, SpawnedHelper, join_retirement
 from agent_comms.comms import Comms
+from agent_comms.active_route import CommsRoute
 from agent_comms.core_access import CoreAccess, LocalCoreAccess
 from agent_comms.registry_document import ProjectThreadSelection, RegistrySnapshot
 from toad.db import UNSCOPED_TABS, TabScope
@@ -62,6 +63,7 @@ from agent_comms.ui_model.observation import (
     NotificationsReload,
     NotificationsUnreadable,
     LocalRouteObservation,
+    ObservationSource,
     ObservationProcess,
     Observed,
     ObserveNotifications,
@@ -184,6 +186,9 @@ class CurrentObservation(CapturedSource):
 class CoreConnection(ABC):
     """The selected Core transport: it owns its route selection and opens its observation."""
 
+    helper_start: ClassVar[HelperStart] = SpawnedHelper()
+    """How this launch starts its local route observer and its render workers."""
+
     @staticmethod
     def select(arguments: list[str], published: Callable[[], LaunchRoot]) -> CoreConnection:
         """Select once at the process boundary; a UI profile selects the remote Core."""
@@ -205,6 +210,10 @@ class CoreConnection(ABC):
 
     @abstractmethod
     def route_selection(self) -> RouteSelection: ...
+
+    @abstractmethod
+    def observation_source(self, route: CommsRoute) -> ObservationSource:
+        """What serves this connection's observation of ``route``."""
 
     @abstractmethod
     def capture(self, access: CoordinationAccess, source: str | Path) -> CapturedSource:
@@ -241,6 +250,10 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
 
     def route_selection(self) -> RouteSelection:
         return RouteSelection.of(self)
+
+    def observation_source(self, route: CommsRoute) -> ObservationSource:
+        """A local route is observed in a process this machine starts for it."""
+        return LocalRouteObservation(route, self.helper_start)
 
     def capture(self, access: CoordinationAccess, source: str | Path) -> SelectedRoute:
         return SelectedRoute(self.route_selection().require_source(source))
@@ -293,6 +306,10 @@ class RemoteCoreConnection(RemoteCoreAccess, CoreConnection):
     def route_selection(self) -> RouteSelection:
         raise RemoteRouteNotSelectable(
             f"{self.endpoint.url} answers Core requests; local route selection does not apply")
+
+    def observation_source(self, route: CommsRoute) -> ObservationSource:
+        """The connector serves this UI's observation; it is the source."""
+        return self
 
     def capture(self, access: CoordinationAccess, source: str | Path) -> CurrentObservation:
         return CurrentObservation(self.observing(access, source))
@@ -871,7 +888,7 @@ class CoordinationAccess(MroDispatch):
                 raise RouteChangedError("Comms route changed while opening the service")
             self.confirm_route(selected)
             return previous.adopt(LocalObserving(
-                SidebarModel(self.app.call_next), ObservationProcess(LocalRouteObservation(service.route)),
+                SidebarModel(self.app.call_next), ObservationProcess(self.connection.observation_source(service.route)),
                 selection=selected, service=service, access=self))
 
         return RootRuntime.attachment(selected.root, LaunchRuntime.running()).proceed(

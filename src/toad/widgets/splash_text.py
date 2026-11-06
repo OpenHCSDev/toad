@@ -8,7 +8,7 @@ from ui_theme.effects import PlayedText, TextFrame
 from ui_theme.scheme import ColourScheme
 from ui_theme.splash import loading_splash
 
-from toad.frame_presentation import Animated
+from toad.frame_presentation import Animated, EffectInContent
 from toad.block_navigation import ConversationBlock
 from toad.native_style import (
     AutoHeight,
@@ -20,7 +20,7 @@ from toad.native_style import (
 )
 
 
-class SplashText(Animated[TextFrame], Static):
+class SplashText(EffectInContent, Animated[TextFrame], Static):
     """Shows ``TEXT`` plainly until its effect's frames arrive, then plays them.
 
     The frames are built in a render worker, once per colour scheme. A

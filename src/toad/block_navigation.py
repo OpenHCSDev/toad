@@ -360,7 +360,7 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     def repaint(self) -> None:
         # The widgets inside the entry draw its rows.
         for widget in cast(Widget, self).walk_children(with_self=True):
-            widget.refresh()
+            widget.refresh_lines()
 
     def notification_targets(self):
         return ()

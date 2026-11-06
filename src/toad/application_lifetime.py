@@ -175,6 +175,7 @@ class ApplicationLifetime:
         if not app.tab_order.names:
             await app.select_session(app.tab_order.home)
         app.terminal_attention.attach()
+        self.version = app.settings.updates.monitor()
         app.set_timer(1, self.check_version)
         app.run_worker(partial(self.set_process_title, "toad"), thread=True)
         app.update_show_sessions()

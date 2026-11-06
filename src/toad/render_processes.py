@@ -7,13 +7,13 @@ constructing a pool starts no processes.
 """
 
 import asyncio
-import multiprocessing
 import os
 from collections.abc import Awaitable, Callable
 from concurrent.futures import ProcessPoolExecutor
 from typing import TYPE_CHECKING, TypeVar
 
 from agent_comms import launch_root
+from agent_comms.child_process import HelperStart
 from agent_comms.launch_runtime import ThreadLaunch
 
 from toad.render_backend import Renderer
@@ -57,8 +57,10 @@ class RenderProcessPool(Renderer):
     aclose call can await the same teardown.
     """
 
-    def __init__(self, max_workers: int = 2, max_pending: int = 4) -> None:
+    def __init__(self, start: HelperStart, max_workers: int = 2,
+                 max_pending: int = 4) -> None:
         super().__init__()
+        self._start = start
         for name, value in (("max_workers", max_workers), ("max_pending", max_pending)):
             if isinstance(value, bool) or not isinstance(value, int) or value < 1:
                 raise ValueError(f"{name} must be a positive integer")
@@ -103,7 +105,7 @@ class RenderProcessPool(Renderer):
             self.prepare_spawn()
             self._executor = ProcessPoolExecutor(
                 max_workers=self._max_workers,
-                mp_context=multiprocessing.get_context("spawn"),
+                mp_context=self._start.context(),
                 initializer=_initialize_worker,
             )
             self.start_workers(self._executor)

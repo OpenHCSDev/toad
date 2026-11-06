@@ -62,9 +62,7 @@ async def form_shown(ui, app):
 @asynccontextmanager
 async def settings_screen(workspace):
     """The application with the saved preferences in its config directory and the settings screen on top."""
-    config = workspace.roots.attempt / "config" / "toad"
-    config.mkdir(parents=True)
-    (config / "toad.json").write_bytes(SAVED.read_bytes())
+    workspace.roots.settings.write_bytes(SAVED.read_bytes())
     async with workspace.app(size=(120, 40)) as ui:
         app, _pilot = ui.textual
         # A custom scheme is registered with the colours owner, which offers it
@@ -74,7 +72,7 @@ async def settings_screen(workspace):
                                      colours={**base.colours, PrimaryColour: Rgb.parse("#44aa88")}))
         await app.push_screen(SettingsScreen())
         await form_shown(ui, app)
-        yield ui, app, config / "toad.json"
+        yield ui, app, workspace.roots.settings
 
 
 def editor(app, path):

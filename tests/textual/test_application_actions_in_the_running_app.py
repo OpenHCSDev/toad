@@ -27,12 +27,9 @@ class DeclarationProofAction(ApplicationAction):
 
 
 def save_settings(workspace, **ui):
-    config = workspace.roots.attempt / "config" / "toad"
-    config.mkdir(parents=True)
-    path = config / "toad.json"
-    path.write_text(json.dumps({'anon_id': 'durable-id', 'statistics': {'allow_collect': False},
-                                'ui': {'column-width': 100, 'footer': True, **ui}}))
-    return config, path
+    path = workspace.roots.save_settings({'anon_id': 'durable-id',
+                                          'ui': {'column-width': 100, 'footer': True, **ui}})
+    return path.parent, path
 
 
 @asynccontextmanager

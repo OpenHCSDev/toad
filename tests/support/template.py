@@ -20,12 +20,8 @@ import signal
 import subprocess
 import sys
 import time
-import traceback
 
 from support.roots import Roots
-
-PYTEST_OPTIONS = ("-p", "no:cacheprovider", "-q", "--no-header", "--tb=short", "--color=no")
-
 
 @dataclass(frozen=True)
 class ForkedRun:
@@ -54,7 +50,7 @@ class AppTestTemplate:
         self.process = subprocess.Popen(
             (sys.executable, "-c",
              f"import sys; sys.path[:0] = [{str(tests)!r}, {str(rootpath / 'src')!r}]; "
-             "from support.template import serve; serve()"),
+             "from support.template_server import serve; serve()"),
             cwd=rootpath, env=self.roots.environment(dict(os.environ)),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.log.open("wb"),
             # Unbuffered: each reply is read only after select sees it, so a fast test's
@@ -92,56 +88,3 @@ class AppTestTemplate:
         self.process.stdin.close()
         self.process.wait(timeout=30)
         shutil.rmtree(self.roots.attempt)
-
-
-def serve() -> None:
-    """Import what every app test imports, then fork one process per request on stdin."""
-    import pytest  # noqa: F401
-    import support.workspace  # noqa: F401
-    import toad.app  # noqa: F401
-
-    for line in sys.stdin.buffer:
-        request = json.loads(line)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        if (pid := os.fork()) == 0:
-            run_forked(request)
-        reply({"pid": pid})
-        _, status = os.waitpid(pid, 0)
-        reply({"pid": pid, "exit_code": os.waitstatus_to_exitcode(status)})
-
-
-def reply(fact: dict) -> None:
-    sys.stdout.write(json.dumps(fact) + "\n")
-    sys.stdout.flush()
-
-
-def run_forked(request: dict) -> None:
-    """The forked test process: become the test's own process, run its test, never return."""
-    import tempfile
-
-    code = 70
-    try:
-        # The request pipe and the reply pipe are the template's; the test gets its own files.
-        null = os.open(os.devnull, os.O_RDONLY)
-        os.dup2(null, 0)
-        os.close(null)
-        for fd, path in ((1, request["stdout"]), (2, request["stderr"])):
-            target = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-            os.dup2(target, fd)
-            os.close(target)
-        os.environ.clear()
-        os.environ.update(request["env"])
-        # tempfile keeps the first directory it resolved; this test's TMPDIR is a new one.
-        tempfile.tempdir = None
-        os.chdir(request["cwd"])
-        sys.argv = ["pytest"]
-        import pytest
-
-        code = int(pytest.main([request["nodeid"], *PYTEST_OPTIONS]))
-    except BaseException:
-        traceback.print_exc()
-    finally:
-        sys.stdout.flush()
-        sys.stderr.flush()
-        os._exit(code)
