@@ -408,7 +408,6 @@ class SessionScope(ProjectPathOwner, ToadNode):
 class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
     """A project source may navigate and resolve threads without an ACP session."""
 
-    @abstractmethod
     async def prepare_history_origin(self) -> None:
         """An agent view already has its thread; resident views acquire theirs."""
 
