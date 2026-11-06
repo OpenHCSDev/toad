@@ -163,7 +163,7 @@ class DirectMessagesCommand(ViewCommand, declared_name="dm"):
 
     def available(self, ctx: TargetContext) -> bool:
         names = ctx.selected_targets
-        return len(names) == 1 and names[0] in ctx.observed.registry()
+        return len(names) == 1 and names[0] in ctx.observed.registry_for(names[0])
 
     def execute(self, ctx: TargetContext) -> None:
         ctx.app.session_navigation.direct_messages(ctx.selected_targets[0])
