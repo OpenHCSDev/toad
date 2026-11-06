@@ -29,6 +29,7 @@ from agent_comms.pi_wire import McpLiveAcknowledgement, McpServerReceipt
 from agent_comms.pi_payloads import ReadyMcpServerState, ConfirmMcpCallPolicy
 from textual.pilot import Pilot
 from toad.acp.agent import Agent
+from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation
 from toad.widgets.note import Note
 
@@ -114,17 +115,19 @@ class Relay:
         await self.settled()
 
     async def settled(self) -> None:
-        """Toad handles a session's updates in order: once a marker said after them is drawn,
-        everything sent before it has been handled."""
+        """Toad handles a session's updates in order: once a marker said after them has
+        arrived, everything sent before it has been handled."""
         self.settled_count += 1
         marker = f"RELAY_SETTLED_{self.settled_count}"
         await self.step({"say": marker})
         async with asyncio.timeout(10):
-            while marker not in self.drawn():
+            while marker not in self.said():
                 await self.pilot.pause(.02)
 
-    def drawn(self) -> str:
-        return "\n".join(strip.text for strip in self.view.app.screen._compositor.render_strips())
+    def said(self) -> str:
+        """What the agent has said, as its message bodies hold it: unwrapped, so a marker is
+        found whatever the terminal width (the drawn screen wraps lines mid-marker)."""
+        return "".join(response.body.get_clipboard_text() for response in self.view.query(AgentResponse))
 
 
 @asynccontextmanager
