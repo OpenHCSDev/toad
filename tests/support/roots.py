@@ -103,6 +103,9 @@ class Roots:
             "XDG_DATA_HOME": str(self.attempt / "data"),
             "XDG_STATE_HOME": str(self.attempt / "state"),
             "XDG_CACHE_HOME": str(self.attempt / "cache"),
+            # pywal's palette lives under HOME, not XDG: without this every app test read and
+            # watched the user's real ~/.cache/wal, so its colours depended on the desktop.
+            "PYWAL_CACHE_DIR": str(self.attempt / "cache" / "wal"),
             "PI_CODING_AGENT_DIR": str(self.attempt / "pi"),
             "TMPDIR": str(self.attempt),
             "TERM": "xterm-256color",
