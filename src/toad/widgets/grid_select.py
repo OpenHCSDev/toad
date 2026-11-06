@@ -10,10 +10,10 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.layouts.grid import GridLayout
 from textual.widget import Widget
-from textual.navigation import MovesCursor
+from textual.navigation import MovesCursor, MovesHorizontalCursor
 from ui_theme.scheme import PanelColour, PrimaryColour
 
-from toad.widget_actions import MovesHorizontalCursor, Selects, VisibleActions
+from toad.widget_actions import Selects, VisibleActions
 
 
 class GridCellLook(DeclaresTheme):
@@ -169,12 +169,18 @@ class GridSelect(
             case _:
                 self.post_message(leave(self))
 
-    def cursor_horizontal(self, direction: Literal[-1, 1]) -> None:
+    def move_cell(self, cells: Literal[-1, 1]) -> None:
         match self.highlighted:
             case None:
                 self.highlighted = 0
             case int(cell):
-                self.highlighted = cell + direction
+                self.highlighted = cell + cells
+
+    def action_cursor_left(self) -> None:
+        self.move_cell(-1)
+
+    def action_cursor_right(self) -> None:
+        self.move_cell(1)
 
     def on_click(self, event: events.Click) -> None:
         if event.widget is None:

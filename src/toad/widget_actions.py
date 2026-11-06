@@ -355,43 +355,6 @@ class DismissAction(ReplacesFrameworkAction, VisibleAction):
         context.dismiss_control()
 
 
-class CursorAction(VisibleAction, declared_name=None):
-    """Select along the widget's cursor axis."""
-
-    group = Binding.Group("Select")
-    direction: ClassVar[Literal[-1, 1]]
-
-
-class HorizontalCursorAction(CursorAction, declared_name=None):
-    async def apply(self, context: MovesHorizontalCursor) -> None:
-        context.cursor_horizontal(self.direction)
-
-
-class CursorLeftAction(HorizontalCursorAction):
-    keys = {EditingMode: ("left",)}
-    direction = -1
-
-
-class CursorRightAction(HorizontalCursorAction):
-    keys = {EditingMode: ("right",)}
-    direction = +1
-
-
-class VerticalCursorAction(CursorAction, declared_name=None):
-    async def apply(self, context: MovesVerticalCursor) -> None:
-        context.cursor_vertical(self.direction)
-
-
-class CursorUpAction(VerticalCursorAction):
-    keys = {EditingMode: ("up",)}
-    direction = -1
-
-
-class CursorDownAction(VerticalCursorAction):
-    keys = {EditingMode: ("down",)}
-    direction = +1
-
-
 class SubmitAction(VisibleAction):
     keys = {EditingMode: ("enter",)}
 
@@ -488,16 +451,6 @@ class DismissibleControl(Dismisses):
     @abstractmethod
     def dismiss_control(self) -> None:
         """Close this control without imposing a native screen result contract."""
-
-
-class MovesHorizontalCursor(DeclaredWidgetActions, actions=(HorizontalCursorAction,)):
-    @abstractmethod
-    def cursor_horizontal(self, direction: Literal[-1, 1]) -> None: ...
-
-
-class MovesVerticalCursor(DeclaredWidgetActions, actions=(VerticalCursorAction,)):
-    @abstractmethod
-    def cursor_vertical(self, direction: Literal[-1, 1]) -> None: ...
 
 
 class Submits(DeclaredWidgetActions, actions=(SubmitAction,)):
