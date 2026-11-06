@@ -6,7 +6,7 @@ from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.notification_progress import (
     CompletedProgress, ConsumingProgress, QueuedProgress, SentProgress, ShownToModelProgress,
 )
-from agent_comms.presentation import MessageNotification
+from agent_comms.message_notification import MessageNotification
 
 from toad.notification_status import CheckedNotifications, UnavailableNotifications
 from toad.widgets.message_notifications import MessageNotifications

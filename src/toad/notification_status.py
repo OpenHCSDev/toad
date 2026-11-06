@@ -8,7 +8,7 @@ from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.frozen_recipient import FrozenRecipient
 from agent_comms.message_reference import MessageReference
-from agent_comms.presentation import MessageNotification
+from agent_comms.message_notification import MessageNotification
 from toad.line_blocks import LineBlock, LineLink, LineRole, MutedRole, NameRole, NoticeRole, OpenTarget, Span, SpanColumns, WorkingRole
 
 if TYPE_CHECKING:

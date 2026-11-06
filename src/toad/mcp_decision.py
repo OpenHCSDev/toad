@@ -66,7 +66,7 @@ class LocalDecisionPTY:
                 return UnavailableOutcome()
             if not command.available(selection):
                 return UnsupportedOutcome()
-            from agent_comms.native_pi import NativePiUnavailable
+            from agent_comms.native_failures import NativePiUnavailable
 
             try:
                 node, cli = await asyncio.to_thread(installed_mcp_command)
