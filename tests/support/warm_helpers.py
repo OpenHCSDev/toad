@@ -14,8 +14,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 import fcntl
 import io
-from multiprocessing import popen_spawn_posix, reduction, resource_tracker, spawn, util
+from multiprocessing import popen_spawn_posix, reduction, spawn, util
 from multiprocessing.context import SpawnContext, SpawnProcess, set_spawning_popen
+from multiprocessing.process import BaseProcess
 import os
 import pickle
 import select
@@ -39,10 +40,10 @@ class WarmHelpers(HelperStart):
         return WarmContext()
 
     @classmethod
-    def request(cls, fds: list[int], status: int, *, tracker: int, pipe: int) -> None:
+    def request(cls, fds: list[int], status: int, *, pipe: int) -> None:
         """One helper whose descriptors are ``fds`` at these numbers; ``status`` hears its
         pid, then its exit code."""
-        message = pickle.dumps((fds, tracker, pipe))
+        message = pickle.dumps((fds, pipe))
         socket.send_fds(cls.spawner, [message], [*fds, status])
 
 
@@ -50,13 +51,14 @@ class WarmPopen(popen_spawn_posix.Popen):
     """spawn's launch, with the interpreter replaced by a fork of the warm spawner. The helper
     is the spawner's child, so its exit code arrives on a status pipe instead of waitpid."""
 
-    def _launch(self, process_obj: SpawnProcess) -> None:
-        tracker = resource_tracker.getfd()
-        self._fds.append(tracker)
+    # spawn's own Popen keeps the descriptors its child must find at the same numbers here.
+    _fds: list[int]
+
+    def _launch(self, process_obj: BaseProcess) -> None:
         data = io.BytesIO()
         set_spawning_popen(self)
         try:
-            reduction.dump(spawn.get_preparation_data(process_obj._name), data)
+            reduction.dump(spawn.get_preparation_data(process_obj.name), data)
             reduction.dump(process_obj, data)
         finally:
             set_spawning_popen(None)
@@ -64,14 +66,19 @@ class WarmPopen(popen_spawn_posix.Popen):
         child_r, parent_w = os.pipe()
         self.status, status_w = os.pipe()
         self._fds.extend([child_r, child_w])
-        WarmHelpers.request(self._fds, status_w, tracker=tracker, pipe=child_r)
+        WarmHelpers.request(self._fds, status_w, pipe=child_r)
         for fd in (child_r, child_w, status_w):
             os.close(fd)
         self.pid = EXIT.unpack(os.read(self.status, EXIT.size))[0]
         self.sentinel = parent_r
         with open(parent_w, "wb", closefd=False) as pipe:
             pipe.write(data.getbuffer())
-        self.finalizer = util.Finalize(self, util.close_fds, [parent_r, parent_w, self.status])
+        self.finalizer = util.Finalize(self, self.close, (parent_r, parent_w, self.status))
+
+    @staticmethod
+    def close(*fds: int) -> None:
+        for fd in fds:
+            os.close(fd)
 
     def poll(self, flag: int = os.WNOHANG) -> int | None:
         if self.returncode is None:
@@ -90,7 +97,7 @@ class WarmCoreConnection(LocalCoreConnection):
 
 class WarmProcess(SpawnProcess):
     @staticmethod
-    def _Popen(process_obj: SpawnProcess) -> WarmPopen:
+    def _Popen(process_obj: BaseProcess) -> WarmPopen:
         return WarmPopen(process_obj)
 
 
@@ -107,26 +114,26 @@ class HelperSpawner:
 
     def serve(self) -> None:
         while request := self.receive():
-            (numbers, tracker, pipe), fds = request
+            (numbers, pipe), fds = request
             if os.fork() == 0:
                 self.test.close()
-                self.watch(numbers, fds, tracker=tracker, pipe=pipe)
+                self.watch(numbers, fds, pipe=pipe)
             for fd in fds:
                 os.close(fd)
             self.reap(os.WNOHANG)
         self.reap(0)
 
-    def receive(self) -> tuple[tuple[list[int], int, int], list[int]] | None:
+    def receive(self) -> tuple[tuple[list[int], int], list[int]] | None:
         data, fds, _, _ = socket.recv_fds(self.test, 1 << 16, 64)
         return (pickle.loads(data), fds) if data else None
 
     @staticmethod
-    def watch(numbers: list[int], fds: list[int], *, tracker: int, pipe: int) -> None:
+    def watch(numbers: list[int], fds: list[int], *, pipe: int) -> None:
         """Fork the helper, report its pid and then its exit code, and never return."""
         *received, status = fds
         if (helper := os.fork()) == 0:
             os.close(status)
-            HelperSpawner.become_helper(numbers, received, tracker=tracker, pipe=pipe)
+            HelperSpawner.become_helper(numbers, received, pipe=pipe)
         for fd in received:
             os.close(fd)
         os.write(status, EXIT.pack(helper))
@@ -135,16 +142,17 @@ class HelperSpawner:
         os._exit(0)
 
     @staticmethod
-    def become_helper(numbers: list[int], received: list[int], *, tracker: int, pipe: int) -> None:
+    def become_helper(numbers: list[int], received: list[int], *, pipe: int) -> None:
         """Put each descriptor at the number the pickled process names, then run spawn's
-        child half (multiprocessing.spawn.spawn_main) in this warm interpreter."""
+        child half (multiprocessing.spawn._main) in this warm interpreter. The resource
+        tracker is the one thing spawn_main adds; a helper registers nothing its parent did not,
+        and one that does starts its own tracker on demand."""
         moved = [fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, 1024) for fd in received]
         for fd in received:
             os.close(fd)
         for fd, number in zip(moved, numbers):
             os.dup2(fd, number, inheritable=False)
             os.close(fd)
-        resource_tracker._resource_tracker._fd = tracker
         os._exit(spawn._main(pipe, os.dup(pipe)))
 
     @staticmethod
