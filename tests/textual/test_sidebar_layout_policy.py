@@ -190,6 +190,8 @@ def test_a_band_split_shares_the_width_survives_other_changes_and_keeps_both_bar
     for folds in product((False, True), repeat=2):
         collapsed = dict(zip((first, second), folds))
         splitters = sum(layout.splits_after(bar, collapsed) for bar in (first, second))
+        for shown, folded in collapsed.items():
+            assert not layout.splits_after(shown, {shown: folded}), "A hidden neighbour draws no splitter"
         assert splitters == (folds[0] is folds[1]), (
             "One splitter separates bars sharing a row, both open or both folded; none otherwise")
     reloaded = layout_for(SavedSettings(layout.settings.document()))
