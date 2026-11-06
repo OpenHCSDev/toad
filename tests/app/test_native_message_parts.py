@@ -19,6 +19,6 @@ async def test_saved_message_in_parts_shows_as_one_message(workspace):
         await ui.until(lambda: ui.shows("value = 123") and not ui.shows("## Plan"), why="the styled message")
         lines = [line.strip(" │▌").strip() for line in ui.visible_lines()]
         assert sum(" Agent " in line and "──" in line for line in lines) == 1, "one native row gained extra dividers"
-        assert "Plan" in lines
+        assert any(line.split()[:1] == ["Plan"] for line in lines), "the heading shows as its text"
         assert "• Read first" in lines and "• Keep working" in lines
         assert not any("```" in line or "**" in line for line in lines)
