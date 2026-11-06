@@ -18,7 +18,7 @@ from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.field_codec import FieldCodec, boundary_decoder
 from agent_comms.cli_result import CliResult
 from agent_comms.importing import ThreadImported
-from agent_comms.tools import CommsExportWireTool, CommsImportThreadTool
+from agent_comms.transport.tools.sidebar import CommsExportWireTool, CommsImportThreadTool
 
 from agent_comms.exporting import WireExportProvenance, JsonlFormat, TextFormat, ChannelScope, DmScope, EverythingScope, FullLimit, MaxBytesLimit, WireExportFormat, WireExportLimit, WireExportScope
 from agent_comms.transport.progress import CancellableWireExport, WireExportCancelled, WireExportObserver, WireExportProgress

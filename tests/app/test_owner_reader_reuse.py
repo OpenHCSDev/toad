@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from agent_comms.errors import RouteChangedError
-from agent_comms.tools import CommsServedRootTool
+from agent_comms.transport.tools.sidebar import CommsServedRootTool
 
 from support.roots import installed_wire
 from support.workspace import Workspace

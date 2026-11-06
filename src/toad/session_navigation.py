@@ -7,7 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from agent_comms.tools import CommsRetiredViewsTool
+from agent_comms.transport.tools.sidebar import CommsRetiredViewsTool
 from agent_comms.repo import Checkout
 from typing import TYPE_CHECKING, cast
 

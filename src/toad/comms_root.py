@@ -38,7 +38,7 @@ from agent_comms.channel_targets import NamedTarget
 from toad.widgets.thread_comms_source import RelationshipReads
 from toad.core.context_reads import ContextReads
 from agent_comms.historical_views import HistoricalSenders, HistoricalThread
-from agent_comms.tools import (
+from agent_comms.transport.tools.sidebar import (
     CommsRegistryTool,
     CommsHistoricalThreadsTool,
     CommsMarkThreadViewReadTool, CommsServedRootTool, CommsSessionThreadTool,

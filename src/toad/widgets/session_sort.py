@@ -22,7 +22,7 @@ from typing import Annotated, ClassVar
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
 )
-from agent_comms.tools import CommsSortChannelsTool
+from agent_comms.transport.tools.sidebar import CommsSortChannelsTool
 from python_introspect import FieldLabel
 from textual.geometry import Region
 from textual.widget import Widget

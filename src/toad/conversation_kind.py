@@ -19,7 +19,7 @@ from agent_comms.channel_targets import (
 )
 from agent_comms.channels import AllChannel
 from agent_comms.transport.request import CoreAccess
-from agent_comms.tools import (
+from agent_comms.transport.tools.sidebar import (
     CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool,
 )
 from agent_comms.nominal.declared_family import DeclaredFamily

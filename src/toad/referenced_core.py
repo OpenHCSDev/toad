@@ -9,7 +9,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.display_references import CurrentDisplayReferences
 from agent_comms.presentation import WireRevision
 from agent_comms.registry_document import RegistrySnapshot
-from agent_comms.tools import (CommsReferenceNamesTool, CommsRegistrySliceTool, CommsRegistryTool,
+from agent_comms.transport.tools.sidebar import (CommsReferenceNamesTool, CommsRegistrySliceTool, CommsRegistryTool,
                                CommsWireRevisionTool)
 
 
