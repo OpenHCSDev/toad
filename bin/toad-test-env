@@ -66,4 +66,4 @@ if [[ ! -e "$environment" ]]; then
     mv -- "$stage" "$environment"
     trap - EXIT
 fi
-printf 'cd %s && %s -m pytest\n' "$toad_root" "$environment/bin/python"
+printf 'cd %s && %s -m pytest -n auto\n' "$toad_root" "$environment/bin/python"
