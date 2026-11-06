@@ -98,6 +98,9 @@ class OpensLinks(OpensMarkdownLinks, CoreEventReceiver, MroDispatch):
         """Markdown hands its href back as a string; decode it once into the link it carries."""
         self.dispatch_sync(LineLink.from_href(href))
 
+    async def link_menu(self, href: str, event: object) -> bool:
+        return await LineLink.from_href(href).copy_menu(self, event)
+
 
 class MessageRowBlock(OpensLinks):
     """A widget that is one bus message under the cursor: it offers the message's menu."""
