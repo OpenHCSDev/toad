@@ -8,7 +8,7 @@ from itertools import filterfalse
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time_ns
-from typing import TYPE_CHECKING, Callable, ClassVar
+from typing import Callable, ClassVar
 
 from acp import schema as acp_protocol
 from acp.exceptions import RequestError
@@ -162,10 +162,9 @@ def make_session_title(prompt: str) -> str:
     return title
 
 
-if TYPE_CHECKING:
-    from toad.widgets.question import Ask
-    from toad.widgets.terminal import Terminal
-    from toad.widgets.transcript_history import LineHistory
+from toad.widgets.question import Ask
+from toad.widgets.terminal import Terminal
+from toad.widgets.transcript_history import LineHistory
 
 
 HELP_URL = "https://github.com/batrachianai/toad/discussions"
