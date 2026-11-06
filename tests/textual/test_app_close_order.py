@@ -12,17 +12,31 @@ from agent_comms.fresh_private_session import create_fresh_private_session
 
 from support.agents import deliver
 from support.coordination import carrying, coordination_fact
+from support.ui import saved_tab
+from toad.screens.main import MainScreen
 from toad.widgets.transcript_history import TranscriptHistory
 
 
-async def test_native_unmount_retires_the_acquired_history_after_children_leave(workspace):
+async def test_an_evicted_tab_retires_the_acquired_history_after_children_leave(workspace):
+    """A conversation leaves its screen only by eviction, once another tab is presented."""
     async with workspace.app() as ui:
+        app, _ = ui.textual
+        evicted = ui.selected_tab
+        owner = app.selected_session
         view = ui.conversation
         source = view.transcript.binding.history.page_source
-        await view.remove()
+        await app.session_navigation.new(await saved_tab(app), lambda: MainScreen(app.project_dir))
+        await app.selected_session.wait_content_ready()
+        await owner.presentation.evict(owner)
         await ui.step()
-        assert source.closed
+        # Eviction releases the native tree and unbinds the view: the source is either
+        # parked for the restore or closed, never left without an owner.
+        assert owner.presentation.widget is None
         assert not view.transcript.binding.matches(view)
+        assert source.closed or source in owner.presentation.transcript.documents
+        # Closing the tab retires whatever the eviction kept.
+        await ui.close_tab(evicted)
+        await ui.until(lambda: source.closed, seconds=5, why="the closed tab's history source to close")
         assert ui.failure() is None
 
 
