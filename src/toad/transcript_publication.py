@@ -760,14 +760,17 @@ class BoundView(ViewBinding):
 
         async def replace() -> None:
             await retirement
+            # Another source change may have replaced the history while this one waited:
+            # the history in place now is the one to replace, not the one seen at the call.
+            current = self._history
             replacement = TranscriptHistory.empty(
                 view=self.view, notification_view=self.contents
             )
             self._history = replacement
-            removal = history.remove()
+            removal = current.remove()
             # Both native membership changes happen before yielding: callbacks
             # see one active reader while the old tree finishes pruning.
-            mounted = self.contents.mount(replacement, before=history)
+            mounted = self.contents.mount(replacement, before=current)
             await mounted
             await removal
 
