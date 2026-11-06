@@ -1,28 +1,24 @@
 """Declaration-owned widget membership without replacing the native metaclass."""
 from __future__ import annotations
 
-from abc import update_abstractmethods
 from inspect import isabstract
 from typing import ClassVar, Self
 
 
 class DeclaredWidget:
-    """Cooperative widget families register their concrete declarations once."""
+    """Cooperative widget families register their declarations once; the message-pump
+    metaclass decides which are abstract, after __init_subclass__ has run, so membership
+    asks at read time."""
 
-    __abstractmethods__: ClassVar[frozenset[str]] = frozenset()
     _members: ClassVar[list[type[DeclaredWidget]]] = []
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)
-        # The type descriptor is class-local; initialize it before ABC derives it.
-        cls.__abstractmethods__ = frozenset()
-        update_abstractmethods(cls)
-        if not isabstract(cls):
-            DeclaredWidget._members.append(cls)
+        DeclaredWidget._members.append(cls)
 
     @classmethod
     def members(cls) -> tuple[type[Self], ...]:
         return tuple(
             member for member in DeclaredWidget._members
-            if issubclass(member, cls)
+            if issubclass(member, cls) and not isabstract(member)
         )
