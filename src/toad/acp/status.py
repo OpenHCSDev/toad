@@ -47,6 +47,10 @@ class CancelledStopReason(StopReason):
     pass
 
 
+class UnreportedStopReason(StopReason, declared_name=None):
+    """The turn ended without a reason from the agent: its request failed or its session retired."""
+
+
 @dataclass(frozen=True)
 class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     call: ToolCall

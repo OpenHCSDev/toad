@@ -183,7 +183,7 @@ class VimCycleTabAction(VimWorkspaceAction, declared_name=None):
     direction: Literal[-1, 1]
 
     async def apply(self, app: ToadApp) -> None:
-        await SessionNavigate(app.selected_mode, self.direction).apply(app.session_navigation)
+        await SessionNavigate(self.direction).apply(app.session_navigation)
 
 
 class VimNextTabAction(VimCycleTabAction):

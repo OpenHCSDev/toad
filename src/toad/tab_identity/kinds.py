@@ -47,22 +47,29 @@ class MailboxTab(SessionTabIdentity):
     async def entry(self, navigation):
         return await navigation.mailbox_entry(self)
 
-    async def history_source(self, navigation):
-        # Mailbox metadata already carries the original thread identity. Its
-        # history needs the owner shell, not an ACP connection or painted body.
-        entry = await self.restore(navigation)
-        return (await navigation.app.prepare_session(entry.mode)).origin.require()
-
 
 @dataclass(frozen=True)
 class HistoryTab(TabIdentity):
+    """A conversation tab saved when it still belonged to the session that opened it. Saved
+    workspaces hold these rows, so they decode; each reopens nowhere and is removed."""
+
     key: ConversationKind
     owner: HistoryOrigin
     root: str
 
     async def entry(self, navigation):
-        source = await self.owner.restore(navigation)
-        return await navigation.history_entry(self, source)
+        raise TabTargetGone(self, "saved when conversation tabs belonged to a session; reopen it from the sidebar")
+
+
+@dataclass(frozen=True)
+class CommsTab(TabIdentity):
+    """A conversation on one bus, as the owner views it."""
+
+    key: ConversationKind
+    root: str
+
+    async def entry(self, navigation):
+        return await navigation.history_entry(self)
 
 
 @dataclass(frozen=True)
@@ -72,4 +79,4 @@ class PreviewTab(TabIdentity):
     async def entry(self, navigation):
         if not await navigation.app.preparation.run_thread(self.key.exists):
             raise TabTargetGone(self, f"Preview file no longer exists: {self.key}")
-        return PreviewSessionEntry.of(self, self.key, navigation.app.selected_mode)
+        return PreviewSessionEntry.of(self, self.key)

@@ -25,7 +25,7 @@ from agent_comms.ui_model.observation import (
 from toad.app_node import ToadNode
 from toad.core.events import ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
-from toad.input_decision import InputAccepted, InputDecision
+from toad.input_decision import InputAccepted, InputDecision, TranscriptNotReady
 from toad.navigation_context import NavigationOwner, NoNavigationOwner
 from toad.owner_preparation import ExistingOwnerPlan
 from textual.abstract_hooks import AbstractHooksMeta
@@ -34,6 +34,13 @@ from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 from agent_comms.message_reference import MessageReference
 from toad.comms_root import Observing
+
+from toad.bus_submission import (
+    BusDestination,
+    SubmissionOwner,
+    SubmissionStart,
+    SubmittedText,
+)
 
 if TYPE_CHECKING:
     from toad.widget_actions import DeclaredWidgetActions
@@ -44,11 +51,32 @@ if TYPE_CHECKING:
     from toad.agent_schema import AgentDefinition
     from toad.comms_root import CoordinationAccess
     from toad.conversation_kind import DmConversation
-    from toad.core.input_events import UserInputSubmitted
     from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
     from toad.thread_identity import SessionIdentity
     from toad.widgets.conversation import Conversation
+
+
+class MailboxSent(ABC):
+    """What a CLI thread's sources do once its inbox message is delivered."""
+
+    @abstractmethod
+    async def mailbox_sent(self, view: Conversation, sent: MessageReference) -> None: ...
+
+
+@dataclass(frozen=True)
+class MailboxDestination(BusDestination):
+    """A CLI thread's inbox: shown while its view stays bound to this transcript."""
+
+    scope: KnownTranscript
+    view: Conversation
+    sources: MailboxSent
+
+    def shown(self) -> bool:
+        return self.scope.shown_by(self.view)
+
+    async def presented(self, sent: MessageReference) -> None:
+        await self.sources.mailbox_sent(self.view, sent)
 
 
 class TranscriptScope(ABC):
@@ -104,13 +132,14 @@ class TranscriptScope(ABC):
     def mailbox_target(self) -> ThreadTarget: ...
 
     @abstractmethod
-    async def submit_mailbox(
+    def begin_mailbox(
         self,
+        owner: SubmissionOwner,
+        submission: SubmittedText,
         view: Conversation,
-        event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference | None], Awaitable[None]],
-    ) -> None: ...
+        sources: MailboxSent,
+    ) -> SubmissionStart: ...
 
     @abstractmethod
     async def show_mailbox_status(
@@ -192,20 +221,16 @@ class KnownTranscript(TranscriptScope):
     def mailbox_target(self) -> ThreadTarget:
         return ThreadTarget(self.name)
 
-    async def submit_mailbox(
+    def begin_mailbox(
         self,
+        owner: SubmissionOwner,
+        submission: SubmittedText,
         view: Conversation,
-        event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference | None], Awaitable[None]],
-    ) -> None:
-        await view.submit_comms_message(
-            self.root,
-            self.mailbox_conversation(view, conversation_type),
-            event.body,
-            lambda: self.shown_by(view),
-            presented,
-        )
+        sources: MailboxSent,
+    ) -> SubmissionStart:
+        return owner.start_bus(submission, MailboxDestination(
+            self.root, self.mailbox_conversation(view, conversation_type), self, view, sources))
 
     async def show_mailbox_status(
         self, view: Conversation, conversation_type: type[DmConversation]
@@ -284,14 +309,15 @@ class NoTranscript(TranscriptScope):
     def mailbox_target(self) -> Never:
         self.unavailable()
 
-    async def submit_mailbox(
+    def begin_mailbox(
         self,
+        owner: SubmissionOwner,
+        submission: SubmittedText,
         view: Conversation,
-        event: UserInputSubmitted,
         conversation_type: type[DmConversation],
-        presented: Callable[[MessageReference | None], Awaitable[None]],
-    ) -> None:
-        view.delivery_refused("CLI transcript is not ready", event.body)
+        sources: MailboxSent,
+    ) -> SubmissionStart:
+        return owner.unbound(submission, TranscriptNotReady())
 
     async def show_mailbox_status(
         self, view: Conversation, conversation_type: type[DmConversation]
@@ -401,10 +427,6 @@ class SessionScope(ProjectPathOwner, ToadNode):
 
 class ProjectSessionOrigin(SessionOrigin, CheckoutRoot, SessionScope):
     """A project source may navigate and resolve threads without an ACP session."""
-
-    @abstractmethod
-    def history_origin(self):
-        """The durable opening source of this view's history tabs."""
 
     async def prepare_history_origin(self) -> None:
         """An agent view already has its thread; resident views acquire theirs."""

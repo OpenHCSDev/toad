@@ -7,7 +7,7 @@ from dataclasses import FrozenInstanceError
 from functools import partial
 
 import pytest
-from agent_comms.channel_targets import ChannelTarget
+from agent_comms.channel_targets import ChannelTarget, IncarnationThreadTarget
 from agent_comms.comms import Comms
 from agent_comms.active_route import resolve_comms_route
 from support.roots import installed_wire
@@ -102,35 +102,33 @@ def test_routes_reject_duplicate_declarations_and_unregistered_kinds(copied_conv
         HistoryTarget.for_conversation(UnroutedConversation(ChannelTarget("#team")), references)
 
 
-def test_kind_and_owner_are_part_of_identity_but_channel_address_is_shared(copied_conversations):
+def test_kind_is_part_of_identity_and_each_conversation_has_one_view(copied_conversations):
     comms, viewer = copied_conversations
     conversation = ChannelConversation(ChannelTarget("#team"))
     with pytest.raises(FrozenInstanceError):
         conversation.target = ChannelTarget("#other")
-    key = CommsViewKey(str(comms.root), "owner", conversation)
-    assert key == CommsViewKey(str(comms.root), "owner", ChannelConversation(ChannelTarget("#team")))
-    assert key != CommsViewKey(str(comms.root), "owner", IrcConversation(ChannelTarget("#team")))
+    key = CommsViewKey(str(comms.root), conversation)
+    assert key == CommsViewKey(str(comms.root), ChannelConversation(ChannelTarget("#team")))
+    assert key != CommsViewKey(str(comms.root), IrcConversation(ChannelTarget("#team")))
     direct = DirectTarget("peer").prepare(CoreAt(comms), viewer).conversation
-    assert key != CommsViewKey(str(comms.root), "owner", direct)
-    assert len({key, CommsViewKey(str(comms.root), "owner", conversation)}) == 1
-    assert conversation.view_identity(key) == conversation.view_identity(
-        CommsViewKey(str(comms.root), "another-owner", conversation)
-    )
-    assert direct.view_identity(CommsViewKey(str(comms.root), "owner", direct)) != direct.view_identity(
-        CommsViewKey(str(comms.root), "another-owner", direct)
+    assert key != CommsViewKey(str(comms.root), direct)
+    assert len({key, CommsViewKey(str(comms.root), conversation)}) == 1
+    # No session owns a conversation tab: one view per conversation, a DM as a channel.
+    assert direct.view_identity(CommsViewKey(str(comms.root), direct)) == direct.view_identity(
+        CommsViewKey(str(comms.root), DirectTarget("peer").prepare(CoreAt(comms), viewer).conversation)
     )
 
 
 def test_dm_rename_retains_key_and_history_scope_but_resolves_current_name(copied_conversations):
     comms, viewer = copied_conversations
     direct = DirectTarget("peer").prepare(CoreAt(comms), viewer).conversation
-    key = CommsViewKey(str(comms.root), "owner", direct)
+    key = CommsViewKey(str(comms.root), direct)
     scope = direct.input_scope
     comms.registry.rename("peer", "renamed")
     reopened = DirectTarget("renamed").prepare(CoreAt(comms), viewer).conversation
     references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert direct == reopened
-    assert key == CommsViewKey(str(comms.root), "owner", reopened)
+    assert key == CommsViewKey(str(comms.root), reopened)
     assert direct.input_scope == reopened.input_scope == scope
     assert direct.label(references) == "@renamed"
     assert direct.send_target().selected_name(comms.registry.snapshot()) == "renamed"
@@ -146,10 +144,12 @@ def test_recreated_name_cannot_resolve_the_retired_dm(copied_conversations):
     recreated = DirectTarget("peer").prepare(CoreAt(comms), viewer).conversation
     references = comms.views.viewer_snapshot(Checkout(comms.root.parent)).references
     assert recreated != direct
-    assert CommsViewKey(str(comms.root), "owner", recreated) != CommsViewKey(str(comms.root), "owner", direct)
+    assert CommsViewKey(str(comms.root), recreated) != CommsViewKey(str(comms.root), direct)
     assert recreated.label(references) == "@peer"
-    with pytest.raises(KeyError):
-        direct.destination(references)
+    # The retired DM answers for its own birth: never the successor that reused the name.
+    assert direct.label(references) == "@peer (gone)"
+    assert direct.destination(references) == IncarnationThreadTarget(direct.peer)
+    assert recreated.destination(references) != direct.destination(references)
 
 
 def test_history_picker_and_channel_status_use_the_same_declared_value(copied_conversations):

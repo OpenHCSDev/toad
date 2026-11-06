@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
-from functools import partial, singledispatch
+from functools import singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -21,6 +21,7 @@ from agent_comms.repo import Checkout
 from agent_comms.historical_views import ConversationObservation, ConversationRevision, HistorySource
 from agent_comms.transport.tools.sidebar import CommsConversationRevisionTool, CommsLatestSequenceTool, CommsMarkPageReadTool
 from agent_comms.message_page import MessagePage, MessagePageRequest
+from agent_comms.message_reference import MessageReference
 from agent_comms.messages import ConversationRole, Membership, Message, NoHistorySource, NoticeRole
 from metaclass_registry.mro_dispatch import handles
 from agent_comms.page_traversal import (
@@ -53,6 +54,12 @@ from toad.transcript_state import (
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.submission_queue import BusQueueSource
+from toad.bus_submission import (
+    BusDestination,
+    SubmissionOwner,
+    SubmissionStart,
+    SubmittedText,
+)
 from toad.widgets.transcript_fragments import (
     BusMessageFragment,
     MessageShown,
@@ -61,7 +68,6 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from toad.comms_root import Observation
-    from toad.core.input_events import UserInputSubmitted
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.transcript_lines import Lines
     from toad.widgets.wire_history import WireHistory
@@ -431,8 +437,26 @@ class WirePageWork(TranscriptPageWork[WireCut]):
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 
+@dataclass(frozen=True)
+class ChannelDestination(BusDestination):
+    """A channel or inbox page: shown while its view still reads this conversation from this source."""
+
+    source: WirePageBuffer
+    view: CommsChatView
+
+    def shown(self) -> bool:
+        view = self.view
+        return view.is_attached and self.source is view.message_history.page_source and (
+            self.conversation == view.conversation)
+
+    async def presented(self, sent: MessageReference) -> None:
+        await self.view.show_sent(sent)
+
+
 class WirePageBuffer(SavedHistory):
     """The line history's page reader over a wire source."""
+
+    loader: WireSource
 
     work = WirePageWork
 
@@ -454,6 +478,10 @@ class WirePageBuffer(SavedHistory):
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.root, access)
 
+    def refresh_identity(self, view: CommsChatView) -> None:
+        """Dispatch the references of this source's own root: the source the view was opened on."""
+        view.dispatch_sync(view.app.coordination_access.reference_context(str(self.loader.root)))
+
     def command_context(self, view):
         from toad.session_scope import SessionScope
         from toad.target_commands import TargetContext
@@ -470,14 +498,11 @@ class WirePageBuffer(SavedHistory):
             view.query_ancestor(SessionScope).id,
         )
 
-    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
-        conversation = self.loader.conversation
-        current = lambda: (
-            view.is_attached and self is view.message_history.page_source and conversation == view.conversation
-        )
-        await view.submit_comms_message(
-            self.loader.root, conversation, event.body, current, partial(view._show_sent, body=event.body)
-        )
+    def begin_submission(
+        self, view: CommsChatView, owner: SubmissionOwner, submission: SubmittedText
+    ) -> SubmissionStart:
+        """A channel or inbox message queues behind the view's earlier ones; compose stays open."""
+        return owner.start_bus(submission, ChannelDestination(self.loader.root, self.loader.conversation, self, view))
 
     def schedule_refresh(self, view: CommsChatView):
         history = view.message_history

@@ -129,5 +129,12 @@ class DraftPrompt(ChannelPrompt):
     def compose_delivery_controls(self) -> ComposeResult:
         return ()
 
+    @property
+    def holds_input(self) -> bool:
+        return False
+
+    def sync_turn(self) -> None:
+        """A draft has no delivery controls to show."""
+
     def _update_queue_summary(self) -> None:
         pass

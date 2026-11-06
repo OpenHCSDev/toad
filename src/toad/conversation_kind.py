@@ -23,12 +23,15 @@ from agent_comms.transport.tools.sidebar import (
     CommsChannelTool, CommsConversationPageTool, CommsThreadConfigurationTool,
 )
 from agent_comms.nominal.declared_family import DeclaredFamily
-from agent_comms.display_references import ThreadNames
+from agent_comms.display_references import (
+    RetiredThreadReference, ThreadDisplayReference, ThreadNames, ThreadReferenceReader,
+)
 from agent_comms.message_page import MessagePage, PageBounds
 from agent_comms.repo import Checkout
 from agent_comms.thread_identity import ThreadIncarnation
 from textual.app import ComposeResult
 
+from toad.bus_submission import MessageDestination
 from toad.conversation_submission import ConversationSubmissions
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.prompt import MessagePrompt
@@ -51,7 +54,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class ConversationKind(DeclaredFamily, affix="Conversation"):
+class ConversationKind(MessageDestination, DeclaredFamily, affix="Conversation"):
     @property
     @abstractmethod
     def initial_label(self) -> str: ...
@@ -228,6 +231,19 @@ class ChannelConversation(ConversationKind):
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
 
+class PeerLabel(ThreadReferenceReader[str]):
+    """A DM tab names its peer; a retired birth keeps its recorded name, marked gone."""
+
+    def current(self, reference: ThreadDisplayReference) -> str:
+        return f"@{reference.name}"
+
+    def retired(self, reference: RetiredThreadReference) -> str:
+        return f"@{reference.name} (gone)"
+
+
+PEER_LABEL = PeerLabel()
+
+
 @dataclass(frozen=True)
 class DmConversation(ConversationKind):
     peer: ThreadIncarnation
@@ -238,7 +254,9 @@ class DmConversation(ConversationKind):
         return self.peer.require_recorded().lookup
 
     def destination(self, references: ThreadNames) -> ThreadTarget:
-        return ThreadTarget(references.thread(self.peer).name)
+        """Where a send goes: the peer's birth answers, so a successor reusing its name never
+        receives the old peer's messages."""
+        return references.thread(self.peer).target()
 
     def retained_target(self) -> IncarnationThreadTarget:
         return IncarnationThreadTarget(self.peer)
@@ -267,7 +285,7 @@ class DmConversation(ConversationKind):
         return ResolvedConversation(snapshot.require(me).name, cls(resolved.thread.incarnation))
 
     def label(self, references: ThreadNames) -> str:
-        return f"@{self.destination(references).name}"
+        return references.thread(self.peer).read(PEER_LABEL)
 
     @classmethod
     async def update_mentions(cls, view: CommsChatView, source: ReferencedCore) -> None:

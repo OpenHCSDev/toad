@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from toad.widgets.presentation_window import OLDER_END, NEWER_END
-from toad.core import input_events
 from functools import partial
 from toad.widgets.wire_history import HistoryLoading, WireHistory
 from toad.message_rows import IrcMessageStyle
@@ -21,10 +20,12 @@ from metaclass_registry.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.core_event_carrier import CoreEventMessage
-from agent_comms.messages import Message as WireMessage
 from textual.app import ComposeResult
 from textual.content import Content
 
+from agent_comms.message_reference import MessageReference
+from toad.bus_submission import SubmissionStart
+from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.conversation_kind import ConversationKind
 from toad.widgets.conversation import (
     Contents,
@@ -38,8 +39,6 @@ from toad.status_thread import StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.session_scope import NoTranscript, SessionScope
-from toad.command_catalog import CommandCatalog
-from toad.worker_group import InputHistoryRecord
 
 
 def session_thread_name(project_path) -> str:
@@ -158,7 +157,7 @@ class CommsChatView(Conversation):
         access = self.app.coordination_access
         if message.publisher is not history:
             return
-        self.settle_user_message()
+        self.submissions.settle()
         if (not history.state.accepts_source_work
                 or not source.uses_observation(access.observation.observed())):
             return
@@ -207,9 +206,8 @@ class CommsChatView(Conversation):
         """A message composer has no operational agent projection."""
 
     def refresh_identity(self) -> None:
-        """Dispatch the references of this view's own root: the source it was opened on."""
-        root = self.message_history.page_source.loader.root
-        self.dispatch_sync(self.app.coordination_access.reference_context(str(root)))
+        """The view's page source dispatches the references of the root it was opened on."""
+        self.message_history.page_source.refresh_identity(self)
 
     @handles(ReferenceContext)
     def preparing_identity(self, references) -> None:
@@ -257,8 +255,8 @@ class CommsChatView(Conversation):
             return
         await self.refresh_composer(read_only)
         self._refreshed_from = announced
-        # A sent message may now be drawn: composing resumes before mentions are read.
-        self.settle_user_message()
+        # A sent message may now be drawn: its queue entry retires before mentions are read.
+        self.submissions.settle()
         # Composer mentions and DM status read the observer's snapshot
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
@@ -304,26 +302,20 @@ class CommsChatView(Conversation):
         if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):
             history.request_preparation()
 
-    async def composer_read_only(self) -> bool:
-        """Reacquire channel access from this view's current Core source."""
-        return await self.message_history.page_source.read_only()
-
     async def command_target_context(self):
         return self.message_history.page_source.command_context(self)
 
-    async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
-        if event.body.strip().startswith("/") and await CommandCatalog.execute(event.body.strip(), self):
-            return
-        if not event.body.strip():
-            return
-        await self.message_history.page_source.submit_input(self, event)
+    def queue_controls_changed(self) -> None:
+        """A message view has no goal bar to redraw."""
 
-    async def _show_sent(self, sent: WireMessage, body: str) -> None:
-        """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
-        InputHistoryRecord.run_on(self, partial(self.input_histories.prompt.record, body))
+    def begin_submission(self, owner: ConversationSubmissions, submission: AgentInputSubmission) -> SubmissionStart:
+        """A channel or inbox message goes where this view's message source says."""
+        return self.message_history.page_source.begin_submission(self, owner, submission)
+
+    async def show_sent(self, sent: MessageReference) -> None:
+        """Follow the conversation's end and read it now; the queue entry retires once `sent` is drawn."""
         self.window.jump_to_latest()
         await self._refresh()
-        self.settle_user_message()
 
     def draws_user_message(self, sent) -> bool:
         return self.message_history.draws(sent)

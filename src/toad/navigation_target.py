@@ -159,8 +159,7 @@ class HistoryRouted(HistoryTarget, declared_name=None):
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app.session_navigation.history(
-            owner_mode=context.owner_mode, project_path=context.project_path,
-            me=context.actor, route=self,
+            project_path=context.project_path, route=self,
         )
 
 

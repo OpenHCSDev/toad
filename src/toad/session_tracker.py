@@ -88,10 +88,9 @@ class ThreadTab(OpenTab):
 
 @dataclass(frozen=True)
 class CommsViewKey:
-    """A wire destination belongs to one owner session."""
+    """A conversation on one bus: its tab is the owner's view of it, whichever tab opened it."""
 
     root: str
-    owner_mode: str
     conversation: ConversationKind
 
 

@@ -20,6 +20,12 @@ from agent_comms.transcripts import (
 )
 from agent_comms.ui_model.message_category import MessageCategory
 
+from toad.bus_submission import (
+    SubmissionOwner,
+    SubmissionStart,
+    SubmittedText,
+)
+from toad.input_decision import TranscriptNotReady
 from toad.render_backend import ContentAddressedRenderTask
 from toad.transcript_state import DEFERRED_WORK, LatestViewportRequest, SourceWork
 from toad.widgets.committed_presentation import PreparedAppendCommit, PreparedPageCommit
@@ -46,7 +52,6 @@ if TYPE_CHECKING:
     from agent_comms.message_page import MessagePage
 
     from toad.comms_root import CoordinationAccess, Observation
-    from toad.core.input_events import UserInputSubmitted
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.comms_chat import CommsChatView
     from toad.widgets.conversation import Contents
@@ -600,8 +605,13 @@ class ClosedHistory(ReplaceablePageSource):
     def command_context(self, view: CommsChatView):
         return None
 
-    async def submit_input(self, view: CommsChatView, event: UserInputSubmitted) -> None:
-        view.delivery_refused("Conversation source is not ready", event.body)
+    def refresh_identity(self, view: CommsChatView) -> None:
+        """A closed history reads no root; a retired view has no references to follow."""
+
+    def begin_submission(
+        self, view: CommsChatView, owner: SubmissionOwner, submission: SubmittedText
+    ) -> SubmissionStart:
+        return owner.unbound(submission, TranscriptNotReady())
 
     def schedule_refresh(self, view: CommsChatView) -> SourceWork:
         return DEFERRED_WORK

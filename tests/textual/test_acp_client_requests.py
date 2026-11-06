@@ -19,7 +19,7 @@ async def test_agent_requests_are_served_and_the_reply_is_drawn(workspace):
             assert agent.current_mode is agent.available_modes[0]
             assert await agent.set_mode("write") is None
             await ui.until(lambda: agent.current_mode is agent.available_modes[1], why="the mode change")
-            await view.submit_input(input_events.UserInputSubmitted("SDK_SPECIFICATION_JOURNEY"))
+            await view.submissions.submit(input_events.UserInputSubmitted("SDK_SPECIFICATION_JOURNEY"))
             await ui.until(lambda: isinstance(app.screen, PermissionsScreen), why="the permission dialog")
             await ui.until(lambda: ui.shows("old SDK content") and ui.shows("new SDK content"), why="the proposed edit")
             assert ui.shows("Allow SDK edit")

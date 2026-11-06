@@ -4,6 +4,7 @@ from acp.exceptions import RequestError
 
 from toad.acp.client_session import ClientSessionRequest, QueueSessionRequest
 from toad.acp.queue_attachment import QueueActionRefused
+from toad.acp.status import UnreportedStopReason
 
 
 async def test_rebinding_back_to_the_same_name_refuses_captured_requests(app_agents):
@@ -21,7 +22,7 @@ async def test_rebinding_back_to_the_same_name_refuses_captured_requests(app_age
             assert request.retired
             with pytest.raises(RequestError):
                 request.require()
-        assert prompt.unconfirmed("captured session retired") is None
+        assert prompt.unconfirmed("captured session retired") is UnreportedStopReason
         with pytest.raises(QueueActionRefused):
             queue.unconfirmed("captured session retired")
     finally:

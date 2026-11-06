@@ -49,7 +49,6 @@ from toad.screens.session_view import SessionBody, SessionContents, SidebarSessi
 from toad.session_presentation import OperationalSessionPresentation
 from toad.session_scope import AgentBinding, NoAgent, ViewSessionOrigin
 from toad.session_tracker import SessionDetails
-from toad.tab_identity.history_origin import SessionHistoryOrigin
 from toad.thread_identity import NoThreadIdentity, ThreadIdentity
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation
@@ -410,8 +409,6 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
 
     session_details: SessionDetails
 
-    def history_origin(self) -> SessionHistoryOrigin:
-        return SessionHistoryOrigin(self.session_details.identity)
     """The registered entry supplies its existing details before mounting this view."""
 
     def make_conversation(self) -> Conversation:
@@ -476,8 +473,6 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
         if project != self.project_path:
             self.project_path = project
             self._project_panel.show_project(project.path)
-            if self.id is not None:
-                self.app.session_navigation.sync_project(self.id, project)
             self.update_title()
             self.link_context_changed()
 
@@ -490,10 +485,6 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
                 if previous_root != self.coordination_root:
                     self.link_context_changed()
                 self.bind_project(event.worktree)
-                if self.id is not None:
-                    self.app.session_navigation.sync_owner_root(
-                        self.id, self.coordination_root
-                    )
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)
@@ -551,7 +542,7 @@ class MainScreen(NativeMethodKeys, HiddenActions, TogglesIrc, CyclesSessions, Vi
     def navigate_session(self, direction: Literal[-1, 1]) -> None:
         if self.id is not None:
             self.app.session_navigation.events.publish(
-                session_requests.SessionNavigate(self.id, direction)
+                session_requests.SessionNavigate(direction)
             )
 
     @handles(input_events.ProjectDirectoryUpdated)

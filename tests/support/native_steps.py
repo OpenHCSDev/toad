@@ -49,7 +49,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, body: str) -> None:
     assert chat.conversation == DmConversation(comms.registry.require(target).incarnation)
     assert not rows_with(chat, lambda message: message.body == body)
     provider.hold_next_request()
-    await chat.submit_input(input_events.UserInputSubmitted(body))
+    await (await chat.submissions.submit(input_events.UserInputSubmitted(body))).wait()
     await ui.until(provider.entered.is_set, seconds=30, why="the direct message at the provider")
     await ui.until(lambda: rows_with(chat, lambda message: message.body == body), seconds=20,
                    why="the sent message in the chat")
@@ -113,7 +113,7 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     chat = app.selected_session.query_one(CommsChatView)
     assert chat.conversation == ChannelConversation(ChannelTarget("#team"))
     provider.hold_next_request()
-    await chat.submit_input(input_events.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
+    await (await chat.submissions.submit(input_events.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))).wait()
     await ui.until(provider.entered.is_set, seconds=30, why="the triage question at the provider")
     await ui.until(lambda: rows_with(chat, lambda message: message.body == "CHANNEL_NATIVE_TRIAGE"),
                    seconds=20, why="the sent message in the channel")

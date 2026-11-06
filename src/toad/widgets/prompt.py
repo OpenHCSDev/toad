@@ -42,7 +42,6 @@ from ui_theme.scheme import ErrorColour, MutedColour, PrimaryColour, PromptToneC
 from toad import messages
 from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard_png
 from toad.agent_binding import NoAgentConnection
-from toad.conversation_turn import ConversationTurn
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 from toad.input_decision import InputAccepted, InputDecision
@@ -453,10 +452,6 @@ See on-screen instructions for details.
         self.styles.max_height = "50vh"
 
     @property
-    def agent_busy(self) -> bool:
-        return self.prompt.agent_busy
-
-    @property
     def can_enter_shell(self) -> bool:
         return self.submission_allowed and not self.text and not self.shell_mode
 
@@ -739,19 +734,18 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         *,
         project: Checkout,
         disabled: bool = False,
-        turns: ConversationTurn | None = None,
         submissions=None,
     ):
         super().__init__(disabled=disabled)
         self.set_reactive(Prompt.project_path, project)
         self.ask_queue: list[Ask] = []
         self.initial_editing_mode: EditingMode = EditingMode()
-        self.turns = turns
         self.submissions = submissions
 
     @property
-    def agent_busy(self) -> bool:
-        return self.turns.owner.busy if self.turns is not None else False
+    def holds_input(self) -> bool:
+        """Whether this composer's queue takes Enter or waits to be sent; its source answers."""
+        return self.operational_submissions.holds_input
 
     @property
     def operational_submissions(self):
@@ -887,7 +881,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         editor.refresh_bindings()
         from toad.widgets.conversation import Conversation
 
-        self.query_ancestor(Conversation).goal_bar._queue_separator_update()
+        self.query_ancestor(Conversation).queue_controls_changed()
 
     def sync_queue(self) -> None:
         """A queue change moves the turn's controls and the summary; the agent it talks to is unchanged."""
@@ -1112,13 +1106,6 @@ class MessagePrompt(Prompt):
     @property
     def supports_completion(self) -> bool:
         return False
-
-    def sync_turn(self) -> None:
-        # Message composers have no delivery controls or operational turn.
-        pass
-
-    def sync_queue(self) -> None:
-        """A message composer draws no queue summary or delivery controls."""
 
     def sync_configuration(self) -> None:
         pass

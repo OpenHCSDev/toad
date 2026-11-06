@@ -24,7 +24,8 @@ class WorkspaceSessionRequest(Command, CoreEvent):
 
 @dataclass(frozen=True)
 class SessionNavigate(WorkspaceSessionRequest):
-    mode_name: str
+    """Cycle from the selected tab: the request needs only its direction."""
+
     direction: Literal[-1, +1]
 
     async def apply(self, navigation: SessionNavigation) -> None:

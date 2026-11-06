@@ -1,14 +1,37 @@
 """Live channel members use the sidebar's keyed widget reconciliation."""
 
+from dataclasses import dataclass
+from pathlib import Path
+
+from agent_comms.display_references import (
+    RetiredThreadReference,
+    ThreadDisplayReference,
+    ThreadReferenceReader,
+)
 from agent_comms.thread_identity import ThreadIncarnation
 from textual import widgets
 from textual.containers import VerticalGroup
 from textual.content import Content
 
+from toad.comms_root import CoordinationAccess
 from toad.session_scope import SessionScope
-from toad.status_thread import StatusThread
+from toad.status_thread import NoStatusThread, StatusThread
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
+
+
+@dataclass(frozen=True)
+class PeerStatus(ThreadReferenceReader[StatusThread]):
+    """A member row's status is its current thread's; a retired birth has none to show."""
+
+    root: Path
+    access: CoordinationAccess
+
+    def current(self, reference: ThreadDisplayReference) -> StatusThread:
+        return StatusThread.for_root(self.root, reference.name, self.access)
+
+    def retired(self, reference: RetiredThreadReference) -> StatusThread:
+        return NoStatusThread()
 
 
 class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGroup):
@@ -62,10 +85,8 @@ class ChannelActivity(SidebarModelView, KeyedRows[ThreadIncarnation], VerticalGr
 
     def update_row(self, peer: ThreadIncarnation, row) -> None:
         references = self.model_state.shown.observation.require_snapshot().references
-        row.bind(StatusThread.for_root(
-            self.model_state.root(), references.thread(peer).name,
-            self.app.coordination_access,
-        ))
+        row.bind(references.thread(peer).read(
+            PeerStatus(self.model_state.root(), self.app.coordination_access)))
 
     def changed_keys(self, names: frozenset[str]) -> frozenset[ThreadIncarnation]:
         return frozenset(

@@ -11,7 +11,7 @@ async def test_measured_usage_is_shown_and_restored_without_asking_the_model(wor
         await ui.until_agent_ready()
         assert not agent.context_measurement.available
         assert "Native owner has not reported" in ui.status()
-        await view.submit_input(input_events.UserInputSubmitted("CONTEXT_MEASUREMENT_NATIVE"))
+        await view.submissions.submit(input_events.UserInputSubmitted("CONTEXT_MEASUREMENT_NATIVE"))
         await ui.until(lambda: "NATIVE_RESPONSE_1" in ui.painted(view.window), seconds=30, why="the answer")
         await ui.until(lambda: agent.context_measurement.available, seconds=20, why="a context measurement")
         measured = agent.context_measurement

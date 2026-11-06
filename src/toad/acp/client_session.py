@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, NoReturn
 from agent_comms.acp_extension import CoordinationChangedUpdate
 
 from .queue_attachment import QueueActionRefused
+from .status import StopReason, UnreportedStopReason
 
 if TYPE_CHECKING:
     from .agent import Agent
@@ -37,8 +38,10 @@ class ClientSessionRequest:
         if not self.current:
             raise RequestError.invalid_params({'details': 'ACP client request belongs to a retired session'})
 
-    def unconfirmed(self, reason: str) -> None:
-        """Ordinary input failure is presented by its existing failure publication."""
+    def unconfirmed(self, reason: str) -> type[StopReason]:
+        """Ordinary input failure is presented by its existing failure publication; the turn
+        ends with no reason from the agent."""
+        return UnreportedStopReason
 
 
 class QueueSessionRequest(ClientSessionRequest):

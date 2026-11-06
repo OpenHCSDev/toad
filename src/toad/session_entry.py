@@ -90,26 +90,14 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     def original_channels(self) -> tuple[tuple[str, str], ...]:
         return ()
 
-    def entered(self, previous: str) -> None:
-        """Only entries with a return destination retain entry intent."""
-
     async def return_to(self, sessions: SessionNavigation) -> None:
-        await sessions.app.select_session(sessions.previous(self.identity))
+        """Back to the tab selected before this one; the visit history owns that."""
+        await sessions.app.select_session(sessions.app.tab_order.came_from(self.identity))
 
     def forget(self, sessions: SessionNavigation) -> None:
         """End the view's observations before forgetting its logical membership."""
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.close_core_events()
-
-    def sync_owner_root(
-        self, sessions: SessionNavigation, owner: str, root: str | None
-    ) -> None:
-        pass
-
-    def sync_project(
-        self, sessions: SessionNavigation, owner: str, project: Checkout
-    ) -> None:
-        pass
 
 
 class NativeSessionEntry(SessionEntry):
@@ -214,7 +202,7 @@ class NativeSessionEntry(SessionEntry):
             if details.identity != self.identity
         ]
         await app.select_session(
-            sessions.previous(self.identity, eligible=remaining or None)
+            app.tab_order.previous(self.identity, eligible=remaining or None)
         )
 
     def forget(self, sessions: SessionNavigation) -> None:
@@ -228,17 +216,12 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
         identity: TabIdentity,
         key: CommsViewKey,
         project: Checkout,
-        owner_root: str | None,
+        viewer: str,
         participants: tuple[ThreadIncarnation, ...],
-        owner,
     ) -> None:
+        """The owner's tab for one conversation; no session owns it, so none closes or returns it."""
         super().__init__(identity)
-        self.key, self.project, self.owner_root = key, project, owner_root
-        self.participants, self.owner = participants, owner
-
-    @property
-    def owner_mode(self) -> str:
-        return self.key.owner_mode
+        self.key, self.project, self.viewer, self.participants = key, project, viewer, participants
 
     def original_threads(self, sessions):
         return tuple((self.key.root, participant) for participant in self.participants)
@@ -252,10 +235,8 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
         key = self.key
         return CommsScreen(
             project_path=self.project,
-            owner_mode=key.owner_mode,
-            me=self.owner.thread_identity.thread_name(),
+            me=self.viewer,
             conversation=key.conversation,
-            owner_root=self.owner_root,
             wire_root=key.root,
         )
 
@@ -265,9 +246,6 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
 
     async def ready(self, sessions: SessionNavigation) -> None:
         await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()
-
-    def source(self, sessions: SessionNavigation) -> MainScreen | None:
-        return sessions.source(self.key.owner_mode)
 
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.identity, self.key.conversation.initial_label)
@@ -289,52 +267,19 @@ class HistorySessionEntry(SessionEntry, MroProjection[OpenTab]):
             observed.sidebar,
         )
 
-    def depends_on(self, mode: str) -> bool:
-        return super().depends_on(mode) or self.key.owner_mode == mode
-
-    async def return_to(self, sessions: SessionNavigation) -> None:
-        app, owner = sessions.app, self.key.owner_mode
-        await app.select_session(
-            owner
-            if sessions.get(owner) is not None
-            else sessions.previous(self.identity)
-        )
-
-    def sync_owner_root(
-        self, sessions: SessionNavigation, owner: str, root: str | None
-    ) -> None:
-        self.owner_root = (
-            root
-            if root is not None
-            and Path(root).expanduser().resolve() == Path(self.key.root)
-            else None
-        )
-        if view := sessions.app.workspace_sessions.views.get(self.mode):
-            view.rebind_identity(self.owner.thread_identity.thread_name())
-            view.rebind_owner_root(self.owner_root)
-
-    def sync_project(
-        self, sessions: SessionNavigation, owner: str, project: Checkout
-    ) -> None:
-        self.project = project
-        if view := sessions.app.workspace_sessions.views.get(self.mode):
-            view.rebind_project(project)
-
 
 class PreviewSessionEntry(SessionEntry):
     """A read-only file in its own tab."""
 
-    def __init__(self, identity: TabIdentity, path: Path, origin: str) -> None:
+    def __init__(self, identity: TabIdentity, path: Path) -> None:
         super().__init__(identity)
-        self.path, self.origin = path, origin
+        self.path = path
 
     @classmethod
-    def of(cls, identity: TabIdentity, path: Path, origin: str) -> PreviewSessionEntry:
+    def of(cls, identity: TabIdentity, path: Path) -> PreviewSessionEntry:
         from toad.acp.agent_log import AgentLog
 
-        return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(
-            identity, path, origin
-        )
+        return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(identity, path)
 
     def __call__(self):
         from toad.screens.file_preview import FilePreviewScreen
@@ -357,18 +302,6 @@ class PreviewSessionEntry(SessionEntry):
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.identity, self.title)
 
-    def entered(self, previous: str) -> None:
-        if previous != self.mode:
-            self.origin = previous
-
-    async def return_to(self, sessions: SessionNavigation) -> None:
-        app = sessions.app
-        target = (
-            self.origin
-            if sessions.get(self.origin) is not None
-            else sessions.previous(self.identity)
-        )
-        await app.select_session(target)
 
 
 class AcpLogSessionEntry(PreviewSessionEntry):

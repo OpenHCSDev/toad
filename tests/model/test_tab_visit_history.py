@@ -27,11 +27,11 @@ async def test_history_branches_closing_prunes_it_and_a_new_kind_of_tab_needs_no
     order.record_visit(new_kind)
     assert order.names == (first, second, new_kind, third)
     assert order.history_target(+1) is None
-    assert order.previous(new_kind) == second
+    assert order.previous(new_kind) == second.mode_name
     await order.close({second, third})
     order.navigate(-1)
     assert focused[-1][0] == first
-    assert order.previous(new_kind) == first
+    assert order.previous(new_kind) == first.mode_name
     assert order.project({first: 1, new_kind: 2, closed: 3}) == (1, 2)
 
 
@@ -41,10 +41,10 @@ async def test_home_is_shown_only_while_no_tab_is_open(tmp_path):
     await database.create()
     order = TabOrder(lambda mode, index: None, home="home", db=database, scopes=(TabScope("test-core"),))
     await order.load()
-    assert order.previous(closed) is None
+    assert order.previous(closed) == "home"
     await order.open(only)
     # Leaving the only tab for "the previous one" stays on it: home is not a tab to go back to.
-    assert order.previous(only) == only
-    assert order.previous(closed) == only
+    assert order.previous(only) == only.mode_name
+    assert order.previous(closed) == only.mode_name
     await order.close({only})
-    assert order.previous(only) is None
+    assert order.previous(only) == "home"

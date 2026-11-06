@@ -387,7 +387,6 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def select_session(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
         if mode != self.selected_mode:
             self.navigation_reader.invalidate()
-        self.session_navigation.entered(mode, self.selected_mode)
         return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))
 
     async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:

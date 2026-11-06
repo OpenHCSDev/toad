@@ -1,49 +1,29 @@
-"""History opened from a resident welcome view or from a durable agent tab."""
+"""Which tab a conversation tab was opened from, as tabs saved by an older Toad record it.
+
+No tab owns a conversation now; these declarations exist only so those saved rows decode
+(HistoryTab), and each such tab is then removed on restore.
+"""
 
 from __future__ import annotations
 
-from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 
-from toad.constants import WELCOME
 from toad.tab_identity import SessionTabIdentity
-
-if TYPE_CHECKING:
-    from toad.session_navigation import SessionNavigation
-    from toad.session_scope import ProjectSessionOrigin
 
 
 class HistoryOrigin(DeclaredFamily, affix="HistoryOrigin"):
-    @property
-    @abstractmethod
-    def mode_name(self) -> str: ...
-
-    @abstractmethod
-    async def restore(self, navigation: SessionNavigation) -> ProjectSessionOrigin: ...
+    """The opener a saved conversation tab recorded."""
 
 
 @dataclass(frozen=True)
 class WelcomeHistoryOrigin(HistoryOrigin):
-    @property
-    def mode_name(self) -> str:
-        return WELCOME
-
-    async def restore(self, navigation: SessionNavigation) -> ProjectSessionOrigin:
-        source = (await navigation.app.prepare_session(WELCOME)).origin.require()
-        await source.prepare_history_origin()
-        return source
+    """Opened from the welcome view."""
 
 
 @dataclass(frozen=True)
 class SessionHistoryOrigin(HistoryOrigin):
+    """Opened from an agent or mailbox tab."""
+
     identity: SessionTabIdentity
-
-    @property
-    def mode_name(self) -> str:
-        return self.identity.mode_name
-
-    async def restore(self, navigation: SessionNavigation) -> ProjectSessionOrigin:
-        return await self.identity.history_source(navigation)

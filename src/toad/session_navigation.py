@@ -31,10 +31,10 @@ from toad.session_entry import (
     PreviewSessionEntry,
     SessionEntry,
 )
-from toad.session_scope import AgentAttached, AgentBinding, AgentSession, ProjectSessionOrigin, SessionScope, StartsSessions
+from toad.session_scope import AgentAttached, AgentBinding, AgentSession, SessionScope, StartsSessions
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
-from toad.tab_identity import SessionTabIdentity, TabIdentity, TabTargetGone
-from toad.tab_identity.kinds import AcpTab, HistoryTab, MailboxTab, PreviewTab
+from toad.tab_identity import SessionTabIdentity, TabTargetGone
+from toad.tab_identity.kinds import AcpTab, CommsTab, MailboxTab, PreviewTab
 from toad.db import SessionMeta
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
@@ -139,10 +139,6 @@ class SessionNavigation(StartsSessions):
         entry = self.get(mode)
         return self.app.session_tracker.get_session(entry.identity) if entry else None
 
-    def previous(self, current: TabIdentity, *, eligible=None) -> str:
-        identity = self.app.tab_order.previous(current, eligible=eligible)
-        return identity.mode_name if identity is not None else self.app.tab_order.home
-
     async def mailbox_entry(self, identity: MailboxTab) -> SessionEntry:
         def prepare():
             observed = self.app.coordination_access.observation.observed()
@@ -161,18 +157,19 @@ class SessionNavigation(StartsSessions):
             original=(prepared.root, prepared.thread.incarnation),
         )
 
-    async def history_entry(self, identity: HistoryTab, source: ProjectSessionOrigin) -> HistorySessionEntry:
-        def participants():
+    async def history_entry(self, identity: CommsTab) -> HistorySessionEntry:
+        project = self.app.project_dir
+
+        def prepare():
             observed = self.app.coordination_access.observation.observed()
             if not observed.observes(identity.root):
                 raise TabTargetGone(identity, f"History belongs to another bus: {identity.root}")
-            return identity.key.threads_needed(observed, source.thread_identity.thread_name())
+            viewer = observed.user_identity(project).name
+            return viewer, identity.key.threads_needed(observed, viewer)
 
+        viewer, participants = await self.app.preparation.run_thread(prepare)
         return HistorySessionEntry(
-            identity,
-            CommsViewKey(identity.root, identity.owner.mode_name, identity.key),
-            source.project_path, source.coordination_root,
-            await self.app.preparation.run_thread(participants), source,
+            identity, CommsViewKey(identity.root, identity.key), project, viewer, participants,
         )
 
     def thread_row(self, row: ThreadRowModel) -> ThreadRowModel:
@@ -398,60 +395,34 @@ class SessionNavigation(StartsSessions):
         tab = await self.saved(binding.agent, project)
         await self.new(tab, lambda: MainScreen(project, binding, session_pk=tab.key))
 
-    async def history(
-        self,
-        *,
-        owner_mode: str,
-        project_path: Checkout,
-        me: str,
-        route: HistoryRouted,
-    ) -> str:
-        from toad.thread_navigation import ThreadOrigin
-
+    async def history(self, *, project_path: Checkout, route: HistoryRouted) -> str:
+        """Open, or select, the owner's one tab for a conversation on the app's bus."""
         app = self.app
-        try:
-            source = app.workspace_sessions.origin(owner_mode).require()
-        except RelationViolationError as error:
-            app.show_error(error, "The owning agent tab was closed")
-            return app.selected_mode
-        origin = ThreadOrigin.capture(app, source)
         try:
             observed = await app.preparation.run_thread(app.coordination_access.observation.observed)
             requested_root = str(observed.root)
-            if not origin.current(app.thread_navigation, owner_mode):
-                return app.selected_mode
             prepared = await app.navigation_reader.read(
-                CommsNavigationRequest(
-                    observed, owner_mode, me, route, source.coordination_root
-                )
+                CommsNavigationRequest(observed, project_path, route)
             )
         except (UnknownChannelError, UnregisteredThreadError, RouteChangedError) as error:
             app.show_error(error, "Comms target unavailable")
             return app.selected_mode
         if prepared is None:
             return app.selected_mode
-        if not origin.current(app.thread_navigation, owner_mode):
-            return app.selected_mode
         if not await app.preparation.run_thread(
             lambda: app.coordination_access.current(requested_root)
         ):
-            return app.selected_mode
-        if not origin.current(app.thread_navigation, owner_mode):
             return app.selected_mode
         # The history entry is the only owner of this typed key. Workspace
         # factories carry its identity, so no key-to-mode mirror can go stale.
         entry = self.find(prepared.key.conversation.view_identity(prepared.key))
         if entry is None:
             entry = HistorySessionEntry(
-                HistoryTab(
-                    prepared.key.conversation, source.history_origin(),
-                    prepared.key.root,
-                ),
+                CommsTab(prepared.key.conversation, prepared.key.root),
                 prepared.key,
                 project_path,
-                prepared.owner_root,
+                prepared.viewer,
                 prepared.participants,
-                source,
             )
             await self.open(entry)
         else:
@@ -463,9 +434,7 @@ class SessionNavigation(StartsSessions):
         path = path.expanduser().resolve()
         entry = self.find(path)
         if entry is None:
-            entry = PreviewSessionEntry.of(
-                PreviewTab(path), path, self.app.selected_mode
-            )
+            entry = PreviewSessionEntry.of(PreviewTab(path), path)
             await self.open(entry, after=self.app.selected_mode)
         else:
             await self.app.select_session(entry.mode)
@@ -473,10 +442,6 @@ class SessionNavigation(StartsSessions):
             view = self.app.workspace_sessions.views[entry.mode]
             await view.preview.reveal(position)
         return entry.mode
-
-    def entered(self, mode: str, previous: str) -> None:
-        if entry := self.get(mode):
-            entry.entered(previous)
 
     async def return_from(self, mode: str) -> None:
         if entry := self.get(mode):
@@ -486,14 +451,6 @@ class SessionNavigation(StartsSessions):
     def tabs(self) -> tuple[OpenTab, ...]:
         observed = self.app.coordination_access.observation
         return self.app.tab_order.project(observed.tabs(self))
-
-    def sync_owner_root(self, owner: str, root: str | None) -> None:
-        for entry in self.entries.get(owner, {}).values():
-            entry.sync_owner_root(self, owner, root)
-
-    def sync_project(self, owner: str, project: Checkout) -> None:
-        for entry in self.entries.get(owner, {}).values():
-            entry.sync_project(self, owner, project)
 
     async def close(self, mode: str) -> None:
         await self.close_many((mode,))

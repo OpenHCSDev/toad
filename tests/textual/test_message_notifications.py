@@ -98,7 +98,8 @@ async def test_visible_references_are_bounded_and_typed_outcomes_paint_their_det
         await notifications.publish(ui, chat)
         await ui.until_shows(newest_status(chat).title)
         assert newest_status(chat).working
-        await ui.click("▶ Sent", occurrence=len(on_screen) - 1)
+        # Held messages bring up the channel's queue line, as a DM's, so click the newest status drawn now.
+        await ui.click("▶ Sent", occurrence=ui.visible_text().count("▶ Sent") - 1)
         await ui.until_shows("waiting-9: Sent")
         opened = history.visible_fragments()[-1].shown
         assert opened.details_open

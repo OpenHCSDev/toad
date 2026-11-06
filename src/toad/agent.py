@@ -145,7 +145,7 @@ class AgentBase(AgentConnection):
         """Consume a published canonical change; unmanaged agents need no binding."""
 
     @abstractmethod
-    async def send_prompt(self, prompt: str) -> type[StopReason] | None:
+    async def send_prompt(self, prompt: str) -> type[StopReason]:
         """Send a prompt; return its stop reason."""
 
     @property

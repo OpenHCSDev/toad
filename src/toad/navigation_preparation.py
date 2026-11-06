@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from agent_comms.coordination.errors import Refused
@@ -37,27 +36,22 @@ class NavigationRequest(ABC, Generic[ResultT]):
 @dataclass(frozen=True)
 class CommsNavigation:
     key: CommsViewKey
-    owner_root: str | None
+    viewer: str
     participants: tuple[ThreadIncarnation, ...]
 
 
 @dataclass(frozen=True)
 class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
     observed: Observing
-    owner_mode: str
-    me: str
+    project_path: Checkout
     route: HistoryRouted
-    owner_root: str | None
 
     def read(self) -> CommsNavigation:
-        root = self.observed.root
-        resolved = self.route.prepare(self.observed, self.me)
-        owner_root = self.owner_root
-        if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
-            owner_root = None
+        """The owner reads the conversation as the one human sender this UI speaks as."""
+        resolved = self.route.prepare(self.observed, self.observed.user_identity(self.project_path).name)
         return CommsNavigation(
-            CommsViewKey(str(root), self.owner_mode, resolved.conversation),
-            owner_root,
+            CommsViewKey(str(self.observed.root), resolved.conversation),
+            resolved.viewer,
             resolved.conversation.threads_needed(self.observed, resolved.viewer),
         )
 
