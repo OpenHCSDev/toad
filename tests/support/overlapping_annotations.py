@@ -60,7 +60,7 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
         "authored-navigation", frozenset(), Checkout(directory), created_at=1.0)
     segment = UserInputSegment(content="Keep the original instruction.",
                                provenance=(UnattributedProvenance(),))
-    observed = segment.manifest(0)
+    observed = replace(segment.manifest(0), captured_text=(segment.content,))
     spans = tuple(ContextSpan(observed.sha256, ContributionCoordinates.capture(
         type(segment), segment.provenance, 0, text))
         for text in ("Keep", segment.content))

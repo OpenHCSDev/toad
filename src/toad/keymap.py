@@ -196,16 +196,23 @@ class Keymap:
                 for row in (KeymapRow.of(invocation, mode),)}
         conflicts: set[KeyConflict] = set()
         for defaults in catalog.scopes[mode]:
-            # Inspect before Textual resolves clashes by replacing a conflicting binding.
-            claims: dict[str, set[str]] = {}
+            # A scope is ordered: the declared defaults set precedence, and dispatch runs the
+            # first claim on a key and shadows the rest (the prompt's CopyOrClearInputAction over
+            # TextArea.action_copy, TextArea's own end over navigation's ScrollEnd). Two declared
+            # claims on one key are that precedence, never a collision. A collision is a key a
+            # remap moved onto a row that another claim in the scope also holds.
+            claims: dict[str, dict[str, bool]] = {}
             for claim in defaults:
                 row = KeymapRow.of(claim.invocation, mode)
                 for key in self.keys_for(row, claim.keys):
-                    claims.setdefault(key, set()).add(row.binding_id)
-            for key, identities in claims.items():
-                claimed = tuple(sorted(identities))
+                    held = claims.setdefault(key, {})
+                    held[row.binding_id] = held.get(row.binding_id, False) or key not in claim.keys
+            for key, held in claims.items():
+                claimed = tuple(sorted(held))
                 for index, first in enumerate(claimed):
                     for second in claimed[index + 1:]:
+                        if not (held[first] or held[second]):
+                            continue
                         pair = sorted((rows[first], rows[second]), key=lambda row: row.binding_id)
                         first_invocation = catalog.require(pair[0].declaration)
                         second_invocation = catalog.require(pair[1].declaration)
