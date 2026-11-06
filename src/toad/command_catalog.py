@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from collections.abc import Awaitable, Sequence
 from typing import TYPE_CHECKING
 
+from agent_comms.errors import UnregisteredThreadError
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
 from toad.target_commands import CommandContextChanged, TargetContext, ThreadCommand
 
@@ -29,8 +30,6 @@ class CommandCatalog:
         This value is consumed by a refresh or execution and then released;
         widgets retain completion display resources, never applicability.
         """
-        from agent_comms.errors import UnregisteredThreadError
-
         # Local declaration spelling remains authoritative when unavailable.
         commands = {command.command: command for command in advertised}
         try:
