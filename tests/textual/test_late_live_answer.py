@@ -104,7 +104,6 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                     return await read_snapshot(*arguments, **options)
 
                 reader.snapshot = held_read
-                view.transcript.dirty = view.transcript.commit_required = True
                 pending.append(asyncio.create_task(view.transcript.publish(CommitPublication)))
                 await asyncio.wait_for(read_entered.wait(), 5)
 
@@ -121,7 +120,6 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
             if arrival == "read-in-flight":
                 read_release.set()
             else:
-                view.transcript.dirty = view.transcript.commit_required = True
                 if arrival == "commit":
                     pending.append(asyncio.create_task(view.transcript.publish(CommitPublication)))
                 else:
@@ -195,7 +193,6 @@ async def test_an_advancing_commit_retires_the_outgoing_body_and_its_tool_report
         assert publication.reference not in previous
         view.window.anchor()
         view.prompt.focus()
-        view.transcript.dirty = view.transcript.commit_required = True
         await view.transcript.publish(CommitPublication)
         await ui.until(lambda: not outgoing.is_attached and not tool.is_attached,
                        why="the saved outgoing body and its tool report handed off together")
@@ -269,7 +266,6 @@ async def test_returning_to_busy_tab_loads_the_saved_gap(workspace, hidden_count
         with journal.open("a") as output:
             output.write(json.dumps(assistant_entry("AFTER_TAB_RETURN", id="after",
                 parent=f'hidden-{hidden_count - 1}')) + "\n")
-        view.transcript.dirty = view.transcript.commit_required = True
         await view.transcript.publish(CommitPublication)
         assert "AFTER_TAB_RETURN" not in ui.painted(view.window)
         await deliver(agent, {"sessionUpdate": "agent_message_chunk",
