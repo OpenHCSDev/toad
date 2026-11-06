@@ -38,8 +38,11 @@ class Roots:
 
     # Every test's Toad starts from these settings: no test reports usage to the real
     # analytics service or fetches the latest release (both default on), so no app test
-    # touches the network.
-    SETTINGS: ClassVar[dict[str, object]] = {"statistics": {"allow_collect": False},
+    # touches the network. It starts installed, as Tristan's Toad does: with no anon_id,
+    # every start mints one and saves the whole settings file again (ensure_installation),
+    # about 0.3 s that no test is about.
+    SETTINGS: ClassVar[dict[str, object]] = {"anon_id": "00000000-0000-0000-0000-000000000002",
+                                             "statistics": {"allow_collect": False},
                                              "updates": {"check": False}}
 
     @classmethod

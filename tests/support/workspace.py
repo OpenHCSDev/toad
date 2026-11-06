@@ -8,18 +8,17 @@ from contextlib import asynccontextmanager
 from functools import cached_property
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from support.agents import AppAgents
 from support.roots import Roots, installed_wire
 from support.ui import TextualUi
+from agent_comms.comms import Comms
 from agent_comms.threads import NativeThread
+from toad.app import ToadApp
 from toad.comms_root import LocalCoreConnection
+from toad.screens.main import MainScreen
 from toad.session_scope import AgentBinding, NoAgent
-
-if TYPE_CHECKING:
-    from agent_comms.comms import Comms
-    from toad.screens.main import MainScreen
 
 
 class Workspace:
@@ -107,8 +106,6 @@ class Workspace:
         to resume (``resume``); ``session=False`` yields what it started with.
         ``connection`` selects the Core; by default the workspace's own local root.
         """
-        from toad.app import ToadApp
-
         launch = {} if resume is None else {"agent_session_id": resume}
         app = (application or ToadApp)(agent_binding=binding, project_dir=Checkout(self.project),
                                       connection=(connect or self.local_connection.from_launch)(self.launch_root),
