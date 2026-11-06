@@ -33,7 +33,6 @@ from toad.project_path_owner import CheckoutRoot, ProjectPathOwner
 from toad.resource_release import ResourceRelease
 from toad.status_thread import NoStatusThread, StatusThread
 from agent_comms.message_reference import MessageReference
-from toad.comms_root import Observing
 
 from toad.bus_submission import (
     BusDestination,
@@ -42,14 +41,14 @@ from toad.bus_submission import (
     SubmittedText,
 )
 
-if TYPE_CHECKING:
-    from toad.widget_actions import DeclaredWidgetActions
-    from agent_comms.thread_presentation import ThreadPresentation
-    from textual.command import Provider
-    from toad.widgets.side_bar import SideBar
+from toad.widget_actions import DeclaredWidgetActions
+from agent_comms.thread_presentation import ThreadPresentation
+from textual.command import Provider
+from toad.widgets.side_bar import SideBar
+from toad.agent_schema import AgentDefinition
+from toad.comms_root import CoordinationAccess, Observing
 
-    from toad.agent_schema import AgentDefinition
-    from toad.comms_root import CoordinationAccess
+if TYPE_CHECKING:
     from toad.conversation_kind import DmConversation
     from toad.navigation_target import NavigationTarget
     from toad.session_presentation import OperationalSessionPresentation
