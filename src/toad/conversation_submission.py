@@ -28,6 +28,7 @@ from agent_comms.acp_extension import (
 from agent_comms.nominal.declared_family import DeclaredFamily
 
 from toad import messages
+from toad.delivery_failure_view import DeliveryFailureView
 from toad.bus_submission import (
     BusDestination,
     SubmissionOwner,
@@ -301,6 +302,47 @@ class AgentSubmissionExecution(SubmissionExecution):
             await self.owner.view.agent_turn_over(reason)
 
 
+class BusOutcome(ABC):
+    """Where a bus send stands: only a sent message can be drawn by its view."""
+
+    def drawn_by(self, view: DeliveryFailureView) -> bool:
+        return False
+
+
+class NotYetSent(BusOutcome):
+    """Still queued or on its way to Core."""
+
+
+class DeliveryOutcome(BusOutcome):
+    """What Core's answer leaves the execution to do."""
+
+    @abstractmethod
+    async def settle_into(self, execution: BusSubmissionExecution) -> None: ...
+
+
+@dataclass(frozen=True)
+class SentMessage(DeliveryOutcome):
+    """Core has the message; the entry stays until the view draws it."""
+
+    reference: MessageReference
+
+    def drawn_by(self, view: DeliveryFailureView) -> bool:
+        return view.draws_user_message(self.reference)
+
+    async def settle_into(self, execution: BusSubmissionExecution) -> None:
+        execution.outcome = self
+        execution.owner.publish_pending()
+        await execution.destination.presented(self.reference)
+        execution.settle()
+
+
+class RefusedMessage(DeliveryOutcome):
+    """Refused, or its fate already answered to the user; the entry just goes."""
+
+    async def settle_into(self, execution: BusSubmissionExecution) -> None:
+        execution.owner.finish(execution)
+
+
 class BusSubmissionExecution(SubmissionExecution):
     """A human message to the bus. It queues behind the view's earlier messages, so they reach
     Core in the order they were typed, and shows as submitting until the view draws it."""
@@ -310,7 +352,7 @@ class BusSubmissionExecution(SubmissionExecution):
         super().__init__(owner, submission)
         self.destination, self.after = destination, after
         self.accepted = asyncio.Event()
-        self.sent: MessageReference | None = None
+        self.outcome: BusOutcome = NotYetSent()
 
     @property
     def current(self):
@@ -325,26 +367,21 @@ class BusSubmissionExecution(SubmissionExecution):
         self.owner.finish(self)
 
     def settle(self) -> None:
-        if self.sent is not None and self.owner.view.draws_user_message(self.sent):
+        if self.outcome.drawn_by(self.owner.view):
             self.owner.finish(self)
 
     async def send(self):
         try:
-            sent = await self.deliver()
+            outcome = await self.deliver()
         except BaseException:
             self.owner.finish(self)
             raise
         finally:
             self.accepted.set()
-        if sent is None:
-            return self.owner.finish(self)
-        self.sent = sent
-        self.owner.publish_pending()
-        await self.destination.presented(sent)
-        self.settle()
+        await outcome.settle_into(self)
 
-    async def deliver(self) -> MessageReference | None:
-        """Send after the earlier messages; a refusal answers here and returns nothing."""
+    async def deliver(self) -> DeliveryOutcome:
+        """Send after the earlier messages; a refusal is answered here."""
         view, body, destination = self.owner.view, self.submission.source_text, self.destination
         access = view.app.coordination_access
         try:
@@ -354,7 +391,7 @@ class BusSubmissionExecution(SubmissionExecution):
             await view.refresh_composer(read_only)
             if read_only:
                 view.delivery_refused(f"{view.status}", body)
-                return None
+                return RefusedMessage()
             route_current = await view.app.preparation.run_thread(lambda: access.current(destination.root))
             if not route_current or not self.current:
                 raise HumanSendRefusedError(RelationViolationError("Message route changed; reopen this view"))
@@ -363,7 +400,7 @@ class BusSubmissionExecution(SubmissionExecution):
             raise
         except (HumanSendError, RouteChangedError) as error:
             delivery_failure(error).present(view, body)
-            return None
+            return RefusedMessage()
         except Exception:
             # Nothing left this machine: the draft comes back, and the failure stays loud.
             view.delivery_refused("the send failed before it left this machine", body)
@@ -372,20 +409,20 @@ class BusSubmissionExecution(SubmissionExecution):
             return await self.commit(observed, body)
         except (HumanSendError, RouteChangedError) as error:
             delivery_failure(error).present(view, body)
-            return None
+            return RefusedMessage()
 
-    async def commit(self, observed, body) -> MessageReference | None:
+    async def commit(self, observed, body) -> DeliveryOutcome:
         view = self.owner.view
         task = asyncio.create_task(asyncio.to_thread(
             observed.send_user_message, self.destination.conversation.send_target(), body))
         try:
-            return await asyncio.shield(task)
+            return SentMessage(await asyncio.shield(task))
         except asyncio.CancelledError:
             view.delivery_unknown("the send was cancelled while it may still be writing", body)
             task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
-            return None
+            return RefusedMessage()
         except CommittedMessageError as error:
-            return error.record.reference
+            return SentMessage(error.record.reference)
         except (HumanSendError, RouteChangedError):
             raise
         except Exception:
