@@ -1194,9 +1194,13 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         self._host = ServesNeovim().host(editor)
         self._initial_lines = tuple(editor.document.lines)
         self._initial_selection = editor.selection
-        self._lifetime = asyncio.create_task(self._write_queued(), name="Neovim session")
         task = asyncio.create_task(self._start())
         task.add_done_callback(self._observe_failure)
+        # The writer is handed the start it waits for. Under Textual's eager task factory a
+        # created task runs inline, before this getter returns and caches; reading
+        # self._started there re-entered this getter until RecursionError, which could land
+        # on the step that wakes the app's message pump and leave every message unread.
+        self._lifetime = asyncio.create_task(self._write_queued(task), name="Neovim session")
         return task
 
     def attach(self, editor: TextArea) -> None:
@@ -1237,9 +1241,9 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         await asyncio.gather(self._started, self._lifetime, return_exceptions=True)
         await self._lease.release()
 
-    async def _write_queued(self) -> None:
+    async def _write_queued(self, started: asyncio.Task[None]) -> None:
         """Requests made before this buffer exists wait for it, in the order they were made."""
-        await self._started
+        await started
         while True:
             self._host.enqueue(self, await self._outgoing.get())
 
