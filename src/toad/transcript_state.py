@@ -14,7 +14,6 @@ from textual.widget import Widget
 from toad.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
 from toad.resource_release import ResourceRelease
 from toad.widgets.presentation_window import NEWER_END, OLDER_END, PageRequest
-from toad.core.events import ThreadRowsChanged
 from toad.commit_claims import CommitClaim
 
 if TYPE_CHECKING:
@@ -338,7 +337,7 @@ class WaitingSourceWork[Result]:
         with self.owner.app.coordination_access.observe_thread_changes(self.owner, scope, self.resume):
             yield self
 
-    def resume(self, _event: ThreadRowsChanged) -> None:
+    def resume(self, _event: object) -> None:
         self.owner._source_observation.close()
         if self.snapshot.current(self.owner) and self.owner._source_state is self.state:
             self.state.schedule(self.owner, self.work)

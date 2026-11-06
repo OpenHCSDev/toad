@@ -30,6 +30,7 @@ from toad.widgets.message_divider import ConversationLineBlock
 from toad.widgets.tool_content import ToolContent
 from toad.app_node import ToadNode
 from toad.native_style import PointerCursor, RightMargin
+from toad.widgets.conversation import Conversation
 
 
 class HeaderPointer(DeclaresTheme):
@@ -151,7 +152,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self._manual_expansion = expanded
         self._auto_expanded = False
         self.expanded = expanded
-        from toad.widgets.conversation import Conversation
 
         try:
             conversation = self.query_ancestor(Conversation)
@@ -174,7 +174,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         yield details
 
     def on_mount(self) -> None:
-        from toad.widgets.conversation import Conversation
 
         try:
             conversation = self.query_ancestor(Conversation)
@@ -229,7 +228,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             self.query_one(ToolTitle).display = self.query_one(ToolCallContent).display = self.expanded
         except NoMatches:
             pass
-        from toad.widgets.conversation import Conversation
 
         try:
             conversation = self.query_ancestor(Conversation)

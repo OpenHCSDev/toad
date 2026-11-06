@@ -23,12 +23,13 @@ from toad.conversation_kind import (
     DmConversation,
     IrcConversation,
 )
+from toad.widgets.sidebar_tree import SidebarGroup
+from toad.target_commands import TargetContext
 
 if TYPE_CHECKING:
     from agent_comms.display_references import ThreadNames
 
     from toad.widgets.comms_sidebar import CommsRow, ListedRow
-    from toad.widgets.sidebar_tree import SidebarGroup
 
 @dataclass(frozen=True)
 class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
@@ -47,7 +48,6 @@ class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
         raise TypeError("Expected a named channel or thread target")
 
     def menu_context(self, sidebar, *, channel: ChannelSelection, mode_name=None):
-        from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.model_state.observed, CommandTarget.named(self.name),
                              sidebar.app.workspace_sessions.navigation_owner().navigation_context.actor,
                              sidebar.app.project_dir, mode_name, channel)
@@ -160,7 +160,6 @@ class ChannelLike:
     """Shared channel-row capability; consumers never enumerate row kinds."""
 
     def menu_context(self, sidebar, **kwargs):
-        from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.model_state.observed, CommandTarget.named(self.name),
                               sidebar.app.workspace_sessions.navigation_owner().navigation_context.actor,
                               sidebar.app.project_dir)

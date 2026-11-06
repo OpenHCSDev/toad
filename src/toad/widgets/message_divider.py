@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import TYPE_CHECKING
 
 from agent_comms.ui_model.message_category import MessageCategory
 from rich.style import Style
@@ -37,9 +36,9 @@ from toad.widgets.transcript_lines import (
     RowAcquisition,
     RichLineRenderer,
 )
+from toad.widgets.history_anchor import PinnedHeader
+from toad.widgets.agent_activity import AgentActivityPresentation
 
-if TYPE_CHECKING:
-    from toad.widgets.history_anchor import PinnedHeader
 
 
 class LineBlockRow(FillWidth, AutoHeight, LinkedRows, Widget):
@@ -166,7 +165,6 @@ class AgentActivityDivider(ConversationBlock, CommitParticipant, CategorizedBloc
     ALLOW_SELECT = False
 
     def __init__(self, category: type[MessageCategory], source: Widget) -> None:
-        from toad.widgets.agent_activity import AgentActivityPresentation
 
         super().__init__(AgentActivityPresentation.group[0])
         self._category = category

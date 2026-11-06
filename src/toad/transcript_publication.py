@@ -71,16 +71,16 @@ from toad.widgets.history_anchor import (
 )
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.live_output import LiveOutput
+from toad.widgets.cli_draft import CliDraft
+from toad.widgets.transcript_history import CommittedHistory
 
 if TYPE_CHECKING:
-    from toad.live_output import LiveOutput
-    from toad.widgets.cli_draft import CliDraft
     from toad.widgets.conversation import (
         Contents,
         Conversation,
         ConversationSessionBinding,
     )
-    from toad.widgets.transcript_history import CommittedHistory
 
 
 @dataclass(frozen=True)
