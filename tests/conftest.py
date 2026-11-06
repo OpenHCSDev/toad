@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import time
 import warnings
 
 import pytest
@@ -76,6 +77,7 @@ class OwnProcessTest(pytest.Item):
         from support.processes import stop_test_children
         from support.template import AppTestTemplate
 
+        began = time.time() - 1  # create_time is in clock ticks; one second of slack
         roots = Roots.create()
         result = roots.attempt / "result.jsonl"
         env = roots.environment(dict(os.environ)) | {RESULT: str(result)}
@@ -87,7 +89,7 @@ class OwnProcessTest(pytest.Item):
                                  timeout=config.getoption("--test-timeout"))
         finally:
             # Closing the app leaves owners and helpers running; stop the ones this test started.
-            asyncio.run(stop_test_children(str(roots.attempt)))
+            asyncio.run(stop_test_children(str(roots.attempt), began))
         reports = [json.loads(line) for line in result.read_text().splitlines()] if result.exists() else []
         output = child.stdout.decode(errors="replace")[-12000:] + child.stderr.decode(errors="replace")[-4000:]
         if not child.successful or not reports:
