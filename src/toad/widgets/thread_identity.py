@@ -1,5 +1,6 @@
-from abc import abstractmethod
 """Panels read identity from their logical session, not the native workspace."""
+
+from abc import abstractmethod
 
 from metaclass_registry.mro_dispatch import handles
 from textual.widget import Widget

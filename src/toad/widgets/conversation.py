@@ -609,7 +609,6 @@ class ConversationSessionBinding(
             self.feedback.flash("Agent declined to cancel. Please wait.", style="error")
 
     @abstractmethod
-    @abstractmethod
     def _turn_changed(self, owner: TurnOwner) -> None:
         """Publish the concrete conversation's changed turn projection."""
 

@@ -20,11 +20,9 @@ class SelectionView[R]:
     """A native selection consumer implements both states without another wrapper."""
 
     @abstractmethod
-    @abstractmethod
     def clear_selection(self) -> None:
         ...
 
-    @abstractmethod
     @abstractmethod
     def show_selection(self, key: DisclosureKey, record: R) -> None:
         ...

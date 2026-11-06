@@ -45,6 +45,7 @@ from toad.widgets.sidebar_tree import (
     SidebarGroup,
     SidebarModelView,
     SearchFollower,
+    SelectsTargets,
     TargetTree,
 )
 from agent_comms.relationships import (
@@ -279,7 +280,7 @@ class ThreadCommsSidebar(
     SidebarModelView,
     SidebarVisibilityObserver,
     SearchFollower,
-    TargetTree,
+    SelectsTargets,
     OpensSelected,
 ):
 

@@ -901,87 +901,22 @@ class TargetTree(HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizo
     def reconciliation_tree(self):
         return self
 
-    @property
-    def selection_state(self):
-        raise NotImplementedError
-
-    def selection_for(self, row: CommsRow):
-        raise NotImplementedError
-
     @abstractmethod
     def show_row_menu(self, row: CommsRow, offset: Offset) -> None:
         ...
 
-    def accepts_selection(self) -> bool:
-        return True
-
-    def row_for(self, selection):
-        raise NotImplementedError
-
     def row_selected(self, row: CommsRow) -> bool:
-        return self.selection_for(row) in self.selection_state.selected_targets
-
-    @contextmanager
-    def selection_change(self):
-        previous = set(self.selection_state.selected_targets)
-        try:
-            yield
-        finally:
-            for identity in previous.symmetric_difference(
-                self.selection_state.selected_targets
-            ):
-                if (row := self.row_for(identity)) is not None:
-                    row.refresh_paint()
+        """A tree that keeps no selected set selects no row."""
+        return False
 
     def remember_row(self, row: CommsRow) -> None:
-        """Navigation establishes a range anchor; it is not bulk selection."""
-        rows = self.rows
-        if self.accepts_selection() and row in rows:
-            with self.selection_change():
-                state = self.selection_state
-                state.selected = self.selection_for(row)
-                state.selected_targets = ()
+        """A tree that keeps no selected set has no anchor to remember."""
 
     def pointer_select(self, row: CommsRow, *, control: bool=False, shift: bool=False, menu: bool=False) -> None:
-        if not self.accepts_selection():
-            return
-        rows = self.rows
-        if row not in rows:
-            return
-        selected = self.selection_for(row)
-        state = self.selection_state
-        current = state.selected_targets
-        if menu and selected in current:
-            return
-        identities = tuple(self.selection_for(item) for item in rows)
-        with self.selection_change():
-            if shift and state.selected in identities:
-                start, end = sorted(
-                    (identities.index(state.selected), identities.index(selected))
-                )
-                span = identities[start : end + 1]
-                state.selected_targets = (
-                    tuple(dict.fromkeys((*current, *span))) if control else span
-                )
-            elif control:
-                state.selected_targets = (
-                    tuple(item for item in current if item != selected)
-                    if selected in current
-                    else (*current, selected)
-                )
-                state.selected = selected
-            else:
-                state.selected = selected
-                state.selected_targets = (selected,)
+        """A tree that keeps no selected set ignores pointer selection."""
 
     def apply_selection(self) -> None:
-        with self.selection_change():
-            state = self.selection_state
-            state.selected_targets = tuple(
-                identity
-                for identity in state.selected_targets
-                if self.row_for(identity) is not None
-            )
+        """A tree that keeps no selected set has nothing to prune."""
 
     @property
     @abstractmethod
@@ -1058,3 +993,89 @@ class TargetTree(HiddenActions, VisibleActions, StepsVerticalCursor, MovesHorizo
     def open_selected(self) -> None:
         if (row := self.app.focused) in self.rows:
             row.open_selected()
+
+
+class SelectsTargets(TargetTree):
+    """A tree that keeps a selected set of targets: rows select by pointer and keyboard,
+    and the set survives navigation while its rows exist."""
+
+    @property
+    @abstractmethod
+    def selection_state(self):
+        ...
+
+    @abstractmethod
+    def selection_for(self, row: CommsRow):
+        ...
+
+    def accepts_selection(self) -> bool:
+        return True
+
+    @abstractmethod
+    def row_for(self, selection):
+        ...
+
+    def row_selected(self, row: CommsRow) -> bool:
+        return self.selection_for(row) in self.selection_state.selected_targets
+
+    @contextmanager
+    def selection_change(self):
+        previous = set(self.selection_state.selected_targets)
+        try:
+            yield
+        finally:
+            for identity in previous.symmetric_difference(
+                self.selection_state.selected_targets
+            ):
+                if (row := self.row_for(identity)) is not None:
+                    row.refresh_paint()
+
+    def remember_row(self, row: CommsRow) -> None:
+        """Navigation establishes a range anchor; it is not bulk selection."""
+        rows = self.rows
+        if self.accepts_selection() and row in rows:
+            with self.selection_change():
+                state = self.selection_state
+                state.selected = self.selection_for(row)
+                state.selected_targets = ()
+
+    def pointer_select(self, row: CommsRow, *, control: bool=False, shift: bool=False, menu: bool=False) -> None:
+        if not self.accepts_selection():
+            return
+        rows = self.rows
+        if row not in rows:
+            return
+        selected = self.selection_for(row)
+        state = self.selection_state
+        current = state.selected_targets
+        if menu and selected in current:
+            return
+        identities = tuple(self.selection_for(item) for item in rows)
+        with self.selection_change():
+            if shift and state.selected in identities:
+                start, end = sorted(
+                    (identities.index(state.selected), identities.index(selected))
+                )
+                span = identities[start : end + 1]
+                state.selected_targets = (
+                    tuple(dict.fromkeys((*current, *span))) if control else span
+                )
+            elif control:
+                state.selected_targets = (
+                    tuple(item for item in current if item != selected)
+                    if selected in current
+                    else (*current, selected)
+                )
+                state.selected = selected
+            else:
+                state.selected = selected
+                state.selected_targets = (selected,)
+
+    def apply_selection(self) -> None:
+        with self.selection_change():
+            state = self.selection_state
+            state.selected_targets = tuple(
+                identity
+                for identity in state.selected_targets
+                if self.row_for(identity) is not None
+            )
