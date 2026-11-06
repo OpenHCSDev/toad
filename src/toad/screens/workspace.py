@@ -218,18 +218,21 @@ class WorkspaceFrame(ProfileKeys, WidgetView, Screen):
         for change, answered in changes:
             change.finish_layout(answered)
 
-    def reader_kept(self) -> None:
+    def reader_kept(self, window: Widget) -> None:
         """A history window just kept its reader, for a change about to be made.
 
         A layout paused between its steps started without that position: it
         would arrange the change and show it before the reader is put back.
-        The next layout replaces it and takes the requests it had not finished.
+        The next layout replaces it, requested by the window whose reader moved,
+        so it is scoped to that window's layout boundary like any other request.
+        A bare `_layout_required` named no requester, and an unnamed request is
+        the screen's own: every message arriving mid-layout re-arranged all 445
+        widgets of the workspace (2026-11-06, Tristan's live CLI inbox).
         """
         steps = self._stepped_layout
         if steps is not None and not steps.gi_running:
             self._stop_stepped_layout()
-            self._layout_required = True
-            self.check_idle()
+            window.refresh(layout=True)
 
     def _screen_resized(self, size: Size) -> None:
         if self._navigation_layout.reusable(self, size, include_scroll=False):

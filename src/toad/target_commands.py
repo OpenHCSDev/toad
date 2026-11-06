@@ -16,7 +16,7 @@ from agent_comms.repo import Checkout
 from agent_comms.channel_targets import ChannelSelection, CommandTarget, NoChannel
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_command import TargetAction
-from agent_comms.tools import CommsTargetActionsTool
+from agent_comms.transport.tools.sidebar import CommsTargetActionsTool
 from toad.thread_actions import ThreadAction
 from toad.comms_root import Observing
 

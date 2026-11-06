@@ -7,7 +7,7 @@ from typing import Annotated
 
 from agent_comms.cli_command import PreparedTargetAction
 from agent_comms.transport.request import CoreAccess
-from agent_comms.tools import CommsPrepareTargetActionTool
+from agent_comms.transport.tools.sidebar import CommsPrepareTargetActionTool
 from agent_comms.target_fields import ChoiceTargetField, TargetField
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.nominal.field_codec import compile_decoder

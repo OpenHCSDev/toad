@@ -26,7 +26,7 @@ from agent_comms.ui_model.observation import (
     UnreadableHistory,
 )
 
-from agent_comms.tools import CommsThreadPresentationTool
+from agent_comms.transport.tools.sidebar import CommsThreadPresentationTool
 from toad.session_scope import TranscriptScope
 
 

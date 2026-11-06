@@ -941,7 +941,7 @@ class HistoryWindow(NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[Messa
 
     def keep_reader(self) -> None:
         """What this window draws is about to change: layout keeps the reader where they are now."""
-        self.screen.reader_kept()
+        self.screen.reader_kept(self)
 
     def park_reader(self, contents: Contents) -> ParkedPosition:
         """The reader's tab is being left: keep their place until its history is drawn again."""

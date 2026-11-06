@@ -829,6 +829,30 @@ class EngineFailed(EngineEnding):
         host.restart_sessions(self.failure)
 
 
+class EngineLife(ABC):
+    """Whether the engine is still there to close a buffer in."""
+
+    @abstractmethod
+    async def close(self, host: NeovimHost, buffer: int) -> None: ...
+
+
+class EngineLive(EngineLife):
+    """The engine runs: a released buffer is closed in it."""
+
+    async def close(self, host: NeovimHost, buffer: int) -> None:
+        await host.bootstrap(host, NeovimCall("nvim_exec_lua", ["ToadEditor.close(...)", [buffer]]))
+
+
+class EngineGone(EngineLife):
+    """The engine has stopped, and every buffer went with it: there is nothing left to close,
+    and writing to the stopped child is a broken pipe. On exit Textual cancels the Neovim
+    worker, whose cleanup stops the child, before the editors unmount and release their
+    buffers; every Toad exit logged that write as a crash until 2026-11-06."""
+
+    async def close(self, host: NeovimHost, buffer: int) -> None:
+        return
+
+
 class NeovimSession(NeovimRequester):
     """What the host routes a buffer's notifications to."""
 
@@ -883,6 +907,7 @@ class NeovimHost(NeovimRequester, MroDispatch):
         self._api_types: dict[str, NeovimApiType] = {}
         self._sessions: dict[int, NeovimSession] = {}
         self._focused: NeovimSession = UNCLAIMED
+        self._life: EngineLife = EngineLive()
 
     @cached_property
     def ready(self) -> asyncio.Task[None]:
@@ -917,6 +942,7 @@ class NeovimHost(NeovimRequester, MroDispatch):
             self._ending = EngineFailed(
                 NeovimWireFailure("; ".join(str(error) for error in errors.exceptions)))
         finally:
+            self._life = EngineGone()
             # Forgotten first, so a buffer reopening after a failure finds a new engine.
             self._application.forget_neovim()
             self._ending.end(self)
@@ -1028,7 +1054,7 @@ class NeovimHost(NeovimRequester, MroDispatch):
         session = self._sessions.pop(buffer, UNCLAIMED)
         if self._focused is session:
             self._focused = UNCLAIMED
-        await self.bootstrap(self, NeovimCall("nvim_exec_lua", ["ToadEditor.close(...)", [buffer]]))
+        await self._life.close(self, buffer)
 
     def resolve_reply(self, request: NeovimRequest, reply: NeovimReply, value: object) -> None:
         reply.resolve(request, value)

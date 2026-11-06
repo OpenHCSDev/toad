@@ -9,11 +9,11 @@ from functools import cached_property
 from typing import ClassVar
 from agent_comms.acp_extension import NoQueueScope, QueueItem, QueueScope
 from agent_comms.frozen_recipient import FrozenRecipient
-from agent_comms.tools import CommsQueueActionTool
+from agent_comms.transport.tools.sidebar import (ClearQueueQueueAction, CommsQueueActionTool, QueueAction,
+                                                  SendNowQueueAction)
 from agent_comms.message_reference import MessageReference
 from agent_comms.notification_assignment import NotificationSelection
 from agent_comms.nominal.field_codec import ThreadLookup
-from agent_comms.runtime_requests import ClearQueueRuntimeRequest, QueueActionRuntimeRequest, SendNowRuntimeRequest
 
 from toad.acp.queue_attachment import QueueActionRefused
 from toad.agent_presentation import AgentPresentation
@@ -176,13 +176,13 @@ class BusQueueSource(QueueSource):
         return bool(evidence.delivering) or self.queue_actions_available(evidence)
 
     async def queue_send_now(self, evidence: QueueEvidence, scope: QueueScope) -> None:
-        await self.at_owners(evidence, SendNowRuntimeRequest)
+        await self.at_owners(evidence, SendNowQueueAction)
 
     async def queue_clear(self, evidence: QueueEvidence, scope: QueueScope) -> None:
-        await self.at_owners(evidence, ClearQueueRuntimeRequest)
+        await self.at_owners(evidence, ClearQueueQueueAction)
 
     @staticmethod
-    async def at_owners(evidence: QueueEvidence, action: type[QueueActionRuntimeRequest]) -> None:
+    async def at_owners(evidence: QueueEvidence, action: type[QueueAction]) -> None:
         """Act on the original recipients; stop and propagate a failed action."""
         for recipient in evidence.queued_recipients:
             observed = evidence.observing()

@@ -20,7 +20,7 @@ from agent_comms.runtime_server import AttachedRuntimeRequest
 from agent_comms.runtime_requests import (
     DismissHistoricalInputsRuntimeRequest, EditGoalRuntimeRequest, GoalHistoryRuntimeRequest,
 )
-from agent_comms.tools import (
+from agent_comms.transport.tools.sidebar import (
     CommsCaptureHumanInputTool, CommsMoveThreadProjectTool,
     CommsOwnerRequestTool, CommsRenameManagedThreadTool,
 )
