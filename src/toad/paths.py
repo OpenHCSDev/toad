@@ -75,8 +75,7 @@ def save_error(error: BaseException, prefix: str) -> Path:
 def get_errors() -> Path:
     """The directory holding saved exception tracebacks, apart from agent logs."""
     path = get_log() / "errors"
-    with suppress(OSError):
-        path.mkdir(0o700, exist_ok=True, parents=True)
+    path.mkdir(0o700, exist_ok=True)
     return path
 
 
